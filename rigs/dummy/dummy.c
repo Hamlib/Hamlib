@@ -143,6 +143,7 @@ static const struct confparams dummy_cfg_params[] =
 
 static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
 {
+    ENTERFUNC;
     chan->channel_num = 0;
     chan->vfo = vfo;
     strcpy(chan->channel_desc, rig_strvfo(vfo));
@@ -176,6 +177,7 @@ static void copy_chan(channel_t *dest, const channel_t *src)
     struct ext_list *saved_ext_levels;
     int i;
 
+    ENTERFUNC;
     /* TODO: ext_levels[] of different sizes */
 
     for (i = 0; !RIG_IS_EXT_END(src->ext_levels[i]) &&
@@ -194,11 +196,12 @@ static int dummy_init(RIG *rig)
     struct dummy_priv_data *priv;
     int i;
 
+    ENTERFUNC;
     priv = (struct dummy_priv_data *)malloc(sizeof(struct dummy_priv_data));
 
     if (!priv)
     {
-        return -RIG_ENOMEM;
+        RETURNFUNC(-RIG_ENOMEM);
     }
 
     rig->state.priv = (void *)priv;
@@ -222,7 +225,7 @@ static int dummy_init(RIG *rig)
 
         if (!priv->mem[i].ext_levels)
         {
-            return -RIG_ENOMEM;
+            RETURNFUNC(-RIG_ENOMEM);
         }
     }
 
@@ -230,28 +233,28 @@ static int dummy_init(RIG *rig)
 
     if (!priv->vfo_a.ext_levels)
     {
-        return -RIG_ENOMEM;
+        RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv->vfo_b.ext_levels = alloc_init_ext(dummy_ext_levels);
 
     if (!priv->vfo_b.ext_levels)
     {
-        return -RIG_ENOMEM;
+        RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv->ext_funcs = alloc_init_ext(dummy_ext_funcs);
 
     if (!priv->ext_funcs)
     {
-        return -RIG_ENOMEM;
+        RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv->ext_parms = alloc_init_ext(dummy_ext_parms);
 
     if (!priv->ext_parms)
     {
-        return -RIG_ENOMEM;
+        RETURNFUNC(-RIG_ENOMEM);
     }
 
     init_chan(rig, RIG_VFO_A, &priv->vfo_a);
@@ -269,7 +272,7 @@ static int dummy_init(RIG *rig)
 
     priv->magic_conf = strdup("DX");
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_cleanup(RIG *rig)
@@ -277,7 +280,7 @@ static int dummy_cleanup(RIG *rig)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     for (i = 0; i < NB_CHAN; i++)
     {
@@ -297,12 +300,12 @@ static int dummy_cleanup(RIG *rig)
 
     rig->state.priv = NULL;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_open(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (rig->caps->rig_model == RIG_MODEL_DUMMY_NOVFO)
     {
@@ -315,22 +318,23 @@ static int dummy_open(RIG *rig)
 
     usleep(CMDSLEEP);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_close(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     usleep(CMDSLEEP);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_set_conf(RIG *rig, token_t token, const char *val)
 {
     struct dummy_priv_data *priv;
 
+    ENTERFUNC;
     priv = (struct dummy_priv_data *)rig->state.priv;
 
     switch (token)
@@ -349,16 +353,17 @@ static int dummy_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_get_conf(RIG *rig, token_t token, char *val)
 {
     struct dummy_priv_data *priv;
 
+    ENTERFUNC;
     priv = (struct dummy_priv_data *)rig->state.priv;
 
     switch (token)
@@ -368,16 +373,18 @@ static int dummy_get_conf(RIG *rig, token_t token, char *val)
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     char fstr[20];
+
+    ENTERFUNC;
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
@@ -397,13 +404,15 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: curr->freq=%.0f, curr->tx_freq=%.0f\n",
               __func__,
               priv->curr->freq, priv->curr->tx_freq);
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
 static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+
+    ENTERFUNC;
 
     if (vfo == RIG_VFO_CURR && rig->caps->rig_model != RIG_MODEL_DUMMY_NOVFO) { vfo = priv->curr_vfo; }
 
@@ -412,7 +421,7 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: uplink=%d, ignoring get_freq\n", __func__,
                   rig->state.uplink);
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
 
     usleep(CMDSLEEP);
@@ -426,11 +435,11 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     case RIG_VFO_SUB:
     case RIG_VFO_B:  *freq = priv->curr->tx_freq; break;
 
-    default: return -RIG_EINVAL;
+    default: RETURNFUNC(-RIG_EINVAL);
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -440,6 +449,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     channel_t *curr = priv->curr;
     char buf[16];
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
     sprintf_freq(buf, width);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s %s\n", __func__,
@@ -447,7 +457,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     curr->mode = mode;
 
-    if (RIG_PASSBAND_NOCHANGE == width) { return RIG_OK; }
+    if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(RIG_OK); }
 
     if (width == RIG_PASSBAND_NORMAL)
     {
@@ -458,7 +468,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         curr->width = width;
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -467,13 +477,14 @@ static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
     *mode = curr->mode;
     *width = curr->width;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -482,6 +493,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
@@ -515,9 +527,10 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
     default:
         rig_debug(RIG_DEBUG_VERBOSE, "%s unknown vfo: %s\n", __func__,
                   rig_strvfo(vfo));
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -525,11 +538,11 @@ static int dummy_get_vfo(RIG *rig, vfo_t *vfo)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
     *vfo = priv->curr_vfo;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(*vfo));
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -537,10 +550,10 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
     priv->ptt = ptt;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -550,8 +563,8 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     int rc;
     int status = 0;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     // sneak a look at the hardware PTT and OR that in with our result
     // as if it had keyed us
@@ -560,7 +573,7 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     case RIG_PTT_SERIAL_DTR:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = ser_get_dtr(&rig->state.pttport, &status))) { return rc; }
+            if (RIG_OK != (rc = ser_get_dtr(&rig->state.pttport, &status))) { RETURNFUNC(rc); }
 
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
@@ -574,7 +587,7 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     case RIG_PTT_SERIAL_RTS:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = ser_get_rts(&rig->state.pttport, &status))) { return rc; }
+            if (RIG_OK != (rc = ser_get_rts(&rig->state.pttport, &status))) { RETURNFUNC(rc); }
 
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
@@ -588,7 +601,7 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     case RIG_PTT_PARALLEL:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = par_ptt_get(&rig->state.pttport, ptt))) { return rc; }
+            if (RIG_OK != (rc = par_ptt_get(&rig->state.pttport, ptt))) { RETURNFUNC(rc); }
         }
 
         break;
@@ -596,7 +609,7 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     case RIG_PTT_CM108:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = cm108_ptt_get(&rig->state.pttport, ptt))) { return rc; }
+            if (RIG_OK != (rc = cm108_ptt_get(&rig->state.pttport, ptt))) { RETURNFUNC(rc); }
         }
 
         break;
@@ -605,7 +618,7 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     case RIG_PTT_GPION:
         if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = gpio_ptt_get(&rig->state.pttport, ptt))) { return rc; }
+            if (RIG_OK != (rc = gpio_ptt_get(&rig->state.pttport, ptt))) { RETURNFUNC(rc); }
         }
 
         break;
@@ -615,7 +628,7 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         break;
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -623,11 +636,11 @@ static int dummy_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     static int twiddle = 0;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     *dcd = (twiddle++ & 1) ? RIG_DCD_ON : RIG_DCD_OFF;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -636,11 +649,11 @@ static int dummy_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->rptr_shift = rptr_shift;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -649,11 +662,11 @@ static int dummy_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
     *rptr_shift = curr->rptr_shift;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -662,11 +675,11 @@ static int dummy_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->rptr_offs = rptr_offs;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -675,10 +688,10 @@ static int dummy_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     *rptr_offs = curr->rptr_offs;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -687,11 +700,11 @@ static int dummy_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->ctcss_tone = tone;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -700,11 +713,11 @@ static int dummy_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
     *tone = curr->ctcss_tone;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -713,11 +726,11 @@ static int dummy_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->dcs_code = code;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -726,11 +739,11 @@ static int dummy_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
     *code = curr->dcs_code;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -739,11 +752,11 @@ static int dummy_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     usleep(CMDSLEEP);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     curr->ctcss_sql = tone;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -752,10 +765,10 @@ static int dummy_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     *tone = curr->ctcss_sql;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -764,10 +777,10 @@ static int dummy_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
     curr->dcs_sql = code;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -776,24 +789,21 @@ static int dummy_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     *code = curr->dcs_sql;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
 static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
-    char fstr[20];
 
-    sprintf_freq(fstr, tx_freq);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
-              rig_strvfo(vfo), fstr);
+    ENTERFUNC;
     priv->curr->tx_freq = tx_freq;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -801,11 +811,11 @@ static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
+    ENTERFUNC;
 
     *tx_freq = priv->curr->tx_freq;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
@@ -813,19 +823,16 @@ static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
-    char buf[16];
 
-    sprintf_freq(buf, tx_width);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s %s\n", __func__,
-              rig_strvfo(vfo), rig_strrmode(tx_mode), buf);
+    ENTERFUNC;
 
     curr->tx_mode = tx_mode;
 
-    if (RIG_PASSBAND_NOCHANGE == tx_width) { return RIG_OK; }
+    if (RIG_PASSBAND_NOCHANGE == tx_width) { RETURNFUNC(RIG_OK); }
 
     curr->tx_width = tx_width;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
@@ -834,12 +841,12 @@ static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
+    ENTERFUNC;
 
     *tx_mode = curr->tx_mode;
     *tx_width = curr->tx_width;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
@@ -847,12 +854,13 @@ static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called split=%d, vfo=%s, tx_vfo=%s\n",
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: split=%d, vfo=%s, tx_vfo=%s\n",
               __func__, split, rig_strvfo(vfo), rig_strvfo(tx_vfo));
     curr->split = split;
     priv->tx_vfo = tx_vfo;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -862,10 +870,10 @@ static int dummy_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     *split = curr->split;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
@@ -873,10 +881,10 @@ static int dummy_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
     curr->rit = rit;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -885,10 +893,10 @@ static int dummy_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     *rit = curr->rit;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -897,10 +905,10 @@ static int dummy_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
     curr->xit = xit;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -909,10 +917,10 @@ static int dummy_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     *xit = curr->xit;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -921,10 +929,10 @@ static int dummy_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
     curr->tuning_step = ts;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -933,10 +941,10 @@ static int dummy_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     *ts = curr->tuning_step;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -945,6 +953,7 @@ static int dummy_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %d\n", __func__,
               rig_strfunc(func), status);
 
@@ -957,7 +966,7 @@ static int dummy_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         curr->funcs &= ~func;
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -966,12 +975,13 @@ static int dummy_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     *status = (curr->funcs & func) ? 1 : 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
               rig_strfunc(func));
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -982,11 +992,12 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     int idx;
     char lstr[32];
 
+    ENTERFUNC;
     idx = rig_setting2idx(level);
 
     if (idx >= RIG_SETTING_MAX)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     curr->levels[idx] = val;
@@ -1003,7 +1014,7 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strlevel(level), lstr);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1013,11 +1024,12 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     channel_t *curr = priv->curr;
     int idx;
 
+    ENTERFUNC;
     idx = rig_setting2idx(level);
 
     if (idx >= RIG_SETTING_MAX)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (level)
@@ -1127,7 +1139,7 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
               rig_strlevel(level));
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
@@ -1138,11 +1150,12 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     const struct confparams *cfp;
     struct ext_list *elp;
 
+    ENTERFUNC;
     cfp = rig_ext_lookup_tok(rig, token);
 
     if (!cfp)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (token)
@@ -1154,7 +1167,7 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (cfp->type)
@@ -1180,14 +1193,14 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         break;
 
     default:
-        return -RIG_EINTERNAL;
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     elp = find_ext(curr->ext_levels, token);
 
     if (!elp)
     {
-        return -RIG_EINTERNAL;
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     /* store value */
@@ -1196,7 +1209,7 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               cfp->name, lstr);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
@@ -1206,11 +1219,12 @@ static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     const struct confparams *cfp;
     struct ext_list *elp;
 
+    ENTERFUNC;
     cfp = rig_ext_lookup_tok(rig, token);
 
     if (!cfp)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (token)
@@ -1222,14 +1236,14 @@ static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     elp = find_ext(curr->ext_levels, token);
 
     if (!elp)
     {
-        return -RIG_EINTERNAL;
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     /* load value */
@@ -1238,7 +1252,7 @@ static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
               cfp->name);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1248,11 +1262,12 @@ static int dummy_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
     const struct confparams *cfp;
     struct ext_list *elp;
 
+    ENTERFUNC;
     cfp = rig_ext_lookup_tok(rig, token);
 
     if (!cfp)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (token)
@@ -1261,7 +1276,7 @@ static int dummy_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (cfp->type)
@@ -1273,14 +1288,14 @@ static int dummy_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
         break;
 
     default:
-        return -RIG_EINTERNAL;
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     elp = find_ext(priv->ext_funcs, token);
 
     if (!elp)
     {
-        return -RIG_EINTERNAL;
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     /* store value */
@@ -1289,7 +1304,7 @@ static int dummy_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %d\n", __func__,
               cfp->name, status);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1299,11 +1314,12 @@ static int dummy_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
     const struct confparams *cfp;
     struct ext_list *elp;
 
+    ENTERFUNC;
     cfp = rig_ext_lookup_tok(rig, token);
 
     if (!cfp)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (token)
@@ -1312,14 +1328,14 @@ static int dummy_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     elp = find_ext(priv->ext_funcs, token);
 
     if (!elp)
     {
-        return -RIG_EINTERNAL;
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     /* load value */
@@ -1328,7 +1344,7 @@ static int dummy_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
               cfp->name);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1336,10 +1352,10 @@ static int dummy_set_powerstat(RIG *rig, powerstat_t status)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
     priv->powerstat = status;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1347,10 +1363,10 @@ static int dummy_get_powerstat(RIG *rig, powerstat_t *status)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
+    ENTERFUNC;
     *status = priv->powerstat;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1360,11 +1376,12 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
     int idx;
     char pstr[32];
 
+    ENTERFUNC;
     idx = rig_setting2idx(parm);
 
     if (idx >= RIG_SETTING_MAX)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (RIG_PARM_IS_FLOAT(parm))
@@ -1380,7 +1397,7 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
               rig_strparm(parm), pstr);
     priv->parms[idx] = val;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1389,18 +1406,19 @@ static int dummy_get_parm(RIG *rig, setting_t parm, value_t *val)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     int idx;
 
+    ENTERFUNC;
     idx = rig_setting2idx(parm);
 
     if (idx >= RIG_SETTING_MAX)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     *val = priv->parms[idx];
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s\n", __func__,
               rig_strparm(parm));
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
@@ -1410,11 +1428,12 @@ static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
     const struct confparams *cfp;
     struct ext_list *epp;
 
+    ENTERFUNC;
     cfp = rig_ext_lookup_tok(rig, token);
 
     if (!cfp)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (token)
@@ -1423,7 +1442,7 @@ static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (cfp->type)
@@ -1449,14 +1468,14 @@ static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
         break;
 
     default:
-        return -RIG_EINTERNAL;
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     epp = find_ext(priv->ext_parms, token);
 
     if (!epp)
     {
-        return -RIG_EINTERNAL;
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     /* store value */
@@ -1466,7 +1485,7 @@ static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               cfp->name, lstr);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_get_ext_parm(RIG *rig, token_t token, value_t *val)
@@ -1475,13 +1494,14 @@ static int dummy_get_ext_parm(RIG *rig, token_t token, value_t *val)
     const struct confparams *cfp;
     struct ext_list *epp;
 
+    ENTERFUNC;
     /* TODO: load value from priv->ext_parms */
 
     cfp = rig_ext_lookup_tok(rig, token);
 
     if (!cfp)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (token)
@@ -1490,14 +1510,14 @@ static int dummy_get_ext_parm(RIG *rig, token_t token, value_t *val)
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     epp = find_ext(priv->ext_parms, token);
 
     if (!epp)
     {
-        return -RIG_EINTERNAL;
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     /* load value */
@@ -1506,7 +1526,7 @@ static int dummy_get_ext_parm(RIG *rig, token_t token, value_t *val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
               cfp->name);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1515,6 +1535,7 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
+    ENTERFUNC;
 
     switch (ant)
     {
@@ -1531,7 +1552,7 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna requested=0x%02x\n", __func__,
                   ant);
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     priv->ant_option[rig_setting2idx(curr->ant)] = option.i;
@@ -1539,7 +1560,7 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
               "%s called ant=0x%02x, option=%d, curr->ant=0x%02x\n", __func__, ant, option.i,
               curr->ant);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1548,6 +1569,7 @@ static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
+    ENTERFUNC;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
 
@@ -1569,14 +1591,14 @@ static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna requested=0x%02x\n", __func__,
                   ant);
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: ant_curr=0x%02x, idx=%d\n", __func__, *ant_curr,
               rig_setting2idx(*ant_curr));
     option->i = priv->ant_option[rig_setting2idx(*ant_curr)];
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1584,10 +1606,10 @@ static int dummy_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
+    ENTERFUNC;
     priv->bank = bank;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1595,11 +1617,11 @@ static int dummy_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (ch < 0 || ch >= NB_CHAN)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (priv->curr_vfo == RIG_VFO_MEM)
@@ -1611,7 +1633,7 @@ static int dummy_set_mem(RIG *rig, vfo_t vfo, int ch)
         priv->curr->channel_num = ch;
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1620,22 +1642,24 @@ static int dummy_get_mem(RIG *rig, vfo_t vfo, int *ch)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
 
+    ENTERFUNC;
     *ch = curr->channel_num;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %d\n", __func__,
               rig_strscan(scan), ch);
     /* TODO: change freq, etc. */
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static void chan_vfo(channel_t *chan, vfo_t vfo)
 {
+    ENTERFUNC;
     chan->vfo = vfo;
     strcpy(chan->channel_desc, rig_strvfo(vfo));
 }
@@ -1648,6 +1672,7 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     freq_t freq;
     shortfreq_t ts;
 
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
               rig_strvfop(op));
 
@@ -1714,7 +1739,7 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
         if (!chan.ext_levels)
         {
-            return -RIG_ENOMEM;
+            RETURNFUNC(-RIG_ENOMEM);
         }
 
         copy_chan(&chan, &priv->vfo_b);
@@ -1765,15 +1790,15 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     case RIG_OP_TOGGLE:
         if (priv->curr_vfo == RIG_VFO_A)
         {
-            return dummy_set_vfo(rig, RIG_VFO_B);
+            RETURNFUNC(dummy_set_vfo(rig, RIG_VFO_B));
         }
         else if (priv->curr_vfo == RIG_VFO_B)
         {
-            return dummy_set_vfo(rig, RIG_VFO_A);
+            RETURNFUNC(dummy_set_vfo(rig, RIG_VFO_A));
         }
         else
         {
-            return -RIG_EVFO;
+            RETURNFUNC(-RIG_EVFO);
         }
 
     case RIG_OP_RIGHT:
@@ -1784,7 +1809,7 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     case RIG_OP_BAND_UP:
     case RIG_OP_BAND_DOWN:
-        return -RIG_ENIMPL;
+        RETURNFUNC(-RIG_ENIMPL);
 
     case RIG_OP_UP:
         ret = dummy_get_freq(rig, vfo, &freq);
@@ -1814,23 +1839,23 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         break;
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (!chan->ext_levels)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (chan->channel_num < 0 || chan->channel_num >= NB_CHAN)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     /* TODO:
@@ -1855,10 +1880,10 @@ static int dummy_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1867,11 +1892,11 @@ static int dummy_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (chan->channel_num < 0 || chan->channel_num >= NB_CHAN)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (!chan->ext_levels)
@@ -1880,7 +1905,7 @@ static int dummy_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
 
         if (!chan->ext_levels)
         {
-            return -RIG_ENOMEM;
+            RETURNFUNC(-RIG_ENOMEM);
         }
     }
 
@@ -1906,63 +1931,65 @@ static int dummy_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
 static int dummy_set_trn(RIG *rig, int trn)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
 static int dummy_get_trn(RIG *rig, int *trn)
 {
+    ENTERFUNC;
     *trn = RIG_TRN_OFF;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static const char *dummy_get_info(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
-    return "Nothing much (dummy)";
+    RETURNFUNC("Nothing much (dummy)");
 }
 
 
 static int dummy_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 {
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, digits);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
     strcpy(digits, "0123456789ABCDEF");
     *length = 16;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, msg);
+    ENTERFUNC;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 static int dummy_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode)
 {
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, power);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
@@ -1971,13 +1998,14 @@ static int dummy_power2mW(RIG *rig, unsigned int *mwpower, float power,
     /* Pretend this is a 100W radio */
     *mwpower = (power * 100000);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
 static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
                           freq_t freq, rmode_t mode)
 {
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %u\n", __func__, mwpower);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
@@ -1986,12 +2014,12 @@ static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
     /* Pretend this is a 100W radio */
     if (mwpower > 100000)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     *power = ((float)mwpower / 100000);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -2049,7 +2077,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20200606.0",
+    .version =        "20210210.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
@@ -2376,6 +2404,7 @@ struct rig_caps dummy_no_vfo_caps =
 
 DECLARE_INITRIG_BACKEND(dummy)
 {
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
     rig_register(&dummy_caps);
@@ -2384,5 +2413,5 @@ DECLARE_INITRIG_BACKEND(dummy)
     rig_register(&trxmanager_caps);
     rig_register(&dummy_no_vfo_caps);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
