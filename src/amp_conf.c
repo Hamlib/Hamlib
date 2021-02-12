@@ -493,19 +493,21 @@ int HAMLIB_API amp_token_foreach(AMP *amp,
 
 /**
  * \brief Query an amplifier configuration parameter token by its name.
+ *
  * \param amp The #AMP handle.
- * \param name Configuration parameter token name (C string).
+ * \param name Configuration parameter token name string.
  *
  * Use this function to get a pointer to the token in the #confparams
  * structure.  Searches the backend config params table first, then falls back
  * to the frontend config params table.
  *
- * TODO: Should use Lex to speed it up, strcmp() hurts!
- *
- * \return A pointer to the token in the #confparams structure or NULL if #AMP
- * is invalid or token not found (how can the caller know which occurred?).
+ * \return A pointer to the token in the #confparams structure or NULL if
+ * \a amp is invalid or \a token not found (how can the caller know which
+ * occurred?).
  *
  * \sa amp_token_lookup()
+ *
+ * TODO: Should use Lex to speed it up, strcmp() hurts!
  */
 const struct confparams *HAMLIB_API amp_confparam_lookup(AMP *amp,
         const char *name)
@@ -555,9 +557,11 @@ const struct confparams *HAMLIB_API amp_confparam_lookup(AMP *amp,
 
 
 /**
- * \brief Search for the token ID associated with an amplifier configuration parameter token name.
+ * \brief Search for the token ID associated with an amplifier configuration
+ * parameter token name.
+ *
  * \param amp The #AMP handle.
- * \param name Configuration parameter token name (C string).
+ * \param name Configuration parameter token name string.
  *
  * Searches the backend and frontend configuration parameters tables for the
  * token ID.
@@ -585,6 +589,7 @@ token_t HAMLIB_API amp_token_lookup(AMP *amp, const char *name)
 
 /**
  * \brief Set an amplifier configuration parameter.
+ *
  * \param amp   The #AMP handle.
  * \param token The token of the parameter to set.
  * \param val   The value to set the parameter to.
@@ -595,7 +600,7 @@ token_t HAMLIB_API amp_token_lookup(AMP *amp, const char *name)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The parameter was set successfully.
- * \retval RIG_EINVAL The #AMP handle or token was invalid.
+ * \retval RIG_EINVAL \a amp or \a token was invalid.
  * \retval RIG_ENAVAIL amp_caps#set_conf() capability is not available.
  *
  * \sa amp_get_conf()
@@ -640,17 +645,18 @@ int HAMLIB_API amp_set_conf(AMP *amp, token_t token, const char *val)
 
 /**
  * \brief Query the value of an amplifier configuration parameter.
- * \param amp   The #AMP handle.
- * \param token The token of the parameter to query.
- * \param val   The location where to store the value of configuration \a token.
  *
- *  Retrieves the value of a configuration parameter associated with \a token.
+ * \param amp The #AMP handle.
+ * \param token The token of the parameter to query.
+ * \param val The location where to store the value of the configuration \a token.
+ *
+ * Retrieves the value of a configuration parameter associated with \a token.
  *
  * \return RIG_OK if the operation has been successful, otherwise a **negative
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Querying the parameter was successful.
- * \retval RIG_EINVAL The #AMP handle was invalid.
+ * \retval RIG_EINVAL \a amp is NULL or invalid.
  * \retval RIG_ENAVAIL amp_caps#get_conf() capability is not available.
  *
  * \sa amp_set_conf()
