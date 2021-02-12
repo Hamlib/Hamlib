@@ -31,8 +31,9 @@
  */
 
 /**
- * \file amplifier.h
  * \brief Hamlib amplifier data structures.
+ *
+ * \file amplifier.h
  *
  * This file contains the data structures and declarations for the Hamlib
  * amplifier Application Programming Interface (API).
@@ -51,8 +52,9 @@ struct amp_state;
 
 
 /**
- * \typedef typedef struct amp AMP
  * \brief Main amplifier handle type definition.
+ *
+ * \typedef typedef struct amp AMP
  *
  * The #AMP handle is returned by amp_init() and is passed as a parameter to
  * every amplifier specific API call.
@@ -63,9 +65,10 @@ typedef struct amp AMP;
 
 
 /**
- * \typedef typedef float swr_t
  * \brief Type definition for
  * <a href="https://en.wikipedia.org/wiki/Standing_wave_ratio" >SWR (Standing Wave Ratio)</a>.
+ *
+ * \typedef typedef float swr_t
  *
  * The \a swr_t type is used as a parameter for the amp_get_swr() function.
  *
@@ -78,13 +81,14 @@ typedef float swr_t;
 
 
 /**
- * \typedef typedef float tune_value_t
  * \brief Type definition for the
  * <a href="http://www.arrl.org/transmatch-antenna-tuner" >transmatch</a>
  * tuning values of
  * <a href="https://en.wikipedia.org/wiki/Capacitance" >capacitance</a>
  * and
  * <a href="https://en.wikipedia.org/wiki/Inductance" >inductance</a>.
+ *
+ * \typedef typedef float tune_value_t
  *
  * The \a tune_value_t type is used as a parameter for amp_get_level().
  *
@@ -163,8 +167,9 @@ enum amp_level_e
 //! @endcond
 
 /**
+ * \brief Amplifier capabilities.
+ *
  * \struct amp_caps
- * \brief Amplifier capabilities
  *
  * The main idea of this struct is that it will be defined by the backend
  * amplifier driver and will remain read-only for the application.  Fields
@@ -248,16 +253,17 @@ struct amp_caps
   setting_t levels;
   unsigned ext_levels;
 //! @endcond
-  const struct confparams *extlevels;         /*!< Extra levels structure.  */
-  const struct confparams *extparms;          /*!< Extra parameters structure.  */
+  const struct confparams *extlevels;         /*!< Extension levels structure.  */
+  const struct confparams *extparms;          /*!< Extension parameters structure.  */
 
   const char *macro_name;                     /*!< Amplifier model macro name. */
 };
 
 
 /**
+ * \brief Amplifier state structure.
+ *
  * \struct amp_state
- * \brief Amplifier state structure
  *
  * This structure contains live data, as well as a copy of capability fields
  * that may be updated, i.e. customized while the #AMP handle is instantiated.
@@ -288,8 +294,9 @@ struct amp_state
 
 
 /**
+ * \brief Master amplifier structure.
+ *
  * \struct amp
- * \brief Master amplifier structure
  *
  * Master amplifier data structure acting as the #AMP handle for the
  * controlled amplifier.  A pointer to this structure is returned by the
@@ -423,8 +430,9 @@ extern HAMLIB_EXPORT(const char *) amp_strlevel(setting_t);
 
 
 /**
- * \def amp_debug
  * \brief Convenience macro for generating debugging messages.
+ *
+ * \def amp_debug
  *
  * This is an alias of the rig_debug() function call and is used in the same
  * manner.

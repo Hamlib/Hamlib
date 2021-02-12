@@ -27,14 +27,16 @@
  */
 
 /**
+ * \brief Amplifier function/level/parameter interface.
+ *
  * \file amp_settings.c
- * \brief amplifiter func/level/parm interface
+ *
  * \author Stephane Fillod
  * \date 2000-2010
  * \author Mikael Nousiainen
  * \date 2020
  *
- * Hamlib interface is a frontend implementing wrapper functions.
+ * This Hamlib interface is a frontend implementing wrapper functions.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -49,6 +51,7 @@
 
 /**
  * \brief Check retrieval ability of level settings.
+ *
  * \param amp   The #AMP handle.
  * \param level The level settings to check.
  *
