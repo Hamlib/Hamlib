@@ -69,11 +69,21 @@ const cal_table_float_t icom_default_alc_cal =
 
 const cal_table_float_t icom_default_rfpower_meter_cal =
 {
-    3,
+    13,
     {
-        {0, 0.0f},
-        {143, 0.5f},
-        {213, 1.0f}
+         { 0, 0.0f },
+         { 21, 5.0f },
+         { 43, 10.0f },
+         { 65, 15.0f },
+         { 83, 20.0f },
+         { 95, 25.0f },
+         { 105, 30.0f },
+         { 114, 35.0f },
+         { 124, 40.0f },
+         { 143, 50.0f },
+         { 183, 75.0f },
+         { 213, 100.0f },
+         { 255, 120.0f }
     }
 };
 
@@ -3089,6 +3099,23 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
+        // rig table in Watts needs to be divided by 100
+        if (rig->caps->rfpower_meter_cal.size == 0)
+        {
+            val->f =
+                rig_raw2val_float(icom_val, &icom_default_rfpower_meter_cal) * 0.01;
+        }
+        else
+        {
+            val->f =
+                rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal) * 0.01;
+        }
+
+        break;
+
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+
+        // All Icom backends should be in Watts now
         if (rig->caps->rfpower_meter_cal.size == 0)
         {
             val->f =
@@ -3098,30 +3125,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f =
                 rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal);
-        }
-
-        break;
-
-    case RIG_LEVEL_RFPOWER_METER_WATTS:
-
-        // eventually we should change all the Icom tables to watts
-        if (rig->caps->rfpower_meter_cal.size == 0)
-        {
-            val->f =
-                rig_raw2val_float(icom_val, &icom_default_rfpower_meter_cal) * 100;
-        }
-        else
-        {
-            float scale = 100;
-
-            if (rig->caps->rig_model == RIG_MODEL_IC705
-                    || rig->caps->rig_model == RIG_MODEL_IC703)
-            {
-                scale = 10;
-            }
-
-            val->f =
-                rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal) * scale;
         }
 
         break;

@@ -90,11 +90,21 @@ static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
          { 120, 1.0f } \
     } }
 
-#define IC7300_RFPOWER_METER_CAL { 3, \
+#define IC7300_RFPOWER_METER_CAL { 13, \
     { \
          { 0, 0.0f }, \
-         { 143, 0.5f }, \
-         { 213, 1.0f } \
+         { 21, 5.0f }, \
+         { 43, 10.0f }, \
+         { 65, 15.0f }, \
+         { 83, 20.0f }, \
+         { 95, 25.0f }, \
+         { 105, 30.0f }, \
+         { 114, 35.0f }, \
+         { 124, 40.0f }, \
+         { 143, 50.0f }, \
+         { 183, 75.0f }, \
+         { 213, 100.0f }, \
+         { 255, 120.0f } \
     } }
 
 #define IC7300_COMP_METER_CAL { 3, \
@@ -166,11 +176,21 @@ static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
          { 120, 1.0f } \
     } }
 
-#define IC9700_RFPOWER_METER_CAL { 3, \
+#define IC9700_RFPOWER_METER_CAL { 13, \
     { \
          { 0, 0.0f }, \
-         { 143, 0.5f }, \
-         { 213, 1.0f } \
+         { 21, 5.0f }, \
+         { 43, 10.0f }, \
+         { 65, 15.0f }, \
+         { 83, 20.0f }, \
+         { 95, 25.0f }, \
+         { 105, 30.0f }, \
+         { 114, 35.0f }, \
+         { 124, 40.0f }, \
+         { 143, 50.0f }, \
+         { 183, 75.0f }, \
+         { 213, 100.0f }, \
+         { 255, 120.0f } \
     } }
 
 #define IC9700_COMP_METER_CAL { 3, \
@@ -281,7 +301,7 @@ const struct rig_caps ic7300_caps =
     RIG_MODEL(RIG_MODEL_IC7300),
     .model_name = "IC-7300",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -454,7 +474,7 @@ const struct rig_caps ic9700_caps =
     RIG_MODEL(RIG_MODEL_IC9700),
     .model_name = "IC-9700",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
