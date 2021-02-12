@@ -27,13 +27,16 @@
  */
 
 /**
- * \file ext.c
- * \brief Extension request parameter interface
+ * \file extamp.c
+ * \brief Amplifier extension parameters and levels interface.
+ * \author Michael Black
+ * \date 2019
  *
  * An open-ended set of extension parameters and levels are available for each
- * amp, as provided in the ampcaps extparms and extlevels lists.  These
- * provide a way to work with amp-specific functions that don't fit into the
- * basic "virtual amp" of Hamlib.  See amplifiers/kpa.c for an example.
+ * amplifier, as provided in the amp_caps::extparms and amp_caps::extlevels
+ * lists.  These provide a way to work with amplifier-specific functions that
+ * don't fit into the basic "virtual amplifier" of Hamlib.  See
+ * `amplifiers/elecraft/kpa.c` for an example.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -52,15 +55,21 @@
 
 
 /**
- * \param amp The amp handle
- * \param cfunc callback function of each extlevel
- * \param data cookie to be passed to \a cfunc callback
- * \brief Executes cfunc on all the elements stored in the extlevels table
+ * \brief Executes \a cfunc on all the elements stored in the
+ * amp_caps::extlevels extension levels table.
  *
- * The callback \a cfunc is called until it returns a value which is not
- * strictly positive.  A zero value means a normal end of iteration, and a
- * negative value an abnormal end, which will be the return value of
- * amp_ext_level_foreach.
+ * \param amp The #AMP handle.
+ * \param cfunc Callback function of each amp_caps::extlevels.
+ * \param data Cookie to be passed to the callback function \a cfunc.
+ *
+ * The callback function \a cfunc is called until it returns a value which is
+ * not strictly positive.
+ *
+ * \returns A zero value which means a normal end of iteration, or a negative
+ * value which means an abnormal end,
+ *
+ * \retval RIG_OK All extension levels elements successfully processed.
+ * \retval RIG_EINVAL \a amp or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API amp_ext_level_foreach(AMP *amp,
                                      int (*cfunc)(AMP *,
@@ -97,15 +106,21 @@ int HAMLIB_API amp_ext_level_foreach(AMP *amp,
 
 
 /**
- * \param amp The amp handle
- * \param cfunc callback function of each extparm
- * \param data cookie to be passed to \a cfunc callback
- * \brief Executes cfunc on all the elements stored in the extparms table
+ * \brief Executes \a cfunc on all the elements stored in the
+ * amp_caps::extparms extension parameters table.
  *
- * The callback \a cfunc is called until it returns a value which is not
- * strictly positive.  A zero value means a normal end of iteration, and a
- * negative value an abnormal end, which will be the return value of
- * amp_ext_parm_foreach.
+ * \param amp The #AMP handle.
+ * \param cfunc Callback function of each amp_caps::extparms.
+ * \param data Cookie to be passed to the callback function \a cfunc.
+ *
+ * The callback function \a cfunc is called until it returns a value which is not
+ * strictly positive.
+ *
+ * \returns A zero value which means a normal end of iteration, or a
+ * negative value which means an abnormal end.
+ *
+ * \retval RIG_OK All extension parameters elements successfully processed.
+ * \retval RIG_EINVAL \a amp or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API amp_ext_parm_foreach(AMP *amp,
                                     int (*cfunc)(AMP *,
@@ -142,15 +157,21 @@ int HAMLIB_API amp_ext_parm_foreach(AMP *amp,
 
 
 /**
- * \param amp
- * \param name
- * \brief lookup ext token by its name, return pointer to confparams struct.
+ * \brief Lookup an extension levels or parameters token by its name and return
+ * a pointer to the containing #confparams structure member.
  *
- * Lookup extlevels table first, then fall back to extparms.
+ * \param amp The #AMP handle.
+ * \param name The extension levels or parameters token name.
  *
- * Returns NULL if nothing found
+ * Searches the amp_caps::extlevels table first and then falls back to
+ * amp_caps::extparms.
  *
- * TODO: should use Lex to speed it up, strcmp hurts!
+ * \return A pointer to the containing #confparams structure member or NULL if
+ * nothing found or if \a amp is NULL or invalid.
+ *
+ * \sa amp_ext_token_lookup()
+ *
+ * TODO: should use Lex to speed it up, strcmp() hurts!
  */
 const struct confparams *HAMLIB_API amp_ext_lookup(AMP *amp, const char *name)
 {
@@ -184,13 +205,16 @@ const struct confparams *HAMLIB_API amp_ext_lookup(AMP *amp, const char *name)
 
 
 /**
- * \param amp
- * \param token
- * \brief lookup ext token, return pointer to confparams struct.
+ * \brief Lookup an extension levels or parameters token by its constant value
+ * and return a pointer to the #confparams structure member.
  *
- * lookup extlevels table first, then fall back to extparms.
+ * \param amp The #AMP handle.
+ * \param token The token value (constant).
  *
- * Returns NULL if nothing found
+ * Searches the amp_caps::extlevels table first and then falls back to amp_caps::extparms.
+ *
+ * \return A pointer to the containing #confparams structure member or NULL if
+ * nothing found or if \a amp is NULL or invalid.
  */
 const struct confparams *HAMLIB_API amp_ext_lookup_tok(AMP *amp, token_t token)
 {
@@ -224,9 +248,15 @@ const struct confparams *HAMLIB_API amp_ext_lookup_tok(AMP *amp, token_t token)
 
 
 /**
- * \param amp
- * \param name
- * \brief Simple lookup returning token id assicated with name
+ * \brief Simple lookup returning the extension token ID associated with \a
+ * name.
+ *
+ * \param amp The #AMP handle.
+ * \param name The name string to search.
+ *
+ * \return The token ID or RIG_CONF_END if there is a lookup failure.
+ *
+ * \sa amp_ext_lookup()
  */
 token_t HAMLIB_API amp_ext_token_lookup(AMP *amp, const char *name)
 {

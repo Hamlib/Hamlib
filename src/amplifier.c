@@ -134,17 +134,18 @@ static int remove_opened_amp(AMP *amp)
 
 #ifdef XXREMOVEDXX
 /**
- * \brief execs cfunc() on each opened amp
- * \param cfunc The function to be executed on each amp
- * \param data  Data pointer to be passed to cfunc()
+ * \brief Executess cfunc() on each #AMP handle.
  *
- *  Calls cfunc() function for each opened amp.  The contents of the opened
- *  amp table is processed in random order according to a function pointed to
- *  by \a cfunc, which is called with two arguments, the first pointing to the
- *  #AMP handle, the second to a data pointer \a data.
+ * \param cfunc The function to be executed on each #AMP handle.
+ * \param data Data pointer to be passed to cfunc()
  *
- *  If \a data is not needed, then it can be set to NULL.  The processing of
- *  the opened amp table is stopped when cfunc() returns 0.
+ * Calls cfunc() function for each #AMP handle.  The contents of the opened
+ * #AMP table is processed in random order according to a function pointed to
+ * by \a cfunc, which is called with two arguments, the first pointing to the
+ * #AMP handle, the second to a data pointer \a data.
+ *
+ * If \a data is not needed, then it can be set to NULL.  The processing of
+ * the opened amp table is stopped when cfunc() returns 0.
  * \internal
  *
  * \return always RIG_OK.
@@ -169,8 +170,9 @@ int foreach_opened_amp(int (*cfunc)(AMP *, rig_ptr_t), rig_ptr_t data)
 
 
 /**
- * \brief Allocate a new #AMP handle
- * \param amp_model The amplifier model for this new handle
+ * \brief Allocate a new #AMP handle.
+ *
+ * \param amp_model The amplifier model for this new handle.
  *
  * Allocates a new #AMP handle and initializes the associated data
  * for \a amp_model (see amplist.h or `ampctl -l`).
@@ -280,7 +282,8 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
 
 /**
  * \brief Open the communication channel to the amplifier.
- * \param amp The #AMP handle of the amplifier to be opened
+ *
+ * \param amp The #AMP handle of the amplifier to be opened.
  *
  * Opens the communication channel to an amplifier for which the #AMP handle
  * has been passed.
@@ -414,6 +417,7 @@ int HAMLIB_API amp_open(AMP *amp)
 
 /**
  * \brief Close the communication channel to the amplifier.
+ *
  * \param amp The #AMP handle of the amplifier to be closed.
  *
  * Closes the communication channel to an amplifier for which the #AMP
@@ -496,6 +500,7 @@ int HAMLIB_API amp_close(AMP *amp)
 
 /**
  * \brief Release an #AMP handle and free associated memory.
+ *
  * \param amp The #AMP handle to be released.
  *
  * Releases an #AMP handle for which the communications channel has been
@@ -541,11 +546,12 @@ int HAMLIB_API amp_cleanup(AMP *amp)
 
 
 /**
- * \brief Reset the amplifier
- * \param amp   The #AMP handle
+ * \brief Reset the amplifier.
+ *
+ * \param amp The #AMP handle.
  * \param reset The reset operation to perform.
  *
- *  Perform a reset of the amplifier.
+ * Perform a reset of the amplifier.
  *
  * \return RIG_OK if the operation has been successful, otherwise a **negative
  * value** if an error occurred (in which case, cause is set appropriately).
@@ -578,6 +584,7 @@ int HAMLIB_API amp_reset(AMP *amp, amp_reset_t reset)
 
 /**
  * \brief Query the operating frequency of the amplifier.
+ *
  * \param amp The #AMP handle.
  * \param freq The variable to store the operating frequency.
  *
@@ -616,6 +623,7 @@ int HAMLIB_API amp_get_freq(AMP *amp, freq_t *freq)
 
 /**
  * \brief Set the operating frequency of the amplifier.
+ *
  * \param amp The #AMP handle.
  * \param freq The operating frequency.
  *
@@ -655,6 +663,7 @@ int HAMLIB_API amp_set_freq(AMP *amp, freq_t freq)
 
 /**
  * \brief Query general information from the amplifier.
+ *
  * \param amp The #AMP handle.
  *
  * Retrieves some general information from the amplifier.  This can include
@@ -662,7 +671,8 @@ int HAMLIB_API amp_set_freq(AMP *amp, freq_t freq)
  *
  * \return A pointer to static memory containing an ASCII nul terminated
  * string (C string) if the operation has been successful, otherwise NULL if
- * an error occurred or the amp_caps#get_info() capability is not available.
+ * \a amp is NULL or invalid or the amp_caps#get_info() capability is not
+ * available.
  */
 const char *HAMLIB_API amp_get_info(AMP *amp)
 {
@@ -684,6 +694,7 @@ const char *HAMLIB_API amp_get_info(AMP *amp)
 
 /**
  * \brief Query the value of a requested level.
+ *
  * \param amp The #AMP handle.
  * \param level The requested level.
  * \param val The variable to store the \a level value.
@@ -718,12 +729,13 @@ int HAMLIB_API amp_get_level(AMP *amp, setting_t level, value_t *val)
 
 
 /**
- * \brief Query the value of a requested extra level token.
- * \param amp The #AMP handle.
- * \param level The requested extra level token.
- * \param val The variable to store the extra \a level token value.
+ * \brief Query the value of a requested extension levels token.
  *
- * Query the \a val corresponding to the extra \a level token.
+ * \param amp The #AMP handle.
+ * \param level The requested extension levels token.
+ * \param val The variable to store the extension \a level token value.
+ *
+ * Query the \a val corresponding to the extension \a level token.
  *
  * \return RIG_OK if the operation was successful, otherwise a **negative
  * value** if an error occurred (in which case, cause is set appropriately).
@@ -753,7 +765,9 @@ int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
 
 
 /**
- * \brief Turn the amplifier On or Off or toggle the Standby or Operate status.
+ * \brief Turn the amplifier On or Off or toggle the Standby or Operate
+ * status.
+ *
  * \param amp The #AMP handle
  * \param status The #powerstat_t setting.
  *
@@ -790,6 +804,7 @@ int HAMLIB_API amp_set_powerstat(AMP *amp, powerstat_t status)
 
 /**
  * \brief Query the power or standby status of the amplifier.
+ *
  * \param amp The #AMP handle.
  * \param status The variable to store the amplifier \a status.
  *
