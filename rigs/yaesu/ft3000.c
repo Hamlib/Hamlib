@@ -30,6 +30,8 @@
 #endif
 
 #include "hamlib/rig.h"
+#include "misc.h"
+#include "newcat.h"
 #include "bandplan.h"
 #include "newcat.h"
 #include "ft5000.h"
@@ -83,6 +85,51 @@ int ftdx3000_ext_tokens[] =
     TOK_ROOFING_FILTER, TOK_BACKEND_NONE
 };
 
+int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                   ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int err;
+
+    ENTERFUNC;
+
+    option->i = 0;  // default to no options
+
+    // find out what ANT3 setting
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", "EX032;");
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        RETURNFUNC(err);
+    }
+
+    if (strlen(priv->ret_data) >= 7)
+    {
+        char c = priv->ret_data[5];
+        switch(c)
+        {
+            case '0': 
+                *ant_rx = *ant_tx = RIG_ANT_3;
+                break;
+            case '1': 
+                *ant_rx = RIG_ANT_3;
+                *ant_tx = RIG_ANT_1;
+                break;
+            case '2': 
+                *ant_rx = RIG_ANT_3;
+                *ant_tx = RIG_ANT_2;
+                break;
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna=%c\n", __func__, c);
+                return -RIG_EPROTO;
+        }
+    }
+
+    *ant_curr = *ant_tx; // current points to tx antenna
+
+    return RIG_OK;
+}
+
+
 /*
  * FTDX 3000 rig capabilities
  * Seems to be largely compatible with the FTDX 5000,
@@ -94,7 +141,7 @@ const struct rig_caps ftdx3000_caps =
     RIG_MODEL(RIG_MODEL_FTDX3000),
     .model_name =         "FTDX-3000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".2",
+    .version =            NEWCAT_VER ".3",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -229,7 +276,7 @@ const struct rig_caps ftdx3000_caps =
     .set_xit =            newcat_set_xit,
     .get_xit =            newcat_get_xit,
     .set_ant =            newcat_set_ant,
-    .get_ant =            newcat_get_ant,
+    .get_ant =            ft3000_get_ant,
     .get_func =           newcat_get_func,
     .set_func =           newcat_set_func,
     .get_level =          newcat_get_level,
@@ -260,3 +307,4 @@ const struct rig_caps ftdx3000_caps =
     .get_ext_level =      newcat_get_ext_level,
 
 };
+
