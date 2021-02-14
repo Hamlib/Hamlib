@@ -85,6 +85,36 @@ int ftdx3000_ext_tokens[] =
     TOK_ROOFING_FILTER, TOK_BACKEND_NONE
 };
 
+int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
+{
+    char *cmd;
+    int err;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+
+    ENTERFUNC;
+    switch (ant)
+    {
+        case 3: 
+            cmd = "EX0320"; // TRX ANT3
+            break;
+        case 4:
+            cmd = "EX0321"; // R3/1 ANT1/ANT3
+            break;
+        case 5:
+            cmd = "EX0322"; // RE/2 ANT2/ANT3
+            break;
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: expected 3,4,5 got %d\n", __func__, ant);
+            RETURNFUNC(-RIG_EINVAL);
+    }
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        RETURNFUNC(err);
+    }
+    RETURNFUNC(RIG_OK);
+}
+
 int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
                    ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
@@ -120,13 +150,13 @@ int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
                 break;
             default:
                 rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna=%c\n", __func__, c);
-                return -RIG_EPROTO;
+                RETURNFUNC(-RIG_EPROTO);
         }
     }
 
     *ant_curr = *ant_tx; // current points to tx antenna
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -275,7 +305,7 @@ const struct rig_caps ftdx3000_caps =
     .get_rit =            newcat_get_rit,
     .set_xit =            newcat_set_xit,
     .get_xit =            newcat_get_xit,
-    .set_ant =            newcat_set_ant,
+    .set_ant =            ft3000_set_ant,
     .get_ant =            ft3000_get_ant,
     .get_func =           newcat_get_func,
     .set_func =           newcat_set_func,
