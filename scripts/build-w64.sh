@@ -2,11 +2,10 @@
 
 # Builds Hamlib 4.x W64 binary distribution.
 
-# A script to build a set of W64 binary DLLs from a Hamlib tarball.  This
-# script assumes that the Hamlib tarball has been extracted to the directory
-# specified in $BUILD_DIR and that libusb-1.x.y has also been extracted to
-# $BUILD_DIR.  The MS VC++ Toolkit must also be installed and working with
-# Wine.
+# A script to build a set of W64 binary DLLs and executables from a Hamlib
+# source tarball.  This script assumes that the Hamlib source tarball has been
+# extracted to the directory specified in $BUILD_DIR and that libusb-1.x.y has
+# also been extracted to $BUILD_DIR.
 
 # See README.build-Windows for complete details.
 
@@ -29,7 +28,8 @@ EX_NOINPUT=66
 
 
 # Pass name of Hamlib archive extracted in $BUILD_DIR
-if [ $# -ne 1 ]; then
+if test $# -ne 1
+then
     echo
     echo "Usage: $(basename $0) hamlib-version"
     echo "See README.build-Windows for more information."
@@ -39,7 +39,8 @@ if [ $# -ne 1 ]; then
 fi
 
 # Make sure the Hamlib archive is where we expect
-if [ -d ${BUILD_DIR}/$1 ]; then
+if test -d ${BUILD_DIR}/$1
+then
     echo
     echo "Building W64 binaries in ${BUILD_DIR}/$1"
     echo
@@ -69,9 +70,6 @@ What is it?
 This ZIP archive or Windows installer contains a build of Hamlib-$RELEASE
 cross-compiled for MS Windows 64 bit using MinGW under Debian GNU/Linux 10
 (nice, heh!).
-
-NB: This Windows 64 bit release is EXPERIMENTAL!  Please report bugs,
-failures, and success to the Hamlib mailing list below.
 
 This software is copyrighted. The library license is LGPL, and the *.EXE files
 licenses are GPL.  Hamlib comes WITHOUT ANY WARRANTY. See the LICENSE.txt,
@@ -200,9 +198,7 @@ not appear to be correct to generate a 64 bit libhamlib-4.lib file!
 
 The published Hamlib API may be found at:
 
-http://hamlib.sourceforge.net/manuals/3.0.1/index.html
-
-(The 4.0 API/ABI is changed and new documentation will be forthcoming.)
+http://hamlib.sourceforge.net/manuals/4.1/index.html
 
 
 Thank You!
@@ -233,27 +229,35 @@ END_OF_README
 make -j 4 install
 
 mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc
-cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def; todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
-cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/hamlib/*.h
+cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def
+todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
+cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.
+todos ${ZIP_DIR}/include/hamlib/*.h
 
 # C++ binding is useless on w64 because of ABI
-for f in *class.h ; do \
+for f in *class.h
+do
     rm ${ZIP_DIR}/include/hamlib/${f}
 done
 
-for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester README.w64-bin THANKS ; do \
-    cp -a ${f} ${ZIP_DIR}/${f}.txt ; todos ${ZIP_DIR}/${f}.txt
+for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester README.w64-bin THANKS
+do
+    cp -a ${f} ${ZIP_DIR}/${f}.txt
+    todos ${ZIP_DIR}/${f}.txt
 done
 
 # Generate HTML documents from nroff formatted man files
-for f in doc/man1/*.1 doc/man7/*.7 ; do \
+for f in doc/man1/*.1 doc/man7/*.7
+do
     /usr/bin/groff -mandoc -Thtml >${f}.html ${f}
-    cp -a ${f}.html ${ZIP_DIR}/doc/. ; done
+    cp -a ${f}.html ${ZIP_DIR}/doc/.
+done
 
 cd ${BUILD_DIR}/$1
 
 # Copy build files into specific locations for Zip file
-for f in *.exe ; do \
+for f in *.exe
+do
     cp -a ${INST_DIR}/bin/${f} ${ZIP_DIR}/bin/.
 done
 
@@ -269,13 +273,15 @@ cp -a ${LIBUSB_1_0_BIN_PATH}/MinGW64/dll/libusb-1.0.dll ${ZIP_DIR}/bin/libusb-1.
 
 # Required for MinGW with GCC 6.3 (Debian 9)
 FILE="/usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll"
-if test -f "$FILE"; then
+if test -f "$FILE"
+then
     cp -a ${FILE} ${ZIP_DIR}/bin/.
 fi
 
 # Required for MinGW with GCC 8.3 (Debian 10)
 FILE="/usr/lib/gcc/i686-w64-mingw32/8.3-posix/libgcc_s_sjlj-1.dll"
-if test -f "$FILE"; then
+if test -f "$FILE"
+then
     cp -a ${FILE} ${ZIP_DIR}/bin/.
 fi
 
