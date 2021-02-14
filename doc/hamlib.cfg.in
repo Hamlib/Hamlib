@@ -18,8 +18,8 @@ MAN_EXTENSION	= .3
 CASE_SENSE_NAMES = YES
 FULL_PATH_NAMES  = NO
 INPUT            = @top_srcdir@/doc/index.doxygen \
-                    @top_srcdir@/include/hamlib/ \
-                    @top_srcdir@/src/
+                   @top_srcdir@/include/hamlib/ \
+                   @top_srcdir@/src/
 
 EXCLUDE          = @top_srcdir@/src/amp_conf.h \
                    @top_srcdir@/include/hamlib/ampclass.h \
@@ -28,7 +28,11 @@ EXCLUDE          = @top_srcdir@/src/amp_conf.h \
 INCLUDE_PATH     = @top_srcdir@/include
 
 EXAMPLE_PATH     = @top_srcdir@/tests/testrig.c \
-		   @top_srcdir@
+                   @top_srcdir@ \
+                   @top_srcdir@/scripts/README.build-Windows \
+                   @top_srcdir@/scripts/build-w32.sh \
+                   @top_srcdir@/scripts/build-w64.sh
+
 
 QUIET            = YES
 
