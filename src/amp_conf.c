@@ -502,8 +502,8 @@ int HAMLIB_API amp_token_foreach(AMP *amp,
  * to the frontend config params table.
  *
  * \return A pointer to the token in the #confparams structure or NULL if
- * \a amp is invalid or \a token not found (how can the caller know which
- * occurred?).
+ * \a amp is NULL or inconsistent or if \a token is not found (how can the
+ * caller know which occurred?).
  *
  * \sa amp_token_lookup()
  *
@@ -600,7 +600,7 @@ token_t HAMLIB_API amp_token_lookup(AMP *amp, const char *name)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The parameter was set successfully.
- * \retval RIG_EINVAL \a amp or \a token was invalid.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent or \a token is invalid.
  * \retval RIG_ENAVAIL amp_caps#set_conf() capability is not available.
  *
  * \sa amp_get_conf()
@@ -656,7 +656,7 @@ int HAMLIB_API amp_set_conf(AMP *amp, token_t token, const char *val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Querying the parameter was successful.
- * \retval RIG_EINVAL \a amp is NULL or invalid.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
  * \retval RIG_ENAVAIL amp_caps#get_conf() capability is not available.
  *
  * \sa amp_set_conf()
