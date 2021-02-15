@@ -671,7 +671,7 @@ int HAMLIB_API amp_set_freq(AMP *amp, freq_t freq)
  *
  * \return A pointer to static memory containing an ASCII nul terminated
  * string (C string) if the operation has been successful, otherwise NULL if
- * \a amp is NULL or invalid or the amp_caps#get_info() capability is not
+ * \a amp is NULL or inconsistent or the amp_caps#get_info() capability is not
  * available.
  */
 const char *HAMLIB_API amp_get_info(AMP *amp)
