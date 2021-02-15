@@ -167,7 +167,7 @@ int HAMLIB_API amp_ext_parm_foreach(AMP *amp,
  * amp_caps::extparms.
  *
  * \return A pointer to the containing #confparams structure member or NULL if
- * nothing found or if \a amp is NULL or invalid.
+ * nothing found or if \a amp is NULL or inconsistent.
  *
  * \sa amp_ext_token_lookup()
  *
@@ -214,7 +214,7 @@ const struct confparams *HAMLIB_API amp_ext_lookup(AMP *amp, const char *name)
  * Searches the amp_caps::extlevels table first and then falls back to amp_caps::extparms.
  *
  * \return A pointer to the containing #confparams structure member or NULL if
- * nothing found or if \a amp is NULL or invalid.
+ * nothing found or if \a amp is NULL or inconsistent.
  */
 const struct confparams *HAMLIB_API amp_ext_lookup_tok(AMP *amp, token_t token)
 {
