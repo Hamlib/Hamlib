@@ -102,8 +102,9 @@ Windows 32 bit on Debian GNU/Linux.
 
 /*! Define groups for Doxygen
  * \defgroup rig Rig (transceiver) API
+ * \defgroup rig_internal Rig (transceiver) Internal API
  * \defgroup rotator Rotator API
- * \defgroup utilities Utility Routines API
- * \defgroup rig_internal Rig Internal API
+ * \defgroup rot_internal Rotator Internal API
  * \defgroup amplifier Amplifier API
+ * \defgroup utilities Utility Routines API
  */
