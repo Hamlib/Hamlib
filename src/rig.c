@@ -1575,7 +1575,28 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         rig_debug(RIG_DEBUG_TRACE, "%s: TARGETABLE_FREQ vfo=%s\n", __func__,
                   rig_strvfo(vfo));
-        retcode = caps->set_freq(rig, vfo, freq);
+        int retry=5;
+        freq_t tfreq;
+        do {
+            retcode = caps->set_freq(rig, vfo, freq);
+            if (retcode != RIG_OK) RETURNFUNC(retcode);
+            set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
+            if (caps->set_freq)
+            {
+                retcode = rig_get_freq(rig, vfo, &tfreq);
+                if (retcode != RIG_OK) RETURNFUNC(retcode);
+                if (tfreq != freq)
+                {
+                    hl_usleep(50*1000);
+                    rig_debug(RIG_DEBUG_WARN, "%s: freq not set correctly?? got %.0f asked for %.0f\n", __func__, (double)tfreq, (double)freq);
+                }
+            }
+            else { retry = 1; }
+        } while (tfreq != freq && --retry > 0);
+        if (retry == 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to set frequency!!\n", __func__);
+        }
     }
     else
     {
@@ -3290,9 +3311,8 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (caps->set_freq && (caps->targetable_vfo & RIG_TARGETABLE_FREQ))
     {
-        RETURNFUNC(caps->set_freq(rig, tx_vfo, tx_freq));
+        RETURNFUNC(rig_set_freq(rig, tx_vfo, tx_freq));
     }
-
 
     if (caps->set_vfo)
     {
@@ -3318,7 +3338,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
     else
     {
-        retcode = caps->set_freq(rig, RIG_VFO_CURR, tx_freq);
+        retcode = rig_set_freq(rig, RIG_VFO_CURR, tx_freq);
     }
 
     /* try and revert even if we had an error above */
