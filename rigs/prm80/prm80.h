@@ -1,6 +1,6 @@
 /*
  *  Hamlib PRM80 backend - main header
- *  Copyright (c) 2010 by Stephane Fillod
+ *  Copyright (c) 2010,2021 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -24,28 +24,41 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "20101027"
+#define BACKEND_VER "20210217"
 
 #define PRM80_MEM_CAP {    \
         .freq = 1,  \
-        .mode = 1,  \
         .rptr_shift = 1, \
-        .rptr_offs = 1, \
-        .flags = 1, /* lockout*/ \
-        .levels = RIG_LEVEL_SQL|RIG_LEVEL_AF,   \
+        .flags = 1, /* lockout */ \
         }
 
+struct prm80_priv_data
+{
+    freq_t rx_freq;  /* last RX freq set */
+    freq_t tx_freq;  /* last TX freq set */
+    split_t split;   /* emulated split on/off */
+};
+
+int prm80_init(RIG *rig);
+int prm80_cleanup(RIG *rig);
 int prm80_reset(RIG *rig, reset_t reset);
 int prm80_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int prm80_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+int prm80_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+int prm80_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+int prm80_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+int prm80_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
+int prm80_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int prm80_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+int prm80_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int prm80_set_mem (RIG *rig, vfo_t vfo, int ch);
-int prm80_get_mem (RIG *rig, vfo_t vfo, int *ch);
-int prm80_set_channel(RIG * rig, vfo_t vfo, const channel_t * chan);
-int prm80_get_channel(RIG * rig, vfo_t vfo, channel_t * chan, int read_only);
+int prm80_set_mem(RIG *rig, vfo_t vfo, int ch);
+int prm80_get_mem(RIG *rig, vfo_t vfo, int *ch);
+int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
+int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
 
-const char* prm80_get_info(RIG *rig);
+const char *prm80_get_info(RIG *rig);
 
 extern const struct rig_caps prm8060_caps;
 

@@ -1,6 +1,6 @@
 /*
  *  Hamlib PRM80 backend - PRM8060 description
- *  Copyright (c) 2010 by Stephane Fillod
+ *  Copyright (c) 2010,2021 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -33,12 +33,13 @@
 
 #define PRM8060_ALL_MODES (RIG_MODE_FM)
 
-#define PRM8060_FUNC (RIG_FUNC_NONE)
+#define PRM8060_FUNC (RIG_FUNC_REV|RIG_FUNC_LOCK)
 
-#define PRM8060_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_SQL)
+#define PRM8060_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_SQL /* |RIG_LEVEL_RFPOWER */)
 
 #define PRM8060_PARM_ALL (RIG_PARM_NONE)
 
+// RIG_OP_FROM_VFO  RIG_OP_MCL ??
 #define PRM8060_VFO_OPS (RIG_OP_NONE)
 
 #define PRM8060_VFO (RIG_VFO_MEM)
@@ -46,7 +47,7 @@
 /*
  * PRM 8060 rig capabilities.
  * http://prm80.sourceforge.net/
- *
+ * https://github.com/f4fez/prm80
  */
 const struct rig_caps prm8060_caps =
 {
@@ -55,7 +56,7 @@ const struct rig_caps prm8060_caps =
     .mfg_name =  "Philips/Simoco",
     .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_ALPHA,
+    .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
     .ptt_type =  RIG_PTT_NONE,
     .dcd_type =  RIG_DCD_NONE,
@@ -64,16 +65,16 @@ const struct rig_caps prm8060_caps =
     .serial_rate_max =  4800,
     .serial_data_bits =  7,
     .serial_stop_bits =  1,
-    .serial_parity =  RIG_PARITY_SPACE,
+    .serial_parity =  RIG_PARITY_EVEN,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  0,
-    .timeout =  2000,
-    .retry =  3,
+    .timeout =  1000,
+    .retry =  0,
 
     .has_get_func =  PRM8060_FUNC,
     .has_set_func =  PRM8060_FUNC,
-    .has_get_level =  PRM8060_LEVEL_ALL,
+    .has_get_level =  PRM8060_LEVEL_ALL | RIG_LEVEL_RFPOWER,
     .has_set_level =  RIG_LEVEL_SET(PRM8060_LEVEL_ALL),
     .has_get_parm =  PRM8060_PARM_ALL,
     .has_set_parm =  RIG_PARM_SET(PRM8060_PARM_ALL),
@@ -115,17 +116,25 @@ const struct rig_caps prm8060_caps =
     },
     /* mode/filter list, remember: order matters! */
     .filters =  {
-        /* rough guesses */
         {PRM8060_ALL_MODES, kHz(12.5)},
         RIG_FLT_END,
     },
 
+    .rig_init =   prm80_init,
+    .rig_cleanup = prm80_cleanup,
+    .get_mode =   prm80_get_mode,
     .set_freq =   prm80_set_freq,
     .get_freq =   prm80_get_freq,
+    .set_split_vfo = prm80_set_split_vfo,
+    .get_split_vfo = prm80_get_split_vfo,
+    .set_split_freq = prm80_set_split_freq,
+    .get_split_freq = prm80_get_split_freq,
     .set_channel =  prm80_set_channel,
     .get_channel =  prm80_get_channel,
     .set_mem =  prm80_set_mem,
     .get_mem =  prm80_get_mem,
+    .set_func =  prm80_set_func,
+    .get_func =  prm80_get_func,
     .set_level =  prm80_set_level,
     .get_level =  prm80_get_level,
     .reset =  prm80_reset,
