@@ -94,14 +94,14 @@ int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     ENTERFUNC;
     switch (ant)
     {
-        case 3: 
-            cmd = "EX0320"; // TRX ANT3
-            break;
-        case 4:
+        case 1:
             cmd = "EX0321"; // R3/1 ANT1/ANT3
             break;
-        case 5:
+        case 2:
             cmd = "EX0322"; // RE/2 ANT2/ANT3
+            break;
+        case 3: 
+            cmd = "EX0320"; // TRX ANT3
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: expected 3,4,5 got %d\n", __func__, ant);
