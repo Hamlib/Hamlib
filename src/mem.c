@@ -808,7 +808,7 @@ int HAMLIB_API rig_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
   chan->vfo = RIG_VFO_MEM;
   chan->channel_num = 10;
-  char->read_only = 1;
+  chan->read_only = 1;
   err = rig_get_channel(rig, &chan);
   if (err != RIG_OK)
     error("get_channel failed: %s", rigerror(err));
