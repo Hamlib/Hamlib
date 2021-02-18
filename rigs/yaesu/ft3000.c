@@ -95,13 +95,13 @@ int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     switch (ant)
     {
         case 1:
-            cmd = "EX0321"; // R3/1 ANT1/ANT3
+            cmd = "EX0321;"; // R3/1 ANT1/ANT3
             break;
         case 2:
-            cmd = "EX0322"; // RE/2 ANT2/ANT3
+            cmd = "EX0322;"; // RE/2 ANT2/ANT3
             break;
         case 3: 
-            cmd = "EX0320"; // TRX ANT3
+            cmd = "EX0320;"; // TRX ANT3
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: expected 3,4,5 got %d\n", __func__, ant);
@@ -171,7 +171,7 @@ const struct rig_caps ftdx3000_caps =
     RIG_MODEL(RIG_MODEL_FTDX3000),
     .model_name =         "FTDX-3000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".3",
+    .version =            NEWCAT_VER ".4",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
