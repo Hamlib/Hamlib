@@ -730,7 +730,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                         return -1;
                     }
 
-                    fscanf(fin, "%s", ++pcmd);
+                    (void)fscanf(fin, "%s", ++pcmd);
                     while(*++pcmd);
 
                     *pcmd = '\0';
