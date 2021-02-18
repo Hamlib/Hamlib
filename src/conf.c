@@ -153,6 +153,16 @@ static const struct confparams frontend_cfg_params[] =
         "True enables flushing serial port with read instead of TCFLUSH -- MicroHam",
         "0", RIG_CONF_CHECKBUTTON, { }
     },
+    {
+        TOK_TWIDDLE_TIMEOUT, "twiddle_timeout", "Timeout(secs) to resume VFO polling when twiddling VFO",
+        "For satellite ops when VFOB is twiddled will pause VFOB commands until timeout",
+        "Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
+    },
+    {
+        TOK_TWIDDLE_RIT, "twiddle_rit", "RIT twiddle",
+        "Suppress get_freq on VFOB for RIT tuning satellites",
+        "Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
+    },
 
     { RIG_CONF_END, NULL, }
 };
@@ -622,6 +632,22 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rs->rigport.flushx = val_i ? 1 : 0;
         break;
 
+    case TOK_TWIDDLE_TIMEOUT:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+        rs->twiddle_timeout = val_i;
+        break;
+
+    case TOK_TWIDDLE_RIT:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+        rs->twiddle_rit = val_i ? 1: 0;
+        break;
+
     default:
         return -RIG_EINVAL;
     }
@@ -952,6 +978,14 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 
     case TOK_DISABLE_YAESU_BANDSELECT:
         sprintf(val, "%d", rs->disable_yaesu_bandselect);
+        break;
+
+    case TOK_TWIDDLE_TIMEOUT:
+        sprintf(val, "%d", rs->twiddle_timeout);
+        break;
+
+    case TOK_TWIDDLE_RIT:
+        sprintf(val, "%d", rs->twiddle_rit);
         break;
 
 
