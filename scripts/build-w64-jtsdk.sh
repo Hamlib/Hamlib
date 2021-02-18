@@ -1,14 +1,17 @@
 #!/bin/sh
 
-# Builds Hamlib 4.x W64 binary distribution.
+# Builds Hamlib 4.x W64 dl binary distribution under Windows Qt MinGW/MSYS2 
+# Customised for >= JTSDK 3.2.0 B3 stream(s)
 
-# A script to build a set of W64 binary DLLs and executables from a Hamlib
-# source tarball.  This script assumes that the Hamlib source tarball has been
-# extracted to the directory specified in $BUILD_DIR and that libusb-1.x.y has
-# also been extracted to $BUILD_DIR.
+# A script to compile a set of W64 binary DLLs, executables and compiler 
+# packages from a Hamlib source tarball.  This script assumes uses the 
+# JTSDK's previously deployed LibUSB (pointed to by JTSDK environment 
+# variable $libusb_dir_f)
 
-# See README.build-Windows for complete details.
+# See future README.build-JTSDK for complete details.
 
+#Ensure that the Qt-supplied GCC compilers and tools can be found
+export PATH=$PATH:$GCCD_F:.
 
 # Set this to a desired directory
 BUILD_DIR=~/builds
@@ -21,6 +24,9 @@ HOST_ARCH=x86_64-w64-mingw32
 
 # Set to the strip name for your version of minGW
 HOST_ARCH_STRIP=strip.exe
+
+# Set to the name of the utility to provide Unix to DOS translation
+UNIX_TO_DOS_TOOL=unix2dos.exe
 
 # Error return codes.  See /usr/include/sysexits.h
 EX_USAGE=64
@@ -68,7 +74,7 @@ What is it?
 ===========
 
 This ZIP archive or Windows installer contains a build of Hamlib-$RELEASE
-cross-compiled for MS Windows 64 bit using MinGW under Debian GNU/Linux 10
+native compiled for MS Windows 64 bit using MinGW under Windows JTSDK 3.2.0
 (nice, heh!).
 
 This software is copyrighted. The library license is LGPL, and the *.EXE files
@@ -82,8 +88,8 @@ included after being converted to HTML.
 Installation and Configuration
 ==============================
 
-Extract the ZIP archive into a convenient location, C:\Program Files is a
-reasonable choice.
+Extract the ZIP archive into a convenient location, C:\Program Files (being x64)
+is a reasonable choice.
 
 Make sure *all* the .DLL files are in your PATH (leave them in the bin
 directory and set the PATH).  To set the PATH environment variable in Windows
@@ -211,6 +217,7 @@ Please report problems or success to hamlib-developer@lists.sourceforge.net
 Cheers,
 Stephane Fillod - F8CFE
 Nate Bargmann - N0NB
+JTSDK Maintenance Team - JTSDK@GROUPS.IO
 http://www.hamlib.org
 
 END_OF_README
@@ -230,9 +237,9 @@ make -j 4 install
 
 mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def
-unix2dos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
+${UNIX_TO_DOS_TOOL} ${ZIP_DIR}/lib/msvc/libhamlib-4.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.
-unix2dos ${ZIP_DIR}/include/hamlib/*.h
+${UNIX_TO_DOS_TOOL} ${ZIP_DIR}/include/hamlib/*.h
 
 # C++ binding is useless on w64 because of ABI
 for f in *class.h
@@ -243,7 +250,7 @@ done
 for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester README.w64-bin THANKS
 do
     cp -a ${f} ${ZIP_DIR}/${f}.txt
-    unix2dos ${ZIP_DIR}/${f}.txt
+    ${UNIX_TO_DOS_TOOL} ${ZIP_DIR}/${f}.txt
 done
 
 # Generate HTML documents from nroff formatted man files
@@ -271,8 +278,8 @@ ${HOST_ARCH_STRIP} ${ZIP_DIR}/bin/*.exe ${ZIP_DIR}/bin/*hamlib-*.dll
 cp -a ${QTD_F}/libwinpthread-1.dll ${ZIP_DIR}/bin/.
 cp -a ${libusb_dir_f}/MinGW64/dll/libusb-1.0.dll ${ZIP_DIR}/bin/libusb-1.0.dll
 
-# Set for MinGW build
-FILE="${QTD_F}/libgcc_s_sjlj-1.dll"
+# Set for MinGW build - To Be safe !
+FILE="${QTD_F}/libgcc_s_seh-1.dll"
 if test -f "$FILE"
 then
     cp -a ${FILE} ${ZIP_DIR}/bin/.
