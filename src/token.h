@@ -114,6 +114,10 @@
 #define TOK_AUTO_DISABLE_SCREENSAVER  TOKEN_FRONTEND(125)
 /** \brief rig: Disable Yaesu band select logic */
 #define TOK_DISABLE_YAESU_BANDSELECT  TOKEN_FRONTEND(126)
+/** \brief rig: Supporess get_freq on VFOB for satellite RIT tuning */
+#define TOK_TWIDDLE_TIMEOUT  TOKEN_FRONTEND(127)
+/** \brief rig: Supporess get_freq on VFOB for satellite RIT tuning */
+#define TOK_TWIDDLE_RIT  TOKEN_FRONTEND(128)
 /*
  * rotator specific tokens
  * (strictly, should be documented as rotator_internal)

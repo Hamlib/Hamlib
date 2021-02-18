@@ -107,7 +107,6 @@ static struct option long_options[] =
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
     {"twiddle_timeout", 1, 0, 'W'},
-    {"twiddle_rit"    , 0, 0, 'Y'},
     {"uplink",          1, 0, 'x'},
     {"debug-time-stamps", 0, 0, 'Z'},
     {0, 0, 0, 0}
@@ -248,8 +247,7 @@ int main(int argc, char *argv[])
     struct addrinfo hints, *result, *saved_result;
     int sock_listen;
     int reuseaddr = 1;
-    int twiddle = 0;
-    int twiddle_rit = 0;
+    int twiddle_timeout = 0;
     int uplink = 0;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
@@ -524,11 +522,8 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
-            twiddle = atoi(optarg);
-            break;
-
-        case 'Y':
-            twiddle_rit=1;
+            twiddle_timeout = atoi(optarg);
+            fprintf(stderr,"twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
             break;
 
         case 'x':
@@ -590,8 +585,7 @@ int main(int argc, char *argv[])
         strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
     }
 
-    my_rig->state.twiddle_timeout = twiddle;
-    my_rig->state.twiddle_rit = twiddle_rit;
+    my_rig->state.twiddle_timeout = twiddle_timeout;
     my_rig->state.uplink = uplink;
     rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d, twiddle_rit=%d\n", __func__,
               my_rig->state.twiddle_timeout, my_rig->state.uplink, my_rig->state.twiddle_rit);
