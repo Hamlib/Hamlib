@@ -2205,6 +2205,7 @@ struct rig_state {
     int power_min;              /*!< Minimum RF power level in rig units */
     int power_max;              /*!< Maximum RF power level in rig units */
     unsigned char disable_yaesu_bandselect; /*!< Disables Yaeus band select logic */
+    int twiddle_rit;            /*!< Suppresses VFOB reading (cached value used) so RIT control can be used */
 };
 
 //! @cond Doxygen_Suppress
