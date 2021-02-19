@@ -401,10 +401,11 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         return RIG_OK;
 
+    case RIG_LEVEL_STRENGTH:
+    case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_RFPOWER:
         return kenwood_get_level(rig, vfo, level, val);
 
-    case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_PREAMP:
     case RIG_LEVEL_IF:
     case RIG_LEVEL_APF:
