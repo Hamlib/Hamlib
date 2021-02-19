@@ -1006,6 +1006,7 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
+        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
         sprintf(lstr, "%f", val.f);
     }
     else
