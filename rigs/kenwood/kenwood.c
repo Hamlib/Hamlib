@@ -2276,6 +2276,9 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     switch (rig->caps->rig_model)
     {
+    // TS480 can't handle the long command string
+    // We can treat it like the TS890S
+    case RIG_MODEL_TS480:
     // TS890S can't take power levels outside 5-100 and 5-25
     // So all we'll do is read power_now
     case RIG_MODEL_TS890S:
