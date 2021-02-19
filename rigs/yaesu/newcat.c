@@ -3474,6 +3474,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
+        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
 
         fpf = newcat_scale_float(255, val.f);
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AG%c%03d%c", main_sub_vfo, fpf,
@@ -3643,6 +3644,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             newcat_get_mode(rig, vfo, &mode, &width);
         }
 
+        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
         if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101
                 || is_ftdx10)
         {
@@ -4196,6 +4198,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
         if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101
                 || is_ftdx10)
         {
