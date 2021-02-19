@@ -505,8 +505,10 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_VFO: /* FIXME */
 
     case RIG_VFO_RX:
+    case RIG_VFO_MAIN: priv->curr = &priv->vfo_a; break;
     case RIG_VFO_A: priv->curr = &priv->vfo_a; break;
 
+    case RIG_VFO_SUB: priv->curr = &priv->vfo_b; break;
     case RIG_VFO_B: priv->curr = &priv->vfo_b; break;
 
     case RIG_VFO_MEM:
@@ -2242,7 +2244,7 @@ struct rig_caps dummy_no_vfo_caps =
     RIG_MODEL(RIG_MODEL_DUMMY_NOVFO),
     .model_name =     "Dummy No VFO",
     .mfg_name =       "Hamlib",
-    .version =        "20200606.0",
+    .version =        "20210218.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
