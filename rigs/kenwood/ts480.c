@@ -115,7 +115,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return kenwood_set_level(rig, vfo, level, val);
 
     case RIG_LEVEL_AF:
-        priv->ag_format =22;
+        priv->ag_format =2;
         return kenwood_set_level(rig, vfo, level, val);
 
     case RIG_LEVEL_RF:
