@@ -114,6 +114,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return kenwood_set_level(rig, vfo, level, val);
 
     case RIG_LEVEL_AF:
+        priv->ag_format =22;
         return kenwood_set_level(rig, vfo, level, val);
 
     case RIG_LEVEL_RF:
@@ -447,7 +448,7 @@ const struct rig_caps ts480_caps =
     RIG_MODEL(RIG_MODEL_TS480),
     .model_name = "TS-480",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".0",
+    .version = BACKEND_VER ".1",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
