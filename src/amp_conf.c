@@ -108,16 +108,30 @@ static const struct confparams ampfrontend_serial_cfg_params[] =
 
     { RIG_CONF_END, NULL, }
 };
+/** @} */ /* amplifier definitions */
 
-//! @cond Doxygen_Suppress
+
 /**
- * \brief Set amplifier state info from alpha input
- * \param amp
- * \param token TOK_... specifying which info to set
- * \param val input
- * \return RIG_OK or < 0 error
+ * \addtogroup amp_internal
+ * @{
+ */
+
+
+/**
+ * \brief Set an amplifier state value from alpha input.
  *
- * assumes amp!=NULL, val!=NULL
+ * \param amp The #AMP handle.
+ * \param token TOK_... specify which value to set.
+ * \param val Input.
+ *
+ * Assumes amp != NULL and val != NULL.
+ *
+ * \return RIG_OK or a **negative value** error.
+ *
+ * \retval RIG_OK TOK_... value set successfully.
+ * \retval RIG_EINVAL TOK_.. value not set.
+ *
+ * \sa frontamp_get_conf()
  */
 int frontamp_set_conf(AMP *amp, token_t token, const char *val)
 {
@@ -295,16 +309,23 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
 
     return RIG_OK;
 }
-//! @endcond
 
 
-//! @cond Doxygen_Suppress
 /**
- * \brief Get data from amplifier state in alpha form
- * \param amp non-null
- * \param token TOK_... specifying which data to get
- * \param val result non-null
- * \return RIG_OK or < 0 if error
+ * \brief Query data from an amplifier state in alpha form.
+ *
+ * \param amp The #AMP handle.
+ * \param token TOK_... specify which data to query.
+ * \param val Result.
+ *
+ * Assumes amp != NULL and val != NULL.
+ *
+ * \return RIG_OK or a **negative value** on error.
+ *
+ * \retval RIG_OK TOK_... value queried successfully.
+ * \retval RIG_EINVAL TOK_.. value not queried.
+ *
+ * \sa frontamp_set_conf()
  */
 int frontamp_get_conf(AMP *amp, token_t token, char *val)
 {
@@ -432,18 +453,33 @@ int frontamp_get_conf(AMP *amp, token_t token, char *val)
 
     return RIG_OK;
 }
-//! @endcond
+/** @} */ /* amp_internal definitions */
+
+
+/**
+ * \addtogroup amplifier
+ * @{
+ */
 
 
 #ifdef XXREMOVEDXXC
 // Not referenced anywhere
 /**
- * \brief Executes cfunc on all the elements stored in the conf table
- * \param amp non-null
- * \param cfunc function(..)
- * \param data
+ * \brief Executes cfunc on all the elements stored in the configuration
+ * parameters table.
  *
- * start first with backend conf table, then finish with frontend table
+ * \param amp The #AMP handle.
+ * \param cfunc Pointer to the callback function(...).
+ * \param data Data for the callback function.
+ *
+ * Start first with backend configuration parameters table, then finish with
+ * frontend configuration parameters table.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The \a cfunc action completed successfully.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent or \a cfunc is NULL.
  */
 int HAMLIB_API amp_token_foreach(AMP *amp,
                                  int (*cfunc)(const struct confparams *,
@@ -502,7 +538,7 @@ int HAMLIB_API amp_token_foreach(AMP *amp,
  * to the frontend config params table.
  *
  * \return A pointer to the token in the #confparams structure or NULL if
- * \a amp is NULL or inconsistent or if \a token is not found (how can the
+ * \a amp is NULL or inconsistent or if \a name is not found (how can the
  * caller know which occurred?).
  *
  * \sa amp_token_lookup()
@@ -566,7 +602,7 @@ const struct confparams *HAMLIB_API amp_confparam_lookup(AMP *amp,
  * Searches the backend and frontend configuration parameters tables for the
  * token ID.
  *
- * \return The token ID value or RIG_CONF_END if the lookup failed.
+ * \return The token ID value or #RIG_CONF_END if the lookup failed.
  *
  * \sa amp_confparam_lookup()
  */
@@ -590,9 +626,9 @@ token_t HAMLIB_API amp_token_lookup(AMP *amp, const char *name)
 /**
  * \brief Set an amplifier configuration parameter.
  *
- * \param amp   The #AMP handle.
+ * \param amp The #AMP handle.
  * \param token The token of the parameter to set.
- * \param val   The value to set the parameter to.
+ * \param val The value to set the parameter to.
  *
  *  Sets an amplifier configuration parameter to \a val.
  *
