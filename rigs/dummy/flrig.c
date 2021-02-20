@@ -914,6 +914,8 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "USB-D1")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "USB-D2")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "USB-D3")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
+        else if (streq(p, "USER-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
+        else if (streq(p, "USER-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
         else if (streq(p, "W-FM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
         else if (streq(p, "WFM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
         else if (streq(p, "UCW")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
