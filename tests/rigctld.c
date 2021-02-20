@@ -1092,6 +1092,7 @@ void *handle_socket(void *arg)
             RETURNFUNC(NULL);
         }
 
+#if 0
         if (ferror(fsockin) || ferror(fsockout) || retcode == 2)
         {
             if (ferror(fsockout)) fsockout = get_fsockout(handle_data_arg);
@@ -1112,6 +1113,7 @@ void *handle_socket(void *arg)
                 } while (retry-- > 0 && retcode != RIG_OK);
             }
         }
+#endif
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
