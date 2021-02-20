@@ -25,7 +25,8 @@
  */
 
 /**
- * \brief Rotator Configuration Interface
+ * \brief Rotator Configuration Interface.
+ *
  * \file rot_conf.c
  */
 
@@ -140,16 +141,29 @@ static const struct confparams rotfrontend_serial_cfg_params[] =
 
     { RIG_CONF_END, NULL, }
 };
+/** @} */ /* rotator definitions */
 
 
 /**
- * \brief Set rotator state info from alpha input
- * \param rot
- * \param token TOK_... specifying which info to set
- * \param val input
- * \return RIG_OK or < 0 error
+ * \addtogroup rot_internal
+ * @{
+ */
+
+
+/**
+ * \brief Set a rotator state value from alpha input.
+ * \param rot The #ROT handle.
+ * \param token TOK_... specify which value to set.
+ * \param val Input.
  *
- * assumes rot!=NULL, val!=NULL
+ * Assumes rot != NULL and val != NULL.
+ *
+ * \return RIG_OK or a **negative value** on error.
+ *
+ * \retval RIG_OK TOK_... value set successfully.
+ * \retval RIG_EINVAL TOK_.. value not set.
+ *
+ * \sa frontrot_get_conf()
  */
 int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 {
@@ -335,11 +349,20 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 
 
 /**
- * \brief Get data from rotator state in alpha form
- * \param rot non-null
- * \param token TOK_... specifying which data to get
- * \param val result non-null
- * \return RIG_OK or < 0 if error
+ * \brief Query data from a rotator state in alpha form.
+ *
+ * \param rot The #ROT handle.
+ * \param token TOK_... specify which data to query.
+ * \param val Result.
+ *
+ * Assumes rot != NULL and val != NULL.
+ *
+ * \return RIG_OK or a **negative value** on error.
+ *
+ * \retval RIG_OK TOK_... value queried successfully.
+ * \retval RIG_EINVAL TOK_.. value not queried.
+ *
+ * \sa frontrot_set_conf()
  */
 int frontrot_get_conf(ROT *rot, token_t token, char *val)
 {
@@ -487,15 +510,31 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
 
     return RIG_OK;
 }
+/** @} */ /* rot_internal definitions */
 
 
 /**
- * \brief Executes cfunc on all the elements stored in the conf table
- * \param rot non-null
- * \param cfunc function(..)
- * \param data
+ * \addtogroup rotator
+ * @{
+ */
+
+
+/**
+ * \brief Executes cfunc on all the elements stored in the configuration
+ * parameters table.
  *
- * start first with backend conf table, then finish with frontend table
+ * \param rot The #ROT handle.
+ * \param cfunc Pointer to the callback function(...).
+ * \param data Data for the callback function.
+ *
+ * Start first with backend configuration parameters table, then finish with
+ * frontend configuration parameters table.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The \a cfunc action completed successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent or \a cfunc is NULL.
  */
 int HAMLIB_API rot_token_foreach(ROT *rot,
                                  int (*cfunc)(const struct confparams *,
@@ -543,13 +582,23 @@ int HAMLIB_API rot_token_foreach(ROT *rot,
 
 
 /**
- * \brief lookup conf token by its name, return pointer to confparams struct.
- * \param rot
- * \param name
+ * \brief Query a rotator configuration parameter token by its name.
+ *
+ * \param rot The #ROT handle.
+ * \param name Configuration parameter token name string.
  * \return confparams or NULL
  *
- * lookup backend config table first, then fall back to frontend.
- * TODO: should use Lex to speed it up, strcmp hurts!
+ * Use this function to get a pointer to the token in the #confparams
+ * structure.  Searches the backend config params table first, then falls back
+ * to the frontend config params table.
+ *
+ * \return A pointer to the token in the #confparams structure or NULL if
+ * \a rot is NULL or inconsistent or if \a name is not found (how can the
+ * caller know which occurred?).
+ *
+ * \sa rot_token_lookup()
+ *
+ * TODO: Should use Lex to speed it up, strcmp() hurts!
  */
 const struct confparams *HAMLIB_API rot_confparam_lookup(ROT *rot,
         const char *name)
@@ -603,10 +652,18 @@ const struct confparams *HAMLIB_API rot_confparam_lookup(ROT *rot,
 
 
 /**
- * \brief Simple lookup returning token id associated with name
- * \param rot
- * \param name
- * \return token enum
+ * \brief Search for the token ID associated with a rotator configuration
+ * parameter token name.
+ *
+ * \param rot The #ROT handle.
+ * \param name Configuration parameter token name string.
+ *
+ * Searches the backend and frontend configuration parameters tables for the
+ * token ID.
+ *
+ * \return The token ID value or #RIG_CONF_END if the lookup failed.
+ *
+ * \sa rot_confparam_lookup()
  */
 token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 {
@@ -626,16 +683,20 @@ token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 
 
 /**
- * \brief set a rotator configuration parameter
- * \param rot   The rot handle
- * \param token The parameter
- * \param val   The value to set the parameter to
+ * \brief Set a rotator configuration parameter.
  *
- *  Sets a configuration parameter.
+ * \param rot The #ROT handle.
+ * \param token The token of the parameter to set.
+ * \param val The value to set the parameter to.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ *  Sets a rotator configuration parameter to \a val.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The parameter was set successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent or \a token is invalid.
+ * \retval RIG_ENAVAIL rot_caps#set_conf() capability is not available.
  *
  * \sa rot_get_conf()
  */
@@ -678,16 +739,20 @@ int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
 
 
 /**
- * \brief get the value of a configuration parameter
- * \param rot   The rot handle
- * \param token The parameter
- * \param val   The location where to store the value of config \a token
+ * \brief Query the value of a rotator configuration parameter.
  *
- *  Retrieves the value of a configuration parameter associated with \a token.
+ * \param rot The #ROT handle.
+ * \param token The token of the parameter to query.
+ * \param val The location where to store the value of the configuration \a token.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Retrieves the value of a configuration parameter associated with \a token.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Querying the parameter was successful.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_conf() capability is not available.
  *
  * \sa rot_set_conf()
  */
