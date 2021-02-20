@@ -2322,7 +2322,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
-    if (RIG_IS_TS890S)
+    if (RIG_IS_TS890S || RIG_IS_TS480)
     {
         expval = 6;
     }
@@ -2677,7 +2677,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_STRENGTH:
-        if (RIG_IS_TS590S || RIG_IS_TS590SG)
+        if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS480)
         {
             cmd = "SM0";
             len = 3;
