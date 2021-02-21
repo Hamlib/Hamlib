@@ -2339,7 +2339,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         RETURNFUNC( -RIG_EPROTO);
     }
 
-    if (RIG_IS_TS890S)
+    if (RIG_IS_TS890S || RIG_IS_TS480)
     {
         n = sscanf(levelbuf, "PC%d;", power_now);
 
