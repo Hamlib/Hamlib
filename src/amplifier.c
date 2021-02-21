@@ -220,7 +220,9 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
 
     /*
      * populate the amp->state
-     * TODO: read the Preferences here!
+     */
+    /**
+     * \todo Read the Preferences here!
      */
     rs = &amp->state;
 

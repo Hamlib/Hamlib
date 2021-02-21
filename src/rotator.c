@@ -251,7 +251,9 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
 
     /*
      * populate the rot->state
-     * TODO: read the Preferences here!
+     */
+    /**
+     * \todo Read the Preferences here!
      */
     rs = &rot->state;
 
