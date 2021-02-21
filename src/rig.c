@@ -3311,7 +3311,14 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (caps->set_freq && (caps->targetable_vfo & RIG_TARGETABLE_FREQ))
     {
-        RETURNFUNC(rig_set_freq(rig, tx_vfo, tx_freq));
+        int retry = 3;
+        freq_t tfreq;
+        do {
+            retcode = rig_set_freq(rig, tx_vfo, tx_freq);
+            if (retcode != RIG_OK) RETURNFUNC(retcode);
+            retcode = rig_get_freq(rig, tx_vfo, &tfreq);
+        } while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK);
+        RETURNFUNC(retcode);
     }
 
     if (caps->set_vfo)
@@ -3332,14 +3339,20 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         RETURNFUNC(retcode);
     }
 
-    if (caps->set_split_freq)
-    {
-        retcode = caps->set_split_freq(rig, vfo, tx_freq);
-    }
-    else
-    {
-        retcode = rig_set_freq(rig, RIG_VFO_CURR, tx_freq);
-    }
+    int retry = 3;
+    freq_t tfreq;
+    do {
+        if (caps->set_split_freq)
+        {
+            retcode = caps->set_split_freq(rig, vfo, tx_freq);
+            rig_get_freq(rig, vfo, &tfreq);
+        }
+        else
+        {
+            retcode = rig_set_freq(rig, RIG_VFO_CURR, tx_freq);
+            rig_get_freq(rig, vfo, &tfreq);
+        }
+    } while(tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK);
 
     /* try and revert even if we had an error above */
     if (caps->set_vfo)
