@@ -1,3 +1,5 @@
+// can run this using rigctl/rigctld and socat pty devices
+// socat -d -d pty,raw,echo=0 pty,raw,echo=0
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
