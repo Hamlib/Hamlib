@@ -265,7 +265,7 @@ const struct rig_caps ft767gx_caps =
     RIG_MODEL(RIG_MODEL_FT767),
     .model_name =       "FT-767GX",
     .mfg_name =         "Yaesu",
-    .version =           "20200325.0",
+    .version =           "20210221.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_TRANSCEIVER,
@@ -831,6 +831,9 @@ int ft767_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     vfo_t change_vfo;
     unsigned char curr_split;
     int retval;
+
+    retval = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+    if (retval != RIG_OK) RETURNFUNC(retval);
 
     /* This appears to always pass in VFO_CURR as the vfo */
     /* My decision is to only update the xmit VFO if we're in split mode */

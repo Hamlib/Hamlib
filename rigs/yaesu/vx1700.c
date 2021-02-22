@@ -104,7 +104,7 @@ const struct rig_caps vx1700_caps =
     RIG_MODEL(RIG_MODEL_VX1700),
     .model_name =  "VX-1700",
     .mfg_name =  "Vertex Standard",
-    .version =  "20200320.0",
+    .version =  "20210221.0",
     .copyright =  "LGPL",
     .status =   RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -702,6 +702,8 @@ static int vx1700_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     (void) vfo;
     rig_debug(RIG_DEBUG_TRACE, "%s: freq=%f\n", __func__, tx_freq);
+    int err = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+    if (err != RIG_OK) RETURNFUNC(err);
     return vx1700_do_freq_cmd(rig, VX1700_NATIVE_TX_FREQ_SET, tx_freq);
 }
 
