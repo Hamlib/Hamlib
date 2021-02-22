@@ -158,7 +158,7 @@ const struct rig_caps ft1000d_caps =
     RIG_MODEL(RIG_MODEL_FT1000D),
     .model_name =         "FT-1000D",
     .mfg_name =           "Yaesu",
-    .version =            "20210120.0",
+    .version =            "20210121.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -3570,6 +3570,9 @@ int ft1000d_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__,
               tx_freq);
+
+    err = rig_set_split_vfo(rig, vfo, RIG_SPLIT_ON, RIG_VFO_B);
+    if (err != RIG_OK) RETURNFUNC(err);
 
 //  priv = (struct ft1000d_priv_data *)rig->state.priv;
 
