@@ -615,8 +615,11 @@ int main(int argc, char *argv[])
             exitcode = 2;
         }
 
+        // if we get a hard error we try to reopen the rig again
+        // this should cover short dropouts that can occur
         if (retcode == -RIG_EIO || retcode == 2)
         {
+            int retry = 3;
             rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
 
             do
@@ -627,7 +630,7 @@ int main(int argc, char *argv[])
                 retcode = rig_open(my_rig);
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
             }
-            while (retcode != RIG_OK);
+            while (retry-- > 0 && retcode != RIG_OK);
 
         }
     }
