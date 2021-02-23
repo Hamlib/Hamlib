@@ -222,7 +222,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20210121.0",
+    .version =            "20210222.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -356,7 +356,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20210121.0",
+    .version =            "20210222.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -490,7 +490,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20210121.0",
+    .version =            "20210222.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1058,7 +1058,7 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
 {
-    unsigned char cmd_index = 0;      /* index of sequence to send */
+    //unsigned char cmd_index = 0;      /* index of sequence to send */
 
     rig_debug(RIG_DEBUG_TRACE, "ft1000mp: ft1000mp_set_vfo called %s\n",
               rig_strvfo(vfo));
@@ -1075,6 +1075,7 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
         vfo = rig->state.current_vfo;
     }
 
+#if 0 // seems switching VFOs like this changes the frequencies in the response
     switch (vfo)
     {
     case RIG_VFO_A:
@@ -1102,6 +1103,7 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
      * phew! now send cmd to rig
      */
     ft1000mp_send_priv_cmd(rig, cmd_index);
+#endif
 
     return RIG_OK;
 
