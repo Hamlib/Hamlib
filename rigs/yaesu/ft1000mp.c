@@ -1150,6 +1150,11 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
     {
         *vfo = RIG_VFO_MEM;
     }
+    else // we are emulating vfo status
+    {
+        return rig->state.current_vfo;
+    }
+#if 0
     else if (p->update_data[FT1000MP_SUMO_DISPLAYED_STATUS] & SF_VFOAB)
     {
         *vfo = rig->state.current_vfo = RIG_VFO_B;
@@ -1158,6 +1163,7 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
     {
         *vfo = rig->state.current_vfo = RIG_VFO_A;
     }
+#endif
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo status = %x %x\n", __func__,
               p->update_data[0], p->update_data[1]);
