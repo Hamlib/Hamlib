@@ -1119,7 +1119,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     cmd = C_RD_FREQ;
     subcmd = -1;
 
-    if (vfo == RIG_VFO_MEM && priv->civ_731_mode)
+    if (vfo == RIG_VFO_MEM && (priv->civ_731_mode || rig->caps->rig_model == RIG_MODEL_IC706))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO=MEM so turning off civ_731\n", __func__);
         civ_731_mode = 1;
