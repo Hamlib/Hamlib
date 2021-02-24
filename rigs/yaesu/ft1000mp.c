@@ -1565,8 +1565,8 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
     }
 //    while (retry-- && n == -RIG_ETIMEOUT);
 
-    RETURNFUNC(n);
-
+    if (n <= 0) RETURNFUNC(-RIG_ETIMEOUT);
+    RETURNFUNC(RIG_OK);
 }
 
 
