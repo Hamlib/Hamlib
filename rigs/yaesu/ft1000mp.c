@@ -1541,7 +1541,6 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
     struct rig_state *rig_s;
     struct ft1000mp_priv_data *p;
     int n;                        /* for read_  */
-    int retry = rig->state.rigport.retry;
 
     ENTERFUNC;
 
@@ -1550,23 +1549,17 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
 
     // timeout retries are done in read_block now
     // based on rig backed retry value
-//    do
+    /* send UPDATE command to fetch data*/
+    ft1000mp_send_priv_cmd(rig, ci);
+
+    n = read_block(&rig_s->rigport, (char *) p->update_data, rl);
+
+    if (n == -RIG_ETIMEOUT)
     {
-        /* send UPDATE command to fetch data*/
-        ft1000mp_send_priv_cmd(rig, ci);
-
-        n = read_block(&rig_s->rigport, (char *) p->update_data, rl);
-
-        if (n == -RIG_ETIMEOUT)
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s: Timeout retry count = %d\n", __func__, retry);
-            //rig_debug(RIG_DEBUG_TRACE, "%s: Timeout\n", __func__, retry);
-        }
+        rig_debug(RIG_DEBUG_TRACE, "%s: Timeout\n", __func__);
     }
-//    while (retry-- && n == -RIG_ETIMEOUT);
 
-    if (n <= 0) RETURNFUNC(-RIG_ETIMEOUT);
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(n);
 }
 
 
