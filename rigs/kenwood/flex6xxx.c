@@ -876,6 +876,10 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 
     case RIG_LEVEL_AF:
+        n = sscanf(lvlbuf,"ZZAG%f", &val->f);
+        val->f /= 100.0;
+        break;
+
     case RIG_LEVEL_RFPOWER_METER:
     case RIG_LEVEL_RFPOWER_METER_WATTS:
         n = sscanf(lvlbuf, "ZZRM5%f", &val->f);
