@@ -1009,7 +1009,7 @@ int HAMLIB_API ser_set_brk(hamlib_port_t *p, int state)
 
 #if defined(TIOCSBRK) && defined(TIOCCBRK)
     RETURNFUNC( IOCTL(p->fd, state ? TIOCSBRK : TIOCCBRK, 0) < 0 ?
-           -RIG_EIO : RIG_OK;)
+           -RIG_EIO : RIG_OK;);
 #else
     RETURNFUNC( -RIG_ENIMPL);
 #endif
