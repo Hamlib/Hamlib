@@ -142,6 +142,7 @@ static struct kenwood_priv_caps k3_priv_caps  =
 /* K3 specific function declarations */
 int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int k3_get_vfo(RIG *rig, vfo_t *vfo);
 int k3_set_vfo(RIG *rig, vfo_t vfo);
 int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
@@ -181,7 +182,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".3",
+    .version =      BACKEND_VER ".4",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -295,7 +296,7 @@ const struct rig_caps k3_caps =
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
     .set_vfo =      k3_set_vfo,
-    .get_vfo =      kenwood_get_vfo_if,
+    .get_vfo =      k3_get_vfo,
     .set_split_mode =   k3_set_split_mode,
     .get_split_mode =   k3_get_split_mode,
     .set_split_vfo =    kenwood_set_split_vfo,
@@ -332,7 +333,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".2",
+    .version =      BACKEND_VER ".3",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -482,7 +483,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".2",
+    .version =      BACKEND_VER ".3",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_ALPHA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -631,7 +632,7 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".2",
+    .version =      BACKEND_VER ".3",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -780,7 +781,7 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".2",
+    .version =      BACKEND_VER ".3",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_BETA,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1168,25 +1169,50 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    switch (vfo)
+    // vfo is toggle so we check first to see if we need to switch
+    vfo_t tvfo;
+    err = rig_get_vfo(rig, &tvfo);
+
+    if (err != RIG_OK)
     {
-    case RIG_VFO_B:
-        err = kenwood_transaction(rig, "SWT11", NULL, 0);
+        RETURNFUNC(err);
+    }
+    
+    if (tvfo == vfo) RETURNFUNC(RIG_OK);
 
-        if (err != RIG_OK)
-        {
-            return err;
-        }
+    err = kenwood_transaction(rig, "SWT11", NULL, 0);
 
-        break;
-
-    default:
-        break;
+    if (err != RIG_OK)
+    {
+        RETURNFUNC(err);
     }
 
     return RIG_OK;
 }
 
+int k3_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    char buf[KENWOOD_MAX_BUF_LEN];
+    int err;
+
+    err = kenwood_safe_transaction(rig, "IC", buf, KENWOOD_MAX_BUF_LEN, 3);
+
+    if (err != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 IC value\n", __func__);
+        RETURNFUNC(err);
+    }
+
+    if (strlen(buf) != 8)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 8 bytes from '%s', got %ld bytes\n", __func__, buf, strlen(buf));
+        RETURNFUNC(-RIG_EPROTO);
+    }
+    if (buf[6] == '0') *vfo = RIG_VFO_B;
+    else *vfo = RIG_VFO_A;
+
+    RETURNFUNC(RIG_OK);
+}
 
 /* Support the RC command for clearing RIT/XIT,
  *

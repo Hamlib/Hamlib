@@ -34,7 +34,6 @@
 #include "hamlib/rig.h"
 #include "network.h"
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 #include "cal.h"
 
