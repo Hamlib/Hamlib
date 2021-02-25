@@ -210,6 +210,7 @@ static ncboolean is_ftdx5000;
 static ncboolean is_ftdx1200;
 static ncboolean is_ftdx3000;
 static ncboolean is_ftdx101;
+static ncboolean is_ftdx101mp;
 static ncboolean is_ftdx10;
 
 /*
@@ -4665,6 +4666,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     /* skip command */
     retlvl = priv->ret_data + strlen(priv->cmd_str) - 1;
     retlvl_len = strlen(retlvl);
+    rig_debug(RIG_DEBUG_TRACE, "%s: retlvl='%s'\n", __func__, retlvl);
     /* chop term */
     priv->ret_data[ret_data_len - 1] = '\0';
 
@@ -6576,6 +6578,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     const struct rig_caps *caps;
     int search_high;
     int search_low;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
 
     //ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s %s\n", __func__, command);
@@ -6603,7 +6606,8 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     is_ftdx5000 = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
     is_ftdx1200 = newcat_is_rig(rig, RIG_MODEL_FTDX1200);
     is_ftdx3000 = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
-    is_ftdx101 = newcat_is_rig(rig, RIG_MODEL_FTDX101D);
+    is_ftdx101 = newcat_is_rig(rig, RIG_MODEL_FTDX101D) && priv->rig_id == NC_RIGID_FTDX101D;
+    is_ftdx101mp = newcat_is_rig(rig, RIG_MODEL_FTDX101D) && priv->rig_id == NC_RIGID_FTDX101MP;
     is_ftdx10 = newcat_is_rig(rig, RIG_MODEL_FTDX10);
 
     if (!is_ft450 && !is_ft950 && !is_ft891 && !is_ft991 && !is_ft2000
