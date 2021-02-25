@@ -2485,8 +2485,15 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                 || vfo == RIG_VFO_CURR
                 || vfo == rig->state.current_vfo)
         {
-
-            retcode = caps->set_ptt(rig, vfo, ptt);
+            int retry = 3;
+            ptt_t tptt;
+            do
+            {
+                retcode = caps->set_ptt(rig, vfo, ptt);
+                if (retcode != RIG_OK) RETURNFUNC(retcode);
+                retcode = rig_get_ptt(rig, vfo, &tptt);
+                if (tptt != ptt) rig_debug(RIG_DEBUG_WARN, "%s: failed, retry=%d\n", __func__, retry);
+            } while(tptt != ptt && retry-- > 0 && retcode == RIG_OK);
         }
         else
         {
@@ -2503,7 +2510,15 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             if (retcode == RIG_OK)
             {
                 int rc2;
-                retcode = caps->set_ptt(rig, vfo, ptt);
+                int retry = 3;
+                ptt_t tptt;
+                do
+                {
+                    retcode = caps->set_ptt(rig, vfo, ptt);
+                    if (retcode != RIG_OK) RETURNFUNC(retcode);
+                    retcode = rig_get_ptt(rig, vfo, &tptt);
+                    if (tptt != ptt) rig_debug(RIG_DEBUG_WARN, "%s: failed, retry=%d\n", __func__, retry);
+                } while(tptt != ptt && retry-- > 0 && retcode == RIG_OK);
                 /* try and revert even if we had an error above */
                 rc2 = caps->set_vfo(rig, curr_vfo);
 
