@@ -1971,7 +1971,7 @@ enum rig_caps_cptr_e {
  *
  */
 //! @cond Doxygen_Suppress
-extern long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
+extern long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
