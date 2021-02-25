@@ -26,6 +26,7 @@
 
 #include <string.h>
 #include "token.h"
+#include "misc.h"
 
 #define BACKEND_VER "20210221"
 
