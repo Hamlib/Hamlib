@@ -209,27 +209,27 @@ static void dump_switch(unsigned char data)
 
 static void dump_if_shift(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "if_shift        :\%d\n", data - 15);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, data - 15);
 }
 
 static void dump_rptr_split_code(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "rptr_split_code      :\%02x\n", data);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%02x\n", __func__, data);
 }
 
 static void dump_fsk_shift(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "fsk_shift       :\%02x\n", data);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%02x\n", __func__, data);
 }
 
 static void dump_if_width(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "if_width        :\%d\n", data);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, data);
 }
 
 static void dump_mem_shift_flag(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_shift_flag       :");
+    rig_debug(RIG_DEBUG_TRACE, "%s:", __func__ );
 
     switch ((unsigned int)data)
     {
