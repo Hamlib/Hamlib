@@ -120,11 +120,11 @@ int is_uh_radio_fd(int fd)
 {
     if (uh_radio_fd >= 0 && uh_radio_fd == fd)
     {
-        return ( 1);
+        RETURNFUNC(1);
     }
     else
     {
-        return ( 0);
+        RETURNFUNC(0);
     }
 }
 //! @endcond
