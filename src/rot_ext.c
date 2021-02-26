@@ -26,12 +26,16 @@
 
 /**
  * \file rot_ext.c
- * \brief Extension request parameter interface for rotators
+ * \brief Rotator extension parameters and levels interface.
  *
- * An open-ended set of extension parameters, functions and levels are available
- * for each rotator, as provided in the rotcaps extparms, extfuncs and extlevels lists.
- * These provide a way to work with rotator-specific functions that don't fit into the
- * basic "virtual rotator" of Hamlib.
+ * \author Mikael Nousiainen
+ * \date 2020
+ *
+ * An open-ended set of extension parameters, functions and levels are
+ * available for each rotator, as provided in the rot_caps::extparms,
+ * rot_caps::extfuncs and rot_caps::extlevels lists.  These provide a way to
+ * work with rotator-specific functions that don't fit into the basic "virtual
+ * rotator" of Hamlib.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -71,15 +75,21 @@ static int rot_has_ext_token(ROT *rot, token_t token)
 
 
 /**
- * \param rot The rotator handle
- * \param cfunc callback function of each extfunc
- * \param data cookie to be passed to \a cfunc callback
- * \brief Executes cfunc on all the elements stored in the extfuncs table
+ * \brief Executes \a cfunc on all the elements stored in the
+ * rot_caps::extfuncs table.
+ *
+ * \param rot The #ROT handle.
+ * \param cfunc Callback function of each rot_caps::extfunc.
+ * \param data Cookie to be passed to the callback function \a cfunc.
  *
  * The callback \a cfunc is called until it returns a value which is not
- * strictly positive.  A zero value means a normal end of iteration, and a
- * negative value an abnormal end, which will be the return value of
- * rot_ext_func_foreach.
+ * strictly positive.
+ *
+ * \returns A zero value means a normal end of iteration, or a **negative
+ * value** which means an abnormal end.
+ *
+ * \retval RIG_OK All extension functions elements successfully processed.
+ * \retval RIG_EINVAL \a rot or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API rot_ext_func_foreach(ROT *rot,
                                     int (*cfunc)(ROT *,
@@ -121,15 +131,21 @@ int HAMLIB_API rot_ext_func_foreach(ROT *rot,
 
 
 /**
- * \param rot The rotator handle
- * \param cfunc callback function of each extlevel
- * \param data cookie to be passed to \a cfunc callback
- * \brief Executes cfunc on all the elements stored in the extlevels table
+ * \brief Executes \a cfunc on all the elements stored in the
+ * rot_caps::extlevels extension levels table.
+ *
+ * \param rot The #ROT handle.
+ * \param cfunc Callback function of each rot_caps::extlevels.
+ * \param data Cookie to be passed to the callback function \a cfunc.
  *
  * The callback \a cfunc is called until it returns a value which is not
- * strictly positive.  A zero value means a normal end of iteration, and a
- * negative value an abnormal end, which will be the return value of
- * rot_ext_level_foreach.
+ * strictly positive.
+ *
+ * \returns A zero value which means a normal end of iteration, or a
+ * **negative value** which means an abnormal end.
+ *
+ * \retval RIG_OK All extension levels elements successfully processed.
+ * \retval RIG_EINVAL \a rot or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API rot_ext_level_foreach(ROT *rot,
                                      int (*cfunc)(ROT *,
@@ -171,15 +187,21 @@ int HAMLIB_API rot_ext_level_foreach(ROT *rot,
 
 
 /**
- * \param rot The rotator handle
- * \param cfunc callback function of each extparm
- * \param data cookie to be passed to \a cfunc callback
- * \brief Executes cfunc on all the elements stored in the extparms table
+ * \brief Executes \a cfunc on all the elements stored in the
+ * rot_caps::extparms extension parameters table.
  *
- * The callback \a cfunc is called until it returns a value which is not
- * strictly positive.  A zero value means a normal end of iteration, and a
- * negative value an abnormal end, which will be the return value of
- * rot_ext_parm_foreach.
+ * \param rot The #ROT handle.
+ * \param cfunc callback function of each rot_caps::extparms.
+ * \param data Cookie to be passed to the callback function \a cfunc.
+ *
+ * The callback function \a cfunc is called until it returns a value which is not
+ * strictly positive.
+ *
+ * \returns A zero value which means a normal end of iteration, or a
+ * **negative value** which means an abnormal end.
+ *
+ * \retval RIG_OK All extension parameters elements successfully processed.
+ * \retval RIG_EINVAL \a rot or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API rot_ext_parm_foreach(ROT *rot,
                                     int (*cfunc)(ROT *,
@@ -221,15 +243,24 @@ int HAMLIB_API rot_ext_parm_foreach(ROT *rot,
 
 
 /**
- * \param rot
- * \param name
- * \brief lookup ext token by its name, return pointer to confparams struct.
+ * \brief Lookup an extension functions, levels, or parameters token by its
+ * name and return a pointer to the containing #confparams structure member.
  *
- * Lookup extlevels table, then extfuncs, then extparms.
+ * \param rot The #ROT handle.
+ * \param name The extension functions, levels, or parameters token name.
  *
- * Returns NULL if nothing found
+ * Searches the rot_caps::extlevels, rot_caps::extfuncs and the
+ * rot_caps::extparms tables in order for the token by its name.
  *
- * TODO: should use Lex to speed it up, strcmp hurts!
+ * \note As this function is called by rot_ext_token_lookup(), it can be
+ * considered a lower level API.
+ *
+ * \return A pointer to the containing #confparams structure member or NULL if
+ * nothing found or if \a rot is NULL or inconsistent.
+ *
+ * \sa rot_ext_token_lookup()
+ *
+ * \todo Should use Lex to speed it up, strcmp() hurts!
  */
 const struct confparams *HAMLIB_API rot_ext_lookup(ROT *rot, const char *name)
 {
@@ -270,13 +301,18 @@ const struct confparams *HAMLIB_API rot_ext_lookup(ROT *rot, const char *name)
 }
 
 /**
- * \param rot
- * \param token
- * \brief lookup ext token, return pointer to confparams struct.
+ * \brief Searches for an extension levels, functions, or parameters token by
+ * its constant value and return a pointer to the #confparams structure
+ * member.
  *
- * lookup extlevels table first, then extfuncs, then fall back to extparms.
+ * \param rot The #ROT handle.
+ * \param token The token value (constant).
  *
- * Returns NULL if nothing found
+ * Searches the rot_caps::extlevels, rot_caps::extfuncs, and the
+ * rot_caps::extparms tables in order for the token by its constant value.
+ *
+ * \return A pointer to the containing #confparams structure member or NULL if
+ * nothing found or if \a rot is NULL or inconsistent.
  */
 const struct confparams *HAMLIB_API rot_ext_lookup_tok(ROT *rot, token_t token)
 {
@@ -318,9 +354,18 @@ const struct confparams *HAMLIB_API rot_ext_lookup_tok(ROT *rot, token_t token)
 
 
 /**
- * \param rot
- * \param name
- * \brief Simple lookup returning token id associated with name
+ * \brief Simple search returning the extension token ID associated with
+ * \a name.
+ *
+ * \param rot The #ROT handle.
+ * \param name The token name string to search.
+ *
+ * \note As this function calls rot_ext_lookup(), it can be considered a
+ * higher level API.
+ *
+ * \return The token ID or RIG_CONF_END if there is a lookup failure.
+ *
+ * \sa rot_ext_lookup()
  */
 token_t HAMLIB_API rot_ext_token_lookup(ROT *rot, const char *name)
 {

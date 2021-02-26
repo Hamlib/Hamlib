@@ -253,8 +253,8 @@ struct amp_caps
   setting_t levels;
   unsigned ext_levels;
 //! @endcond
-  const struct confparams *extlevels;         /*!< Extension levels structure.  */
-  const struct confparams *extparms;          /*!< Extension parameters structure.  */
+  const struct confparams *extlevels;         /*!< Extension levels list.  \sa extamp.c */
+  const struct confparams *extparms;          /*!< Extension parameters list.  \sa extamp.c */
 
   const char *macro_name;                     /*!< Amplifier model macro name. */
 };

@@ -91,6 +91,10 @@ static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 static const char *flrig_get_info(RIG *rig);
+static int flrig_power2mW(RIG *rig, unsigned int *mwpower, float power,
+                          freq_t freq, rmode_t mode);
+static int flrig_mW2power(RIG *rig, float *power, unsigned int mwpower,
+                          freq_t freq, rmode_t mode);
 
 struct flrig_priv_data
 {
@@ -177,7 +181,9 @@ const struct rig_caps flrig_caps =
     .set_split_freq_mode = flrig_set_split_freq_mode,
     .get_split_freq_mode = flrig_get_split_freq_mode,
     .set_level = flrig_set_level,
-    .get_level = flrig_get_level
+    .get_level = flrig_get_level,
+    .power2mW =   flrig_power2mW,
+    .mW2power =   flrig_mW2power
 };
 
 // Structure for mapping flrig dynmamic modes to hamlib modes
@@ -908,6 +914,8 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "USB-D1")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "USB-D2")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "USB-D3")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
+        else if (streq(p, "USER-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
+        else if (streq(p, "USER-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
         else if (streq(p, "W-FM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
         else if (streq(p, "WFM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
         else if (streq(p, "UCW")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
@@ -2017,3 +2025,34 @@ static const char *flrig_get_info(RIG *rig)
 
     return priv->info;
 }
+
+static int flrig_power2mW(RIG *rig, unsigned int *mwpower, float power,
+                          freq_t freq, rmode_t mode)
+{
+    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, power);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
+              rig_strrmode(mode));
+
+    power *= priv->powermeter_scale;
+    *mwpower = (power * 100000);
+
+    RETURNFUNC(RIG_OK);
+}
+
+static int flrig_mW2power(RIG *rig, float *power, unsigned int mwpower,
+                          freq_t freq, rmode_t mode)
+{
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mwpower = %u\n", __func__, mwpower);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
+              rig_strrmode(mode));
+
+    *power = ((float)mwpower / 100000);
+
+    RETURNFUNC(RIG_OK);
+}
+

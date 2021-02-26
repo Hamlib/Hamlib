@@ -1119,7 +1119,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     cmd = C_RD_FREQ;
     subcmd = -1;
 
-    if (vfo == RIG_VFO_MEM && priv->civ_731_mode)
+    if (vfo == RIG_VFO_MEM && (priv->civ_731_mode || rig->caps->rig_model == RIG_MODEL_IC706))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO=MEM so turning off civ_731\n", __func__);
         civ_731_mode = 1;
@@ -1488,8 +1488,6 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     return 0;
 }
 
-#ifdef XXREMOVEDXX
-// not referenced anywhere
 int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
 {
     int retval, rfstatus;
@@ -1573,7 +1571,6 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
 
     return RIG_OK;
 }
-#endif
 
 /*
  * icom_set_mode_with_data
@@ -1762,19 +1759,14 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_ERJCTED;
     }
 
-#if 0
-
-    /* Tentative DSP filter setting ($1A$03), but not supported by every rig,
+    /* DSP filter setting ($1A$03), but not supported by every rig,
      * and some models like IC910/Omni VI Plus have a different meaning for
      * this subcommand
      */
-    if ((rig->caps->rig_model != RIG_MODEL_IC910) &&
-            (rig->caps->rig_model != RIG_MODEL_OMNIVIP))
+    if (rig->caps->rig_model == RIG_MODEL_IC7000)
     {
         icom_set_dsp_flt(rig, mode, width);
     }
-
-#endif
 
     return RIG_OK;
 }
@@ -2427,6 +2419,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
      */
     if (RIG_LEVEL_IS_FLOAT(level))
     {
+        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
         icom_val = val.f * 255;
     }
     else

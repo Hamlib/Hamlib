@@ -94,17 +94,17 @@ int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     ENTERFUNC;
     switch (ant)
     {
+        case 1:
+            cmd = "AN01;"; // R3/1 ANT1/ANT3
+            break;
+        case 2:
+            cmd = "AN02;"; // RE/2 ANT2/ANT3
+            break;
         case 3: 
-            cmd = "EX0320"; // TRX ANT3
-            break;
-        case 4:
-            cmd = "EX0321"; // R3/1 ANT1/ANT3
-            break;
-        case 5:
-            cmd = "EX0322"; // RE/2 ANT2/ANT3
+            cmd = "AN03;"; // TRX ANT3
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: expected 3,4,5 got %d\n", __func__, ant);
+            rig_debug(RIG_DEBUG_ERR, "%s: expected 1,2,3 got %d\n", __func__, ant);
             RETURNFUNC(-RIG_EINVAL);
     }
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
@@ -126,7 +126,7 @@ int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     option->i = 0;  // default to no options
 
     // find out what ANT3 setting
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", "EX032;");
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", "AN0;");
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
         RETURNFUNC(err);
@@ -134,12 +134,9 @@ int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
 
     if (strlen(priv->ret_data) >= 7)
     {
-        char c = priv->ret_data[5];
+        char c = priv->ret_data[3];
         switch(c)
         {
-            case '0': 
-                *ant_rx = *ant_tx = RIG_ANT_3;
-                break;
             case '1': 
                 *ant_rx = RIG_ANT_3;
                 *ant_tx = RIG_ANT_1;
@@ -147,6 +144,9 @@ int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
             case '2': 
                 *ant_rx = RIG_ANT_3;
                 *ant_tx = RIG_ANT_2;
+                break;
+            case '3': 
+                *ant_rx = *ant_tx = RIG_ANT_3;
                 break;
             default:
                 rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna=%c\n", __func__, c);
@@ -171,7 +171,7 @@ const struct rig_caps ftdx3000_caps =
     RIG_MODEL(RIG_MODEL_FTDX3000),
     .model_name =         "FTDX-3000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".3",
+    .version =            NEWCAT_VER ".4",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,

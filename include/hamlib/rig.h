@@ -1971,7 +1971,7 @@ enum rig_caps_cptr_e {
  *
  */
 //! @cond Doxygen_Suppress
-extern long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
+extern long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
@@ -2205,6 +2205,7 @@ struct rig_state {
     int power_min;              /*!< Minimum RF power level in rig units */
     int power_max;              /*!< Maximum RF power level in rig units */
     unsigned char disable_yaesu_bandselect; /*!< Disables Yaeus band select logic */
+    int twiddle_rit;            /*!< Suppresses VFOB reading (cached value used) so RIT control can be used */
 };
 
 //! @cond Doxygen_Suppress

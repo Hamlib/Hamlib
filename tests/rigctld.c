@@ -83,7 +83,6 @@
 /*
  * Reminder: when adding long options,
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
- * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
 #define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:x:z:lLuovhVZ"
@@ -248,7 +247,7 @@ int main(int argc, char *argv[])
     struct addrinfo hints, *result, *saved_result;
     int sock_listen;
     int reuseaddr = 1;
-    int twiddle = 0;
+    int twiddle_timeout = 0;
     int uplink = 0;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
@@ -523,7 +522,8 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
-            twiddle = atoi(optarg);
+            twiddle_timeout = atoi(optarg);
+            fprintf(stderr,"twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
             break;
 
         case 'x':
@@ -585,10 +585,10 @@ int main(int argc, char *argv[])
         strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
     }
 
-    my_rig->state.twiddle_timeout = twiddle;
+    my_rig->state.twiddle_timeout = twiddle_timeout;
     my_rig->state.uplink = uplink;
-    rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d\n", __func__,
-              my_rig->state.twiddle_timeout, my_rig->state.uplink);
+    rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d, twiddle_rit=%d\n", __func__,
+              my_rig->state.twiddle_timeout, my_rig->state.uplink, my_rig->state.twiddle_rit);
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
@@ -1092,22 +1092,28 @@ void *handle_socket(void *arg)
             RETURNFUNC(NULL);
         }
 
+#if 0
         if (ferror(fsockin) || ferror(fsockout) || retcode == 2)
         {
             if (ferror(fsockout)) fsockout = get_fsockout(handle_data_arg);
             rig_debug(RIG_DEBUG_ERR, "%s: socket error in=%d, out=%d\n", __func__,
                       ferror(fsockin), ferror(fsockout));
-
-            do
+            // if we get an error from the rig we'll try to repoen
+            // that may fix things when COM ports drop and such
+            int retry=4;
+            if (retcode == 2)
             {
-                retcode = rig_close(my_rig);
-                hl_usleep(1000 * 1000);
-                rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
-                retcode = rig_open(my_rig);
-                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
+                do
+                {
+                    retcode = rig_close(my_rig);
+                    hl_usleep(1000 * 1000);
+                    rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
+                    retcode = rig_open(my_rig);
+                    rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
+                } while (retry-- > 0 && retcode != RIG_OK);
             }
-            while (retcode != RIG_OK);
         }
+#endif
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 
@@ -1213,6 +1219,7 @@ void usage(void)
         "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -W, --twiddle_timeout         timeout after detecting vfo manual change\n"
+        "  -W, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"

@@ -39,7 +39,7 @@
 #define TS480_AM_TX_MODES RIG_MODE_AM
 #define TS480_VFO (RIG_VFO_A|RIG_VFO_B)
 
-#define TS480_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC)
+#define TS480_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH)
 #define TS480_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT)
 #define TS890_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_NB2|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT)
 
@@ -105,6 +105,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     char levelbuf[16];
     int kenwood_val;
     int rf_max_level = 100; /* 100 for TS-480 and 255 for TS-890S */
+    struct kenwood_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
@@ -114,10 +115,11 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return kenwood_set_level(rig, vfo, level, val);
 
     case RIG_LEVEL_AF:
+        priv->ag_format =2;
         return kenwood_set_level(rig, vfo, level, val);
 
     case RIG_LEVEL_RF:
-        if (rig->caps->rig_model == RIG_MODEL_TS890S)
+        if (RIG_IS_TS890S)
         {
             rf_max_level = 255;
         }
@@ -130,7 +132,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_SQL:
         kenwood_val = val.f * 255;    /* possible values for TS480 are 000.. 255 */
 
-        if (rig->caps->rig_model == RIG_MODEL_TS890S)
+        if (RIG_IS_TS890S)
         {
             sprintf(levelbuf, "SQ%03d", kenwood_val);
         }
@@ -146,7 +148,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         /* hamlib argument is int, possible values rig.h:enum agc_level_e */
         /* possible values for TS480 000(=off), 001(=fast), 002(=slow) */
         /* possible values for TS890 0(=off), 1(=slow), 2(=mid), 3(=fast), 4(=off/Last) */
-        if (rig->caps->rig_model == RIG_MODEL_TS890S)
+        if (RIG_IS_TS890S)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s TS890S RIG_LEVEL_AGC\n", __func__);
 
@@ -218,7 +220,7 @@ kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 
 /*
- * kenwood_get_level
+ * kenwood_ts480_get_level
  * Assumes rig!=NULL, val!=NULL
  */
 int
@@ -233,7 +235,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    if (rig->caps->rig_model == RIG_MODEL_TS890S)
+    if (RIG_IS_TS890S || RIG_IS_TS480)
     {
         rf_max_level = 255;
     }
@@ -245,7 +247,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_AF:
-        if (rig->caps->rig_model == RIG_MODEL_TS890S)
+        if (RIG_IS_TS890S)
         {
             retval = kenwood_transaction(rig, "AG", ackbuf, sizeof(ackbuf));
             offset_level = 2;
@@ -277,6 +279,10 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_RF:
+        if (RIG_IS_TS480)
+        {
+            rf_max_level = 100;
+        }
         retval = kenwood_transaction(rig, "RG", ackbuf, sizeof(ackbuf));
 
         if (RIG_OK != retval)
@@ -300,7 +306,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_SQL:
-        if (rig->caps->rig_model == RIG_MODEL_TS890S)
+        if (RIG_IS_TS890S)
         {
             retval = kenwood_transaction(rig, "SQ", ackbuf, sizeof(ackbuf));
             ack_len_expected = 5;
@@ -332,7 +338,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_AGC:
-        if (rig->caps->rig_model == RIG_MODEL_TS890S)
+        if (RIG_IS_TS890S)
         {
             retval = kenwood_transaction(rig, "GC", ackbuf, sizeof(ackbuf));
             ack_len_expected = 3;
@@ -362,7 +368,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
 
         case '1':
-            if (rig->caps->rig_model == RIG_MODEL_TS890S)
+            if (RIG_IS_TS890S)
             {
                 val->i = RIG_AGC_SLOW;
             }
@@ -374,7 +380,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
 
         case '2':
-            if (rig->caps->rig_model == RIG_MODEL_TS890S)
+            if (RIG_IS_TS890S)
             {
                 val->i = RIG_AGC_MEDIUM;
             }
@@ -399,10 +405,11 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         return RIG_OK;
 
+    case RIG_LEVEL_STRENGTH:
+    case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_RFPOWER:
         return kenwood_get_level(rig, vfo, level, val);
 
-    case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_PREAMP:
     case RIG_LEVEL_IF:
     case RIG_LEVEL_APF:
@@ -447,7 +454,7 @@ const struct rig_caps ts480_caps =
     RIG_MODEL(RIG_MODEL_TS480),
     .model_name = "TS-480",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".0",
+    .version = BACKEND_VER ".1",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
