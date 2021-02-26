@@ -286,7 +286,7 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char ttmode;
     rmode_t saved_mode;
     pbwidth_t saved_width;
-    int mdbuf_len, ttfilter, retval;
+    int mdbuf_len, ttfilter=-1, retval;
     char mdbuf[32];
 
     switch (mode)
