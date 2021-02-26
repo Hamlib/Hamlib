@@ -154,7 +154,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char cmd_buf[MAXCMDLEN];
     int retval;
     int i;
-    int chan;
+    int chan=-1;
     freq_t freq_rx, freq_tx;
     freq_t freq_MHz;
     char *response = NULL;
