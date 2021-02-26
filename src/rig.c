@@ -2491,7 +2491,14 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             {
                 retcode = caps->set_ptt(rig, vfo, ptt);
                 if (retcode != RIG_OK) RETURNFUNC(retcode);
+                tptt = -1;
+                // IC-9700 is failing on get_ptt right after set_ptt in split mode
                 retcode = rig_get_ptt(rig, vfo, &tptt);
+                if (retcode != RIG_OK)
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: rig_get_ptt failed: %s\b", __func__, rigerror(retcode));
+                    retcode = RIG_OK; // fake the retcode so we retry
+                }
                 if (tptt != ptt) rig_debug(RIG_DEBUG_WARN, "%s: failed, retry=%d\n", __func__, retry);
             } while(tptt != ptt && retry-- > 0 && retcode == RIG_OK);
         }
