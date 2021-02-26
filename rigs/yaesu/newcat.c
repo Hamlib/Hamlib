@@ -994,7 +994,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // after band select re-read things -- may not have to change anything
         // reading both VFOs is really only needed for rigs with just one VFO stack
         // but we read them all to ensure we cover both types
-        freq_t tmp_freqA, tmp_freqB;
+        freq_t tmp_freqA=0, tmp_freqB=0;
         rmode_t tmp_mode;
         pbwidth_t tmp_width;
 
@@ -2243,7 +2243,7 @@ int newcat_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     int err;
-    vfo_t rx_vfo;
+    vfo_t rx_vfo=RIG_VFO_NONE;
 
     ENTERFUNC;
 
