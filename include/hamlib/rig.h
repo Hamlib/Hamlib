@@ -1053,7 +1053,7 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_DIVERSITY  CONSTANT_64BIT_FLAG (38)   /*!< \c DIVERSITY -- Diversity receive */
 #define RIG_FUNC_DSQL       CONSTANT_64BIT_FLAG (39)   /*!< \c DSQL -- Digital modes squelch */
 #define RIG_FUNC_SCEN       CONSTANT_64BIT_FLAG (40)   /*!< \c SCEN -- scrambler/encryption */
-#define RIG_FUNC_BIT41      CONSTANT_64BIT_FLAG (41)   /*!< \c available for future RIG_FUNC items */
+#define RIG_FUNC_SLICE      CONSTANT_64BIT_FLAG (41)   /*!< \c Rig slice selection -- Flex */
 #define RIG_FUNC_BIT42      CONSTANT_64BIT_FLAG (42)   /*!< \c available for future RIG_FUNC items */
 #define RIG_FUNC_BIT43      CONSTANT_64BIT_FLAG (43)   /*!< \c available for future RIG_FUNC items */
 #define RIG_FUNC_BIT44      CONSTANT_64BIT_FLAG (44)   /*!< \c available for future RIG_FUNC items */
@@ -1971,7 +1971,7 @@ enum rig_caps_cptr_e {
  *
  */
 //! @cond Doxygen_Suppress
-extern long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
+extern long long rig_get_caps_int(rig_model_t rig_model, long long rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
