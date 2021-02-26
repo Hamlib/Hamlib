@@ -3,7 +3,7 @@
 dnl Autoconf 2.67 is in Debian Squeeze--is an older version needed
 dnl for some other distribution?
 ## FIXME: Is this too new? ##
-AC_PREREQ([2.67])
+AC_PREREQ([2.69])
 
 
 ## ------------------------ ##
@@ -14,11 +14,7 @@ dnl Please do not use '-' in the version number, as package managers will fail,
 dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
-AC_INIT([Hamlib],
-	[4.2~git],
-	[hamlib-developer@lists.sourceforge.net],
-	[hamlib],
-	[http://www.hamlib.org])
+AC_INIT([Hamlib],[4.2~git],[hamlib-developer@lists.sourceforge.net],[hamlib],[http://www.hamlib.org])
 
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
@@ -155,7 +151,6 @@ AC_SYS_POSIX_TERMIOS()
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
 AC_CHECK_TYPES([siginfo_t],[],[],[[#include <signal.h>]])
 AC_CHECK_TYPES([sig_atomic_t],[],[],[[#include <signal.h>]])
 
