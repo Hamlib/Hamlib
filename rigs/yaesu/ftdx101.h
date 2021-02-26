@@ -85,6 +85,24 @@
         } \
     }
 
+#define FTDX101MP_RFPOWER_METER_CAL \
+    { \
+        11, \
+        { \
+            {0, 0.0f}, \
+            {35, 5.0f}, \
+            {94, 25.0f}, \
+            {133, 50.0f}, \
+            {162, 75.0f}, \
+            {205, 100.0f}, \
+            {215, 120.0f}, \
+            {225, 140.0f}, \
+            {235, 160.0f}, \
+            {245, 180.0f}, \
+            {255, 200.0f}, \
+        } \
+    }
+
 // Based on testing with G3VPX Ian Sumner
 #define FTDX101D_SWR_CAL \
     { \
