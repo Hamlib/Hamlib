@@ -453,7 +453,7 @@ int long_only;
         int exact = 0;
         int ambig = 0;
         const struct option *pfound = NULL;
-        int indfound;
+        int indfound=0;
         int option_index;
 
         while (*s && *s != '=')
