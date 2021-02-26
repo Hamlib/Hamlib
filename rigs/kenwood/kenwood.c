@@ -232,7 +232,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
                                        verification may need a longer
                                        buffer than the user supplied one */
     char cmdtrm_str[2];   /* Default Command/Reply termination char */
-    int retval;
+    int retval = -RIG_EINTERNAL;
     char *cmd;
     int len;
     int retry_read = 0;
