@@ -1121,7 +1121,7 @@ static int thd72_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 static int thd72_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-    int retval, f;
+    int retval, f=-1;
     char c;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
