@@ -1576,7 +1576,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: TARGETABLE_FREQ vfo=%s\n", __func__,
                   rig_strvfo(vfo));
         int retry=5;
-        freq_t tfreq;
+        freq_t tfreq = 0;
         do {
             retcode = caps->set_freq(rig, vfo, freq);
             if (retcode != RIG_OK) RETURNFUNC(retcode);
