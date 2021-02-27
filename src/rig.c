@@ -1575,24 +1575,24 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         rig_debug(RIG_DEBUG_TRACE, "%s: TARGETABLE_FREQ vfo=%s\n", __func__,
                   rig_strvfo(vfo));
-        int retry=5;
+        int retry=3;
         freq_t tfreq = 0;
         do {
             retcode = caps->set_freq(rig, vfo, freq);
             if (retcode != RIG_OK) RETURNFUNC(retcode);
             set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
-            if (caps->set_freq)
+            if (caps->get_freq)
             {
                 retcode = rig_get_freq(rig, vfo, &tfreq);
                 if (retcode != RIG_OK) RETURNFUNC(retcode);
                 if (tfreq != freq)
                 {
                     hl_usleep(50*1000);
-                    rig_debug(RIG_DEBUG_WARN, "%s: freq not set correctly?? got %.0f asked for %.0f\n", __func__, (double)tfreq, (double)freq);
+                    rig_debug(RIG_DEBUG_WARN, "%s: freq not set correctly?? got %.0f asked for %.0f, retry=%d\n", __func__, (double)tfreq, (double)freq);
                 }
             }
             else { retry = 1; }
-        } while (tfreq != freq && --retry > 0);
+        } while (tfreq != freq && retry-- > 0);
         if (retry == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unable to set frequency!!\n", __func__);
