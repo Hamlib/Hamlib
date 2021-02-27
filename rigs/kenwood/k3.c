@@ -1173,6 +1173,12 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
 
     ENTERFUNC;
 
+    if (priv->is_kx3)
+    {
+        rig->state.current_vfo = vfo;
+        return (RIG_OK);
+    }
+
     // vfo is toggle so we check first to see if we need to switch
     vfo_t tvfo;
     err = rig_get_vfo(rig, &tvfo);
@@ -1184,10 +1190,13 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
     
     if (tvfo == vfo) RETURNFUNC(RIG_OK);
 
+#if 0 // this doesn't seem to work and IC command VFO B indicator doesn't change
     if (priv->is_kx3)
     {
+
         cmd = "SWT24";
     }
+#endif
     else if (priv->is_k4)
     {
         cmd = "AB2";
@@ -1206,6 +1215,14 @@ int k3_get_vfo(RIG *rig, vfo_t *vfo)
 {
     char buf[KENWOOD_MAX_BUF_LEN];
     int ret;
+    struct kenwood_priv_data *priv = rig->state.priv;
+
+    if (priv->is_kx3) // we emulate VFO set/get as SW24 and IC don't seem to work
+    {
+        *vfo = rig->state.current_vfo;
+        RETURNFUNC(RIG_OK);
+    }
+
     ret = write_block(&rig->state.rigport, "IC;", 3);
 
     if (ret != RIG_OK)
