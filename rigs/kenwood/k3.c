@@ -1069,7 +1069,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_PKTLSB:
         mode = RIG_MODE_RTTYR;
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT0"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+                 "DT0"); /* DATA A mode - DATA on LSB optimised for HF Packet, VFO dial is MARK */
         break;
 
     case RIG_MODE_PKTUSB:
@@ -1079,6 +1079,11 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
 
     case RIG_MODE_RTTY:
+        mode = RIG_MODE_RTTY;
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT1"); /* AFSK A mode - AFSK on LSB optimized for RTTY, VFO dial is MARK */
+        break;
+            
     case RIG_MODE_RTTYR:
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
