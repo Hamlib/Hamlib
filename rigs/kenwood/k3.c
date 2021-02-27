@@ -1067,7 +1067,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     switch (mode)
     {
     case RIG_MODE_PKTLSB:
-        mode = RIG_MODE_RTTY;
+        mode = RIG_MODE_RTTYR;
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT0"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
         break;
