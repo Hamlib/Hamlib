@@ -9710,6 +9710,8 @@ int newcat_set_cmd_validate(RIG *rig)
         RETURNFUNC(-RIG_ENIMPL);
     }
 
+    if (strlen(valcmd) == 0) return RIG_OK;
+
     while (rc != RIG_OK && retry++ < retries)
     {
         int bytes;
@@ -9720,8 +9722,7 @@ int newcat_set_cmd_validate(RIG *rig)
 
         if (rc != RIG_OK) { RETURNFUNC(-RIG_EIO); }
 
-        bytes = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
-                            &cat_term, sizeof(cat_term));
+        bytes = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data), &cat_term, sizeof(cat_term));
 
         // FA and FB success is now verified in rig.c with a followup query
         // so no validation is needed
