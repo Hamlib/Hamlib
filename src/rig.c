@@ -1584,14 +1584,16 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             if (caps->get_freq)
             {
                 retcode = rig_get_freq(rig, vfo, &tfreq);
+                // WSJT-X does a 55Hz check so we can stop early if that's the case
+                if ((long long)freq % 100 == 55) retry=0; 
                 if (retcode != RIG_OK) RETURNFUNC(retcode);
                 if (tfreq != freq)
                 {
                     hl_usleep(50*1000);
-                    rig_debug(RIG_DEBUG_WARN, "%s: freq not set correctly?? got %.0f asked for %.0f, retry=%d\n", __func__, (double)tfreq, (double)freq);
+                    rig_debug(RIG_DEBUG_WARN, "%s: freq not set correctly?? got %.0f asked for %.0f, retry=%d\n", __func__, (double)tfreq, (double)freq, retry);
                 }
             }
-            else { retry = 1; }
+            else { retry = 0; }
         } while (tfreq != freq && retry-- > 0);
         if (retry == 0)
         {
