@@ -718,11 +718,13 @@ const struct rig_caps kx3_caps =
         {RIG_MODE_CW | RIG_MODE_CWR, RIG_FLT_ANY},
         {RIG_MODE_RTTY | RIG_MODE_RTTYR, kHz(2)},
         {RIG_MODE_RTTY | RIG_MODE_RTTYR, kHz(2.7)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, kHz(3)},
         {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(500)},
         {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(300)},
         {RIG_MODE_RTTY | RIG_MODE_RTTYR, RIG_FLT_ANY},
         {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(2.7)},
         {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(2.8)},
+        {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(3)},
         {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, Hz(50)},
         {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, Hz(2400)},
         {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, Hz(500)},
@@ -1422,9 +1424,9 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     switch (tx_mode)
     {
     case RIG_MODE_PKTLSB:
-        tx_mode = RIG_MODE_RTTY;
+        tx_mode = RIG_MODE_RTTYR;
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+                 "DT0"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
         break;
 
     case RIG_MODE_PKTUSB:
