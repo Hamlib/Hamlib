@@ -635,7 +635,7 @@ const struct rig_caps kx3_caps =
     .mfg_name =     "Elecraft",
     .version =      BACKEND_VER ".4",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_BETA,
+    .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_RIG,
@@ -1160,15 +1160,18 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 /* The K3 changes "VFOs" by swapping the contents of
  * the upper display with the lower display.  This function
- * accomplishes this by sending the emulation command, SWT11;
+ * accomplishes this by sending the emulation command, SWT11, KX3 is SWT24;
  * to the K3 to emulate a tap of the A/B button.
  */
 
 int k3_set_vfo(RIG *rig, vfo_t vfo)
 {
     int err;
+    // Does SWT11 work for the K4 or do we need to emulate set/get vfo?
+    char *cmd = "SWT11";
+    struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     // vfo is toggle so we check first to see if we need to switch
     vfo_t tvfo;
@@ -1181,20 +1184,29 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
     
     if (tvfo == vfo) RETURNFUNC(RIG_OK);
 
-    err = kenwood_transaction(rig, "SWT11", NULL, 0);
+    if (priv->is_kx3)
+    {
+        cmd = "SWT24";
+    }
+    else if (priv->is_k4)
+    {
+        cmd = "AB2";
+    }
+    err = kenwood_transaction(rig, cmd, NULL, 0);
 
     if (err != RIG_OK)
     {
         RETURNFUNC(err);
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 int k3_get_vfo(RIG *rig, vfo_t *vfo)
 {
     char buf[KENWOOD_MAX_BUF_LEN];
     int ret;
+    struct kenwood_priv_data *priv = rig->state.priv;
 
     ret = write_block(&rig->state.rigport, "IC;", 3);
 

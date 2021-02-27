@@ -177,6 +177,7 @@ int elecraft_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: K2 level is %d, %s\n", __func__,
                   priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
 
+        priv->is_k2 = 1;
         break;
 
     case RIG_MODEL_K3:
@@ -192,6 +193,9 @@ int elecraft_open(RIG *rig)
         priv->has_kpa3 = 0;
 
         if (strstr(buf, "P")) { priv->has_kpa3 = 1; }
+        if (strstr(buf, "R")) { priv->is_k3s = 1; }
+        else if (strncmp(&buf[13],"--",2)==0) { priv->is_k3 = 1; }
+        else if (strncmp(&buf[11],"----",4)==0) { priv->is_k4 = 1; }
 
         if (buf[13] == '0') // then we have a KX3 or KX2
         {
@@ -200,9 +204,15 @@ int elecraft_open(RIG *rig)
 
             switch (modelnum)
             {
-            case '1': model = "KX2"; break;
+            case '1': 
+                model = "KX2"; 
+                priv->is_kx2 = 1;
+                break;
 
-            case '2': model = "KX3"; break;
+            case '2': 
+                model = "KX3"; 
+                priv->is_kx3 = 1;
+                break;
 
             default:
                 rig_debug(RIG_DEBUG_ERR, "%s: Unknown Elecraft modelnum=%c, expected 1 or 2\n",
@@ -219,8 +229,7 @@ int elecraft_open(RIG *rig)
             if (strstr(buf, "R")) { model = "K3S"; }
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: model=%s, kpa3%d\n", __func__, model,
-                  priv->has_kpa3);
+        rig_debug(RIG_DEBUG_TRACE, "%s: model=%s, is_k2=%d, is_k3=%d, is_k3s=%d, is_kx3=%d, is_kx2=%d, is_k4=%d, kpa3=%d\n", __func__, model, priv->is_k2, priv->is_k3, priv->is_k3s, priv->is_kx3, priv->is_kx2, priv->is_k4, priv->has_kpa3);
 
         err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
 
