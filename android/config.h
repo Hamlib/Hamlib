@@ -223,10 +223,10 @@
 #define HAVE_UNISTD_H 1
 
 /* Define to 1 if you have the <libusb.h> header file. */
-#define HAVE_LIBUSB_H 1
+//#define HAVE_LIBUSB_H 1
 
 /* Define to 1 if you have the <libusb-1.0/libusb.h> header file. */
-/* #undef HAVE_LIBUSB_1_0_LIBUSB_H 1
+//#define HAVE_LIBUSB_1_0_LIBUSB_H 1
 
 /* Define to 1 if you have the `usleep' function. */
 #define HAVE_USLEEP 1

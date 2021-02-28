@@ -5725,7 +5725,7 @@ const char *HAMLIB_API rig_get_vfo_list(RIG *rig)
         RETURNFUNC(NULL);
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(NULL);
 }
 
 /**
