@@ -184,6 +184,7 @@ int elecraft_open(RIG *rig)
     case RIG_MODEL_K3S:
     case RIG_MODEL_KX2:
     case RIG_MODEL_KX3:
+    case RIG_MODEL_K4:
         // we need to know what's hooked up for PC command max levels
         err =  kenwood_safe_transaction(rig, "OM", buf, KENWOOD_MAX_BUF_LEN, 15);
 
