@@ -302,21 +302,21 @@ int cu_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int cu_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    char cmd;
+    char *cmd;
     int ret;
 
     switch (mode)
     {
-    case RIG_MODE_USB: cmd = 'X'; break;
+    case RIG_MODE_USB: cmd = "X"; break;
 
-    case RIG_MODE_LSB: cmd = 'Y'; break;
+    case RIG_MODE_LSB: cmd = "Y"; break;
 
-    case RIG_MODE_AM:  cmd = 'Z'; break;
+    case RIG_MODE_AM:  cmd = "Z"; break;
 
-    case RIG_MODE_RTTY: cmd = '['; break;
+    case RIG_MODE_RTTY: cmd = "["; break;
 
-    /* case RIG_MODE_R3E: cmd = '\\'; break; */
-    case RIG_MODE_CW:  cmd = ']'; break;
+    /* case RIG_MODE_R3E: cmd = "\\"; break; */
+    case RIG_MODE_CW:  cmd = "]"; break;
 
     /* case RIG_MODE_MCW: cmd = '^'; break; */
 
@@ -324,7 +324,7 @@ int cu_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    ret = cu_transaction(rig, &cmd, 1);
+    ret = cu_transaction(rig, cmd, 1);
 
     if (ret != RIG_OK)
     {
@@ -340,18 +340,18 @@ int cu_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width < rig_passband_normal(rig, mode))
     {
-        cmd = 'D';
+        cmd = "D";
     }
     else if (width > rig_passband_normal(rig, mode))
     {
-        cmd = 'B';
+        cmd = "B";
     }
     else
     {
-        cmd = 'C';
+        cmd = "C";
     }
 
-    return cu_transaction(rig, &cmd, 1);
+    return cu_transaction(rig, cmd, 1);
 }
 
 int cu_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
