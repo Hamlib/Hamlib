@@ -1972,12 +1972,6 @@ enum rig_caps_cptr_e {
  */
 //! @cond Doxygen_Suppress
 extern long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
-/**
- * \brief Function to return value from rig->caps > 32 bit values
- * Supports 64-bit rig_caps values
- */
-//! @cond Doxygen_Suppress
-extern long long rig_get_caps_long(rig_model_t rig_model, long long rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
