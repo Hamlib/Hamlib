@@ -5720,12 +5720,13 @@ const char *HAMLIB_API rig_get_vfo_list(RIG *rig)
 {
     ENTERFUNC;
 
+    // to be completed
     if (CHECK_RIG_ARG(rig))
     {
         RETURNFUNC(NULL);
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(NULL);
 }
 
 /**
