@@ -1029,8 +1029,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // just drop through
     }
 
-
-    // cppcheck-suppress *
     if (RIG_MODEL_FT450 == caps->rig_model)
     {
         if (c == 'B')
