@@ -6,16 +6,16 @@ Copyright (C) 2000-2021  Michael Black W9MDB, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
-Version 4.3
-    Add twiddle_timeout and twiddle_rit --set-conf options
+Version 4.2
+    * 2021-03-?? -- anticipated release date
+    * Major rework for PRM80
+    * Add twiddle_timeout and twiddle_rit --set-conf options
         rigctld --set-conf=twiddle_timeout=5,twiddle_rit=1 
         This will set the twiddle timeout to 5 seconds and turn on twiddle_rit
         For twiddle timeout VFOB will not be polled for 5 seconds after VFO twiddling is detected
     rigctld --twiddle is deprecated and will be removed in 5.0 along with get_twiddle and set_twiddle
 
 Version 4.2
-        2021-??-??
-        * Major rework for PRM80
 
 Version 4.1
         2021-01-31
