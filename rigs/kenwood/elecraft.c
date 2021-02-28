@@ -283,6 +283,14 @@ int elecraft_open(RIG *rig)
                                                                                         it's not supported */
     }
 
+    // For rigs like K3X vfo emulation need to set VFO_A to start
+    vfo_t vfo;
+    rig_get_vfo(rig, &vfo);
+    if (vfo != RIG_VFO_A && vfo != RIG_VFO_B)
+    {
+        rig_set_vfo(rig, RIG_VFO_A);
+    }
+
     return RIG_OK;
 }
 
