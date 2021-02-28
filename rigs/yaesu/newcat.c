@@ -9798,7 +9798,6 @@ int newcat_set_cmd(RIG *rig)
         if (rc == RIG_OK)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_validate OK\n", __func__);
-            RETURNFUNC(RIG_OK);
         }
         else if (rc == -RIG_EPROTO)
         {
@@ -9820,6 +9819,14 @@ int newcat_set_cmd(RIG *rig)
         {
             RETURNFUNC(RIG_OK);
         }
+        // freq set and ptt are now verified in rig.c
+        if (strncmp(priv->cmd_str,"FA",2)==0
+                || strncmp(priv->cmd_str,"FB",2)==0
+                || strncmp(priv->cmd_str,"TX",2)==0)
+        {
+            RETURNFUNC(RIG_OK);
+        }
+
 
         if (strncmp(priv->cmd_str, "BS", 2) == 0)
         {
