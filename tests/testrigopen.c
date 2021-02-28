@@ -26,7 +26,7 @@ int callback(const struct rig_caps *caps, rig_ptr_t rigp)
 
     if (!rig)
     {
-        fprintf(stderr, "Unknown rig num: %d\n", caps->rig_model);
+        fprintf(stderr, "Unknown rig num: %u\n", caps->rig_model);
         fprintf(stderr, "Please check riglist.h\n");
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }

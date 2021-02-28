@@ -12,7 +12,7 @@ int main()
     void *p1 = &rig->state.rigport;
     void *p2 = &rig->state.vfo_list;
     unsigned long offset = p2 - p1;
-    printf("offset vfo_list=%ld\n", offset);
+    printf("offset vfo_list=%lu\n", offset);
 #if defined(WIN64) || defined (_WIN64) || defined (__WIN64__)
     int expected = 13264; // mingw64
 #elif defined(WIN32) || defined (_WIN32) || defined(__WIN32__)
@@ -34,7 +34,7 @@ int main()
 
     p2 = &rig->state.power_max;
     offset = p2 - p1;
-    printf("offset power_max=%ld\n", offset);
+    printf("offset power_max=%lu\n", offset);
 
 #if defined(WIN64) || defined (_WIN64) || defined (__WIN64__)
     expected = 13664; // mingw64
