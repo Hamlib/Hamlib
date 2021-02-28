@@ -480,11 +480,11 @@ int cu_set_parm(RIG *rig, setting_t parm, value_t val)
 
 int cu_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    char cmd;
+    char *cmd;
 
-    cmd = ptt == RIG_PTT_ON ? 'u' : 'v';
+    cmd = ptt == RIG_PTT_ON ? "u" : "v";
 
-    return cu_transaction(rig, &cmd, 1);
+    return cu_transaction(rig, cmd, 1);
 }
 
 static int cu_set_mem(RIG *rig, vfo_t vfo, int ch)
