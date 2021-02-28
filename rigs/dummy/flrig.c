@@ -623,10 +623,14 @@ static const char *modeMapGetFLRig(rmode_t modeHamlib)
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: checking modeMap[%d]=%.0f to modeHamlib=%.0f, mode_flrig='%s'\n", __func__, i, (double)modeMap[i].mode_hamlib, (double)modeHamlib, modeMap[i].mode_flrig);
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: checking modeMap[%d]=%.0f to modeHamlib=%.0f, mode_flrig='%s'\n", __func__,
+                  i, (double)modeMap[i].mode_hamlib, (double)modeHamlib, modeMap[i].mode_flrig);
+
         if (modeMap[i].mode_hamlib == modeHamlib)
         {
-            rig_debug(RIG_DEBUG_TRACE,"%s matched mode=%.0f, returning '%s'\n", __func__, (double)modeHamlib, modeMap[i].mode_flrig);
+            rig_debug(RIG_DEBUG_TRACE, "%s matched mode=%.0f, returning '%s'\n", __func__,
+                      (double)modeHamlib, modeMap[i].mode_flrig);
             return modeMap[i].mode_flrig;
         }
     }
@@ -1295,6 +1299,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         rig_debug(RIG_DEBUG_ERR, "%s: strdup failed\n", __func__);
         return -RIG_EINTERNAL;
     }
+
 //    if (strncmp(ttmode,"ERROR",5)==0) RETURNFUNC(-RIG_EINTERN);
 
     pttmode = ttmode;

@@ -506,9 +506,11 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_RX:
     case RIG_VFO_MAIN: priv->curr = &priv->vfo_a; break;
+
     case RIG_VFO_A: priv->curr = &priv->vfo_a; break;
 
     case RIG_VFO_SUB: priv->curr = &priv->vfo_b; break;
+
     case RIG_VFO_B: priv->curr = &priv->vfo_b; break;
 
     case RIG_VFO_MEM:
@@ -1006,7 +1008,8 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
+        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
+
         sprintf(lstr, "%f", val.f);
     }
     else

@@ -71,19 +71,19 @@ const cal_table_float_t icom_default_rfpower_meter_cal =
 {
     13,
     {
-         { 0, 0.0f },
-         { 21, 5.0f },
-         { 43, 10.0f },
-         { 65, 15.0f },
-         { 83, 20.0f },
-         { 95, 25.0f },
-         { 105, 30.0f },
-         { 114, 35.0f },
-         { 124, 40.0f },
-         { 143, 50.0f },
-         { 183, 75.0f },
-         { 213, 100.0f },
-         { 255, 120.0f }
+        { 0, 0.0f },
+        { 21, 5.0f },
+        { 43, 10.0f },
+        { 65, 15.0f },
+        { 83, 20.0f },
+        { 95, 25.0f },
+        { 105, 30.0f },
+        { 114, 35.0f },
+        { 124, 40.0f },
+        { 143, 50.0f },
+        { 183, 75.0f },
+        { 213, 100.0f },
+        { 255, 120.0f }
     }
 };
 
@@ -1119,7 +1119,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     cmd = C_RD_FREQ;
     subcmd = -1;
 
-    if (vfo == RIG_VFO_MEM && (priv->civ_731_mode || rig->caps->rig_model == RIG_MODEL_IC706))
+    if (vfo == RIG_VFO_MEM && (priv->civ_731_mode
+                               || rig->caps->rig_model == RIG_MODEL_IC706))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO=MEM so turning off civ_731\n", __func__);
         civ_731_mode = 1;
@@ -2419,7 +2420,8 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
      */
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
+        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
+
         icom_val = val.f * 255;
     }
     else
@@ -3092,6 +3094,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
+
         // rig table in Watts needs to be divided by 100
         if (rig->caps->rfpower_meter_cal.size == 0)
         {
@@ -6227,7 +6230,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
         rs->rigport.retry = retry;
-        hl_usleep(3000*1000); // give it 3 seconds to wake up
+        hl_usleep(3000 * 1000); // give it 3 seconds to wake up
 
         break;
 

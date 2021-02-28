@@ -215,7 +215,7 @@ static int netrigctl_open(RIG *rig)
     len = sprintf(cmd, "\\chk_vfo\n");
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
-    if (sscanf(buf,"CHKVFO %d", &priv->rigctld_vfo_mode)==1)
+    if (sscanf(buf, "CHKVFO %d", &priv->rigctld_vfo_mode) == 1)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: chkvfo=%d\n", __func__, priv->rigctld_vfo_mode);
     }

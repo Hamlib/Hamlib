@@ -1187,20 +1187,23 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
     {
         RETURNFUNC(err);
     }
-    
-    if (tvfo == vfo) RETURNFUNC(RIG_OK);
+
+    if (tvfo == vfo) { RETURNFUNC(RIG_OK); }
 
 #if 0 // this doesn't seem to work and IC command VFO B indicator doesn't change
+
     if (priv->is_kx3)
     {
 
         cmd = "SWT24";
     }
+
 #endif
     else if (priv->is_k4)
     {
         cmd = "AB2";
     }
+
     err = kenwood_transaction(rig, cmd, NULL, 0);
 
     if (err != RIG_OK)
@@ -1232,13 +1235,16 @@ int k3_get_vfo(RIG *rig, vfo_t *vfo)
     }
 
     ret = read_block(&rig->state.rigport, buf, 8);
+
     if (ret != 8)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 8 bytes from '%s', got %d bytes\n", __func__, buf, ret);
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 8 bytes from '%s', got %d bytes\n",
+                  __func__, buf, ret);
         RETURNFUNC(-RIG_EPROTO);
     }
-    if ((buf[6]&0x02) == 0) *vfo = RIG_VFO_B;
-    else *vfo = RIG_VFO_A;
+
+    if ((buf[6] & 0x02) == 0) { *vfo = RIG_VFO_B; }
+    else { *vfo = RIG_VFO_A; }
 
     RETURNFUNC(RIG_OK);
 }

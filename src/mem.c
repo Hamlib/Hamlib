@@ -688,7 +688,7 @@ static int generic_restore_channel(RIG *rig, const channel_t *chan)
 int HAMLIB_API rig_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct rig_caps *rc;
-    int curr_chan_num=-1, get_mem_status = RIG_OK;
+    int curr_chan_num = -1, get_mem_status = RIG_OK;
     vfo_t curr_vfo;
     vfo_t vfotmp; /* requested vfo */
     int retcode;
@@ -833,7 +833,7 @@ int HAMLIB_API rig_get_channel(RIG *rig, vfo_t vfox, channel_t *chan,
                                int read_only)
 {
     struct rig_caps *rc;
-    int curr_chan_num=-1, get_mem_status = RIG_OK;
+    int curr_chan_num = -1, get_mem_status = RIG_OK;
     vfo_t curr_vfo;
     vfo_t vfotmp = RIG_VFO_NONE; /* requested vfo */
     int retcode = RIG_OK;

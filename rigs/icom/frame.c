@@ -320,6 +320,7 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
         {
             break;
         }
+
         rig_debug(RIG_DEBUG_WARN, "%s: timeout retry=%d\n", __func__, retry);
 
         //hl_usleep(500 * 1000); // pause a half second -- don't think we need this
