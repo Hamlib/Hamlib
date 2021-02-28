@@ -1173,7 +1173,8 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
 
     ENTERFUNC;
 
-    if (priv->is_kx3)
+    // we emulate vfo selection for some elecraft
+    if (priv->is_kx3 || priv->is_k4)
     {
         rig->state.current_vfo = vfo;
         return (RIG_OK);
@@ -1199,10 +1200,6 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
     }
 
 #endif
-    else if (priv->is_k4)
-    {
-        cmd = "AB2";
-    }
 
     err = kenwood_transaction(rig, cmd, NULL, 0);
 
