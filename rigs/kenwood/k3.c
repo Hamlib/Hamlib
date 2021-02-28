@@ -1021,7 +1021,14 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* The K3 is not limited to specific filter widths so we can query
      * the actual bandwidth using the BW command
      */
+    if (vfo == RIG_VFO_B)
+    {
+    err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 7);
+    }
+    else
+    {
     err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 6);
+    }
 
     if (err != RIG_OK)
     {
@@ -1029,7 +1036,14 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return err;
     }
 
-    *width = atoi(&buf[2]) * 10;
+    if (vfo == RIG_VFO_B)
+    {
+        *width = atoi(&buf[3]) * 10;
+    }
+    else
+    {
+        *width = atoi(&buf[2]) * 10;
+    }
 
     return RIG_OK;
 }
@@ -1163,53 +1177,6 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     return RIG_OK;
-}
-
-int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
-{
-    char *cmd = "MD";
-    int offset = 2;
-    int retval;
-    char buf[KENWOOD_MAX_BUF_LEN];
-    int kmode;
-
-    ENTERFUNC;
-
-    // get our mode
-    if (vfo == RIG_VFO_B)
-    {
-        cmd = "MD$";
-        offset = 3;
-    }
-    retval = kenwood_safe_transaction(rig, cmd, buf, KENWOOD_MAX_BUF_LEN, offset + 1);
-    if (retval != RIG_OK)
-    {
-        RETURNFUNC(retval);
-    }
-    if (buf[offset] <= '9')
-    {
-        kmode = buf[offset] - '0';
-    }
-    else
-    {
-        kmode = buf[offset] - 'A' + 10;
-    }
-
-    struct kenwood_priv_caps *caps = kenwood_caps(rig);
-    *mode = kenwood2rmode(kmode, caps->mode_table);
-
-    // now we get the bandwidth
-    cmd = "BW";
-    retval = kenwood_safe_transaction(rig, cmd, buf, KENWOOD_MAX_BUF_LEN, 7);
-    if (retval != RIG_OK)
-    {
-        RETURNFUNC(retval);
-    }
-    int twidth = 0;
-    sscanf(buf,"BW%d",&twidth);
-    *width = twidth;
-
-    RETURNFUNC(RIG_OK);
 }
 
 /* Elecraft rigs don't really know about swappings vfos.
