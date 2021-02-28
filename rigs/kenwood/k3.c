@@ -1217,7 +1217,7 @@ int k3_get_vfo(RIG *rig, vfo_t *vfo)
     int ret;
     struct kenwood_priv_data *priv = rig->state.priv;
 
-    if (priv->is_kx3) // we emulate VFO set/get as SW24 and IC don't seem to work
+    if (priv->is_kx3 | priv->is_k4) // we emulate VFO set/get as SW24 and IC don't seem to work
     {
         *vfo = rig->state.current_vfo;
         RETURNFUNC(RIG_OK);
