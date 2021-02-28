@@ -3834,19 +3834,19 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
     caps = rig->caps;
 
-    int retry = 3;
 
     if (caps->set_split_freq_mode)
     {
         freq_t tfreq;
-
+        int retry = 3;
+        int retcode2;
         // we query freq after set to ensure it really gets done
         do
         {
             retcode = caps->set_split_freq_mode(rig, vfo, tx_freq, tx_mode, tx_width);
-            retcode = rig_get_split_freq(rig, vfo, &tfreq);
+            retcode2 = rig_get_split_freq(rig, vfo, &tfreq);
         }
-        while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK);
+        while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK && retcode2 == RIG_OK);
 
         if (tfreq != tx_freq) { retcode = -RIG_EPROTO; }
 
