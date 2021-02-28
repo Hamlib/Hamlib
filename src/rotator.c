@@ -419,6 +419,7 @@ int HAMLIB_API rot_open(ROT *rot)
         break;
 
 #ifdef HAVE_LIBUSB_H
+
     case RIG_PORT_USB:
         status = usb_port_open(&rs->rotport);
 
@@ -531,6 +532,7 @@ int HAMLIB_API rot_close(ROT *rot)
             break;
 
 #ifdef HAVE_LIBUSB_H
+
         case RIG_PORT_USB:
             usb_port_close(&rs->rotport);
             break;

@@ -731,8 +731,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     }
 
                     retcode = fscanf(fin, "%s", ++pcmd);
-                    if (retcode == 0) rig_debug(RIG_DEBUG_WARN, "%s: unable to scan %c\n", __func__, *(pcmd-1));
-                    while(*++pcmd);
+
+                    if (retcode == 0) { rig_debug(RIG_DEBUG_WARN, "%s: unable to scan %c\n", __func__, *(pcmd - 1)); }
+
+                    while (*++pcmd);
 
                     *pcmd = '\0';
                     cmd = parse_arg((char *)cmd_name);
@@ -2154,8 +2156,10 @@ declare_proto_rig(set_vfo)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: set_vfo(%s) failed, requested %s\n", __func__, rig_strvfo(vfo), arg1);
+        rig_debug(RIG_DEBUG_ERR, "%s: set_vfo(%s) failed, requested %s\n", __func__,
+                  rig_strvfo(vfo), arg1);
     }
+
     return retval;
 }
 
@@ -2188,6 +2192,7 @@ declare_proto_rig(get_vfo_info)
     int retval;
 
     ENTERFUNC;
+
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
@@ -2197,22 +2202,24 @@ declare_proto_rig(get_vfo_info)
     }
 
     vfo = rig_parse_vfo(arg1);
-    freq_t freq=0;
-    rmode_t mode=RIG_MODE_NONE;
+    freq_t freq = 0;
+    rmode_t mode = RIG_MODE_NONE;
     pbwidth_t width = 0;
     retval = rig_get_vfo_info(rig, vfo, &freq, &mode, &width);
 
-    rig_debug(RIG_DEBUG_ERR,"%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout,"%s: %.0f\n", cmd->arg1, freq);
-        fprintf(fout,"%s: %s\n", cmd->arg2, rig_strrmode(mode));
-        fprintf(fout,"%s: %d\n", cmd->arg3, (int)width);
+        fprintf(fout, "%s: %.0f\n", cmd->arg1, freq);
+        fprintf(fout, "%s: %s\n", cmd->arg2, rig_strrmode(mode));
+        fprintf(fout, "%s: %d\n", cmd->arg3, (int)width);
     }
     else
     {
-        fprintf(fout,"%.0f\n%s\n%d\n", freq, rig_strrmode(mode), (int)width);
+        fprintf(fout, "%.0f\n%s\n%d\n", freq, rig_strrmode(mode), (int)width);
     }
+
     RETURNFUNC(retval);
 }
 
@@ -2875,8 +2882,9 @@ declare_proto_rig(set_level)
     level = rig_parse_level(arg1);
 
     // some Java apps send comma in international setups so substitute period
-    char *p = strchr(arg2,',');
-    if (p) *p = '.';
+    char *p = strchr(arg2, ',');
+
+    if (p) { *p = '.'; }
 
     if (!rig_has_set_level(rig, level))
     {

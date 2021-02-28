@@ -1461,7 +1461,8 @@ static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
               tx_freq);
 
     err = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
-    if (err != RIG_OK) RETURNFUNC(err);
+
+    if (err != RIG_OK) { RETURNFUNC(err); }
 
     priv = (struct ft920_priv_data *)rig->state.priv;
 

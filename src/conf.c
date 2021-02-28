@@ -637,6 +637,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             return -RIG_EINVAL; //value format error
         }
+
         rs->twiddle_timeout = val_i;
         break;
 
@@ -645,7 +646,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             return -RIG_EINVAL; //value format error
         }
-        rs->twiddle_rit = val_i ? 1: 0;
+
+        rs->twiddle_rit = val_i ? 1 : 0;
         break;
 
     default:

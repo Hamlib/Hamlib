@@ -1057,7 +1057,8 @@ int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int ft847_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
-    if (retval != RIG_OK) RETURNFUNC(retval);
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     return ft847_set_freq(rig, RIG_VFO_TX, freq);
 }
