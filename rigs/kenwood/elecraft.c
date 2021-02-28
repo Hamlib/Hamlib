@@ -194,10 +194,10 @@ int elecraft_open(RIG *rig)
         priv->has_kpa3 = 0;
 
         if (strstr(buf, "P")) { priv->has_kpa3 = 1; }
-
-        if (strstr(buf, "R")) { priv->is_k3s = 1; }
+        // could also use K4; command
+        if (rig->caps->rig_model == RIG_MODEL_K4) { priv->is_k4 = 1; }
+        else if (strstr(buf, "R")) { priv->is_k3s = 1; }
         else if (strncmp(&buf[13], "--", 2) == 0) { priv->is_k3 = 1; }
-        else if (strncmp(&buf[11], "----", 4) == 0) { priv->is_k4 = 1; }
 
         if (buf[13] == '0') // then we have a KX3 or KX2
         {
