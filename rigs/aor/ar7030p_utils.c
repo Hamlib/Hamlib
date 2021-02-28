@@ -36,7 +36,7 @@
 static enum PAGE_e curPage = NONE; /* Current memory page */
 static unsigned int curAddr = 65535; /* Current page address */
 static enum LOCK_LVL_e curLock = LOCK_0; /* Current lock level */
-static const unsigned int PAGE_SIZE[] =
+static const unsigned int 7030_PAGE_SIZE[] =
 {
     256, 256, 512, 4096, 4096,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -435,7 +435,7 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
 
     if ((EEPROM3 >= page) || (ROM == page))
     {
-        if (PAGE_SIZE[page] > addr)
+        if (7030_PAGE_SIZE[page] > addr)
         {
             if (curPage != page)
             {
@@ -1454,11 +1454,11 @@ int pageSize(const enum PAGE_e page)
 
     if ((WORKING <= page) && (EEPROM3 >= page))
     {
-        rc = (int) PAGE_SIZE[ page ];
+        rc = (int) 7030_PAGE_SIZE[ page ];
     }
     else if (ROM == page)
     {
-        rc = (int) PAGE_SIZE[ page ];
+        rc = (int) 7030_PAGE_SIZE[ page ];
     }
     else
     {
