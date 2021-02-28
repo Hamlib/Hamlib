@@ -1403,7 +1403,7 @@ int ft980_set_vfo(RIG *rig, vfo_t vfo)
 int ft980_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int err;
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1411,6 +1411,8 @@ int ft980_get_vfo(RIG *rig, vfo_t *vfo)
     {
         return -RIG_EARG;
     }
+
+    priv = (struct ft980_priv_data *)rig->state.priv;
 
     /* Get flags for VFO status */
     err = ft980_get_status_data(rig);
