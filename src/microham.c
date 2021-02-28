@@ -776,6 +776,8 @@ static void *read_device(void *p)
             return NULL;
         }
 
+
+#if defined(HAVE_PTHREAD) && defined(HAVE_SOCKETPAIR) && defined(HAVE_SELECT)
         //
         // This is the right place to ensure that a heartbeat is sent
         // to the microham device regularly (15 sec delay is the maximum
@@ -785,6 +787,7 @@ static void *read_device(void *p)
         {
             heartbeat();
         }
+#endif
 
         //
         // Wait for something to arrive, either from the microham device
