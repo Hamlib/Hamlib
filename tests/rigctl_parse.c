@@ -332,7 +332,7 @@ static struct test_table test_list[] =
     { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO },
     { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
     { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO | ARG_IN, "Status" }, /* turn vfo option on/off */
-    { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_NOVFO | ARG_IN1 | ARG_OUT3, "VFO", "Freq", "Mode", "Width" }, /* turn vfo option on/off */
+    { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_NOVFO | ARG_IN1 | ARG_OUT3, "Freq", "Mode", "Width", "Split" }, /* get several vfo parameters at once */
     { 0xf4,  "get_vfo_list",    ACTION(get_vfo_list),       ARG_OUT | ARG_NOVFO, "VFOs" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
@@ -2205,7 +2205,8 @@ declare_proto_rig(get_vfo_info)
     freq_t freq = 0;
     rmode_t mode = RIG_MODE_NONE;
     pbwidth_t width = 0;
-    retval = rig_get_vfo_info(rig, vfo, &freq, &mode, &width);
+    split_t split;
+    retval = rig_get_vfo_info(rig, vfo, &freq, &mode, &width, &split);
 
     rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -2214,6 +2215,7 @@ declare_proto_rig(get_vfo_info)
         fprintf(fout, "%s: %.0f\n", cmd->arg1, freq);
         fprintf(fout, "%s: %s\n", cmd->arg2, rig_strrmode(mode));
         fprintf(fout, "%s: %d\n", cmd->arg3, (int)width);
+        fprintf(fout, "%s: %d\n", cmd->arg4, (int)split);
     }
     else
     {

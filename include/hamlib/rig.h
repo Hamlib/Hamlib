@@ -2322,7 +2322,7 @@ rig_get_vfo HAMLIB_PARAMS((RIG *rig,
 
 extern HAMLIB_EXPORT(int)
 rig_get_vfo_info HAMLIB_PARAMS((RIG *rig,
-                           vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width));
+                           vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width, split_t *split));
 
 extern HAMLIB_EXPORT(const char *)
 rig_get_vfo_list HAMLIB_PARAMS((RIG *rig));
@@ -2968,7 +2968,7 @@ extern HAMLIB_EXPORT(int) rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t sele
 extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection, int ms);
 
 extern HAMLIB_EXPORT(int) rig_set_vfo_opt(RIG *rig, int status);
-extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width);
+extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width, split_t *split);
 
 
 typedef unsigned long rig_useconds_t;

@@ -5739,7 +5739,7 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
  *
  */
 int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
-                                rmode_t *mode, pbwidth_t *width)
+                                rmode_t *mode, pbwidth_t *width, split_t *split)
 {
     int retcode;
 
@@ -5756,6 +5756,8 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
     if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
     retcode = rig_get_mode(rig, vfo, mode, width);
+    *split = rig->state.cache.split;
+
     RETURNFUNC(retcode);
 }
 
