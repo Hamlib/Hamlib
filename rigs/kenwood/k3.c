@@ -1080,6 +1080,11 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = rig->state.current_vfo;
+    }
+
     switch (mode)
     {
     case RIG_MODE_PKTLSB:
@@ -1151,8 +1156,8 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
          */
 
         /* passband widths vary by mode so gather lower and upper limits */
-        pbwidth_t pb_nar = rig_passband_narrow(rig, mode);
-        pbwidth_t pb_wid = rig_passband_wide(rig, mode);
+        //pbwidth_t pb_nar = rig_passband_narrow(rig, mode);
+        //pbwidth_t pb_wid = rig_passband_wide(rig, mode);
 
         if (width < 0)
         {
@@ -1163,6 +1168,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             width = rig_passband_normal(rig, mode);
         }
+#if 0
         else if (width < pb_nar)
         {
             width = pb_nar;
@@ -1171,6 +1177,10 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             width = pb_wid;
         }
+#endif
+        // width is 50Hz rounded down
+        width += 50;
+        if (width > 99999) width = 99999;
 
         if (vfo == RIG_VFO_B)
         {
