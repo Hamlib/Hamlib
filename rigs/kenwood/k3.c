@@ -951,6 +951,11 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EINVAL;
     }
 
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = rig->state.current_vfo;
+    }
+
     err = kenwood_get_mode(rig, vfo, &temp_m, &temp_w);
 
     if (err != RIG_OK)
