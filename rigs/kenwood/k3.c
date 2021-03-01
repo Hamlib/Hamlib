@@ -183,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".7",
+    .version =      BACKEND_VER ".8",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -334,7 +334,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".6",
+    .version =      BACKEND_VER ".7",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -484,9 +484,9 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".6",
+    .version =      BACKEND_VER ".7",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_ALPHA,
+    .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_RIG,
@@ -633,7 +633,7 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".6",
+    .version =      BACKEND_VER ".7",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -782,9 +782,9 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".6",
+    .version =      BACKEND_VER ".7",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_BETA,
+    .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_RIG,
@@ -1075,6 +1075,8 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int err;
     char cmd_m[4];
+    char buf[KENWOOD_MAX_BUF_LEN];
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1102,13 +1104,38 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
     }
 
-    /* kenwood_set_mode() ignores width value for K2/K3/TS-570 */
-    err = kenwood_set_mode(rig, vfo, mode, width);
-
-    if (err != RIG_OK)
+    int kmode;
+    int c;
+    kmode = rmode2kenwood(mode, caps->mode_table);
+    if (kmode < 0)
     {
-        return err;
+        rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
+                  __func__, rig_strrmode(mode));
+        RETURNFUNC(-RIG_EINVAL);
     }
+
+    if (kmode <= 9)
+    {
+        c = '0' + kmode;
+    }
+    else
+    {
+        c = 'A' + kmode - 10;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c\n", __func__, kmode, c)
+
+    if (vfo == RIG_VFO_B)
+    {
+        snprintf(buf, sizeof(buf), "MD$%c", c);
+    }
+    else
+    {
+        snprintf(buf, sizeof(buf), "MD%c", c);
+    }
+    err = kenwood_transaction(rig, buf, NULL, 0);
+
+    if (err != RIG_OK) { RETURNFUNC(err); }
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
