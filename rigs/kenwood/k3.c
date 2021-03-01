@@ -1184,7 +1184,16 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
 #endif
         // width is 50Hz rounded down
-        width += 50;
+        struct kenwood_priv_data *priv = rig->state.priv;
+        if (priv->is_k4)
+        {
+            width += 10;  // rounds to 10Hz
+        }
+        else 
+        {
+            width += 50;
+        }
+
         if (width > 99999) width = 99999;
 
         if (vfo == RIG_VFO_B)
