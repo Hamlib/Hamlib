@@ -2011,8 +2011,16 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         rig->state.current_width = width;
     }
 
-    rig->state.cache.mode = mode;
-    rig->state.cache.vfo_mode = vfo;
+    if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || vfo == RIG_VFO_MAIN_B)
+    {
+        rig->state.cache.mode = mode;
+    }
+    else
+    {
+        rig->state.cache.modeB = mode;
+    }
+
+    rig->state.cache.vfo_mode = mode; // is this still needed?
     elapsed_ms(&rig->state.cache.time_mode, HAMLIB_ELAPSED_SET);
 
     RETURNFUNC(retcode);
@@ -2062,13 +2070,20 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     }
 
     cache_ms = elapsed_ms(&rig->state.cache.time_mode, HAMLIB_ELAPSED_GET);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
+    rig_debug(RIG_DEBUG_TRACE, "%s: %s cache check age=%dms\n", __func__,
+              rig_strvfo(vfo), cache_ms);
 
     if (cache_ms < rig->state.cache.timeout_ms && rig->state.cache.vfo_mode == vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
         *mode = rig->state.cache.mode;
         *width = rig->state.cache.width;
+
+        if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || vfo == RIG_VFO_MAIN_B)
+        {
+            *width = rig->state.cache.widthB;
+        }
+
         RETURNFUNC(RIG_OK);
     }
     else
@@ -2129,8 +2144,21 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     }
 
     rig->state.cache.mode = *mode;
-    rig->state.cache.width = *width;
-    rig->state.cache.vfo_mode = vfo;
+
+    if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || vfo == RIG_VFO_MAIN_B)
+    {
+        rig->state.cache.widthB = *width;
+
+        if (*width == 0) { *width = rig->state.cache.width; }
+
+        rig->state.cache.modeB = vfo;
+    }
+    else
+    {
+        rig->state.cache.width = *width;
+        rig->state.cache.vfo_mode = vfo;
+    }
+
     cache_ms = elapsed_ms(&rig->state.cache.time_mode, HAMLIB_ELAPSED_SET);
 
     RETURNFUNC(retcode);
@@ -5762,16 +5790,22 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
     {
         *freq = rig->state.cache.freqMainB;
         *width = rig->state.cache.width;
+
+        if (rig->state.cache.widthB) { *width = rig->state.cache.widthB; }
     }
     else if (vfo == RIG_VFO_SUB_B)
     {
         *freq = rig->state.cache.freqSubB;
         *width = rig->state.cache.width;
+
+        if (rig->state.cache.widthB) { *width = rig->state.cache.widthB; }
     }
     else
     {
         *freq = rig->state.cache.freqMainB;
         *width = rig->state.cache.width;
+
+        if (rig->state.cache.widthB) { *width = rig->state.cache.widthB; }
     }
 
     *split = rig->state.cache.split;
