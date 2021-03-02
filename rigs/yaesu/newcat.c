@@ -9692,8 +9692,9 @@ int newcat_set_cmd_validate(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: priv->cmd_str=%s\n", __func__, priv->cmd_str);
 
     // For FA and FB rig.c now tries to verify the set_freq actually works
-    // Seem the FT-2000 can't do a FA set followed by an immediate read
-    // So we'll use the old "ID" to verify the command.
+    // For example the FT-2000 can't do a FA set followed by an immediate read
+    // We were using "ID" to verify the command but rig.c now does 
+    // a verifcation of frequency and retries if it doesn't match
     if ((strncmp(priv->cmd_str, "FA", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
         strcpy(valcmd, ""); // No validation done -- rig.c now does followup query
