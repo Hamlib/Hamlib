@@ -134,6 +134,11 @@ static const struct confparams frontend_cfg_params[] =
         "0", RIG_CONF_CHECKBUTTON, { }
     },
     {
+        TOK_AUTO_POWER_OFF, "auto_power_off", "Auto power off",
+        "True enables compatible rigs to be powered down on close",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
+    {
         TOK_AUTO_DISABLE_SCREENSAVER, "auto_disable_screensaver", "Auto disable screen saver",
         "True enables compatible rigs to have their screen saver disabled on open",
         "0", RIG_CONF_CHECKBUTTON, { }
@@ -596,6 +601,15 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rs->auto_power_on = val_i ? 1 : 0;
         break;
 
+    case TOK_AUTO_POWER_OFF:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+
+        rs->auto_power_off = val_i ? 1 : 0;
+        break;
+
     case TOK_AUTO_DISABLE_SCREENSAVER:
         if (1 != sscanf(val, "%d", &val_i))
         {
@@ -964,6 +978,10 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 
     case TOK_AUTO_POWER_ON:
         sprintf(val, "%d", rs->auto_power_on);
+        break;
+
+    case TOK_AUTO_POWER_OFF:
+        sprintf(val, "%d", rs->auto_power_off);
         break;
 
     case TOK_AUTO_DISABLE_SCREENSAVER:
