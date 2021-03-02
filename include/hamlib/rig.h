@@ -2093,6 +2093,7 @@ struct rig_cache {
 #endif
     rmode_t mode;
     pbwidth_t width;
+    pbwidth_t widthB; // if non-zero then rig has separate width for VFOB
     ptt_t ptt;
     split_t split;
     vfo_t split_vfo;  // split caches two values
@@ -2113,6 +2114,7 @@ struct rig_cache {
     vfo_t vfo_freq; // last vfo cached
     vfo_t vfo_mode; // last vfo cached
     int satmode; // if rig is in satellite mode
+    rmode_t modeB;
 };
 
 
@@ -2182,6 +2184,7 @@ struct rig_state {
     int poll_interval;          /*!< Event notification polling period in milliseconds */
     freq_t current_freq;        /*!< Frequency currently set */
     rmode_t current_mode;       /*!< Mode currently set */
+    //rmode_t current_modeB;      /*!< Mode currently set VFOB */
     pbwidth_t current_width;    /*!< Passband width currently set */
     vfo_t tx_vfo;               /*!< Tx VFO currently set */
     rmode_t mode_list;              /*!< Complete list of modes for this rig */
