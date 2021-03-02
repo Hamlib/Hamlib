@@ -584,6 +584,7 @@ int newcat_close(RIG *rig)
 {
 
     struct newcat_priv_data *priv = rig->state.priv;
+    struct rig_state *rig_s = &rig->state;
 
     ENTERFUNC;
 
@@ -593,6 +594,11 @@ int newcat_close(RIG *rig)
         newcat_set_trn(rig, priv->trn_state); /* ignore status in
                                                    case it's not
                                                    supported */
+    }
+    if (priv->poweron != 0 && rig_s->auto_power_off)
+    {
+        rig_set_powerstat(rig, 0);
+        priv->poweron = 0;
     }
 
     RETURNFUNC(RIG_OK);
@@ -3145,6 +3151,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_OFF:
     case RIG_POWER_STANDBY:
         ps = '0';
+        write_block(&state->rigport, "\n", 0);
         break;
 
     default:
