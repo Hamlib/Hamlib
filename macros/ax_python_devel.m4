@@ -275,8 +275,8 @@ EOD`
 	#
 	AC_MSG_CHECKING(python extra linking flags)
 	if test -z "$PYTHON_EXTRA_LDFLAGS"; then
-		PYTHON_EXTRA_LDFLAGS=`$PYTHON -c "import sysconfig; \
-			conf = sysconfig.get_config_var; \
+		PYTHON_EXTRA_LDFLAGS=`$PYTHON -c "import distutils.sysconfig; \
+			conf = distutils.sysconfig.get_config_var; \
 			print (conf('LINKFORSHARED'))"`
 	fi
 	AC_MSG_RESULT([$PYTHON_EXTRA_LDFLAGS])
