@@ -2198,7 +2198,9 @@ struct rig_state {
     int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
     struct rig_cache cache;
     int vfo_opt;                /*!< Is -o switch turned on? */
-    int auto_power_on;          /*!< Allow Hamlib to power rig
+    int auto_power_on;          /*!< Allow Hamlib to power on rig
+                                   automatically if supported */
+    int auto_power_off;          /*!< Allow Hamlib to power off rig
                                    automatically if supported */
     int auto_disable_screensaver; /*!< Allow Hamlib to disable the
                                    rig's screen saver automatically if
