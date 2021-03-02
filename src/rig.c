@@ -3840,13 +3840,15 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
         freq_t tfreq;
         int retry = 3;
         int retcode2;
+
         // we query freq after set to ensure it really gets done
         do
         {
             retcode = caps->set_split_freq_mode(rig, vfo, tx_freq, tx_mode, tx_width);
             retcode2 = rig_get_split_freq(rig, vfo, &tfreq);
         }
-        while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK && retcode2 == RIG_OK);
+        while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK
+                && retcode2 == RIG_OK);
 
         if (tfreq != tx_freq) { retcode = -RIG_EPROTO; }
 
@@ -5741,8 +5743,6 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
 int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
                                 rmode_t *mode, pbwidth_t *width, split_t *split)
 {
-    int retcode;
-
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -5751,14 +5751,32 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    retcode = rig_get_freq(rig, vfo, freq);
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
-    if (retcode != RIG_OK) { RETURNFUNC(retcode); }
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN_A)
+    {
+        *freq = rig->state.cache.freqMainA;
+        *width = rig->state.cache.width;
+    }
+    else if (vfo == RIG_VFO_MAIN_B)
+    {
+        *freq = rig->state.cache.freqMainB;
+        *width = rig->state.cache.width;
+    }
+    else if (vfo == RIG_VFO_SUB_B)
+    {
+        *freq = rig->state.cache.freqSubB;
+        *width = rig->state.cache.width;
+    }
+    else
+    {
+        *freq = rig->state.cache.freqMainB;
+        *width = rig->state.cache.width;
+    }
 
-    retcode = rig_get_mode(rig, vfo, mode, width);
     *split = rig->state.cache.split;
 
-    RETURNFUNC(retcode);
+    RETURNFUNC(RIG_OK);
 }
 
 /**
