@@ -1321,54 +1321,6 @@ int HAMLIB_API rig_get_twiddle(RIG *rig, int *seconds)
     RETURNFUNC(RIG_OK);
 }
 
-// detect if somebody is twiddling the VFO
-// indicator is last set freq doesn't match current freq
-// so we have to query freq every time we set freq or vfo to handle this
-int twiddling(RIG *rig)
-{
-    const struct rig_caps *caps;
-
-    if (rig->state.twiddle_timeout == 0) { return 0; } // don't detect twiddling
-
-    caps = rig->caps;
-
-    if (caps->get_freq)    // gotta have get_freq of course
-    {
-        freq_t curr_freq = 0;
-        int retval2;
-        int elapsed;
-
-        retval2 = caps->get_freq(rig, RIG_VFO_CURR, &curr_freq);
-
-        if (retval2 == RIG_OK && rig->state.current_freq != curr_freq)
-        {
-            rig_debug(RIG_DEBUG_TRACE,
-                      "%s: Somebody twiddling the VFO? last_freq=%.0f, curr_freq=%.0f\n", __func__,
-                      rig->state.current_freq, curr_freq);
-
-            if (rig->state.current_freq == 0)
-            {
-                rig->state.current_freq = curr_freq;
-                RETURNFUNC(0); // not twiddling as first time freq is being set
-            }
-
-            rig->state.twiddle_time = time(NULL); // update last twiddle time
-            rig->state.current_freq = curr_freq; // we have a new freq to remember
-        }
-
-        elapsed = time(NULL) - rig->state.twiddle_time;
-
-        if (elapsed < rig->state.twiddle_timeout)
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s: Twiddle elapsed < 3, elapsed=%d\n", __func__,
-                      elapsed);
-            RETURNFUNC(1); // would be better as error but other software won't handle it
-        }
-    }
-
-    RETURNFUNC(0);
-}
-
 /* caching prototype to be fully implemented in 4.1 */
 static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -1520,6 +1472,55 @@ static int get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms)
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, freq=%.0f\n", __func__, rig_strvfo(vfo),
               (double)*freq);
     RETURNFUNC(RIG_OK);
+}
+
+// detect if somebody is twiddling the VFO
+// indicator is last set freq doesn't match current freq
+// so we have to query freq every time we set freq or vfo to handle this
+int twiddling(RIG *rig)
+{
+    const struct rig_caps *caps;
+
+    if (rig->state.twiddle_timeout == 0) { return 0; } // don't detect twiddling
+
+    caps = rig->caps;
+
+    if (caps->get_freq)    // gotta have get_freq of course
+    {
+        freq_t curr_freq = 0;
+        int retval2;
+        int elapsed;
+
+        retval2 = caps->get_freq(rig, RIG_VFO_CURR, &curr_freq);
+
+        if (retval2 == RIG_OK && rig->state.current_freq != curr_freq)
+        {
+            rig_debug(RIG_DEBUG_TRACE,
+                      "%s: Somebody twiddling the VFO? last_freq=%.0f, curr_freq=%.0f\n", __func__,
+                      rig->state.current_freq, curr_freq);
+
+            if (rig->state.current_freq == 0)
+            {
+                rig->state.current_freq = curr_freq;
+                RETURNFUNC(0); // not twiddling as first time freq is being set
+            }
+
+            rig->state.twiddle_time = time(NULL); // update last twiddle time
+            rig->state.current_freq = curr_freq; // we have a new freq to remember
+            set_cache_freq(rig, RIG_VFO_CURR, curr_freq);
+        }
+
+        elapsed = time(NULL) - rig->state.twiddle_time;
+
+        if (elapsed < rig->state.twiddle_timeout)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: Twiddle elapsed < 3, elapsed=%d\n", __func__,
+                      elapsed);
+            RETURNFUNC(1); // would be better as error but other software won't handle it
+        }
+    }
+
+    RETURNFUNC(0);
 }
 
 /**
@@ -1837,7 +1838,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             rig->state.cache.freq = *freq;
             //future 4.1 caching
             set_cache_freq(rig, vfo, *freq);
-            rig->state.cache.vfo_freq = vfo;
+            rig->state.cache.vfo_freq = *freq;
         }
     }
     else
@@ -5771,6 +5772,8 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
 int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
                                 rmode_t *mode, pbwidth_t *width, split_t *split)
 {
+    int retval;
+
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -5781,34 +5784,16 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN_A)
-    {
-        *freq = rig->state.cache.freqMainA;
-        *width = rig->state.cache.width;
-    }
-    else if (vfo == RIG_VFO_MAIN_B)
-    {
-        *freq = rig->state.cache.freqMainB;
-        *width = rig->state.cache.width;
+    // we can't use the cached values as some clients may only call this function 
+    // like Log4OM which mostly does polling
+    retval = rig_get_freq(rig, vfo, freq);
+    if (retval != RIG_OK) RETURNFUNC(retval);
 
-        if (rig->state.cache.widthB) { *width = rig->state.cache.widthB; }
-    }
-    else if (vfo == RIG_VFO_SUB_B)
-    {
-        *freq = rig->state.cache.freqSubB;
-        *width = rig->state.cache.width;
+    retval = rig_get_mode(rig, vfo, mode, width);
+    if (retval != RIG_OK) RETURNFUNC(retval);
 
-        if (rig->state.cache.widthB) { *width = rig->state.cache.widthB; }
-    }
-    else
-    {
-        *freq = rig->state.cache.freqMainB;
-        *width = rig->state.cache.width;
-
-        if (rig->state.cache.widthB) { *width = rig->state.cache.widthB; }
-    }
-
-    *split = rig->state.cache.split;
+    retval = rig_get_split(rig, vfo, split);
+    if (retval != RIG_OK) RETURNFUNC(retval);
 
     RETURNFUNC(RIG_OK);
 }
