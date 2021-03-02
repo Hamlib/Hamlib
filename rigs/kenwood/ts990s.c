@@ -47,16 +47,15 @@
 #define TS990S_SCAN_OP (RIG_SCAN_VFO)
 #define TS990S_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3|RIG_ANT_4)
 
-#define TS990S_STR_CAL {9, {\
+// Measurements from Wolfgang OE1MWW
+#define TS990S_STR_CAL {7, {\
                {0x00, -54},\
-               {0x03, -48},\
-               {0x06, -36},\
-               {0x09, -24},\
-               {0x0C, -12},\
-               {0x0F,   0},\
-               {0x14,  20},\
-               {0x19,  40},\
-               {0x1E,  60}}\
+               {0x04, -48},\
+               {0x0B, -36},\
+               {0x13, -23.9},\
+               {0x1B, -11.7},\
+               {0x23,  0},\
+               {0x46,  60}}\
                }
 
 /* memory capabilities */
@@ -126,7 +125,7 @@ const struct rig_caps ts990s_caps =
     RIG_MODEL(RIG_MODEL_TS990S),
     .model_name = "TS-990s",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
