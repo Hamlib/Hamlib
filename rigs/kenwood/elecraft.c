@@ -196,15 +196,21 @@ int elecraft_open(RIG *rig)
         if (strstr(buf, "P")) { priv->has_kpa3 = 1; }
 
         // could also use K4; command
-        if (rig->caps->rig_model == RIG_MODEL_K4) { priv->is_k4d = 1; }
+        if (rig->caps->rig_model == RIG_MODEL_K4) { priv->is_k4 = 1; }
         else if (strstr(buf, "R")) { priv->is_k3s = 1; }
         else if (strncmp(&buf[13], "--", 2) == 0) { priv->is_k3 = 1; }
 
+        // combination of OM flags determines model
         if (strstr(buf, "S") && strstr(buf, "4") && strstr(buf, "H"))
         {
             // new firmware should recognize k4hd now
-            priv->is_k4d = 0;
+            priv->is_k4 = 0;
             priv->is_k4hd = 1;
+        }
+        else if (strstr(buf,"S") && strstr(buf,"4"))
+        {
+            priv->is_k4 = 0;
+            priv->is_k4d = 1;
         }
 
         if (buf[13] == '0') // then we have a KX3 or KX2
