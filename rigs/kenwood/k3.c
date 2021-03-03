@@ -183,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".8",
+    .version =      BACKEND_VER ".9",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -334,7 +334,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".7",
+    .version =      BACKEND_VER ".8",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -484,7 +484,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".7",
+    .version =      BACKEND_VER ".8",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -633,7 +633,7 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".7",
+    .version =      BACKEND_VER ".8",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -782,7 +782,7 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".7",
+    .version =      BACKEND_VER ".8",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1028,11 +1028,11 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
      */
     if (vfo == RIG_VFO_B)
     {
-    err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 7);
+        err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 7);
     }
     else
     {
-    err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 6);
+        err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 6);
     }
 
     if (err != RIG_OK)
@@ -1117,6 +1117,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int kmode;
     int c;
     kmode = rmode2kenwood(mode, caps->mode_table);
+
     if (kmode < 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
@@ -1143,6 +1144,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         snprintf(buf, sizeof(buf), "MD%c", c);
     }
+
     err = kenwood_transaction(rig, buf, NULL, 0);
 
     if (err != RIG_OK) { RETURNFUNC(err); }
@@ -1173,6 +1175,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             width = rig_passband_normal(rig, mode);
         }
+
 #if 0
         else if (width < pb_nar)
         {
@@ -1182,19 +1185,21 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             width = pb_wid;
         }
+
 #endif
         // width is 50Hz rounded down
         struct kenwood_priv_data *priv = rig->state.priv;
-        if (priv->is_k4)
+
+        if (priv->is_k4d || priv->is_k4hd)
         {
             width += 9;  // rounds to 10Hz
         }
-        else 
+        else
         {
             width += 49;
         }
 
-        if (width > 99999) width = 99999;
+        if (width > 99999) { width = 99999; }
 
         if (vfo == RIG_VFO_B)
         {

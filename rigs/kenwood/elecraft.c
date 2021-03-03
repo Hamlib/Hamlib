@@ -194,10 +194,18 @@ int elecraft_open(RIG *rig)
         priv->has_kpa3 = 0;
 
         if (strstr(buf, "P")) { priv->has_kpa3 = 1; }
+
         // could also use K4; command
-        if (rig->caps->rig_model == RIG_MODEL_K4) { priv->is_k4 = 1; }
+        if (rig->caps->rig_model == RIG_MODEL_K4) { priv->is_k4d = 1; }
         else if (strstr(buf, "R")) { priv->is_k3s = 1; }
         else if (strncmp(&buf[13], "--", 2) == 0) { priv->is_k3 = 1; }
+
+        if (strstr(buf, "S") && strstr(buf, "4") && strstr(buf, "H"))
+        {
+            // new firmware should recognize k4hd now
+            priv->is_k4d = 0;
+            priv->is_k4hd = 1;
+        }
 
         if (buf[13] == '0') // then we have a KX3 or KX2
         {
@@ -232,9 +240,9 @@ int elecraft_open(RIG *rig)
         }
 
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: model=%s, is_k2=%d, is_k3=%d, is_k3s=%d, is_kx3=%d, is_kx2=%d, is_k4=%d, kpa3=%d\n",
+                  "%s: model=%s, is_k2=%d, is_k3=%d, is_k3s=%d, is_kx3=%d, is_kx2=%d, is_k4d=%d, is_k4hd=%d, kpa3=%d\n",
                   __func__, model, priv->is_k2, priv->is_k3, priv->is_k3s, priv->is_kx3,
-                  priv->is_kx2, priv->is_k4, priv->has_kpa3);
+                  priv->is_kx2, priv->is_k4d,  priv->is_k4hd, priv->has_kpa3);
 
         err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
 
