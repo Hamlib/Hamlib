@@ -56,7 +56,7 @@
 #      define BACKEND_IMPEXP HAMLIB_DLL_EXPORT
 #      define HAMLIB_IMPEXP HAMLIB_DLL_EXPORT
 #    else
-#      define BACKEND_IMPEXP HAMLIB_DLL_EXPORT
+#      define BACKEND_IMPEXP HAMLIB_DLL_IMPORT
 #      define HAMLIB_IMPEXP HAMLIB_DLL_IMPORT
 #    endif
 #  else
