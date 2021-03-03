@@ -60,13 +60,17 @@ int rig_sprintf_vfo(char *str, int nlen, vfo_t vfo)
         }
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
 
 int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
 {
-    uint64_t i, len = 0;
+    unsigned int i, len = 0;
 
     *str = '\0';
 
@@ -89,6 +93,10 @@ int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -136,13 +144,17 @@ int rig_sprintf_ant(char *str, int nlen, ant_t ant)
         }
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
 
 int rig_sprintf_func(char *str, int nlen, setting_t func)
 {
-    uint64_t i, len = 0;
+    unsigned int i, len = 0;
 
     *str = '\0';
 
@@ -165,13 +177,17 @@ int rig_sprintf_func(char *str, int nlen, setting_t func)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
 
 int rot_sprintf_func(char *str, int nlen, setting_t func)
 {
-    uint64_t i, len = 0;
+    unsigned int i, len = 0;
 
     *str = '\0';
 
@@ -194,6 +210,10 @@ int rot_sprintf_func(char *str, int nlen, setting_t func)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -223,6 +243,10 @@ int rig_sprintf_level(char *str, int nlen, setting_t level)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -252,6 +276,10 @@ int rot_sprintf_level(char *str, int nlen, setting_t level)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -281,6 +309,10 @@ int amp_sprintf_level(char *str, int nlen, setting_t level)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -321,6 +353,10 @@ int sprintf_level_ext(char *str, int nlen, const struct confparams *extlevels)
         }
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -377,6 +413,10 @@ int rig_sprintf_level_gran(char *str, int nlen, setting_t level, const gran_t *g
         }
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -433,6 +473,10 @@ int rot_sprintf_level_gran(char *str, int nlen, setting_t level, const gran_t *g
         }
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -462,6 +506,10 @@ int rig_sprintf_parm(char *str, int nlen, setting_t parm)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -491,6 +539,10 @@ int rot_sprintf_parm(char *str, int nlen, setting_t parm)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -547,6 +599,10 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm, const gran_t *gra
         }
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -603,6 +659,10 @@ int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm, const gran_t *gra
         }
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -632,6 +692,10 @@ int rig_sprintf_vfop(char *str, int nlen, vfo_op_t op)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -661,6 +725,10 @@ int rig_sprintf_scan(char *str, int nlen, scan_t rscan)
         len += strlen(ms) + 1;
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
@@ -688,6 +756,10 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
         }
     }
 
+    if (len +1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n", __func__, len, nlen, str);
+    }
     return len;
 }
 
