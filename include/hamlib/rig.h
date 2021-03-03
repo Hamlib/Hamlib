@@ -186,6 +186,11 @@ typedef struct s_rig RIG;
 #define MAXDBLSTSIZ 8       /* max preamp/att levels supported, zero ended */
 #define CHANLSTSIZ 16       /* max mem_list size, zero ended */
 #define MAX_CAL_LENGTH 32   /* max calibration plots in cal_table_t */
+#define MAX_MODES 63
+#define MAX_VFOS 31
+#define MAX_ROTORS 63
+#define MAX_VFO_OPS 31
+#define MAX_RSCANS 31
 //! @endcond
 
 
