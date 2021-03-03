@@ -2081,7 +2081,7 @@ declare_proto_rig(set_mode)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_mode(s, rig->state.mode_list);
+        rig_sprintf_mode(s, sizeof(s), rig->state.mode_list);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -2132,7 +2132,7 @@ declare_proto_rig(set_vfo)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_vfo(s, rig->state.vfo_list);
+        rig_sprintf_vfo(s, sizeof(s), rig->state.vfo_list);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -2196,7 +2196,7 @@ declare_proto_rig(get_vfo_info)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_vfo(s, rig->state.vfo_list);
+        rig_sprintf_vfo(s, sizeof(s), rig->state.vfo_list);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -2230,7 +2230,7 @@ declare_proto_rig(get_vfo_list)
 {
     static char prntbuf[256];
 
-    rig_sprintf_vfo(prntbuf, rig->state.vfo_list);
+    rig_sprintf_vfo(prntbuf, sizeof(prntbuf), rig->state.vfo_list);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
@@ -2588,7 +2588,7 @@ declare_proto_rig(set_split_mode)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_mode(s, rig->state.mode_list);
+        rig_sprintf_mode(s, sizeof(s), rig->state.mode_list);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -2643,7 +2643,7 @@ declare_proto_rig(set_split_freq_mode)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_mode(s, rig->state.mode_list);
+        rig_sprintf_mode(s, sizeof(s), rig->state.mode_list);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -2707,7 +2707,7 @@ declare_proto_rig(set_split_vfo)
     if (!strcmp(arg2, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_vfo(s, rig->state.vfo_list);
+        rig_sprintf_vfo(s, sizeof(s), rig->state.vfo_list);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -2868,12 +2868,12 @@ declare_proto_rig(set_level)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_level(s, rig->state.has_set_level);
+        rig_sprintf_level(s, sizeof(s), rig->state.has_set_level);
         fputs(s, fout);
 
         if (rig->caps->set_ext_level)
         {
-            sprintf_level_ext(s, rig->caps->extlevels);
+            sprintf_level_ext(s, sizeof(s), rig->caps->extlevels);
             fputs(s, fout);
         }
 
@@ -2949,12 +2949,12 @@ declare_proto_rig(get_level)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_level(s, rig->state.has_get_level);
+        rig_sprintf_level(s, sizeof(s), rig->state.has_get_level);
         fputs(s, fout);
 
         if (rig->caps->get_ext_level)
         {
-            sprintf_level_ext(s, rig->caps->extlevels);
+            sprintf_level_ext(s, sizeof(s), rig->caps->extlevels);
             fputs(s, fout);
         }
 
@@ -3047,7 +3047,7 @@ declare_proto_rig(set_func)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_func(s, rig->state.has_set_func);
+        rig_sprintf_func(s, sizeof(s), rig->state.has_set_func);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -3085,7 +3085,7 @@ declare_proto_rig(get_func)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_func(s, rig->state.has_get_func);
+        rig_sprintf_func(s, sizeof(s), rig->state.has_get_func);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -3147,7 +3147,7 @@ declare_proto_rig(set_parm)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_parm(s, rig->state.has_set_parm);
+        rig_sprintf_parm(s, sizeof(s), rig->state.has_set_parm);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -3220,7 +3220,7 @@ declare_proto_rig(get_parm)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_parm(s, rig->state.has_get_parm);
+        rig_sprintf_parm(s, sizeof(s), rig->state.has_get_parm);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -3375,7 +3375,7 @@ declare_proto_rig(vfo_op)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_vfop(s, rig->caps->vfo_ops);
+        rig_sprintf_vfop(s, sizeof(s), rig->caps->vfo_ops);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -3400,7 +3400,7 @@ declare_proto_rig(scan)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_scan(s, rig->caps->scan_ops);
+        rig_sprintf_scan(s, sizeof(s), rig->caps->scan_ops);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -3925,34 +3925,34 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
             chan->ant,
             chan->split == RIG_SPLIT_ON ? "ON" : "OFF");
 
-    sprintf_freq(freqbuf, chan->freq);
-    sprintf_freq(widthbuf, chan->width);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan->freq);
+    sprintf_freq(widthbuf, sizeof(widthbuf), chan->width);
     fprintf(fout,
             "Freq:   %s\tMode:   %s\tWidth:   %s\n",
             freqbuf,
             rig_strrmode(chan->mode),
             widthbuf);
 
-    sprintf_freq(freqbuf, chan->tx_freq);
-    sprintf_freq(widthbuf, chan->tx_width);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan->tx_freq);
+    sprintf_freq(widthbuf, sizeof(widthbuf), chan->tx_width);
     fprintf(fout,
             "txFreq: %s\ttxMode: %s\ttxWidth: %s\n",
             freqbuf,
             rig_strrmode(chan->tx_mode),
             widthbuf);
 
-    sprintf_freq(freqbuf, chan->rptr_offs);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan->rptr_offs);
     fprintf(fout,
             "Shift: %s, Offset: %s%s, ",
             rig_strptrshift(chan->rptr_shift),
             chan->rptr_offs > 0 ? "+" : "",
             freqbuf);
 
-    sprintf_freq(freqbuf, chan->tuning_step);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan->tuning_step);
     fprintf(fout, "Step: %s, ", freqbuf);
-    sprintf_freq(freqbuf, chan->rit);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan->rit);
     fprintf(fout, "RIT: %s%s, ", chan->rit > 0 ? "+" : "", freqbuf);
-    sprintf_freq(freqbuf, chan->xit);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan->xit);
     fprintf(fout, "XIT: %s%s\n", chan->xit > 0 ? "+" : "", freqbuf);
 
     fprintf(fout, "CTCSS: %u.%uHz, ", chan->ctcss_tone / 10, chan->ctcss_tone % 10);
@@ -3964,7 +3964,7 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
     fprintf(fout, "DCS: %u.%u, ", chan->dcs_code / 10, chan->dcs_code % 10);
     fprintf(fout, "DCSsql: %u.%u\n", chan->dcs_sql / 10, chan->dcs_sql % 10);
 
-    rig_sprintf_func(prntbuf, chan->funcs);
+    rig_sprintf_func(prntbuf, sizeof(prntbuf), chan->funcs);
     fprintf(fout, "Functions: %s\n", prntbuf);
 
     fprintf(fout, "Levels:");
@@ -4241,7 +4241,7 @@ declare_proto_rig(get_ant)
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    rig_sprintf_ant(antbuf, ant_curr);
+    rig_sprintf_ant(antbuf, sizeof(antbuf), ant_curr); 
     fprintf(fout, "%s%c", antbuf, resp_sep);
     //fprintf(fout, "%d%c", rig_setting2idx(ant_curr)+1, resp_sep);
 
@@ -4257,7 +4257,7 @@ declare_proto_rig(get_ant)
         fprintf(fout, "%s: ", cmd->arg3);
     }
 
-    rig_sprintf_ant(antbuf, ant_tx);
+    rig_sprintf_ant(antbuf, sizeof(antbuf), ant_tx);
     fprintf(fout, "%s%c", antbuf, resp_sep);
     //fprintf(fout, "%d%c", rig_setting2idx(ant_tx)+1, resp_sep);
 
@@ -4266,7 +4266,7 @@ declare_proto_rig(get_ant)
         fprintf(fout, "%s: ", cmd->arg4);
     }
 
-    rig_sprintf_ant(antbuf, ant_rx);
+    rig_sprintf_ant(antbuf, sizeof(antbuf), ant_rx);
     fprintf(fout, "%s%c", antbuf, resp_sep);
     //fprintf(fout, "%d%c", rig_setting2idx(ant_rx)+1, resp_sep);
 

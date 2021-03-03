@@ -76,7 +76,7 @@ extern HAMLIB_EXPORT(double) morse_code_dot_to_millis(int wpm);
 extern HAMLIB_EXPORT(int) dot10ths_to_millis(int dot10ths, int wpm);
 extern HAMLIB_EXPORT(int) millis_to_dot10ths(int millis, int wpm);
 
-extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
+extern HAMLIB_EXPORT(int) sprintf_freq(char *str, int len, freq_t);
 
 /* flag that determines if AI mode should be restored on exit on
    applicable rigs - See rig_no_restore_ai() */

@@ -389,7 +389,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
     usleep(CMDSLEEP);
-    sprintf_freq(fstr, freq);
+    sprintf_freq(fstr, sizeof(fstr), freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
 
@@ -451,7 +451,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     ENTERFUNC;
     usleep(CMDSLEEP);
-    sprintf_freq(buf, width);
+    sprintf_freq(buf, sizeof(buf), width);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s %s\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), buf);
 
