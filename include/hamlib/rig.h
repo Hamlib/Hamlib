@@ -2124,8 +2124,9 @@ struct rig_cache {
  * This struct contains live data, as well as a copy of capability fields
  * that may be updated (ie. customized)
  *
- * It is fine to move fields around, as this kind of struct should
- * not be initialized like caps are.
+ * It is NOT fine to move fields around as it can break share library offset
+ * As of 2021-03-03  vfo_list is the last known item being reference externally
+ * So any additions or changes to this structure must be after vfo_list.
  */
 struct rig_state {
     /*
@@ -2188,6 +2189,8 @@ struct rig_state {
     pbwidth_t current_width;    /*!< Passband width currently set */
     vfo_t tx_vfo;               /*!< Tx VFO currently set */
     rmode_t mode_list;              /*!< Complete list of modes for this rig */
+    // mode_list is used by some 
+    // so anything added to this structure must be below here
     int transmit;               /*!< rig should be transmitting i.e. hard
                                      wired PTT asserted - used by rigs that
                                      don't do CAT while in Tx */
