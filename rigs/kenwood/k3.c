@@ -1079,7 +1079,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * PKTLSB = sets the rig to DATA REV mode submode Data A (DT0)
  * RTTY = sets the rig to AFSK A 45 bps rtty (DT1)
  * RTTYR = sets the rig to FSK D 45 bps rtty (DT2)
- * PSK = sets the rig to PSD D (DT3)
+ * PSK = sets the rig to PSK D (DT3)
 
  * Not all data sub-mode combinations are possible but the above
  * mapping seems most likely to cover the user requirements.
