@@ -523,7 +523,8 @@ int main(int argc, char *argv[])
             }
 
             twiddle_timeout = atoi(optarg);
-            fprintf(stderr,"twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
+            fprintf(stderr,
+                    "twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
             break;
 
         case 'x':
@@ -587,7 +588,8 @@ int main(int argc, char *argv[])
 
     my_rig->state.twiddle_timeout = twiddle_timeout;
     my_rig->state.uplink = uplink;
-    rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d, twiddle_rit=%d\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d, twiddle_rit=%d\n",
+              __func__,
               my_rig->state.twiddle_timeout, my_rig->state.uplink, my_rig->state.twiddle_rit);
 
     /*
@@ -969,7 +971,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-static FILE*get_fsockout(struct handle_data *handle_data_arg)
+static FILE *get_fsockout(struct handle_data *handle_data_arg)
 {
 #ifdef __MINGW32__
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
@@ -979,7 +981,7 @@ static FILE*get_fsockout(struct handle_data *handle_data_arg)
 #endif
 }
 
-static FILE* get_fsockin(struct handle_data *handle_data_arg)
+static FILE *get_fsockin(struct handle_data *handle_data_arg)
 {
 #ifdef __MINGW32__
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
@@ -1093,14 +1095,17 @@ void *handle_socket(void *arg)
         }
 
 #if 0
+
         if (ferror(fsockin) || ferror(fsockout) || retcode == 2)
         {
-            if (ferror(fsockout)) fsockout = get_fsockout(handle_data_arg);
+            if (ferror(fsockout)) { fsockout = get_fsockout(handle_data_arg); }
+
             rig_debug(RIG_DEBUG_ERR, "%s: socket error in=%d, out=%d\n", __func__,
                       ferror(fsockin), ferror(fsockout));
             // if we get an error from the rig we'll try to repoen
             // that may fix things when COM ports drop and such
-            int retry=4;
+            int retry = 4;
+
             if (retcode == 2)
             {
                 do
@@ -1110,9 +1115,11 @@ void *handle_socket(void *arg)
                     rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
                     retcode = rig_open(my_rig);
                     rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
-                } while (retry-- > 0 && retcode != RIG_OK);
+                }
+                while (retry-- > 0 && retcode != RIG_OK);
             }
         }
+
 #endif
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);

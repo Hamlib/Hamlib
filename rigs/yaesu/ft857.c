@@ -985,13 +985,15 @@ int ft857_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode,
     int retcode;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
- 
+
     if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
     {
         return -RIG_ENTARGET;
     }
+
     retcode = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
-    if (retcode != RIG_OK) RETURNFUNC(retcode);
+
+    if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
 
     retcode = ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);

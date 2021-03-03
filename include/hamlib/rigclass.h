@@ -38,6 +38,11 @@ public:
 
     virtual ~Rig();
 
+    Rig(const Rig&) = default;
+    Rig(Rig&&) = default;
+    Rig& operator=(const Rig&) = default;
+    Rig& operator=(Rig&&) = default;
+
     const struct rig_caps *caps;
 
     // This method opens the communication port to the rig

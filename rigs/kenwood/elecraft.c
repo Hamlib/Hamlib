@@ -184,6 +184,7 @@ int elecraft_open(RIG *rig)
     case RIG_MODEL_K3S:
     case RIG_MODEL_KX2:
     case RIG_MODEL_KX3:
+    case RIG_MODEL_K4:
         // we need to know what's hooked up for PC command max levels
         err =  kenwood_safe_transaction(rig, "OM", buf, KENWOOD_MAX_BUF_LEN, 15);
 
@@ -193,9 +194,33 @@ int elecraft_open(RIG *rig)
         priv->has_kpa3 = 0;
 
         if (strstr(buf, "P")) { priv->has_kpa3 = 1; }
-        if (strstr(buf, "R")) { priv->is_k3s = 1; }
-        else if (strncmp(&buf[13],"--",2)==0) { priv->is_k3 = 1; }
-        else if (strncmp(&buf[11],"----",4)==0) { priv->is_k4 = 1; }
+
+        // could also use K4; command
+        priv->is_k3 = 1;  // default to K3
+
+        if (rig->caps->rig_model == RIG_MODEL_K4)
+        {
+            priv->is_k3 = 0;
+            priv->is_k4 = 1;
+        }
+        else if (strstr(buf, "R"))
+        {
+            priv->is_k3 = 0;
+            priv->is_k3s = 1;
+        }
+
+        // combination of OM flags determines model
+        if (strstr(buf, "S") && strstr(buf, "4") && strstr(buf, "H"))
+        {
+            // new firmware should recognize k4hd now
+            priv->is_k4 = priv->is_k3 = 0;
+            priv->is_k4hd = 1;
+        }
+        else if (strstr(buf, "S") && strstr(buf, "4"))
+        {
+            priv->is_k4 = priv->is_k3 = 0;
+            priv->is_k4d = 1;
+        }
 
         if (buf[13] == '0') // then we have a KX3 or KX2
         {
@@ -204,13 +229,13 @@ int elecraft_open(RIG *rig)
 
             switch (modelnum)
             {
-            case '1': 
-                model = "KX2"; 
+            case '1':
+                model = "KX2";
                 priv->is_kx2 = 1;
                 break;
 
-            case '2': 
-                model = "KX3"; 
+            case '2':
+                model = "KX3";
                 priv->is_kx3 = 1;
                 break;
 
@@ -229,7 +254,10 @@ int elecraft_open(RIG *rig)
             if (strstr(buf, "R")) { model = "K3S"; }
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: model=%s, is_k2=%d, is_k3=%d, is_k3s=%d, is_kx3=%d, is_kx2=%d, is_k4=%d, kpa3=%d\n", __func__, model, priv->is_k2, priv->is_k3, priv->is_k3s, priv->is_kx3, priv->is_kx2, priv->is_k4, priv->has_kpa3);
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: model=%s, is_k2=%d, is_k3=%d, is_k3s=%d, is_kx3=%d, is_kx2=%d, is_k4d=%d, is_k4hd=%d, kpa3=%d\n",
+                  __func__, model, priv->is_k2, priv->is_k3, priv->is_k3s, priv->is_kx3,
+                  priv->is_kx2, priv->is_k4d,  priv->is_k4hd, priv->has_kpa3);
 
         err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
 
@@ -281,6 +309,15 @@ int elecraft_open(RIG *rig)
              case last client left it on */
         kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
                                                                                         it's not supported */
+    }
+
+    // For rigs like K3X vfo emulation need to set VFO_A to start
+    vfo_t vfo;
+    rig_get_vfo(rig, &vfo);
+
+    if (vfo != RIG_VFO_A && vfo != RIG_VFO_B)
+    {
+        rig_set_vfo(rig, RIG_VFO_A);
     }
 
     return RIG_OK;

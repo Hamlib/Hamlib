@@ -183,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".5",
+    .version =      BACKEND_VER ".9",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -334,7 +334,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".4",
+    .version =      BACKEND_VER ".8",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -484,9 +484,9 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".4",
+    .version =      BACKEND_VER ".8",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_ALPHA,
+    .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_RIG,
@@ -633,7 +633,7 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".4",
+    .version =      BACKEND_VER ".8",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -782,9 +782,9 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".4",
+    .version =      BACKEND_VER ".8",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_BETA,
+    .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_RIG,
@@ -951,6 +951,11 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EINVAL;
     }
 
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = rig->state.current_vfo;
+    }
+
     err = kenwood_get_mode(rig, vfo, &temp_m, &temp_w);
 
     if (err != RIG_OK)
@@ -1021,7 +1026,14 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* The K3 is not limited to specific filter widths so we can query
      * the actual bandwidth using the BW command
      */
-    err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 6);
+    if (vfo == RIG_VFO_B)
+    {
+        err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 7);
+    }
+    else
+    {
+        err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 6);
+    }
 
     if (err != RIG_OK)
     {
@@ -1029,7 +1041,14 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return err;
     }
 
-    *width = atoi(&buf[2]) * 10;
+    if (vfo == RIG_VFO_B)
+    {
+        *width = atoi(&buf[3]) * 10;
+    }
+    else
+    {
+        *width = atoi(&buf[2]) * 10;
+    }
 
     return RIG_OK;
 }
@@ -1070,8 +1089,15 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int err;
     char cmd_m[4];
+    char buf[KENWOOD_MAX_BUF_LEN];
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = rig->state.current_vfo;
+    }
 
     switch (mode)
     {
@@ -1108,13 +1134,41 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     default:
         break;
     }
-    /* kenwood_set_mode() ignores width value for K2/K3/TS-570 */
-    err = kenwood_set_mode(rig, vfo, mode, width);
 
-    if (err != RIG_OK)
+    int kmode;
+    int c;
+    kmode = rmode2kenwood(mode, caps->mode_table);
+
+    if (kmode < 0)
     {
-        return err;
+        rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
+                  __func__, rig_strrmode(mode));
+        RETURNFUNC(-RIG_EINVAL);
     }
+
+    if (kmode <= 9)
+    {
+        c = '0' + kmode;
+    }
+    else
+    {
+        c = 'A' + kmode - 10;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c\n", __func__, kmode, c)
+
+    if (vfo == RIG_VFO_B)
+    {
+        snprintf(buf, sizeof(buf), "MD$%c", c);
+    }
+    else
+    {
+        snprintf(buf, sizeof(buf), "MD%c", c);
+    }
+
+    err = kenwood_transaction(rig, buf, NULL, 0);
+
+    if (err != RIG_OK) { RETURNFUNC(err); }
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
@@ -1130,8 +1184,8 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
          */
 
         /* passband widths vary by mode so gather lower and upper limits */
-        pbwidth_t pb_nar = rig_passband_narrow(rig, mode);
-        pbwidth_t pb_wid = rig_passband_wide(rig, mode);
+        //pbwidth_t pb_nar = rig_passband_narrow(rig, mode);
+        //pbwidth_t pb_wid = rig_passband_wide(rig, mode);
 
         if (width < 0)
         {
@@ -1142,6 +1196,8 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             width = rig_passband_normal(rig, mode);
         }
+
+#if 0
         else if (width < pb_nar)
         {
             width = pb_nar;
@@ -1151,7 +1207,30 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = pb_wid;
         }
 
-        snprintf(cmd_s, sizeof(cmd_s), "BW%04ld", width / 10);
+#endif
+        // width is 50Hz rounded down
+        struct kenwood_priv_data *priv = rig->state.priv;
+
+        if (priv->is_k4d || priv->is_k4hd)
+        {
+            width += 9;  // rounds to 10Hz
+        }
+        else
+        {
+            width += 49;
+        }
+
+        if (width > 99999) { width = 99999; }
+
+        if (vfo == RIG_VFO_B)
+        {
+            snprintf(cmd_s, sizeof(cmd_s), "BW$%04ld", width / 10);
+        }
+        else
+        {
+            snprintf(cmd_s, sizeof(cmd_s), "BW%04ld", width / 10);
+        }
+
         err = kenwood_transaction(rig, cmd_s, NULL, 0);
 
         if (err != RIG_OK)
@@ -1177,73 +1256,25 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return RIG_OK;
 }
 
-
-/* The K3 changes "VFOs" by swapping the contents of
- * the upper display with the lower display.  This function
- * accomplishes this by sending the emulation command, SWT11, KX3 is SWT24;
- * to the K3 to emulate a tap of the A/B button.
+/* Elecraft rigs don't really know about swappings vfos.
+ * We just emulate them so rigctl can work correctly.
  */
 
 int k3_set_vfo(RIG *rig, vfo_t vfo)
 {
-    int err;
-    // Does SWT11 work for the K4 or do we need to emulate set/get vfo?
-    char *cmd = "SWT11";
-    struct kenwood_priv_data *priv = rig->state.priv;
-
     ENTERFUNC;
 
-    // vfo is toggle so we check first to see if we need to switch
-    vfo_t tvfo;
-    err = rig_get_vfo(rig, &tvfo);
-
-    if (err != RIG_OK)
-    {
-        RETURNFUNC(err);
-    }
-    
-    if (tvfo == vfo) RETURNFUNC(RIG_OK);
-
-    if (priv->is_kx3)
-    {
-        cmd = "SWT24";
-    }
-    else if (priv->is_k4)
-    {
-        cmd = "AB2";
-    }
-    err = kenwood_transaction(rig, cmd, NULL, 0);
-
-    if (err != RIG_OK)
-    {
-        RETURNFUNC(err);
-    }
+    // we emulate vfo selection for Elecraft
+    rig->state.current_vfo = vfo;
 
     RETURNFUNC(RIG_OK);
 }
 
 int k3_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    char buf[KENWOOD_MAX_BUF_LEN];
-    int ret;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    ENTERFUNC;
 
-    ret = write_block(&rig->state.rigport, "IC;", 3);
-
-    if (ret != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot write K3 IC value\n", __func__);
-        RETURNFUNC(ret);
-    }
-
-    ret = read_block(&rig->state.rigport, buf, 8);
-    if (ret != 8)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 8 bytes from '%s', got %d bytes\n", __func__, buf, ret);
-        RETURNFUNC(-RIG_EPROTO);
-    }
-    if (buf[6] == '0') *vfo = RIG_VFO_B;
-    else *vfo = RIG_VFO_A;
+    *vfo = rig->state.current_vfo;
 
     RETURNFUNC(RIG_OK);
 }

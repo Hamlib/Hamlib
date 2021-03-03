@@ -140,6 +140,8 @@ struct kenwood_priv_data
     int is_kx3;
     int is_kx2;
     int is_k4;
+    int is_k4d;
+    int is_k4hd;
 };
 
 

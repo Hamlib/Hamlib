@@ -186,6 +186,11 @@ typedef struct s_rig RIG;
 #define MAXDBLSTSIZ 8       /* max preamp/att levels supported, zero ended */
 #define CHANLSTSIZ 16       /* max mem_list size, zero ended */
 #define MAX_CAL_LENGTH 32   /* max calibration plots in cal_table_t */
+#define MAX_MODES 63
+#define MAX_VFOS 31
+#define MAX_ROTORS 63
+#define MAX_VFO_OPS 31
+#define MAX_RSCANS 31
 //! @endcond
 
 
@@ -1968,10 +1973,10 @@ enum rig_caps_cptr_e {
 
 /**
  * \brief Function to return int value from rig->caps
- *
+ * Does not support > 32-bit rig_caps values
  */
 //! @cond Doxygen_Suppress
-extern long long rig_get_caps_int(rig_model_t rig_model, long long rig_caps);
+extern long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
@@ -2093,6 +2098,7 @@ struct rig_cache {
 #endif
     rmode_t mode;
     pbwidth_t width;
+    pbwidth_t widthB; // if non-zero then rig has separate width for VFOB
     ptt_t ptt;
     split_t split;
     vfo_t split_vfo;  // split caches two values
@@ -2113,6 +2119,7 @@ struct rig_cache {
     vfo_t vfo_freq; // last vfo cached
     vfo_t vfo_mode; // last vfo cached
     int satmode; // if rig is in satellite mode
+    rmode_t modeB;
 };
 
 
@@ -2122,8 +2129,9 @@ struct rig_cache {
  * This struct contains live data, as well as a copy of capability fields
  * that may be updated (ie. customized)
  *
- * It is fine to move fields around, as this kind of struct should
- * not be initialized like caps are.
+ * It is NOT fine to move fields around as it can break share library offset
+ * As of 2021-03-03  vfo_list is the last known item being reference externally
+ * So any additions or changes to this structure must be after vfo_list.
  */
 struct rig_state {
     /*
@@ -2182,9 +2190,12 @@ struct rig_state {
     int poll_interval;          /*!< Event notification polling period in milliseconds */
     freq_t current_freq;        /*!< Frequency currently set */
     rmode_t current_mode;       /*!< Mode currently set */
+    //rmode_t current_modeB;      /*!< Mode currently set VFOB */
     pbwidth_t current_width;    /*!< Passband width currently set */
     vfo_t tx_vfo;               /*!< Tx VFO currently set */
     rmode_t mode_list;              /*!< Complete list of modes for this rig */
+    // mode_list is used by some 
+    // so anything added to this structure must be below here
     int transmit;               /*!< rig should be transmitting i.e. hard
                                      wired PTT asserted - used by rigs that
                                      don't do CAT while in Tx */
@@ -2195,7 +2206,9 @@ struct rig_state {
     int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
     struct rig_cache cache;
     int vfo_opt;                /*!< Is -o switch turned on? */
-    int auto_power_on;          /*!< Allow Hamlib to power rig
+    int auto_power_on;          /*!< Allow Hamlib to power on rig
+                                   automatically if supported */
+    int auto_power_off;          /*!< Allow Hamlib to power off rig
                                    automatically if supported */
     int auto_disable_screensaver; /*!< Allow Hamlib to disable the
                                    rig's screen saver automatically if
@@ -2322,10 +2335,10 @@ rig_get_vfo HAMLIB_PARAMS((RIG *rig,
 
 extern HAMLIB_EXPORT(int)
 rig_get_vfo_info HAMLIB_PARAMS((RIG *rig,
-                           vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width));
+                           vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width, split_t *split));
 
-extern HAMLIB_EXPORT(const char *)
-rig_get_vfo_list HAMLIB_PARAMS((RIG *rig));
+extern HAMLIB_EXPORT(int)
+rig_get_vfo_list HAMLIB_PARAMS((RIG *rig, char *buf, int buflen));
 
 extern HAMLIB_EXPORT(int)
 netrigctl_get_vfo_mode HAMLIB_PARAMS((RIG *rig));
@@ -2968,7 +2981,7 @@ extern HAMLIB_EXPORT(int) rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t sele
 extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection, int ms);
 
 extern HAMLIB_EXPORT(int) rig_set_vfo_opt(RIG *rig, int status);
-extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width);
+extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width, split_t *split);
 
 
 typedef unsigned long rig_useconds_t;

@@ -146,6 +146,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         p->fd = status;
         break;
 
+#ifdef HAVE_LIBUSB_H
+
     case RIG_PORT_USB:
         status = usb_port_open(p);
 
@@ -155,6 +157,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         }
 
         break;
+#endif
 
     case RIG_PORT_NONE:
     case RIG_PORT_RPC:
@@ -200,9 +203,12 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
             ret = ser_close(p);
             break;
 
+#ifdef HAVE_LIBUSB_H
+
         case RIG_PORT_USB:
             ret = usb_port_close(p);
             break;
+#endif
 
         case RIG_PORT_NETWORK:
         case RIG_PORT_UDP_NETWORK:
@@ -716,7 +722,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
                           "%s(): Timed out %d.%03d seconds after %d chars\n",
                           __func__,
                           (int)elapsed_time.tv_sec,
-                          (int)elapsed_time.tv_usec/1000,
+                          (int)elapsed_time.tv_usec / 1000,
                           total_count);
 
                 return -RIG_ETIMEOUT;

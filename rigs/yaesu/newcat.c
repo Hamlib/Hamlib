@@ -584,6 +584,7 @@ int newcat_close(RIG *rig)
 {
 
     struct newcat_priv_data *priv = rig->state.priv;
+    struct rig_state *rig_s = &rig->state;
 
     ENTERFUNC;
 
@@ -593,6 +594,11 @@ int newcat_close(RIG *rig)
         newcat_set_trn(rig, priv->trn_state); /* ignore status in
                                                    case it's not
                                                    supported */
+    }
+    if (priv->poweron != 0 && rig_s->auto_power_off)
+    {
+        rig_set_powerstat(rig, 0);
+        priv->poweron = 0;
     }
 
     RETURNFUNC(RIG_OK);
@@ -780,18 +786,23 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // but they can change the TX vfo
     if (is_ftdx101 && rig->state.cache.ptt == RIG_PTT_ON)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: ftdx101 check vfo OK, vfo=%s, tx_vfo=%s\n", __func__, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));
+        rig_debug(RIG_DEBUG_TRACE, "%s: ftdx101 check vfo OK, vfo=%s, tx_vfo=%s\n",
+                  __func__, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));
+
         // when in split we can change VFOB but not VFOA
-        if (rig->state.cache.split == RIG_SPLIT_ON && target_vfo == '0') return -RIG_ENTARGET;
+        if (rig->state.cache.split == RIG_SPLIT_ON && target_vfo == '0') { return -RIG_ENTARGET; }
+
         // when not in split we can't change VFOA at all
-        if (rig->state.cache.split == RIG_SPLIT_OFF && target_vfo == '0') return -RIG_ENTARGET;
-        if (vfo != rig->state.tx_vfo) return -RIG_ENTARGET;
+        if (rig->state.cache.split == RIG_SPLIT_OFF && target_vfo == '0') { return -RIG_ENTARGET; }
+
+        if (vfo != rig->state.tx_vfo) { return -RIG_ENTARGET; }
     }
 
     if (is_ftdx3000 || is_ftdx5000)
     {
         // we have a few rigs that can't set freq while PTT_ON
         ptt_t ptt;
+
         if (RIG_OK != (err = newcat_get_ptt(rig, vfo, &ptt)))
         {
             ERRMSG(err, "newcat_set_cmd failed");
@@ -994,7 +1005,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // after band select re-read things -- may not have to change anything
         // reading both VFOs is really only needed for rigs with just one VFO stack
         // but we read them all to ensure we cover both types
-        freq_t tmp_freqA=0, tmp_freqB=0;
+        freq_t tmp_freqA = 0, tmp_freqB = 0;
         rmode_t tmp_mode;
         pbwidth_t tmp_width;
 
@@ -1024,8 +1035,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // just drop through
     }
 
-
-    // cppcheck-suppress *
     if (RIG_MODEL_FT450 == caps->rig_model)
     {
         if (c == 'B')
@@ -2243,7 +2252,7 @@ int newcat_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     int err;
-    vfo_t rx_vfo=RIG_VFO_NONE;
+    vfo_t rx_vfo = RIG_VFO_NONE;
 
     ENTERFUNC;
 
@@ -3142,6 +3151,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_OFF:
     case RIG_POWER_STANDBY:
         ps = '0';
+        write_block(&state->rigport, "\n", 0);
         break;
 
     default:
@@ -3475,7 +3485,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
-        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
+
+        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
 
         fpf = newcat_scale_float(255, val.f);
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AG%c%03d%c", main_sub_vfo, fpf,
@@ -3645,7 +3656,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             newcat_get_mode(rig, vfo, &mode, &width);
         }
 
-        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
+        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
+
         if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101
                 || is_ftdx10)
         {
@@ -4199,7 +4211,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
+        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
+
         if (is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ftdx101
                 || is_ftdx10)
         {
@@ -4530,12 +4543,16 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM08%c", cat_term);
         }
+
         if (is_ftdx101)
         {
             // separate meters for Main and Sub
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM0%c", cat_term);
+
             if (rig->state.cache.split)
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM1%c", cat_term);
+            {
+                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM1%c", cat_term);
+            }
         }
         else
         {
@@ -6606,8 +6623,10 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     is_ftdx5000 = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
     is_ftdx1200 = newcat_is_rig(rig, RIG_MODEL_FTDX1200);
     is_ftdx3000 = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
-    is_ftdx101 = newcat_is_rig(rig, RIG_MODEL_FTDX101D) && priv->rig_id == NC_RIGID_FTDX101D;
-    is_ftdx101mp = newcat_is_rig(rig, RIG_MODEL_FTDX101D) && priv->rig_id == NC_RIGID_FTDX101MP;
+    is_ftdx101 = newcat_is_rig(rig, RIG_MODEL_FTDX101D)
+                 && priv->rig_id == NC_RIGID_FTDX101D;
+    is_ftdx101mp = newcat_is_rig(rig, RIG_MODEL_FTDX101D)
+                   && priv->rig_id == NC_RIGID_FTDX101MP;
     is_ftdx10 = newcat_is_rig(rig, RIG_MODEL_FTDX10);
 
     if (!is_ft450 && !is_ft950 && !is_ft891 && !is_ft991 && !is_ft2000
@@ -6796,7 +6815,8 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
 
-    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s, vfo=%s\n", priv->cmd_str, rig_strvfo(tx_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s, vfo=%s\n", priv->cmd_str,
+              rig_strvfo(tx_vfo));
 
     rig->state.tx_vfo = tx_vfo;
 
@@ -9672,8 +9692,9 @@ int newcat_set_cmd_validate(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: priv->cmd_str=%s\n", __func__, priv->cmd_str);
 
     // For FA and FB rig.c now tries to verify the set_freq actually works
-    // Seem the FT-2000 can't do a FA set followed by an immediate read
-    // So we'll use the old "ID" to verify the command.
+    // For example the FT-2000 can't do a FA set followed by an immediate read
+    // We were using "ID" to verify the command but rig.c now does 
+    // a verifcation of frequency and retries if it doesn't match
     if ((strncmp(priv->cmd_str, "FA", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
         strcpy(valcmd, ""); // No validation done -- rig.c now does followup query
@@ -9710,6 +9731,8 @@ int newcat_set_cmd_validate(RIG *rig)
         RETURNFUNC(-RIG_ENIMPL);
     }
 
+    if (strlen(valcmd) == 0) { return RIG_OK; }
+
     while (rc != RIG_OK && retry++ < retries)
     {
         int bytes;
@@ -9725,10 +9748,11 @@ int newcat_set_cmd_validate(RIG *rig)
 
         // FA and FB success is now verified in rig.c with a followup query
         // so no validation is needed
-        if (strncmp(priv->cmd_str, "FA", 2)==0 || strncmp(priv->cmd_str, "FB", 2))
+        if (strncmp(priv->cmd_str, "FA", 2) == 0 || strncmp(priv->cmd_str, "FB", 2))
         {
             return RIG_OK;
         }
+
         if (strncmp(priv->cmd_str, "FT", 2) == 0
                 && strncmp(priv->ret_data, "FT", 2) == 0)
         {
@@ -9797,7 +9821,6 @@ int newcat_set_cmd(RIG *rig)
         if (rc == RIG_OK)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_validate OK\n", __func__);
-            RETURNFUNC(RIG_OK);
         }
         else if (rc == -RIG_EPROTO)
         {
@@ -9819,6 +9842,15 @@ int newcat_set_cmd(RIG *rig)
         {
             RETURNFUNC(RIG_OK);
         }
+
+        // freq set and ptt are now verified in rig.c
+        if (strncmp(priv->cmd_str, "FA", 2) == 0
+                || strncmp(priv->cmd_str, "FB", 2) == 0
+                || strncmp(priv->cmd_str, "TX", 2) == 0)
+        {
+            RETURNFUNC(RIG_OK);
+        }
+
 
         if (strncmp(priv->cmd_str, "BS", 2) == 0)
         {

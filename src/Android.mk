@@ -21,21 +21,24 @@ LOCAL_SRC_FILES := \
         mem.c \
         settings.c \
         parallel.c \
-        usb_port.c \
         debug.c \
         network.c \
+	sleep.c \
+	gpio.c \
+	microham.c \
+	rot_ext.c \
         cm108.c
 
 
 LOCAL_MODULE := libhamlib
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
 LOCAL_C_INCLUDES := android include
-LOCAL_STATIC_LIBRARIES := adat alinco amsat aor ars celestron \
-        drake dummy easycomm ether6 flexradio fodtrack \
-        gnuradio gs232a heathkit icom jrc kachina kenwood kit \
-        kylix lowe m2 microtune minivna pcr prm80 racal rft \
-        rotorez rs sartek skanti spid tapr tentec ts7400 tuner \
-        uniden winradio wj yaesu
+LOCAL_STATIC_LIBRARIES := adat alinco amsat aor ars barrett celestron cnctrk \
+        dorji drake dummy easycomm elad ether6 flexradio fodtrack \
+        gs232a heathkit icmarine icom ioptron jrc kachina kenwood kit \
+        lowe m2 meade pcr prm80 prosistel racal rft \
+        rotorez rs sartek satel skanti spid tapr tentec ts7400 tuner \
+        uniden wj yaesu
 
 LOCAL_LDLIBS := -llog
 

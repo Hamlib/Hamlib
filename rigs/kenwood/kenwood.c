@@ -147,7 +147,7 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] =
     [6] = RIG_MODE_RTTYR, // FSK Mode
     [7] = RIG_MODE_CWR,
     [8] = RIG_MODE_NONE,  /* TUNE mode */
-    [9] = RIG_MODE_RTTY, // FSKR Mode
+    [9] = RIG_MODE_RTTY,  // FSKR Mode
     [10] = RIG_MODE_PSK,
     [11] = RIG_MODE_PSKR,
     [12] = RIG_MODE_PKTLSB,
@@ -966,6 +966,12 @@ int kenwood_close(RIG *rig)
                                                  it's not supported */
     }
 
+    if (priv->poweron != 0 && rig->state.auto_power_off)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: got PS1 so powerdown\n", __func__);
+        rig_set_powerstat(rig, 0);
+    }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -996,7 +1002,7 @@ static int kenwood_get_if(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     RETURNFUNC(kenwood_safe_transaction(rig, "IF", priv->info,
-                                    KENWOOD_MAX_BUF_LEN, caps->if_len););
+                                        KENWOOD_MAX_BUF_LEN, caps->if_len););
 }
 
 
@@ -1782,11 +1788,13 @@ int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
     if (RIG_IS_TS990S)
     {
-        RETURNFUNC(kenwood_transaction(rig, scan == RIG_SCAN_STOP ? "SC00" : "SC01", NULL, 0));
+        RETURNFUNC(kenwood_transaction(rig, scan == RIG_SCAN_STOP ? "SC00" : "SC01",
+                                       NULL, 0));
     }
     else
     {
-        RETURNFUNC(kenwood_transaction(rig, scan == RIG_SCAN_STOP ? "SC0" : "SC1", NULL, 0));
+        RETURNFUNC(kenwood_transaction(rig, scan == RIG_SCAN_STOP ? "SC0" : "SC1", NULL,
+                                       0));
     }
 }
 
@@ -2280,6 +2288,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     // TS480 can't handle the long command string
     // We can treat it like the TS890S
     case RIG_MODEL_TS480:
+
     // TS890S can't take power levels outside 5-100 and 5-25
     // So all we'll do is read power_now
     case RIG_MODEL_TS890S:
@@ -2389,7 +2398,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        if (val.f > 1.0) RETURNFUNC(-RIG_EINVAL);
+        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
+
         kenwood_val = val.f * 255;
     }
     else
@@ -2869,7 +2879,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
 
         case 3:
-            RETURNFUNC(get_kenwood_level(rig, vfo == RIG_VFO_MAIN ? "AG0" : "AG1", &val->f, NULL));
+            RETURNFUNC(get_kenwood_level(rig, vfo == RIG_VFO_MAIN ? "AG0" : "AG1", &val->f,
+                                         NULL));
             break;
 
         default:
@@ -3765,7 +3776,7 @@ int kenwood_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     RETURNFUNC(kenwood_transaction(rig,
-                               (ptt == RIG_PTT_ON) ? "TX" : "RX", NULL, 0));
+                                   (ptt == RIG_PTT_ON) ? "TX" : "RX", NULL, 0));
 }
 
 
@@ -3816,16 +3827,19 @@ int kenwood_set_trn(RIG *rig, int trn)
         RETURNFUNC(-RIG_ENAVAIL);
 
     case RIG_MODEL_TS990S:
-        RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL, 0));
+        RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL,
+                                       0));
         break;
 
     case RIG_MODEL_THD7A:
     case RIG_MODEL_THD74:
-        RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0", buf, sizeof buf));
+        RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0", buf,
+                                       sizeof buf));
         break;
 
     default:
-        RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI1" : "AI0", NULL, 0));
+        RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI1" : "AI0", NULL,
+                                       0));
         break;
     }
 }

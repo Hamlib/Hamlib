@@ -1828,7 +1828,7 @@ declare_proto_rot(get_status)
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    rot_sprintf_status(s, status);
+    rot_sprintf_status(s, sizeof(s), status);
     fprintf(fout, "%s%c", s, resp_sep);
 
     return RIG_OK;
@@ -1878,12 +1878,12 @@ declare_proto_rot(set_level)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rot_sprintf_level(s, rot->state.has_set_level);
+        rot_sprintf_level(s, sizeof(s), rot->state.has_set_level);
         fputs(s, fout);
 
         if (rot->caps->set_ext_level)
         {
-            sprintf_level_ext(s, rot->caps->extlevels);
+            sprintf_level_ext(s, sizeof(s), rot->caps->extlevels);
             fputs(s, fout);
         }
 
@@ -1954,12 +1954,12 @@ declare_proto_rot(get_level)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rot_sprintf_level(s, rot->state.has_get_level);
+        rot_sprintf_level(s, sizeof(s), rot->state.has_get_level);
         fputs(s, fout);
 
         if (rot->caps->get_ext_level)
         {
-            sprintf_level_ext(s, rot->caps->extlevels);
+            sprintf_level_ext(s, sizeof(s), rot->caps->extlevels);
             fputs(s, fout);
         }
 
@@ -2052,7 +2052,7 @@ declare_proto_rot(set_func)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rot_sprintf_func(s, rot->state.has_set_func);
+        rot_sprintf_func(s, sizeof(s), rot->state.has_set_func);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -2090,7 +2090,7 @@ declare_proto_rot(get_func)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rot_sprintf_func(s, rot->state.has_get_func);
+        rot_sprintf_func(s, sizeof(s), rot->state.has_get_func);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -2152,7 +2152,7 @@ declare_proto_rot(set_parm)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rot_sprintf_parm(s, rot->state.has_set_parm);
+        rot_sprintf_parm(s, sizeof(s), rot->state.has_set_parm);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }
@@ -2225,7 +2225,7 @@ declare_proto_rot(get_parm)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rot_sprintf_parm(s, rot->state.has_get_parm);
+        rot_sprintf_parm(s, sizeof(s), rot->state.has_get_parm);
         fprintf(fout, "%s\n", s);
         return RIG_OK;
     }

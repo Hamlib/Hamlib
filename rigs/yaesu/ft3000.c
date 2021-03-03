@@ -92,26 +92,33 @@ int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
 
     ENTERFUNC;
+
     switch (ant)
     {
-        case 1:
-            cmd = "AN01;"; // R3/1 ANT1/ANT3
-            break;
-        case 2:
-            cmd = "AN02;"; // RE/2 ANT2/ANT3
-            break;
-        case 3: 
-            cmd = "AN03;"; // TRX ANT3
-            break;
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: expected 1,2,3 got %d\n", __func__, ant);
-            RETURNFUNC(-RIG_EINVAL);
+    case 1:
+        cmd = "AN01;"; // R3/1 ANT1/ANT3
+        break;
+
+    case 2:
+        cmd = "AN02;"; // RE/2 ANT2/ANT3
+        break;
+
+    case 3:
+        cmd = "AN03;"; // TRX ANT3
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 1,2,3 got %d\n", __func__, ant);
+        RETURNFUNC(-RIG_EINVAL);
     }
+
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
+
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
         RETURNFUNC(err);
     }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -127,6 +134,7 @@ int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
 
     // find out what ANT3 setting
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", "AN0;");
+
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
         RETURNFUNC(err);
@@ -135,22 +143,26 @@ int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     if (strlen(priv->ret_data) >= 7)
     {
         char c = priv->ret_data[3];
-        switch(c)
+
+        switch (c)
         {
-            case '1': 
-                *ant_rx = RIG_ANT_3;
-                *ant_tx = RIG_ANT_1;
-                break;
-            case '2': 
-                *ant_rx = RIG_ANT_3;
-                *ant_tx = RIG_ANT_2;
-                break;
-            case '3': 
-                *ant_rx = *ant_tx = RIG_ANT_3;
-                break;
-            default:
-                rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna=%c\n", __func__, c);
-                RETURNFUNC(-RIG_EPROTO);
+        case '1':
+            *ant_rx = RIG_ANT_3;
+            *ant_tx = RIG_ANT_1;
+            break;
+
+        case '2':
+            *ant_rx = RIG_ANT_3;
+            *ant_tx = RIG_ANT_2;
+            break;
+
+        case '3':
+            *ant_rx = *ant_tx = RIG_ANT_3;
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna=%c\n", __func__, c);
+            RETURNFUNC(-RIG_EPROTO);
         }
     }
 

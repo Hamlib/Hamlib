@@ -178,7 +178,7 @@ static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     struct prosistel_rot_priv_caps *priv_caps =
         (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
-    int retval=-RIG_EINTERNAL;
+    int retval = -RIG_EINTERNAL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.1f %.1f\n", __func__, az, el);
 
@@ -315,7 +315,7 @@ static int prosistel_rot_stop(ROT *rot)
     struct prosistel_rot_priv_caps *priv_caps =
         (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
-    int retval=-RIG_EINTERNAL;
+    int retval = -RIG_EINTERNAL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

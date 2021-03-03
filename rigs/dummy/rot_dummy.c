@@ -259,7 +259,8 @@ static int dummy_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
         priv->target_el = el;
         gettimeofday(&priv->tv, NULL);
     }
-    else {
+    else
+    {
         priv->az = priv->target_az = az;
         priv->el = priv->target_az = el;
     }
@@ -358,7 +359,7 @@ static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         return RIG_OK;
     }
 
-    if (simulating) 
+    if (simulating)
     {
         dummy_rot_simulate_rotation(rot);
     }

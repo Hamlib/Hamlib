@@ -38,6 +38,11 @@ public:
 
     virtual ~Rotator();
 
+    Rotator(const Rotator&) = default;
+    Rotator(Rotator&&) = default;
+    Rotator& operator=(const Rotator&) = default;
+    Rotator& operator=(Rotator&&) = default;
+
     const struct rot_caps *caps;
 
     // This method opens the communication port to the rot

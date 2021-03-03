@@ -347,7 +347,7 @@ int millis_to_dot10ths(int millis, int wpm)
  * pretty print frequencies
  * str must be long enough. max can be as long as 17 chars
  */
-int HAMLIB_API sprintf_freq(char *str, freq_t freq)
+int HAMLIB_API sprintf_freq(char *str, int nlen, freq_t freq)
 {
     double f;
     char *hz;
@@ -2146,7 +2146,7 @@ void *rig_get_function_ptr(rig_model_t rig_model,
  * \param RIG* and rig_caps_int_e
  * \return the corresponding long value -- -RIG_EINVAL is the only error possible
  */
-long long rig_get_caps_int(rig_model_t rig_model, long long rig_caps)
+long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
