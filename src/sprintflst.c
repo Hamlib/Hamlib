@@ -37,7 +37,7 @@
 /* #define DUMMY_ALL 0x7ffffffffffffffLL */
 #define DUMMY_ALL ((setting_t)-1)
 
-int rig_sprintf_vfo(char *str, vfo_t vfo)
+int rig_sprintf_vfo(char *str, int nlen, vfo_t vfo)
 {
     unsigned int i, len = 0;
 
@@ -64,7 +64,7 @@ int rig_sprintf_vfo(char *str, vfo_t vfo)
 }
 
 
-int rig_sprintf_mode(char *str, rmode_t mode)
+int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
 {
     uint64_t i, len = 0;
 
@@ -93,7 +93,7 @@ int rig_sprintf_mode(char *str, rmode_t mode)
 }
 
 
-int rig_sprintf_ant(char *str, ant_t ant)
+int rig_sprintf_ant(char *str, int nlen, ant_t ant)
 {
     int i, len = 0;
     char *ant_name;
@@ -140,7 +140,7 @@ int rig_sprintf_ant(char *str, ant_t ant)
 }
 
 
-int rig_sprintf_func(char *str, setting_t func)
+int rig_sprintf_func(char *str, int nlen, setting_t func)
 {
     uint64_t i, len = 0;
 
@@ -169,7 +169,7 @@ int rig_sprintf_func(char *str, setting_t func)
 }
 
 
-int rot_sprintf_func(char *str, setting_t func)
+int rot_sprintf_func(char *str, int nlen, setting_t func)
 {
     uint64_t i, len = 0;
 
@@ -198,7 +198,7 @@ int rot_sprintf_func(char *str, setting_t func)
 }
 
 
-int rig_sprintf_level(char *str, setting_t level)
+int rig_sprintf_level(char *str, int nlen, setting_t level)
 {
     int i, len = 0;
 
@@ -227,7 +227,7 @@ int rig_sprintf_level(char *str, setting_t level)
 }
 
 
-int rot_sprintf_level(char *str, setting_t level)
+int rot_sprintf_level(char *str, int nlen, setting_t level)
 {
     int i, len = 0;
 
@@ -256,7 +256,7 @@ int rot_sprintf_level(char *str, setting_t level)
 }
 
 
-int amp_sprintf_level(char *str, setting_t level)
+int amp_sprintf_level(char *str, int nlen, setting_t level)
 {
     int i, len = 0;
 
@@ -285,7 +285,7 @@ int amp_sprintf_level(char *str, setting_t level)
 }
 
 
-int sprintf_level_ext(char *str, const struct confparams *extlevels)
+int sprintf_level_ext(char *str, int nlen, const struct confparams *extlevels)
 {
     int len = 0;
 
@@ -325,7 +325,7 @@ int sprintf_level_ext(char *str, const struct confparams *extlevels)
 }
 
 
-int rig_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
+int rig_sprintf_level_gran(char *str, int nlen, setting_t level, const gran_t *gran)
 {
     int i, len = 0;
 
@@ -381,7 +381,7 @@ int rig_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
 }
 
 
-int rot_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
+int rot_sprintf_level_gran(char *str, int nlen, setting_t level, const gran_t *gran)
 {
     int i, len = 0;
 
@@ -437,7 +437,7 @@ int rot_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
 }
 
 
-int rig_sprintf_parm(char *str, setting_t parm)
+int rig_sprintf_parm(char *str, int nlen, setting_t parm)
 {
     int i, len = 0;
 
@@ -466,7 +466,7 @@ int rig_sprintf_parm(char *str, setting_t parm)
 }
 
 
-int rot_sprintf_parm(char *str, setting_t parm)
+int rot_sprintf_parm(char *str, int nlen, setting_t parm)
 {
     int i, len = 0;
 
@@ -495,7 +495,7 @@ int rot_sprintf_parm(char *str, setting_t parm)
 }
 
 
-int rig_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
+int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm, const gran_t *gran)
 {
     int i, len = 0;
 
@@ -551,7 +551,7 @@ int rig_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
 }
 
 
-int rot_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
+int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm, const gran_t *gran)
 {
     int i, len = 0;
 
@@ -607,7 +607,7 @@ int rot_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
 }
 
 
-int rig_sprintf_vfop(char *str, vfo_op_t op)
+int rig_sprintf_vfop(char *str, int nlen, vfo_op_t op)
 {
     int i, len = 0;
 
@@ -636,7 +636,7 @@ int rig_sprintf_vfop(char *str, vfo_op_t op)
 }
 
 
-int rig_sprintf_scan(char *str, scan_t rscan)
+int rig_sprintf_scan(char *str, int nlen, scan_t rscan)
 {
     int i, len = 0;
 
@@ -665,7 +665,7 @@ int rig_sprintf_scan(char *str, scan_t rscan)
 }
 
 
-int rot_sprintf_status(char *str, rot_status_t status)
+int rot_sprintf_status(char *str, int nlen, rot_status_t status)
 {
     int i, len = 0;
 

@@ -71,6 +71,7 @@
 #include "cm108.h"
 #include "gpio.h"
 #include "misc.h"
+#include "sprintflst.h"
 
 /**
  * \brief Hamlib release number
@@ -5801,23 +5802,29 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 /**
  * \brief get list of available vfos
  * \param rig   The rig handle
+ * \param char*  char buffer[SPRINTF_MAX_SIZE] to hold result
+ * \param len   max length of char buffer
  *
  * Retrieves all usable vfo entries for the rig
  *
  * \return a pointer to a string, e.g. "VFOA VFOB Mem"
  * if the operation has been successful, otherwise NULL if an error occurred
  */
-const char *HAMLIB_API rig_get_vfo_list(RIG *rig)
+int HAMLIB_API rig_get_vfo_list(RIG *rig, char *buf, int buflen)
 {
     ENTERFUNC;
 
     // to be completed
     if (CHECK_RIG_ARG(rig))
     {
-        RETURNFUNC(NULL);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    RETURNFUNC(NULL);
+    char s[256];
+    rig_sprintf_vfo(s, sizeof(s), rig->state.vfo_list);
+
+
+    RETURNFUNC(RIG_OK);
 }
 
 /**
