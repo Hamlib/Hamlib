@@ -715,8 +715,8 @@ int icom_get_usb_echo_off(RIG *rig)
 
     // reduce the retry here so it's quicker
     rs->rigport.retry = 0;
-    // Check for echo on first
-    priv->serial_USB_echo_off = 0;
+    // Check for echo on first by assuming echo is off and checking the answer
+    priv->serial_USB_echo_off = 1;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: retry temp set to %d\n", __func__,
               rs->rigport.retry);
@@ -725,29 +725,14 @@ int icom_get_usb_echo_off(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ack_len=%d\n", __func__, ack_len);
 
-    if (retval == -RIG_ETIMEOUT) { RETURNFUNC(retval); }
-
-    if (retval == RIG_OK)
+    if (ack_len == 1) // then we got an echo of the cmd
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n",
-                  __func__);
-        rs->rigport.retry = retry_save;
-        RETURNFUNC(RIG_OK);
+        priv->serial_USB_echo_off = 0;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n", __func__);
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s %d \n", __func__, __LINE__);
-        priv->serial_USB_echo_off = 1;
-
-        retval = icom_transaction(rig, C_RD_TRXID, 0x00, NULL, 0, ackbuf, &ack_len);
-
-        if (retval == RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n",
-                      __func__);
-            rs->rigport.retry = retry_save;
-            RETURNFUNC(RIG_OK);
-        }
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n", __func__);
     }
 
     rs->rigport.retry = retry_save;
@@ -841,10 +826,11 @@ icom_rig_close(RIG *rig)
     // Nothing to do yet
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
-    
+
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-    
-    if (priv->poweron != 0 && rs->auto_power_off) {
+
+    if (priv->poweron != 0 && rs->auto_power_off)
+    {
         // maybe we need power off?
         rig_debug(RIG_DEBUG_VERBOSE, "%s trying power off\n", __func__);
         retval = abs(rig_set_powerstat(rig, 0));
@@ -862,6 +848,7 @@ icom_rig_close(RIG *rig)
         }
 
     }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -2313,8 +2300,9 @@ int icom_set_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t val)
     }
 
     cmdlen += par->datlen;
-    RETURNFUNC(icom_transaction(rig, par->command, par->subcmd, cmdbuf, cmdlen, ackbuf,
-                            &acklen));
+    RETURNFUNC(icom_transaction(rig, par->command, par->subcmd, cmdbuf, cmdlen,
+                                ackbuf,
+                                &acklen));
 }
 
 int icom_get_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t *val)
@@ -5733,7 +5721,8 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
     {
         if (extcmds[i].cmdparamtype == CMD_PARAM_TYPE_PARM && extcmds[i].id.s == parm)
         {
-            RETURNFUNC(icom_set_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&extcmds[i], val));
+            RETURNFUNC(icom_set_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&extcmds[i],
+                                    val));
         }
     }
 
@@ -7053,7 +7042,7 @@ int icom_decode_event(RIG *rig)
             freq_t freq;
             freq = from_bcd(buf + 5, (priv->civ_731_mode ? 4 : 5) * 2);
             RETURNFUNC(rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
-                                             rig->callbacks.freq_arg));
+                                                 rig->callbacks.freq_arg));
         }
         else
         {
@@ -7067,8 +7056,8 @@ int icom_decode_event(RIG *rig)
         {
             icom2rig_mode(rig, buf[5], buf[6], &mode, &width);
             RETURNFUNC(rig->callbacks.mode_event(rig, RIG_VFO_CURR,
-                                             mode, width,
-                                             rig->callbacks.mode_arg));
+                                                 mode, width,
+                                                 rig->callbacks.mode_arg));
         }
         else
         {
@@ -7216,7 +7205,7 @@ int icom_set_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
     }
 
     RETURNFUNC(icom_set_raw(rig, cmd, subcmd, subcmdbuflen, subcmdbuf, val_bytes,
-                        icom_val));
+                            icom_val));
 }
 
 int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
