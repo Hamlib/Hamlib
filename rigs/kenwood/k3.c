@@ -1062,15 +1062,24 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * The K3 supports AFSK & FSK sub-modes and for the D versions it also
  * has an internal RTTY and PSK31 decoder. The decoder sub-modes are
  * reported as FSK (RTTY) and the AFSK sub-modes are reported as
- * PKT(USB & LSB). LSB modes are assumed to be RTTY and USB modes are
- * assumed to be PKT(PSK, WS modes etc.).
+ * PKT(USB & LSB). The Submode determines if MD6 starts off in USB
+ * or LSB. To get the reverse of that, you send MD9 and the the submode.
+ * On KX3 it's
+ *
+ * DT0 defaults MD6 to USB
+ * DT1 defaults MD6 to LSB
+ * DT2 defaults MD6 to LSB
+ * DT3 defaults MD6 to USB
+ *
+ * So to inverse that DT0 for LSB, you'd send MD9 then DT0.
  *
  * For mode set the data sub-modes are set as follows:
  *
- * RTTY -> FSK D normal (LSB) VFO shows MARK QRG
- * RTTYR -> FSK D reversed (USB) VFO shows MARK QRG
- * PKTUSB -> DATA A normal (USB) VFO shows suppressed carrier QRG
- * PKTLSB -> AFSK A normal (LSB) optimised for RTTY VFO shows MARK QRG
+ * PKTUSB = sets the rig to DATA mode submode Data A (DT0)
+ * PKTLSB = sets the rig to DATA REV mode submode Data A (DT0)
+ * RTTY = sets the rig to AFSK A 45 bps rtty (DT1)
+ * RTTYR = sets the rig to FSK D 45 bps rtty (DT2)
+ * PSK = sets the rig to PSK D (DT3)
 
  * Not all data sub-mode combinations are possible but the above
  * mapping seems most likely to cover the user requirements.
@@ -1092,22 +1101,34 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     switch (mode)
     {
-    case RIG_MODE_PKTLSB:
-        mode = RIG_MODE_RTTY;
+        case RIG_MODE_PKTLSB:
+        mode = RIG_MODE_RTTY; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+                 "DT0"); /* DATA A mode - DATA (REV) on LSB optimized for HF Packet, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_PKTUSB:
-        mode = RIG_MODE_RTTY;
+        mode = RIG_MODE_RTTYR; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+                 "DT0"); /* DATA A mode - DATA on USB general, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_RTTY:
+        mode = RIG_MODE_RTTY; // in "DT1" Subband RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT1"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
+        break;
+
     case RIG_MODE_RTTYR:
+        mode = RIG_MODE_RTTYR; // in "DT2" Subband RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+        break;
+
+    case RIG_MODE_PSK:
+        mode = RIG_MODE_PSK; // in "DT3" subband RIG_MODE_PSK = USB # kenwood.c mode but may need kenwwod.c mode table review.
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT3"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
         break;
 
     default:
@@ -1441,21 +1462,33 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     switch (tx_mode)
     {
     case RIG_MODE_PKTLSB:
-        tx_mode = RIG_MODE_RTTY;
+        tx_mode = RIG_MODE_RTTY; // in "DT0" Subband RIG_MODE_RTTY = USB and RIG_MODE_RTTYR = LSB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+                 "DT0"); /* DATA A mode - DATA (REV) on LSB optimized for HF Packet, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_PKTUSB:
-        tx_mode = RIG_MODE_RTTY;
+        tx_mode = RIG_MODE_RTTYR; // in "DT0" Subband RIG_MODE_RTTY = USB and RIG_MODE_RTTYR = LSB
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_RTTY:
+        tx_mode = RIG_MODE_RTTY; // in "DT1" Subband RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT1"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
+        break;
+
     case RIG_MODE_RTTYR:
+        tx_mode = RIG_MODE_RTTYR; // in "DT2" Subband RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+        break;
+
+   case RIG_MODE_PSK:
+        tx_mode = RIG_MODE_PSK;
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT3"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
         break;
 
     default:
