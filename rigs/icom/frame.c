@@ -115,7 +115,8 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     int frm_len, retval;
     int ctrl_id;
 
-    sendbuf[0] = buf[0] = 0;
+    memset(buf, 0, 200);
+    memset(sendbuf, 0, MAXFRAMELEN);
     rs = &rig->state;
     priv = (struct icom_priv_data *)rs->priv;
     priv_caps = (struct icom_priv_caps *)rig->caps->priv;
@@ -131,6 +132,8 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     Hold_Decode(rig);
 
     rig_flush(&rs->rigport);
+
+    if (data_len) { *data_len = 0; }
 
     retval = write_block(&rs->rigport, (char *) sendbuf, frm_len);
 
