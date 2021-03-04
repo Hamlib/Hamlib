@@ -321,9 +321,11 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
             break;
         }
 
-        rig_debug(RIG_DEBUG_WARN, "%s: timeout retry=%d\n", __func__, retry);
+        rig_debug(RIG_DEBUG_WARN, "%s: retry=%d: %s\n", __func__, retry,
+                  rigerror(retval));
 
-        //hl_usleep(500 * 1000); // pause a half second -- don't think we need this
+        // On some serial errors we may need a bit of time
+        hl_usleep(100 * 1000); // pause just a bit
     }
     while (retry-- > 0);
 
@@ -351,6 +353,9 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[],
     int read = 0;
     int retries = 10;
     char *rx_ptr = (char *)rxbuffer;
+
+    // zeroize the buffer so we can still check contents after timeouts
+    memset(rx_ptr, 0, rxbuffer_len);
 
     /*
      * OK, now sometimes we may time out, e.g. the IC7000 can time out
