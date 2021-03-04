@@ -646,6 +646,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     if (!(interactive && prompt && have_rl))
     {
 
+        printf("***Here1***\n");
         if (interactive)
         {
             static int last_was_ret = 1;
@@ -1077,12 +1078,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
         }
     }
+        printf("***Here2***\n");
 
 #ifdef HAVE_LIBREADLINE
 
     if (interactive && prompt && have_rl)
     {
         int j, x;
+        printf("***Here3***\n");
 
 #ifdef HAVE_READLINE_HISTORY
         /* Minimum space for 32+1+32+1+128+1+128+1+128+1 = 453 chars, so
@@ -1611,6 +1614,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
     if (!prompt)
     {
+        printf("***Here4***\n");
         rig_debug(RIG_DEBUG_TRACE,
                   "rigctl(d): %c '%s' '%s' '%s' '%s'\n",
                   cmd,
@@ -1630,6 +1634,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         char a2[MAXARGSZ + 2];
         char a3[MAXARGSZ + 2];
         char vfo_str[MAXARGSZ + 2];
+        printf("***Here5***\n");
 
         *vfo_opt == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str,
                                      sizeof(vfo_str),
