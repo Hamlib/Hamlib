@@ -1091,7 +1091,7 @@ void *handle_socket(void *arg)
         if (ferror(fsockin))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: sockin err=%s\n", __func__, strerror(errno));
-            RETURNFUNC(NULL);
+            return(NULL);
         }
 
 #if 0
