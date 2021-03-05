@@ -230,12 +230,14 @@ int elecraft_open(RIG *rig)
             switch (modelnum)
             {
             case '1':
+                priv->is_k2 = 0;
                 model = "KX2";
                 priv->is_kx2 = 1;
                 break;
 
             case '2':
                 model = "KX3";
+                priv->is_k3 = 0;
                 priv->is_kx3 = 1;
                 break;
 
