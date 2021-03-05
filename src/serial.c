@@ -884,18 +884,16 @@ int HAMLIB_API ser_get_rts(hamlib_port_t *p, int *state)
     int retcode;
     unsigned int y;
 
-    ENTERFUNC;
-
     // cannot do this for microHam ports
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        return(-RIG_ENIMPL);
     }
 
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_RTS) == TIOCM_RTS;
 
-    RETURNFUNC(retcode < 0 ? -RIG_EIO : RIG_OK);
+    return(retcode < 0 ? -RIG_EIO : RIG_OK);
 }
 
 
@@ -971,24 +969,22 @@ int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
     int retcode;
     unsigned int y;
 
-    ENTERFUNC;
-
     // cannot do this for the RADIO port, return PTT state for the PTT port
     if (p->fd == uh_ptt_fd)
     {
         *state = uh_get_ptt();
-        RETURNFUNC(RIG_OK);
+        return(RIG_OK);
     }
 
     if (p->fd == uh_radio_fd)
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        return(-RIG_ENIMPL);
     }
 
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_DTR) == TIOCM_DTR;
 
-    RETURNFUNC(retcode < 0 ? -RIG_EIO : RIG_OK);
+    return(retcode < 0 ? -RIG_EIO : RIG_OK);
 }
 
 
@@ -1000,19 +996,17 @@ int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
  */
 int HAMLIB_API ser_set_brk(hamlib_port_t *p, int state)
 {
-    ENTERFUNC;
-
     // ignore this for microHam ports
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
-        RETURNFUNC(RIG_OK);
+        return(RIG_OK);
     }
 
 #if defined(TIOCSBRK) && defined(TIOCCBRK)
-    RETURNFUNC(IOCTL(p->fd, state ? TIOCSBRK : TIOCCBRK, 0) < 0 ?
-               -RIG_EIO : RIG_OK;);
+    return(IOCTL(p->fd, state ? TIOCSBRK : TIOCCBRK, 0) < 0 ?
+               -RIG_EIO : RIG_OK);
 #else
-    RETURNFUNC(-RIG_ENIMPL);
+    return(-RIG_ENIMPL);
 #endif
 }
 
@@ -1027,18 +1021,16 @@ int HAMLIB_API ser_get_car(hamlib_port_t *p, int *state)
     int retcode;
     unsigned int y;
 
-    ENTERFUNC;
-
     // cannot do this for microHam ports
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        return(-RIG_ENIMPL);
     }
 
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_CAR) == TIOCM_CAR;
 
-    RETURNFUNC(retcode < 0 ? -RIG_EIO : RIG_OK);
+    return(retcode < 0 ? -RIG_EIO : RIG_OK);
 }
 
 
@@ -1052,18 +1044,16 @@ int HAMLIB_API ser_get_cts(hamlib_port_t *p, int *state)
     int retcode;
     unsigned int y;
 
-    ENTERFUNC;
-
     // cannot do this for microHam ports
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        return(-RIG_ENIMPL);
     }
 
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_CTS) == TIOCM_CTS;
 
-    RETURNFUNC(retcode < 0 ? -RIG_EIO : RIG_OK);
+    return(retcode < 0 ? -RIG_EIO : RIG_OK);
 }
 
 
@@ -1077,18 +1067,16 @@ int HAMLIB_API ser_get_dsr(hamlib_port_t *p, int *state)
     int retcode;
     unsigned int y;
 
-    ENTERFUNC;
-
     // cannot do this for microHam ports
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        return(-RIG_ENIMPL);
     }
 
     retcode = IOCTL(p->fd, TIOCMGET, &y);
     *state = (y & TIOCM_DSR) == TIOCM_DSR;
 
-    RETURNFUNC(retcode < 0 ? -RIG_EIO : RIG_OK);
+    return(retcode < 0 ? -RIG_EIO : RIG_OK);
 }
 
 /** @} */

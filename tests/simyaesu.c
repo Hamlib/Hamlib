@@ -95,9 +95,9 @@ int main()
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-//            int id = NC_RIGID_FTDX101D;
-            int id = NC_RIGID_FTDX3000;
-            n = fprintf(fp, "ID%03d", id);
+            int id = NC_RIGID_FTDX101D;
+//            int id = NC_RIGID_FTDX3000;
+            n = fprintf(fp, "ID%03d;", id);
             printf("n=%d\n", n);
 
             if (n <= 0) { perror("ID"); }

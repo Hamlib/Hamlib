@@ -1001,8 +1001,8 @@ static int kenwood_get_if(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    RETURNFUNC(kenwood_safe_transaction(rig, "IF", priv->info,
-                                        KENWOOD_MAX_BUF_LEN, caps->if_len););
+    return(kenwood_safe_transaction(rig, "IF", priv->info,
+                                        KENWOOD_MAX_BUF_LEN, caps->if_len));
 }
 
 
@@ -4572,25 +4572,25 @@ const char *kenwood_get_info(RIG *rig)
 
     if (!rig)
     {
-        RETURNFUNC("*rig == NULL");
+        return("*rig == NULL");
     }
 
     retval = kenwood_safe_transaction(rig, "TY", firmbuf, 10, 5);
 
     if (retval != RIG_OK)
     {
-        RETURNFUNC(NULL);
+        return(NULL);
     }
 
     switch (firmbuf[4])
     {
-    case '0': RETURNFUNC("Firmware: Overseas type");
+    case '0': return("Firmware: Overseas type");
 
-    case '1': RETURNFUNC("Firmware: Japanese 100W type");
+    case '1': return("Firmware: Japanese 100W type");
 
-    case '2': RETURNFUNC("Firmware: Japanese 20W type");
+    case '2': return("Firmware: Japanese 20W type");
 
-    default: RETURNFUNC("Firmware: unknown");
+    default: return("Firmware: unknown");
     }
 }
 
