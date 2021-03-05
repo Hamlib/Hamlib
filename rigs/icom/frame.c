@@ -550,7 +550,6 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
 void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
                    pbwidth_t *width)
 {
-    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: mode=0x%02x, pd=%d\n", __func__, md, pd);
     *width = RIG_PASSBAND_NORMAL;
 
@@ -576,7 +575,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
         {
             *mode = RIG_MODE_USB;
             *width = rig_passband_normal(rig, RIG_MODE_USB);
-            RETURNFUNC();
+            return;
         }
         else if (rig->caps->rig_model == RIG_MODEL_ICR30 && pd == 0x02)
         {
@@ -666,6 +665,5 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
         rig_debug(RIG_DEBUG_ERR, "icom: Unsupported Icom mode width %#.2x\n", pd);
     }
 
-    RETURNFUNC();
 }
 

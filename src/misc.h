@@ -143,7 +143,7 @@ void errmsg(int err, char *s, const char *func, const char *file, int line);
 #define ERRMSG(err, s) errmsg(err,  s, __func__, __FILENAME__, __LINE__)
 #define ENTERFUNC rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s entered\n", __FILENAME__, __LINE__, __func__)
 #define RETURNFUNC(rc) do { \
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return\n", __FILENAME__, __LINE__, __func__); \
+                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return(%ld)\n", __FILENAME__, __LINE__, __func__, (long int) rc); \
                         return rc; \
                        } while(0)
 

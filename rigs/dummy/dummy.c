@@ -1962,9 +1962,7 @@ static int dummy_get_trn(RIG *rig, int *trn)
 
 static const char *dummy_get_info(RIG *rig)
 {
-    ENTERFUNC;
-
-    RETURNFUNC("Nothing much (dummy)");
+    return "Nothing much (dummy)";
 }
 
 

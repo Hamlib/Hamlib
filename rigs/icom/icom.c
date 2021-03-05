@@ -1455,11 +1455,11 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
             if (retval != RIG_OK || rfwidth.i >= RTTY_FIL_NB)
             {
-                RETURNFUNC(0);     /* use default */
+                return(0);     /* use default */
             }
             else
             {
-                RETURNFUNC(rtty_fil[rfwidth.i]);
+                return(rtty_fil[rfwidth.i]);
             }
         }
     }
@@ -1471,7 +1471,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
     if (priv->no_1a_03_cmd)
     {
-        RETURNFUNC(0);
+        return(0);
     }
 
     retval = icom_transaction(rig, C_CTL_MEM, fw_sub_cmd, 0, 0,
@@ -1480,14 +1480,14 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     if (-RIG_ERJCTED == retval)
     {
         priv->no_1a_03_cmd = -1;  /* do not keep asking */
-        RETURNFUNC(0);
+        return(0);
     }
 
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), "
                   "len=%d\n", __func__, resbuf[0], res_len);
-        RETURNFUNC(0);         /* use default */
+        return(0);         /* use default */
     }
 
     if (res_len == 3 && resbuf[0] == C_CTL_MEM)
@@ -1497,17 +1497,17 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
         if (mode & RIG_MODE_AM)
         {
-            RETURNFUNC((i + 1) * 200); /* Ic_7800 */
+            return((i + 1) * 200); /* Ic_7800 */
         }
         else if (mode &
                  (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY |
                   RIG_MODE_RTTYR))
         {
-            RETURNFUNC(i < 10 ? (i + 1) * 50 : (i - 4) * 100);
+            return(i < 10 ? (i + 1) * 50 : (i - 4) * 100);
         }
     }
 
-    RETURNFUNC(0);
+    return(0);
 }
 
 int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
