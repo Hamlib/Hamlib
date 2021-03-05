@@ -4548,11 +4548,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             // separate meters for Main and Sub
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM0%c", cat_term);
-
-            if (rig->state.cache.split)
-            {
-                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM1%c", cat_term);
-            }
         }
         else
         {
