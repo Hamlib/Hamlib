@@ -5682,24 +5682,22 @@ const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t *range_list,
 {
     int i;
 
-    ENTERFUNC;
-
     for (i = 0; i < FRQRANGESIZ; i++)
     {
         if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
-            RETURNFUNC(NULL);
+            return(NULL);
         }
 
         if (freq >= range_list[i].startf && freq <= range_list[i].endf &&
                 (range_list[i].modes & mode))
         {
             const freq_range_t *f = &range_list[i];
-            RETURNFUNC(f);
+            return(f);
         }
     }
 
-    RETURNFUNC(NULL);
+    return(NULL);
 }
 
 /**
