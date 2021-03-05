@@ -761,6 +761,14 @@ icom_rig_open(RIG *rig)
               rig->caps->version);
     retval = icom_get_usb_echo_off(rig);
 
+    if (retval == RIG_OK) // then echo is on so let's try freq now
+    {
+        // some rigs like the IC7100 still echo when in standby
+        // so asking for freq now should timeout if such a rig
+        freq_t tfreq;
+        retval = rig_get_freq(rig,RIG_VFO_A,&tfreq);
+    }
+
     if (retval != RIG_OK && priv->poweron == 0 && rs->auto_power_on)
     {
         // maybe we need power on?
