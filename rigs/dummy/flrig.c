@@ -254,7 +254,7 @@ static char *xml_build(char *cmd, char *value, char *xmlbuf, int xmlbuflen)
    if (xmlbuflen < 4096)
    {
        rig_debug(RIG_DEBUG_ERR, "%s: xmllen < 4096\n", __func__);
-       RETURNFUNC(NULL);
+       return NULL;
    }
 
    header =
@@ -290,7 +290,7 @@ static char *xml_build(char *cmd, char *value, char *xmlbuf, int xmlbuflen)
    snprintf(tmp, sizeof(tmp), "%d\r\n\r\n", (int)strlen(xml));
    strncat(xmlbuf, tmp, xmlbuflen - 1);
    strncat(xmlbuf, xml, xmlbuflen - 1);
-   RETURNFUNC(xmlbuf);
+   return xmlbuf;
 }
 
 /*This is a very crude xml parse specific to what we need from FLRig
@@ -351,7 +351,7 @@ static char *xml_parse2(char *xml, char *value, int valueLen)
    }
 
    free(xmltmp);
-   RETURNFUNC(value);
+   return value;
 }
 
 /*
@@ -367,7 +367,7 @@ static char *xml_parse(char *xml, char *value, int value_len)
    /* first off we should have an OK on the 1st line */
    if (strstr(xml, " 200 OK") == NULL)
    {
-       RETURNFUNC(NULL);
+       return(NULL);
    }
 
    rig_debug(RIG_DEBUG_TRACE, "%s XML:\n%s\n", __func__, xml);
@@ -377,7 +377,7 @@ static char *xml_parse(char *xml, char *value, int value_len)
 
    if (pxml == NULL)
    {
-       RETURNFUNC(NULL);
+       return(NULL);
    }
 
    next = strchr(pxml + 1, '<');
@@ -393,7 +393,7 @@ static char *xml_parse(char *xml, char *value, int value_len)
        value[0] = 0; /* truncate to give empty response */
    }
 
-   RETURNFUNC(value);
+   return(value);
 }
 
 /*
@@ -626,7 +626,8 @@ static const char *modeMapGetFLRig(rmode_t modeHamlib)
 {
    int i;
 
-   ENTERFUNC;
+   rig_debug(RIG_DEBUG_TRACE,"%s: called\n", __func__);
+
    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
    {
        rig_debug(RIG_DEBUG_TRACE,
@@ -637,13 +638,13 @@ static const char *modeMapGetFLRig(rmode_t modeHamlib)
        {
            rig_debug(RIG_DEBUG_TRACE, "%s matched mode=%.0f, returning '%s'\n", __func__,
                      (double)modeHamlib, modeMap[i].mode_flrig);
-           RETURNFUNC(modeMap[i].mode_flrig);
+           return(modeMap[i].mode_flrig);
        }
    }
 
    rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode requested: %s\n", __func__,
              rig_strrmode(modeHamlib));
-   RETURNFUNC("ERROR");
+   return("ERROR");
 }
 
 /*
@@ -2053,9 +2054,8 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 static const char *flrig_get_info(RIG *rig)
 {
    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
-   ENTERFUNC;
 
-   RETURNFUNC(priv->info);
+   return(priv->info);
 }
 
 static int flrig_power2mW(RIG *rig, unsigned int *mwpower, float power,
