@@ -1024,6 +1024,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     subcmd = -1;
     retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                               &ack_len);
+    hl_usleep(50*1000);  // pause for transceive message and we'll flush it
 
     if (retval != RIG_OK)
     {
@@ -1662,6 +1663,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d, width=%d\n", __func__, (int)icom_mode,
               (int)width);
     retval = icom_set_mode(rig, vfo, icom_mode, width);
+    
+    hl_usleep(50*1000); // pause for possible transceive message which we'll flush
 
     if (RIG_OK == retval)
     {
