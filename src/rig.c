@@ -2546,6 +2546,9 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
                 if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
+                // don't use the cached value
+                elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);
+
                 tptt = -1;
                 // IC-9700 is failing on get_ptt right after set_ptt in split mode
                 retcode = rig_get_ptt(rig, vfo, &tptt);
