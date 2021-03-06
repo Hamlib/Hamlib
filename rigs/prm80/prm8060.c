@@ -33,9 +33,9 @@
 
 #define PRM8060_ALL_MODES (RIG_MODE_FM)
 
-#define PRM8060_FUNC (RIG_FUNC_REV|RIG_FUNC_LOCK)
+#define PRM8060_FUNC (RIG_FUNC_REV|RIG_FUNC_LOCK|RIG_FUNC_MUTE)
 
-#define PRM8060_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_SQL /* |RIG_LEVEL_RFPOWER */)
+#define PRM8060_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RFPOWER)
 
 #define PRM8060_PARM_ALL (RIG_PARM_NONE)
 
@@ -43,6 +43,26 @@
 #define PRM8060_VFO_OPS (RIG_OP_NONE)
 
 #define PRM8060_VFO (RIG_VFO_MEM)
+
+// Calibration done on PRM8070
+#define PRM8060_STR_CAL { 15, \
+                { \
+                    { 0x14, -54 }, /* S0 */ \
+                    { 0x1D, -48 }, /* S1 */ \
+                    { 0x26, -42 }, /* S2 */ \
+                    { 0x33, -36 }, /* S3 */ \
+                    { 0x3F, -30 }, /* S4 */ \
+                    { 0x4D, -24 }, /* S5 */ \
+                    { 0x55, -18 }, /* S6 */ \
+                    { 0x61, -12 }, /* S7 */ \
+                    { 0x68, -6  }, /* S8 */ \
+                    { 0x6C,  0 },  /* S9 */ \
+                    { 0x81,  10 }, /* +10 */ \
+                    { 0x8B,  20 }, /* +20 */ \
+                    { 0x8C,  40 }, /* +40 */ \
+                    { 0x8C,  50 }, /* +50 */ \
+                    { 0xFF,  60 }  /* +60 */ \
+                } }
 
 /*
  * PRM 8060 rig capabilities.
@@ -58,8 +78,8 @@ const struct rig_caps prm8060_caps =
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
-    .ptt_type =  RIG_PTT_NONE,
-    .dcd_type =  RIG_DCD_NONE,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
     .port_type =  RIG_PORT_SERIAL,
     .serial_rate_min =  4800,
     .serial_rate_max =  4800,
@@ -74,7 +94,7 @@ const struct rig_caps prm8060_caps =
 
     .has_get_func =  PRM8060_FUNC,
     .has_set_func =  PRM8060_FUNC,
-    .has_get_level =  PRM8060_LEVEL_ALL | RIG_LEVEL_RFPOWER,
+    .has_get_level =  PRM8060_LEVEL_ALL | RIG_LEVEL_RAWSTR,
     .has_set_level =  RIG_LEVEL_SET(PRM8060_LEVEL_ALL),
     .has_get_parm =  PRM8060_PARM_ALL,
     .has_set_parm =  RIG_PARM_SET(PRM8060_PARM_ALL),
@@ -120,6 +140,8 @@ const struct rig_caps prm8060_caps =
         RIG_FLT_END,
     },
 
+    .str_cal =    PRM8060_STR_CAL,
+
     .rig_init =   prm80_init,
     .rig_cleanup = prm80_cleanup,
     .get_mode =   prm80_get_mode,
@@ -138,6 +160,8 @@ const struct rig_caps prm8060_caps =
     .set_level =  prm80_set_level,
     .get_level =  prm80_get_level,
     .reset =  prm80_reset,
+    .get_dcd =  prm80_get_dcd,
+    .get_ptt =  prm80_get_ptt,
     .get_info =  prm80_get_info,
 
 };

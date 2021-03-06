@@ -551,33 +551,19 @@ static int hhtoi(const char *p)
     return (int)strtol(buf, NULL, 16);
 }
 
-/*
- * prm80_get_channel
- * Assumes rig!=NULL
+/**
+ * Get system state [E] from rig into \a statebuf
  */
-int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
+static int prm80_read_system_state(hamlib_port_t *rigport, char *statebuf)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
-    struct rig_state *rs = &rig->state;
-    char statebuf[BUFSZ];
     char *p;
-    int ret, chanstate, mode_byte, lock_byte;
-
-    if (chan->vfo == RIG_VFO_MEM)
-    {
-        ret = prm80_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
-
-        if (ret != RIG_OK)
-        {
-            return ret;
-        }
-    }
+    int ret;
 
     // Get rid of possible prompt sent by the rig
-    rig_flush(&rs->rigport);
+    rig_flush(rigport);
 
     /* [E] = Show system state */
-    ret = write_block(&rs->rigport, "E", 1);
+    ret = write_block(rigport, "E", 1);
 
     if (ret < 0)
     {
@@ -585,7 +571,7 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     }
 
     // The response length is fixed
-    ret = read_block(&rs->rigport, statebuf, 20);
+    ret = read_block(rigport, statebuf, 20);
 
     if (ret < 0)
     {
@@ -610,15 +596,51 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     {
         int left_to_read = (p - statebuf) + 1;
         memmove(statebuf, p + 1, 20 - left_to_read);
-        ret = read_block(&rs->rigport, statebuf + 20 - left_to_read, left_to_read);
+        ret = read_block(rigport, statebuf + 20 - left_to_read, left_to_read);
 
-        if (ret >= 0)
+        if (ret < 0)
+        {
+            return ret;
+        }
+        else if (ret >= 0)
         {
             statebuf[20] = '\0';
         }
 
         rig_debug(RIG_DEBUG_WARN, "%s: len=%d, statebuf='%s'\n", __func__, ret,
                   statebuf);
+    }
+
+    return RIG_OK;
+}
+
+
+/*
+ * prm80_get_channel
+ * Assumes rig!=NULL
+ */
+int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
+{
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    struct rig_state *rs = &rig->state;
+    char statebuf[BUFSZ];
+    int ret, chanstate, mode_byte, lock_byte;
+
+    if (chan->vfo == RIG_VFO_MEM)
+    {
+        ret = prm80_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+    }
+
+    ret = prm80_read_system_state(&rs->rigport, statebuf);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
     }
 
     /* (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq). */
@@ -654,10 +676,12 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     chan->levels[LVL_AF].f  = ((float)(hhtoi(statebuf + 8) >> 4)) / 15.;
     chan->levels[LVL_RFPOWER].f  = (mode_byte & 0x02) ? 1.0 : 0.0;
 
+    chan->funcs  = 0;
     chan->funcs |= (chanstate & 0x02) ? RIG_FUNC_REV : 0;
 
     lock_byte = hhtoi(statebuf + 10) & 0x0f;
-    chan->funcs = (lock_byte != 0) ? RIG_FUNC_LOCK : 0;
+    chan->funcs |= (lock_byte & 0x05) ? RIG_FUNC_LOCK : 0;
+    chan->funcs |= (lock_byte & 0x08) ? RIG_FUNC_MUTE : 0;
 
     chan->freq = ((hhtoi(statebuf + 12) << 8) + hhtoi(statebuf + 14)) * FREQ_DIV +
                  RX_IF_OFFSET;
@@ -805,7 +829,8 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
 #endif
 
-        ret = prm80_set_func(rig, vfo, RIG_FUNC_LOCK, chan->funcs & RIG_FUNC_LOCK);
+        ret = prm80_set_func(rig, vfo, RIG_FUNC_LOCK,
+                             !!(chan->funcs & RIG_FUNC_LOCK));
 
         if (ret != RIG_OK)
         {
@@ -817,15 +842,21 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 }
 
 
-// TODO FUNC_REV ?
+// TODO FUNC_REV through Channel state byte ?
+// TODO "Read-Modify-Write" (or shadowing in priv area) of the lock bits
 int prm80_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     int ret;
 
     if (func & RIG_FUNC_LOCK)
     {
-        /* Lock keys/TX/Vol */
-        ret = prm80_transaction(rig, "K", (status != 0) ? "03" : "00", 1);
+        /* Lock keys(b0)/Vol(b2) */
+        ret = prm80_transaction(rig, "K", (status != 0) ? "05" : "00", 1);
+    }
+    else if (func & RIG_FUNC_MUTE)
+    {
+        /* Lock RX(b3) */
+        ret = prm80_transaction(rig, "K", (status != 0) ? "08" : "00", 1);
     }
     else
     {
@@ -850,7 +881,7 @@ int prm80_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         return ret;
     }
 
-    *status = (chan.funcs & func);
+    *status = !!(chan.funcs & func);
 
     return RIG_OK;
 }
@@ -862,6 +893,7 @@ int prm80_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char buf[BUFSZ];
+    int ret, mode_byte;
 
     // do some clamping, all levels are float values.
     if (val.f < 0.0)
@@ -886,25 +918,134 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return prm80_transaction(rig, "F", buf, 1);
 
     case RIG_LEVEL_RFPOWER:
-        // TODO : modify the Mode byte b1 ?
-#if 0
         /* Current mode:
            ; b0: Squelch       b1: power
            ; b2: Squelch open  b3: TX
            ; b4: PLL locked    b5: Long press memorize
            ; b6: Debouncing in effect b7: LCD refresh
            */
-        // TODO perform a "Read-Modify-Write" of the mode_byte
-        mode_byte  = 0x10;
-        mode_byte |= (chan->levels[LVL_RFPOWER].f == 0.) ? 0 : 0x02;
-#endif
-        return -RIG_ENIMPL;
+        // Perform a "Read-Modify-Write" of the mode_byte
+        ret = prm80_read_system_state(&rig->state.rigport, buf);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        prm80_wait_for_prompt(&rig->state.rigport);
+
+        mode_byte  = hhtoi(buf);
+        mode_byte &= ~0x02;
+        mode_byte |= (val.f == 0.) ? 0 : 0x02;
+        sprintf(buf, "%02X", (unsigned)mode_byte);
+
+        return prm80_transaction(rig, "D", buf, 1);
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s\n", __func__,
                   rig_strlevel(level));
         return -RIG_EINVAL;
     }
+
+    return RIG_OK;
+}
+
+/*
+ * get_level RIG_LEVEL_RAWSTR
+ */
+static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
+{
+    char buf[BUFSZ];
+    struct rig_state *rs = &rig->state;
+    int ret, i;
+
+    /* [U] = Print 80c552 internal RAM. */
+
+    // Send cmd, Wait for colon prompt, but then send nothing
+    ret = prm80_transaction(rig, "U", "", 0);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    // Read CRLF
+    ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    // (16 lines of 16 bytes each)
+
+    // According to prm.a51, the rssi_hold variable is in RAM at RAM+35.
+    // The RAM base is at 030h.
+
+#define RSSI_HOLD_ADDR (0x30 + 35)  // = 0x53
+
+    for (i = 0; i < (RSSI_HOLD_ADDR / 16) + 1; i++)
+    {
+        ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1);
+
+        if (ret < 0)
+        {
+            return ret;
+        }
+    }
+
+    // A line looks like this
+    // "$50 : 00 01 02 53 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\r\n"
+
+    val->i = hhtoi(buf + 6 + 3 * (RSSI_HOLD_ADDR % 16));
+
+    // discard the remaining content of RAM print
+    for (i = 0; i < (16 - RSSI_HOLD_ADDR / 16) - 1; i++)
+    {
+        ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1);
+    }
+
+    prm80_wait_for_prompt(&rs->rigport);
+
+    return RIG_OK;
+}
+
+/*
+ * get_level RIG_LEVEL_RAWSTR
+ */
+static int prm80_get_rawstr(RIG *rig, value_t *val)
+{
+    char buf[BUFSZ];
+    struct rig_state *rs = &rig->state;
+    int ret, i;
+
+    // Get rid of possible prompt sent by the rig
+    rig_flush(&rs->rigport);
+
+    /* [A] = RSSI */
+    ret = write_block(&rs->rigport, "A", 1);
+
+    if (ret < 0)
+    {
+        RETURNFUNC(ret);
+    }
+
+    // The response length is fixed
+    ret = read_block(&rs->rigport, buf, 4);
+
+    if (ret < 0)
+    {
+        return ret;
+    }
+
+    if (ret >= 0)
+    {
+        buf[ret] = '\0';
+    }
+
+    val->i = hhtoi(buf);
+
+    prm80_wait_for_prompt(&rs->rigport);
 
     return RIG_OK;
 }
@@ -917,6 +1058,12 @@ int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int ret;
     channel_t chan;
+
+    // Get rawstr apart, it is not read from system state
+    if (level == RIG_LEVEL_RAWSTR)
+    {
+        return prm80_get_rawstr(rig, val);
+    }
 
     memset(&chan, 0, sizeof(chan));
     chan.vfo = RIG_VFO_CURR;
@@ -950,6 +1097,50 @@ int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                   rig_strlevel(level));
         return -RIG_EINVAL;
     }
+
+    return RIG_OK;
+}
+
+int prm80_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+    char statebuf[BUFSZ];
+    int ret, mode_byte;
+
+    ret = prm80_read_system_state(&rig->state.rigport, statebuf);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    mode_byte = hhtoi(statebuf);
+
+    // TX mode on?
+    *ptt = (mode_byte & 0x08) ? RIG_PTT_ON : RIG_PTT_OFF;
+
+    prm80_wait_for_prompt(&rig->state.rigport);
+
+    return RIG_OK;
+}
+
+int prm80_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+{
+    char statebuf[BUFSZ];
+    int ret, mode_byte;
+
+    ret = prm80_read_system_state(&rig->state.rigport, statebuf);
+
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    mode_byte = hhtoi(statebuf);
+
+    // Squelch open?
+    *dcd = (mode_byte & 0x04) ? RIG_DCD_ON : RIG_DCD_OFF;
+
+    prm80_wait_for_prompt(&rig->state.rigport);
 
     return RIG_OK;
 }
