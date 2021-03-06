@@ -410,7 +410,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     switch (caps->port_type)
     {
     case RIG_PORT_SERIAL:
-        strncpy(rs->rigport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN - 1);
+        strncpy(rs->rigport.pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
         rs->rigport.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
         rs->rigport.parm.serial.data_bits = caps->serial_data_bits;
         rs->rigport.parm.serial.stop_bits = caps->serial_stop_bits;
@@ -419,29 +419,29 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         break;
 
     case RIG_PORT_PARALLEL:
-        strncpy(rs->rigport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN - 1);
+        strncpy(rs->rigport.pathname, DEFAULT_PARALLEL_PORT, HAMLIB_FILPATHLEN - 1);
         break;
 
     /* Adding support for CM108 GPIO.  This is compatible with CM108 series
      * USB audio chips from CMedia and SSS1623 series USB audio chips from 3S
      */
     case RIG_PORT_CM108:
-        strncpy(rs->rigport.pathname, DEFAULT_CM108_PORT, FILPATHLEN);
+        strncpy(rs->rigport.pathname, DEFAULT_CM108_PORT, HAMLIB_FILPATHLEN);
         rs->rigport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
         rs->pttport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
         break;
 
     case RIG_PORT_GPIO:
-        strncpy(rs->rigport.pathname, DEFAULT_GPIO_PORT, FILPATHLEN);
+        strncpy(rs->rigport.pathname, DEFAULT_GPIO_PORT, HAMLIB_FILPATHLEN);
         break;
 
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
-        strncpy(rs->rigport.pathname, "127.0.0.1:4532", FILPATHLEN - 1);
+        strncpy(rs->rigport.pathname, "127.0.0.1:4532", HAMLIB_FILPATHLEN - 1);
         break;
 
     default:
-        strncpy(rs->rigport.pathname, "", FILPATHLEN - 1);
+        strncpy(rs->rigport.pathname, "", HAMLIB_FILPATHLEN - 1);
     }
 
     rs->rigport.write_delay = caps->write_delay;
@@ -466,9 +466,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     // Every rig should have a rx_range
     // Rig backends need updating for new range_list format
     memcpy(rs->rx_range_list, caps->rx_range_list1,
-           sizeof(struct freq_range_list)*FRQRANGESIZ);
+           sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
     memcpy(rs->tx_range_list, caps->tx_range_list1,
-           sizeof(struct freq_range_list)*FRQRANGESIZ);
+           sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
 
     // if we don't have list1 we'll try list2
     if (rs->rx_range_list[0].startf == 0)
@@ -476,9 +476,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: rx_range_list1 is empty, using rx_range_list2\n", __func__);
         memcpy(rs->tx_range_list, caps->rx_range_list2,
-               sizeof(struct freq_range_list)*FRQRANGESIZ);
+               sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
         memcpy(rs->rx_range_list, caps->tx_range_list2,
-               sizeof(struct freq_range_list)*FRQRANGESIZ);
+               sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
     }
 
     if (rs->tx_range_list[0].startf == 0)
@@ -498,18 +498,18 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     {
     case RIG_ITU_REGION1:
         memcpy(rs->tx_range_list, caps->tx_range_list1,
-               sizeof(struct freq_range_list)*FRQRANGESIZ);
+               sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
         memcpy(rs->rx_range_list, caps->rx_range_list1,
-               sizeof(struct freq_range_list)*FRQRANGESIZ);
+               sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
         break;
 
     case RIG_ITU_REGION2:
     case RIG_ITU_REGION3:
     default:
         memcpy(rs->tx_range_list, caps->tx_range_list2,
-               sizeof(struct freq_range_list)*FRQRANGESIZ);
+               sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
         memcpy(rs->rx_range_list, caps->rx_range_list2,
-               sizeof(struct freq_range_list)*FRQRANGESIZ);
+               sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
         break;
     }
 
@@ -517,25 +517,25 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->vfo_list = 0;
     rs->mode_list = 0;
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list1[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list1[i]); i++)
     {
         rs->vfo_list |= caps->rx_range_list1[i].vfo;
         rs->mode_list |= caps->rx_range_list1[i].modes;
     }
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->tx_range_list1[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(caps->tx_range_list1[i]); i++)
     {
         rs->vfo_list |= caps->tx_range_list1[i].vfo;
         rs->mode_list |= caps->tx_range_list1[i].modes;
     }
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list2[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list2[i]); i++)
     {
         rs->vfo_list |= caps->rx_range_list2[i].vfo;
         rs->mode_list |= caps->rx_range_list2[i].modes;
     }
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(caps->tx_range_list2[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(caps->tx_range_list2[i]); i++)
     {
         rs->vfo_list |= caps->tx_range_list2[i].vfo;
         rs->mode_list |= caps->tx_range_list2[i].modes;
@@ -561,16 +561,16 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 
     if (rs->vfo_list & RIG_VFO_MEM) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has VFO_MEM\n", __func__); }
 
-    memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);
-    memcpy(rs->attenuator, caps->attenuator, sizeof(int)*MAXDBLSTSIZ);
+    memcpy(rs->preamp, caps->preamp, sizeof(int)*HAMLIB_MAXDBLSTSIZ);
+    memcpy(rs->attenuator, caps->attenuator, sizeof(int)*HAMLIB_MAXDBLSTSIZ);
     memcpy(rs->tuning_steps, caps->tuning_steps,
-           sizeof(struct tuning_step_list)*TSLSTSIZ);
+           sizeof(struct tuning_step_list)*HAMLIB_TSLSTSIZ);
     memcpy(rs->filters, caps->filters,
-           sizeof(struct filter_list)*FLTLSTSIZ);
+           sizeof(struct filter_list)*HAMLIB_FLTLSTSIZ);
     memcpy(&rs->str_cal, &caps->str_cal,
            sizeof(cal_table_t));
 
-    memcpy(rs->chan_list, caps->chan_list, sizeof(chan_t)*CHANLSTSIZ);
+    memcpy(rs->chan_list, caps->chan_list, sizeof(chan_t)*HAMLIB_CHANLSTSIZ);
 
     rs->has_get_func = caps->has_get_func;
     rs->has_set_func = caps->has_set_func;
@@ -2191,7 +2191,7 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
 
     rs = &rig->state;
 
-    for (i = 0; i < FLTLSTSIZ && rs->filters[i].modes; i++)
+    for (i = 0; i < HAMLIB_FLTLSTSIZ && rs->filters[i].modes; i++)
     {
         if (rs->filters[i].modes & mode)
         {
@@ -2237,13 +2237,13 @@ pbwidth_t HAMLIB_API rig_passband_narrow(RIG *rig, rmode_t mode)
 
     rs = &rig->state;
 
-    for (i = 0; i < FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
+    for (i = 0; i < HAMLIB_FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
     {
         if (rs->filters[i].modes & mode)
         {
             normal = rs->filters[i].width;
 
-            for (i++; i < FLTLSTSIZ && rs->filters[i].modes; i++)
+            for (i++; i < HAMLIB_FLTLSTSIZ && rs->filters[i].modes; i++)
             {
                 if ((rs->filters[i].modes & mode) &&
                         (rs->filters[i].width < normal))
@@ -2289,13 +2289,13 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
 
     rs = &rig->state;
 
-    for (i = 0; i < FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
+    for (i = 0; i < HAMLIB_FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
     {
         if (rs->filters[i].modes & mode)
         {
             normal = rs->filters[i].width;
 
-            for (i++; i < FLTLSTSIZ && rs->filters[i].modes; i++)
+            for (i++; i < HAMLIB_FLTLSTSIZ && rs->filters[i].modes; i++)
             {
                 if ((rs->filters[i].modes & mode) &&
                         (rs->filters[i].width > normal))
@@ -4869,7 +4869,7 @@ shortfreq_t HAMLIB_API rig_get_resolution(RIG *rig, rmode_t mode)
 
     rs = &rig->state;
 
-    for (i = 0; i < TSLSTSIZ && rs->tuning_steps[i].ts; i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ && rs->tuning_steps[i].ts; i++)
     {
         if (rs->tuning_steps[i].modes & mode)
         {
@@ -5687,7 +5687,7 @@ const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t *range_list,
 {
     int i;
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {

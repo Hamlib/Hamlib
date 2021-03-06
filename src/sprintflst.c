@@ -49,7 +49,7 @@ int rig_sprintf_vfo(char *str, int nlen, vfo_t vfo)
         return 0;
     }
 
-    for (i = 0; i < MAX_VFOS; i++)
+    for (i = 0; i < HAMLIB_MAX_VFOS; i++)
     {
         const char *sv;
         sv = rig_strvfo(vfo & RIG_VFO_N(i));
@@ -79,7 +79,7 @@ int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
         return 0;
     }
 
-    for (i = 0; i < MAX_MODES; i++)
+    for (i = 0; i < HAMLIB_MAX_MODES; i++)
     {
         const char *ms = rig_strrmode(mode & (1ULL << i));
 
@@ -678,7 +678,7 @@ int rig_sprintf_vfop(char *str, int nlen, vfo_op_t op)
         return 0;
     }
 
-    for (i = 0; i < MAX_VFO_OPS; i++)
+    for (i = 0; i < HAMLIB_MAX_VFO_OPS; i++)
     {
         const char *ms = rig_strvfop(op & (1UL << i));
 
@@ -711,7 +711,7 @@ int rig_sprintf_scan(char *str, int nlen, scan_t rscan)
         return 0;
     }
 
-    for (i = 0; i < MAX_RSCANS; i++)
+    for (i = 0; i < HAMLIB_MAX_RSCANS; i++)
     {
         const char *ms = rig_strscan(rscan & (1UL << i));
 
@@ -745,7 +745,7 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
         return 0;
     }
 
-    for (i = 0; i < MAX_ROTORS; i++)
+    for (i = 0; i < HAMLIB_MAX_ROTORS; i++)
     {
         const char *sv;
         sv = rot_strstatus(status & ROT_STATUS_N(i));

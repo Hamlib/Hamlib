@@ -2585,7 +2585,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             break;
         }
 
-        for (i = 0; i < MAXDBLSTSIZ; i++)
+        for (i = 0; i < HAMLIB_MAXDBLSTSIZ; i++)
         {
             if (rs->preamp[i] == val.i)
             {
@@ -2593,7 +2593,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
         }
 
-        if (i == MAXDBLSTSIZ || rs->preamp[i] == 0)
+        if (i == HAMLIB_MAXDBLSTSIZ || rs->preamp[i] == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp set_level %ddB",
                       __func__, val.i);
@@ -3268,7 +3268,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
         }
 
-        if (icom_val > MAXDBLSTSIZ || rs->preamp[icom_val - 1] == 0)
+        if (icom_val > HAMLIB_MAXDBLSTSIZ || rs->preamp[icom_val - 1] == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp get_level %ddB",
                       __func__, icom_val);
@@ -5311,7 +5311,7 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
 
-    for (i = 0; i < TSLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         if (priv_caps->ts_sc_list[i].ts == ts)
         {
@@ -5320,7 +5320,7 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
         }
     }
 
-    if (i >= TSLSTSIZ)
+    if (i >= HAMLIB_TSLSTSIZ)
     {
         RETURNFUNC(-RIG_EINVAL);   /* not found, unsupported */
     }
@@ -5381,7 +5381,7 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
         RETURNFUNC(-RIG_ERJCTED);
     }
 
-    for (i = 0; i < TSLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         if (priv_caps->ts_sc_list[i].sc == tsbuf[1])
         {
@@ -5390,7 +5390,7 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
         }
     }
 
-    if (i >= TSLSTSIZ)
+    if (i >= HAMLIB_TSLSTSIZ)
     {
         RETURNFUNC(-RIG_EPROTO);   /* not found, unsupported */
     }
@@ -7595,7 +7595,7 @@ int icom_get_freq_range(RIG *rig)
     // Automatically fill in the freq range for this rig if available
     rig_debug(RIG_DEBUG_TRACE, "%s: Hamlib ranges\n", __func__);
 
-    for (i = 0; i < FRQRANGESIZ
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
             && !RIG_IS_FRNG_END(rig->caps->rx_range_list1[i]); i++)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: rig chan %d, low=%.0f, high=%.0f\n", __func__,
