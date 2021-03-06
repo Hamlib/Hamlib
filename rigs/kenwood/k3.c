@@ -1792,7 +1792,7 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             int i;
             int foundit = 0;
 
-            for (i = 0; i < MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
             {
                 if (val.i == rig->state.attenuator[i])
                 {
@@ -2027,7 +2027,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             int i;
 
-            for (i = 0; i < lvl && i < MAXDBLSTSIZ; i++)
+            for (i = 0; i < lvl && i < HAMLIB_MAXDBLSTSIZ; i++)
             {
                 if (rig->state.attenuator[i] == 0)
                 {

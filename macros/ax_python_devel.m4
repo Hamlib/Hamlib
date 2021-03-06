@@ -149,6 +149,8 @@ variable to configure. See ``configure --help'' for reference.
         fi
     else
         sysconfig="sysconfig"
+        PYTHON_CPPFLAGS=`python3-config --cflags`
+        PYTHON_EXTRA_LDFLAGS=`python3-config --ldflags`
         AC_MSG_RESULT([yes])
     fi
 

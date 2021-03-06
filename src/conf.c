@@ -232,7 +232,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(rs->rigport.pathname, val, FILPATHLEN - 1);
+        strncpy(rs->rigport.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
     case TOK_WRITE_DELAY:
@@ -431,37 +431,37 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
         case 1:
             memcpy(rs->tx_range_list, caps->tx_range_list1,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list1,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         case 2:
             memcpy(rs->tx_range_list, caps->tx_range_list2,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list2,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         case 3:
             memcpy(rs->tx_range_list, caps->tx_range_list3,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list3,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         case 4:
             memcpy(rs->tx_range_list, caps->tx_range_list4,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list4,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         case 5:
             memcpy(rs->tx_range_list, caps->tx_range_list5,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list5,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         default:
@@ -515,7 +515,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_PTT_PATHNAME:
-        strncpy(rs->pttport.pathname, val, FILPATHLEN - 1);
+        strncpy(rs->pttport.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
     case TOK_PTT_BITNUM:
@@ -572,7 +572,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_DCD_PATHNAME:
-        strncpy(rs->dcdport.pathname, val, FILPATHLEN - 1);
+        strncpy(rs->dcdport.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
 

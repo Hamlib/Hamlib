@@ -176,21 +176,21 @@ struct rig_state;
 typedef struct s_rig RIG;
 
 //! @cond Doxygen_Suppress
-#define RIGNAMSIZ 30
-#define RIGVERSIZ 8
-#define FILPATHLEN 512
-#define FRQRANGESIZ 30
-#define MAXCHANDESC 30      /* describe channel eg: "WWV 5Mhz" */
-#define TSLSTSIZ 20         /* max tuning step list size, zero ended */
-#define FLTLSTSIZ 60        /* max mode/filter list size, zero ended */
-#define MAXDBLSTSIZ 8       /* max preamp/att levels supported, zero ended */
-#define CHANLSTSIZ 16       /* max mem_list size, zero ended */
-#define MAX_CAL_LENGTH 32   /* max calibration plots in cal_table_t */
-#define MAX_MODES 63
-#define MAX_VFOS 31
-#define MAX_ROTORS 63
-#define MAX_VFO_OPS 31
-#define MAX_RSCANS 31
+#define HAMLIB_RIGNAMSIZ 30
+#define HAMLIB_RIGVERSIZ 8
+#define HAMLIB_FILPATHLEN 512
+#define HAMLIB_FRQRANGESIZ 30
+#define HAMLIB_MAXCHANDESC 30      /* describe channel eg: "WWV 5Mhz" */
+#define HAMLIB_TSLSTSIZ 20         /* max tuning step list size, zero ended */
+#define HAMLIB_FLTLSTSIZ 60        /* max mode/filter list size, zero ended */
+#define HAMLIB_MAXDBLSTSIZ 8       /* max preamp/att levels supported, zero ended */
+#define HAMLIB_CHANLSTSIZ 16       /* max mem_list size, zero ended */
+#define HAMLIB_MAX_CAL_LENGTH 32   /* max calibration plots in cal_table_t */
+#define HAMLIB_MAX_MODES 63
+#define HAMLIB_MAX_VFOS 31
+#define HAMLIB_MAX_ROTORS 63
+#define HAMLIB_MAX_VFO_OPS 31
+#define HAMLIB_MAX_RSCANS 31
 //! @endcond
 
 
@@ -1363,7 +1363,7 @@ struct channel {
     tone_t dcs_sql;                     /*!< DCS squelch code */
     int scan_group;                     /*!< Scan group */
     unsigned int flags;                 /*!< Channel flags, see RIG_CHFLAG's */
-    char channel_desc[MAXCHANDESC];     /*!< Name */
+    char channel_desc[HAMLIB_MAXCHANDESC];     /*!< Name */
     struct ext_list
             *ext_levels;                /*!< Extension level value list, NULL ended. ext_levels can be NULL */
 };
@@ -1505,7 +1505,7 @@ struct cal_table {
     struct {
         int raw;                /*!< raw (A/D) value, as returned by \a RIG_LEVEL_RAWSTR */
         int val;                /*!< associated value, basically the measured dB value */
-    } table[MAX_CAL_LENGTH];    /*!< table of plots */
+    } table[HAMLIB_MAX_CAL_LENGTH];    /*!< table of plots */
 };
 
 /**
@@ -1535,7 +1535,7 @@ struct cal_table_float {
   struct {
     int raw;                  /*!< raw (A/D) value */
     float val;                /*!< associated value */
-  } table[MAX_CAL_LENGTH];    /*!< table of plots */
+  } table[HAMLIB_MAX_CAL_LENGTH];    /*!< table of plots */
 };
 
 /**
@@ -1627,8 +1627,8 @@ struct rig_caps {
     const tone_t *ctcss_list;   /*!< CTCSS tones list, zero ended */
     const tone_t *dcs_list;     /*!< DCS code list, zero ended */
 
-    int preamp[MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
-    int attenuator[MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
     shortfreq_t max_rit;        /*!< max absolute RIT */
     shortfreq_t max_xit;        /*!< max absolute XIT */
     shortfreq_t max_ifshift;    /*!< max absolute IF-SHIFT */
@@ -1643,25 +1643,25 @@ struct rig_caps {
     int bank_qty;               /*!< Number of banks */
     int chan_desc_sz;           /*!< Max length of memory channel name */
 
-    chan_t chan_list[CHANLSTSIZ];   /*!< Channel list, zero ended */
+    chan_t chan_list[HAMLIB_CHANLSTSIZ];   /*!< Channel list, zero ended */
 
     // As of 2020-02-12 we know of 5 models from Icom USA, EUR, ITR, TPE, KOR for the IC-9700
     // So we currently have 5 ranges we need to deal with
     // The backend for the model should fill in the label field to explain what model it is
     // The the IC-9700 in ic7300.c for an example 
-    freq_range_t rx_range_list1[FRQRANGESIZ];   /*!< Receive frequency range list #1 */
-    freq_range_t tx_range_list1[FRQRANGESIZ];   /*!< Transmit frequency range list #1 */
-    freq_range_t rx_range_list2[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
-    freq_range_t tx_range_list2[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
-    freq_range_t rx_range_list3[FRQRANGESIZ];   /*!< Receive frequency range list #3 */
-    freq_range_t tx_range_list3[FRQRANGESIZ];   /*!< Transmit frequency range list #3 */
-    freq_range_t rx_range_list4[FRQRANGESIZ];   /*!< Receive frequency range list #4 */
-    freq_range_t tx_range_list4[FRQRANGESIZ];   /*!< Transmit frequency range list #4 */
-    freq_range_t rx_range_list5[FRQRANGESIZ];   /*!< Receive frequency range list #5 */
-    freq_range_t tx_range_list5[FRQRANGESIZ];   /*!< Transmit frequency range list #5 */
+    freq_range_t rx_range_list1[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #1 */
+    freq_range_t tx_range_list1[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #1 */
+    freq_range_t rx_range_list2[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #2 */
+    freq_range_t tx_range_list2[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
+    freq_range_t rx_range_list3[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #3 */
+    freq_range_t tx_range_list3[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #3 */
+    freq_range_t rx_range_list4[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #4 */
+    freq_range_t tx_range_list4[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #4 */
+    freq_range_t rx_range_list5[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #5 */
+    freq_range_t tx_range_list5[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #5 */
 
-    struct tuning_step_list tuning_steps[TSLSTSIZ];     /*!< Tuning step list */
-    struct filter_list filters[FLTLSTSIZ];              /*!< mode/filter table, at -6dB */
+    struct tuning_step_list tuning_steps[HAMLIB_TSLSTSIZ];     /*!< Tuning step list */
+    struct filter_list filters[HAMLIB_FLTLSTSIZ];              /*!< mode/filter table, at -6dB */
 
     cal_table_t str_cal;                    /*!< S-meter calibration table */
     cal_table_float_t swr_cal;              /*!< SWR meter calibration table */
@@ -2012,7 +2012,7 @@ typedef struct hamlib_port {
     short retry;            /*!< Maximum number of retries, 0 to disable */
     short flushx;           /*!< If true flush is done with read instead of TCFLUSH - MicroHam */
 
-    char pathname[FILPATHLEN];      /*!< Port pathname */
+    char pathname[HAMLIB_FILPATHLEN];      /*!< Port pathname */
 
     union {
         struct {
@@ -2144,16 +2144,16 @@ struct rig_state {
     double vfo_comp;        /*!< VFO compensation in PPM, 0.0 to disable */
 
     int deprecated_itu_region;         /*!< ITU region to select among freq_range_t */
-    freq_range_t rx_range_list[FRQRANGESIZ];    /*!< Receive frequency range list */
-    freq_range_t tx_range_list[FRQRANGESIZ];    /*!< Transmit frequency range list */
+    freq_range_t rx_range_list[HAMLIB_FRQRANGESIZ];    /*!< Receive frequency range list */
+    freq_range_t tx_range_list[HAMLIB_FRQRANGESIZ];    /*!< Transmit frequency range list */
 
-    struct tuning_step_list tuning_steps[TSLSTSIZ]; /*!< Tuning step list */
+    struct tuning_step_list tuning_steps[HAMLIB_TSLSTSIZ]; /*!< Tuning step list */
 
-    struct filter_list filters[FLTLSTSIZ];      /*!< Mode/filter table, at -6dB */
+    struct filter_list filters[HAMLIB_FLTLSTSIZ];      /*!< Mode/filter table, at -6dB */
 
     cal_table_t str_cal;            /*!< S-meter calibration table */
 
-    chan_t chan_list[CHANLSTSIZ];   /*!< Channel list, zero ended */
+    chan_t chan_list[HAMLIB_CHANLSTSIZ];   /*!< Channel list, zero ended */
 
     shortfreq_t max_rit;        /*!< max absolute RIT */
     shortfreq_t max_xit;        /*!< max absolute XIT */
@@ -2161,8 +2161,8 @@ struct rig_state {
 
     ann_t announces;            /*!< Announces bit field list */
 
-    int preamp[MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
-    int attenuator[MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
 
     setting_t has_get_func;     /*!< List of get functions */
     setting_t has_set_func;     /*!< List of set functions */

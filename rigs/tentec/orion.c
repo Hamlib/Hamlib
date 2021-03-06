@@ -379,7 +379,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      */
     in_range = FALSE;
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         this_range = rig->state.rx_range_list[i];
 

@@ -519,7 +519,7 @@ int dttsp_init(RIG *rig)
         cmdpath = rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK ?
                   DEFAULT_DTTSP_CMD_NET_ADDR : DEFAULT_DTTSP_CMD_PATH;
 
-    strncpy(rig->state.rigport.pathname, cmdpath, FILPATHLEN - 1);
+    strncpy(rig->state.rigport.pathname, cmdpath, HAMLIB_FILPATHLEN - 1);
 
     return RIG_OK;
 }
@@ -571,7 +571,7 @@ int dttsp_open(RIG *rig)
     if (!p)
     {
         meterpath = priv->meter_port.pathname;
-        snprintf(meterpath, FILPATHLEN, "%s", rig->state.rigport.pathname);
+        snprintf(meterpath, HAMLIB_FILPATHLEN, "%s", rig->state.rigport.pathname);
 
         if (rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK)
         {

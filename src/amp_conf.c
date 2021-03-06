@@ -145,7 +145,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(rs->ampport.pathname, val, FILPATHLEN - 1);
+        strncpy(rs->ampport.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
     case TOK_WRITE_DELAY:

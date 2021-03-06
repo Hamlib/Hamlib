@@ -2616,7 +2616,7 @@ int newcat_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
     }
 
     /* assume 2 tuning steps per mode */
-    for (i = 0, ts_match = FALSE; i < TSLSTSIZ
+    for (i = 0, ts_match = FALSE; i < HAMLIB_TSLSTSIZ
             && rig->caps->tuning_steps[i].ts; i++)
         if (rig->caps->tuning_steps[i].modes & mode)
         {
@@ -2678,7 +2678,7 @@ int newcat_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
     }
 
     /* assume 2 tuning steps per mode */
-    for (i = 0, ts_match = FALSE; i < TSLSTSIZ
+    for (i = 0, ts_match = FALSE; i < HAMLIB_TSLSTSIZ
             && rig->caps->tuning_steps[i].ts; i++)
         if (rig->caps->tuning_steps[i].modes & mode)
         {
@@ -5924,7 +5924,7 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     chan_list = rig->caps->chan_list;
 
-    for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
+    for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
     {
         if (ch >= chan_list[i].startc &&
                 ch <= chan_list[i].endc)
@@ -6249,7 +6249,7 @@ int newcat_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
     chan_list = rig->caps->chan_list;
 
-    for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
+    for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
     {
         if (chan->channel_num >= chan_list[i].startc &&
                 chan->channel_num <= chan_list[i].endc &&
@@ -6403,7 +6403,7 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     chan_list = rig->caps->chan_list;
 
-    for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
+    for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
     {
         if (chan->channel_num >= chan_list[i].startc &&
                 chan->channel_num <= chan_list[i].endc)

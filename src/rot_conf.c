@@ -177,7 +177,7 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(rs->rotport.pathname, val, FILPATHLEN - 1);
+        strncpy(rs->rotport.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
     case TOK_WRITE_DELAY:
