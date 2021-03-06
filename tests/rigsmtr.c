@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+        strncpy(rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
@@ -335,7 +335,7 @@ int main(int argc, char *argv[])
 
     if (rot_file)
     {
-        strncpy(rot->state.rotport.pathname, rot_file, FILPATHLEN - 1);
+        strncpy(rot->state.rotport.pathname, rot_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */

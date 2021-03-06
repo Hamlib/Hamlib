@@ -268,7 +268,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Preamp:");
 
-    for (i = 0; i < MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
     {
         fprintf(fout, " %ddB", caps->preamp[i]);
     }
@@ -281,7 +281,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "\n");
     fprintf(fout, "Attenuator:");
 
-    for (i = 0; i < MAXDBLSTSIZ && caps->attenuator[i] != 0; i++)
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && caps->attenuator[i] != 0; i++)
     {
         fprintf(fout, " %ddB", caps->attenuator[i]);
     }
@@ -422,7 +422,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Memories:");
 
-    for (i = 0; i < CHANLSTSIZ && caps->chan_list[i].type; i++)
+    for (i = 0; i < HAMLIB_CHANLSTSIZ && caps->chan_list[i].type; i++)
     {
         fprintf(fout,
                 "\n\t%d..%d:   \t%s",
@@ -602,7 +602,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Tuning steps:");
 
-    for (i = 0; i < TSLSTSIZ && !RIG_IS_TS_END(caps->tuning_steps[i]); i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ && !RIG_IS_TS_END(caps->tuning_steps[i]); i++)
     {
         if (caps->tuning_steps[i].ts == RIG_TS_ANY)
         {
@@ -634,7 +634,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Filters:");
 
-    for (i = 0; i < FLTLSTSIZ && !RIG_IS_FLT_END(caps->filters[i]); i++)
+    for (i = 0; i < HAMLIB_FLTLSTSIZ && !RIG_IS_FLT_END(caps->filters[i]); i++)
     {
         if (caps->filters[i].width == RIG_FLT_ANY)
         {
@@ -840,7 +840,7 @@ void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
     int i;
     char prntbuf[1024];  /* a malloc would be better.. */
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
@@ -918,7 +918,7 @@ int range_sanity_check(const struct freq_range_list range_list[], int rx)
 {
     int i;
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
@@ -956,7 +956,7 @@ int range_sanity_check(const struct freq_range_list range_list[], int rx)
         }
     }
 
-    if (i == FRQRANGESIZ)
+    if (i == HAMLIB_FRQRANGESIZ)
     {
         return -4;
     }
@@ -981,7 +981,7 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
     last_ts = 0;
     last_modes = RIG_MODE_NONE;
 
-    for (i = 0; i < TSLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         if (RIG_IS_TS_END(tuning_step[i]))
         {
@@ -1005,7 +1005,7 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
         last_modes = tuning_step[i].modes;
     }
 
-    if (i == TSLSTSIZ)
+    if (i == HAMLIB_TSLSTSIZ)
     {
         return -4;
     }
