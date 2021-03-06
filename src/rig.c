@@ -2546,7 +2546,9 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
                 if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
-                // don't use the cached value
+                hl_usleep(50*1000);  // give PTT a chance to do it's thing
+
+                // don't use the cached value and check to see if it worked
                 elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);
 
                 tptt = -1;
