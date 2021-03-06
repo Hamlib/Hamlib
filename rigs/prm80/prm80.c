@@ -52,7 +52,7 @@
 // The rig's PLL only deals with freq in Hz divided by this value
 #define FREQ_DIV 12500.
 
-/* V4 commands
+/* V5 based on V4 commands
  * retrieved from https://github.com/f4fez/prm80
  * and https://github.com/f4fez/prm80/blob/master/doc/Computer_commands_V4.md
  * It used to be from https://sourceforge.net/projects/prm80/
@@ -139,16 +139,11 @@ MessageAide:  DB   "H",0Dh,0Ah
  */
 
 /*
- * TODO make read_colon_prompt_and_send() more generic to read
- *      a prompt terminated by "$" (without space afterwards)
+ * Read a prompt terminated by delimiter, then write an optional string s.
  */
-#define read_dollar_prompt_and_send read_colon_prompt_and_send
-
-/*
- * Read a prompt terminated by ": ", then write an optional string s.
- */
-static int read_colon_prompt_and_send(hamlib_port_t *rigport,
-                                      char *data, int *data_len, const char *s)
+static int read_prompt_and_send(hamlib_port_t *rigport,
+                                char *data, int *data_len, const char *s, const char *delimiter,
+                                int space_after_delim)
 {
     char buf[BUFSZ];
     char spacebuf[4];
@@ -162,7 +157,7 @@ static int read_colon_prompt_and_send(hamlib_port_t *rigport,
 
     buflen = (data_len == NULL) ? sizeof(buf) : *data_len;
 
-    retval = read_string(rigport, data, buflen, ":", 1);
+    retval = read_string(rigport, data, buflen, delimiter, 1);
 
     if (retval < 0)
     {
@@ -178,17 +173,39 @@ static int read_colon_prompt_and_send(hamlib_port_t *rigport,
     }
 
     // Read one (dummy) space character after the colon
-    retval = read_block(rigport, spacebuf, 1);
-
-    if (retval < 0 && retval != -RIG_ETIMEOUT)
+    if (space_after_delim)
     {
-        return retval;
+        retval = read_block(rigport, spacebuf, 1);
+
+        if (retval < 0 && retval != -RIG_ETIMEOUT)
+        {
+            return retval;
+        }
     }
 
     // Here is the answer to the prompt
     retval = write_block(rigport, s, strlen(s));
 
     return retval;
+}
+
+/*
+ * Read a prompt terminated by ": ", then write an optional string s.
+ */
+static int read_colon_prompt_and_send(hamlib_port_t *rigport,
+                                      char *data, int *data_len, const char *s)
+{
+    return read_prompt_and_send(rigport, data, data_len, s, ":", 1);
+}
+
+/*
+ * Read a prompt terminated by "$" (without space afterwards),
+ * then write an optional string s.
+ */
+static int read_dollar_prompt_and_send(hamlib_port_t *rigport,
+                                       char *data, int *data_len, const char *s)
+{
+    return read_prompt_and_send(rigport, data, data_len, s, "$", 0);
 }
 
 /*
@@ -213,7 +230,7 @@ static int prm80_wait_for_prompt(hamlib_port_t *rigport)
 /*
  *
  * \param cmd is string of generally one letter (or digit)
- * \param arg1 is an optional string string sent
+ * \param arg1 is an optional string to send afterwards
  * \param wait_prompt boolean when non-nul, will wait for "\r\n>" afterwards
  */
 static int prm80_transaction(RIG *rig, const char *cmd,
@@ -602,7 +619,7 @@ static int prm80_read_system_state(hamlib_port_t *rigport, char *statebuf)
         {
             return ret;
         }
-        else if (ret >= 0)
+        else
         {
             statebuf[20] = '\0';
         }
@@ -739,9 +756,8 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
            PLL value to load : $8020
            Channel state : $00
 
-           TODO: handle the possible query from the rig:
+          Possibly:
             "This channel number doesn't exist. Add new channel (Y/N) ? "
-           TODO implement correctly read_dollar_prompt_and_send (dollar prompt)
            */
 
         sprintf(buf, "%02u", (unsigned)chan->channel_num);
@@ -753,8 +769,10 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
             return ret;
         }
 
-        // Set the RX frequency as PLL word
+        // Set the RX frequency as PLL word.
         sprintf(buf, "%04X", (unsigned)((chan->freq - RX_IF_OFFSET) / FREQ_DIV));
+
+        // "PLL value to load : $"
         ret = read_dollar_prompt_and_send(&rs->rigport, NULL, NULL, buf);
 
         if (ret != RIG_OK)
@@ -777,11 +795,50 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         chanstate |= (chan->flags & RIG_CHFLAG_SKIP) ? 0x08 : 0;
 
         sprintf(buf, "%02X", chanstate);
+
+        // "Channel state : $"
         ret = read_dollar_prompt_and_send(&rs->rigport, NULL, NULL, buf);
 
         if (ret != RIG_OK)
         {
             return ret;
+        }
+
+        // Determine if prompt came back (CRLF'>') or have to
+        // handle the possible query from the rig:
+        // "This channel number doesn't exist. Add new channel (Y/N) ? "
+        ret = read_block(&rs->rigport, buf, 3);
+
+        if (ret < 0)
+        {
+            RETURNFUNC(ret);
+        }
+
+        if (ret == 3 && buf[2] == 'T')
+        {
+            // Read the question
+            ret = read_string(&rs->rigport, buf, sizeof(buf), "?", 1);
+
+            if (ret < 0)
+            {
+                RETURNFUNC(ret);
+            }
+
+            // Read extra space
+            ret = read_block(&rs->rigport, buf, 1);
+
+            if (ret < 0)
+            {
+                RETURNFUNC(ret);
+            }
+
+            // Send confirmation
+            ret = write_block(&rs->rigport, "Y", 1);
+
+            if (ret < 0)
+            {
+                RETURNFUNC(ret);
+            }
         }
 
         prm80_wait_for_prompt(&rs->rigport);
@@ -950,6 +1007,7 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     return RIG_OK;
 }
 
+#ifdef V4_ONLY
 /*
  * get_level RIG_LEVEL_RAWSTR
  */
@@ -1002,22 +1060,25 @@ static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
     // discard the remaining content of RAM print
     for (i = 0; i < (16 - RSSI_HOLD_ADDR / 16) - 1; i++)
     {
-        ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1);
+        read_string(&rs->rigport, buf, BUFSZ, "\n", 1);
     }
 
     prm80_wait_for_prompt(&rs->rigport);
 
     return RIG_OK;
 }
+#endif
 
 /*
  * get_level RIG_LEVEL_RAWSTR
+ *
+ * NB : requires a V5 firmware!
  */
 static int prm80_get_rawstr(RIG *rig, value_t *val)
 {
     char buf[BUFSZ];
     struct rig_state *rs = &rig->state;
-    int ret, i;
+    int ret;
 
     // Get rid of possible prompt sent by the rig
     rig_flush(&rs->rigport);
@@ -1106,6 +1167,7 @@ int prm80_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     char statebuf[BUFSZ];
     int ret, mode_byte;
 
+    // TODO use command 'A' which is faster, but not in V4
     ret = prm80_read_system_state(&rig->state.rigport, statebuf);
 
     if (ret != RIG_OK)
@@ -1128,6 +1190,7 @@ int prm80_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     char statebuf[BUFSZ];
     int ret, mode_byte;
 
+    // TODO use command 'A' which is faster, but not in V4
     ret = prm80_read_system_state(&rig->state.rigport, statebuf);
 
     if (ret != RIG_OK)
