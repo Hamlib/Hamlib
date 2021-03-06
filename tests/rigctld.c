@@ -583,7 +583,7 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
     my_rig->state.twiddle_timeout = twiddle_timeout;
@@ -607,12 +607,12 @@ int main(int argc, char *argv[])
 
     if (ptt_file)
     {
-        strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.pttport.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
-        strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.dcdport.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */

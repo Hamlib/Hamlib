@@ -4083,7 +4083,7 @@ declare_proto_rig(dump_state)
     fprintf(fout, "%d\n", 0);
 #endif
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
         fprintf(fout,
                 "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
@@ -4098,7 +4098,7 @@ declare_proto_rig(dump_state)
 
     fprintf(fout, "0 0 0 0 0 0 0\n");
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
     {
         fprintf(fout,
                 "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
@@ -4113,7 +4113,7 @@ declare_proto_rig(dump_state)
 
     fprintf(fout, "0 0 0 0 0 0 0\n");
 
-    for (i = 0; i < TSLSTSIZ && !RIG_IS_TS_END(rs->tuning_steps[i]); i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ && !RIG_IS_TS_END(rs->tuning_steps[i]); i++)
     {
         fprintf(fout,
                 "0x%"PRXll" %ld\n",
@@ -4123,7 +4123,7 @@ declare_proto_rig(dump_state)
 
     fprintf(fout, "0 0\n");
 
-    for (i = 0; i < FLTLSTSIZ && !RIG_IS_FLT_END(rs->filters[i]); i++)
+    for (i = 0; i < HAMLIB_FLTLSTSIZ && !RIG_IS_FLT_END(rs->filters[i]); i++)
     {
         fprintf(fout,
                 "0x%"PRXll" %ld\n",
@@ -4134,7 +4134,7 @@ declare_proto_rig(dump_state)
     fprintf(fout, "0 0\n");
 
 #if 0
-    chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
+    chan_t chan_list[HAMLIB_CHANLSTSIZ]; /*!< Channel list, zero ended */
 #endif
 
     fprintf(fout, "%ld\n", rs->max_rit);
@@ -4142,14 +4142,14 @@ declare_proto_rig(dump_state)
     fprintf(fout, "%ld\n", rs->max_ifshift);
     fprintf(fout, "%d\n", rs->announces);
 
-    for (i = 0; i < MAXDBLSTSIZ && rs->preamp[i]; i++)
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rs->preamp[i]; i++)
     {
         fprintf(fout, "%d ", rs->preamp[i]);
     }
 
     fprintf(fout, "\n");
 
-    for (i = 0; i < MAXDBLSTSIZ && rs->attenuator[i]; i++)
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rs->attenuator[i]; i++)
     {
         fprintf(fout, "%d ", rs->attenuator[i]);
     }
