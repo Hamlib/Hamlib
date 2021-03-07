@@ -225,7 +225,7 @@ int network_open(hamlib_port_t *rp, int default_port)
                   "%s: cannot get host \"%s\": %s\n",
                   __func__,
                   rp->pathname,
-                  gai_strerror(errno));
+                  gai_strerror(status));
         RETURNFUNC(-RIG_ECONF);
     }
 
