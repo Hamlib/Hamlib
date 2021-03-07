@@ -1087,12 +1087,25 @@ void *handle_socket(void *arg)
 
 #endif
 
-        // if socket error or rigctld gets RIG_EIO we'll try to reopen
-        if (ferror(fsockin))
+        // if we get a hard error we try to reopen the rig again
+        // this should cover short dropouts that can occur
+        if (retcode == -RIG_EIO || retcode == 2)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: sockin err=%s\n", __func__, strerror(errno));
-            return(NULL);
+            int retry = 3;
+            rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
+
+            do
+            {
+                retcode = rig_close(my_rig);
+                hl_usleep(1000 * 1000);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
+                retcode = rig_open(my_rig);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
+            }
+            while (retry-- > 0 && retcode != RIG_OK);
+
         }
+
 
 #if 0
 
