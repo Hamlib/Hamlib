@@ -6695,7 +6695,11 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
             {
                 RETURNFUNC(TRUE);
             }
-            else if ((is_ftdx101 || is_ftdx101mp) && valid_commands[search_index].ft101)
+            else if (is_ftdx101 && valid_commands[search_index].ft101)
+            {
+                RETURNFUNC(TRUE);
+            }
+            else if (is_ftdx101mp && valid_commands[search_index].ft101mp)
             {
                 RETURNFUNC(TRUE);
             }
