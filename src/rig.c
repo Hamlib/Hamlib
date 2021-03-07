@@ -293,6 +293,7 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
  */
 char debugmsgsave[DEBUGMSGSAVE_SIZE] = "No message";
 char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "No message";
+char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "No message";
 
 const char *HAMLIB_API rigerror(int errnum)
 {
@@ -310,8 +311,8 @@ const char *HAMLIB_API rigerror(int errnum)
 
     if (*p == '\n') { *p = 0; }
 
-    snprintf(msg, sizeof(msg), "%.80s\n%.15000s%.15000s", rigerror_table[errnum],
-             debugmsgsave2, debugmsgsave);
+    snprintf(msg, sizeof(msg), "%.80s\n%.15000s%.15000s%.15000s", rigerror_table[errnum],
+             debugmsgsave3,debugmsgsave2, debugmsgsave);
     return msg;
 }
 
