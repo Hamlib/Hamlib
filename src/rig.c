@@ -3880,6 +3880,11 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
         {
             retcode = caps->set_split_freq_mode(rig, vfo, tx_freq, tx_mode, tx_width);
             retcode2 = rig_get_split_freq(rig, vfo, &tfreq);
+            if (tfreq != tx_freq)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: txfreq!=tfreq %.0f!=%.0f, retry=%d, rc1=%d, rc2=%d\n", __func__, tx_freq, tfreq, retry, retcode, retcode2);
+                hl_usleep(50*1000); // 50ms sleep may help here
+            }
         }
         while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK
                 && retcode2 == RIG_OK);
