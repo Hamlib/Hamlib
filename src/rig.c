@@ -1618,7 +1618,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (retry == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unable to set frequency!!\n", __func__);
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to set frequency!!, asked for %.0f, got %.0f\n", __func__, freq, tfreq);
         }
     }
     else
