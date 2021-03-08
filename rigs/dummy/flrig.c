@@ -1275,7 +1275,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
    if (priv->ptt)
    {
-       rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __func__);
+       rig_debug(RIG_DEBUG_WARN, "%s set_mode call not made as PTT=1\n", __func__);
        RETURNFUNC(RIG_OK);  // just return OK and ignore this
    }
 
