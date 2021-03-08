@@ -510,6 +510,7 @@ int newcat_open(RIG *rig)
 
     ENTERFUNC;
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: Rig=%s, version=%s\n", __func__, rig->caps->model_name, rig->caps->version);
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
               __func__, rig_s->rigport.write_delay);
 
