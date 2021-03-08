@@ -1843,6 +1843,12 @@ struct rig_caps {
                           rig_ptr_t);
 
     int (*set_vfo_opt)(RIG *rig, int status); // only for Net Rigctl device
+    int (*rig_get_vfo_info) (RIG *rig,
+                             vfo_t vfo,
+                             freq_t *freq,
+                             rmode_t *mode,
+                             pbwidth_t *width,
+                             split_t *split);
 
     const char *clone_combo_set;    /*!< String describing key combination to enter load cloning mode */
     const char *clone_combo_get;    /*!< String describing key combination to enter save cloning mode */
@@ -2333,9 +2339,11 @@ extern HAMLIB_EXPORT(int)
 rig_get_vfo HAMLIB_PARAMS((RIG *rig,
                            vfo_t *vfo));
 
+#if 0
 extern HAMLIB_EXPORT(int)
 rig_get_vfo_info HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width, split_t *split));
+#endif
 
 extern HAMLIB_EXPORT(int)
 rig_get_vfo_list HAMLIB_PARAMS((RIG *rig, char *buf, int buflen));
@@ -2814,11 +2822,6 @@ extern HAMLIB_EXPORT(int)
 rig_set_vfo_callback HAMLIB_PARAMS((RIG *,
                                     vfo_cb_t,
                                     rig_ptr_t));
-
-extern HAMLIB_EXPORT(int)
-rig_get_vfo_info_callback HAMLIB_PARAMS((RIG *,
-                                          vfo_cb_t,
-                                          rig_ptr_t));
 
 extern HAMLIB_EXPORT(int)
 rig_set_ptt_callback HAMLIB_PARAMS((RIG *,
