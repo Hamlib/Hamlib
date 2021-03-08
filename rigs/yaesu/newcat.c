@@ -3153,7 +3153,6 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_OFF:
     case RIG_POWER_STANDBY:
         ps = '0';
-        write_block(&state->rigport, "\n", 0);
         break;
 
     default:
@@ -3182,6 +3181,8 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
             }
 
             rig_debug(RIG_DEBUG_TRACE, "%s: Wait #%d for power up\n", __func__, i + 1);
+            retval = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+            if (retval != RIG_OK) RETURNFUNC(retval);
         }
     }
 
