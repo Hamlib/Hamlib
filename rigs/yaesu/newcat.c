@@ -9814,7 +9814,9 @@ int newcat_set_cmd(RIG *rig)
 
         if (rc == RIG_OK)
         {
+            // if we were able to set and and validate we're done
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_validate OK\n", __func__);
+            RETURNFUNC(RIG_OK);
         }
         else if (rc == -RIG_EPROTO)
         {
