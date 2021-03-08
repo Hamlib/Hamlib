@@ -71,14 +71,26 @@
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
 
-// Borrowed from FLRig -- Thanks to Dave W1HKJ
 #define FTDX101D_RFPOWER_METER_CAL \
     { \
         6, \
         { \
-            {0, 0.0f}, \
-            {35, 5.0f}, \
-            {94, 25.0f}, \
+            {0,   0.0f}, \
+            {35,  0.5f}, \
+            {94,  0.25f}, \
+            {147, 0.50f}, \
+            {176, 0.75f}, \
+            {205, 1.0f}, \
+        } \
+    }
+
+#define FTDX101D_RFPOWER_METER_WATTS_CAL \
+    { \
+        6, \
+        { \
+            {0,   0.0f}, \
+            {35,  5.0f}, \
+            {94,  25.0f}, \
             {147, 50.0f}, \
             {176, 75.0f}, \
             {205, 100.0f}, \
@@ -86,6 +98,23 @@
     }
 
 #define FTDX101MP_RFPOWER_METER_CAL \
+    { \
+        11, \
+        { \
+            {0,   0.0f}, \
+            {35,  0.25f}, \
+            {94,  0.125f}, \
+            {133, 0.25f}, \
+            {162, 0.375f}, \
+            {205, 0.5f}, \
+            {215, 0.6f}, \
+            {225, 0.7f}, \
+            {235, 0.8f}, \
+            {245, 0.9f}, \
+            {255, 1.0f}, \
+        } \
+    }
+#define FTDX101MP_RFPOWER_METER_WATTS_CAL \
     { \
         11, \
         { \
