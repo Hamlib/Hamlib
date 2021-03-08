@@ -1861,12 +1861,6 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
        RETURNFUNC(-RIG_ENTARGET);
    }
 
-   if (priv->ptt)
-   {
-       rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __func__);
-       RETURNFUNC(RIG_OK);  // just return OK and ignore this
-   }
-
    retval = flrig_set_freq(rig, RIG_VFO_B, freq);
 
    if (retval != RIG_OK)
@@ -1881,6 +1875,12 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
    if (retval != RIG_OK) { RETURNFUNC(retval); }
 
    if (qmode == priv->curr_modeA) { RETURNFUNC(RIG_OK); }
+
+   if (priv->ptt)
+   {
+       rig_debug(RIG_DEBUG_WARN, "%s set_mode call not made as PTT=1\n", __func__);
+       RETURNFUNC(RIG_OK);  // just return OK and ignore this
+   }
 
    retval = flrig_set_mode(rig, RIG_VFO_B, priv->curr_modeA, width);
 
