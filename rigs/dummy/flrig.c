@@ -1009,7 +1009,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
    char value[MAXARGLEN];
    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
-   rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+   ENTERFUNC;
    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
              rig_strvfo(vfo));
 
