@@ -37,27 +37,6 @@
 #include "newcat.h"
 #include "ftdx101.h"
 
-#define FTDX101D_STR_CAL { 16, \
-                { \
-                    { 0x00, -54 }, /* S0 */ \
-                    { 0x01, -48 }, \
-                    { 0x02, -42 }, \
-                    { 0x03, -36 }, \
-                    { 0x04, -30 }, \
-                    { 0x05, -24 }, \
-                    { 0x06, -18 }, \
-                    { 0x07, -12 }, \
-                    { 0x08, -6 }, \
-                    { 0x09,  0 },  /* S9 */ \
-                    { 0x0A,  10 }, /* +10 */ \
-                    { 0x0B,  20 }, /* +20 */ \
-                    { 0x0C,  30 }, /* +30 */ \
-                    { 0x0D,  40 }, /* +40 */ \
-                    { 0x0E,  50 }, /* +50 */ \
-                    { 0x0F,  60 }  /* +60 */ \
-                } }
-
-
 const struct newcat_priv_caps ftdx101d_priv_caps =
 {
     .roofing_filter_count = 6,
@@ -97,7 +76,7 @@ const struct rig_caps ftdx101d_caps =
     RIG_MODEL(RIG_MODEL_FTDX101D),
     .model_name =         "FTDX-101D",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".10",
+    .version =            NEWCAT_VER ".11",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -139,7 +118,7 @@ const struct rig_caps ftdx101d_caps =
     .bank_qty =           0,
     .chan_desc_sz =       0,
     .rfpower_meter_cal =  FTDX101D_RFPOWER_METER_WATTS_CAL,
-    .str_cal =            FTDX101D_RFPOWER_METER_CAL,
+    .str_cal =            FTDX101D_STR_CAL,
     .swr_cal =            FTDX101D_SWR_CAL,
     .str_cal =            FTDX101D_STR_CAL,
     .chan_list =          {
