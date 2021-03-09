@@ -3,7 +3,7 @@
 # more information on swig at http://www.swig.org
 #
 
-AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/bindings $(PYTHON_CPPFLAGS) \
+AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/include -I$(top_srcdir)/bindings  \
 	$(TCL_INCLUDE_SPEC)
 
 AM_CFLAGS = -fno-strict-aliasing
