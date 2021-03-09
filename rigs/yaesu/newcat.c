@@ -9727,8 +9727,6 @@ int newcat_set_cmd_validate(RIG *rig)
         RETURNFUNC(-RIG_ENIMPL);
     }
 
-    if (strlen(valcmd) == 0) { return RIG_OK; }
-
     while (rc != RIG_OK && retry++ < retries)
     {
         int bytes;
@@ -9738,6 +9736,8 @@ int newcat_set_cmd_validate(RIG *rig)
         rc = write_block(&state->rigport, cmd, strlen(cmd));
 
         if (rc != RIG_OK) { RETURNFUNC(-RIG_EIO); }
+
+        if (strlen(valcmd) == 0) { RETURNFUNC(RIG_OK); }
 
         bytes = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
                             &cat_term, sizeof(cat_term));
