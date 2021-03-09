@@ -121,7 +121,7 @@ check-py: all-py
 Hamlib.py: hamlibpy_wrap.c
 
 hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
-	$(AM_V_GEN)$(SWIG) -python $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
+	$(AM_V_GEN)$(SWIG) -python $(AM_CPPFLAGS) $(PYTHON_CPPFLAGS) -I$(top_srcdir)/bindings \
 		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
 install-py:
