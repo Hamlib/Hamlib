@@ -305,7 +305,7 @@ const char *HAMLIB_API rigerror(int errnum)
         return "ERR_OUT_OF_RANGE";
     }
 
-    static char msg[DEBUGMSGSAVE_SIZE * 2];
+    static char msg[DEBUGMSGSAVE_SIZE * 3];
     // we have to remove LF from debugmsgsave since calling function controls LF
     char *p = &debugmsgsave[strlen(debugmsgsave) - 1];
 
