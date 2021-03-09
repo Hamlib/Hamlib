@@ -120,7 +120,6 @@ const struct rig_caps ftdx101d_caps =
     .rfpower_meter_cal =  FTDX101D_RFPOWER_METER_WATTS_CAL,
     .str_cal =            FTDX101D_STR_CAL,
     .swr_cal =            FTDX101D_SWR_CAL,
-    .str_cal =            FTDX101D_STR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         RIG_CHAN_END,
