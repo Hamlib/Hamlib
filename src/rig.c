@@ -5817,15 +5817,12 @@ int HAMLIB_API rig_get_vfo_list(RIG *rig, char *buf, int buflen)
 {
     ENTERFUNC;
 
-    // to be completed
     if (CHECK_RIG_ARG(rig))
     {
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    char s[256];
-    rig_sprintf_vfo(s, sizeof(s), rig->state.vfo_list);
-
+    rig_sprintf_vfo(buf, buflen - 1, rig->state.vfo_list);
 
     RETURNFUNC(RIG_OK);
 }
