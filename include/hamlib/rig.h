@@ -476,7 +476,7 @@ typedef unsigned int vfo_t;
 #define RIG_TARGETABLE_NONE 0
 #define RIG_TARGETABLE_FREQ (1<<0)
 #define RIG_TARGETABLE_MODE (1<<1)
-//#define RIG_TARGETABLE_PURE (1<<2) // deprecated -- not used -- reuse it
+#define RIG_TARGETABLE_PURE (1<<2) // deprecated -- not used -- reuse it
 #define RIG_TARGETABLE_TONE (1<<3)
 #define RIG_TARGETABLE_FUNC (1<<4)
 #define RIG_TARGETABLE_LEVEL (1<<5)
