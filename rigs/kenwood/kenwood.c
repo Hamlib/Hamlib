@@ -3752,8 +3752,9 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     default: RETURNFUNC(-RIG_EINVAL);
     }
+    int retval = kenwood_transaction(rig, ptt_cmd, NULL, 0);
 
-    RETURNFUNC(kenwood_transaction(rig, ptt_cmd, NULL, 0));
+    RETURNFUNC(retval);
 }
 
 int kenwood_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt)
