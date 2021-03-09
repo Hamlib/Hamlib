@@ -2339,11 +2339,9 @@ extern HAMLIB_EXPORT(int)
 rig_get_vfo HAMLIB_PARAMS((RIG *rig,
                            vfo_t *vfo));
 
-#if 0
 extern HAMLIB_EXPORT(int)
 rig_get_vfo_info HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width, split_t *split));
-#endif
 
 extern HAMLIB_EXPORT(int)
 rig_get_vfo_list HAMLIB_PARAMS((RIG *rig, char *buf, int buflen));

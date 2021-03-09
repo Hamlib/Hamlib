@@ -194,6 +194,7 @@
 %ignore rig_passband_normal;
 %ignore rig_passband_narrow;
 %ignore rig_passband_wide;
+%ignore rig_get_vfo_info;
 
 %ignore rot_open;
 %ignore rot_close;
