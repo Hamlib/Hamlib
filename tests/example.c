@@ -43,7 +43,7 @@ int main()
     /* Instantiate a rig */
     my_rig = rig_init(MODEL); // your rig model.
 
-    strncpy(my_rig->state.rigport.pathname, PATH, FILPATHLEN - 1);
+    strncpy(my_rig->state.rigport.pathname, PATH, HAMLIB_FILPATHLEN - 1);
 
     my_rig->state.rigport.parm.serial.rate = BAUD; // your baud rate
 

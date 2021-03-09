@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     /* Set up serial port, baud rate */
     rig_file = argv[2];        // your serial device
 
-    strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+    strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
 
     my_rig->state.rigport.parm.serial.rate = baud; // your baud rate
 
