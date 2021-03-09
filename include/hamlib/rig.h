@@ -2900,7 +2900,7 @@ extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debu
 #ifndef __cplusplus
 #ifdef __GNUC__
 // doing the debug macro with a dummy sprintf allows gcc to check the format string
-#define rig_debug(debug_level,fmt,...) do { strncpy(debugmsgsave3, debugmsgsave2,sizeof(debugmsgsave3)-1);strncpy(debugmsgsave2, debugmsgsavem sizeof(debugmsgsdave2)-1);snprintf(debugmsgsave,sizeof(debugmsgsave),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); } while(0);
+#define rig_debug(debug_level,fmt,...) do { strncpy(debugmsgsave3, debugmsgsave2,sizeof(debugmsgsave3)-1);strncpy(debugmsgsave2, debugmsgsave, sizeof(debugmsgsave2)-1);snprintf(debugmsgsave,sizeof(debugmsgsave)-1,fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); } while(0);
 #endif
 #endif
 extern HAMLIB_EXPORT(void)
