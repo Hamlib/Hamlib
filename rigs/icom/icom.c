@@ -3081,14 +3081,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         lvl_len--;
     }
 
-    if (lvl_len >= 1 && lvlbuf[0] != ACK && lvlbuf[1] != NAK)
-    {
-        //  if we don't get ACK/NAK some serial corruption occurred
-        // so we'll call it a timeout for retry purposes
-        RETURNFUNC(-RIG_ETIMEOUT);
-    }
-
-    if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn)
+    if (lvlbuf[0] != lvl_cn)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   lvlbuf[0], lvl_len);
@@ -3211,11 +3204,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f =
                 rig_raw2val_float(icom_val, &icom_default_rfpower_meter_cal);
+            rig_debug(RIG_DEBUG_TRACE, "%s: using rig table to convert %d to %.01f\n", __func__, icom_val, val->f);
         }
         else
         {
             val->f =
                 rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal);
+            rig_debug(RIG_DEBUG_TRACE, "%s: using default icom table to convert %d to %.01f\n", __func__, icom_val, val->f);
         }
 
         break;

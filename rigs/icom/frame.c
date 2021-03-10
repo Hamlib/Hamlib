@@ -279,6 +279,8 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
     if (NAK == buf[frm_len - 2]) { RETURNFUNC(-RIG_ERJCTED); }
 
+    if (ACK != buf[frm_len - 2]) { RETURNFUNC(-RIG_BUSBUSY); }
+
     *data_len = frm_len - (ACKFRMLEN - 1);
     rig_debug(RIG_DEBUG_TRACE, "%s: data_len=%d, frm_len=%d\n", __func__, *data_len,
               frm_len);
