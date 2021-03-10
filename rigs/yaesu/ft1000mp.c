@@ -1128,6 +1128,9 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
     ft1000mp_send_priv_cmd(rig, cmd_index);
 #endif
 
+    // we just store the requested vfo in our internal state
+    rig->state.current_vfo = vfo;
+
     RETURNFUNC(RIG_OK);
 
 }
