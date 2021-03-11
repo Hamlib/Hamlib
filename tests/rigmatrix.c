@@ -422,7 +422,7 @@ static void draw_range(const freq_range_t range_list[],
 {
     int i;
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         float start_pix, end_pix;
 

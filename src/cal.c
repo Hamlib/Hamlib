@@ -63,7 +63,7 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
     int i;
 
     /* ASSERT(cal != NULL) */
-    /* ASSERT(cal->size <= MAX_CAL_LENGTH) */
+    /* ASSERT(cal->size <= HAMLIB_MAX_CAL_LENGTH) */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -130,7 +130,7 @@ float HAMLIB_API rig_raw2val_float(int rawval, const cal_table_float_t *cal)
     int i;
 
     /* ASSERT(cal != NULL) */
-    /* ASSERT(cal->size <= MAX_CAL_LENGTH) */
+    /* ASSERT(cal->size <= HAMLIB_MAX_CAL_LENGTH) */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
