@@ -1569,7 +1569,8 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
     {
         start->tv_sec = start->tv_nsec = 0;
     }
-    stop = *start; // just so to suppress compiler warnings
+
+    stop = *start; // just to suppress some compiler warnings
 
     //rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n", __func__,
     //          (long)start->tv_sec, (long)start->tv_nsec);
