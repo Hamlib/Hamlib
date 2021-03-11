@@ -1408,8 +1408,6 @@ static int get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms)
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: get vfo=%s\n", __func__, rig_strvfo(vfo));
-
     // VFO_C to be implemented
     switch (vfo)
     {
