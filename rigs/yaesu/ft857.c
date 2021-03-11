@@ -155,7 +155,7 @@ const struct rig_caps ft857_caps =
     RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
     .mfg_name =       "Yaesu",
-    .version =        "20201215.0",
+    .version =        "20210221.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -990,6 +990,11 @@ int ft857_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode,
     {
         return -RIG_ENTARGET;
     }
+
+    retcode = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+
+    if (retcode != RIG_OK) { RETURNFUNC(retcode); }
+
 
     retcode = ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);
 

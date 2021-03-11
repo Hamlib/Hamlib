@@ -433,7 +433,8 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigctl %s\nLast commit was %s\n", hamlib_version,HAMLIBDATETIME);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigctl %s\nLast commit was %s\n", hamlib_version,
+              HAMLIBDATETIME);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -471,7 +472,7 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /*
@@ -489,12 +490,12 @@ int main(int argc, char *argv[])
 
     if (ptt_file)
     {
-        strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.pttport.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
-        strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.dcdport.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
@@ -615,8 +616,11 @@ int main(int argc, char *argv[])
             exitcode = 2;
         }
 
+        // if we get a hard error we try to reopen the rig again
+        // this should cover short dropouts that can occur
         if (retcode == -RIG_EIO || retcode == 2)
         {
+            int retry = 3;
             rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
 
             do
@@ -627,7 +631,7 @@ int main(int argc, char *argv[])
                 retcode = rig_open(my_rig);
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
             }
-            while (retcode != RIG_OK);
+            while (retry-- > 0 && retcode != RIG_OK);
 
         }
     }

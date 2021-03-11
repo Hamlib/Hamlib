@@ -209,27 +209,27 @@ static void dump_switch(unsigned char data)
 
 static void dump_if_shift(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "if_shift        :\%d\n", data - 15);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, data - 15);
 }
 
 static void dump_rptr_split_code(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "rptr_split_code      :\%02x\n", data);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%02x\n", __func__, data);
 }
 
 static void dump_fsk_shift(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "fsk_shift       :\%02x\n", data);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%02x\n", __func__, data);
 }
 
 static void dump_if_width(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "if_width        :\%d\n", data);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, data);
 }
 
 static void dump_mem_shift_flag(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_shift_flag       :");
+    rig_debug(RIG_DEBUG_TRACE, "%s:", __func__);
 
     switch ((unsigned int)data)
     {
@@ -627,7 +627,8 @@ int ft980_get_status_data(RIG *rig)
         return RIG_OK;
     }
 
-    retval = ft980_transaction(rig, cmd, (unsigned char *)&priv->update_data, FT980_ALL_STATUS_LENGTH);
+    retval = ft980_transaction(rig, cmd, (unsigned char *)&priv->update_data,
+                               FT980_ALL_STATUS_LENGTH);
 
     if (retval != RIG_OK)
     {
@@ -759,9 +760,11 @@ int ft980_open(RIG *rig)
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
         write_block(&rig->state.rigport, (char *) cmd_OK, YAESU_CMD_LENGTH);
-        retval = read_block(&rig->state.rigport, (char *) &priv->update_data, FT980_ALL_STATUS_LENGTH);
+        retval = read_block(&rig->state.rigport, (char *) &priv->update_data,
+                            FT980_ALL_STATUS_LENGTH);
     }
-    while (!priv->update_data.ext_ctl_flag && retry_count1++ < rig->state.rigport.retry);
+    while (!priv->update_data.ext_ctl_flag
+            && retry_count1++ < rig->state.rigport.retry);
 
     return RIG_OK;
 }
@@ -803,9 +806,11 @@ int ft980_close(RIG *rig)
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
         write_block(&rig->state.rigport, (char *) cmd_OK, YAESU_CMD_LENGTH);
-        retval = read_block(&rig->state.rigport, (char *) &priv->update_data, FT980_ALL_STATUS_LENGTH);
+        retval = read_block(&rig->state.rigport, (char *) &priv->update_data,
+                            FT980_ALL_STATUS_LENGTH);
     }
-    while (priv->update_data.ext_ctl_flag && retry_count1++ < rig->state.rigport.retry);
+    while (priv->update_data.ext_ctl_flag
+            && retry_count1++ < rig->state.rigport.retry);
 
     return RIG_OK;
 }
@@ -941,7 +946,7 @@ int ft980_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     rig_debug(RIG_DEBUG_TRACE,
-              "%s: Selected Memory Freq = %lf\n", __func__, f*10);
+              "%s: Selected Memory Freq = %lf\n", __func__, f * 10);
 
     *freq = f * 10;                  /* return displayed frequency */
 
@@ -983,7 +988,8 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "  %s: passed vfo = 0x%02x\n", __func__, vfo);
-    rig_debug(RIG_DEBUG_TRACE, "  %s: passed mode = %s\n", __func__, rig_strrmode(mode));
+    rig_debug(RIG_DEBUG_TRACE, "  %s: passed mode = %s\n", __func__,
+              rig_strrmode(mode));
     rig_debug(RIG_DEBUG_TRACE, "  %s: passed width = %ld Hz\n", __func__, width);
 
     // Set to selected VFO
@@ -1061,7 +1067,8 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_force_cache_timeout(&priv->status_tv);
 
     /* Mode set */
-    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data, FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                             FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
 }
 
 /*
@@ -1184,6 +1191,7 @@ int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     default:
         return -RIG_EPROTO;         /* Oops! file bug report */
     }
+
     rig_debug(RIG_DEBUG_TRACE, "  %s: Hamlib mode = %s\n", __func__,
               rig_strrmode(*mode));
 
@@ -1195,7 +1203,9 @@ int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         *width = rig_passband_narrow(rig, *mode);
     }
-    rig_debug(RIG_DEBUG_TRACE, "  %s: Filter width = %d Hz\n", __func__, (int)*width);
+
+    rig_debug(RIG_DEBUG_TRACE, "  %s: Filter width = %d Hz\n", __func__,
+              (int)*width);
 
     return RIG_OK;
 }
@@ -1242,7 +1252,8 @@ int ft980_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     cmd[3] = ch - 1;
 
-    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data, FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                             FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
 }
 
 /****************************************************************************
@@ -1329,11 +1340,14 @@ int ft980_set_vfo(RIG *rig, vfo_t vfo)
         cmd[3] = FT980_CMD0A_VFO_SEL_HAM;
         rig_debug(RIG_DEBUG_TRACE, "%s: set VFO GEN/HAM = 0x%02x\n",
                   __func__, cmd[3]);
-        err = ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data, FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+        err = ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                                FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+
         if (err != RIG_OK)
         {
             return err;
         }
+
         cmd[3] = FT980_CMD0A_FREQ_SEL_VFO;
         break;
 
@@ -1341,11 +1355,14 @@ int ft980_set_vfo(RIG *rig, vfo_t vfo)
         cmd[3] = FT980_CMD0A_VFO_SEL_GEN;
         rig_debug(RIG_DEBUG_TRACE, "%s: set VFO GEN/HAM = 0x%02x\n",
                   __func__, cmd[3]);
-        err = ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data, FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+        err = ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                                FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+
         if (err != RIG_OK)
         {
             return err;
         }
+
         cmd[3] = FT980_CMD0A_FREQ_SEL_VFO;
         break;
 
@@ -1360,7 +1377,8 @@ int ft980_set_vfo(RIG *rig, vfo_t vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s: set VFO Status = %s\n",
               __func__, rig_strvfo(vfo));
 
-    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data, FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                             FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
 }
 
 /****************************************************************************
@@ -1385,16 +1403,20 @@ int ft980_set_vfo(RIG *rig, vfo_t vfo)
 int ft980_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int err;
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     if (!rig)
     {
         return -RIG_EARG;
     }
 
+    priv = (struct ft980_priv_data *)rig->state.priv;
+
     /* Get flags for VFO status */
     err = ft980_get_status_data(rig);
+
     if (err != RIG_OK)
     {
         return err;

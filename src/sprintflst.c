@@ -37,7 +37,21 @@
 /* #define DUMMY_ALL 0x7ffffffffffffffLL */
 #define DUMMY_ALL ((setting_t)-1)
 
-int rig_sprintf_vfo(char *str, vfo_t vfo)
+// just doing a warning message for now
+// eventually should make this -RIG_EINTERNAL
+int check_buffer_overflow(char *str, int len, int nlen)
+{
+    if (len + 1 >= nlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n",
+                  __func__, len, nlen, str);
+    }
+
+    return RIG_OK;
+}
+
+
+int rig_sprintf_vfo(char *str, int nlen, vfo_t vfo)
 {
     unsigned int i, len = 0;
 
@@ -49,7 +63,7 @@ int rig_sprintf_vfo(char *str, vfo_t vfo)
         return 0;
     }
 
-    for (i = 0; i < 32; i++)
+    for (i = 0; i < HAMLIB_MAX_VFOS; i++)
     {
         const char *sv;
         sv = rig_strvfo(vfo & RIG_VFO_N(i));
@@ -60,13 +74,14 @@ int rig_sprintf_vfo(char *str, vfo_t vfo)
         }
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rig_sprintf_mode(char *str, rmode_t mode)
+int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
 {
-    uint64_t i, len = 0;
+    unsigned int i, len = 0;
 
     *str = '\0';
 
@@ -75,7 +90,7 @@ int rig_sprintf_mode(char *str, rmode_t mode)
         return 0;
     }
 
-    for (i = 0; i < 63; i++)
+    for (i = 0; i < HAMLIB_MAX_MODES; i++)
     {
         const char *ms = rig_strrmode(mode & (1ULL << i));
 
@@ -89,11 +104,12 @@ int rig_sprintf_mode(char *str, rmode_t mode)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rig_sprintf_ant(char *str, ant_t ant)
+int rig_sprintf_ant(char *str, int nlen, ant_t ant)
 {
     int i, len = 0;
     char *ant_name;
@@ -136,13 +152,14 @@ int rig_sprintf_ant(char *str, ant_t ant)
         }
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rig_sprintf_func(char *str, setting_t func)
+int rig_sprintf_func(char *str, int nlen, setting_t func)
 {
-    uint64_t i, len = 0;
+    unsigned int i, len = 0;
 
     *str = '\0';
 
@@ -165,13 +182,14 @@ int rig_sprintf_func(char *str, setting_t func)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rot_sprintf_func(char *str, setting_t func)
+int rot_sprintf_func(char *str, int nlen, setting_t func)
 {
-    uint64_t i, len = 0;
+    unsigned int i, len = 0;
 
     *str = '\0';
 
@@ -194,11 +212,12 @@ int rot_sprintf_func(char *str, setting_t func)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rig_sprintf_level(char *str, setting_t level)
+int rig_sprintf_level(char *str, int nlen, setting_t level)
 {
     int i, len = 0;
 
@@ -223,11 +242,12 @@ int rig_sprintf_level(char *str, setting_t level)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rot_sprintf_level(char *str, setting_t level)
+int rot_sprintf_level(char *str, int nlen, setting_t level)
 {
     int i, len = 0;
 
@@ -252,11 +272,12 @@ int rot_sprintf_level(char *str, setting_t level)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int amp_sprintf_level(char *str, setting_t level)
+int amp_sprintf_level(char *str, int nlen, setting_t level)
 {
     int i, len = 0;
 
@@ -281,11 +302,12 @@ int amp_sprintf_level(char *str, setting_t level)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int sprintf_level_ext(char *str, const struct confparams *extlevels)
+int sprintf_level_ext(char *str, int nlen, const struct confparams *extlevels)
 {
     int len = 0;
 
@@ -321,11 +343,13 @@ int sprintf_level_ext(char *str, const struct confparams *extlevels)
         }
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rig_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
+int rig_sprintf_level_gran(char *str, int nlen, setting_t level,
+                           const gran_t *gran)
 {
     int i, len = 0;
 
@@ -377,11 +401,13 @@ int rig_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
         }
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rot_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
+int rot_sprintf_level_gran(char *str, int nlen, setting_t level,
+                           const gran_t *gran)
 {
     int i, len = 0;
 
@@ -433,11 +459,12 @@ int rot_sprintf_level_gran(char *str, setting_t level, const gran_t *gran)
         }
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rig_sprintf_parm(char *str, setting_t parm)
+int rig_sprintf_parm(char *str, int nlen, setting_t parm)
 {
     int i, len = 0;
 
@@ -462,11 +489,12 @@ int rig_sprintf_parm(char *str, setting_t parm)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rot_sprintf_parm(char *str, setting_t parm)
+int rot_sprintf_parm(char *str, int nlen, setting_t parm)
 {
     int i, len = 0;
 
@@ -491,11 +519,13 @@ int rot_sprintf_parm(char *str, setting_t parm)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rig_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
+int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
+                          const gran_t *gran)
 {
     int i, len = 0;
 
@@ -547,11 +577,13 @@ int rig_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
         }
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rot_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
+int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm,
+                          const gran_t *gran)
 {
     int i, len = 0;
 
@@ -603,11 +635,12 @@ int rot_sprintf_parm_gran(char *str, setting_t parm, const gran_t *gran)
         }
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rig_sprintf_vfop(char *str, vfo_op_t op)
+int rig_sprintf_vfop(char *str, int nlen, vfo_op_t op)
 {
     int i, len = 0;
 
@@ -618,7 +651,7 @@ int rig_sprintf_vfop(char *str, vfo_op_t op)
         return 0;
     }
 
-    for (i = 0; i < 30; i++)
+    for (i = 0; i < HAMLIB_MAX_VFO_OPS; i++)
     {
         const char *ms = rig_strvfop(op & (1UL << i));
 
@@ -632,11 +665,12 @@ int rig_sprintf_vfop(char *str, vfo_op_t op)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rig_sprintf_scan(char *str, scan_t rscan)
+int rig_sprintf_scan(char *str, int nlen, scan_t rscan)
 {
     int i, len = 0;
 
@@ -647,7 +681,7 @@ int rig_sprintf_scan(char *str, scan_t rscan)
         return 0;
     }
 
-    for (i = 0; i < 30; i++)
+    for (i = 0; i < HAMLIB_MAX_RSCANS; i++)
     {
         const char *ms = rig_strscan(rscan & (1UL << i));
 
@@ -661,11 +695,12 @@ int rig_sprintf_scan(char *str, scan_t rscan)
         len += strlen(ms) + 1;
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
 
-int rot_sprintf_status(char *str, rot_status_t status)
+int rot_sprintf_status(char *str, int nlen, rot_status_t status)
 {
     int i, len = 0;
 
@@ -677,7 +712,7 @@ int rot_sprintf_status(char *str, rot_status_t status)
         return 0;
     }
 
-    for (i = 0; i < 32; i++)
+    for (i = 0; i < HAMLIB_MAX_ROTORS; i++)
     {
         const char *sv;
         sv = rot_strstatus(status & ROT_STATUS_N(i));
@@ -688,6 +723,7 @@ int rot_sprintf_status(char *str, rot_status_t status)
         }
     }
 
+    check_buffer_overflow(str, len, nlen);
     return len;
 }
 

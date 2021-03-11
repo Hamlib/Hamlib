@@ -1,13 +1,14 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
- * ftdx101.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
- *             (C) Stephane Fillod 2008-2010
- *             (C) Terry Embry 2008-2009
- *             (C) Mikael Nousiainen 2020
+ * ftdx101md.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
+ *               (C) Stephane Fillod 2008-2010
+ *               (C) Terry Embry 2008-2009
+ *               (C) Mikael Nousiainen 2020
+ *               (C) Michael Black W9MDB 2021
  *
  * This shared library provides an API for communicating
- * via serial interface to an FTDX101(D/MP) using the "CAT" interface
+ * via serial interface to an FTDX101(D) using the "CAT" interface
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -37,7 +38,7 @@
 #include "newcat.h"
 #include "ftdx101.h"
 
-const struct newcat_priv_caps ftdx101d_priv_caps =
+const struct newcat_priv_caps ftdx101mp_priv_caps =
 {
     .roofing_filter_count = 6,
     .roofing_filters =
@@ -52,7 +53,7 @@ const struct newcat_priv_caps ftdx101d_priv_caps =
     }
 };
 
-const struct confparams ftdx101d_ext_levels[] =
+const struct confparams ftdx101mp_ext_levels[] =
 {
     {
         TOK_ROOFING_FILTER,
@@ -66,17 +67,17 @@ const struct confparams ftdx101d_ext_levels[] =
     { RIG_CONF_END, NULL, }
 };
 
-int ftdx101d_ext_tokens[] =
+int ftdx101mp_ext_tokens[] =
 {
     TOK_ROOFING_FILTER, TOK_BACKEND_NONE
 };
 
-const struct rig_caps ftdx101d_caps =
+const struct rig_caps ftdx101mp_caps =
 {
-    RIG_MODEL(RIG_MODEL_FTDX101D),
-    .model_name =         "FTDX-101D",
+    RIG_MODEL(RIG_MODEL_FTDX101MP),
+    .model_name =         "FTDX-101MP",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".11",
+    .version =            NEWCAT_VER ".2",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -117,7 +118,7 @@ const struct rig_caps ftdx101d_caps =
     .transceive =         RIG_TRN_OFF, /* May enable later as the FTDX101 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
-    .rfpower_meter_cal =  FTDX101D_RFPOWER_METER_WATTS_CAL,
+    .rfpower_meter_cal =  FTDX101MP_RFPOWER_METER_WATTS_CAL,
     .str_cal =            FTDX101D_STR_CAL,
     .swr_cal =            FTDX101D_SWR_CAL,
     .chan_list =          {
@@ -132,10 +133,10 @@ const struct rig_caps ftdx101d_caps =
     },
 
     .tx_range_list1 =     { /* the 101DX is 100W and the MP is 200W */
-        FRQ_RNG_HF(1, FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_HF(1, FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
-        FRQ_RNG_6m(1, FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_6m(1, FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_HF(1, FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_HF(1, FTDX101_AM_TX_MODES, W(5), W(50), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_6m(1, FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_6m(1, FTDX101_AM_TX_MODES, W(5), W(50), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -146,12 +147,12 @@ const struct rig_caps ftdx101d_caps =
     },
 
     .tx_range_list2 =     {
-        FRQ_RNG_HF(2, FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_HF(2, FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
-        FRQ_RNG_6m(2, FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_6m(2, FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
-        FRQ_RNG_4m_REGION2(FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_4m_REGION2(FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_HF(2, FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_HF(2, FTDX101_AM_TX_MODES, W(5), W(50), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_6m(2, FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_6m(2, FTDX101_AM_TX_MODES, W(5), W(50), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_4m_REGION2(FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_4m_REGION2(FTDX101_AM_TX_MODES, W(5), W(50), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -188,10 +189,10 @@ const struct rig_caps ftdx101d_caps =
         RIG_FLT_END,
     },
 
-    .ext_tokens =         ftdx101d_ext_tokens,
-    .extlevels =          ftdx101d_ext_levels,
+    .ext_tokens =         ftdx101mp_ext_tokens,
+    .extlevels =          ftdx101mp_ext_levels,
 
-    .priv =               &ftdx101d_priv_caps,
+    .priv =               &ftdx101mp_priv_caps,
 
     .rig_init =           newcat_init,
     .rig_cleanup =        newcat_cleanup,

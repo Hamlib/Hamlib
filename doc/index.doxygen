@@ -106,5 +106,6 @@ Windows 32 bit on Debian GNU/Linux.
  * \defgroup rotator Rotator API
  * \defgroup rot_internal Rotator Internal API
  * \defgroup amplifier Amplifier API
+ * \defgroup amp_internal Amplifier Internal API
  * \defgroup utilities Utility Routines API
  */

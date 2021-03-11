@@ -24,7 +24,7 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "20210217"
+#define BACKEND_VER "20210306"
 
 #define PRM80_MEM_CAP {    \
         .freq = 1,  \
@@ -57,6 +57,8 @@ int prm80_set_mem(RIG *rig, vfo_t vfo, int ch);
 int prm80_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+int prm80_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+int prm80_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 const char *prm80_get_info(RIG *rig);
 

@@ -220,7 +220,9 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
 
     /*
      * populate the amp->state
-     * TODO: read the Preferences here!
+     */
+    /**
+     * \todo Read the Preferences here!
      */
     rs = &amp->state;
 
@@ -237,7 +239,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
     {
     case RIG_PORT_SERIAL:
         // Dont' think we need a default port here
-        //strncpy(rs->ampport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN - 1);
+        //strncpy(rs->ampport.pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
         rs->ampport.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
         rs->ampport.parm.serial.data_bits = caps->serial_data_bits;
         rs->ampport.parm.serial.stop_bits = caps->serial_stop_bits;
@@ -247,11 +249,11 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
 
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
-        strncpy(rs->ampport.pathname, "127.0.0.1:4531", FILPATHLEN - 1);
+        strncpy(rs->ampport.pathname, "127.0.0.1:4531", HAMLIB_FILPATHLEN - 1);
         break;
 
     default:
-        strncpy(rs->ampport.pathname, "", FILPATHLEN - 1);
+        strncpy(rs->ampport.pathname, "", HAMLIB_FILPATHLEN - 1);
     }
 
     rs->ampport.fd = -1;

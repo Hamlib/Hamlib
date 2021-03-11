@@ -638,7 +638,7 @@ int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_ATT:
-        for (i = 0; i < MAXDBLSTSIZ && !RIG_IS_DBLST_END(rs->attenuator[i]); i++)
+        for (i = 0; i < HAMLIB_MAXDBLSTSIZ && !RIG_IS_DBLST_END(rs->attenuator[i]); i++)
         {
             if (rs->attenuator[i] == val.i)
             {
@@ -648,7 +648,7 @@ int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         /* should be caught by the front end */
-        if ((val.i != 0) && (i >= MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])))
+        if ((val.i != 0) && (i >= HAMLIB_MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])))
         {
             return -RIG_EINVAL;
         }
@@ -759,7 +759,7 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
         }
 
-        if (att > MAXDBLSTSIZ || rs->attenuator[att - 1] == 0)
+        if (att > HAMLIB_MAXDBLSTSIZ || rs->attenuator[att - 1] == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "Unsupported att %s %u\n",
                       __func__, att);

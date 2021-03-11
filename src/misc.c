@@ -347,7 +347,7 @@ int millis_to_dot10ths(int millis, int wpm)
  * pretty print frequencies
  * str must be long enough. max can be as long as 17 chars
  */
-int HAMLIB_API sprintf_freq(char *str, freq_t freq)
+int HAMLIB_API sprintf_freq(char *str, int nlen, freq_t freq)
 {
     double f;
     char *hz;
@@ -1571,8 +1571,8 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
     }
     stop = *start; // just so to suppress compiler warnings
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n", __func__,
-              (long)start->tv_sec, (long)start->tv_nsec);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n", __func__,
+    //          (long)start->tv_sec, (long)start->tv_nsec);
 
 
     switch (option)
@@ -1589,8 +1589,8 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 
     case HAMLIB_ELAPSED_SET:
         clock_gettime(CLOCK_REALTIME, start);
-        rig_debug(RIG_DEBUG_TRACE, "%s: after gettime, start = %ld,%ld\n", __func__,
-                  (long)start->tv_sec, (long)start->tv_nsec);
+        //rig_debug(RIG_DEBUG_TRACE, "%s: after gettime, start = %ld,%ld\n", __func__,
+        //          (long)start->tv_sec, (long)start->tv_nsec);
         return 999 * 1000; // so we can tell the difference in debug where we came from
         break;
 
@@ -1604,7 +1604,7 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
     elapsed_msec = ((stop.tv_sec - start->tv_sec) + (stop.tv_nsec / 1e9 -
                     start->tv_nsec / 1e9)) * 1e3;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%.0f\n", __func__, elapsed_msec);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%.0f\n", __func__, elapsed_msec);
 
     if (elapsed_msec < 0 || option == HAMLIB_ELAPSED_INVALIDATE) { return 1000000; }
 
@@ -2147,7 +2147,7 @@ void *rig_get_function_ptr(rig_model_t rig_model,
  * \param RIG* and rig_caps_int_e
  * \return the corresponding long value -- -RIG_EINVAL is the only error possible
  */
-long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
+long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
@@ -2169,8 +2169,8 @@ long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
         return caps->has_get_level;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%d\n", __func__, rig_caps);
-        return -RIG_EINVAL;
+        //rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%lld\n", __func__, rig_caps);
+        RETURNFUNC(-RIG_EINVAL);
     }
 }
 

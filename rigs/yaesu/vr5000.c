@@ -648,7 +648,7 @@ int find_tuning_step(RIG *rig, vfo_t vfo, rmode_t mode, shortfreq_t *ts)
 {
     int i;
 
-    for (i = 0; i < TSLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         if ((rig->caps->tuning_steps[i].modes & mode) != 0)
         {
@@ -667,7 +667,7 @@ int check_tuning_step(RIG *rig, vfo_t vfo, rmode_t mode, shortfreq_t ts)
 {
     int i;
 
-    for (i = 0; i < TSLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         if (rig->caps->tuning_steps[i].ts == ts &&
                 ((rig->caps->tuning_steps[i].modes & mode) != 0))

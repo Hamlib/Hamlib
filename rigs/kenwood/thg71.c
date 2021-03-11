@@ -522,7 +522,7 @@ int thg71_open(RIG *rig)
 
     strtok(ackbuf, " ");
 
-    for (i = 0; i < FRQRANGESIZ - 1; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ - 1; i++)
     {
         freq_range_t frng;
         char *strl, *stru;

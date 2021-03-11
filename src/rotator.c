@@ -61,7 +61,9 @@
 #include <hamlib/rotator.h>
 #include "serial.h"
 #include "parallel.h"
+#ifdef HAVE_LIBUSB_H
 #include "usb_port.h"
+#endif
 #include "network.h"
 #include "rot_conf.h"
 #include "token.h"
@@ -251,7 +253,9 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
 
     /*
      * populate the rot->state
-     * TODO: read the Preferences here!
+     */
+    /**
+     * \todo Read the Preferences here!
      */
     rs = &rot->state;
 
@@ -266,7 +270,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     switch (caps->port_type)
     {
     case RIG_PORT_SERIAL:
-        strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN - 1);
+        strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
         rs->rotport.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
         rs->rotport.parm.serial.data_bits = caps->serial_data_bits;
         rs->rotport.parm.serial.stop_bits = caps->serial_stop_bits;
@@ -275,16 +279,16 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
         break;
 
     case RIG_PORT_PARALLEL:
-        strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN - 1);
+        strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, HAMLIB_FILPATHLEN - 1);
         break;
 
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
-        strncpy(rs->rotport.pathname, "127.0.0.1:4533", FILPATHLEN - 1);
+        strncpy(rs->rotport.pathname, "127.0.0.1:4533", HAMLIB_FILPATHLEN - 1);
         break;
 
     default:
-        strncpy(rs->rotport.pathname, "", FILPATHLEN - 1);
+        strncpy(rs->rotport.pathname, "", HAMLIB_FILPATHLEN - 1);
     }
 
     rs->min_el = caps->min_el;
@@ -414,6 +418,8 @@ int HAMLIB_API rot_open(ROT *rot)
         rs->rotport.fd = status;
         break;
 
+#ifdef HAVE_LIBUSB_H
+
     case RIG_PORT_USB:
         status = usb_port_open(&rs->rotport);
 
@@ -423,6 +429,7 @@ int HAMLIB_API rot_open(ROT *rot)
         }
 
         break;
+#endif
 
     case RIG_PORT_NONE:
     case RIG_PORT_RPC:
@@ -524,9 +531,12 @@ int HAMLIB_API rot_close(ROT *rot)
             par_close(&rs->rotport);
             break;
 
+#ifdef HAVE_LIBUSB_H
+
         case RIG_PORT_USB:
             usb_port_close(&rs->rotport);
             break;
+#endif
 
         case RIG_PORT_NETWORK:
         case RIG_PORT_UDP_NETWORK:

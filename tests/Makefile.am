@@ -12,9 +12,9 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom amp
 
 check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench cachetest cachetest2
 
-RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c sprintflst.c sprintflst.h uthash.h hamlibdatetime.h
-ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c sprintflst.c sprintflst.h uthash.h hamlibdatetime.h
-AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c sprintflst.c sprintflst.h uthash.h hamlibdatetime.h
+RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c uthash.h hamlibdatetime.h
+ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h hamlibdatetime.h
+AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h hamlibdatetime.h
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
 rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
@@ -25,7 +25,7 @@ ampctl_SOURCES = ampctl.c $(AMPCOMMONSRC)
 ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
 rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
-rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c sprintflst.h
+rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
 
 # include generated include files ahead of any in sources
 rigctl_CPPFLAGS = -I$(builddir)/tests -I$(srcdir) $(AM_CPPFLAGS)
