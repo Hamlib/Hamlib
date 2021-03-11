@@ -38,6 +38,11 @@ public:
 
     virtual ~Amplifier();
 
+    Amplifier(const Amplifier&) = default;
+    Amplifier(Amplifier&&) = default;
+    Amplifier& operator=(const Amplifier&) = default;
+    Amplifier& operator=(Amplifier&&) = default;
+
     const struct amp_caps *caps;
 
     // This method opens the communication port to the amp

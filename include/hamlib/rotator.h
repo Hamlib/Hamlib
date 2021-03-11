@@ -383,9 +383,9 @@ struct rot_caps {
     gran_t level_gran[RIG_SETTING_MAX]; /*!< level granularity (i.e. steps). */
     gran_t parm_gran[RIG_SETTING_MAX];  /*!< parm granularity (i.e. steps). */
 
-    const struct confparams *extparms;  /*!< Extension parameter list, \sa ext.c. */
-    const struct confparams *extlevels; /*!< Extension level list, \sa ext.c. */
-    const struct confparams *extfuncs;  /*!< Extension func list, \sa ext.c. */
+    const struct confparams *extparms;  /*!< Extension parameters list, \sa rot_ext.c. */
+    const struct confparams *extlevels; /*!< Extension levels list, \sa rot_ext.c. */
+    const struct confparams *extfuncs;  /*!< Extension functions list, \sa rot_ext.c. */
     int *ext_tokens;                    /*!< Extension token list. */
 
     /*

@@ -31,14 +31,14 @@
 
 int gpio_open(hamlib_port_t *port, int output, int on_value)
 {
-    char pathname[FILPATHLEN * 2];
+    char pathname[HAMLIB_FILPATHLEN * 2];
     FILE *fexp, *fdir;
     int fd;
     char *dir;
 
     port->parm.gpio.on_value = on_value;
 
-    snprintf(pathname, FILPATHLEN, "/sys/class/gpio/export");
+    snprintf(pathname, HAMLIB_FILPATHLEN, "/sys/class/gpio/export");
     fexp = fopen(pathname, "w");
 
     if (!fexp)

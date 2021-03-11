@@ -140,7 +140,6 @@ int network_open(hamlib_port_t *rp, int default_port)
     char hoststr[256], portstr[6] = "";
 
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s version 1.0\n", __func__);
 
 #ifdef __MINGW32__
     WSADATA wsadata;
@@ -148,14 +147,14 @@ int network_open(hamlib_port_t *rp, int default_port)
     if (!(wsstarted++) && WSAStartup(MAKEWORD(1, 1), &wsadata) == SOCKET_ERROR)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error creating socket\n", __func__);
-        return -RIG_EIO;
+        RETURNFUNC(-RIG_EIO);
     }
 
 #endif
 
     if (!rp)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     memset(&hints, 0, sizeof(hints));
@@ -181,7 +180,7 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             status = parse_hoststr(rp->pathname, hoststr, portstr);
 
-            if (status != RIG_OK) { return status; }
+            if (status != RIG_OK) { RETURNFUNC(status); }
 
             rig_debug(RIG_DEBUG_TRACE, "%s: hoststr=%s, portstr=%s\n", __func__, hoststr,
                       portstr);
@@ -226,8 +225,8 @@ int network_open(hamlib_port_t *rp, int default_port)
                   "%s: cannot get host \"%s\": %s\n",
                   __func__,
                   rp->pathname,
-                  gai_strerror(errno));
-        return -RIG_ECONF;
+                  gai_strerror(status));
+        RETURNFUNC(-RIG_ECONF);
     }
 
     saved_res = res;
@@ -246,7 +245,7 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             handle_error(RIG_DEBUG_ERR, "socket");
             freeaddrinfo(saved_res);
-            return -RIG_EIO;
+            RETURNFUNC(-RIG_EIO);
         }
 
         if (connect(fd, res->ai_addr, res->ai_addrlen) == 0)
@@ -274,12 +273,12 @@ int network_open(hamlib_port_t *rp, int default_port)
                   "%s: failed to connect to %s\n",
                   __func__,
                   rp->pathname);
-        return -RIG_EIO;
+        RETURNFUNC(-RIG_EIO);
     }
 
     rp->fd = fd;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -350,7 +349,7 @@ int network_close(hamlib_port_t *rp)
 {
     int ret;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
 #ifdef __MINGW32__
     ret = closesocket(rp->fd);
@@ -363,7 +362,7 @@ int network_close(hamlib_port_t *rp)
 #else
     ret = close(rp->fd);
 #endif
-    return ret;
+    RETURNFUNC(ret);
 }
 //! @endcond
 

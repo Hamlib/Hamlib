@@ -502,7 +502,7 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (!rig_file2)
@@ -511,7 +511,7 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    strncpy(my_com.pathname, rig_file2, FILPATHLEN - 1);
+    strncpy(my_com.pathname, rig_file2, HAMLIB_FILPATHLEN - 1);
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
@@ -528,12 +528,12 @@ int main(int argc, char *argv[])
 
     if (ptt_file)
     {
-        strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.pttport.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
-        strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.dcdport.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */

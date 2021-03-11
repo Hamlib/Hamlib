@@ -389,7 +389,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
     usleep(CMDSLEEP);
-    sprintf_freq(fstr, freq);
+    sprintf_freq(fstr, sizeof(fstr), freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
 
@@ -451,7 +451,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     ENTERFUNC;
     usleep(CMDSLEEP);
-    sprintf_freq(buf, width);
+    sprintf_freq(buf, sizeof(buf), width);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s %s\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), buf);
 
@@ -505,7 +505,11 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_VFO: /* FIXME */
 
     case RIG_VFO_RX:
+    case RIG_VFO_MAIN: priv->curr = &priv->vfo_a; break;
+
     case RIG_VFO_A: priv->curr = &priv->vfo_a; break;
+
+    case RIG_VFO_SUB: priv->curr = &priv->vfo_b; break;
 
     case RIG_VFO_B: priv->curr = &priv->vfo_b; break;
 
@@ -1004,6 +1008,8 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
+        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
+
         sprintf(lstr, "%f", val.f);
     }
     else
@@ -1956,9 +1962,7 @@ static int dummy_get_trn(RIG *rig, int *trn)
 
 static const char *dummy_get_info(RIG *rig)
 {
-    ENTERFUNC;
-
-    RETURNFUNC("Nothing much (dummy)");
+    return "Nothing much (dummy)";
 }
 
 
@@ -2242,7 +2246,7 @@ struct rig_caps dummy_no_vfo_caps =
     RIG_MODEL(RIG_MODEL_DUMMY_NOVFO),
     .model_name =     "Dummy No VFO",
     .mfg_name =       "Hamlib",
-    .version =        "20200606.0",
+    .version =        "20210218.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

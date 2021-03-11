@@ -1405,7 +1405,7 @@ static int tmd710_find_tuning_step_index(RIG *rig, shortfreq_t ts,
 {
     int k, stepind = -1;
 
-    for (k = 0; k < TSLSTSIZ; k++)
+    for (k = 0; k < HAMLIB_TSLSTSIZ; k++)
     {
         if ((rig->caps->tuning_steps[k].modes == RIG_MODE_NONE)
                 && (rig->caps->tuning_steps[k].ts == 0))

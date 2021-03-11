@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
 
     if (amp_file)
     {
-        strncpy(my_amp->state.ampport.pathname, amp_file, FILPATHLEN - 1);
+        strncpy(my_amp->state.ampport.pathname, amp_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */

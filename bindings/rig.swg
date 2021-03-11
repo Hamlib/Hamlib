@@ -70,6 +70,10 @@ typedef channel_t * const_channel_t_p;
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1); }
 #define METHOD3_INIT(f, t1, t2, t3, i3) void f (t1 _##t1##_1, t2 _##t2##_2, t3 _##t3##_3 = i3  _VFO_DECL) \
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2, _##t3##_3); }
+#define METHOD4(f, t1) void f ( vfo_t vfo, t1 _##t1) \
+				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1); }
+#define METHOD4_INIT(f, t1, t2, t3, t4, i4) void f (t1 _##t1##_1, t2 _##t2##_2, t3 _##t3##_3, ##t4##_4 = i4  _VFO_DECL) \
+				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2, _##t3##_3 _##t4##_4); }
 /*
  * declare wrapper method with one output argument besides RIG* (no target vfo)
  */
@@ -445,6 +449,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1VGET(get_xit, shortfreq_t)
 	METHOD1VGET(get_ts, shortfreq_t)
 	extern void get_ant(ant_t *ant_rx, ant_t *ant_tx, ant_t *ant_curr, value_t * OUTPUT, ant_t ant, vfo_t vfo = RIG_VFO_CURR);
+    extern void get_vfo_info (split_t *split, pbwidth_t *width, rmode_t *mode, freq_t *freq, vfo_t vfo = RIG_VFO_CURR);
 	METHOD1VGET(get_mem, int)
 	METHOD1GET(get_powerstat, powerstat_t)
 	METHOD1GET(get_trn, int)
@@ -600,6 +605,11 @@ void Rig_get_ant(Rig *self, ant_t *ant_rx, ant_t *ant_tx, ant_t *ant_curr, value
 {
 	self->error_status = rig_get_ant(self->rig, vfo, ant, option, ant_curr, ant_tx, ant_rx);
 }
+void Rig_get_vfo_info (Rig *self, split_t *split, pbwidth_t *width, rmode_t *mode, freq_t *freq, vfo_t vfo)
+{
+    self->error_status = rig_get_vfo_info(self->rig, vfo, freq, mode, width, split); 
+}
+
 
 struct channel *Rig_get_chan_all(Rig *self)
 {
@@ -617,5 +627,6 @@ struct channel *Rig_get_chan_all(Rig *self)
 	/* TODO: copy ext_level's */
 	return chans;
 }
+
 
 %}

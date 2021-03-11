@@ -13,6 +13,8 @@ Notes:
 ** But NET rigctl works fine
 * Backends are named libhamlib-vendor.so, I don't know how to include libraries without lib prefix into APK
 * Check the location of libusb.h and define the corresponding macro accordingly in config.h.
+* Had to build without libusb as ndk did not contain it
+** comment out HAVE_LIBUSB_H in android/config.h if you get libusb errors
 
 Happy hacking
 73 Lada, OK1ZIA

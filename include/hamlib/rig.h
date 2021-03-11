@@ -176,16 +176,21 @@ struct rig_state;
 typedef struct s_rig RIG;
 
 //! @cond Doxygen_Suppress
-#define RIGNAMSIZ 30
-#define RIGVERSIZ 8
-#define FILPATHLEN 512
-#define FRQRANGESIZ 30
-#define MAXCHANDESC 30      /* describe channel eg: "WWV 5Mhz" */
-#define TSLSTSIZ 20         /* max tuning step list size, zero ended */
-#define FLTLSTSIZ 60        /* max mode/filter list size, zero ended */
-#define MAXDBLSTSIZ 8       /* max preamp/att levels supported, zero ended */
-#define CHANLSTSIZ 16       /* max mem_list size, zero ended */
-#define MAX_CAL_LENGTH 32   /* max calibration plots in cal_table_t */
+#define HAMLIB_RIGNAMSIZ 30
+#define HAMLIB_RIGVERSIZ 8
+#define HAMLIB_FILPATHLEN 512
+#define HAMLIB_FRQRANGESIZ 30
+#define HAMLIB_MAXCHANDESC 30      /* describe channel eg: "WWV 5Mhz" */
+#define HAMLIB_TSLSTSIZ 20         /* max tuning step list size, zero ended */
+#define HAMLIB_FLTLSTSIZ 60        /* max mode/filter list size, zero ended */
+#define HAMLIB_MAXDBLSTSIZ 8       /* max preamp/att levels supported, zero ended */
+#define HAMLIB_CHANLSTSIZ 16       /* max mem_list size, zero ended */
+#define HAMLIB_MAX_CAL_LENGTH 32   /* max calibration plots in cal_table_t */
+#define HAMLIB_MAX_MODES 63
+#define HAMLIB_MAX_VFOS 31
+#define HAMLIB_MAX_ROTORS 63
+#define HAMLIB_MAX_VFO_OPS 31
+#define HAMLIB_MAX_RSCANS 31
 //! @endcond
 
 
@@ -463,7 +468,6 @@ typedef unsigned int vfo_t;
 
 /*
  * targetable bitfields, for internal use.
- * RIG_TARGETABLE_PURE means a pure targetable radio on every command
  * In rig.c lack of a flag will case a VFO change if needed
  * So setting this flag will mean the backend handles any VFO needs
  * For many rigs RITXIT, PTT, MEM, and BANK are non-VFO commands so need these flags to avoid unnecessary VFO swapping
@@ -472,7 +476,7 @@ typedef unsigned int vfo_t;
 #define RIG_TARGETABLE_NONE 0
 #define RIG_TARGETABLE_FREQ (1<<0)
 #define RIG_TARGETABLE_MODE (1<<1)
-#define RIG_TARGETABLE_PURE (1<<2)
+#define RIG_TARGETABLE_PURE (1<<2) // deprecated -- not used -- reuse it
 #define RIG_TARGETABLE_TONE (1<<3)
 #define RIG_TARGETABLE_FUNC (1<<4)
 #define RIG_TARGETABLE_LEVEL (1<<5)
@@ -1053,7 +1057,7 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_DIVERSITY  CONSTANT_64BIT_FLAG (38)   /*!< \c DIVERSITY -- Diversity receive */
 #define RIG_FUNC_DSQL       CONSTANT_64BIT_FLAG (39)   /*!< \c DSQL -- Digital modes squelch */
 #define RIG_FUNC_SCEN       CONSTANT_64BIT_FLAG (40)   /*!< \c SCEN -- scrambler/encryption */
-#define RIG_FUNC_BIT41      CONSTANT_64BIT_FLAG (41)   /*!< \c available for future RIG_FUNC items */
+#define RIG_FUNC_SLICE      CONSTANT_64BIT_FLAG (41)   /*!< \c Rig slice selection -- Flex */
 #define RIG_FUNC_BIT42      CONSTANT_64BIT_FLAG (42)   /*!< \c available for future RIG_FUNC items */
 #define RIG_FUNC_BIT43      CONSTANT_64BIT_FLAG (43)   /*!< \c available for future RIG_FUNC items */
 #define RIG_FUNC_BIT44      CONSTANT_64BIT_FLAG (44)   /*!< \c available for future RIG_FUNC items */
@@ -1358,7 +1362,7 @@ struct channel {
     tone_t dcs_sql;                     /*!< DCS squelch code */
     int scan_group;                     /*!< Scan group */
     unsigned int flags;                 /*!< Channel flags, see RIG_CHFLAG's */
-    char channel_desc[MAXCHANDESC];     /*!< Name */
+    char channel_desc[HAMLIB_MAXCHANDESC];     /*!< Name */
     struct ext_list
             *ext_levels;                /*!< Extension level value list, NULL ended. ext_levels can be NULL */
 };
@@ -1500,7 +1504,7 @@ struct cal_table {
     struct {
         int raw;                /*!< raw (A/D) value, as returned by \a RIG_LEVEL_RAWSTR */
         int val;                /*!< associated value, basically the measured dB value */
-    } table[MAX_CAL_LENGTH];    /*!< table of plots */
+    } table[HAMLIB_MAX_CAL_LENGTH];    /*!< table of plots */
 };
 
 /**
@@ -1530,7 +1534,7 @@ struct cal_table_float {
   struct {
     int raw;                  /*!< raw (A/D) value */
     float val;                /*!< associated value */
-  } table[MAX_CAL_LENGTH];    /*!< table of plots */
+  } table[HAMLIB_MAX_CAL_LENGTH];    /*!< table of plots */
 };
 
 /**
@@ -1622,8 +1626,8 @@ struct rig_caps {
     const tone_t *ctcss_list;   /*!< CTCSS tones list, zero ended */
     const tone_t *dcs_list;     /*!< DCS code list, zero ended */
 
-    int preamp[MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
-    int attenuator[MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
     shortfreq_t max_rit;        /*!< max absolute RIT */
     shortfreq_t max_xit;        /*!< max absolute XIT */
     shortfreq_t max_ifshift;    /*!< max absolute IF-SHIFT */
@@ -1638,25 +1642,25 @@ struct rig_caps {
     int bank_qty;               /*!< Number of banks */
     int chan_desc_sz;           /*!< Max length of memory channel name */
 
-    chan_t chan_list[CHANLSTSIZ];   /*!< Channel list, zero ended */
+    chan_t chan_list[HAMLIB_CHANLSTSIZ];   /*!< Channel list, zero ended */
 
     // As of 2020-02-12 we know of 5 models from Icom USA, EUR, ITR, TPE, KOR for the IC-9700
     // So we currently have 5 ranges we need to deal with
     // The backend for the model should fill in the label field to explain what model it is
     // The the IC-9700 in ic7300.c for an example 
-    freq_range_t rx_range_list1[FRQRANGESIZ];   /*!< Receive frequency range list #1 */
-    freq_range_t tx_range_list1[FRQRANGESIZ];   /*!< Transmit frequency range list #1 */
-    freq_range_t rx_range_list2[FRQRANGESIZ];   /*!< Receive frequency range list #2 */
-    freq_range_t tx_range_list2[FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
-    freq_range_t rx_range_list3[FRQRANGESIZ];   /*!< Receive frequency range list #3 */
-    freq_range_t tx_range_list3[FRQRANGESIZ];   /*!< Transmit frequency range list #3 */
-    freq_range_t rx_range_list4[FRQRANGESIZ];   /*!< Receive frequency range list #4 */
-    freq_range_t tx_range_list4[FRQRANGESIZ];   /*!< Transmit frequency range list #4 */
-    freq_range_t rx_range_list5[FRQRANGESIZ];   /*!< Receive frequency range list #5 */
-    freq_range_t tx_range_list5[FRQRANGESIZ];   /*!< Transmit frequency range list #5 */
+    freq_range_t rx_range_list1[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #1 */
+    freq_range_t tx_range_list1[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #1 */
+    freq_range_t rx_range_list2[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #2 */
+    freq_range_t tx_range_list2[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
+    freq_range_t rx_range_list3[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #3 */
+    freq_range_t tx_range_list3[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #3 */
+    freq_range_t rx_range_list4[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #4 */
+    freq_range_t tx_range_list4[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #4 */
+    freq_range_t rx_range_list5[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #5 */
+    freq_range_t tx_range_list5[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #5 */
 
-    struct tuning_step_list tuning_steps[TSLSTSIZ];     /*!< Tuning step list */
-    struct filter_list filters[FLTLSTSIZ];              /*!< mode/filter table, at -6dB */
+    struct tuning_step_list tuning_steps[HAMLIB_TSLSTSIZ];     /*!< Tuning step list */
+    struct filter_list filters[HAMLIB_FLTLSTSIZ];              /*!< mode/filter table, at -6dB */
 
     cal_table_t str_cal;                    /*!< S-meter calibration table */
     cal_table_float_t swr_cal;              /*!< SWR meter calibration table */
@@ -1838,6 +1842,12 @@ struct rig_caps {
                           rig_ptr_t);
 
     int (*set_vfo_opt)(RIG *rig, int status); // only for Net Rigctl device
+    int (*rig_get_vfo_info) (RIG *rig,
+                             vfo_t vfo,
+                             freq_t *freq,
+                             rmode_t *mode,
+                             pbwidth_t *width,
+                             split_t *split);
 
     const char *clone_combo_set;    /*!< String describing key combination to enter load cloning mode */
     const char *clone_combo_get;    /*!< String describing key combination to enter save cloning mode */
@@ -1968,10 +1978,10 @@ enum rig_caps_cptr_e {
 
 /**
  * \brief Function to return int value from rig->caps
- *
+ * Does not support > 32-bit rig_caps values
  */
 //! @cond Doxygen_Suppress
-extern long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
+extern long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
@@ -2007,7 +2017,7 @@ typedef struct hamlib_port {
     short retry;            /*!< Maximum number of retries, 0 to disable */
     short flushx;           /*!< If true flush is done with read instead of TCFLUSH - MicroHam */
 
-    char pathname[FILPATHLEN];      /*!< Port pathname */
+    char pathname[HAMLIB_FILPATHLEN];      /*!< Port pathname */
 
     union {
         struct {
@@ -2093,6 +2103,7 @@ struct rig_cache {
 #endif
     rmode_t mode;
     pbwidth_t width;
+    pbwidth_t widthB; // if non-zero then rig has separate width for VFOB
     ptt_t ptt;
     split_t split;
     vfo_t split_vfo;  // split caches two values
@@ -2113,6 +2124,7 @@ struct rig_cache {
     vfo_t vfo_freq; // last vfo cached
     vfo_t vfo_mode; // last vfo cached
     int satmode; // if rig is in satellite mode
+    rmode_t modeB;
 };
 
 
@@ -2122,8 +2134,9 @@ struct rig_cache {
  * This struct contains live data, as well as a copy of capability fields
  * that may be updated (ie. customized)
  *
- * It is fine to move fields around, as this kind of struct should
- * not be initialized like caps are.
+ * It is NOT fine to move fields around as it can break share library offset
+ * As of 2021-03-03  vfo_list is the last known item being reference externally
+ * So any additions or changes to this structure must be after vfo_list.
  */
 struct rig_state {
     /*
@@ -2136,16 +2149,16 @@ struct rig_state {
     double vfo_comp;        /*!< VFO compensation in PPM, 0.0 to disable */
 
     int deprecated_itu_region;         /*!< ITU region to select among freq_range_t */
-    freq_range_t rx_range_list[FRQRANGESIZ];    /*!< Receive frequency range list */
-    freq_range_t tx_range_list[FRQRANGESIZ];    /*!< Transmit frequency range list */
+    freq_range_t rx_range_list[HAMLIB_FRQRANGESIZ];    /*!< Receive frequency range list */
+    freq_range_t tx_range_list[HAMLIB_FRQRANGESIZ];    /*!< Transmit frequency range list */
 
-    struct tuning_step_list tuning_steps[TSLSTSIZ]; /*!< Tuning step list */
+    struct tuning_step_list tuning_steps[HAMLIB_TSLSTSIZ]; /*!< Tuning step list */
 
-    struct filter_list filters[FLTLSTSIZ];      /*!< Mode/filter table, at -6dB */
+    struct filter_list filters[HAMLIB_FLTLSTSIZ];      /*!< Mode/filter table, at -6dB */
 
     cal_table_t str_cal;            /*!< S-meter calibration table */
 
-    chan_t chan_list[CHANLSTSIZ];   /*!< Channel list, zero ended */
+    chan_t chan_list[HAMLIB_CHANLSTSIZ];   /*!< Channel list, zero ended */
 
     shortfreq_t max_rit;        /*!< max absolute RIT */
     shortfreq_t max_xit;        /*!< max absolute XIT */
@@ -2153,8 +2166,8 @@ struct rig_state {
 
     ann_t announces;            /*!< Announces bit field list */
 
-    int preamp[MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
-    int attenuator[MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
 
     setting_t has_get_func;     /*!< List of get functions */
     setting_t has_set_func;     /*!< List of set functions */
@@ -2182,9 +2195,12 @@ struct rig_state {
     int poll_interval;          /*!< Event notification polling period in milliseconds */
     freq_t current_freq;        /*!< Frequency currently set */
     rmode_t current_mode;       /*!< Mode currently set */
+    //rmode_t current_modeB;      /*!< Mode currently set VFOB */
     pbwidth_t current_width;    /*!< Passband width currently set */
     vfo_t tx_vfo;               /*!< Tx VFO currently set */
     rmode_t mode_list;              /*!< Complete list of modes for this rig */
+    // mode_list is used by some 
+    // so anything added to this structure must be below here
     int transmit;               /*!< rig should be transmitting i.e. hard
                                      wired PTT asserted - used by rigs that
                                      don't do CAT while in Tx */
@@ -2195,7 +2211,9 @@ struct rig_state {
     int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
     struct rig_cache cache;
     int vfo_opt;                /*!< Is -o switch turned on? */
-    int auto_power_on;          /*!< Allow Hamlib to power rig
+    int auto_power_on;          /*!< Allow Hamlib to power on rig
+                                   automatically if supported */
+    int auto_power_off;          /*!< Allow Hamlib to power off rig
                                    automatically if supported */
     int auto_disable_screensaver; /*!< Allow Hamlib to disable the
                                    rig's screen saver automatically if
@@ -2322,10 +2340,10 @@ rig_get_vfo HAMLIB_PARAMS((RIG *rig,
 
 extern HAMLIB_EXPORT(int)
 rig_get_vfo_info HAMLIB_PARAMS((RIG *rig,
-                           vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width));
+                           vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width, split_t *split));
 
-extern HAMLIB_EXPORT(const char *)
-rig_get_vfo_list HAMLIB_PARAMS((RIG *rig));
+extern HAMLIB_EXPORT(int)
+rig_get_vfo_list HAMLIB_PARAMS((RIG *rig, char *buf, int buflen));
 
 extern HAMLIB_EXPORT(int)
 netrigctl_get_vfo_mode HAMLIB_PARAMS((RIG *rig));
@@ -2803,11 +2821,6 @@ rig_set_vfo_callback HAMLIB_PARAMS((RIG *,
                                     rig_ptr_t));
 
 extern HAMLIB_EXPORT(int)
-rig_get_vfo_info_callback HAMLIB_PARAMS((RIG *,
-                                          vfo_cb_t,
-                                          rig_ptr_t));
-
-extern HAMLIB_EXPORT(int)
 rig_set_ptt_callback HAMLIB_PARAMS((RIG *,
                                     ptt_cb_t,
                                     rig_ptr_t));
@@ -2883,11 +2896,11 @@ rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 #define DEBUGMSGSAVE_SIZE 24000
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave[DEBUGMSGSAVE_SIZE];  // last debug msg
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave2[DEBUGMSGSAVE_SIZE];  // last-1 debug msg
+extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debug msg
 #ifndef __cplusplus
 #ifdef __GNUC__
 // doing the debug macro with a dummy sprintf allows gcc to check the format string
-//#define rig_debug(debug_level,fmt,...) { char xxxbuf[16384]="";snprintf(xxxbuf,sizeof(xxxbuf),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
-#define rig_debug(debug_level,fmt,...) { strcpy(debugmsgsave2, debugmsgsave);snprintf(debugmsgsave,sizeof(debugmsgsave),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); }
+#define rig_debug(debug_level,fmt,...) do { strncpy(debugmsgsave3, debugmsgsave2,sizeof(debugmsgsave3));strncpy(debugmsgsave2, debugmsgsave, sizeof(debugmsgsave2));snprintf(debugmsgsave,sizeof(debugmsgsave),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); } while(0);
 #endif
 #endif
 extern HAMLIB_EXPORT(void)
@@ -2968,7 +2981,7 @@ extern HAMLIB_EXPORT(int) rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t sele
 extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection, int ms);
 
 extern HAMLIB_EXPORT(int) rig_set_vfo_opt(RIG *rig, int status);
-extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width);
+extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width, split_t *split);
 
 
 typedef unsigned long rig_useconds_t;

@@ -215,7 +215,7 @@ static int netrigctl_open(RIG *rig)
     len = sprintf(cmd, "\\chk_vfo\n");
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
-    if (sscanf(buf,"CHKVFO %d", &priv->rigctld_vfo_mode)==1)
+    if (sscanf(buf, "CHKVFO %d", &priv->rigctld_vfo_mode) == 1)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: chkvfo=%d\n", __func__, priv->rigctld_vfo_mode);
     }
@@ -270,7 +270,7 @@ static int netrigctl_open(RIG *rig)
 
     rs->deprecated_itu_region = atoi(buf);
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -300,7 +300,7 @@ static int netrigctl_open(RIG *rig)
         }
     }
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -330,7 +330,7 @@ static int netrigctl_open(RIG *rig)
         }
     }
 
-    for (i = 0; i < TSLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -354,7 +354,7 @@ static int netrigctl_open(RIG *rig)
         }
     }
 
-    for (i = 0; i < FLTLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_FLTLSTSIZ; i++)
     {
         ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -380,7 +380,7 @@ static int netrigctl_open(RIG *rig)
 
 #if 0
     /* TODO */
-    chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
+    chan_t chan_list[HAMLIB_CHANLSTSIZ]; /*!< Channel list, zero ended */
 #endif
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
@@ -432,7 +432,7 @@ static int netrigctl_open(RIG *rig)
                  &rs->preamp[4], &rs->preamp[5],
                  &rs->preamp[6]);
 
-    if (ret < 0 || ret >= MAXDBLSTSIZ)
+    if (ret < 0 || ret >= HAMLIB_MAXDBLSTSIZ)
     {
         ret = 0;
     }
@@ -452,7 +452,7 @@ static int netrigctl_open(RIG *rig)
                  &rs->attenuator[4], &rs->attenuator[5],
                  &rs->attenuator[6]);
 
-    if (ret < 0 || ret >= MAXDBLSTSIZ)
+    if (ret < 0 || ret >= HAMLIB_MAXDBLSTSIZ)
     {
         ret = 0;
     }
@@ -526,13 +526,13 @@ static int netrigctl_open(RIG *rig)
     gran_t parm_gran[RIG_SETTING_MAX];    /*!< parm granularity */
 #endif
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
         rs->mode_list |= rs->rx_range_list[i].modes;
         rs->vfo_list |= rs->rx_range_list[i].vfo;
     }
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
     {
         rs->mode_list |= rs->tx_range_list[i].modes;
         rs->vfo_list |= rs->tx_range_list[i].vfo;

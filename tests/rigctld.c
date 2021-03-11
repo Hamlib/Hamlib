@@ -107,7 +107,6 @@ static struct option long_options[] =
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
     {"twiddle_timeout", 1, 0, 'W'},
-    {"twiddle_rit"    , 0, 0, 'Y'},
     {"uplink",          1, 0, 'x'},
     {"debug-time-stamps", 0, 0, 'Z'},
     {0, 0, 0, 0}
@@ -248,8 +247,7 @@ int main(int argc, char *argv[])
     struct addrinfo hints, *result, *saved_result;
     int sock_listen;
     int reuseaddr = 1;
-    int twiddle = 0;
-    int twiddle_rit = 0;
+    int twiddle_timeout = 0;
     int uplink = 0;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
@@ -524,11 +522,9 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
-            twiddle = atoi(optarg);
-            break;
-
-        case 'Y':
-            twiddle_rit=1;
+            twiddle_timeout = atoi(optarg);
+            fprintf(stderr,
+                    "twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
             break;
 
         case 'x':
@@ -587,13 +583,13 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
-    my_rig->state.twiddle_timeout = twiddle;
-    my_rig->state.twiddle_rit = twiddle_rit;
+    my_rig->state.twiddle_timeout = twiddle_timeout;
     my_rig->state.uplink = uplink;
-    rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d, twiddle_rit=%d\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d, twiddle_rit=%d\n",
+              __func__,
               my_rig->state.twiddle_timeout, my_rig->state.uplink, my_rig->state.twiddle_rit);
 
     /*
@@ -611,12 +607,12 @@ int main(int argc, char *argv[])
 
     if (ptt_file)
     {
-        strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.pttport.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
-        strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.dcdport.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
@@ -975,7 +971,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-static FILE*get_fsockout(struct handle_data *handle_data_arg)
+static FILE *get_fsockout(struct handle_data *handle_data_arg)
 {
 #ifdef __MINGW32__
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
@@ -985,7 +981,7 @@ static FILE*get_fsockout(struct handle_data *handle_data_arg)
 #endif
 }
 
-static FILE* get_fsockin(struct handle_data *handle_data_arg)
+static FILE *get_fsockin(struct handle_data *handle_data_arg)
 {
 #ifdef __MINGW32__
     int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
@@ -1091,21 +1087,38 @@ void *handle_socket(void *arg)
 
 #endif
 
-        // if socket error or rigctld gets RIG_EIO we'll try to reopen
-        if (ferror(fsockin))
+        // if we get a hard error we try to reopen the rig again
+        // this should cover short dropouts that can occur
+        if (retcode == -RIG_EIO || retcode == 2)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: sockin err=%s\n", __func__, strerror(errno));
-            RETURNFUNC(NULL);
+            int retry = 3;
+            rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
+
+            do
+            {
+                retcode = rig_close(my_rig);
+                hl_usleep(1000 * 1000);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
+                retcode = rig_open(my_rig);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
+            }
+            while (retry-- > 0 && retcode != RIG_OK);
+
         }
+
+
+#if 0
 
         if (ferror(fsockin) || ferror(fsockout) || retcode == 2)
         {
-            if (ferror(fsockout)) fsockout = get_fsockout(handle_data_arg);
+            if (ferror(fsockout)) { fsockout = get_fsockout(handle_data_arg); }
+
             rig_debug(RIG_DEBUG_ERR, "%s: socket error in=%d, out=%d\n", __func__,
                       ferror(fsockin), ferror(fsockout));
             // if we get an error from the rig we'll try to repoen
             // that may fix things when COM ports drop and such
-            int retry=4;
+            int retry = 4;
+
             if (retcode == 2)
             {
                 do
@@ -1115,9 +1128,12 @@ void *handle_socket(void *arg)
                     rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
                     retcode = rig_open(my_rig);
                     rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
-                } while (retry-- > 0 && retcode != RIG_OK);
+                }
+                while (retry-- > 0 && retcode != RIG_OK);
             }
         }
+
+#endif
     }
     while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
 

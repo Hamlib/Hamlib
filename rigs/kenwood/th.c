@@ -309,7 +309,7 @@ th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         kmode = rmode2kenwood(mode, priv->mode_table);
 
-        if (kmode == -1)
+        if (kmode < 0)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: Unsupported Mode value '%s'\n",
                       __func__, rig_strrmode(mode));

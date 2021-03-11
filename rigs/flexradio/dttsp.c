@@ -519,7 +519,7 @@ int dttsp_init(RIG *rig)
         cmdpath = rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK ?
                   DEFAULT_DTTSP_CMD_NET_ADDR : DEFAULT_DTTSP_CMD_PATH;
 
-    strncpy(rig->state.rigport.pathname, cmdpath, FILPATHLEN - 1);
+    strncpy(rig->state.rigport.pathname, cmdpath, HAMLIB_FILPATHLEN - 1);
 
     return RIG_OK;
 }
@@ -571,7 +571,7 @@ int dttsp_open(RIG *rig)
     if (!p)
     {
         meterpath = priv->meter_port.pathname;
-        snprintf(meterpath, FILPATHLEN, "%s", rig->state.rigport.pathname);
+        snprintf(meterpath, HAMLIB_FILPATHLEN, "%s", rig->state.rigport.pathname);
 
         if (rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK)
         {
@@ -694,7 +694,7 @@ int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     max_delta = priv->sample_rate / 2 - kHz(2);
 
-    sprintf_freq(fstr, freq);
+    sprintf_freq(fstr, sizeof(fstr), freq);
     rig_debug(RIG_DEBUG_TRACE, "%s called: %s %s\n",
               __func__, rig_strvfo(vfo), fstr);
 
@@ -730,7 +730,7 @@ int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     priv->rx_delta_f = freq - tuner_freq;
 
-    sprintf_freq(fstr, tuner_freq);
+    sprintf_freq(fstr, sizeof(fstr), tuner_freq);
     rig_debug(RIG_DEBUG_TRACE, "%s: tuner=%s, rx_delta=%d Hz\n",
               __func__, fstr, priv->rx_delta_f);
 
@@ -802,7 +802,7 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         width = rig_passband_normal(rig, mode);
     }
 
-    sprintf_freq(buf, width);
+    sprintf_freq(buf, sizeof(buf), width);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n",
               __func__, rig_strrmode(mode), buf);
 
