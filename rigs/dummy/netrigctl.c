@@ -380,7 +380,7 @@ static int netrigctl_open(RIG *rig)
 
 #if 0
     /* TODO */
-    chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
+    chan_t chan_list[HAMLIB_CHANLSTSIZ]; /*!< Channel list, zero ended */
 #endif
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
