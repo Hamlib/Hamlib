@@ -440,7 +440,6 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
        if (len <= 0)
        {
            rig_debug(RIG_DEBUG_ERR, "%s: read_string error=%d\n", __func__, len);
-           //RETURNFUNC(-(100 + RIG_EPROTO));
            continue;
        }
 
