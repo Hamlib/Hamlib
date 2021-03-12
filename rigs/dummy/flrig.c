@@ -1386,20 +1386,12 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
        sprintf(cmd_arg, "<params><param><value><i4>%ld</i4></value></param></params>",
                width);
 
-       // if we're not on VFOB but asking for VFOB still have to switch VFOS
-       if (!vfoSwitched && vfo == RIG_VFO_B) { flrig_set_vfo(rig, RIG_VFO_B); }
-
-       if (!vfoSwitched && vfo == RIG_VFO_A) { flrig_set_vfo(rig, RIG_VFO_A); }
-
-       retval = flrig_transaction(rig, "rig.set_bandwidth", cmd_arg, NULL,
-                                  0);
+       retval = flrig_transaction(rig, "rig.set_bandwidth", cmd_arg, NULL, 0);
 
        if (retval < 0)
        {
            RETURNFUNC(retval);
        }
-
-       flrig_set_vfo(rig, vfo); // ensure reset to our initial vfo
    }
 
    // Return to VFOA if needed
