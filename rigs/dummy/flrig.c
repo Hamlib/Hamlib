@@ -1108,7 +1108,7 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
    else
    {
        cmd = "rig.set_vfoB";
-       rig_debug(RIG_DEBUG_TRACE, "rig.set_vfoA %.0f\n", freq);
+       rig_debug(RIG_DEBUG_TRACE, "rig.set_vfoB %.0f\n", freq);
        priv->curr_freqB = freq;
    }
 
