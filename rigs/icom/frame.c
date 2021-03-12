@@ -281,7 +281,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     if (frm_len < ACKFRMLEN) { RETURNFUNC(-RIG_EPROTO); }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: frm_len=%d, frm_len-1=%02x, frm_len-2=%02x\n", __func__, frm_len, buf[frm_len-1], buf[frm_len-2]);
-    if (NAK == buf[frm_len - 2]) { RETURNFUNC(-RIG_ERJCTED); }
 
     // has to be one of these two now or frame is corrupt
     if (FI != buf[frm_len - 1] && ACK != buf[frm_len - 1]) { RETURNFUNC(-RIG_BUSBUSY); }
