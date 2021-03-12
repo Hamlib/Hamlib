@@ -1831,6 +1831,12 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         retcode = caps->get_freq(rig, vfo, freq);
 
+        // sometimes a network rig like FLRig will return freq=0 
+        // so we'll just reuse the cache for that condition
+        if (*freq == 0) {
+            *freq = rig->state.cache.freq;
+        }
+
         if (retcode == RIG_OK)
         {
             rig->state.cache.freq = *freq;
@@ -1971,7 +1977,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             || vfo == rig->state.current_vfo)
     {
         retcode = caps->set_mode(rig, vfo, mode, width);
-        rig_debug(RIG_DEBUG_TRACE, "%s: retcode after set_mode=%d\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: targetable retcode after set_mode=%d\n", __func__,
                   retcode);
     }
     else
@@ -1979,6 +1985,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         int rc2;
         vfo_t curr_vfo;
 
+        rig_debug(RIG_DEBUG_TRACE, "%s: not targetable need vfo swap\n", __func__);
         if (!caps->set_vfo)
         {
             RETURNFUNC(-RIG_ENAVAIL);

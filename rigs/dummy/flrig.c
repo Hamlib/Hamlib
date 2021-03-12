@@ -1072,7 +1072,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
    {
        rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\nvalue=%s\n", __func__,
                  value);
-       RETURNFUNC(-(102 + RIG_EPROTO));
+       RETURNFUNC(-RIG_EPROTO);
    }
    else
    {
