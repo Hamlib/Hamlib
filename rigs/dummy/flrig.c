@@ -1001,8 +1001,6 @@ static int flrig_close(RIG *rig)
 */
 static int flrig_cleanup(RIG *rig)
 {
-   int i;
-
    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
    if (!rig)
    {
@@ -1012,15 +1010,24 @@ static int flrig_cleanup(RIG *rig)
    free(rig->state.priv);
    rig->state.priv = NULL;
 
+   // we really don't need to free this up as it's only done once 
+   // was causing problem when cleanup was followed by rig_open
+   // model_flrig was not getting refilled
+   // if we can figure out that one we can re-enable this
+#if 0
+   int i;
+
    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
    {
        if (modeMap[i].mode_flrig)
        {
            free(modeMap[i].mode_flrig);
            modeMap[i].mode_flrig = NULL;
+           modeMap[i].mode_hamlib = 0;
        }
 
    }
+#endif
 
    RETURNFUNC(RIG_OK);
 }
