@@ -2042,7 +2042,7 @@ static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
 #define DUMMY_VFO_OP  0x7ffffffUL /* All possible VFO OPs */
 #define DUMMY_SCAN    0x7ffffffUL /* All possible scan OPs */
 
-#define DUMMY_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM|RIG_VFO_MAIN|RIG_VFO_SUB)
+#define DUMMY_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_C|RIG_VFO_MEM|RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MAIN_A|RIG_VFO_MAIN_B|RIG_VFO_SUB_A|RIG_VFO_SUB_B)
 
 #define DUMMY_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_RTTY | \
                      RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_WFM | \
@@ -2081,7 +2081,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20210210.0",
+    .version =        "20210313.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
