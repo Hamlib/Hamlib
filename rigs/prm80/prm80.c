@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+#include <ctype.h>
 #include <math.h>
 
 #include "hamlib/rig.h"
@@ -557,15 +558,22 @@ int prm80_get_mem(RIG *rig, vfo_t vfo, int *ch)
 /*
  * Convert first two hexadecimal digit to integer
  */
-static int hhtoi(const char *p)
+static unsigned hhtoi(const char *p)
 {
     char buf[4];
+
+    // it has to be hex digits
+    if (!isxdigit(p[0]) || !isxdigit(p[1]))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unexpected content '%s'\n", __func__, p);
+        return 0;
+    }
 
     buf[0] = p[0];
     buf[1] = p[1];
     buf[2] = '\0';
 
-    return (int)strtol(buf, NULL, 16);
+    return (unsigned)strtol(buf, NULL, 16);
 }
 
 /**
@@ -688,8 +696,9 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
                        (chanstate & 0x04) ? RIG_RPT_SHIFT_PLUS : RIG_RPT_SHIFT_NONE;
     chan->flags = (chanstate & 0x08) ? RIG_CHFLAG_SKIP : 0;
 
-    // cppcheck-suppress *
-    chan->levels[LVL_SQL].f = ((float)(hhtoi(statebuf + 6) >> 4)) / 15.;
+    // squelch is in low nibble
+    chan->levels[LVL_SQL].f = ((float)(hhtoi(statebuf + 6) & 0x0F)) / 15.;
+    // (remote control) volume is in high nibble
     chan->levels[LVL_AF].f  = ((float)(hhtoi(statebuf + 8) >> 4)) / 15.;
     chan->levels[LVL_RFPOWER].f  = (mode_byte & 0x02) ? 1.0 : 0.0;
 
