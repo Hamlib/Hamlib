@@ -402,7 +402,7 @@ typedef unsigned int vfo_t;
 
 /** \brief '' -- used in caps */
 
-#define RIG_VFO_N(n)        (1u<<(n))
+#define RIG_VFO_N(n)        ((vfo_t)(1u<<(n)))
 
 /** \brief \c VFONone -- vfo unknown */
 #define RIG_VFO_NONE        0
@@ -425,11 +425,17 @@ typedef unsigned int vfo_t;
 /** \brief \c SubB -- alias for SUB_B */
 #define RIG_VFO_SUB_B       RIG_VFO_N(22)
 
+/** \brief \c SubC -- alias for SUB_B */
+#define RIG_VFO_SUB_C       RIG_VFO_N(3)
+
 /** \brief \c MainA -- alias for MAIN_A */
 #define RIG_VFO_MAIN_A      RIG_VFO_N(23)
 
 /** \brief \c MainB -- alias for MAIN_B */
 #define RIG_VFO_MAIN_B      RIG_VFO_N(24)
+
+/** \brief \c MainC -- alias for MAIN_C */
+#define RIG_VFO_MAIN_C      RIG_VFO_N(4)
 
 /** \brief \c Sub -- alias for SUB */
 #define RIG_VFO_SUB         RIG_VFO_N(25)
@@ -452,7 +458,7 @@ typedef unsigned int vfo_t;
 /** \brief \c Flag to set all VFOS */
 #define RIG_VFO_ALL     RIG_VFO_N(31)
 
-// we and also use RIG_VFO_N(31) if needed
+// we can also use RIG_VFO_N(31) if needed
 
 // Misc VFO Macros
 
@@ -2081,7 +2087,7 @@ typedef enum {
 struct rig_cache {
     int timeout_ms;  // the cache timeout for invalidating itself
     vfo_t vfo;
-    freq_t freq; // to be deprecated in 4.1 when full Main/Sub/A/B caching is implemented in 4.1
+    //freq_t freq; // to be deprecated in 4.1 when full Main/Sub/A/B caching is implemented in 4.1
     // other abstraction here is based on dual vfo rigs and mapped to all others
     // So we have four possible states of rig
     // MainA, MainB, SubA, SubB
@@ -2089,42 +2095,55 @@ struct rig_cache {
     // Most rigs have MainA and MainB
     // Dual VFO rigs can have SubA and SubB too
     // For dual VFO rigs simplex operations are all done on MainA/MainB -- ergo this abstraction
-    freq_t freqCurr;  // VFO_CURR
     freq_t freqMainA; // VFO_A, VFO_MAIN, and VFO_MAINA
     freq_t freqMainB; // VFO_B, VFO_SUB, and VFO_MAINB
-#if 0
     freq_t freqMainC; // VFO_C, VFO_MAINC
-#endif
     freq_t freqSubA;  // VFO_SUBA -- only for rigs with dual Sub VFOs
     freq_t freqSubB;  // VFO_SUBB -- only for rigs with dual Sub VFOs
-    freq_t freqMem;   // VFO_MEM -- last MEM channel 
-#if 0 // future
     freq_t freqSubC;  // VFO_SUBC -- only for rigs with 3 Sub VFOs
-#endif
-    rmode_t mode;
-    pbwidth_t width;
-    pbwidth_t widthB; // if non-zero then rig has separate width for VFOB
+    freq_t freqMem;   // VFO_MEM -- last MEM channel 
+    rmode_t modeMainA;
+    rmode_t modeMainB;
+    rmode_t modeMainC;
+    rmode_t modeSubA;
+    rmode_t modeSubB;
+    rmode_t modeSubC;
+    rmode_t modeMem;
+    pbwidth_t widthMainA; // if non-zero then rig has separate width for MainA
+    pbwidth_t widthMainB; // if non-zero then rig has separate width for MainB
+    pbwidth_t widthMainC; // if non-zero then rig has separate width for MainC
+    pbwidth_t widthSubA;  // if non-zero then rig has separate width for SubA
+    pbwidth_t widthSubB;  // if non-zero then rig has separate width for SubB
+    pbwidth_t widthSubC;  // if non-zero then rig has separate width for SubC
+    pbwidth_t widthMem;  // if non-zero then rig has separate width for Mem
     ptt_t ptt;
     split_t split;
     vfo_t split_vfo;  // split caches two values
-    struct timespec time_freq;
-    struct timespec time_freqCurr;
     struct timespec time_freqMainA;
     struct timespec time_freqMainB;
-#if 0
     struct timespec time_freqMainC;
-#endif
     struct timespec time_freqSubA;
     struct timespec time_freqSubB;
+    struct timespec time_freqSubC;
     struct timespec time_freqMem;
     struct timespec time_vfo;
-    struct timespec time_mode;
+    struct timespec time_modeMainA;
+    struct timespec time_modeMainB;
+    struct timespec time_modeMainC;
+    struct timespec time_modeSubA;
+    struct timespec time_modeSubB;
+    struct timespec time_modeSubC;
+    struct timespec time_modeMem;
+    struct timespec time_widthMainA;
+    struct timespec time_widthMainB;
+    struct timespec time_widthMainC;
+    struct timespec time_widthSubA;
+    struct timespec time_widthSubB;
+    struct timespec time_widthSubC;
+    struct timespec time_widthMem;
     struct timespec time_ptt;
     struct timespec time_split;
-    vfo_t vfo_freq; // last vfo cached
-    vfo_t vfo_mode; // last vfo cached
     int satmode; // if rig is in satellite mode
-    rmode_t modeB;
 };
 
 
@@ -2982,6 +3001,7 @@ extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t sele
 
 extern HAMLIB_EXPORT(int) rig_set_vfo_opt(RIG *rig, int status);
 extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width, split_t *split);
+extern HAMLIB_EXPORT(int) rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int * cache_ms_freq, rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width);
 
 
 typedef unsigned long rig_useconds_t;
