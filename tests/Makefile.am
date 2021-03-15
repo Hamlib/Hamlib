@@ -10,7 +10,7 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum hamlibdatetime.h
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom ampctl ampctld
 
-check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench cachetest cachetest2
+check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 
 
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c uthash.h hamlibdatetime.h
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h hamlibdatetime.h
@@ -77,7 +77,7 @@ EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk testctld.pl testrotctld.pl \
 	hamlibdatetime.h.in
 
 # Support 'make check' target for simple tests
-check_SCRIPTS = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh
+check_SCRIPTS = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh
 
 TESTS = $(check_SCRIPTS)
 
@@ -101,6 +101,10 @@ testloc.sh:
 testrigcaps.sh:
 	echo './testrigcaps' > testrigcaps.sh
 	chmod +x ./testrigcaps.sh
+
+testcache.sh:
+	echo './testcache 1' > testcache.sh
+	chmod +x ./testcache.sh
 
 # If we have  a .git directory then we will  generate the hamlibdate.h
 # file and  replace it if it  is different. Fall  back to a copy  of a
@@ -126,4 +130,4 @@ FORCE:
 dist-hook:
 	test ./ -ef $(srcdir)/ || test ! -f hamlibdatetime.h || cp -f hamlibdatetime.h $(srcdir)/
 
-CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh
+CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh

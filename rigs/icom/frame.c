@@ -281,7 +281,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     if (frm_len < ACKFRMLEN) { RETURNFUNC(-RIG_EPROTO); }
     // if we send a bad command we will get back a NAK packet
     // e.g. fe fe e0 50 fa fd
-    if (NAK == buf[frm_len - 2]) { RETURNFUNC(-RIG_ERJCTED); }
+    if (frm_len == 6 && NAK == buf[frm_len - 2]) { RETURNFUNC(-RIG_ERJCTED); }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: frm_len=%d, frm_len-1=%02x, frm_len-2=%02x\n", __func__, frm_len, buf[frm_len-1], buf[frm_len-2]);
 
