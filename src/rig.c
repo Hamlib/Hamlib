@@ -311,8 +311,9 @@ const char *HAMLIB_API rigerror(int errnum)
 
     if (*p == '\n') { *p = 0; }
 
-    snprintf(msg, sizeof(msg), "%.80s\n%.15000s%.15000s%.15000s", rigerror_table[errnum],
-             debugmsgsave3,debugmsgsave2, debugmsgsave);
+    snprintf(msg, sizeof(msg), "%.80s\n%.15000s%.15000s%.15000s",
+             rigerror_table[errnum],
+             debugmsgsave3, debugmsgsave2, debugmsgsave);
     return msg;
 }
 
@@ -375,7 +376,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 
     if (!caps)
     {
-        return(NULL);
+        return (NULL);
     }
 
     /*
@@ -390,7 +391,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
          * FIXME: how can the caller know it's a memory shortage,
          *        and not "rig not found" ?
          */
-        return(NULL);
+        return (NULL);
     }
 
     /* caps is const, so we need to tell compiler
@@ -518,25 +519,29 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->vfo_list = 0;
     rs->mode_list = 0;
 
-    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list1[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(caps->rx_range_list1[i]); i++)
     {
         rs->vfo_list |= caps->rx_range_list1[i].vfo;
         rs->mode_list |= caps->rx_range_list1[i].modes;
     }
 
-    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(caps->tx_range_list1[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(caps->tx_range_list1[i]); i++)
     {
         rs->vfo_list |= caps->tx_range_list1[i].vfo;
         rs->mode_list |= caps->tx_range_list1[i].modes;
     }
 
-    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(caps->rx_range_list2[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(caps->rx_range_list2[i]); i++)
     {
         rs->vfo_list |= caps->rx_range_list2[i].vfo;
         rs->mode_list |= caps->rx_range_list2[i].modes;
     }
 
-    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(caps->tx_range_list2[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(caps->tx_range_list2[i]); i++)
     {
         rs->vfo_list |= caps->tx_range_list2[i].vfo;
         rs->mode_list |= caps->tx_range_list2[i].modes;
@@ -613,11 +618,11 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
                       __func__);
             /* cleanup and exit */
             free(rig);
-            return(NULL);
+            return (NULL);
         }
     }
 
-    return(rig);
+    return (rig);
 }
 
 
@@ -1324,13 +1329,16 @@ int HAMLIB_API rig_get_twiddle(RIG *rig, int *seconds)
 static int set_cache_mode(RIG *rig, vfo_t vfo, mode_t mode, pbwidth_t width)
 {
     ENTERFUNC;
+
     if (vfo == RIG_VFO_CURR)
     {
         // if CURR then update this before we figure out the real VFO
         vfo = rig->state.current_vfo;
     }
+
     // pick a sane default
-    if (vfo == RIG_VFO_NONE || vfo == RIG_VFO_CURR) vfo = RIG_VFO_A;
+    if (vfo == RIG_VFO_NONE || vfo == RIG_VFO_CURR) { vfo = RIG_VFO_A; }
+
     switch (vfo)
     {
     case RIG_VFO_ALL: // we'll use NONE to reset all VFO caches
@@ -1341,29 +1349,39 @@ static int set_cache_mode(RIG *rig, vfo_t vfo, mode_t mode, pbwidth_t width)
         elapsed_ms(&rig->state.cache.time_widthMainB, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_INVALIDATE);
         break;
+
     case RIG_VFO_A:
     case RIG_VFO_MAIN:
     case RIG_VFO_MAIN_A:
         rig->state.cache.modeMainA = mode;
-        if (width > 0) rig->state.cache.widthMainA = width;
+
+        if (width > 0) { rig->state.cache.widthMainA = width; }
+
         elapsed_ms(&rig->state.cache.time_modeMainA, HAMLIB_ELAPSED_SET);
         elapsed_ms(&rig->state.cache.time_widthMainA, HAMLIB_ELAPSED_SET);
         break;
+
     case RIG_VFO_B:
     case RIG_VFO_SUB:
     case RIG_VFO_MAIN_B:
         rig->state.cache.modeMainB = mode;
-        if (width > 0) rig->state.cache.widthMainB = width;
+
+        if (width > 0) { rig->state.cache.widthMainB = width; }
+
         elapsed_ms(&rig->state.cache.time_modeMainB, HAMLIB_ELAPSED_SET);
         elapsed_ms(&rig->state.cache.time_widthMainB, HAMLIB_ELAPSED_SET);
         break;
+
     case RIG_VFO_C:
     case RIG_VFO_MAIN_C:
         rig->state.cache.modeMainC = mode;
-        if (width > 0) rig->state.cache.widthMainC = width;
+
+        if (width > 0) { rig->state.cache.widthMainC = width; }
+
         elapsed_ms(&rig->state.cache.time_modeMainC, HAMLIB_ELAPSED_SET);
         elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_SET);
         break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo=%s\n", __func__, rig_strvfo(vfo));
         RETURNFUNC(-RIG_EINTERNAL);
@@ -1383,8 +1401,9 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // if CURR then update this before we figure out the real VFO
         vfo = rig->state.current_vfo;
     }
+
     // pick a sane default
-    if (vfo == RIG_VFO_NONE || vfo == RIG_VFO_CURR) vfo = RIG_VFO_A;
+    if (vfo == RIG_VFO_NONE || vfo == RIG_VFO_CURR) { vfo = RIG_VFO_A; }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set vfo=%s to freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
@@ -1459,13 +1478,15 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
     RETURNFUNC(RIG_OK);
 }
 
-int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq, rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width)
+int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
+                  rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width)
 {
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+
     // pick a sane default
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
 
@@ -1478,9 +1499,12 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq, rmode_t
         *freq = rig->state.cache.freqMainA;
         *mode = rig->state.cache.modeMainA;
         *width = rig->state.cache.widthMainA;
-        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_GET);
-        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeMainA, HAMLIB_ELAPSED_GET);
-        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthMainA, HAMLIB_ELAPSED_GET);
+        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqMainA,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeMainA,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthMainA,
+                                     HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_B:
@@ -1488,27 +1512,36 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq, rmode_t
         *freq = rig->state.cache.freqMainB;
         *mode = rig->state.cache.modeMainB;
         *width = rig->state.cache.widthMainB;
-        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_GET);
-        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeMainB, HAMLIB_ELAPSED_GET);
-        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthMainB, HAMLIB_ELAPSED_GET);
+        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqMainB,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeMainB,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthMainB,
+                                     HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_SUB_A:
         *freq = rig->state.cache.freqSubA;
         *mode = rig->state.cache.modeSubA;
         *width = rig->state.cache.widthSubA;
-        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqSubA, HAMLIB_ELAPSED_GET);
-        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeSubA, HAMLIB_ELAPSED_GET);
-        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthSubA, HAMLIB_ELAPSED_GET);
+        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqSubA,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeSubA,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthSubA,
+                                     HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_SUB_B:
         *freq = rig->state.cache.freqSubB;
         *mode = rig->state.cache.modeSubB;
         *width = rig->state.cache.widthSubB;
-        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_GET);
-        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeSubB, HAMLIB_ELAPSED_GET);
-        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthSubB, HAMLIB_ELAPSED_GET);
+        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqSubB,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeSubB,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthSubB,
+                                     HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_C:
@@ -1516,18 +1549,24 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq, rmode_t
         *freq = rig->state.cache.freqMainC;
         *mode = rig->state.cache.modeMainC;
         *width = rig->state.cache.widthMainC;
-        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqMainC, HAMLIB_ELAPSED_GET);
-        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeMainC, HAMLIB_ELAPSED_GET);
-        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_GET);
+        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqMainC,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeMainC,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthMainC,
+                                     HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_SUB_C:
         *freq = rig->state.cache.freqSubC;
         *mode = rig->state.cache.modeSubC;
         *width = rig->state.cache.widthSubC;
-        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqSubC, HAMLIB_ELAPSED_GET);
-        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeSubC, HAMLIB_ELAPSED_GET);
-        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthSubC, HAMLIB_ELAPSED_GET);
+        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqSubC,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeSubC,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthSubC,
+                                     HAMLIB_ELAPSED_GET);
         break;
 
     case RIG_VFO_MEM:
@@ -1536,7 +1575,8 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq, rmode_t
         *width = rig->state.cache.widthMem;
         *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqMem, HAMLIB_ELAPSED_GET);
         *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeMem, HAMLIB_ELAPSED_GET);
-        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthMem, HAMLIB_ELAPSED_GET);
+        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthMem,
+                                     HAMLIB_ELAPSED_GET);
         break;
 
     default:
@@ -1694,7 +1734,9 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (retry == 0 && tfreq != freq)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unable to set frequency!!, asked for %.0f, got %.0f\n", __func__, freq, tfreq);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: unable to set frequency!!, asked for %.0f, got %.0f\n", __func__, freq,
+                      tfreq);
         }
     }
     else
@@ -1774,6 +1816,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // update our current freq too
     if (vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) { rig->state.current_freq = freq_new; }
+
     set_cache_freq(rig, vfo, freq_new);
 
     RETURNFUNC(retcode);
@@ -1831,7 +1874,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                   rig_strvfo(rig->state.tx_vfo));
         // always return the cached freq for this clause
         int cache_ms_freq, cache_ms_mode, cache_ms_width;
-        rig_get_cache(rig, vfo, freq, &cache_ms_freq, &mode, &cache_ms_mode, &width, &cache_ms_width);
+        rig_get_cache(rig, vfo, freq, &cache_ms_freq, &mode, &cache_ms_mode, &width,
+                      &cache_ms_width);
         RETURNFUNC(RIG_OK);
     }
 
@@ -1862,8 +1906,10 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     int cache_ms_freq, cache_ms_mode, cache_ms_width;
-    rig_get_cache(rig, vfo, freq, &cache_ms_freq, &mode, &cache_ms_mode, &width, &cache_ms_width);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cache check1 age=%dms\n", __func__, cache_ms_freq);
+    rig_get_cache(rig, vfo, freq, &cache_ms_freq, &mode, &cache_ms_mode, &width,
+                  &cache_ms_width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cache check1 age=%dms\n", __func__,
+              cache_ms_freq);
 
     if (freq != 0 && cache_ms_freq < rig->state.cache.timeout_ms)
     {
@@ -1874,7 +1920,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else
     {
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: cache miss age=%dms, cached_vfo=%s, asked_vfo=%s\n", __func__, cache_ms_freq,
+                  "%s: cache miss age=%dms, cached_vfo=%s, asked_vfo=%s\n", __func__,
+                  cache_ms_freq,
                   rig_strvfo(vfo), rig_strvfo(vfo));
     }
 
@@ -1900,13 +1947,14 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         retcode = caps->get_freq(rig, vfo, freq);
 
-        // sometimes a network rig like FLRig will return freq=0 
+        // sometimes a network rig like FLRig will return freq=0
         // so we'll just reuse the cache for that condition
-        if (*freq == 0) {
+        if (*freq == 0)
+        {
             rmode_t mode;
             pbwidth_t width;
-            int freq_ms,mode_ms,width_ms;
-            rig_get_cache(rig,vfo,freq,&freq_ms,&mode,&mode_ms,&width,&width_ms);
+            int freq_ms, mode_ms, width_ms;
+            rig_get_cache(rig, vfo, freq, &freq_ms, &mode, &mode_ms, &width, &width_ms);
         }
 
         if (retcode == RIG_OK)
@@ -2033,7 +2081,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             || vfo == rig->state.current_vfo)
     {
         retcode = caps->set_mode(rig, vfo, mode, width);
-        rig_debug(RIG_DEBUG_TRACE, "%s: targetable retcode after set_mode=%d\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: targetable retcode after set_mode=%d\n",
+                  __func__,
                   retcode);
     }
     else
@@ -2042,6 +2091,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         vfo_t curr_vfo;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: not targetable need vfo swap\n", __func__);
+
         if (!caps->set_vfo)
         {
             RETURNFUNC(-RIG_ENAVAIL);
@@ -2066,10 +2116,10 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
     }
 
-    if (retcode != RIG_OK) RETURNFUNC(retcode);
+    if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
-    set_cache_mode(rig,vfo,mode,width);
-    
+    set_cache_mode(rig, vfo, mode, width);
+
     RETURNFUNC(retcode);
 }
 
@@ -2117,19 +2167,23 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     }
 
     int cache_ms_freq, cache_ms_mode, cache_ms_width;
-    rig_get_cache(rig, vfo, &freq, &cache_ms_freq, mode, &cache_ms_mode, width, &cache_ms_width);
+    rig_get_cache(rig, vfo, &freq, &cache_ms_freq, mode, &cache_ms_mode, width,
+                  &cache_ms_width);
     rig_debug(RIG_DEBUG_TRACE, "%s: %s cache check age=%dms\n", __func__,
               rig_strvfo(vfo), cache_ms_freq);
 
-    if (cache_ms_mode < rig->state.cache.timeout_ms || cache_ms_width < rig->state.cache.timeout_ms) 
+    if (cache_ms_mode < rig->state.cache.timeout_ms
+            || cache_ms_width < rig->state.cache.timeout_ms)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age mode=%dms, width=%dms\n", __func__, cache_ms_mode, cache_ms_width);
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age mode=%dms, width=%dms\n",
+                  __func__, cache_ms_mode, cache_ms_width);
 
         RETURNFUNC(RIG_OK);
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age mode=%dms, width=%dms\n", __func__, cache_ms_mode, cache_ms_width);
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache miss age mode=%dms, width=%dms\n",
+                  __func__, cache_ms_mode, cache_ms_width);
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
@@ -2184,7 +2238,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
         *width = rig_passband_normal(rig, *mode);
     }
 
-    set_cache_mode(rig,vfo,*mode,*width);
+    set_cache_mode(rig, vfo, *mode, *width);
 
     RETURNFUNC(retcode);
 }
@@ -2425,8 +2479,9 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
                   rigerror(retcode));
     }
     else
-    { // if no get_freq clear all cache to be sure we refresh whatever we can
-      set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
+    {
+        // if no get_freq clear all cache to be sure we refresh whatever we can
+        set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
     }
 
     // expire several cached items when we switch VFOs
@@ -2576,7 +2631,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
                 if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
-                hl_usleep(50*1000);  // give PTT a chance to do it's thing
+                hl_usleep(50 * 1000); // give PTT a chance to do it's thing
 
                 // don't use the cached value and check to see if it worked
                 elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);
@@ -3037,7 +3092,7 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
         }
 
         if (vfo == RIG_VFO_CURR
-            || vfo == rig->state.current_vfo)
+                || vfo == rig->state.current_vfo)
         {
             RETURNFUNC(caps->get_dcd(rig, vfo, dcd));
         }
@@ -3138,7 +3193,7 @@ int HAMLIB_API rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->set_rptr_shift(rig, vfo, rptr_shift));
     }
@@ -3205,7 +3260,7 @@ int HAMLIB_API rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->get_rptr_shift(rig, vfo, rptr_shift));
     }
@@ -3272,7 +3327,7 @@ int HAMLIB_API rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->set_rptr_offs(rig, vfo, rptr_offs));
     }
@@ -3339,7 +3394,7 @@ int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
     }
 
     if (vfo == RIG_VFO_CURR
-         || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->get_rptr_offs(rig, vfo, rptr_offs));
     }
@@ -3900,10 +3955,13 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
         {
             retcode = caps->set_split_freq_mode(rig, vfo, tx_freq, tx_mode, tx_width);
             retcode2 = rig_get_split_freq(rig, vfo, &tfreq);
+
             if (tfreq != tx_freq)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: txfreq!=tfreq %.0f!=%.0f, retry=%d, rc1=%d, rc2=%d\n", __func__, tx_freq, tfreq, retry, retcode, retcode2);
-                hl_usleep(50*1000); // 50ms sleep may help here
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: txfreq!=tfreq %.0f!=%.0f, retry=%d, rc1=%d, rc2=%d\n", __func__, tx_freq,
+                          tfreq, retry, retcode, retcode2);
+                hl_usleep(50 * 1000); // 50ms sleep may help here
             }
         }
         while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK
@@ -4027,7 +4085,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     vfo = vfo_fixup(rig, vfo);
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         retcode = caps->set_split_vfo(rig, vfo, split, tx_vfo);
 
@@ -4142,7 +4200,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     *tx_vfo = rig->state.tx_vfo;
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
         rig->state.cache.split = *split;
@@ -4498,7 +4556,7 @@ int HAMLIB_API rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->set_ts(rig, vfo, ts));
     }
@@ -4565,7 +4623,7 @@ int HAMLIB_API rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->get_ts(rig, vfo, ts));
     }
@@ -4831,12 +4889,12 @@ int HAMLIB_API rig_mW2power(RIG *rig,
 
     if (!rig || !rig->caps || !power || mwpower == 0)
     {
-        return(-RIG_EINVAL);
+        return (-RIG_EINVAL);
     }
 
     if (rig->caps->mW2power != NULL)
     {
-        return(rig->caps->mW2power(rig, power, mwpower, freq, mode));
+        return (rig->caps->mW2power(rig, power, mwpower, freq, mode));
     }
 
     txrange = rig_get_range(rig->state.tx_range_list, freq, mode);
@@ -4846,13 +4904,13 @@ int HAMLIB_API rig_mW2power(RIG *rig,
         /*
          * freq is not on the tx range!
          */
-        return(-RIG_ECONF); /* could be RIG_EINVAL ? */
+        return (-RIG_ECONF); /* could be RIG_EINVAL ? */
     }
 
     if (txrange->high_power == 0)
     {
         *power = 0.0;
-        return(RIG_OK);
+        return (RIG_OK);
     }
 
     *power = (float)mwpower / txrange->high_power;
@@ -4862,7 +4920,7 @@ int HAMLIB_API rig_mW2power(RIG *rig,
         *power = 1.0;
     }
 
-    return(mwpower > txrange->high_power ? RIG_OK : -RIG_ETRUNC);
+    return (mwpower > txrange->high_power ? RIG_OK : -RIG_ETRUNC);
 }
 
 
@@ -5134,7 +5192,7 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->vfo_op(rig, vfo, op));
     }
@@ -5233,7 +5291,7 @@ int HAMLIB_API rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->scan(rig, vfo, scan, ch));
     }
@@ -5300,7 +5358,7 @@ int HAMLIB_API rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->send_dtmf(rig, vfo, digits));
     }
@@ -5368,7 +5426,7 @@ int HAMLIB_API rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->recv_dtmf(rig, vfo, digits, length));
     }
@@ -5435,7 +5493,7 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->send_morse(rig, vfo, msg));
     }
@@ -5493,7 +5551,7 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->stop_morse(rig, vfo));
     }
@@ -5583,7 +5641,7 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
     caps = rig->caps;
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(wait_morse_ptt(rig, vfo));
     }
@@ -5650,7 +5708,7 @@ int HAMLIB_API rig_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
     }
 
     if (vfo == RIG_VFO_CURR
-        || vfo == rig->state.current_vfo)
+            || vfo == rig->state.current_vfo)
     {
         RETURNFUNC(caps->send_voice_mem(rig, vfo, ch));
     }
@@ -5705,18 +5763,18 @@ const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t *range_list,
     {
         if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
-            return(NULL);
+            return (NULL);
         }
 
         if (freq >= range_list[i].startf && freq <= range_list[i].endf &&
                 (range_list[i].modes & mode))
         {
             const freq_range_t *f = &range_list[i];
-            return(f);
+            return (f);
         }
     }
 
-    return(NULL);
+    return (NULL);
 }
 
 /**
@@ -5753,15 +5811,15 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
 {
     if (CHECK_RIG_ARG(rig))
     {
-        return(NULL);
+        return (NULL);
     }
 
     if (rig->caps->get_info == NULL)
     {
-        return(NULL);
+        return (NULL);
     }
 
-    return(rig->caps->get_info(rig));
+    return (rig->caps->get_info(rig));
 }
 
 /**
@@ -5796,16 +5854,19 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
-    // we can't use the cached values as some clients may only call this function 
+    // we can't use the cached values as some clients may only call this function
     // like Log4OM which mostly does polling
     retval = rig_get_freq(rig, vfo, freq);
-    if (retval != RIG_OK) RETURNFUNC(retval);
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     retval = rig_get_mode(rig, vfo, mode, width);
-    if (retval != RIG_OK) RETURNFUNC(retval);
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     retval = rig_get_split(rig, vfo, split);
-    if (retval != RIG_OK) RETURNFUNC(retval);
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     RETURNFUNC(RIG_OK);
 }

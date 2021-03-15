@@ -129,31 +129,40 @@ int main(int argc, char *argv[])
     if (widthC != 3000) { printf("widthC = %d\n", (int)widthC); exit(1); }
 
     printf("PTT ON\n");
-    rig_set_ptt(my_rig,RIG_VFO_CURR,RIG_PTT_ON);
+    rig_set_ptt(my_rig, RIG_VFO_CURR, RIG_PTT_ON);
     ptt_t ptt;
     printf("PTT get ptt ON\n");
-    rig_get_ptt(my_rig,RIG_VFO_CURR,&ptt);
+    rig_get_ptt(my_rig, RIG_VFO_CURR, &ptt);
+
     if (ptt != RIG_PTT_ON) { printf("ptt != ON\n"); exit(1); }
-    hl_usleep(1000*1000);
-    rig_get_ptt(my_rig,RIG_VFO_CURR,&ptt);
+
+    hl_usleep(1000 * 1000);
+    rig_get_ptt(my_rig, RIG_VFO_CURR, &ptt);
     printf("PTT get ptt ON\n");
+
     if (ptt != RIG_PTT_ON) { printf("ptt != ON\n"); exit(1); }
+
     printf("PTT ptt OFF\n");
-    rig_set_ptt(my_rig,RIG_VFO_CURR,RIG_PTT_OFF);
+    rig_set_ptt(my_rig, RIG_VFO_CURR, RIG_PTT_OFF);
+
     if (ptt != RIG_PTT_ON) { printf("ptt != ON\n"); exit(1); }
-    rig_get_ptt(my_rig,RIG_VFO_CURR,&ptt);
+
+    rig_get_ptt(my_rig, RIG_VFO_CURR, &ptt);
     printf("PTT get ptt OFF\n");
 
     vfo_t tx_vfo;
     split_t split;
-    rig_get_split_vfo(my_rig,RIG_VFO_A,&split, &tx_vfo);
+    rig_get_split_vfo(my_rig, RIG_VFO_A, &split, &tx_vfo);
     printf("split=%d, tx_vfo=%s\n", split, rig_strvfo(tx_vfo));
-    if (split !=0 || tx_vfo != RIG_VFO_A) { printf("split#1 failed\n"); exit(1); } 
-    rig_set_split_vfo(my_rig,RIG_VFO_A,RIG_SPLIT_ON,RIG_VFO_B);
-    hl_usleep(1000*1000);
-    rig_get_split_vfo(my_rig,RIG_VFO_A,&split,&tx_vfo);
+
+    if (split != 0 || tx_vfo != RIG_VFO_A) { printf("split#1 failed\n"); exit(1); }
+
+    rig_set_split_vfo(my_rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+    hl_usleep(1000 * 1000);
+    rig_get_split_vfo(my_rig, RIG_VFO_A, &split, &tx_vfo);
     printf("split=%d, tx_vfo=%s\n", split, rig_strvfo(tx_vfo));
-    if (split != RIG_SPLIT_ON || tx_vfo != RIG_VFO_B) { printf("split#2 failed\n"); exit(1); } 
+
+    if (split != RIG_SPLIT_ON || tx_vfo != RIG_VFO_B) { printf("split#2 failed\n"); exit(1); }
 
     printf("All OK\n");
     rig_close(my_rig);

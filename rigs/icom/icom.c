@@ -1024,7 +1024,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     subcmd = -1;
     retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                               &ack_len);
-    hl_usleep(50*1000);  // pause for transceive message and we'll flush it
+    hl_usleep(50 * 1000); // pause for transceive message and we'll flush it
 
     if (retval != RIG_OK)
     {
@@ -1663,8 +1663,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d, width=%d\n", __func__, (int)icom_mode,
               (int)width);
     retval = icom_set_mode(rig, vfo, icom_mode, width);
-    
-    hl_usleep(50*1000); // pause for possible transceive message which we'll flush
+
+    hl_usleep(50 * 1000); // pause for possible transceive message which we'll flush
 
     if (RIG_OK == retval)
     {
@@ -3204,13 +3204,16 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f =
                 rig_raw2val_float(icom_val, &icom_default_rfpower_meter_cal);
-            rig_debug(RIG_DEBUG_TRACE, "%s: using rig table to convert %d to %.01f\n", __func__, icom_val, val->f);
+            rig_debug(RIG_DEBUG_TRACE, "%s: using rig table to convert %d to %.01f\n",
+                      __func__, icom_val, val->f);
         }
         else
         {
             val->f =
                 rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal);
-            rig_debug(RIG_DEBUG_TRACE, "%s: using default icom table to convert %d to %.01f\n", __func__, icom_val, val->f);
+            rig_debug(RIG_DEBUG_TRACE,
+                      "%s: using default icom table to convert %d to %.01f\n", __func__, icom_val,
+                      val->f);
         }
 
         break;

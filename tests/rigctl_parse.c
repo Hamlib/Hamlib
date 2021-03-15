@@ -4223,7 +4223,8 @@ declare_proto_rig(dump_state)
     fprintf(fout, "%d\n", 0);
 #endif
 
-    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
         fprintf(fout,
                 "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
@@ -4238,7 +4239,8 @@ declare_proto_rig(dump_state)
 
     fprintf(fout, "0 0 0 0 0 0 0\n");
 
-    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
     {
         fprintf(fout,
                 "%"FREQFMT" %"FREQFMT" 0x%"PRXll" %d %d 0x%x 0x%x\n",
@@ -4387,7 +4389,7 @@ declare_proto_rig(get_ant)
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    rig_sprintf_ant(antbuf, sizeof(antbuf), ant_curr); 
+    rig_sprintf_ant(antbuf, sizeof(antbuf), ant_curr);
     fprintf(fout, "%s%c", antbuf, resp_sep);
     //fprintf(fout, "%d%c", rig_setting2idx(ant_curr)+1, resp_sep);
 
@@ -4469,7 +4471,7 @@ declare_proto_rig(send_voice_mem)
 }
 
 declare_proto_rig(send_dtmf)
-{ 
+{
     ENTERFUNC;
 
     RETURNFUNC(rig_send_dtmf(rig, vfo, arg1));

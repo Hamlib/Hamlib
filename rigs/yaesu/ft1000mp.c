@@ -1167,7 +1167,9 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
     else // we are emulating vfo status
     {
         *vfo = rig->state.current_vfo;
-        if (*vfo == RIG_VFO_CURR) {
+
+        if (*vfo == RIG_VFO_CURR)
+        {
             rig_debug(RIG_DEBUG_TRACE, "%s: no get_vfo, defaulting to VFOA\n", __func__);
             *vfo = RIG_VFO_A;
         }

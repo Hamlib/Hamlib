@@ -396,15 +396,15 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
 
-    switch(vfo)
+    switch (vfo)
     {
-        case RIG_VFO_MAIN:
-        case RIG_VFO_A: priv->vfo_a.freq = freq;break;
+    case RIG_VFO_MAIN:
+    case RIG_VFO_A: priv->vfo_a.freq = freq; break;
 
-        case RIG_VFO_SUB:
-        case RIG_VFO_B: priv->vfo_b.freq = freq;break;
+    case RIG_VFO_SUB:
+    case RIG_VFO_B: priv->vfo_b.freq = freq; break;
 
-        case RIG_VFO_C: priv->vfo_c.freq = freq;break;
+    case RIG_VFO_C: priv->vfo_c.freq = freq; break;
     }
 
     if (!priv->split)
@@ -470,11 +470,11 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     switch (vfo)
     {
-    case RIG_VFO_A: priv->vfo_a.mode = mode; priv->vfo_a.width = width;break;
+    case RIG_VFO_A: priv->vfo_a.mode = mode; priv->vfo_a.width = width; break;
 
-    case RIG_VFO_B: priv->vfo_b.mode = mode; priv->vfo_b.width = width;break;
+    case RIG_VFO_B: priv->vfo_b.mode = mode; priv->vfo_b.width = width; break;
 
-    case RIG_VFO_C: priv->vfo_c.mode = mode; priv->vfo_c.width = width;break;
+    case RIG_VFO_C: priv->vfo_c.mode = mode; priv->vfo_c.width = width; break;
     }
 
     if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(RIG_OK); }
@@ -483,6 +483,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         width = curr->width = rig_passband_normal(rig, mode);
     }
+
     switch (vfo)
     {
     case RIG_VFO_A: priv->vfo_a.width = width; break;
@@ -504,17 +505,17 @@ static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
-    if (vfo == RIG_VFO_CURR) vfo = rig->state.current_vfo;
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
-    switch(vfo)
+    switch (vfo)
     {
-        case RIG_VFO_MAIN:
-        case RIG_VFO_A: *mode = priv->vfo_a.mode;*width = priv->vfo_a.width; break;
+    case RIG_VFO_MAIN:
+    case RIG_VFO_A: *mode = priv->vfo_a.mode; *width = priv->vfo_a.width; break;
 
-        case RIG_VFO_SUB:
-        case RIG_VFO_B: *mode = priv->vfo_b.mode;*width = priv->vfo_b.width; break;
+    case RIG_VFO_SUB:
+    case RIG_VFO_B: *mode = priv->vfo_b.mode; *width = priv->vfo_b.width; break;
 
-        case RIG_VFO_C: *mode = priv->vfo_c.mode;*width = priv->vfo_c.width; break;
+    case RIG_VFO_C: *mode = priv->vfo_c.mode; *width = priv->vfo_c.width; break;
     }
 
     RETURNFUNC(RIG_OK);
@@ -530,7 +531,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
     usleep(CMDSLEEP);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
-    if (vfo == RIG_VFO_CURR) vfo = rig->state.current_vfo;
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
     priv->last_vfo = priv->curr_vfo;
     priv->curr_vfo = vfo;
@@ -2122,7 +2123,7 @@ struct rig_caps dummy_caps =
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
-    .targetable_vfo = RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT|RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE,
+    .targetable_vfo = RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .ptt_type =       RIG_PTT_RIG,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NONE,
@@ -2287,7 +2288,7 @@ struct rig_caps dummy_no_vfo_caps =
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
-    .targetable_vfo =      RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT|RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE,
+    .targetable_vfo =      RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .ptt_type =       RIG_PTT_RIG,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NONE,
