@@ -59,7 +59,7 @@ class Prm80Simul:
         self.ChanNum = 0
         self.LockByte = 0
         self.Squelch = 0
-        self.Volume = 0xff
+        self.Volume = 0x10
         self.ModeByte = 0x16
         self.ChanState = 0x0c
         self.MaxChan = 80
@@ -172,17 +172,19 @@ class Prm80Simul:
             self.pty_write(b'\r\n')
 
     def tch_Estate(self):
-        """ Show system state (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq) """
-        #self.pty_write(b'16000C00FF0079708020')
-        self.pty_write('{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:04X}{:04X}'.format(
+        """ Show system state (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq-RSSI) (FW V5)"""
+        #self.pty_write(b'16000C0010007970802018')
+        rssi=24
+        self.pty_write('{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}{:04X}{:04X}{:02X}'.format(
             self.ModeByte,
             self.ChanNum,
             self.ChanState,
-            self.Squelch,
+            self.Squelch, # low nibble
             self.Volume,
             self.LockByte,
             self.RxPLL,
-            self.TxPLL
+            self.TxPLL,
+            rssi
             ).encode())
 
     def tch_Astatus(self):
