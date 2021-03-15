@@ -48,6 +48,12 @@
 #define CHAN_MIN 0
 #define CHAN_MAX 99
 
+// "E" system state is cached for this time (ms)
+#define PRM80_CACHE_TIMEOUT 200
+
+// Length (in bytes) of the response to the "E" command
+#define CMD_E_RSP_LEN 22
+
 #define RX_IF_OFFSET MHz(21.4)
 
 // The rig's PLL only deals with freq in Hz divided by this value
@@ -72,7 +78,7 @@ MessageAide:  DB   "H",0Dh,0Ah
               DB   " [1] a [5] = Show 80c552 port state P1 to P5.",0Dh,0Ah
               DB   " [C] = Print channels list.",0Dh,0Ah
               DB   " [D] = Set system byte.",0Dh,0Ah
-              DB   " [E] = Show system state (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq).",0Dh,0Ah
+              DB   " [E] = Show system state (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq,RSSI).",0Dh,0Ah
               DB   " [F] = Set squelch.",0Dh,0Ah
               DB   " [H] = Print this help page.",0Dh,0Ah
               DB   " [I] = Erase and init RAM and EEPROM.",0Dh,0Ah
@@ -98,7 +104,7 @@ MessageAide:  DB   "H",0Dh,0Ah
 [D] = Set system byte.
 
 [E] = Show system state (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX
-                freq).
+                freq-RSSI).
 [F] = Set squelch.
 [H] = Print this help page.
 [K] = Set lock byte.
@@ -138,6 +144,13 @@ MessageAide:  DB   "H",0Dh,0Ah
 
  * *********************************************************************
  */
+
+static void prm80_force_cache_timeout(RIG *rig)
+{
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+
+    rig_force_cache_timeout(&priv->status_tv);
+}
 
 /*
  * Read a prompt terminated by delimiter, then write an optional string s.
@@ -319,6 +332,8 @@ int prm80_reset(RIG *rig, reset_t reset)
         return retval;
     }
 
+    prm80_force_cache_timeout(rig);
+
     return RIG_OK;
 }
 
@@ -395,6 +410,8 @@ int prm80_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         priv->rx_freq = freq;
     }
 
+    prm80_force_cache_timeout(rig);
+
     return rc;
 }
 
@@ -415,6 +432,8 @@ int prm80_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     {
         priv->tx_freq = tx_freq;
     }
+
+    prm80_force_cache_timeout(rig);
 
     return rc;
 }
@@ -526,6 +545,8 @@ int prm80_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     sprintf(chbuf, "%02u", (unsigned)ch);
 
+    prm80_force_cache_timeout(rig);
+
     // Send command, no answer expected from rig except ">" prompt
 
     return prm80_transaction(rig, "N", chbuf, 1);
@@ -579,7 +600,7 @@ static unsigned hhtoi(const char *p)
 /**
  * Get system state [E] from rig into \a statebuf
  */
-static int prm80_read_system_state(hamlib_port_t *rigport, char *statebuf)
+static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
 {
     char *p;
     int ret;
@@ -596,7 +617,7 @@ static int prm80_read_system_state(hamlib_port_t *rigport, char *statebuf)
     }
 
     // The response length is fixed
-    ret = read_block(rigport, statebuf, 20);
+    ret = read_block(rigport, statebuf, CMD_E_RSP_LEN);
 
     if (ret < 0)
     {
@@ -608,10 +629,10 @@ static int prm80_read_system_state(hamlib_port_t *rigport, char *statebuf)
         statebuf[ret] = '\0';
     }
 
-    if (ret < 20)
+    if (ret < CMD_E_RSP_LEN)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: len=%d < 20, statebuf='%s'\n", __func__,
-                  ret, statebuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: len=%d < %d, statebuf='%s'\n", __func__,
+                  ret, CMD_E_RSP_LEN, statebuf);
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -620,8 +641,9 @@ static int prm80_read_system_state(hamlib_port_t *rigport, char *statebuf)
     if (p)
     {
         int left_to_read = (p - statebuf) + 1;
-        memmove(statebuf, p + 1, 20 - left_to_read);
-        ret = read_block(rigport, statebuf + 20 - left_to_read, left_to_read);
+        memmove(statebuf, p + 1, CMD_E_RSP_LEN - left_to_read);
+        ret = read_block(rigport, statebuf + CMD_E_RSP_LEN - left_to_read,
+                         left_to_read);
 
         if (ret < 0)
         {
@@ -629,16 +651,45 @@ static int prm80_read_system_state(hamlib_port_t *rigport, char *statebuf)
         }
         else
         {
-            statebuf[20] = '\0';
+            statebuf[CMD_E_RSP_LEN] = '\0';
         }
 
         rig_debug(RIG_DEBUG_WARN, "%s: len=%d, statebuf='%s'\n", __func__, ret,
                   statebuf);
     }
 
+    prm80_wait_for_prompt(rigport);
+
     return RIG_OK;
 }
 
+/*
+ * Layer to handle the cache to Get system state [E]
+ */
+static int prm80_read_system_state(RIG *rig, char *statebuf)
+{
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    int ret = RIG_OK;
+
+    if (rig_check_cache_timeout(&priv->status_tv, PRM80_CACHE_TIMEOUT))
+    {
+        ret = prm80_do_read_system_state(&rig->state.rigport, statebuf);
+
+        if (ret == RIG_OK)
+        {
+            strcpy(priv->cached_statebuf, statebuf);
+
+            /* update cache date */
+            gettimeofday(&priv->status_tv, NULL);
+        }
+    }
+    else
+    {
+        strcpy(statebuf, priv->cached_statebuf);
+    }
+
+    return ret;
+}
 
 /*
  * prm80_get_channel
@@ -647,7 +698,6 @@ static int prm80_read_system_state(hamlib_port_t *rigport, char *statebuf)
 int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
-    struct rig_state *rs = &rig->state;
     char statebuf[BUFSZ];
     int ret, chanstate, mode_byte, lock_byte;
 
@@ -661,15 +711,15 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
         }
     }
 
-    ret = prm80_read_system_state(&rs->rigport, statebuf);
+    ret = prm80_read_system_state(rig, statebuf);
 
     if (ret != RIG_OK)
     {
         return ret;
     }
 
-    /* (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq). */
-    /* Examples: 1240080AFF0033F02D40 or 14000C00FD0079708020 */
+    /* (Mode-Chan-Chanstate-Sql-Vol-Lock-RX freq-TX freq-RSSI). */
+    /* Examples: 1240080AFF0033F02D40__ or 14000C00FD0079708020__ */
 
     /* Current mode:
        ; b0: Squelch       b1: power
@@ -698,9 +748,12 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     // squelch is in low nibble
     chan->levels[LVL_SQL].f = ((float)(hhtoi(statebuf + 6) & 0x0F)) / 15.;
-    // (remote control) volume is in high nibble
-    chan->levels[LVL_AF].f  = ((float)(hhtoi(statebuf + 8) >> 4)) / 15.;
+    // volume is hex "00" .. "10"
+    chan->levels[LVL_AF].f  = ((float)hhtoi(statebuf + 8)) / 16.;
     chan->levels[LVL_RFPOWER].f  = (mode_byte & 0x02) ? 1.0 : 0.0;
+
+    // new in FW V5
+    chan->levels[LVL_RAWSTR].i = hhtoi(statebuf + 20);
 
     chan->funcs  = 0;
     chan->funcs |= (chanstate & 0x02) ? RIG_FUNC_REV : 0;
@@ -733,8 +786,6 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
                   "%s: need to know if rig updates when channel read or not\n", __func__);
         //return -RIG_ENIMPL;
     }
-
-    prm80_wait_for_prompt(&rs->rigport);
 
     return RIG_OK;
 }
@@ -904,6 +955,8 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         }
     }
 
+    prm80_force_cache_timeout(rig);
+
     return RIG_OK;
 }
 
@@ -928,6 +981,8 @@ int prm80_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     {
         ret = -RIG_EINVAL;
     }
+
+    prm80_force_cache_timeout(rig);
 
     return ret;
 }
@@ -974,7 +1029,8 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_AF:
-        sprintf(buf, "%02u", (unsigned)(val.f * 15));
+        // Unlike system state, volume decimal
+        sprintf(buf, "%02u", (unsigned)(val.f * 16));
 
         return prm80_transaction(rig, "O", buf, 1);
 
@@ -991,14 +1047,12 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
            ; b6: Debouncing in effect b7: LCD refresh
            */
         // Perform a "Read-Modify-Write" of the mode_byte
-        ret = prm80_read_system_state(&rig->state.rigport, buf);
+        ret = prm80_read_system_state(rig, buf);
 
         if (ret != RIG_OK)
         {
             return ret;
         }
-
-        prm80_wait_for_prompt(&rig->state.rigport);
 
         mode_byte  = hhtoi(buf);
         mode_byte &= ~0x02;
@@ -1012,6 +1066,8 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                   rig_strlevel(level));
         return -RIG_EINVAL;
     }
+
+    prm80_force_cache_timeout(rig);
 
     return RIG_OK;
 }
@@ -1079,48 +1135,6 @@ static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
 #endif
 
 /*
- * get_level RIG_LEVEL_RAWSTR
- *
- * NB : requires a V5 firmware!
- */
-static int prm80_get_rawstr(RIG *rig, value_t *val)
-{
-    char buf[BUFSZ];
-    struct rig_state *rs = &rig->state;
-    int ret;
-
-    // Get rid of possible prompt sent by the rig
-    rig_flush(&rs->rigport);
-
-    /* [A] = RSSI */
-    ret = write_block(&rs->rigport, "A", 1);
-
-    if (ret < 0)
-    {
-        RETURNFUNC(ret);
-    }
-
-    // The response length is fixed
-    ret = read_block(&rs->rigport, buf, 4);
-
-    if (ret < 0)
-    {
-        return ret;
-    }
-
-    if (ret >= 0)
-    {
-        buf[ret] = '\0';
-    }
-
-    val->i = hhtoi(buf);
-
-    prm80_wait_for_prompt(&rs->rigport);
-
-    return RIG_OK;
-}
-
-/*
  * prm80_get_level
  * Assumes rig!=NULL
  */
@@ -1128,12 +1142,6 @@ int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int ret;
     channel_t chan;
-
-    // Get rawstr apart, it is not read from system state
-    if (level == RIG_LEVEL_RAWSTR)
-    {
-        return prm80_get_rawstr(rig, val);
-    }
 
     memset(&chan, 0, sizeof(chan));
     chan.vfo = RIG_VFO_CURR;
@@ -1147,6 +1155,11 @@ int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+    case RIG_LEVEL_RAWSTR:
+        val->i = chan.levels[LVL_RAWSTR].i;
+
+        break;
+
     case RIG_LEVEL_AF:
         val->f = chan.levels[LVL_AF].f;
 
@@ -1176,8 +1189,7 @@ int prm80_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     char statebuf[BUFSZ];
     int ret, mode_byte;
 
-    // TODO use command 'A' which is faster, but not in V4
-    ret = prm80_read_system_state(&rig->state.rigport, statebuf);
+    ret = prm80_read_system_state(rig, statebuf);
 
     if (ret != RIG_OK)
     {
@@ -1189,8 +1201,6 @@ int prm80_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     // TX mode on?
     *ptt = (mode_byte & 0x08) ? RIG_PTT_ON : RIG_PTT_OFF;
 
-    prm80_wait_for_prompt(&rig->state.rigport);
-
     return RIG_OK;
 }
 
@@ -1199,8 +1209,7 @@ int prm80_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     char statebuf[BUFSZ];
     int ret, mode_byte;
 
-    // TODO use command 'A' which is faster, but not in V4
-    ret = prm80_read_system_state(&rig->state.rigport, statebuf);
+    ret = prm80_read_system_state(rig, statebuf);
 
     if (ret != RIG_OK)
     {
@@ -1211,8 +1220,6 @@ int prm80_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
     // Squelch open?
     *dcd = (mode_byte & 0x04) ? RIG_DCD_ON : RIG_DCD_OFF;
-
-    prm80_wait_for_prompt(&rig->state.rigport);
 
     return RIG_OK;
 }
