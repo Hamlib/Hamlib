@@ -1101,7 +1101,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     switch (mode)
     {
-        case RIG_MODE_PKTLSB:
+    case RIG_MODE_PKTLSB:
         mode = RIG_MODE_RTTY; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT0"); /* DATA A mode - DATA (REV) on LSB optimized for HF Packet, VFO dial is suppressed carrier QRG */
@@ -1485,7 +1485,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
                  "DT2"); /* FSK D mode - direct FSK on USB optimized for RTTY, VFO dial is MARK */
         break;
 
-   case RIG_MODE_PSK:
+    case RIG_MODE_PSK:
         tx_mode = RIG_MODE_PSK;
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT3"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */

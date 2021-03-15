@@ -307,7 +307,8 @@ int hiqsdr_init(RIG *rig)
     priv->split = RIG_SPLIT_OFF;
     priv->ref_clock = REFCLOCK;
     priv->sample_rate = DEFAULT_SAMPLE_RATE;
-    strncpy(rig->state.rigport.pathname, "192.168.2.196:48248", HAMLIB_FILPATHLEN - 1);
+    strncpy(rig->state.rigport.pathname, "192.168.2.196:48248",
+            HAMLIB_FILPATHLEN - 1);
 
     return RIG_OK;
 }
