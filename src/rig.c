@@ -1392,6 +1392,8 @@ static int set_cache_mode(RIG *rig, vfo_t vfo, mode_t mode, pbwidth_t width)
 
 static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+    int flag = HAMLIB_ELAPSED_SET;
+
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
@@ -1401,6 +1403,9 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // if CURR then update this before we figure out the real VFO
         vfo = rig->state.current_vfo;
     }
+
+    // if freq == 0 then we are asking to invalidate the cache
+    if (freq == 0) flag = HAMLIB_ELAPSED_INVALIDATE;
 
     // pick a sane default
     if (vfo == RIG_VFO_NONE || vfo == RIG_VFO_CURR) { vfo = RIG_VFO_A; }
@@ -1433,40 +1438,40 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
     case RIG_VFO_MAIN:
     case RIG_VFO_MAIN_A:
         rig->state.cache.freqMainA = freq;
-        elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_freqMainA, flag);
         break;
 
     case RIG_VFO_B:
     case RIG_VFO_MAIN_B:
     case RIG_VFO_SUB:
         rig->state.cache.freqMainB = freq;
-        elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_freqMainB, flag);
         break;
 
     case RIG_VFO_C:
     case RIG_VFO_MAIN_C:
         rig->state.cache.freqMainC = freq;
-        elapsed_ms(&rig->state.cache.time_freqMainC, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_freqMainC, flag);
         break;
 
     case RIG_VFO_SUB_A:
         rig->state.cache.freqSubA = freq;
-        elapsed_ms(&rig->state.cache.time_freqSubA, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_freqSubA, flag);
         break;
 
     case RIG_VFO_SUB_B:
         rig->state.cache.freqSubB = freq;
-        elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_freqSubB, flag);
         break;
 
     case RIG_VFO_SUB_C:
         rig->state.cache.freqSubC = freq;
-        elapsed_ms(&rig->state.cache.time_freqSubC, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_freqSubC, flag);
         break;
 
     case RIG_VFO_MEM:
         rig->state.cache.freqMem = freq;
-        elapsed_ms(&rig->state.cache.time_freqMem, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&rig->state.cache.time_freqMem, flag);
         break;
 
     default:
