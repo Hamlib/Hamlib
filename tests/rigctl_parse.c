@@ -65,7 +65,6 @@ extern int read_history();
 #include <hamlib/rig.h>
 #include "misc.h"
 #include "iofunc.h"
-#include "serial.h"
 #include "sprintflst.h"
 
 #include "rigctl_parse.h"
@@ -662,7 +661,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d\n", __func__,
                               retcode);
-                    RETURNFUNC(-1);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 if (cmd != 0xa)
@@ -681,12 +680,12 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
                         rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#2?\n", __func__);
-                        RETURNFUNC(-1);
+                        RETURNFUNC(RIGCTL_PARSE_ERROR);
                     }
                 }
                 else if (cmd == '+' && prompt)
                 {
-                    RETURNFUNC(0);
+                    RETURNFUNC(RIG_OK);
                 }
 
                 if (cmd != '\\'
@@ -704,7 +703,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
                         rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#3?\n", __func__);
-                        RETURNFUNC(-1);
+                        RETURNFUNC(RIGCTL_PARSE_ERROR);
                     }
                 }
                 else if (cmd != '\\'
@@ -717,7 +716,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                          && prompt)
                 {
 
-                    RETURNFUNC(0);
+                    RETURNFUNC(RIG_OK);
                 }
 
                 /* command by name */
@@ -728,7 +727,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     if (scanfc(fin, "%c", pcmd) < 1)
                     {
                         rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#4?\n", __func__);
-                        RETURNFUNC(-1);
+                        RETURNFUNC(RIGCTL_PARSE_ERROR);
                     }
 
                     retcode = fscanf(fin, "%s", ++pcmd);
@@ -755,7 +754,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                             fprintf_flush(fout, "\nRig command: ");
                         }
 
-                        RETURNFUNC(0);
+                        RETURNFUNC(RIG_OK);
                     }
 
                     last_was_ret = 1;
@@ -773,11 +772,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     if (scanfc(fin, "%c", &cmd) < 1)
                     {
                         rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#6?\n", __func__);
-                        RETURNFUNC(-1);
+                        RETURNFUNC(RIGCTL_PARSE_ERROR);
                     }
                 }
 
-                RETURNFUNC(0);
+                RETURNFUNC(RIG_OK);
             }
 
             my_rig->state.vfo_opt = *vfo_opt;
@@ -790,14 +789,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (interactive && !prompt) { fprintf(fout, "%s0\n", NETRIGCTL_RET); }
 
                 fflush(fout);
-                RETURNFUNC(1);
+                RETURNFUNC(RIGCTL_PARSE_END);
             }
 
             if (cmd == '?')
             {
                 usage_rig(fout);
                 fflush(fout);
-                RETURNFUNC(0);
+                RETURNFUNC(RIG_OK);
             }
         }
         else
@@ -807,11 +806,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
             if (EOF == retcode)
             {
-                RETURNFUNC(1);
+                RETURNFUNC(RIGCTL_PARSE_END);
             }
             else if (retcode < 0)
             {
-                RETURNFUNC(retcode);
+                RETURNFUNC(RIGCTL_PARSE_ERROR);
             }
             else if ('\0' == command[1])
             {
@@ -832,7 +831,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 fprintf(stderr, "Command '%c' not found!\n", cmd);
             }
 
-            RETURNFUNC(0);
+            RETURNFUNC(RIG_OK);
         }
 
         if (!(cmd_entry->flags & ARG_NOVFO) && *vfo_opt)
@@ -850,7 +849,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (scanfc(fin, "%s", arg1) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#7?\n", __func__);
-                    RETURNFUNC(-1);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 vfo = rig_parse_vfo(arg1);
@@ -866,7 +865,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 }
                 else if (retcode < 0)
                 {
-                    RETURNFUNC(retcode);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 vfo = rig_parse_vfo(arg1);
@@ -889,7 +888,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 if (fgets(arg1, MAXARGSZ, fin) == NULL)
                 {
-                    RETURNFUNC(-1);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 if (arg1[0] == 0xa)
@@ -903,7 +902,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                     if (fgets(arg1, MAXARGSZ, fin) == NULL)
                     {
-                        RETURNFUNC(-1);
+                        RETURNFUNC(RIGCTL_PARSE_ERROR);
                     }
                 }
 
@@ -931,11 +930,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     fprintf(stderr, "Invalid arg for command '%s'\n",
                             cmd_entry->name);
-                    RETURNFUNC(1);
+                    RETURNFUNC(RIGCTL_PARSE_END);
                 }
                 else if (retcode < 0)
                 {
-                    RETURNFUNC(retcode);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 p1 = arg1;
@@ -959,7 +958,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (scanfc(fin, "%s", arg1) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#8?\n", __func__);
-                    RETURNFUNC(-1);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 p1 = arg1;
@@ -976,7 +975,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 }
                 else if (retcode < 0)
                 {
-                    RETURNFUNC(retcode);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 p1 = arg1;
@@ -1005,7 +1004,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (scanfc(fin, "%s", arg2) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#9?\n", __func__);
-                    RETURNFUNC(-1);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 p2 = arg2;
@@ -1019,11 +1018,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     fprintf(stderr, "Invalid arg for command '%s'\n",
                             cmd_entry->name);
-                    RETURNFUNC(1);
+                    RETURNFUNC(RIGCTL_PARSE_END);
                 }
                 else if (retcode < 0)
                 {
-                    RETURNFUNC(retcode);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 p2 = arg2;
@@ -1052,7 +1051,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (scanfc(fin, "%s", arg3) < 1)
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#10?\n", __func__);
-                    RETURNFUNC(-1);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 p3 = arg3;
@@ -1067,11 +1066,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     fprintf(stderr,
                             "Invalid arg for command '%s'\n",
                             cmd_entry->name);
-                    RETURNFUNC(1);
+                    RETURNFUNC(RIGCTL_PARSE_END);
                 }
                 else if (retcode < 0)
                 {
-                    RETURNFUNC(retcode);
+                    RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
                 p3 = arg3;
@@ -1098,13 +1097,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         if (!input_line)
         {
             fprintf_flush(fout, "\n");
-            RETURNFUNC(1);
+            RETURNFUNC(RIGCTL_PARSE_END);
         }
 
         /* Q or q to quit */
         if (!(strncasecmp(input_line, "q", 1)))
         {
-            RETURNFUNC(1);
+            RETURNFUNC(RIGCTL_PARSE_END);
         }
 
         /* '?' for help */
@@ -1112,13 +1111,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         {
             usage_rig(fout);
             fflush(fout);
-            RETURNFUNC(0);
+            RETURNFUNC(RIG_OK);
         }
 
         /* '#' for comment */
         if (!(strncmp(input_line, "#", 1)))
         {
-            RETURNFUNC(0);
+            RETURNFUNC(RIG_OK);
         }
 
         /* Blank line entered */
@@ -1126,7 +1125,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         {
             fprintf(fout, "? for help, q to quit.\n");
             fflush(fout);
-            RETURNFUNC(0);
+            RETURNFUNC(RIG_OK);
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: input_line: %s\n", __func__, input_line);
@@ -1149,7 +1148,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         {
             /* Oops!  Invoke GDB!! */
             fprintf_flush(fout, "\n");
-            RETURNFUNC(1);
+            RETURNFUNC(RIGCTL_PARSE_END);
         }
 
         /* At this point parsed_input contains the typed text of the command
@@ -1208,7 +1207,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     fprintf(stderr,
                             "Valid multiple character command names contain alphanumeric characters plus '_'\n");
-                    RETURNFUNC(0);
+                    RETURNFUNC(RIG_OK);
                 }
             }
 
@@ -1217,13 +1216,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         /* Single '\' entered, prompt again */
         else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) == 1))
         {
-            RETURNFUNC(0);
+            RETURNFUNC(RIG_OK);
         }
         /* Multiple characters but no leading '\' */
         else
         {
             fprintf(stderr, "Precede multiple character command names with '\\'\n");
-            RETURNFUNC(0);
+            RETURNFUNC(RIG_OK);
         }
 
         cmd_entry = find_cmd_entry(cmd);
@@ -1239,7 +1238,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 fprintf(stderr, "Command '%c' not found!\n", cmd);
             }
 
-            RETURNFUNC(0);
+            RETURNFUNC(RIG_OK);
         }
 
         /* If vfo_opt is enabled (-o|--vfo) check if already given
@@ -1264,7 +1263,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 if (!input_line)
                 {
                     fprintf_flush(fout, "\n");
-                    RETURNFUNC(1);
+                    RETURNFUNC(RIGCTL_PARSE_END);
                 }
 
                 /* Blank line entered */
@@ -1272,7 +1271,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
-                    RETURNFUNC(0);
+                    RETURNFUNC(RIG_OK);
                 }
 
                 /* Get the first token of input, the rest, if any, will be
@@ -1287,7 +1286,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 else
                 {
                     fprintf_flush(fout, "\n");
-                    RETURNFUNC(1);
+                    RETURNFUNC(RIGCTL_PARSE_END);
                 }
             }
 
@@ -1366,7 +1365,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
-                    RETURNFUNC(0);
+                    RETURNFUNC(RIG_OK);
                 }
 
                 if (input_line)
@@ -1376,7 +1375,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 else
                 {
                     fprintf_flush(fout, "\n");
-                    RETURNFUNC(1);
+                    RETURNFUNC(RIGCTL_PARSE_END);
                 }
             }
 
@@ -1428,7 +1427,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
-                    RETURNFUNC(0);
+                    RETURNFUNC(RIG_OK);
                 }
 
                 result = strtok(input_line, " ");
@@ -1440,7 +1439,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 else
                 {
                     fprintf_flush(fout, "\n");
-                    RETURNFUNC(1);
+                    RETURNFUNC(RIGCTL_PARSE_END);
                 }
             }
 
@@ -1494,7 +1493,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
-                    RETURNFUNC(0);
+                    RETURNFUNC(RIG_OK);
                 }
 
                 result = strtok(input_line, " ");
@@ -1506,7 +1505,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 else
                 {
                     fprintf_flush(fout, "\n");
-                    RETURNFUNC(1);
+                    RETURNFUNC(RIGCTL_PARSE_END);
                 }
             }
 
@@ -1560,7 +1559,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
-                    RETURNFUNC(0);
+                    RETURNFUNC(RIG_OK);
                 }
 
                 result = strtok(input_line, " ");
@@ -1572,7 +1571,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 else
                 {
                     fprintf_flush(fout, "\n");
-                    RETURNFUNC(1);
+                    RETURNFUNC(RIGCTL_PARSE_END);
                 }
             }
 
@@ -1669,7 +1668,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
 
-    if (retcode == RIG_EIO)
+    if (retcode == -RIG_EIO)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RIG_EIO?\n", __func__);
 
@@ -1727,12 +1726,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
     if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 
-    if (retcode == -RIG_ENAVAIL)
-    {
-        RETURNFUNC(retcode);
-    }
-
-    RETURNFUNC(retcode != RIG_OK ? 2 : 0);
+    RETURNFUNC(retcode);
 }
 
 
