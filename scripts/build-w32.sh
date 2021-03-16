@@ -221,6 +221,7 @@ END_OF_README
  --prefix=${INST_DIR} \
  --without-cxx-binding \
  --disable-static \
+ --with-python-binding \
  CPPFLAGS="-I${LIBUSB_1_0_BIN_PATH}/include" \
  LDFLAGS="-L${LIBUSB_1_0_BIN_PATH}/MinGW32/dll"
 
