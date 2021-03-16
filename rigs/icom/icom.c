@@ -1075,21 +1075,14 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
-    {
-        //  if we don't get ACK/NAK some serial corruption occurred
-        // so we'll call it a timeout for retry purposes
-        RETURNFUNC(-RIG_ETIMEOUT);
-    }
-
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -1599,7 +1592,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
         RETURNFUNC(retval);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: command not supported ? (%#.2x), "
                   "len=%d\n", __func__, ackbuf[0], ack_len);
@@ -1714,7 +1707,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         }
         else
         {
-            if (ack_len != 1 || ackbuf[0] != ACK)
+            if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
             {
                 rig_debug(RIG_DEBUG_ERR,
                           "%s: command not supported ? (%#.2x), len=%d\n",
@@ -1791,14 +1784,14 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -2170,14 +2163,14 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -2196,14 +2189,14 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -2224,14 +2217,14 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -2253,14 +2246,14 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -2287,14 +2280,14 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -2813,14 +2806,14 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -3647,14 +3640,14 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -3778,14 +3771,14 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -3886,14 +3879,14 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -4171,14 +4164,14 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -4392,14 +4385,14 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -4512,14 +4505,14 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -4622,14 +4615,14 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -4746,14 +4739,14 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -4892,14 +4885,14 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -5140,14 +5133,14 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -5333,14 +5326,14 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -6004,14 +5997,14 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -6112,14 +6105,14 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -6213,14 +6206,14 @@ int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -6319,14 +6312,14 @@ int icom_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -6489,7 +6482,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         RETURNFUNC(retval);
     }
 
-    if (status == RIG_POWER_OFF && (ack_len != 1 || ackbuf[0] != ACK))
+    if (status == RIG_POWER_OFF && (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK)))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -6539,14 +6532,14 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
             RETURNFUNC(retval);
         }
 
-        if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
         {
             //  if we don't get ACK/NAK some serial corruption occurred
             // so we'll call it a timeout for retry purposes
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
-        if (ack_len != 1 || ackbuf[0] != ACK)
+        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                       ackbuf[0], ack_len);
@@ -6583,14 +6576,14 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -6620,14 +6613,14 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -6756,14 +6749,14 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -6943,14 +6936,14 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         if (op != RIG_OP_XCHG)
         {
@@ -7056,14 +7049,14 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -7101,14 +7094,14 @@ int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -7140,14 +7133,14 @@ int icom_stop_morse(RIG *rig, vfo_t vfo)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -7352,14 +7345,14 @@ int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen,
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
@@ -7392,7 +7385,7 @@ int icom_get_raw_buf(RIG *rig, int cmd, int subcmd, int subcmdbuflen,
     cmdhead += (subcmd == -1) ? 1 : 2;
     ack_len -= cmdhead;
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
@@ -7509,14 +7502,14 @@ int icom_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
         RETURNFUNC(retval);
     }
 
-    if (ack_len >= 1 && ackbuf[0] != ACK && ackbuf[1] != NAK)
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || ackbuf[0] != ACK)
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
