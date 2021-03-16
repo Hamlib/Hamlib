@@ -7399,13 +7399,6 @@ int icom_get_raw_buf(RIG *rig, int cmd, int subcmd, int subcmdbuflen,
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ackbuf[0] != ACK && ackbuf[0] != cmd)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
-                  ackbuf[0], ack_len);
-        RETURNFUNC(-RIG_ERJCTED);
-    }
-
     rig_debug(RIG_DEBUG_TRACE, "%s: %d\n", __func__, ack_len);
 
     if (*reslen < ack_len || res == NULL)
