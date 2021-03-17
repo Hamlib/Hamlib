@@ -6482,7 +6482,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         RETURNFUNC(retval);
     }
 
-    if (status == RIG_POWER_OFF && (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK)))
+    if (status == RIG_POWER_OFF && (ack_len != 1 || (ack_len >= 1
+                                    && ackbuf[0] != ACK)))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
