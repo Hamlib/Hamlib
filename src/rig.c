@@ -1405,7 +1405,7 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     // if freq == 0 then we are asking to invalidate the cache
-    if (freq == 0) flag = HAMLIB_ELAPSED_INVALIDATE;
+    if (freq == 0) { flag = HAMLIB_ELAPSED_INVALIDATE; }
 
     // pick a sane default
     if (vfo == RIG_VFO_NONE || vfo == RIG_VFO_CURR) { vfo = RIG_VFO_A; }
