@@ -6532,20 +6532,6 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
             RETURNFUNC(retval);
         }
 
-        if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
-        {
-            //  if we don't get ACK/NAK some serial corruption occurred
-            // so we'll call it a timeout for retry purposes
-            RETURNFUNC(-RIG_ETIMEOUT);
-        }
-
-        if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
-                      ackbuf[0], ack_len);
-            RETURNFUNC(-RIG_ERJCTED);
-        }
-
         *status = ackbuf[1] == S_PWR_ON ? RIG_POWER_ON : RIG_POWER_OFF;
     }
 
@@ -7384,13 +7370,6 @@ int icom_get_raw_buf(RIG *rig, int cmd, int subcmd, int subcmdbuflen,
 
     cmdhead += (subcmd == -1) ? 1 : 2;
     ack_len -= cmdhead;
-
-    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
-    {
-        //  if we don't get ACK/NAK some serial corruption occurred
-        // so we'll call it a timeout for retry purposes
-        RETURNFUNC(-RIG_ETIMEOUT);
-    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: %d\n", __func__, ack_len);
 

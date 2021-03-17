@@ -28,6 +28,9 @@
 #include <stdio.h>
 #include <hamlib/rig.h>
 
+#define RIGCTL_PARSE_END 1
+#define RIGCTL_PARSE_ERROR 2
+
 /*
  * external prototype
  */
