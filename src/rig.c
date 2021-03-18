@@ -1716,6 +1716,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             set_cache_freq(rig, vfo, (freq_t)0);
 
+#if 0 // this verification seems to be causing bad behavior on some reigs
             if (caps->get_freq)
             {
                 retcode = rig_get_freq(rig, vfo, &tfreq);
@@ -1734,6 +1735,9 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 }
             }
             else { retry = 0; }
+#else
+            tfreq = freq;
+#endif
         }
         while (tfreq != freq && retry-- > 0);
 
@@ -3504,7 +3508,11 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
             if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
+#if 0 // this verification seems to be causing bad behavior on some reigs
             retcode = rig_get_freq(rig, tx_vfo, &tfreq);
+#else
+            tfreq = tx_freq;
+#endif
         }
         while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK);
 
@@ -3534,6 +3542,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     do
     {
+#if 0 // this verification seems to be causing bad behavior on some reigs
         if (caps->set_split_freq)
         {
             retcode = caps->set_split_freq(rig, vfo, tx_freq);
@@ -3544,6 +3553,9 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
             retcode = rig_set_freq(rig, RIG_VFO_CURR, tx_freq);
             rig_get_freq(rig, vfo, &tfreq);
         }
+#else
+        tfreq = tx_freq;
+#endif
     }
     while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK);
 
@@ -3973,6 +3985,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
         do
         {
             retcode = caps->set_split_freq_mode(rig, vfo, tx_freq, tx_mode, tx_width);
+#if 0 // this verification seems to be causing bad behavior on some reigs
             retcode2 = rig_get_split_freq(rig, vfo, &tfreq);
 
             if (tfreq != tx_freq)
@@ -3982,6 +3995,10 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
                           tfreq, retry, retcode, retcode2);
                 hl_usleep(50 * 1000); // 50ms sleep may help here
             }
+#else
+            tfreq = tx_freq;
+            retcode2 = RIG_OK;
+#endif
         }
         while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK
                 && retcode2 == RIG_OK);
