@@ -3147,7 +3147,7 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 
     case RIG_DCD_PARALLEL:
-        retcode=par_dcd_get(&rig->state.dcdport, dcd);
+        retcode = par_dcd_get(&rig->state.dcdport, dcd);
         RETURNFUNC(retcode);
 
     case RIG_DCD_GPIO:
