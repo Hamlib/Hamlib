@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
     char conf_parms[MAXCONFLEN] = "";
     int status;
 
-    printf("rigctlcom Version 1.1\n");
+    printf("rigctlcom Version 1.2\n");
 
     while (1)
     {
@@ -464,7 +464,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s, %s\n", "rigctlcom", hamlib_version);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s, %s\n", "rigctlcom", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -873,6 +873,7 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
 
+        rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A), 0);
         snprintf(response, sizeof(response), "RX0;");
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
