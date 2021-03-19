@@ -51,7 +51,6 @@ class Prm80Simul:
             'C' : self.tch_Chanlist,
             'R' : self.tch_Rfreq,
             'E' : self.tch_Estate,
-            'A' : self.tch_Astatus,
             '#' : self.tch_diese,
             '*' : self.tch_autre,
         }
@@ -186,10 +185,6 @@ class Prm80Simul:
             self.TxPLL,
             rssi
             ).encode())
-
-    def tch_Astatus(self):
-        """ Print value of RSSI, squelch and transmit status. V5. """
-        self.pty_write(b'1801')
 
     def tch_Chanlist(self):
         """ Print channels list """
