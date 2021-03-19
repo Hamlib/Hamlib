@@ -878,6 +878,11 @@ static int handle_ts2000(void *arg)
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     // Now some commands to set things
+    else if (strncmp(arg,"SA",2) == 0)
+    {
+        // todo -- make rigs changes based on TS-2000 bit flags
+        return RIG_OK;
+    }
     else if (strcmp(arg, "TX;") == 0)
     {
         return rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A), 1);
