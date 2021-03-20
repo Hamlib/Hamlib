@@ -2233,16 +2233,18 @@ declare_proto_rig(get_vfo_info)
     }
     rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s, freq=%.0f, mode=%s, width=%d\n", __func__, rig_strvfo(vfo), freq, rig_strrmode(mode), (int)width);
 
+    const char * modestr = rig_strrmode(mode);
+    if (strlen(modestr) == 0) modestr = "None";
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: %.0f\n", cmd->arg1, freq);
-        fprintf(fout, "%s: %s\n", cmd->arg2, rig_strrmode(mode));
+        fprintf(fout, "%s: %s\n", cmd->arg2, modestr);
         fprintf(fout, "%s: %d\n", cmd->arg3, (int)width);
         fprintf(fout, "%s: %d\n", cmd->arg4, (int)split);
     }
     else
     {
-        fprintf(fout, "%.0f\n%s\n%d\n", freq, rig_strrmode(mode), (int)width);
+        fprintf(fout, "%.0f\n%s\n%d\n", freq, modestr, (int)width);
     }
 
     RETURNFUNC(retval);
