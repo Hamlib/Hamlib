@@ -72,7 +72,7 @@
 #include "gpio.h"
 #include "misc.h"
 #include "sprintflst.h"
-#include "../tests/hamlibdatetime.h"
+#include "hamlibdatetime.h"
 
 /**
  * \brief Hamlib release number

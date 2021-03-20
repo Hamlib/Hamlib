@@ -4,17 +4,15 @@
 # AUTOMAKE_OPTIONS = dejagnu
 # DEJATOOL = testfreq testbcd testloc rigctl
 
-BUILT_SOURCES = $(builddir)/hamlibdatetime.h
-
-DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum hamlibdatetime.h
+DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom ampctl ampctld
 
 check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 
 
-RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c uthash.h hamlibdatetime.h
-ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h hamlibdatetime.h
-AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h hamlibdatetime.h
+RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c uthash.h ../src/hamlibdatetime.h
+ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h ../src/hamlibdatetime.h
+AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h ../src/hamlibdatetime.h
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
 rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
@@ -73,8 +71,7 @@ rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
 endif
 
 
-EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk testctld.pl testrotctld.pl \
-	hamlibdatetime.h.in
+EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk testctld.pl testrotctld.pl
 
 # Support 'make check' target for simple tests
 check_SCRIPTS = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh
@@ -105,29 +102,5 @@ testrigcaps.sh:
 testcache.sh:
 	echo './testcache 1' > testcache.sh
 	chmod +x ./testcache.sh
-
-# If we have  a .git directory then we will  generate the hamlibdate.h
-# file and  replace it if it  is different. Fall  back to a copy  of a
-# generic hamlibdatetime.h.in in the source tree. Build looks in build
-# directory  before  the  source directory  for  the  hamlibdatetime.h
-# header.
-hamlibdatetime.h: FORCE
-	@if test -x $(top_srcdir)/.git ; then \
-		echo "/* This date time is from the last non-merge commit to Hamlib. */" > $(builddir)/$(@F).tmp ;\
-		echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%a %b %d %H:%M:%S %Y %z SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges | grep commit | head -n 1 | cut -c8-13)\"  >> $(builddir)/$(@F).tmp ;\
-		diff -qN $(builddir)/$(@F).tmp $(builddir)/$(@F) ; test $$? -eq 0 || { echo "Generating SCS header \"$(builddir)/$(@F)\"" ; mv -f $(builddir)/$(@F).tmp $(builddir)/$(@F) ; } ;\
-		rm -f $(builddir)/$(@F).tmp ;\
-	else \
-		test -f $(srcdir)/$(@F) || cp $(srcdir)/$(@F).in $(srcdir)/$(@F) ;\
-	fi
-
-FORCE:
-
-# If we are making a  distribution out-of-source and we have generated
-# a  hamlibdatetime.h; then  copy it  to  the tests  directory of  the
-# source  tarball  so  that  downstream builds  pick  up  the  version
-# information we know about.
-dist-hook:
-	test ./ -ef $(srcdir)/ || test ! -f hamlibdatetime.h || cp -f hamlibdatetime.h $(srcdir)/
 
 CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh
