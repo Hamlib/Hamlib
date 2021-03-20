@@ -1732,7 +1732,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
 void version()
 {
-    printf("rigctl(d), %s\n\n", hamlib_version);
+    printf("rigctl(d), %s\n\n", hamlib_version2);
     printf("%s\n", hamlib_copyright);
 }
 

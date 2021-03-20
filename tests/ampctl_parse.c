@@ -1436,7 +1436,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 
 void version()
 {
-    printf("ampctl(d), %s\n\n", hamlib_version);
+    printf("ampctl(d), %s\n\n", hamlib_version2);
     printf("%s\n", hamlib_copyright);
 }
 

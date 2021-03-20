@@ -72,6 +72,7 @@
 #include "gpio.h"
 #include "misc.h"
 #include "sprintflst.h"
+#include "../tests/hamlibdatetime.h"
 
 /**
  * \brief Hamlib release number
@@ -86,7 +87,7 @@
 const char *hamlib_license = "LGPL";
 //! @cond Doxygen_Suppress
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
-const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION;
+const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME;
 //! @endcond
 
 struct rig_caps caps_test;

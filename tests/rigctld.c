@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            printf("rigctl %s\nLast commit was %s\n", hamlib_version, HAMLIBDATETIME);
+            printf("rigctl %s\n", hamlib_version2);
             exit(0);
 
         case 'm':
@@ -556,8 +556,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\nLast commit was %s\n", hamlib_version,
-              HAMLIBDATETIME);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
