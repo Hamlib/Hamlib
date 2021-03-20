@@ -2227,7 +2227,11 @@ declare_proto_rig(get_vfo_info)
     split_t split;
     retval = rig_get_vfo_info(rig, vfo, &freq, &mode, &width, &split);
 
-    rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+    }
+    rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s, freq=%.0f, mode=%s, width=%d\n", __func__, rig_strvfo(vfo), freq, rig_strrmode(mode), (int)width);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
