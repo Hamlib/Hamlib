@@ -2098,7 +2098,17 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         else if (VFO_HAS_MAIN_SUB_A_B_ONLY && rig->state.cache.satmode) { vfo = RIG_VFO_SUB; }
     }
 
-    if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B && VFO_HAS_MAIN_SUB)
+    else if ((vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) && VFO_HAS_MAIN_SUB_A_B_ONLY)
+    {
+        // If we're being asked for A/Main but we are a MainA/MainB rig change it
+        vfo = RIG_VFO_MAIN_A;
+    } 
+    else if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) && VFO_HAS_MAIN_SUB_A_B_ONLY)
+    {
+        // If we're being asked for B/Sub but we are a MainA/MainB rig change it
+        vfo = RIG_VFO_MAIN_B;
+    }
+    else if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B && VFO_HAS_MAIN_SUB)
     {
         // If we're being asked for A/B but we are a Main/Sub rig change it
         vfo_t vfo_old = vfo;
@@ -2107,6 +2117,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: Mapping %s=%s\n", __func__, rig_strvfo(vfo_old),
                   rig_strvfo(vfo));
     }
+
 
     if ((vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB) && !VFO_HAS_MAIN_SUB)
     {
