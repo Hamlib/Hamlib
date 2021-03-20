@@ -1507,7 +1507,7 @@ static int handle_ts2000(void *arg)
         freq_t freq;
 
         sscanf((char *)arg + 2, "%"SCNfreq, &freq);
-        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A), freq);
+        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_B), freq);
     }
     else if (strncmp(arg, "MD", 2) == 0)
     {
