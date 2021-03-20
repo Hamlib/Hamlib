@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20210319"
+#define BACKEND_VER "20210320"
 
 /*
  * defines used by comp_cal_str in rig.c
