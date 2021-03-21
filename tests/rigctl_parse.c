@@ -2231,7 +2231,6 @@ declare_proto_rig(get_vfo_info)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
     }
-    rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s, freq=%.0f, mode=%s, width=%d\n", __func__, rig_strvfo(vfo), freq, rig_strrmode(mode), (int)width);
 
     const char * modestr = rig_strrmode(mode);
     if (strlen(modestr) == 0) modestr = "None";
