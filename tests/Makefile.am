@@ -10,9 +10,9 @@ bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom amp
 
 check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 
 
-RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c uthash.h $(builddir)/src/hamlibdatetime.h
-ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h $(builddir)/src/hamlibdatetime.h
-AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h $(builddir)/src/hamlibdatetime.h
+RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c uthash.h 
+ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h 
+AMPCOMMONSRC = ampctl_parse.c ampctl_parse.h dumpcaps_amp.c uthash.h 
 
 rigctl_SOURCES = rigctl.c $(RIGCOMMONSRC)
 rigctld_SOURCES = rigctld.c $(RIGCOMMONSRC)
@@ -26,15 +26,17 @@ rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
 
 # include generated include files ahead of any in sources
-rigctl_CPPFLAGS = -I$(builddir)/tests -I$(builddir)/src -I$(srcdir) $(AM_CPPFLAGS)
+rigctl_CPPFLAGS = -I$(top_builddir)/tests -I$(top_builddir)/src -I$(srcdir) $(AM_CPPFLAGS)
 
 # all the programs need this
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS)
 
 rigmem_CFLAGS = $(AM_CFLAGS) $(LIBXML2_CFLAGS)
-rigctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+rigctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
+rotctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
+rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
+ampctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
+ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 
 rigctl_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(LDADD)
