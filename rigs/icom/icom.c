@@ -5252,6 +5252,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
     {
         rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+        priv->x25cmdfails = satmode; // reset this so it tries again
     }
 
     rig->state.cache.satmode = satmode;
@@ -5625,7 +5626,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             fct_sc = S_MEM_SATMODE;
         }
 
-        priv->x25cmdfails = 0; // we reset this to try it again
+        priv->x25cmdfails = status; // we reset this to current status -- fails in SATMODE
         priv->x1cx03cmdfails = 0; // we reset this to try it again
         rig->state.cache.satmode = status;
 
@@ -5835,7 +5836,6 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_SATMODE;
         }
-
         break;
 
 
@@ -5867,6 +5867,14 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     else
     {
         *status = ackbuf[2] == 2 ? 1 : 0;
+        if (func == RIG_FUNC_SATMODE)
+        {
+            struct rig_state *rs = &rig->state;
+            //struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+            struct icom_priv_data *priv = rs->priv;
+            // we'll reset this based on current status
+            priv->x25cmdfails = *status;
+        }
     }
 
     RETURNFUNC(RIG_OK);
