@@ -566,7 +566,7 @@ static struct
     { RIG_VFO_MAIN, "Main" },
     { RIG_VFO_MAIN_A, "MainA" },
     { RIG_VFO_MAIN_B, "MainB" },
-    { RIG_VFO_MAIN_C, "MainB" },
+    { RIG_VFO_MAIN_C, "MainC" },
     { RIG_VFO_SUB, "Sub" },
     { RIG_VFO_SUB_A, "SubA" },
     { RIG_VFO_SUB_B, "SubB" },
