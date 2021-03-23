@@ -7616,6 +7616,7 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
         rig_debug(RIG_DEBUG_TRACE, "%s: Asking for currVFO,  currVFO=%s\n", __func__,
                   rig_strvfo(rig->state.current_vfo));
         vfo = rig->state.current_vfo;
+        RETURNFUNC(RIG_OK);
     }
 
     if (vfo == RIG_VFO_MAIN && VFO_HAS_A_B_ONLY)
