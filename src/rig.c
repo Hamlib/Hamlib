@@ -3993,15 +3993,18 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
     if (caps->set_split_freq_mode)
     {
+#if 0
         freq_t tfreq;
         int retry = 3;
         int retcode2;
+#endif
 
+        retcode = caps->set_split_freq_mode(rig, vfo, tx_freq, tx_mode, tx_width);
+#if 0 // this verification seems to be causing bad behavior on some reigs
         // we query freq after set to ensure it really gets done
         do
         {
             retcode = caps->set_split_freq_mode(rig, vfo, tx_freq, tx_mode, tx_width);
-#if 0 // this verification seems to be causing bad behavior on some reigs
             retcode2 = rig_get_split_freq(rig, vfo, &tfreq);
 
             if (tfreq != tx_freq)
@@ -4011,15 +4014,14 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
                           tfreq, retry, retcode, retcode2);
                 hl_usleep(50 * 1000); // 50ms sleep may help here
             }
-#else
             tfreq = tx_freq;
             retcode2 = RIG_OK;
-#endif
         }
         while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK
                 && retcode2 == RIG_OK);
 
         if (tfreq != tx_freq) { retcode = -RIG_EPROTO; }
+#endif
 
         RETURNFUNC(retcode);
     }
