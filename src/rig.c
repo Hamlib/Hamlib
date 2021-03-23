@@ -2491,7 +2491,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     // we only get the freq if we set the vfo OK
     if (retcode == RIG_OK && caps->get_freq)
     {
-        retcode = caps->get_freq(rig, vfo, &curr_freq);
+        retcode = caps->get_freq(rig, RIG_VFO_CURR, &curr_freq);
         rig_debug(RIG_DEBUG_TRACE, "%s: retcode from rig_get_freq = %.10000s\n",
                   __func__,
                   rigerror(retcode));
