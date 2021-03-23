@@ -1340,6 +1340,8 @@ static int set_cache_mode(RIG *rig, vfo_t vfo, mode_t mode, pbwidth_t width)
     // pick a sane default
     if (vfo == RIG_VFO_NONE || vfo == RIG_VFO_CURR) { vfo = RIG_VFO_A; }
 
+    if (vfo == RIG_VFO_SUB && rig->state.cache.satmode) { vfo = RIG_VFO_SUB_A; };
+
     switch (vfo)
     {
     case RIG_VFO_ALL: // we'll use NONE to reset all VFO caches
@@ -1410,6 +1412,8 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // pick a sane default
     if (vfo == RIG_VFO_NONE || vfo == RIG_VFO_CURR) { vfo = RIG_VFO_A; }
+
+    if (vfo == RIG_VFO_SUB && rig->state.cache.satmode) { vfo = RIG_VFO_SUB_A; };
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set vfo=%s to freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
@@ -1496,6 +1500,9 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
     // pick a sane default
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
 
+    // If we're in satmode we map SUB to SUB_A
+    if (vfo == RIG_VFO_SUB && rig->state.cache.satmode) { vfo = RIG_VFO_SUB_A; };
+
     // VFO_C to be implemented
     switch (vfo)
     {
@@ -1515,6 +1522,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
 
     case RIG_VFO_B:
     case RIG_VFO_SUB:
+    case RIG_VFO_MAIN_B:
         *freq = rig->state.cache.freqMainB;
         *mode = rig->state.cache.modeMainB;
         *width = rig->state.cache.widthMainB;
