@@ -27,7 +27,7 @@
 
 
 //! @cond Doxygen_Suppress
-class BACKEND_IMPEXP Rotator
+class HAMLIB_CPP_IMPEXP Rotator
 {
 private:
     ROT *theRot;  // Global ref. to the rot

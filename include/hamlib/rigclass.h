@@ -27,7 +27,7 @@
 
 
 //! @cond Doxygen_Suppress
-class BACKEND_IMPEXP Rig
+class HAMLIB_CPP_IMPEXP Rig
 {
 private:
     RIG *theRig;  // Global ref. to the rig
@@ -251,7 +251,7 @@ extern "C" void exit(int);
 
 //! @cond Doxygen_Suppress
 // Forward Declarations
-class BACKEND_IMPEXP RigException
+class HAMLIB_CPP_IMPEXP RigException
 {
 public:
     const char *message;
