@@ -27,7 +27,7 @@
 
 
 //! @cond Doxygen_Suppress
-class BACKEND_IMPEXP Amplifier
+class HAMLIB_CPP_IMPEXP Amplifier
 {
 private:
     AMP *theAmp;  // Global ref. to the amp
