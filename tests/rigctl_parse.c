@@ -2232,8 +2232,10 @@ declare_proto_rig(get_vfo_info)
         rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
     }
 
-    const char * modestr = rig_strrmode(mode);
-    if (strlen(modestr) == 0) modestr = "None";
+    const char *modestr = rig_strrmode(mode);
+
+    if (strlen(modestr) == 0) { modestr = "None"; }
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: %.0f\n", cmd->arg1, freq);

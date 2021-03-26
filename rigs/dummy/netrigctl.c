@@ -871,7 +871,8 @@ static int netrigctl_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     char buf[BUF_MAX];
     char vfostr[16] = "";
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, ptt=%d\n", __func__, rig_strvfo(vfo), ptt);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, ptt=%d\n", __func__,
+              rig_strvfo(vfo), ptt);
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), RIG_VFO_A);
 
