@@ -765,7 +765,7 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     memcpy(&p->p_cmd, &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
 
     // round freq to 10Hz intervals due to rig restriction
-    freq = round(freq/10.0)*10.0;
+    freq = round(freq / 10.0) * 10.0;
 
     to_bcd(p->p_cmd, freq / 10, 8); /* store bcd format in in p_cmd */
 
