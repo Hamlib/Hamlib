@@ -168,7 +168,8 @@ enum rig_debug_level_e {
     RIG_DEBUG_ERR,      /*!< error case (e.g. protocol, memory allocation) */
     RIG_DEBUG_WARN,     /*!< warning */
     RIG_DEBUG_VERBOSE,  /*!< verbose */
-    RIG_DEBUG_TRACE     /*!< tracing */
+    RIG_DEBUG_TRACE,    /*!< tracing */
+    RIG_DEBUG_CACHE     /*!< caching */
 };
 
 
@@ -2085,7 +2086,8 @@ typedef enum {
     HAMLIB_CACHE_FREQ,
     HAMLIB_CACHE_MODE,
     HAMLIB_CACHE_PTT,
-    HAMLIB_CACHE_SPLIT
+    HAMLIB_CACHE_SPLIT,
+    HAMLIB_CACHE_WIDTH
 } hamlib_cache_t;
 
 /**
