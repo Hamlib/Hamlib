@@ -488,5 +488,11 @@ int main(int argc, char *argv[])
 
     printf("port %s closed ok \n", SERIAL_PORT);
 
+    for(unsigned long i=1;i<0x80000000;i=i<<1)
+    {
+        const char *vfostr = rig_strvfo(i);
+        if (strlen(vfostr)>0) printf("0x%08lx=%s\n", i, vfostr);
+    }
+
     return 0;
 }
