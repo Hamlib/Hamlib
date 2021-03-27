@@ -2816,6 +2816,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         // This could be done by rig but easy enough to make it automagic
         if (priv->ag_format < 0)
         {
+            int retry_save = rig->state.rigport.retry;
+            rig->state.rigport.retry = 0;  // speed up this check so no retries
             rig_debug(RIG_DEBUG_TRACE, "%s: AF format check determination...\n", __func__);
             // Determine AG format
             // =-1 == Undetermine
@@ -2852,6 +2854,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                     }
                 }
             }
+
+            rig->state.rigport.retry = retry_save;
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: ag_format=%d\n", __func__, priv->ag_format);
