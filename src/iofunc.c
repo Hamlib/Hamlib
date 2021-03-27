@@ -149,7 +149,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         p->fd = status;
         break;
 
-#ifdef HAVE_LIBUSB_H
+#if defined(HAVE_LIBUSB_H) || defined (HAVE_LIBUSB_1_0_LIBUSB_H)
 
     case RIG_PORT_USB:
         status = usb_port_open(p);
@@ -206,7 +206,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
             ret = ser_close(p);
             break;
 
-#ifdef HAVE_LIBUSB_H
+#if defined(HAVE_LIBUSB_H) || defined (HAVE_LIBUSB_1_0_LIBUSB_H)
 
         case RIG_PORT_USB:
             ret = usb_port_close(p);
@@ -255,7 +255,7 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
      */
     if (is_uh_radio_fd(p->fd))
     {
-        return( read(p->fd, buf, count);
+        return read(p->fd, buf, count);
     }
 
     if (p->type.rig == RIG_PORT_SERIAL)
@@ -273,7 +273,7 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
             }
         }
 
-        RETURNFUNC( ret;
+        RETURNFUNC(ret);
     }
     else if (p->type.rig == RIG_PORT_NETWORK
              || p->type.rig == RIG_PORT_UDP_NETWORK)
