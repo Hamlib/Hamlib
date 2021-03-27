@@ -1278,7 +1278,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         {
             priv->x25cmdfails = 1;
             rig_debug(RIG_DEBUG_WARN,
-                      "%s: rig does not support 0x25 CI-V cmd...vfo swapping will occur\n", __func__);
+                      "%s: rig does not support 0x25 CI-V cmd\n", __func__);
         }
 
         freq_len--; // 0x25 cmd is 1 byte longer than 0x03 cmd
@@ -1287,6 +1287,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (priv->x25cmdfails) // then we're doing this the hard way....swap+read
     {
+        freqbuf_offset = 1;
         retval = set_vfo_curr(rig, vfo, rig->state.current_vfo);
 
         if (retval != RIG_OK)
