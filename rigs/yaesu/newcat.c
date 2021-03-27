@@ -772,6 +772,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
     case RIG_VFO_A:
     case RIG_VFO_MAIN:
+    case RIG_VFO_MEM:
         c = 'A';
         break;
 
