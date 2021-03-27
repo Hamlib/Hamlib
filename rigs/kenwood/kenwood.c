@@ -2805,7 +2805,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 1);
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
-
+        power_min = 0; // our return scale is 0-max to match the input scale
         val->f = (power_now - power_min) / (float)(power_max - power_min);
         RETURNFUNC(RIG_OK);
 
