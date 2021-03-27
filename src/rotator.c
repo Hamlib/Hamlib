@@ -61,7 +61,7 @@
 #include <hamlib/rotator.h>
 #include "serial.h"
 #include "parallel.h"
-#ifdef HAVE_LIBUSB_H
+#if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)
 #include "usb_port.h"
 #endif
 #include "network.h"
@@ -418,7 +418,7 @@ int HAMLIB_API rot_open(ROT *rot)
         rs->rotport.fd = status;
         break;
 
-#ifdef HAVE_LIBUSB_H
+#if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)
 
     case RIG_PORT_USB:
         status = usb_port_open(&rs->rotport);
@@ -531,7 +531,7 @@ int HAMLIB_API rot_close(ROT *rot)
             par_close(&rs->rotport);
             break;
 
-#ifdef HAVE_LIBUSB_H
+#if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)
 
         case RIG_PORT_USB:
             usb_port_close(&rs->rotport);
