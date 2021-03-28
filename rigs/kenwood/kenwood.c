@@ -142,12 +142,10 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] =
     [3] = RIG_MODE_CW,
     [4] = RIG_MODE_FM,
     [5] = RIG_MODE_AM,
-    // Yes -- RTTYR is Mode 6 RTTY is LSB, RTTYR USB
-    // FSK mode is mapped the other way round
-    [6] = RIG_MODE_RTTYR, // FSK Mode
+    [6] = RIG_MODE_RTTY, // FSK Mode
     [7] = RIG_MODE_CWR,
     [8] = RIG_MODE_NONE,  /* TUNE mode */
-    [9] = RIG_MODE_RTTY,  // FSKR Mode
+    [9] = RIG_MODE_RTTYR,  // FSKR Mode
     [10] = RIG_MODE_PSK,
     [11] = RIG_MODE_PSKR,
     [12] = RIG_MODE_PKTLSB,
