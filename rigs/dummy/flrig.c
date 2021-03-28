@@ -129,8 +129,8 @@ const struct rig_caps flrig_caps =
     .port_type = RIG_PORT_NETWORK,
     .write_delay = 0,
     .post_write_delay = 0,
-    .timeout = 5000,
-    .retry = 5,
+    .timeout = 1000,
+    .retry = 2,
 
     .has_get_func = RIG_FUNC_NONE,
     .has_set_func = RIG_FUNC_NONE,
