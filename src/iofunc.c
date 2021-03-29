@@ -247,6 +247,7 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
     int i;
     ssize_t ret;
 
+    //ENTERFUNC; // too verbose
     /*
      * Since WIN32 does its special serial read, we have
      * to catch the microHam case to do just "read".
@@ -273,7 +274,8 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
             }
         }
 
-        RETURNFUNC(ret);
+        //RETURNFUNC(ret); // too verbose
+	return ret;
     }
     else if (p->type.rig == RIG_PORT_NETWORK
              || p->type.rig == RIG_PORT_UDP_NETWORK)
