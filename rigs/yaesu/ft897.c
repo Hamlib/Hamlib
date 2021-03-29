@@ -659,12 +659,6 @@ int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    // can only deal with VFO_CURR and VFO_A
-    if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_A)
-    {
-        return -RIG_ENTARGET;
-    }
-
     if (check_cache_timeout(&p->fm_status_tv))
     {
         int n;
@@ -685,11 +679,6 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     if (check_cache_timeout(&p->fm_status_tv))
     {
@@ -774,11 +763,6 @@ int ft897_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     if (check_cache_timeout(&p->tx_status_tv))
     {
@@ -898,11 +882,6 @@ int ft897_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     switch (level)
     {
     case RIG_LEVEL_STRENGTH:
@@ -929,11 +908,6 @@ int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     if (check_cache_timeout(&p->rx_status_tv))
     {
@@ -1009,11 +983,6 @@ int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s: requested freq = %"PRIfreq" Hz\n", __func__,
               freq);
 
@@ -1032,11 +1001,6 @@ int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int index;    /* index of sequence to send */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s\n", __func__,
               rig_strrmode(mode));
@@ -1098,13 +1062,6 @@ int ft897_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
     switch (ptt)
     {
     case RIG_PTT_ON:
@@ -1138,13 +1095,6 @@ int ft897_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
     switch (op)
     {
     case RIG_OP_TOGGLE:
@@ -1170,13 +1120,6 @@ int ft897_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 int ft897_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     int index, n;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1214,11 +1157,6 @@ int ft897_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     if (check_cache_timeout(&p->tx_status_tv))
         if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
         {
@@ -1248,11 +1186,6 @@ int ft897_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int ft897_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     switch (func)
     {
@@ -1322,11 +1255,6 @@ int ft897_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "ft897: set DCS code (%u)\n", code);
 
     if (code == 0)
@@ -1352,11 +1280,6 @@ int ft897_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft897: set CTCSS tone (%.1f)\n", tone / 10.0);
 
@@ -1384,11 +1307,6 @@ int ft897_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "ft897: set DCS sql (%u)\n", code);
 
     if (code == 0)
@@ -1415,11 +1333,6 @@ int ft897_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "ft897: set CTCSS sql (%.1f)\n", tone / 10.0);
 
     if (tone == 0)
@@ -1442,11 +1355,6 @@ int ft897_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 int ft897_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft897: set repeter shift = %i\n", shift);
 
@@ -1471,11 +1379,6 @@ int ft897_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "ft897: set repeter offs = %li\n", offs);
 
     /* fill in the offset freq */
@@ -1490,11 +1393,6 @@ int ft897_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft897: set rit = %li)\n", rit);
 
