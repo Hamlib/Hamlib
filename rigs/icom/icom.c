@@ -2241,6 +2241,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     {
         // If we're being asked for A/Main but we are a MainA/MainB rig change it
         vfo = RIG_VFO_MAIN;
+
+        if (rig->state.cache.split == RIG_SPLIT_ON) { vfo = RIG_VFO_A; }
     }
     else if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) && VFO_HAS_DUAL)
     {
@@ -2252,6 +2254,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         {
             vfo = RIG_VFO_SUB_A;
         }
+        else if (rig->state.cache.split == RIG_SPLIT_ON) { vfo = RIG_VFO_B; }
     }
     else if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B
              && VFO_HAS_MAIN_SUB)
