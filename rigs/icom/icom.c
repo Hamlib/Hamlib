@@ -2240,12 +2240,12 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     else if ((vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) && VFO_HAS_DUAL)
     {
         // If we're being asked for A/Main but we are a MainA/MainB rig change it
-        vfo = RIG_VFO_MAIN_A;
+        vfo = RIG_VFO_MAIN;
     }
     else if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) && VFO_HAS_DUAL)
     {
         // If we're being asked for B/Sub but we are a MainA/MainB rig change it
-        vfo = RIG_VFO_MAIN_B;
+        vfo = RIG_VFO_SUB;
 
         // If we're in satmode for rigs like IC9700 we want the 2nd VFO
         if (rig->state.cache.satmode)
