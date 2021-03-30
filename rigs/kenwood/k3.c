@@ -183,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".10",
+    .version =      BACKEND_VER ".11",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1102,13 +1102,13 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     switch (mode)
     {
     case RIG_MODE_PKTLSB:
-        mode = RIG_MODE_RTTY; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
+        mode = RIG_MODE_RTTYR; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT0"); /* DATA A mode - DATA (REV) on LSB optimized for HF Packet, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_PKTUSB:
-        mode = RIG_MODE_RTTYR; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
+        mode = RIG_MODE_RTTY; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT0"); /* DATA A mode - DATA on USB general, VFO dial is suppressed carrier QRG */
         break;
