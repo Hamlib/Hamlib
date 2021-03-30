@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20210306"
+#define BACKEND_VER "20210326"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -204,6 +204,7 @@ struct icom_priv_data
     int x1cx03cmdfails;  // This will get set if the 0x1c 0x03 command fails so we try just once
     int poweron;  // to prevent powering on more than once
     unsigned char filter;   // Current filter selected 
+    unsigned char datamode; // Current datamode
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];

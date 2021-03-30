@@ -231,7 +231,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose < 2 ? RIG_DEBUG_WARN : verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigswr, %s\n", hamlib_version);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigswr, %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -351,7 +351,7 @@ int main(int argc, char *argv[])
 
 void version()
 {
-    printf("rigswr, %s\n\n", hamlib_version);
+    printf("rigswr, %s\n\n", hamlib_version2);
     printf("%s\n", hamlib_copyright);
 }
 

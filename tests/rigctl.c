@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            printf("rigctl %s\nLast commit was %s\n", hamlib_version, HAMLIBDATETIME);
+            printf("rigctl %s\n", hamlib_version2);
             exit(0);
 
         case 'm':
@@ -433,8 +433,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigctl %s\nLast commit was %s\n", hamlib_version,
-              HAMLIBDATETIME);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigctl %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -611,14 +610,9 @@ int main(int argc, char *argv[])
                                interactive, prompt, &vfo_opt, send_cmd_term,
                                &ext_resp, &resp_sep);
 
-        if (retcode == 2)
-        {
-            exitcode = 2;
-        }
-
         // if we get a hard error we try to reopen the rig again
         // this should cover short dropouts that can occur
-        if (retcode == -RIG_EIO || retcode == 2)
+        if (retcode < 0 && !RIG_IS_SOFT_ERRCODE(-retcode))
         {
             int retry = 3;
             rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
@@ -632,10 +626,9 @@ int main(int argc, char *argv[])
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
             }
             while (retry-- > 0 && retcode != RIG_OK);
-
         }
     }
-    while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
+    while (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode));
 
     if (interactive && prompt)
     {

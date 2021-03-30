@@ -64,8 +64,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 {
     int status;
     int want_state_delay = 0;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    
+    ENTERFUNC;
 
     p->fd = -1;
 
@@ -76,7 +76,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            return status;
+            rig_debug(RIG_DEBUG_ERR, "%s: serial_open status=%d\n", __func__, status);
+            RETURNFUNC(status);
         }
 
         if (p->parm.serial.rts_state != RIG_SIGNAL_UNSET
@@ -89,7 +90,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status != 0)
         {
-            return status;
+            rig_debug(RIG_DEBUG_ERR, "%s: set_rts status=%d\n", __func__, status);
+            RETURNFUNC(status);
         }
 
         if (p->parm.serial.dtr_state != RIG_SIGNAL_UNSET)
@@ -101,7 +103,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status != 0)
         {
-            return status;
+            rig_debug(RIG_DEBUG_ERR, "%s: set_dtr status=%d\n", __func__, status);
+            RETURNFUNC(status);
         }
 
         /*
@@ -120,7 +123,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            return status;
+            RETURNFUNC(status);
         }
 
         break;
@@ -130,7 +133,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            return status;
+            RETURNFUNC(status);
         }
 
         break;
@@ -140,20 +143,20 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            return -RIG_EIO;
+            RETURNFUNC(-RIG_EIO);
         }
 
         p->fd = status;
         break;
 
-#ifdef HAVE_LIBUSB_H
+#if defined(HAVE_LIBUSB_H) || defined (HAVE_LIBUSB_1_0_LIBUSB_H)
 
     case RIG_PORT_USB:
         status = usb_port_open(p);
 
         if (status < 0)
         {
-            return status;
+            RETURNFUNC(status);
         }
 
         break;
@@ -170,16 +173,16 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            return status;
+            RETURNFUNC(status);
         }
 
         break;
 
     default:
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -193,7 +196,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 {
     int ret = RIG_OK;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (p->fd != -1)
     {
@@ -203,7 +206,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
             ret = ser_close(p);
             break;
 
-#ifdef HAVE_LIBUSB_H
+#if defined(HAVE_LIBUSB_H) || defined (HAVE_LIBUSB_1_0_LIBUSB_H)
 
         case RIG_PORT_USB:
             ret = usb_port_close(p);
@@ -227,7 +230,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
         p->fd = -1;
     }
 
-    return ret;
+    RETURNFUNC(ret);
 }
 
 
@@ -244,6 +247,7 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
     int i;
     ssize_t ret;
 
+    //ENTERFUNC; // too verbose
     /*
      * Since WIN32 does its special serial read, we have
      * to catch the microHam case to do just "read".
@@ -270,7 +274,8 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
             }
         }
 
-        return ret;
+        //RETURNFUNC(ret); // too verbose
+	return ret;
     }
     else if (p->type.rig == RIG_PORT_NETWORK
              || p->type.rig == RIG_PORT_UDP_NETWORK)

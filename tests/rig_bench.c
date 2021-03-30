@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
         myport.parm.serial.stop_bits = 1;
         myport.parm.serial.parity = RIG_PARITY_NONE;
         myport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-        strncpy(myport.pathname, SERIAL_PORT, FILPATHLEN - 1);
+        strncpy(myport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
         rig_load_all_backends();
         myrig_model = rig_probe(&myport);
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
     printf("Serial speed: %d bauds\n", my_rig->state.rigport.parm.serial.rate);
 
-    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN - 1);
+    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
     retcode = rig_open(my_rig);
 
