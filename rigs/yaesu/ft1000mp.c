@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+#include <math.h>
 
 #include "hamlib/rig.h"
 #include "bandplan.h"
@@ -222,7 +223,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20210225.0",
+    .version =            "20210318.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -356,7 +357,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20210225.0",
+    .version =            "20210318.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -490,7 +491,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20210225.0",
+    .version =            "20210318.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -763,8 +764,10 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      */
     memcpy(&p->p_cmd, &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
 
+    // round freq to 10Hz intervals due to rig restriction
+    freq = round(freq / 10.0) * 10.0;
+
     to_bcd(p->p_cmd, freq / 10, 8); /* store bcd format in in p_cmd */
-    /* TODO -- fix 10Hz resolution -- FS */
 
     // cppcheck-suppress *
     rig_debug(RIG_DEBUG_TRACE, "%s: freq = %"PRIll" Hz\n", __func__,
@@ -1128,6 +1131,9 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
     ft1000mp_send_priv_cmd(rig, cmd_index);
 #endif
 
+    // we just store the requested vfo in our internal state
+    rig->state.current_vfo = vfo;
+
     RETURNFUNC(RIG_OK);
 
 }
@@ -1164,6 +1170,12 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
     else // we are emulating vfo status
     {
         *vfo = rig->state.current_vfo;
+
+        if (*vfo == RIG_VFO_CURR)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: no get_vfo, defaulting to VFOA\n", __func__);
+            *vfo = RIG_VFO_A;
+        }
     }
 
 #if 0

@@ -39,7 +39,7 @@ def StartUp():
     print("freq:\t\t\t%s" % my_rig.get_freq())
 
     my_rig.set_freq(Hamlib.RIG_VFO_A, 145550000)
-    (mode, width) = my_rig.get_mode()
+    (mode, width) = my_rig.get_mode(Hamlib.RIG_VFO_A)
 
     print("mode:\t\t\t%s\nbandwidth:\t\t%s" % (Hamlib.rig_strrmode(mode), width))
 
@@ -83,6 +83,9 @@ def StartUp():
     print("get_channel status:\t%s" % my_rig.error_status)
     print("VFO:\t\t\t%s, %s" % (Hamlib.rig_strvfo(chan.vfo), chan.freq))
     print("Attenuators:\t\t%s" % my_rig.caps.attenuator)
+    # Can't seem to get get_vfo_info to work
+    #(freq, width, mode, split) = my_rig.get_vfo_info(Hamlib.RIG_VFO_A,freq,width,mode,split)
+    #print("Rig vfo_info:\t\tfreq=%s, mode=%s, width=%s, split=%s" % (freq, mode, width, split))
     print("\nSending Morse, '73'")
 
     my_rig.send_morse(Hamlib.RIG_VFO_A, "73")

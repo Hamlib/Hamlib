@@ -1346,11 +1346,6 @@ int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_ENIMPL;
     }
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     switch (level)
     {
     case RIG_LEVEL_STRENGTH:
@@ -1483,11 +1478,6 @@ int ft847_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
     unsigned char cmd_index;  /* index of sequence to send */
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     switch (rptr_shift)
     {
     case RIG_RPT_SHIFT_NONE:
@@ -1516,11 +1506,6 @@ int ft847_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
     if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
     {
         return -RIG_ENIMPL;
-    }
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
     }
 
     memcpy(p_cmd, &ncmd[FT_847_NATIVE_CAT_SET_RPT_OFFSET].nseq, YAESU_CMD_LENGTH);

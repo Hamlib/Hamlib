@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            printf("rigctl %s\nLast commit was %s\n", hamlib_version, HAMLIBDATETIME);
+            printf("rigctl %s\n", hamlib_version2);
             exit(0);
 
         case 'm':
@@ -556,8 +556,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\nLast commit was %s\n", hamlib_version,
-              HAMLIBDATETIME);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -1075,54 +1074,25 @@ void *handle_socket(void *arg)
 
         if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
 
-
-#if 0 // disabled -- don't think we need this
-
-        // see https://github.com/Hamlib/Hamlib/issues/516
-        if (retcode == -1)
+        // if we get a hard error we try to reopen the rig again
+        // this should cover short dropouts that can occur
+        if (retcode < 0 && !RIG_IS_SOFT_ERRCODE(-retcode))
         {
-            //sleep(1); // probably don't need this delay
-            //continue;
-        }
+            int retry = 3;
+            rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
 
-#endif
-
-        // if socket error or rigctld gets RIG_EIO we'll try to reopen
-        if (ferror(fsockin))
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: sockin err=%s\n", __func__, strerror(errno));
-            return(NULL);
-        }
-
-#if 0
-
-        if (ferror(fsockin) || ferror(fsockout) || retcode == 2)
-        {
-            if (ferror(fsockout)) { fsockout = get_fsockout(handle_data_arg); }
-
-            rig_debug(RIG_DEBUG_ERR, "%s: socket error in=%d, out=%d\n", __func__,
-                      ferror(fsockin), ferror(fsockout));
-            // if we get an error from the rig we'll try to repoen
-            // that may fix things when COM ports drop and such
-            int retry = 4;
-
-            if (retcode == 2)
+            do
             {
-                do
-                {
-                    retcode = rig_close(my_rig);
-                    hl_usleep(1000 * 1000);
-                    rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
-                    retcode = rig_open(my_rig);
-                    rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
-                }
-                while (retry-- > 0 && retcode != RIG_OK);
+                retcode = rig_close(my_rig);
+                hl_usleep(1000 * 1000);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
+                retcode = rig_open(my_rig);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
             }
+            while (retry-- > 0 && retcode != RIG_OK);
         }
-
-#endif
     }
-    while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
+    while (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode));
 
 #ifdef HAVE_PTHREAD
 #if 0

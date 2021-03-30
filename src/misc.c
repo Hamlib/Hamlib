@@ -566,9 +566,11 @@ static struct
     { RIG_VFO_MAIN, "Main" },
     { RIG_VFO_MAIN_A, "MainA" },
     { RIG_VFO_MAIN_B, "MainB" },
+    { RIG_VFO_MAIN_C, "MainC" },
     { RIG_VFO_SUB, "Sub" },
     { RIG_VFO_SUB_A, "SubA" },
     { RIG_VFO_SUB_B, "SubB" },
+    { RIG_VFO_SUB_C, "SubC" },
     { RIG_VFO_NONE, "None" },
     { 0xffffff, "" },
 };
@@ -1570,8 +1572,10 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
         start->tv_sec = start->tv_nsec = 0;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n", __func__,
-              (long)start->tv_sec, (long)start->tv_nsec);
+    stop = *start; // just to suppress some compiler warnings
+
+    //rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n", __func__,
+    //          (long)start->tv_sec, (long)start->tv_nsec);
 
 
     switch (option)
@@ -1588,8 +1592,8 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 
     case HAMLIB_ELAPSED_SET:
         clock_gettime(CLOCK_REALTIME, start);
-        rig_debug(RIG_DEBUG_TRACE, "%s: after gettime, start = %ld,%ld\n", __func__,
-                  (long)start->tv_sec, (long)start->tv_nsec);
+        //rig_debug(RIG_DEBUG_TRACE, "%s: after gettime, start = %ld,%ld\n", __func__,
+        //          (long)start->tv_sec, (long)start->tv_nsec);
         return 999 * 1000; // so we can tell the difference in debug where we came from
         break;
 
@@ -1603,7 +1607,7 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
     elapsed_msec = ((stop.tv_sec - start->tv_sec) + (stop.tv_nsec / 1e9 -
                     start->tv_nsec / 1e9)) * 1e3;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%.0f\n", __func__, elapsed_msec);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%.0f\n", __func__, elapsed_msec);
 
     if (elapsed_msec < 0 || option == HAMLIB_ELAPSED_INVALIDATE) { return 1000000; }
 

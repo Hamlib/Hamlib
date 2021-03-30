@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
         myport.parm.serial.stop_bits = 1;
         myport.parm.serial.parity = RIG_PARITY_NONE;
         myport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-        strncpy(myport.pathname, SERIAL_PORT, FILPATHLEN - 1);
+        strncpy(myport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
         rig_load_all_backends();
         myrig_model = rig_probe(&myport);
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }
 
-    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN - 1);
+    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
     retcode = rig_open(my_rig);
 
@@ -487,6 +487,13 @@ int main(int argc, char *argv[])
     rig_cleanup(my_rig); /* if you care about memory */
 
     printf("port %s closed ok \n", SERIAL_PORT);
+
+    for (unsigned long i = 1; i < 0x80000000; i = i << 1)
+    {
+        const char *vfostr = rig_strvfo(i);
+
+        if (strlen(vfostr) > 0) { printf("0x%08lx=%s\n", i, vfostr); }
+    }
 
     return 0;
 }

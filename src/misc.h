@@ -142,23 +142,32 @@ extern HAMLIB_EXPORT(int) parse_hoststr(char *host, char hoststr[256], char port
 void errmsg(int err, char *s, const char *func, const char *file, int line);
 #define ERRMSG(err, s) errmsg(err,  s, __func__, __FILENAME__, __LINE__)
 #define ENTERFUNC rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s entered\n", __FILENAME__, __LINE__, __func__)
+// we need to refer to rc just once as it 
+// could be a function call 
 #define RETURNFUNC(rc) do { \
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return(%ld)\n", __FILENAME__, __LINE__, __func__, (long int) rc); \
-                        return rc; \
+			            int rctmp = rc; \
+                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return(%ld)\n", __FILENAME__, __LINE__, __func__, (long int) (rctmp)); \
+                        return (rctmp); \
                        } while(0)
 
-#if 0 // 5.0
-    elapsed_ms(&rig->state.cache.time_freqMainC, HAMLIB_ELAPSED_INVALIDATE);
-#endif
 #define CACHE_RESET {\
-    elapsed_ms(&rig->state.cache.time_freq, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&rig->state.cache.time_freqCurr, HAMLIB_ELAPSED_INVALIDATE);\
     elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_INVALIDATE);\
     elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_INVALIDATE);\
     elapsed_ms(&rig->state.cache.time_freqSubA, HAMLIB_ELAPSED_INVALIDATE);\
     elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_INVALIDATE);\
     elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_INVALIDATE);\
-    elapsed_ms(&rig->state.cache.time_mode, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeMainA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeMainB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeMainC, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeSubA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeSubB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeSubC, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthMainA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthMainB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthSubA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthSubB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthSubC, HAMLIB_ELAPSED_INVALIDATE);\
     elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);\
     elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_INVALIDATE);\
      }

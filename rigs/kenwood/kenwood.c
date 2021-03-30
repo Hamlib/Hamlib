@@ -142,12 +142,10 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] =
     [3] = RIG_MODE_CW,
     [4] = RIG_MODE_FM,
     [5] = RIG_MODE_AM,
-    // Yes -- RTTYR is Mode 6 RTTY is LSB, RTTYR USB
-    // FSK mode is mapped the other way round
-    [6] = RIG_MODE_RTTYR, // FSK Mode
+    [6] = RIG_MODE_RTTY, // FSK Mode
     [7] = RIG_MODE_CWR,
     [8] = RIG_MODE_NONE,  /* TUNE mode */
-    [9] = RIG_MODE_RTTY,  // FSKR Mode
+    [9] = RIG_MODE_RTTYR,  // FSKR Mode
     [10] = RIG_MODE_PSK,
     [11] = RIG_MODE_PSKR,
     [12] = RIG_MODE_PKTLSB,
@@ -1001,8 +999,8 @@ static int kenwood_get_if(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return(kenwood_safe_transaction(rig, "IF", priv->info,
-                                        KENWOOD_MAX_BUF_LEN, caps->if_len));
+    return (kenwood_safe_transaction(rig, "IF", priv->info,
+                                     KENWOOD_MAX_BUF_LEN, caps->if_len));
 }
 
 
@@ -2805,7 +2803,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 1);
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
-
+        power_min = 0; // our return scale is 0-max to match the input scale
         val->f = (power_now - power_min) / (float)(power_max - power_min);
         RETURNFUNC(RIG_OK);
 
@@ -2816,6 +2814,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         // This could be done by rig but easy enough to make it automagic
         if (priv->ag_format < 0)
         {
+            int retry_save = rig->state.rigport.retry;
+            rig->state.rigport.retry = 0;  // speed up this check so no retries
             rig_debug(RIG_DEBUG_TRACE, "%s: AF format check determination...\n", __func__);
             // Determine AG format
             // =-1 == Undetermine
@@ -2852,6 +2852,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                     }
                 }
             }
+
+            rig->state.rigport.retry = retry_save;
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: ag_format=%d\n", __func__, priv->ag_format);
@@ -3753,7 +3755,9 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     default: RETURNFUNC(-RIG_EINVAL);
     }
 
-    RETURNFUNC(kenwood_transaction(rig, ptt_cmd, NULL, 0));
+    int retval = kenwood_transaction(rig, ptt_cmd, NULL, 0);
+
+    RETURNFUNC(retval);
 }
 
 int kenwood_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt)
@@ -4572,25 +4576,25 @@ const char *kenwood_get_info(RIG *rig)
 
     if (!rig)
     {
-        return("*rig == NULL");
+        return ("*rig == NULL");
     }
 
     retval = kenwood_safe_transaction(rig, "TY", firmbuf, 10, 5);
 
     if (retval != RIG_OK)
     {
-        return(NULL);
+        return (NULL);
     }
 
     switch (firmbuf[4])
     {
-    case '0': return("Firmware: Overseas type");
+    case '0': return ("Firmware: Overseas type");
 
-    case '1': return("Firmware: Japanese 100W type");
+    case '1': return ("Firmware: Japanese 100W type");
 
-    case '2': return("Firmware: Japanese 20W type");
+    case '2': return ("Firmware: Japanese 20W type");
 
-    default: return("Firmware: unknown");
+    default: return ("Firmware: unknown");
     }
 }
 

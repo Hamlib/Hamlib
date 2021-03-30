@@ -269,6 +269,9 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         /* Ok, normal frame */
         break;
 
+    case NAK:
+        RETURNFUNC(-RIG_ERJCTED);
+
     default:
         /* Timeout after reading at least one character */
         /* Problem on ci-v bus? */
@@ -277,11 +280,20 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
     if (frm_len < ACKFRMLEN) { RETURNFUNC(-RIG_EPROTO); }
 
-    if (NAK == buf[frm_len - 2]) { RETURNFUNC(-RIG_ERJCTED); }
+    // if we send a bad command we will get back a NAK packet
+    // e.g. fe fe e0 50 fa fd
+    if (frm_len == 6 && NAK == buf[frm_len - 2]) { RETURNFUNC(-RIG_ERJCTED); }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: frm_len=%d, frm_len-1=%02x, frm_len-2=%02x\n",
+              __func__, frm_len, buf[frm_len - 1], buf[frm_len - 2]);
+
+    // has to be one of these two now or frame is corrupt
+    if (FI != buf[frm_len - 1] && ACK != buf[frm_len - 1]) { RETURNFUNC(-RIG_BUSBUSY); }
 
     *data_len = frm_len - (ACKFRMLEN - 1);
-    rig_debug(RIG_DEBUG_TRACE, "%s: data_len=%d, frm_len=%d\n", __func__, *data_len,
-              frm_len);
+
+    if (*data_len <= 0) { RETURNFUNC(-RIG_EPROTO); }
+
     memcpy(data, buf + 4, *data_len);
 
     /*
@@ -550,6 +562,7 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
 void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
                    pbwidth_t *width)
 {
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: mode=0x%02x, pd=%d\n", __func__, md, pd);
     *width = RIG_PASSBAND_NORMAL;
 

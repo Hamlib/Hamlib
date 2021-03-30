@@ -56,7 +56,7 @@ int RotINDIClient::setSpeed(int speedPercent)
         speedPercent = 100;
     }
 
-    int speed = DIV_ROUND_UP(speedPercent, 10);
+    unsigned int speed = DIV_ROUND_UP(speedPercent, 10);
 
     for (unsigned int i = 1; i <= 10; i++)
     {

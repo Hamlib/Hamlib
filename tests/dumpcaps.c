@@ -340,7 +340,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "Extra functions:\n");
     rig_ext_func_foreach(rig, print_ext, fout);
 
-    rig_sprintf_level_gran(prntbuf, sizeof(prntbuf), caps->has_get_level, caps->level_gran);
+    rig_sprintf_level_gran(prntbuf, sizeof(prntbuf), caps->has_get_level,
+                           caps->level_gran);
     fprintf(fout, "Get level: %s\n", prntbuf);
 
     if ((caps->has_get_level & RIG_LEVEL_SQLSTAT))
@@ -359,7 +360,8 @@ int dumpcaps(RIG *rig, FILE *fout)
         backend_warnings++;
     }
 
-    rig_sprintf_level_gran(prntbuf, sizeof(prntbuf), caps->has_set_level, caps->level_gran);
+    rig_sprintf_level_gran(prntbuf, sizeof(prntbuf), caps->has_set_level,
+                           caps->level_gran);
     fprintf(fout, "Set level: %s\n", prntbuf);
 
     if (caps->has_set_level & RIG_LEVEL_READONLY_LIST)
@@ -371,10 +373,12 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "Extra levels:\n");
     rig_ext_level_foreach(rig, print_ext, fout);
 
-    rig_sprintf_parm_gran(prntbuf, sizeof(prntbuf), caps->has_get_parm, caps->parm_gran);
+    rig_sprintf_parm_gran(prntbuf, sizeof(prntbuf), caps->has_get_parm,
+                          caps->parm_gran);
     fprintf(fout, "Get parameters: %s\n", prntbuf);
 
-    rig_sprintf_parm_gran(prntbuf, sizeof(prntbuf), caps->has_set_parm, caps->parm_gran);
+    rig_sprintf_parm_gran(prntbuf, sizeof(prntbuf), caps->has_set_parm,
+                          caps->parm_gran);
     fprintf(fout, "Set parameters: %s\n", prntbuf);
 
     if (caps->has_set_parm & RIG_PARM_READONLY_LIST)

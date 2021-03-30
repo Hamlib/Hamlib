@@ -123,7 +123,7 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, rig->state.vfo_opt);
 
-    if (rig->state.vfo_opt)
+    if (rig->state.vfo_opt || priv->rigctld_vfo_mode)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt vfo=%u\n", __func__, vfo);
         char *myvfo;
@@ -380,7 +380,7 @@ static int netrigctl_open(RIG *rig)
 
 #if 0
     /* TODO */
-    chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
+    chan_t chan_list[HAMLIB_CHANLSTSIZ]; /*!< Channel list, zero ended */
 #endif
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
@@ -526,13 +526,15 @@ static int netrigctl_open(RIG *rig)
     gran_t parm_gran[RIG_SETTING_MAX];    /*!< parm granularity */
 #endif
 
-    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
         rs->mode_list |= rs->rx_range_list[i].modes;
         rs->vfo_list |= rs->rx_range_list[i].vfo;
     }
 
-    for (i = 0; i < HAMLIB_FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
     {
         rs->mode_list |= rs->tx_range_list[i].modes;
         rs->vfo_list |= rs->tx_range_list[i].vfo;
@@ -869,13 +871,16 @@ static int netrigctl_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     char buf[BUF_MAX];
     char vfostr[16] = "";
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, ptt=%d\n", __func__,
+              rig_strvfo(vfo), ptt);
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), RIG_VFO_A);
 
     if (ret != RIG_OK) { return ret; }
 
     len = sprintf(cmd, "T%s %d\n", vfostr, ptt);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s", __func__, cmd);
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
@@ -2283,7 +2288,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20210207.0",
+    .version =        "20210326.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

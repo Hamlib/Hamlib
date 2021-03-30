@@ -1507,7 +1507,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
 
 void version()
 {
-    printf("rotctl(d), %s\n\n", hamlib_version);
+    printf("rotctl(d), %s\n\n", hamlib_version2);
     printf("%s\n", hamlib_copyright);
 }
 
