@@ -45,6 +45,7 @@
 #include "frame.h"
 
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
+static int icom_set_default_vfo(RIG *rig);
 
 const cal_table_float_t icom_default_swr_cal =
 {
@@ -804,7 +805,7 @@ icom_rig_open(RIG *rig)
         }
     }
 
-    rig_set_vfo(rig,RIG_VFO_MAIN_A); // set rig to default vfo
+    icom_set_default_vfo(rig);
     priv->poweron = 1;
 
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
@@ -877,7 +878,7 @@ icom_rig_close(RIG *rig)
  * So they will get defaults of Main/VFOA as the selected VFO
  * and we force that selection
  */
-int icom_set_default_vfo(RIG *rig)
+static int icom_set_default_vfo(RIG *rig)
 {
     int retval;
 
