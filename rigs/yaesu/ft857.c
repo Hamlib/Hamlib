@@ -155,7 +155,7 @@ const struct rig_caps ft857_caps =
     RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
     .mfg_name =       "Yaesu",
-    .version =        "20210329.0",
+    .version =        "20210330.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -1016,6 +1016,7 @@ int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     n = ft857_send_cmd(rig, index);
+    if (ptt == RIG_PTT_OFF) hl_usleep(200*1000); // FT857 takes a bit to come out of PTT
 
     rig_force_cache_timeout(&((struct ft857_priv_data *)
                               rig->state.priv)->tx_status_tv);
