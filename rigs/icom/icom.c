@@ -804,6 +804,7 @@ icom_rig_open(RIG *rig)
         }
     }
 
+    rig_set_vfo(rig,RIG_VFO_MAIN_A); // set rig to default vfo
     priv->poweron = 1;
 
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
