@@ -1,0 +1,23 @@
+VFO Abstraction
+2021-03-30
+Mike Black W9MDB
+
+Main_A 
+    RIG_VFO_A
+    RIG_VFO_MAIN
+    RIG_VFO_MAIN_A
+Main_B
+    RIG_VFO_B
+    RIG_VFO_SUB -- for single VFO rig or dual VFO not in satmode
+    RIG_VFO_MAIN_B
+Sub_A
+    RIG_VFO_SUB -- for dual VFO when in satmode
+    RIG_VFO_SUB_A
+Sub_B
+    RIG_VFO_SUB_B -- unknown use for this so far but has set/get functions
+
+Main_C
+    RIG_VFO_C -- - unknown use for this so far but has set/get functions
+    RIG_VFO_MAIN_C -- - unknown use for this so far but has set/get functions
+Sub_C
+    RIG_VFO_SUB_C -- unknown use for this so far but has set/get functions
