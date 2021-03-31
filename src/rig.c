@@ -3535,10 +3535,20 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     caps = rig->caps;
 
+    /* Use previously setup TxVFO */
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
+    {
+        tx_vfo = rig->state.tx_vfo;
+    }
+    else
+    {
+        tx_vfo = vfo;
+    }
+
     if (caps->set_split_freq
             && (vfo == RIG_VFO_CURR
                 || vfo == RIG_VFO_TX
-                || vfo == rig->state.current_vfo))
+                || tx_vfo == rig->state.current_vfo))
     {
         retcode = caps->set_split_freq(rig, vfo, tx_freq);
         RETURNFUNC(retcode);
@@ -3549,16 +3559,6 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     /* Assisted mode */
     curr_vfo = rig->state.current_vfo;
-
-    /* Use previously setup TxVFO */
-    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
-    {
-        tx_vfo = rig->state.tx_vfo;
-    }
-    else
-    {
-        tx_vfo = vfo;
-    }
 
     if (caps->set_freq && (caps->targetable_vfo & RIG_TARGETABLE_FREQ))
     {
