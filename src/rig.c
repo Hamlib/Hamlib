@@ -3571,7 +3571,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
             if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
-#if 0 // this verification seems to be causing bad behavior on some reigs
+#if 0 // this verification seems to be causing bad behavior on some rigs
             retcode = rig_get_freq(rig, tx_vfo, &tfreq);
 #else
             tfreq = tx_freq;
