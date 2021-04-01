@@ -3605,22 +3605,19 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     do
     {
-#if 0 // this verification seems to be causing bad behavior on some reigs
-
+	    // doing get_freq seems to break on some rigs that can't read freq immediately after set
         if (caps->set_split_freq)
         {
             retcode = caps->set_split_freq(rig, vfo, tx_freq);
-            rig_get_freq(rig, vfo, &tfreq);
+            //rig_get_freq(rig, vfo, &tfreq); 
         }
         else
         {
             retcode = rig_set_freq(rig, RIG_VFO_CURR, tx_freq);
-            rig_get_freq(rig, vfo, &tfreq);
+            //rig_get_freq(rig, vfo, &tfreq);
         }
 
-#else
         tfreq = tx_freq;
-#endif
     }
     while (tfreq != tx_freq && retry-- > 0 && retcode == RIG_OK);
 
