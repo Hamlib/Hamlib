@@ -578,12 +578,6 @@ dnl Determine whether to install pytest.py or py3test.py to $(docdir)/examples
 AM_PYTHON_CHECK_VERSION([${PYTHON}], [3.0], [pyver_3="yes"], [pyver_3="no"])
 AM_CONDITIONAL([PYVER_3], [test x"${pyver_3}" = x"yes"])
 
-dnl Determine whether to link libpython as it is unneeded for Python >= 3.8
-AM_PYTHON_CHECK_VERSION([${PYTHON}], [3.8], [pyver_3_8="yes"], [pyver_3_8="no"])
-AS_IF([test x"${pyver_3_8}" = "xyes"],[
-    PYTHON_LIBS=""
-])
-
 # Tcl binding
 AC_MSG_CHECKING([Whether to build Tcl bindings])
 AC_ARG_WITH([tcl-binding],
