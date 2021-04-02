@@ -491,7 +491,7 @@ typedef unsigned int vfo_t;
 //! @cond Doxygen_Suppress
 #define RIG_TARGETABLE_NONE 0
 #define RIG_TARGETABLE_FREQ (1<<0)
-#define RIG_TARGETABLE_MODE (1<<1)
+#define RIG_TARGETABLE_MODE (1<<1) // mode by vfo or same mode on both vfos
 #define RIG_TARGETABLE_PURE (1<<2) // deprecated -- not used -- reuse it
 #define RIG_TARGETABLE_TONE (1<<3)
 #define RIG_TARGETABLE_FUNC (1<<4)
