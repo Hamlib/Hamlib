@@ -450,7 +450,7 @@ transaction_read:
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly\n", __func__);
                 hl_usleep(rig->caps->timeout * 1000);
-                goto transaction_read;
+                goto transaction_write;
             }
 
             retval = -RIG_ERJCTED;
@@ -3756,6 +3756,8 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     int retval = kenwood_transaction(rig, ptt_cmd, NULL, 0);
+
+    if (ptt == RIG_PTT_OFF) hl_usleep(100*1000); // a little time for PTT to turn off
 
     RETURNFUNC(retval);
 }
