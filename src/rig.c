@@ -5999,9 +5999,17 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = rig_get_mode(rig, vfo, mode, width);
+    if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE))
+    {
+        retval = rig_get_mode(rig, vfo, mode, width);
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
+        if (retval != RIG_OK) { RETURNFUNC(retval); }
+    }
+    else // we'll just us VFOA so we don't swap vfos -- freq is what's important
+    {
+        *mode = rig->state.cache.modeMainA;
+        *width = rig->state.cache.widthMainA;
+    }
 
     // we should only need to ask for VFO_CURR to minimize display swapping
     retval = rig_get_split(rig, RIG_VFO_CURR, split);
