@@ -112,6 +112,7 @@ struct flrig_priv_data
     pbwidth_t curr_widthB;
     int has_get_modeA; /* True if this function is available */
     int has_get_bwA; /* True if this function is available */
+    int has_set_vfoA_fast;
     float powermeter_scale;  /* So we can scale power meter to 0-1 */
 };
 
@@ -120,7 +121,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = BACKEND_VER ".0",
+    .version = "20210402",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -580,7 +581,7 @@ static int flrig_init(RIG *rig)
     struct flrig_priv_data *priv;
 
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
+    rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
     rig->state.priv  = (struct flrig_priv_data *)malloc(sizeof(
                            struct flrig_priv_data));
@@ -746,7 +747,7 @@ static int flrig_open(RIG *rig)
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__, BACKEND_VER);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__, rig->caps->version);
 
     retval = flrig_transaction(rig, "main.get_version", NULL, value, sizeof(value));
 
@@ -797,6 +798,22 @@ static int flrig_open(RIG *rig)
     else
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is not available\n", __func__);
+    }
+
+    /* see if set_vfoA_fast is available */
+    retval = flrig_transaction(rig, "rig.set_vfoA_fast", NULL, value, sizeof(value));
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+
+    if (strlen(value) > 0) /* must have it since we got an answer */
+    {
+        priv->has_set_vfoA_fast = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast is available=%s\n", __func__,
+                  value);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast is not available\n", __func__);
     }
 
     /* see if get_bwA is available */
@@ -1120,13 +1137,15 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo == RIG_VFO_A)
     {
         cmd = "rig.set_vfoA";
-        rig_debug(RIG_DEBUG_TRACE, "rig.set_vfoA %.0f\n", freq);
+	if (priv->has_set_vfoA_fast) cmd = "rig.set_vfoA_fast";
+        rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqA = freq;
     }
     else
     {
         cmd = "rig.set_vfoB";
-        rig_debug(RIG_DEBUG_TRACE, "rig.set_vfoB %.0f\n", freq);
+	if (priv->has_set_vfoA_fast) cmd = "rig.set_vfoB_fast";
+        rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqB = freq;
     }
 
