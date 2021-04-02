@@ -763,27 +763,8 @@ static int flrig_open(RIG *rig)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: get_xcvr failed: %s\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: get_xcvr failed,,,not fatal: %s\n", __func__,
                   rigerror(retval));
-        RETURNFUNC(retval);
-    }
-
-    retval = flrig_transaction(rig, "rig.get_xcvr", NULL, value, sizeof(value));
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: get_xcvr failed: %s\n", __func__,
-                  rigerror(retval));
-        RETURNFUNC(retval);
-    }
-
-    retval = flrig_transaction(rig, "rig.get_xcvr", NULL, value, sizeof(value));
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: get_xcvr failed: %s\n", __func__,
-                  rigerror(retval));
-        RETURNFUNC(retval);
     }
 
     strncpy(priv->info, value, sizeof(priv->info));
