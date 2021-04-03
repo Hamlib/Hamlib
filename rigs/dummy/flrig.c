@@ -90,6 +90,9 @@ static int flrig_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
 static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
+static int flrig_set_ext_parm(RIG *rig, token_t token, value_t val);
+static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val);
+
 static const char *flrig_get_info(RIG *rig);
 static int flrig_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode);
@@ -112,8 +115,27 @@ struct flrig_priv_data
     pbwidth_t curr_widthB;
     int has_get_modeA; /* True if this function is available */
     int has_get_bwA; /* True if this function is available */
-    int has_set_vfoA_fast;
+    int has_set_vfo_fast;
+    int use_set_vfo_fast;
+    int has_set_ptt_fast;
+    int use_set_ptt_fast;
     float powermeter_scale;  /* So we can scale power meter to 0-1 */
+    struct ext_list *ext_parms;
+};
+
+/* ext_level's and ext_parm's tokens */
+#define TOK_FLRIG_FAST_SET_FREQ    TOKEN_BACKEND(1)
+#define TOK_FLRIG_FAST_SET_PTT     TOKEN_BACKEND(2)
+
+static const struct confparams flrig_ext_parms[] =
+{
+    {
+        TOK_FLRIG_FAST_SET_FREQ, "FAST_SET_FREQ", "Use fast set_freq", "If true uses fast set_freq otherwise set_freq is confirmed", "1", RIG_CONF_CHECKBUTTON, {}
+    },
+    {
+        TOK_FLRIG_FAST_SET_PTT, "FAST_SET_PTT", "Use fast set_ott", "If true uses fast set_ptt otherwise set_ptt is confirmed", "1", RIG_CONF_CHECKBUTTON, {}
+    },
+    { RIG_CONF_END, NULL, }
 };
 
 const struct rig_caps flrig_caps =
@@ -121,7 +143,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20210402",
+    .version = "20210403",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -160,6 +182,7 @@ const struct rig_caps flrig_caps =
     .tuning_steps =  { {FLRIG_MODES, 1}, {FLRIG_MODES, RIG_TS_ANY}, RIG_TS_END, },
     .priv = NULL,               /* priv */
 
+    .extparms = flrig_ext_parms,
     .rig_init = flrig_init,
     .rig_open = flrig_open,
     .rig_close = flrig_close,
@@ -183,6 +206,8 @@ const struct rig_caps flrig_caps =
     .get_split_freq_mode = flrig_get_split_freq_mode,
     .set_level = flrig_set_level,
     .get_level = flrig_get_level,
+    .set_ext_parm =  flrig_set_ext_parm,
+    .get_ext_parm =  flrig_get_ext_parm,
     .power2mW =   flrig_power2mW,
     .mW2power =   flrig_mW2power
 };
@@ -559,6 +584,9 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
 
         read_transaction(rig, xml, sizeof(xml)); // this might time out -- that's OK
 
+	// we get an uknown response if function does not exist
+	if (strstr(xml,"unknown")) RETURNFUNC(RIG_ENAVAIL);
+
         if (value)
         {
             xml_parse(xml, value, value_len);
@@ -605,6 +633,8 @@ static int flrig_init(RIG *rig)
     priv->curr_modeB = -1;
     priv->curr_widthA = -1;
     priv->curr_widthB = -1;
+    priv->use_set_vfo_fast = 1; // default to fast VFO
+    priv->use_set_ptt_fast = 1; // deafult to fast PTT
 
     if (!rig->caps)
     {
@@ -775,11 +805,9 @@ static int flrig_open(RIG *rig)
     retval = flrig_transaction(rig, "rig.get_pwrmeter_scale", NULL, value,
                                sizeof(value));
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
-
     priv->powermeter_scale = 1; // default
 
-    if (strlen(value) > 0)
+    if (retval == RIG_OK)
     {
         priv->powermeter_scale = atof(value);
     }
@@ -787,48 +815,47 @@ static int flrig_open(RIG *rig)
     /* see if get_modeA is available */
     retval = flrig_transaction(rig, "rig.get_modeA", NULL, value, sizeof(value));
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
-
-    if (strlen(value) > 0) /* must have it since we got an answer */
+    if (retval == RIG_ENAVAIL) // must not have it
     {
-        priv->has_get_modeA = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is available=%s\n", __func__,
+        priv->has_get_modeA = 0;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is not available=%s\n", __func__,
                   value);
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is not available\n", __func__);
+	priv->has_get_modeA = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is available\n", __func__);
     }
 
     /* see if set_vfoA_fast is available */
     retval = flrig_transaction(rig, "rig.set_vfoA_fast", NULL, value, sizeof(value));
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
-
-    if (strlen(value) > 0) /* must have it since we got an answer */
+    if (retval == RIG_ENAVAIL) // must not have it
     {
-        priv->has_set_vfoA_fast = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast is available=%s\n", __func__,
+        priv->has_set_vfo_fast = 0;
+        priv->has_set_ptt_fast = 0; // they both will not be there
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is not available=%s\n", __func__,
                   value);
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast is not available\n", __func__);
+        priv->has_set_vfo_fast = 1;
+        priv->has_set_ptt_fast = 1; // they both will be there
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is available\n", __func__);
     }
 
     /* see if get_bwA is available */
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
-
-    if (strlen(value) > 0) /* must have it since we got an answer */
+    if (retval == RIG_ENAVAIL) // must not have it 
     {
-        priv->has_get_bwA = 1;
+        priv->has_get_bwA = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is available=%s\n", __func__,
                   value);
     }
     else
     {
+        priv->has_get_bwA = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available\n", __func__);
     }
 
@@ -981,6 +1008,8 @@ static int flrig_open(RIG *rig)
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__, value);
+
+    
 
     RETURNFUNC(retval);
 }
@@ -1137,14 +1166,14 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo == RIG_VFO_A)
     {
         cmd = "rig.set_vfoA";
-	if (priv->has_set_vfoA_fast) cmd = "rig.set_vfoA_fast";
+	if (priv->has_set_vfo_fast) cmd = "rig.set_vfoA_fast";
         rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqA = freq;
     }
     else
     {
         cmd = "rig.set_vfoB";
-	if (priv->has_set_vfoA_fast) cmd = "rig.set_vfoB_fast";
+	if (priv->has_set_vfo_fast) cmd = "rig.set_vfoB_fast";
         rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqB = freq;
     }
@@ -2113,6 +2142,59 @@ static int flrig_mW2power(RIG *rig, float *power, unsigned int mwpower,
               rig_strrmode(mode));
 
     *power = ((float)mwpower / 100000);
+
+    RETURNFUNC(RIG_OK);
+
+}
+
+int flrig_set_ext_parm(RIG *rig, token_t token, value_t val)
+{
+    struct flrig_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (token)
+    {
+    case TOK_FLRIG_FAST_SET_FREQ:
+	    priv->use_set_vfo_fast = val.i;
+	    break;
+	
+
+    case TOK_FLRIG_FAST_SET_PTT:
+	    priv->use_set_ptt_fast = val.i;
+	    break;
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
+    }
+    RETURNFUNC(RIG_OK);
+
+}
+
+int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
+{
+    struct flrig_priv_data *priv = rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!val)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    switch (token)
+    {
+    case TOK_FLRIG_FAST_SET_FREQ:
+	val->i = priv->use_set_vfo_fast;
+	break;
+
+    case TOK_FLRIG_FAST_SET_PTT:
+	val->i = priv->use_set_ptt_fast;
+	break;
+
+    default:
+        RETURNFUNC(-RIG_ENIMPL);
+    }
 
     RETURNFUNC(RIG_OK);
 }
