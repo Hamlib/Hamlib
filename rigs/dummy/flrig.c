@@ -37,6 +37,7 @@
 #include <register.h>
 #include <network.h>
 
+#include "dummy_common.h"
 #include "flrig.h"
 
 #define DEBUG 1
@@ -59,6 +60,8 @@
                     RIG_MODE_C4FM)
 
 #define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER_METER | RIG_LEVEL_RFPOWER_METER_WATTS | RIG_LEVEL_RFPOWER)
+
+#define FLRIG_PARM (TOK_FLRIG_FAST_SET_FREQ|TOK_FLRIG_FAST_SET_PTT)
 
 #define streq(s1,s2) (strcmp(s1,s2)==0)
 
@@ -115,15 +118,14 @@ struct flrig_priv_data
     pbwidth_t curr_widthB;
     int has_get_modeA; /* True if this function is available */
     int has_get_bwA; /* True if this function is available */
-    int has_set_vfo_fast;
-    int use_set_vfo_fast;
+    int has_set_freq_fast;
     int has_set_ptt_fast;
-    int use_set_ptt_fast;
     float powermeter_scale;  /* So we can scale power meter to 0-1 */
+    value_t parms[RIG_SETTING_MAX];
     struct ext_list *ext_parms;
 };
 
-/* ext_level's and ext_parm's tokens */
+/* level's and parm's tokens */
 #define TOK_FLRIG_FAST_SET_FREQ    TOKEN_BACKEND(1)
 #define TOK_FLRIG_FAST_SET_PTT     TOKEN_BACKEND(2)
 
@@ -161,6 +163,9 @@ const struct rig_caps flrig_caps =
     .has_set_level = RIG_LEVEL_SET(FLRIG_LEVELS),
     .has_get_parm = RIG_PARM_NONE,
     .has_set_parm = RIG_PARM_NONE,
+    .has_get_parm =    FLRIG_PARM,
+    .has_set_parm =    RIG_PARM_SET(FLRIG_PARM),
+
     .filters =  {
         RIG_FLT_END
     },
@@ -182,7 +187,8 @@ const struct rig_caps flrig_caps =
     .tuning_steps =  { {FLRIG_MODES, 1}, {FLRIG_MODES, RIG_TS_ANY}, RIG_TS_END, },
     .priv = NULL,               /* priv */
 
-    .extparms = flrig_ext_parms,
+    .extparms =     flrig_ext_parms,
+
     .rig_init = flrig_init,
     .rig_open = flrig_open,
     .rig_close = flrig_close,
@@ -622,6 +628,7 @@ static int flrig_init(RIG *rig)
     priv = rig->state.priv;
 
     memset(priv, 0, sizeof(struct flrig_priv_data));
+    memset(priv->parms, 0, RIG_SETTING_MAX * sizeof(value_t));
 
     /*
      * set arbitrary initial status
@@ -633,8 +640,6 @@ static int flrig_init(RIG *rig)
     priv->curr_modeB = -1;
     priv->curr_widthA = -1;
     priv->curr_widthB = -1;
-    priv->use_set_vfo_fast = 1; // default to fast VFO
-    priv->use_set_ptt_fast = 1; // deafult to fast PTT
 
     if (!rig->caps)
     {
@@ -643,6 +648,14 @@ static int flrig_init(RIG *rig)
 
     strncpy(rig->state.rigport.pathname, DEFAULTPATH,
             sizeof(rig->state.rigport.pathname));
+
+    priv->ext_parms = alloc_init_ext(flrig_ext_parms);
+
+    if (!priv->ext_parms)
+    {
+        RETURNFUNC(-RIG_ENOMEM);
+    }
+
 
     RETURNFUNC(RIG_OK);
 }
@@ -832,14 +845,21 @@ static int flrig_open(RIG *rig)
 
     if (retval == RIG_ENAVAIL) // must not have it
     {
-        priv->has_set_vfo_fast = 0;
+	value_t val;
+	val.i = 0;
+	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val); 
+	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val); 
+        priv->has_set_freq_fast = 0;
         priv->has_set_ptt_fast = 0; // they both will not be there
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is not available=%s\n", __func__,
-                  value);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is not available\n", __func__);
     }
     else
     {
-        priv->has_set_vfo_fast = 1;
+	value_t val;
+	val.i = 1;
+	rig_set_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val); 
+	rig_set_parm(rig, TOK_FLRIG_FAST_SET_PTT, val); 
+        priv->has_set_freq_fast = 1;
         priv->has_set_ptt_fast = 1; // they both will be there
         rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is available\n", __func__);
     }
@@ -1031,6 +1051,8 @@ static int flrig_close(RIG *rig)
 */
 static int flrig_cleanup(RIG *rig)
 {
+    struct flrig_priv_data *priv = (struct flrig_priv_data *)rig->state.priv;
+
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     if (!rig)
@@ -1038,7 +1060,9 @@ static int flrig_cleanup(RIG *rig)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    free(priv->ext_parms);
     free(rig->state.priv);
+
     rig->state.priv = NULL;
 
     // we really don't need to free this up as it's only done once
@@ -1163,24 +1187,27 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     sprintf(cmd_arg,
             "<params><param><value><double>%.0f</double></value></param></params>", freq);
 
+    value_t val;
+    rig_get_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, &val);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: fast_set_freq=%d\n", __func__, val.i);
     if (vfo == RIG_VFO_A)
     {
         cmd = "rig.set_vfoA";
-	if (priv->has_set_vfo_fast) cmd = "rig.set_vfoA_fast";
+	if (val.i) cmd = "rig.set_vfoA_fast";
         rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqA = freq;
     }
     else
     {
         cmd = "rig.set_vfoB";
-	if (priv->has_set_vfo_fast) cmd = "rig.set_vfoB_fast";
+	if (val.i) cmd = "rig.set_vfoB_fast";
         rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqB = freq;
     }
 
     retval = flrig_transaction(rig, cmd, cmd_arg, NULL, 0);
 
-    if (retval < 0)
+    if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
     }
@@ -2147,37 +2174,17 @@ static int flrig_mW2power(RIG *rig, float *power, unsigned int mwpower,
 
 }
 
-int flrig_set_ext_parm(RIG *rig, token_t token, value_t val)
+static int flrig_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
-    struct flrig_priv_data *priv = rig->state.priv;
+    struct flrig_priv_data *priv = (struct flrig_priv_data *)rig->state.priv;
+    char lstr[64];
+    const struct confparams *cfp;
+    struct ext_list *epp;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
+    cfp = rig_ext_lookup_tok(rig, token);
 
-    switch (token)
-    {
-    case TOK_FLRIG_FAST_SET_FREQ:
-	    priv->use_set_vfo_fast = val.i;
-	    break;
-	
-
-    case TOK_FLRIG_FAST_SET_PTT:
-	    priv->use_set_ptt_fast = val.i;
-	    break;
-
-    default:
-        RETURNFUNC(-RIG_EINVAL);
-    }
-    RETURNFUNC(RIG_OK);
-
-}
-
-int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
-{
-    struct flrig_priv_data *priv = rig->state.priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!val)
+    if (!cfp)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -2185,17 +2192,152 @@ int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
     switch (token)
     {
     case TOK_FLRIG_FAST_SET_FREQ:
-	val->i = priv->use_set_vfo_fast;
-	break;
-
     case TOK_FLRIG_FAST_SET_PTT:
-	val->i = priv->use_set_ptt_fast;
-	break;
+        if (val.i && !priv->has_set_freq_fast) {
+		rig_debug(RIG_DEBUG_ERR, "%s: FLRig version 1.3.54.11 or higher needed to support fast functions\n",__func__);
+		RETURNFUNC(-RIG_EINVAL);
+	}
+        break;
 
     default:
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC(-RIG_EINVAL);
     }
+
+    switch (cfp->type)
+    {
+    case RIG_CONF_STRING:
+        strcpy(lstr, val.s);
+        break;
+
+
+    case RIG_CONF_COMBO:
+        sprintf(lstr, "%d", val.i);
+        break;
+
+    case RIG_CONF_NUMERIC:
+        sprintf(lstr, "%f", val.f);
+        break;
+
+    case RIG_CONF_CHECKBUTTON:
+        sprintf(lstr, "%s", val.i ? "ON" : "OFF");
+        break;
+
+    case RIG_CONF_BUTTON:
+        lstr[0] = '\0';
+        break;
+
+    default:
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    epp = find_ext(priv->ext_parms, token);
+
+    if (!epp)
+    {
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    /* store value */
+    epp->val = val;
+
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
+              cfp->name, lstr);
 
     RETURNFUNC(RIG_OK);
 }
 
+static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
+{
+    struct flrig_priv_data *priv = (struct flrig_priv_data *)rig->state.priv;
+    const struct confparams *cfp;
+    struct ext_list *epp;
+
+    ENTERFUNC;
+    /* TODO: load value from priv->ext_parms */
+
+    cfp = rig_ext_lookup_tok(rig, token);
+
+    if (!cfp)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    switch (token)
+    {
+    case TOK_FLRIG_FAST_SET_FREQ:
+    case TOK_FLRIG_FAST_SET_PTT:
+        break;
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    epp = find_ext(priv->ext_parms, token);
+
+    if (!epp)
+    {
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    /* load value */
+    *val = epp->val;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
+              cfp->name);
+
+    RETURNFUNC(RIG_OK);
+}
+
+
+#if 0
+static int flrig_set_ext_parm(RIG *rig, setting_t parm, value_t val)
+{
+    struct flrig_priv_data *priv = (struct flrig_priv_data *)rig->state.priv;
+    int idx;
+    char pstr[32];
+
+    ENTERFUNC;
+    idx = rig_setting2idx(parm);
+
+    if (idx >= RIG_SETTING_MAX)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    if (RIG_PARM_IS_FLOAT(parm))
+    {
+        sprintf(pstr, "%f", val.f);
+    }
+    else
+    {
+        sprintf(pstr, "%d", val.i);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
+              rig_strparm(parm), pstr);
+    priv->parms[idx] = val;
+
+    RETURNFUNC(RIG_OK);
+}
+
+static int flrig_get_ext_parm(RIG *rig, setting_t parm, value_t *val)
+{
+    struct flrig_priv_data *priv = (struct flrig_priv_data *)rig->state.priv;
+    int idx;
+
+    ENTERFUNC;
+    idx = rig_setting2idx(parm);
+
+    if (idx >= RIG_SETTING_MAX)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    *val = priv->parms[idx];
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called %s\n", __func__,
+              rig_strparm(parm));
+
+    RETURNFUNC(RIG_OK);
+}
+#endif
