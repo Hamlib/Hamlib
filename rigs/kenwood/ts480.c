@@ -928,17 +928,20 @@ const struct confparams malachite_cfg_parms[] =
 
 int malachite_init(RIG *rig)
 {
-
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv;
     int retval;
+
+    ENTERFUNC;
 
     retval = kenwood_init(rig);
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    priv = rig->state.priv;
 
     priv->no_id = 1;  // the Malchite doesn't like the ID; verify cmd
 
-    return RIG_OK;
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+
+    RETURNFUNC(RIG_OK);
 }
 
 /*
