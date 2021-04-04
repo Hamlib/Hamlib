@@ -1,6 +1,9 @@
 VFO Abstraction
-2021-03-30
+2021-04-04
 Mike Black W9MDB
+
+RX -- The default receive -- we always use RX=VFOA -- we do not support reverse split as of 2021-04-04
+TX -- The default transmit -- based on mode could be VFOA, or if in split/satellite VFOB or Sub
 
 Main_A 
     RIG_VFO_A
@@ -16,6 +19,7 @@ Sub_A
 Sub_B
     RIG_VFO_SUB_B -- unknown use for this so far but has set/get functions
 
+# Note the IC-910 introduced a 3rd VFO
 Main_C
     RIG_VFO_C -- - unknown use for this so far but has set/get functions
     RIG_VFO_MAIN_C -- - unknown use for this so far but has set/get functions
