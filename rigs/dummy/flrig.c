@@ -588,8 +588,8 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
 
         read_transaction(rig, xml, sizeof(xml)); // this might time out -- that's OK
 
-	// we get an uknown response if function does not exist
-	if (strstr(xml,"unknown")) RETURNFUNC(RIG_ENAVAIL);
+        // we get an uknown response if function does not exist
+        if (strstr(xml, "unknown")) { RETURNFUNC(RIG_ENAVAIL); }
 
         if (value)
         {
@@ -834,37 +834,39 @@ static int flrig_open(RIG *rig)
     }
     else
     {
-	priv->has_get_modeA = 1;
+        priv->has_get_modeA = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is available\n", __func__);
     }
 
     /* see if set_vfoA_fast is available */
     freq_t freq;
     retval = flrig_get_freq(rig, RIG_VFO_CURR, &freq);
+
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: flrig_get_freq not working!!\n", __func__);
-	RETURNFUNC(RIG_EPROTO);
+        RETURNFUNC(RIG_EPROTO);
     }
 
-    
+
     value_t val;
     val.i = 1; // we'll try fast and if it fails turn it off
     priv->has_set_freq_fast = 1;
     priv->has_set_ptt_fast = 1; // they both will be there
-    rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val); 
-    rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val); 
+    rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val);
+    rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val);
 
     retval = flrig_set_freq(rig, RIG_VFO_CURR, freq);
 
     if (retval == RIG_ENAVAIL) // must not have it
     {
-	val.i = 0;
-	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val); 
-	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val); 
+        val.i = 0;
+        rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val);
+        rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val);
         priv->has_set_freq_fast = 0;
         priv->has_set_ptt_fast = 0; // they both will not be there
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is not available\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is not available\n",
+                  __func__);
     }
     else
     {
@@ -874,7 +876,7 @@ static int flrig_open(RIG *rig)
     /* see if get_bwA is available */
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
 
-    if (retval == RIG_ENAVAIL) // must not have it 
+    if (retval == RIG_ENAVAIL) // must not have it
     {
         priv->has_get_bwA = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is available=%s\n", __func__,
@@ -1036,7 +1038,7 @@ static int flrig_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__, value);
 
-    
+
 
     RETURNFUNC(retval);
 }
@@ -1197,17 +1199,22 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     value_t val;
     rig_get_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, &val);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: fast_set_freq=%d\n", __func__, val.i);
+
     if (vfo == RIG_VFO_A)
     {
         cmd = "rig.set_vfoA";
-	if (val.i) cmd = "rig.set_vfoA_fast";
+
+        if (val.i) { cmd = "rig.set_vfoA_fast"; }
+
         rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqA = freq;
     }
     else
     {
         cmd = "rig.set_vfoB";
-	if (val.i) cmd = "rig.set_vfoB_fast";
+
+        if (val.i) { cmd = "rig.set_vfoB_fast"; }
+
         rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqB = freq;
     }
@@ -2200,10 +2207,14 @@ static int flrig_set_ext_parm(RIG *rig, token_t token, value_t val)
     {
     case TOK_FLRIG_FAST_SET_FREQ:
     case TOK_FLRIG_FAST_SET_PTT:
-        if (val.i && !priv->has_set_freq_fast) {
-		rig_debug(RIG_DEBUG_ERR, "%s: FLRig version 1.3.54.14 or higher needed to support fast functions\n",__func__);
-		RETURNFUNC(-RIG_EINVAL);
-	}
+        if (val.i && !priv->has_set_freq_fast)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: FLRig version 1.3.54.14 or higher needed to support fast functions\n",
+                      __func__);
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
         break;
 
     default:

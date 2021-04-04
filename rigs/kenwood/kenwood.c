@@ -333,8 +333,8 @@ transaction_write:
     // We may eventually want to verify PTT with rig_get_ptt instead
     if (retval == RIG_OK && strncmp(cmdstr, "RX", 2) == 0) { goto transaction_quit; }
 
-    // Malachite SDR cannot send ID after FA 
-    if (priv->no_id) RETURNFUNC(RIG_OK); 
+    // Malachite SDR cannot send ID after FA
+    if (priv->no_id) { RETURNFUNC(RIG_OK); }
 
     if (!datasize)
     {
@@ -2810,6 +2810,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 1);
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
+
         power_min = 0; // our return scale is 0-max to match the input scale
         val->f = (power_now - power_min) / (float)(power_max - power_min);
         RETURNFUNC(RIG_OK);
@@ -3764,7 +3765,7 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     int retval = kenwood_transaction(rig, ptt_cmd, NULL, 0);
 
-    if (ptt == RIG_PTT_OFF) hl_usleep(100*1000); // a little time for PTT to turn off
+    if (ptt == RIG_PTT_OFF) { hl_usleep(100 * 1000); } // a little time for PTT to turn off
 
     RETURNFUNC(retval);
 }
