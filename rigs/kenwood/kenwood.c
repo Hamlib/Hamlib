@@ -202,6 +202,10 @@ const struct confparams kenwood_cfg_params[] =
         TOK_RIT, "rit", "RIT", "RIT",
         NULL, RIG_CONF_CHECKBUTTON, { }
     },
+    {
+        TOK_NO_ID, "no_id", "No ID", "If true do not send ID; with set commands",
+        NULL, RIG_CONF_CHECKBUTTON, { }
+    },
     { RIG_CONF_END, NULL, }
 };
 
@@ -328,6 +332,9 @@ transaction_write:
     // The TS-480 PC Control says RX; should return RX0; but it doesn't
     // We may eventually want to verify PTT with rig_get_ptt instead
     if (retval == RIG_OK && strncmp(cmdstr, "RX", 2) == 0) { goto transaction_quit; }
+
+    // Malachite SDR cannot send ID after FA 
+    if (priv->no_id) RETURNFUNC(RIG_OK); 
 
     if (!datasize)
     {
@@ -4497,6 +4504,7 @@ int kenwood_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
 int kenwood_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
+    struct kenwood_priv_data *priv = rig->state.priv;
     char buf[4];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -4517,6 +4525,10 @@ int kenwood_set_ext_parm(RIG *rig, token_t token, value_t val)
     case TOK_RIT:
         snprintf(buf, sizeof(buf), "RT%c", (val.i == 0) ? '0' : '1');
         RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
+
+    case TOK_NO_ID:
+        priv->no_id = val.i;
+        RETURNFUNC(RIG_OK);
     }
 
     RETURNFUNC(-RIG_EINVAL);
@@ -4833,6 +4845,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&pihpsdr_caps);
     rig_register(&ts890s_caps);
     rig_register(&pt8000a_caps);
+    rig_register(&malachite_caps);
 
     RETURNFUNC(RIG_OK);
 }
