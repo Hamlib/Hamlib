@@ -28,7 +28,7 @@
 #include "token.h"
 #include "misc.h"
 
-#define BACKEND_VER "20210402"
+#define BACKEND_VER "20210404"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -45,6 +45,7 @@
 #define TOK_FINE  TOKEN_BACKEND(2)
 #define TOK_XIT   TOKEN_BACKEND(3)
 #define TOK_RIT   TOKEN_BACKEND(4)
+#define TOK_NO_ID TOKEN_BACKEND(5)
 
 /* Token structure assigned to .cfgparams in rig_caps */
 extern const struct confparams kenwood_cfg_params[];
@@ -142,6 +143,7 @@ struct kenwood_priv_data
     int is_k4;
     int is_k4d;
     int is_k4hd;
+    int no_id;  // if true will not send ID; with every set command
 };
 
 
@@ -274,6 +276,7 @@ extern const struct rig_caps powersdr_caps;
 extern const struct rig_caps pihpsdr_caps;
 extern const struct rig_caps ts890s_caps;
 extern const struct rig_caps pt8000a_caps;
+extern const struct rig_caps malachite_caps;
 
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd,

@@ -7,7 +7,8 @@ Copyright (C) 2000-2021  Michael Black W9MDB, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 4.2
-    * 2021-03-?? -- anticipated release date
+    * 2021-04-?? -- anticipated release date
+    * Added Malachite SDR 
     * Frequency and PTT are now validated -- may solve some random problems
     ** where freq and ptt get stuck or not changed
     * Major rework for PRM80
