@@ -585,7 +585,8 @@ static int netrigctl_open(RIG *rig)
             else if (strcmp(setting, "targetable_vfo") == 0)
             {
                 rig->caps->targetable_vfo = strtol(value, NULL, 0);
-                rig_debug(RIG_DEBUG_ERR, "%s: targetable_vfo=0x%2x\n", __func__, rig->caps->targetable_vfo);
+                rig_debug(RIG_DEBUG_ERR, "%s: targetable_vfo=0x%2x\n", __func__,
+                          rig->caps->targetable_vfo);
             }
             else if (strcmp(setting, "has_set_vfo") == 0)
             {

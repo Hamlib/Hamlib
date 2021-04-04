@@ -918,7 +918,8 @@ const struct rig_caps ts890s_caps =
 
 const struct confparams malachite_cfg_parms[] =
 {
-    {  // the Malachite SDR cannot handle sending ID; after FA; commands
+    {
+        // the Malachite SDR cannot handle sending ID; after FA; commands
         TOK_NO_ID, "no_id", "No ID", "If true do not send ID; with set commands",
         NULL, RIG_CONF_CHECKBUTTON, { }
     },
@@ -927,12 +928,13 @@ const struct confparams malachite_cfg_parms[] =
 
 int malachite_init(RIG *rig)
 {
-    
+
     struct kenwood_priv_data *priv = rig->state.priv;
     int retval;
 
     retval = kenwood_init(rig);
-    if (retval != RIG_OK) RETURNFUNC(retval);
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     priv->no_id = 1;  // the Malchite doesn't like the ID; verify cmd
 

@@ -1016,7 +1016,8 @@ int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     n = ft857_send_cmd(rig, index);
-    if (ptt == RIG_PTT_OFF) hl_usleep(200*1000); // FT857 takes a bit to come out of PTT
+
+    if (ptt == RIG_PTT_OFF) { hl_usleep(200 * 1000); } // FT857 takes a bit to come out of PTT
 
     rig_force_cache_timeout(&((struct ft857_priv_data *)
                               rig->state.priv)->tx_status_tv);

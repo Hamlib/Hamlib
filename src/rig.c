@@ -3605,11 +3605,11 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     do
     {
-	    // doing get_freq seems to break on some rigs that can't read freq immediately after set
+        // doing get_freq seems to break on some rigs that can't read freq immediately after set
         if (caps->set_split_freq)
         {
             retcode = caps->set_split_freq(rig, vfo, tx_freq);
-            //rig_get_freq(rig, vfo, &tfreq); 
+            //rig_get_freq(rig, vfo, &tfreq);
         }
         else
         {
@@ -4039,7 +4039,9 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
     // in split mode we alwasy use VFOB
     // in the future we may start using RIG_VFO_TX and let the backend figure out what VFO to use
     vfo = RIG_VFO_B; // in split mode we always use VFOB
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, tx_freq=%.0f, tx_mode=%s, tx_width=%d\n", __func__, rig_strvfo(vfo), tx_freq, rig_strrmode(tx_mode), (int)tx_width);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: vfo=%s, tx_freq=%.0f, tx_mode=%s, tx_width=%d\n", __func__,
+              rig_strvfo(vfo), tx_freq, rig_strrmode(tx_mode), (int)tx_width);
 
     if (caps->set_split_freq_mode)
     {
@@ -6000,7 +6002,8 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE))
+    if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+            && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE))
     {
         retval = rig_get_mode(rig, vfo, mode, width);
 

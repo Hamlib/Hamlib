@@ -64,7 +64,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 {
     int status;
     int want_state_delay = 0;
-    
+
     ENTERFUNC;
 
     p->fd = -1;
@@ -275,7 +275,7 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
         }
 
         //RETURNFUNC(ret); // too verbose
-	return ret;
+        return ret;
     }
     else if (p->type.rig == RIG_PORT_NETWORK
              || p->type.rig == RIG_PORT_UDP_NETWORK)
