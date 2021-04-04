@@ -839,11 +839,26 @@ static int flrig_open(RIG *rig)
     }
 
     /* see if set_vfoA_fast is available */
-    retval = flrig_transaction(rig, "rig.set_vfoA_fast", NULL, NULL, 0);
+    freq_t freq;
+    retval = flrig_get_freq(rig, RIG_VFO_CURR, &freq);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: flrig_get_freq not working!!\n", __func__);
+	RETURNFUNC(RIG_EPROTO);
+    }
+
+    
+    value_t val;
+    val.i = 1; // we'll try fast and if it fails turn it off
+    rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val); 
+    rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val); 
+    priv->has_set_freq_fast = 1;
+    priv->has_set_ptt_fast = 1; // they both will be there
+
+    retval = flrig_set_freq(rig, RIG_VFO_CURR, freq);
 
     if (retval == RIG_ENAVAIL) // must not have it
     {
-	value_t val;
 	val.i = 0;
 	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val); 
 	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val); 
@@ -853,12 +868,6 @@ static int flrig_open(RIG *rig)
     }
     else
     {
-	value_t val;
-	val.i = 1;
-	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val); 
-	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val); 
-        priv->has_set_freq_fast = 1;
-        priv->has_set_ptt_fast = 1; // they both will be there
         rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is available\n", __func__);
     }
 
