@@ -161,8 +161,6 @@ const struct rig_caps flrig_caps =
     .has_set_func = RIG_FUNC_NONE,
     .has_get_level = FLRIG_LEVELS,
     .has_set_level = RIG_LEVEL_SET(FLRIG_LEVELS),
-    .has_get_parm = RIG_PARM_NONE,
-    .has_set_parm = RIG_PARM_NONE,
     .has_get_parm =    FLRIG_PARM,
     .has_set_parm =    RIG_PARM_SET(FLRIG_PARM),
 
@@ -841,7 +839,7 @@ static int flrig_open(RIG *rig)
     }
 
     /* see if set_vfoA_fast is available */
-    retval = flrig_transaction(rig, "rig.set_vfoA_fast", NULL, value, sizeof(value));
+    retval = flrig_transaction(rig, "rig.set_vfoA_fast", NULL, NULL, 0);
 
     if (retval == RIG_ENAVAIL) // must not have it
     {
@@ -857,8 +855,8 @@ static int flrig_open(RIG *rig)
     {
 	value_t val;
 	val.i = 1;
-	rig_set_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val); 
-	rig_set_parm(rig, TOK_FLRIG_FAST_SET_PTT, val); 
+	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val); 
+	rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val); 
         priv->has_set_freq_fast = 1;
         priv->has_set_ptt_fast = 1; // they both will be there
         rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is available\n", __func__);
@@ -2194,7 +2192,7 @@ static int flrig_set_ext_parm(RIG *rig, token_t token, value_t val)
     case TOK_FLRIG_FAST_SET_FREQ:
     case TOK_FLRIG_FAST_SET_PTT:
         if (val.i && !priv->has_set_freq_fast) {
-		rig_debug(RIG_DEBUG_ERR, "%s: FLRig version 1.3.54.11 or higher needed to support fast functions\n",__func__);
+		rig_debug(RIG_DEBUG_ERR, "%s: FLRig version 1.3.54.14 or higher needed to support fast functions\n",__func__);
 		RETURNFUNC(-RIG_EINVAL);
 	}
         break;
