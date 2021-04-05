@@ -745,6 +745,7 @@ int kenwood_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    id[0] = 0;
     rig->state.rigport.retry = 0;
     err = kenwood_get_id(rig, id);
 
