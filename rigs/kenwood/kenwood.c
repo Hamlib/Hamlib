@@ -862,9 +862,7 @@ int kenwood_open(RIG *rig)
     /* id is something like 'IDXXX' or 'ID XXX' */
     if (strlen(id) < 5)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown id type (%s)\n", __func__, id);
-        rig->state.rigport.retry = retry_save;
-        RETURNFUNC(-RIG_EPROTO);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown id type (%s)...continuing\n", __func__, id);
     }
 
     if (!strcmp("IDID900", id)    /* DDUtil in TS-2000 mode */
