@@ -4569,12 +4569,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM08%c", cat_term);
         }
-
-        if (is_ftdx101d || is_ftdx101mp)
-        {
-            // separate meters for Main and Sub
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM0%c", cat_term);
-        }
         else
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM5%c", cat_term);
