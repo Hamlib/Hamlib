@@ -948,15 +948,13 @@ int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
 
-    // Malachite has bug on VHF and up where it takes two freq set to make it work
-    if (freq > 100e6)
-    {
-        retval = kenwood_set_freq(rig, vfo, freq + 1);
+    // Malachite has a bug where it takes two freq set to make it work
+    // under some band changes -- so we just do this all the time
+    retval = kenwood_set_freq(rig, vfo, freq + 1);
 
-        if (retval != RIG_OK) { RETURNFUNC(retval); }
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-        retval = kenwood_set_freq(rig, vfo, freq);
-    }
+    retval = kenwood_set_freq(rig, vfo, freq);
 
     RETURNFUNC(retval);
 }
