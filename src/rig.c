@@ -6003,9 +6003,13 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     // we will ask for other vfo mode just once if not targetable
-    int allTheTimeA = vfo & (RIG_VFO_A | RIG_VFO_CURR | RIG_VFO_MAIN_A | RIG_VFO_SUB_A);
-    int allTheTimeB = (vfo &(RIG_VFO_B | RIG_VFO_SUB)) && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE);
-    int justOnceB = (vfo &(RIG_VFO_B | RIG_VFO_SUB)) && (rig->state.cache.modeMainB == RIG_MODE_NONE);
+    int allTheTimeA = vfo & (RIG_VFO_A | RIG_VFO_CURR | RIG_VFO_MAIN_A |
+                             RIG_VFO_SUB_A);
+    int allTheTimeB = (vfo & (RIG_VFO_B | RIG_VFO_SUB))
+                      && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE);
+    int justOnceB = (vfo & (RIG_VFO_B | RIG_VFO_SUB))
+                    && (rig->state.cache.modeMainB == RIG_MODE_NONE);
+
     if (allTheTimeA || allTheTimeB || justOnceB)
     {
         retval = rig_get_mode(rig, vfo, mode, width);
