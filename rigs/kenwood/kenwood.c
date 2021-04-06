@@ -334,7 +334,7 @@ transaction_write:
     if (retval == RIG_OK && strncmp(cmdstr, "RX", 2) == 0) { goto transaction_quit; }
 
     // Malachite SDR cannot send ID after FA
-    if (priv->no_id) { RETURNFUNC(RIG_OK); }
+    if (!datasize && priv->no_id) { RETURNFUNC(RIG_OK); }
 
     if (!datasize)
     {

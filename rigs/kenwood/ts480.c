@@ -955,13 +955,10 @@ const struct rig_caps malachite_caps =
     .model_name = "DSP",
     .mfg_name = "Malachite",
     .version = BACKEND_VER ".0",
-    .mfg_name = "Malachite",
-    .version = BACKEND_VER ".0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
-    .rig_type = RIG_TYPE_TRANSCEIVER,
-    .ptt_type = RIG_PTT_RIG_MICDATA,
-    .dcd_type = RIG_DCD_RIG,
+    .rig_type = RIG_TYPE_RECEIVER,
+    .ptt_type = RIG_PTT_NONE,
     .port_type = RIG_PORT_SERIAL,
     .serial_rate_min = 4800,
     .serial_rate_max = 115200,
@@ -975,92 +972,14 @@ const struct rig_caps malachite_caps =
     .retry = 10,
     .preamp = {12, RIG_DBLST_END,},
     .attenuator = {12, RIG_DBLST_END,},
-    .max_rit = kHz(9.99),
-    .max_xit = kHz(9.99),
     .max_ifshift = Hz(0),
     .targetable_vfo = RIG_TARGETABLE_FREQ,
-    .transceive = RIG_TRN_RIG,
+    .transceive = RIG_TRN_POLL,
 
 
     .rx_range_list1 = {
-        {kHz(100),   Hz(59999999), TS480_ALL_MODES, -1, -1, TS480_VFO},
+        {kHz(100),   GHz(1), TS480_ALL_MODES, -1, -1, RIG_VFO_A},
         RIG_FRNG_END,
-    }, /*!< Receive frequency range list for ITU region 1 */
-    .tx_range_list1 = {
-        {kHz(1810),  kHz(1850),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},   /* 100W class */
-        {kHz(1810),  kHz(1850),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},       /* 25W class */
-        {kHz(3500),  kHz(3800),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {kHz(3500),  kHz(3800),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {MHz(7),     kHz(7200),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(7),     kHz(7200),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {kHz(10100), kHz(10150), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {kHz(10100), kHz(10150), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {MHz(14),    kHz(14350), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(14),    kHz(14350), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {kHz(18068), kHz(18168), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {kHz(18068), kHz(18168), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {MHz(21),    kHz(21450), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(21),    kHz(21450), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {kHz(24890), kHz(24990), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {kHz(24890), kHz(24990), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {MHz(28),    kHz(29700), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(28),    kHz(29700), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {MHz(50),    kHz(52000), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(50),    kHz(52000), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        RIG_FRNG_END,
-    },  /*!< Transmit frequency range list for ITU region 1 */
-    .rx_range_list2 = {
-        {kHz(100),   Hz(59999999), TS480_ALL_MODES, -1, -1, TS480_VFO},
-        RIG_FRNG_END,
-    },  /*!< Receive frequency range list for ITU region 2 */
-    .tx_range_list2 = {
-        {kHz(1800),  MHz(2) - 1, TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},  /* 100W class */
-        {kHz(1800),  MHz(2) - 1, TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},      /* 25W class */
-        {kHz(3500),  MHz(4) - 1, TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {kHz(3500),  MHz(4) - 1, TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {kHz(5250),  kHz(5450),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {kHz(5250),  kHz(5450),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {MHz(7),     kHz(7300),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(7),     kHz(7300),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {kHz(10100), kHz(10150), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(14),    kHz(14350), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {kHz(18068), kHz(18168), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {kHz(18068), kHz(18168), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {MHz(21),    kHz(21450), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(21),    kHz(21450), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {kHz(24890), kHz(24990), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {kHz(24890), kHz(24990), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {MHz(28),    kHz(29700), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(28),    kHz(29700), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        {MHz(50),    kHz(52000), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-        {MHz(50),    kHz(52000), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-        RIG_FRNG_END,
-    }, /*!< Transmit frequency range list for ITU region 2 */
-    .tuning_steps =  {
-        {TS480_ALL_MODES, kHz(1)},
-        {TS480_ALL_MODES, Hz(2500)},
-        {TS480_ALL_MODES, kHz(5)},
-        {TS480_ALL_MODES, Hz(6250)},
-        {TS480_ALL_MODES, kHz(10)},
-        {TS480_ALL_MODES, Hz(12500)},
-        {TS480_ALL_MODES, kHz(15)},
-        {TS480_ALL_MODES, kHz(20)},
-        {TS480_ALL_MODES, kHz(25)},
-        {TS480_ALL_MODES, kHz(30)},
-        {TS480_ALL_MODES, kHz(100)},
-        {TS480_ALL_MODES, kHz(500)},
-        {TS480_ALL_MODES, MHz(1)},
-        {TS480_ALL_MODES, 0},  /* any tuning step */
-        RIG_TS_END,
-    },
-    /* mode/filter list, remember: order matters! */
-    .filters =  {
-        {RIG_MODE_SSB, kHz(2.4)},
-        {RIG_MODE_CW, Hz(200)},
-        {RIG_MODE_RTTY, Hz(500)},
-        {RIG_MODE_AM, kHz(9)},
-        {RIG_MODE_FM, kHz(14)},
-        RIG_FLT_END,
     },
     .priv = (void *)& ts480_priv_caps,
     .rig_init = malachite_init,
@@ -1074,8 +993,8 @@ const struct rig_caps malachite_caps =
     .get_xit = kenwood_get_xit,
     .set_mode = kenwood_set_mode,
     .get_mode = kenwood_get_mode,
-//    .set_vfo = kenwood_set_vfo, // Malachite does not support any VFOS
-//    .get_vfo = kenwood_get_vfo_if, // Malachite does not support ant VFOS
+    .set_vfo = kenwood_set_vfo, // Malachite does not support any VFOS
+    .get_vfo = kenwood_get_vfo_if, // Malachite does not support ant VFOS
     .set_split_vfo = kenwood_set_split_vfo,
     .get_split_vfo = kenwood_get_split_vfo_if,
     .get_ptt = kenwood_get_ptt,
