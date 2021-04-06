@@ -7,18 +7,14 @@ Copyright (C) 2000-2021  Michael Black W9MDB, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 4.2
-    * 2021-04-?? -- anticipated release date
+    * 2021-04-06
     * Added Malachite SDR 
-    * Frequency and PTT are now validated -- may solve some random problems
-    ** where freq and ptt get stuck or not changed
     * Major rework for PRM80
     * Add twiddle_timeout and twiddle_rit --set-conf options
         rigctld --set-conf=twiddle_timeout=5,twiddle_rit=1 
         This will set the twiddle timeout to 5 seconds and turn on twiddle_rit
         For twiddle timeout VFOB will not be polled for 5 seconds after VFO twiddling is detected
     rigctld --twiddle is deprecated and will be removed in 5.0 along with get_twiddle and set_twiddle
-
-Version 4.2
 
 Version 4.1
         2021-01-31
