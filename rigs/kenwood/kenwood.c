@@ -131,6 +131,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] =
     { RIG_MODEL_THF6A,  "TH-F6" },
     { RIG_MODEL_THF7E,  "TH-F7" },
     { RIG_MODEL_THG71,  "TH-G71" },
+    { RIG_MODEL_MALACHITE,  "020" },
     { RIG_MODEL_NONE, NULL }, /* end marker */
 };
 
@@ -867,7 +868,7 @@ int kenwood_open(RIG *rig)
                   id);
 
         // Malachite SDR gives no reponse to ID and is supposed to be TS480 compatible
-        if (RIG_IS_TS480) { strcpy(id, "ID020"); }
+        if (RIG_IS_MALACHITE) { strcpy(id, "ID020"); }
 
     }
 
