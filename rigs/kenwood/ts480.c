@@ -961,14 +961,14 @@ const struct rig_caps malachite_caps =
     .ptt_type = RIG_PTT_NONE,
     .port_type = RIG_PORT_SERIAL,
     .serial_rate_min = 4800,
-    .serial_rate_max = 115200,
+    .serial_rate_max = 38400,
     .serial_data_bits = 8,
     .serial_stop_bits = 1,
     .serial_parity = RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay = 0,
-    .post_write_delay = 0,
-    .timeout = 200,
+    .post_write_delay = 400,
+    .timeout = 3000,
     .retry = 3,
     .preamp = {0, RIG_DBLST_END,},
     .attenuator = {0, RIG_DBLST_END,},
@@ -978,7 +978,8 @@ const struct rig_caps malachite_caps =
 
 
     .rx_range_list1 = {
-        {kHz(100),   GHz(1), TS480_ALL_MODES, -1, -1, RIG_VFO_A, RIG_ANT_CURR,  "Generic" },
+        {kHz(50),   MHz(250), TS480_ALL_MODES, -1, -1, RIG_VFO_A, RIG_ANT_CURR,  "Generic" },
+        {MHz(400),   GHz(2), TS480_ALL_MODES, -1, -1, RIG_VFO_A, RIG_ANT_CURR,  "Generic" },
         RIG_FRNG_END,
     },
     .priv = (void *)& ts480_priv_caps,
