@@ -978,7 +978,7 @@ const struct rig_caps malachite_caps =
 
 
     .rx_range_list1 = {
-        {kHz(100),   GHz(1), TS480_ALL_MODES, -1, -1, RIG_VFO_A},
+        {kHz(100),   GHz(1), TS480_ALL_MODES, -1, -1, RIG_VFO_A, RIG_ANT_CURR,  "Generic" },
         RIG_FRNG_END,
     },
     .priv = (void *)& ts480_priv_caps,
