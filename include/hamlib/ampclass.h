@@ -38,10 +38,12 @@ public:
 
     virtual ~Amplifier();
 
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201103L) || __cplusplus >= 201103L)
     Amplifier(const Amplifier&) = default;
     Amplifier(Amplifier&&) = default;
     Amplifier& operator=(const Amplifier&) = default;
     Amplifier& operator=(Amplifier&&) = default;
+#endif
 
     const struct amp_caps *caps;
 
