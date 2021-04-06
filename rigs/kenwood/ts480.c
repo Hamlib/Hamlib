@@ -944,6 +944,23 @@ int malachite_init(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
+int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+    int retval;
+
+    // Malachite has bug on VHF and up where it takes two freq set to make it work
+    if (freq > 100e6)
+    {
+        retval = kenwood_set_freq(rig, vfo, freq + 1);
+
+        if (retval != RIG_OK) { RETURNFUNC(retval); }
+
+        retval = kenwood_set_freq(rig, vfo, freq);
+    }
+
+    RETURNFUNC(retval);
+}
+
 /*
  * Malachite SDR rig capabilities.
  * Notice that some rigs share the same functions.
@@ -986,12 +1003,12 @@ const struct rig_caps malachite_caps =
     .rig_init = malachite_init,
     .rig_open = kenwood_open,
     .rig_cleanup = kenwood_cleanup,
-    .set_freq = kenwood_set_freq,
+    .set_freq = malachite_set_freq,
     .get_freq = kenwood_get_freq,
     .set_mode = kenwood_set_mode,
     .get_mode = kenwood_get_mode,
     .set_vfo = kenwood_set_vfo, // Malachite only supports VFOA
-    .get_vfo = kenwood_get_vfo_if, 
+    .get_vfo = kenwood_get_vfo_if,
     .set_powerstat = kenwood_set_powerstat,
     .get_powerstat = kenwood_get_powerstat,
 };
