@@ -703,6 +703,8 @@ const char *HAMLIB_API amp_get_info(AMP *amp)
  *
  * Query the \a val corresponding to the \a level.
  *
+ * \note \a val can be any type defined by #value_t.
+ *
  * \return RIG_OK if the operation was successful, otherwise a **negative
  * value** if an error occurred (in which case, cause is set appropriately).
  *
