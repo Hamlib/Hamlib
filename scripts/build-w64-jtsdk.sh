@@ -14,7 +14,11 @@
 export PATH=$PATH:$GCCD_F:.
 
 # Set this to a desired directory
-BUILD_DIR=~/builds
+if [[ -z "${BUILD_BASE_DIR}" ]]; then
+  BUILD_DIR=~/builds
+else
+  BUILD_DIR=~/${BUILD_BASE_DIR}
+fi
 
 # Set this to LibUSB archive extracted in $BUILD_DIR
 LIBUSB_VER=libusb-1.0.24
@@ -233,7 +237,7 @@ END_OF_README
  LDFLAGS="-L${libusb_dir_f}/MinGW64/dll"
 
 
-make -j 4 install
+make -j ${CPUS} install
 
 mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def
