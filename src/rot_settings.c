@@ -1,17 +1,3 @@
-/**
- * \addtogroup rotator
- * @{
- */
-
-/**
- * \file rot_settings.c
- * \brief rotator func/level/parm interface
- * \author Mikael Nousiainen
- * \date 2020
- *
- * Hamlib interface is a frontend implementing wrapper functions.
- */
-
 /*
  *  Hamlib Interface - rotator func/level/parm
  *  Copyright (c) 2020 by Mikael Nousiainen
@@ -32,6 +18,22 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+
+/**
+ * \addtogroup rotator
+ * @{
+ */
+
+/**
+ * \file rot_settings.c
+ * \brief Rotator functions/levels/parameters interface.
+ *
+ * \author Mikael Nousiainen
+ * \date 2020
+ *
+ * This Hamlib interface is a frontend implementing wrapper functions.
+ */
+
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
@@ -58,18 +60,24 @@
 
 
 /**
- * \brief set a rotator level setting
- * \param rig   The rotator handle
- * \param level The level setting
- * \param val   The value to set the level setting to
+ * \brief Set a rotator level to a given value.
  *
- * Sets the level of a setting.
- * The level value \a val can be a float or an integer. See #value_t
- * for more information.
+ * \param rot The #ROT handle.
+ * \param level The level to set.
+ * \param val The value of the level.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Set \a level to \a val.
+ *
+ * \note \a val can be any type defined by #value_t.
+ * \note As this function calls rot_has_set_level(), this may be considered a
+ * higher level API.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Setting the level was successful.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#set_level() capability is not available.
  *
  * \sa rot_has_set_level(), rot_get_level()
  */
@@ -96,18 +104,24 @@ int HAMLIB_API rot_set_level(ROT *rot, setting_t level, value_t val)
 
 
 /**
- * \brief get the value of a level
- * \param rig   The rotator handle
- * \param level The level setting
- * \param val   The location where to store the value of \a level
+ * \brief Query the value of a requested rotator level.
  *
- *  Retrieves the value of a \a level.
- *  The level value \a val can be a float or an integer. See #value_t
- *  for more information.
+ * \param rot The #ROT handle.
+ * \param level The requested level.
+ * \param val The variable to store the \a level value.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Query the \a val corresponding to the \a level.
+ *
+ * \note \a val can be any type defined by #value_t.
+ * \note As this function calls rot_has_get_level(), this may be considered a
+ * higher level API.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The query was successful.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_level() capability is not available.
  *
  * \sa rot_has_get_level(), rot_set_level()
  */
@@ -135,18 +149,24 @@ int HAMLIB_API rot_get_level(ROT *rot, setting_t level, value_t *val)
 
 
 /**
- * \brief set a rotator parameter
- * \param rig   The rotator handle
- * \param parm  The parameter
- * \param val   The value to set the parameter
+ * \brief Set a rotator parameter to a given value.
  *
- *  Sets a parameter.
- *  The parameter value \a val can be a float or an integer. See #value_t
- *  for more information.
+ * \param rot The #ROT handle.
+ * \param parm The parameter to set.
+ * \param val The value of the parameter.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ *  Sets \a parm to \a val.
+ *
+ * \note \a val can be any type defined by #value_t.
+ * \note As this function calls rot_has_set_parm(), this may be considered a
+ * higher level API.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The parameter was set successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#set_parm() capability is not available.
  *
  * \sa rot_has_set_parm(), rot_get_parm()
  */
@@ -169,18 +189,24 @@ int HAMLIB_API rot_set_parm(ROT *rot, setting_t parm, value_t val)
 
 
 /**
- * \brief get the value of a parameter
- * \param rig   The rotator handle
- * \param parm  The parameter
- * \param val   The location where to store the value of \a parm
+ * \brief Query the value of a requested rotator parameter.
  *
- *  Retrieves the value of a \a parm.
- *  The parameter value \a val can be a float or an integer. See #value_t
- *  for more information.
+ * \param rot The #ROT handle.
+ * \param parm The requested parameter.
+ * \param val The variable to store the \a parm value.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Query the \a val corresponding to the \a parm.
+ *
+ * \note \a val can be any type defined by #value_t.
+ * \note As this function calls rot_has_get_parm(), this may be considered a
+ * higher level API.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The parameter was queried successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_parm() capability is not available.
  *
  * \sa rot_has_get_parm(), rot_set_parm()
  */
@@ -203,20 +229,28 @@ int HAMLIB_API rot_get_parm(ROT *rot, setting_t parm, value_t *val)
 
 
 /**
- * \brief check retrieval ability of level settings
- * \param rig   The rotator handle
- * \param level The level settings
+ * \brief Check which rotator level settings can be queried.
  *
- *  Checks if a rotator is capable of *getting* a level setting.
- *  Since the \a level is an OR'ed bitwise argument, more than
- *  one level can be checked at the same time.
+ * \param rot The #ROT handle.
+ * \param level The level settings bitmap.
  *
- *  EXAMPLE: if (rot_has_get_level(my_rig, RIG_LEVEL_SPEED))
+ * Checks if a rotator is capable of *getting* a level setting.  Since
+ * \a level is an OR'ed bitwise argument, more than one level can be checked
+ * at the same time.
  *
- * \return a bit map of supported level settings that can be retrieved,
- * otherwise 0 if none supported.
+ * EXAMPLE:
+ * \code
+ * if (rot_has_get_level(my_rot, ROT_LEVEL_SPEED))
+ *     my_get_speed(&my_speed);
+ * \endcode
  *
- * \sa rot_has_set_level(), rot_get_level()
+ * \note As this function is called by rot_get_level(), this may be considered
+ * a lower level API.
+ *
+ * \return A bit map of supported level settings that can be retrieved,
+ * otherwise 0 if none supported or \a rot is NULL or inconsistent.
+ *
+ * \sa rot_get_level(), rot_has_set_level()
  */
 setting_t HAMLIB_API rot_has_get_level(ROT *rot, setting_t level)
 {
@@ -234,20 +268,27 @@ setting_t HAMLIB_API rot_has_get_level(ROT *rot, setting_t level)
 
 
 /**
- * \brief check settable ability of level settings
- * \param rig   The rotator handle
- * \param level The level settings
+ * \brief Query the rotator levels that may be set.
  *
- *  Checks if a rotator can *set* a level setting.
- *  Since the \a level is an OR'ed bitwise argument, more than
- *  one level can be check at the same time.
+ * \param rot The #ROT handle.
+ * \param level The level settings bitmap.
  *
- *  EXAMPLE: if (rot_has_set_level(my_rig, ROT_LEVEL_SPEED))
+ * Checks if a rotator can *set* a level setting.  Since \a level is an OR'ed
+ * bitwise argument, more than one level can be checked at the same time.
  *
- * \return a bit map of supported level settings that can be set,
- * otherwise 0 if none supported.
+ * EXAMPLE:
+ * \code
+ * if (rot_has_set_level(my_rot, ROT_LEVEL_SPEED))
+ *     my_set_speed(MEDIUM);
+ * \endcode
  *
- * \sa rot_has_get_level(), rot_set_level()
+ * \note As this function is called by rot_set_level(), this may be considered
+ * a lower level API.
+ *
+ * \return A bit map of supported level settings that can be set, otherwise 0
+ * if none supported or \a rot is NULL or inconsistent.
+ *
+ * \sa rot_set_level(), rot_has_get_level()
  */
 setting_t HAMLIB_API rot_has_set_level(ROT *rot, setting_t level)
 {
@@ -264,20 +305,28 @@ setting_t HAMLIB_API rot_has_set_level(ROT *rot, setting_t level)
 
 
 /**
- * \brief check retrieval ability of parameter settings
- * \param rig   The rotator handle
- * \param parm  The parameter settings
+ * \brief Check which rotator parameter settings can be queried.
  *
- *  Checks if a rotator is capable of *getting* a parm setting.
- *  Since the \a parm is an OR'ed bitwise argument, more than
- *  one parameter can be checked at the same time.
+ * \param rot The #ROT handle.
+ * \param parm The parameter settings bitmap.
  *
- *  EXAMPLE: if (rot_has_get_parm(my_rig, ROT_PARM_NONE))
+ * Checks if a rotator is capable of *getting* a parameter setting.  Since
+ * \a parm is an OR'ed bitwise argument, more than one parameter can be
+ * checked at the same time.
  *
- * \return a bit map of supported parameter settings that can be retrieved,
- * otherwise 0 if none supported.
+ * EXAMPLE:
+ * \code
+ * if (rot_has_get_parm(my_rot, ROT_PARM_NONE))
+ *     my_get_parms(&parms);
+ * \endcode
  *
- * \sa rot_has_set_parm(), rot_get_parm()
+ * \note As this function is called by rot_get_parm(), this may be considered
+ * a lower level API.
+ *
+ * \return A bit map of supported parameter settings that can be retrieved,
+ * otherwise 0 if none supported or \a rot is NULL or inconsistent.
+ *
+ * \sa rot_get_parm(), rot_has_set_parm()
  */
 setting_t HAMLIB_API rot_has_get_parm(ROT *rot, setting_t parm)
 {
@@ -293,20 +342,28 @@ setting_t HAMLIB_API rot_has_get_parm(ROT *rot, setting_t parm)
 
 
 /**
- * \brief check settable ability of parameter settings
- * \param rig   The rotator handle
- * \param parm  The parameter settings
+ * \brief Query the rotator parameters that may be set.
  *
- *  Checks if a rotator can *set* a parameter setting.
- *  Since the \a parm is an OR'ed bitwise argument, more than
- *  one parameter can be check at the same time.
+ * \param rot The #ROT handle.
+ * \param parm The parameter settings bitmap.
  *
- *  EXAMPLE: if (rot_has_set_parm(my_rig, RIG_PARM_NONE))
+ * Checks if a rotator can *set* a parameter setting.  Since \a parm is an
+ * OR'ed bitwise argument, more than one parameter can be checked at the same
+ * time.
  *
- * \return a bit map of supported parameter settings that can be set,
- * otherwise 0 if none supported.
+ * EXAMPLE:
+ * \code
+ * if (rot_has_set_parm(my_rig, ROT_PARM_NONE))
+ *     my_set_parm(parameter);
+ * \endcode
  *
- * \sa rot_has_get_parm(), rot_set_parm()
+ * \note As this function is called by rot_set_parm(), this may be considered
+ * a lower level API.
+ *
+ * \return A bit map of supported parameter settings that can be set,
+ * otherwise 0 if none supported or \a rot is NULL or inconsistent.
+ *
+ * \sa rot_set_parm(), rot_has_get_parm()
  */
 setting_t HAMLIB_API rot_has_set_parm(ROT *rot, setting_t parm)
 {
@@ -322,20 +379,27 @@ setting_t HAMLIB_API rot_has_set_parm(ROT *rot, setting_t parm)
 
 
 /**
- * \brief check ability of rotator functions
- * \param rig   The rotator handle
- * \param func  The functions
+ * \brief Check which rotator functions can be queried.
  *
- *  Checks if a rotator supports a set of functions.
- *  Since the \a func is an OR'ed bitwise argument, more than
- *  one function can be checked at the same time.
+ * \param rot The #ROT handle.
+ * \param func The functions bitmap.
  *
- *  EXAMPLE: if (rot_has_get_func(my_rig, RIG_FUNC_NONE))
+ * Checks if a rotator supports a set of functions.  Since \a func is an OR'ed
+ * bitwise argument, more than one function can be checked at the same time.
  *
- *  \return a bit map of supported functions,
- *  otherwise 0 if none supported.
+ * EXAMPLE:
+ * \code
+ * if (rot_has_get_func(my_rig, RIG_FUNC_NONE))
+ *     do_something();
+ * \endcode
  *
- * \sa rot_has_set_func(), rot_get_func()
+ * \note As this function is called by rot_get_func(), this may be considered
+ * a lower level API.
+ *
+ * \return A bit map of supported functions that can be retrieved, otherwise 0
+ * if none supported or \a rot is NULL or inconsistent.
+ *
+ * \sa rot_get_func(), rot_has_set_func()
  */
 setting_t HAMLIB_API rot_has_get_func(ROT *rot, setting_t func)
 {
@@ -352,18 +416,25 @@ setting_t HAMLIB_API rot_has_get_func(ROT *rot, setting_t func)
 
 
 /**
- * \brief check ability of rotator functions
- * \param rig   The rotator handle
- * \param func  The functions
+ * \brief Query support of rotator functions.
  *
- *  Checks if a rotator supports a set of functions.
- *  Since the \a func is an OR'ed bitwise argument, more than
- *  one function can be checked at the same time.
+ * \param rot The #ROT handle.
+ * \param func The functions bitmap.
  *
- *  EXAMPLE: if (rot_has_set_func(my_rig, RIG_FUNC_NONE))
+ * Checks if a rotator supports a set of functions.  Since \a func is an OR'ed
+ * bitwise argument, more than one function can be checked at the same time.
  *
- * \return a bit map of supported functions,
- * otherwise 0 if none supported.
+ * EXAMPLE:
+ * \code
+ * if (rot_has_set_func(my_rig, RIG_FUNC_NONE))
+ *     do_this_func(my_func);
+ * \endcode
+ *
+ * \note As this function is called by rot_set_func(), this may be considered
+ * a lower level API.
+ *
+ * \return A bit map of supported functions that can be set, otherwise 0 if
+ * none supported or \a rot is NULL or inconsistent.
  *
  * \sa rot_set_func(), rot_has_get_func()
  */
@@ -381,19 +452,25 @@ setting_t HAMLIB_API rot_has_set_func(ROT *rot, setting_t func)
 
 
 /**
- * \brief activate/de-activate functions of rotator
- * \param rig   The rotator handle
- * \param func  The function to activate
- * \param status    The status (on or off) to set to
+ * \brief Activate or deactivate functions of a rotator.
  *
- * Activate/de-activate a function of the radio.
+ * \param rot The #ROT handle.
+ * \param func The function to activate or deactivate.
+ * \param status The status (On or Off) to set.
  *
- * The \a status argument is a non null value for "activate",
- * "de-activate" otherwise, much as TRUE/FALSE definitions in C language.
+ * Activate or deactivate a function of the rotator.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * The \a status argument is a value that is not NULL for "activate",
+ * "deactivate" otherwise, much as TRUE or FALSE boolean definitions in the C
+ * language.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The function was activated or deactivated successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#set_func() capability is not available or
+ * \a func is not supported.
  *
  * \sa rot_get_func()
  */
@@ -420,20 +497,24 @@ int HAMLIB_API rot_set_func(ROT *rot, setting_t func, int status)
 
 
 /**
- * \brief get the status of functions of the rotator
- * \param rig   The rotator handle
- * \param func  The function to get the status
- * \param status    The location where to store the function status
+ * \brief Query the status of functions of the rotator.
  *
- *  Retrieves the status (on/off) of a function of the rotator.
- *  Upon return, \a status will hold the status of the function,
- *  The value pointer to by the \a status argument is a non null
- *  value for "on", "off" otherwise, much as TRUE/FALSE
- *  definitions in C language.
+ * \param rot The #ROT handle.
+ * \param func The function to query the status.
+ * \param status The variable to store the function status.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Retrieves the status (On or Off) of a function of the rotator.  Upon
+ * return, \a status will hold the status of the function.  The value pointed
+ * to by the \a status argument is not NULL for "On", or "Off" otherwise, much
+ * as TRUE or FALSE boolean definitions in the C language.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The function status was queried successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_func() capability is not available or
+ * \a func is not supported.
  *
  * \sa rot_set_func()
  */
@@ -461,16 +542,22 @@ int HAMLIB_API rot_get_func(ROT *rot, setting_t func, int *status)
 
 
 /**
- * \brief set a rotator level extra parameter
- * \param rig   The rotator handle
- * \param token The parameter
- * \param val   The value to set the parameter to
+ * \brief Set a rotator extension level to a given value.
  *
- *  Sets an level extra parameter.
+ * \param rot The #ROT handle.
+ * \param token The extension level token.
+ * \param val The value of the extension level.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Set extension level \a token to \a val.
+ *
+ * \note \a val can be any type defined by #value_t.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The extension level was set successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#set_ext_level() capability is not available.
  *
  * \sa rot_get_ext_level()
  */
@@ -497,16 +584,20 @@ int HAMLIB_API rot_set_ext_level(ROT *rot, token_t token, value_t val)
 
 
 /**
- * \brief get the value of a level extra parameter
- * \param rig   The rotator handle
- * \param token The parameter
- * \param val   The location where to store the value of \a token
+ * \brief Query the value of a requested rotator extension level.
  *
- *  Retrieves the value of a level extra parameter associated with \a token.
+ * \param rot The #ROT handle.
+ * \param token The extension level token.
+ * \param val The location where to store the value of \a token.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Query the \a val corresponding to the extension level \a token.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The extension level was queried successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_ext_level() capability is not available.
  *
  * \sa rot_set_ext_level()
  */
@@ -533,16 +624,24 @@ int HAMLIB_API rot_get_ext_level(ROT *rot, token_t token, value_t *val)
 
 
 /**
- * \brief set a rotator function extra parameter
- * \param rig   The rotator handle
- * \param token The parameter
- * \param status The value to set the parameter to
+ * \brief Activate or deactivate extension functions of a rotator.
  *
- *  Sets a function extra parameter.
+ * \param rot The #ROT handle.
+ * \param token The extension function to activate or deactivate.
+ * \param status The status (On or Off) to set.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Activate or deactivate an extension function of the rotator.
+ *
+ * The \a status argument is a value that is not NULL for "activate",
+ * "deactivate" otherwise, much as TRUE or FALSE boolean definitions in the C
+ * language.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The extension function status was set successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_ext_func() capability is not available.
  *
  * \sa rot_get_ext_func()
  */
@@ -569,16 +668,24 @@ int HAMLIB_API rot_set_ext_func(ROT *rot, token_t token, int status)
 
 
 /**
- * \brief get the value of a function extra parameter
- * \param rig   The rotator handle
- * \param token The parameter
- * \param status The location where to store the value of \a token
+ * \brief Query the status of extension functions of a rotator.
  *
- *  Retrieves the value of a function extra parameter associated with \a token.
+ * \param rot The #ROT handle.
+ * \param token The extension function to query the status.
+ * \param status The variable to store the extension function status.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Retrieves the status (On or Off) of an extension function of the rotator.
+ * Upon return, \a status will hold the status of the extension function.  The
+ * value pointed to by the \a status argument is not NULL for "On", or "Off"
+ * otherwise, much as TRUE or FALSE boolean definitions in the C language.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The extension function status was queried successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_ext_func() capability is not available or
+ * \a token is not supported.
  *
  * \sa rot_set_ext_func()
  */
@@ -605,16 +712,22 @@ int HAMLIB_API rot_get_ext_func(ROT *rot, token_t token, int *status)
 
 
 /**
- * \brief set a rotator parm extra parameter
- * \param rig   The rotator handle
- * \param token The parameter
- * \param val   The value to set the parameter to
+ * \brief Set a rotator extension parameter to a given value.
  *
- *  Sets an parm extra parameter.
+ * \param rot The #ROT handle.
+ * \param token The extension parameter token.
+ * \param val The value of the extension parameter.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Set an extension parameter \a token to \a val.
+ *
+ * \note \a val can be any type defined by #value_t.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The extension parameter was set successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#set_ext_parm() capability is not available.
  *
  * \sa rot_get_ext_parm()
  */
@@ -637,16 +750,22 @@ int HAMLIB_API rot_set_ext_parm(ROT *rot, token_t token, value_t val)
 
 
 /**
- * \brief get the value of a parm extra parameter
- * \param rig   The rotator handle
- * \param token The parameter
- * \param val   The location where to store the value of \a token
+ * \brief Query the value of a requested rotator extension parameter.
  *
- *  Retrieves the value of a parm extra parameter associated with \a token.
+ * \param rot The #ROT handle.
+ * \param token The extension parameter to query the status.
+ * \param val The variable to store the extension parameter status.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Query the \a val corresponding to the extension parameter \a token.
+ *
+ * \note \a val can be any type defined by #value_t.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The extension parameter was queried successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_ext_parm() capability is not available.
  *
  * \sa rot_set_ext_parm()
  */
