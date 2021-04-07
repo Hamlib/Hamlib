@@ -50,19 +50,23 @@
 
 
 /**
- * \brief Check retrieval ability of level settings.
+ * \brief Check which level settings can be queried.
  *
  * \param amp   The #AMP handle.
- * \param level The level settings to check.
+ * \param level The level settings bitmap.
  *
- *  Checks if an amplifier is capable of *getting* a level setting.  Since the
- *  \a level is an OR'ed bitwise argument, more than one level can be checked
- *  at the same time.
+ * Checks if an amplifier is capable of *getting* a level setting.  Since the
+ * \a level is an OR'ed bitwise argument, more than one level can be checked
+ * at the same time.
  *
- *  EXAMPLE: \code if (amp_has_get_level(my_amp, AMP_LVL_SWR)) disp_SWR();\endcode
+ * EXAMPLE:
+ * \code
+ * if (amp_has_get_level(my_amp, AMP_LVL_SWR))
+ *     my_disp_SWR();
+ * \endcode
  *
  * \return A bit map of supported level settings that can be retrieved,
- * otherwise 0 if none supported.
+ * otherwise 0 if none supported or \a amp is NULL or inconsistent.
  *
  * \sa amp_has_set_level(), amp_get_level()
  */
