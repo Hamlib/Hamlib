@@ -145,7 +145,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20210407",
+    .version = "20210408",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1253,7 +1253,15 @@ static int flrig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     sprintf(cmd_arg,
             "<params><param><value><i4>%d</i4></value></param></params>",
             ptt);
-    retval = flrig_transaction(rig, "rig.set_ptt", cmd_arg, NULL, 0);
+
+    value_t val;
+    char *cmd = "rig.set_ptt";
+    rig_get_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, &val);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: fast_set_ptt=%d\n", __func__, val.i);
+
+    if (val.i) { cmd = "rig.set_ptt_fast"; }
+
+    retval = flrig_transaction(rig, cmd, cmd_arg, NULL, 0);
 
     if (retval != RIG_OK)
     {
