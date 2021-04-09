@@ -1,0 +1,27 @@
+Standart protocol for both El and Az axes. Working with russian Radant version 1.0 - 1.4: Радант AZV-1
+
+Serial port mode 9600 8N1.
+
+
+------------ Main commands -----------------
+<CR> means carriage return
+
+ - Set desired angle:
+"Qaaa.a eee.e<CR>", where
+aaa.a - azimuth angle value with floating point,
+eee.e - elevation angle with floating point.
+
+ - After receiving command 'Q' rotator will send message
+"ACK<CR>" if rotator received correct command, or
+"ERR<CR>", if there were any mistakes.
+
+ - After reaching destination angle rotator will send
+"OKaaa.a[.]eee.e<CR>"
+
+ - Request current axes angle command:
+"Y<CR>" without parameters
+ - Rotator will reply: 
+"OKaaa.a[.]eee.e<CR>"
+
+Command for stop positioning:
+"S<CR>"
