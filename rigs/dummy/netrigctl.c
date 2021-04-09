@@ -612,6 +612,12 @@ static int netrigctl_open(RIG *rig)
 
                 if (!has) { rig->caps->get_freq = NULL; }
             }
+            else if (strcmp(setting, "timeout") == 0)
+            {
+                // use the rig's timeout value pluse 200ms for potential network delays
+                rig->caps->timeout = strtol(value, NULL, 0) + 200;
+                rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n", __func__, value, rig->caps->timeout);
+            }
             else
             {
                 // not an error -- just a warning for backward compatibility
@@ -2288,7 +2294,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20210326.0",
+    .version =        "20210409.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
