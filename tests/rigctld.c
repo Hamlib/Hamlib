@@ -548,11 +548,13 @@ int main(int argc, char *argv[])
         }
     }
 
+#if 0
     if (!vfo_mode)
     {
         printf("Recommend using --vfo switch for rigctld if client supports it\n");
         printf("rigctl and netrigctl will automatically detect vfo mode\n");
     }
+#endif
 
     rig_set_debug(verbose);
 
