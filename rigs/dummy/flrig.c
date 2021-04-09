@@ -145,7 +145,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20210408",
+    .version = "20210409";
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -852,11 +852,6 @@ static int flrig_open(RIG *rig)
     value_t val;
     val.i = 1; // we'll try fast and if it fails turn it off
     priv->has_set_freq_fast = 1;
-#if 0
-    priv->has_set_ptt_fast = 1; // they both will be there
-#else
-    priv->has_set_ptt_fast = 0; // Broken in FLRig 1.3.54.14 and before
-#endif
     rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val);
     rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val);
 
