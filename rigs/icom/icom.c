@@ -1251,7 +1251,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (rig->state.current_vfo == RIG_VFO_NONE)
     {
-        retval = rig_set_vfo(rig, RIG_VFO_A); // we default to VFOA
+        // we default to VFOA/MAIN as appropriate
+        vfo = (rig->state.vfo_list & RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_MAIN;
+        retval = rig_set_vfo(rig, vfo);
 
         if (retval != RIG_OK)
         {
