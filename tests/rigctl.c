@@ -606,6 +606,13 @@ int main(int argc, char *argv[])
 
     do
     {
+        if (my_rig->state.comm_state == 0)
+        {
+            // rig may have closed on us to try once to reopen
+            retcode = rig_open(my_rig);
+            rig_debug(RIG_DEBUG_WARN, "%s: rig_open again retcode=%d\n", __func__, retcode);
+        }
+
         retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc, NULL,
                                interactive, prompt, &vfo_opt, send_cmd_term,
                                &ext_resp, &resp_sep);
