@@ -853,7 +853,6 @@ static int flrig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is available\n", __func__);
     }
 
-    /* see if set_vfoA_fast is available */
     freq_t freq;
     retval = flrig_get_freq(rig, RIG_VFO_CURR, &freq);
 
