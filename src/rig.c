@@ -767,6 +767,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (status < 0)
     {
+        rs->comm_state = 0;
         RETURNFUNC(status);
     }
 

@@ -549,11 +549,13 @@ int main(int argc, char *argv[])
     }
 
 #if 0
+
     if (!vfo_mode)
     {
         printf("Recommend using --vfo switch for rigctld if client supports it\n");
         printf("rigctl and netrigctl will automatically detect vfo mode\n");
     }
+
 #endif
 
     rig_set_debug(verbose);
@@ -1066,15 +1068,32 @@ void *handle_socket(void *arg)
 
 #endif
 
+    int rig_opened = 1;  // our rig is already open
+
     do
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d\n", __func__,
-                  handle_data_arg->vfo_mode);
-        retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
-                               sync_callback,
-                               1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
+        if (!rig_opened)
+        {
+            retcode = rig_open(my_rig);
+            rig_opened = retcode == RIG_OK ? 1 : 0;
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_open reopened retcode=%d\n", __func__,
+                      retcode);
+        }
 
-        if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
+        if (rig_opened) // only do this if rig is open
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d\n", __func__,
+                      handle_data_arg->vfo_mode);
+            retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
+                                   sync_callback,
+                                   1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
+
+            if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
+        }
+        else
+        {
+            retcode = -RIG_EIO;
+        }
 
         // if we get a hard error we try to reopen the rig again
         // this should cover short dropouts that can occur
@@ -1089,7 +1108,9 @@ void *handle_socket(void *arg)
                 hl_usleep(1000 * 1000);
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
                 retcode = rig_open(my_rig);
-                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
+                rig_opened = retcode == RIG_OK ? 1 : 0;
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d, opened=%d\n", __func__,
+                          retcode, rig_opened);
             }
             while (retry-- > 0 && retcode != RIG_OK);
         }
