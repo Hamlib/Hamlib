@@ -61,7 +61,7 @@
 
 #define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER_METER | RIG_LEVEL_RFPOWER_METER_WATTS | RIG_LEVEL_RFPOWER)
 
-#define FLRIG_PARM (TOK_FLRIG_FAST_SET_FREQ|TOK_FLRIG_FAST_SET_PTT)
+#define FLRIG_PARM (TOK_FLRIG_VERIFY_FREQ|TOK_FLRIG_VERIFY_PTT)
 
 #define streq(s1,s2) (strcmp(s1,s2)==0)
 
@@ -118,24 +118,23 @@ struct flrig_priv_data
     pbwidth_t curr_widthB;
     int has_get_modeA; /* True if this function is available */
     int has_get_bwA; /* True if this function is available */
-    int has_set_freq_fast;
-    int has_set_ptt_fast;
+    int has_verify_cmds; // has the verify cmd in FLRig 1.3.54.1 or higher
     float powermeter_scale;  /* So we can scale power meter to 0-1 */
     value_t parms[RIG_SETTING_MAX];
     struct ext_list *ext_parms;
 };
 
 /* level's and parm's tokens */
-#define TOK_FLRIG_FAST_SET_FREQ    TOKEN_BACKEND(1)
-#define TOK_FLRIG_FAST_SET_PTT     TOKEN_BACKEND(2)
+#define TOK_FLRIG_VERIFY_FREQ    TOKEN_BACKEND(1)
+#define TOK_FLRIG_VERIFY_PTT     TOKEN_BACKEND(2)
 
 static const struct confparams flrig_ext_parms[] =
 {
     {
-        TOK_FLRIG_FAST_SET_FREQ, "FAST_SET_FREQ", "Use fast set_freq", "If true uses fast set_freq otherwise set_freq is confirmed", "1", RIG_CONF_CHECKBUTTON, {}
+        TOK_FLRIG_VERIFY_FREQ, "VERIFY_FREQ", "Verify set_freq", "If true will verify set_freq otherwise is fire and forget", "0", RIG_CONF_CHECKBUTTON, {}
     },
     {
-        TOK_FLRIG_FAST_SET_PTT, "FAST_SET_PTT", "Use fast set_ott", "If true uses fast set_ptt otherwise set_ptt is confirmed", "1", RIG_CONF_CHECKBUTTON, {}
+        TOK_FLRIG_VERIFY_PTT, "VERIFY_PTT", "Verify set_ptt", "If true will verify set_ptt otherwise set_ptt is fire and forget", "0", RIG_CONF_CHECKBUTTON, {}
     },
     { RIG_CONF_END, NULL, }
 };
@@ -799,6 +798,22 @@ static int flrig_open(RIG *rig)
         RETURNFUNC(retval);
     }
 
+    int v1, v2, v3, v4;
+    sscanf(value, "%d.%d.%d.%d", &v1, &v2, &v3, &v4);
+
+    if (v1 >= 1 || (v1 >= 1 && v2 >= 3) || (v1 >= 1 && v2 >= 3 && v3 >= 54))
+    {
+        priv->has_verify_cmds = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: verify set_vfoA/ptt is available\n",
+                  __func__);
+    }
+    else
+    {
+        priv->has_verify_cmds = 0;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: verify set vfoA/ptt is not available\n",
+                  __func__);
+    }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s FlRig version %s\n", __func__, value);
 
     retval = flrig_transaction(rig, "rig.get_xcvr", NULL, value, sizeof(value));
@@ -848,29 +863,6 @@ static int flrig_open(RIG *rig)
         RETURNFUNC(RIG_EPROTO);
     }
 
-
-    value_t val;
-    val.i = 1; // we'll try fast and if it fails turn it off
-    priv->has_set_freq_fast = 1;
-    rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val);
-    rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val);
-
-    retval = flrig_set_freq(rig, RIG_VFO_CURR, freq);
-
-    if (retval == RIG_ENAVAIL) // must not have it
-    {
-        val.i = 0;
-        rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, val);
-        rig_set_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, val);
-        priv->has_set_freq_fast = 0;
-        priv->has_set_ptt_fast = 0; // they both will not be there
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is not available\n",
-                  __func__);
-    }
-    else
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA_fast/ptt is available\n", __func__);
-    }
 
     /* see if get_bwA is available */
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
@@ -1196,14 +1188,14 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             "<params><param><value><double>%.0f</double></value></param></params>", freq);
 
     value_t val;
-    rig_get_ext_parm(rig, TOK_FLRIG_FAST_SET_FREQ, &val);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: fast_set_freq=%d\n", __func__, val.i);
+    rig_get_ext_parm(rig, TOK_FLRIG_VERIFY_FREQ, &val);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: set_verify_vfoA/B=%d\n", __func__, val.i);
 
     if (vfo == RIG_VFO_A)
     {
         cmd = "rig.set_vfoA";
 
-        if (val.i) { cmd = "rig.set_vfoA_fast"; }
+        if (val.i) { cmd = "rig.set_verify_vfoA"; }
 
         rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqA = freq;
@@ -1212,7 +1204,7 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         cmd = "rig.set_vfoB";
 
-        if (val.i) { cmd = "rig.set_vfoB_fast"; }
+        if (val.i) { cmd = "rig.set_verify_vfoB"; }
 
         rig_debug(RIG_DEBUG_TRACE, "%s %.0f\n", cmd, freq);
         priv->curr_freqB = freq;
@@ -1255,7 +1247,7 @@ static int flrig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     value_t val;
     char *cmd = "rig.set_ptt";
-    rig_get_ext_parm(rig, TOK_FLRIG_FAST_SET_PTT, &val);
+    rig_get_ext_parm(rig, TOK_FLRIG_VERIFY_FREQ, &val);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: fast_set_ptt=%d\n", __func__, val.i);
 
     if (val.i) { cmd = "rig.set_ptt_fast"; }
@@ -2208,12 +2200,12 @@ static int flrig_set_ext_parm(RIG *rig, token_t token, value_t val)
 
     switch (token)
     {
-    case TOK_FLRIG_FAST_SET_FREQ:
-    case TOK_FLRIG_FAST_SET_PTT:
-        if (val.i && !priv->has_set_freq_fast)
+    case TOK_FLRIG_VERIFY_FREQ:
+    case TOK_FLRIG_VERIFY_PTT:
+        if (val.i && !priv->has_verify_cmds)
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: FLRig version 1.3.54.14 or higher needed to support fast functions\n",
+                      "%s: FLRig version 1.3.54.18 or higher needed to support fast functions\n",
                       __func__);
             RETURNFUNC(-RIG_EINVAL);
         }
@@ -2286,8 +2278,8 @@ static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
 
     switch (token)
     {
-    case TOK_FLRIG_FAST_SET_FREQ:
-    case TOK_FLRIG_FAST_SET_PTT:
+    case TOK_FLRIG_VERIFY_FREQ:
+    case TOK_FLRIG_VERIFY_PTT:
         break;
 
     default:
