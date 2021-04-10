@@ -603,10 +603,10 @@ int main(int argc, char *argv[])
     }
 
 #endif  /* HAVE_LIBREADLINE */
-
+    int rig_opened = 1;  // our rig is already open
     do
     {
-        if (my_rig->state.comm_state == 0)
+        if (!rig_opened)
         {
             // rig may have closed on us to try once to reopen
             retcode = rig_open(my_rig);
@@ -630,6 +630,7 @@ int main(int argc, char *argv[])
                 hl_usleep(1000 * 1000);
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
                 retcode = rig_open(my_rig);
+                if (retcode != RIG_OK) rig_opened = 0;
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
             }
             while (retry-- > 0 && retcode != RIG_OK);
