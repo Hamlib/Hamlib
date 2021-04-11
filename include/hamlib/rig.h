@@ -1969,7 +1969,7 @@ enum rig_function_e {
  *
  */
 //! @cond Doxygen_Suppress
-extern void *rig_get_function_ptr(rig_model_t rig_model, enum rig_function_e rig_function);
+extern HAMLIB_EXPORT (void *) rig_get_function_ptr(rig_model_t rig_model, enum rig_function_e rig_function);
 
 /**
  * \brief Enumeration of rig->caps values
@@ -1997,14 +1997,14 @@ enum rig_caps_cptr_e {
  * Does not support > 32-bit rig_caps values
  */
 //! @cond Doxygen_Suppress
-extern long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
+extern HAMLIB_EXPORT (long long) rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
  *
  */
 //! @cond Doxygen_Suppress
-extern const char* rig_get_caps_cptr(rig_model_t rig_model, enum rig_caps_cptr_e rig_caps);
+extern HAMLIB_EXPORT (const char *) rig_get_caps_cptr(rig_model_t rig_model, enum rig_caps_cptr_e rig_caps);
 
 /**
  * \brief Port definition
