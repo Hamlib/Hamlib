@@ -2234,6 +2234,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     }
     else if (vfo == RIG_VFO_TX)
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo line#%d vfo=%s\n", __func__, __LINE__,
+                  rig_strvfo(vfo));
         vfo = RIG_VFO_A;
 
         if (VFO_HAS_A_B_ONLY && rig->state.cache.satmode) { vfo = RIG_VFO_B; }
@@ -2243,13 +2245,17 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     else if ((vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) && VFO_HAS_DUAL)
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo line#%d vfo=%s, split=%d\n", __func__,
+                  __LINE__, rig_strvfo(vfo), rig->state.cache.split);
         // If we're being asked for A/Main but we are a MainA/MainB rig change it
         vfo = RIG_VFO_MAIN;
 
-        if (rig->state.cache.split == RIG_SPLIT_ON) { vfo = RIG_VFO_A; }
+        if (rig->state.cache.split == RIG_SPLIT_ON && !rig->state.cache.satmode) { vfo = RIG_VFO_A; }
     }
     else if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) && VFO_HAS_DUAL)
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo line#%d vfo=%s\n", __func__, __LINE__,
+                  rig_strvfo(vfo));
         // If we're being asked for B/Sub but we are a MainA/MainB rig change it
         vfo = RIG_VFO_SUB;
 
@@ -2286,7 +2292,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         priv->curr_freq = 0; // reset curr_freq so set_freq works 1st time
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: debug#2\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: line#%d\n", __func__, __LINE__);
 
     switch (vfo)
     {
@@ -2439,10 +2445,10 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: debug#3\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: line#%d\n", __func__, __LINE__);
     retval = icom_transaction(rig, C_SET_VFO, icvfo, NULL, 0,
                               ackbuf, &ack_len);
-    rig_debug(RIG_DEBUG_TRACE, "%s: debug#4\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: line#%d\n", __func__, __LINE__);
 
     if (retval != RIG_OK)
     {
@@ -2464,7 +2470,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     rig->state.current_vfo = vfo;
-    rig_debug(RIG_DEBUG_TRACE, "%s: debug#5 curr_vfo=%s\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: line#%d curr_vfo=%s\n", __func__, __LINE__,
               rig_strvfo(rig->state.current_vfo));
     RETURNFUNC(RIG_OK);
 }
