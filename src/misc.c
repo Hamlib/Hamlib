@@ -1877,8 +1877,8 @@ const char *HAMLIB_API rot_strstatus(rot_status_t status)
  * \param RIG* and rig_function_e
  * \return the corresponding function pointer
  */
-void *rig_get_function_ptr(rig_model_t rig_model,
-                           enum rig_function_e rig_function)
+void * HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
+                                       enum rig_function_e rig_function)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
@@ -2150,7 +2150,7 @@ void *rig_get_function_ptr(rig_model_t rig_model,
  * \param RIG* and rig_caps_int_e
  * \return the corresponding long value -- -RIG_EINVAL is the only error possible
  */
-long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
+long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
@@ -2177,7 +2177,7 @@ long long rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
     }
 }
 
-const char *rig_get_caps_cptr(rig_model_t rig_model,
+const char * HAMLIB_API rig_get_caps_cptr(rig_model_t rig_model,
                               enum rig_caps_cptr_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
