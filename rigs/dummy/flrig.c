@@ -1572,7 +1572,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         if (vfo == RIG_VFO_A) { *mode = priv->curr_modeA; }
         else { *mode = priv->curr_modeB; }
 
-        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s call not made as PTT=1\n", __func__);
         RETURNFUNC(RIG_OK);  // just return OK and ignore this
     }
 
@@ -1893,7 +1893,7 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     if (priv->ptt)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s call not made as PTT=1\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s call not made as PTT=1\n", __func__);
         RETURNFUNC(RIG_OK);  // just return OK and ignore this
     }
 
@@ -1971,7 +1971,7 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     if (priv->ptt)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s set_mode call not made as PTT=1\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s set_mode call not made as PTT=1\n", __func__);
         RETURNFUNC(RIG_OK);  // just return OK and ignore this
     }
 
