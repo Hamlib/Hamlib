@@ -180,8 +180,8 @@ radant_rot_stop(ROT *rot)
 const struct rot_caps radant_rot_caps =
 {
     ROT_MODEL(ROT_MODEL_RADANT),
-    .model_name =     "Radant",
-    .mfg_name =       "Hamlib",
+    .model_name =     "AZ-1/AZV-1",
+    .mfg_name =       "Radant",
     .version =        "20210409.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
