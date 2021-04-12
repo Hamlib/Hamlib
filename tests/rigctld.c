@@ -496,7 +496,7 @@ int main(int argc, char *argv[])
 
         case 'o':
             vfo_mode++;
-            rig_debug(RIG_DEBUG_ERR, "%s: #0 vfo_mode=%d\n", __func__, vfo_mode);
+            //rig_debug(RIG_DEBUG_ERR, "%s: #0 vfo_mode=%d\n", __func__, vfo_mode);
             break;
 
         case 'v':
