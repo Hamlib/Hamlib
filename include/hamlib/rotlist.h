@@ -604,6 +604,19 @@
 #define ROT_MODEL_SATEL ROT_MAKE_MODEL(ROT_SATEL, 1)
 
 
+/**
+ * \brief A macro that returns the model number of the RADANT backend.
+ *
+ * \def ROT_MODEL_RADANT
+ *
+ * The RADANT backend can be used with rotators that support the MS232
+ * interface.
+ */
+//! @cond Doxygen_Suppress
+#define ROT_RADANT 22
+#define ROT_BACKEND_RADANT "radant"
+//! @endcond
+#define ROT_MODEL_RADANT ROT_MAKE_MODEL(ROT_RADANT, 1)
 
 
 /**
