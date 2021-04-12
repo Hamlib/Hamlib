@@ -1050,7 +1050,7 @@ static int flrig_close(RIG *rig)
 */
 static int flrig_cleanup(RIG *rig)
 {
-    struct flrig_priv_data *priv = (struct flrig_priv_data *)rig->state.priv;
+    struct flrig_priv_data *priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
@@ -1058,6 +1058,8 @@ static int flrig_cleanup(RIG *rig)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
+
+    priv = (struct flrig_priv_data *)rig->state.priv;
 
     free(priv->ext_parms);
     free(rig->state.priv);
