@@ -1629,7 +1629,9 @@ int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
     return RIG_OK;
 }
 
-
+// we're mappping our VFO here to work with either VFO A/B rigs or Main/Sub
+// Hamlib uses VFO_A  and VFO_B as TX/RX as of 2021-04-13
+// So we map these to Main/Sub as required
 vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
@@ -1640,7 +1642,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
         return vfo;  // don't modify vfo for RIG_VFO_CURR
     }
 
-    if (vfo == RIG_VFO_RX)
+    if (vfo == RIG_VFO_RX || vfo == RIG_VFO_A)
     {
         vfo = RIG_VFO_A;
 
@@ -1649,7 +1651,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
         if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
     }
 
-    if (vfo == RIG_VFO_TX)
+    else if (vfo == RIG_VFO_TX || RIG_VFO_B)
     {
         int retval;
         split_t split = 0;
@@ -1877,8 +1879,8 @@ const char *HAMLIB_API rot_strstatus(rot_status_t status)
  * \param RIG* and rig_function_e
  * \return the corresponding function pointer
  */
-void * HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
-                                       enum rig_function_e rig_function)
+void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
+                                      enum rig_function_e rig_function)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
@@ -2150,7 +2152,8 @@ void * HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
  * \param RIG* and rig_caps_int_e
  * \return the corresponding long value -- -RIG_EINVAL is the only error possible
  */
-long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps)
+long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
+                                      enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
@@ -2177,8 +2180,8 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e
     }
 }
 
-const char * HAMLIB_API rig_get_caps_cptr(rig_model_t rig_model,
-                              enum rig_caps_cptr_e rig_caps)
+const char *HAMLIB_API rig_get_caps_cptr(rig_model_t rig_model,
+        enum rig_caps_cptr_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
