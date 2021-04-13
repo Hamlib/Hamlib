@@ -61,7 +61,6 @@
                             RIG_FUNC_VOX| \
                             RIG_FUNC_FBKIN| \
                             RIG_FUNC_AFC| \
-                            RIG_FUNC_SATMODE| \
                             RIG_FUNC_VSC| \
                             RIG_FUNC_MN| \
                             RIG_FUNC_LOCK| \
@@ -208,7 +207,7 @@ const struct rig_caps ic7100_caps =
     RIG_MODEL(RIG_MODEL_IC7100),
     .model_name = "IC-7100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
