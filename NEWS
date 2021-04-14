@@ -8,6 +8,7 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 4.2
     * 2021-04-06
+    * USRP lib and gnuradio are deprecated and will be removed in 5.0
     * Added Radan rotator
     * Added Malachite SDR 
     * Major rework for PRM80
