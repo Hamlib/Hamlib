@@ -27,7 +27,6 @@ doc/hamlib.html
 doc/version.texi
 hamlib-*.tar.gz
 include/config.h
-include/config.h.in
 include/stamp-h1
 macros/libtool.m4
 macros/ltoptions.m4
