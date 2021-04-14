@@ -11,7 +11,6 @@
 *.swp
 $depbase.Tpo
 Makefile
-Makefile.in
 aclocal.m4
 config.log
 hamlib.pc
