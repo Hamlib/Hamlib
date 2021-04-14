@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     }
 
     printf("Model#%d\n", model);
-    rig_set_debug(RIG_DEBUG_WARN);
+    rig_set_debug(RIG_DEBUG_CACHE);
 
     /* Instantiate a rig */
     my_rig = rig_init(model); // your rig model.
@@ -88,9 +88,9 @@ int main(int argc, char *argv[])
     rig_get_cache(my_rig, vfo, &freqA, &freq_ms, &modeA, &mode_ms, &widthA,
                   &width_ms);
     printf("freq=%.0f cache times=%d,%d,%d\n", freqA, freq_ms, mode_ms, width_ms);
-    rig_set_freq(my_rig, RIG_VFO_A, 14074055);
-    rig_set_freq(my_rig, RIG_VFO_B, 14074155);
-    rig_set_freq(my_rig, RIG_VFO_C, 14074255);
+    rig_set_freq(my_rig, RIG_VFO_A, 14074000.0);
+    rig_set_freq(my_rig, RIG_VFO_B, 14075000.0);
+    rig_set_freq(my_rig, RIG_VFO_C, 14076000.0);
     rig_set_mode(my_rig, RIG_VFO_A, RIG_MODE_USB, 1000);
     rig_set_mode(my_rig, RIG_VFO_B, RIG_MODE_LSB, 2000);
     rig_set_mode(my_rig, RIG_VFO_C, RIG_MODE_PKTUSB, 3000);
