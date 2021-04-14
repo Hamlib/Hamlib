@@ -18,7 +18,6 @@ config.guess
 config.sub
 config.log
 config.status
-configure
 depcomp
 hamlib.pc
 hamlib.spec
