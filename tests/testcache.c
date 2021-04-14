@@ -116,13 +116,13 @@ int main(int argc, char *argv[])
 
     if (widthA != 1000) { printf("widthA = %d\n", (int)widthA); exit(1); }
 
-    if (freqB != 14074100) { printf("freqB = %.1f\n", freqB); exit(1); }
+    if (freqB != 14075000) { printf("freqB = %.1f\n", freqB); exit(1); }
 
     if (modeB != RIG_MODE_LSB) { printf("modeB = %s\n", rig_strrmode(modeB)); exit(1); }
 
     if (widthB != 2000) { printf("widthB = %d\n", (int)widthB); exit(1); }
 
-    if (freqC != 14074200) { printf("freqC = %.1f\n", freqC); exit(1); }
+    if (freqC != 14076000) { printf("freqC = %.1f\n", freqC); exit(1); }
 
     if (modeC != RIG_MODE_PKTUSB) { printf("modeC = %s\n", rig_strrmode(modeC)); exit(1); }
 
