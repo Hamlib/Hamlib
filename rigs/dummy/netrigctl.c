@@ -328,6 +328,16 @@ static int netrigctl_open(RIG *rig)
         {
             break;
         }
+        switch(i)
+        {
+        }
+        rig->caps->tx_range_list1->startf = rs->tx_range_list[i].startf;
+        rig->caps->tx_range_list1->endf = rs->tx_range_list[i].endf;
+        rig->caps->tx_range_list1->modes = rs->tx_range_list[i].modes;
+        rig->caps->tx_range_list1->low_power = rs->tx_range_list[i].low_power;
+        rig->caps->tx_range_list1->high_power = rs->tx_range_list[i].high_power;
+        rig->caps->tx_range_list1->vfo = rs->tx_range_list[i].vfo;
+        rig->caps->tx_range_list1->ant = rs->tx_range_list[i].ant;
     }
 
     for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
