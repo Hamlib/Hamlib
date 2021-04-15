@@ -721,7 +721,7 @@ const struct rig_caps ic705_caps =
     RIG_MODEL(RIG_MODEL_IC705),
     .model_name = "IC-705",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -833,9 +833,9 @@ const struct rig_caps ic705_caps =
 
     /* mode/filter list, remember: order matters! But duplication may speed up search.  Put the most commonly used modes first!  Remember these are defaults, with dsp rigs you can change them to anything you want except FM and WFM which are fixed */
     .filters =  {
-        {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(3.6)},
         {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(2.4)},
         {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(1.8)},
+        {RIG_MODE_SSB | RIG_MODE_PKTLSB | RIG_MODE_PKTUSB, kHz(3.0)},
         {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(500)},
         {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(250)},
         {RIG_MODE_CW | RIG_MODE_CWR, kHz(1.2)},
