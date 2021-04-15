@@ -1661,8 +1661,9 @@ int twiddling(RIG *rig)
 
         if (elapsed < rig->state.twiddle_timeout)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: Twiddle elapsed < 3, elapsed=%d\n", __func__,
-                      elapsed);
+            rig_debug(RIG_DEBUG_TRACE, "%s: Twiddle elapsed < %d, elapsed=%d\n", __func__,
+                      rig->state.twiddle_timeout, elapsed);
+            rig->state.twiddle_state = TWIDDLE_ON; // gets turned off in rig_set_freq;
             RETURNFUNC(1); // would be better as error but other software won't handle it
         }
     }
@@ -1696,6 +1697,13 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (CHECK_RIG_ARG(rig))
     {
         RETURNFUNC(-RIG_EIO);
+    }
+
+    if (rig->state.twiddle_state == TWIDDLE_ON)
+    {
+        // we keep skipping set_freq while the vfo knob is in motion
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Twiddle on so skipping this set_freq request one time\n", __func__);
+        rig->state.twiddle_state = TWIDDLE_OFF;
     }
 
     caps = rig->caps;
