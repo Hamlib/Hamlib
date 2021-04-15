@@ -351,6 +351,7 @@ int HAMLIB_API sprintf_freq(char *str, int nlen, freq_t freq)
 {
     double f;
     char *hz;
+    int decplaces = 10;
 
     // too verbose
     //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -364,19 +365,22 @@ int HAMLIB_API sprintf_freq(char *str, int nlen, freq_t freq)
     {
         hz = "MHz";
         f = (double)freq / MHz(1);
+        decplaces = 7;
     }
     else if (llabs(freq) >= kHz(1))
     {
         hz = "kHz";
         f = (double)freq / kHz(1);
+        decplaces = 4;
     }
     else
     {
         hz = "Hz";
         f = (double)freq;
+        decplaces = 1;
     }
 
-    return sprintf(str, "%g %s", f, hz);
+    return sprintf(str, "%.*f %s", decplaces , f, hz);
 }
 
 
