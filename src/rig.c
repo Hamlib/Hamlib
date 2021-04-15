@@ -2495,6 +2495,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(-RIG_EIO);
     }
 
+    vfo = vfo_fixup(rig, vfo);
+
     if (vfo == RIG_VFO_CURR) { RETURNFUNC(RIG_OK); }
 
     // make sure we are asking for a VFO that the rig actually has
