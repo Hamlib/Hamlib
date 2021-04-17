@@ -1638,7 +1638,7 @@ int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
 // So we map these to Main/Sub as required
 vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_curr=%s\n", __func__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1676,13 +1676,13 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 
         if (split) { vfo = RIG_VFO_B; }
 
-        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode) { vfo = RIG_VFO_MAIN; }
+        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode && vfo != RIG_VFO_B) { vfo = RIG_VFO_MAIN; }
 
-        if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode)) { vfo = RIG_VFO_SUB; }
+        else if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode || vfo == RIG_VFO_B)) { vfo = RIG_VFO_SUB; }
 
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) { vfo = RIG_VFO_B; }
+        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) { vfo = RIG_VFO_B; }
 
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { vfo = RIG_VFO_SUB; }
+        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { vfo = RIG_VFO_SUB; }
 
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__,
