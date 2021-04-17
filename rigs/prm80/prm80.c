@@ -337,6 +337,40 @@ int prm80_reset(RIG *rig, reset_t reset)
     return RIG_OK;
 }
 
+/*
+ * Convert freq in Hz to the RX PLL value representation with PRM08 firmware
+ */
+static unsigned rx_freq_to_pll_value(freq_t rx_freq)
+{
+    // UHF vs VHF
+    if (rx_freq > MHz(300))
+    {
+        return (unsigned)((rx_freq - RX_IF_OFFSET) / FREQ_DIV);
+    }
+    else
+    {
+        return (unsigned)((rx_freq + RX_IF_OFFSET) / FREQ_DIV);
+    }
+}
+
+static freq_t pll_value_to_rx_freq(unsigned pll_value)
+{
+    freq_t rx_freq;
+
+    rx_freq = (freq_t)pll_value * FREQ_DIV;
+
+    // UHF vs VHF
+    if (rx_freq > MHz(300))
+    {
+        rx_freq += RX_IF_OFFSET;
+    }
+    else
+    {
+        rx_freq -= RX_IF_OFFSET;
+    }
+
+    return rx_freq;
+}
 
 /*
  * Set RX and TX freq
@@ -353,7 +387,7 @@ int prm80_set_rx_tx_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
 
     // for RX, compute the PLL word without the IF
     sprintf(rx_freq_buf, "%04X",
-            (unsigned)((rx_freq - RX_IF_OFFSET) / FREQ_DIV));
+            rx_freq_to_pll_value(rx_freq));
     sprintf(tx_freq_buf, "%04X",
             (unsigned)(tx_freq / FREQ_DIV));
 
@@ -762,8 +796,7 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     chan->funcs |= (lock_byte & 0x05) ? RIG_FUNC_LOCK : 0;
     chan->funcs |= (lock_byte & 0x08) ? RIG_FUNC_MUTE : 0;
 
-    chan->freq = ((hhtoi(statebuf + 12) << 8) + hhtoi(statebuf + 14)) * FREQ_DIV +
-                 RX_IF_OFFSET;
+    chan->freq = pll_value_to_rx_freq((hhtoi(statebuf + 12) << 8) + hhtoi(statebuf + 14));
     chan->tx_freq = ((hhtoi(statebuf + 16) << 8) + hhtoi(statebuf + 18)) * FREQ_DIV;
 
     if (chan->rptr_shift != RIG_RPT_SHIFT_NONE)
@@ -830,7 +863,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         }
 
         // Set the RX frequency as PLL word.
-        sprintf(buf, "%04X", (unsigned)((chan->freq - RX_IF_OFFSET) / FREQ_DIV));
+        sprintf(buf, "%04X", rx_freq_to_pll_value(chan->freq));
 
         // "PLL value to load : $"
         ret = read_dollar_prompt_and_send(&rs->rigport, NULL, NULL, buf);
