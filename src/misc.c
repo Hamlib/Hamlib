@@ -380,7 +380,7 @@ int HAMLIB_API sprintf_freq(char *str, int nlen, freq_t freq)
         decplaces = 1;
     }
 
-    return sprintf(str, "%.*f %s", decplaces , f, hz);
+    return sprintf(str, "%.*f %s", decplaces, f, hz);
 }
 
 
@@ -1638,7 +1638,8 @@ int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
 // So we map these to Main/Sub as required
 vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_curr=%s\n", __func__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_curr=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1672,7 +1673,8 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
         }
 
         int satmode = rig->state.cache.satmode;
-        if (vfo == RIG_VFO_TX) vfo = RIG_VFO_A;
+
+        if (vfo == RIG_VFO_TX) { vfo = RIG_VFO_A; }
 
         if (split) { vfo = RIG_VFO_B; }
 
@@ -1690,7 +1692,10 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
     }
     else if (vfo == RIG_VFO_B)
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
+    }
+
     return vfo;
 }
 
@@ -2215,6 +2220,29 @@ void errmsg(int err, char *s, const char *func, const char *file, int line)
 {
     rig_debug(RIG_DEBUG_ERR, "%s(%s:%d): %s: %s\b", __func__, file, line, s,
               rigerror(err));
+}
+
+uint32_t CRC32_function(uint8_t *buf, uint32_t len)
+{
+
+    uint32_t val, crc;
+    uint8_t i;
+
+    crc = 0xFFFFFFFF;
+
+    while (len--)
+    {
+        val = (crc^*buf++) & 0xFF;
+
+        for (i = 0; i < 8; i++)
+        {
+            val = val & 1 ? (val >> 1) ^ 0xEDB88320 : val >> 1;
+        }
+
+        crc = val ^ crc >> 8;
+    }
+
+    return crc ^ 0xFFFFFFFF;
 }
 
 

@@ -110,6 +110,8 @@ extern HAMLIB_EXPORT(vfo_t) vfo_fixup(RIG *rig, vfo_t vfo);
 
 extern HAMLIB_EXPORT(int) parse_hoststr(char *host, char hoststr[256], char port[6]);
 
+extern HAMLIB_EXPORT(uint32_t) CRC32_function(uint8_t *buf, uint32_t len);
+
 #ifdef PRId64
 /** \brief printf(3) format to be used for long long (64bits) type */
 #  define PRIll PRId64
