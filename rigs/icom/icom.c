@@ -1588,6 +1588,8 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
     unsigned char fw_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x02 :
                                S_MEM_FILT_WDTH;
 
+    ENTERFUNC;
+
     if (RIG_PASSBAND_NOCHANGE == width)
     {
         RETURNFUNC(RIG_OK);
@@ -1686,7 +1688,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
                       || rig->caps->rig_model == RIG_MODEL_IC9700
                       || rig->caps->rig_model == RIG_MODEL_IC705;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     switch (mode)
     {

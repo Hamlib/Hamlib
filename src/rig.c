@@ -2490,6 +2490,10 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
+    if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s ********************** called vfo=%s\n", __func__, rig_strvfo(vfo));
+    }
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -4343,6 +4347,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
 
     if (!split || !tx_vfo)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: split or tx_vfo is null, split=%p, tx_vfo=%p\n", __func__, split, tx_vfo);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -4350,7 +4355,11 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
 
     if (caps->get_split_vfo == NULL)
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        // if we can't get the vfo we will return whatever we have cached
+        *split = rig->state.cache.split;
+        *tx_vfo = rig->state.cache.split_vfo;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: no get_split_vfo so returning split=%d, tx_vfo=%s\n", __func__, *split, rig_strvfo(*tx_vfo));
+        RETURNFUNC(RIG_OK);
     }
 
     cache_ms = elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_GET);
