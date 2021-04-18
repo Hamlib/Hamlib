@@ -206,6 +206,7 @@ int main(int argc, char **argv)
     unsigned char buf[256];
     int fd = openPort(argv[1]);
 
+    printf("%s: %s\n", argv[0], rig_version());
 #if defined(WIN32) || defined(_WIN32)
     if (argc != 2)
     {
