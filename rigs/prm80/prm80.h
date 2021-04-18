@@ -24,7 +24,7 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "20210315"
+#define BACKEND_VER "20210416"
 
 #define PRM80_MEM_CAP {    \
         .freq = 1,  \
