@@ -2105,7 +2105,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     // reason is we can't get width without swapping vfos -- yuck!!
     if (width != NULL)
     {
-        if (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A))
+        if (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A | RIG_VFO_CURR))
         {
             // then we get our current vfo..i.e. VFOA
             if (rig->state.current_vfo != RIG_VFO_A)
