@@ -514,6 +514,18 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
+static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+    int retval;
+
+    retval = kenwood_transaction(rig, "RC", NULL, 0);
+    if (retval != RIG_OK) {
+        RETURNFUNC(retval);
+    }
+
+    return kenwood_set_rit(rig, vfo, rit);
+}
+
 static int ts480_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     int retval;
@@ -541,7 +553,6 @@ static int ts480_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     RETURNFUNC(RIG_OK);
 }
-
 
 static struct kenwood_priv_caps ts480_priv_caps =
 {
@@ -692,10 +703,10 @@ const struct rig_caps ts480_caps =
     .rig_cleanup = kenwood_cleanup,
     .set_freq = kenwood_set_freq,
     .get_freq = kenwood_get_freq,
-    .set_rit = kenwood_set_rit,
+    .set_rit = ts480_set_rit,
     .get_rit = ts480_get_rit,
-    .set_xit = kenwood_set_xit,
-    .get_xit = kenwood_get_xit,
+    .set_xit = ts480_set_rit,
+    .get_xit = ts480_get_rit,
     .set_mode = kenwood_set_mode,
     .get_mode = kenwood_get_mode,
     .set_vfo = kenwood_set_vfo,
