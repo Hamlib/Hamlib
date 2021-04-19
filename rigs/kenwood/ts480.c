@@ -600,6 +600,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         val->i = 400 + raw_value * 50;
+        break;
     }
 
     default:
