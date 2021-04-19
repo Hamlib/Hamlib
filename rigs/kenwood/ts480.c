@@ -120,7 +120,7 @@ static int ts480_get_ex_menu(RIG *rig, int number, int value_len, int *value)
         RETURNFUNC(retval);
     }
 
-    sscanf(buf + 9, "%d", value);
+    sscanf(ackbuf + 9, "%d", value);
 
     RETURNFUNC(RIG_OK);
 }
