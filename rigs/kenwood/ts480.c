@@ -38,8 +38,8 @@
 
 #define TS480_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN| \
-    RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_COMP|RIG_LEVEL_ALC)
-#define TS480_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER)
+    RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC)
+#define TS480_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_MON)
 
 #define TS480_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_CPY|RIG_OP_TUNE)
 
@@ -385,7 +385,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if (retval != RIG_OK) {
             RETURNFUNC(retval);
         }
-        sscanf(ackbuf, "NL%d", &raw_value);
+        sscanf(ackbuf, "RL%d", &raw_value);
 
         val->f = (float) raw_value / 9.0f;
         break;
@@ -444,19 +444,21 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         sscanf(ackbuf, "RM%1d", &meter_type);
 
-        if (meter_type != 1)
+        if (meter_type == 1)
         {
-            RETURNFUNC(-RIG_EINVAL);
+            sscanf(ackbuf + 3, "%d", &meter_value);
+            // TODO: SWR meter scale?
+            val->f = (float) meter_value;
+        }
+        else
+        {
+            val->f = 0;
         }
 
-        sscanf(ackbuf + 3, "%d", &meter_value);
-
-        // TODO: SWR meter scale?
-        val->f = (float) meter_value;
         break;
     }
 
-    case RIG_LEVEL_COMP: {
+    case RIG_LEVEL_COMP_METER: {
         int meter_type;
         int meter_value;
 
@@ -467,14 +469,16 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         sscanf(ackbuf, "RM%1d", &meter_type);
 
-        if (meter_type != 2)
+        if (meter_type == 2)
         {
-            RETURNFUNC(-RIG_EINVAL);
+            sscanf(ackbuf + 3, "%d", &meter_value);
+            val->f = (float) meter_value / 10.0f;
+        }
+        else
+        {
+            val->f = 0;
         }
 
-        sscanf(ackbuf + 3, "%d", &meter_value);
-
-        val->f = (float) meter_value / 10.0f;
         break;
     }
 
@@ -489,14 +493,16 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         sscanf(ackbuf, "RM%1d", &meter_type);
 
-        if (meter_type != 3)
+        if (meter_type == 3)
         {
-            RETURNFUNC(-RIG_EINVAL);
+            sscanf(ackbuf + 3, "%d", &meter_value);
+            val->f = (float) meter_value / 10.0f;
+        }
+        else
+        {
+            val->f = 0;
         }
 
-        sscanf(ackbuf + 3, "%d", &meter_value);
-
-        val->f = (float) meter_value / 10.0f;
         break;
     }
 
@@ -714,6 +720,7 @@ const struct rig_caps ts480_caps =
     .set_func = ts480_set_func,
     .get_func = ts480_get_func,
     .send_morse = kenwood_send_morse,
+    .vfo_op = kenwood_vfo_op,
 };
 
 /*
