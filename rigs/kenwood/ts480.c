@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include "idx_builtin.h"
 #include "kenwood.h"
 
 #define TS480_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
@@ -37,7 +38,7 @@
 #define TS480_AM_TX_MODES RIG_MODE_AM
 #define TS480_VFO (RIG_VFO_A|RIG_VFO_B)
 
-#define TS480_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD| \
+#define TS480_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
     RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER)
 #define TS480_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT| \
@@ -92,9 +93,43 @@ kenwood_ts480_get_info(RIG *rig)
     }
 }
 
+static int ts480_set_ex_menu(RIG *rig, int number, int value)
+{
+    char buf[20];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    snprintf(buf, 20, "EX%03d0000%d", number, value);
+
+    RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
+}
+
+static int ts480_get_ex_menu(RIG *rig, int number, int *value)
+{
+    int retval;
+    char buf[20];
+    char ackbuf[20];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    snprintf(buf, 20, "EX%03d0000", number);
+
+    retval = kenwood_safe_transaction(rig, buf, ackbuf, sizeof(ackbuf), 10);
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    sscanf(buf + 0, "%d", value);
+
+    RETURNFUNC(RIG_OK);
+}
+
 static int ts480_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char buf[20];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     switch (func)
     {
@@ -114,12 +149,15 @@ static int ts480_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     char buf[20];
     int retval;
 
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
     switch (func)
     {
         case RIG_FUNC_MON: {
             int raw_value;
             retval = kenwood_safe_transaction(rig, "ML", buf, sizeof(buf), 5);
-            if (retval != RIG_OK) {
+            if (retval != RIG_OK)
+            {
                 RETURNFUNC(retval);
             }
             sscanf(buf, "ML%d", &raw_value);
@@ -243,6 +281,14 @@ int kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         sprintf(levelbuf, "RM%d", kenwood_val);
         break;
 
+    case RIG_LEVEL_CWPITCH:
+        if (val.i > 1000 || val.i < 400)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        RETURNFUNC(ts480_set_ex_menu(rig, 34, (val.i - 400) / 50));
+
     default:
         return kenwood_set_level(rig, vfo, level, val);
     }
@@ -353,7 +399,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_STRENGTH:
-        if (rig->state.cache.ptt != RIG_PTT_OFF) {
+        if (rig->state.cache.ptt != RIG_PTT_OFF)
+        {
             val->i = -9 * 6;
             break;
         }
@@ -366,7 +413,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_MONITOR_GAIN: {
         int raw_value;
         retval = kenwood_safe_transaction(rig, "ML", ackbuf, sizeof(ackbuf), 5);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
         sscanf(ackbuf, "ML%d", &raw_value);
@@ -378,7 +426,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_NB: {
         int raw_value;
         retval = kenwood_safe_transaction(rig, "NL", ackbuf, sizeof(ackbuf), 5);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
         sscanf(ackbuf, "NL%d", &raw_value);
@@ -390,7 +439,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_NR: {
         int raw_value;
         retval = kenwood_safe_transaction(rig, "RL", ackbuf, sizeof(ackbuf), 4);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
         sscanf(ackbuf, "RL%d", &raw_value);
@@ -401,7 +451,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_PREAMP:
         retval = kenwood_safe_transaction(rig, "PA", ackbuf, sizeof(ackbuf), 4);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
         val->i = ackbuf[2] == '1' ? 12 : 0;
@@ -409,7 +460,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_ATT:
         retval = kenwood_safe_transaction(rig, "RA", ackbuf, sizeof(ackbuf), 6);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
         val->i = ackbuf[3] == '1' ? 12 : 0;
@@ -419,7 +471,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int raw_value;
 
         retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
 
@@ -446,7 +499,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int meter_value;
 
         retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
 
@@ -471,7 +525,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int meter_value;
 
         retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
 
@@ -495,7 +550,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int meter_value;
 
         retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
 
@@ -517,13 +573,15 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER_METER: {
         int raw_value;
 
-        if (rig->state.cache.ptt == RIG_PTT_OFF) {
+        if (rig->state.cache.ptt == RIG_PTT_OFF)
+        {
             val->f = 0;
             break;
         }
 
         retval = kenwood_safe_transaction(rig, "SM0", ackbuf, sizeof(ackbuf), 7);
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             RETURNFUNC(retval);
         }
 
@@ -531,6 +589,17 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         val->f = (float) raw_value / 20.0f;
         break;
+    }
+
+    case RIG_LEVEL_CWPITCH: {
+        int raw_value;
+        retval = ts480_get_ex_menu(rig, 34, &raw_value);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        val->i = 400 + raw_value * 50;
     }
 
     default:
@@ -543,6 +612,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     int retval;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = kenwood_transaction(rig, "RC", NULL, 0);
     if (retval != RIG_OK) {
@@ -589,6 +660,8 @@ int ts480_init(RIG *rig)
 {
     struct kenwood_priv_data *priv;
     int retval;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = kenwood_init(rig);
     if (retval != RIG_OK)
@@ -722,6 +795,13 @@ const struct rig_caps ts480_caps =
         RIG_FLT_END,
     },
     .vfo_ops = TS480_VFO_OPS,
+    .level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
+        [LVL_KEYSPD] = {.min = {.i = 10}, .max = {.i = 60}, .step = {.i = 1}},
+        [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
+        [LVL_BKIN_DLYMS] = {.min = {.i = 0}, .max = {.i = 3000}, .step = {.i = 150}},
+    },
 
     .priv = (void *)& ts480_priv_caps,
     .rig_init = ts480_init,
