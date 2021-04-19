@@ -1,6 +1,7 @@
 /*
  *  Hamlib Kenwood backend - TS-480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
+ *  Copyright (c) 2021 by Mikael Nousiainen
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -353,7 +354,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_STRENGTH:
         if (rig->state.cache.ptt != RIG_PTT_OFF) {
-            val->i = 0;
+            val->i = -9 * 6;
             break;
         }
 
@@ -517,7 +518,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int raw_value;
 
         if (rig->state.cache.ptt == RIG_PTT_OFF) {
-            val->i = 0;
+            val->f = 0;
             break;
         }
 
