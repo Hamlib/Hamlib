@@ -46,7 +46,8 @@
 int wr_rig_init(RIG *rig)
 {
     rig->state.rigport.type.rig = RIG_PORT_DEVICE;
-    strncpy(rig->state.rigport.pathname, DEFAULT_WINRADIO_PATH, FILPATHLEN - 1);
+    strncpy(rig->state.rigport.pathname, DEFAULT_WINRADIO_PATH,
+            HAMLIB_FILPATHLEN - 1);
 
     return RIG_OK;
 }

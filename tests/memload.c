@@ -145,7 +145,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
     n = chan->channel_num = atoi((char *) prop);
 
     /* find channel caps */
-    for (i = 0; i < CHANLSTSIZ ; i++)
+    for (i = 0; i < HAMLIB_CHANLSTSIZ ; i++)
     {
         if (rig->state.chan_list[i].startc <= n
                 && rig->state.chan_list[i].endc >= n)
@@ -155,7 +155,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
         }
     }
 
-    if (i == CHANLSTSIZ) { return -RIG_EINVAL; }
+    if (i == HAMLIB_CHANLSTSIZ) { return -RIG_EINVAL; }
 
     fprintf(stderr, "node %d %d\n", n, i);
 

@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }
 
-    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, FILPATHLEN - 1);
+    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
     if (rig_open(my_rig))
     {
@@ -175,35 +175,35 @@ int dump_chan(RIG *rig, int chan_num)
 
     printf("Channel: %d\n", chan.channel_num);
 
-    sprintf_freq(freqbuf, chan.freq);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan.freq);
     printf("Frequency: %s\n", freqbuf);
     printf("Mode: %s\n", decode_modes(chan.mode));
 
-    sprintf_freq(freqbuf, chan.width);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan.width);
     printf("Width: %s\n", freqbuf);
     printf("VFO: %s\n", rig_strvfo(chan.vfo));
 
     printf("Split: %d\n", chan.split);
-    sprintf_freq(freqbuf, chan.tx_freq);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan.tx_freq);
     printf("TXFrequency: %s\n", freqbuf);
     printf("TXMode: %s\n", decode_modes(chan.tx_mode));
 
-    sprintf_freq(freqbuf, chan.tx_width);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan.tx_width);
     printf("TXWidth: %s\n", freqbuf);
 
     printf("Shift: %s\n", rig_strptrshift(chan.rptr_shift));
-    sprintf_freq(freqbuf, chan.rptr_offs);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan.rptr_offs);
     printf("Offset: %s%s\n", chan.rptr_offs > 0 ? "+" : "", freqbuf);
 
     printf("Antenna: %u\n", chan.ant);
 
-    sprintf_freq(freqbuf, chan.tuning_step);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan.tuning_step);
     printf("Step: %s\n", freqbuf);
 
-    sprintf_freq(freqbuf, chan.rit);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan.rit);
     printf("RIT: %s%s\n", chan.rit > 0 ? "+" : "", freqbuf);
 
-    sprintf_freq(freqbuf, chan.xit);
+    sprintf_freq(freqbuf, sizeof(freqbuf), chan.xit);
     printf("XIT: %s%s\n", chan.xit > 0 ? "+" : "", freqbuf);
     printf("CTCSS: %u.%uHz\n", chan.ctcss_tone / 10, chan.ctcss_tone % 10);
     printf("CTCSSsql: %u.%uHz\n", chan.ctcss_sql / 10, chan.ctcss_sql % 10);

@@ -74,9 +74,9 @@ int ftdx101d_ext_tokens[] =
 const struct rig_caps ftdx101d_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX101D),
-    .model_name =         "FTDX101D",
+    .model_name =         "FTDX-101D",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".7",
+    .version =            NEWCAT_VER ".11",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -86,7 +86,7 @@ const struct rig_caps ftdx101d_caps =
     .serial_rate_min =    4800,
     .serial_rate_max =    38400,
     .serial_data_bits =   8,
-    .serial_stop_bits =   1,
+    .serial_stop_bits =   2,
     .serial_parity =      RIG_PARITY_NONE,
     .serial_handshake =   RIG_HANDSHAKE_HARDWARE,
     .write_delay =        FTDX101_WRITE_DELAY,
@@ -113,11 +113,12 @@ const struct rig_caps ftdx101d_caps =
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1200),
     .vfo_ops =            FTDX101_VFO_OPS,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_COMMON,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_COMMON | RIG_TARGETABLE_ANT,
     .transceive =         RIG_TRN_OFF, /* May enable later as the FTDX101 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
-    .rfpower_meter_cal =  FTDX101D_RFPOWER_METER_CAL,
+    .rfpower_meter_cal =  FTDX101D_RFPOWER_METER_WATTS_CAL,
+    .str_cal =            FTDX101D_STR_CAL,
     .swr_cal =            FTDX101D_SWR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
@@ -131,10 +132,10 @@ const struct rig_caps ftdx101d_caps =
     },
 
     .tx_range_list1 =     { /* the 101DX is 100W and the MP is 200W */
-        FRQ_RNG_HF(1, FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_HF(1, FTDX101_AM_TX_MODES, W(2), W(75), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
-        FRQ_RNG_6m(1, FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_6m(1, FTDX101_AM_TX_MODES, W(2), W(75), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_HF(1, FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_HF(1, FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_6m(1, FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_6m(1, FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
@@ -145,12 +146,12 @@ const struct rig_caps ftdx101d_caps =
     },
 
     .tx_range_list2 =     {
-        FRQ_RNG_HF(2, FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_HF(2, FTDX101_AM_TX_MODES, W(2), W(75), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
-        FRQ_RNG_6m(2, FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_6m(2, FTDX101_AM_TX_MODES, W(2), W(75), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
-        FRQ_RNG_4m_REGION2(FTDX101_OTHER_TX_MODES, W(5), W(200), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
-        FRQ_RNG_4m_REGION2(FTDX101_AM_TX_MODES, W(2), W(75), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_HF(2, FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_HF(2, FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_6m(2, FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_6m(2, FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
+        FRQ_RNG_4m_REGION2(FTDX101_OTHER_TX_MODES, W(5), W(100), FTDX101_VFO_ALL, FTDX101_TX_ANTS),
+        FRQ_RNG_4m_REGION2(FTDX101_AM_TX_MODES, W(5), W(25), FTDX101_VFO_ALL, FTDX101_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },

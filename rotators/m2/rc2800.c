@@ -202,26 +202,16 @@ transaction_write:
         data_len = BUFSZ;
     }
 
-#if 0 // manual says no echos
-    /* first reply is an echo */
-    memset(data, 0, data_len);
-    retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
-
-    if (retval < 0)
-    {
-        if (retry_read++ < rot->state.rotport.retry)
-        {
-            goto transaction_write;
-        }
-
-        goto transaction_quit;
-    }
-
-#endif
-
     /* then comes the answer */
     memset(data, 0, data_len);
     retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
+
+    // some models seem to echo -- so we'll check and read again if echoed
+    if (cmdstr && strcmp(data, cmdstr) == 0)
+    {
+        memset(data, 0, data_len);
+        retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
+    }
 
     if (retval < 0)
     {
@@ -413,9 +403,9 @@ const struct rot_caps rc2800_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800),
     .model_name =     "RC2800",
     .mfg_name =       "M2",
-    .version =        "20201130",
+    .version =        "20210129",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_BETA,
+    .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
     .port_type =      RIG_PORT_SERIAL,
     .serial_rate_min  = 9600,

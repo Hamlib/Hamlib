@@ -148,7 +148,7 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
 
     if (rot->state.has_status != 0)
     {
-        rot_sprintf_status(prntbuf, rot->state.has_status);
+        rot_sprintf_status(prntbuf, sizeof(prntbuf), rot->state.has_status);
     }
     else
     {
@@ -157,16 +157,17 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
 
     fprintf(fout, "Status flags: %s\n", prntbuf);
 
-    rot_sprintf_func(prntbuf, caps->has_get_func);
+    rot_sprintf_func(prntbuf, sizeof(prntbuf), caps->has_get_func);
     fprintf(fout, "Get functions: %s\n", prntbuf);
 
-    rot_sprintf_func(prntbuf, caps->has_set_func);
+    rot_sprintf_func(prntbuf, sizeof(prntbuf), caps->has_set_func);
     fprintf(fout, "Set functions: %s\n", prntbuf);
 
     fprintf(fout, "Extra functions:\n");
     rot_ext_func_foreach(rot, print_ext, fout);
 
-    rot_sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
+    rot_sprintf_level_gran(prntbuf, sizeof(prntbuf), caps->has_get_level,
+                           caps->level_gran);
     fprintf(fout, "Get level: %s\n", prntbuf);
 
     if ((caps->has_get_level & RIG_LEVEL_SQLSTAT))
@@ -175,7 +176,8 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
         backend_warnings++;
     }
 
-    rot_sprintf_level_gran(prntbuf, caps->has_set_level, caps->level_gran);
+    rot_sprintf_level_gran(prntbuf, sizeof(prntbuf), caps->has_set_level,
+                           caps->level_gran);
     fprintf(fout, "Set level: %s\n", prntbuf);
 
     if (caps->has_set_level & ROT_LEVEL_READONLY_LIST)
@@ -187,10 +189,12 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
     fprintf(fout, "Extra levels:\n");
     rot_ext_level_foreach(rot, print_ext, fout);
 
-    rot_sprintf_parm_gran(prntbuf, caps->has_get_parm, caps->parm_gran);
+    rot_sprintf_parm_gran(prntbuf, sizeof(prntbuf), caps->has_get_parm,
+                          caps->parm_gran);
     fprintf(fout, "Get parameters: %s\n", prntbuf);
 
-    rot_sprintf_parm_gran(prntbuf, caps->has_set_parm, caps->parm_gran);
+    rot_sprintf_parm_gran(prntbuf, sizeof(prntbuf), caps->has_set_parm,
+                          caps->parm_gran);
     fprintf(fout, "Set parameters: %s\n", prntbuf);
 
     if (caps->has_set_parm & ROT_PARM_READONLY_LIST)

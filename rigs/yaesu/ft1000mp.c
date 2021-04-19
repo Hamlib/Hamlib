@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+#include <math.h>
 
 #include "hamlib/rig.h"
 #include "bandplan.h"
@@ -222,7 +223,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200731.0",
+    .version =            "20210318.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -356,7 +357,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200731.0",
+    .version =            "20210318.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -490,7 +491,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20200731.0",
+    .version =            "20210318.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -629,15 +630,14 @@ int ft1000mp_init(RIG *rig)
 {
     struct ft1000mp_priv_data *priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called \n", __func__);
-
+    ENTERFUNC;
 
     rig->state.priv = (struct ft1000mp_priv_data *) calloc(1,
                       sizeof(struct ft1000mp_priv_data));
 
     if (!rig->state.priv)                       /* whoops! memory shortage! */
     {
-        return -RIG_ENOMEM;
+        RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv = rig->state.priv;
@@ -653,7 +653,7 @@ int ft1000mp_init(RIG *rig)
     priv->read_update_delay =
         FT1000MP_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -665,9 +665,7 @@ int ft1000mp_init(RIG *rig)
 
 int ft1000mp_cleanup(RIG *rig)
 {
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
+    ENTERFUNC;
 
     if (rig->state.priv)
     {
@@ -676,7 +674,7 @@ int ft1000mp_cleanup(RIG *rig)
 
     rig->state.priv = NULL;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -691,14 +689,15 @@ int ft1000mp_open(RIG *rig)
     struct ft1000mp_priv_data *p;
     unsigned char *cmd;           /* points to sequence to send */
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    ENTERFUNC;
 
     rig_s = &rig->state;
     p = (struct ft1000mp_priv_data *)rig_s->priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: rig_open: write_delay = %i msec \n",
+    rig_debug(RIG_DEBUG_TRACE, "%s: rig_open: write_delay = %i msec \n", __func__,
               rig_s->rigport.write_delay);
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: rig_open: post_write_delay = %i msec \n",
+    rig_debug(RIG_DEBUG_TRACE, "%s: rig_open: post_write_delay = %i msec \n",
+              __func__,
               rig_s->rigport.post_write_delay);
 
     /*
@@ -706,7 +705,7 @@ int ft1000mp_open(RIG *rig)
      */
     memcpy(&p->p_cmd, &ncmd[FT1000MP_NATIVE_PACING].nseq, YAESU_CMD_LENGTH);
     p->p_cmd[3] = p->pacing;      /* get pacing value, and store in private cmd */
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: read pacing = %i\n", p->pacing);
+    rig_debug(RIG_DEBUG_TRACE, "%s: read pacing = %i\n", __func__, p->pacing);
 
     /* send PACING cmd to rig  */
     cmd = p->p_cmd;
@@ -715,7 +714,7 @@ int ft1000mp_open(RIG *rig)
     ft1000mp_get_vfo(rig, &rig->state.current_vfo);
     /* TODO */
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -727,8 +726,7 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned char *cmd;           /* points to sequence to send */
     int cmd_index = 0;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: ft1000mp_set_freq called\n", __func__);
-
+    ENTERFUNC;
 
     p = (struct ft1000mp_priv_data *)rig->state.priv;
 
@@ -754,11 +752,11 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     case RIG_VFO_MEM:
         /* TODO, hint: store current memory number */
-        return -RIG_ENIMPL;
+        RETURNFUNC(-RIG_ENIMPL);
 
     default:
-        rig_debug(RIG_DEBUG_WARN, "ft1000mp: unknown VFO %d\n", vfo);
-        return -RIG_EINVAL;
+        rig_debug(RIG_DEBUG_WARN, "%s: unknown VFO %d\n", __func__, vfo);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     /*
@@ -766,8 +764,10 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      */
     memcpy(&p->p_cmd, &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
 
+    // round freq to 10Hz intervals due to rig restriction
+    freq = round(freq / 10.0) * 10.0;
+
     to_bcd(p->p_cmd, freq / 10, 8); /* store bcd format in in p_cmd */
-    /* TODO -- fix 10Hz resolution -- FS */
 
     // cppcheck-suppress *
     rig_debug(RIG_DEBUG_TRACE, "%s: freq = %"PRIll" Hz\n", __func__,
@@ -776,12 +776,14 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     cmd = p->p_cmd;               /* get native sequence */
     write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 int ft1000mp_get_vfo_data(RIG *rig, vfo_t vfo)
 {
     int cmd_index, len, retval;
+
+    ENTERFUNC;
 
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_B)
     {
@@ -800,7 +802,7 @@ int ft1000mp_get_vfo_data(RIG *rig, vfo_t vfo)
      */
     retval = ft1000mp_get_update_data(rig, cmd_index, len);
 
-    return retval;
+    RETURNFUNC(retval);
 }
 /*
  * Return Freq for a given VFO
@@ -816,11 +818,19 @@ int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
+    if (vfo == RIG_VFO_CURR)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
+                  rig_strvfo(rig->state.current_vfo));
+        vfo = rig->state.current_vfo;
+    }
+
     retval = ft1000mp_get_vfo_data(rig, vfo);
+
 
     if (retval < 0)
     {
-        return retval;
+        RETURNFUNC(retval);
     }
 
     priv = (struct ft1000mp_priv_data *)rig->state.priv;
@@ -837,12 +847,13 @@ int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     /* big endian integer, kinda */
     f = ((((((p[0] << 8) + p[1]) << 8) + p[2]) << 8) + p[3]) * 10 / 16;
 
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: freq = %"PRIfreq" Hz for VFO [%x]\n", f,
+    rig_debug(RIG_DEBUG_TRACE, "%s: freq = %"PRIfreq" Hz for VFO [%x]\n", __func__,
+              f,
               vfo);
 
     *freq = f;                    /* return displayed frequency */
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -862,6 +873,13 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: generic mode = %s\n", __func__,
               rig_strrmode(mode));
+
+    if (vfo == RIG_VFO_CURR)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
+                  rig_strvfo(rig->state.current_vfo));
+        vfo = rig->state.current_vfo;
+    }
 
     /*
      * translate mode from generic to ft1000mp specific
@@ -939,7 +957,7 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
 
     default:
-        return -RIG_EINVAL;         /* sorry, wrong MODE */
+        RETURNFUNC(-RIG_EINVAL);         /* sorry, wrong MODE * */
     }
 
 
@@ -954,9 +972,9 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
      */
     ft1000mp_send_priv_cmd(rig, cmd_index);
 
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: cmd_index = %i\n", cmd_index);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_index = %i\n", __func__, cmd_index);
 
-    return RIG_OK;                /* good */
+    RETURNFUNC(RIG_OK);                /* good */
 
 }
 
@@ -973,14 +991,20 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     unsigned char mymode_ext; /* ft1000mp extra mode bit mode */
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    ENTERFUNC;
 
+    if (vfo == RIG_VFO_CURR)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
+                  rig_strvfo(rig->state.current_vfo));
+        vfo = rig->state.current_vfo;
+    }
 
     retval = ft1000mp_get_vfo_data(rig, vfo);
 
     if (retval < 0)
     {
-        return retval;
+        RETURNFUNC(retval);
     }
 
     priv = (struct ft1000mp_priv_data *)rig->state.priv;
@@ -997,10 +1021,10 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
 
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: mymode = %x (before)\n", mymode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: mymode = %x (before)\n", __func__, mymode);
     mymode &= MODE_MASK;
 
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: mymode = %x (after)\n", mymode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: mymode = %x (after)\n", __func__, mymode);
 
     /*
      * translate mode from ft1000mp to generic.
@@ -1037,16 +1061,16 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         break;
 
     default:
-        return -RIG_EINVAL;         /* sorry, wrong mode */
+        RETURNFUNC(-RIG_EINVAL);         /* sorry, wrong mode */
         break;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: mode = %s\n", rig_strrmode(*mode));
+    rig_debug(RIG_DEBUG_TRACE, "%s: mode = %s\n", __func__, rig_strrmode(*mode));
 
     /* TODO: set real IF filter selection */
     *width = RIG_PASSBAND_NORMAL;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1058,9 +1082,10 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
 {
-    unsigned char cmd_index = 0;      /* index of sequence to send */
+    //unsigned char cmd_index = 0;      /* index of sequence to send */
 
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: ft1000mp_set_vfo called %s\n",
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__,
               rig_strvfo(vfo));
 
     /*
@@ -1074,6 +1099,8 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
     {
         vfo = rig->state.current_vfo;
     }
+
+#if 0 // seems switching VFOs like this changes the frequencies in the response
 
     switch (vfo)
     {
@@ -1091,19 +1118,23 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_CURR:
         /* do nothing, we're already at it! */
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
 
     default:
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Unknown default VFO %d\n", __func__, vfo);
-        return -RIG_EINVAL;         /* sorry, wrong VFO */
+        RETURNFUNC(-RIG_EINVAL);         /* sorry, wrong VFO */
     }
 
     /*
      * phew! now send cmd to rig
      */
     ft1000mp_send_priv_cmd(rig, cmd_index);
+#endif
 
-    return RIG_OK;
+    // we just store the requested vfo in our internal state
+    rig->state.current_vfo = vfo;
+
+    RETURNFUNC(RIG_OK);
 
 }
 
@@ -1119,8 +1150,7 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
     struct ft1000mp_priv_data *p;
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
+    ENTERFUNC;
 
     p = (struct ft1000mp_priv_data *)rig->state.priv;
 
@@ -1130,13 +1160,25 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (retval < 0)
     {
-        return retval;
+        RETURNFUNC(retval);
     }
 
     if (p->update_data[1] & 0x40)
     {
         *vfo = RIG_VFO_MEM;
     }
+    else // we are emulating vfo status
+    {
+        *vfo = rig->state.current_vfo;
+
+        if (*vfo == RIG_VFO_CURR)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: no get_vfo, defaulting to VFOA\n", __func__);
+            *vfo = RIG_VFO_A;
+        }
+    }
+
+#if 0
     else if (p->update_data[FT1000MP_SUMO_DISPLAYED_STATUS] & SF_VFOAB)
     {
         *vfo = rig->state.current_vfo = RIG_VFO_B;
@@ -1146,10 +1188,12 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
         *vfo = rig->state.current_vfo = RIG_VFO_A;
     }
 
+#endif
+
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo status = %x %x\n", __func__,
               p->update_data[0], p->update_data[1]);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
@@ -1158,10 +1202,9 @@ int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     struct rig_state *rs;
     unsigned char *cmd;
 
+    ENTERFUNC;
     rs = &rig->state;
     priv = (struct ft1000mp_priv_data *)rig->state.priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called func\n", __func__);
 
     switch (func)
     {
@@ -1178,7 +1221,7 @@ int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         cmd = priv->p_cmd;
 
         write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
 
     case RIG_FUNC_XIT:
         if (status)
@@ -1193,14 +1236,15 @@ int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         cmd = priv->p_cmd;
 
         write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);        break;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %s", rig_strfunc(func));
-        return -RIG_EINVAL;
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported set_func %s", __func__,
+                  rig_strfunc(func));
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    return -RIG_EINVAL;
+    RETURNFUNC(-RIG_EINVAL);
 }
 int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
@@ -1208,13 +1252,12 @@ int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     struct ft1000mp_priv_data *priv;
     unsigned char *p;
 
+    ENTERFUNC;
     priv = (struct ft1000mp_priv_data *)rig->state.priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!status)
     {
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     switch (func)
@@ -1225,7 +1268,7 @@ int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         if (retval < 0)
         {
-            return retval;
+            RETURNFUNC(retval);
         }
 
         if (vfo == RIG_VFO_B)
@@ -1238,7 +1281,7 @@ int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         }
 
         *status = (*p & 2) ? 1 : 0;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
 
 
@@ -1248,7 +1291,7 @@ int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         if (retval < 0)
         {
-            return retval;
+            RETURNFUNC(retval);
         }
 
         if (vfo == RIG_VFO_B)
@@ -1261,17 +1304,18 @@ int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         }
 
         *status = (*p & 1) ? 1 : 0;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
 
 
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %s", rig_strfunc(func));
-        return -RIG_EINVAL;
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported get_func %s", __func__,
+                  rig_strfunc(func));
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    return -RIG_EINVAL;
+    RETURNFUNC(-RIG_EINVAL);
 }
 
 /*
@@ -1279,17 +1323,20 @@ int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int ft1000mp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
+    ENTERFUNC;
+
     if (rit != 0)
     {
         ft1000mp_set_func(rig, vfo, RIG_FUNC_RIT, 1);
     }
 
-    return ft1000mp_set_rxit(rig, vfo, rit);
+    RETURNFUNC(ft1000mp_set_rxit(rig, vfo, rit));
 }
 
 int ft1000mp_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-    return ft1000mp_set_rxit(rig, vfo, rit);
+    ENTERFUNC;
+    RETURNFUNC(ft1000mp_set_rxit(rig, vfo, rit));
 }
 
 int ft1000mp_set_rxit(RIG *rig, vfo_t vfo, shortfreq_t rit)
@@ -1299,7 +1346,7 @@ int ft1000mp_set_rxit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     unsigned char *cmd;           /* points to sequence to send */
     int direction = 0;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    ENTERFUNC;
 
     rs = &rig->state;
     priv = (struct ft1000mp_priv_data *)rs->priv;
@@ -1332,7 +1379,7 @@ int ft1000mp_set_rxit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     cmd = priv->p_cmd;               /* get native sequence */
     write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1348,7 +1395,7 @@ int ft1000mp_get_rxit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     shortfreq_t f;
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    ENTERFUNC;
 
     priv = (struct ft1000mp_priv_data *)rig->state.priv;
 
@@ -1356,7 +1403,7 @@ int ft1000mp_get_rxit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     if (retval < 0)
     {
-        return retval;
+        RETURNFUNC(retval);
     }
 
     if (vfo == RIG_VFO_B)
@@ -1383,7 +1430,7 @@ int ft1000mp_get_rxit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     *rit = f;     /* return displayed frequency */
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -1396,6 +1443,7 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int retval;
     int retry = rig->state.rigport.retry;
 
+    ENTERFUNC;
     rs = &rig->state;
     priv = (struct ft1000mp_priv_data *)rs->priv;
 
@@ -1445,7 +1493,7 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
                   rig_strlevel(level));
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     memset(&priv->p_cmd, m, YAESU_CMD_LENGTH - 1);
@@ -1461,8 +1509,8 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     if (retval != YAESU_CMD_LENGTH)
     {
-        rig_debug(RIG_DEBUG_ERR, "ft1000mp_get_level: ack NG %d", retval);
-        return retval;
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG %d", __func__, retval);
+        RETURNFUNC(retval);
     }
 
     switch (level)
@@ -1482,23 +1530,24 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp_get_level: %d %d %f\n", lvl_data[0],
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %f\n", __func__, lvl_data[0],
               val->i, val->f);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 int ft1000mp_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     unsigned char cmd_index;      /* index of sequence to send */
 
-    rig_debug(RIG_DEBUG_TRACE, "ft1000mp: ft1000mp_set_ptt called %d\n", ptt);
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_TRACE, "%s: called %d\n", __func__, ptt);
 
     cmd_index = ptt ? FT1000MP_NATIVE_PTT_ON : FT1000MP_NATIVE_PTT_OFF;
 
     ft1000mp_send_priv_cmd(rig, cmd_index);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 
 }
 
@@ -1520,30 +1569,25 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
     struct rig_state *rig_s;
     struct ft1000mp_priv_data *p;
     int n;                        /* for read_  */
-    int retry = rig->state.rigport.retry;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
+    ENTERFUNC;
 
     p = (struct ft1000mp_priv_data *)rig->state.priv;
     rig_s = &rig->state;
 
-    do
+    // timeout retries are done in read_block now
+    // based on rig backed retry value
+    /* send UPDATE command to fetch data*/
+    ft1000mp_send_priv_cmd(rig, ci);
+
+    n = read_block(&rig_s->rigport, (char *) p->update_data, rl);
+
+    if (n == -RIG_ETIMEOUT)
     {
-        /* send UPDATE command to fetch data*/
-        ft1000mp_send_priv_cmd(rig, ci);
-
-        n = read_block(&rig_s->rigport, (char *) p->update_data, rl);
-
-        if (n == -RIG_ETIMEOUT)
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s: Timeout retry count = %d\n", __func__, retry);
-        }
+        rig_debug(RIG_DEBUG_TRACE, "%s: Timeout\n", __func__);
     }
-    while (retry-- && n == -RIG_ETIMEOUT);
 
-    return n;
-
+    RETURNFUNC(n);
 }
 
 
@@ -1561,9 +1605,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
     unsigned char *cmd;           /* points to sequence to send */
     unsigned char cmd_index;      /* index of sequence to send */
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-
+    ENTERFUNC;
 
     p = (struct ft1000mp_priv_data *)rig->state.priv;
     rig_s = &rig->state;
@@ -1574,14 +1616,14 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: attempt to send incomplete sequence\n",
                   __func__);
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
     rig_flush(&rig_s->rigport);
     write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 
 }
 
@@ -1592,6 +1634,7 @@ int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     unsigned char cmd_index = 0;      /* index of sequence to send */
     freq_t tx_freq;
 
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s called rx_vfo=%s, tx_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(tx_vfo));
 
@@ -1607,7 +1650,7 @@ int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     default:
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Unknown split value = %d\n", __func__, split);
-        return -RIG_EINVAL;         /* sorry, wrong VFO */
+        RETURNFUNC(-RIG_EINVAL);         /* sorry, wrong VFO */
     }
 
     rig_get_freq(rig, RIG_VFO_B, &tx_freq);
@@ -1619,7 +1662,7 @@ int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     ft1000mp_send_priv_cmd(rig, cmd_index);
     rig_set_freq(rig, RIG_VFO_B, tx_freq); // restore orig frequency
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 /*
@@ -1632,8 +1675,7 @@ int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     struct ft1000mp_priv_data *p;
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
+    ENTERFUNC;
 
     p = (struct ft1000mp_priv_data *)rig->state.priv;
 
@@ -1643,7 +1685,7 @@ int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     if (retval < 0)
     {
-        return retval;
+        RETURNFUNC(retval);
     }
 
     if (p->update_data[0] & 0x01)
@@ -1657,15 +1699,21 @@ int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         *split = RIG_SPLIT_OFF;
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 int ft1000mp_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
-    return ft1000mp_set_freq(rig, RIG_VFO_B, tx_freq);
+    ENTERFUNC;
+    int retval = rig_set_split_vfo(rig, vfo, RIG_SPLIT_ON, RIG_VFO_B);
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+
+    RETURNFUNC(ft1000mp_set_freq(rig, RIG_VFO_B, tx_freq));
 }
 
 int ft1000mp_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
-    return ft1000mp_get_freq(rig, RIG_VFO_B, tx_freq);
+    ENTERFUNC;
+    RETURNFUNC(ft1000mp_get_freq(rig, RIG_VFO_B, tx_freq));
 }

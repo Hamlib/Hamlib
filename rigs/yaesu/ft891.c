@@ -50,7 +50,7 @@ const struct rig_caps ft891_caps =
     RIG_MODEL(RIG_MODEL_FT891),
     .model_name =         "FT-891",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".2",
+    .version =            NEWCAT_VER ".3",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -60,7 +60,7 @@ const struct rig_caps ft891_caps =
     .serial_rate_min =    4800,         /* Default rate per manual */
     .serial_rate_max =    38400,
     .serial_data_bits =   8,
-    .serial_stop_bits =   1,            /* Assumed since manual makes no mention */
+    .serial_stop_bits =   2,            /* Assumed since manual makes no mention */
     .serial_parity =      RIG_PARITY_NONE,
     .serial_handshake =   RIG_HANDSHAKE_HARDWARE,
     .write_delay =        FT891_WRITE_DELAY,

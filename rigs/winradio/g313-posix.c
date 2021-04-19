@@ -306,10 +306,7 @@ int g313_cleanup(RIG *rig)
         dlclose(priv->hWRAPI);
     }
 
-    if (rig->state.priv)
-    {
-        free(rig->state.priv);
-    }
+    free(rig->state.priv);
 
     rig->state.priv = NULL;
     return RIG_OK;

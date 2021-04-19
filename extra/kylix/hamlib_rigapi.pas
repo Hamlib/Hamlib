@@ -52,15 +52,15 @@ type
 //typedef struct rig RIG;
 
 const
-    RIGNAMSIZ = 30;
-    RIGVERSIZ = 8;
-    FILPATHLEN = 512;
-    FRQRANGESIZ = 30;
-    MAXCHANDESC = 30;		{* describe channel eg: "WWV 5Mhz" *}
-    TSLSTSIZ = 20;			{* max tuning step list size, zero ended *}
-    FLTLSTSIZ = 16;		    {* max mode/filter list size, zero ended *}
-    MAXDBLSTSIZ = 8;		{* max preamp/att levels supported, zero ended *}
-    CHANLSTSIZ = 16;		{* max mem_list size, zero ended *}
+    HAMLIB_RIGNAMSIZ = 30;
+    HAMLIB_RIGVERSIZ = 8;
+    HAMLIB_FILPATHLEN = 512;
+    HAMLIB_FRQRANGESIZ = 30;
+    HAMLIB_MAXCHANDESC = 30;		{* describe channel eg: "WWV 5Mhz" *}
+    HAMLIB_TSLSTSIZ = 20;			{* max tuning step list size, zero ended *}
+    HAMLIB_FLTLSTSIZ = 16;		    {* max mode/filter list size, zero ended *}
+    HAMLIB_MAXDBLSTSIZ = 8;		{* max preamp/att levels supported, zero ended *}
+    HAMLIB_CHANLSTSIZ = 16;		{* max mem_list size, zero ended *}
 
 type
     {*

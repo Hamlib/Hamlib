@@ -187,7 +187,7 @@ int dra818_cleanup(RIG *rig)
 int dra818_open(RIG *rig)
 {
     int i;
-    int r;
+    int r = -1;
 
     for (i = 0; i < 3; i++)
     {

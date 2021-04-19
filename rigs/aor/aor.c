@@ -632,7 +632,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         unsigned i;
 
-        for (i = 0; i < MAXDBLSTSIZ && !RIG_IS_DBLST_END(rs->attenuator[i]); i++)
+        for (i = 0; i < HAMLIB_MAXDBLSTSIZ && !RIG_IS_DBLST_END(rs->attenuator[i]); i++)
         {
             if (rs->attenuator[i] == val.i)
             {
@@ -642,7 +642,8 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         /* should be caught by the front end */
-        if ((val.i != 0) && (i >= MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])))
+        if ((val.i != 0) && (i >= HAMLIB_MAXDBLSTSIZ
+                             || RIG_IS_DBLST_END(rs->attenuator[i])))
         {
             return -RIG_EINVAL;
         }
@@ -762,7 +763,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
         }
 
-        if (att > MAXDBLSTSIZ || rs->attenuator[att - 1] == 0)
+        if (att > HAMLIB_MAXDBLSTSIZ || rs->attenuator[att - 1] == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "Unsupported att %s %d\n",
                       __func__, att);
@@ -1270,7 +1271,7 @@ int aor_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
          */
         int i;
 
-        for (i = 0; i < CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
+        for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
         {
             if (channel_num >= chan_list[i].startc &&
                     channel_num <= chan_list[i].endc)

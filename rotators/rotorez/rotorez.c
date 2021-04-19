@@ -764,7 +764,7 @@ static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
      * Seems as though at least five characters are returned and a
      * space is used as a leading pad character if needed.
      */
-    if ((isdigit(az[0])) || (isspace(az[0])))
+    if ((isdigit((int)az[0])) || (isspace((int)az[0])))
     {
         azimuth_t tmp = strtof(az, NULL);
         rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",

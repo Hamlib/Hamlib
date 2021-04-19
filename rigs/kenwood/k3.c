@@ -35,6 +35,7 @@
 #include "elecraft.h"
 #include "token.h"
 #include "cal.h"
+#include "iofunc.h"
 
 #define K3_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
     RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_PKTUSB|\
@@ -47,7 +48,7 @@
 #define K3_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
     RIG_LEVEL_STRENGTH|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|\
     RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|\
-    RIG_LEVEL_NR|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER)
+    RIG_LEVEL_NR|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
 
 #define K3_VFO (RIG_VFO_A|RIG_VFO_B)
 #define K3_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
@@ -61,7 +62,7 @@
 #define KX3_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
     RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|\
     RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|\
-    RIG_LEVEL_NR|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER)
+    RIG_LEVEL_NR|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
 
 /*
  * Elecraft K3/K3S extra level definitions
@@ -142,6 +143,7 @@ static struct kenwood_priv_caps k3_priv_caps  =
 /* K3 specific function declarations */
 int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int k3_get_vfo(RIG *rig, vfo_t *vfo);
 int k3_set_vfo(RIG *rig, vfo_t vfo);
 int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
@@ -181,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".1",
+    .version =      BACKEND_VER ".11",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -295,7 +297,7 @@ const struct rig_caps k3_caps =
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
     .set_vfo =      k3_set_vfo,
-    .get_vfo =      kenwood_get_vfo_if,
+    .get_vfo =      k3_get_vfo,
     .set_split_mode =   k3_set_split_mode,
     .get_split_mode =   k3_get_split_mode,
     .set_split_vfo =    kenwood_set_split_vfo,
@@ -332,7 +334,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".1",
+    .version =      BACKEND_VER ".9",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -445,7 +447,7 @@ const struct rig_caps k3s_caps =
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
     .set_vfo =      k3_set_vfo,
-    .get_vfo =      kenwood_get_vfo_if,
+    .get_vfo =      k3_get_vfo,
     .set_split_mode =   k3_set_split_mode,
     .get_split_mode =   k3_get_split_mode,
     .set_split_vfo =    kenwood_set_split_vfo,
@@ -482,9 +484,9 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".1",
+    .version =      BACKEND_VER ".9",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_ALPHA,
+    .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_RIG,
@@ -595,7 +597,7 @@ const struct rig_caps k4_caps =
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
     .set_vfo =      k3_set_vfo,
-    .get_vfo =      kenwood_get_vfo_if,
+    .get_vfo =      k3_get_vfo,
     .set_split_mode =   k3_set_split_mode,
     .get_split_mode =   k3_get_split_mode,
     .set_split_vfo =    kenwood_set_split_vfo,
@@ -631,9 +633,9 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".1",
+    .version =      BACKEND_VER ".9",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_BETA,
+    .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_RIG,
@@ -744,7 +746,7 @@ const struct rig_caps kx3_caps =
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
     .set_vfo =      k3_set_vfo,
-    .get_vfo =      kenwood_get_vfo_if,
+    .get_vfo =      k3_get_vfo,
     .set_split_mode =   k3_set_split_mode,
     .get_split_mode =   k3_get_split_mode,
     .set_split_vfo =    kenwood_set_split_vfo,
@@ -780,9 +782,9 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".1",
+    .version =      BACKEND_VER ".9",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_BETA,
+    .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
     .ptt_type =     RIG_PTT_RIG,
     .dcd_type =     RIG_DCD_RIG,
@@ -893,7 +895,7 @@ const struct rig_caps kx2_caps =
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
     .set_vfo =      k3_set_vfo,
-    .get_vfo =      kenwood_get_vfo_if,
+    .get_vfo =      k3_get_vfo,
     .set_split_mode =   k3_set_split_mode,
     .get_split_mode =   k3_get_split_mode,
     .set_split_vfo =    kenwood_set_split_vfo,
@@ -949,6 +951,11 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EINVAL;
     }
 
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = rig->state.current_vfo;
+    }
+
     err = kenwood_get_mode(rig, vfo, &temp_m, &temp_w);
 
     if (err != RIG_OK)
@@ -971,11 +978,11 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         {
         case K3_MODE_DATA_A:
         case K3_MODE_PSK_D:
-            *mode = RIG_MODE_PKTUSB;
+            *mode = RIG_MODE_PKTLSB;
             break;
 
         case K3_MODE_AFSK_A:
-            *mode = RIG_MODE_PKTLSB;
+            *mode = RIG_MODE_PKTUSB;
             break;
 
         default:
@@ -998,11 +1005,11 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         {
         case K3_MODE_DATA_A:
         case K3_MODE_PSK_D:
-            *mode = RIG_MODE_PKTLSB;
+            *mode = RIG_MODE_PKTUSB;
             break;
 
         case K3_MODE_AFSK_A:
-            *mode = RIG_MODE_PKTUSB;
+            *mode = RIG_MODE_PKTLSB;
             break;
 
         case K3_MODE_FSK_D:
@@ -1019,7 +1026,14 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* The K3 is not limited to specific filter widths so we can query
      * the actual bandwidth using the BW command
      */
-    err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 6);
+    if (vfo == RIG_VFO_B)
+    {
+        err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 7);
+    }
+    else
+    {
+        err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 6);
+    }
 
     if (err != RIG_OK)
     {
@@ -1027,7 +1041,14 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return err;
     }
 
-    *width = atoi(&buf[2]) * 10;
+    if (vfo == RIG_VFO_B)
+    {
+        *width = atoi(&buf[3]) * 10;
+    }
+    else
+    {
+        *width = atoi(&buf[2]) * 10;
+    }
 
     return RIG_OK;
 }
@@ -1041,15 +1062,24 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * The K3 supports AFSK & FSK sub-modes and for the D versions it also
  * has an internal RTTY and PSK31 decoder. The decoder sub-modes are
  * reported as FSK (RTTY) and the AFSK sub-modes are reported as
- * PKT(USB & LSB). LSB modes are assumed to be RTTY and USB modes are
- * assumed to be PKT(PSK, WS modes etc.).
+ * PKT(USB & LSB). The Submode determines if MD6 starts off in USB
+ * or LSB. To get the reverse of that, you send MD9 and the the submode.
+ * On KX3 it's
+ *
+ * DT0 defaults MD6 to USB
+ * DT1 defaults MD6 to LSB
+ * DT2 defaults MD6 to LSB
+ * DT3 defaults MD6 to USB
+ *
+ * So to inverse that DT0 for LSB, you'd send MD9 then DT0.
  *
  * For mode set the data sub-modes are set as follows:
  *
- * RTTY -> FSK D normal (LSB) VFO shows MARK QRG
- * RTTYR -> FSK D reversed (USB) VFO shows MARK QRG
- * PKTUSB -> DATA A normal (USB) VFO shows suppressed carrier QRG
- * PKTLSB -> AFSK A normal (LSB) optimised for RTTY VFO shows MARK QRG
+ * PKTUSB = sets the rig to DATA mode submode Data A (DT0)
+ * PKTLSB = sets the rig to DATA REV mode submode Data A (DT0)
+ * RTTY = sets the rig to AFSK A 45 bps rtty (DT1)
+ * RTTYR = sets the rig to FSK D 45 bps rtty (DT2)
+ * PSK = sets the rig to PSK D (DT3)
 
  * Not all data sub-mode combinations are possible but the above
  * mapping seems most likely to cover the user requirements.
@@ -1059,40 +1089,86 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int err;
     char cmd_m[4];
+    char buf[KENWOOD_MAX_BUF_LEN];
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = rig->state.current_vfo;
+    }
 
     switch (mode)
     {
     case RIG_MODE_PKTLSB:
-        mode = RIG_MODE_RTTY;
+        mode = RIG_MODE_RTTYR; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+                 "DT0"); /* DATA A mode - DATA (REV) on LSB optimized for HF Packet, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_PKTUSB:
-        mode = RIG_MODE_RTTY;
+        mode = RIG_MODE_RTTY; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+                 "DT0"); /* DATA A mode - DATA on USB general, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_RTTY:
-    case RIG_MODE_RTTYR:
+        mode = RIG_MODE_RTTY; // in "DT1" Subband RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+                 "DT2"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
+        break;
+
+    case RIG_MODE_RTTYR:
+        mode = RIG_MODE_RTTYR; // in "DT2" Subband RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT1"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+        break;
+
+    case RIG_MODE_PSK:
+        mode = RIG_MODE_PSK; // in "DT3" subband RIG_MODE_PSK = USB # kenwood.c mode but may need kenwwod.c mode table review.
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT3"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
         break;
 
     default:
         break;
     }
 
-    /* kenwood_set_mode() ignores width value for K2/K3/TS-570 */
-    err = kenwood_set_mode(rig, vfo, mode, width);
+    int kmode;
+    int c;
+    kmode = rmode2kenwood(mode, caps->mode_table);
 
-    if (err != RIG_OK)
+    if (kmode < 0)
     {
-        return err;
+        rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
+                  __func__, rig_strrmode(mode));
+        RETURNFUNC(-RIG_EINVAL);
     }
+
+    if (kmode <= 9)
+    {
+        c = '0' + kmode;
+    }
+    else
+    {
+        c = 'A' + kmode - 10;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c\n", __func__, kmode, c)
+
+    if (vfo == RIG_VFO_B)
+    {
+        snprintf(buf, sizeof(buf), "MD$%c", c);
+    }
+    else
+    {
+        snprintf(buf, sizeof(buf), "MD%c", c);
+    }
+
+    err = kenwood_transaction(rig, buf, NULL, 0);
+
+    if (err != RIG_OK) { RETURNFUNC(err); }
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
@@ -1108,8 +1184,8 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
          */
 
         /* passband widths vary by mode so gather lower and upper limits */
-        pbwidth_t pb_nar = rig_passband_narrow(rig, mode);
-        pbwidth_t pb_wid = rig_passband_wide(rig, mode);
+        //pbwidth_t pb_nar = rig_passband_narrow(rig, mode);
+        //pbwidth_t pb_wid = rig_passband_wide(rig, mode);
 
         if (width < 0)
         {
@@ -1120,6 +1196,8 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             width = rig_passband_normal(rig, mode);
         }
+
+#if 0
         else if (width < pb_nar)
         {
             width = pb_nar;
@@ -1129,7 +1207,30 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = pb_wid;
         }
 
-        snprintf(cmd_s, sizeof(cmd_s), "BW%04ld", width / 10);
+#endif
+        // width is 50Hz rounded down
+        struct kenwood_priv_data *priv = rig->state.priv;
+
+        if (priv->is_k4d || priv->is_k4hd)
+        {
+            width += 9;  // rounds to 10Hz
+        }
+        else
+        {
+            width += 49;
+        }
+
+        if (width > 99999) { width = 99999; }
+
+        if (vfo == RIG_VFO_B)
+        {
+            snprintf(cmd_s, sizeof(cmd_s), "BW$%04ld", width / 10);
+        }
+        else
+        {
+            snprintf(cmd_s, sizeof(cmd_s), "BW%04ld", width / 10);
+        }
+
         err = kenwood_transaction(rig, cmd_s, NULL, 0);
 
         if (err != RIG_OK)
@@ -1155,38 +1256,28 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return RIG_OK;
 }
 
-
-/* The K3 changes "VFOs" by swapping the contents of
- * the upper display with the lower display.  This function
- * accomplishes this by sending the emulation command, SWT11;
- * to the K3 to emulate a tap of the A/B button.
+/* Elecraft rigs don't really know about swappings vfos.
+ * We just emulate them so rigctl can work correctly.
  */
 
 int k3_set_vfo(RIG *rig, vfo_t vfo)
 {
-    int err;
+    ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    // we emulate vfo selection for Elecraft
+    rig->state.current_vfo = vfo;
 
-    switch (vfo)
-    {
-    case RIG_VFO_B:
-        err = kenwood_transaction(rig, "SWT11", NULL, 0);
-
-        if (err != RIG_OK)
-        {
-            return err;
-        }
-
-        break;
-
-    default:
-        break;
-    }
-
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
+int k3_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    ENTERFUNC;
+
+    *vfo = rig->state.current_vfo;
+
+    RETURNFUNC(RIG_OK);
+}
 
 /* Support the RC command for clearing RIT/XIT,
  *
@@ -1371,21 +1462,33 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     switch (tx_mode)
     {
     case RIG_MODE_PKTLSB:
-        tx_mode = RIG_MODE_RTTY;
+        tx_mode = RIG_MODE_RTTY; // "DT0" RIG_MODE_RTTY = LSB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT1"); /* AFSK A mode - AFSK on LSB optimised for RTTY, VFO dial is MARK */
+                 "DT0"); /* DATA A mode - DATA-R LSB, suppressed carrier */
         break;
 
     case RIG_MODE_PKTUSB:
-        tx_mode = RIG_MODE_RTTY;
+        tx_mode = RIG_MODE_RTTYR; // "DT0" RIG_MODE_RTTYR = USB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT0"); /* DATA A mode - AFSK on USB general, VFO dial is suppressed carrier QRG */
+                 "DT0"); /* DATA A mode - DATA on USB, suppressed carrier */
         break;
 
     case RIG_MODE_RTTY:
-    case RIG_MODE_RTTYR:
+        tx_mode = RIG_MODE_RTTY; // DT1" RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT2"); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
+                 "DT1"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
+        break;
+
+    case RIG_MODE_RTTYR:
+        tx_mode = RIG_MODE_RTTYR; // "DT2" RIG_MODE_RTTY = USB and RIG_MODE_RTTYR = USB
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT2"); /* FSK D mode - direct FSK on USB optimized for RTTY, VFO dial is MARK */
+        break;
+
+    case RIG_MODE_PSK:
+        tx_mode = RIG_MODE_PSK;
+        snprintf(cmd_m, sizeof(cmd_m),
+                 "DT3"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
         break;
 
     default:
@@ -1584,7 +1687,7 @@ static int k3_get_maxpower(RIG *rig)
 {
     int retval;
     int maxpower = 12; // K3 default power level
-    char levelbuf[16];
+    char levelbuf[KENWOOD_MAX_BUF_LEN];
     struct kenwood_priv_data *priv = rig->state.priv;
 
     // default range is 0-12 if there is no KPA3 installed
@@ -1689,7 +1792,7 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             int i;
             int foundit = 0;
 
-            for (i = 0; i < MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
             {
                 if (val.i == rig->state.attenuator[i])
                 {
@@ -1840,6 +1943,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     case RIG_LEVEL_RFPOWER_METER:
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
         int tx_mode;
         float pwr;
@@ -1863,6 +1967,12 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         val->f = pwr;
+
+        if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
+        {
+            val->f *= 100;
+        }
+
         break;
     }
 
@@ -1917,7 +2027,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             int i;
 
-            for (i = 0; i < lvl && i < MAXDBLSTSIZ; i++)
+            for (i = 0; i < lvl && i < HAMLIB_MAXDBLSTSIZ; i++)
             {
                 if (rig->state.attenuator[i] == 0)
                 {
@@ -2120,6 +2230,24 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         val->f = pwr;
+        return retval;
+    }
+
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+    {
+        struct kenwood_priv_data *priv = rig->state.priv;
+        char levelbuf[KENWOOD_MAX_BUF_LEN];
+        int pwr;
+
+        retval = kenwood_safe_transaction(rig, "PO", levelbuf, sizeof(levelbuf), 5);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        sscanf(levelbuf + 2, "%d", &pwr);
+        val->f = priv->has_kpa100 ? pwr : pwr / 10.0;
         return retval;
     }
     }

@@ -905,7 +905,7 @@ static const struct icom_priv_caps ic756pro3_priv_caps =
 #define IC756PROIII_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756PROIII_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC756PROIII_LEVEL_ALL (IC756PROII_LEVEL_ALL|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_NB)
+#define IC756PROIII_LEVEL_ALL (IC756PROII_LEVEL_ALL|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_NB)
 
 /*
  * TODO: check whether all func and levels are stored in memory
@@ -943,12 +943,23 @@ static const struct icom_priv_caps ic756pro3_priv_caps =
          { 120, 1.0f } \
     } }
 
-#define IC756PROIII_RFPOWER_METER_CAL { 3, \
+#define IC756PROIII_RFPOWER_METER_CAL { 13, \
     { \
          { 0, 0.0f }, \
-         { 143, 0.5f }, \
-         { 213, 1.0f } \
+         { 21, 5.0f }, \
+         { 43, 10.0f }, \
+         { 65, 15.0f }, \
+         { 83, 20.0f }, \
+         { 95, 25.0f }, \
+         { 105, 30.0f }, \
+         { 114, 35.0f }, \
+         { 124, 40.0f }, \
+         { 143, 50.0f }, \
+         { 183, 75.0f }, \
+         { 213, 100.0f }, \
+         { 255, 120.0f } \
     } }
+
 
 #define IC756PROIII_COMP_METER_CAL { 3, \
     { \

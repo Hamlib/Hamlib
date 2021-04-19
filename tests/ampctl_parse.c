@@ -1436,7 +1436,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 
 void version()
 {
-    printf("ampctl(d), %s\n\n", hamlib_version);
+    printf("ampctl(d), %s\n\n", hamlib_version2);
     printf("%s\n", hamlib_copyright);
 }
 
@@ -1674,13 +1674,13 @@ declare_proto_amp(get_level)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        amp_sprintf_level(s, amp->state.has_get_level);
+        amp_sprintf_level(s, sizeof(s), amp->state.has_get_level);
 
         fputs(s, fout);
 
         if (amp->caps->get_ext_level)
         {
-            sprintf_level_ext(s, amp->caps->extlevels);
+            sprintf_level_ext(s, sizeof(s), amp->caps->extlevels);
             fputs(s, fout);
         }
 

@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose < 2 ? RIG_DEBUG_WARN : verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigmem, %s\n", hamlib_version);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigmem, %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to "
               "<hamlib-developer@lists.sourceforge.net>\n\n");
@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+        strncpy(rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
@@ -406,7 +406,7 @@ int main(int argc, char *argv[])
 
 void version()
 {
-    printf("rigmem, %s\n\n", hamlib_version);
+    printf("rigmem, %s\n\n", hamlib_version2);
     printf("%s\n", hamlib_copyright);
 }
 

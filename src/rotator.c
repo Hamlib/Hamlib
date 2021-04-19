@@ -28,18 +28,22 @@
 /**
  * \file src/rotator.c
  * \brief Rotator interface
+ * \author Frank Singleton
+ * \date 2000-2003
  * \author Stephane Fillod
  * \date 2000-2012
  *
- * Hamlib interface is a frontend implementing rotator wrapper functions.
+ * This Hamlib interface is a frontend implementing the rotator wrapper
+ * functions.
  */
 
 
 /**
  * \page rot Rotator interface
  *
- * Rotator can be any kind of azimuth or azimuth and elevation controlled
- * antenna system.
+ * A rotator can be any kind of azimuth, elevation, or azimuth and elevation
+ * controlled antenna system or other such aiming equipment, e.g. telescopes,
+ * etc.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -57,7 +61,9 @@
 #include <hamlib/rotator.h>
 #include "serial.h"
 #include "parallel.h"
+#if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)
 #include "usb_port.h"
+#endif
 #include "network.h"
 #include "rot_conf.h"
 #include "token.h"
@@ -147,22 +153,30 @@ static int remove_opened_rot(ROT *rot)
 }
 #endif /* !DOC_HIDDEN */
 
+/** @} */ /* rotator definitions */
+
 
 /**
- * \brief execs cfunc() on each opened rot
- * \param cfunc The function to be executed on each rot
- * \param data  Data pointer to be passed to cfunc()
+ * \addtogroup rot_internal
+ * @{
+ */
+
+
+/**
+ * \brief Executes \a cfunc on each opened #ROT.
  *
- *  Calls cfunc() function for each opened rot.  The contents of the opened
- *  rot table is processed in random order according to a function pointed to
- *  by \a cfunc, which is called with two arguments, the first pointing to the
- *  #ROT handle, the second to a data pointer \a data.
+ * \param cfunc The function to be executed on each #ROT.
+ * \param data  Data pointer to be passed to \a cfunc.
  *
- *  If \a data is not needed, then it can be set to NULL.  The processing of
- *  the opened rot table is stopped when cfunc() returns 0.
- * \internal
+ * Calls \a cfunc function for each opened #ROT.  The contents of the opened
+ * #ROT table is processed in random order according to a function pointed to
+ * by \a cfunc, which is called with two arguments, the first pointing to the
+ * #ROT handle, the second to a data pointer \a data.
  *
- * \return always RIG_OK.
+ * If \a data is not needed, then it can be set to NULL.  The processing of
+ * the opened #ROT table is stopped when \a cfunc returns 0.
+ *
+ * \return RIG_OK in all cases.
  */
 int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
 {
@@ -180,17 +194,24 @@ int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
 
     return RIG_OK;
 }
+/** @} */ /* rot_internal definitions */
 
 
 /**
- * \brief allocate a new #ROT handle
- * \param rot_model The rot model for this new handle
+ * \addtogroup rotator
+ * @{
+ */
+
+/**
+ * \brief Allocate a new #ROT handle.
+ *
+ * \param rot_model The rotator model for this new handle.
  *
  * Allocates a new #ROT handle and initializes the associated data
- * for \a rot_model.
+ * for \a rot_model (see rotlist.h or `rigctl -l`).
  *
  * \return a pointer to the #ROT handle otherwise NULL if memory allocation
- * failed or \a rot_model is unknown (e.g. backend autoload failed).
+ * failed or \a rot_model is unknown, e.g. backend autoload failed.
  *
  * \sa rot_cleanup(), rot_open()
  */
@@ -232,7 +253,9 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
 
     /*
      * populate the rot->state
-     * TODO: read the Preferences here!
+     */
+    /**
+     * \todo Read the Preferences here!
      */
     rs = &rot->state;
 
@@ -247,7 +270,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     switch (caps->port_type)
     {
     case RIG_PORT_SERIAL:
-        strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN - 1);
+        strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
         rs->rotport.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
         rs->rotport.parm.serial.data_bits = caps->serial_data_bits;
         rs->rotport.parm.serial.stop_bits = caps->serial_stop_bits;
@@ -256,16 +279,16 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
         break;
 
     case RIG_PORT_PARALLEL:
-        strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN - 1);
+        strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, HAMLIB_FILPATHLEN - 1);
         break;
 
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
-        strncpy(rs->rotport.pathname, "127.0.0.1:4533", FILPATHLEN - 1);
+        strncpy(rs->rotport.pathname, "127.0.0.1:4533", HAMLIB_FILPATHLEN - 1);
         break;
 
     default:
-        strncpy(rs->rotport.pathname, "", FILPATHLEN - 1);
+        strncpy(rs->rotport.pathname, "", HAMLIB_FILPATHLEN - 1);
     }
 
     rs->min_el = caps->min_el;
@@ -313,18 +336,19 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
 
 
 /**
- * \brief open the communication to the rot
- * \param rot   The #ROT handle of the rotator to be opened
+ * \brief Open the communication channel to the rotator.
  *
- * Opens communication to a rotator which \a ROT handle has been passed
- * by argument.
+ * \param rot The #ROT handle of the rotator to be opened.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Opens the communication channel to a rotator for which the #ROT handle has
+ * been passed.
  *
- * \retval RIG_EINVAL   \a rot is NULL or inconsistent.
- * \retval RIG_ENIMPL   port type communication is not implemented yet.
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Communication channel succesfully opened.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENIMPL Communication port type is not implemented yet.
  *
  * \sa rot_init(), rot_close()
  */
@@ -394,6 +418,8 @@ int HAMLIB_API rot_open(ROT *rot)
         rs->rotport.fd = status;
         break;
 
+#if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)
+
     case RIG_PORT_USB:
         status = usb_port_open(&rs->rotport);
 
@@ -403,6 +429,7 @@ int HAMLIB_API rot_open(ROT *rot)
         }
 
         break;
+#endif
 
     case RIG_PORT_NONE:
     case RIG_PORT_RPC:
@@ -448,15 +475,17 @@ int HAMLIB_API rot_open(ROT *rot)
 
 
 /**
- * \brief close the communication to the rot
- * \param rot   The #ROT handle of the rotator to be closed
+ * \brief Close the communication channel to the rotator.
+ * \param rot The #ROT handle of the rotator to be closed.
  *
- * Closes communication to a rotator which \a ROT handle has been passed
- * by argument that was previously open with rot_open().
+ * Closes the communication channel to a rotator for which #ROT handle has
+ * been passed by argument that was previously opened with rot_open().
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Communication channel successfully closed.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
  *
  * \sa rot_cleanup(), rot_open()
  */
@@ -502,9 +531,12 @@ int HAMLIB_API rot_close(ROT *rot)
             par_close(&rs->rotport);
             break;
 
+#if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)
+
         case RIG_PORT_USB:
             usb_port_close(&rs->rotport);
             break;
+#endif
 
         case RIG_PORT_NETWORK:
         case RIG_PORT_UDP_NETWORK:
@@ -527,15 +559,18 @@ int HAMLIB_API rot_close(ROT *rot)
 
 
 /**
- * \brief release a rot handle and free associated memory
- * \param rot   The #ROT handle of the radio to be closed
+ * \brief Release a #ROT handle and free associated memory.
  *
- * Releases a rot struct which port has eventually been closed already
+ * \param rot The #ROT handle to be released.
+ *
+ * Releases a #ROT handle for which the communication channel has been closed
  * with rot_close().
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK #ROT handle successfully released.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
  *
  * \sa rot_init(), rot_close()
  */
@@ -571,16 +606,25 @@ int HAMLIB_API rot_cleanup(ROT *rot)
 
 
 /**
- * \brief set the azimuth and elevation of the rotator
- * \param rot   The rot handle
- * \param azimuth   The azimuth to set to
- * \param elevation The elevation to set to
+ * \brief Set the azimuth and elevation of the rotator.
+ *
+ * \param rot The #ROT handle.
+ * \param azimuth The azimuth to set in decimal degress.
+ * \param elevation The elevation to set in decimal degrees.
  *
  * Sets the azimuth and elevation of the rotator.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \b Note: A given rotator may be capable of setting only the azimuth or
+ * only the elevation or both.  The rotator backend will ignore the unneeded
+ * parameter.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Either or both parameters set successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent \b or either \a azimuth
+ * or \a elevation is out of range for this rotator.
+ * \retval RIG_ENAVAIL rot_caps#set_position() capability is not available.
  *
  * \sa rot_get_position()
  */
@@ -634,16 +678,25 @@ int HAMLIB_API rot_set_position(ROT *rot,
 
 
 /**
- * \brief get the azimuth and elevation of the rotator
- * \param rot   The rot handle
- * \param azimuth   The location where to store the current azimuth
- * \param elevation The location where to store the current elevation
+ * \brief Query the azimuth and elevation of the rotator.
  *
- *  Retrieves the current azimuth and elevation of the rotator.
+ * \param rot The #ROT handle.
+ * \param azimuth The variable to store the current azimuth.
+ * \param elevation The variable to store the current elevation
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Retrieves the current azimuth and elevation values of the rotator.  The
+ * stored values are in decimal degrees.
+ *
+ * \b Note: A given rotator may be capable of querying only the azimuth or
+ * only the elevation or both.  The rotator backend should store a value of 0
+ * in the unsupported variable.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Either or both parameters queried and stored successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_position() capability is not available.
  *
  * \sa rot_set_position()
  */
@@ -692,14 +745,19 @@ int HAMLIB_API rot_get_position(ROT *rot,
 
 
 /**
- * \brief park the antenna
- * \param rot   The rot handle
+ * \brief Park the rotator.
  *
- *  Park the antenna.
+ * \param rot The #ROT handle.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Park the rotator in a predetermined position as implemented by the rotator
+ * hardware.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The rotator was parked successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#park() capability is not available.
  *
  */
 int HAMLIB_API rot_park(ROT *rot)
@@ -725,15 +783,20 @@ int HAMLIB_API rot_park(ROT *rot)
 
 
 /**
- * \brief stop the rotator
- * \param rot   The rot handle
+ * \brief Stop the rotator.
  *
- *  Stop the rotator.
+ * \param rot The #ROT handle.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Stop the rotator.  Command should be immediate.
  *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The rotator was stopped successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#stop() capability is not available.
+ *
+ * \sa rot_move()
  */
 int HAMLIB_API rot_stop(ROT *rot)
 {
@@ -758,16 +821,19 @@ int HAMLIB_API rot_stop(ROT *rot)
 
 
 /**
- * \brief reset the rotator
- * \param rot   The rot handle
+ * \brief Reset the rotator.
+ *
+ * \param rot The #ROT handle.
  * \param reset The reset operation to perform
  *
- *  Resets the rotator.
+ * Resets the rotator to a state determined by \a reset.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
  *
+ * \retval RIG_OK The rotator was reset successfully.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#reset() capability is not available.
  */
 int HAMLIB_API rot_reset(ROT *rot, rot_reset_t reset)
 {
@@ -792,13 +858,22 @@ int HAMLIB_API rot_reset(ROT *rot, rot_reset_t reset)
 
 
 /**
- * \brief move the rotator in the specified direction
- * \param rot   The rot handle
- * \param direction   Direction of movement
- * \param speed   Speed of movement
+ * \brief Move the rotator in the specified direction and speed.
  *
- * Move the rotator in the specified direction. The speed is a value
- * between 1 and 100.
+ * \param rot The #ROT handle.
+ * \param direction Direction of movement.
+ * \param speed Speed of movement.
+ *
+ * Move the rotator in the specified direction.  The \a direction is one of
+ * #ROT_MOVE_CCW, #ROT_MOVE_CW, #ROT_MOVE_LEFT, #ROT_MOVE_RIGHT, #ROT_MOVE_UP,
+ * or #ROT_MOVE_DOWN.  The \a speed is a value between 1 and 100 or
+ * #ROT_SPEED_NOCHANGE.
+ *
+ * \retval RIG_OK The rotator move was successful.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#move() capability is not available.
+ *
+ * \sa rot_stop()
  */
 int HAMLIB_API rot_move(ROT *rot, int direction, int speed)
 {
@@ -823,15 +898,17 @@ int HAMLIB_API rot_move(ROT *rot, int direction, int speed)
 
 
 /**
- * \brief get general information from the rotator
- * \param rot   The rot handle
+ * \brief Get general information from the rotator.
  *
- * Retrieves some general information from the rotator.
- * This can include firmware revision, exact model name, or just nothing.
+ * \param rot The #ROT handle.
  *
- * \return a pointer to static memory containing the ASCIIZ string
- * if the operation has been successful, otherwise NULL if an error occurred
- * or get_info not part of capabilities.
+ * Retrieves some general information from the rotator.  This can include
+ * firmware revision, exact model name, or just nothing.
+ *
+ * \return A pointer to static memory containing an ASCII nul terminated
+ * string (C string) if the operation has been successful, otherwise NULL if
+ * \a rot is NULL or inconsisten or the rot_caps#get_info() capability is not
+ * available.
  */
 const char *HAMLIB_API rot_get_info(ROT *rot)
 {
@@ -852,15 +929,19 @@ const char *HAMLIB_API rot_get_info(ROT *rot)
 
 
 /**
- * \brief get status flags from the rotator
- * \param rot The rot handle
- * \param status a pointer to a rot_status_t variable that will receive the status flags
+ * \brief Query status flags of the rotator.
  *
- * Gets the active status flags from the rotator.
+ * \param rot The #ROT handle.
+ * \param status The variable where the status flags will be stored.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * Query the active status flags from the rotator.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The query was successful.
+ * \retval RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval RIG_ENAVAIL rot_caps#get_status() capability is not available.
  */
 int HAMLIB_API rot_get_status(ROT *rot, rot_status_t *status)
 {

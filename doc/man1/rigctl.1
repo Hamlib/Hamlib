@@ -671,13 +671,13 @@ Number is 1-based antenna# (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
 .IP
 Option depends on rig..for Icom it probably sets the Tx & Rx antennas as in the IC-7851. See your manual for rig specific option values. Most rigs don't care about the option.
 .IP
-For the IC-7851 (and perhaps others) it means this:
+For the IC-7851, FTDX3000 (and perhaps others) it means this:
 .IP
 .in +4n
 .EX
-1 = TX/RX = ANT1
-2 = TX/RX = ANT2
-3 = TX/RX = ANT3
+1 = TX/RX = ANT1  FTDX3000=ANT1/ANT3
+2 = TX/RX = ANT2  FTDX3000=ANT2/ANT3
+3 = TX/RX = ANT3  FTDX3000=ANT3
 4 = TX/RX = ANT1/ANT4
 5 = TX/RX = ANT2/ANT4
 6 = TX/RX = ANT3/ANT4
@@ -841,7 +841,7 @@ and
 .IP
 Level is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOX\(cq, \(oqAF\(cq,
 \(oqRF\(cq, \(oqSQL\(cq, \(oqIF\(cq, \(oqAPF\(cq, \(oqNR\(cq, \(oqPBT_IN\(cq,
-\(oqPBT_OUT\(cq, \(oqCWPITCH\(cq, \(oqRFPOWER\(cq, \(oqMICGAIN\(cq,
+\(oqPBT_OUT\(cq, \(oqCWPITCH\(cq, \(oqRFPOWER\(cq, \(oqRFPOWER_METER\(cq, \(oqRFPOWER_METER_WATTS\(cq,  \(oqMICGAIN\(cq,
 \(oqKEYSPD\(cq, \(oqNOTCHF\(cq, \(oqCOMP\(cq, \(oqAGC\(cq, \(oqBKINDL\(cq,
 \(oqBAL\(cq, \(oqMETER\(cq, \(oqVOXGAIN\(cq, \(oqANTIVOX\(cq,
 \(oqSLOPE_LOW\(cq, \(oqSLOPE_HIGH\(cq, \(oqRAWSTR\(cq, \(oqSWR\(cq,
@@ -1109,8 +1109,8 @@ option above, will terminate each command string sent to the radio.  This
 character should not be a part of the input string.
 .
 .TP
-.BR W ", " send_cmd_rx " \(aq" \fICmd\fP \(aq
-Send a raw command string to the radio and expect a number of bytes returned.
+.BR W ", " send_cmd_rx " \(aq" \fICmd\fP\(aq " " \fInbytes\FP
+Send a raw command string to the radio and expect nbytes returned.
 .IP
 This is useful for testing and troubleshooting radio commands and responses when
 developing a backend.  If the # of bytes requested is <= the number actually returned no timeout will occur.

@@ -134,8 +134,18 @@ static const struct confparams frontend_cfg_params[] =
         "0", RIG_CONF_CHECKBUTTON, { }
     },
     {
+        TOK_AUTO_POWER_OFF, "auto_power_off", "Auto power off",
+        "True enables compatible rigs to be powered down on close",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
+    {
         TOK_AUTO_DISABLE_SCREENSAVER, "auto_disable_screensaver", "Auto disable screen saver",
         "True enables compatible rigs to have their screen saver disabled on open",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
+    {
+        TOK_DISABLE_YAESU_BANDSELECT, "disable_yaesu_bandselect", "Disable Yaesu band select logic",
+        "True disables the automatic band select on band change for Yaesu rigs",
         "0", RIG_CONF_CHECKBUTTON, { }
     },
     {
@@ -147,6 +157,16 @@ static const struct confparams frontend_cfg_params[] =
         TOK_FLUSHX, "flushx", "Flush with read instead of TCFLUSH",
         "True enables flushing serial port with read instead of TCFLUSH -- MicroHam",
         "0", RIG_CONF_CHECKBUTTON, { }
+    },
+    {
+        TOK_TWIDDLE_TIMEOUT, "twiddle_timeout", "Timeout(secs) to resume VFO polling when twiddling VFO",
+        "For satellite ops when VFOB is twiddled will pause VFOB commands until timeout",
+        "Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
+    },
+    {
+        TOK_TWIDDLE_RIT, "twiddle_rit", "RIT twiddle",
+        "Suppress get_freq on VFOB for RIT tuning satellites",
+        "Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
     },
 
     { RIG_CONF_END, NULL, }
@@ -212,7 +232,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(rs->rigport.pathname, val, FILPATHLEN - 1);
+        strncpy(rs->rigport.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
     case TOK_WRITE_DELAY:
@@ -411,37 +431,37 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
         case 1:
             memcpy(rs->tx_range_list, caps->tx_range_list1,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list1,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         case 2:
             memcpy(rs->tx_range_list, caps->tx_range_list2,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list2,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         case 3:
             memcpy(rs->tx_range_list, caps->tx_range_list3,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list3,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         case 4:
             memcpy(rs->tx_range_list, caps->tx_range_list4,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list4,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         case 5:
             memcpy(rs->tx_range_list, caps->tx_range_list5,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             memcpy(rs->rx_range_list, caps->rx_range_list5,
-                   sizeof(struct freq_range_list)*FRQRANGESIZ);
+                   sizeof(struct freq_range_list)*HAMLIB_FRQRANGESIZ);
             break;
 
         default:
@@ -495,7 +515,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_PTT_PATHNAME:
-        strncpy(rs->pttport.pathname, val, FILPATHLEN - 1);
+        strncpy(rs->pttport.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
     case TOK_PTT_BITNUM:
@@ -552,7 +572,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_DCD_PATHNAME:
-        strncpy(rs->dcdport.pathname, val, FILPATHLEN - 1);
+        strncpy(rs->dcdport.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
 
@@ -581,6 +601,15 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rs->auto_power_on = val_i ? 1 : 0;
         break;
 
+    case TOK_AUTO_POWER_OFF:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+
+        rs->auto_power_off = val_i ? 1 : 0;
+        break;
+
     case TOK_AUTO_DISABLE_SCREENSAVER:
         if (1 != sscanf(val, "%d", &val_i))
         {
@@ -588,6 +617,15 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         }
 
         rs->auto_disable_screensaver = val_i ? 1 : 0;
+        break;
+
+    case TOK_DISABLE_YAESU_BANDSELECT:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+
+        rs->disable_yaesu_bandselect = val_i ? 1 : 0;
         break;
 
     case TOK_PTT_SHARE:
@@ -606,6 +644,24 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         }
 
         rs->rigport.flushx = val_i ? 1 : 0;
+        break;
+
+    case TOK_TWIDDLE_TIMEOUT:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+
+        rs->twiddle_timeout = val_i;
+        break;
+
+    case TOK_TWIDDLE_RIT:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+
+        rs->twiddle_rit = val_i ? 1 : 0;
         break;
 
     default:
@@ -924,9 +980,34 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         sprintf(val, "%d", rs->auto_power_on);
         break;
 
+    case TOK_AUTO_POWER_OFF:
+        sprintf(val, "%d", rs->auto_power_off);
+        break;
+
     case TOK_AUTO_DISABLE_SCREENSAVER:
         sprintf(val, "%d", rs->auto_disable_screensaver);
         break;
+
+    case TOK_PTT_SHARE:
+        sprintf(val, "%d", rs->ptt_share);
+        break;
+
+    case TOK_FLUSHX:
+        sprintf(val, "%d", rs->rigport.flushx);
+        break;
+
+    case TOK_DISABLE_YAESU_BANDSELECT:
+        sprintf(val, "%d", rs->disable_yaesu_bandselect);
+        break;
+
+    case TOK_TWIDDLE_TIMEOUT:
+        sprintf(val, "%d", rs->twiddle_timeout);
+        break;
+
+    case TOK_TWIDDLE_RIT:
+        sprintf(val, "%d", rs->twiddle_rit);
+        break;
+
 
     default:
         return -RIG_EINVAL;

@@ -30,6 +30,8 @@
 #endif
 
 #include "hamlib/rig.h"
+#include "misc.h"
+#include "newcat.h"
 #include "bandplan.h"
 #include "newcat.h"
 #include "ft5000.h"
@@ -83,6 +85,93 @@ int ftdx3000_ext_tokens[] =
     TOK_ROOFING_FILTER, TOK_BACKEND_NONE
 };
 
+int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
+{
+    char *cmd;
+    int err;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+
+    ENTERFUNC;
+
+    switch (ant)
+    {
+    case 1:
+        cmd = "AN01;"; // R3/1 ANT1/ANT3
+        break;
+
+    case 2:
+        cmd = "AN02;"; // RE/2 ANT2/ANT3
+        break;
+
+    case 3:
+        cmd = "AN03;"; // TRX ANT3
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 1,2,3 got %d\n", __func__, ant);
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        RETURNFUNC(err);
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
+int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+                   ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int err;
+
+    ENTERFUNC;
+
+    option->i = 0;  // default to no options
+
+    // find out what ANT3 setting
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", "AN0;");
+
+    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    {
+        RETURNFUNC(err);
+    }
+
+    if (strlen(priv->ret_data) >= 7)
+    {
+        char c = priv->ret_data[3];
+
+        switch (c)
+        {
+        case '1':
+            *ant_rx = RIG_ANT_3;
+            *ant_tx = RIG_ANT_1;
+            break;
+
+        case '2':
+            *ant_rx = RIG_ANT_3;
+            *ant_tx = RIG_ANT_2;
+            break;
+
+        case '3':
+            *ant_rx = *ant_tx = RIG_ANT_3;
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown antenna=%c\n", __func__, c);
+            RETURNFUNC(-RIG_EPROTO);
+        }
+    }
+
+    *ant_curr = *ant_tx; // current points to tx antenna
+
+    RETURNFUNC(RIG_OK);
+}
+
+
 /*
  * FTDX 3000 rig capabilities
  * Seems to be largely compatible with the FTDX 5000,
@@ -92,9 +181,9 @@ int ftdx3000_ext_tokens[] =
 const struct rig_caps ftdx3000_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX3000),
-    .model_name =         "FTDX 3000",
+    .model_name =         "FTDX-3000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".2",
+    .version =            NEWCAT_VER ".4",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -104,7 +193,7 @@ const struct rig_caps ftdx3000_caps =
     .serial_rate_min =    4800,         /* Default rate per manual */
     .serial_rate_max =    38400,
     .serial_data_bits =   8,
-    .serial_stop_bits =   1,            /* Assumed since manual makes no mention */
+    .serial_stop_bits =   2,            /* Assumed since manual makes no mention */
     .serial_parity =      RIG_PARITY_NONE,
     .serial_handshake =   RIG_HANDSHAKE_HARDWARE,
     .write_delay =        FTDX5000_WRITE_DELAY,
@@ -228,8 +317,8 @@ const struct rig_caps ftdx3000_caps =
     .get_rit =            newcat_get_rit,
     .set_xit =            newcat_set_xit,
     .get_xit =            newcat_get_xit,
-    .set_ant =            newcat_set_ant,
-    .get_ant =            newcat_get_ant,
+    .set_ant =            ft3000_set_ant,
+    .get_ant =            ft3000_get_ant,
     .get_func =           newcat_get_func,
     .set_func =           newcat_set_func,
     .get_level =          newcat_get_level,
@@ -260,3 +349,4 @@ const struct rig_caps ftdx3000_caps =
     .get_ext_level =      newcat_get_ext_level,
 
 };
+

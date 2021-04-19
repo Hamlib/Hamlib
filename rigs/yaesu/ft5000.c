@@ -86,7 +86,7 @@ int ftdx5000_ext_tokens[] =
 const struct rig_caps ftdx5000_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX5000),
-    .model_name =         "FTDX 5000",
+    .model_name =         "FTDX-5000",
     .mfg_name =           "Yaesu",
     .version =            NEWCAT_VER ".0",
     .copyright =          "LGPL",
@@ -98,7 +98,7 @@ const struct rig_caps ftdx5000_caps =
     .serial_rate_min =    4800,         /* Default rate per manual */
     .serial_rate_max =    38400,
     .serial_data_bits =   8,
-    .serial_stop_bits =   1,            /* Assumed since manual makes no mention */
+    .serial_stop_bits =   2,            /* Assumed since manual makes no mention */
     .serial_parity =      RIG_PARITY_NONE,
     .serial_handshake =   RIG_HANDSHAKE_HARDWARE,
     .write_delay =        FTDX5000_WRITE_DELAY,
@@ -126,7 +126,7 @@ const struct rig_caps ftdx5000_caps =
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1000),
     .vfo_ops =            FTDX5000_VFO_OPS,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_ANT,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 5000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,

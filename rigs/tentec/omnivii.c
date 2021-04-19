@@ -260,7 +260,7 @@ static int tt588_rxFilter[] =
 static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                              int *data_len)
 {
-    int i, retval;
+    int i, retval = -RIG_EINTERNAL;
     struct  rig_state *rs = &rig->state;
 
     // The original file had "A few XX's" due to sync problems
