@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include "cal.h"
 #include "idx_builtin.h"
 #include "kenwood.h"
 
@@ -46,7 +47,29 @@
 
 #define TS480_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_CPY|RIG_OP_TUNE)
 
-// TODO: add S-meter calibration table: 0-20
+// TS-480 S-meter calibration table based on LCD display bars
+#define TS480_STR_CAL { 9, \
+    { \
+        {   0, -60 }, \
+        {   3, -48 }, \
+        {   5, -36 }, \
+        {   7, -24 }, \
+        {   9, -12 }, \
+        {  11,  0 }, \
+        {  14,  20 }, \
+        {  17,  40 }, \
+        {  20,  60 } \
+    } }
+
+// TS-480 SWR calibration table based approximately on LCD display bars
+#define TS480_SWR_CAL { 5, \
+    { \
+        {   0, 1.0f }, \
+        {   4, 1.5f }, \
+        {   8, 2.0f }, \
+        {   12, 3.0f }, \
+        {   20, 10.0f } \
+    } }
 
 /*
  * kenwood_ts480_get_info
@@ -509,8 +532,15 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if (meter_type == 1)
         {
             sscanf(ackbuf + 3, "%d", &meter_value);
-            // TODO: SWR meter scale?
-            val->f = (float) meter_value;
+
+            if (rig->caps->swr_cal.size)
+            {
+                val->f = rig_raw2val_float(meter_value, &rig->caps->swr_cal);
+            }
+            else
+            {
+                val->f = (float) meter_value / 2.0f;
+            }
         }
         else
         {
@@ -535,7 +565,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if (meter_type == 2)
         {
             sscanf(ackbuf + 3, "%d", &meter_value);
-            val->f = (float) meter_value / 10.0f;
+            val->f = (float) meter_value; // Maximum value is 20dB
         }
         else
         {
@@ -803,6 +833,8 @@ const struct rig_caps ts480_caps =
         [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
         [LVL_BKIN_DLYMS] = {.min = {.i = 0}, .max = {.i = 3000}, .step = {.i = 150}},
     },
+    .str_cal = TS480_STR_CAL,
+    .swr_cal = TS480_SWR_CAL,
 
     .priv = (void *)& ts480_priv_caps,
     .rig_init = ts480_init,
