@@ -278,8 +278,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "ampctl %s\nLast commit was %s\n", hamlib_version,
-              HAMLIBDATETIME);
+    rig_debug(RIG_DEBUG_VERBOSE, "ampctl %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -314,7 +313,7 @@ int main(int argc, char *argv[])
 
     if (amp_file)
     {
-        strncpy(my_amp->state.ampport.pathname, amp_file, FILPATHLEN - 1);
+        strncpy(my_amp->state.ampport.pathname, amp_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */

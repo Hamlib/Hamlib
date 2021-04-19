@@ -123,7 +123,7 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, rig->state.vfo_opt);
 
-    if (rig->state.vfo_opt)
+    if (rig->state.vfo_opt || priv->rigctld_vfo_mode)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt vfo=%u\n", __func__, vfo);
         char *myvfo;
@@ -215,7 +215,11 @@ static int netrigctl_open(RIG *rig)
     len = sprintf(cmd, "\\chk_vfo\n");
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
-    if (ret == 2)
+    if (sscanf(buf, "CHKVFO %d", &priv->rigctld_vfo_mode) == 1)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: chkvfo=%d\n", __func__, priv->rigctld_vfo_mode);
+    }
+    else if (ret == 2)
     {
         if (buf[0]) { sscanf(buf, "%d", &priv->rigctld_vfo_mode); }
     }
@@ -266,7 +270,7 @@ static int netrigctl_open(RIG *rig)
 
     rs->deprecated_itu_region = atoi(buf);
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -296,7 +300,7 @@ static int netrigctl_open(RIG *rig)
         }
     }
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -324,9 +328,19 @@ static int netrigctl_open(RIG *rig)
         {
             break;
         }
+        switch(i)
+        {
+        }
+        rig->caps->tx_range_list1->startf = rs->tx_range_list[i].startf;
+        rig->caps->tx_range_list1->endf = rs->tx_range_list[i].endf;
+        rig->caps->tx_range_list1->modes = rs->tx_range_list[i].modes;
+        rig->caps->tx_range_list1->low_power = rs->tx_range_list[i].low_power;
+        rig->caps->tx_range_list1->high_power = rs->tx_range_list[i].high_power;
+        rig->caps->tx_range_list1->vfo = rs->tx_range_list[i].vfo;
+        rig->caps->tx_range_list1->ant = rs->tx_range_list[i].ant;
     }
 
-    for (i = 0; i < TSLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -350,7 +364,7 @@ static int netrigctl_open(RIG *rig)
         }
     }
 
-    for (i = 0; i < FLTLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_FLTLSTSIZ; i++)
     {
         ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -376,7 +390,7 @@ static int netrigctl_open(RIG *rig)
 
 #if 0
     /* TODO */
-    chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
+    chan_t chan_list[HAMLIB_CHANLSTSIZ]; /*!< Channel list, zero ended */
 #endif
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
@@ -428,7 +442,7 @@ static int netrigctl_open(RIG *rig)
                  &rs->preamp[4], &rs->preamp[5],
                  &rs->preamp[6]);
 
-    if (ret < 0 || ret >= MAXDBLSTSIZ)
+    if (ret < 0 || ret >= HAMLIB_MAXDBLSTSIZ)
     {
         ret = 0;
     }
@@ -448,7 +462,7 @@ static int netrigctl_open(RIG *rig)
                  &rs->attenuator[4], &rs->attenuator[5],
                  &rs->attenuator[6]);
 
-    if (ret < 0 || ret >= MAXDBLSTSIZ)
+    if (ret < 0 || ret >= HAMLIB_MAXDBLSTSIZ)
     {
         ret = 0;
     }
@@ -522,13 +536,15 @@ static int netrigctl_open(RIG *rig)
     gran_t parm_gran[RIG_SETTING_MAX];    /*!< parm granularity */
 #endif
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
         rs->mode_list |= rs->rx_range_list[i].modes;
         rs->vfo_list |= rs->rx_range_list[i].vfo;
     }
 
-    for (i = 0; i < FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ
+            && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++)
     {
         rs->mode_list |= rs->tx_range_list[i].modes;
         rs->vfo_list |= rs->tx_range_list[i].vfo;
@@ -579,6 +595,38 @@ static int netrigctl_open(RIG *rig)
             else if (strcmp(setting, "targetable_vfo") == 0)
             {
                 rig->caps->targetable_vfo = strtol(value, NULL, 0);
+                rig_debug(RIG_DEBUG_ERR, "%s: targetable_vfo=0x%2x\n", __func__,
+                          rig->caps->targetable_vfo);
+            }
+            else if (strcmp(setting, "has_set_vfo") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+
+                if (!has) { rig->caps->set_vfo = NULL; }
+            }
+            else if (strcmp(setting, "has_get_vfo") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+
+                if (!has) { rig->caps->get_vfo = NULL; }
+            }
+            else if (strcmp(setting, "has_set_freq") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+
+                if (!has) { rig->caps->set_freq = NULL; }
+            }
+            else if (strcmp(setting, "has_get_freq") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+
+                if (!has) { rig->caps->get_freq = NULL; }
+            }
+            else if (strcmp(setting, "timeout") == 0)
+            {
+                // use the rig's timeout value pluse 200ms for potential network delays
+                rig->caps->timeout = strtol(value, NULL, 0) + 200;
+                rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n", __func__, value, rig->caps->timeout);
             }
             else
             {
@@ -775,12 +823,11 @@ static int netrigctl_set_vfo(RIG *rig, vfo_t vfo)
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
     char vfostr[16] = "";
+    struct netrigctl_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    //ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), RIG_VFO_A);
-
-    //if (ret != RIG_OK) { return ret; }
+    priv = (struct netrigctl_priv_data *)rig->state.priv;
 
     len = sprintf(cmd, "V%s %s\n", vfostr, rig_strvfo(vfo));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd='%s'\n", __func__, cmd);
@@ -790,10 +837,9 @@ static int netrigctl_set_vfo(RIG *rig, vfo_t vfo)
     {
         return -RIG_EPROTO;
     }
-    else
-    {
-        return ret;
-    }
+
+    priv->vfo_curr = vfo; // remember our vfo
+    return ret;
 }
 
 
@@ -802,22 +848,22 @@ static int netrigctl_get_vfo(RIG *rig, vfo_t *vfo)
     int ret, len;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
-    char vfostr[16] = "";
     struct netrigctl_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     priv = (struct netrigctl_priv_data *)rig->state.priv;
 
-    ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), RIG_VFO_A);
-
-    if (ret != RIG_OK) { return ret; }
-
-    len = sprintf(cmd, "v%s\n", vfostr);
+    len = sprintf(cmd, "v\n");
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
-    if (ret == -RIG_ENAVAIL) { return ret; }
+    if (ret == -RIG_ENAVAIL || ret == -RIG_ENIMPL)
+    {
+        // for rigs without get_vfo we'll use our saved vfo
+        *vfo = priv->vfo_curr;
+        return RIG_OK;
+    }
 
     if (ret <= 0)
     {
@@ -841,13 +887,16 @@ static int netrigctl_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     char buf[BUF_MAX];
     char vfostr[16] = "";
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, ptt=%d\n", __func__,
+              rig_strvfo(vfo), ptt);
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), RIG_VFO_A);
 
     if (ret != RIG_OK) { return ret; }
 
     len = sprintf(cmd, "T%s %d\n", vfostr, ptt);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%s", __func__, cmd);
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
@@ -2255,7 +2304,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20200503.0",
+    .version =        "20210409.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
@@ -2263,7 +2312,7 @@ struct rig_caps netrigctl_caps =
     .ptt_type =       RIG_PTT_RIG_MICDATA,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NETWORK,
-    .timeout = 1000,  /* enough for the worst rig we have */
+    .timeout = 3000,  /* enough for the worst rig we have */
     .retry =   5,     /* 5 seconds total */
 
     /* following fields updated in rig_state at opening time */

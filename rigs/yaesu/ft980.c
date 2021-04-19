@@ -2,6 +2,8 @@
  * ft980.c - (C) Stephane Fillod 2004-2010
  *           (C) Wolfgang Buesser 2010
  *
+ *           (C) Mathew Breton 2021
+ *
  * This shared library provides an API for communicating
  * via serial interface to an FT-980 using the "CAT" interface
  *
@@ -22,6 +24,66 @@
  *
  */
 
+
+/*
+* FT-980 Hamlib API functions considered to be Stable:
+*      sadly, none yet
+*
+* Functions considered to be Beta:
+*      init              *      cleanup
+*      set_freq          *      get_freq
+*      set_mode          *      get_mode
+*      set_mem           *      get_mem
+*      open              *      close
+*
+* Functions considered to be Alpha:
+*      set_vfo            *      get_vfo
+*
+* Functions not yet implemented
+*      get_xit            *      set_xit
+*      set_func            *      get_func
+*      get_ptt             *      set_ptt
+*      get_dcd
+*      set_rptr_shift      *      get_rptr_shift
+*      set_rptr_offs       *      get_rptr_offs
+*      set_split_freq      *      get_split_freq
+*      set_split_mode      *      get_split_mode
+*      set_split_freq_mode *      get_split_freq_mode
+*      set_split_vfo       *      get_split_vfo
+*      set_ts              *      get_ts
+*      vfo_op
+*
+* Functions the radio does not support: see readme.ft980 for more details
+*      power2mW          *      mW2power
+*      newcat_get_ant    *      newcat_set_ant
+*      set_dcs_code      *      get_dcs_code
+*      set_tone          *      get_tone
+*      set_ctcss_tone    *      get_ctcss_tone
+*      set_dcs_sql       *      get_dcs_sql
+*      set_tone_sql      *      get_tone_sql
+*      set_ctcss_sql     *      get_ctcss_sql
+*      set_powerstat     *      get_powerstat
+*      set_ant           *      get_ant
+*      send_dtmf         *      recv_dtmf
+*      send_morse        *      stop_morse
+*      wait_morse        *      send_voice_mem
+*      set_trn           *      get_trn
+*      set_channel       *      get_channel
+*      set_bank          *      scan
+*      set_parm          *      get_parm
+*      get_info
+*      reset
+*      set_vfo_opt
+*      decode_event
+*
+*  No idea yet what these do
+*      set_chan_all_cb
+*      get_chan_all_cb
+*      set_conf
+*      get_conf
+*/
+
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -29,68 +91,14 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+#include <sys/time.h> /* for timeofday call */
 
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
 #include "bandplan.h"
 #include "yaesu.h"
-
-#define FT980_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_CW|RIG_MODE_AM|RIG_MODE_RTTY|RIG_MODE_FM)
-
-#define FT980_ANTS (RIG_ANT_1)
-
-/* TODO: RIG_VFO_HAM|RIG_VFO_GEN ? */
-#define FT980_VFOS (RIG_VFO_MAIN)
-
-/* TODO: RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN */
-#define FT980_VFO_OPS (RIG_OP_NONE)
-
-typedef struct _ft980_memory_t
-{
-    unsigned char mem_16[4]; unsigned char vfo_16; unsigned char mode_16;
-    unsigned char mem_15[4]; unsigned char vfo_15; unsigned char mode_15;
-    unsigned char mem_14[4]; unsigned char vfo_14; unsigned char mode_14;
-    unsigned char mem_13[4]; unsigned char vfo_13; unsigned char mode_13;
-    unsigned char mem_12[4]; unsigned char vfo_12; unsigned char mode_12;
-    unsigned char mem_11[4]; unsigned char vfo_11; unsigned char mode_11;
-    unsigned char mem_10[4]; unsigned char vfo_10; unsigned char mode_10;
-    unsigned char mem_9[4]; unsigned char vfo_9; unsigned char mode_9;
-    unsigned char mem_8[4]; unsigned char vfo_8; unsigned char mode_8;
-    unsigned char mem_7[4]; unsigned char vfo_7; unsigned char mode_7;
-    unsigned char mem_6[4]; unsigned char vfo_6; unsigned char mode_6;
-    unsigned char mem_5[4]; unsigned char vfo_5; unsigned char mode_5;
-    unsigned char mem_4[4]; unsigned char vfo_4; unsigned char mode_4;
-    unsigned char mem_3[4]; unsigned char vfo_3; unsigned char mode_3;
-    unsigned char mem_2[4]; unsigned char vfo_2; unsigned char mode_2;
-    unsigned char mem_1[4]; unsigned char vfo_1; unsigned char mode_1;
-    unsigned char CLAR[4];
-    unsigned char GEN[4]; unsigned char HAM[4]; unsigned char vfo;
-    unsigned char mode;
-    unsigned char ff_1[4];
-    unsigned char ff_2[4];
-    unsigned char vfo_mem;
-    unsigned char mode_mem;
-    unsigned char LDB;
-    unsigned char EXT_CTL;
-    unsigned char IF_SHIFT;
-    unsigned char SPLIT_CODE;
-    unsigned char FSK_SHIFT;
-    unsigned char IF_WIDTH;
-    unsigned char MEM_SHIFT;
-    unsigned char CLAR_FLAG;
-    unsigned char TAB_FLAG;
-    unsigned char SELECT_SW;
-    unsigned char OFFSET_SW;
-    unsigned char MODE_SW;
-    unsigned char MEM_CH_SW;
-    unsigned char LOW_TAB[4];
-    unsigned char UP_TAB[4];
-    unsigned char VFO_STATUS;
-    unsigned char OP_MODE;
-    unsigned char OP_FREQ[4];
-    unsigned char STATUS_FLAG;
-} _ft980_memory_t;
+#include "ft980.h"
 
 /*
  * Private data
@@ -98,176 +106,38 @@ typedef struct _ft980_memory_t
 struct ft980_priv_data
 {
     _ft980_memory_t update_data;          /* returned data */
+    vfo_t current_vfo;                    /* active VFO from last cmd */
     struct timeval status_tv;             /* update_data caching */
 };
 
-#define UPDATE_DATA_OFS(p, o) (((unsigned char*)((p)+1))-(o))
-
-static const char cmd_OK[YAESU_CMD_LENGTH]     = { 0x00, 0x00, 0x00, 0x00, 0x0B};
-static const char cmd_ON_OFF[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
-
-/* Private helper function prototypes */
-
-
+/*************************************************************************************
+ * Private Prototype Declarations
+ */
 static int ft980_transaction(RIG *rig, const unsigned char *cmd,
                              unsigned char *data, int expected_len);
 static int ft980_get_status_data(RIG *rig);
 
-static int ft980_open(RIG *rig);
-static int ft980_close(RIG *rig);
-
-static int ft980_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int ft980_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-static int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-
-static int ft980_set_mem(RIG *rig, vfo_t vfo, int ch);
-static int ft980_get_mem(RIG *rig, vfo_t vfo, int *ch);
-
-#if 0
-static int ft980_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
-                               vfo_t tx_vfo);
-static int ft980_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int ft980_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
-                                pbwidth_t width);
-
-static int ft980_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int ft980_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
-static int ft980_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
-#endif
-
-/*
- * ft980 rigs capabilities.
- */
-#define FT980_MEM_CAP {          \
-                    .freq = 1,       \
-                    .mode = 1,       \
-                    .width = 1,      \
-}
-
-#define FT980_CACHE_TIMEOUT 500 /* ms */
-
-/*
- * ft980 rigs capabilities.
- *
- * Protocol is documented in FT 980 Technical Supplement, page 13.
- *
- * TODO:
- */
-
-const struct rig_caps ft980_caps =
-{
-    RIG_MODEL(RIG_MODEL_FT980),
-    .model_name =         "FT-980",
-    .mfg_name =           "Yaesu",
-    .version =            "20200114.0",
-    .copyright =          "LGPL",
-    .status =             RIG_STATUS_ALPHA,
-    .rig_type =           RIG_TYPE_TRANSCEIVER,
-    .ptt_type =           RIG_PTT_SERIAL_RTS,
-    .dcd_type =           RIG_DCD_NONE,
-    .port_type =          RIG_PORT_SERIAL,
-    .serial_rate_min =    4800,
-    .serial_rate_max =    4800,
-    .serial_data_bits =   8,
-    .serial_stop_bits =   2,
-    .serial_parity =      RIG_PARITY_NONE,
-    .serial_handshake =   RIG_HANDSHAKE_NONE,
-    .write_delay =        80,
-    .post_write_delay =   0,
-    .timeout =            2000,
-    .retry =              3,
-    .has_get_func =       RIG_FUNC_NONE,
-    .has_set_func =       RIG_FUNC_NONE,
-    .has_get_level =      RIG_LEVEL_NONE,
-    .has_set_level =      RIG_LEVEL_NONE,
-    .has_get_parm =       RIG_PARM_NONE,
-    .has_set_parm =       RIG_PARM_NONE,
-    .vfo_ops =            FT980_VFO_OPS,
-    .preamp =             { RIG_DBLST_END, },
-    .attenuator =         { RIG_DBLST_END, },
-    .max_rit =            Hz(10000),
-    .max_xit =            Hz(10000),
-    .max_ifshift =        Hz(1500),
-    .targetable_vfo =     RIG_TARGETABLE_NONE,
-    .transceive =         RIG_TRN_OFF,
-    .bank_qty =           0,
-    .chan_desc_sz =       0,
-
-    .chan_list =          {
-        {1, 16, RIG_MTYPE_MEM, FT980_MEM_CAP},
-    },
-
-    .rx_range_list1 =     {
-        {kHz(150), MHz(30) - 100, FT980_MODES, -1, -1, FT980_VFOS, FT980_ANTS},
-        RIG_FRNG_END,
-    },
-
-    .tx_range_list1 =     {
-        FRQ_RNG_HF(1, RIG_MODE_SSB | RIG_MODE_CW, W(5), W(100), FT980_VFOS, FT980_ANTS),
-        FRQ_RNG_HF(1, RIG_MODE_FM | RIG_MODE_RTTY, W(2), W(50), FT980_VFOS, FT980_ANTS),
-        FRQ_RNG_HF(1, RIG_MODE_AM, W(2), W(25), FT980_VFOS, FT980_ANTS),
-        RIG_FRNG_END,
-    },
-
-    .rx_range_list2 =     {
-        {kHz(150), MHz(30) - 100, FT980_MODES, -1, -1, FT980_VFOS, FT980_ANTS},
-        RIG_FRNG_END,
-    },
-
-    .tx_range_list2 =     {
-        FRQ_RNG_HF(2, RIG_MODE_SSB | RIG_MODE_CW, W(5), W(100), FT980_VFOS, FT980_ANTS),
-        FRQ_RNG_HF(2, RIG_MODE_FM | RIG_MODE_RTTY, W(2), W(50), FT980_VFOS, FT980_ANTS),
-        FRQ_RNG_HF(2, RIG_MODE_AM, W(2), W(25), FT980_VFOS, FT980_ANTS),
-        RIG_FRNG_END,
-    },
-
-    .tuning_steps =       {
-        {FT980_MODES,  Hz(10)},
-        {FT980_MODES, kHz(5)},
-        {FT980_MODES, kHz(500)},
-        RIG_TS_END,
-    },
-
-    /* mode/filter list, remember: order matters! */
-    .filters =            {
-        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_RTTY, kHz(2.5)},
-        {RIG_MODE_CW,   Hz(300)},
-        {RIG_MODE_FM,   kHz(12)},
-        {RIG_MODE_AM,   kHz(5)},
-        {RIG_MODE_AM,   kHz(3)},
-
-        RIG_FLT_END,
-    },
-
-    .rig_open =       ft980_open,
-    .rig_close =      ft980_close,
-
-    .set_freq =           ft980_set_freq,
-    .get_freq =           ft980_get_freq,
-    .set_mode =           ft980_set_mode,
-    .get_mode =           ft980_get_mode,
-
-    .set_mem  =           ft980_set_mem,
-    .get_mem  =           ft980_get_mem,
-
-#ifdef XXREMOVEDXX
-    .get_level =          ft980_get_level,
-    .set_level =          ft980_set_level,
-
-    .set_split_vfo =      ft980_set_split_vfo,
-    .set_split_freq =     ft980_set_split_freq,
-    .set_split_mode =     ft980_set_split_mode,
-
-    .set_rptr_shift =     ft980_set_rptr_shift,
-    .set_rptr_offs =      ft980_set_rptr_offs,
-#endif
-};
-
+/* Dump routines are for debug purposes */
+static void dump_freq(unsigned char *data);
+static void dump_vfo(unsigned char data);
+static void dump_mode(unsigned char data);
+static void dump_switch(unsigned char data);
+static void dump_if_shift(unsigned char data);
+static void dump_rptr_split_code(unsigned char data);
+static void dump_fsk_shift(unsigned char data);
+static void dump_if_width(unsigned char data);
+static void dump_mem_shift_flag(unsigned char data);
+static void dump_clar_flag(unsigned char data);
+static void dump_tab_flag(unsigned char data);
+static void dump_freq_select_sws(unsigned char data);
+static void dump_mode_sw(unsigned char data);
+static void dump_mem_ch_sw(unsigned char data);
+static void dump_status_flag_bits(unsigned char data);
+static void dump_memory(_ft980_memory_t *memory);
 
 static void dump_freq(unsigned char *data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%02x%02x%02x%02x ", data[3], data[2], data[1],
+    rig_debug(RIG_DEBUG_TRACE, "%02x%02x%02x%02x ", data[3], data[2], data[1],
               data[0]);
 }
 
@@ -275,32 +145,51 @@ static void dump_vfo(unsigned char data)
 {
     switch ((unsigned int)data)
     {
-    case 0:   rig_debug(RIG_DEBUG_VERBOSE, "%s", "GEN"); break;
+    case 0:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "GEN");
+        break;
 
-    case 128: rig_debug(RIG_DEBUG_VERBOSE, "%s", "HAM"); break;
+    case 128:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "HAM");
+        break;
     }
 }
-
 
 static void dump_mode(unsigned char data)
 {
     switch ((unsigned int)data)
     {
-    case 0: rig_debug(RIG_DEBUG_VERBOSE, "%s", " LSB\n"); break;
+    case 0:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " LSB\n");
+        break;
 
-    case 1: rig_debug(RIG_DEBUG_VERBOSE, "%s", " USB\n"); break;
+    case 1:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " USB\n");
+        break;
 
-    case 2: rig_debug(RIG_DEBUG_VERBOSE, "%s", " CW-W\n"); break;
+    case 2:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " CW-W\n");
+        break;
 
-    case 3: rig_debug(RIG_DEBUG_VERBOSE, "%s", " CW-N\n"); break;
+    case 3:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " CW-N\n");
+        break;
 
-    case 4: rig_debug(RIG_DEBUG_VERBOSE, "%s", " AM-W\n"); break;
+    case 4:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " AM-W\n");
+        break;
 
-    case 5: rig_debug(RIG_DEBUG_VERBOSE, "%s", " AM-N\n"); break;
+    case 5:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " AM-N\n");
+        break;
 
-    case 6: rig_debug(RIG_DEBUG_VERBOSE, "%s", " FSK\n"); break;
+    case 6:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " FSK\n");
+        break;
 
-    case 7: rig_debug(RIG_DEBUG_VERBOSE, "%s", " FM\n"); break;
+    case 7:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " FM\n");
+        break;
     }
 }
 
@@ -308,324 +197,369 @@ static void dump_switch(unsigned char data)
 {
     switch ((unsigned int)data)
     {
-    case 0: rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFF"); break;
+    case 0:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "OFF");
+        break;
 
-    case 1: rig_debug(RIG_DEBUG_VERBOSE, "%s", "ON "); break;
+    case 1:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "ON ");
+        break;
     }
 }
 
-static void dump_IF_SHIFT(unsigned char data)
+static void dump_if_shift(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "IF_SHIFT        :\%d\n", data - 15);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, data - 15);
 }
 
-static void dump_SPLIT_CODE(unsigned char data)
+static void dump_rptr_split_code(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "SPLIT_CODE      :\%02x\n", data);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%02x\n", __func__, data);
 }
 
-static void dump_FSK_SHIFT(unsigned char data)
+static void dump_fsk_shift(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "FSK_SHIFT       :\%02x\n", data);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%02x\n", __func__, data);
 }
 
-static void dump_IF_WIDTH(unsigned char data)
+static void dump_if_width(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "IF_WIDTH        :\%d\n", data);
+    rig_debug(RIG_DEBUG_TRACE, "%s:%d\n", __func__, data);
 }
 
-static void dump_MEM_SHIFT(unsigned char data)
+static void dump_mem_shift_flag(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "MEM_SHIFT       :");
+    rig_debug(RIG_DEBUG_TRACE, "%s:", __func__);
 
     switch ((unsigned int)data)
     {
-    case 0:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFF\n"); break;
+    case 0:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "OFF\n");
+        break;
 
-    case 16: rig_debug(RIG_DEBUG_VERBOSE, "%s", "ON\n"); break;
+    case 16:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "ON\n");
+        break;
     }
 }
-static void dump_CLAR_FLAG(unsigned char data)
+
+static void dump_clar_flag(unsigned char data)
 {
     unsigned char RX_CLAR = data & 0x20;
     unsigned char TX_CLAR = data & 0x40;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "CLAR_SHIFT RX/TX:");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "CLAR_SHIFT RX/TX:");
 
     switch ((unsigned int)RX_CLAR)
     {
-    case 0:     rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFF "); break;
+    case 0:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "OFF ");
+        break;
 
-    case 0x20:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "ON  "); break;
+    case 0x20:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "ON  ");
+        break;
     }
 
     switch ((unsigned int)TX_CLAR)
     {
-    case 0:     rig_debug(RIG_DEBUG_VERBOSE, "%s", " OFF "); break;
+    case 0:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " OFF ");
+        break;
 
-    case 0x40:  rig_debug(RIG_DEBUG_VERBOSE, "%s", " ON  "); break;
+    case 0x40:
+        rig_debug(RIG_DEBUG_TRACE, "%s", " ON  ");
+        break;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 }
-static void dump_TAB_FLAG(unsigned char data)
+static void dump_tab_flag(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "TAB FLAG        :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "TAB FLAG        :");
 
     switch (data)
     {
-    case 0:     rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFF\n"); break;
+    case 0:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "OFF\n");
+        break;
 
-    case 0x80:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "ON\n"); break;
+    case 0x80:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "ON\n");
+        break;
     }
 }
-static void dump_SELECT_SW(unsigned char data)
+static void dump_freq_select_sws(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "SELECT_SW       :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "freq_select_sws       :");
 
     switch ((unsigned int)data)
     {
-    case 0:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "VFO "); break;
+    case 0:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "VFO ");
+        break;
 
-    case 1:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "MR  "); break;
+    case 1:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "MR  ");
+        break;
 
-    case 2:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "RX_M"); break;
+    case 2:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "RX_M");
+        break;
 
-    case 3:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "RX_V"); break;
+    case 3:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "RX_V");
+        break;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 }
-static void dump_MODE_SW(unsigned char data)
+static void dump_mode_sw(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "MODE_SW         :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mode_sw         :");
 
     switch ((unsigned int)data)
     {
-    case 0:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "LSB "); break;
+    case 0:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "LSB ");
+        break;
 
-    case 1:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "USB "); break;
+    case 1:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "USB ");
+        break;
 
-    case 2:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "CW-W"); break;
+    case 2:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "CW-W");
+        break;
 
-    case 3:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "CW-N"); break;
+    case 3:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "CW-N");
+        break;
 
-    case 4:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "AM-W"); break;
+    case 4:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "AM-W");
+        break;
 
-    case 5:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "AM-N"); break;
+    case 5:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "AM-N");
+        break;
 
-    case 6:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "FSK"); break;
+    case 6:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "FSK");
+        break;
 
-    case 7:  rig_debug(RIG_DEBUG_VERBOSE, "%s", "FM"); break;
+    case 7:
+        rig_debug(RIG_DEBUG_TRACE, "%s", "FM");
+        break;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 }
-static void dump_MEM_CH_SW(unsigned char data)
+static void dump_mem_ch_sw(unsigned char data)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "MEM_CH_SW       :%d\n", data + 1);
+    rig_debug(RIG_DEBUG_TRACE, "mem_ch_sw       :%d\n", data + 1);
 }
-static void dump_STATUS_FLAG(unsigned char data)
+static void dump_status_flag_bits(unsigned char data)
 {
     unsigned char TX    = data & 0x01;
     unsigned char SPLIT = data & 0x08;
     unsigned char VFO   = data & 0x20;
     unsigned char CLAR  = data & 0x40;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "STATUS_FLAG     :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "status_flag_bits     :");
 
     if (TX)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s", "TX ");
+        rig_debug(RIG_DEBUG_TRACE, "%s", "TX ");
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s", "RX ");
+        rig_debug(RIG_DEBUG_TRACE, "%s", "RX ");
     }
 
     if (SPLIT)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s", "SPLIT   ");
+        rig_debug(RIG_DEBUG_TRACE, "%s", "SPLIT   ");
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s", "SIMPLEX ");
+        rig_debug(RIG_DEBUG_TRACE, "%s", "SIMPLEX ");
     }
 
     if (VFO)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s", "VFO    ");
+        rig_debug(RIG_DEBUG_TRACE, "%s", "VFO    ");
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s", "MEMORY ");
+        rig_debug(RIG_DEBUG_TRACE, "%s", "MEMORY ");
     }
 
     if (CLAR)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s", "CLAR_ON ");
+        rig_debug(RIG_DEBUG_TRACE, "%s", "CLAR_ON ");
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s", "CLAR_OFF");
+        rig_debug(RIG_DEBUG_TRACE, "%s", "CLAR_OFF");
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 }
 
 
 static void dump_memory(_ft980_memory_t *memory)
 {
 
-    if (!rig_need_debug(RIG_DEBUG_VERBOSE))
+    if (!rig_need_debug(RIG_DEBUG_TRACE))
     {
         return;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_1          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_1          :");
     dump_freq(memory->mem_1);
     dump_vfo(memory->vfo_1);
     dump_mode(memory->mode_1);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_2          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_2          :");
     dump_freq(memory->mem_2);
     dump_vfo(memory->vfo_2);
     dump_mode(memory->mode_2);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_3          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_3          :");
     dump_freq(memory->mem_3);
     dump_vfo(memory->vfo_3);
     dump_mode(memory->mode_3);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_4          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_4          :");
     dump_freq(memory->mem_4);
     dump_vfo(memory->vfo_4);
     dump_mode(memory->mode_4);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_5          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_5          :");
     dump_freq(memory->mem_5);
     dump_vfo(memory->vfo_5);
     dump_mode(memory->mode_5);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_6          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_6          :");
     dump_freq(memory->mem_6);
     dump_vfo(memory->vfo_6);
     dump_mode(memory->mode_6);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_7          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_7          :");
     dump_freq(memory->mem_7);
     dump_vfo(memory->vfo_7);
     dump_mode(memory->mode_7);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_8          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_8          :");
     dump_freq(memory->mem_8);
     dump_vfo(memory->vfo_8);
     dump_mode(memory->mode_8);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_9           :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_9           :");
     dump_freq(memory->mem_9);
     dump_vfo(memory->vfo_9);
     dump_mode(memory->mode_9);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_10          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_10          :");
     dump_freq(memory->mem_10);
     dump_vfo(memory->vfo_10);
     dump_mode(memory->mode_10);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_11          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_11          :");
     dump_freq(memory->mem_11);
     dump_vfo(memory->vfo_11);
     dump_mode(memory->mode_11);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_12          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_12          :");
     dump_freq(memory->mem_12);
     dump_vfo(memory->vfo_12);
     dump_mode(memory->mode_12);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_13          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_13          :");
     dump_freq(memory->mem_13);
     dump_vfo(memory->vfo_13);
     dump_mode(memory->mode_13);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_14          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_14          :");
     dump_freq(memory->mem_14);
     dump_vfo(memory->vfo_14);
     dump_mode(memory->mode_14);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_15          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_15          :");
     dump_freq(memory->mem_15);
     dump_vfo(memory->vfo_15);
     dump_mode(memory->mode_15);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "mem_16          :");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_16          :");
     dump_freq(memory->mem_16);
     dump_vfo(memory->vfo_16);
     dump_mode(memory->mode_16);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "GEN             :");
-    dump_freq(memory->GEN);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "gen_vfo_freq             :");
+    dump_freq(memory->gen_vfo_freq);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\nHAM             :");
-    dump_freq(memory->HAM);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n                 ");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\nHAM             :");
+    dump_freq(memory->ham_vfo_freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n                 ");
     dump_vfo(memory->vfo);
     dump_mode(memory->mode);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "CLAR            :");
-    dump_freq(memory->CLAR);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "clar_freq            :");
+    dump_freq(memory->clar_freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "f_1             :");
-    dump_freq(memory->ff_1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_shift_freq             :");
+    dump_freq(memory->mem_shift_freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "f_2             :");
-    dump_freq(memory->ff_2);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "mem_clar_freq             :");
+    dump_freq(memory->mem_clar_freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "                 ");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "                 ");
     dump_vfo(memory->vfo);
     dump_mode(memory->mode);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "LDB             :");
-    dump_switch(memory->LDB);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "ldb_flag             :");
+    dump_switch(memory->ldb_flag);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "EXT_CTL         :");
-    dump_switch(memory->EXT_CTL);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "ext_ctl_flag         :");
+    dump_switch(memory->ext_ctl_flag);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 
-    dump_IF_SHIFT(memory->IF_SHIFT);
-    dump_SPLIT_CODE(memory->SPLIT_CODE);
-    dump_FSK_SHIFT(memory->FSK_SHIFT);
-    dump_IF_WIDTH(memory->IF_WIDTH);
-    dump_MEM_SHIFT(memory->MEM_SHIFT);
-    dump_CLAR_FLAG(memory->CLAR_FLAG);
-    dump_TAB_FLAG(memory->TAB_FLAG);
-    dump_SELECT_SW(memory->SELECT_SW);
+    dump_if_shift(memory->if_shift);
+    dump_rptr_split_code(memory->rptr_split_code);
+    dump_fsk_shift(memory->fsk_shift);
+    dump_if_width(memory->if_width);
+    dump_mem_shift_flag(memory->mem_shift_flag);
+    dump_clar_flag(memory->clar_flag);
+    dump_tab_flag(memory->tab_flag);
+    dump_freq_select_sws(memory->freq_select_sws);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "OFFSET_SW       :");
-    dump_switch(memory->OFFSET_SW);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "offset_sw       :");
+    dump_switch(memory->offset_sw);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 
-    dump_MODE_SW(memory->MODE_SW);
-    dump_MEM_CH_SW(memory->MEM_CH_SW);
+    dump_mode_sw(memory->mode_sw);
+    dump_mem_ch_sw(memory->mem_ch_sw);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "LOW_TAB         :");
-    dump_freq(memory->LOW_TAB);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "lower_tab_freq         :");
+    dump_freq(memory->lower_tab_freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "UP_TAB          :");
-    dump_freq(memory->UP_TAB);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "upper_tab_freq          :");
+    dump_freq(memory->upper_tab_freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "                 ");
-    dump_vfo(memory->VFO_STATUS);
-    dump_mode(memory->OP_MODE);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "                 ");
+    dump_vfo(memory->op_vfo);
+    dump_mode(memory->op_mode);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "OP_FREQ         :");
-    dump_freq(memory->OP_FREQ);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s", "op_freq         :");
+    dump_freq(memory->op_freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s", "\n");
 
-    dump_STATUS_FLAG(memory->STATUS_FLAG);
+    dump_status_flag_bits(memory->status_flag_bits);
 }
 
 
@@ -634,6 +568,8 @@ int ft980_transaction(RIG *rig, const unsigned char *cmd, unsigned char *data,
 {
     int retval;
     char echo_back[YAESU_CMD_LENGTH];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     rig_flush(&rig->state.rigport);
 
@@ -684,12 +620,15 @@ int ft980_get_status_data(RIG *rig)
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
     int retval;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     if (!rig_check_cache_timeout(&priv->status_tv, FT980_CACHE_TIMEOUT))
     {
         return RIG_OK;
     }
 
-    retval = ft980_transaction(rig, cmd, (unsigned char *)&priv->update_data, 148);
+    retval = ft980_transaction(rig, cmd, (unsigned char *)&priv->update_data,
+                               FT980_ALL_STATUS_LENGTH);
 
     if (retval != RIG_OK)
     {
@@ -704,20 +643,33 @@ int ft980_get_status_data(RIG *rig)
     return retval;
 }
 
-
-/*
- * ft980_open  routine
+/****************************************************************************
+ * rig_init*
+ *
+ * Initialize memory & rig private data structure
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Nothing special here
  *
  */
-int ft980_open(RIG *rig)
+int ft980_init(RIG *rig)
 {
-    unsigned char echo_back[YAESU_CMD_LENGTH];
     struct ft980_priv_data *priv;
-    int retry_count1 = 0;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = calloc(1, sizeof(struct ft980_priv_data));
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
+
+    rig->state.priv = (struct ft980_priv_data *) calloc(1,
+                      sizeof(struct ft980_priv_data));
 
     if (!rig->state.priv)
     {
@@ -727,6 +679,71 @@ int ft980_open(RIG *rig)
     priv = (struct ft980_priv_data *)rig->state.priv;
 
     memset(priv, 0, sizeof(struct ft980_priv_data));
+
+    // Initialize operating vfo mode to current VFO
+    priv->current_vfo =  RIG_VFO_MAIN;
+
+    return RIG_OK;
+}
+
+/****************************************************************************
+ * rig_cleanup*
+ *
+ * Release memory in rig private data structure for a clean exit
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Nothing special here
+ *
+ */
+int ft980_cleanup(RIG *rig)
+{
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig)
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (rig->state.priv)
+    {
+        free(rig->state.priv);
+    }
+
+    rig->state.priv = NULL;
+
+    return RIG_OK;
+}
+
+/****************************************************************************
+ * rig_open*
+ *
+ * Initialize memory & rig private data structure
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Should be able to optimize
+ * ToDo: add check so we don't get stuck in EXT CTRL toggle trap/loop
+ *
+ */
+int ft980_open(RIG *rig)
+{
+    unsigned char echo_back[YAESU_CMD_LENGTH];
+    struct ft980_priv_data *priv;
+    int retry_count1 = 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    priv = (struct ft980_priv_data *)rig->state.priv;
 
     /* send Ext Cntl ON: Activate CAT */
     do
@@ -743,20 +760,37 @@ int ft980_open(RIG *rig)
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
         write_block(&rig->state.rigport, (char *) cmd_OK, YAESU_CMD_LENGTH);
-        retval = read_block(&rig->state.rigport, (char *) &priv->update_data, 148);
+        retval = read_block(&rig->state.rigport, (char *) &priv->update_data,
+                            FT980_ALL_STATUS_LENGTH);
     }
-    while (!priv->update_data.EXT_CTL && retry_count1++ < rig->state.rigport.retry);
+    while (!priv->update_data.ext_ctl_flag
+            && retry_count1++ < rig->state.rigport.retry);
 
     return RIG_OK;
 }
 
+/****************************************************************************
+ * rig_close*
+ *
+ * Send command to toggle out of EXT CTRL mode
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Nothing special here
+ * Could be optimized.
+ *
+ */
 int ft980_close(RIG *rig)
 {
     unsigned char echo_back[YAESU_CMD_LENGTH];
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
     int retry_count1 = 0;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     do
     {
@@ -772,34 +806,114 @@ int ft980_close(RIG *rig)
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
         write_block(&rig->state.rigport, (char *) cmd_OK, YAESU_CMD_LENGTH);
-        retval = read_block(&rig->state.rigport, (char *) &priv->update_data, 148);
+        retval = read_block(&rig->state.rigport, (char *) &priv->update_data,
+                            FT980_ALL_STATUS_LENGTH);
     }
-    while (priv->update_data.EXT_CTL && retry_count1++ < rig->state.rigport.retry);
+    while (priv->update_data.ext_ctl_flag
+            && retry_count1++ < rig->state.rigport.retry);
 
-    free(priv);
     return RIG_OK;
 }
 
-
+/*
+ * Only the current VFO frequency can be set
+ *   Other Hamlib backends (ex FT-990) switch VFO, change freq, then exit
+ *     They do not return to the original VFO.
+ *   We will stick with this convention for now.
+ *
+ *   ToDo: Check return data to verify frequency was set correctly
+ */
+/*
+ * rig_set_freq*
+ *
+ * Set frequency for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   freq       | input  | 100000 - 30000000
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
+ *
+ * Issues: an error will occur with the 4.0 rig.c set_cache_freq routine when
+ *    targeting VFO_MEM.
+ */
 int ft980_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x08};
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "  %s: passed vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "  %s: passed freq = %lf Hz\n", __func__, freq);
+
+    // Set to selected VFO
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = priv->current_vfo;
+        rig_debug(RIG_DEBUG_TRACE, "  %s: priv->current.vfo = 0x%02x\n",
+                  __func__, vfo);
+    }
+    else
+    {
+        if (vfo != priv->current_vfo)
+        {
+            err = ft980_set_vfo(rig, vfo);
+
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+        }
+    }
 
     /* store bcd format in cmd (MSB) */
     to_bcd(cmd, freq / 10, 8);
 
+    /* why is this done ? */
     rig_force_cache_timeout(&priv->status_tv);
 
     /* Frequency set */
     return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data, 5), 5);
 }
 
+/*
+ * We can get HAM, GEN, Memory Shift (?), "Operating"
+ *   What is memory "Shift"?
+ */
+/*
+ * rig_get_freq*
+ *
+ * Get frequency for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, VFO, VFOA, VFOB, MEM
+ *   freq *     | output | 100000 - 30000000
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
+ */
 int ft980_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
     int retval;
     freq_t f;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "  %s: passed vfo = 0x%02x\n", __func__, vfo);
 
     /* Frequency get */
     retval = ft980_get_status_data(rig);
@@ -809,45 +923,123 @@ int ft980_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    f = from_bcd(priv->update_data.OP_FREQ, 8);
+    switch (vfo)
+    {
+    case RIG_VFO_CURR:
+        f = from_bcd(priv->update_data.op_freq, 8);
+        break;
+
+    case RIG_VFO_MAIN:
+        f = from_bcd(priv->update_data.ham_vfo_freq, 8);
+        break;
+
+    case RIG_VFO_SUB:
+        f = from_bcd(priv->update_data.gen_vfo_freq, 8);
+        break;
+
+    case RIG_VFO_MEM:
+        f = from_bcd(priv->update_data.mem_shift_freq, 8);
+        break;
+
+    default:
+        return -RIG_EINVAL;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: Selected Memory Freq = %lf\n", __func__, f * 10);
 
     *freq = f * 10;                  /* return displayed frequency */
 
     return RIG_OK;
 }
 
-
-#define MD_LSB  0x10
-#define MD_USB  0x11
-#define MD_CW   0x12
-#define MD_CWN  0x13
-#define MD_AM   0x14
-#define MD_AMN  0x15
-#define MD_RTTY 0x16
-#define MD_FM   0x17
-
+/*
+ * Only the current VFO mode can be set
+ *   Other Hamlib backends (ex FT-990) switch VFO, change mode, then exit
+ *     They do not return to the original VFO.
+ *   We will stick with this convention for now.
+ *
+ *   ToDo: Check return data to verify mode was set correctly
+ */
+/*
+ * rig_set_mode*
+ *
+ * Set mode for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, Sub, MEM
+ *   mode       | input  | byte
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
+ */
 int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0A};
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
     unsigned char md;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "  %s: passed vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "  %s: passed mode = %s\n", __func__,
+              rig_strrmode(mode));
+    rig_debug(RIG_DEBUG_TRACE, "  %s: passed width = %ld Hz\n", __func__, width);
+
+    // Set to selected VFO
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = priv->current_vfo;
+        rig_debug(RIG_DEBUG_TRACE, "%s: priv->current.vfo = 0x%02x\n",
+                  __func__, vfo);
+    }
+    else
+    {
+        if (vfo != priv->current_vfo)
+        {
+            err = ft980_set_vfo(rig, vfo);
+
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+        }
+    }
 
     /*
      * translate mode from generic to ft980 specific
      */
     switch (mode)
     {
-    case RIG_MODE_CW :    md = MD_CW; break;
+    case RIG_MODE_CW :
+        md = FT980_CMD0A_MD_CW;
+        break;
 
-    case RIG_MODE_USB:    md = MD_USB; break;
+    case RIG_MODE_USB:
+        md = FT980_CMD0A_MD_USB;
+        break;
 
-    case RIG_MODE_LSB:    md = MD_LSB; break;
+    case RIG_MODE_LSB:
+        md = FT980_CMD0A_MD_LSB;
+        break;
 
-    case RIG_MODE_FM: md = MD_FM; break;
+    case RIG_MODE_FM:
+        md = FT980_CMD0A_MD_FM;
+        break;
 
-    case RIG_MODE_AM: md = MD_AM; break;
+    case RIG_MODE_AM:
+        md = FT980_CMD0A_MD_AM;
+        break;
 
-    case RIG_MODE_RTTY:   md = MD_RTTY; break;
+    case RIG_MODE_RTTY:
+        md = FT980_CMD0A_MD_RTTY;
+        break;
 
     default:
         return -RIG_EINVAL;         /* sorry, wrong MODE */
@@ -859,31 +1051,59 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         switch (md)
         {
-        case MD_CW: md = MD_CWN; break;
+        case FT980_CMD0A_MD_CW:
+            md = FT980_CMD0A_MD_CWN;
+            break;
 
-        case MD_AM: md = MD_AMN; break;
+        case FT980_CMD0A_MD_AM:
+            md = FT980_CMD0A_MD_AMN;
+            break;
         }
     }
 
     cmd[3] = md;
 
+    /* Might be deprecated in Hamlib 4.1 */
     rig_force_cache_timeout(&priv->status_tv);
 
     /* Mode set */
-    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data, 22), 22);
+    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                             FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
 }
 
 /*
  * rig_get_mode
  *
  * get mode eg AM, CW etc
+ * ??? What is the difference between byte 6 (operating mode vfo_op
+ *   and byte 30 (selected VFO mode) ???
+ */
+/*
+ * rig_get_mode*
  *
+ * Get frequency for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, VFO, VFOA, VFOB, MEM
+ *   mode *     | output | byte
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  */
 int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     unsigned char my_mode;              /* ft890 mode, mode offset */
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
     int retval, norm;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "  %s: passed vfo = 0x%02x\n", __func__, vfo);
 
     retval = ft980_get_status_data(rig);
 
@@ -892,9 +1112,36 @@ int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return retval;
     }
 
-    my_mode = priv->update_data.OP_MODE;
+    switch (vfo)
+    {
+    case RIG_VFO_CURR:
+        my_mode = priv->update_data.op_mode;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE,
+                  "  %s: Current VFO Mode = 0x%02x\n", __func__, my_mode);
+
+        break;
+
+    case RIG_VFO_MAIN:
+    case RIG_VFO_SUB:
+
+        /* This is a point of confusion: what exactly is byte 30? */
+
+        my_mode = priv->update_data.mode;
+        rig_debug(RIG_DEBUG_TRACE,
+                  "  %s: HAM/GEN VFO Mode = 0x%02x\n", __func__, my_mode);
+        break;
+
+    case RIG_VFO_MEM:
+        my_mode = priv->update_data.mem_mode;
+
+        rig_debug(RIG_DEBUG_TRACE,
+                  "  %s: MEM VFO Mode = 0x%02x\n", __func__, my_mode);
+        break;
+
+    default:
+        return -RIG_EVFO;
+    }
 
     /*
      * translate mode from ft980 to generic.
@@ -945,6 +1192,9 @@ int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EPROTO;         /* Oops! file bug report */
     }
 
+    rig_debug(RIG_DEBUG_TRACE, "  %s: Hamlib mode = %s\n", __func__,
+              rig_strrmode(*mode));
+
     if (norm)
     {
         *width = rig_passband_normal(rig, *mode);
@@ -954,9 +1204,8 @@ int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         *width = rig_passband_narrow(rig, *mode);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: set mode = %s\n", __func__,
-              rig_strrmode(*mode));
-    rig_debug(RIG_DEBUG_TRACE, "%s: set width = %d Hz\n", __func__, (int)*width);
+    rig_debug(RIG_DEBUG_TRACE, "  %s: Filter width = %d Hz\n", __func__,
+              (int)*width);
 
     return RIG_OK;
 }
@@ -967,7 +1216,6 @@ int ft980_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     return -RIG_ENIMPL;
 #if 0 // deprecated as was ignored before now
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x8e};
-
 
     /*
      * this can be misleading as Yaesu call it "Full duplex"
@@ -995,20 +1243,41 @@ int ft980_set_mem(RIG *rig, vfo_t vfo, int ch)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0A };
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
 
-    if (ch >= 16 || ch < 1)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (ch > 16 || ch < 1)
     {
         return -RIG_EINVAL;
     }
 
     cmd[3] = ch - 1;
 
-    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data, 22), 22);
+    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                             FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
 }
 
+/****************************************************************************
+ * rig_get_mem
+ *
+ * Get the number of the currently selected memory
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | Not applicable for FT-980
+ *   ch         | output | pointer to channel integer to be returned
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: returns currently selected memory channel regardlessof front
+ *    panel knob selection (can be different when CAT is enabled).
+ */
 int ft980_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
     int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = ft980_get_status_data(rig);
 
@@ -1017,8 +1286,171 @@ int ft980_get_mem(RIG *rig, vfo_t vfo, int *ch)
         return retval;
     }
 
-    *ch = priv->update_data.MEM_CH_SW + 1;
+    *ch = priv->update_data.mem_ch_sw + 1;
 
     return RIG_OK;
 }
 
+/****************************************************************************
+ * rig_set_vfo*
+ *
+ * Set operational VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFO_MAIN, VFOB/GEN, MEM
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will essentially "no op"
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
+ */
+/*     VFO_CURR: Whatever is shown in op_freq/op_mode */
+/*     VFO_MAIN: Mode = VFO, VFO = MAIN */
+/*     VFO_SUB: Mode = VFO, VFO = GEN */
+/*     VFO_MEM: Mode = Memory, VFO = don't care */
+int ft980_set_vfo(RIG *rig, vfo_t vfo)
+{
+    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0A };
+    struct ft980_priv_data *priv;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig)
+    {
+        return -RIG_EARG;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+
+    priv = (struct ft980_priv_data *)rig->state.priv;
+
+    switch (vfo)
+    {
+    case RIG_VFO_CURR:
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: priv->current_vfo = 0x%02x\n", __func__, priv->current_vfo);
+        return RIG_OK;
+        break;
+
+    case RIG_VFO_MAIN:
+        cmd[3] = FT980_CMD0A_VFO_SEL_HAM;
+        rig_debug(RIG_DEBUG_TRACE, "%s: set VFO GEN/HAM = 0x%02x\n",
+                  __func__, cmd[3]);
+        err = ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                                FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+
+        if (err != RIG_OK)
+        {
+            return err;
+        }
+
+        cmd[3] = FT980_CMD0A_FREQ_SEL_VFO;
+        break;
+
+    case RIG_VFO_SUB:
+        cmd[3] = FT980_CMD0A_VFO_SEL_GEN;
+        rig_debug(RIG_DEBUG_TRACE, "%s: set VFO GEN/HAM = 0x%02x\n",
+                  __func__, cmd[3]);
+        err = ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                                FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+
+        if (err != RIG_OK)
+        {
+            return err;
+        }
+
+        cmd[3] = FT980_CMD0A_FREQ_SEL_VFO;
+        break;
+
+    case RIG_VFO_MEM:
+        cmd[3] = FT980_CMD0A_FREQ_SEL_MR;
+        break;
+
+    default:
+        return -RIG_EVFO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: set VFO Status = %s\n",
+              __func__, rig_strvfo(vfo));
+
+    return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,
+                             FT980_OTHER_STATUS_LENGTH), FT980_OTHER_STATUS_LENGTH);
+}
+
+/****************************************************************************
+ * rig_get_vfo*
+ *
+ * Get operational VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo *      | output | currVFO, VFO_MAIN, VFOB/GEN, MEM
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:
+ *           VFO_MAIN: If (Status = VFO && VFO = MAIN) || (Status = RXV && VFO = MAIN)
+ *           VFO_SUB: If (Status = VFO && VFO = GEN) || (Status = RXV && VFO = GEN)
+ *           VFO_MEM: If *Status = Memory) || (Status = RXM)
+ *
+ *           If operating in split (RXM, RXV) then get_vfo returns the receive vfo
+ */
+int ft980_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    int err;
+    struct ft980_priv_data *priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig)
+    {
+        return -RIG_EARG;
+    }
+
+    priv = (struct ft980_priv_data *)rig->state.priv;
+
+    /* Get flags for VFO status */
+    err = ft980_get_status_data(rig);
+
+    if (err != RIG_OK)
+    {
+        return err;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: status_flag_bits = 0x%02x\n", __func__,
+              priv->update_data.status_flag_bits);
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: op_vfo = %s\n", __func__,
+              rig_strvfo(priv->update_data.op_vfo));
+
+    /* Decode the VFO Setting and VFO States */
+    if (!(priv->update_data.status_flag_bits & FT_980_STATUSFLAG_VFO_MASK))
+    {
+        priv->current_vfo = RIG_VFO_MEM;
+    }
+    else  if (priv->update_data.op_vfo == FT980_VFO_HAM_SEL)
+    {
+        priv->current_vfo = RIG_VFO_MAIN;
+    }
+    else if (priv->update_data.op_vfo == FT980_VFO_GEN_SEL)
+    {
+        priv->current_vfo = RIG_VFO_SUB;
+    }
+    else
+    {
+        return -RIG_EVFO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: stat_vfo = %s\n", __func__, rig_strvfo(priv->current_vfo));
+
+    *vfo = priv->current_vfo;
+
+    return RIG_OK;
+}

@@ -290,7 +290,7 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 
     int err;
-    char f;
+    char f = '*';
     struct k2_filt_lst_s *flt;
     struct kenwood_priv_data *priv = rig->state.priv;
 

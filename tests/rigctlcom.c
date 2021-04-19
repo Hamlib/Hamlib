@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
     char conf_parms[MAXCONFLEN] = "";
     int status;
 
-    printf("rigctlcom Version 1.1\n");
+    printf("rigctlcom Version 1.2\n");
 
     while (1)
     {
@@ -464,7 +464,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s, %s\n", "rigctlcom", hamlib_version);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s, %s\n", "rigctlcom", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -502,7 +502,7 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (!rig_file2)
@@ -511,7 +511,7 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    strncpy(my_com.pathname, rig_file2, FILPATHLEN - 1);
+    strncpy(my_com.pathname, rig_file2, HAMLIB_FILPATHLEN - 1);
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
@@ -528,12 +528,12 @@ int main(int argc, char *argv[])
 
     if (ptt_file)
     {
-        strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.pttport.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
-        strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.dcdport.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
@@ -873,10 +873,35 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
 
+        rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A), 0);
         snprintf(response, sizeof(response), "RX0;");
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     // Now some commands to set things
+    else if (strncmp(arg, "SA", 2) == 0)
+    {
+        if (strcmp(arg, "SA;") == 0)
+        {
+            // should we silently fail with RIG_OK instead? TBD
+            RETURNFUNC(-RIG_ENIMPL);
+        }
+
+        if (strlen(arg) > 3 && ((char *)arg)[2] == '1')
+        {
+            if (my_rig->caps->has_set_func)
+            {
+                int retval = rig_set_func(my_rig, RIG_VFO_CURR, RIG_FUNC_SATMODE,
+                                          ((char *)arg)[2] == '1' ? 1 : 0);
+                return retval;
+            }
+            else
+            {
+                RETURNFUNC(-RIG_ENAVAIL);
+            }
+        }
+
+        return RIG_OK;
+    }
     else if (strcmp(arg, "TX;") == 0)
     {
         return rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A), 1);
@@ -1482,7 +1507,7 @@ static int handle_ts2000(void *arg)
         freq_t freq;
 
         sscanf((char *)arg + 2, "%"SCNfreq, &freq);
-        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A), freq);
+        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_B), freq);
     }
     else if (strncmp(arg, "MD", 2) == 0)
     {

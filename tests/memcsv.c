@@ -748,7 +748,7 @@ int set_channel_data(RIG *rig,
     n = chan->channel_num = atoi(line_data_list[ i ]);
 
     /* find channel caps of appropriate memory group? */
-    for (j = 0; j < CHANLSTSIZ; j++)
+    for (j = 0; j < HAMLIB_CHANLSTSIZ; j++)
     {
         if (rig->state.chan_list[j].startc <= n && rig->state.chan_list[j].endc >= n)
         {
@@ -756,7 +756,7 @@ int set_channel_data(RIG *rig,
         }
     }
 
-    if (j == CHANLSTSIZ)
+    if (j == HAMLIB_CHANLSTSIZ)
     {
         return -RIG_EINVAL;
     }

@@ -268,7 +268,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Preamp:");
 
-    for (i = 0; i < MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
     {
         fprintf(fout, " %ddB", caps->preamp[i]);
     }
@@ -281,7 +281,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "\n");
     fprintf(fout, "Attenuator:");
 
-    for (i = 0; i < MAXDBLSTSIZ && caps->attenuator[i] != 0; i++)
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && caps->attenuator[i] != 0; i++)
     {
         fprintf(fout, " %ddB", caps->attenuator[i]);
     }
@@ -331,16 +331,17 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "\n");
 
-    rig_sprintf_func(prntbuf, caps->has_get_func);
+    rig_sprintf_func(prntbuf, sizeof(prntbuf), caps->has_get_func);
     fprintf(fout, "Get functions: %s\n", prntbuf);
 
-    rig_sprintf_func(prntbuf, caps->has_set_func);
+    rig_sprintf_func(prntbuf, sizeof(prntbuf), caps->has_set_func);
     fprintf(fout, "Set functions: %s\n", prntbuf);
 
     fprintf(fout, "Extra functions:\n");
     rig_ext_func_foreach(rig, print_ext, fout);
 
-    rig_sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
+    rig_sprintf_level_gran(prntbuf, sizeof(prntbuf), caps->has_get_level,
+                           caps->level_gran);
     fprintf(fout, "Get level: %s\n", prntbuf);
 
     if ((caps->has_get_level & RIG_LEVEL_SQLSTAT))
@@ -359,7 +360,8 @@ int dumpcaps(RIG *rig, FILE *fout)
         backend_warnings++;
     }
 
-    rig_sprintf_level_gran(prntbuf, caps->has_set_level, caps->level_gran);
+    rig_sprintf_level_gran(prntbuf, sizeof(prntbuf), caps->has_set_level,
+                           caps->level_gran);
     fprintf(fout, "Set level: %s\n", prntbuf);
 
     if (caps->has_set_level & RIG_LEVEL_READONLY_LIST)
@@ -371,10 +373,12 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "Extra levels:\n");
     rig_ext_level_foreach(rig, print_ext, fout);
 
-    rig_sprintf_parm_gran(prntbuf, caps->has_get_parm, caps->parm_gran);
+    rig_sprintf_parm_gran(prntbuf, sizeof(prntbuf), caps->has_get_parm,
+                          caps->parm_gran);
     fprintf(fout, "Get parameters: %s\n", prntbuf);
 
-    rig_sprintf_parm_gran(prntbuf, caps->has_set_parm, caps->parm_gran);
+    rig_sprintf_parm_gran(prntbuf, sizeof(prntbuf), caps->has_set_parm,
+                          caps->parm_gran);
     fprintf(fout, "Set parameters: %s\n", prntbuf);
 
     if (caps->has_set_parm & RIG_PARM_READONLY_LIST)
@@ -389,7 +393,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     if (rig->state.mode_list != 0)
     {
-        rig_sprintf_mode(prntbuf, rig->state.mode_list);
+        rig_sprintf_mode(prntbuf, sizeof(prntbuf), rig->state.mode_list);
     }
     else
     {
@@ -401,7 +405,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     if (rig->state.vfo_list != 0)
     {
-        rig_sprintf_vfo(prntbuf, rig->state.vfo_list);
+        rig_sprintf_vfo(prntbuf, sizeof(prntbuf), rig->state.vfo_list);
     }
     else
     {
@@ -411,10 +415,10 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "VFO list: %s\n", prntbuf);
 
-    rig_sprintf_vfop(prntbuf, caps->vfo_ops);
+    rig_sprintf_vfop(prntbuf, sizeof(prntbuf), caps->vfo_ops);
     fprintf(fout, "VFO Ops: %s\n", prntbuf);
 
-    rig_sprintf_scan(prntbuf, caps->scan_ops);
+    rig_sprintf_scan(prntbuf, sizeof(prntbuf), caps->scan_ops);
     fprintf(fout, "Scan Ops: %s\n", prntbuf);
 
     fprintf(fout, "Number of banks:\t%d\n", caps->bank_qty);
@@ -422,7 +426,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Memories:");
 
-    for (i = 0; i < CHANLSTSIZ && caps->chan_list[i].type; i++)
+    for (i = 0; i < HAMLIB_CHANLSTSIZ && caps->chan_list[i].type; i++)
     {
         fprintf(fout,
                 "\n\t%d..%d:   \t%s",
@@ -602,7 +606,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Tuning steps:");
 
-    for (i = 0; i < TSLSTSIZ && !RIG_IS_TS_END(caps->tuning_steps[i]); i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ && !RIG_IS_TS_END(caps->tuning_steps[i]); i++)
     {
         if (caps->tuning_steps[i].ts == RIG_TS_ANY)
         {
@@ -610,10 +614,10 @@ int dumpcaps(RIG *rig, FILE *fout)
         }
         else
         {
-            sprintf_freq(freqbuf, caps->tuning_steps[i].ts);
+            sprintf_freq(freqbuf, sizeof(freqbuf), caps->tuning_steps[i].ts);
         }
 
-        rig_sprintf_mode(prntbuf, caps->tuning_steps[i].modes);
+        rig_sprintf_mode(prntbuf, sizeof(prntbuf), caps->tuning_steps[i].modes);
         fprintf(fout, "\n\t%s:   \t%s", freqbuf, prntbuf);
     }
 
@@ -634,7 +638,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Filters:");
 
-    for (i = 0; i < FLTLSTSIZ && !RIG_IS_FLT_END(caps->filters[i]); i++)
+    for (i = 0; i < HAMLIB_FLTLSTSIZ && !RIG_IS_FLT_END(caps->filters[i]); i++)
     {
         if (caps->filters[i].width == RIG_FLT_ANY)
         {
@@ -642,10 +646,10 @@ int dumpcaps(RIG *rig, FILE *fout)
         }
         else
         {
-            sprintf_freq(freqbuf, caps->filters[i].width);
+            sprintf_freq(freqbuf, sizeof(freqbuf), caps->filters[i].width);
         }
 
-        rig_sprintf_mode(prntbuf, caps->filters[i].modes);
+        rig_sprintf_mode(prntbuf, sizeof(prntbuf), caps->filters[i].modes);
         fprintf(fout, "\n\t%s:   \t%s", freqbuf, prntbuf);
     }
 
@@ -668,13 +672,13 @@ int dumpcaps(RIG *rig, FILE *fout)
             continue;
         }
 
-        sprintf_freq(freqbuf, pbnorm);
+        sprintf_freq(freqbuf, sizeof(freqbuf), pbnorm);
         fprintf(fout, "\n\t%s\tNormal: %s,\t", rig_strrmode(i), freqbuf);
 
-        sprintf_freq(freqbuf, rig_passband_narrow(rig, i));
+        sprintf_freq(freqbuf, sizeof(freqbuf), rig_passband_narrow(rig, i));
         fprintf(fout, "Narrow: %s,\t", freqbuf);
 
-        sprintf_freq(freqbuf, rig_passband_wide(rig, i));
+        sprintf_freq(freqbuf, sizeof(freqbuf), rig_passband_wide(rig, i));
         fprintf(fout, "Wide: %s", freqbuf);
     }
 
@@ -840,7 +844,7 @@ void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
     int i;
     char prntbuf[1024];  /* a malloc would be better.. */
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
@@ -851,17 +855,17 @@ void range_print(FILE *fout, const struct freq_range_list range_list[], int rx)
                 range_list[i].endf);
 
         fprintf(fout, "\t\tVFO list: ");
-        rig_sprintf_vfo(prntbuf, range_list[i].vfo);
+        rig_sprintf_vfo(prntbuf, sizeof(prntbuf), range_list[i].vfo);
         fprintf(fout, "%s", prntbuf);
         fprintf(fout, "\n");
 
         fprintf(fout, "\t\tMode list: ");
-        rig_sprintf_mode(prntbuf, range_list[i].modes);
+        rig_sprintf_mode(prntbuf, sizeof(prntbuf), range_list[i].modes);
         fprintf(fout, "%s", prntbuf);
         fprintf(fout, "\n");
 
         fprintf(fout, "\t\tAntenna list: ");
-        rig_sprintf_ant(prntbuf, range_list[i].ant);
+        rig_sprintf_ant(prntbuf, sizeof(prntbuf), range_list[i].ant);
         fprintf(fout, "%s", prntbuf);
         fprintf(fout, "\n");
 
@@ -918,7 +922,7 @@ int range_sanity_check(const struct freq_range_list range_list[], int rx)
 {
     int i;
 
-    for (i = 0; i < FRQRANGESIZ; i++)
+    for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         if (range_list[i].startf == 0 && range_list[i].endf == 0)
         {
@@ -956,7 +960,7 @@ int range_sanity_check(const struct freq_range_list range_list[], int rx)
         }
     }
 
-    if (i == FRQRANGESIZ)
+    if (i == HAMLIB_FRQRANGESIZ)
     {
         return -4;
     }
@@ -981,7 +985,7 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
     last_ts = 0;
     last_modes = RIG_MODE_NONE;
 
-    for (i = 0; i < TSLSTSIZ; i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         if (RIG_IS_TS_END(tuning_step[i]))
         {
@@ -1005,7 +1009,7 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
         last_modes = tuning_step[i].modes;
     }
 
-    if (i == TSLSTSIZ)
+    if (i == HAMLIB_TSLSTSIZ)
     {
         return -4;
     }

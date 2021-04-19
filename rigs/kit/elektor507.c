@@ -345,7 +345,7 @@ int elektor507_cleanup(RIG *rig)
                                         rig->state.priv;
 
     /* Clean up the dll access */
-    FreeLibrary(priv->extra_priv.dll);
+    if (priv) { FreeLibrary(priv->extra_priv.dll); }
 
     if (rig->state.priv)
     {

@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := prosistel
+LOCAL_SRC_FILES := prosistel.c
 LOCAL_MODULE := prosistel
 
 LOCAL_CFLAGS := -DHAVE_CONFIG_H

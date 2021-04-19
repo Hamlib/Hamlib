@@ -83,7 +83,6 @@
 /*
  * Reminder: when adding long options,
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
- * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
 #define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:x:z:lLuovhVZ"
@@ -248,7 +247,7 @@ int main(int argc, char *argv[])
     struct addrinfo hints, *result, *saved_result;
     int sock_listen;
     int reuseaddr = 1;
-    int twiddle = 0;
+    int twiddle_timeout = 0;
     int uplink = 0;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
@@ -287,7 +286,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            version();
+            printf("rigctl %s\n", hamlib_version2);
             exit(0);
 
         case 'm':
@@ -497,7 +496,7 @@ int main(int argc, char *argv[])
 
         case 'o':
             vfo_mode++;
-            rig_debug(RIG_DEBUG_ERR, "%s: #0 vfo_mode=%d\n", __func__, vfo_mode);
+            //rig_debug(RIG_DEBUG_ERR, "%s: #0 vfo_mode=%d\n", __func__, vfo_mode);
             break;
 
         case 'v':
@@ -523,7 +522,9 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
-            twiddle = atoi(optarg);
+            twiddle_timeout = atoi(optarg);
+            fprintf(stderr,
+                    "twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
             break;
 
         case 'x':
@@ -547,16 +548,19 @@ int main(int argc, char *argv[])
         }
     }
 
+#if 0
+
     if (!vfo_mode)
     {
         printf("Recommend using --vfo switch for rigctld if client supports it\n");
         printf("rigctl and netrigctl will automatically detect vfo mode\n");
     }
 
+#endif
+
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\nLast commit was %s\n", hamlib_version,
-              HAMLIBDATETIME);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -582,13 +586,14 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
-    my_rig->state.twiddle_timeout = twiddle;
+    my_rig->state.twiddle_timeout = twiddle_timeout;
     my_rig->state.uplink = uplink;
-    rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d\n", __func__,
-              my_rig->state.twiddle_timeout, my_rig->state.uplink);
+    rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d, twiddle_rit=%d\n",
+              __func__,
+              my_rig->state.twiddle_timeout, my_rig->state.uplink, my_rig->state.twiddle_rit);
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
@@ -605,12 +610,12 @@ int main(int argc, char *argv[])
 
     if (ptt_file)
     {
-        strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.pttport.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
-        strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN - 1);
+        strncpy(my_rig->state.dcdport.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
@@ -969,6 +974,32 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+static FILE *get_fsockout(struct handle_data *handle_data_arg)
+{
+#ifdef __MINGW32__
+    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
+    return _fdopen(sock_osfhandle, "wb");
+#else
+    return fdopen(handle_data_arg->sock, "wb");
+#endif
+}
+
+static FILE *get_fsockin(struct handle_data *handle_data_arg)
+{
+#ifdef __MINGW32__
+    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
+
+    if (sock_osfhandle == -1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "_open_osfhandle error: %s\n", strerror(errno));
+        return NULL;
+    }
+
+    return _fdopen(sock_osfhandle,  "rb");
+#else
+    return fdopen(handle_data_arg->sock, "rb");
+#endif
+}
 
 /*
  * This is the function run by the threads
@@ -985,19 +1016,7 @@ void *handle_socket(void *arg)
     int ext_resp = 0;
     char resp_sep = '\n';
 
-#ifdef __MINGW32__
-    int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
-
-    if (sock_osfhandle == -1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "_open_osfhandle error: %s\n", strerror(errno));
-        goto handle_exit;
-    }
-
-    fsockin = _fdopen(sock_osfhandle,  "rb");
-#else
-    fsockin = fdopen(handle_data_arg->sock, "rb");
-#endif
+    fsockin = get_fsockin(handle_data_arg);
 
     if (!fsockin)
     {
@@ -1006,11 +1025,7 @@ void *handle_socket(void *arg)
         goto handle_exit;
     }
 
-#ifdef __MINGW32__
-    fsockout = _fdopen(sock_osfhandle, "wb");
-#else
-    fsockout = fdopen(handle_data_arg->sock, "wb");
-#endif
+    fsockout = get_fsockout(handle_data_arg);
 
     if (!fsockout)
     {
@@ -1053,35 +1068,54 @@ void *handle_socket(void *arg)
 
 #endif
 
+    int rig_opened = 1;  // our rig is already open
+
     do
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: vfo_mode=%d\n", __func__,
-                  handle_data_arg->vfo_mode);
-        retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
-                               sync_callback,
-                               1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
-
-        if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
-
-        if (retcode == -1)
+        if (!rig_opened)
         {
-            //sleep(1); // probably don't need this delay
-            continue;
+            retcode = rig_open(my_rig);
+            rig_opened = retcode == RIG_OK ? 1 : 0;
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_open reopened retcode=%d\n", __func__,
+                      retcode);
         }
 
-        if (ferror(fsockin) || ferror(fsockout))
+        if (rig_opened) // only do this if rig is open
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: socket error in=%d, out=%d\n", __func__,
-                      ferror(fsockin), ferror(fsockout));
+            rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d\n", __func__,
+                      handle_data_arg->vfo_mode);
+            retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
+                                   sync_callback,
+                                   1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
 
-            retcode = rig_close(my_rig);
-            rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
-            retcode = rig_open(my_rig);
-            rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d\n", __func__, retcode);
+            if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
+        }
+        else
+        {
+            retcode = -RIG_EIO;
+        }
+
+        // if we get a hard error we try to reopen the rig again
+        // this should cover short dropouts that can occur
+        if (retcode < 0 && !RIG_IS_SOFT_ERRCODE(-retcode))
+        {
+            int retry = 3;
+            rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
+
+            do
+            {
+                retcode = rig_close(my_rig);
+                hl_usleep(1000 * 1000);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
+                retcode = rig_open(my_rig);
+                rig_opened = retcode == RIG_OK ? 1 : 0;
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d, opened=%d\n", __func__,
+                          retcode, rig_opened);
+            }
+            while (retry-- > 0 && retcode != RIG_OK);
         }
     }
-
-    while (retcode == 0 || retcode == 2 || retcode == -RIG_ENAVAIL);
+    while (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode));
 
 #ifdef HAVE_PTHREAD
 #if 0
@@ -1185,6 +1219,7 @@ void usage(void)
         "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -W, --twiddle_timeout         timeout after detecting vfo manual change\n"
+        "  -W, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"

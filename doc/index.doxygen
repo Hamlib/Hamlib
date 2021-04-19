@@ -7,11 +7,11 @@ St&eacute;phane Fillod, F8CFE, and Frank Singleton, VK3FCS and the Hamlib Group
 
 \section s1 Preface
 
-This document describes the Hamlib library Application Programming Interface 
-(API) for this distribution. 
+This document describes the Hamlib library Application Programming Interface
+(API) for this distribution.
 
-We attempt to document the complete API of the core modules of Hamlib, i.e., 
-the API seen by end-user application developers.  You may navigate the 
+We attempt to document the complete API of the core modules of Hamlib, i.e.
+the API seen by end-user application developers.  You may navigate the
 documentation through the tabs at the top of this page.
 
 Please report any problems to hamlib-developer@lists.sourceforge.net.
@@ -21,9 +21,9 @@ Please report any problems to hamlib-developer@lists.sourceforge.net.
 These text files are distributed with the Hamlib package.
 
 Readme files: \subpage Rdme "General";
- \subpage Rdmebeta "Beta tester";
+\subpage Rdmebeta "Beta Tester";
 \subpage Rdmedevel "Developer";
-\subpage Rdmewin32 "Win32"
+\subpage Rdmewin "MS Windows"
 
 Other files: \subpage INSTALL;
 \subpage AUTHORS;
@@ -33,21 +33,20 @@ Other files: \subpage INSTALL;
 \subpage NEWS;
 \subpage PLAN;
 \subpage THANKS;
-\subpage TODO
 
 \section lnks Internet links
 
-\li http://www.hamlib.org -- project Wiki, including list of supported rigs.
-\li http://sourceforge.net/projects/hamlib/ --  SourceForge.net project page.
-\li http://hamlib.git.sourceforge.net/git/gitweb-index.cgi -- Git repository via Web
-\li http://hamlib.svn.sourceforge.net/viewvc/hamlib/ -- SVN repository via Web
+\li http://hamlib.org &mdash; Main project with links to releases, Wiki, and documentation including list of supported equipment.
+\li https://github.com/Hamlib/Hamlib &mdash; GitHub repository via Web interface.
+\li https://sourceforge.net/projects/hamlib/ &mdash; SourceForge.net project page.
+\li https://sourceforge.net/p/hamlib/code/ &mdash; SourceForge Git repository via Web interface.
 
 \section slic Documentation License
 
-\li \subpage doclicense 
+\li \subpage doclicense
 */
 /*! \page doclicense License for Documentation
-This documentation is free; you can redistribute it without 
+This documentation is free; you can redistribute it without
 any restrictions. The modification or derived work must retain
 copyright and list all authors.
 
@@ -65,8 +64,16 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*! \page Rdmedevel README.developer
 \verbinclude README.developer
 */
-/*! \page Rdmewin32 README.win32
-\verbinclude README.win32
+/*! \page Rdmewin Cross-compiling Hamlib on Linux for MS Windows
+This page contains the `scripts/README.build-Windows` instructions and the
+`scripts/build-w32.sh` file that describe cross-compiling Hamlib for MS
+Windows 32 bit on Debian GNU/Linux.
+\section Build README.build-Windows
+\verbinclude README.build-Windows
+\subsection W32 The build-w32.sh script
+\verbinclude build-w32.sh
+\subsection W64 The build-w64.sh script
+\verbinclude build-w64.sh
 */
 /*! \page INSTALL INSTALL
 \verbinclude INSTALL
@@ -92,13 +99,13 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*! \page THANKS THANKS
 \verbinclude THANKS
 */
-/*! \page TODO TO DO
-\verbinclude TODO
-*/
 
 /*! Define groups for Doxygen
- *  \defgroup rig Rig (transceiver) API
- *  \defgroup rotator Rotator API
- *  \defgroup utilities Utility Routines API
- *  \defgroup rig_internal Rig Internal API
+ * \defgroup rig Rig (transceiver) API
+ * \defgroup rig_internal Rig (transceiver) Internal API
+ * \defgroup rotator Rotator API
+ * \defgroup rot_internal Rotator Internal API
+ * \defgroup amplifier Amplifier API
+ * \defgroup amp_internal Amplifier Internal API
+ * \defgroup utilities Utility Routines API
  */

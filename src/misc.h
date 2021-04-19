@@ -76,7 +76,7 @@ extern HAMLIB_EXPORT(double) morse_code_dot_to_millis(int wpm);
 extern HAMLIB_EXPORT(int) dot10ths_to_millis(int dot10ths, int wpm);
 extern HAMLIB_EXPORT(int) millis_to_dot10ths(int millis, int wpm);
 
-extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
+extern HAMLIB_EXPORT(int) sprintf_freq(char *str, int len, freq_t);
 
 /* flag that determines if AI mode should be restored on exit on
    applicable rigs - See rig_no_restore_ai() */
@@ -110,6 +110,8 @@ extern HAMLIB_EXPORT(vfo_t) vfo_fixup(RIG *rig, vfo_t vfo);
 
 extern HAMLIB_EXPORT(int) parse_hoststr(char *host, char hoststr[256], char port[6]);
 
+extern HAMLIB_EXPORT(uint32_t) CRC32_function(uint8_t *buf, uint32_t len);
+
 #ifdef PRId64
 /** \brief printf(3) format to be used for long long (64bits) type */
 #  define PRIll PRId64
@@ -138,7 +140,39 @@ extern HAMLIB_EXPORT(int) parse_hoststr(char *host, char hoststr[256], char port
 #  endif
 #endif
 
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+void errmsg(int err, char *s, const char *func, const char *file, int line);
+#define ERRMSG(err, s) errmsg(err,  s, __func__, __FILENAME__, __LINE__)
+#define ENTERFUNC rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s entered\n", __FILENAME__, __LINE__, __func__)
+// we need to refer to rc just once as it 
+// could be a function call 
+#define RETURNFUNC(rc) do { \
+			            int rctmp = rc; \
+                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return(%ld)\n", __FILENAME__, __LINE__, __func__, (long int) (rctmp)); \
+                        return (rctmp); \
+                       } while(0)
 
+#define CACHE_RESET {\
+    elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_freqMainB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_freqSubA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_freqSubB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeMainA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeMainB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeMainC, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeSubA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeSubB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_modeSubC, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthMainA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthMainB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthSubA, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthSubB, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_widthSubC, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);\
+    elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_INVALIDATE);\
+     }
 
 __END_DECLS
 

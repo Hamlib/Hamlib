@@ -352,7 +352,7 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             int i;
 
-            for (i = 0; i < MAXDBLSTSIZ; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ; i++)
                 if (kenwood_val == rig->state.preamp[i])
                 {
                     sprintf(levelbuf, "PA%01d", i + 1);
@@ -475,7 +475,7 @@ ts570_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             int i;
 
-            for (i = 0; i < levelint && i < MAXDBLSTSIZ; i++)
+            for (i = 0; i < levelint && i < HAMLIB_MAXDBLSTSIZ; i++)
             {
                 if (rig->state.preamp[i] == 0)
                 {

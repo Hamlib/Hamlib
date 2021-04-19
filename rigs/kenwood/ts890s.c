@@ -39,7 +39,9 @@
 
 // TODO: Copied from TS-480, to be verified
 #define TS890_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC)
-#define TS890_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_NB2|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT)
+#define TS890_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_NB2|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER)
+
+#define TS890_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_CPY|RIG_OP_TUNE)
 
 int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
@@ -57,80 +59,42 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_SQL:
         kenwood_val = val.f * 255;
-
-        if (rig->caps->rig_model == RIG_MODEL_TS890S)
-        {
-            sprintf(levelbuf, "SQ%03d", kenwood_val);
-        }
-        else
-        {
-            sprintf(levelbuf, "SQ0%03d", kenwood_val);
-        }
-
+        sprintf(levelbuf, "SQ%03d", kenwood_val);
         break;
 
     case RIG_LEVEL_AGC:
         /* hamlib argument is int, possible values rig.h:enum agc_level_e */
         /* possible values for TS890 0(=off), 1(=slow), 2(=mid), 3(=fast), 4(=off/Last) */
-        if (rig->caps->rig_model == RIG_MODEL_TS890S)
+        rig_debug(RIG_DEBUG_VERBOSE, "%s TS890S RIG_LEVEL_AGC\n", __func__);
+
+        switch (val.i)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s TS890S RIG_LEVEL_AGC\n", __func__);
+        case RIG_AGC_OFF:
+            kenwood_val = 0;
+            break;
 
-            switch (val.i)
-            {
-            case RIG_AGC_OFF:
-                kenwood_val = 0;
-                break;
+        case RIG_AGC_SLOW:
+            kenwood_val = 1;
+            break;
 
-            case RIG_AGC_SLOW:
-                kenwood_val = 1;
-                break;
+        case RIG_AGC_MEDIUM:
+            kenwood_val = 2;
+            break;
 
-            case RIG_AGC_MEDIUM:
-                kenwood_val = 2;
-                break;
+        case RIG_AGC_FAST:
+            kenwood_val = 3;
+            break;
 
-            case RIG_AGC_FAST:
-                kenwood_val = 3;
-                break;
+        case RIG_AGC_AUTO:
+            kenwood_val = 4;
+            break;
 
-            case RIG_AGC_AUTO:
-                kenwood_val = 4;
-                break;
-
-            default:
-                rig_debug(RIG_DEBUG_ERR, "%s: unsupported agc value", __func__);
-                return -RIG_EINVAL;
-            }
-
-            sprintf(levelbuf, "GC%d", kenwood_val);
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s TS480 RIG_LEVEL_AGC\n", __func__);
-
-            switch (val.i)
-            {
-            case RIG_AGC_OFF:
-                kenwood_val = 0;
-                break;
-
-            case RIG_AGC_FAST:
-                kenwood_val = 1;
-                break;
-
-            case RIG_AGC_SLOW:
-                kenwood_val = 2;
-                break;
-
-            default:
-                rig_debug(RIG_DEBUG_ERR, "%s: unsupported agc value", __func__);
-                return -RIG_EINVAL;
-            }
-
-            sprintf(levelbuf, "GT%03d", kenwood_val);
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported agc value", __func__);
+            return -RIG_EINVAL;
         }
 
+        sprintf(levelbuf, "GC%d", kenwood_val);
         break;
 
     default:
@@ -228,7 +192,6 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         case '2':
             val->i = RIG_AGC_MEDIUM;
-
             break;
 
         case '3':
@@ -289,7 +252,6 @@ const struct rig_caps ts890s_caps =
     .max_ifshift = Hz(0),
     .targetable_vfo = RIG_TARGETABLE_FREQ,
     .transceive = RIG_TRN_RIG,
-
 
     .rx_range_list1 = {
         {kHz(100),   Hz(59999999), TS890_ALL_MODES, -1, -1, TS890_VFO},
@@ -373,6 +335,8 @@ const struct rig_caps ts890s_caps =
         {RIG_MODE_FM, kHz(15)},
         RIG_FLT_END,
     },
+    .vfo_ops = TS890_VFO_OPS,
+
     .priv = (void *)& ts890s_priv_caps,
     .rig_init = kenwood_init,
     .rig_open = kenwood_open,

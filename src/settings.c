@@ -632,7 +632,7 @@ int HAMLIB_API rig_set_ext_level(RIG *rig,
         return -RIG_ENAVAIL;
     }
 
-    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if ((caps->targetable_vfo & RIG_TARGETABLE_LEVEL)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -698,7 +698,7 @@ int HAMLIB_API rig_get_ext_level(RIG *rig,
         return -RIG_ENAVAIL;
     }
 
-    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if ((caps->targetable_vfo & RIG_TARGETABLE_LEVEL)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -763,7 +763,7 @@ int HAMLIB_API rig_set_ext_func(RIG *rig,
         return -RIG_ENAVAIL;
     }
 
-    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if ((caps->targetable_vfo & RIG_TARGETABLE_FUNC)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -829,7 +829,7 @@ int HAMLIB_API rig_get_ext_func(RIG *rig,
         return -RIG_ENAVAIL;
     }
 
-    if ((caps->targetable_vfo & RIG_TARGETABLE_PURE)
+    if ((caps->targetable_vfo & RIG_TARGETABLE_FUNC)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -940,6 +940,7 @@ int HAMLIB_API rig_setting2idx(setting_t s)
     {
         if (s & rig_idx2setting(i))
         {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: idx=%d\n", __func__, i);
             return i;
         }
     }

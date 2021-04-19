@@ -220,7 +220,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
  */
 int usb_port_open(hamlib_port_t *port)
 {
-    static char pathname[FILPATHLEN];
+    static char pathname[HAMLIB_FILPATHLEN];
     libusb_device_handle *udh;
     char *p, *q;
     int r;
@@ -245,7 +245,7 @@ int usb_port_open(hamlib_port_t *port)
     /* Extract VID/PID/Vendor/Product name from pathname. */
     /* Duplicate the string since we may modify it. */
     strncpy(pathname, port->pathname, sizeof pathname);
-    pathname[FILPATHLEN - 1] = '\0';
+    pathname[HAMLIB_FILPATHLEN - 1] = '\0';
 
     p = pathname;
     q = strchr(p, ':');

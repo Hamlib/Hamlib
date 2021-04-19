@@ -214,7 +214,7 @@ const struct rig_caps ft847_caps =
     RIG_MODEL(RIG_MODEL_FT847),
     .model_name = "FT-847",
     .mfg_name =  "Yaesu",
-    .version =  "20200509.0",
+    .version =  "20210221.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -371,7 +371,7 @@ const struct rig_caps ft847uni_caps =
     RIG_MODEL(RIG_MODEL_FT847UNI),
     .model_name = "FT-847UNI",
     .mfg_name =  "Yaesu",
-    .version =  "20200509.0",
+    .version =  "20210221.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1056,6 +1056,10 @@ int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
 int ft847_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+    int retval = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+
     return ft847_set_freq(rig, RIG_VFO_TX, freq);
 }
 
@@ -1342,11 +1346,6 @@ int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_ENIMPL;
     }
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     switch (level)
     {
     case RIG_LEVEL_STRENGTH:
@@ -1479,11 +1478,6 @@ int ft847_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
     unsigned char cmd_index;  /* index of sequence to send */
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     switch (rptr_shift)
     {
     case RIG_RPT_SHIFT_NONE:
@@ -1512,11 +1506,6 @@ int ft847_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
     if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
     {
         return -RIG_ENIMPL;
-    }
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
     }
 
     memcpy(p_cmd, &ncmd[FT_847_NATIVE_CAT_SET_RPT_OFFSET].nseq, YAESU_CMD_LENGTH);

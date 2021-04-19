@@ -58,6 +58,63 @@
 #include "serial.h"
 #include "network.h"
 
+#ifdef __APPLE__
+
+#include <time.h>
+
+#if !defined(CLOCK_REALTIME) && !defined(CLOCK_MONOTONIC)
+//
+// MacOS < 10.12 does not have clock_gettime
+//
+// Contribution from github user "ra1nb0w"
+//
+
+#define CLOCK_REALTIME  0
+#define CLOCK_MONOTONIC 6
+typedef int clockid_t;
+
+#include <sys/time.h>
+#include <mach/mach_time.h>
+
+static int clock_gettime(clockid_t clock_id, struct timespec *tp)
+{
+    if (clock_id == CLOCK_REALTIME)
+    {
+        struct timeval t;
+
+        if (gettimeofday(&t, NULL) != 0)
+        {
+            return -1;
+        }
+
+        tp->tv_sec = t.tv_sec;
+        tp->tv_nsec = t.tv_usec * 1000;
+    }
+    else if (clock_id == CLOCK_MONOTONIC)
+    {
+        static mach_timebase_info_data_t info = { 0, 0 };
+
+        if (info.denom == 0)
+        {
+            mach_timebase_info(&info);
+        }
+
+        uint64_t t = mach_absolute_time() * info.numer / info.denom;
+        tp->tv_sec = t / 1000000000;
+        tp->tv_nsec = t % 1000000000;
+    }
+    else
+    {
+        errno = EINVAL;
+        return -1;
+    }
+
+    return 0;
+}
+
+#endif // !HAVE_CLOCK_GETTIME
+
+#endif // __APPLE__
 
 /**
  * \brief Convert from binary to 4-bit BCD digits, little-endian
@@ -290,10 +347,11 @@ int millis_to_dot10ths(int millis, int wpm)
  * pretty print frequencies
  * str must be long enough. max can be as long as 17 chars
  */
-int HAMLIB_API sprintf_freq(char *str, freq_t freq)
+int HAMLIB_API sprintf_freq(char *str, int nlen, freq_t freq)
 {
     double f;
     char *hz;
+    int decplaces = 10;
 
     // too verbose
     //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -307,19 +365,22 @@ int HAMLIB_API sprintf_freq(char *str, freq_t freq)
     {
         hz = "MHz";
         f = (double)freq / MHz(1);
+        decplaces = 7;
     }
     else if (llabs(freq) >= kHz(1))
     {
         hz = "kHz";
         f = (double)freq / kHz(1);
+        decplaces = 4;
     }
     else
     {
         hz = "Hz";
         f = (double)freq;
+        decplaces = 1;
     }
 
-    return sprintf(str, "%g %s", f, hz);
+    return sprintf(str, "%.*f %s", decplaces, f, hz);
 }
 
 
@@ -391,6 +452,7 @@ static struct
     { RIG_MODE_PSK, "PSK"},
     { RIG_MODE_PSKR, "PSKR"},
     { RIG_MODE_C4FM, "C4FM"},
+    { RIG_MODE_SPEC, "SPEC"},
     { RIG_MODE_NONE, "" },
 };
 
@@ -508,9 +570,11 @@ static struct
     { RIG_VFO_MAIN, "Main" },
     { RIG_VFO_MAIN_A, "MainA" },
     { RIG_VFO_MAIN_B, "MainB" },
+    { RIG_VFO_MAIN_C, "MainC" },
     { RIG_VFO_SUB, "Sub" },
     { RIG_VFO_SUB_A, "SubA" },
     { RIG_VFO_SUB_B, "SubB" },
+    { RIG_VFO_SUB_C, "SubC" },
     { RIG_VFO_NONE, "None" },
     { 0xffffff, "" },
 };
@@ -794,6 +858,7 @@ static struct
     { RIG_LEVEL_NOTCHF_RAW, "NOTCHF_RAW" },
     { RIG_LEVEL_MONITOR_GAIN, "MONITOR_GAIN" },
     { RIG_LEVEL_NB, "NB" },
+    { RIG_LEVEL_RFPOWER_METER_WATTS, "RFPOWER_METER_WATTS" },
     { RIG_LEVEL_NONE, "" },
 };
 
@@ -1511,8 +1576,10 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
         start->tv_sec = start->tv_nsec = 0;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n", __func__,
-              (long)start->tv_sec, (long)start->tv_nsec);
+    stop = *start; // just to suppress some compiler warnings
+
+    //rig_debug(RIG_DEBUG_TRACE, "%s: start = %ld,%ld\n", __func__,
+    //          (long)start->tv_sec, (long)start->tv_nsec);
 
 
     switch (option)
@@ -1529,8 +1596,8 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 
     case HAMLIB_ELAPSED_SET:
         clock_gettime(CLOCK_REALTIME, start);
-        rig_debug(RIG_DEBUG_TRACE, "%s: after gettime, start = %ld,%ld\n", __func__,
-                  (long)start->tv_sec, (long)start->tv_nsec);
+        //rig_debug(RIG_DEBUG_TRACE, "%s: after gettime, start = %ld,%ld\n", __func__,
+        //          (long)start->tv_sec, (long)start->tv_nsec);
         return 999 * 1000; // so we can tell the difference in debug where we came from
         break;
 
@@ -1544,7 +1611,7 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
     elapsed_msec = ((stop.tv_sec - start->tv_sec) + (stop.tv_nsec / 1e9 -
                     start->tv_nsec / 1e9)) * 1e3;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%.0f\n", __func__, elapsed_msec);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%.0f\n", __func__, elapsed_msec);
 
     if (elapsed_msec < 0 || option == HAMLIB_ELAPSED_INVALIDATE) { return 1000000; }
 
@@ -1566,10 +1633,13 @@ int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
     return RIG_OK;
 }
 
-
+// we're mappping our VFO here to work with either VFO A/B rigs or Main/Sub
+// Hamlib uses VFO_A  and VFO_B as TX/RX as of 2021-04-13
+// So we map these to Main/Sub as required
 vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_curr=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1577,7 +1647,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
         return vfo;  // don't modify vfo for RIG_VFO_CURR
     }
 
-    if (vfo == RIG_VFO_RX)
+    if (vfo == RIG_VFO_RX || vfo == RIG_VFO_A)
     {
         vfo = RIG_VFO_A;
 
@@ -1586,7 +1656,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
         if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
     }
 
-    if (vfo == RIG_VFO_TX)
+    else if (vfo == RIG_VFO_TX || vfo == RIG_VFO_B)
     {
         int retval;
         split_t split = 0;
@@ -1603,24 +1673,29 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
         }
 
         int satmode = rig->state.cache.satmode;
-        vfo = RIG_VFO_A;
+
+        if (vfo == RIG_VFO_TX) { vfo = RIG_VFO_A; }
 
         if (split) { vfo = RIG_VFO_B; }
 
-        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode) { vfo = RIG_VFO_MAIN; }
+        if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode && vfo != RIG_VFO_B) { vfo = RIG_VFO_MAIN; }
 
-        if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode)) { vfo = RIG_VFO_SUB; }
+        else if (VFO_HAS_MAIN_SUB_ONLY && (split || satmode || vfo == RIG_VFO_B)) { vfo = RIG_VFO_SUB; }
 
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) { vfo = RIG_VFO_B; }
+        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && split) { vfo = RIG_VFO_B; }
 
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { vfo = RIG_VFO_SUB; }
+        else if (VFO_HAS_MAIN_SUB_A_B_ONLY && satmode) { vfo = RIG_VFO_SUB; }
 
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__,
                   rig_strvfo(vfo), split, satmode);
     }
+    else if (vfo == RIG_VFO_B)
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
+    }
+
     return vfo;
 }
 
@@ -1632,14 +1707,18 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     port[0] = 0;
     dummy[0] = 0;
 
+    // Exclude any names that aren't a host:port format
     // Handle device names 1st
     if (strstr(hoststr, "/dev")) { return -1; }
+
+    if (strstr(hoststr, "/")) { return -1; } // probably a path so not a hoststr
 
     if (strncasecmp(hoststr, "com", 3) == 0) { return -1; }
 
     // escaped COM port like \\.\COM3
     if (strstr(hoststr, "\\\\.\\")) { return -1; }
 
+    // Now let's try and parse a host:port thing
     // bracketed IPV6 with optional port
     int n = sscanf(hoststr, "[%255[^]]]:%5s", host, port);
 
@@ -1803,6 +1882,367 @@ const char *HAMLIB_API rot_strstatus(rot_status_t status)
     }
 
     return "";
+}
+
+/**
+ * \brief Get pointer to rig function instead of using rig->caps
+ * \param RIG* and rig_function_e
+ * \return the corresponding function pointer
+ */
+void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
+                                      enum rig_function_e rig_function)
+{
+    const struct rig_caps *caps = rig_get_caps(rig_model);
+
+    switch (rig_function)
+    {
+    case RIG_FUNCTION_INIT:
+        return caps->rig_init;
+
+    case RIG_FUNCTION_CLEANUP:
+        return caps->rig_cleanup;
+
+    case RIG_FUNCTION_OPEN:
+        return caps->rig_open;
+
+    case RIG_FUNCTION_CLOSE:
+        return caps->rig_close;
+
+    case RIG_FUNCTION_SET_FREQ:
+        return caps->set_freq;
+
+    case RIG_FUNCTION_GET_FREQ:
+        return caps->get_freq;
+
+    case RIG_FUNCTION_SET_MODE:
+        return caps->set_mode;
+
+    case RIG_FUNCTION_GET_MODE:
+        return caps->get_mode;
+
+    case RIG_FUNCTION_SET_VFO:
+        return caps->set_vfo;
+
+    case RIG_FUNCTION_GET_VFO:
+        return caps->get_vfo;
+
+    case RIG_FUNCTION_SET_PTT:
+        return caps->set_ptt;
+
+    case RIG_FUNCTION_GET_PTT:
+        return caps->get_ptt;
+
+    case RIG_FUNCTION_GET_DCD:
+        return caps->get_dcd;
+
+    case RIG_FUNCTION_SET_RPTR_SHIFT:
+        return caps->set_rptr_shift;
+
+    case RIG_FUNCTION_GET_RPTR_SHIFT:
+        return caps->get_rptr_shift;
+
+    case RIG_FUNCTION_SET_RPTR_OFFS:
+        return caps->set_rptr_offs;
+
+    case RIG_FUNCTION_GET_RPTR_OFFS:
+        return caps->get_rptr_offs;
+
+    case RIG_FUNCTION_SET_SPLIT_FREQ:
+        return caps->set_split_freq;
+
+    case RIG_FUNCTION_GET_SPLIT_FREQ:
+        return caps->get_split_freq;
+
+    case RIG_FUNCTION_SET_SPLIT_MODE:
+        return caps->set_split_mode;
+
+    case RIG_FUNCTION_SET_SPLIT_FREQ_MODE:
+        return caps->set_split_freq_mode;
+
+    case RIG_FUNCTION_GET_SPLIT_FREQ_MODE:
+        return caps->get_split_freq_mode;
+
+    case RIG_FUNCTION_SET_SPLIT_VFO:
+        return caps->set_split_vfo;
+
+    case RIG_FUNCTION_GET_SPLIT_VFO:
+        return caps->get_split_vfo;
+
+    case RIG_FUNCTION_SET_RIT:
+        return caps->set_rit;
+
+    case RIG_FUNCTION_GET_RIT:
+        return caps->get_rit;
+
+    case RIG_FUNCTION_SET_XIT:
+        return caps->set_xit;
+
+    case RIG_FUNCTION_GET_XIT:
+        return caps->get_xit;
+
+    case RIG_FUNCTION_SET_TS:
+        return caps->set_ts;
+
+    case RIG_FUNCTION_GET_TS:
+        return caps->get_ts;
+
+    case RIG_FUNCTION_SET_DCS_CODE:
+        return caps->set_dcs_code;
+
+    case RIG_FUNCTION_GET_DCS_CODE:
+        return caps->get_dcs_code;
+
+    case RIG_FUNCTION_SET_TONE:
+        return caps->set_tone;
+
+    case RIG_FUNCTION_GET_TONE:
+        return caps->get_tone;
+
+    case RIG_FUNCTION_SET_CTCSS_TONE:
+        return caps->set_ctcss_tone;
+
+    case RIG_FUNCTION_GET_CTCSS_TONE:
+        return caps->get_ctcss_tone;
+
+    case RIG_FUNCTION_SET_DCS_SQL:
+        return caps->set_dcs_sql;
+
+    case RIG_FUNCTION_GET_DCS_SQL:
+        return caps->get_dcs_sql;
+
+    case RIG_FUNCTION_SET_TONE_SQL:
+        return caps->set_tone_sql;
+
+    case RIG_FUNCTION_GET_TONE_SQL:
+        return caps->get_tone_sql;
+
+    case RIG_FUNCTION_SET_CTCSS_SQL:
+        return caps->set_ctcss_sql;
+
+    case RIG_FUNCTION_GET_CTCSS_SQL:
+        return caps->get_ctcss_sql;
+
+    case RIG_FUNCTION_POWER2MW:
+        return caps->power2mW;
+
+    case RIG_FUNCTION_MW2POWER:
+        return caps->mW2power;
+
+    case RIG_FUNCTION_SET_POWERSTAT:
+        return caps->set_powerstat;
+
+    case RIG_FUNCTION_GET_POWERSTAT:
+        return caps->get_powerstat;
+
+    case RIG_FUNCTION_RESET:
+        return caps->reset;
+
+    case RIG_FUNCTION_SET_ANT:
+        return caps->set_ant;
+
+    case RIG_FUNCTION_GET_ANT:
+        return caps->get_ant;
+
+    case RIG_FUNCTION_SET_LEVEL:
+        return caps->set_level;
+
+    case RIG_FUNCTION_GET_LEVEL:
+        return caps->get_level;
+
+    case RIG_FUNCTION_SET_FUNC:
+        return caps->set_func;
+
+    case RIG_FUNCTION_GET_FUNC:
+        return caps->get_func;
+
+    case RIG_FUNCTION_SET_PARM:
+        return caps->set_parm;
+
+    case RIG_FUNCTION_GET_PARM:
+        return caps->get_parm;
+
+    case RIG_FUNCTION_SET_EXT_LEVEL:
+        return caps->set_ext_level;
+
+    case RIG_FUNCTION_GET_EXT_LEVEL:
+        return caps->get_ext_level;
+
+    case RIG_FUNCTION_SET_EXT_FUNC:
+        return caps->set_ext_func;
+
+    case RIG_FUNCTION_GET_EXT_FUNC:
+        return caps->get_ext_func;
+
+    case RIG_FUNCTION_SET_EXT_PARM:
+        return caps->set_ext_parm;
+
+    case RIG_FUNCTION_GET_EXT_PARM:
+        return caps->get_ext_parm;
+
+    case RIG_FUNCTION_SET_CONF:
+        return caps->set_conf;
+
+    case RIG_FUNCTION_GET_CONF:
+        return caps->get_conf;
+
+    case RIG_FUNCTION_SEND_DTMF:
+        return caps->send_dtmf;
+
+    case RIG_FUNCTION_SEND_MORSE:
+        return caps->send_morse;
+
+    case RIG_FUNCTION_STOP_MORSE:
+        return caps->stop_morse;
+
+    case RIG_FUNCTION_WAIT_MORSE:
+        return caps->wait_morse;
+
+    case RIG_FUNCTION_SEND_VOICE_MEM:
+        return caps->send_voice_mem;
+
+    case RIG_FUNCTION_SET_BANK:
+        return caps->set_bank;
+
+    case RIG_FUNCTION_SET_MEM:
+        return caps->set_mem;
+
+    case RIG_FUNCTION_GET_MEM:
+        return caps->get_mem;
+
+    case RIG_FUNCTION_VFO_OP:
+        return caps->vfo_op;
+
+    case RIG_FUNCTION_SCAN:
+        return caps->scan;
+
+    case RIG_FUNCTION_SET_TRN:
+        return caps->set_trn;
+
+    case RIG_FUNCTION_GET_TRN:
+        return caps->get_trn;
+
+    case RIG_FUNCTION_DECODE_EVENT:
+        return caps->decode_event;
+
+    case RIG_FUNCTION_SET_CHANNEL:
+        return caps->set_channel;
+
+    case RIG_FUNCTION_GET_CHANNEL:
+        return caps->get_channel;
+
+    case RIG_FUNCTION_GET_INFO:
+        return caps->get_info;
+
+    case RIG_FUNCTION_SET_CHAN_ALL_CB:
+        return caps->set_chan_all_cb;
+
+    case RIG_FUNCTION_GET_CHAN_ALL_CB:
+        return caps->get_chan_all_cb;
+
+    case RIG_FUNCTION_SET_MEM_ALL_CB:
+        return caps->set_mem_all_cb;
+
+    case RIG_FUNCTION_GET_MEM_ALL_CB:
+        return caps->get_mem_all_cb;
+
+    case RIG_FUNCTION_SET_VFO_OPT:
+        return caps->set_vfo_opt;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "Unknown function?? function=%d\n", rig_function);
+    }
+
+    return NULL;
+}
+
+// negative return indicates error
+/**
+ * \brief Get integer/long instead of using rig->caps
+ *  watch out for integer values that may be negative -- if needed must change hamlib
+ * \param RIG* and rig_caps_int_e
+ * \return the corresponding long value -- -RIG_EINVAL is the only error possible
+ */
+long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
+                                      enum rig_caps_int_e rig_caps)
+{
+    const struct rig_caps *caps = rig_get_caps(rig_model);
+
+    switch (rig_caps)
+    {
+    case RIG_CAPS_TARGETABLE_VFO:
+        return caps->targetable_vfo;
+
+    case RIG_CAPS_RIG_MODEL:
+        return caps->rig_model;
+
+    case RIG_CAPS_PTT_TYPE:
+        return caps->ptt_type;
+
+    case RIG_CAPS_PORT_TYPE:
+        return caps->port_type;
+
+    case RIG_CAPS_HAS_GET_LEVEL:
+        return caps->has_get_level;
+
+    default:
+        //rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%lld\n", __func__, rig_caps);
+        RETURNFUNC(-RIG_EINVAL);
+    }
+}
+
+const char *HAMLIB_API rig_get_caps_cptr(rig_model_t rig_model,
+        enum rig_caps_cptr_e rig_caps)
+{
+    const struct rig_caps *caps = rig_get_caps(rig_model);
+
+    switch (rig_caps)
+    {
+    case RIG_CAPS_VERSION_CPTR:
+        return caps->version;
+
+    case RIG_CAPS_MFG_NAME_CPTR:
+        return caps->mfg_name;
+
+    case RIG_CAPS_MODEL_NAME_CPTR:
+        return caps->model_name;
+
+    case RIG_CAPS_STATUS_CPTR:
+        return rig_strstatus(caps->status);
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown requested rig_caps value=%d\n", __func__,
+                  rig_caps);
+        return "Unknown caps value";
+    }
+}
+
+void errmsg(int err, char *s, const char *func, const char *file, int line)
+{
+    rig_debug(RIG_DEBUG_ERR, "%s(%s:%d): %s: %s\b", __func__, file, line, s,
+              rigerror(err));
+}
+
+uint32_t CRC32_function(uint8_t *buf, uint32_t len)
+{
+
+    uint32_t val, crc;
+    uint8_t i;
+
+    crc = 0xFFFFFFFF;
+
+    while (len--)
+    {
+        val = (crc^*buf++) & 0xFF;
+
+        for (i = 0; i < 8; i++)
+        {
+            val = val & 1 ? (val >> 1) ^ 0xEDB88320 : val >> 1;
+        }
+
+        crc = val ^ crc >> 8;
+    }
+
+    return crc ^ 0xFFFFFFFF;
 }
 
 

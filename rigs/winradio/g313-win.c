@@ -27,7 +27,7 @@
 
 #define G313_MODES (RIG_MODE_NONE)
 
-#ifdef _WIN32
+#if defined (_WIN32) || !defined(OTHER_POSIX)
 
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
@@ -469,11 +469,7 @@ int g313_cleanup(RIG *rig)
     FreeLibrary(priv->WinMM);
     FreeLibrary(priv->hWRG313WO);
 
-
-    if (rig->state.priv)
-    {
-        free(rig->state.priv);
-    }
+    free(rig->state.priv);
 
     rig->state.priv = NULL;
 

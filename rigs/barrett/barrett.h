@@ -39,11 +39,31 @@
 #define BARRETT_DATA_LEN 64
 
 extern const struct rig_caps barrett_caps;
+extern const struct rig_caps barrett950_caps;
 
 struct barrett_priv_data {
     char cmd_str[BARRETT_DATA_LEN];       /* command string buffer */
     char ret_data[BARRETT_DATA_LEN];      /* returned data--max value, most are less */
     char split;                           /* split on/off */
 };
+
+extern int barrett_transaction(RIG *rig, char *cmd, int expected, char **result);
+
+extern int barrett_init(RIG *rig);
+extern int barrett_cleanup(RIG *rig);
+extern int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+extern int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+extern int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                            pbwidth_t *width);
+extern int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+extern int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+extern int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split,
+                                 vfo_t txvfo);
+
+extern int barrett_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
+                                 vfo_t *txvfo);
+
+
+
 
 #endif /* _BARRETT_H */

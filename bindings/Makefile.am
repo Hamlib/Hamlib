@@ -3,8 +3,8 @@
 # more information on swig at http://www.swig.org
 #
 
-AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/bindings $(PYTHON_CPPFLAGS) \
-	$(TCL_INCLUDE_SPEC)
+AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/include -I$(top_srcdir)/bindings  \
+	$(TCL_INCLUDE_SPEC) $(PYTHON_CPPFLAGS)
 
 AM_CFLAGS = -fno-strict-aliasing
 AM_CXXFLAGS = -O2
@@ -121,7 +121,7 @@ check-py: all-py
 Hamlib.py: hamlibpy_wrap.c
 
 hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
-	$(AM_V_GEN)$(SWIG) -python $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
+	$(AM_V_GEN)$(SWIG) -python $(AM_CPPFLAGS) $(PYTHON_CPPFLAGS) -I$(top_srcdir)/bindings \
 		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
 install-py:

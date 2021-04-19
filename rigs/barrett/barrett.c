@@ -46,22 +46,22 @@
 #define BARRETT_LEVELS (RIG_LEVEL_STRENGTH)
 
 
-static int barrett_init(RIG *rig);
-static int barrett_cleanup(RIG *rig);
+int barrett_init(RIG *rig);
+int barrett_cleanup(RIG *rig);
 static int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-static int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int barrett_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-static int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
-                            pbwidth_t *width);
+int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                     pbwidth_t *width);
 
-static int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
-static int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split,
-                                 vfo_t txvfo);
+int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split,
+                          vfo_t txvfo);
 
-static int barrett_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
-                                 vfo_t *txvfo);
+int barrett_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
+                          vfo_t *txvfo);
 
 static int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level,
                              value_t *val);
@@ -211,6 +211,7 @@ DECLARE_INITRIG_BACKEND(barrett)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
     rig_register(&barrett_caps);
+    rig_register(&barrett950_caps);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init back from rig_register\n", __func__);
 
     return RIG_OK;

@@ -27,7 +27,7 @@
 
 
 //! @cond Doxygen_Suppress
-class BACKEND_IMPEXP Rotator
+class HAMLIB_CPP_IMPEXP Rotator
 {
 private:
     ROT *theRot;  // Global ref. to the rot
@@ -37,6 +37,11 @@ public:
     explicit Rotator(rot_model_t rot_model);
 
     virtual ~Rotator();
+
+    Rotator(const Rotator&) = default;
+    Rotator(Rotator&&) = default;
+    Rotator& operator=(const Rotator&) = default;
+    Rotator& operator=(Rotator&&) = default;
 
     const struct rot_caps *caps;
 

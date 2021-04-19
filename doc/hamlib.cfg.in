@@ -1,7 +1,8 @@
-## hamlib.cfg.in--converted into hamlib.cfg by configure
+## hamlib.cfg.in--converted into hamlib.cfg by config.status
 
-PROJECT_NAME    = "Hamlib"
+PROJECT_NAME    = Hamlib
 PROJECT_NUMBER  = @VERSION@
+PROJECT_LOGO    = @top_srcdir@/doc/hamlib.png
 
 # Output
 OUTPUT_DIRECTORY= .
@@ -14,31 +15,39 @@ GENERATE_MAN    = NO    # User can set to YES for local man pages
 MAN_EXTENSION	= .3
 
 # Input
-CASE_SENSE_NAMES = NO
-FULL_PATH_NAMES = NO
-INPUT	= @top_srcdir@/doc/index.doxygen \
-          @top_srcdir@/src/ @top_srcdir@/include/hamlib/
+CASE_SENSE_NAMES = YES
+FULL_PATH_NAMES  = NO
+INPUT            = @top_srcdir@/doc/index.doxygen \
+                   @top_srcdir@/include/hamlib/ \
+                   @top_srcdir@/src/
 
-INCLUDE_PATH	= @top_srcdir@/include
+EXCLUDE          = @top_srcdir@/src/amp_conf.h \
+                   @top_srcdir@/include/hamlib/ampclass.h \
+                   @top_srcdir@/include/hamlib/rotclass.h
 
-EXAMPLE_PATH    = @top_srcdir@/tests/testrig.c \
-		@top_srcdir@
+INCLUDE_PATH     = @top_srcdir@/include
 
-QUIET          = YES
+EXAMPLE_PATH     = @top_srcdir@/tests/testrig.c \
+                   @top_srcdir@ \
+                   @top_srcdir@/scripts/README.build-Windows \
+                   @top_srcdir@/scripts/build-w32.sh \
+                   @top_srcdir@/scripts/build-w64.sh
 
-HTML_STYLESHEET	= @top_srcdir@/doc/hamlib.css
-HTML_FOOTER = @top_srcdir@/doc/footer.html
 
-EXTRACT_ALL    = NO
-EXTRACT_STATIC = NO
-HIDE_UNDOC_MEMBERS = NO
-SHOW_INCLUDE_FILES = YES
-INHERIT_DOCS   = YES
-ENABLED_SECTIONS = ""
-PREDEFINED       = DOXYGEN "DOC_HIDDEN"
-JAVADOC_AUTOBRIEF = NO
-OPTIMIZE_OUTPUT_FOR_C = YES		# doxygen 1.2.6 option
+QUIET            = YES
 
-MAN_LINKS              = NO
-MACRO_EXPANSION        = YES
+HTML_FOOTER           = @top_srcdir@/doc/footer.html
+HTML_EXTRA_STYLESHEET = @top_srcdir@/doc/hamlib.css
 
+EXTRACT_ALL           = NO
+EXTRACT_STATIC        = NO
+HIDE_UNDOC_MEMBERS    = NO
+SHOW_INCLUDE_FILES    = YES
+INHERIT_DOCS          = YES
+ENABLED_SECTIONS      = ""
+PREDEFINED            = DOXYGEN "DOC_HIDDEN"
+JAVADOC_AUTOBRIEF     = NO
+OPTIMIZE_OUTPUT_FOR_C = YES
+
+MAN_LINKS             = NO
+MACRO_EXPANSION       = YES

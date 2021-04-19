@@ -155,7 +155,7 @@ const struct rig_caps ft857_caps =
     RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
     .mfg_name =       "Yaesu",
-    .version =        "20201215.0",
+    .version =        "20210330.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -564,11 +564,6 @@ int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_A)
-    {
-        return -RIG_ENTARGET;
-    }
-
     if (check_cache_timeout(&p->fm_status_tv))
     {
         int n;
@@ -661,11 +656,6 @@ int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     if (check_cache_timeout(&p->fm_status_tv))
     {
         int n;
@@ -687,11 +677,6 @@ int ft857_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
     int retcode;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
-    {
-        return -RIG_ENTARGET;
-    }
 
     retcode = ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);
 
@@ -718,11 +703,6 @@ int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     if (check_cache_timeout(&p->tx_status_tv))
         if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
@@ -755,11 +735,6 @@ int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     if (check_cache_timeout(&p->tx_status_tv))
     {
@@ -831,11 +806,6 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     switch (level)
     {
     case RIG_LEVEL_STRENGTH:
@@ -856,11 +826,6 @@ int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     if (check_cache_timeout(&p->rx_status_tv))
     {
@@ -891,11 +856,6 @@ int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: requested freq = %"PRIfreq" Hz\n", freq);
 
     /* fill in the frequency */
@@ -912,14 +872,6 @@ int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int index;    /* index of sequence to send */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: must have RIG_VFO_CURR, got %s\n",
-                  rig_strvfo(RIG_VFO_CURR), rig_strvfo(vfo));
-
-        return -RIG_ENTARGET;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s\n", __func__,
               rig_strrmode(mode));
@@ -986,10 +938,10 @@ int ft857_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
-    {
-        return -RIG_ENTARGET;
-    }
+    retcode = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
+
+    if (retcode != RIG_OK) { RETURNFUNC(retcode); }
+
 
     retcode = ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);
 
@@ -1015,13 +967,6 @@ int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     int index, n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     switch (split)
     {
@@ -1056,13 +1001,6 @@ int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
     switch (ptt)
     {
     case RIG_PTT_ON:
@@ -1079,6 +1017,8 @@ int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     n = ft857_send_cmd(rig, index);
 
+    if (ptt == RIG_PTT_OFF) { hl_usleep(200 * 1000); } // FT857 takes a bit to come out of PTT
+
     rig_force_cache_timeout(&((struct ft857_priv_data *)
                               rig->state.priv)->tx_status_tv);
 
@@ -1093,11 +1033,6 @@ int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int ft857_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     switch (func)
     {
@@ -1167,11 +1102,6 @@ int ft857_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: set DCS code (%u)\n", code);
 
     if (code == 0)
@@ -1197,11 +1127,6 @@ int ft857_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: set CTCSS tone (%.1f)\n", tone / 10.0);
 
@@ -1229,11 +1154,6 @@ int ft857_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: set DCS sql (%u)\n", code);
 
     if (code == 0)
@@ -1260,11 +1180,6 @@ int ft857_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: set CTCSS sql (%.1f)\n", tone / 10.0);
 
     if (tone == 0)
@@ -1287,11 +1202,6 @@ int ft857_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 int ft857_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: set repeter shift = %i\n", shift);
 
@@ -1316,11 +1226,6 @@ int ft857_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
-
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: set repeter offs = %li\n", offs);
 
     /* fill in the offset freq */
@@ -1335,11 +1240,6 @@ int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-
-    if (vfo != RIG_VFO_CURR)
-    {
-        return -RIG_ENTARGET;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft857: set rit = %li)\n", rit);
 

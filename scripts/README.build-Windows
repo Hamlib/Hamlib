@@ -8,30 +8,30 @@ with MS VC++.
 Prerequisites
 =============
 
-In these steps the release or daily snapshot tarball is unpacked in ~/builds
-for the Windows build and all operations are done from there unless
-otherwise noted.
+In these steps the release or daily snapshot tarball is unpacked in
+$HOME/builds for the Windows build and all operations are done from there
+unless otherwise noted.
 
-Under Linux you need at least  the mingw-w64 package to cross-compile it, zip
-to create the archive, the tofrodos or dos2unix package installed to convert
-to DOS text format, and Wine plus the free MVC++Toolkit available from:
+Under Linux you need at least the following packages:
 
-http://uploading.com/files/HNH73WB3/VCToolkitSetup%28v1.01%29%282004.07.06%29.zip.html
+mingw-w64       cross-compiler
+zip             create the archive
+tofrodos        convert to DOS text format (CR/LF)
+groff           convert nroff manual pages to HTML
 
-to create the Windows .LIB file (unzip and then install it with Wine in the
-usual way).
+On Debian 8 (Jessie) and later versions the mingw-w64 package works and is
+being used to build the daily Windows 32/64 snapshots and stable releases.
+The release and daily snapshots are built in a Debian 10 (Buster) virtual
+machine.
 
-On Debian Jesse the mingw-w64 package works and is being used to build
-the daily Windows 32/64 snapshots and releases.
-
-Finally, the Windows version of libusb 1.0 must be available for the USB backends
-to be built.  Download the latest libusb-1.0 from:
+Finally, the Windows version of libusb 1.0 must be available for the USB
+backends to be built.  Download the latest libusb-1.0 from:
 
 https://sourceforge.net/projects/libusb/files/libusb-1.0/
 
-:nd unzip the archive in ~/builds
+and unzip the archive in $HOME/builds.
 
-Libusb 1.0.20 is known to work. Presumably any 1.X.X version should work.
+libusb 1.0.20 is known to work.  Presumably, any 1.X.X version should work.
 
 Several variables may need to be set differently at the top of the script file
 depending on your system.
@@ -40,28 +40,27 @@ The script now relies on a pair of environment variables to locate the needed
 libusb files.
 
 The script generates HTML documents for the included .EXE files using groff
-to convert the nroff formatted man pages.  On Debian and derivatives, the groff
-package is likely already installed.
+to convert the nroff formatted man pages.
 
 
 Build for Windows 32/64, cross-compile on Linux:
 ================================================
 
-Extract the Hamlib tarball into ~/builds (if you prefer another directory
+Extract the Hamlib tarball into $HOME/builds (if you prefer another directory
 be sure to edit the BUILD_DIR variable in the build-w[32|64].sh script):
 
-        $ tar xvfz ~/Downloads/hamlib-3.3~git-???????-20180527.tar.gz
+        $ tar xvfz $HOME/Downloads/hamlib-4.2~git-???????-20210214.tar.gz
 
-Invoke the build-w[32|64].sh script (it requires a Bash shell) with the
-name of the directory/Hamlib version to build (you need not cd into the hamlib
-directory, although it won't hurt.  The build-w[32|64].sh script uses absolute
-paths):
+Invoke the build-w[32|64].sh script (either requires a Bourne compatible
+shell, e.g. bash, dash, etc.) with the name of the directory/Hamlib version to
+build (you need not cd into the hamlib directory, although it won't hurt.  The
+build-w[32|64].sh script uses absolute paths):
 
-        $ build-w32.sh hamlib-3.3~git
+        $ build-w32.sh hamlib-4.2~git
 
 or:
 
-        $ build-w64.sh hamlib-3.3~git
+        $ build-w64.sh hamlib-4.2~git
 
 
 Release Info

@@ -41,7 +41,7 @@
 
 #define IC7100_OTHER_TX_MODES ((IC7100_MODES) & ~(RIG_MODE_AM|RIG_MODE_PKTAM))
 
-#define IC7100_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
+#define IC7100_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define IC7100_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM|RIG_SCAN_SLCT|RIG_SCAN_PRIO)
 
@@ -61,7 +61,6 @@
                             RIG_FUNC_VOX| \
                             RIG_FUNC_FBKIN| \
                             RIG_FUNC_AFC| \
-                            RIG_FUNC_SATMODE| \
                             RIG_FUNC_VSC| \
                             RIG_FUNC_MN| \
                             RIG_FUNC_LOCK| \
@@ -93,6 +92,7 @@
                             RIG_LEVEL_SWR| \
                             RIG_LEVEL_ALC| \
                             RIG_LEVEL_RFPOWER_METER| \
+                            RIG_LEVEL_RFPOWER_METER_WATTS| \
                             RIG_LEVEL_COMP_METER| \
                             RIG_LEVEL_VD_METER| \
                             RIG_LEVEL_ID_METER| \
@@ -139,12 +139,23 @@ struct cmdparams ic7100_extcmds[] =
          { 120, 1.0f } \
     } }
 
-#define IC7100_RFPOWER_METER_CAL { 3, \
+#define IC7100_RFPOWER_METER_CAL { 13, \
     { \
          { 0, 0.0f }, \
-         { 143, 0.5f }, \
-         { 213, 1.0f } \
+         { 21, 5.0f }, \
+         { 43, 10.0f }, \
+         { 65, 15.0f }, \
+         { 83, 20.0f }, \
+         { 95, 25.0f }, \
+         { 105, 30.0f }, \
+         { 114, 35.0f }, \
+         { 124, 40.0f }, \
+         { 143, 50.0f }, \
+         { 183, 75.0f }, \
+         { 213, 100.0f }, \
+         { 255, 120.0f } \
     } }
+
 
 #define IC7100_COMP_METER_CAL { 3, \
     { \
@@ -196,7 +207,7 @@ const struct rig_caps ic7100_caps =
     RIG_MODEL(RIG_MODEL_IC7100),
     .model_name = "IC-7100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -242,7 +253,7 @@ const struct rig_caps ic7100_caps =
     .vfo_ops =  IC7100_VFO_OPS,
     .scan_ops =  IC7100_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
-    .bank_qty =   0,
+    .bank_qty =   5,
     .chan_desc_sz =  9, /* TODO */
 
     .chan_list =  { /* TBC */
@@ -379,6 +390,7 @@ const struct rig_caps ic7100_caps =
     .set_ext_func =  icom_set_ext_func,
     .get_ext_func =  icom_get_ext_func,
     .set_mem =  icom_set_mem,
+    .set_bank =  icom_set_bank,
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,
     .get_dcd =  icom_get_dcd,

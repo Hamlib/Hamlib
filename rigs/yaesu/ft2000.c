@@ -101,13 +101,13 @@ const struct rig_caps ft2000_caps =
     .serial_rate_min =    4800,         /* Default rate per manual */
     .serial_rate_max =    38400,
     .serial_data_bits =   8,
-    .serial_stop_bits =   1,            /* Assumed since manual makes no mention */
+    .serial_stop_bits =   2,            /* Assumed since manual makes no mention */
     .serial_parity =      RIG_PARITY_NONE,
     .serial_handshake =   RIG_HANDSHAKE_HARDWARE,
     .write_delay =        FT2000_WRITE_DELAY,
     .post_write_delay =   FT2000_POST_WRITE_DELAY,
     .timeout =            2000,
-    .retry =              10,
+    .retry =              3,
     .has_get_func =       FT2000_FUNCS,
     .has_set_func =       FT2000_FUNCS,
     .has_get_level =      FT2000_LEVELS,
@@ -133,6 +133,7 @@ const struct rig_caps ft2000_caps =
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 2000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
+    .rfpower_meter_cal =  FT2000D_RFPOWER_METER_CAL,
     .str_cal =            FT2000_STR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
@@ -184,12 +185,12 @@ const struct rig_caps ft2000_caps =
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {RIG_MODE_CW|RIG_MODE_CWR,     Hz(500)},    /* Normal CW, RTTY, PKT/USER */
-        {RIG_MODE_CW|RIG_MODE_CWR,     Hz(200)},    /* Narrow CW, RTTY, PKT/USER */
-        {RIG_MODE_CW|RIG_MODE_CWR,     Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
-        {RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},    /* Normal RTTY */
-        {RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(300)},    /* Narrow RTTY */
-        {RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(2400)},   /* Wide   RTTY */
+        {RIG_MODE_CW | RIG_MODE_CWR,     Hz(500)},  /* Normal CW, RTTY, PKT/USER */
+        {RIG_MODE_CW | RIG_MODE_CWR,     Hz(200)},  /* Narrow CW, RTTY, PKT/USER */
+        {RIG_MODE_CW | RIG_MODE_CWR,     Hz(2400)}, /* Wide   CW, RTTY, PKT/USER */
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(500)},  /* Normal RTTY */
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(300)},  /* Narrow RTTY */
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(2400)}, /* Wide   RTTY */
         {RIG_MODE_SSB,                 Hz(2400)},   /* Normal SSB */
         {RIG_MODE_SSB,                 Hz(1800)},   /* Narrow SSB */
         {RIG_MODE_SSB,                 Hz(3000)},   /* Wide   SSB */

@@ -117,7 +117,7 @@ struct trxmanager_priv_data
 struct rig_caps trxmanager_caps =
 {
     RIG_MODEL(RIG_MODEL_TRXMANAGER_RIG),
-    .model_name = "5.7.630+",
+    .model_name = "TRXManager 5.7.630+",
     .mfg_name = "TRXManager",
     .version = BACKEND_VER ".0",
     .copyright = "LGPL",

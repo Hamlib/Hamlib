@@ -49,9 +49,11 @@
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 /* PowerSDR differences */
+#define POWERSDR_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_SPEC)
+
 #define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER)
 
-#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF)
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF|RIG_LEVEL_STRENGTH)
 
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
@@ -736,6 +738,8 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int len, ans;
     rmode_t mode;
     pbwidth_t width;
+    ptt_t ptt;
+    double dval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -770,7 +774,30 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         ans = 4;
         break;
 
+    case RIG_LEVEL_STRENGTH:
+        flex6k_get_ptt(rig, vfo, &ptt);
+
+        if (ptt) // not applicable if transmitting
+        {
+            val->f = 0;
+            return RIG_OK;
+        }
+
+        cmd = "ZZRM0";
+        len = 5;
+        ans = 9;
+        break;
+
     case RIG_LEVEL_RFPOWER_METER:
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+        flex6k_get_ptt(rig, vfo, &ptt);
+
+        if (!ptt)
+        {
+            val->f = 0;
+            return RIG_OK;
+        }
+
         cmd = "ZZRM5";
         len = 5;
         ans = 3;
@@ -798,7 +825,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return kenwood_get_level(rig, vfo, level, val);
     }
 
-    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, 10, len + ans);
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), len + ans);
 
     if (retval != RIG_OK)
     {
@@ -833,18 +860,52 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
-    case RIG_LEVEL_AF:
-    case RIG_LEVEL_RFPOWER_METER:
-        n = sscanf(lvlbuf + len, "%f", &val->f);
+    case RIG_LEVEL_STRENGTH:
+        n = sscanf(lvlbuf, "ZZRM0%lf", &dval);
 
         if (n != 1)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
                       __func__, lvlbuf);
+            val->i = 0;
             return -RIG_EPROTO;
         }
 
-        val->f /= 100;
+        val->i = dval + 73; // dbm to S9-based=0dB
+        break;
+
+
+    case RIG_LEVEL_AF:
+        n = sscanf(lvlbuf, "ZZAG%f", &val->f);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            val->f = 0;
+            return -RIG_EPROTO;
+        }
+
+        val->f /= 100.0;
+        break;
+
+    case RIG_LEVEL_RFPOWER_METER:
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+        n = sscanf(lvlbuf, "ZZRM5%f", &val->f);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            val->f = 0;
+            return -RIG_EPROTO;
+        }
+
+        if (level != RIG_LEVEL_RFPOWER_METER_WATTS)
+        {
+            val->f /= 100;
+        }
+
         break;
 
     case RIG_LEVEL_RF:
@@ -1020,7 +1081,7 @@ const struct rig_caps f6k_caps =
     RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
     .mfg_name =     "FlexRadio",
-    .version =      "20130717.0",
+    .version =      "20201227.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1144,7 +1205,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20201108.0",
+    .version =      "20201231.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1190,31 +1251,31 @@ const struct rig_caps powersdr_caps =
     .chan_list =        { RIG_CHAN_END },
 
     .rx_range_list1 =  {
-        {kHz(30), MHz(77), F6K_MODES, -1, -1, F6K_VFO, F6K_ANTS},
-        {MHz(135), MHz(165), F6K_MODES, -1, - 1, F6K_VFO, F6K_ANTS},
+        {kHz(30), MHz(77), POWERSDR_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        {MHz(135), MHz(165), POWERSDR_MODES, -1, - 1, F6K_VFO, F6K_ANTS},
         RIG_FRNG_END,
     }, /* rx range */
     .tx_range_list1 =  {
-        FRQ_RNG_HF(1, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
-        FRQ_RNG_6m(1, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
-        FRQ_RNG_2m(1, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_HF(1, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_6m(1, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_2m(1, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
         RIG_FRNG_END,
     }, /* tx range */
 
     .rx_range_list2 =  {
-        {kHz(30), MHz(77), F6K_MODES, -1, -1, F6K_VFO, F6K_ANTS},
-        { MHz(135), MHz(165), F6K_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        {kHz(30), MHz(77), POWERSDR_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        { MHz(135), MHz(165), POWERSDR_MODES, -1, -1, F6K_VFO, F6K_ANTS},
         RIG_FRNG_END,
     }, /* rx range */
     .tx_range_list2 =  {
-        FRQ_RNG_HF(2, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
-        FRQ_RNG_6m(2, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
-        FRQ_RNG_2m(2, F6K_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_HF(2, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_6m(2, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_2m(2, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
         RIG_FRNG_END,
     }, /* tx range */
 
     .tuning_steps =  {
-        {F6K_MODES, 1},
+        {POWERSDR_MODES, 1},
         RIG_TS_END,
     },
 

@@ -27,7 +27,7 @@
 
 
 //! @cond Doxygen_Suppress
-class BACKEND_IMPEXP Rig
+class HAMLIB_CPP_IMPEXP Rig
 {
 private:
     RIG *theRig;  // Global ref. to the rig
@@ -37,6 +37,11 @@ public:
     explicit Rig(rig_model_t rig_model);
 
     virtual ~Rig();
+
+    Rig(const Rig&) = default;
+    Rig(Rig&&) = default;
+    Rig& operator=(const Rig&) = default;
+    Rig& operator=(Rig&&) = default;
 
     const struct rig_caps *caps;
 
@@ -246,7 +251,7 @@ extern "C" void exit(int);
 
 //! @cond Doxygen_Suppress
 // Forward Declarations
-class BACKEND_IMPEXP RigException
+class HAMLIB_CPP_IMPEXP RigException
 {
 public:
     const char *message;
