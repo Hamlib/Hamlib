@@ -93,18 +93,18 @@ kenwood_ts480_get_info(RIG *rig)
     }
 }
 
-static int ts480_set_ex_menu(RIG *rig, int number, int value)
+static int ts480_set_ex_menu(RIG *rig, int number, int value_len, int value)
 {
     char buf[20];
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    snprintf(buf, 20, "EX%03d0000%d", number, value);
+    snprintf(buf, 20, "EX%03d0000%0*d", number, value_len, value);
 
     RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 }
 
-static int ts480_get_ex_menu(RIG *rig, int number, int *value)
+static int ts480_get_ex_menu(RIG *rig, int number, int value_len, int *value)
 {
     int retval;
     char buf[20];
@@ -114,7 +114,7 @@ static int ts480_get_ex_menu(RIG *rig, int number, int *value)
 
     snprintf(buf, 20, "EX%03d0000", number);
 
-    retval = kenwood_safe_transaction(rig, buf, ackbuf, sizeof(ackbuf), 10);
+    retval = kenwood_safe_transaction(rig, buf, ackbuf, sizeof(ackbuf), 9 + value_len);
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
@@ -287,7 +287,7 @@ int kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        RETURNFUNC(ts480_set_ex_menu(rig, 34, (val.i - 400) / 50));
+        RETURNFUNC(ts480_set_ex_menu(rig, 34, 2, (val.i - 400) / 50));
 
     default:
         return kenwood_set_level(rig, vfo, level, val);
@@ -593,7 +593,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_CWPITCH: {
         int raw_value;
-        retval = ts480_get_ex_menu(rig, 34, &raw_value);
+        retval = ts480_get_ex_menu(rig, 34, 2, &raw_value);
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
