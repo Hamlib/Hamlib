@@ -352,6 +352,12 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_STRENGTH:
+        if (rig->state.cache.ptt != RIG_PTT_OFF) {
+            val->i = 0;
+            break;
+        }
+
+        return kenwood_get_level(rig, vfo, level, val);
     case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_RFPOWER:
         return kenwood_get_level(rig, vfo, level, val);
@@ -504,6 +510,25 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->f = 0;
         }
 
+        break;
+    }
+
+    case RIG_LEVEL_RFPOWER_METER: {
+        int raw_value;
+
+        if (rig->state.cache.ptt == RIG_PTT_OFF) {
+            val->i = 0;
+            break;
+        }
+
+        retval = kenwood_safe_transaction(rig, "SM0", ackbuf, sizeof(ackbuf), 7);
+        if (retval != RIG_OK) {
+            RETURNFUNC(retval);
+        }
+
+        sscanf(ackbuf, "SM0%d", &raw_value);
+
+        val->f = (float) raw_value / 20.0f;
         break;
     }
 
