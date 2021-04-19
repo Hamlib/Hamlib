@@ -2137,6 +2137,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                 rig_set_vfo(rig, RIG_VFO_B);
                 retval = icom_get_dsp_flt(rig, *mode);
                 *width = retval;
+                if (*width == 0) *width = rig->state.cache.widthMainA; // we'll use VFOA's width
                 // dont' really care about cache time here
                 // this is just to prevent vfo swapping while getting width
                 rig->state.cache.widthMainB = retval;
