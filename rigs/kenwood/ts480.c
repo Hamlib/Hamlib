@@ -43,7 +43,7 @@
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
     RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER)
 #define TS480_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT| \
-    RIG_FUNC_TUNER|RIG_FUNC_MON|RIG_FUNC_FBKIN)
+    RIG_FUNC_TUNER|RIG_FUNC_MON|RIG_FUNC_FBKIN|RIG_FUNC_LOCK)
 
 #define TS480_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_CPY|RIG_OP_TUNE)
 
@@ -429,9 +429,6 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         return kenwood_get_level(rig, vfo, level, val);
-    case RIG_LEVEL_MICGAIN:
-    case RIG_LEVEL_RFPOWER:
-        return kenwood_get_level(rig, vfo, level, val);
 
     case RIG_LEVEL_MONITOR_GAIN: {
         int raw_value;
@@ -643,15 +640,52 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     int retval;
+    int rit_enabled;
+    int xit_enabled;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
+    // RC clear command cannot be executed if RIT/XIT is not enabled
+
+    retval = kenwood_get_func(rig, vfo, RIG_FUNC_RIT, &rit_enabled);
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+    if (!rit_enabled)
+    {
+        retval = kenwood_get_func(rig, vfo, RIG_FUNC_XIT, &xit_enabled);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+    }
+
+    if (!rit_enabled && !xit_enabled)
+    {
+        retval = kenwood_set_func(rig, vfo, RIG_FUNC_RIT, 1);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+    }
+
     retval = kenwood_transaction(rig, "RC", NULL, 0);
-    if (retval != RIG_OK) {
+    if (retval != RIG_OK)
+    {
         RETURNFUNC(retval);
     }
 
-    return kenwood_set_rit(rig, vfo, rit);
+    if (!rit_enabled && !xit_enabled)
+    {
+        retval = kenwood_set_func(rig, vfo, RIG_FUNC_RIT, 0);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+    }
+
+    RETURNFUNC(kenwood_set_rit(rig, vfo, rit));
 }
 
 static int ts480_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)

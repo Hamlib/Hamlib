@@ -2633,12 +2633,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_VOXGAIN:
-        if (val.i > 9 || val.i < 0)
-        {
-            RETURNFUNC(-RIG_EINVAL);
-        }
-
-        snprintf(levelbuf, sizeof(levelbuf), "VG%03d", val.i);
+        kenwood_val = val.f * 9.0f;
+        snprintf(levelbuf, sizeof(levelbuf), "VG%03d", kenwood_val);
         break;
 
     case RIG_LEVEL_BKIN_DLYMS:
