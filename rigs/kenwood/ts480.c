@@ -30,6 +30,7 @@
 #include <hamlib/rig.h>
 #include "cal.h"
 #include "idx_builtin.h"
+#include "iofunc.h"
 #include "kenwood.h"
 
 #define TS480_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
@@ -319,6 +320,53 @@ int kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
+static int ts480_read_meters(RIG *rig, int *swr, int *comp, int *alc)
+{
+    int retval;
+    char *cmd = "RM;";
+    struct rig_state *rs = &rig->state;
+    char ackbuf[32];
+    int expected_len = 24;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+    retval = write_block(&rs->rigport, cmd, strlen(cmd));
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: write_block retval=%d\n", __func__, retval);
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    // TS-480 returns values for all meters at the same time, for example: RM10000;RM20000;RM30000;
+
+    retval = read_string(&rs->rigport, ackbuf, expected_len, NULL, 0);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read_string retval=%d\n", __func__, retval);
+
+    if (retval < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: failed to read rig response\n", __func__);
+        RETURNFUNC(retval);
+    }
+
+    if (retval != expected_len)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: expected %d bytes, got %d in '%s'\n", __func__, expected_len, retval, ackbuf);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
+    retval = sscanf(ackbuf, "RM1%d;RM2%d;RM3%d;", swr, comp, alc);
+    if (retval != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 3 meter values to parse, got %d in '%s'\n", __func__, retval, ackbuf);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
 
 /*
  * kenwood_ts480_get_level
@@ -490,6 +538,8 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_METER: {
         int raw_value;
 
+        // TODO: Read all meters at the same time: RM10000;RM20000;RM30000;
+
         retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
         if (retval != RIG_OK)
         {
@@ -514,86 +564,41 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
     }
 
-    case RIG_LEVEL_SWR: {
-        int meter_type;
-        int meter_value;
-
-        retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC(retval);
-        }
-
-        sscanf(ackbuf, "RM%1d", &meter_type);
-
-        if (meter_type == 1)
-        {
-            sscanf(ackbuf + 3, "%d", &meter_value);
-
-            if (rig->caps->swr_cal.size)
-            {
-                val->f = rig_raw2val_float(meter_value, &rig->caps->swr_cal);
-            }
-            else
-            {
-                val->f = (float) meter_value / 2.0f;
-            }
-        }
-        else
-        {
-            val->f = 0;
-        }
-
-        break;
-    }
-
-    case RIG_LEVEL_COMP_METER: {
-        int meter_type;
-        int meter_value;
-
-        retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC(retval);
-        }
-
-        sscanf(ackbuf, "RM%1d", &meter_type);
-
-        if (meter_type == 2)
-        {
-            sscanf(ackbuf + 3, "%d", &meter_value);
-            val->f = (float) meter_value; // Maximum value is 20dB
-        }
-        else
-        {
-            val->f = 0;
-        }
-
-        break;
-    }
-
+    case RIG_LEVEL_SWR:
+    case RIG_LEVEL_COMP_METER:
     case RIG_LEVEL_ALC: {
-        int meter_type;
-        int meter_value;
+        int swr;
+        int comp;
+        int alc;
 
-        retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
+        retval = ts480_read_meters(rig, &swr, &comp, &alc);
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
 
-        sscanf(ackbuf, "RM%1d", &meter_type);
-
-        if (meter_type == 3)
+        switch (level)
         {
-            sscanf(ackbuf + 3, "%d", &meter_value);
-            val->f = (float) meter_value / 10.0f;
+            case RIG_LEVEL_SWR:
+                if (rig->caps->swr_cal.size)
+                {
+                    val->f = rig_raw2val_float(swr, &rig->caps->swr_cal);
+                }
+                else
+                {
+                    val->f = (float) swr / 2.0f;
+                }
+                break;
+            case RIG_LEVEL_COMP_METER:
+                val->f = (float) comp; // Maximum value is 20dB
+                break;
+            case RIG_LEVEL_ALC:
+                // Maximum value is 20, so have the max at 5 just to be on the range where other rigs report ALC
+                val->f = (float) alc / 4.0f;
+                break;
+            default:
+                return -RIG_ENAVAIL;
         }
-        else
-        {
-            val->f = 0;
-        }
-
         break;
     }
 
