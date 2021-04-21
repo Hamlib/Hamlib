@@ -90,6 +90,23 @@ void frameParse(int fd, unsigned char *frame, int len)
         write(fd, frame, 11);
         break;
 
+    case 0x04:
+        if (vfo_curr == RIG_VFO_A || vfo_curr == RIG_VFO_MAIN)
+        {
+            printf("get_modeA\n");
+            frame[5] = modeA;
+            frame[6] = widthA;
+        }
+        else
+        {
+            printf("get_modeB\n");
+            frame[5] = modeB;
+            frame[6] = widthB;
+        }
+        frame[7] = 0xfd;
+        write(fd, frame, 8);
+        break;
+
     case 0x05:
         freq = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
         printf("set_freq to %.0f\n", freq);
