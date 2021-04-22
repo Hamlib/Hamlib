@@ -1219,7 +1219,7 @@ const struct rig_caps powersdr_caps =
     .serial_parity =  RIG_PARITY_NONE,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
-    .post_write_delay = 20,
+    .post_write_delay = 0,
     // The combination of timeout and retry is important
     // We need at least 3 seconds to do profile switches
     // Hitting the timeout is OK as long as we retry

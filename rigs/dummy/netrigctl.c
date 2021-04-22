@@ -328,9 +328,11 @@ static int netrigctl_open(RIG *rig)
         {
             break;
         }
-        switch(i)
+
+        switch (i)
         {
         }
+
         rig->caps->tx_range_list1->startf = rs->tx_range_list[i].startf;
         rig->caps->tx_range_list1->endf = rs->tx_range_list[i].endf;
         rig->caps->tx_range_list1->modes = rs->tx_range_list[i].modes;
@@ -626,7 +628,8 @@ static int netrigctl_open(RIG *rig)
             {
                 // use the rig's timeout value pluse 200ms for potential network delays
                 rig->caps->timeout = strtol(value, NULL, 0) + 200;
-                rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n", __func__, value, rig->caps->timeout);
+                rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n",
+                          __func__, value, rig->caps->timeout);
             }
             else
             {

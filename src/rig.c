@@ -1703,7 +1703,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (rig->state.twiddle_state == TWIDDLE_ON)
     {
         // we keep skipping set_freq while the vfo knob is in motion
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Twiddle on so skipping this set_freq request one time\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: Twiddle on so skipping this set_freq request one time\n", __func__);
         rig->state.twiddle_state = TWIDDLE_OFF;
     }
 
@@ -2490,9 +2491,11 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
+
     if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s ********************** called vfo=%s\n", __func__, rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s ********************** called vfo=%s\n",
+                  __func__, rig_strvfo(vfo));
     }
 
     if (CHECK_RIG_ARG(rig))
@@ -4094,7 +4097,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
     // in split mode we alwasy use VFOB
     // in the future we may start using RIG_VFO_TX and let the backend figure out what VFO to use
-    vfo = vfo_fixup(rig,RIG_VFO_B); // in split mode we always use VFOB/Sub for TX
+    vfo = vfo_fixup(rig, RIG_VFO_B); // in split mode we always use VFOB/Sub for TX
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: vfo=%s, tx_freq=%.0f, tx_mode=%s, tx_width=%d\n", __func__,
               rig_strvfo(vfo), tx_freq, rig_strrmode(tx_mode), (int)tx_width);
@@ -4347,7 +4350,8 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
 
     if (!split || !tx_vfo)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: split or tx_vfo is null, split=%p, tx_vfo=%p\n", __func__, split, tx_vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: split or tx_vfo is null, split=%p, tx_vfo=%p\n",
+                  __func__, split, tx_vfo);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -4358,7 +4362,9 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         // if we can't get the vfo we will return whatever we have cached
         *split = rig->state.cache.split;
         *tx_vfo = rig->state.cache.split_vfo;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: no get_split_vfo so returning split=%d, tx_vfo=%s\n", __func__, *split, rig_strvfo(*tx_vfo));
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: no get_split_vfo so returning split=%d, tx_vfo=%s\n", __func__, *split,
+                  rig_strvfo(*tx_vfo));
         RETURNFUNC(RIG_OK);
     }
 

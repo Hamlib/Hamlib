@@ -103,6 +103,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[5] = modeB;
             frame[6] = widthB;
         }
+
         frame[7] = 0xfd;
         write(fd, frame, 8);
         break;
@@ -113,8 +114,9 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (vfo_curr == RIG_VFO_A || vfo_curr == RIG_VFO_MAIN) { freqA = freq; }
         else { freqB = freq; }
+
 //    case 0x06:
-        
+
 
     case 0x07:
 
@@ -181,10 +183,12 @@ int openPort(char *comport) // doesn't matter for using pts devices
 {
     int fd;
     fd = open(comport, O_RDWR);
+
     if (fd < 0)
     {
         perror(comport);
     }
+
     return fd;
 }
 
@@ -214,8 +218,10 @@ int openPort(char *comport) // doesn't matter for using pts devices
 
 void rigStatus()
 {
-    printf("VFOA: mode=%s width=%ld freq=%.0f\n", rig_strrmode(modeA), widthA, freqA);
-    printf("VFOB: mode=%s width=%ld freq=%.0f\n", rig_strrmode(modeB), widthB, freqB);
+    printf("VFOA: mode=%s width=%ld freq=%.0f\n", rig_strrmode(modeA), widthA,
+           freqA);
+    printf("VFOB: mode=%s width=%ld freq=%.0f\n", rig_strrmode(modeB), widthB,
+           freqB);
 }
 
 int main(int argc, char **argv)
@@ -225,13 +231,16 @@ int main(int argc, char **argv)
 
     printf("%s: %s\n", argv[0], rig_version());
 #if defined(WIN32) || defined(_WIN32)
+
     if (argc != 2)
     {
         printf("Missing comport argument\n");
         printf("%s [comport]\n", argv[0]);
         exit(1);
     }
+
 #endif
+
     while (1)
     {
         int len = frameGet(fd, buf);

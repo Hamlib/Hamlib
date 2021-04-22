@@ -911,7 +911,8 @@ int kenwood_open(RIG *rig)
             int retval;
             split_t split;
             vfo_t tx_vfo;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: found the right driver for %s(%d)\n", __func__, rig->caps->model_name, rig->caps->rig_model);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: found the right driver for %s(%d)\n",
+                      __func__, rig->caps->model_name, rig->caps->rig_model);
             /* get current AI state so it can be restored */
             kenwood_get_trn(rig, &priv->trn_state);  /* ignore errors */
 
