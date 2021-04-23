@@ -2108,8 +2108,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         if (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
                    RIG_VFO_CURR))
         {
-            // then we get our current vfo..i.e. VFOA
-            if (rig->state.current_vfo != RIG_VFO_A)
+            // then we get what was asked for
+            if (vfo == RIG_VFO_NONE)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s(%d): forcing default VFO_A\n", __func__,
                           __LINE__);

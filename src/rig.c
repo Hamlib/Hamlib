@@ -1895,6 +1895,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     vfo = vfo_fixup(rig, vfo);
 
+    if (vfo == RIG_VFO_CURR) vfo = curr_vfo;
+
     // we ignore get_freq for the uplink VFO for gpredict to behave better
     if ((rig->state.uplink == 1 && vfo == RIG_VFO_SUB)
             || (rig->state.uplink == 2 && vfo == RIG_VFO_MAIN))
