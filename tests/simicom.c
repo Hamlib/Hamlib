@@ -120,8 +120,16 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     case 0x07:
 
-        if (frame[5] == 0xd0) { vfo_curr = RIG_VFO_MAIN; }
-        else if (frame[5] == 0xd1) { vfo_curr = RIG_VFO_SUB; }
+        switch (frame[5])
+        {
+        case 0x00: vfo_curr = RIG_VFO_A; break;
+
+        case 0x01: vfo_curr = RIG_VFO_B; break;
+
+        case 0xd0: vfo_curr = RIG_VFO_MAIN; break;
+
+        case 0xd1: vfo_curr = RIG_VFO_SUB; break;
+        }
 
         printf("set_vfo to %s\n", rig_strvfo(vfo_curr));
 
