@@ -31,6 +31,7 @@
 #include "cal.h"
 #include "idx_builtin.h"
 #include "iofunc.h"
+#include "token.h"
 #include "kenwood.h"
 
 #define TS480_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
@@ -42,7 +43,7 @@
 
 #define TS480_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
-    RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER)
+    RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
 #define TS480_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT| \
     RIG_FUNC_TUNER|RIG_FUNC_MON|RIG_FUNC_FBKIN|RIG_FUNC_LOCK)
 
@@ -71,6 +72,70 @@
         {   12, 3.0f }, \
         {   20, 10.0f } \
     } }
+
+#define TOK_FUNC_FILTER_WIDTH_DATA TOKEN_BACKEND(101)
+#define TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT TOKEN_BACKEND(102)
+#define TOK_LEVEL_DSP_RX_EQUALIZER TOKEN_BACKEND(103)
+#define TOK_LEVEL_DSP_TX_EQUALIZER TOKEN_BACKEND(104)
+#define TOK_LEVEL_DSP_TX_BANDWIDTH TOKEN_BACKEND(105)
+#define TOK_LEVEL_BEEP_VOLUME TOKEN_BACKEND(106)
+#define TOK_LEVEL_TX_SIDETONE_VOLUME TOKEN_BACKEND(107)
+#define TOK_LEVEL_AF_INPUT_LEVEL TOKEN_BACKEND(108)
+#define TOK_LEVEL_AF_OUTPUT_LEVEL TOKEN_BACKEND(109)
+
+int ts480_ext_tokens[] = {
+    TOK_FUNC_FILTER_WIDTH_DATA, TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT,
+    TOK_LEVEL_DSP_RX_EQUALIZER, TOK_LEVEL_DSP_TX_EQUALIZER, TOK_LEVEL_DSP_TX_BANDWIDTH,
+    TOK_LEVEL_BEEP_VOLUME, TOK_LEVEL_TX_SIDETONE_VOLUME,
+    TOK_LEVEL_AF_INPUT_LEVEL, TOK_LEVEL_AF_OUTPUT_LEVEL,
+    TOK_BACKEND_NONE,
+};
+
+const struct confparams ts480_ext_funcs[] =
+{
+    {
+        TOK_FUNC_FILTER_WIDTH_DATA, "FILTER_WIDTH_DATA", "Filter bandwidth for data", "Filter bandwidth for data communications",
+        NULL, RIG_CONF_CHECKBUTTON,
+    },
+    {
+        TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT, "TX_AUDIO_FROM_DATA_INPUT", "TX audio from data input", "Transmit with audio input from the data terminal",
+        NULL, RIG_CONF_CHECKBUTTON,
+    },
+    { RIG_CONF_END, NULL, }
+};
+
+const struct confparams ts480_ext_levels[] =
+{
+    {
+        TOK_LEVEL_DSP_RX_EQUALIZER, "DSP_RX_EQUALIZER", "DSP RX equalizer", "DSP RX equalizer type",
+        NULL, RIG_CONF_COMBO, { .c = { .combostr = { "OFF", "Hb1", "Hb2", "FP", "bb1", "bb2", "c", "U", NULL } } }
+    },
+    {
+        TOK_LEVEL_DSP_TX_EQUALIZER, "DSP_TX_EQUALIZER", "DSP TX equalizer", "DSP TX equalizer type",
+        NULL, RIG_CONF_COMBO, { .c = { .combostr = { "OFF", "Hb1", "Hb2", "FP", "bb1", "bb2", "c", "U", NULL } } }
+    },
+    {
+        TOK_LEVEL_DSP_TX_BANDWIDTH, "DSP_TX_BANDWIDTH", "DSP TX bandwidth", "DSP TX bandwidth for SSB and AM",
+        NULL, RIG_CONF_COMBO, { .c = { .combostr = { "2.0 kHz", "2.4 kHz", NULL } } }
+    },
+    {
+        TOK_LEVEL_BEEP_VOLUME, "BEEP_VOLUME", "Beep volume", "Beep volume",
+        NULL, RIG_CONF_NUMERIC, { .n = { .min = 0, .max = 9, .step = 1 } }
+    },
+    {
+        TOK_LEVEL_TX_SIDETONE_VOLUME, "TX_SIDETONE_VOLUME", "TX sidetone volume", "TX sidetone volume",
+        NULL, RIG_CONF_NUMERIC, { .n = { .min = 0, .max = 9, .step = 1 } }
+    },
+    {
+        TOK_LEVEL_AF_INPUT_LEVEL, "AF_INPUT_LEVEL", "AF input level", "AF input level for data communications",
+        NULL, RIG_CONF_NUMERIC, { .n = { .min = 0, .max = 9, .step = 1 } }
+    },
+    {
+        TOK_LEVEL_AF_OUTPUT_LEVEL, "AF_OUTPUT_LEVEL", "AF output level", "AF output level for data communications",
+        NULL, RIG_CONF_NUMERIC, { .n = { .min = 0, .max = 9, .step = 1 } }
+    },
+    { RIG_CONF_END, NULL, }
+};
 
 /*
  * kenwood_ts480_get_info
@@ -341,7 +406,7 @@ static int ts480_read_meters(RIG *rig, int *swr, int *comp, int *alc)
 
     // TS-480 returns values for all meters at the same time, for example: RM10000;RM20000;RM30000;
 
-    retval = read_string(&rs->rigport, ackbuf, expected_len, NULL, 0);
+    retval = read_string(&rs->rigport, ackbuf, expected_len + 1, NULL, 0);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string retval=%d\n", __func__, retval);
 
@@ -721,9 +786,213 @@ static int ts480_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     RETURNFUNC(RIG_OK);
 }
 
+static int ts480_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
+{
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (token)
+    {
+        case TOK_FUNC_FILTER_WIDTH_DATA:
+            if (status < 0 || status > 1)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 45, 1, status);
+            break;
+        case TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT:
+            if (status < 0 || status > 1)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 60, 1, status);
+            break;
+        default:
+            RETURNFUNC(-RIG_EINVAL);
+    }
+
+    RETURNFUNC(retval);
+}
+
+static int ts480_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
+{
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (token)
+    {
+        case TOK_FUNC_FILTER_WIDTH_DATA:
+            retval = ts480_get_ex_menu(rig, 45, 1, status);
+            break;
+        case TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT:
+            retval = ts480_get_ex_menu(rig, 60, 1, status);
+            break;
+        default:
+            RETURNFUNC(-RIG_EINVAL);
+    }
+
+    RETURNFUNC(retval);
+}
+
+static int ts480_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (token)
+    {
+        case TOK_LEVEL_DSP_RX_EQUALIZER:
+            if (val.i < 0 || val.i > 7)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 18, 1, val.i);
+            break;
+        case TOK_LEVEL_DSP_TX_EQUALIZER:
+            if (val.i < 0 || val.i > 7)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 19, 1, val.i);
+            break;
+        case TOK_LEVEL_DSP_TX_BANDWIDTH:
+            if (val.i < 0 || val.i > 1)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 20, 1, val.i);
+            break;
+        case TOK_LEVEL_BEEP_VOLUME:
+            if (val.i < 0 || val.i > 9)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 12, 1, val.i);
+            break;
+        case TOK_LEVEL_TX_SIDETONE_VOLUME:
+            if (val.i < 0 || val.i > 9)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 13, 1, val.i);
+            break;
+        case TOK_LEVEL_AF_INPUT_LEVEL:
+            if (val.i < 0 || val.i > 9)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 46, 1, val.i);
+            break;
+        case TOK_LEVEL_AF_OUTPUT_LEVEL:
+            if (val.i < 0 || val.i > 9)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 47, 1, val.i);
+            break;
+        default:
+            RETURNFUNC(-RIG_EINVAL);
+    }
+
+    RETURNFUNC(retval);
+}
+
+static int ts480_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (token)
+    {
+        case TOK_LEVEL_DSP_RX_EQUALIZER:
+            retval = ts480_get_ex_menu(rig, 18, 1, &val->i);
+            break;
+        case TOK_LEVEL_DSP_TX_EQUALIZER:
+            retval = ts480_get_ex_menu(rig, 19, 1, &val->i);
+            break;
+        case TOK_LEVEL_DSP_TX_BANDWIDTH:
+            retval = ts480_get_ex_menu(rig, 20, 1, &val->i);
+            break;
+        case TOK_LEVEL_BEEP_VOLUME:
+            retval = ts480_get_ex_menu(rig, 12, 1, &val->i);
+            break;
+        case TOK_LEVEL_TX_SIDETONE_VOLUME:
+            retval = ts480_get_ex_menu(rig, 13, 1, &val->i);
+            break;
+        case TOK_LEVEL_AF_INPUT_LEVEL:
+            retval = ts480_get_ex_menu(rig, 46, 1, &val->i);
+            break;
+        case TOK_LEVEL_AF_OUTPUT_LEVEL:
+            retval = ts480_get_ex_menu(rig, 47, 1, &val->i);
+            break;
+        default:
+            RETURNFUNC(-RIG_EINVAL);
+    }
+
+    RETURNFUNC(retval);
+}
+
+static struct kenwood_slope_filter ts480_slope_filter_high[] = {
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 0, 1000 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 1, 1200 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 2, 1400 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 3, 1600 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 4, 1800 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 5, 2000 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 6, 2200 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 7, 2400 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 8, 2600 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 9, 2800 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 10, 3000 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 11, 3400 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 12, 4000 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 13, 5000 },
+    { RIG_MODE_AM, 0, 0, 2500 },
+    { RIG_MODE_AM, 0, 1, 3000 },
+    { RIG_MODE_AM, 0, 2, 4000 },
+    { RIG_MODE_AM, 0, 3, 5000 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 0, 1000 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 1, 1500 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 2, 2210 },
+    { RIG_MODE_NONE, -1, -1 },
+};
+
+static struct kenwood_slope_filter ts480_slope_filter_low[] = {
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 0, 0 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 1, 50 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 2, 100 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 3, 200 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 4, 300 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 5, 400 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 6, 500 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 7, 600 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 8, 700 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 9, 800 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 10, 900 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 10, 1, 1000 },
+    { RIG_MODE_AM, 0, 0, 0 },
+    { RIG_MODE_AM, 0, 1, 100 },
+    { RIG_MODE_AM, 0, 2, 200 },
+    { RIG_MODE_AM, 0, 3, 500 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 0, 50 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 1, 100 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 2, 250 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 3, 500 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 4, 1000 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 5, 1500 },
+    { RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_RTTYR | RIG_MODE_FM | RIG_MODE_AM, 1, 6, 2400 },
+    { RIG_MODE_NONE, -1, -1 },
+};
+
 static struct kenwood_priv_caps ts480_priv_caps =
 {
     .cmdtrm = EOM_KEN,
+    .slope_filter_high = ts480_slope_filter_high,
+    .slope_filter_low = ts480_slope_filter_low,
 };
 
 int ts480_init(RIG *rig)
@@ -867,13 +1136,17 @@ const struct rig_caps ts480_caps =
     .vfo_ops = TS480_VFO_OPS,
     .level_gran = {
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
+        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 3000 }, .step = { .i = 150 } },
         [LVL_KEYSPD] = {.min = {.i = 10}, .max = {.i = 60}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
-        [LVL_BKIN_DLYMS] = {.min = {.i = 0}, .max = {.i = 3000}, .step = {.i = 150}},
+        [LVL_BKIN_DLYMS] = {.min = {.i = 0}, .max = {.i = 1000}, .step = {.i = 50}},
     },
     .str_cal = TS480_STR_CAL,
     .swr_cal = TS480_SWR_CAL,
+
+    .ext_tokens = ts480_ext_tokens,
+    .extfuncs = ts480_ext_funcs,
+    .extlevels = ts480_ext_levels,
 
     .priv = (void *)& ts480_priv_caps,
     .rig_init = ts480_init,
@@ -905,10 +1178,14 @@ const struct rig_caps ts480_caps =
     .has_get_level = TS480_LEVEL_ALL,
     .set_level = kenwood_ts480_set_level,
     .get_level = kenwood_ts480_get_level,
+    .set_ext_level = ts480_set_ext_level,
+    .get_ext_level = ts480_get_ext_level,
     .has_get_func = TS480_FUNC_ALL,
     .has_set_func = TS480_FUNC_ALL,
     .set_func = ts480_set_func,
     .get_func = ts480_get_func,
+    .set_ext_func = ts480_set_ext_func,
+    .get_ext_func = ts480_get_ext_func,
     .send_morse = kenwood_send_morse,
     .vfo_op = kenwood_vfo_op,
 };

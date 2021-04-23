@@ -106,11 +106,23 @@ extern const struct confparams kenwood_cfg_params[];
 #define RIG_IS_POWERSDR  (rig->caps->rig_model == RIG_MODEL_POWERSDR)
 #define RIG_IS_MALACHITE (rig->caps->rig_model == RIG_MODEL_MALACHITE)
 
+#define KENWOOD_SLOPE_FILTER_COUNT_MAX 64
+
+struct kenwood_slope_filter
+{
+    rmode_t modes;
+    int data_mode_filter;
+    int value;
+    int frequency_hz;
+};
+
 struct kenwood_priv_caps
 {
     char cmdtrm;    /* Command termination chars (ken=';' or th='\r') */
     int if_len;     /* length of IF; answer excluding ';' terminator */
     rmode_t *mode_table;
+    struct kenwood_slope_filter *slope_filter_high; /* Last entry should have value == -1 and frequency_hz == -1*/
+    struct kenwood_slope_filter *slope_filter_low; /* Last entry should have value == -1 and frequency_hz == -1*/
 };
 
 struct kenwood_priv_data
