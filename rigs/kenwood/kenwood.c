@@ -2410,6 +2410,7 @@ static int kenwood_find_slope_filter_for_frequency(RIG *rig, vfo_t vfo, struct k
     int cache_ms_mode;
     pbwidth_t width;
     int cache_ms_width;
+    int data_mode_filter_active;
 
     if (filter == NULL)
     {
@@ -2422,10 +2423,16 @@ static int kenwood_find_slope_filter_for_frequency(RIG *rig, vfo_t vfo, struct k
         return -RIG_EINVAL;
     }
 
+    retval = rig_get_ext_func(rig, vfo, TOK_FUNC_FILTER_WIDTH_DATA, &data_mode_filter_active);
+    if (retval != RIG_OK)
+    {
+        // Ignore errors, e.g. if the command is not supported
+        data_mode_filter_active = 0;
+    }
+
     for (i = 0; filter[i].value >= 0; i++)
     {
-        // TODO: check data mode status
-        if (filter[i].modes & mode)
+        if (filter[i].modes & mode && filter[i].data_mode_filter == data_mode_filter_active)
         {
             if (filter[i].frequency_hz >= frequency_hz)
             {
@@ -2455,6 +2462,7 @@ static int kenwood_find_slope_filter_for_value(RIG *rig, vfo_t vfo, struct kenwo
     int cache_ms_mode;
     pbwidth_t width;
     int cache_ms_width;
+    int data_mode_filter_active;
 
     if (filter == NULL)
     {
@@ -2467,10 +2475,16 @@ static int kenwood_find_slope_filter_for_value(RIG *rig, vfo_t vfo, struct kenwo
         return -RIG_EINVAL;
     }
 
+    retval = rig_get_ext_func(rig, vfo, TOK_FUNC_FILTER_WIDTH_DATA, &data_mode_filter_active);
+    if (retval != RIG_OK)
+    {
+        // Ignore errors, e.g. if the command is not supported
+        data_mode_filter_active = 0;
+    }
+
     for (i = 0; filter[i].value >= 0; i++)
     {
-        // TODO: check data mode status
-        if (filter[i].modes & mode)
+        if (filter[i].modes & mode && filter[i].data_mode_filter == data_mode_filter_active)
         {
             if (filter[i].value == value)
             {
@@ -3095,8 +3109,15 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         retval = kenwood_find_slope_filter_for_value(rig, vfo, caps->slope_filter_low, value, &val->i);
         if (retval != RIG_OK)
         {
-            // Fall back to using raw values
-            val->i = value;
+            if (retval == -RIG_ENAVAIL)
+            {
+                // Fall back to using raw values
+                val->i = value;
+            }
+            else
+            {
+                RETURNFUNC(retval);
+            }
         }
         break;
 
@@ -3113,8 +3134,15 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         retval = kenwood_find_slope_filter_for_value(rig, vfo, caps->slope_filter_high, value, &val->i);
         if (retval != RIG_OK)
         {
-            // Fall back to using raw values
-            val->i = value;
+            if (retval == -RIG_ENAVAIL)
+            {
+                // Fall back to using raw values
+                val->i = value;
+            }
+            else
+            {
+                RETURNFUNC(retval);
+            }
         }
         break;
 
