@@ -402,7 +402,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->max_rit = atol(buf);
+    rig->caps->max_rit = rs->max_rit = atol(buf);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -411,7 +411,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->max_xit = atol(buf);
+    rig->caps->max_xit = rs->max_xit = atol(buf);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -420,7 +420,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->max_ifshift = atol(buf);
+    rig->caps->max_ifshift = rs->max_ifshift = atol(buf);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -443,13 +443,20 @@ static int netrigctl_open(RIG *rig)
                  &rs->preamp[2], &rs->preamp[3],
                  &rs->preamp[4], &rs->preamp[5],
                  &rs->preamp[6]);
+    rig->caps->preamp[0] = rs->preamp[0];
+    rig->caps->preamp[1] = rs->preamp[1];
+    rig->caps->preamp[2] = rs->preamp[2];
+    rig->caps->preamp[3] = rs->preamp[3];
+    rig->caps->preamp[4] = rs->preamp[4];
+    rig->caps->preamp[5] = rs->preamp[5];
+    rig->caps->preamp[6] = rs->preamp[6];
 
     if (ret < 0 || ret >= HAMLIB_MAXDBLSTSIZ)
     {
         ret = 0;
     }
 
-    rs->preamp[ret] = RIG_DBLST_END;
+    rig->caps->preamp[ret] = rs->preamp[ret] = RIG_DBLST_END;
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -463,13 +470,20 @@ static int netrigctl_open(RIG *rig)
                  &rs->attenuator[2], &rs->attenuator[3],
                  &rs->attenuator[4], &rs->attenuator[5],
                  &rs->attenuator[6]);
+    rig->caps->attenuator[0] = rs->attenuator[0];
+    rig->caps->attenuator[1] = rs->attenuator[1];
+    rig->caps->attenuator[2] = rs->attenuator[2];
+    rig->caps->attenuator[3] = rs->attenuator[3];
+    rig->caps->attenuator[4] = rs->attenuator[4];
+    rig->caps->attenuator[5] = rs->attenuator[5];
+    rig->caps->attenuator[6] = rs->attenuator[6];
 
     if (ret < 0 || ret >= HAMLIB_MAXDBLSTSIZ)
     {
         ret = 0;
     }
 
-    rs->attenuator[ret] = RIG_DBLST_END;
+    rig->caps->attenuator[ret] = rs->attenuator[ret] = RIG_DBLST_END;
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
