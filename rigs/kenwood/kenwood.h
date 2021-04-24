@@ -28,7 +28,7 @@
 #include "token.h"
 #include "misc.h"
 
-#define BACKEND_VER "20210406"
+#define BACKEND_VER "20210423"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -133,7 +133,6 @@ struct kenwood_priv_data
     struct timespec cache_start;
     char last_if_response[KENWOOD_MAX_BUF_LEN];
     int poweron;   /* to avoid powering on more than once */
-    int has_rit2;  /* rig has set 2 rit command */
     int ag_format; /* which AG command is being used...see LEVEL_AF in kenwood.c*/
     int micgain_min, micgain_max; /* varies by rig so we figure it out automagically */
     int is_k2;
