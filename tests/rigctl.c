@@ -522,6 +522,19 @@ int main(int argc, char *argv[])
      */
     if (dump_caps_opt)
     {
+
+        // if rigctld then we need to open to get the rig caps
+        if (my_model == RIG_MODEL_NETRIGCTL) {
+            int ret;
+            rig_set_debug(verbose);
+            my_rig = rig_init(my_model);
+            if((ret=rig_open(my_rig)) != RIG_OK) 
+            {
+                fprintf(stderr,"Unable to open rigctld: %s\n", rigerror(ret));
+                exit(1);
+            }
+            rig_close(my_rig);
+        }
         dumpcaps(my_rig, stdout);
         rig_cleanup(my_rig);    /* if you care about memory */
         exit(0);
