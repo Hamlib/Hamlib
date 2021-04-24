@@ -112,7 +112,7 @@ struct kenwood_filter_width
 {
     rmode_t modes;
     int value;
-    int width_hz;
+    pbwidth_t width_hz;
 };
 
 struct kenwood_slope_filter
@@ -120,7 +120,7 @@ struct kenwood_slope_filter
     rmode_t modes;
     int data_mode_filter;
     int value;
-    int frequency_hz;
+    pbwidth_t frequency_hz;
 };
 
 struct kenwood_priv_caps

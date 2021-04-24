@@ -975,7 +975,7 @@ static int ts480_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 }
 
 static struct kenwood_filter_width ts480_filter_width[] = {
-    { RIG_MODE_CW | RIG_MODE_CWR, 0, 50 },
+    { RIG_MODE_CW | RIG_MODE_CWR, 50, 50 },
     { RIG_MODE_CW | RIG_MODE_CWR, 80, 80 },
     { RIG_MODE_CW | RIG_MODE_CWR, 100, 100 },
     { RIG_MODE_CW | RIG_MODE_CWR, 150, 150 },
@@ -991,14 +991,14 @@ static struct kenwood_filter_width ts480_filter_width[] = {
     { RIG_MODE_RTTY | RIG_MODE_RTTYR, 1000, 1000 },
     { RIG_MODE_RTTY | RIG_MODE_RTTYR, 1500, 1500 },
     { RIG_MODE_SSB, 0, 2400 },
-    { RIG_MODE_SSB, 1, 2400 }, // NAR1?
-    { RIG_MODE_SSB, 2, 2400 }, // NAR2?
-    { RIG_MODE_FM, 0, 2400 },
-    { RIG_MODE_FM, 1, 2400 }, // NAR1?
-    { RIG_MODE_FM, 2, 2400 }, // NAR2?
-    { RIG_MODE_AM, 0, 2400 },
-    { RIG_MODE_AM, 1, 2400 }, // NAR1?
-    { RIG_MODE_AM, 2, 2400 }, // NAR2?
+    { RIG_MODE_SSB, 1, 1200 }, // TODO: NAR1?
+    { RIG_MODE_SSB, 2, 1800 }, // TODO: NAR2?
+    { RIG_MODE_FM, 0, 14000 },
+    { RIG_MODE_FM, 1, 7000 }, // TODO: NAR1?
+    { RIG_MODE_FM, 2, 10000 }, // TODO: NAR2?
+    { RIG_MODE_AM, 0, 9000 },
+    { RIG_MODE_AM, 1, 3000 }, // TODO: NAR1?
+    { RIG_MODE_AM, 2, 6000 }, // TODO: NAR2?
     { RIG_MODE_NONE, -1, -1 },
 };
 
@@ -1057,6 +1057,7 @@ static struct kenwood_slope_filter ts480_slope_filter_low[] = {
 static struct kenwood_priv_caps ts480_priv_caps =
 {
     .cmdtrm = EOM_KEN,
+    .filter_width = ts480_filter_width,
     .slope_filter_high = ts480_slope_filter_high,
     .slope_filter_low = ts480_slope_filter_low,
 };
@@ -1108,7 +1109,7 @@ const struct rig_caps ts480_caps =
     .write_delay = 0,
     .post_write_delay = 0,
     .timeout = 200,
-    .retry = 10,
+    .retry = 3,
     .preamp = {12, RIG_DBLST_END,},
     .attenuator = {12, RIG_DBLST_END,},
     .max_rit = kHz(9.99),
@@ -1193,10 +1194,29 @@ const struct rig_caps ts480_caps =
     /* mode/filter list, remember: order matters! */
     .filters =  {
         {RIG_MODE_SSB, kHz(2.4)},
-        {RIG_MODE_CW, Hz(200)},
-        {RIG_MODE_RTTY, Hz(500)},
+        {RIG_MODE_SSB, kHz(1.2)},
+        {RIG_MODE_SSB, kHz(1.8)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(200)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(50)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(1000)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(80)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(100)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(150)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(300)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(400)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(500)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(600)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(2000)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(500)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(250)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(1000)},
+        {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(1500)},
         {RIG_MODE_AM, kHz(9)},
+        {RIG_MODE_AM, kHz(3)},
+        {RIG_MODE_AM, kHz(6)},
         {RIG_MODE_FM, kHz(14)},
+        {RIG_MODE_FM, kHz(7)},
+        {RIG_MODE_FM, kHz(10)},
         RIG_FLT_END,
     },
     .vfo_ops = TS480_VFO_OPS,

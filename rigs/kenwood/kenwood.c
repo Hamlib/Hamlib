@@ -1850,6 +1850,42 @@ static int kenwood_set_filter(RIG *rig, pbwidth_t width)
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
 
+static int kenwood_set_filter_width(RIG *rig, rmode_t mode, pbwidth_t width)
+{
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    struct kenwood_filter_width *selected_filter_width = NULL;
+    char cmd[20];
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, width=%ld\n", __func__, width);
+
+    if (caps->filter_width == NULL)
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    for (i = 0; caps->filter_width[i].value >= 0; i++)
+    {
+        if (caps->filter_width[i].modes & mode)
+        {
+            selected_filter_width = &caps->filter_width[i];
+            if (caps->filter_width[i].width_hz >= width)
+            {
+                break;
+            }
+        }
+    }
+
+    if (selected_filter_width == NULL)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    snprintf(cmd, sizeof(cmd), "FW%04d", selected_filter_width->value);
+
+    RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
+}
+
 /*
  * kenwood_set_mode
  */
@@ -1995,6 +2031,15 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         kenwood_set_filter(rig, width);
         /* non fatal */
     }
+    else if (RIG_IS_TS480)
+    {
+        err = kenwood_set_filter_width(rig, mode, width);
+        if (err != RIG_OK)
+        {
+            // Ignore errors as non-fatal
+            rig_debug(RIG_DEBUG_ERR, "%s: error setting filter width, error: %d\n", __func__, err);
+        }
+    }
 
     RETURNFUNC(RIG_OK);
 }
@@ -2057,6 +2102,44 @@ static int kenwood_get_filter(RIG *rig, pbwidth_t *width)
     }
 
     RETURNFUNC(RIG_OK);
+}
+
+static int kenwood_get_filter_width(RIG *rig, rmode_t mode, pbwidth_t *width)
+{
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    char ackbuf[20];
+    int i;
+    int retval;
+    int filter_value;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (caps->filter_width == NULL)
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    retval = kenwood_safe_transaction(rig, "FW", ackbuf, sizeof(ackbuf), 6);
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    sscanf(ackbuf, "FW%d", &filter_value);
+
+    for (i = 0; caps->filter_width[i].value >= 0; i++)
+    {
+        if (caps->filter_width[i].modes & mode)
+        {
+            if (caps->filter_width[i].value == filter_value)
+            {
+                *width = caps->filter_width[i].width_hz;
+                RETURNFUNC(RIG_OK);
+            }
+        }
+    }
+
+    RETURNFUNC(-RIG_EINVAL);
 }
 
 /*
@@ -2172,8 +2255,20 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         }
     }
 
-    /* XXX ? */
-    *width = rig_passband_normal(rig, *mode);
+    if (RIG_IS_TS480)
+    {
+        retval = kenwood_get_filter_width(rig, *mode, width);
+        if (retval != RIG_OK)
+        {
+            // Ignore errors as non-fatal
+            rig_debug(RIG_DEBUG_ERR, "%s: error getting filter width, error: %d\n", __func__, retval);
+            *width = rig_passband_normal(rig, *mode);
+        }
+    }
+    else
+    {
+        *width = rig_passband_normal(rig, *mode);
+    }
 
     RETURNFUNC(RIG_OK);
 }
