@@ -492,7 +492,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_get_func = strtoll(buf, NULL, 0);
+    rig->caps->has_get_func = rs->has_get_func = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -501,7 +501,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_set_func = strtoll(buf, NULL, 0);
+    rig->caps->has_set_func = rs->has_set_func = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -510,7 +510,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_get_level = strtoll(buf, NULL, 0);
+    rig->caps->has_get_level = rs->has_get_level = strtoll(buf, NULL, 0);
 
     if (rs->has_get_level & RIG_LEVEL_RAWSTR)
     {
@@ -518,6 +518,7 @@ static int netrigctl_open(RIG *rig)
            provide a front end emulation, if it can't then an
            -RIG_EINVAL will be returned */
         rs->has_get_level |= RIG_LEVEL_STRENGTH;
+        rig->caps->has_get_level |= RIG_LEVEL_STRENGTH;
     }
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
@@ -527,7 +528,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_set_level = strtoll(buf, NULL, 0);
+    rig->caps->has_set_level = rs->has_set_level = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -545,7 +546,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_set_parm = strtoll(buf, NULL, 0);
+    rig->caps->has_set_parm = rs->has_set_parm = strtoll(buf, NULL, 0);
 
 #if 0
     gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
