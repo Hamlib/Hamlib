@@ -589,9 +589,15 @@ static int netrigctl_open(RIG *rig)
                      * if there is any PTT capability and we have not
                      * locally overridden it
                      */
-                    rig->state.pttport.type.ptt = temp;
+                    rig->state.pttport.type.ptt = RIG_PTT_RIG_MICDATA;
+                    rig->caps->ptt_type = RIG_PTT_RIG_MICDATA;
                     rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting,
                               rig->state.pttport.type.ptt);
+                }
+                else
+                {
+                    rig->state.pttport.type.ptt = temp;
+                    rig->caps->ptt_type = temp;
                 }
             }
             else if (strcmp(setting, "targetable_vfo") == 0)
