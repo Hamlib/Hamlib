@@ -344,12 +344,6 @@ int dumpcaps(RIG *rig, FILE *fout)
                            caps->level_gran);
     fprintf(fout, "Get level: %s\n", prntbuf);
 
-    if ((caps->has_get_level & RIG_LEVEL_SQLSTAT))
-    {
-        fprintf(fout, "Warning--backend uses deprecated SQLSTAT level!\n");
-        backend_warnings++;
-    }
-
     if ((caps->has_get_level & RIG_LEVEL_RAWSTR)
             && caps->str_cal.size == 0
             && !(caps->has_get_level & RIG_LEVEL_STRENGTH))
