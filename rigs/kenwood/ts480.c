@@ -73,27 +73,37 @@
         {   20, 10.0f } \
     } }
 
-#define TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT TOKEN_BACKEND(102)
-#define TOK_LEVEL_DSP_RX_EQUALIZER TOKEN_BACKEND(103)
-#define TOK_LEVEL_DSP_TX_EQUALIZER TOKEN_BACKEND(104)
-#define TOK_LEVEL_DSP_TX_BANDWIDTH TOKEN_BACKEND(105)
-#define TOK_LEVEL_BEEP_VOLUME TOKEN_BACKEND(106)
-#define TOK_LEVEL_TX_SIDETONE_VOLUME TOKEN_BACKEND(107)
-#define TOK_LEVEL_AF_INPUT_LEVEL TOKEN_BACKEND(108)
-#define TOK_LEVEL_AF_OUTPUT_LEVEL TOKEN_BACKEND(109)
-#define TOK_LEVEL_DIGITAL_NOISE_LIMITER TOKEN_BACKEND(110)
+#define TOK_FUNC_NOISE_REDUCTION_2 TOKEN_BACKEND(102)
+#define TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT TOKEN_BACKEND(103)
+#define TOK_LEVEL_DSP_RX_EQUALIZER TOKEN_BACKEND(104)
+#define TOK_LEVEL_DSP_TX_EQUALIZER TOKEN_BACKEND(105)
+#define TOK_LEVEL_DSP_TX_BANDWIDTH TOKEN_BACKEND(106)
+#define TOK_LEVEL_BEEP_VOLUME TOKEN_BACKEND(107)
+#define TOK_LEVEL_TX_SIDETONE_VOLUME TOKEN_BACKEND(108)
+#define TOK_LEVEL_AF_INPUT_LEVEL TOKEN_BACKEND(109)
+#define TOK_LEVEL_AF_OUTPUT_LEVEL TOKEN_BACKEND(110)
+#define TOK_LEVEL_DIGITAL_NOISE_LIMITER TOKEN_BACKEND(111)
+#define TOK_FUNC_CW_IF_FOR_SSB_RX TOKEN_BACKEND(112)
 
 int ts480_ext_tokens[] = {
-    TOK_FUNC_FILTER_WIDTH_DATA, TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT,
+    TOK_FUNC_NOISE_REDUCTION_2, TOK_FUNC_FILTER_WIDTH_DATA, TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT,
     TOK_LEVEL_DSP_RX_EQUALIZER, TOK_LEVEL_DSP_TX_EQUALIZER, TOK_LEVEL_DSP_TX_BANDWIDTH,
     TOK_LEVEL_BEEP_VOLUME, TOK_LEVEL_TX_SIDETONE_VOLUME,
     TOK_LEVEL_AF_INPUT_LEVEL, TOK_LEVEL_AF_OUTPUT_LEVEL,
-    TOK_LEVEL_DIGITAL_NOISE_LIMITER,
+    TOK_LEVEL_DIGITAL_NOISE_LIMITER, TOK_FUNC_CW_IF_FOR_SSB_RX,
     TOK_BACKEND_NONE,
 };
 
 const struct confparams ts480_ext_funcs[] =
 {
+    {
+        TOK_FUNC_NOISE_REDUCTION_2, "NR2", "Noise reduction 2", "Noise reduction 2",
+        NULL, RIG_CONF_CHECKBUTTON,
+    },
+    {
+        TOK_FUNC_CW_IF_FOR_SSB_RX, "CW_IF_FOR_SSB_RX", "CW IF filter for SSB", "Use CW IF filter for SSB reception",
+        NULL, RIG_CONF_CHECKBUTTON,
+    },
     {
         TOK_FUNC_FILTER_WIDTH_DATA, "FILTER_WIDTH_DATA", "Filter bandwidth for data", "Filter bandwidth for data communications",
         NULL, RIG_CONF_CHECKBUTTON,
@@ -793,12 +803,28 @@ static int ts480_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
 static int ts480_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
 {
+    char cmdbuf[20];
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (token)
     {
+        case TOK_FUNC_NOISE_REDUCTION_2:
+            if (status < 0 || status > 1)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            snprintf(cmdbuf, sizeof(cmdbuf), "NR%d", status ? 2 : 0);
+            retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
+            break;
+        case TOK_FUNC_CW_IF_FOR_SSB_RX:
+            if (status < 0 || status > 1)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            retval = ts480_set_ex_menu(rig, 17, 1, status);
+            break;
         case TOK_FUNC_FILTER_WIDTH_DATA:
             if (status < 0 || status > 1)
             {
@@ -822,12 +848,30 @@ static int ts480_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
 
 static int ts480_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
 {
+    char ackbuf[20];
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (token)
     {
+        case TOK_FUNC_NOISE_REDUCTION_2: {
+            int value;
+
+            retval = kenwood_safe_transaction(rig, "NR", ackbuf, sizeof(ackbuf), 3);
+            if (retval != RIG_OK)
+            {
+                RETURNFUNC(retval);
+            }
+
+            sscanf(ackbuf, "NR%d", &value);
+
+            *status = (value == 2) ? 1 : 0;
+            break;
+        }
+        case TOK_FUNC_CW_IF_FOR_SSB_RX:
+            retval = ts480_get_ex_menu(rig, 17, 1, status);
+            break;
         case TOK_FUNC_FILTER_WIDTH_DATA:
             retval = ts480_get_ex_menu(rig, 45, 1, status);
             break;
@@ -855,7 +899,7 @@ static int ts480_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
             {
                 RETURNFUNC(-RIG_EINVAL);
             }
-            sprintf(cmdbuf, "DL%d%02d", val.i != 0 ? 1 : 0, val.i > 0 ? val.i - 1 : 0);
+            snprintf(cmdbuf, sizeof(cmdbuf), "DL%d%02d", val.i != 0 ? 1 : 0, val.i > 0 ? val.i - 1 : 0);
             retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
             break;
         case TOK_LEVEL_DSP_RX_EQUALIZER:
@@ -991,14 +1035,11 @@ static struct kenwood_filter_width ts480_filter_width[] = {
     { RIG_MODE_RTTY | RIG_MODE_RTTYR, 1000, 1000 },
     { RIG_MODE_RTTY | RIG_MODE_RTTYR, 1500, 1500 },
     { RIG_MODE_SSB, 0, 2400 },
-    { RIG_MODE_SSB, 1, 1200 }, // TODO: NAR1?
-    { RIG_MODE_SSB, 2, 1800 }, // TODO: NAR2?
-    { RIG_MODE_FM, 0, 14000 },
-    { RIG_MODE_FM, 1, 7000 }, // TODO: NAR1?
-    { RIG_MODE_FM, 2, 10000 }, // TODO: NAR2?
-    { RIG_MODE_AM, 0, 9000 },
-    { RIG_MODE_AM, 1, 3000 }, // TODO: NAR1?
-    { RIG_MODE_AM, 2, 6000 }, // TODO: NAR2?
+    { RIG_MODE_SSB, 1, 500 }, // NAR1 optional filter
+    { RIG_MODE_SSB, 2, 270 }, // NAR2 optional filter
+    { RIG_MODE_FM, 0, 12000 },
+    { RIG_MODE_AM, 0, 6000 },
+    { RIG_MODE_AM, 1, 2400 }, // NAR1 optional filter (?)
     { RIG_MODE_NONE, -1, -1 },
 };
 
@@ -1194,8 +1235,8 @@ const struct rig_caps ts480_caps =
     /* mode/filter list, remember: order matters! */
     .filters =  {
         {RIG_MODE_SSB, kHz(2.4)},
-        {RIG_MODE_SSB, kHz(1.2)},
-        {RIG_MODE_SSB, kHz(1.8)},
+        {RIG_MODE_SSB, Hz(270)},
+        {RIG_MODE_SSB, Hz(500)},
         {RIG_MODE_CW | RIG_MODE_CWR, Hz(200)},
         {RIG_MODE_CW | RIG_MODE_CWR, Hz(50)},
         {RIG_MODE_CW | RIG_MODE_CWR, Hz(1000)},
@@ -1211,12 +1252,9 @@ const struct rig_caps ts480_caps =
         {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(250)},
         {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(1000)},
         {RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(1500)},
-        {RIG_MODE_AM, kHz(9)},
-        {RIG_MODE_AM, kHz(3)},
         {RIG_MODE_AM, kHz(6)},
-        {RIG_MODE_FM, kHz(14)},
-        {RIG_MODE_FM, kHz(7)},
-        {RIG_MODE_FM, kHz(10)},
+        {RIG_MODE_AM, kHz(2.4)},
+        {RIG_MODE_FM, kHz(12)},
         RIG_FLT_END,
     },
     .vfo_ops = TS480_VFO_OPS,
