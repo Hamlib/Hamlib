@@ -328,9 +328,11 @@ static int netrigctl_open(RIG *rig)
         {
             break;
         }
-        switch(i)
+
+        switch (i)
         {
         }
+
         rig->caps->tx_range_list1->startf = rs->tx_range_list[i].startf;
         rig->caps->tx_range_list1->endf = rs->tx_range_list[i].endf;
         rig->caps->tx_range_list1->modes = rs->tx_range_list[i].modes;
@@ -400,7 +402,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->max_rit = atol(buf);
+    rig->caps->max_rit = rs->max_rit = atol(buf);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -409,7 +411,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->max_xit = atol(buf);
+    rig->caps->max_xit = rs->max_xit = atol(buf);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -418,7 +420,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->max_ifshift = atol(buf);
+    rig->caps->max_ifshift = rs->max_ifshift = atol(buf);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -441,13 +443,20 @@ static int netrigctl_open(RIG *rig)
                  &rs->preamp[2], &rs->preamp[3],
                  &rs->preamp[4], &rs->preamp[5],
                  &rs->preamp[6]);
+    rig->caps->preamp[0] = rs->preamp[0];
+    rig->caps->preamp[1] = rs->preamp[1];
+    rig->caps->preamp[2] = rs->preamp[2];
+    rig->caps->preamp[3] = rs->preamp[3];
+    rig->caps->preamp[4] = rs->preamp[4];
+    rig->caps->preamp[5] = rs->preamp[5];
+    rig->caps->preamp[6] = rs->preamp[6];
 
     if (ret < 0 || ret >= HAMLIB_MAXDBLSTSIZ)
     {
         ret = 0;
     }
 
-    rs->preamp[ret] = RIG_DBLST_END;
+    rig->caps->preamp[ret] = rs->preamp[ret] = RIG_DBLST_END;
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -461,13 +470,20 @@ static int netrigctl_open(RIG *rig)
                  &rs->attenuator[2], &rs->attenuator[3],
                  &rs->attenuator[4], &rs->attenuator[5],
                  &rs->attenuator[6]);
+    rig->caps->attenuator[0] = rs->attenuator[0];
+    rig->caps->attenuator[1] = rs->attenuator[1];
+    rig->caps->attenuator[2] = rs->attenuator[2];
+    rig->caps->attenuator[3] = rs->attenuator[3];
+    rig->caps->attenuator[4] = rs->attenuator[4];
+    rig->caps->attenuator[5] = rs->attenuator[5];
+    rig->caps->attenuator[6] = rs->attenuator[6];
 
     if (ret < 0 || ret >= HAMLIB_MAXDBLSTSIZ)
     {
         ret = 0;
     }
 
-    rs->attenuator[ret] = RIG_DBLST_END;
+    rig->caps->attenuator[ret] = rs->attenuator[ret] = RIG_DBLST_END;
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -476,7 +492,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_get_func = strtoll(buf, NULL, 0);
+    rig->caps->has_get_func = rs->has_get_func = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -485,7 +501,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_set_func = strtoll(buf, NULL, 0);
+    rig->caps->has_set_func = rs->has_set_func = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -494,7 +510,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_get_level = strtoll(buf, NULL, 0);
+    rig->caps->has_get_level = rs->has_get_level = strtoll(buf, NULL, 0);
 
     if (rs->has_get_level & RIG_LEVEL_RAWSTR)
     {
@@ -502,6 +518,7 @@ static int netrigctl_open(RIG *rig)
            provide a front end emulation, if it can't then an
            -RIG_EINVAL will be returned */
         rs->has_get_level |= RIG_LEVEL_STRENGTH;
+        rig->caps->has_get_level |= RIG_LEVEL_STRENGTH;
     }
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
@@ -511,7 +528,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_set_level = strtoll(buf, NULL, 0);
+    rig->caps->has_set_level = rs->has_set_level = strtoll(buf, NULL, 0);
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
 
@@ -529,7 +546,7 @@ static int netrigctl_open(RIG *rig)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->has_set_parm = strtoll(buf, NULL, 0);
+    rig->caps->has_set_parm = rs->has_set_parm = strtoll(buf, NULL, 0);
 
 #if 0
     gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
@@ -587,9 +604,15 @@ static int netrigctl_open(RIG *rig)
                      * if there is any PTT capability and we have not
                      * locally overridden it
                      */
-                    rig->state.pttport.type.ptt = temp;
+                    rig->state.pttport.type.ptt = RIG_PTT_RIG_MICDATA;
+                    rig->caps->ptt_type = RIG_PTT_RIG_MICDATA;
                     rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting,
                               rig->state.pttport.type.ptt);
+                }
+                else
+                {
+                    rig->state.pttport.type.ptt = temp;
+                    rig->caps->ptt_type = temp;
                 }
             }
             else if (strcmp(setting, "targetable_vfo") == 0)
@@ -626,7 +649,8 @@ static int netrigctl_open(RIG *rig)
             {
                 // use the rig's timeout value pluse 200ms for potential network delays
                 rig->caps->timeout = strtol(value, NULL, 0) + 200;
-                rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n", __func__, value, rig->caps->timeout);
+                rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n",
+                          __func__, value, rig->caps->timeout);
             }
             else
             {

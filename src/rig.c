@@ -1691,6 +1691,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     const struct rig_caps *caps;
     int retcode;
     freq_t freq_new = freq;
+    vfo_t vfo_save;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
@@ -1703,13 +1704,12 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (rig->state.twiddle_state == TWIDDLE_ON)
     {
         // we keep skipping set_freq while the vfo knob is in motion
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Twiddle on so skipping this set_freq request one time\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: Twiddle on so skipping this set_freq request one time\n", __func__);
         rig->state.twiddle_state = TWIDDLE_OFF;
     }
 
     caps = rig->caps;
-
-    vfo = vfo_fixup(rig, vfo);
 
     if (rig->state.lo_freq != 0.0)
     {
@@ -1727,6 +1727,9 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
+    vfo_save = rig->state.current_vfo;
+    vfo = vfo_fixup(rig, vfo);
+
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
     {
@@ -1734,6 +1737,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
                       __func__);
+            if (vfo != vfo_save && vfo != RIG_VFO_CURR) rig_set_vfo(rig, vfo_save);
             RETURNFUNC(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
@@ -1751,7 +1755,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             set_cache_freq(rig, vfo, (freq_t)0);
 
-#if 0 // this verification seems to be causing bad behavior on some reigs
+#if 0 // this verification seems to be causing bad behavior on some rigs
 
             if (caps->get_freq)
             {
@@ -1789,8 +1793,6 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: not a TARGETABLE_FREQ vfo=%s\n", __func__,
                   rig_strvfo(vfo));
-        int rc2;
-        vfo_t curr_vfo;
 
         if (!caps->set_vfo)
         {
@@ -1801,33 +1803,12 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
                       __func__);
+            if (vfo != vfo_save && vfo != RIG_VFO_CURR) rig_set_vfo(rig, vfo_save);
             RETURNFUNC(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
 
-        curr_vfo = rig->state.current_vfo;
-        retcode = caps->set_vfo(rig, vfo);
-        // why is the line below here?
-        // it's causing set_freq on the wrong vfo
-        //vfo = rig->state.current_vfo; // can't call get_vfo since Icoms don't have it
-
-        if (retcode != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: set_vfo(%s) err %.10000s\n", __func__,
-                      rig_strvfo(vfo), rigerror(retcode));
-            RETURNFUNC(retcode);
-        }
-
-
         retcode = caps->set_freq(rig, vfo, freq);
-        /* try and revert even if we had an error above */
-        rc2 = caps->set_vfo(rig, curr_vfo);
-
-        if (RIG_OK == retcode)
-        {
-            /* return the first error code */
-            retcode = rc2;
-        }
     }
 
     if (retcode == RIG_OK && caps->get_freq != NULL)
@@ -1864,6 +1845,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) { rig->state.current_freq = freq_new; }
 
     set_cache_freq(rig, vfo, freq_new);
+
+    if (vfo != vfo_save && vfo != RIG_VFO_CURR) rig_set_vfo(rig, vfo_save);
 
     RETURNFUNC(retcode);
 }
@@ -1911,6 +1894,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     curr_vfo = rig->state.current_vfo; // save vfo for restore later
 
     vfo = vfo_fixup(rig, vfo);
+
+    if (vfo == RIG_VFO_CURR) vfo = curr_vfo;
 
     // we ignore get_freq for the uplink VFO for gpredict to behave better
     if ((rig->state.uplink == 1 && vfo == RIG_VFO_SUB)
@@ -2490,9 +2475,11 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
+
     if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s ********************** called vfo=%s\n", __func__, rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s ********************** called vfo=%s\n",
+                  __func__, rig_strvfo(vfo));
     }
 
     if (CHECK_RIG_ARG(rig))
@@ -4094,7 +4081,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
     // in split mode we alwasy use VFOB
     // in the future we may start using RIG_VFO_TX and let the backend figure out what VFO to use
-    vfo = vfo_fixup(rig,RIG_VFO_B); // in split mode we always use VFOB/Sub for TX
+    vfo = vfo_fixup(rig, RIG_VFO_B); // in split mode we always use VFOB/Sub for TX
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: vfo=%s, tx_freq=%.0f, tx_mode=%s, tx_width=%d\n", __func__,
               rig_strvfo(vfo), tx_freq, rig_strrmode(tx_mode), (int)tx_width);
@@ -4347,7 +4334,8 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
 
     if (!split || !tx_vfo)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: split or tx_vfo is null, split=%p, tx_vfo=%p\n", __func__, split, tx_vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: split or tx_vfo is null, split=%p, tx_vfo=%p\n",
+                  __func__, split, tx_vfo);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -4358,7 +4346,9 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         // if we can't get the vfo we will return whatever we have cached
         *split = rig->state.cache.split;
         *tx_vfo = rig->state.cache.split_vfo;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: no get_split_vfo so returning split=%d, tx_vfo=%s\n", __func__, *split, rig_strvfo(*tx_vfo));
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: no get_split_vfo so returning split=%d, tx_vfo=%s\n", __func__, *split,
+                  rig_strvfo(*tx_vfo));
         RETURNFUNC(RIG_OK);
     }
 

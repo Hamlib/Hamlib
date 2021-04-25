@@ -781,18 +781,6 @@ int kenwood_open(RIG *rig)
                   "%s: no response to get_id from rig...continuing anyways.\n", __func__);
     }
 
-    if (RIG_IS_TS2000
-            || RIG_IS_TS480
-            || RIG_IS_TS590S
-            || RIG_IS_TS590SG
-            || RIG_IS_TS890S
-            || RIG_IS_TS990S)
-    {
-        // rig has Set 2 RIT/XIT function
-        rig_debug(RIG_DEBUG_TRACE, "%s: rig has_rit2\n", __func__);
-        priv->has_rit2 = 1;
-    }
-
     if (RIG_IS_TS590S)
     {
         /* we need the firmware version for these rigs to deal with f/w defects */
@@ -910,7 +898,8 @@ int kenwood_open(RIG *rig)
             int retval;
             split_t split;
             vfo_t tx_vfo;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: found the right driver for %s(%d)\n", __func__, rig->caps->model_name, rig->caps->rig_model);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: found the right driver for %s(%d)\n",
+                      __func__, rig->caps->model_name, rig->caps->rig_model);
             /* get current AI state so it can be restored */
             kenwood_get_trn(rig, &priv->trn_state);  /* ignore errors */
 
@@ -1732,11 +1721,10 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     int retval, i;
     shortfreq_t curr_rit;
     int diff;
-    struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld, has_rit2=%d\n",
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld\n",
               __func__,
-              rig_strvfo(vfo), rit, priv->has_rit2);
+              rig_strvfo(vfo), rit);
 
     retval = kenwood_get_rit(rig, vfo, &curr_rit);
 
@@ -1745,32 +1733,24 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         RETURNFUNC(retval);
     }
 
-    if (priv->has_rit2) // if backend shows it has the Set 2 command
+    // we'll set the rigs that have a rit step setting to 10Hz steps
+    retval = kenwood_transaction(rig, "RC;RU00010", NULL, 0);
+
+    if (retval != RIG_OK)
     {
-        char cmd[15];  // length required to make Apple-gcc happy (unicode-proof).
-        snprintf(cmd, sizeof(cmd) - 1, "R%c%05d", rit > 0 ? 'U' : 'D', abs((int)rit));
-        retval = kenwood_transaction(rig, cmd, NULL, 0);
+        RETURNFUNC(retval);
     }
-    else
+
+    if (rit == 0) { RETURNFUNC(RIG_OK); } // we're done here
+
+    snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
+
+    diff = labs((rit + rit >= 0 ? 5 : -5) / 10); // round to nearest
+    rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
+
+    for (i = 0; i < diff; i++)
     {
-        retval = kenwood_transaction(rig, "RC", NULL, 0);
-
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC(retval);
-        }
-
-        if (rit == 0) { RETURNFUNC(RIG_OK); } // we're done here
-
-        snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
-
-        diff = labs((rit + rit >= 0 ? 5 : -5) / 10); // round to nearest
-        rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
-
-        for (i = 0; i < diff; i++)
-        {
-            retval = kenwood_transaction(rig, buf, NULL, 0);
-        }
+        retval = kenwood_transaction(rig, buf, NULL, 0);
     }
 
     RETURNFUNC(retval);
