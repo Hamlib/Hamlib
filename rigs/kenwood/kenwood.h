@@ -47,6 +47,8 @@
 #define TOK_RIT   TOKEN_BACKEND(4)
 #define TOK_NO_ID TOKEN_BACKEND(5)
 
+#define TOK_FUNC_FILTER_WIDTH_DATA TOKEN_BACKEND(6) // Data communications mode that affects SL/SH/FW commands
+
 /* Token structure assigned to .cfgparams in rig_caps */
 extern const struct confparams kenwood_cfg_params[];
 
@@ -106,11 +108,29 @@ extern const struct confparams kenwood_cfg_params[];
 #define RIG_IS_POWERSDR  (rig->caps->rig_model == RIG_MODEL_POWERSDR)
 #define RIG_IS_MALACHITE (rig->caps->rig_model == RIG_MODEL_MALACHITE)
 
+struct kenwood_filter_width
+{
+    rmode_t modes;
+    int value;
+    pbwidth_t width_hz;
+};
+
+struct kenwood_slope_filter
+{
+    rmode_t modes;
+    int data_mode_filter;
+    int value;
+    pbwidth_t frequency_hz;
+};
+
 struct kenwood_priv_caps
 {
     char cmdtrm;    /* Command termination chars (ken=';' or th='\r') */
     int if_len;     /* length of IF; answer excluding ';' terminator */
     rmode_t *mode_table;
+    struct kenwood_filter_width *filter_width; /* Last entry should have value == -1 and width_hz == -1 */
+    struct kenwood_slope_filter *slope_filter_high; /* Last entry should have value == -1 and frequency_hz == -1 */
+    struct kenwood_slope_filter *slope_filter_low; /* Last entry should have value == -1 and frequency_hz == -1 */
 };
 
 struct kenwood_priv_data
@@ -217,6 +237,7 @@ int kenwood_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 const char *kenwood_get_info(RIG *rig);
 int kenwood_get_id(RIG *rig, char *buf);
+int kenwood_get_if(RIG *rig);
 
 int kenwood_set_trn(RIG *rig, int trn);
 int kenwood_get_trn(RIG *rig, int *trn);

@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <math.h>
 #include <ctype.h>
 
 #include "hamlib/rig.h"
@@ -994,7 +993,7 @@ int kenwood_get_id(RIG *rig, char *buf)
  *  Retrieves the transceiver status
  *
  */
-static int kenwood_get_if(RIG *rig)
+int kenwood_get_if(RIG *rig)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
@@ -1704,6 +1703,7 @@ int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
         RETURNFUNC(retval);
     }
 
+    // TODO: Fix for different rigs
     memcpy(buf, &priv->info[17], 6);
 
     buf[6] = '\0';
@@ -1826,6 +1826,42 @@ static int kenwood_set_filter(RIG *rig, pbwidth_t width)
     {
         cmd = "FL002002";
     }
+
+    RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
+}
+
+static int kenwood_set_filter_width(RIG *rig, rmode_t mode, pbwidth_t width)
+{
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    struct kenwood_filter_width *selected_filter_width = NULL;
+    char cmd[20];
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, width=%ld\n", __func__, width);
+
+    if (caps->filter_width == NULL)
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    for (i = 0; caps->filter_width[i].value >= 0; i++)
+    {
+        if (caps->filter_width[i].modes & mode)
+        {
+            selected_filter_width = &caps->filter_width[i];
+            if (caps->filter_width[i].width_hz >= width)
+            {
+                break;
+            }
+        }
+    }
+
+    if (selected_filter_width == NULL)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    snprintf(cmd, sizeof(cmd), "FW%04d", selected_filter_width->value);
 
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
@@ -1975,6 +2011,15 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         kenwood_set_filter(rig, width);
         /* non fatal */
     }
+    else if (RIG_IS_TS480)
+    {
+        err = kenwood_set_filter_width(rig, mode, width);
+        if (err != RIG_OK)
+        {
+            // Ignore errors as non-fatal
+            rig_debug(RIG_DEBUG_ERR, "%s: error setting filter width, error: %d\n", __func__, err);
+        }
+    }
 
     RETURNFUNC(RIG_OK);
 }
@@ -2037,6 +2082,44 @@ static int kenwood_get_filter(RIG *rig, pbwidth_t *width)
     }
 
     RETURNFUNC(RIG_OK);
+}
+
+static int kenwood_get_filter_width(RIG *rig, rmode_t mode, pbwidth_t *width)
+{
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    char ackbuf[20];
+    int i;
+    int retval;
+    int filter_value;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (caps->filter_width == NULL)
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    retval = kenwood_safe_transaction(rig, "FW", ackbuf, sizeof(ackbuf), 6);
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    sscanf(ackbuf, "FW%d", &filter_value);
+
+    for (i = 0; caps->filter_width[i].value >= 0; i++)
+    {
+        if (caps->filter_width[i].modes & mode)
+        {
+            if (caps->filter_width[i].value == filter_value)
+            {
+                *width = caps->filter_width[i].width_hz;
+                RETURNFUNC(RIG_OK);
+            }
+        }
+    }
+
+    RETURNFUNC(-RIG_EINVAL);
 }
 
 /*
@@ -2152,8 +2235,20 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         }
     }
 
-    /* XXX ? */
-    *width = rig_passband_normal(rig, *mode);
+    if (RIG_IS_TS480)
+    {
+        retval = kenwood_get_filter_width(rig, *mode, width);
+        if (retval != RIG_OK)
+        {
+            // Ignore errors as non-fatal
+            rig_debug(RIG_DEBUG_ERR, "%s: error getting filter width, error: %d\n", __func__, retval);
+            *width = rig_passband_normal(rig, *mode);
+        }
+    }
+    else
+    {
+        *width = rig_passband_normal(rig, *mode);
+    }
 
     RETURNFUNC(RIG_OK);
 }
@@ -2379,11 +2474,110 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     RETURNFUNC(RIG_OK);
 }
 
+static int kenwood_find_slope_filter_for_frequency(RIG *rig, vfo_t vfo, struct kenwood_slope_filter *filter, int frequency_hz, int *value)
+{
+    int retval;
+    int i;
+    struct kenwood_slope_filter *last_filter = NULL;
+    freq_t freq;
+    int cache_ms_freq;
+    rmode_t mode;
+    int cache_ms_mode;
+    pbwidth_t width;
+    int cache_ms_width;
+    int data_mode_filter_active;
+
+    if (filter == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    retval = rig_get_cache(rig, vfo, &freq, &cache_ms_freq, &mode, &cache_ms_mode, &width, &cache_ms_width);
+    if (retval != RIG_OK)
+    {
+        return -RIG_EINVAL;
+    }
+
+    retval = rig_get_ext_func(rig, vfo, TOK_FUNC_FILTER_WIDTH_DATA, &data_mode_filter_active);
+    if (retval != RIG_OK)
+    {
+        // Ignore errors, e.g. if the command is not supported
+        data_mode_filter_active = 0;
+    }
+
+    for (i = 0; filter[i].value >= 0; i++)
+    {
+        if (filter[i].modes & mode && filter[i].data_mode_filter == data_mode_filter_active)
+        {
+            if (filter[i].frequency_hz >= frequency_hz)
+            {
+                *value = filter[i].value;
+                return RIG_OK;
+            }
+            last_filter = &filter[i];
+        }
+    }
+
+    if (last_filter != NULL)
+    {
+        *value = last_filter->value;
+        return RIG_OK;
+    }
+
+    return -RIG_EINVAL;
+}
+
+static int kenwood_find_slope_filter_for_value(RIG *rig, vfo_t vfo, struct kenwood_slope_filter *filter, int value, int *frequency_hz)
+{
+    int retval;
+    int i;
+    freq_t freq;
+    int cache_ms_freq;
+    rmode_t mode;
+    int cache_ms_mode;
+    pbwidth_t width;
+    int cache_ms_width;
+    int data_mode_filter_active;
+
+    if (filter == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    retval = rig_get_cache(rig, vfo, &freq, &cache_ms_freq, &mode, &cache_ms_mode, &width, &cache_ms_width);
+    if (retval != RIG_OK)
+    {
+        return -RIG_EINVAL;
+    }
+
+    retval = rig_get_ext_func(rig, vfo, TOK_FUNC_FILTER_WIDTH_DATA, &data_mode_filter_active);
+    if (retval != RIG_OK)
+    {
+        // Ignore errors, e.g. if the command is not supported
+        data_mode_filter_active = 0;
+    }
+
+    for (i = 0; filter[i].value >= 0; i++)
+    {
+        if (filter[i].modes & mode && filter[i].data_mode_filter == data_mode_filter_active)
+        {
+            if (filter[i].value == value)
+            {
+                *frequency_hz = filter[i].frequency_hz;
+                return RIG_OK;
+            }
+        }
+    }
+
+    return -RIG_EINVAL;
+}
+
 int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
     int i, kenwood_val;
     struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2556,21 +2750,33 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_SLOPE_HIGH:
-        if (val.i > 20 || val.i < 0)
+        retval = kenwood_find_slope_filter_for_frequency(rig, vfo, caps->slope_filter_high, val.i, &kenwood_val);
+        if (retval != RIG_OK)
         {
-            RETURNFUNC(-RIG_EINVAL);
+            // Fall back to using raw values
+            if (val.i > 20 || val.i < 0)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            kenwood_val = val.i;
         }
 
-        snprintf(levelbuf, sizeof(levelbuf), "SH%02d", (val.i));
+        snprintf(levelbuf, sizeof(levelbuf), "SH%02d", kenwood_val);
         break;
 
     case RIG_LEVEL_SLOPE_LOW:
-        if (val.i > 20 || val.i < 0)
+        retval = kenwood_find_slope_filter_for_frequency(rig, vfo, caps->slope_filter_low, val.i, &kenwood_val);
+        if (retval != RIG_OK)
         {
-            RETURNFUNC(-RIG_EINVAL);
+            // Fall back to using raw values
+            if (val.i > 20 || val.i < 0)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
+            kenwood_val = val.i;
         }
 
-        snprintf(levelbuf, sizeof(levelbuf), "SL%02d", (val.i));
+        snprintf(levelbuf, sizeof(levelbuf), "SL%02d", kenwood_val);
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -2583,12 +2789,47 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_KEYSPD:
-        if (val.i > 50 || val.i < 5)
+        if (val.i > 60 || val.i < 5)
         {
             RETURNFUNC(-RIG_EINVAL);
         }
 
         snprintf(levelbuf, sizeof(levelbuf), "KS%03d", val.i);
+        break;
+
+    case RIG_LEVEL_COMP:
+        if (RIG_IS_TS990S)
+        {
+            kenwood_val = val.f * 255.0f;
+        }
+        else
+        {
+            kenwood_val = val.f * 100.0f;
+        }
+        snprintf(levelbuf, sizeof(levelbuf), "PL%03d%03d", kenwood_val, kenwood_val);
+        break;
+
+    case RIG_LEVEL_VOXDELAY:
+        if (val.i > 3000 || val.i < 0)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        snprintf(levelbuf, sizeof(levelbuf), "VD%04d", val.i);
+        break;
+
+    case RIG_LEVEL_VOXGAIN:
+        kenwood_val = val.f * 9.0f;
+        snprintf(levelbuf, sizeof(levelbuf), "VG%03d", kenwood_val);
+        break;
+
+    case RIG_LEVEL_BKIN_DLYMS:
+        if (val.i > 1000 || val.i < 0)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        snprintf(levelbuf, sizeof(levelbuf), "SD%04d", val.i);
         break;
 
     default:
@@ -2641,8 +2882,9 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char *cmd;
     int retval;
     int lvl;
-    int i, ret, agclevel, len;
+    int i, ret, agclevel, len, value;
     struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2937,7 +3179,21 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             RETURNFUNC(retval);
         }
 
-        val->i = atoi(&lvlbuf[2]);
+        value = atoi(&lvlbuf[2]);
+
+        retval = kenwood_find_slope_filter_for_value(rig, vfo, caps->slope_filter_low, value, &val->i);
+        if (retval != RIG_OK)
+        {
+            if (retval == -RIG_ENAVAIL)
+            {
+                // Fall back to using raw values
+                val->i = value;
+            }
+            else
+            {
+                RETURNFUNC(retval);
+            }
+        }
         break;
 
     case RIG_LEVEL_SLOPE_HIGH:
@@ -2948,7 +3204,21 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             RETURNFUNC(retval);
         }
 
-        val->i = atoi(&lvlbuf[2]);
+        value = atoi(&lvlbuf[2]);
+
+        retval = kenwood_find_slope_filter_for_value(rig, vfo, caps->slope_filter_high, value, &val->i);
+        if (retval != RIG_OK)
+        {
+            if (retval == -RIG_ENAVAIL)
+            {
+                // Fall back to using raw values
+                val->i = value;
+            }
+            else
+            {
+                RETURNFUNC(retval);
+            }
+        }
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -2974,13 +3244,80 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         sscanf(lvlbuf + 2, "%d", &val->i);
         break;
 
+    case RIG_LEVEL_COMP: {
+        int raw_value;
+        retval = kenwood_safe_transaction(rig, "PL", lvlbuf, 50, 8);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        sscanf(lvlbuf + 2, "%3d", &raw_value);
+
+        if (RIG_IS_TS990S)
+        {
+            val->f = (float) raw_value / 255.0f;
+        }
+        else
+        {
+            val->f = (float) raw_value / 100.0f;
+        }
+        break;
+    }
+
+    case RIG_LEVEL_VOXDELAY: {
+        int raw_value;
+        retval = kenwood_safe_transaction(rig, "VD", lvlbuf, 50, 6);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        sscanf(lvlbuf + 2, "%d", &raw_value);
+
+        // Value is in milliseconds
+        val->i = raw_value / 100;
+        break;
+    }
+
+    case RIG_LEVEL_VOXGAIN: {
+        int raw_value;
+        retval = kenwood_safe_transaction(rig, "VG", lvlbuf, 50, 5);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        sscanf(lvlbuf + 2, "%d", &raw_value);
+
+        val->f = (float) raw_value / 9.0f;
+        break;
+    }
+
+    case RIG_LEVEL_BKIN_DLYMS: {
+        int raw_value;
+        retval = kenwood_safe_transaction(rig, "SD", lvlbuf, 50, 6);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        sscanf(lvlbuf + 2, "%d", &raw_value);
+
+        val->i = raw_value;
+        break;
+    }
+
     case RIG_LEVEL_IF:
     case RIG_LEVEL_APF:
     case RIG_LEVEL_NR:
     case RIG_LEVEL_PBT_IN:
     case RIG_LEVEL_PBT_OUT:
     case RIG_LEVEL_NOTCHF:
-    case RIG_LEVEL_COMP:
     case RIG_LEVEL_BKINDL:
     case RIG_LEVEL_BALANCE:
         RETURNFUNC(-RIG_ENIMPL);
@@ -3106,6 +3443,14 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         snprintf(buf, sizeof(buf), "XT%c", (status == 0) ? '0' : '1');
         RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 
+    case RIG_FUNC_TUNER:
+        snprintf(buf, sizeof(buf), "AC1%c0", (status == 0) ? '0' : '1');
+        RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
+
+    case RIG_FUNC_FBKIN:
+        snprintf(buf, sizeof(buf), "SD%04d", (status == 1) ? 0 : 50);
+        RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
+
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %s", rig_strfunc(func));
         RETURNFUNC(-RIG_EINVAL);
@@ -3152,8 +3497,9 @@ int get_kenwood_func(RIG *rig, const char *cmd, int *status)
 int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     char *cmd;
-    char fctbuf[20];
+    char respbuf[20];
     int retval;
+    int raw_value;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -3165,14 +3511,14 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     switch (func)
     {
     case RIG_FUNC_FAGC:
-        retval = kenwood_safe_transaction(rig, "GT", fctbuf, 20, 5);
+        retval = kenwood_safe_transaction(rig, "GT", respbuf, 20, 5);
 
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
 
-        *status = fctbuf[4] != '4' ? 1 : 0;
+        *status = respbuf[4] != '4' ? 1 : 0;
         RETURNFUNC(RIG_OK);
 
     case RIG_FUNC_NB:
@@ -3209,21 +3555,21 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     /* FIXME on TS2000 */
     // Check for BC #1
     case RIG_FUNC_BC: // Most will return BC1 or BC0, if BC2 then BC1 is off
-        retval = get_kenwood_func(rig, "BC", status);
+        retval = get_kenwood_func(rig, "BC", &raw_value);
 
         if (retval == RIG_OK)
         {
-            *status = *status == '1' ? 1 : 0;
+            *status = raw_value == 1 ? 1 : 0;
         }
 
         RETURNFUNC(retval);
 
     case RIG_FUNC_BC2: // TS-890 check Beat Cancel 2 we return boolean true/false
-        retval = get_kenwood_func(rig, "BC", status);
+        retval = get_kenwood_func(rig, "BC", &raw_value);
 
         if (retval == RIG_OK)
         {
-            *status = *status == '2' ? 1 : 0;
+            *status = raw_value == 2 ? 1 : 0;
         }
 
         RETURNFUNC(retval);
@@ -3239,6 +3585,35 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     case RIG_FUNC_RIT:
         RETURNFUNC(get_kenwood_func(rig, "RT", status));
+
+    case RIG_FUNC_XIT:
+        RETURNFUNC(get_kenwood_func(rig, "XT", status));
+
+    case RIG_FUNC_TUNER:
+        retval = kenwood_safe_transaction(rig, "AC", respbuf, 20, 5);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        *status = respbuf[3] != '0' ? 1 : 0;
+        RETURNFUNC(RIG_OK);
+
+    case RIG_FUNC_FBKIN: {
+        int raw_value;
+
+        retval = kenwood_safe_transaction(rig, "SD", respbuf, 20, 6);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        sscanf(respbuf + 2, "%d", &raw_value);
+        *status = (raw_value == 0) ? 1 : 0;
+        RETURNFUNC(RIG_OK);
+    }
 
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported get_func %s", rig_strfunc(func));
@@ -3787,7 +4162,8 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     char busybuf[10];
     int retval;
-    int offs = 2;
+    int expected;
+    int offs;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -3796,16 +4172,29 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    retval = kenwood_safe_transaction(rig, "BY", busybuf, 10, 3);
+    if (RIG_IS_TS480 || RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS990S || RIG_IS_TS2000)
+    {
+        expected = 4;
+    }
+    else
+    {
+        expected = 3;
+    }
+
+    retval = kenwood_safe_transaction(rig, "BY", busybuf, 10, expected);
 
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
     }
 
-    if (RIG_IS_TS990S && RIG_VFO_SUB == vfo)
+    if ((RIG_IS_TS990S && RIG_VFO_SUB == vfo) || (RIG_IS_TS2000 && RIG_VFO_SUB == vfo))
     {
         offs = 3;
+    }
+    else
+    {
+        offs = 2;
     }
 
     *dcd = (busybuf[offs] == '1') ? RIG_DCD_ON : RIG_DCD_OFF;
@@ -4125,6 +4514,12 @@ int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     case RIG_OP_BAND_DOWN:
         RETURNFUNC(kenwood_transaction(rig, "BD", NULL, 0));
+
+    case RIG_OP_TUNE:
+        RETURNFUNC(kenwood_transaction(rig, "AC111", NULL, 0));
+
+    case RIG_OP_CPY:
+        RETURNFUNC(kenwood_transaction(rig, "VV", NULL, 0));
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported op %#x\n",
