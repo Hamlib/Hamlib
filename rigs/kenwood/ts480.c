@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <hamlib/rig.h>
 #include "cal.h"
@@ -731,7 +732,7 @@ static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    if (rit < 9999 || rit > 9999)
+    if (rit < -9999 || rit > 9999)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -781,7 +782,7 @@ static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         RETURNFUNC(RIG_OK);
     }
 
-    snprintf(buf, sizeof(buf), "R%c%05ld", (rit > 0) ? 'U' : 'D', rit);
+    snprintf(buf, sizeof(buf), "R%c%05d", (rit > 0) ? 'U' : 'D', abs((int) rit));
     retval = kenwood_transaction(rig, buf, NULL, 0);
 
     RETURNFUNC(retval);
