@@ -1651,11 +1651,13 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
+
     if (my_rig->state.comm_state == 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: rig not open...trying to reopen\n", __func__);
         rig_open(my_rig);
     }
+
     retcode = (*cmd_entry->rig_routine)(my_rig,
                                         fout,
                                         fin,

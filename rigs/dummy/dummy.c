@@ -844,7 +844,8 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     ENTERFUNC;
     priv->curr->tx_freq = tx_freq;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->curr->tx_freq = %.0f\n", __func__, priv->curr->tx_freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->curr->tx_freq = %.0f\n", __func__,
+              priv->curr->tx_freq);
 
     RETURNFUNC(RIG_OK);
 }
@@ -857,7 +858,8 @@ static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     ENTERFUNC;
 
     *tx_freq = priv->curr->tx_freq;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->curr->tx_freq = %.0f\n", __func__, priv->curr->tx_freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->curr->tx_freq = %.0f\n", __func__,
+              priv->curr->tx_freq);
 
     RETURNFUNC(RIG_OK);
 }

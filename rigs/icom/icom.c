@@ -2105,10 +2105,11 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     // reason is we can't get width without swapping vfos -- yuck!!
     if (width != NULL)
     {
-        if (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A))
+        if (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
+                   RIG_VFO_CURR))
         {
-            // then we get our current vfo..i.e. VFOA
-            if (rig->state.current_vfo != RIG_VFO_A)
+            // then we get what was asked for
+            if (vfo == RIG_VFO_NONE)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s(%d): forcing default VFO_A\n", __func__,
                           __LINE__);
@@ -2137,7 +2138,9 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                 rig_set_vfo(rig, RIG_VFO_B);
                 retval = icom_get_dsp_flt(rig, *mode);
                 *width = retval;
-                if (*width == 0) *width = rig->state.cache.widthMainA; // we'll use VFOA's width
+
+                if (*width == 0) { *width = rig->state.cache.widthMainA; } // we'll use VFOA's width
+
                 // dont' really care about cache time here
                 // this is just to prevent vfo swapping while getting width
                 rig->state.cache.widthMainB = retval;

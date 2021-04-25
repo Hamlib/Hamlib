@@ -16,15 +16,16 @@
 #define BUFSIZE 256
 
 int civ_731_mode = 0;
-vfo_t vfo_curr = RIG_VFO_A;
+vfo_t current_vfo = RIG_VFO_A;
 int split = 0;
 
+// we make B different from A to ensure we see a difference at startup
 float freqA = 14074000;
 float freqB = 14074500;
 mode_t modeA = RIG_MODE_CW;
-mode_t modeB = RIG_MODE_CW;
-pbwidth_t widthA = 200;
-pbwidth_t widthB = 300;
+mode_t modeB = RIG_MODE_USB;
+pbwidth_t widthA = 0;
+pbwidth_t widthB = 1;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -75,7 +76,7 @@ void frameParse(int fd, unsigned char *frame, int len)
     case 0x03:
 
         //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
-        if (vfo_curr == RIG_VFO_A || vfo_curr == RIG_VFO_MAIN)
+        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
         {
             printf("get_freqA\n");
             to_bcd(&frame[5], (long long)freqA, (civ_731_mode ? 4 : 5) * 2);
@@ -90,21 +91,48 @@ void frameParse(int fd, unsigned char *frame, int len)
         write(fd, frame, 11);
         break;
 
+    case 0x04:
+        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
+        {
+            printf("get_modeA\n");
+            frame[5] = modeA;
+            frame[6] = widthA;
+        }
+        else
+        {
+            printf("get_modeB\n");
+            frame[5] = modeB;
+            frame[6] = widthB;
+        }
+
+        frame[7] = 0xfd;
+        write(fd, frame, 8);
+        break;
+
     case 0x05:
         freq = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
         printf("set_freq to %.0f\n", freq);
 
-        if (vfo_curr == RIG_VFO_A || vfo_curr == RIG_VFO_MAIN) { freqA = freq; }
+        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { freqA = freq; }
         else { freqB = freq; }
+
 //    case 0x06:
-        
+
 
     case 0x07:
 
-        if (frame[5] == 0xd0) { vfo_curr = RIG_VFO_MAIN; }
-        else if (frame[5] == 0xd1) { vfo_curr = RIG_VFO_SUB; }
+        switch (frame[5])
+        {
+        case 0x00: current_vfo = RIG_VFO_A; break;
 
-        printf("set_vfo to %s\n", rig_strvfo(vfo_curr));
+        case 0x01: current_vfo = RIG_VFO_B; break;
+
+        case 0xd0: current_vfo = RIG_VFO_MAIN; break;
+
+        case 0xd1: current_vfo = RIG_VFO_SUB; break;
+        }
+
+        printf("set_vfo to %s\n", rig_strvfo(current_vfo));
 
         frame[4] = 0xfb;
         frame[5] = 0xfd;
@@ -121,6 +149,21 @@ void frameParse(int fd, unsigned char *frame, int len)
         write(fd, frame, 6);
         break;
 
+    case 0x1a: // miscellaneous things 
+        switch (frame[5])
+        {
+        case 0x03:  // width
+            if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { frame[6] = widthA; }
+            else { frame[6] = widthB; }
+
+            frame[7] = 0xfd;
+            write(fd, frame, 8);
+            break;
+        }
+
+        break;
+
+#if 0
     case 0x25:
         if (frame[6] == 0xfd)
         {
@@ -151,6 +194,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         break;
+#endif
 
     default: printf("cmd 0x%02x unknown\n", frame[4]);
     }
@@ -164,10 +208,12 @@ int openPort(char *comport) // doesn't matter for using pts devices
 {
     int fd;
     fd = open(comport, O_RDWR);
+
     if (fd < 0)
     {
         perror(comport);
     }
+
     return fd;
 }
 
@@ -197,8 +243,14 @@ int openPort(char *comport) // doesn't matter for using pts devices
 
 void rigStatus()
 {
-    printf("VFOA: mode=%s width=%ld freq=%.0f\n", rig_strrmode(modeA), widthA, freqA);
-    printf("VFOB: mode=%s width=%ld freq=%.0f\n", rig_strrmode(modeB), widthB, freqB);
+    char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';
+    char vfob = current_vfo == RIG_VFO_B ? '*' : ' ';
+    printf("%cVFOA: mode=%s width=%ld freq=%.0f\n", vfoa, rig_strrmode(modeA),
+           widthA,
+           freqA);
+    printf("%cVFOB: mode=%s width=%ld freq=%.0f\n", vfob, rig_strrmode(modeB),
+           widthB,
+           freqB);
 }
 
 int main(int argc, char **argv)
@@ -208,13 +260,16 @@ int main(int argc, char **argv)
 
     printf("%s: %s\n", argv[0], rig_version());
 #if defined(WIN32) || defined(_WIN32)
+
     if (argc != 2)
     {
         printf("Missing comport argument\n");
         printf("%s [comport]\n", argv[0]);
         exit(1);
     }
+
 #endif
+
     while (1)
     {
         int len = frameGet(fd, buf);

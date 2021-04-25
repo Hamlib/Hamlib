@@ -170,12 +170,6 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
                            caps->level_gran);
     fprintf(fout, "Get level: %s\n", prntbuf);
 
-    if ((caps->has_get_level & RIG_LEVEL_SQLSTAT))
-    {
-        fprintf(fout, "Warning--backend uses deprecated SQLSTAT level!\n");
-        backend_warnings++;
-    }
-
     rot_sprintf_level_gran(prntbuf, sizeof(prntbuf), caps->has_set_level,
                            caps->level_gran);
     fprintf(fout, "Set level: %s\n", prntbuf);

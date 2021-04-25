@@ -796,7 +796,8 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     chan->funcs |= (lock_byte & 0x05) ? RIG_FUNC_LOCK : 0;
     chan->funcs |= (lock_byte & 0x08) ? RIG_FUNC_MUTE : 0;
 
-    chan->freq = pll_value_to_rx_freq((hhtoi(statebuf + 12) << 8) + hhtoi(statebuf + 14));
+    chan->freq = pll_value_to_rx_freq((hhtoi(statebuf + 12) << 8) + hhtoi(
+                                          statebuf + 14));
     chan->tx_freq = ((hhtoi(statebuf + 16) << 8) + hhtoi(statebuf + 18)) * FREQ_DIV;
 
     if (chan->rptr_shift != RIG_RPT_SHIFT_NONE)
