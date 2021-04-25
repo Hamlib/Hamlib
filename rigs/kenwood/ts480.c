@@ -724,11 +724,17 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
+    char buf[20];
     int retval;
     int rit_enabled;
     int xit_enabled;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+
+    if (rit < 9999 || rit > 9999)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
 
     // RC clear command cannot be executed if RIT/XIT is not enabled
 
@@ -770,7 +776,15 @@ static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         }
     }
 
-    RETURNFUNC(kenwood_set_rit(rig, vfo, rit));
+    if (rit == 0)
+    {
+        RETURNFUNC(RIG_OK);
+    }
+
+    snprintf(buf, sizeof(buf), "R%c%05ld", (rit > 0) ? 'U' : 'D', rit);
+    retval = kenwood_transaction(rig, buf, NULL, 0);
+
+    RETURNFUNC(retval);
 }
 
 static int ts480_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
