@@ -481,7 +481,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
                 return -RIG_EIO;
             }
 
-            hl_usleep(p->write_delay * 1000);
+            if (p->write_delay > 0) hl_usleep(p->write_delay * 1000);
         }
     }
     else
