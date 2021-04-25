@@ -143,11 +143,23 @@ int network_open(hamlib_port_t *rp, int default_port)
 
 #ifdef __MINGW32__
     WSADATA wsadata;
+    int ret;
 
-    if (!(wsstarted++) && WSAStartup(MAKEWORD(1, 1), &wsadata) == SOCKET_ERROR)
+    if (wsstarted == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: error creating socket\n", __func__);
-        RETURNFUNC(-RIG_EIO);
+        ret = WSAStartup(MAKEWORD(1, 1), &wsadata);
+
+        if (ret == 0)
+        {
+            wsstarted = 1;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: WSAStartup OK\n", __func__);
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error creating socket, WSAStartup ret=%d\n",
+                      __func__, ret);
+            RETURNFUNC(-RIG_EIO);
+        }
     }
 
 #endif
@@ -347,20 +359,30 @@ void network_flush(hamlib_port_t *rp)
 //! @cond Doxygen_Suppress
 int network_close(hamlib_port_t *rp)
 {
-    int ret;
+    int ret = 0;
 
     ENTERFUNC;
 
-#ifdef __MINGW32__
-    ret = closesocket(rp->fd);
-
-    if (--wsstarted)
+    if (rp->fd > 0)
     {
-        WSACleanup();
+#ifdef __MINGW32__
+        ret = closesocket(rp->fd);
+#else
+        ret = close(rp->fd);
+#endif
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: close socket ret=%d\n", __func__, ret);
+        rp->fd = 0;
     }
 
-#else
-    ret = close(rp->fd);
+#ifdef __MINGW32__
+
+    if (wsstarted)
+    {
+        ret = WSACleanup();
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: WSACleanup ret=%d\n", __func__, ret);
+        wsstarted = 0;
+    }
+
 #endif
     RETURNFUNC(ret);
 }
