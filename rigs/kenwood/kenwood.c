@@ -1734,6 +1734,7 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     int diff;
     int rit_enabled;
     int xit_enabled;
+    shortfreq_t curr_rit;
     struct kenwood_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld\n",
@@ -1768,31 +1769,40 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         }
     }
 
-    // zero out rit
-    // we might be able to read rit and just do the difference
-    // see if anybody ever wants that or complain about this being slow
+    // by getting current rit we can determine how to handle change
+    // we just use curr_rit - rit to determine how far we need to move
+    // No need to zero out rit
+    retval = kenwood_get_rit(rig,RIG_VFO_CURR,&curr_rit);
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+#if 0 // no longer needed if diff can be done
     retval = kenwood_transaction(rig, "RC", NULL, 0);
 
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
     }
+#endif
 
-    if (rit == 0)
+    if (rit == 0 && curr_rit == 0)
     {
         RETURNFUNC(RIG_OK);
     }
 
     if (priv->has_rit2)
     {
-        snprintf(buf, sizeof(buf), "R%c%05d", (rit > 0) ? 'U' : 'D', abs((int) rit));
+        diff = curr_rit - rit;
+        rig_debug(RIG_DEBUG_TRACE, "%s: rit=%ld, curr_rit=%ld, diff=%d\n", __func__, rit, curr_rit, diff);
+        snprintf(buf, sizeof(buf), "R%c%05d", (diff > 0) ? 'U' : 'D', abs((int) diff));
         retval = kenwood_transaction(rig, buf, NULL, 0);
     }
     else
     {
         snprintf(buf, sizeof(buf), "R%c", (rit > 0) ? 'U' : 'D');
-
-        diff = labs((rit + rit >= 0 ? 5 : -5) / 10); // round to nearest
+        diff = labs(((curr_rit - rit) + (curr_rit - rit) >= 0 ? 5 : -5) / 10); // round to nearest 10Hz
+        rig_debug(RIG_DEBUG_TRACE, "%s: rit=%ld, curr_rit=%ld, diff=%d\n", __func__, rit, curr_rit, diff);
         rig_debug(RIG_DEBUG_TRACE, "%s: rit change loop=%d\n", __func__, diff);
 
         for (i = 0; i < diff; i++)
