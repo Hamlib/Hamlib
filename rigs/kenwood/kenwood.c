@@ -1793,7 +1793,7 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     if (priv->has_rit2)
     {
-        diff = curr_rit - rit;
+        diff = rit - curr_rit;
         rig_debug(RIG_DEBUG_TRACE, "%s: rit=%ld, curr_rit=%ld, diff=%d\n", __func__, rit, curr_rit, diff);
         snprintf(buf, sizeof(buf), "R%c%05d", (diff > 0) ? 'U' : 'D', abs((int) diff));
         retval = kenwood_transaction(rig, buf, NULL, 0);
