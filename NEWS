@@ -7,7 +7,17 @@ Copyright (C) 2000-2021  Michael Black W9MDB, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 4.2
-    * 2021-04-06
+    * 2021-04-27
+    * New rig_get_vfo_info 
+    * New rig_get_rig_info
+        Also get_rig_info in rigctld too
+        Example output with rig in split mode
+        This is a string return to allow for easy future expansion without changing the API
+        New tokens may be introduced and can be skipped if not used by clients
+        VFOA Freq=10133000 Mode=LSB Width=0 RX=1 TX=0
+        VFOB Freq=10134000 Mode=LSB Width=0 RX=0 TX=1
+        Split=1 SatMode=0
+
     * USRP lib and gnuradio are deprecated and will be removed in 5.0
     * Added Radan rotator
     * Added Malachite SDR 
