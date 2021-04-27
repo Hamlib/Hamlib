@@ -6233,6 +6233,7 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 
     //if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
+    vfo = vfo_fixup(rig,vfo);
     // we can't use the cached values as some clients may only call this function
     // like Log4OM which mostly does polling
     TRACE;
