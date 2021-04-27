@@ -2109,7 +2109,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                    RIG_VFO_CURR))
         {
             // then we get what was asked for
-            if (vfo == RIG_VFO_NONE)
+            if (vfo == RIG_VFO_NONE && rig->state.current_vfo == RIG_VFO_NONE)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s(%d): forcing default VFO_A\n", __func__,
                           __LINE__);
@@ -4491,11 +4491,14 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         {
             if (priv->x25cmdfails == 0)
             {
+                int retry_save = rs->rigport.retry;
+                rs->rigport.retry = 0;
                 cmd = C_SEND_SEL_FREQ;
                 subcmd = 0x01; // get the unselected vfo
                 retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
                                           &ack_len);
 
+                rs->rigport.retry = retry_save;
                 if (retval == RIG_OK) // then we're done!!
                 {
                     *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
