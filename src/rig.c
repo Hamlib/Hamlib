@@ -6223,8 +6223,19 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
     vfoB = vfo_fixup(rig, RIG_VFO_B);
     ret = rig_get_vfo_info(rig, vfoA, &freqA, &modeA, &widthA, &split, &satmode); 
     if (ret != RIG_OK) RETURNFUNC(ret);
-    ret = rig_get_vfo_info(rig, vfoB, &freqB, &modeB, &widthB, &split, &satmode); 
-    if (ret != RIG_OK) RETURNFUNC(ret);
+    // we need both vfo and mode targtable to avoid vfo swapping
+    if ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE))
+    {
+        ret = rig_get_vfo_info(rig, vfoB, &freqB, &modeB, &widthB, &split, &satmode); 
+        if (ret != RIG_OK) RETURNFUNC(ret);
+    }
+    else
+    {
+        // we'll use cached info instead of doing the vfo swapping
+        int cache_ms_freq, cache_ms_mode, cache_ms_width;
+        rig_get_cache(rig, vfoB, &freqB, &cache_ms_freq, &modeB, &cache_ms_mode, &widthB,
+                      &cache_ms_width);
+    }
     rxa = 1;
     txa = split == 0;
     rxb = !rxa;
