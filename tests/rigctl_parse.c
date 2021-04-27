@@ -166,6 +166,7 @@ declare_proto_rig(set_mode);
 declare_proto_rig(get_mode);
 declare_proto_rig(set_vfo);
 declare_proto_rig(get_vfo);
+declare_proto_rig(get_rig_info);
 declare_proto_rig(get_vfo_info);
 declare_proto_rig(get_vfo_list);
 declare_proto_rig(set_ptt);
@@ -333,6 +334,7 @@ static struct test_table test_list[] =
     { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
     { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO | ARG_IN, "Status" }, /* turn vfo option on/off */
     { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_NOVFO | ARG_IN1 | ARG_OUT4, "Freq", "Mode", "Width", "Split", "SatMode" }, /* get several vfo parameters at once */
+    { 0xf5, "get_rig_info",     ACTION(get_rig_info),   ARG_NOVFO | ARG_OUT, "RigInfo" }, /* get several vfo parameters at once */
     { 0xf4,  "get_vfo_list",    ACTION(get_vfo_list),       ARG_OUT | ARG_NOVFO, "VFOs" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
@@ -2211,6 +2213,17 @@ declare_proto_rig(get_vfo)
     fprintf(fout, "%s%c", rig_strvfo(vfo), resp_sep);
 
     RETURNFUNC(status);
+}
+
+declare_proto_rig(get_rig_info)
+{
+    char buf[1024]; // big enough to last numerous years hopefully
+    int ret;
+    ENTERFUNC;
+    ret = rig_get_rig_info(rig, buf, sizeof(buf));
+    if (ret != RIG_OK) RETURNFUNC(ret);
+    fprintf(fout,"%s\n", buf);
+    RETURNFUNC(RIG_OK);
 }
 
 /* '\get_vfo_info' */
