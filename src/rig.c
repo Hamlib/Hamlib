@@ -6204,6 +6204,24 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
 /**
  * \brief get freq/mode/width for requested VFO
  * \param rig   The rig handle
+ *
+ * returns a string for all known VFOs plus rig split status and satellite mode status
+ */
+int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
+{
+    vfo_t vfoA;
+    freq_t freqA;
+    rmode_t modeA;
+    pbwidth_t widthA;
+    split_t split;
+    int satmode;
+    response[0] = 0;
+    RETURNFUNC(-RIG_ENIMPL);
+}
+
+/**
+ * \brief get freq/mode/width for requested VFO
+ * \param rig   The rig handle
  * \param vfo   The VFO to get
  * \param *freq frequency answer
  * \param *mode mode answer
@@ -6219,7 +6237,7 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
  *
  */
 int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
-                                rmode_t *mode, pbwidth_t *width, split_t *split)
+                                rmode_t *mode, pbwidth_t *width, split_t *split, int *satmode)
 {
     int retval;
 
@@ -6262,6 +6280,7 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
         *width = rig->state.cache.widthMainA;
     }
 
+    *satmode = rig->state.cache.satmode;
     // we should only need to ask for VFO_CURR to minimize display swapping
     TRACE;
     retval = rig_get_split(rig, RIG_VFO_CURR, split);
