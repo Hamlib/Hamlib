@@ -14,8 +14,8 @@ Version 4.2
         Example output with rig in split mode
         This is a string return to allow for easy future expansion without changing the API
         New tokens may be introduced and can be skipped if not used by clients
-        VFOA Freq=10133000 Mode=LSB Width=0 RX=1 TX=0
-        VFOB Freq=10134000 Mode=LSB Width=0 RX=0 TX=1
+        VFO=VFOA Freq=10133000 Mode=LSB Width=0 RX=1 TX=0
+        VFO=VFOB Freq=10134000 Mode=LSB Width=0 RX=0 TX=1
         Split=1 SatMode=0
 
     * USRP lib and gnuradio are deprecated and will be removed in 5.0
