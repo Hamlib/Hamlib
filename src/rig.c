@@ -3879,7 +3879,8 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     }
     else
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        rig_debug(RIG_DEBUG_WARN, "%s: rig does not have set_vfo or vfo_op. Assuming mode already set\n", __func__); 
+        RETURNFUNC(RIG_OK);
     }
 
     if (retcode != RIG_OK)
