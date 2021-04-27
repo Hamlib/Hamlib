@@ -6229,7 +6229,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
     txa = split == 0;
     rxb = !rxa;
     txb = split == 1;
-    snprintf(response,max_response_len,"%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\n%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d", rig_strvfo(vfoA), freqA, rig_strrmode(modeA), (int)widthA, rxa, txa, rig_strvfo(vfoB), freqA, rig_strrmode(modeB), (int)widthB, rxb, txb, split, satmode);
+    snprintf(response,max_response_len,"%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\n%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d", rig_strvfo(vfoA), freqA, rig_strrmode(modeA), (int)widthA, rxa, txa, rig_strvfo(vfoB), freqB, rig_strrmode(modeB), (int)widthB, rxb, txb, split, satmode);
     RETURNFUNC(RIG_OK);
 }
 
