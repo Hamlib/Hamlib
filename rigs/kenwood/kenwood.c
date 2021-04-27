@@ -331,7 +331,16 @@ transaction_write:
     // So we'll skip the checks just on this one command for now
     // The TS-480 PC Control says RX; should return RX0; but it doesn't
     // We may eventually want to verify PTT with rig_get_ptt instead
-    if (retval == RIG_OK && strncmp(cmdstr, "RX", 2) == 0) { goto transaction_quit; }
+    // The TS-2000 doesn't like doing and ID right after RU or RD
+    if (retval == RIG_OK)
+    {
+        int skip = strncmp(cmdstr, "RX", 2) == 0;
+        skip |= strncmp(cmdstr, "RU", 2) == 0;
+        skip |= strncmp(cmdstr, "RD", 2) == 0;
+        if (skip) {
+            goto transaction_quit;
+        }
+    }
 
     // Malachite SDR cannot send ID after FA
     if (!datasize && priv->no_id) { RETURNFUNC(RIG_OK); }
@@ -339,6 +348,9 @@ transaction_write:
     if (!datasize)
     {
         rig->state.hold_decode = 0;
+
+        // there are some commands that have problems with immediate follow-up
+        // so we'll just ignore them
 
         /* no reply expected so we need to write a command that always
            gives a reply so we can read any error replies from the actual
