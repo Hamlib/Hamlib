@@ -4342,6 +4342,13 @@ declare_proto_rig(dump_state)
         fprintf(fout, "has_get_vfo=%d\n", rig->caps->get_vfo != NULL);
         fprintf(fout, "has_set_freq=%d\n", rig->caps->set_freq != NULL);
         fprintf(fout, "has_get_freq=%d\n", rig->caps->get_freq != NULL);
+        fprintf(fout, "has_set_conf=%d\n", rig->caps->set_conf != NULL);
+        fprintf(fout, "has_get_conf=%d\n", rig->caps->get_conf != NULL);
+        // for the future
+//        fprintf(fout, "has_set_trn=%d\n", rig->caps->set_trn != NULL);
+//        fprintf(fout, "has_get_trn=%d\n", rig->caps->get_trn != NULL);
+        fprintf(fout, "has_power2mW=%d\n", rig->caps->power2mW != NULL);
+        fprintf(fout, "has_mW2power=%d\n", rig->caps->mW2power != NULL);
         fprintf(fout, "timeout=%d\n", rig->caps->timeout);
         fprintf(fout, "done\n");
     }
