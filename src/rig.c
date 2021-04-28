@@ -6212,6 +6212,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
     vfo_t vfoA,vfoB;
     freq_t freqA,freqB;
     rmode_t modeA,modeB;
+    char *modeAstr, *modeBstr;
     pbwidth_t widthA,widthB;
     split_t split;
     int satmode;
@@ -6236,11 +6237,15 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
         rig_get_cache(rig, vfoB, &freqB, &cache_ms_freq, &modeB, &cache_ms_mode, &widthB,
                       &cache_ms_width);
     }
+    modeAstr = (char*)rig_strrmode(modeA);
+    modeBstr = (char*)rig_strrmode(modeB);
+    if (modeAstr[0]==0) modeAstr="None";
+    if (modeBstr[0]==0) modeBstr="None";
     rxa = 1;
     txa = split == 0;
     rxb = !rxa;
     txb = split == 1;
-    snprintf(response,max_response_len,"VFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nVFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d", rig_strvfo(vfoA), freqA, rig_strrmode(modeA), (int)widthA, rxa, txa, rig_strvfo(vfoB), freqB, rig_strrmode(modeB), (int)widthB, rxb, txb, split, satmode);
+    snprintf(response,max_response_len,"VFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nVFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d", rig_strvfo(vfoA), freqA, modeAstr, (int)widthA, rxa, txa, rig_strvfo(vfoB), freqB, modeBstr, (int)widthB, rxb, txb, split, satmode);
     RETURNFUNC(RIG_OK);
 }
 
