@@ -1017,7 +1017,15 @@ Get DTMF
 .
 .TP
 .BR _ ", " get_info
-Get misc information about the rig (no VFO in 'VFO mode' or value is passed).
+Get misc information about the rig.
+.
+.TP
+.BR 0xf5 ", " get_rig_info " 
+Get misc information about the rig vfos and other info.
+.
+.TP
+.BR 0xf3 ", " get_vfo_info " \(aq" "\fIVFO\fP" \(aq
+Get misc information about a specific vfo.
 .
 .TP
 .B dump_state
