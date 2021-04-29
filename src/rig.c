@@ -1005,6 +1005,7 @@ int HAMLIB_API rig_open(RIG *rig)
      * trigger state->current_vfo first retrieval
      */
     TRACE;
+
     if (rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
     {
         rs->tx_vfo = rs->current_vfo;
@@ -1744,10 +1745,13 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
                       __func__);
-            if (vfo != vfo_save && vfo != RIG_VFO_CURR) {
+
+            if (vfo != vfo_save && vfo != RIG_VFO_CURR)
+            {
                 TRACE;
                 rig_set_vfo(rig, vfo_save);
             }
+
             RETURNFUNC(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
@@ -1814,10 +1818,13 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
                       __func__);
-            if (vfo != vfo_save && vfo != RIG_VFO_CURR) {
+
+            if (vfo != vfo_save && vfo != RIG_VFO_CURR)
+            {
                 TRACE;
                 rig_set_vfo(rig, vfo_save);
             }
+
             RETURNFUNC(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
@@ -1862,7 +1869,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     set_cache_freq(rig, vfo, freq_new);
 
-    if (vfo != vfo_save && vfo != RIG_VFO_CURR) {
+    if (vfo != vfo_save && vfo != RIG_VFO_CURR)
+    {
         TRACE;
         rig_set_vfo(rig, vfo_save);
     }
@@ -1914,7 +1922,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     vfo = vfo_fixup(rig, vfo);
 
-    if (vfo == RIG_VFO_CURR) vfo = curr_vfo;
+    if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
     // we ignore get_freq for the uplink VFO for gpredict to behave better
     if ((rig->state.uplink == 1 && vfo == RIG_VFO_SUB)
@@ -3950,7 +3958,9 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     }
     else
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: rig does not have set_vfo or vfo_op. Assuming mode already set\n", __func__); 
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: rig does not have set_vfo or vfo_op. Assuming mode already set\n",
+                  __func__);
         RETURNFUNC(RIG_OK);
     }
 
@@ -6209,11 +6219,11 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
  */
 int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
 {
-    vfo_t vfoA,vfoB;
-    freq_t freqA,freqB;
-    rmode_t modeA,modeB;
+    vfo_t vfoA, vfoB;
+    freq_t freqA, freqB;
+    rmode_t modeA, modeB;
     char *modeAstr, *modeBstr;
-    pbwidth_t widthA,widthB;
+    pbwidth_t widthA, widthB;
     split_t split;
     int satmode;
     int ret;
@@ -6222,30 +6232,42 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
 
     vfoA = vfo_fixup(rig, RIG_VFO_A);
     vfoB = vfo_fixup(rig, RIG_VFO_B);
-    ret = rig_get_vfo_info(rig, vfoA, &freqA, &modeA, &widthA, &split, &satmode); 
-    if (ret != RIG_OK) RETURNFUNC(ret);
+    ret = rig_get_vfo_info(rig, vfoA, &freqA, &modeA, &widthA, &split, &satmode);
+
+    if (ret != RIG_OK) { RETURNFUNC(ret); }
+
     // we need both vfo and mode targtable to avoid vfo swapping
-    if ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE))
+    if ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
+            && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE))
     {
-        ret = rig_get_vfo_info(rig, vfoB, &freqB, &modeB, &widthB, &split, &satmode); 
-        if (ret != RIG_OK) RETURNFUNC(ret);
+        ret = rig_get_vfo_info(rig, vfoB, &freqB, &modeB, &widthB, &split, &satmode);
+
+        if (ret != RIG_OK) { RETURNFUNC(ret); }
     }
     else
     {
         // we'll use cached info instead of doing the vfo swapping
         int cache_ms_freq, cache_ms_mode, cache_ms_width;
-        rig_get_cache(rig, vfoB, &freqB, &cache_ms_freq, &modeB, &cache_ms_mode, &widthB,
+        rig_get_cache(rig, vfoB, &freqB, &cache_ms_freq, &modeB, &cache_ms_mode,
+                      &widthB,
                       &cache_ms_width);
     }
-    modeAstr = (char*)rig_strrmode(modeA);
-    modeBstr = (char*)rig_strrmode(modeB);
-    if (modeAstr[0]==0) modeAstr="None";
-    if (modeBstr[0]==0) modeBstr="None";
+
+    modeAstr = (char *)rig_strrmode(modeA);
+    modeBstr = (char *)rig_strrmode(modeB);
+
+    if (modeAstr[0] == 0) { modeAstr = "None"; }
+
+    if (modeBstr[0] == 0) { modeBstr = "None"; }
+
     rxa = 1;
     txa = split == 0;
     rxb = !rxa;
     txb = split == 1;
-    snprintf(response,max_response_len,"VFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nVFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d", rig_strvfo(vfoA), freqA, modeAstr, (int)widthA, rxa, txa, rig_strvfo(vfoB), freqB, modeBstr, (int)widthB, rxb, txb, split, satmode);
+    snprintf(response, max_response_len,
+             "VFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nVFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d",
+             rig_strvfo(vfoA), freqA, modeAstr, (int)widthA, rxa, txa, rig_strvfo(vfoB),
+             freqB, modeBstr, (int)widthB, rxb, txb, split, satmode);
     RETURNFUNC(RIG_OK);
 }
 
@@ -6281,7 +6303,7 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 
     //if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
-    vfo = vfo_fixup(rig,vfo);
+    vfo = vfo_fixup(rig, vfo);
     // we can't use the cached values as some clients may only call this function
     // like Log4OM which mostly does polling
     TRACE;
