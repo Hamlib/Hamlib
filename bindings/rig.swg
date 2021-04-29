@@ -449,7 +449,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1VGET(get_xit, shortfreq_t)
 	METHOD1VGET(get_ts, shortfreq_t)
 	extern void get_ant(ant_t *ant_rx, ant_t *ant_tx, ant_t *ant_curr, value_t * OUTPUT, ant_t ant, vfo_t vfo = RIG_VFO_CURR);
-    extern void get_vfo_info (split_t *split, pbwidth_t *width, rmode_t *mode, freq_t *freq, vfo_t vfo = RIG_VFO_CURR);
+    extern void get_vfo_info (int *satmode, split_t *split, pbwidth_t *width, rmode_t *mode, freq_t *freq, vfo_t vfo = RIG_VFO_CURR);
 	METHOD1VGET(get_mem, int)
 	METHOD1GET(get_powerstat, powerstat_t)
 	METHOD1GET(get_trn, int)
@@ -605,9 +605,9 @@ void Rig_get_ant(Rig *self, ant_t *ant_rx, ant_t *ant_tx, ant_t *ant_curr, value
 {
 	self->error_status = rig_get_ant(self->rig, vfo, ant, option, ant_curr, ant_tx, ant_rx);
 }
-void Rig_get_vfo_info (Rig *self, split_t *split, pbwidth_t *width, rmode_t *mode, freq_t *freq, vfo_t vfo)
+void Rig_get_vfo_info (Rig *self, int *satmode, split_t *split, pbwidth_t *width, rmode_t *mode, freq_t *freq, vfo_t vfo)
 {
-    self->error_status = rig_get_vfo_info(self->rig, vfo, freq, mode, width, split); 
+    self->error_status = rig_get_vfo_info(self->rig, vfo, freq, mode, width, split, satmode); 
 }
 
 
