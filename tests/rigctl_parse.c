@@ -4350,6 +4350,23 @@ declare_proto_rig(dump_state)
         fprintf(fout, "has_power2mW=%d\n", rig->caps->power2mW != NULL);
         fprintf(fout, "has_mW2power=%d\n", rig->caps->mW2power != NULL);
         fprintf(fout, "timeout=%d\n", rig->caps->timeout);
+        fprintf(fout, "ctcss_list=");
+        for (i = 0; i < CTCSS_LIST_SIZE && rig->caps->ctcss_list[i] != 0; i++)
+        {
+            fprintf(fout,
+                " %u.%1u",
+                rig->caps->ctcss_list[i] / 10, rig->caps->ctcss_list[i] % 10);
+        }
+        fprintf(fout, "\n");
+        fprintf(fout, "dcs_list=");
+        for (i = 0; i < DCS_LIST_SIZE && rig->caps->dcs_list[i] != 0; i++)
+        {
+            fprintf(fout,
+                " %u",
+                rig->caps->dcs_list[i]);
+        }
+        fprintf(fout, "\n");
+
         fprintf(fout, "done\n");
     }
 

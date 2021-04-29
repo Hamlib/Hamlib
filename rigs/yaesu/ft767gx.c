@@ -249,7 +249,7 @@ struct ft767_priv_data
     unsigned char ack_cmd[5];
 };
 
-const tone_t static_767gx_ctcss_list[] =
+tone_t static_767gx_ctcss_list[] =
 {
     CTCSS_TONE_LIST
 };

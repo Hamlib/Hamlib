@@ -157,7 +157,7 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] =
 /*
  * 38 CTCSS sub-audible tones
  */
-const tone_t kenwood38_ctcss_list[] =
+tone_t kenwood38_ctcss_list[] =
 {
     670,  719,  744,  770,  797,  825,  854,  885,  915,  948,
     974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
@@ -170,7 +170,7 @@ const tone_t kenwood38_ctcss_list[] =
 /*
  * 42 CTCSS sub-audible tones
  */
-const tone_t kenwood42_ctcss_list[] =
+tone_t kenwood42_ctcss_list[] =
 {
     670,  693,  719,  744,  770,  797,  825,  854,  885,  915,  948,
     974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
@@ -184,7 +184,7 @@ const tone_t kenwood42_ctcss_list[] =
  *
  * See enum rig_conf_e and struct confparams in rig.h
  */
-const struct confparams kenwood_cfg_params[] =
+struct confparams kenwood_cfg_params[] =
 {
     {
         TOK_FINE, "fine", "Fine", "Fine step mode",

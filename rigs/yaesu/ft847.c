@@ -193,7 +193,7 @@ static const yaesu_cmd_set_t ncmd[] =
  * 39 CTCSS sub-audible tones
  * c.f. ft847_set_ctcss_tone()
  */
-static const tone_t ft847_ctcss_list[] =
+static tone_t ft847_ctcss_list[] =
 {
     670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
     948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,

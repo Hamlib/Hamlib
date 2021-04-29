@@ -65,7 +65,7 @@ static int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 /*
  * 38 CTCSS sub-audible tones + 1750 tone
  */
-const tone_t ts2000_ctcss_list[] =
+tone_t ts2000_ctcss_list[] =
 {
     670,  719,  744,  770,  797,  825,  854,  885,  915,  948,
     974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
@@ -79,7 +79,7 @@ const tone_t ts2000_ctcss_list[] =
 /*
  * 103 available DCS codes
  */
-static const tone_t ts2000_dcs_list[] =
+tone_t ts2000_dcs_list[] =
 {
     23,  25,  26,  31,   32,  36,  43,  47,       51,  53,
     54,  65,  71,  72,  73,   74, 114, 115, 116, 122, 125, 131,

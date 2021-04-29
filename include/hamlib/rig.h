@@ -214,6 +214,8 @@ typedef struct s_rig RIG;
  *
  * Digitally-Coded Squelch codes are simple direct integers.
  */
+#define CTCSS_LIST_SIZE 60
+#define DCS_LIST_SIZE 128
 typedef unsigned int tone_t;
 
 
@@ -1639,8 +1641,8 @@ struct rig_caps {
     const struct confparams *extfuncs; /*!< Extension func list, \sa ext.c */
     int *ext_tokens;                    /*!< Extension token list */
 
-    const tone_t *ctcss_list;   /*!< CTCSS tones list, zero ended */
-    const tone_t *dcs_list;     /*!< DCS code list, zero ended */
+    tone_t *ctcss_list;   /*!< CTCSS tones list, zero ended */
+    tone_t *dcs_list;     /*!< DCS code list, zero ended */
 
     int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
     int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */

@@ -76,7 +76,7 @@
  * Don't even touch a single bit! indexes will be used in the protocol!
  * 51 tones, the 60.0 Hz tone is missing.
  */
-const tone_t pcr_ctcss_list[] =
+tone_t pcr_ctcss_list[] =
 {
     670,  693,  710,  719,  744,  770,  797,  825,  854,  885,  915,
     948,  974,  1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,
@@ -91,7 +91,7 @@ const tone_t pcr_ctcss_list[] =
  * Don't even touch a single bit! indexes will be used in the protocol!
  * 104 codes
  */
-const tone_t pcr_dcs_list[] =
+tone_t pcr_dcs_list[] =
 {
     23,  25,  26,  31,  32,  36,  43,  47,       51,  53,
     54,  65,  71,  72,  73,  74, 114, 115, 116, 122, 125, 131,

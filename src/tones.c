@@ -44,7 +44,7 @@
 /**
  * 52 CTCSS sub-audible tones
  */
-const tone_t full_ctcss_list[] = { FULL_CTCSS_LIST };
+tone_t full_ctcss_list[] = { FULL_CTCSS_LIST };
 
 /**
  * 50 CTCSS sub-audible tones, from 67.0Hz to 254.1Hz
@@ -53,17 +53,17 @@ const tone_t full_ctcss_list[] = { FULL_CTCSS_LIST };
  * backends depend on it. If you need to, create a copy for your
  * own caps. --SF
  */
-const tone_t common_ctcss_list[] = { COMMON_CTCSS_LIST };
+tone_t common_ctcss_list[] = { COMMON_CTCSS_LIST };
 
 /**
  * 104 DCS codes
  */
-const tone_t common_dcs_list[] = { COMMON_DCS_LIST };
+tone_t common_dcs_list[] = { COMMON_DCS_LIST };
 
 /**
  * 106 DCS codes
  */
-const tone_t full_dcs_list[] = { FULL_DCS_LIST };
+tone_t full_dcs_list[] = { FULL_DCS_LIST };
 
 #endif
 

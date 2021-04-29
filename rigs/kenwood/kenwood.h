@@ -50,7 +50,7 @@
 #define TOK_FUNC_FILTER_WIDTH_DATA TOKEN_BACKEND(6) // Data communications mode that affects SL/SH/FW commands
 
 /* Token structure assigned to .cfgparams in rig_caps */
-extern const struct confparams kenwood_cfg_params[];
+extern struct confparams kenwood_cfg_params[];
 
 
 /*
@@ -173,8 +173,8 @@ struct kenwood_priv_data
 
 extern rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX];
 
-extern const tone_t kenwood38_ctcss_list[];
-extern const tone_t kenwood42_ctcss_list[];
+extern tone_t kenwood38_ctcss_list[];
+extern tone_t kenwood42_ctcss_list[];
 
 int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize);
 int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
