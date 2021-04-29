@@ -55,7 +55,7 @@ uniden_id_string_list[] =
 };
 
 
-const tone_t uniden_ctcss_list[] =
+tone_t uniden_ctcss_list[] =
 {
     670,  719,  744,  770,  797,  825,  854,  885,  915,
     948, 974, 1000, 1035, 1072, 1109, 1148, 1188, 1230,
@@ -64,7 +64,7 @@ const tone_t uniden_ctcss_list[] =
     2418, 2503, 0
 };
 
-const tone_t uniden_dcs_list[] =
+tone_t uniden_dcs_list[] =
 {
     23,  25,  26,  31,  32,  36,  43,  47,  51,  53,
     54,  65,  71,  72,  73,  74, 114, 115, 116, 122,

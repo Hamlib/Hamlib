@@ -41,7 +41,7 @@
 #include "dummy.h"
 
 #define CMD_MAX 64
-#define BUF_MAX 96
+#define BUF_MAX 1024
 
 #define CHKSCN1ARG(a) if ((a) != 1) return -RIG_EPROTO; else do {} while(0)
 
@@ -197,6 +197,48 @@ static int netrigctl_cleanup(RIG *rig)
     rig->state.priv = NULL;
     return RIG_OK;
 }
+
+int parse_array_int(const char *s, const char *delim, int *array, int array_len)
+{
+    char *p;
+    char *dup = strdup(s);
+    char *rest = dup;
+    int n=0;
+    ENTERFUNC;
+    while((p = strtok_r(rest, delim, &rest)))
+    {
+        if (n == array_len) { // too many items
+            return n;
+        }
+        array[n] = atoi(p);
+        //printf("%d\n", array[n]);
+        ++n;
+    }
+    free(dup);
+    return n;
+}
+
+int parse_array_double(const char *s, const char *delim, double *array, int array_len)
+{
+    char *p;
+    char *dup = strdup(s);
+    char *rest = dup;
+    int n=0;
+    ENTERFUNC;
+    while((p = strtok_r(rest, delim, &rest)))
+    {
+        if (n == array_len) { // too many items
+            return n;
+        }
+        array[n] = atof(p);
+        //printf("%f\n", array[n]);
+        ++n;
+    }
+    free(dup);
+    return n;
+}
+
+
 
 static int netrigctl_open(RIG *rig)
 {
@@ -576,7 +618,7 @@ static int netrigctl_open(RIG *rig)
 
     do
     {
-        char setting[32], value[256];
+        char setting[32], value[1024];
         ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
         strtok(buf, "\r\n"); // chop the EOL
 
@@ -587,7 +629,7 @@ static int netrigctl_open(RIG *rig)
 
         if (strncmp(buf, "done", 4) == 0) { return RIG_OK; }
 
-        if (sscanf(buf, "%31[^=]=%255[^\t\n]", setting, value) == 2)
+        if (sscanf(buf, "%31[^=]=%1024[^\t\n]", setting, value) == 2)
         {
             if (strcmp(setting, "vfo_ops") == 0)
             {
@@ -679,7 +721,7 @@ static int netrigctl_open(RIG *rig)
 
                 if (!has) { rig->caps->power2mW = NULL; }
             }
-            else if (strcmp(setting, "has_mw2power") == 0)
+            else if (strcmp(setting, "has_mW2power") == 0)
             {
                 int has = strtol(value, NULL, 0);
 
@@ -691,6 +733,26 @@ static int netrigctl_open(RIG *rig)
                 rig->caps->timeout = strtol(value, NULL, 0) + 200;
                 rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n",
                           __func__, value, rig->caps->timeout);
+            }
+            else if (strcmp(setting, "ctcss_list") == 0)
+            {
+                int i;
+                int n;
+                double ctcss[CTCSS_LIST_SIZE];
+                rig->caps->ctcss_list = calloc(CTCSS_LIST_SIZE, sizeof(tone_t));
+                n = parse_array_double(value, " \n\r", ctcss, CTCSS_LIST_SIZE);
+                for(i=0;i<CTCSS_LIST_SIZE && ctcss[i] != 0;++i) rig->caps->ctcss_list[i] = ctcss[i]*10;
+                if (n < CTCSS_LIST_SIZE) rig->caps->ctcss_list[n] = 0;
+            }
+            else if (strcmp(setting,"dcs_list") == 0)
+            {
+                int i;
+                int n;
+                int dcs[DCS_LIST_SIZE+1];
+                rig->caps->dcs_list = calloc(DCS_LIST_SIZE, sizeof(tone_t));
+                n = parse_array_int(value, " \n\r", dcs, DCS_LIST_SIZE);
+                for(i=0;i<DCS_LIST_SIZE && dcs[i] != 0; i++) rig->caps->dcs_list[i] = dcs[i];
+                if (n < DCS_LIST_SIZE) rig->caps->dcs_list[n] = 0;
             }
             else
             {

@@ -81,8 +81,8 @@ struct pcr_priv_caps
 
 #define pcr_caps(rig) ((struct pcr_priv_caps *)(rig)->caps->priv)
 
-extern const tone_t pcr_ctcss_list[];
-extern const tone_t pcr_dcs_list[];
+extern tone_t pcr_ctcss_list[];
+extern tone_t pcr_dcs_list[];
 
 int pcr_init(RIG *rig);
 int pcr_cleanup(RIG *rig);

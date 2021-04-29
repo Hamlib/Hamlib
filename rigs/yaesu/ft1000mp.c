@@ -157,7 +157,7 @@ static const yaesu_cmd_set_t ncmd[] =
 /**
  * 33 CTCSS sub-audible tones
  */
-static const tone_t ft1000mp_ctcss_list[] =
+static tone_t ft1000mp_ctcss_list[] =
 {
     670,        719,        770,        825,        885,
     948,       1000, 1035, 1072, 1109, 1148, 1188,       1230, 1273,

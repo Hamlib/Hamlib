@@ -65,7 +65,7 @@
     .dcs_sql=1,
 
 /* CTCSS 01..42 */
-static const tone_t thf7_ctcss_list[] =
+static tone_t thf7_ctcss_list[] =
 {
     670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
     948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,

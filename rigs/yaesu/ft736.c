@@ -80,7 +80,7 @@ static int ft736_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
 /* Some tones are present twice, the second value is
  * higher Q (80), according to manual.
  */
-static const tone_t ft736_ctcss_list[] =
+static tone_t ft736_ctcss_list[] =
 {
     670,  719,  770,  825,  885,  948, 1000, 1035, 1072, 1109,
     1148, 1188, 1230, 1273, 1318, 1365, 1413, 1462, 1514, 1567,

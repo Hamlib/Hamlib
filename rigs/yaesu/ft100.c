@@ -120,7 +120,7 @@ static const yaesu_cmd_set_t ncmd[] =
 };
 
 
-static const tone_t ft100_ctcss_list[] =
+static tone_t ft100_ctcss_list[] =
 {
     670,  693,  719,  744,  770,  797,  825,  854,  885,  915, \
     948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, \
@@ -129,7 +129,7 @@ static const tone_t ft100_ctcss_list[] =
     2503, 0
 };
 
-static const tone_t ft100_dcs_list[] =
+static tone_t ft100_dcs_list[] =
 {
     23,  25,  26,  31,  32,  36,  43,  47,  51,  53, \
     54,  65,  71,  72,  73,  74, 114, 115, 116, 122, 125, 131, \

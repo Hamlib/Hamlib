@@ -51,11 +51,11 @@
 		{ 255,  60 }, \
 	} }
 
-extern const tone_t uniden_ctcss_list[];
-extern const tone_t uniden_dcs_list[];
+extern tone_t uniden_ctcss_list[];
+extern tone_t uniden_dcs_list[];
 
 int uniden_transaction (RIG *rig, const char *cmdstr, int cmd_len,
-		const char *replystr, char *data, size_t *datasize);
+const char *replystr, char *data, size_t *datasize);
 int uniden_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int uniden_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int uniden_get_freq_2(RIG *rig, vfo_t vfo, freq_t *freq);
