@@ -4346,9 +4346,11 @@ declare_proto_rig(dump_state)
         fprintf(fout, "has_get_freq=%d\n", rig->caps->get_freq != NULL);
         fprintf(fout, "has_set_conf=%d\n", rig->caps->set_conf != NULL);
         fprintf(fout, "has_get_conf=%d\n", rig->caps->get_conf != NULL);
+#if 0
         fprintf(fout, "has_set_parm=%d\n", rig->caps->set_parm != NULL);
         fprintf(fout, "has_get_parm=%d\n", rig->caps->get_parm != NULL);
         fprintf(fout, "parm_gran=0x%x\n", rig->caps->parm_gran);
+#endif
         // for the future
 //        fprintf(fout, "has_set_trn=%d\n", rig->caps->set_trn != NULL);
 //        fprintf(fout, "has_get_trn=%d\n", rig->caps->get_trn != NULL);
