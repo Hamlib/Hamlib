@@ -86,7 +86,8 @@
 #define TOK_LEVEL_DIGITAL_NOISE_LIMITER TOKEN_BACKEND(111)
 #define TOK_FUNC_CW_IF_FOR_SSB_RX TOKEN_BACKEND(112)
 
-int ts480_ext_tokens[] = {
+int ts480_ext_tokens[] =
+{
     TOK_FUNC_NOISE_REDUCTION_2, TOK_FUNC_FILTER_WIDTH_DATA, TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT,
     TOK_LEVEL_DSP_RX_EQUALIZER, TOK_LEVEL_DSP_TX_EQUALIZER, TOK_LEVEL_DSP_TX_BANDWIDTH,
     TOK_LEVEL_BEEP_VOLUME, TOK_LEVEL_TX_SIDETONE_VOLUME,
@@ -219,7 +220,9 @@ static int ts480_get_ex_menu(RIG *rig, int number, int value_len, int *value)
 
     snprintf(buf, 20, "EX%03d0000", number);
 
-    retval = kenwood_safe_transaction(rig, buf, ackbuf, sizeof(ackbuf), 9 + value_len);
+    retval = kenwood_safe_transaction(rig, buf, ackbuf, sizeof(ackbuf),
+                                      9 + value_len);
+
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
@@ -238,14 +241,17 @@ static int ts480_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     switch (func)
     {
-        case RIG_FUNC_MON:
-            snprintf(buf, sizeof(buf), "ML00%c", (status == 0) ? '0' : '1');
-            RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
-        case RIG_FUNC_LOCK:
-            snprintf(buf, sizeof(buf), "LK%c%c", (status == 0) ? '0' : '1', (status == 0) ? '0' : '1');
-            RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
-        default:
-            return kenwood_set_func(rig, vfo, func, status);
+    case RIG_FUNC_MON:
+        snprintf(buf, sizeof(buf), "ML00%c", (status == 0) ? '0' : '1');
+        RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
+
+    case RIG_FUNC_LOCK:
+        snprintf(buf, sizeof(buf), "LK%c%c", (status == 0) ? '0' : '1',
+                 (status == 0) ? '0' : '1');
+        RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
+
+    default:
+        return kenwood_set_func(rig, vfo, func, status);
     }
 }
 
@@ -258,29 +264,35 @@ static int ts480_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     switch (func)
     {
-        case RIG_FUNC_MON: {
-            int raw_value;
-            retval = kenwood_safe_transaction(rig, "ML", buf, sizeof(buf), 5);
-            if (retval != RIG_OK)
-            {
-                RETURNFUNC(retval);
-            }
-            sscanf(buf, "ML%d", &raw_value);
+    case RIG_FUNC_MON:
+    {
+        int raw_value;
+        retval = kenwood_safe_transaction(rig, "ML", buf, sizeof(buf), 5);
 
-            *status = (raw_value > 0);
-            break;
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
         }
-        case RIG_FUNC_LOCK:
-            retval = kenwood_safe_transaction(rig, "LK", buf, sizeof(buf), 4);
-            if (retval != RIG_OK)
-            {
-                RETURNFUNC(retval);
-            }
 
-            *status = buf[2] != '0' || buf[3] != '0';
-            break;
-        default:
-            return kenwood_get_func(rig, vfo, func, status);
+        sscanf(buf, "ML%d", &raw_value);
+
+        *status = (raw_value > 0);
+        break;
+    }
+
+    case RIG_FUNC_LOCK:
+        retval = kenwood_safe_transaction(rig, "LK", buf, sizeof(buf), 4);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        *status = buf[2] != '0' || buf[3] != '0';
+        break;
+
+    default:
+        return kenwood_get_func(rig, vfo, func, status);
     }
 
     RETURNFUNC(RIG_OK);
@@ -355,34 +367,42 @@ int kenwood_ts480_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_PREAMP:
-        if (val.i != 12 && val.i != 0) {
+        if (val.i != 12 && val.i != 0)
+        {
             RETURNFUNC(-RIG_EINVAL);
         }
+
         sprintf(levelbuf, "PA%c", (val.i == 12) ? '1' : '0');
         break;
 
     case RIG_LEVEL_ATT:
-        if (val.i != 12 && val.i != 0) {
+        if (val.i != 12 && val.i != 0)
+        {
             RETURNFUNC(-RIG_EINVAL);
         }
+
         sprintf(levelbuf, "RA%02d", (val.i == 12) ? 1 : 0);
         break;
 
     case RIG_LEVEL_METER:
         switch (val.i)
         {
-            case RIG_METER_SWR:
-                kenwood_val = 1;
-                break;
-            case RIG_METER_COMP:
-                kenwood_val = 2;
-                break;
-            case RIG_METER_ALC:
-                kenwood_val = 3;
-                break;
-            default:
-                RETURNFUNC(-RIG_EINVAL);
+        case RIG_METER_SWR:
+            kenwood_val = 1;
+            break;
+
+        case RIG_METER_COMP:
+            kenwood_val = 2;
+            break;
+
+        case RIG_METER_ALC:
+            kenwood_val = 3;
+            break;
+
+        default:
+            RETURNFUNC(-RIG_EINVAL);
         }
+
         sprintf(levelbuf, "RM%d", kenwood_val);
         break;
 
@@ -434,14 +454,18 @@ static int ts480_read_meters(RIG *rig, int *swr, int *comp, int *alc)
 
     if (retval != expected_len)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected %d bytes, got %d in '%s'\n", __func__, expected_len, retval, ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: expected %d bytes, got %d in '%s'\n", __func__,
+                  expected_len, retval, ackbuf);
         RETURNFUNC(-RIG_EPROTO);
     }
 
     retval = sscanf(ackbuf, "RM1%d;RM2%d;RM3%d;", swr, comp, alc);
+
     if (retval != 3)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 3 meter values to parse, got %d in '%s'\n", __func__, retval, ackbuf);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: expected 3 meter values to parse, got %d in '%s'\n", __func__, retval,
+                  ackbuf);
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -548,6 +572,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         default:
             return -RIG_EPROTO;
         }
+
         return RIG_OK;
 
     case RIG_LEVEL_STRENGTH:
@@ -559,39 +584,48 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         return kenwood_get_level(rig, vfo, level, val);
 
-    case RIG_LEVEL_MONITOR_GAIN: {
+    case RIG_LEVEL_MONITOR_GAIN:
+    {
         int raw_value;
         retval = kenwood_safe_transaction(rig, "ML", ackbuf, sizeof(ackbuf), 5);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
+
         sscanf(ackbuf, "ML%d", &raw_value);
 
         val->f = (float) raw_value / 9.0f;
         break;
     }
 
-    case RIG_LEVEL_NB: {
+    case RIG_LEVEL_NB:
+    {
         int raw_value;
         retval = kenwood_safe_transaction(rig, "NL", ackbuf, sizeof(ackbuf), 5);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
+
         sscanf(ackbuf, "NL%d", &raw_value);
 
         val->f = (float) raw_value / 10.0f;
         break;
     }
 
-    case RIG_LEVEL_NR: {
+    case RIG_LEVEL_NR:
+    {
         int raw_value;
         retval = kenwood_safe_transaction(rig, "RL", ackbuf, sizeof(ackbuf), 4);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
+
         sscanf(ackbuf, "RL%d", &raw_value);
 
         val->f = (float) raw_value / 9.0f;
@@ -600,59 +634,72 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_PREAMP:
         retval = kenwood_safe_transaction(rig, "PA", ackbuf, sizeof(ackbuf), 4);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
+
         val->i = ackbuf[2] == '1' ? 12 : 0;
         break;
 
     case RIG_LEVEL_ATT:
         retval = kenwood_safe_transaction(rig, "RA", ackbuf, sizeof(ackbuf), 6);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
+
         val->i = ackbuf[3] == '1' ? 12 : 0;
         break;
 
-    case RIG_LEVEL_METER: {
+    case RIG_LEVEL_METER:
+    {
         int raw_value;
 
         // TODO: Read all meters at the same time: RM10000;RM20000;RM30000;
 
         retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
 
         sscanf(ackbuf, "RM%1d", &raw_value);
+
         switch (raw_value)
         {
-            case 1:
-                val->i = RIG_METER_SWR;
-                break;
-            case 2:
-                val->i = RIG_METER_COMP;
-                break;
-            case 3:
-                val->i = RIG_METER_ALC;
-                break;
-            default:
-                val->i = RIG_METER_NONE;
+        case 1:
+            val->i = RIG_METER_SWR;
+            break;
+
+        case 2:
+            val->i = RIG_METER_COMP;
+            break;
+
+        case 3:
+            val->i = RIG_METER_ALC;
+            break;
+
+        default:
+            val->i = RIG_METER_NONE;
         }
+
         break;
     }
 
     case RIG_LEVEL_SWR:
     case RIG_LEVEL_COMP_METER:
-    case RIG_LEVEL_ALC: {
+    case RIG_LEVEL_ALC:
+    {
         int swr;
         int comp;
         int alc;
 
         retval = ts480_read_meters(rig, &swr, &comp, &alc);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
@@ -660,30 +707,36 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         switch (level)
         {
-            case RIG_LEVEL_SWR:
-                if (rig->caps->swr_cal.size)
-                {
-                    val->f = rig_raw2val_float(swr, &rig->caps->swr_cal);
-                }
-                else
-                {
-                    val->f = (float) swr / 2.0f;
-                }
-                break;
-            case RIG_LEVEL_COMP_METER:
-                val->f = (float) comp; // Maximum value is 20dB
-                break;
-            case RIG_LEVEL_ALC:
-                // Maximum value is 20, so have the max at 5 just to be on the range where other rigs report ALC
-                val->f = (float) alc / 4.0f;
-                break;
-            default:
-                return -RIG_ENAVAIL;
+        case RIG_LEVEL_SWR:
+            if (rig->caps->swr_cal.size)
+            {
+                val->f = rig_raw2val_float(swr, &rig->caps->swr_cal);
+            }
+            else
+            {
+                val->f = (float) swr / 2.0f;
+            }
+
+            break;
+
+        case RIG_LEVEL_COMP_METER:
+            val->f = (float) comp; // Maximum value is 20dB
+            break;
+
+        case RIG_LEVEL_ALC:
+            // Maximum value is 20, so have the max at 5 just to be on the range where other rigs report ALC
+            val->f = (float) alc / 4.0f;
+            break;
+
+        default:
+            return -RIG_ENAVAIL;
         }
+
         break;
     }
 
-    case RIG_LEVEL_RFPOWER_METER: {
+    case RIG_LEVEL_RFPOWER_METER:
+    {
         int raw_value;
 
         if (rig->state.cache.ptt == RIG_PTT_OFF)
@@ -693,6 +746,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         retval = kenwood_safe_transaction(rig, "SM0", ackbuf, sizeof(ackbuf), 7);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
@@ -704,9 +758,11 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
     }
 
-    case RIG_LEVEL_CWPITCH: {
+    case RIG_LEVEL_CWPITCH:
+    {
         int raw_value;
         retval = ts480_get_ex_menu(rig, 34, 2, &raw_value);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
@@ -740,13 +796,16 @@ static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     // RC clear command cannot be executed if RIT/XIT is not enabled
 
     retval = kenwood_get_func(rig, vfo, RIG_FUNC_RIT, &rit_enabled);
+
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
     }
+
     if (!rit_enabled)
     {
         retval = kenwood_get_func(rig, vfo, RIG_FUNC_XIT, &xit_enabled);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
@@ -756,6 +815,7 @@ static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     if (!rit_enabled && !xit_enabled)
     {
         retval = kenwood_set_func(rig, vfo, RIG_FUNC_RIT, 1);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
@@ -763,6 +823,7 @@ static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     }
 
     retval = kenwood_transaction(rig, "RC", NULL, 0);
+
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
@@ -771,6 +832,7 @@ static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     if (!rit_enabled && !xit_enabled)
     {
         retval = kenwood_set_func(rig, vfo, RIG_FUNC_RIT, 0);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
@@ -825,37 +887,45 @@ static int ts480_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
 
     switch (token)
     {
-        case TOK_FUNC_NOISE_REDUCTION_2:
-            if (status < 0 || status > 1)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            snprintf(cmdbuf, sizeof(cmdbuf), "NR%d", status ? 2 : 0);
-            retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
-            break;
-        case TOK_FUNC_CW_IF_FOR_SSB_RX:
-            if (status < 0 || status > 1)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 17, 1, status);
-            break;
-        case TOK_FUNC_FILTER_WIDTH_DATA:
-            if (status < 0 || status > 1)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 45, 1, status);
-            break;
-        case TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT:
-            if (status < 0 || status > 1)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 60, 1, status);
-            break;
-        default:
+    case TOK_FUNC_NOISE_REDUCTION_2:
+        if (status < 0 || status > 1)
+        {
             RETURNFUNC(-RIG_EINVAL);
+        }
+
+        snprintf(cmdbuf, sizeof(cmdbuf), "NR%d", status ? 2 : 0);
+        retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
+        break;
+
+    case TOK_FUNC_CW_IF_FOR_SSB_RX:
+        if (status < 0 || status > 1)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 17, 1, status);
+        break;
+
+    case TOK_FUNC_FILTER_WIDTH_DATA:
+        if (status < 0 || status > 1)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 45, 1, status);
+        break;
+
+    case TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT:
+        if (status < 0 || status > 1)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 60, 1, status);
+        break;
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     RETURNFUNC(retval);
@@ -870,31 +940,37 @@ static int ts480_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
 
     switch (token)
     {
-        case TOK_FUNC_NOISE_REDUCTION_2: {
-            int value;
+    case TOK_FUNC_NOISE_REDUCTION_2:
+    {
+        int value;
 
-            retval = kenwood_safe_transaction(rig, "NR", ackbuf, sizeof(ackbuf), 3);
-            if (retval != RIG_OK)
-            {
-                RETURNFUNC(retval);
-            }
+        retval = kenwood_safe_transaction(rig, "NR", ackbuf, sizeof(ackbuf), 3);
 
-            sscanf(ackbuf, "NR%d", &value);
-
-            *status = (value == 2) ? 1 : 0;
-            break;
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
         }
-        case TOK_FUNC_CW_IF_FOR_SSB_RX:
-            retval = ts480_get_ex_menu(rig, 17, 1, status);
-            break;
-        case TOK_FUNC_FILTER_WIDTH_DATA:
-            retval = ts480_get_ex_menu(rig, 45, 1, status);
-            break;
-        case TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT:
-            retval = ts480_get_ex_menu(rig, 60, 1, status);
-            break;
-        default:
-            RETURNFUNC(-RIG_EINVAL);
+
+        sscanf(ackbuf, "NR%d", &value);
+
+        *status = (value == 2) ? 1 : 0;
+        break;
+    }
+
+    case TOK_FUNC_CW_IF_FOR_SSB_RX:
+        retval = ts480_get_ex_menu(rig, 17, 1, status);
+        break;
+
+    case TOK_FUNC_FILTER_WIDTH_DATA:
+        retval = ts480_get_ex_menu(rig, 45, 1, status);
+        break;
+
+    case TOK_FUNC_TX_AUDIO_FROM_DATA_INPUT:
+        retval = ts480_get_ex_menu(rig, 60, 1, status);
+        break;
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     RETURNFUNC(retval);
@@ -909,65 +985,82 @@ static int ts480_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
     switch (token)
     {
-        case TOK_LEVEL_DIGITAL_NOISE_LIMITER:
-            if (val.i < 0 || val.i > 3)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            snprintf(cmdbuf, sizeof(cmdbuf), "DL%d%02d", val.i != 0 ? 1 : 0, val.i > 0 ? val.i - 1 : 0);
-            retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
-            break;
-        case TOK_LEVEL_DSP_RX_EQUALIZER:
-            if (val.i < 0 || val.i > 7)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 18, 1, val.i);
-            break;
-        case TOK_LEVEL_DSP_TX_EQUALIZER:
-            if (val.i < 0 || val.i > 7)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 19, 1, val.i);
-            break;
-        case TOK_LEVEL_DSP_TX_BANDWIDTH:
-            if (val.i < 0 || val.i > 1)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 20, 1, val.i);
-            break;
-        case TOK_LEVEL_BEEP_VOLUME:
-            if (val.f < 0 || val.f > 9)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 12, 1, (int) val.f);
-            break;
-        case TOK_LEVEL_TX_SIDETONE_VOLUME:
-            if (val.f < 0 || val.f > 9)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 13, 1, (int) val.f);
-            break;
-        case TOK_LEVEL_AF_INPUT_LEVEL:
-            if (val.f < 0 || val.f > 9)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 46, 1, (int) val.f);
-            break;
-        case TOK_LEVEL_AF_OUTPUT_LEVEL:
-            if (val.f < 0 || val.f > 9)
-            {
-                RETURNFUNC(-RIG_EINVAL);
-            }
-            retval = ts480_set_ex_menu(rig, 47, 1, (int) val.f);
-            break;
-        default:
+    case TOK_LEVEL_DIGITAL_NOISE_LIMITER:
+        if (val.i < 0 || val.i > 3)
+        {
             RETURNFUNC(-RIG_EINVAL);
+        }
+
+        snprintf(cmdbuf, sizeof(cmdbuf), "DL%d%02d", val.i != 0 ? 1 : 0,
+                 val.i > 0 ? val.i - 1 : 0);
+        retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
+        break;
+
+    case TOK_LEVEL_DSP_RX_EQUALIZER:
+        if (val.i < 0 || val.i > 7)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 18, 1, val.i);
+        break;
+
+    case TOK_LEVEL_DSP_TX_EQUALIZER:
+        if (val.i < 0 || val.i > 7)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 19, 1, val.i);
+        break;
+
+    case TOK_LEVEL_DSP_TX_BANDWIDTH:
+        if (val.i < 0 || val.i > 1)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 20, 1, val.i);
+        break;
+
+    case TOK_LEVEL_BEEP_VOLUME:
+        if (val.f < 0 || val.f > 9)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 12, 1, (int) val.f);
+        break;
+
+    case TOK_LEVEL_TX_SIDETONE_VOLUME:
+        if (val.f < 0 || val.f > 9)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 13, 1, (int) val.f);
+        break;
+
+    case TOK_LEVEL_AF_INPUT_LEVEL:
+        if (val.f < 0 || val.f > 9)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 46, 1, (int) val.f);
+        break;
+
+    case TOK_LEVEL_AF_OUTPUT_LEVEL:
+        if (val.f < 0 || val.f > 9)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        retval = ts480_set_ex_menu(rig, 47, 1, (int) val.f);
+        break;
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     RETURNFUNC(retval);
@@ -983,57 +1076,68 @@ static int ts480_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
     switch (token)
     {
-        case TOK_LEVEL_DIGITAL_NOISE_LIMITER: {
-            int enabled;
-            int level;
+    case TOK_LEVEL_DIGITAL_NOISE_LIMITER:
+    {
+        int enabled;
+        int level;
 
-            retval = kenwood_safe_transaction(rig, "DL", ackbuf, sizeof(ackbuf), 5);
-            if (retval != RIG_OK)
-            {
-                RETURNFUNC(retval);
-            }
+        retval = kenwood_safe_transaction(rig, "DL", ackbuf, sizeof(ackbuf), 5);
 
-            sscanf(ackbuf, "DL%1d%2d", &enabled, &level);
-
-            val->i = enabled ? level + 1 : 0;
-            break;
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
         }
-        case TOK_LEVEL_DSP_RX_EQUALIZER:
-            retval = ts480_get_ex_menu(rig, 18, 1, &value);
-            val->i = value;
-            break;
-        case TOK_LEVEL_DSP_TX_EQUALIZER:
-            retval = ts480_get_ex_menu(rig, 19, 1, &value);
-            val->i = value;
-            break;
-        case TOK_LEVEL_DSP_TX_BANDWIDTH:
-            retval = ts480_get_ex_menu(rig, 20, 1, &value);
-            val->i = value;
-            break;
-        case TOK_LEVEL_BEEP_VOLUME:
-            retval = ts480_get_ex_menu(rig, 12, 1, &value);
-            val->f = value;
-            break;
-        case TOK_LEVEL_TX_SIDETONE_VOLUME:
-            retval = ts480_get_ex_menu(rig, 13, 1, &value);
-            val->f = value;
-            break;
-        case TOK_LEVEL_AF_INPUT_LEVEL:
-            retval = ts480_get_ex_menu(rig, 46, 1, &value);
-            val->f = value;
-            break;
-        case TOK_LEVEL_AF_OUTPUT_LEVEL:
-            retval = ts480_get_ex_menu(rig, 47, 1, &value);
-            val->f = value;
-            break;
-        default:
-            RETURNFUNC(-RIG_EINVAL);
+
+        sscanf(ackbuf, "DL%1d%2d", &enabled, &level);
+
+        val->i = enabled ? level + 1 : 0;
+        break;
+    }
+
+    case TOK_LEVEL_DSP_RX_EQUALIZER:
+        retval = ts480_get_ex_menu(rig, 18, 1, &value);
+        val->i = value;
+        break;
+
+    case TOK_LEVEL_DSP_TX_EQUALIZER:
+        retval = ts480_get_ex_menu(rig, 19, 1, &value);
+        val->i = value;
+        break;
+
+    case TOK_LEVEL_DSP_TX_BANDWIDTH:
+        retval = ts480_get_ex_menu(rig, 20, 1, &value);
+        val->i = value;
+        break;
+
+    case TOK_LEVEL_BEEP_VOLUME:
+        retval = ts480_get_ex_menu(rig, 12, 1, &value);
+        val->f = value;
+        break;
+
+    case TOK_LEVEL_TX_SIDETONE_VOLUME:
+        retval = ts480_get_ex_menu(rig, 13, 1, &value);
+        val->f = value;
+        break;
+
+    case TOK_LEVEL_AF_INPUT_LEVEL:
+        retval = ts480_get_ex_menu(rig, 46, 1, &value);
+        val->f = value;
+        break;
+
+    case TOK_LEVEL_AF_OUTPUT_LEVEL:
+        retval = ts480_get_ex_menu(rig, 47, 1, &value);
+        val->f = value;
+        break;
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     RETURNFUNC(retval);
 }
 
-static struct kenwood_filter_width ts480_filter_width[] = {
+static struct kenwood_filter_width ts480_filter_width[] =
+{
     { RIG_MODE_CW | RIG_MODE_CWR, 50, 50 },
     { RIG_MODE_CW | RIG_MODE_CWR, 80, 80 },
     { RIG_MODE_CW | RIG_MODE_CWR, 100, 100 },
@@ -1058,7 +1162,8 @@ static struct kenwood_filter_width ts480_filter_width[] = {
     { RIG_MODE_NONE, -1, -1 },
 };
 
-static struct kenwood_slope_filter ts480_slope_filter_high[] = {
+static struct kenwood_slope_filter ts480_slope_filter_high[] =
+{
     { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 0, 1000 },
     { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 1, 1200 },
     { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 2, 1400 },
@@ -1083,7 +1188,8 @@ static struct kenwood_slope_filter ts480_slope_filter_high[] = {
     { RIG_MODE_NONE, 0, -1, -1 },
 };
 
-static struct kenwood_slope_filter ts480_slope_filter_low[] = {
+static struct kenwood_slope_filter ts480_slope_filter_low[] =
+{
     { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 0, 0 },
     { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 1, 50 },
     { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 2, 100 },
@@ -1126,6 +1232,7 @@ int ts480_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = kenwood_init(rig);
+
     if (retval != RIG_OK)
     {
         return retval;

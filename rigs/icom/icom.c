@@ -4499,6 +4499,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
                                           &ack_len);
 
                 rs->rigport.retry = retry_save;
+
                 if (retval == RIG_OK) // then we're done!!
                 {
                     *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);

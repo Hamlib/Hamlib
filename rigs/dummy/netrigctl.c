@@ -203,37 +203,46 @@ int parse_array_int(const char *s, const char *delim, int *array, int array_len)
     char *p;
     char *dup = strdup(s);
     char *rest = dup;
-    int n=0;
+    int n = 0;
     ENTERFUNC;
-    while((p = strtok_r(rest, delim, &rest)))
+
+    while ((p = strtok_r(rest, delim, &rest)))
     {
-        if (n == array_len) { // too many items
+        if (n == array_len)   // too many items
+        {
             return n;
         }
+
         array[n] = atoi(p);
         //printf("%d\n", array[n]);
         ++n;
     }
+
     free(dup);
     return n;
 }
 
-int parse_array_double(const char *s, const char *delim, double *array, int array_len)
+int parse_array_double(const char *s, const char *delim, double *array,
+                       int array_len)
 {
     char *p;
     char *dup = strdup(s);
     char *rest = dup;
-    int n=0;
+    int n = 0;
     ENTERFUNC;
-    while((p = strtok_r(rest, delim, &rest)))
+
+    while ((p = strtok_r(rest, delim, &rest)))
     {
-        if (n == array_len) { // too many items
+        if (n == array_len)   // too many items
+        {
             return n;
         }
+
         array[n] = atof(p);
         //printf("%f\n", array[n]);
         ++n;
     }
+
     free(dup);
     return n;
 }
@@ -555,6 +564,7 @@ static int netrigctl_open(RIG *rig)
     rig->caps->has_get_level = rs->has_get_level = strtoll(buf, NULL, 0);
 
 #if 0 // don't think we need this anymore
+
     if (rs->has_get_level & RIG_LEVEL_RAWSTR)
     {
         /* include STRENGTH because the remote rig may be able to
@@ -563,6 +573,7 @@ static int netrigctl_open(RIG *rig)
         rs->has_get_level |= RIG_LEVEL_STRENGTH;
         rig->caps->has_get_level |= RIG_LEVEL_STRENGTH;
     }
+
 #endif
 
     ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1);
@@ -701,6 +712,7 @@ static int netrigctl_open(RIG *rig)
 
                 if (!has) { rig->caps->get_conf = NULL; }
             }
+
 #if 0 // for the future
             else if (strcmp(setting, "has_set_trn") == 0)
             {
@@ -714,6 +726,7 @@ static int netrigctl_open(RIG *rig)
 
                 if (!has) { rig->caps->get_trn = NULL; }
             }
+
 #endif
             else if (strcmp(setting, "has_power2mW") == 0)
             {
@@ -741,18 +754,22 @@ static int netrigctl_open(RIG *rig)
                 double ctcss[CTCSS_LIST_SIZE];
                 rig->caps->ctcss_list = calloc(CTCSS_LIST_SIZE, sizeof(tone_t));
                 n = parse_array_double(value, " \n\r", ctcss, CTCSS_LIST_SIZE);
-                for(i=0;i<CTCSS_LIST_SIZE && ctcss[i] != 0;++i) rig->caps->ctcss_list[i] = ctcss[i]*10;
-                if (n < CTCSS_LIST_SIZE) rig->caps->ctcss_list[n] = 0;
+
+                for (i = 0; i < CTCSS_LIST_SIZE && ctcss[i] != 0; ++i) { rig->caps->ctcss_list[i] = ctcss[i] * 10; }
+
+                if (n < CTCSS_LIST_SIZE) { rig->caps->ctcss_list[n] = 0; }
             }
-            else if (strcmp(setting,"dcs_list") == 0)
+            else if (strcmp(setting, "dcs_list") == 0)
             {
                 int i;
                 int n;
-                int dcs[DCS_LIST_SIZE+1];
+                int dcs[DCS_LIST_SIZE + 1];
                 rig->caps->dcs_list = calloc(DCS_LIST_SIZE, sizeof(tone_t));
                 n = parse_array_int(value, " \n\r", dcs, DCS_LIST_SIZE);
-                for(i=0;i<DCS_LIST_SIZE && dcs[i] != 0; i++) rig->caps->dcs_list[i] = dcs[i];
-                if (n < DCS_LIST_SIZE) rig->caps->dcs_list[n] = 0;
+
+                for (i = 0; i < DCS_LIST_SIZE && dcs[i] != 0; i++) { rig->caps->dcs_list[i] = dcs[i]; }
+
+                if (n < DCS_LIST_SIZE) { rig->caps->dcs_list[n] = 0; }
             }
             else
             {
@@ -2454,12 +2471,14 @@ static int netrigctl_get_trn(RIG *rig, int *trn)
     {
         return -RIG_EPROTO;
     }
-    
-    if (strstr(buf,"OFF")) *trn = RIG_TRN_OFF;
-    else if (strstr(buf,"RIG")) *trn = RIG_TRN_RIG;
-    else if (strstr(buf,"POLL")) *trn = RIG_TRN_POLL;
-    else {
-        rig_debug(RIG_DEBUG_ERR, "%s: Expected OFF, RIG, or POLL, got '%s'\n", __func__, buf);
+
+    if (strstr(buf, "OFF")) { *trn = RIG_TRN_OFF; }
+    else if (strstr(buf, "RIG")) { *trn = RIG_TRN_RIG; }
+    else if (strstr(buf, "POLL")) { *trn = RIG_TRN_POLL; }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Expected OFF, RIG, or POLL, got '%s'\n", __func__,
+                  buf);
         ret = -RIG_EINVAL;
     }
 
@@ -2468,7 +2487,7 @@ static int netrigctl_get_trn(RIG *rig, int *trn)
 #endif
 
 static int netrigctl_mW2power(RIG *rig, float *power, unsigned int mwpower,
-                          freq_t freq, rmode_t mode)
+                              freq_t freq, rmode_t mode)
 {
     char cmdbuf[32];
     char buf[BUF_MAX];
@@ -2491,7 +2510,7 @@ static int netrigctl_mW2power(RIG *rig, float *power, unsigned int mwpower,
 
 
 static int netrigctl_power2mW(RIG *rig, unsigned int *mwpower, float power,
-                          freq_t freq, rmode_t mode)
+                              freq_t freq, rmode_t mode)
 {
     char cmdbuf[32];
     char buf[BUF_MAX];

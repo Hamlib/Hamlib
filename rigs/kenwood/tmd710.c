@@ -1236,6 +1236,7 @@ static int tmd710_find_dcs_index(tone_t code, uint32_t *dcs_index)
 
     // we only allow exact matches here
     tone_t *dcs_list = common_dcs_list;
+
     while (code != dcs_list[i])
     {
         if (dcs_list[i] == 0)
