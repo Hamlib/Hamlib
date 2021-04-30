@@ -6211,6 +6211,52 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
     return (rig->caps->get_info(rig));
 }
 
+
+void make_crc_table(unsigned long crcTable[])
+{
+    unsigned long POLYNOMIAL = 0xEDB88320;
+    unsigned long remainder;
+    unsigned char b = 0;
+
+    do
+    {
+        // Start with the data byte
+        remainder = b;
+
+        for (unsigned long bit = 8; bit > 0; --bit)
+        {
+            if (remainder & 1)
+            {
+                remainder = (remainder >> 1) ^ POLYNOMIAL;
+            }
+            else
+            {
+                remainder = (remainder >> 1);
+            }
+        }
+
+        crcTable[(size_t)b] = remainder;
+    }
+    while (0 != ++b);
+}
+
+static unsigned long crcTable[256];
+
+unsigned long gen_crc(unsigned char *p, size_t n)
+{
+    unsigned long crc = 0xfffffffful;
+    size_t i;
+
+    if (crcTable[0] == 0) { make_crc_table(crcTable); }
+
+    for (i = 0; i < n; i++)
+    {
+        crc = crcTable[*p++ ^ (crc & 0xff)] ^ (crc >> 8);
+    }
+
+    return ((~crc) & 0xffffffff);
+}
+
 /**
  * \brief get freq/mode/width for requested VFO
  * \param rig   The rig handle
@@ -6229,6 +6275,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
     int ret;
     int rxa, txa, rxb, txb;
     response[0] = 0;
+    char crcstr[16];
 
     vfoA = vfo_fixup(rig, RIG_VFO_A);
     vfoB = vfo_fixup(rig, RIG_VFO_B);
@@ -6265,9 +6312,12 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
     rxb = !rxa;
     txb = split == 1;
     snprintf(response, max_response_len,
-             "VFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nVFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d",
+             "VFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nVFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d\nRig=%s\nApp=Hamlib\nVersion=20210429\n",
              rig_strvfo(vfoA), freqA, modeAstr, (int)widthA, rxa, txa, rig_strvfo(vfoB),
-             freqB, modeBstr, (int)widthB, rxb, txb, split, satmode);
+             freqB, modeBstr, (int)widthB, rxb, txb, split, satmode, rig->caps->model_name);
+    unsigned long crc = gen_crc((unsigned char *)response, strlen(response));
+    sprintf(crcstr, "CRC=0x%08lx\n", crc);
+    strcat(response, crcstr);
     RETURNFUNC(RIG_OK);
 }
 
