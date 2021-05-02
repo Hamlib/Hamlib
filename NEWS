@@ -27,6 +27,7 @@ Version 4.2
         Split: 0
         SatMode: 0
 
+    * FILPATHLEN has changed to HAMLIB_FILPATHLEN
 
     * USRP lib and gnuradio are deprecated and will be removed in 5.0
     * Added Radan rotator
