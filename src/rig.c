@@ -2938,6 +2938,11 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         rs->transmit = ptt != RIG_PTT_OFF;
     }
 
+    // some rigs like the FT-2000 with the SCU-17 need just a bit of time to let the relays work
+    // can affect fake it mode in WSJT-X when the rig is still in transmit and freq change
+    // is requested on a rig that can't change freq on a transmitting VFO
+    if (ptt != RIG_PTT_ON) hl_usleep(10*1000);
+
     rig->state.cache.ptt = ptt;
     elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
 
