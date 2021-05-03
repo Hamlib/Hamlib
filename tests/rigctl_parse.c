@@ -2301,6 +2301,8 @@ declare_proto_rig(get_vfo_list)
 declare_proto_rig(get_modes)
 {
     static char prntbuf[1024];
+    int i;
+    char freqbuf[32];
 
     ENTERFUNC;
 
@@ -2312,6 +2314,28 @@ declare_proto_rig(get_modes)
     }
 
     fprintf(fout, "%s%c", prntbuf[0] ? prntbuf : "None", ext_resp);
+
+    fprintf(fout, "\nBandwidths:");
+
+    for (i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
+    {
+        pbwidth_t pbnorm = rig_passband_normal(rig, i);
+
+        if (pbnorm == 0)
+        {
+            continue;
+        }
+
+        sprintf_freq(freqbuf, sizeof(freqbuf), pbnorm);
+        fprintf(fout, "\n\t%s\tNormal: %s,\t", rig_strrmode(i), freqbuf);
+
+        sprintf_freq(freqbuf, sizeof(freqbuf), rig_passband_narrow(rig, i));
+        fprintf(fout, "Narrow: %s,\t", freqbuf);
+
+        sprintf_freq(freqbuf, sizeof(freqbuf), rig_passband_wide(rig, i));
+        fprintf(fout, "Wide: %s", freqbuf);
+    }
+
 
     RETURNFUNC(RIG_OK);
 }
