@@ -164,6 +164,7 @@ declare_proto_rig(set_xit);
 declare_proto_rig(get_xit);
 declare_proto_rig(set_mode);
 declare_proto_rig(get_mode);
+declare_proto_rig(get_modes);
 declare_proto_rig(set_vfo);
 declare_proto_rig(get_vfo);
 declare_proto_rig(get_rig_info);
@@ -336,6 +337,7 @@ static struct test_table test_list[] =
     { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_NOVFO | ARG_IN1 | ARG_OUT4, "Freq", "Mode", "Width", "Split", "SatMode" }, /* get several vfo parameters at once */
     { 0xf5, "get_rig_info",     ACTION(get_rig_info),   ARG_NOVFO | ARG_OUT, "RigInfo" }, /* get several vfo parameters at once */
     { 0xf4,  "get_vfo_list",    ACTION(get_vfo_list),   ARG_OUT | ARG_NOVFO, "VFOs" },
+    { 0xf6,  "get_modes",       ACTION(get_modes),   ARG_OUT | ARG_NOVFO, "Modes" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x00, "", NULL },
@@ -2284,6 +2286,25 @@ declare_proto_rig(get_vfo_list)
     ENTERFUNC;
 
     rig_sprintf_vfo(prntbuf, sizeof(prntbuf), rig->state.vfo_list);
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    fprintf(fout, "%s%c", prntbuf[0] ? prntbuf : "None", ext_resp);
+
+    RETURNFUNC(RIG_OK);
+}
+
+/* '\get_modes' */
+declare_proto_rig(get_modes)
+{
+    static char prntbuf[1024];
+
+    ENTERFUNC;
+
+    rig_strrmodes(rig->state.mode_list, prntbuf, sizeof(prntbuf));
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
