@@ -2367,6 +2367,10 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
 
     rs = &rig->state;
 
+    // return CW for CWR and RTTY for RTTYR
+    if (mode == RIG_MODE_CWR) mode = RIG_MODE_CW;
+    if (mode == RIG_MODE_RTTYR) mode = RIG_MODE_RTTY;
+
     for (i = 0; i < HAMLIB_FLTLSTSIZ && rs->filters[i].modes; i++)
     {
         if (rs->filters[i].modes & mode)

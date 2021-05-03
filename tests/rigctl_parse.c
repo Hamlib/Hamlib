@@ -165,6 +165,7 @@ declare_proto_rig(get_xit);
 declare_proto_rig(set_mode);
 declare_proto_rig(get_mode);
 declare_proto_rig(get_modes);
+declare_proto_rig(get_mode_bandwidths);
 declare_proto_rig(set_vfo);
 declare_proto_rig(get_vfo);
 declare_proto_rig(get_rig_info);
@@ -336,8 +337,9 @@ static struct test_table test_list[] =
     { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO | ARG_IN, "Status" }, /* turn vfo option on/off */
     { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_NOVFO | ARG_IN1 | ARG_OUT4, "Freq", "Mode", "Width", "Split", "SatMode" }, /* get several vfo parameters at once */
     { 0xf5, "get_rig_info",     ACTION(get_rig_info),   ARG_NOVFO | ARG_OUT, "RigInfo" }, /* get several vfo parameters at once */
-    { 0xf4,  "get_vfo_list",    ACTION(get_vfo_list),   ARG_OUT | ARG_NOVFO, "VFOs" },
-    { 0xf6,  "get_modes",       ACTION(get_modes),   ARG_OUT | ARG_NOVFO, "Modes" },
+    { 0xf4, "get_vfo_list",    ACTION(get_vfo_list),   ARG_OUT | ARG_NOVFO, "VFOs" },
+    { 0xf6, "get_modes",       ACTION(get_modes),   ARG_OUT | ARG_NOVFO, "Modes" },
+    { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x00, "", NULL },
@@ -2339,6 +2341,48 @@ declare_proto_rig(get_modes)
 
     RETURNFUNC(RIG_OK);
 }
+
+declare_proto_rig(get_mode_bandwidths)
+{
+    int i;
+    char freqbuf[32];
+
+    ENTERFUNC;
+
+    rmode_t mode = rig_parse_mode(arg1);
+
+    for (i = 1; i < RIG_MODE_TESTS_MAX; i <<= 1)
+    {
+        if (i != mode) { continue; }
+
+        if (mode == RIG_MODE_CWR) { mode = RIG_MODE_CW; }
+
+        if (mode == RIG_MODE_RTTYR) { mode = RIG_MODE_RTTY; }
+
+        pbwidth_t pbnorm = rig_passband_normal(rig, i);
+
+        if (pbnorm == 0)
+        {
+            continue;
+        }
+
+//        sprintf_freq(freqbuf, sizeof(freqbuf), pbnorm);
+        snprintf(freqbuf, sizeof(freqbuf), "%ldHz", pbnorm);
+        fprintf(fout, "Mode=%s\n", rig_strrmode(i));
+        fprintf(fout, "Normal=%s\n", freqbuf);
+
+        snprintf(freqbuf, sizeof(freqbuf), "%ldHz", rig_passband_narrow(rig, i));
+        fprintf(fout, "Narrow=%s\n", freqbuf);
+
+        snprintf(freqbuf, sizeof(freqbuf), "%ldHz", rig_passband_wide(rig, i));
+        fprintf(fout, "Wide=%s", freqbuf);
+    }
+
+
+    RETURNFUNC(RIG_OK);
+}
+
+
 
 
 /* 'T' */
