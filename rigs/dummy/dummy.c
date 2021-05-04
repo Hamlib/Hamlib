@@ -469,14 +469,22 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s %s\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), buf);
 
+    vfo = vfo_fixup(rig, vfo);
     switch (vfo)
     {
+    case RIG_VFO_MAIN:
     case RIG_VFO_A: priv->vfo_a.mode = mode; priv->vfo_a.width = width; break;
 
+    case RIG_VFO_SUB:
     case RIG_VFO_B: priv->vfo_b.mode = mode; priv->vfo_b.width = width; break;
 
     case RIG_VFO_C: priv->vfo_c.mode = mode; priv->vfo_c.width = width; break;
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO=%s\n", __func__, rig_strvfo(vfo));
+        RETURNFUNC(-RIG_EINVAL);
     }
+
+    vfo = vfo_fixup(rig, vfo);
 
     if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(RIG_OK); }
 
@@ -2127,7 +2135,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20210428.0",
+    .version =        "20210504.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
@@ -2292,7 +2300,7 @@ struct rig_caps dummy_no_vfo_caps =
     RIG_MODEL(RIG_MODEL_DUMMY_NOVFO),
     .model_name =     "Dummy No VFO",
     .mfg_name =       "Hamlib",
-    .version =        "20210428.0",
+    .version =        "20210504.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

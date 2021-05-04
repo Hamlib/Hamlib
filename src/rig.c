@@ -2154,8 +2154,9 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
+    if (vfo == RIG_VFO_CURR) vfo = rig->state.current_vfo;
+
     if ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
-            || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
         TRACE;
