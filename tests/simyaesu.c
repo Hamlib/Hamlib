@@ -1,6 +1,9 @@
 // can run this using rigctl/rigctld and socat pty devices
-// socat -d -d pty,raw,echo=0 pty,raw,echo=0
+// gcc -o simyaesu simyaesu.c
+#define _XOPEN_SOURCE 600
 #include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -31,13 +34,13 @@ typedef enum nc_rigid_e
 } nc_rigid_t;
 
 int
-getmyline(FILE *fp, char *buf)
+getmyline(int fd, char *buf)
 {
     int c;
     int i = 0;
     memset(buf, 0, BUFSIZE);
 
-    while ((c = fgetc(fp)) != EOF)
+    while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
 
@@ -46,63 +49,101 @@ getmyline(FILE *fp, char *buf)
 
     return strlen(buf);
 }
-int main()
+
+#if defined(WIN32) || defined(_WIN32)
+int openPort(char *comport) // doesn't matter for using pts devices
+{
+    int fd;
+    fd = open(comport, O_RDWR);
+
+    if (fd < 0)
+    {
+        perror(comport);
+    }
+
+    return fd;
+}
+
+#else
+int openPort(char *comport) // doesn't matter for using pts devices
+{
+    int fd = posix_openpt(O_RDWR);
+    char *name = ptsname(fd);
+
+    if (name == NULL)
+    {
+        perror("pstname");
+        return -1;
+    }
+
+    printf("name=%s\n", name);
+
+    if (fd == -1 || grantpt(fd) == -1 || unlockpt(fd) == -1)
+    {
+        perror("posix_openpt");
+        return -1;
+    }
+
+    return fd;
+}
+#endif
+
+
+
+int main(int argc, char *argv[])
 {
     char buf[256];
+    char *pbuf;
     int n;
-    FILE *fp = fopen("/dev/pts/3", "r+");
+    int fd = openPort(argv[1]);
 
-    //,while(getmyline(fp,buf))
     while (1)
     {
-        getmyline(fp, buf);
+        getmyline(fd, buf);
+        printf("Cmd:%s\n", buf);
 
         if (strcmp(buf, "RM5;") == 0)
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            n = fprintf(fp, "%s", "RM5100000;");
+            pbuf = "RM5100000;";
+            n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
 
             if (n <= 0) { perror("RM5"); }
-
-            fflush(fp);
         }
 
         if (strcmp(buf, "AN0;") == 0)
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            n = fprintf(fp, "%s", "AN030;");
+            pbuf = "AN030;";
+            n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
 
             if (n <= 0) { perror("AN"); }
-
-            fflush(fp);
         }
         else if (strcmp(buf, "IF;") == 0)
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            n = fprintf(fp, "%s", "IF059014200000+000000700000;");
+            pbuf = "IF059014200000+000000700000;";
+            n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
 
             if (n <= 0) { perror("IF"); }
-
-            fflush(fp);
         }
         else if (strcmp(buf, "ID;") == 0)
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            int id = NC_RIGID_FTDX101D;
-//            int id = NC_RIGID_FTDX3000;
-            n = fprintf(fp, "ID%03d;", id);
+            int id = NC_RIGID_FTDX3000;
+            snprintf(buf,sizeof(buf),"ID%03d;", id);
+            n = snprintf(buf, sizeof(buf), "ID%03d;", id);
+            n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
             if (n <= 0) { perror("ID"); }
-
-            fflush(fp);
         }
 
 #if 0
@@ -116,8 +157,6 @@ int main()
                 printf("n=%d\n", n);
 
                 if (n <= 0) { perror("AI"); }
-
-                fflush(fp);
             }
         }
 
@@ -126,12 +165,11 @@ int main()
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            n = fprintf(fp, "%s", "VS0;");
+            pbuf = "VS0;";
+            n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
 
             if (n < 0) { perror("VS"); }
-
-            fflush(fp);
         }
         else if (strcmp(buf, "EX032;") == 0)
         {
@@ -139,12 +177,11 @@ int main()
             ant = (ant + 1) % 3;
             printf("%s\n", buf);
             usleep(50 * 1000);
-            n = fprintf(fp, "EX032%1d;", ant);
+            snprintf(buf, sizeof(buf), "EX032%1d;", ant);
+            n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
             if (n < 0) { perror("EX032"); }
-
-            fflush(fp);
         }
 
         else if (strlen(buf) > 0)
