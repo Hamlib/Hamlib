@@ -5087,7 +5087,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
         RETURNFUNC(-RIG_EIO);
     }
 
-    if (ant_curr)
+    if (ant_curr == NULL)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
