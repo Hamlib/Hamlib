@@ -2154,7 +2154,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    if (vfo == RIG_VFO_CURR) vfo = rig->state.current_vfo;
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
             || vfo == rig->state.current_vfo)
@@ -2369,8 +2369,9 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
     rs = &rig->state;
 
     // return CW for CWR and RTTY for RTTYR
-    if (mode == RIG_MODE_CWR) mode = RIG_MODE_CW;
-    if (mode == RIG_MODE_RTTYR) mode = RIG_MODE_RTTY;
+    if (mode == RIG_MODE_CWR) { mode = RIG_MODE_CW; }
+
+    if (mode == RIG_MODE_RTTYR) { mode = RIG_MODE_RTTY; }
 
     for (i = 0; i < HAMLIB_FLTLSTSIZ && rs->filters[i].modes; i++)
     {
@@ -2946,7 +2947,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     // some rigs like the FT-2000 with the SCU-17 need just a bit of time to let the relays work
     // can affect fake it mode in WSJT-X when the rig is still in transmit and freq change
     // is requested on a rig that can't change freq on a transmitting VFO
-    if (ptt != RIG_PTT_ON) hl_usleep(10*1000);
+    if (ptt != RIG_PTT_ON) { hl_usleep(10 * 1000); }
 
     rig->state.cache.ptt = ptt;
     elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
@@ -5087,8 +5088,11 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
         RETURNFUNC(-RIG_EIO);
     }
 
-    if (ant_curr == NULL)
+    if (ant_curr == NULL || ant_tx == NULL || ant_rx == NULL)
     {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: null pointer in ant_curr=%p, ant_tx=%p, ant_rx=%p\n", __func__, ant_curr,
+                  ant_tx, ant_rx);
         RETURNFUNC(-RIG_EINVAL);
     }
 
