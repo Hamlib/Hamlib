@@ -5081,8 +5081,6 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 
     ENTERFUNC;
 
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
-
     if (CHECK_RIG_ARG(rig))
     {
         RETURNFUNC(-RIG_EIO);
@@ -5095,6 +5093,8 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
                   ant_tx, ant_rx);
         RETURNFUNC(-RIG_EINVAL);
     }
+
+    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     caps = rig->caps;
 
