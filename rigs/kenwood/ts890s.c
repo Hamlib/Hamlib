@@ -116,6 +116,18 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
+    case RIG_LEVEL_VOXDELAY:
+        retval = kenwood_safe_transaction(rig, "VD0", ackbuf, sizeof(ackbuf), 6);
+
+        if (retval != RIG_OK)
+        {   
+            return retval;
+        }
+
+        sscanf(lvlbuf + 3, "%d", &levelint);
+        val->i = levelint * 3 / 2;               /* 150ms units converted to 100ms units */
+        return RIG_OK;
+
     case RIG_LEVEL_RF:
         retval = kenwood_transaction(rig, "RG", ackbuf, sizeof(ackbuf));
 
@@ -228,7 +240,7 @@ const struct rig_caps ts890s_caps =
     RIG_MODEL(RIG_MODEL_TS890S),
     .model_name = "TS-890S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".0",
+    .version = BACKEND_VER ".1",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
