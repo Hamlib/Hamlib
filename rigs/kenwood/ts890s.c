@@ -124,7 +124,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        sscanf(lvlbuf + 3, "%d", &levelint);
+        sscanf(ackbuf + 3, "%d", &levelint);
         val->i = levelint * 3 / 2;               /* 150ms units converted to 100ms units */
         return RIG_OK;
 
