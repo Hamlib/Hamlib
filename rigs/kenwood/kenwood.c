@@ -2914,12 +2914,13 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_VOXDELAY:
-        if (val.i > 3000 || val.i < 0)
+        if (val.i > 30 || val.i < 0)
         {
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        snprintf(levelbuf, sizeof(levelbuf), "VD%04d", val.i);
+        // Raw value is in milliseconds
+        snprintf(levelbuf, sizeof(levelbuf), "VD%04d", val.i * 100);
         break;
 
     case RIG_LEVEL_VOXGAIN:
