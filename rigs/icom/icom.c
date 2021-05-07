@@ -574,7 +574,6 @@ static const struct icom_addr icom_addr_list[] =
     {RIG_MODEL_IC785x, 0x8e},
     {RIG_MODEL_IC781, 0x26},
     {RIG_MODEL_IC820, 0x42},
-    {RIG_MODEL_IC821, 0x4c},
     {RIG_MODEL_IC821H, 0x4c},
     {RIG_MODEL_IC910, 0x60},
     {RIG_MODEL_IC9100, 0x7c},
@@ -2257,6 +2256,9 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         vfo = RIG_VFO_MAIN;
 
         if (rig->state.cache.split == RIG_SPLIT_ON && !rig->state.cache.satmode) { vfo = RIG_VFO_A; }
+
+        // Seems the IC821H reverses Main/Sub when in satmode
+        if (rig->caps->rig_model == RIG_MODEL_IC821H && rig->state.cache.satmode) { vfo = RIG_VFO_SUB; }
     }
     else if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) && VFO_HAS_DUAL)
     {
@@ -2271,6 +2273,9 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             vfo = RIG_VFO_SUB_A;
         }
         else if (rig->state.cache.split == RIG_SPLIT_ON) { vfo = RIG_VFO_B; }
+
+        // Seems the IC821H reverses Main/Sub when in satmode
+        if (rig->caps->rig_model == RIG_MODEL_IC821H && rig->state.cache.satmode) { vfo = RIG_VFO_MAIN; }
     }
     else if ((vfo == RIG_VFO_A || vfo == RIG_VFO_B) && !VFO_HAS_A_B
              && VFO_HAS_MAIN_SUB)
