@@ -28,6 +28,7 @@
 
 #include <hamlib/rig.h>
 #include "icom.h"
+#include "misc.h"
 
 
 #define IC821H_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
@@ -54,12 +55,48 @@ static const struct icom_priv_caps ic821h_priv_caps =
     ic737_ts_sc_list
 };
 
+
+// split could be on VFOA/B or Main/Sub
+// If Main/Sub we assume we're doing satmode
+int ic821h_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+    int retval;
+
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, split=%d, tx_vfo=%s\n", __func__,
+              rig_strvfo(vfo), split, rig_strvfo(tx_vfo));
+
+    if (tx_vfo == RIG_VFO_MAIN)
+    {
+        rig->state.cache.satmode =
+            split;  // we emulate satmode of other rigs since we apparently can't query
+        rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo==MAIN so assuming sat mode=%d\n",
+                  __func__, rig->state.cache.satmode);
+        priv->tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_SUB : RIG_VFO_MAIN;
+        retval = rig_set_vfo(rig, RIG_VFO_MAIN);
+    }
+    else if (tx_vfo == RIG_VFO_A)
+    {
+        retval = rig_set_vfo(rig, RIG_VFO_A);
+        priv->tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s not handled for split mode\n", __func__,
+                  rig_strvfo(tx_vfo));
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    RETURNFUNC(retval);
+}
+
 const struct rig_caps ic821h_caps =
 {
     RIG_MODEL(RIG_MODEL_IC821H),
     .model_name = "IC-821H",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -168,6 +205,7 @@ const struct rig_caps ic821h_caps =
     .set_mode =  icom_set_mode,
     .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
+    .set_split_vfo = ic821h_set_split_vfo,
 
     .decode_event =  icom_decode_event,
     .set_mem =  icom_set_mem,
