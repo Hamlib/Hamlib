@@ -102,12 +102,12 @@ transaction_quit:
 static int
 radant_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    char cmdstr[13];
+    char cmdstr[32];
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
 
-    sprintf(cmdstr, "Q%.1f %1.f\r", az, el);
+    snprintf(cmdstr, sizeof(cmdstr), "Q%.1f %1.f\r", az, el);
 
     retval = radant_transaction(rot, cmdstr, NULL, 0);
 
@@ -128,7 +128,7 @@ radant_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    sprintf(cmdstr, "Y\r");
+    snprintf(cmdstr, sizeof(cmdstr), "Y\r");
 
     retval = radant_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
 
@@ -182,7 +182,7 @@ const struct rot_caps radant_rot_caps =
     ROT_MODEL(ROT_MODEL_RADANT),
     .model_name =     "AZ-1/AZV-1",
     .mfg_name =       "Radant",
-    .version =        "20210409.0",
+    .version =        "20210508.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_OTHER,
