@@ -355,7 +355,7 @@ typedef double freq_t;
 /**
  * \brief printf(3) format to be used for freq_t type
  */
-#define PRIfreq "f"
+#define PRIfreq ".0f"
 
 /**
  * \brief scanf(3) format to be used for freq_t type
