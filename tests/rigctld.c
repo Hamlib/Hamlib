@@ -1088,7 +1088,7 @@ void *handle_socket(void *arg)
                                    sync_callback,
                                    1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
 
-            if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
+            if (retcode != 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
         }
         else
         {
