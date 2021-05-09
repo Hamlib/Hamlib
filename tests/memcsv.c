@@ -607,7 +607,7 @@ int dump_csv_chan(RIG *rig,
 
     if (mem_caps->freq)
     {
-        fprintf(f, "%.0"PRIfreq"%c", chan.freq, csv_sep);
+        fprintf(f, "%"PRIfreq"%c", chan.freq, csv_sep);
     }
 
     if (mem_caps->mode)
@@ -622,7 +622,7 @@ int dump_csv_chan(RIG *rig,
 
     if (mem_caps->tx_freq)
     {
-        fprintf(f, "%.0"PRIfreq"%c", chan.tx_freq, csv_sep);
+        fprintf(f, "%"PRIfreq"%c", chan.tx_freq, csv_sep);
     }
 
     if (mem_caps->tx_mode)
