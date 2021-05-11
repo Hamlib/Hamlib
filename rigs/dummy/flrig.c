@@ -144,7 +144,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20210409",
+    .version = "20210511",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -153,7 +153,7 @@ const struct rig_caps flrig_caps =
     .port_type = RIG_PORT_NETWORK,
     .write_delay = 0,
     .post_write_delay = 0,
-    .timeout = 2000,
+    .timeout = 5000,
     .retry = 2,
 
     .has_get_func = RIG_FUNC_NONE,
