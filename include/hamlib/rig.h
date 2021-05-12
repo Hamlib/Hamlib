@@ -503,6 +503,7 @@ typedef unsigned int vfo_t;
 #define RIG_TARGETABLE_MEM (1<<8)
 #define RIG_TARGETABLE_BANK (1<<9)
 #define RIG_TARGETABLE_ANT (1<<10)
+#define RIG_TARGETABLE_ROOFING (1<<11) // roofing filter targetable by VFO
 #define RIG_TARGETABLE_COMMON (RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_PTT | RIG_TARGETABLE_MEM | RIG_TARGETABLE_BANK)
 #define RIG_TARGETABLE_ALL  0x7fffffff
 //! @endcond
