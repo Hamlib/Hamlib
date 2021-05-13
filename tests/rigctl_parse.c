@@ -2294,7 +2294,7 @@ declare_proto_rig(get_vfo_list)
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    fprintf(fout, "%s%c", prntbuf[0] ? prntbuf : "None", ext_resp);
+    fprintf(fout, "%s%c\n", prntbuf[0] ? prntbuf : "None", ext_resp);
 
     RETURNFUNC(RIG_OK);
 }
