@@ -87,9 +87,9 @@ GNU/Linux.
 \section Build README.build-Windows
 \verbinclude README.build-Windows
 \subsection W32 The build-w32.sh script
-\include{lineno} build-w32.sh
+\htmlinclude build-w32.sh.html
 \subsection W64 The build-w64.sh script
-\include{lineno} build-w64.sh
+\htmlinclude build-w64.sh.html
 */
 
 /*! \page Rdmeosx README.osx
