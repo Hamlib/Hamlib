@@ -1219,7 +1219,7 @@ void usage(void)
         "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -W, --twiddle_timeout         timeout after detecting vfo manual change\n"
-        "  -W, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled"
+        "  -W, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
