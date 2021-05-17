@@ -1,10 +1,5 @@
 /*! \mainpage Hamlib API Reference
 
-\section auth Authors
-
-St&eacute;phane Fillod, F8CFE, and Frank Singleton, VK3FCS and the Hamlib Group
-\n Documentation revisions by Martin Ewing, AA6E, Nate Bargmann, N0NB, Michael Black, W9MDB
-
 \section s1 Preface
 
 This document describes the Hamlib library Application Programming Interface
@@ -14,18 +9,24 @@ We attempt to document the complete API of the core modules of Hamlib, i.e.
 the API seen by end-user application developers.  You may navigate the
 documentation through the tabs at the top of this page.
 
+\note This documentation is a work in progress.
+
 Please report any problems to hamlib-developer@lists.sourceforge.net.
 
 \section txtfil Distributed information files
 
 These text files are distributed with the Hamlib package.
 
-Readme files: \subpage Rdme "General";
+\li Readme files: \subpage Rdme "General";
 \subpage Rdmebeta "Beta Tester";
 \subpage Rdmedevel "Developer";
-\subpage Rdmewin "MS Windows"
+\subpage Rdmewin "MS Windows";
+\subpage Rdmeosx "Mac OS X";
+\subpage Rdmefrq "Frequency range changes";
+\subpage Rdmemulti "Multicast support";
+\subpage Security "Security policy";
 
-Other files: \subpage INSTALL;
+\li Other files: \subpage INSTALL;
 \subpage AUTHORS;
 \subpage COPYING;
 \subpage COPYING.LIB;
@@ -44,10 +45,20 @@ Other files: \subpage INSTALL;
 \section slic Documentation License
 
 \li \subpage doclicense
+
+\section auth Authors
+
+\li St&eacute;phane Fillod, F8CFE, and Frank Singleton, VK3FCS and the Hamlib Group
+\li Documentation revisions by Martin Ewing, AA6E, Nate Bargmann, N0NB,
+Michael Black, W9MDB and many others.
 */
+
+
+/* Subpage definitions follow. */
+
 /*! \page doclicense License for Documentation
 This documentation is free; you can redistribute it without
-any restrictions. The modification or derived work must retain
+any restrictions.  The modification or derived work must retain
 copyright and list all authors.
 
 This documentation is distributed in the hope that it will be
@@ -58,47 +69,80 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*! \page Rdme  README (general)
 \verbinclude README
 */
+
 /*! \page Rdmebeta README.betatester
 \verbinclude README.betatester
 */
+
 /*! \page Rdmedevel README.developer
 \verbinclude README.developer
 */
+
 /*! \page Rdmewin Cross-compiling Hamlib on Linux for MS Windows
 This page contains the `scripts/README.build-Windows` instructions and the
-`scripts/build-w32.sh` file that describe cross-compiling Hamlib for MS
-Windows 32 bit on Debian GNU/Linux.
+`scripts/build-w32.sh` and `scripts/build-w64.h` files that describe
+cross-compiling Hamlib for MS Windows 32 and 64 bit versions on Debian
+GNU/Linux.
+\tableofcontents
 \section Build README.build-Windows
 \verbinclude README.build-Windows
 \subsection W32 The build-w32.sh script
-\verbinclude build-w32.sh
+\include{lineno} build-w32.sh
 \subsection W64 The build-w64.sh script
-\verbinclude build-w64.sh
+\include{lineno} build-w64.sh
 */
+
+/*! \page Rdmeosx README.osx
+\verbinclude README.osx
+*/
+
+/*! \page Rdmefrq README.freqranges
+\verbinclude README.freqranges
+*/
+
+/*! \page Rdmemulti README.multicast
+\verbinclude README.multicast
+*/
+
+/* FIXME: figure out how to include Markdown for HTML output. */
+/*! \page Security SECURITY.md
+\include SECURITY.md
+*/
+
 /*! \page INSTALL INSTALL
 \verbinclude INSTALL
 */
+
 /*! \page AUTHORS AUTHORS
 \verbinclude AUTHORS
 */
+
 /*! \page COPYING COPYING
 \verbinclude COPYING
 */
+
 /*! \page COPYING.LIB COPYING.LIB
 \verbinclude COPYING.LIB
 */
+
 /*! \page LICENSE LICENSE
 \verbinclude LICENSE
 */
+
 /*! \page NEWS NEWS
 \verbinclude NEWS
 */
+
 /*! \page PLAN PLAN
 \verbinclude PLAN
 */
+
 /*! \page THANKS THANKS
 \verbinclude THANKS
 */
+
+
+/* Defined API groups--sections included with addtogroup in sources. */
 
 /*! Define groups for Doxygen
  * \defgroup rig Rig (transceiver) API
