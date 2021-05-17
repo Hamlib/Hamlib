@@ -30,8 +30,8 @@ INCLUDE_PATH     = @top_srcdir@/include
 EXAMPLE_PATH     = @top_srcdir@/tests/testrig.c \
                    @top_srcdir@ \
                    @top_srcdir@/scripts/README.build-Windows \
-                   @top_srcdir@/scripts/build-w32.sh \
-                   @top_srcdir@/scripts/build-w64.sh
+                   @top_builddir@/scripts/build-w32.sh.html \
+                   @top_builddir@/scripts/build-w64.sh.html
 
 
 QUIET            = YES
