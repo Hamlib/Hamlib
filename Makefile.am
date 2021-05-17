@@ -7,7 +7,8 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hamlib.pc
 
 EXTRA_DIST = PLAN LICENSE hamlib.m4 hamlib.pc.in README.developer \
-	README.betatester README.win32 Android.mk
+	README.betatester README.freqranges README.multicast README.osx \
+	Android.mk
 
 doc_DATA = ChangeLog COPYING COPYING.LIB LICENSE \
 	README README.betatester README.developer
