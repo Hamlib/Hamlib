@@ -24,7 +24,6 @@ These text files are distributed with the Hamlib package.
 \subpage Rdmeosx "Mac OS X";
 \subpage Rdmefrq "Frequency range changes";
 \subpage Rdmemulti "Multicast support";
-\subpage Security "Security policy";
 
 \li Other files: \subpage INSTALL;
 \subpage AUTHORS;
@@ -102,11 +101,6 @@ GNU/Linux.
 
 /*! \page Rdmemulti README.multicast
 \verbinclude README.multicast
-*/
-
-/* FIXME: figure out how to include Markdown for HTML output. */
-/*! \page Security SECURITY.md
-\include SECURITY.md
 */
 
 /*! \page INSTALL INSTALL
