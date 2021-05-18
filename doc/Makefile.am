@@ -14,10 +14,12 @@ SCRIPTSLST = build-w32.sh build-w64.sh
 # Use GNU source-highlight to generate highlighted shell scripts for the
 # Doxygen manual.
 doc: hamlib.cfg $(SRCDOCLST)
-	for script in $(SCRIPTSLST) ; do \
-		source-highlight -n -i $(top_srcdir)/scripts/$${script} -o $(top_builddir)/scripts/$${script}.html ; \
-	done ; \
+	for script in $(SCRIPTSLST) ; \
+	  do \
+	    source-highlight -n -f html -i $(top_srcdir)/scripts/$${script} -o $(top_builddir)/scripts/$${script}.html ; \
+	    source-highlight -n -f latex -i $(top_srcdir)/scripts/$${script} -o $(top_builddir)/scripts/$${script}.tex ; \
+	  done
 	doxygen hamlib.cfg
 
 clean-local:
-	-rm -rf $(top_builddir)/doc/html $(top_builddir)/scripts/build-w*.sh.html
+	-rm -rf $(top_builddir)/doc/html $(top_builddir)/doc/latex $(top_builddir)/scripts/build-w*

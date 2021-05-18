@@ -87,8 +87,10 @@ GNU/Linux.
 \verbinclude README.build-Windows
 \subsection W32 The build-w32.sh script
 \htmlinclude build-w32.sh.html
+\latexinclude build-w32.sh.tex
 \subsection W64 The build-w64.sh script
 \htmlinclude build-w64.sh.html
+\latexinclude build-w64.sh.tex
 */
 
 /*! \page Rdmeosx README.osx
