@@ -269,6 +269,7 @@ backend.  The older version of libusb 0.1.x is no longer supported.
 
 Documentation:
 * Doxygen
+* GNU Source-highlight
 
 N.B.:  Some systems can have several versions of the autotools installed. In
 that case, autoconf may be called "autoconf2.59", autoheader
