@@ -14,6 +14,15 @@ GENERATE_RTF    = NO
 GENERATE_MAN    = NO    # User can set to YES for local man pages
 MAN_EXTENSION	= .3
 
+# Set GENERATE_LATEX to YES to generate the needed files for the PDF manual
+# and run 'make doc'.  Then 'cd latex ; make' to generate the PDF manual.
+#
+# See section 1.3.1.2 in @top_srcdir@/README.developer for the needed LaTEX
+# packages.
+USE_PDFLATEX    = YES
+PDF_HYPERLINKS  = YES
+EXTRA_PACKAGES  = pmboxdraw
+
 # Input
 CASE_SENSE_NAMES = YES
 FULL_PATH_NAMES  = NO
@@ -29,9 +38,8 @@ INCLUDE_PATH     = @top_srcdir@/include
 
 EXAMPLE_PATH     = @top_srcdir@/tests/testrig.c \
                    @top_srcdir@ \
-                   @top_srcdir@/scripts/README.build-Windows \
-                   @top_builddir@/scripts/build-w32.sh.html \
-                   @top_builddir@/scripts/build-w64.sh.html
+                   @top_srcdir@/scripts \
+                   @top_builddir@/scripts
 
 
 QUIET            = YES

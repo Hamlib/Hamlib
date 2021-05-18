@@ -267,10 +267,6 @@ Optional, but highly recommended:
 N.B.:  The libusb-1.0 package is required for building most of the 'kit'
 backend.  The older version of libusb 0.1.x is no longer supported.
 
-Documentation:
-* Doxygen
-* GNU Source-highlight
-
 N.B.:  Some systems can have several versions of the autotools installed. In
 that case, autoconf may be called "autoconf2.59", autoheader
 "autoheader2.59", and automake "automake-1.9", aclocal "aclocal-1.9" or a
@@ -374,6 +370,44 @@ this directory.  The contents of libc.conf are:
 If your system does not have such a file, one will need to be created and
 then 'ldconfig' will need to be run as the root user so that applications
 using the Hamlib libraries can find them.
+
+
+1.3.1 Doxygen generated reference manual
+
+The following packages need to be installed:
+* Doxygen
+* GNU Source-highlight
+
+1.3.1.1 HTML manual
+
+In the top level of the build directory:
+
+    cd doc
+    make doc
+
+will build the HTML manual.  The resulting 'doc/html' directory contains all
+of the files needed for the HTML manual.  The 'index.html' file is the entry
+point to the manual.
+
+1.3.1.2 PDF manual
+
+To generate the PDF version of the reference manual the following texlive
+packages are required (Debian package names shown):
+* texlive-latex-base
+* texlive-latex-recommended
+* texlive-latex-extra
+
+Set GENERATE_LATEX in 'doc/hamlib.cfg.in' to 'YES' which will enable the LaTEX
+build.  Then run:
+
+    make doc
+
+as above and once the run is complete:
+
+    cd latex
+    make
+
+The resulting generated document in the 'latex' directory is 'refman.pdf'.
 
 
 1.4. Feedback
