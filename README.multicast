@@ -44,16 +44,37 @@ Example JSON
     "RX": 0,
     "TX": 0
   }],
+
+  "__comment_spectrum__": "Rigs that have spectrum output may include this data",
+  "Spectrum": {
+    "Length": 475,
+    "__comment_spectrum_data__": "2-char hex bytes so data len=2*Length",
+    "Data": "00AAFF75BD2AAA...",
+    "Type": "FIXED|CENTER",
+    "MinLevel": 0,
+    "MaxLevel": 140,
+    "MinStrength": -100,
+    "MaxStrength": 0,
+
+    // If Type=CENTER, the following fields will be present:
+    "CenterFreq": 14267000,
+    "Span": 25000,
+
+    // If SpectrumType=FIXED, the following fields will be present:
+    "LowFreq": 14000000,
+    "HighFreq": 14250000
+  }
+
   "Split": 0,
   "SatMode": 0,
   "Rig": "Dummy",
   "App": "Hamlib",
   "__comment_version__": "protocol version date YYYYMMDD",
-  "Version": "20210518", 
+  "Version": "20210519", 
   "__comment_seq__": "Seq is 1-up sequence number 32-bit -- wraps around to 1 from 2^32-1",
   "Seq": 1,  
-  "__comment_crc__": "32-bit CRC of all data replacing the CRC value with 0x00000000",
-  "CRC": "0xf49f4708"
+  "__comment_crc__": "32-bit CRC of entire JSON record replacing the CRC value with 0x00000000",
+  "CRC": "0x00000000"
 }
 
 Will be able to set freq, mode, width, ptt
