@@ -56,14 +56,14 @@ Example JSON
     "MinStrength": -100,
     "MaxStrength": 0,
 
-    // If Type=CENTER, the following fields will be present:
+    "__comment_spectrum_center__": "If Type=CENTER, the following fields will be present:"
     "CenterFreq": 14267000,
     "Span": 25000,
 
-    // If SpectrumType=FIXED, the following fields will be present:
+    "__comment_spectrum_fixed__": "If SpectrumType=FIXED, the following fields will be present:"
     "LowFreq": 14000000,
     "HighFreq": 14250000
-  }
+  },
 
   "Split": 0,
   "SatMode": 0,
