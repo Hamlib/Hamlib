@@ -121,26 +121,8 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 #endif
 }
 
-/**
- * \brief Open network port using rig.state data
- *
- * Open Open network port using rig.state data.
- * NB: The signal PIPE will be ignored for the whole application.
- *
- * \param rp Port data structure (must spec port id eg hostname:port)
- * \param default_port Default network socket port
- * \return RIG_OK or < 0 if error
- */
-int network_open(hamlib_port_t *rp, int default_port)
+int network_init()
 {
-    int fd;             /* File descriptor for the port */
-    int status;
-    struct addrinfo hints, *res, *saved_res;
-    struct in6_addr serveraddr;
-    char hoststr[256], portstr[6] = "";
-
-    ENTERFUNC;
-
 #ifdef __MINGW32__
     WSADATA wsadata;
     int ret;
@@ -163,6 +145,32 @@ int network_open(hamlib_port_t *rp, int default_port)
     }
 
 #endif
+    return RIG_OK;
+}
+
+/**
+ * \brief Open network port using rig.state data
+ *
+ * Open Open network port using rig.state data.
+ * NB: The signal PIPE will be ignored for the whole application.
+ *
+ * \param rp Port data structure (must spec port id eg hostname:port)
+ * \param default_port Default network socket port
+ * \return RIG_OK or < 0 if error
+ */
+int network_open(hamlib_port_t *rp, int default_port)
+{
+    int fd;             /* File descriptor for the port */
+    int status;
+    struct addrinfo hints, *res, *saved_res;
+    struct in6_addr serveraddr;
+    char hoststr[256], portstr[6] = "";
+
+    ENTERFUNC;
+
+    status = network_init();
+
+    if (status != RIG_OK) { RETURNFUNC(status); }
 
     if (!rp)
     {
@@ -387,5 +395,29 @@ int network_close(hamlib_port_t *rp)
     RETURNFUNC(ret);
 }
 //! @endcond
+
+/**
+ * \brief Open multicast server using rig.state data
+ *
+ * Open Open multicast server using rig.state data.
+ * NB: The signal PIPE will be ignored for the whole application.
+ *
+ * \param rp Port data structure (must spec port id eg hostname:port -- hostname defaults to 224.0.1.1)
+ * \param default_port Default network socket port
+ * \return RIG_OK or < 0 if error
+ */
+int network_multicast_server(RIG *rig, const char *multicast_addr, int default_port)
+{
+    int status;
+
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):network_multicast_server under development\n", __FILE__, __LINE__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):ADDR=%s, port=%d\n", __FILE__, __LINE__, multicast_addr, default_port);
+    status = network_init();
+
+    if (status != RIG_OK) { RETURNFUNC(status); }
+
+    RETURNFUNC(RIG_OK);
+}
 
 /** @} */

@@ -29,6 +29,7 @@ __BEGIN_DECLS
 
 /* Hamlib internal use, see rig.c */
 int network_open(hamlib_port_t *p, int default_port);
+int network_multicast_server(RIG *rig, const char *multicast_addr, int default_port);
 int network_close(hamlib_port_t *rp);
 void network_flush(hamlib_port_t *rp);
 

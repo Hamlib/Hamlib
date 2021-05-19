@@ -76,6 +76,7 @@
 #include "iofunc.h"
 #include "serial.h"
 #include "sprintflst.h"
+#include "network.h"
 
 #include "rigctl_parse.h"
 
@@ -109,6 +110,7 @@ static struct option long_options[] =
     {"twiddle_timeout", 1, 0, 'W'},
     {"uplink",          1, 0, 'x'},
     {"debug-time-stamps", 0, 0, 'Z'},
+    {"multicast-addr",  1, 0, 'M'},
     {0, 0, 0, 0}
 };
 
@@ -142,6 +144,7 @@ static int volatile ctrl_c;
 
 const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
+const char *multicast_addr = "224.0.1.1";
 
 #define MAXCONFLEN 1024
 
@@ -542,6 +545,16 @@ int main(int argc, char *argv[])
             rig_set_debug_time_stamp(1);
             break;
 
+        case 'M':
+            if (!optarg)
+            {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            multicast_addr = optarg;
+            break;
+
         default:
             usage();    /* unknown option? */
             exit(1);
@@ -732,6 +745,15 @@ int main(int argc, char *argv[])
     }
 
     saved_result = result;
+
+    retcode = network_multicast_server(my_rig, multicast_addr, 4532);
+
+    if (retcode != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_server failed: %s\n", __FILE__,
+                  rigerror(retcode));
+        // we will consider this non-fatal for now
+    }
 
     do
     {
@@ -1222,6 +1244,7 @@ void usage(void)
         "  -W, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
+        "  -M, --multicast-addr=addr     set multicast addr, default 224.0.1.1\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
         portno);
