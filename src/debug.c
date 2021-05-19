@@ -20,13 +20,14 @@
  */
 
 /**
- * \addtogroup rig_internal
+ * \addtogroup rig
  * @{
  */
 
 /**
  * \file debug.c
- * \brief control hamlib debugging functions
+ *
+ * \brief Control Hamlib debugging functions.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -52,9 +53,17 @@
 #include <hamlib/rig_dll.h>
 #include "misc.h"
 
-//! @cond Doxygen_Suppress
+/*! @} */
+
+
+/**
+ * \addtogroup rig_internal
+ * @{
+ */
+
+
+/** \brief Sets the number of hexadecimal pairs to print per line. */
 #define DUMP_HEX_WIDTH 16
-//! @endcond
 
 
 static int rig_debug_level = RIG_DEBUG_TRACE;
@@ -66,9 +75,17 @@ static rig_ptr_t rig_vprintf_arg;
 extern HAMLIB_EXPORT(void) dump_hex(const unsigned char ptr[], size_t size);
 
 /**
- * \param ptr Pointer to memory area
- * \param size Number of chars to words to dump
  * \brief Do a hex dump of the unsigned char array.
+ *
+ * \param ptr Pointer to a character array.
+ * \param size Number of chars to words to dump.
+ *
+ * Prints the hex dump to `stderr` via rig_debug():
+ *
+ * ```
+ * 0000  4b 30 30 31 34 35 30 30 30 30 30 30 30 35 30 32  K001450000000502
+ * 0010  30 30 0d 0a                                      00..
+ * ```
  */
 void dump_hex(const unsigned char ptr[], size_t size)
 {
@@ -115,10 +132,24 @@ void dump_hex(const unsigned char ptr[], size_t size)
     }
 }
 
+/*! @} */
+
 
 /**
- * \param debug_level
- * \brief Change the current debug level
+ * \addtogroup rig
+ * @{
+ */
+
+/**
+ * \brief Change the current debug level.
+ *
+ * \param debug_level Equivalent to the `-v` option of the utilities.
+ *
+ * Allows for dynamically changing the debugging output without reinitializing
+ * the library.
+ *
+ * Useful for programs that want to enable and disable debugging
+ * output without restarting.
  */
 void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
 {
@@ -127,17 +158,28 @@ void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
 
 
 /**
- * \param debug_level
- * \brief Useful for dump_hex, etc.
+ * \brief Test if a given debug level is active.
+ *
+ * \param debug_level The level to test.
+ *
+ * May be used to determine if an action such as opening a dialog should
+ * happen only if a desired debug level is active.
+ *
+ * Also useful for dump_hex(), etc.
  */
 int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
 {
     return (debug_level <= rig_debug_level);
 }
 
+
 /**
- * \param flag
- * \brief Enbable/disable time stamp on debug output
+ * \brief Enable or disable the time stamp on debugging output.
+ *
+ * \param flag `TRUE` or `FALSE`.
+ *
+ * Sets or unsets the flag which controls whether debugging output includes a
+ * time stamp.
  */
 void HAMLIB_API rig_set_debug_time_stamp(int flag)
 {
@@ -162,10 +204,15 @@ char *date_strget(char *buf, int buflen)
 }
 //! @endcond
 
+
 /**
- * \param debug_level
- * \param fmt
- * \brief Default is debugging messages are done through stderr
+ * \brief Print debugging messages through `stderr` by default.
+ *
+ * \param debug_level Debug level from none to most output.
+ * \param fmt Formatted character string to print.
+ *
+ * The formatted character string is passed to the `frprintf`(3) C library
+ * call and follows its format specification.
  */
 #undef rig_debug
 void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
@@ -243,37 +290,36 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
 
 
 /**
- * \brief set callback to handle debug messages
- * \param cb    The callback to install
- * \param arg   A Pointer to some private data to pass later on to the callback
+ * \brief Set callback to handle debugging messages.
  *
- *  Install a callback for \a rig_debug messages.
-\code
-int
-rig_message_cb(enum rig_debug_level_e debug_level,
-               rig_ptr_t user_data,
-               const char *fmt,
-               va_list ap)
-{
-    char buf[1024];
-
-    sprintf (buf, "Message(%s) ", (char*)user_data);
-    syslog (LOG_USER, buf);
-    vsprintf (buf, fmt, ap);
-    syslog (LOG_USER, buf);
-
-    return RIG_OK;
-}
-
-    . . .
-
-    char *cookie = "Foo";
-    rig_set_debug_callback (rig_message_cb, (rig_ptr_t)cookie);
-\endcode
+ * \param cb The callback function to install.
+ * \param arg A Pointer to some private data to pass later on to the callback.
  *
- * \return RIG_OK if the operation has been successful, otherwise
- * a negative value if an error occurred (in which case, cause
- * is set appropriately).
+ *  Install a callback for rig_debug() messages.
+ * \code
+ * int
+ * rig_message_cb(enum rig_debug_level_e debug_level,
+ *                rig_ptr_t user_data,
+ *                const char *fmt,
+ *                va_list ap)
+ * {
+ *     char buf[1024];
+ *
+ *     sprintf (buf, "Message(%s) ", (char*)user_data);
+ *     syslog (LOG_USER, buf);
+ *     vsprintf (buf, fmt, ap);
+ *     syslog (LOG_USER, buf);
+ *
+ *     return RIG_OK;
+ * }
+ *
+ * . . .
+ *
+ * char *cookie = "Foo";
+ * rig_set_debug_callback (rig_message_cb, (rig_ptr_t)cookie);
+ * \endcode
+ *
+ * \return A pointer to the previous callback that was set, if any.
  *
  * \sa rig_debug()
  */
@@ -289,8 +335,11 @@ vprintf_cb_t HAMLIB_API rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
 
 
 /**
- * \brief change stderr to some different output
- * \param stream The stream to set output to
+ * \brief Change the output stream from `stderr` a different stream.
+ *
+ * \param stream The stream to direct debugging output.
+ *
+ * \sa `FILE`(3)
  */
 FILE *HAMLIB_API rig_set_debug_file(FILE *stream)
 {
