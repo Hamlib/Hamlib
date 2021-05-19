@@ -26,8 +26,11 @@
  */
 
 /**
- * \brief CM108 GPIO
  * \file cm108.c
+ * \brief CM108 GPIO support.
+ *
+ * CM108 Audio chips found on many USB audio interfaces have controllable
+ * General Purpose Input/Output pins.
  */
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
@@ -73,9 +76,15 @@
 
 
 /**
- * \brief Open CM108 HID port (/dev/hidrawX)
- * \param port
- * \return file descriptor
+ * \brief Open CM108 HID port (/dev/hidraw<i>X</i>).
+ *
+ * \param port The port structure.
+ *
+ * \return File descriptor, otherwise a **negative value** if an error
+ * occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_EINVAL The port pathname is empty or no CM108 device detected.
+ * \retval RIG_EIO The `open`(2) system call returned a **negative value**.
  */
 int cm108_open(hamlib_port_t *port)
 {
@@ -144,8 +153,14 @@ int cm108_open(hamlib_port_t *port)
 
 
 /**
- * \brief Close CM108 HID port
- * \param port
+ * \brief Close a CM108 HID port.
+ *
+ * \param port The port structure
+ *
+ * \return Zero if the port was closed successfully, otherwise -1 if an error
+ * occurred (in which case, the system `errno`(3) is set appropriately).
+ *
+ * \sa The `close`(2) system call.
  */
 int cm108_close(hamlib_port_t *port)
 {
@@ -156,10 +171,18 @@ int cm108_close(hamlib_port_t *port)
 
 
 /**
- * \brief Set or unset Push to talk bit on CM108 GPIO
- * \param p
- * \param pttx RIG_PTT_ON --> Set PTT
- * \return RIG_OK or < 0 error
+ * \brief Set or unset the Push To Talk bit on a CM108 GPIO.
+ *
+ * \param p The port structure.
+ * \param pttx RIG_PTT_ON --> Set PTT, else unset PTT.
+ *
+ * \return RIG_OK on success, otherwise a **negative value** if an error
+ * occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Setting or unsetting the PTT was successful.
+ * \retval RIG_EINVAL The file descriptor is invalid or the PTT type is
+ * unsupported.
+ * \retval RIG_EIO The `write`(2) system call returned a **negative value**.
  */
 int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 {
@@ -232,10 +255,17 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 
 
 /**
- * \brief Get state of Push to Talk from CM108 GPIO
- * \param p
- * \param pttx return value (must be non NULL)
- * \return RIG_OK or < 0 error
+ * \brief Get the state of Push To Talk from a CM108 GPIO.
+ *
+ * \param p The port structure.
+ * \param pttx Return value (must be non NULL).
+ *
+ * \return RIG_OK on success, otherwise a **negative value** if an error
+ * occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK Getting the PTT state was successful.
+ * \retval RIG_ENIMPL Getting the state is not yet implemented.
+ * \retval RIG_ENAVAIL Getting the state is not available for this PTT type.
  */
 int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 {
@@ -258,6 +288,7 @@ int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 
     return RIG_OK;
 }
+
 
 #ifdef XXREMOVEXX
 // Not referenced anywhere
