@@ -27,7 +27,7 @@
 
 /**
  * \file cal.c
- * \brief Calibration routines
+ * \brief Calibration routines.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -41,17 +41,24 @@
 
 
 /**
- * \brief Convert raw data to a calibrated integer value, according to table
- * \param rawval input value
- * \param cal calibration table
- * \return calibrated integer value
-
- * cal_table_t is a data type suited to hold linear calibration
- * cal_table_t.size tell the number of plot cal_table_t.table contains
+ * \brief Convert raw data to a calibrated integer value, according to a
+ * calibration table.
+ *
+ * \param rawval Input value.
+ * \param cal Calibration table,
+ *
+ * cal_table_t is a data type suited to hold linear calibration.
+ *
+ * cal_table_t.size is the number of plots cal_table_t.table contains.
+ *
  * If a value is below or equal to cal_table_t.table[0].raw,
- * rig_raw2val() will return cal_table_t.table[0].val
- * If a value is greater or equal to cal_table_t.table[cal_table_t.size-1].raw,
- * rig_raw2val() will return cal_table_t.table[cal_table_t.size-1].val
+ * rig_raw2val() will return cal_table_t.table[0].val.
+ *
+ * If a value is greater or equal to
+ * cal_table_t.table[cal_table_t.size-1].raw, rig_raw2val() will return
+ * cal_table_t.table[cal_table_t.size-1].val.
+ *
+ * \return Calibrated integer value.
  */
 float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
 {
@@ -111,18 +118,26 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
     return cal->table[i].val - interpolation;
 }
 
-/**
- * \brief Convert raw data to a calibrated floating-point value, according to table
- * \param rawval input value
- * \param cal calibration table
- * \return calibrated floating-point value
 
- * cal_table_float_t is a data type suited to hold linear calibration
- * cal_table_float_t.size tell the number of plot cal_table_t.table contains
+/**
+ * \brief Convert raw data to a calibrated floating-point value, according to
+ * a calibration table.
+ *
+ * \param rawval Input value.
+ * \param cal Calibration table.
+ *
+ * cal_table_float_t is a data type suited to hold linear calibration.
+ *
+ * cal_table_float_t.size tell the number of plot cal_table_t.table contains.
+ *
  * If a value is below or equal to cal_table_float_t.table[0].raw,
- * rig_raw2val_float() will return cal_table_float_t.table[0].val
- * If a value is greater or equal to cal_table_float_t.table[cal_table_float_t.size-1].raw,
- * rig_raw2val_float() will return cal_table_float_t.table[cal_table_float_t.size-1].val
+ * rig_raw2val_float() will return cal_table_float_t.table[0].val.
+ *
+ * If a value is greater or equal to
+ * cal_table_float_t.table[cal_table_float_t.size-1].raw, rig_raw2val_float()
+ * will return cal_table_float_t.table[cal_table_float_t.size-1].val.
+ *
+ * \return calibrated floating-point value
  */
 float HAMLIB_API rig_raw2val_float(int rawval, const cal_table_float_t *cal)
 {
