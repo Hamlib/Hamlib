@@ -27,9 +27,9 @@ Example JSON
 {
   "__comment1__": "customizable rig identification -- will allow multiple rigs to be on the multicast",
   "ID": "Rig#1", 
-  "vfos": [
+  "VFOs": [
   {
-    "VFO": "VFOA",
+    "Name": "VFOA",
     "Freq": 14074000, 
     "Mode": "USB",
     "Width": 5000, 
@@ -37,7 +37,7 @@ Example JSON
     "TX": 0
   },
   {
-    "VFO": "VFOB",
+    "Name": "VFOB",
     "Freq": 14076000,
     "Mode": "USB",
     "Width": 5000,
@@ -56,11 +56,11 @@ Example JSON
     "MinStrength": -100,
     "MaxStrength": 0,
 
-    "__comment_spectrum_center__": "If Type=CENTER, the following fields will be present:"
+    "__comment_spectrum_center__": "If Type=CENTER, the following fields will be present:",
     "CenterFreq": 14267000,
     "Span": 25000,
 
-    "__comment_spectrum_fixed__": "If SpectrumType=FIXED, the following fields will be present:"
+    "__comment_spectrum_fixed__": "If SpectrumType=FIXED, the following fields will be present:",
     "LowFreq": 14000000,
     "HighFreq": 14250000
   },
@@ -77,4 +77,5 @@ Example JSON
   "CRC": "0x00000000"
 }
 
-Will be able to set freq, mode, width, ptt
+Will be able to set freq, mode, width, ptt, satmode, and split to start since those are common to many apps.
+More functions will be added as time goes on.
