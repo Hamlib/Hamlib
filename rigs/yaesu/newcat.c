@@ -4115,7 +4115,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (is_ft2000 || is_ftdx9000 || is_ftdx5000)
+        if (is_ft2000 || is_ftdx9000 || is_ftdx5000 || is_ft450)
         {
             scale = 255;
         }
@@ -4724,7 +4724,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_VOXGAIN:
     case RIG_LEVEL_COMP:
-        if (is_ft2000 || is_ftdx9000 || is_ftdx5000)
+        if (is_ft2000 || is_ftdx9000 || is_ftdx5000 || is_ft450)
         {
             scale = 255;
         }
