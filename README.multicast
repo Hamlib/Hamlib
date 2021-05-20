@@ -33,16 +33,16 @@ Example JSON
     "Freq": 14074000, 
     "Mode": "USB",
     "Width": 5000, 
-    "RX": 0, 
-    "TX": 0
+    "RX": true, 
+    "TX": false
   },
   {
     "Name": "VFOB",
     "Freq": 14076000,
     "Mode": "USB",
     "Width": 5000,
-    "RX": 0,
-    "TX": 0
+    "RX": false,
+    "TX": false
   }],
 
   "__comment_spectrum__": "Rigs that have spectrum output may include this data",
@@ -65,12 +65,12 @@ Example JSON
     "HighFreq": 14250000
   },
 
-  "Split": 0,
-  "SatMode": 0,
+  "Split": true,
+  "SatMode": false,
   "Rig": "Dummy",
   "App": "Hamlib",
   "__comment_version__": "protocol version date YYYYMMDD",
-  "Version": "20210519", 
+  "Version": "20210520", 
   "__comment_seq__": "Seq is 1-up sequence number 32-bit -- wraps around to 1 from 2^32-1",
   "Seq": 1,  
   "__comment_crc__": "32-bit CRC of entire JSON record replacing the CRC value with 0x00000000",
@@ -79,3 +79,73 @@ Example JSON
 
 Will be able to set freq, mode, width, ptt, satmode, and split to start since those are common to many apps.
 More functions will be added as time goes on.
+
+C# Json Deserialize Example -- beginning of a HamlibMultiCast client
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+namespace HamlibMultiCast
+{
+    public class HamlibMulticastClient
+    {
+        public class VFO
+        {
+            public string Name;
+            public ulong Freq;
+            public string Mode;
+            public int Width;
+            public bool RX;
+            public bool TX;
+        }
+        public class SpectrumClass
+        {
+            public int Length;
+            public string Data;
+            public string Type;
+            public int MinLevel;
+            public int MaxLevel;
+            public int MinStrength;
+            public int MaxStrength;
+            public double CenterFreq;
+            public int Span;
+            public double LowFreq;
+            public double HighFreq;
+        }
+        public string ID;
+        public List<VFO> VFOs { get; set; }
+        public bool Split;
+        public bool SatMode;
+        public string Rig;
+        public string App;
+        public string Version;
+        public UInt32 Seq;
+        public string CRC;
+        public SpectrumClass Spectrum { get; set; }
+    }
+        class Program
+    {
+        static int Main(string[] args)
+        {
+            Console.WriteLine("HamlibMultiCast Test Json Deserialize");
+            ITraceWriter traceWriter = new MemoryTraceWriter();
+            try
+            {
+
+                string json = File.ReadAllText("test.json");
+                var client = JsonConvert.DeserializeObject<HamlibMulticastClient>(json, new JsonSerializerSettings { TraceWriter = traceWriter, Converters = { new JavaScriptDateTimeConverter() } });
+                 Console.WriteLine(traceWriter);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return 1;
+            }
+            return 0;
+        }
+    }
+}
+
