@@ -13,6 +13,54 @@ documentation through the tabs at the top of this page.
 
 Please report any problems to hamlib-developer@lists.sourceforge.net.
 
+\section s2 Typographic conventions
+
+While Doxygen applies its own typographic conventions to the document based on
+its own stylesheets, this section details Hamlib specific conventions.
+
+\subsection sub1 Key words
+
+Key words used in program source such as `TRUE` or `FALSE` are shown in a
+constant width font.
+
+\subsection sub2 Manual pages
+
+References to Unix style manual pages are shown as `man`(1).  The manual page
+entry is in a constant width font immediately followed by parentheses
+containing a numeral denoting the section of the manual the key word can be
+found.  For example, to view `printf`(3) use:
+
+   ```
+   man 3 printf
+   ```
+
+at a terminal prompt and the `man`(1) program will display the C library
+manual page for the `printf()` function.  On most Unix type systems there are
+two `printf` manual pages, one in section 1 (user commands) and the other in
+section 3 (library calls).
+
+To learn more about manual pages:
+
+   ```
+   man man-pages
+   ```
+
+is a good starting point.
+
+If you are using a system that does not have manual pages, many HTML formatted
+pages are available on the World Wide Web.
+[The Linux man-pages project](https://www.kernel.org/doc/man-pages/)
+has many manual pages online and is the source for most system and library call
+documentation found in every Linux distribution.  The
+[Debian project also hosts a large collection of manual pages](https://manpages.debian.org/)
+drawn from the packages in its distributions.
+
+\subsection sub3 Program names and options
+
+Program names and options to programs such as the Hamlib utilities are shown
+in a constant width font, e.g. `rigctl -v` the *verbose* option to the `rigctl`(1)
+Hamlib utility.
+
 \section txtfil Distributed information files
 
 These text files are distributed with the Hamlib package.
