@@ -6509,7 +6509,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
             return -RIG_EINVAL; // nothing to do
         }
 
-        if (strcmp(cookie, cookie_save) == 0) // matching cookie so we'll clear it
+        if (cookie_save[0] != 0 && strcmp(cookie, cookie_save) == 0) // matching cookie so we'll clear it
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s coookie released\n",
                       __FILE__, __LINE__, cookie_save);
@@ -6530,7 +6530,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s comparing renew request to %s==%d\n",
                   __FILE__, __LINE__, cookie, cookie_save, strcmp(cookie, cookie_save));
 
-        if (strcmp(cookie, cookie_save) == 0) // matching cookie so we'll renew it
+        if (cookie_save[0] != 0 && strcmp(cookie, cookie_save) == 0) // matching cookie so we'll renew it
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) %s renew request granted\n", __FILE__,
                       __LINE__, cookie);
@@ -6553,7 +6553,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         clock_gettime(CLOCK_REALTIME, &tp);
         time_curr = tp.tv_sec + tp.tv_nsec / 1e9;
 
-        if ((strcmp(cookie_save, cookie) == 0)
+        if (cookie_save[0] != 0 && (strcmp(cookie_save, cookie) == 0)
                 && (time_curr - time_last_used < 1))  // then we will deny the request
         {
             printf("Cookie %s in use\n", cookie_save);
