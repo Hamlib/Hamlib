@@ -106,6 +106,13 @@
 
 __BEGIN_DECLS
 
+/**
+ * \brief size of cookie request buffer
+ * Minimum size of cookie buffer to pass to rig_cookie
+ */
+// cookie is 26-char time code plus 10-char (2^31-1) random number
+#define HAMLIB_COOKIE_SIZE 37
+
 //! @cond Doxygen_Suppress
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
 extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
@@ -3047,7 +3054,7 @@ extern HAMLIB_EXPORT(int) rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *
 typedef unsigned long rig_useconds_t;
 extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);
 
-extern HAMLIB_EXPORT(char *) rig_cookie(char *cookie, enum cookie_e cookie_cmd);
+extern HAMLIB_EXPORT(int) rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie, int cookie_len);
 
 //! @endcond
 
