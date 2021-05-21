@@ -975,6 +975,20 @@ enum rig_parm_e {
     RIG_PARM_SCREENSAVER =  (1 << 8)    /*!< \c SCREENSAVER -- rig specific timeouts */
 };
 
+/**
+ * \brief Rig Cookie enumerations
+ *
+ * Cookies are used for a client to request exclusive control of the rig until the client releases the cookie
+ * Cookies will expire after 1 second unless renewed
+ * Normal flow would be cookie=rig_cookie(NULL, RIG_COOKIE_GET), rig op, rig_cookie(cookie, RIG_COOKIE_RENEW), rig op, etc....
+ *
+ */
+enum cookie_e {
+    RIG_COOKIE_GET,
+    RIG_COOKIE_RELEASE,
+    RIG_COOKIE_RENEW,
+};
+
 //! @cond Doxygen_Suppress
 #define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT|RIG_PARM_BAT|RIG_PARM_KEYLIGHT)
 #define RIG_PARM_READONLY_LIST (RIG_PARM_BAT)
@@ -3032,6 +3046,8 @@ extern HAMLIB_EXPORT(int) rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *
 
 typedef unsigned long rig_useconds_t;
 extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);
+
+extern HAMLIB_EXPORT(char *) rig_cookie(char *cookie, enum cookie_e cookie_cmd);
 
 //! @endcond
 
