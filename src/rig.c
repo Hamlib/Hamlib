@@ -6473,82 +6473,116 @@ const char *HAMLIB_API rig_copyright()
  * RIG_COOKIE_GET must have cookie=NULL or NULL returned
  * RIG_COOKIE_RENEW must have cookie!=NULL or NULL returned
  * RIG_COOKIE_RELEASE must have cookie!=NULL or NULL returned;
+ * Cookies should only be used when needed to keep commands sequenced correctly
+ * For example, when setting both VFOA and VFOB frequency and mode
+ * Example to wait for cookie, do rig commands, and release
+ * while((cookie=rig_cookie(NULL, RIG_COOKIE_GET)) == NULL) hl_usleep(10*1000);
+ * set_freq A;set mode A;set freq B;set modeB;
+ * rig_cookie(cookie,RIG_COOKIE_RELEASE);
  */
-char *rig_cookie(char *cookie, enum cookie_e cookie_cmd)
+int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
+                          int cookie_len)
 {
-    static char cookie_save[32];  // only one client can have the cookie
-    double time_curr, time_last_used = 0;
+    // only 1 client can have the cookie so these can be static
+    // this should also prevent problems with DLLs & shared libraies
+    // the debug_msg is another non-thread-safe which this will help fix
+    // 27 char cookie will last until the year 10000
+    static char cookie_save[HAMLIB_COOKIE_SIZE];  // only one client can have the 26-char cookie
+    static double time_last_used;
+    double time_curr;
     struct timespec tp;
+
+    if (cookie_len < 27)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): cookie_len < 32 so returning NULL!!\n",
+                  __FILE__, __LINE__);
+        return -RIG_EINTERNAL;
+    }
 
     switch (cookie_cmd)
     {
-        case RIG_COOKIE_RELEASE:
-            if (cookie == NULL) {
-                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): coookie NULL so nothing to do\n", __FILE__, __LINE__);
-                return NULL; // nothing to do
-            }
-            if (strcmp(cookie,cookie_save)==0)
-            {
-                cookie_save[0] = 0;
-                return NULL;
-            }
-            break;
-    }
-    if (cookie == NULL && cookie_cmd == RIG_COOKIE_GET)
-    {
-        // asking for a cookie but somebody may already have it
-        // if we already have a cookie and somebody asks see if we should expire the old one
-        printf("%d cookie_cmd=%d\n", (int)strlen(cookie_save), cookie_cmd);
+    case RIG_COOKIE_RELEASE:
+        if (cookie == NULL)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): coookie NULL so nothing to do\n",
+                      __FILE__, __LINE__);
+            return -RIG_EINVAL; // nothing to do
+        }
+
+        if (strcmp(cookie, cookie_save) == 0) // matching cookie so we'll clear it
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s coookie released\n",
+                      __FILE__, __LINE__, cookie_save);
+            memset(cookie_save, 0, sizeof(cookie_save));
+            return RIG_OK;
+        }
+        else // not the right cookie!!
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s(%d): %s can't release cookie as cookie %s is active\n", __FILE__, __LINE__,
+                      cookie, cookie_save);
+            return -RIG_BUSBUSY;
+        }
+
+        break;
+
+    case RIG_COOKIE_RENEW:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s comparing renew request to %s==%d\n",
+                  __FILE__, __LINE__, cookie, cookie_save, strcmp(cookie, cookie_save));
+
+        if (strcmp(cookie, cookie_save) == 0) // matching cookie so we'll renew it
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) %s renew request granted\n", __FILE__,
+                      __LINE__, cookie);
+            clock_gettime(CLOCK_REALTIME, &tp);
+            time_last_used = tp.tv_sec + tp.tv_nsec / 1e9;
+            return RIG_OK;
+        }
+
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s(%d): %s renew request refused %s is active\n",
+                  __FILE__, __LINE__, cookie, cookie_save);
+        return -RIG_EINVAL; // wrong cookie
+
+        break;
+
+    case RIG_COOKIE_GET:
+        // the way we expire cookies is if somebody else asks for one and the last renewal is > 1 second ago
+        // a polite client will have released the cookie
+        // we are just allow for a crashed client that fails to release:q
         clock_gettime(CLOCK_REALTIME, &tp);
         time_curr = tp.tv_sec + tp.tv_nsec / 1e9;
-        rig_debug(RIG_DEBUG_ERR, "%s(%d): time_curr=%f\n", __FILE__, __LINE__,
-                  time_curr);
 
-        if (time_curr - time_last_used < 1)
+        if ((strcmp(cookie_save, cookie) == 0)
+                && (time_curr - time_last_used < 1))  // then we will deny the request
         {
-            printf("Cookie in use\n");
-            rig_debug(RIG_DEBUG_ERR, "%s(%d): cookie==NULL but not RIG_COOKIE_GET\n",
-                      __FILE__, __LINE__);
-            return NULL;
+            printf("Cookie %s in use\n", cookie_save);
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): %s cookie is in use\n", __FILE__, __LINE__,
+                      cookie_save);
+            return -RIG_BUSBUSY;
         }
-        else if (strlen(cookie_save)!=0)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): cookie expired so we will grant\n", __FILE__, __LINE__);
-            cookie_save[0] = 0;
-        }
-    }
 
-    if (strlen(cookie_save) == 0 && cookie_cmd == RIG_COOKIE_GET)
-    {
+        if (cookie_save[0] != 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s(%d): %s cookie has expired after %.3f seconds....overriding with new cookie\n",
+                      __FILE__, __LINE__, cookie_save, time_curr - time_last_used);
+        }
+
         date_strget(cookie_save, sizeof(cookie_save));
-        clock_gettime(CLOCK_REALTIME, &tp);
-        time_curr = time_last_used = tp.tv_sec + tp.tv_nsec / 1e9;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): cookie %s granted, time_curr=%f\n",
-                  __FILE__, __LINE__, cookie_save, time_curr);
-        return cookie_save;
-    }
-    else if (strlen(cookie_save) == 0) // NULL should only be for GET
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s(%d): cookie==NULL but not RIG_COOKIE_GET\n",
-                  __FILE__, __LINE__);
-        return NULL;
-    }
-    else if (cookie_cmd == RIG_COOKIE_RENEW)
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): cookie %s renewed time_curr=%g\n",
-                  __FILE__, __LINE__,
-                  cookie, time_curr);
-        return cookie;
-    }
-    else if (cookie_cmd == RIG_COOKIE_RELEASE)
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): cookie %s released\n", __FILE__, __LINE__,
-                  cookie);
-        cookie_save[0] = 0;
+        // add on our random number to ensure uniqueness
+        snprintf(cookie, cookie_len, "%s %ld\n", cookie_save, random());
+        strcpy(cookie_save, cookie);
+        time_last_used = time_curr;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s new cookie request granted\n",
+                  __FILE__, __LINE__, cookie_save);
+        return RIG_OK;
+        break;
+
     }
 
     rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown condition!!\n'", __FILE__, __LINE__);
-    return NULL;
+    return -RIG_EPROTO;
 }
 
 
