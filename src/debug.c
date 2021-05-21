@@ -186,22 +186,6 @@ void HAMLIB_API rig_set_debug_time_stamp(int flag)
     rig_debug_time_stamp = flag;
 }
 
-
-//! @cond Doxygen_Suppress
-char *date_strget(char *buf, int buflen)
-{
-    char tmp[16];
-    struct tm *mytm;
-    time_t t;
-    struct timeval tv;
-    t = time(NULL);
-    mytm = gmtime(&t);
-    strftime(buf, buflen, "%Y-%m-%d:%H:%M:%S.", mytm);
-    gettimeofday(&tv, NULL);
-    sprintf(tmp, "%06ld", (long)tv.tv_usec);
-    strcat(buf, tmp);
-    return buf;
-}
 //! @endcond
 
 
