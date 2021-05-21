@@ -18,7 +18,7 @@ Split=0 SatMode=0
 PTT=1   (1=On, 0=Off)
 Rig=Dummy (name of connected rig)
 App=Hamlib (name of application providing the packet)
-Version=20210429 (version YYYYMMDD) -- reverse compatibilty will be maintained
+Version=20210429 1.0.0 (version YYYYMMDD)
 Status=OK   (possible values OK, Offline, Error)
 ErrorMsg=msg text (pipe delimited multi-line error message)
 CRC=0xf49f4708   (this is just an example CRC and not accurate for this example)
@@ -65,15 +65,18 @@ Example JSON
     "HighFreq": 14250000
   },
 
+  "PTT" : false,
   "Split": true,
   "SatMode": false,
   "Rig": "Dummy",
   "App": "Hamlib",
-  "__comment_version__": "protocol version date YYYYMMDD",
-  "Version": "20210520", 
+  "__comment_version__": "protocol version YYYYMMDD x.x.x, 1.0.0 will be used when this is implemented",
+  "Version": "20210521 0.0.0", 
+  "Status": "OK";
   "__comment_seq__": "Seq is 1-up sequence number 32-bit -- wraps around to 1 from 2^32-1",
   "Seq": 1,  
   "__comment_crc__": "32-bit CRC of entire JSON record replacing the CRC value with 0x00000000",
+  "ErrorMsg": "OK",
   "CRC": "0x00000000"
 }
 
@@ -117,14 +120,17 @@ namespace HamlibMultiCast
         }
         public string ID;
         public List<VFO> VFOs { get; set; }
+        public bool PTT;
         public bool Split;
         public bool SatMode;
         public string Rig;
         public string App;
         public string Version;
+        public string Status;
         public UInt32 Seq;
         public string CRC;
         public SpectrumClass Spectrum { get; set; }
+        public string ErrorMsg;
     }
         class Program
     {
