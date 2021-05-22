@@ -64,7 +64,11 @@ Example JSON
     "LowFreq": 14000000,
     "HighFreq": 14250000
   },
-
+  LastCommand {
+      "ID": "MyApp 123",
+      "Command": "set_freq VFOA 14074000".
+      "Status": "OK"
+  },
   "PTT" : false,
   "Split": true,
   "SatMode": false,
@@ -77,7 +81,6 @@ Example JSON
   "Seq": 1,  
   "__comment_crc__": "32-bit CRC of entire JSON record replacing the CRC value with 0x00000000",
   "ErrorMsg": "OK",
-  "LastCommand": "Last command executed",
   "CRC": "0x00000000"
 }
 
@@ -119,6 +122,11 @@ namespace HamlibMultiCast
             public double LowFreq;
             public double HighFreq;
         }
+        LastCommand {
+            public string ID; // an application name plus sequence number recommended
+            public string Command;
+            public string Status;
+        }
         public string ID;
         public List<VFO> VFOs { get; set; }
         public bool PTT;
@@ -129,7 +137,6 @@ namespace HamlibMultiCast
         public string Version;
         public string Status;
         public UInt32 Seq;
-        public string LastCommand;
         public string CRC;
         public SpectrumClass Spectrum { get; set; }
         public string ErrorMsg;
