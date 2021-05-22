@@ -6571,7 +6571,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
 
         date_strget(cookie_save, sizeof(cookie_save));
         // add on our random number to ensure uniqueness
-        snprintf(cookie, cookie_len, "%s %ld\n", cookie_save, random());
+        snprintf(cookie, cookie_len, "%s %d\n", cookie_save, rand());
         strcpy(cookie_save, cookie);
         time_last_used = time_curr;
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s new cookie request granted\n",
