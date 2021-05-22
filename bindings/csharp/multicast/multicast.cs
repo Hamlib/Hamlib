@@ -40,6 +40,7 @@ namespace HamlibMultiCast
         public string App;
         public string Version;
         public UInt32 Seq;
+        public string LastCommand;
         public string CRC;
         public SpectrumClass Spectrum { get; set; }
     }

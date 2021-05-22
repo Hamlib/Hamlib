@@ -77,6 +77,7 @@ Example JSON
   "Seq": 1,  
   "__comment_crc__": "32-bit CRC of entire JSON record replacing the CRC value with 0x00000000",
   "ErrorMsg": "OK",
+  "LastCommand": "Last command executed",
   "CRC": "0x00000000"
 }
 
@@ -128,6 +129,7 @@ namespace HamlibMultiCast
         public string Version;
         public string Status;
         public UInt32 Seq;
+        public string LastCommand;
         public string CRC;
         public SpectrumClass Spectrum { get; set; }
         public string ErrorMsg;
