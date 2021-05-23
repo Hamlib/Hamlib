@@ -996,6 +996,16 @@ enum cookie_e {
     RIG_COOKIE_RENEW,
 };
 
+/**
+ * \brief Multicast data items
+ * 3 different data item can be included in the multicast JSON
+ */
+enum multicast_item_e {
+    RIG_MULTICAST_POLL,         // hamlib will be polling the rig for all rig items
+    RIG_MULTICAST_TRANSCEIVE,   // transceive will be turned on and processed
+    RIG_MULTICAST_SPECTRUM      // spectrum data will be included
+};
+
 //! @cond Doxygen_Suppress
 #define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT|RIG_PARM_BAT|RIG_PARM_KEYLIGHT)
 #define RIG_PARM_READONLY_LIST (RIG_PARM_BAT)
