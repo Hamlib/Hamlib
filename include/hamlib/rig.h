@@ -112,6 +112,7 @@ __BEGIN_DECLS
  */
 // cookie is 26-char time code plus 10-char (2^31-1) random number
 #define HAMLIB_COOKIE_SIZE 37
+extern int cookie_use;  // this is global as once one client requests it everybody needs to honor it
 
 //! @cond Doxygen_Suppress
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
