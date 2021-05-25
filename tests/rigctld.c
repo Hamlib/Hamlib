@@ -746,7 +746,8 @@ int main(int argc, char *argv[])
 
     saved_result = result;
 
-    retcode = network_multicast_server(my_rig, multicast_addr, 4532);
+    enum multicast_item_e items = RIG_MULTICAST_POLL|RIG_MULTICAST_TRANSCEIVE|RIG_MULTICAST_SPECTRUM;
+    retcode = network_multicast_server(my_rig, multicast_addr, 4532, items);
 
     if (retcode != RIG_OK)
     {

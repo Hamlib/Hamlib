@@ -38,6 +38,11 @@
     "LowFreq": 14000000,
     "HighFreq": 14250000
   },
+  "LastCommand": {
+     "ID": "MyApp 123", 
+     "Command": "set_freq VFOA 14074000",
+     "Status": "OK"
+  },
 
   "Split": true,
   "SatMode": false,
@@ -47,7 +52,6 @@
   "Version": "20210520", 
   "__comment_seq__": "Seq is 1-up sequence number 32-bit -- wraps around to 1 from 2^32-1",
   "Seq": 1,  
-  "LastCommand": "set_freq VFOA 14074000",
   "__comment_crc__": "32-bit CRC of entire JSON record replacing the CRC value with 0x00000000",
   "CRC": "0x00000000"
 }
