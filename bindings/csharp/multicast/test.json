@@ -22,7 +22,7 @@
   "__comment_spectrum__": "Rigs that have spectrum output may include this data",
   "Spectra": [
   {
-    "Name": "Sub",
+    "Name": "Main",
     "Length": 475,
     "__comment_spectrum_data__": "2-char hex bytes so data len=2*Length",
     "Data": "00AAFF75BD2AAA...",
