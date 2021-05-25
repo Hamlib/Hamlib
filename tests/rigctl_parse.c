@@ -1738,7 +1738,7 @@ readline_repeat:
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retcode=%d\n", __func__, retcode);
 #ifdef HAVE_LIBREADLINE
-    if ((result = strtok(NULL, " "))) goto readline_repeat;
+    if (input_line != NULL && (result = strtok(NULL, " "))) goto readline_repeat;
 #endif
 
     if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
