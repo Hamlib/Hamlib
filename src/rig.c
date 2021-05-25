@@ -60,6 +60,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <pthread.h>
 
 
 #include <hamlib/rig.h>
@@ -1095,6 +1097,17 @@ int HAMLIB_API rig_close(RIG *rig)
     struct rig_state *rs;
 
     ENTERFUNC;
+
+    // terminate the multicast server
+    extern int multicast_server_run;
+    multicast_server_run = 0;
+    extern pthread_t multicast_server_threadId;
+    int err = pthread_join(multicast_server_threadId, NULL);
+    if (err)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): pthread_join error %s\n", __FILE__, __LINE__, strerror(errno));
+        // just ignore it
+    }
 
     if (!rig || !rig->caps)
     {
