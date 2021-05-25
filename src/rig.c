@@ -862,6 +862,10 @@ int HAMLIB_API rig_open(RIG *rig)
     case RIG_PTT_CM108:
         rs->pttport.fd = cm108_open(&rs->pttport);
 
+        strncpy(rs->rigport.pathname, DEFAULT_CM108_PORT, HAMLIB_FILPATHLEN);
+        rs->rigport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+        rs->pttport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+
         if (rs->pttport.fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,

@@ -406,7 +406,7 @@ int network_close(hamlib_port_t *rp)
  * \param default_port Default network socket port
  * \return RIG_OK or < 0 if error
  */
-int network_multicast_server(RIG *rig, const char *multicast_addr, int default_port)
+int network_multicast_server(RIG *rig, const char *multicast_addr, int default_port, enum multicast_item_e items)
 {
     int status;
 
@@ -416,6 +416,19 @@ int network_multicast_server(RIG *rig, const char *multicast_addr, int default_p
     status = network_init();
 
     if (status != RIG_OK) { RETURNFUNC(status); }
+
+    if (items && RIG_MULTICAST_TRANSCEIVE)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) MULTICAST_TRANSCEIVE enabled\n", __FILE__, __LINE__);
+    }
+    if (items && RIG_MULTICAST_SPECTRUM)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) MULTICAST_SPECTRUM enabled\n", __FILE__, __LINE__);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) unknown MULTICAST item requested=0x%x\n", __FILE__, __LINE__, items);
+    }
 
     RETURNFUNC(RIG_OK);
 }
