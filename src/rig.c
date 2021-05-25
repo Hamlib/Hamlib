@@ -5261,7 +5261,7 @@ int HAMLIB_API rig_mW2power(RIG *rig,
         /*
          * freq is not on the tx range!
          */
-        return (-RIG_ECONF); /* could be RIG_EINVAL ? */
+        return (-RIG_EINVAL); /* could be RIG_EINVAL ? */
     }
 
     if (txrange->high_power == 0)
