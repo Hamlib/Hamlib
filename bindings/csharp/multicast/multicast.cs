@@ -20,6 +20,7 @@ namespace HamlibMultiCast
         }
         public class SpectrumClass
         {
+            public string Name;
             public int Length;
             public string Data;
             public string Type;
@@ -46,7 +47,7 @@ namespace HamlibMultiCast
         public string Version;
         public UInt32 Seq;
         public string CRC;
-        public SpectrumClass Spectrum { get; set; }
+        public List<SpectrumClass> Spectra { get; set; }
     }
     class Program
     {
