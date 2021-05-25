@@ -44,6 +44,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <pthread.h>
 
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>
@@ -396,6 +397,23 @@ int network_close(hamlib_port_t *rp)
 }
 //! @endcond
 
+volatile int multicast_server_run = 1;
+pthread_t multicast_server_threadId;
+
+//! @cond Doxygen_Suppress
+// our multicast server loop
+static void *multicast_server(void *arg)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s(%d): Starting multicast server\n", __FILE__, __LINE__);
+    do {
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): Multicast server poll\n", __FILE__, __LINE__);
+        hl_usleep(1000*1000);
+    } while(multicast_server_run);
+    rig_debug(RIG_DEBUG_TRACE, "%s(%d): Stopping multicast server\n", __FILE__, __LINE__);
+    return NULL;
+}
+//! @endcond
+
 /**
  * \brief Open multicast server using rig.state data
  *
@@ -428,6 +446,13 @@ int network_multicast_server(RIG *rig, const char *multicast_addr, int default_p
     else
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d) unknown MULTICAST item requested=0x%x\n", __FILE__, __LINE__, items);
+    }
+
+    int err = pthread_create(&multicast_server_threadId, NULL, multicast_server, NULL);
+    if (err)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error %s\n", __FILE__, __LINE__, strerror(errno));
+        return -RIG_EINTERNAL;
     }
 
     RETURNFUNC(RIG_OK);
