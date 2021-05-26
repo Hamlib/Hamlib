@@ -47,6 +47,7 @@
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
 static int icom_set_default_vfo(RIG *rig);
 static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo);
+static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo, int *range_id);
 
 const cal_table_float_t icom_default_swr_cal =
 {
@@ -3075,6 +3076,57 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
     }
 
+    case RIG_LEVEL_SPECTRUM_EDGE_LOW:
+    case RIG_LEVEL_SPECTRUM_EDGE_HIGH: {
+        int range_id;
+        value_t edge_number_value;
+        value_t opposite_edge_value;
+        setting_t level_opposite_edge =
+                (level == RIG_LEVEL_SPECTRUM_EDGE_LOW) ?
+                RIG_LEVEL_SPECTRUM_EDGE_HIGH : RIG_LEVEL_SPECTRUM_EDGE_LOW;
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_FEF;
+        cmd_len = 12;
+
+        // Modify the frequency range currently active
+        retval = icom_get_spectrum_edge_frequency_range(rig, vfo, &range_id);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error getting spectrum edge frequency range\n", __func__);
+            RETURNFUNC(retval);
+        }
+
+        // Modify the edge number currently active
+        retval = icom_get_ext_level(rig, vfo, TOK_SCOPE_EDG, &edge_number_value);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        // Get the current opposite edge frequency
+        retval = icom_get_level(rig, vfo, level_opposite_edge, &opposite_edge_value);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        to_bcd(cmdbuf, range_id, 1 * 2);
+        to_bcd(cmdbuf + 1, edge_number_value.i + 1, 1 * 2);
+
+        if (level == RIG_LEVEL_SPECTRUM_EDGE_LOW)
+        {
+            to_bcd(cmdbuf + 2, val.i, 5 * 2);
+            to_bcd(cmdbuf + 7, opposite_edge_value.i, 5 * 2);
+        }
+        else
+        {
+            to_bcd(cmdbuf + 2, opposite_edge_value.i, 5 * 2);
+            to_bcd(cmdbuf + 7, val.i, 5 * 2);
+        }
+        break;
+    }
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__,
                   rig_strlevel(level));
@@ -3346,7 +3398,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_SPECTRUM_SPEED:
         lvl_cn = C_CTL_SCP;
         lvl_sc = S_SCP_SWP;
-        resp_len = 2;
 
         cmd_len = 1;
         cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
@@ -3359,6 +3410,35 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         cmd_len = 1;
         cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
         break;
+
+    case RIG_LEVEL_SPECTRUM_EDGE_LOW:
+    case RIG_LEVEL_SPECTRUM_EDGE_HIGH: {
+        int range_id;
+        value_t edge_number_value;
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_FEF;
+        cmd_len = 2;
+
+        // Get the frequency range currently active
+        retval = icom_get_spectrum_edge_frequency_range(rig, vfo, &range_id);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error getting spectrum edge frequency range\n", __func__);
+            RETURNFUNC(retval);
+        }
+
+        // Get the edge number currently active
+        retval = icom_get_ext_level(rig, vfo, TOK_SCOPE_EDG, &edge_number_value);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        to_bcd(cmdbuf, range_id, 1 * 2);
+        to_bcd(cmdbuf + 1, edge_number_value.i + 1, 1 * 2);
+        break;
+    }
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
@@ -3638,6 +3718,14 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = db;
         break;
     }
+
+    case RIG_LEVEL_SPECTRUM_EDGE_LOW:
+        val->i = (int) from_bcd(respbuf + cmdhead, 5 * 2);
+        break;
+
+    case RIG_LEVEL_SPECTRUM_EDGE_HIGH:
+        val->i = (int) from_bcd(respbuf + cmdhead + 5, 5 * 2);
+        break;
 
     /* RIG_LEVEL_ATT: returned value is already an integer in dB (coded in BCD) */
     default:
@@ -8418,10 +8506,42 @@ static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo)
 {
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_SPECTRUM)
     {
-        return ICOM_GET_VFO_NUMBER(vfo);
+        RETURNFUNC(ICOM_GET_VFO_NUMBER(vfo));
     }
 
-    return 0;
+    RETURNFUNC(0);
+}
+
+static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo, int *range_id)
+{
+    freq_t freq;
+    rmode_t mode;
+    pbwidth_t width;
+    int cache_ms_freq, cache_ms_mode, cache_ms_width;
+    int i, retval;
+    struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
+
+    retval = rig_get_cache(rig, vfo, &freq, &cache_ms_freq, &mode, &cache_ms_mode, &width, &cache_ms_width);
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    for (i = 0; i < ICOM_MAX_SPECTRUM_FREQ_RANGES; i++)
+    {
+        int id = priv_caps->spectrum_edge_frequency_ranges[i].range_id;
+        if (id < 1)
+        {
+            break;
+        }
+        if (freq >= priv_caps->spectrum_edge_frequency_ranges[i].low_freq && freq < priv_caps->spectrum_edge_frequency_ranges[i].high_freq)
+        {
+            *range_id = id;
+            RETURNFUNC(RIG_OK);
+        }
+    }
+
+    RETURNFUNC(-RIG_EINVAL);
 }
 
 /*
