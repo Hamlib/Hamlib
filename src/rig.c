@@ -1103,9 +1103,11 @@ int HAMLIB_API rig_close(RIG *rig)
     multicast_server_run = 0;
     extern pthread_t multicast_server_threadId;
     int err = pthread_join(multicast_server_threadId, NULL);
+
     if (err)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s(%d): pthread_join error %s\n", __FILE__, __LINE__, strerror(errno));
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): pthread_join error %s\n", __FILE__, __LINE__,
+                  strerror(errno));
         // just ignore it
     }
 
@@ -1441,9 +1443,10 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
-    ENTERFUNC;
-    cache_show(rig, __func__, __LINE__);
+        ENTERFUNC;
+        cache_show(rig, __func__, __LINE__);
     }
+
     rig_debug(RIG_DEBUG_CACHE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
@@ -1463,8 +1466,8 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
-    rig_debug(RIG_DEBUG_CACHE, "%s: set vfo=%s to freq=%.0f\n", __func__,
-              rig_strvfo(vfo), freq);
+        rig_debug(RIG_DEBUG_CACHE, "%s: set vfo=%s to freq=%.0f\n", __func__,
+                  rig_strvfo(vfo), freq);
     }
 
     switch (vfo)
@@ -1539,6 +1542,7 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         cache_show(rig, __func__, __LINE__);
         RETURNFUNC(RIG_OK);
     }
+
     return RIG_OK;
 }
 
@@ -1549,6 +1553,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
     {
         ENTERFUNC;
     }
+
     rig_debug(RIG_DEBUG_CACHE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
@@ -1657,10 +1662,12 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
 
     rig_debug(RIG_DEBUG_CACHE, "%s: vfo=%s, freq=%.0f\n", __func__, rig_strvfo(vfo),
               (double)*freq);
+
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
         RETURNFUNC(RIG_OK);
     }
+
     return RIG_OK;
 }
 
@@ -6372,11 +6379,13 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
         sprintf(p, "CRC=0x%08lx\n", crc);
     }
 
-    if (strlen(response)>= max_response_len-1)
+    if (strlen(response) >= max_response_len - 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s(%d): response len exceeded max %d chars\n", __FILE__, __LINE__, max_response_len);
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): response len exceeded max %d chars\n",
+                  __FILE__, __LINE__, max_response_len);
         RETURNFUNC(RIG_EINTERNAL);
     }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -6525,7 +6534,8 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     // this should also prevent problems with DLLs & shared libraies
     // the debug_msg is another non-thread-safe which this will help fix
     // 27 char cookie will last until the year 10000
-    static char cookie_save[HAMLIB_COOKIE_SIZE];  // only one client can have the 26-char cookie
+    static char
+    cookie_save[HAMLIB_COOKIE_SIZE];  // only one client can have the 26-char cookie
     static double time_last_used;
     double time_curr;
     struct timespec tp;
@@ -6547,7 +6557,8 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
             return -RIG_EINVAL; // nothing to do
         }
 
-        if (cookie_save[0] != 0 && strcmp(cookie, cookie_save) == 0) // matching cookie so we'll clear it
+        if (cookie_save[0] != 0
+                && strcmp(cookie, cookie_save) == 0) // matching cookie so we'll clear it
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s coookie released\n",
                       __FILE__, __LINE__, cookie_save);
@@ -6568,7 +6579,8 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s comparing renew request to %s==%d\n",
                   __FILE__, __LINE__, cookie, cookie_save, strcmp(cookie, cookie_save));
 
-        if (cookie_save[0] != 0 && strcmp(cookie, cookie_save) == 0) // matching cookie so we'll renew it
+        if (cookie_save[0] != 0
+                && strcmp(cookie, cookie_save) == 0) // matching cookie so we'll renew it
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) %s renew request granted\n", __FILE__,
                       __LINE__, cookie);
