@@ -106,6 +106,14 @@
 
 __BEGIN_DECLS
 
+/**
+ * \brief size of cookie request buffer
+ * Minimum size of cookie buffer to pass to rig_cookie
+ */
+// cookie is 26-char time code plus 10-char (2^31-1) random number
+#define HAMLIB_COOKIE_SIZE 37
+extern int cookie_use;  // this is global as once one client requests it everybody needs to honor it
+
 //! @cond Doxygen_Suppress
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
 extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
@@ -993,6 +1001,16 @@ enum cookie_e {
     RIG_COOKIE_GET,
     RIG_COOKIE_RELEASE,
     RIG_COOKIE_RENEW,
+};
+
+/**
+ * \brief Multicast data items
+ * 3 different data item can be included in the multicast JSON
+ */
+enum multicast_item_e {
+    RIG_MULTICAST_POLL,         // hamlib will be polling the rig for all rig items
+    RIG_MULTICAST_TRANSCEIVE,   // transceive will be turned on and processed
+    RIG_MULTICAST_SPECTRUM      // spectrum data will be included
 };
 
 //! @cond Doxygen_Suppress
@@ -3133,7 +3151,7 @@ extern HAMLIB_EXPORT(int) rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *
 typedef unsigned long rig_useconds_t;
 extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);
 
-extern HAMLIB_EXPORT(char *) rig_cookie(char *cookie, enum cookie_e cookie_cmd);
+extern HAMLIB_EXPORT(int) rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie, int cookie_len);
 
 //! @endcond
 
