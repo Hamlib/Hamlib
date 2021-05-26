@@ -154,13 +154,14 @@
 
 #define LVL_BRIGHT        setting2idx_builtin(RIG_LEVEL_BRIGHT)
 
-#define LVL_40            setting2idx_builtin(RIG_LEVEL_40)
-#define LVL_41            setting2idx_builtin(RIG_LEVEL_41)
-#define LVL_42            setting2idx_builtin(RIG_LEVEL_42)
-#define LVL_43            setting2idx_builtin(RIG_LEVEL_43)
-#define LVL_44            setting2idx_builtin(RIG_LEVEL_44)
-#define LVL_45            setting2idx_builtin(RIG_LEVEL_45)
-#define LVL_46            setting2idx_builtin(RIG_LEVEL_46)
+#define LVL_SPECTRUM_MODE       setting2idx_builtin(RIG_LEVEL_SPECTRUM_MODE)
+#define LVL_SPECTRUM_SPAN       setting2idx_builtin(RIG_LEVEL_SPECTRUM_SPAN)
+#define LVL_SPECTRUM_EDGE_LOW  setting2idx_builtin(RIG_LEVEL_SPECTRUM_EDGE_LOW)
+#define LVL_SPECTRUM_EDGE_HIGH setting2idx_builtin(RIG_LEVEL_SPECTRUM_EDGE_HIGH)
+#define LVL_SPECTRUM_SPEED     setting2idx_builtin(RIG_LEVEL_SPECTRUM_SPEED)
+#define LVL_SPECTRUM_REF       setting2idx_builtin(RIG_LEVEL_SPECTRUM_REF)
+#define LVL_SPECTRUM_AVG       setting2idx_builtin(RIG_LEVEL_SPECTRUM_AVG)
+
 #define LVL_47            setting2idx_builtin(RIG_LEVEL_47)
 #define LVL_48            setting2idx_builtin(RIG_LEVEL_48)
 #define LVL_49            setting2idx_builtin(RIG_LEVEL_49)
