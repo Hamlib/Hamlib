@@ -671,7 +671,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
-                if (cmd != 0xa)
+                if (cmd != 0xa && cmd !=0xd)
                 {
                     rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x)\n", __func__,
                               isprint(cmd) ? cmd : ' ', cmd);
@@ -1143,7 +1143,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
          * argument is given, it will be parsed out later.
          */
         result = strtok(input_line, " ");
-
+readline_repeat:
         /* parsed_input stores pointers into input_line where the token strings
          * start.
          */
@@ -1737,6 +1737,9 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     fflush(fout);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retcode=%d\n", __func__, retcode);
+#ifdef HAVE_LIBREADLINE
+    if (input_line != NULL && (result = strtok(NULL, " "))) goto readline_repeat;
+#endif
 
     if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
 

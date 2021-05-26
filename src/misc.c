@@ -2332,6 +2332,22 @@ uint32_t CRC32_function(uint8_t *buf, uint32_t len)
     return crc ^ 0xFFFFFFFF;
 }
 
+//! @cond Doxygen_Suppress
+char *date_strget(char *buf, int buflen)
+{
+    char tmp[16];
+    struct tm *mytm;
+    time_t t;
+    struct timeval tv;
+    t = time(NULL);
+    mytm = gmtime(&t);
+    strftime(buf, buflen, "%Y-%m-%d:%H:%M:%S.", mytm);
+    gettimeofday(&tv, NULL);
+    sprintf(tmp, "%06ld", (long)tv.tv_usec);
+    strcat(buf, tmp);
+    return buf;
+}
+
 
 //! @endcond
 

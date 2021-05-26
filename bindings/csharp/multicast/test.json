@@ -20,7 +20,9 @@
   }],
 
   "__comment_spectrum__": "Rigs that have spectrum output may include this data",
-  "Spectrum": {
+  "Spectra": [
+  {
+    "Name": "Main",
     "Length": 475,
     "__comment_spectrum_data__": "2-char hex bytes so data len=2*Length",
     "Data": "00AAFF75BD2AAA...",
@@ -37,6 +39,30 @@
     "__comment_spectrum_fixed__": "If SpectrumType=FIXED, the following fields will be present:",
     "LowFreq": 14000000,
     "HighFreq": 14250000
+  },
+  {
+    "Name": "Sub",
+    "Length": 475,
+    "__comment_spectrum_data__": "2-char hex bytes so data len=2*Length",
+    "Data": "00AAFF75BD2AAA...",
+    "Type": "FIXED|CENTER",
+    "MinLevel": 0,
+    "MaxLevel": 140,
+    "MinStrength": -100,
+    "MaxStrength": 0,
+
+    "__comment_spectrum_center__": "If Type=CENTER, the following fields will be present:",
+    "CenterFreq": 14267000,
+    "Span": 25000,
+
+    "__comment_spectrum_fixed__": "If SpectrumType=FIXED, the following fields will be present:",
+    "LowFreq": 14000000,
+    "HighFreq": 14250000
+  }],
+  "LastCommand": {
+     "ID": "MyApp 123", 
+     "Command": "set_freq VFOA 14074000",
+     "Status": "OK"
   },
 
   "Split": true,

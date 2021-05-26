@@ -20,6 +20,7 @@ namespace HamlibMultiCast
         }
         public class SpectrumClass
         {
+            public string Name;
             public int Length;
             public string Data;
             public string Type;
@@ -32,6 +33,11 @@ namespace HamlibMultiCast
             public double LowFreq;
             public double HighFreq;
         }
+        public class LastCommand {
+            public string ID;
+            public string Command;
+            public string Status;
+        }
         public string ID;
         public List<VFO> VFOs { get; set; }
         public bool Split;
@@ -41,7 +47,7 @@ namespace HamlibMultiCast
         public string Version;
         public UInt32 Seq;
         public string CRC;
-        public SpectrumClass Spectrum { get; set; }
+        public List<SpectrumClass> Spectra { get; set; }
     }
     class Program
     {
