@@ -47,6 +47,9 @@ extern HAMLIB_EXPORT( int ) rot_sprintf_parm_gran(char *str, int len, setting_t 
 extern HAMLIB_EXPORT( int ) rig_sprintf_vfop(char *str, int len, vfo_op_t op);
 extern HAMLIB_EXPORT( int ) rig_sprintf_scan(char *str, int len, scan_t rscan);
 extern HAMLIB_EXPORT( int ) rot_sprintf_status(char *str, int len, rot_status_t status);
+extern HAMLIB_EXPORT( int ) rig_sprintf_spectrum_modes(char *str, int nlen, const enum rig_spectrum_mode_e *modes);
+extern HAMLIB_EXPORT( int ) rig_sprintf_spectrum_spans(char *str, int nlen, const freq_t *spans);
+extern HAMLIB_EXPORT( int )  rig_sprintf_spectrum_avg_modes(char *str, int nlen, const struct rig_spectrum_avg_mode *avg_modes);
 extern HAMLIB_EXPORT( char ) *get_rig_conf_type(enum rig_conf_e type);
 extern HAMLIB_EXPORT( int ) print_ext_param(const struct confparams *cfp, rig_ptr_t ptr);
 

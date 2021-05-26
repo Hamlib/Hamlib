@@ -727,6 +727,74 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
     return len;
 }
 
+int rig_sprintf_spectrum_modes(char *str, int nlen, const enum rig_spectrum_mode_e *modes)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    for (i = 0; i < HAMLIB_MAX_SPECTRUM_MODES; i++)
+    {
+        const char *sm;
+
+        if (modes[i] == RIG_SPECTRUM_MODE_NONE)
+        {
+            break;
+        }
+
+        sm = rig_strspectrummode(modes[i]);
+
+        if (!sm || !sm[0])
+        {
+            break;
+        }
+
+        len += snprintf(str + len, nlen - len, "%d=%s ", modes[i], sm);
+    }
+
+    check_buffer_overflow(str, len, nlen);
+    return len;
+}
+
+int rig_sprintf_spectrum_spans(char *str, int nlen, const freq_t *spans)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    for (i = 0; i < HAMLIB_MAX_SPECTRUM_SPANS; i++)
+    {
+        if (spans[i] == 0)
+        {
+            break;
+        }
+
+        len += snprintf(str + len, nlen - len, "%.0f ", spans[i]);
+    }
+
+    check_buffer_overflow(str, len, nlen);
+    return len;
+}
+
+int rig_sprintf_spectrum_avg_modes(char *str, int nlen, const struct rig_spectrum_avg_mode *avg_modes)
+{
+    int i, len = 0;
+
+    *str = '\0';
+
+    for (i = 0; i < HAMLIB_MAX_SPECTRUM_MODES; i++)
+    {
+        if (avg_modes[i].name == NULL || avg_modes[i].id < 0)
+        {
+            break;
+        }
+
+        len += snprintf(str + len, nlen - len, "%d=\"%s\" ", avg_modes[i].id, avg_modes[i].name);
+    }
+
+    check_buffer_overflow(str, len, nlen);
+    return len;
+}
 
 char *get_rig_conf_type(enum rig_conf_e type)
 {

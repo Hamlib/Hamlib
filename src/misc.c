@@ -679,6 +679,9 @@ static struct
     { RIG_FUNC_DIVERSITY, "DIVERSITY"},
     { RIG_FUNC_CSQL, "CSQL" },
     { RIG_FUNC_SCEN, "SCEN" },
+    { RIG_FUNC_TRANSCEIVE, "TRANSCEIVE" },
+    { RIG_FUNC_SPECTRUM, "SPECTRUM" },
+    { RIG_FUNC_SPECTRUM_HOLD, "SPECTRUM_HOLD" },
     { RIG_FUNC_NONE, "" },
 };
 
@@ -858,6 +861,13 @@ static struct
     { RIG_LEVEL_MONITOR_GAIN, "MONITOR_GAIN" },
     { RIG_LEVEL_NB, "NB" },
     { RIG_LEVEL_RFPOWER_METER_WATTS, "RFPOWER_METER_WATTS" },
+    { RIG_LEVEL_SPECTRUM_MODE, "SPECTRUM_MODE" },
+    { RIG_LEVEL_SPECTRUM_SPAN, "SPECTRUM_SPAN" },
+    { RIG_LEVEL_SPECTRUM_EDGE_LOW, "SPECTRUM_EDGE_LOW" },
+    { RIG_LEVEL_SPECTRUM_EDGE_HIGH, "SPECTRUM_EDGE_HIGH" },
+    { RIG_LEVEL_SPECTRUM_SPEED, "SPECTRUM_SPEED" },
+    { RIG_LEVEL_SPECTRUM_REF, "SPECTRUM_REF" },
+    { RIG_LEVEL_SPECTRUM_AVG, "SPECTRUM_AVG" },
     { RIG_LEVEL_NONE, "" },
 };
 
@@ -1199,6 +1209,47 @@ const char *HAMLIB_API rot_strparm(setting_t parm)
     return "";
 }
 
+static struct
+{
+    enum agc_level_e level;
+    const char *str;
+} rig_agc_level_str[] =
+{
+    { RIG_AGC_OFF, "OFF" },
+    { RIG_AGC_SUPERFAST, "SUPERFAST" },
+    { RIG_AGC_FAST, "FAST" },
+    { RIG_AGC_SLOW, "SLOW" },
+    { RIG_AGC_USER, "USER" },
+    { RIG_AGC_MEDIUM, "MEDIUM" },
+    { RIG_AGC_AUTO, "AUTO" },
+    { -1, "" },
+};
+
+/**
+ * \brief Convert enum RIG_AGC_... to alpha string
+ * \param mode RIG_AGC_...
+ * \return alpha string
+ */
+const char *HAMLIB_API rig_stragclevel(enum agc_level_e level)
+{
+    int i;
+
+    if (level < 0)
+    {
+        return "";
+    }
+
+    for (i = 0; rig_agc_level_str[i].str[0] != '\0'; i++)
+    {
+        if (level == rig_agc_level_str[i].level)
+        {
+            return rig_agc_level_str[i].str;
+        }
+    }
+
+    return "";
+}
+
 
 static struct
 {
@@ -1469,6 +1520,43 @@ const char *HAMLIB_API rig_strmtype(chan_type_t mtype)
     return "";
 }
 
+static struct
+{
+    enum rig_spectrum_mode_e mode;
+    const char *str;
+} rig_spectrum_mode_str[] =
+{
+    { RIG_SPECTRUM_MODE_CENTER, "CENTER" },
+    { RIG_SPECTRUM_MODE_FIXED, "FIXED" },
+    { RIG_SPECTRUM_MODE_CENTER_SCROLL, "CENTER_SCROLL" },
+    { RIG_SPECTRUM_MODE_FIXED_SCROLL, "FIXED_SCROLL" },
+    { RIG_SPECTRUM_MODE_NONE, "" },
+};
+
+/**
+ * \brief Convert enum RIG_SPECTRUM_MODE_... to alpha string
+ * \param mode RIG_SPECTRUM_MODE_...
+ * \return alpha string
+ */
+const char *HAMLIB_API rig_strspectrummode(enum rig_spectrum_mode_e mode)
+{
+    int i;
+
+    if (mode == RIG_SPECTRUM_MODE_NONE)
+    {
+        return "";
+    }
+
+    for (i = 0; rig_spectrum_mode_str[i].str[0] != '\0'; i++)
+    {
+        if (mode == rig_spectrum_mode_str[i].mode)
+        {
+            return rig_spectrum_mode_str[i].str;
+        }
+    }
+
+    return "";
+}
 
 static long timediff(const struct timeval *tv1, const struct timeval *tv2)
 {

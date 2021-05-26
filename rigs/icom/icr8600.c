@@ -25,17 +25,12 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "hamlib/rig.h"
-#include "misc.h"
 #include "idx_builtin.h"
 #include "token.h"
 
 #include "icom.h"
 #include "icom_defs.h"
-#include "frame.h"
 
 #define ICR8600_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_RTTY|\
     RIG_MODE_FM|RIG_MODE_WFM|RIG_MODE_CWR|RIG_MODE_RTTYR|RIG_MODE_SAM|RIG_MODE_SAL|\
@@ -44,11 +39,13 @@
 
 #define ICR8600_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MN|RIG_FUNC_AFC|\
     RIG_FUNC_NR|RIG_FUNC_AIP|RIG_FUNC_LOCK|RIG_FUNC_VSC|RIG_FUNC_RESUME|RIG_FUNC_TSQL|\
-    RIG_FUNC_CSQL|RIG_FUNC_DSQL)
+    RIG_FUNC_CSQL|RIG_FUNC_DSQL|RIG_FUNC_TRANSCEIVE|RIG_FUNC_SPECTRUM|RIG_FUNC_SPECTRUM_HOLD)
 
 #define ICR8600_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|\
     RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_PREAMP|\
-    RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
+    RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_SPECTRUM_MODE|RIG_LEVEL_SPECTRUM_SPAN|\
+    RIG_LEVEL_SPECTRUM_SPEED|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_SPECTRUM_AVG|\
+    RIG_LEVEL_SPECTRUM_EDGE_LOW|RIG_LEVEL_SPECTRUM_EDGE_HIGH)
 
 #define ICR8600_PARM_ALL (RIG_PARM_BACKLIGHT|RIG_PARM_BEEP|RIG_PARM_TIME|RIG_PARM_KEYLIGHT)
 
@@ -73,19 +70,19 @@ struct cmdparams icr8600_extcmds[] =
     { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x15}, CMD_DAT_LVL, 2 },
     { {.s = RIG_PARM_KEYLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x16}, CMD_DAT_LVL, 2 },
     { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x32}, CMD_DAT_TIM, 2 },
+    { {.s = RIG_FUNC_TRANSCEIVE}, CMD_PARAM_TYPE_FUNC, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x92}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_LEVEL_SPECTRUM_AVG}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x40}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_NONE} }
 };
 
-int icr8600_tokens[] = { TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
-                         TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
-                         TOK_SCOPE_DAT, TOK_SCOPE_STS, TOK_SCOPE_DOP, TOK_SCOPE_MSS, TOK_SCOPE_MOD, TOK_SCOPE_SPN,
-                         TOK_SCOPE_HLD, TOK_SCOPE_REF, TOK_SCOPE_SWP, TOK_SCOPE_TYP, TOK_SCOPE_VBW, TOK_SCOPE_FEF,
-                         TOK_BACKEND_NONE
-                       };
+int icr8600_tokens[] =
+{
+    TOK_DSTAR_DSQL, TOK_DSTAR_CALL_SIGN, TOK_DSTAR_MESSAGE, TOK_DSTAR_STATUS,
+    TOK_DSTAR_GPS_DATA, TOK_DSTAR_GPS_MESS, TOK_DSTAR_CODE, TOK_DSTAR_TX_DATA,
+    TOK_SCOPE_CFQ, TOK_SCOPE_VBW,
+    TOK_BACKEND_NONE
+};
 
-/*
- * channel caps.
- */
 #define ICR8600_MEM_CAP {   \
     .freq = 1,  \
     .mode = 1,  \
@@ -106,6 +103,28 @@ static struct icom_priv_caps icr8600_priv_caps =
     .ant_count = 3,
     .offs_len = 4,                  /* Repeater offset is 4 bytes */
     .serial_USB_echo_check = 1,     /* USB CI-V may not echo */
+    .agc_levels_present = 1,
+    .agc_levels = {
+        { .level = RIG_AGC_FAST, .icom_level = 1 },
+        { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
+        { .level = RIG_AGC_SLOW, .icom_level = 3 },
+        { .level = -1, .icom_level = 0 },
+    },
+    .spectrum_scope_caps = {
+        .spectrum_line_length = 475,
+        .single_frame_data_length = 50,
+        .data_level_min = 0,
+        .data_level_max = 160,
+        .signal_strength_min = -100, // TODO: signal strength to be confirmed
+        .signal_strength_max = 0,
+    },
+    .spectrum_edge_frequency_ranges = {
+        {
+            .range_id = 1,
+            .low_freq = 0,
+            .high_freq = 3000000000,
+        },
+    },
     .extcmds = icr8600_extcmds      /* Custom ext_cmd parameters */
 };
 
@@ -138,7 +157,12 @@ const struct rig_caps icr8600_caps =
     .has_get_parm = ICR8600_PARM_ALL,
     .has_set_parm = RIG_PARM_SET(ICR8600_PARM_ALL),
     // cppcheck-suppress *
-    .level_gran = { [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } } },
+    .level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+        [LVL_SPECTRUM_REF] = {.min = {.f = -20.0f}, .max = {.f = 20.0f}, .step = {.f = 0.5f}},
+        [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
+    },
     .parm_gran = { [PARM_TIME] = { .min = { .i = 0 }, .max = { .i = 86399} } },
     .ext_tokens = icr8600_tokens,
     .extlevels = icom_ext_levels,
@@ -151,6 +175,8 @@ const struct rig_caps icr8600_caps =
     .max_rit = Hz(0),
     .max_xit = Hz(0),
     .max_ifshift = Hz(0),
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo = 0,
     .vfo_ops = ICR8600_VFO_OPS,
     .scan_ops = ICR8600_SCAN_OPS,
@@ -213,6 +239,53 @@ const struct rig_caps icr8600_caps =
 
     .str_cal = ICR8600_STR_CAL,
 
+    .spectrum_scopes = {
+        {
+            .id = 0,
+            .name = "Main",
+        },
+        {
+            .id = -1,
+            .name = NULL,
+        },
+    },
+    .spectrum_modes = {
+        RIG_SPECTRUM_MODE_CENTER,
+        RIG_SPECTRUM_MODE_FIXED,
+        RIG_SPECTRUM_MODE_NONE,
+    },
+    .spectrum_spans = {
+        5000,
+        10000,
+        20000,
+        50000,
+        100000,
+        200000,
+        500000,
+        1000000,
+        2000000,
+        5000000,
+        0,
+    },
+    .spectrum_avg_modes = {
+        {
+            .id = 0,
+            .name = "OFF",
+        },
+        {
+            .id = 1,
+            .name = "2",
+        },
+        {
+            .id = 2,
+            .name = "3",
+        },
+        {
+            .id = 3,
+            .name = "4",
+        },
+    },
+
     .cfgparams = icom_cfg_params,
 
     .set_conf = icom_set_conf,
@@ -250,6 +323,8 @@ const struct rig_caps icr8600_caps =
     .get_ext_parm = icom_get_ext_parm,
     .set_ext_func = icom_set_ext_func,
     .get_ext_func = icom_get_ext_func,
+    .set_ext_level =  icom_set_ext_level,
+    .get_ext_level =  icom_get_ext_level,
     .get_dcd = icom_get_dcd,
     .set_mem = icom_set_mem,
     .vfo_op = icom_vfo_op,
