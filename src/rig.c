@@ -1439,10 +1439,13 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int flag = HAMLIB_ELAPSED_SET;
 
+    if (rig_need_debug(RIG_DEBUG_CACHE))
+    {
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_TRACE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
-              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
     cache_show(rig, __func__, __LINE__);
+    }
+    rig_debug(RIG_DEBUG_CACHE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1458,8 +1461,11 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_SUB && rig->state.cache.satmode) { vfo = RIG_VFO_SUB_A; };
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: set vfo=%s to freq=%.0f\n", __func__,
+    if (rig_need_debug(RIG_DEBUG_CACHE))
+    {
+    rig_debug(RIG_DEBUG_CACHE, "%s: set vfo=%s to freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
+    }
 
     switch (vfo)
     {
@@ -1528,15 +1534,22 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    cache_show(rig, __func__, __LINE__);
-    RETURNFUNC(RIG_OK);
+    if (rig_need_debug(RIG_DEBUG_CACHE))
+    {
+        cache_show(rig, __func__, __LINE__);
+        RETURNFUNC(RIG_OK);
+    }
+    return RIG_OK;
 }
 
 int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
                   rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width)
 {
-    ENTERFUNC;
-    rig_debug(RIG_DEBUG_TRACE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
+    if (rig_need_debug(RIG_DEBUG_CACHE))
+    {
+        ENTERFUNC;
+    }
+    rig_debug(RIG_DEBUG_CACHE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
@@ -1642,9 +1655,13 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, freq=%.0f\n", __func__, rig_strvfo(vfo),
+    rig_debug(RIG_DEBUG_CACHE, "%s: vfo=%s, freq=%.0f\n", __func__, rig_strvfo(vfo),
               (double)*freq);
-    RETURNFUNC(RIG_OK);
+    if (rig_need_debug(RIG_DEBUG_CACHE))
+    {
+        RETURNFUNC(RIG_OK);
+    }
+    return RIG_OK;
 }
 
 // detect if somebody is twiddling the VFO
@@ -6308,7 +6325,6 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
     int ret;
     int rxa, txa, rxb, txb;
     response[0] = 0;
-    char crcstr[16];
 
     vfoA = vfo_fixup(rig, RIG_VFO_A);
     vfoB = vfo_fixup(rig, RIG_VFO_B);
@@ -6356,7 +6372,11 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
         sprintf(p, "CRC=0x%08lx\n", crc);
     }
 
-    strcat(response, crcstr);
+    if (strlen(response)>= max_response_len-1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): response len exceeded max %d chars\n", __FILE__, __LINE__, max_response_len);
+        RETURNFUNC(RIG_EINTERNAL);
+    }
     RETURNFUNC(RIG_OK);
 }
 
