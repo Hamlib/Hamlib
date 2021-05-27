@@ -4128,6 +4128,8 @@ static int myspectrum_event(RIG *rig, struct rig_spectrum_line *line, rig_ptr_t 
         rig_debug(RIG_DEBUG_TRACE, "%s: ASCII Spectrum Scope: %s\n", __func__, spectrum_debug);
     }
 
+    // TODO: Push out spectrum data via multicast server once it is implemented
+
     RETURNFUNC(0);
 }
 
