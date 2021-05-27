@@ -46,6 +46,8 @@
 
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
 static int icom_set_default_vfo(RIG *rig);
+static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo);
+static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo, int *range_id);
 
 const cal_table_float_t icom_default_swr_cal =
 {
@@ -458,6 +460,13 @@ const struct confparams icom_ext_levels[] =
 {
     { TOK_DIGI_SEL_LEVEL, "digi_sel_level", "DIGI-SEL level", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
     { TOK_DRIVE_GAIN, "drive_gain", "Drive gain", "", "", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } } },
+    { TOK_SCOPE_MSS, "SPECTRUM_SELECT", "Spectrum Scope Main/Sub", "", "", RIG_CONF_COMBO, { .c = { .combostr = { "Main", "Sub", NULL } } } },
+    { TOK_SCOPE_SDS, "SPECTRUM_DUAL", "Spectrum Scope Single/Dual", "", "", RIG_CONF_COMBO, { .c = { .combostr = { "Single", "Dual", NULL } } } },
+    { TOK_SCOPE_EDG, "SPECTRUM_EDGE", "Spectrum Scope Edge", "Edge selection for fixed scope mode", "", RIG_CONF_COMBO, { .c = { .combostr = { "1", "2", "3", "4", NULL } } } },
+    { TOK_SCOPE_STX, "SPECTRUM_TX", "Spectrum Scope TX operation", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_SCOPE_CFQ, "SPECTRUM_CENTER", "Spectrum Scope Center Frequency Type", "", "", RIG_CONF_COMBO, { .c = { .combostr = { "Filter center", "Carrier point center", "Carrier point center (Abs. Freq.)", NULL } } } },
+    { TOK_SCOPE_VBW, "SPECTRUM_VBW", "Spectrum Scope VBW", "Video Band Width", "", RIG_CONF_COMBO, { .c = { .combostr = { "Narrow", "Wide", NULL } } } },
+    { TOK_SCOPE_RBW, "SPECTRUM_RBW", "Spectrum Scope RBW", "Resolution Band Width", "", RIG_CONF_COMBO, { .c = { .combostr = { "Wide", "Mid", "Narrow", NULL } } } },
     { RIG_CONF_END, NULL, }
 };
 
@@ -477,20 +486,6 @@ const struct confparams icom_ext_parms[] =
     { TOK_DSTAR_MY_CS, "dsmycs", "D-STAR MY Call Sign", "", "", RIG_CONF_STRING, {} },
     { TOK_DSTAR_TX_CS, "dstxcs", "D-STAR Tx Call Sign", "", "", RIG_CONF_BINARY, {} },
     { TOK_DSTAR_TX_MESS, "dstmes", "D-STAR Tx Message", "", "", RIG_CONF_STRING, {} },
-    { TOK_SCOPE_DAT, "scpdat", "Scope data", "", "", RIG_CONF_BINARY, {} },
-    { TOK_SCOPE_STS, "scpsts", "Scope status", "", "", RIG_CONF_CHECKBUTTON, {} },
-    { TOK_SCOPE_DOP, "scpdop", "Scope data output", "", "", RIG_CONF_CHECKBUTTON, {} },
-    { TOK_SCOPE_MSS, "scpmss", "Scope main/sub", "", "", RIG_CONF_CHECKBUTTON, {} },
-    { TOK_SCOPE_MOD, "scpmod", "Scope mode", "", "", RIG_CONF_BINARY, {} },
-    { TOK_SCOPE_SPN, "scpspn", "Scope span", "", "", RIG_CONF_BINARY, {} },
-    { TOK_SCOPE_EDG, "scpedg", "Scope edge", "", "", RIG_CONF_BINARY, {} },
-    { TOK_SCOPE_HLD, "scphld", "Scope hold", "", "", RIG_CONF_BINARY, {} },
-    { TOK_SCOPE_REF, "scpref", "Scope reference", "", "", RIG_CONF_BINARY, {} },
-    { TOK_SCOPE_SWP, "scpswp", "Scope sweep", "", "", RIG_CONF_BINARY, {} },
-    { TOK_SCOPE_STX, "scpstx", "Scope Tx o/p", "", "", RIG_CONF_CHECKBUTTON, {} },
-    { TOK_SCOPE_TYP, "scptyp", "Scope type", "", "", RIG_CONF_NUMERIC, {} },
-    { TOK_SCOPE_VBW, "scpvbw", "Scope vbw", "", "", RIG_CONF_BINARY, {} },
-    { TOK_SCOPE_FEF, "scpfef", "Scope edge", "", "", RIG_CONF_BINARY, {} },
     { RIG_CONF_END, NULL, }
 };
 
@@ -514,20 +509,6 @@ const struct cmdparams icom_ext_cmd[] =
     { {.t = TOK_DRIVE_GAIN}, CMD_PARAM_TYPE_TOKEN, C_CTL_LVL, S_LVL_DRIVE, SC_MOD_RW, 0, {0}, CMD_DAT_FLT, 2 },
     { {.t = TOK_DIGI_SEL_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_FUNC, S_FUNC_DIGISEL, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
     { {.t = TOK_DIGI_SEL_LEVEL}, CMD_PARAM_TYPE_TOKEN, C_CTL_LVL, S_LVL_DIGI, SC_MOD_RW, 0, {0}, CMD_DAT_FLT, 2 },
-    { {.t = TOK_SCOPE_DAT}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_DAT, SC_MOD_RD, 0, {0}, CMD_DAT_BUF, 481 },
-    { {.t = TOK_SCOPE_STS}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_STS, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
-    { {.t = TOK_SCOPE_DOP}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_DOP, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
-    { {.t = TOK_SCOPE_MSS}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_MSS, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
-    { {.t = TOK_SCOPE_MOD}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_MOD, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
-    { {.t = TOK_SCOPE_SPN}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_SPN, SC_MOD_RW, 0, {0}, CMD_DAT_BUF, 6 },
-    { {.t = TOK_SCOPE_EDG}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_EDG, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
-    { {.t = TOK_SCOPE_HLD}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_HLD, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
-    { {.t = TOK_SCOPE_REF}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_REF, SC_MOD_RW, 0, {0}, CMD_DAT_BUF, 4 },
-    { {.t = TOK_SCOPE_SWP}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_SWP, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
-    { {.t = TOK_SCOPE_STX}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_STX, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
-    { {.t = TOK_SCOPE_TYP}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_TYP, SC_MOD_RW, 0, {0}, CMD_DAT_INT, 1 },
-    { {.t = TOK_SCOPE_VBW}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_VBW, SC_MOD_RW, 0, {0}, CMD_DAT_WRD, 2 },
-    { {.t = TOK_SCOPE_FEF}, CMD_PARAM_TYPE_TOKEN, C_CTL_SCP, S_SCP_FEF, SC_MOD_RW, 0, {0}, CMD_DAT_BUF, 12 },
     { {0} }
 };
 
@@ -617,12 +598,12 @@ static const struct icom_addr icom_addr_list[] =
  * Basically, it sets up *priv
  * REM: serial port is already open (rig->state.rigport.fd)
  */
-int
-icom_init(RIG *rig)
+int icom_init(RIG *rig)
 {
     struct icom_priv_data *priv;
     struct icom_priv_caps *priv_caps;
     struct rig_caps *caps;
+    int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -652,6 +633,26 @@ icom_init(RIG *rig)
 
     priv = rig->state.priv;
 
+    priv->spectrum_scope_count = 0;
+    for (i = 0; caps->spectrum_scopes[i].name != NULL; i++)
+    {
+        priv->spectrum_scope_cache[i].spectrum_data = NULL;
+
+        if (priv_caps->spectrum_scope_caps.spectrum_line_length < 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: no spectrum scope line length defined\n", __func__);
+            RETURNFUNC(-RIG_ECONF);
+        }
+
+        priv->spectrum_scope_cache[i].spectrum_data = calloc(1, priv_caps->spectrum_scope_caps.spectrum_line_length);
+        if (!priv->spectrum_scope_cache[i].spectrum_data)
+        {
+            RETURNFUNC(-RIG_ENOMEM);
+        }
+
+        priv->spectrum_scope_count++;
+    }
+
     /* TODO: CI-V address should be customizable */
 
     /*
@@ -678,14 +679,27 @@ icom_init(RIG *rig)
  * ICOM Generic icom_cleanup routine
  * the serial port is closed by the frontend
  */
-int
-icom_cleanup(RIG *rig)
+int icom_cleanup(RIG *rig)
 {
+    struct icom_priv_data *priv;
+    int i;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
     {
         RETURNFUNC(-RIG_EINVAL);
+    }
+
+    priv = rig->state.priv;
+
+    for (i = 0; rig->caps->spectrum_scopes[i].name != NULL; i++)
+    {
+        if (priv->spectrum_scope_cache[i].spectrum_data)
+        {
+            free(priv->spectrum_scope_cache[i].spectrum_data);
+            priv->spectrum_scope_cache[i].spectrum_data = NULL;
+        }
     }
 
     if (rig->state.priv)
@@ -2653,8 +2667,8 @@ int icom_get_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t *val)
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     struct rig_state *rs;
-    unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-    int ack_len = sizeof(ackbuf), lvl_len;
+    unsigned char cmdbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+    int cmd_len, ack_len = sizeof(ackbuf);
     int lvl_cn, lvl_sc;       /* Command Number, Subcommand */
     int icom_val;
     int i, retval;
@@ -2676,12 +2690,10 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     rs = &rig->state;
 
     /*
-     * So far, levels of float type are in [0.0..1.0] range
+     * Many levels of float type are in [0.0..1.0] range
      */
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
-
         icom_val = val.f * 255;
     }
     else
@@ -2751,19 +2763,19 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
      * but in *big endian* order: 0000..0255
      * (from_bcd is little endian)
      */
-    lvl_len = 2;
-    to_bcd_be(lvlbuf, (long long) icom_val, lvl_len * 2);
+    cmd_len = 2;
+    to_bcd_be(cmdbuf, (long long) icom_val, cmd_len * 2);
 
     switch (level)
     {
     case RIG_LEVEL_PREAMP:
         lvl_cn = C_CTL_FUNC;
         lvl_sc = S_FUNC_PAMP;
-        lvl_len = 1;
+        cmd_len = 1;
 
         if (val.i == 0)
         {
-            lvlbuf[0] = 0;    /* 0=OFF */
+            cmdbuf[0] = 0;    /* 0=OFF */
             break;
         }
 
@@ -2777,19 +2789,19 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         if (i == HAMLIB_MAXDBLSTSIZ || rs->preamp[i] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp set_level %ddB",
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp set_level %ddB\n",
                       __func__, val.i);
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        lvlbuf[0] = i + 1;    /* 1=P.AMP1, 2=P.AMP2 */
+        cmdbuf[0] = i + 1;    /* 1=P.AMP1, 2=P.AMP2 */
         break;
 
     case RIG_LEVEL_ATT:
         lvl_cn = C_CTL_ATT;
         /* attenuator level is dB, in BCD mode */
         lvl_sc = (val.i / 10) << 4 | (val.i % 10);
-        lvl_len = 0;
+        cmd_len = 0;
         break;
 
     case RIG_LEVEL_AF:
@@ -2846,9 +2858,9 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             lvl_cn = C_CTL_MEM;
             lvl_sc = S_MEM_MODE_SLCT;
-            lvl_len = 3;
-            lvlbuf[0] = S_PRM_CWPITCH;
-            to_bcd_be(lvlbuf + 1, (long long) icom_val, 4);
+            cmd_len = 3;
+            cmdbuf[0] = S_PRM_CWPITCH;
+            to_bcd_be(cmdbuf + 1, (long long) icom_val, 4);
         }
 
         break;
@@ -2881,7 +2893,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_AGC:
         lvl_cn = C_CTL_FUNC;
         lvl_sc = S_FUNC_AGC;
-        lvl_len = 1;
+        cmd_len = 1;
 
         if (priv_caps->agc_levels_present)
         {
@@ -2892,7 +2904,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             {
                 if (priv_caps->agc_levels[i].level == val.i)
                 {
-                    lvlbuf[0] = priv_caps->agc_levels[i].icom_level;
+                    cmdbuf[0] = priv_caps->agc_levels[i].icom_level;
                     found = 1;
                     break;
                 }
@@ -2909,23 +2921,23 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             switch (val.i)
             {
             case RIG_AGC_SLOW:
-                lvlbuf[0] = D_AGC_SLOW;
+                cmdbuf[0] = D_AGC_SLOW;
                 break;
 
             case RIG_AGC_MEDIUM:
-                lvlbuf[0] = D_AGC_MID;
+                cmdbuf[0] = D_AGC_MID;
                 break;
 
             case RIG_AGC_FAST:
-                lvlbuf[0] = D_AGC_FAST;
+                cmdbuf[0] = D_AGC_FAST;
                 break;
 
             case RIG_AGC_SUPERFAST:
-                lvlbuf[0] = D_AGC_SUPERFAST;
+                cmdbuf[0] = D_AGC_SUPERFAST;
                 break;
 
             default:
-                rig_debug(RIG_DEBUG_ERR, "%s: unsupported LEVEL_AGC %d",
+                rig_debug(RIG_DEBUG_ERR, "%s: unsupported LEVEL_AGC %d\n",
                           __func__, val.i);
                 RETURNFUNC(-RIG_EINVAL);
             }
@@ -2978,13 +2990,174 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         lvl_sc = S_LVL_MON;
         break;
 
+    case RIG_LEVEL_SPECTRUM_MODE:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_MOD;
+        cmd_len = 2;
+
+        switch (val.i)
+        {
+        case RIG_SPECTRUM_MODE_CENTER:
+            icom_val = SCOPE_MODE_CENTER;
+            break;
+        case RIG_SPECTRUM_MODE_FIXED:
+            icom_val = SCOPE_MODE_FIXED;
+            break;
+        case RIG_SPECTRUM_MODE_CENTER_SCROLL:
+            icom_val = SCOPE_MODE_SCROLL_C;
+            break;
+        case RIG_SPECTRUM_MODE_FIXED_SCROLL:
+            icom_val = SCOPE_MODE_SCROLL_F;
+            break;
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum mode %d\n", __func__, val.i);
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        cmdbuf[1] = icom_val;
+        break;
+
+    case RIG_LEVEL_SPECTRUM_SPAN:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_SPN;
+        cmd_len = 6;
+
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        // Spectrum span is represented as a +/- value for Icom rigs
+        to_bcd(cmdbuf + 1, val.i / 2, 5 * 2);
+        break;
+
+    case RIG_LEVEL_SPECTRUM_SPEED:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_SWP;
+        cmd_len = 2;
+
+        if (val.i < 0)
+        {
+            val.i = 0;
+        }
+        else if (val.i > 2)
+        {
+            val.i = 2;
+        }
+
+        switch (val.i)
+        {
+        case 0:
+            icom_val = SCOPE_SPEED_SLOW;
+            break;
+        case 1:
+            icom_val = SCOPE_SPEED_MID;
+            break;
+        case 2:
+            icom_val = SCOPE_SPEED_FAST;
+            break;
+        }
+
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        cmdbuf[1] = icom_val;
+        break;
+
+    case RIG_LEVEL_SPECTRUM_REF: {
+        float icom_db = (roundf(val.f * 2.0f) / 2.0f) * 100.0f;
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_REF;
+        cmd_len = 4;
+
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+
+        // Spectrum reference level is represented at 0.01dB accuracy, but needs to be rounded to nearest 0.5dB
+        to_bcd_be(cmdbuf + 1, abs((int) icom_db), 2 * 2);
+
+        // Sign
+        cmdbuf[3] = (icom_db < 0) ? 1 : 0;
+        break;
+    }
+
+    case RIG_LEVEL_SPECTRUM_EDGE_LOW:
+    case RIG_LEVEL_SPECTRUM_EDGE_HIGH: {
+        int range_id;
+        value_t edge_number_value;
+        value_t opposite_edge_value;
+        setting_t level_opposite_edge =
+                (level == RIG_LEVEL_SPECTRUM_EDGE_LOW) ?
+                RIG_LEVEL_SPECTRUM_EDGE_HIGH : RIG_LEVEL_SPECTRUM_EDGE_LOW;
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_FEF;
+        cmd_len = 12;
+
+        // Modify the frequency range currently active
+        retval = icom_get_spectrum_edge_frequency_range(rig, vfo, &range_id);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error getting spectrum edge frequency range\n", __func__);
+            RETURNFUNC(retval);
+        }
+
+        // Modify the edge number currently active
+        retval = icom_get_ext_level(rig, vfo, TOK_SCOPE_EDG, &edge_number_value);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        // Get the current opposite edge frequency
+        retval = icom_get_level(rig, vfo, level_opposite_edge, &opposite_edge_value);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        to_bcd(cmdbuf, range_id, 1 * 2);
+        to_bcd(cmdbuf + 1, edge_number_value.i + 1, 1 * 2);
+
+        if (level == RIG_LEVEL_SPECTRUM_EDGE_LOW)
+        {
+            to_bcd(cmdbuf + 2, val.i, 5 * 2);
+            to_bcd(cmdbuf + 7, opposite_edge_value.i, 5 * 2);
+        }
+        else
+        {
+            to_bcd(cmdbuf + 2, opposite_edge_value.i, 5 * 2);
+            to_bcd(cmdbuf + 7, val.i, 5 * 2);
+        }
+        break;
+    }
+
+    case RIG_LEVEL_SPECTRUM_ATT:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_ATT;
+        cmd_len = 2;
+
+        for (i = 0; i < HAMLIB_MAXDBLSTSIZ; i++)
+        {
+            if (rig->caps->spectrum_attenuator[i] == val.i)
+            {
+                break;
+            }
+        }
+
+        if (val.i != 0 && (i == HAMLIB_MAXDBLSTSIZ || rig->caps->spectrum_attenuator[i] == 0))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum attenuator level %ddB\n",
+                      __func__, val.i);
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        to_bcd(cmdbuf + 1, val.i, 5 * 2);
+        break;
+
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s\n", __func__,
                   rig_strlevel(level));
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    retval = icom_transaction(rig, lvl_cn, lvl_sc, lvlbuf, lvl_len, ackbuf,
+    retval = icom_transaction(rig, lvl_cn, lvl_sc, cmdbuf, cmd_len, ackbuf,
                               &ack_len);
 
     if (retval != RIG_OK)
@@ -3017,8 +3190,8 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     struct rig_state *rs;
-    unsigned char lvlbuf[MAXFRAMELEN], lvl2buf[MAXFRAMELEN];
-    int lvl_len, lvl2_len;
+    unsigned char cmdbuf[MAXFRAMELEN], respbuf[MAXFRAMELEN];
+    int cmd_len, resp_len;
     int lvl_cn, lvl_sc;       /* Command Number, Subcommand */
     int icom_val;
     int cmdhead;
@@ -3045,7 +3218,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     rs = &rig->state;
 
-    lvl2_len = 0;
+    cmd_len = 0;
 
     switch (level)
     {
@@ -3150,8 +3323,8 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             lvl_cn = C_CTL_MEM;
             lvl_sc = S_MEM_MODE_SLCT;
-            lvl2_len = 1;
-            lvl2buf[0] = S_PRM_CWPITCH;
+            cmd_len = 1;
+            cmdbuf[0] = S_PRM_CWPITCH;
         }
 
         break;
@@ -3231,15 +3404,82 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         lvl_sc = S_LVL_MON;
         break;
 
+    case RIG_LEVEL_SPECTRUM_MODE:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_MOD;
+        cmd_len = 1;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        break;
+
+    case RIG_LEVEL_SPECTRUM_SPAN:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_SPN;
+
+        cmd_len = 1;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        break;
+
+    case RIG_LEVEL_SPECTRUM_SPEED:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_SWP;
+
+        cmd_len = 1;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        break;
+
+    case RIG_LEVEL_SPECTRUM_REF:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_REF;
+
+        cmd_len = 1;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        break;
+
+    case RIG_LEVEL_SPECTRUM_EDGE_LOW:
+    case RIG_LEVEL_SPECTRUM_EDGE_HIGH: {
+        int range_id;
+        value_t edge_number_value;
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_FEF;
+        cmd_len = 2;
+
+        // Get the frequency range currently active
+        retval = icom_get_spectrum_edge_frequency_range(rig, vfo, &range_id);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error getting spectrum edge frequency range\n", __func__);
+            RETURNFUNC(retval);
+        }
+
+        // Get the edge number currently active
+        retval = icom_get_ext_level(rig, vfo, TOK_SCOPE_EDG, &edge_number_value);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        to_bcd(cmdbuf, range_id, 1 * 2);
+        to_bcd(cmdbuf + 1, edge_number_value.i + 1, 1 * 2);
+        break;
+    }
+
+    case RIG_LEVEL_SPECTRUM_ATT:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_ATT;
+        cmd_len = 1;
+
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        break;
+
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s\n", __func__,
                   rig_strlevel(level));
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    /* use lvl2buf and lvl2_len for 'set mode' subcommand */
-    retval = icom_transaction(rig, lvl_cn, lvl_sc, lvl2buf, lvl2_len, lvlbuf,
-                              &lvl_len);
+    /* use cmdbuf and cmd_len for 'set mode' subcommand */
+    retval = icom_transaction(rig, lvl_cn, lvl_sc, cmdbuf, cmd_len, respbuf, &resp_len);
 
     if (retval != RIG_OK)
     {
@@ -3249,21 +3489,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     /*
      * strbuf should contain Cn,Sc,Data area
      */
-    cmdhead = (lvl_sc == -1) ? 1 : 2;
-    lvl_len -= cmdhead;
+    cmdhead = ((lvl_sc == -1) ? 1 : 2) + cmd_len;
+    resp_len -= cmdhead;
 
-    /* back off one char since first char in buffer is now 'set mode' subcommand */
-    if ((rig->caps->rig_model == RIG_MODEL_ICR75)
-            && (level == RIG_LEVEL_CWPITCH))
-    {
-        cmdhead = 3;
-        lvl_len--;
-    }
-
-    if (lvlbuf[0] != lvl_cn)
+    if (respbuf[0] != lvl_cn)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
-                  lvlbuf[0], lvl_len);
+                  respbuf[0], resp_len);
         RETURNFUNC(-RIG_ERJCTED);
     }
 
@@ -3271,7 +3503,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
      * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
      * (from_bcd is little endian)
      */
-    icom_val = from_bcd_be(lvlbuf + cmdhead, lvl_len * 2);
+    icom_val = from_bcd_be(respbuf + cmdhead, resp_len * 2);
 
     switch (level)
     {
@@ -3302,7 +3534,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             if (!found)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x", __func__,
+                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x\n", __func__,
                           icom_val);
                 RETURNFUNC(-RIG_EPROTO);
             }
@@ -3328,7 +3560,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 break;
 
             default:
-                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x", __func__,
+                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x\n", __func__,
                           icom_val);
                 RETURNFUNC(-RIG_EPROTO);
             }
@@ -3450,7 +3682,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (icom_val > HAMLIB_MAXDBLSTSIZ || rs->preamp[icom_val - 1] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp get_level %ddB",
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp get_level %ddB\n",
                       __func__, icom_val);
             RETURNFUNC(-RIG_EPROTO);
         }
@@ -3458,7 +3690,76 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->i = rs->preamp[icom_val - 1];
         break;
 
-    /* RIG_LEVEL_ATT: returned value is already an integer in dB (coded in BCD) */
+    case RIG_LEVEL_SPECTRUM_MODE:
+        switch (icom_val)
+        {
+        case SCOPE_MODE_CENTER:
+            val->i = RIG_SPECTRUM_MODE_CENTER;
+            break;
+        case SCOPE_MODE_FIXED:
+            val->i = RIG_SPECTRUM_MODE_FIXED;
+            break;
+        case SCOPE_MODE_SCROLL_C:
+            val->i = RIG_SPECTRUM_MODE_CENTER_SCROLL;
+            break;
+        case SCOPE_MODE_SCROLL_F:
+            val->i = RIG_SPECTRUM_MODE_FIXED_SCROLL;
+            break;
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum mode %d\n", __func__, icom_val);
+            RETURNFUNC(-RIG_EINVAL);
+        }
+        break;
+
+    case RIG_LEVEL_SPECTRUM_SPAN:
+        icom_val = (int) from_bcd(respbuf + cmdhead, resp_len * 2);
+        // Spectrum span is represented as a +/- value for Icom rigs
+        val->i = icom_val * 2;
+        break;
+
+    case RIG_LEVEL_SPECTRUM_SPEED:
+        switch (icom_val)
+        {
+        case SCOPE_SPEED_SLOW:
+            val->i = 0;
+            break;
+        case SCOPE_SPEED_MID:
+            val->i = 1;
+            break;
+        case SCOPE_SPEED_FAST:
+            val->i = 2;
+            break;
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum speed %d\n", __func__, icom_val);
+            RETURNFUNC(-RIG_EINVAL);
+        }
+        break;
+
+    case RIG_LEVEL_SPECTRUM_REF: {
+        unsigned char *icom_ref = respbuf + cmdhead;
+
+        // Spectrum reference level is represented at 0.01dB accuracy, but is rounded to nearest 0.5dB
+        float db = (float) from_bcd_be(icom_ref, 2 * 2) / 100.0f;
+
+        // Sign
+        if (icom_ref[2] != 0)
+        {
+            db = -db;
+        }
+
+        val->f = db;
+        break;
+    }
+
+    case RIG_LEVEL_SPECTRUM_EDGE_LOW:
+        val->i = (int) from_bcd(respbuf + cmdhead, 5 * 2);
+        break;
+
+    case RIG_LEVEL_SPECTRUM_EDGE_HIGH:
+        val->i = (int) from_bcd(respbuf + cmdhead + 5, 5 * 2);
+        break;
+
+    /* RIG_LEVEL_ATT/RIG_LEVEL_SPECTRUM_ATT: returned value is already an integer in dB (coded in BCD) */
     default:
         if (RIG_LEVEL_IS_FLOAT(level))
         {
@@ -3497,7 +3798,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __func__, lvl_len,
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __func__, resp_len,
               icom_val, val->i, val->f);
 
     RETURNFUNC(RIG_OK);
@@ -3505,52 +3806,266 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     const struct confparams *cfp = rig->caps->extlevels;
-    cfp = (cfp == NULL) ? icom_ext_levels : cfp;
-    int i;
+    unsigned char cmdbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+    int cmd_len, ack_len = sizeof(ackbuf);
+    int lvl_cn, lvl_sc;       /* Command Number, Subcommand */
+    int i, retval;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: token=%ld int=%d float=%f\n", __func__, token, val.i, val.f);
+
+    switch (token)
     {
-        if (cfp[i].token == RIG_CONF_END)
+    case TOK_SCOPE_MSS:
+        if (val.i < 0 || val.i > 1)
         {
-            cfp = icom_ext_levels;
-            i = 0;
+            RETURNFUNC(-RIG_EINVAL);
         }
-        else if (cfp[i].token == token)
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_MSS;
+        cmd_len = 1;
+        cmdbuf[0] = val.i;
+        break;
+
+    case TOK_SCOPE_SDS:
+        if (val.i < 0 || val.i > 1)
         {
-            RETURNFUNC(icom_set_ext_cmd(rig, vfo, token, val));
+            RETURNFUNC(-RIG_EINVAL);
         }
-        else { i++; }
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_SDS;
+        cmd_len = 1;
+        cmdbuf[0] = val.i;
+        break;
+
+    case TOK_SCOPE_STX:
+        // TODO: Should be a func?
+        if (val.i < 0 || val.i > 1)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_STX;
+        cmd_len = 1;
+        cmdbuf[0] = val.i;
+        break;
+
+    case TOK_SCOPE_CFQ:
+        if (val.i < 0 || val.i > 2)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_CFQ;
+        cmd_len = 1;
+        cmdbuf[0] = val.i;
+        break;
+
+    case TOK_SCOPE_EDG:
+        if (val.i < 0 || val.i > 3)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_EDG;
+        cmd_len = 2;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        cmdbuf[1] = val.i + 1;
+        break;
+
+    case TOK_SCOPE_VBW:
+        if (val.i < 0 || val.i > 1)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_VBW;
+        cmd_len = 2;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        cmdbuf[1] = val.i;
+        break;
+
+    case TOK_SCOPE_RBW:
+        if (val.i < 0 || val.i > 2)
+        {
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_RBW;
+        cmd_len = 2;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        cmdbuf[1] = val.i;
+        break;
+
+    default:
+        cfp = (cfp == NULL) ? icom_ext_levels : cfp;
+
+        for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);)
+        {
+            if (cfp[i].token == RIG_CONF_END)
+            {
+                cfp = icom_ext_levels;
+                i = 0;
+            }
+            else if (cfp[i].token == token)
+            {
+                RETURNFUNC(icom_set_ext_cmd(rig, vfo, token, val));
+            }
+            else { i++; }
+        }
+
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_ext_level token: %ld\n", __func__, token);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    RETURNFUNC(-RIG_EINVAL);
+    retval = icom_transaction(rig, lvl_cn, lvl_sc, cmdbuf, cmd_len, ackbuf,
+                              &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
+    {
+        // if we don't get ACK/NAK some serial corruption occurred
+        // so we'll call it a timeout for retry purposes
+        RETURNFUNC(-RIG_ETIMEOUT);
+    }
+
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
+                  ackbuf[0], ack_len);
+        RETURNFUNC(-RIG_ERJCTED);
+    }
+
+    RETURNFUNC(RIG_OK);
 }
 
 int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     const struct confparams *cfp = rig->caps->extlevels;
-    cfp = (cfp == NULL) ? icom_ext_levels : cfp;
+    unsigned char cmdbuf[MAXFRAMELEN], respbuf[MAXFRAMELEN];
+    int cmd_len, resp_len;
+    int lvl_cn, lvl_sc;       /* Command Number, Subcommand */
+    int icom_val;
+    int cmdhead;
+    int retval;
     int i;
 
-    for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    cmd_len = 0;
+    lvl_sc = -1;
+
+    switch (token)
     {
-        if (cfp[i].token == RIG_CONF_END)
+    case TOK_SCOPE_MSS:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_MSS;
+        break;
+
+    case TOK_SCOPE_SDS:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_SDS;
+        break;
+
+    case TOK_SCOPE_STX:
+        // TODO: Should be a func?
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_STX;
+        break;
+
+    case TOK_SCOPE_CFQ:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_CFQ;
+        break;
+
+    case TOK_SCOPE_EDG:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_EDG;
+        cmd_len = 1;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        break;
+
+    case TOK_SCOPE_VBW:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_VBW;
+        cmd_len = 1;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        break;
+
+    case TOK_SCOPE_RBW:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_RBW;
+        cmd_len = 1;
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        break;
+
+    default:
+        cfp = (cfp == NULL) ? icom_ext_levels : cfp;
+
+        for (i = 0; (cfp[i].token != RIG_CONF_END) || (cfp != icom_ext_levels);)
         {
-            cfp = icom_ext_levels;
-            i = 0;
+            if (cfp[i].token == RIG_CONF_END)
+            {
+                cfp = icom_ext_levels;
+                i = 0;
+            }
+            else if (cfp[i].token == token)
+            {
+                RETURNFUNC(icom_get_ext_cmd(rig, vfo, token, val));
+            }
+            else { i++; }
         }
-        else if (cfp[i].token == token)
-        {
-            RETURNFUNC(icom_get_ext_cmd(rig, vfo, token, val));
-        }
-        else { i++; }
+
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_ext_level token: %ld\n", __func__, token);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    RETURNFUNC(-RIG_EINVAL);
+    /* use cmdbuf and cmd_len for 'set mode' subcommand */
+    retval = icom_transaction(rig, lvl_cn, lvl_sc, cmdbuf, cmd_len, respbuf, &resp_len);
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    cmdhead = ((lvl_sc == -1) ? 1 : 2) + cmd_len;
+    resp_len -= cmdhead;
+
+    if (respbuf[0] != lvl_cn)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
+                  respbuf[0], resp_len);
+        RETURNFUNC(-RIG_ERJCTED);
+    }
+
+    icom_val = from_bcd_be(respbuf + cmdhead, resp_len * 2);
+
+    switch (token)
+    {
+    case TOK_SCOPE_EDG:
+        val->i = icom_val - 1;
+        break;
+
+    default:
+        val->i = icom_val;
+        break;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: %d %d %d %f\n", __func__, resp_len,
+              icom_val, val->i, val->f);
+
+    RETURNFUNC(RIG_OK);
 }
 
 int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
@@ -3944,7 +4459,7 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d\n", __func__,
                   rptr_shift);
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -4029,7 +4544,7 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d\n", __func__,
                   rptrbuf[1]);
         RETURNFUNC(-RIG_EPROTO);
     }
@@ -5714,11 +6229,26 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         break;
 
     case RIG_FUNC_SCOPE:
-        // The command 0x27 0x10 is supported by many newer Icom rigs
-        fct_cn = 0x27;
-        fct_sc = 0x10;
+        fct_cn = C_CTL_SCP;
+        fct_sc = S_SCP_STS;
         fctbuf[0] = status;
         fct_len = 1;
+        break;
+
+    case RIG_FUNC_SPECTRUM:
+        fct_cn = C_CTL_SCP;
+        fct_sc = S_SCP_DOP;
+        fctbuf[0] = status;
+        fct_len = 1;
+        break;
+
+    case RIG_FUNC_SPECTRUM_HOLD:
+        fct_cn = C_CTL_SCP;
+        fct_sc = S_SCP_HLD;
+
+        fct_len = 2;
+        fctbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        fctbuf[1] = status;
         break;
 
     case RIG_FUNC_RESUME:   /* IC-910H  & IC-746-Pro */
@@ -5860,6 +6390,8 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
     int fct_cn, fct_sc;       /* Command Number, Subcommand */
+    unsigned char fctbuf[MAXFRAMELEN];
+    int fct_len = 0;
 
     const struct icom_priv_caps *priv_caps = rig->caps->priv;
     const struct cmdparams *extcmds = priv_caps->extcmds;
@@ -5953,9 +6485,21 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     case RIG_FUNC_SCOPE:
-        // The command 0x27 0x10 is supported by many newer Icom rigs
-        fct_cn = 0x27;
-        fct_sc = 0x10;
+        fct_cn = C_CTL_SCP;
+        fct_sc = S_SCP_STS;
+        break;
+
+    case RIG_FUNC_SPECTRUM:
+        fct_cn = C_CTL_SCP;
+        fct_sc = S_SCP_DOP;
+        break;
+
+    case RIG_FUNC_SPECTRUM_HOLD:
+        fct_cn = C_CTL_SCP;
+        fct_sc = S_SCP_HLD;
+
+        fctbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        fct_len = 1;
         break;
 
     case RIG_FUNC_AIP:    /* IC-R8600 IP+ function, misusing AIP since RIG_FUNC_ word is full (32 bit) */
@@ -5995,7 +6539,8 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         fct_sc = S_DUAL;
         break;
 
-    case RIG_FUNC_SATMODE: if (rig->caps->rig_model == RIG_MODEL_IC910)
+    case RIG_FUNC_SATMODE:
+        if (rig->caps->rig_model == RIG_MODEL_IC910)
         {
             // Is the 910 the only one that uses this command?
             fct_cn = C_CTL_MEM;
@@ -6006,10 +6551,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_SATMODE;
         }
-
         break;
-
-
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_func %s\n", __func__,
@@ -6017,36 +6559,37 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    retval = icom_transaction(rig, fct_cn, fct_sc, NULL, 0, ackbuf, &ack_len);
+    retval = icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len, ackbuf, &ack_len);
 
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
     }
 
-    if (ack_len != 3)
+    if (ack_len != (3 + fct_len))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n", __func__,
                   ack_len);
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    if (func != RIG_FUNC_FBKIN)
+    if (func == RIG_FUNC_FBKIN)
     {
-        *status = ackbuf[2];
+        *status = ackbuf[2] == 2 ? 1 : 0;
+    }
+    else if (func == RIG_FUNC_SATMODE)
+    {
+        struct rig_state *rs = &rig->state;
+        struct icom_priv_data *priv = rs->priv;
+
+        *status = ackbuf[2 + fct_len];
+
+        // we'll reset this based on current status
+        priv->x25cmdfails = *status;
     }
     else
     {
-        *status = ackbuf[2] == 2 ? 1 : 0;
-
-        if (func == RIG_FUNC_SATMODE)
-        {
-            struct rig_state *rs = &rig->state;
-            //struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
-            struct icom_priv_data *priv = rs->priv;
-            // we'll reset this based on current status
-            priv->x25cmdfails = *status;
-        }
+        *status = ackbuf[2 + fct_len];
     }
 
     RETURNFUNC(RIG_OK);
@@ -7390,7 +7933,131 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     RETURNFUNC(RIG_OK);
 }
 
+static int icom_parse_spectrum_frame(RIG *rig, int length, unsigned char *frame_data)
+{
+    struct rig_caps *caps = rig->caps;
+    struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) caps->priv;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+    struct icom_spectrum_scope_cache *cache;
 
+    int division = (int) from_bcd(frame_data + 1, 1 * 2);
+    int max_division = (int) from_bcd(frame_data + 2, 1 * 2);
+
+    int spectrum_data_length_in_frame;
+    unsigned char *spectrum_data_start_in_frame;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    // The first byte indicates spectrum scope ID/VFO: 0 = Main, 1 = Sub
+    int spectrum_id = frame_data[0];
+
+    if (spectrum_id < 0 || spectrum_id >= priv->spectrum_scope_count)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: invalid spectrum scope ID from CI-V frame: %d\n", __func__, spectrum_id);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
+    cache = &priv->spectrum_scope_cache[spectrum_id];
+
+    if (division == 1)
+    {
+        int spectrum_scope_mode = frame_data[3];
+        int out_of_range = frame_data[14];
+
+        cache->spectrum_mode = RIG_SPECTRUM_MODE_NONE;
+
+        switch (spectrum_scope_mode)
+        {
+            case SCOPE_MODE_CENTER:
+                cache->spectrum_mode = RIG_SPECTRUM_MODE_CENTER;
+                cache->spectrum_center_freq = (freq_t) from_bcd(frame_data + 4, 5 * 2);
+                cache->spectrum_span_freq = (freq_t) from_bcd(frame_data + 9, 5 * 2) * 2;
+                cache->spectrum_low_edge_freq = cache->spectrum_center_freq - cache->spectrum_span_freq / 2;
+                cache->spectrum_high_edge_freq = cache->spectrum_center_freq + cache->spectrum_span_freq / 2;
+                break;
+            case SCOPE_MODE_FIXED:
+                cache->spectrum_mode = RIG_SPECTRUM_MODE_FIXED;
+            case SCOPE_MODE_SCROLL_C:
+                if (cache->spectrum_mode == RIG_SPECTRUM_MODE_NONE)
+                {
+                    cache->spectrum_mode = RIG_SPECTRUM_MODE_CENTER_SCROLL;
+                }
+            case SCOPE_MODE_SCROLL_F:
+                if (cache->spectrum_mode == RIG_SPECTRUM_MODE_NONE)
+                {
+                    cache->spectrum_mode = RIG_SPECTRUM_MODE_FIXED_SCROLL;
+                }
+                cache->spectrum_low_edge_freq = (freq_t) from_bcd(frame_data + 4, 5 * 2);
+                cache->spectrum_high_edge_freq = (freq_t) from_bcd(frame_data + 9, 5 * 2);
+                cache->spectrum_span_freq = (cache->spectrum_high_edge_freq - cache->spectrum_low_edge_freq);
+                cache->spectrum_center_freq = cache->spectrum_high_edge_freq - cache->spectrum_span_freq / 2;
+                break;
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown Icom spectrum scope mode: %d\n", __func__, spectrum_scope_mode)
+                RETURNFUNC(-RIG_EPROTO);
+        }
+
+        spectrum_data_length_in_frame = length - 15;
+        spectrum_data_start_in_frame = frame_data + 15;
+
+        memset(cache->spectrum_data, 0, priv_caps->spectrum_scope_caps.spectrum_line_length);
+
+        cache->spectrum_data_length = 0;
+        cache->spectrum_metadata_valid = 1;
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: Spectrum line start: id=%d division=%d max_division=%d mode=%d center=%.0f span=%.0f low_edge=%.0f high_edge=%.0f oor=%d data_length=%d\n",
+                __func__, spectrum_id, division, max_division, spectrum_scope_mode, cache->spectrum_center_freq, cache->spectrum_span_freq,
+                cache->spectrum_low_edge_freq, cache->spectrum_high_edge_freq, out_of_range, spectrum_data_length_in_frame);
+    }
+    else
+    {
+        spectrum_data_length_in_frame = length - 3;
+        spectrum_data_start_in_frame = frame_data + 3;
+    }
+
+    if (spectrum_data_length_in_frame > 0)
+    {
+        int frame_length = priv_caps->spectrum_scope_caps.single_frame_data_length;
+        int data_frame_index = (max_division > 1) ? (division - 2) : (division - 1);
+        int offset = data_frame_index * frame_length;
+
+        if (offset + spectrum_data_length_in_frame > priv_caps->spectrum_scope_caps.spectrum_line_length)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: too much spectrum scope data received: %d bytes > %d bytes expected\n",
+                    __func__, offset + spectrum_data_length_in_frame, priv_caps->spectrum_scope_caps.spectrum_line_length);
+            RETURNFUNC(-RIG_EPROTO);
+        }
+
+        memcpy(cache->spectrum_data + offset, spectrum_data_start_in_frame, spectrum_data_length_in_frame);
+        cache->spectrum_data_length = offset + spectrum_data_length_in_frame;
+    }
+
+    if (cache->spectrum_metadata_valid && division == max_division)
+    {
+        struct rig_spectrum_line spectrum_line = {
+            .data_level_min = priv_caps->spectrum_scope_caps.data_level_min,
+            .data_level_max = priv_caps->spectrum_scope_caps.data_level_max,
+            .signal_strength_min = priv_caps->spectrum_scope_caps.signal_strength_min,
+            .signal_strength_max = priv_caps->spectrum_scope_caps.signal_strength_max,
+            .spectrum_mode = cache->spectrum_mode,
+            .center_freq = cache->spectrum_center_freq,
+            .span_freq = cache->spectrum_span_freq,
+            .low_edge_freq = cache->spectrum_low_edge_freq,
+            .high_edge_freq = cache->spectrum_high_edge_freq,
+            .spectrum_data_length = cache->spectrum_data_length,
+            .spectrum_data = cache->spectrum_data,
+        };
+
+        if (rig->callbacks.spectrum_event)
+        {
+            rig->callbacks.spectrum_event(rig, &spectrum_line, rig->callbacks.spectrum_arg);
+        }
+
+        cache->spectrum_metadata_valid = 0;
+    }
+
+    RETURNFUNC(RIG_OK);
+}
 
 /*
  * icom_decode is called by sa_sigio, when some asynchronous
@@ -7423,6 +8090,21 @@ int icom_decode_event(RIG *rig)
         RETURNFUNC(0);
     }
 
+    if (buf[0] == PR)
+    {
+        // Sometimes the second preamble byte is missing -> TODO: Find out why!
+        if (buf[1] != PR)
+        {
+            memmove(buf + 1, buf, frm_len);
+            frm_len++;
+        }
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: invalid Icom CI-V frame, no preamble found\n", __func__);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
     switch (buf[frm_len - 1])
     {
     case COL:
@@ -7440,7 +8122,8 @@ int icom_decode_event(RIG *rig)
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    if (buf[3] != BCASTID && buf[3] != priv->re_civ_addr)
+    /* Spectrum scope data is not CI-V transceive data, but handled the same way as it is pushed by the rig */
+    if (buf[3] != BCASTID && buf[3] != priv->re_civ_addr && buf[4] != C_CTL_SCP)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: CI-V %#x called for %#x!\n", __func__,
                   priv->re_civ_addr, buf[3]);
@@ -7489,6 +8172,13 @@ int icom_decode_event(RIG *rig)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+        break;
+
+    case C_CTL_SCP:
+        if (buf[5] == S_SCP_DAT)
+        {
+            icom_parse_spectrum_frame(rig, frm_len - (6 + 1), buf + 6);
+        }
         break;
 
     default:
@@ -7842,6 +8532,58 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     rig->state.current_vfo = vfo;
 
     RETURNFUNC(RIG_OK);
+}
+
+static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo)
+{
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_SPECTRUM)
+    {
+        RETURNFUNC(ICOM_GET_VFO_NUMBER(vfo));
+    }
+
+    RETURNFUNC(0);
+}
+
+static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo, int *range_id)
+{
+    freq_t freq;
+    rmode_t mode;
+    pbwidth_t width;
+    int cache_ms_freq, cache_ms_mode, cache_ms_width;
+    int i, retval;
+    struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
+
+    retval = rig_get_cache(rig, vfo, &freq, &cache_ms_freq, &mode, &cache_ms_mode, &width, &cache_ms_width);
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    // Get frequency if it is not cached or value is old
+    if (freq == 0 || cache_ms_freq >= 1000)
+    {
+        retval = rig_get_freq(rig, vfo, &freq);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+    }
+
+    for (i = 0; i < ICOM_MAX_SPECTRUM_FREQ_RANGES; i++)
+    {
+        int id = priv_caps->spectrum_edge_frequency_ranges[i].range_id;
+        if (id < 1)
+        {
+            break;
+        }
+        if (freq >= priv_caps->spectrum_edge_frequency_ranges[i].low_freq && freq < priv_caps->spectrum_edge_frequency_ranges[i].high_freq)
+        {
+            *range_id = id;
+            RETURNFUNC(RIG_OK);
+        }
+    }
+
+    RETURNFUNC(-RIG_EINVAL);
 }
 
 /*

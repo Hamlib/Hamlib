@@ -24,17 +24,15 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
-#include "token.h"
 #include "idx_builtin.h"
 
+#include "token.h"
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
-#include "misc.h"
 #include "bandplan.h"
 #include "tones.h"
 
@@ -49,9 +47,9 @@ static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
 #define IC7300_OTHER_TX_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define IC7300_AM_TX_MODES (RIG_MODE_AM|RIG_MODE_PKTAM)
 
-#define IC7300_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_SCOPE|RIG_FUNC_TUNER)
+#define IC7300_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_SCOPE|RIG_FUNC_TUNER|RIG_FUNC_TRANSCEIVE|RIG_FUNC_SPECTRUM|RIG_FUNC_SPECTRUM_HOLD)
 
-#define IC7300_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB)
+#define IC7300_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_MODE|RIG_LEVEL_SPECTRUM_SPAN|RIG_LEVEL_SPECTRUM_SPEED|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_SPECTRUM_AVG|RIG_LEVEL_SPECTRUM_EDGE_LOW|RIG_LEVEL_SPECTRUM_EDGE_HIGH)
 
 #define IC7300_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 #define IC7300_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_TIME|RIG_PARM_BEEP)
@@ -136,15 +134,15 @@ static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
 #define IC705_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR)
 #define IC705_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM|RIG_MODE_DSTAR)
 #define IC705_OTHER_TX_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR)
-#define IC705_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB)
+#define IC705_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_MODE|RIG_LEVEL_SPECTRUM_SPAN|RIG_LEVEL_SPECTRUM_SPEED|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_SPECTRUM_AVG|RIG_LEVEL_SPECTRUM_EDGE_LOW|RIG_LEVEL_SPECTRUM_EDGE_HIGH)
 
 /*
  * IC9700 items that differ from IC7300
  */
 #define IC9700_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM|RIG_VFO_MAIN_A|RIG_VFO_MAIN_B|RIG_VFO_SUB_A|RIG_VFO_SUB_B)
 #define IC9700_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_TIME|RIG_PARM_BEEP|RIG_PARM_SCREENSAVER)
-#define IC9700_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_SCOPE|RIG_FUNC_SATMODE|RIG_FUNC_AFC)
-#define IC9700_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB)
+#define IC9700_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_SCOPE|RIG_FUNC_SATMODE|RIG_FUNC_AFC|RIG_FUNC_TRANSCEIVE|RIG_FUNC_SPECTRUM|RIG_FUNC_SPECTRUM_HOLD)
+#define IC9700_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_MODE|RIG_LEVEL_SPECTRUM_SPAN|RIG_LEVEL_SPECTRUM_SPEED|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_SPECTRUM_AVG|RIG_LEVEL_SPECTRUM_EDGE_LOW|RIG_LEVEL_SPECTRUM_EDGE_HIGH)
 #define IC9700_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define IC9700_SCAN_OPS (RIG_SCAN_STOP|RIG_SCAN_MEM|RIG_SCAN_PROG|RIG_SCAN_SLCT)
 #define IC9700_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR|RIG_MODE_DD)
@@ -220,6 +218,8 @@ struct cmdparams ic7300_extcmds[] =
     { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x81}, CMD_DAT_LVL, 2 },
     { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x95}, CMD_DAT_TIM, 2 },
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x59}, CMD_DAT_INT, 1 },
+    { {.s = RIG_FUNC_TRANSCEIVE}, CMD_PARAM_TYPE_FUNC, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x71}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_LEVEL_SPECTRUM_AVG}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x02}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_NONE} }
 };
 
@@ -230,6 +230,8 @@ struct cmdparams ic9700_extcmds[] =
     { {.s = RIG_PARM_SCREENSAVER}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x80}, CMD_DAT_TIM, 2 },
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x30}, CMD_DAT_INT, 1 },
+    { {.s = RIG_FUNC_TRANSCEIVE}, CMD_PARAM_TYPE_FUNC, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x27}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_LEVEL_SPECTRUM_AVG}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x92}, CMD_DAT_INT, 1 },
     { {0} }
 };
 
@@ -240,7 +242,24 @@ struct cmdparams ic705_extcmds[] =
     { {.s = RIG_PARM_SCREENSAVER}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x38}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x66}, CMD_DAT_TIM, 2 },
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x59}, CMD_DAT_INT, 1 },
+    { {.s = RIG_FUNC_TRANSCEIVE}, CMD_PARAM_TYPE_FUNC, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x31}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_LEVEL_SPECTRUM_AVG}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x78}, CMD_DAT_INT, 1 },
     { {0} }
+};
+
+int ic7300_ext_tokens[] =
+{
+    TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_BACKEND_NONE,
+};
+
+int ic9700_ext_tokens[] =
+{
+    TOK_SCOPE_MSS, TOK_SCOPE_SDS, TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_SCOPE_MKP, TOK_BACKEND_NONE,
+};
+
+int ic705_ext_tokens[] =
+{
+    TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_BACKEND_NONE,
 };
 
 /*
@@ -259,6 +278,86 @@ static const struct icom_priv_caps IC7300_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
+    .spectrum_scope_caps = {
+        .spectrum_line_length = 475,
+        .single_frame_data_length = 50,
+        .data_level_min = 0,
+        .data_level_max = 160,
+        .signal_strength_min = -80,
+        .signal_strength_max = 0,
+    },
+    .spectrum_edge_frequency_ranges = {
+        {
+            .range_id = 1,
+            .low_freq = 30000,
+            .high_freq = 1600000,
+        },
+        {
+            .range_id = 2,
+            .low_freq = 1600000,
+            .high_freq = 2000000,
+        },
+        {
+            .range_id = 3,
+            .low_freq = 2000000,
+            .high_freq = 6000000,
+        },
+        {
+            .range_id = 4,
+            .low_freq = 6000000,
+            .high_freq = 8000000,
+        },
+        {
+            .range_id = 5,
+            .low_freq = 8000000,
+            .high_freq = 11000000,
+        },
+        {
+            .range_id = 6,
+            .low_freq = 11000000,
+            .high_freq = 15000000,
+        },
+        {
+            .range_id = 7,
+            .low_freq = 15000000,
+            .high_freq = 20000000,
+        },
+        {
+            .range_id = 8,
+            .low_freq = 20000000,
+            .high_freq = 22000000,
+        },
+        {
+            .range_id = 9,
+            .low_freq = 22000000,
+            .high_freq = 26000000,
+        },
+        {
+            .range_id = 10,
+            .low_freq = 26000000,
+            .high_freq = 30000000,
+        },
+        {
+            .range_id = 11,
+            .low_freq = 30000000,
+            .high_freq = 45000000,
+        },
+        {
+            .range_id = 12,
+            .low_freq = 45000000,
+            .high_freq = 60000000,
+        },
+        {
+            .range_id = 13,
+            .low_freq = 60000000,
+            .high_freq = 74800000,
+        },
+        {
+            .range_id = 0,
+            .low_freq = 0,
+            .high_freq = 0,
+        },
+    },
     .extcmds = ic7300_extcmds,   /* Custom op parameters */
 };
 
@@ -276,6 +375,36 @@ static const struct icom_priv_caps IC9700_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
     },
+    .spectrum_scope_caps = {
+        .spectrum_line_length = 475,
+        .single_frame_data_length = 50,
+        .data_level_min = 0,
+        .data_level_max = 160,
+        .signal_strength_min = -80, // TODO: signal strength to be confirmed
+        .signal_strength_max = 0,
+    },
+    .spectrum_edge_frequency_ranges = {
+        {
+            .range_id = 1,
+            .low_freq = 144000000,
+            .high_freq = 148000000,
+        },
+        {
+            .range_id = 2,
+            .low_freq = 430000000,
+            .high_freq = 450000000,
+        },
+        {
+            .range_id = 3,
+            .low_freq = 1240000000,
+            .high_freq = 1300000000,
+        },
+        {
+            .range_id = 0,
+            .low_freq = 0,
+            .high_freq = 0,
+        },
+    },
     .extcmds = ic9700_extcmds,   /* Custom op parameters */
 };
 
@@ -292,6 +421,111 @@ static const struct icom_priv_caps IC705_priv_caps =
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
+    },
+    .spectrum_scope_caps = {
+        .spectrum_line_length = 475,
+        .single_frame_data_length = 50,
+        .data_level_min = 0,
+        .data_level_max = 160,
+        .signal_strength_min = -80, // TODO: signal strength to be confirmed
+        .signal_strength_max = 0,
+    },
+    .spectrum_edge_frequency_ranges = {
+        {
+            .range_id = 1,
+            .low_freq = 30000,
+            .high_freq = 1600000,
+        },
+        {
+            .range_id = 2,
+            .low_freq = 1600000,
+            .high_freq = 2000000,
+        },
+        {
+            .range_id = 3,
+            .low_freq = 2000000,
+            .high_freq = 6000000,
+        },
+        {
+            .range_id = 4,
+            .low_freq = 6000000,
+            .high_freq = 8000000,
+        },
+        {
+            .range_id = 5,
+            .low_freq = 8000000,
+            .high_freq = 11000000,
+        },
+        {
+            .range_id = 6,
+            .low_freq = 11000000,
+            .high_freq = 15000000,
+        },
+        {
+            .range_id = 7,
+            .low_freq = 15000000,
+            .high_freq = 20000000,
+        },
+        {
+            .range_id = 8,
+            .low_freq = 20000000,
+            .high_freq = 22000000,
+        },
+        {
+            .range_id = 9,
+            .low_freq = 22000000,
+            .high_freq = 26000000,
+        },
+        {
+            .range_id = 10,
+            .low_freq = 26000000,
+            .high_freq = 30000000,
+        },
+        {
+            .range_id = 11,
+            .low_freq = 30000000,
+            .high_freq = 45000000,
+        },
+        {
+            .range_id = 12,
+            .low_freq = 45000000,
+            .high_freq = 60000000,
+        },
+        {
+            .range_id = 13,
+            .low_freq = 60000000,
+            .high_freq = 74800000,
+        },
+        {
+            .range_id = 13,
+            .low_freq = 60000000,
+            .high_freq = 74800000,
+        },
+        {
+            .range_id = 14,
+            .low_freq = 74800000,
+            .high_freq = 108000000,
+        },
+        {
+            .range_id = 15,
+            .low_freq = 108000000,
+            .high_freq = 137000000,
+        },
+        {
+            .range_id = 16,
+            .low_freq = 137000000,
+            .high_freq = 200000000,
+        },
+        {
+            .range_id = 17,
+            .low_freq = 400000000,
+            .high_freq = 470000000,
+        },
+        {
+            .range_id = 0,
+            .low_freq = 0,
+            .high_freq = 0,
+        },
     },
     .extcmds = ic705_extcmds,     /* Custom parameters */
 };
@@ -330,9 +564,13 @@ const struct rig_caps ic7300_caps =
         [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
+        [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+        [LVL_SPECTRUM_REF] = {.min = {.f = -20.0f}, .max = {.f = 20.0f}, .step = {.f = 0.5f}},
+        [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
     },
     .parm_gran =  {},
-    .extlevels = NULL,
+    .ext_tokens = ic7300_ext_tokens,
+    .extlevels = icom_ext_levels,
     .ctcss_list =  full_ctcss_list,
     .dcs_list =  NULL,
     .preamp =   { 1, 2, RIG_DBLST_END, },
@@ -340,6 +578,8 @@ const struct rig_caps ic7300_caps =
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0),
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .vfo_ops =  IC7300_VFO_OPS,
     .scan_ops =  IC7300_SCAN_OPS,
@@ -404,6 +644,53 @@ const struct rig_caps ic7300_caps =
     .comp_meter_cal = IC7300_COMP_METER_CAL,
     .vd_meter_cal = IC7300_VD_METER_CAL,
     .id_meter_cal = IC7300_ID_METER_CAL,
+
+    .spectrum_scopes = {
+        {
+            .id = 0,
+            .name = "Main",
+        },
+        {
+            .id = -1,
+            .name = NULL,
+        },
+    },
+    .spectrum_modes = {
+        RIG_SPECTRUM_MODE_CENTER,
+        RIG_SPECTRUM_MODE_FIXED,
+        RIG_SPECTRUM_MODE_CENTER_SCROLL,
+        RIG_SPECTRUM_MODE_FIXED_SCROLL,
+        RIG_SPECTRUM_MODE_NONE,
+    },
+    .spectrum_spans = {
+        5000,
+        10000,
+        20000,
+        50000,
+        100000,
+        200000,
+        500000,
+        1000000,
+        0,
+    },
+    .spectrum_avg_modes = {
+        {
+            .id = 0,
+            .name = "OFF",
+        },
+        {
+            .id = 1,
+            .name = "2",
+        },
+        {
+            .id = 2,
+            .name = "3",
+        },
+        {
+            .id = 3,
+            .name = "4",
+        },
+    },
 
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
@@ -502,17 +789,23 @@ const struct rig_caps ic9700_caps =
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
+        [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+        [LVL_SPECTRUM_REF] = {.min = {.f = -20.0f}, .max = {.f = 20.0f}, .step = {.f = 0.5f}},
+        [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
     },
     .parm_gran =  {},
-    .extlevels = NULL,
+    .ext_tokens = ic9700_ext_tokens,
+    .extlevels = icom_ext_levels,
     .ctcss_list =  full_ctcss_list,
     .dcs_list =  NULL,
-    .preamp =   { 1, 2, 3, RIG_DBLST_END, },
+    .preamp =   { 1, 2, RIG_DBLST_END, },
     .attenuator =   { 10, RIG_DBLST_END, },
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0),
-    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_SPECTRUM,
     .vfo_ops =  IC9700_VFO_OPS,
     .scan_ops =  IC9700_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
@@ -655,6 +948,57 @@ const struct rig_caps ic9700_caps =
     .vd_meter_cal = IC9700_VD_METER_CAL,
     .id_meter_cal = IC9700_ID_METER_CAL,
 
+    .spectrum_scopes = {
+        {
+            .id = 0,
+            .name = "Main",
+        },
+        {
+            .id = 1,
+            .name = "Sub",
+        },
+        {
+            .id = -1,
+            .name = NULL,
+        },
+    },
+    .spectrum_modes = {
+        RIG_SPECTRUM_MODE_CENTER,
+        RIG_SPECTRUM_MODE_FIXED,
+        RIG_SPECTRUM_MODE_CENTER_SCROLL,
+        RIG_SPECTRUM_MODE_FIXED_SCROLL,
+        RIG_SPECTRUM_MODE_NONE,
+    },
+    .spectrum_spans = {
+        5000,
+        10000,
+        20000,
+        50000,
+        100000,
+        200000,
+        500000,
+        1000000,
+        0,
+    },
+    .spectrum_avg_modes = {
+        {
+            .id = 0,
+            .name = "OFF",
+        },
+        {
+            .id = 1,
+            .name = "2",
+        },
+        {
+            .id = 2,
+            .name = "3",
+        },
+        {
+            .id = 3,
+            .name = "4",
+        },
+    },
+
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
     .get_conf =  icom_get_conf,
@@ -749,9 +1093,13 @@ const struct rig_caps ic705_caps =
         [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
+        [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+        [LVL_SPECTRUM_REF] = {.min = {.f = -20.0f}, .max = {.f = 20.0f}, .step = {.f = 0.5f}},
+        [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
     },
     .parm_gran =  {},
-    .extlevels = NULL,
+    .ext_tokens = ic705_ext_tokens,
+    .extlevels = icom_ext_levels,
     .ctcss_list =  full_ctcss_list,
     .dcs_list =  NULL,
     .preamp =   { 1, 2, RIG_DBLST_END, },
@@ -759,6 +1107,8 @@ const struct rig_caps ic705_caps =
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0),
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .vfo_ops =  IC7300_VFO_OPS,
     .scan_ops =  IC7300_SCAN_OPS,
@@ -856,6 +1206,53 @@ const struct rig_caps ic705_caps =
     .comp_meter_cal = IC7300_COMP_METER_CAL,
     .vd_meter_cal = IC7300_VD_METER_CAL,
     .id_meter_cal = IC7300_ID_METER_CAL,
+
+    .spectrum_scopes = {
+        {
+            .id = 0,
+            .name = "Main",
+        },
+        {
+            .id = -1,
+            .name = NULL,
+        },
+    },
+    .spectrum_modes = {
+        RIG_SPECTRUM_MODE_CENTER,
+        RIG_SPECTRUM_MODE_FIXED,
+        RIG_SPECTRUM_MODE_CENTER_SCROLL,
+        RIG_SPECTRUM_MODE_FIXED_SCROLL,
+        RIG_SPECTRUM_MODE_NONE,
+    },
+    .spectrum_spans = {
+        5000,
+        10000,
+        20000,
+        50000,
+        100000,
+        200000,
+        500000,
+        1000000,
+        0,
+    },
+    .spectrum_avg_modes = {
+        {
+            .id = 0,
+            .name = "OFF",
+        },
+        {
+            .id = 1,
+            .name = "2",
+        },
+        {
+            .id = 2,
+            .name = "3",
+        },
+        {
+            .id = 3,
+            .name = "4",
+        },
+    },
 
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
