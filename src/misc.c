@@ -1815,8 +1815,10 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     return -1;
 }
 
+#undef RIG_FLUSH_REMOVE
 int HAMLIB_API rig_flush(hamlib_port_t *port)
 {
+#ifdef RIG_FLUSH_REMOVE
     rig_debug(RIG_DEBUG_TRACE, "%s: called for %s device\n", __func__,
               port->type.rig == RIG_PORT_SERIAL ? "serial" : "network");
 
@@ -1834,6 +1836,9 @@ int HAMLIB_API rig_flush(hamlib_port_t *port)
     }
 
     return serial_flush(port); // we must be on serial port
+#else
+    return RIG_OK;
+#endif
 }
 
 
