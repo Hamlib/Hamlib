@@ -161,8 +161,8 @@
 #define LVL_SPECTRUM_SPEED     setting2idx_builtin(RIG_LEVEL_SPECTRUM_SPEED)
 #define LVL_SPECTRUM_REF       setting2idx_builtin(RIG_LEVEL_SPECTRUM_REF)
 #define LVL_SPECTRUM_AVG       setting2idx_builtin(RIG_LEVEL_SPECTRUM_AVG)
+#define LVL_SPECTRUM_ATT       setting2idx_builtin(RIG_LEVEL_SPECTRUM_ATT)
 
-#define LVL_47            setting2idx_builtin(RIG_LEVEL_47)
 #define LVL_48            setting2idx_builtin(RIG_LEVEL_48)
 #define LVL_49            setting2idx_builtin(RIG_LEVEL_49)
 #define LVL_50            setting2idx_builtin(RIG_LEVEL_50)
