@@ -24,17 +24,14 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
-#include "token.h"
 #include "idx_builtin.h"
 
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
-#include "misc.h"
 #include "bandplan.h"
 
 #define IC7000_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_WFM)
@@ -233,11 +230,13 @@ const struct rig_caps ic7000_caps =
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  common_dcs_list,
-    .preamp =   { 10, RIG_DBLST_END, }, /* FIXME: TBC it's a guess*/
+    .preamp =   { 10, RIG_DBLST_END, }, /* FIXME: TBC it's a guess */
     .attenuator =   { 12, RIG_DBLST_END, },
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0), /* TODO */
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo =  0,
     .vfo_ops =  IC7000_VFO_OPS,
     .scan_ops =  IC7000_SCAN_OPS,

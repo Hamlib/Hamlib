@@ -2789,7 +2789,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         if (i == HAMLIB_MAXDBLSTSIZ || rs->preamp[i] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp set_level %ddB",
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp set_level %ddB\n",
                       __func__, val.i);
             RETURNFUNC(-RIG_EINVAL);
         }
@@ -2937,7 +2937,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 break;
 
             default:
-                rig_debug(RIG_DEBUG_ERR, "%s: unsupported LEVEL_AGC %d",
+                rig_debug(RIG_DEBUG_ERR, "%s: unsupported LEVEL_AGC %d\n",
                           __func__, val.i);
                 RETURNFUNC(-RIG_EINVAL);
             }
@@ -3010,7 +3010,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             icom_val = SCOPE_MODE_SCROLL_F;
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum mode %d", __func__, val.i);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum mode %d\n", __func__, val.i);
             RETURNFUNC(-RIG_EINVAL);
         }
 
@@ -3127,8 +3127,32 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
     }
 
+    case RIG_LEVEL_SPECTRUM_ATT:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_ATT;
+        cmd_len = 2;
+
+        for (i = 0; i < HAMLIB_MAXDBLSTSIZ; i++)
+        {
+            if (rig->caps->spectrum_attenuator[i] == val.i)
+            {
+                break;
+            }
+        }
+
+        if (val.i != 0 && (i == HAMLIB_MAXDBLSTSIZ || rig->caps->spectrum_attenuator[i] == 0))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum attenuator level %ddB\n",
+                      __func__, val.i);
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        to_bcd(cmdbuf + 1, val.i, 5 * 2);
+        break;
+
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s\n", __func__,
                   rig_strlevel(level));
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -3440,8 +3464,16 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
     }
 
+    case RIG_LEVEL_SPECTRUM_ATT:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_ATT;
+        cmd_len = 1;
+
+        cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
+        break;
+
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s\n", __func__,
                   rig_strlevel(level));
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -3502,7 +3534,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             if (!found)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x", __func__,
+                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x\n", __func__,
                           icom_val);
                 RETURNFUNC(-RIG_EPROTO);
             }
@@ -3528,7 +3560,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 break;
 
             default:
-                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x", __func__,
+                rig_debug(RIG_DEBUG_ERR, "%s: unexpected AGC 0x%02x\n", __func__,
                           icom_val);
                 RETURNFUNC(-RIG_EPROTO);
             }
@@ -3650,7 +3682,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (icom_val > HAMLIB_MAXDBLSTSIZ || rs->preamp[icom_val - 1] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp get_level %ddB",
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported preamp get_level %ddB\n",
                       __func__, icom_val);
             RETURNFUNC(-RIG_EPROTO);
         }
@@ -3674,7 +3706,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->i = RIG_SPECTRUM_MODE_FIXED_SCROLL;
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum mode %d", __func__, icom_val);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum mode %d\n", __func__, icom_val);
             RETURNFUNC(-RIG_EINVAL);
         }
         break;
@@ -3698,7 +3730,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->i = 2;
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum speed %d", __func__, icom_val);
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported spectrum speed %d\n", __func__, icom_val);
             RETURNFUNC(-RIG_EINVAL);
         }
         break;
@@ -3727,7 +3759,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->i = (int) from_bcd(respbuf + cmdhead + 5, 5 * 2);
         break;
 
-    /* RIG_LEVEL_ATT: returned value is already an integer in dB (coded in BCD) */
+    /* RIG_LEVEL_ATT/RIG_LEVEL_SPECTRUM_ATT: returned value is already an integer in dB (coded in BCD) */
     default:
         if (RIG_LEVEL_IS_FLOAT(level))
         {
@@ -3889,7 +3921,7 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
             else { i++; }
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_ext_level token: %ld", __func__, token);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_ext_level token: %ld\n", __func__, token);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -3995,7 +4027,7 @@ int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
             else { i++; }
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_ext_level token: %ld", __func__, token);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_ext_level token: %ld\n", __func__, token);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -4427,7 +4459,7 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d\n", __func__,
                   rptr_shift);
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -4512,7 +4544,7 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported shift %d\n", __func__,
                   rptrbuf[1]);
         RETURNFUNC(-RIG_EPROTO);
     }
@@ -8525,6 +8557,16 @@ static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo, int *rang
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
+    }
+
+    // Get frequency if it is not cached or value is old
+    if (freq == 0 || cache_ms_freq >= 1000)
+    {
+        retval = rig_get_freq(rig, vfo, &freq);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
     }
 
     for (i = 0; i < ICOM_MAX_SPECTRUM_FREQ_RANGES; i++)

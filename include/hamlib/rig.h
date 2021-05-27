@@ -941,7 +941,7 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_SPECTRUM_SPEED       CONSTANT_64BIT_FLAG(44)      /*!< \c SPECTRUM_SPEED -- Spectrum scope update speed, arg int (highest is fastest, define rig-specific granularity) */
 #define RIG_LEVEL_SPECTRUM_REF         CONSTANT_64BIT_FLAG(45)      /*!< \c SPECTRUM_REF -- Spectrum scope reference display level, arg float (dB, define rig-specific granularity) */
 #define RIG_LEVEL_SPECTRUM_AVG         CONSTANT_64BIT_FLAG(46)      /*!< \c SPECTRUM_AVG -- Spectrum scope averaging mode, arg int (see struct rig_spectrum_avg_mode). Supported averaging modes defined in rig caps. */
-#define RIG_LEVEL_47           CONSTANT_64BIT_FLAG(47)      /*!< \c Future use */
+#define RIG_LEVEL_SPECTRUM_ATT         CONSTANT_64BIT_FLAG(47)      /*!< \c SPECTRUM_ATT -- Spectrum scope attenuator, arg int (dB). Supported attenuator values defined in rig caps. */
 #define RIG_LEVEL_48           CONSTANT_64BIT_FLAG(48)      /*!< \c Future use */
 #define RIG_LEVEL_49           CONSTANT_64BIT_FLAG(49)      /*!< \c Future use */
 #define RIG_LEVEL_50           CONSTANT_64BIT_FLAG(50)      /*!< \c Future use */
@@ -1744,7 +1744,7 @@ struct rig_caps {
     tone_t *dcs_list;     /*!< DCS code list, zero ended */
 
     int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
-    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Attenuator list in dB, 0 terminated */
     shortfreq_t max_rit;        /*!< max absolute RIT */
     shortfreq_t max_xit;        /*!< max absolute XIT */
     shortfreq_t max_ifshift;    /*!< max absolute IF-SHIFT */
@@ -1794,6 +1794,7 @@ struct rig_caps {
     enum rig_spectrum_mode_e spectrum_modes[HAMLIB_MAX_SPECTRUM_MODES]; /*!< Supported spectrum scope modes. Last entry must be RIG_SPECTRUM_MODE_NONE. */
     freq_t spectrum_spans[HAMLIB_MAX_SPECTRUM_SPANS];                   /*!< Supported spectrum scope frequency spans in Hz in center mode. Last entry must be 0. */
     struct rig_spectrum_avg_mode spectrum_avg_modes[HAMLIB_MAX_SPECTRUM_AVG_MODES]; /*!< Supported spectrum scope averaging modes. Last entry must have NULL name. */
+    int spectrum_attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Spectrum attenuator list in dB, 0 terminated */
 
     const struct confparams *cfgparams; /*!< Configuration parameters. */
     const rig_ptr_t priv;               /*!< Private data. */

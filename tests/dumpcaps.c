@@ -721,6 +721,20 @@ int dumpcaps(RIG *rig, FILE *fout)
     rig_sprintf_spectrum_avg_modes(prntbuf, sizeof(prntbuf), caps->spectrum_avg_modes);
     fprintf(fout, "Spectrum averaging modes: %s\n", prntbuf);
 
+    fprintf(fout, "Spectrum attenuator:");
+
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && caps->spectrum_attenuator[i] != 0; i++)
+    {
+        fprintf(fout, " %ddB", caps->spectrum_attenuator[i]);
+    }
+
+    if (i == 0)
+    {
+        fprintf(fout, " None");
+    }
+
+    fprintf(fout, "\n");
+
     fprintf(fout, "Has priv data:\t%c\n", caps->priv != NULL ? 'Y' : 'N');
     /*
      * Status is either 'Y'es, 'E'mulated, 'N'o
