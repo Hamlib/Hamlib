@@ -580,9 +580,10 @@ int flex6k_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     const char *ptt_cmd;
     int err;
-    char response[16];
+    char response[16] = "";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
 
     if (!ptt)
     {
@@ -606,7 +607,7 @@ int flex6k_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int flex6k_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     const char *ptt_cmd;
-    char response[16];
+    char response[16] = "";
     int err;
     int retry = 3;
 
@@ -1081,7 +1082,7 @@ const struct rig_caps f6k_caps =
     RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
     .mfg_name =     "FlexRadio",
-    .version =      "20201227.0",
+    .version =      "20210527.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1205,7 +1206,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20201231.0",
+    .version =      "20210527.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
