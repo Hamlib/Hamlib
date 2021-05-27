@@ -23,11 +23,9 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
-#include "token.h"
 #include "idx_builtin.h"
 
 #include "icom.h"
@@ -35,7 +33,6 @@
 #include "frame.h"
 #include "misc.h"
 #include "bandplan.h"
-
 
 #define IC756_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756_1HZ_TS_MODES IC756_ALL_RX_MODES
@@ -182,6 +179,8 @@ const struct rig_caps ic756_caps =
     .max_rit =  Hz(9999),
     .max_xit =  Hz(0),
     .max_ifshift =  Hz(0),
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo =  0,
     .vfo_ops =  IC756_VFO_OPS,
     .scan_ops =  IC756_SCAN_OPS,
@@ -344,6 +343,8 @@ const struct rig_caps ic756pro_caps =
     .max_rit =  Hz(9999),
     .max_xit =  Hz(0),
     .max_ifshift =  Hz(0),
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo =  0,
     .vfo_ops =  IC756_VFO_OPS,
     .scan_ops =  IC756_SCAN_OPS,
@@ -581,6 +582,8 @@ const struct rig_caps ic756pro2_caps =
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0),
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo =  0,
     .vfo_ops =  IC756_VFO_OPS,
     .scan_ops =  IC756_SCAN_OPS,
@@ -1011,6 +1014,8 @@ const struct rig_caps ic756pro3_caps =
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0),
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo =  0,
     .vfo_ops =  IC756_VFO_OPS | RIG_OP_TUNE,
     .scan_ops =  IC756_SCAN_OPS,

@@ -24,7 +24,6 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
@@ -33,8 +32,6 @@
 
 #include "icom.h"
 #include "icom_defs.h"
-#include "frame.h"
-#include "misc.h"
 #include "bandplan.h"
 
 #define IC785x_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM|RIG_MODE_PKTFM)
@@ -42,12 +39,12 @@
 #define IC785x_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM)
 #define IC785x_AM_TX_MODES (RIG_MODE_AM|RIG_MODE_PKTAM)
 
-#define IC785x_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_APF|RIG_FUNC_DUAL_WATCH)
+#define IC785x_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_APF|RIG_FUNC_DUAL_WATCH|RIG_FUNC_TRANSCEIVE|RIG_FUNC_SPECTRUM|RIG_FUNC_SPECTRUM_HOLD)
 
-#define IC785x_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_APF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB)
+#define IC785x_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_APF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_MODE|RIG_LEVEL_SPECTRUM_SPAN|RIG_LEVEL_SPECTRUM_SPEED|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_SPECTRUM_AVG|RIG_LEVEL_SPECTRUM_EDGE_LOW|RIG_LEVEL_SPECTRUM_EDGE_HIGH|RIG_LEVEL_SPECTRUM_ATT)
 
 #define IC785x_VFOS (RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
-#define IC785x_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
+#define IC785x_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_TIME|RIG_PARM_BEEP)
 
 #define IC785x_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
 #define IC785x_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_PROG|RIG_SCAN_DELTA|RIG_SCAN_PRIO)
@@ -126,14 +123,21 @@ int ic785x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 struct cmdparams ic785x_extcmds[] =
 {
+    { {.s = RIG_PARM_BEEP}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x04}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x76}, CMD_DAT_LVL, 2 },
+    { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x96}, CMD_DAT_TIM, 2 },
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x03, 0x09}, CMD_DAT_INT, 1 },
+    { {.s = RIG_FUNC_TRANSCEIVE}, CMD_PARAM_TYPE_FUNC, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x55}, CMD_DAT_BOL, 1 },
+    { {.s = RIG_LEVEL_SPECTRUM_AVG}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x87}, CMD_DAT_INT, 1 },
     { { 0 } }
 };
 
 
 int ic785x_ext_tokens[] =
 {
-    TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL, TOK_BACKEND_NONE
+    TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL,
+    TOK_SCOPE_MSS, TOK_SCOPE_SDS, TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_SCOPE_MKP,
+    TOK_BACKEND_NONE
 };
 
 /*
@@ -154,6 +158,81 @@ static struct icom_priv_caps ic785x_priv_caps =
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
         { .level = -1, .icom_level = 0 },
+    },
+    .spectrum_scope_caps = {
+        .spectrum_line_length = 689,
+        .single_frame_data_length = 50,
+        .data_level_min = 0,
+        .data_level_max = 200,
+        .signal_strength_min = -100,
+        .signal_strength_max = 0,
+    },
+    .spectrum_edge_frequency_ranges = {
+        {
+            .range_id = 1,
+            .low_freq = 30000,
+            .high_freq = 1600000,
+        },
+        {
+            .range_id = 2,
+            .low_freq = 1600000,
+            .high_freq = 2000000,
+        },
+        {
+            .range_id = 3,
+            .low_freq = 2000000,
+            .high_freq = 6000000,
+        },
+        {
+            .range_id = 4,
+            .low_freq = 6000000,
+            .high_freq = 8000000,
+        },
+        {
+            .range_id = 5,
+            .low_freq = 8000000,
+            .high_freq = 11000000,
+        },
+        {
+            .range_id = 6,
+            .low_freq = 11000000,
+            .high_freq = 15000000,
+        },
+        {
+            .range_id = 7,
+            .low_freq = 15000000,
+            .high_freq = 20000000,
+        },
+        {
+            .range_id = 8,
+            .low_freq = 20000000,
+            .high_freq = 22000000,
+        },
+        {
+            .range_id = 9,
+            .low_freq = 22000000,
+            .high_freq = 26000000,
+        },
+        {
+            .range_id = 10,
+            .low_freq = 26000000,
+            .high_freq = 30000000,
+        },
+        {
+            .range_id = 11,
+            .low_freq = 30000000,
+            .high_freq = 45000000,
+        },
+        {
+            .range_id = 12,
+            .low_freq = 45000000,
+            .high_freq = 60000000,
+        },
+        {
+            .range_id = 0,
+            .low_freq = 0,
+            .high_freq = 0,
+        },
     },
     .extcmds = ic785x_extcmds,
 };
@@ -192,17 +271,25 @@ const struct rig_caps ic785x_caps =
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
+        [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+        [LVL_SPECTRUM_REF] = {.min = {.f = -20.0f}, .max = {.f = 20.0f}, .step = {.f = 0.5f}},
+        [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
     },
     .parm_gran =  {},
     .ext_tokens = ic785x_ext_tokens,
+    .extlevels = icom_ext_levels,
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  NULL,
-    .preamp =   { 10, 20, RIG_DBLST_END, }, /* FIXME: TBC */
+    .preamp =   { 12, 20, RIG_DBLST_END, },
     .attenuator =   { 3, 6, 9, 12, 15, 18, 21, RIG_DBLST_END, },
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0),
-    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .agc_level_count = 4,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
+    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_SPECTRUM,
     .vfo_ops =  IC785x_VFO_OPS,
     .scan_ops =  IC785x_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
@@ -279,6 +366,58 @@ const struct rig_caps ic785x_caps =
     .comp_meter_cal = IC785x_COMP_METER_CAL,
     .vd_meter_cal = IC785x_VD_METER_CAL,
     .id_meter_cal = IC785x_ID_METER_CAL,
+
+    .spectrum_scopes = {
+        {
+            .id = 0,
+            .name = "Main",
+        },
+        {
+            .id = 1,
+            .name = "Sub",
+        },
+        {
+            .id = -1,
+            .name = NULL,
+        },
+    },
+    .spectrum_modes = {
+        RIG_SPECTRUM_MODE_CENTER,
+        RIG_SPECTRUM_MODE_FIXED,
+        RIG_SPECTRUM_MODE_CENTER_SCROLL,
+        RIG_SPECTRUM_MODE_FIXED_SCROLL,
+        RIG_SPECTRUM_MODE_NONE,
+    },
+    .spectrum_spans = {
+        5000,
+        10000,
+        20000,
+        50000,
+        100000,
+        200000,
+        500000,
+        1000000,
+        0,
+    },
+    .spectrum_avg_modes = {
+        {
+            .id = 0,
+            .name = "OFF",
+        },
+        {
+            .id = 1,
+            .name = "2",
+        },
+        {
+            .id = 2,
+            .name = "3",
+        },
+        {
+            .id = 3,
+            .name = "4",
+        },
+    },
+    .spectrum_attenuator = { 10, 20, 30, RIG_DBLST_END, },
 
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
