@@ -30,7 +30,12 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20210507"
+#define BACKEND_VER "20210525"
+
+#define ICOM_IS_SECONDARY_VFO(vfo) ((vfo) & (RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B))
+#define ICOM_GET_VFO_NUMBER(vfo) (ICOM_IS_SECONDARY_VFO(vfo) ? 0x01 : 0x00)
+
+#define ICOM_MAX_SPECTRUM_FREQ_RANGES 20
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -74,7 +79,6 @@
  */
 #define UNKNOWN_IC_STR_CAL { 2, {{ 0, -60}, { 255, 60}} }
 
-
 struct ts_sc_list
 {
     shortfreq_t ts; /* tuning step */
@@ -97,12 +101,15 @@ typedef struct rig_pltstate
     int usleep_time; /* dependent on radio module & serial data rate */
 } pltstate_t;
 
+/**
+ * \brief Mappings between Hamlib and Icom AGC levels
+ */
 struct icom_agc_level
 {
     enum agc_level_e
-    level; /* Hamlib AGC level from agc_level_e enum, the last entry should have level -1 */
+    level; /*!< Hamlib AGC level from agc_level_e enum, the last entry should have level -1 */
     unsigned char
-    icom_level; /* Icom AGC level for C_CTL_FUNC (0x16), S_FUNC_AGC (0x12) command */
+    icom_level; /*!< Icom AGC level for C_CTL_FUNC (0x16), S_FUNC_AGC (0x12) command */
 };
 
 typedef enum
@@ -114,27 +121,74 @@ typedef enum
     CMD_PARAM_TYPE_FUNC,
 } cmd_param_t;
 
-struct cmdparams        /* Lookup table item for levels & parms */
+/**
+ * \brief Lookup table item for Icom levels & parms
+ */
+struct cmdparams
 {
     union
     {
-        setting_t s;    /* Level or parm */
-        token_t t;      /* TOKEN_BACKEND */
+        setting_t s;    /*!< Level or parm */
+        token_t t;      /*!< TOKEN_BACKEND */
     } id;
-    cmd_param_t cmdparamtype;  /* CMD_PARAM_TYPE_LEVEL or CMD_PARAM_TYPE_PARM */
-    int command;        /* CI-V command */
-    int subcmd;         /* CI-V Subcommand */
-    int submod;         /* Subcommand modifier */
-    int sublen;         /* Number of bytes for subcommand extension */
-    unsigned char subext[4];   /* Subcommand extension bytes */
-    int dattyp;         /* Data type conversion */
-    int datlen;         /* Number of data bytes in frame */
+    cmd_param_t cmdparamtype;  /*!< CMD_PARAM_TYPE_LEVEL or CMD_PARAM_TYPE_PARM */
+    int command;        /*!< CI-V command */
+    int subcmd;         /*!< CI-V Subcommand */
+    int submod;         /*!< Subcommand modifier */
+    int sublen;         /*!< Number of bytes for subcommand extension */
+    unsigned char subext[4]; /*!< Subcommand extension bytes */
+    int dattyp;         /*!< Data type conversion */
+    int datlen;         /*!< Number of data bytes in frame */
+};
+
+/**
+ * \brief Icom-specific spectrum scope capabilities, if supported by the rig.
+ */
+struct icom_spectrum_scope_caps
+{
+    int spectrum_line_length; /*!< Number of bytes in a complete spectrum scope line */
+    int single_frame_data_length; /*!< Number of bytes of specrtum data in a single CI-V frame when the data split to multiple frames */
+    int data_level_min; /*!<  */
+    int data_level_max;
+    double signal_strength_min;
+    double signal_strength_max;
+};
+
+/**
+ * \brief Icom spectrum scope edge frequencies, if supported by the rig.
+ *
+ * Last entry should have zeros in all fields.
+ */
+struct icom_spectrum_edge_frequency_range
+{
+    int range_id; /*!< ID of the range, as specified in the Icom CI-V manuals. First range ID is 1. */
+    freq_t low_freq; /*!< The low edge frequency if the range in Hz */
+    freq_t high_freq; /*!< The high edge frequency if the range in Hz */
+};
+
+/**
+ * \brief Cached Icom spectrum scope data.
+ *
+ * This data is used to store data for current line of spectrum data as it is being received from the rig.
+ * Caching the data is necessary for handling spectrum scope data split in multiple CI-V frames.
+ */
+struct icom_spectrum_scope_cache
+{
+    int id; /*!< Numeric ID of the spectrum scope data stream identifying the VFO/receiver. First ID is zero. Icom rigs with multiple scopes have IDs: 0 = Main, 1 = Sub. */
+    int spectrum_metadata_valid; /*!< Boolean value to track validity of the cached data for spectrum scope. */
+    enum rig_spectrum_mode_e spectrum_mode; /*!< The spectrum mode of the current spectrum scope line being received. */
+    freq_t spectrum_center_freq; /*!< The center frequency of the current spectrum scope line being received */
+    freq_t spectrum_span_freq; /*!< The frequency span of the current spectrum scope line being received */
+    freq_t spectrum_low_edge_freq; /*!< The low edge frequency of the current spectrum scope line being received */
+    freq_t spectrum_high_edge_freq; /*!< The high edge frequency of the current spectrum scope line being received */
+    int spectrum_data_length;     /*!< Number of bytes of 8-bit spectrum data in the data buffer. The amount of data may vary if the rig has multiple spectrum scopes, depending on the scope. */
+    unsigned char *spectrum_data; /*!< Dynamically allocated buffer for raw spectrum data */
 };
 
 struct icom_priv_caps
 {
-    unsigned char re_civ_addr;  /* the remote dlft equipment's CI-V address*/
-    int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits plus passband setting */
+    unsigned char re_civ_addr;  /*!< The remote equipment's default CI-V address */
+    int civ_731_mode; /*!< Off: freqs on 10 digits, On: freqs on 8 digits plus passband setting */
     // According to the CI-V+ manual the IC-781, IC-R9000, and IC-R7000 can select pas$
     // The other rigs listed apparently cannot and may need the civ_731_mode=1 which are
     // 1-706
@@ -155,56 +209,57 @@ struct icom_priv_caps
     // 16-703
     // 17-7800
 
-
-    int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
+    int no_xchg; /*!< Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
     const struct ts_sc_list *ts_sc_list;
     // the 4 elements above are mandatory
     // everything below here is optional in the backends
     int settle_time; /*!< Receiver settle time, in ms */
     int (*r2i_mode)(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
-                    unsigned char *md, signed char *pd); /*< backend specific code
+                    unsigned char *md, signed char *pd); /*!< backend specific code
                                to convert bandwidth and
                                mode to cmd tokens */
     void (*i2r_mode)(RIG *rig, unsigned char md, int pd,
-                     rmode_t *mode, pbwidth_t *width);    /*< backend specific code
+                     rmode_t *mode, pbwidth_t *width);    /*!< backend specific code
                                to convert response
                                tokens to bandwidth and
                                mode */
-    int antack_len;             /* Length of 0x12 cmd may be 3 or 4 bytes as of 2020-01-22 e.g. 7851 */
-    int ant_count;              /* number of antennas */
+    int antack_len;             /*!< Length of 0x12 cmd may be 3 or 4 bytes as of 2020-01-22 e.g. 7851 */
+    int ant_count;              /*!< Number of antennas */
     int serial_full_duplex;     /*!< Whether RXD&TXD are not tied together */
-    int offs_len;               /* Number of bytes in offset frequency field. 0 defaults to 3 */
-    int serial_USB_echo_check;  /* Flag to test USB echo state */
-    int agc_levels_present;     /* Flag to indicate that agc_levels array is populated */
-    struct icom_agc_level agc_levels[RIG_AGC_LAST +
-                                                      1]; /* Icom rig-specific AGC levels, the last entry should have level -1 */
-    struct cmdparams *extcmds;  /* Pointer to extended operations array */
+    int offs_len;               /*!< Number of bytes in offset frequency field. 0 defaults to 3 */
+    int serial_USB_echo_check;  /*!< Flag to test USB echo state */
+    int agc_levels_present;     /*!< Flag to indicate that agc_levels array is populated */
+    struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /*!< Icom rig-specific AGC levels, the last entry should have level -1 */
+    struct icom_spectrum_scope_caps spectrum_scope_caps; /*!< Icom spectrum scope capabilities, if supported by the rig. Main/Sub scopes in Icom rigs have the same caps. */
+    struct icom_spectrum_edge_frequency_range spectrum_edge_frequency_ranges[ICOM_MAX_SPECTRUM_FREQ_RANGES]; /*!< Icom spectrum scope edge frequencies, if supported by the rig. Last entry should have zeros in all fields. */
+    struct cmdparams *extcmds;  /*!< Pointer to extended operations array */
 };
-
 
 struct icom_priv_data
 {
-    unsigned char re_civ_addr;  /* the remote equipment's CI-V address*/
-    int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
-    int no_xchg; /* Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
-    int no_1a_03_cmd;                           /* rig doesn't tell IF widths */
-    int split_on;                                   /* record split state */
-    pltstate_t *pltstate;   /* only on optoscan */
-    int serial_USB_echo_off; /* USB is not set to echo */
+    unsigned char re_civ_addr;  /*!< The remote equipment's CI-V address */
+    int civ_731_mode; /*!< Off: freqs on 10 digits, On: freqs on 8 digits */
+    int no_xchg; /*!< Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
+    int no_1a_03_cmd; /*!< Rig doesn't tell IF widths */
+    int split_on; /*!< Record split state */
+    pltstate_t *pltstate; /*!< Only on optoscan */
+    int serial_USB_echo_off; /*!< USB is not set to echo */
     /* we track vfos internally for use with different functions like split */
     /* this allows queries using CURR_VFO and Main/Sub to behave */
     vfo_t rx_vfo;
     vfo_t tx_vfo;
-    freq_t curr_freq; // our current freq depending on which vfo is selected
-    freq_t main_freq; // track last setting of main -- not being used yet
-    freq_t sub_freq;  // track last setting of sub -- not being used yet
-    freq_t vfoa_freq;  // track last setting of vfoa -- used to return last freq when ptt is asserted
-    freq_t vfob_freq;  // track last setting of vfob -- used to return last freq when ptt is asserted
-    int x25cmdfails;  // This will get set if the 0x25 command fails so we try just once
-    int x1cx03cmdfails;  // This will get set if the 0x1c 0x03 command fails so we try just once
-    int poweron;  // to prevent powering on more than once
-    unsigned char filter;   // Current filter selected 
-    unsigned char datamode; // Current datamode
+    freq_t curr_freq; /*!< Our current freq depending on which vfo is selected */
+    freq_t main_freq; /*!< Track last setting of main -- not being used yet */
+    freq_t sub_freq;  /*!< Track last setting of sub -- not being used yet */
+    freq_t vfoa_freq; /*!< Track last setting of vfoa -- used to return last freq when ptt is asserted */
+    freq_t vfob_freq; /*!< Track last setting of vfob -- used to return last freq when ptt is asserted */
+    int x25cmdfails; /*!< This will get set if the 0x25 command fails so we try just once */
+    int x1cx03cmdfails; /*!< This will get set if the 0x1c 0x03 command fails so we try just once */
+    int poweron; /*!< To prevent powering on more than once */
+    unsigned char filter; /*!< Current filter selected */
+    unsigned char datamode; /*!< Current datamode */
+    int spectrum_scope_count; /*!< Number of spectrum scopes, calculated from caps */
+    struct icom_spectrum_scope_cache spectrum_scope_cache[HAMLIB_MAX_SPECTRUM_SCOPES]; /*!< Cached Icom spectrum scope data used during reception of the data. The array index must match the scope ID. */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
