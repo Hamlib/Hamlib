@@ -23,7 +23,6 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
@@ -32,8 +31,6 @@
 
 #include "icom.h"
 #include "icom_defs.h"
-#include "frame.h"
-#include "misc.h"
 #include "bandplan.h"
 
 #define IC7700_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PSK|RIG_MODE_PSKR)
@@ -193,6 +190,8 @@ const struct rig_caps ic7700_caps =
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0),
+    .agc_level_count = 4,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo =  0,
     .vfo_ops =  IC7700_VFO_OPS,
     .scan_ops =  IC7700_SCAN_OPS,

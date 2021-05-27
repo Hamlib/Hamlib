@@ -477,16 +477,20 @@
 #define S_SCP_STS		0x10        /* On/Off status */
 #define S_SCP_DOP		0x11        /* Data O/P Control */
 #define S_SCP_MSS		0x12        /* Main/Sub setting */
-#define S_SCP_MOD		0x14        /* Centre/Fixed mode */
+#define S_SCP_SDS		0x13        /* Single/Dual scope setting */
+#define S_SCP_MOD		0x14        /* Center/Fixed mode */
 #define S_SCP_SPN		0x15        /* Span setting */
 #define S_SCP_EDG		0x16        /* Edge setting */
 #define S_SCP_HLD		0x17        /* Hold On/Off */
+#define S_SCP_ATT		0x18        /* Attenuator */
 #define S_SCP_REF		0x19        /* Reference level */
 #define S_SCP_SWP		0x1a        /* Sweep speed */
 #define S_SCP_STX		0x1b        /* Scope during Tx */
-#define S_SCP_TYP		0x1c        /* Display type */
-#define S_SCP_VBW		0x1d        /* VBW setting */
+#define S_SCP_CFQ		0x1c        /* Center frequency type */
+#define S_SCP_VBW		0x1d        /* Video Band Width (VBW) setting */
 #define S_SCP_FEF		0x1e        /* Fixed edge freqs */
+#define S_SCP_RBW		0x1f        /* Resolution Band Width (RBW) setting */
+#define S_SCP_MKP		0x20        /* Marker position setting */
 
 /*
  * C_CTL_MISC	OptoScan extension
@@ -550,20 +554,15 @@
 #define TOK_DSTAR_TX_MESS TOKEN_BACKEND(128)
 #define TOK_DSTAR_TX_DATA TOKEN_BACKEND(129)
 #define TOK_DSTAR_CODE TOKEN_BACKEND(130)
-#define TOK_SCOPE_DAT TOKEN_BACKEND(131)
-#define TOK_SCOPE_STS TOKEN_BACKEND(132)
-#define TOK_SCOPE_DOP TOKEN_BACKEND(133)
-#define TOK_SCOPE_MSS TOKEN_BACKEND(134)
-#define TOK_SCOPE_MOD TOKEN_BACKEND(135)
-#define TOK_SCOPE_SPN TOKEN_BACKEND(136)
-#define TOK_SCOPE_EDG TOKEN_BACKEND(137)
-#define TOK_SCOPE_HLD TOKEN_BACKEND(138)
-#define TOK_SCOPE_REF TOKEN_BACKEND(139)
-#define TOK_SCOPE_SWP TOKEN_BACKEND(140)
-#define TOK_SCOPE_STX TOKEN_BACKEND(141)
-#define TOK_SCOPE_TYP TOKEN_BACKEND(142)
-#define TOK_SCOPE_VBW TOKEN_BACKEND(143)
-#define TOK_SCOPE_FEF TOKEN_BACKEND(144)
+#define TOK_SCOPE_MSS TOKEN_BACKEND(140)
+#define TOK_SCOPE_SDS TOKEN_BACKEND(141)
+#define TOK_SCOPE_EDG TOKEN_BACKEND(142)
+#define TOK_SCOPE_STX TOKEN_BACKEND(143)
+#define TOK_SCOPE_CFQ TOKEN_BACKEND(144)
+#define TOK_SCOPE_VBW TOKEN_BACKEND(145)
+#define TOK_SCOPE_FEF TOKEN_BACKEND(146)
+#define TOK_SCOPE_RBW TOKEN_BACKEND(147)
+#define TOK_SCOPE_MKP TOKEN_BACKEND(148)
 
 /*
  * icom_ext_parm table subcommand modifiers
@@ -586,5 +585,21 @@
  #define CMD_DAT_STR 0x05     /* string type */
  #define CMD_DAT_BUF 0x06     /* literal byte buffer type */
  #define CMD_DAT_TIM 0x07     /* Time type HHMM<>seconds */
+
+/*
+ * Icom spectrum scope definitions
+ */
+
+#define SCOPE_MODE_CENTER 0x00
+#define SCOPE_MODE_FIXED 0x01
+#define SCOPE_MODE_SCROLL_C 0x02
+#define SCOPE_MODE_SCROLL_F 0x03
+
+#define SCOPE_SPEED_FAST 0x00
+#define SCOPE_SPEED_MID 0x01
+#define SCOPE_SPEED_SLOW 0x02
+
+#define SCOPE_IN_RANGE 0x00
+#define SCOPE_OUT_OF_RANGE 0x01
 
 #endif /* _ICOM_DEFS_H */

@@ -692,6 +692,36 @@ int HAMLIB_API rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
 
 
 /**
+ * \brief set the callback for spectrum line reception events
+ * \param rig   The rig handle
+ * \param cb    The callback to install
+ * \param arg   A Pointer to some private data to pass later on to the callback
+ *
+ *  Install a callback for spectrum line reception events, to be called when in transceive mode.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ *
+ * \sa rig_set_trn()
+ */
+int HAMLIB_API rig_set_spectrum_callback(RIG *rig, spectrum_cb_t cb, rig_ptr_t arg)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (CHECK_RIG_ARG(rig))
+    {
+        return -RIG_EINVAL;
+    }
+
+    rig->callbacks.spectrum_event = cb;
+    rig->callbacks.spectrum_arg = arg;
+
+    return RIG_OK;
+}
+
+
+/**
  * \brief control the transceive mode
  * \param rig   The rig handle
  * \param trn   The transceive status to set to

@@ -4061,6 +4061,79 @@ static int mydcd_event(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
 }
 
 
+static int print_spectrum_line(char *str, size_t length, struct rig_spectrum_line *line)
+{
+    int data_level_max = line->data_level_max / 2;
+    int aggregate_count = line->spectrum_data_length / 120;
+    int aggregate_value = 0;
+    int i, c;
+    int charlen = strlen("█");
+
+    str[0] = '\0';
+
+    for (i = 0, c = 0; i < line->spectrum_data_length; i++)
+    {
+        int current = line->spectrum_data[i];
+        aggregate_value = current > aggregate_value ? current : aggregate_value;
+
+        if (i > 0 && i % aggregate_count == 0)
+        {
+            if (c + charlen >= length)
+            {
+                break;
+            }
+
+            int level = aggregate_value * 10 / data_level_max;
+            if (level >= 8) {
+                strcpy(str + c, "█");
+                c += charlen;
+            }
+            else if (level >= 6)
+            {
+                strcpy(str + c, "▓");
+                c += charlen;
+            }
+            else if (level >= 4)
+            {
+                strcpy(str + c, "▒");
+                c += charlen;
+            }
+            else if (level >= 2)
+            {
+                strcpy(str + c, "░");
+                c += charlen;
+            }
+            else if (level >= 0)
+            {
+                strcpy(str + c, " ");
+                c += 1;
+            }
+
+            aggregate_value = 0;
+        }
+    }
+
+    return c;
+}
+
+
+static int myspectrum_event(RIG *rig, struct rig_spectrum_line *line, rig_ptr_t arg)
+{
+    ENTERFUNC;
+
+    if (rig_need_debug(RIG_DEBUG_TRACE))
+    {
+        char spectrum_debug[line->spectrum_data_length * 4];
+        print_spectrum_line(spectrum_debug, sizeof(spectrum_debug), line);
+        rig_debug(RIG_DEBUG_TRACE, "%s: ASCII Spectrum Scope: %s\n", __func__, spectrum_debug);
+    }
+
+    // TODO: Push out spectrum data via multicast server once it is implemented
+
+    RETURNFUNC(0);
+}
+
+
 /* 'A' */
 declare_proto_rig(set_trn)
 {
@@ -4098,6 +4171,7 @@ declare_proto_rig(set_trn)
         rig_set_vfo_callback(rig, myvfo_event, NULL);
         rig_set_ptt_callback(rig, myptt_event, NULL);
         rig_set_dcd_callback(rig, mydcd_event, NULL);
+        rig_set_spectrum_callback(rig, myspectrum_event, NULL);
     }
 
     RETURNFUNC(rig_set_trn(rig, trn));
