@@ -293,6 +293,24 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "\n");
 
+    fprintf(fout, "AGC levels:");
+
+    for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && i < caps->agc_level_count; i++)
+    {
+        fprintf(fout, " %d=%s", caps->agc_levels[i], rig_stragclevel(caps->agc_levels[i]));
+    }
+
+    if (i == 0)
+    {
+        // Fall back to printing out all levels for backwards-compatibility
+        for (i = RIG_AGC_OFF; i <= RIG_AGC_LAST; i++)
+        {
+            fprintf(fout, " %d=%s", i, rig_stragclevel(i));
+        }
+    }
+
+    fprintf(fout, "\n");
+
     fprintf(fout, "CTCSS:");
 
     for (i = 0; caps->ctcss_list && i < 60 && caps->ctcss_list[i] != 0; i++)
@@ -676,6 +694,43 @@ int dumpcaps(RIG *rig, FILE *fout)
 
         sprintf_freq(freqbuf, sizeof(freqbuf), rig_passband_wide(rig, i));
         fprintf(fout, "Wide: %s", freqbuf);
+    }
+
+    fprintf(fout, "\n");
+
+    fprintf(fout, "Spectrum scopes:");
+
+    for (i = 0; i < HAMLIB_MAX_SPECTRUM_SCOPES && caps->spectrum_scopes[i].name != NULL; i++)
+    {
+        fprintf(fout, " %d=\"%s\"", caps->spectrum_scopes[i].id, caps->spectrum_scopes[i].name);
+    }
+
+    if (i == 0)
+    {
+        fprintf(fout, " None");
+    }
+
+    fprintf(fout, "\n");
+
+    rig_sprintf_spectrum_modes(prntbuf, sizeof(prntbuf), caps->spectrum_modes);
+    fprintf(fout, "Spectrum modes: %s\n", prntbuf);
+
+    rig_sprintf_spectrum_spans(prntbuf, sizeof(prntbuf), caps->spectrum_spans);
+    fprintf(fout, "Spectrum spans: %s\n", prntbuf);
+
+    rig_sprintf_spectrum_avg_modes(prntbuf, sizeof(prntbuf), caps->spectrum_avg_modes);
+    fprintf(fout, "Spectrum averaging modes: %s\n", prntbuf);
+
+    fprintf(fout, "Spectrum attenuator:");
+
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && caps->spectrum_attenuator[i] != 0; i++)
+    {
+        fprintf(fout, " %ddB", caps->spectrum_attenuator[i]);
+    }
+
+    if (i == 0)
+    {
+        fprintf(fout, " None");
     }
 
     fprintf(fout, "\n");
