@@ -7933,7 +7933,7 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     RETURNFUNC(RIG_OK);
 }
 
-static int icom_parse_spectrum_frame(RIG *rig, int length, unsigned char *frame_data)
+static int icom_parse_spectrum_frame(RIG *rig, int length, const unsigned char *frame_data)
 {
     struct rig_caps *caps = rig->caps;
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) caps->priv;
@@ -8059,6 +8059,88 @@ static int icom_parse_spectrum_frame(RIG *rig, int length, unsigned char *frame_
     RETURNFUNC(RIG_OK);
 }
 
+int icom_is_async_frame(RIG *rig, int frame_len, const unsigned char *frame)
+{
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+
+    if (frame_len < ACKFRMLEN)
+    {
+        return 0;
+    }
+
+    /* Spectrum scope data is not CI-V transceive data, but handled the same way as it is pushed by the rig */
+    return frame[2] == BCASTID || (frame[2] == CTRLID && frame[4] == C_CTL_SCP && frame[5] == S_SCP_DAT);
+}
+
+int icom_process_async_frame(RIG *rig, int frame_len, const unsigned char *frame)
+{
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+    rmode_t mode;
+    pbwidth_t width;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    /*
+     * the first 2 bytes must be 0xfe
+     * the 3rd one 0x00 since this is transceive mode
+     * the 4rd one the emitter
+     * then the command number
+     * the rest is data
+     * and don't forget one byte at the end for the EOM
+     */
+    switch (frame[4])
+    {
+        case C_SND_FREQ:
+            /*
+             * TODO: the freq length might be less than 4 or 5 bytes
+             *          on older rigs!
+             */
+            if (rig->callbacks.freq_event)
+            {
+                freq_t freq;
+                freq = from_bcd(frame + 5, (priv->civ_731_mode ? 4 : 5) * 2);
+                RETURNFUNC(rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
+                        rig->callbacks.freq_arg));
+            }
+            else
+            {
+                RETURNFUNC(-RIG_ENAVAIL);
+            }
+
+            break;
+
+        case C_SND_MODE:
+            if (rig->callbacks.mode_event)
+            {
+                icom2rig_mode(rig, frame[5], frame[6], &mode, &width);
+                RETURNFUNC(rig->callbacks.mode_event(rig, RIG_VFO_CURR,
+                        mode, width, rig->callbacks.mode_arg));
+            }
+            else
+            {
+                RETURNFUNC(-RIG_ENAVAIL);
+            }
+
+            break;
+
+        case C_CTL_SCP:
+            if (frame[5] == S_SCP_DAT)
+            {
+                icom_parse_spectrum_frame(rig, frame_len - (6 + 1), frame + 6);
+            }
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: transceive cmd unsupported %#2.2x\n",
+                    __func__, frame[4]);
+            RETURNFUNC(-RIG_ENIMPL);
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
 /*
  * icom_decode is called by sa_sigio, when some asynchronous
  * data has been received from the rig
@@ -8068,9 +8150,7 @@ int icom_decode_event(RIG *rig)
     struct icom_priv_data *priv;
     struct rig_state *rs;
     unsigned char buf[MAXFRAMELEN];
-    int frm_len;
-    rmode_t mode;
-    pbwidth_t width;
+    int retval, frm_len;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -8090,20 +8170,13 @@ int icom_decode_event(RIG *rig)
         RETURNFUNC(0);
     }
 
-    if (buf[0] == PR)
+    retval = icom_frame_fix_preamble(frm_len, buf);
+    if (retval < 0)
     {
-        // Sometimes the second preamble byte is missing -> TODO: Find out why!
-        if (buf[1] != PR)
-        {
-            memmove(buf + 1, buf, frm_len);
-            frm_len++;
-        }
+        RETURNFUNC(retval);
     }
-    else
-    {
-        rig_debug(RIG_DEBUG_WARN, "%s: invalid Icom CI-V frame, no preamble found\n", __func__);
-        RETURNFUNC(-RIG_EPROTO);
-    }
+
+    frm_len = retval;
 
     switch (buf[frm_len - 1])
     {
@@ -8122,72 +8195,13 @@ int icom_decode_event(RIG *rig)
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    /* Spectrum scope data is not CI-V transceive data, but handled the same way as it is pushed by the rig */
-    if (buf[3] != BCASTID && buf[3] != priv->re_civ_addr && buf[4] != C_CTL_SCP)
+    if (!icom_is_async_frame(rig, frm_len, buf))
     {
         rig_debug(RIG_DEBUG_WARN, "%s: CI-V %#x called for %#x!\n", __func__,
-                  priv->re_civ_addr, buf[3]);
+                  priv->re_civ_addr, buf[2]);
     }
 
-    /*
-     * the first 2 bytes must be 0xfe
-     * the 3rd one the emitter
-     * the 4rd one 0x00 since this is transceive mode
-     * then the command number
-     * the rest is data
-     * and don't forget one byte at the end for the EOM
-     */
-    switch (buf[4])
-    {
-    case C_SND_FREQ:
-
-        /*
-         * TODO: the freq length might be less than 4 or 5 bytes
-         *          on older rigs!
-         */
-        if (rig->callbacks.freq_event)
-        {
-            freq_t freq;
-            freq = from_bcd(buf + 5, (priv->civ_731_mode ? 4 : 5) * 2);
-            RETURNFUNC(rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
-                                                 rig->callbacks.freq_arg));
-        }
-        else
-        {
-            RETURNFUNC(-RIG_ENAVAIL);
-        }
-
-        break;
-
-    case C_SND_MODE:
-        if (rig->callbacks.mode_event)
-        {
-            icom2rig_mode(rig, buf[5], buf[6], &mode, &width);
-            RETURNFUNC(rig->callbacks.mode_event(rig, RIG_VFO_CURR,
-                                                 mode, width,
-                                                 rig->callbacks.mode_arg));
-        }
-        else
-        {
-            RETURNFUNC(-RIG_ENAVAIL);
-        }
-
-        break;
-
-    case C_CTL_SCP:
-        if (buf[5] == S_SCP_DAT)
-        {
-            icom_parse_spectrum_frame(rig, frm_len - (6 + 1), buf + 6);
-        }
-        break;
-
-    default:
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: transceive cmd unsupported %#2.2x\n",
-                  __func__, buf[4]);
-        RETURNFUNC(-RIG_ENIMPL);
-    }
-
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(icom_process_async_frame(rig, frm_len, buf));
 }
 
 int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen,

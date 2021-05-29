@@ -23,9 +23,7 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"
 #include "serial.h"
@@ -90,6 +88,26 @@ int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd,
     RETURNFUNC(i);
 }
 
+int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
+{
+    if (frame[0] == PR)
+    {
+        // Sometimes the second preamble byte is missing -> TODO: Find out why!
+        if (frame[1] != PR)
+        {
+            memmove(frame + 1, frame, frame_len);
+            frame_len++;
+        }
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: invalid Icom CI-V frame, no preamble found\n", __func__);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
+    return frame_len;
+}
+
 /*
  * icom_one_transaction
  *
@@ -109,11 +127,12 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     struct icom_priv_data *priv;
     const struct icom_priv_caps *priv_caps;
     struct rig_state *rs;
+    struct timeval start_time, current_time, elapsed_time;
     // this buf needs to be large enough for 0xfe strings for power up
     // at 115,200 this is now at least 150
     unsigned char buf[200];
     unsigned char sendbuf[MAXFRAMELEN];
-    int frm_len, retval;
+    int frm_len, frm_data_len, retval;
     int ctrl_id;
 
     ENTERFUNC;
@@ -168,12 +187,14 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
         if (retval < 0)
         {
+            Unhold_Decode(rig);
             /* Other error, return it */
             RETURNFUNC(retval);
         }
 
         if (retval < 1)
         {
+            Unhold_Decode(rig);
             RETURNFUNC(-RIG_EPROTO);
         }
 
@@ -223,6 +244,9 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         RETURNFUNC(RIG_OK);
     }
 
+    gettimeofday(&start_time, NULL);
+
+read_another_frame:
     /*
      * wait for ACK ...
      * FIXME: handle padding/collisions
@@ -245,10 +269,9 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
 #endif
 
-    Unhold_Decode(rig);
-
     if (frm_len < 0)
     {
+        Unhold_Decode(rig);
         /* RIG_TIMEOUT: timeout getting response, return timeout */
         /* other error: return it */
         RETURNFUNC(frm_len);
@@ -256,12 +279,23 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
     if (frm_len < 1)
     {
+        Unhold_Decode(rig);
         RETURNFUNC(-RIG_EPROTO);
     }
+
+    retval = icom_frame_fix_preamble(frm_len, buf);
+    if (retval < 0)
+    {
+        Unhold_Decode(rig);
+        RETURNFUNC(retval);
+    }
+
+    frm_len = retval;
 
     switch (buf[frm_len - 1])
     {
     case COL:
+        Unhold_Decode(rig);
         /* Collision */
         RETURNFUNC(-RIG_BUSBUSY);
 
@@ -270,30 +304,70 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         break;
 
     case NAK:
+        Unhold_Decode(rig);
         RETURNFUNC(-RIG_ERJCTED);
 
     default:
+        Unhold_Decode(rig);
         /* Timeout after reading at least one character */
         /* Problem on ci-v bus? */
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    if (frm_len < ACKFRMLEN) { RETURNFUNC(-RIG_EPROTO); }
+    if (frm_len < ACKFRMLEN)
+    {
+        Unhold_Decode(rig);
+        RETURNFUNC(-RIG_EPROTO);
+    }
 
     // if we send a bad command we will get back a NAK packet
     // e.g. fe fe e0 50 fa fd
-    if (frm_len == 6 && NAK == buf[frm_len - 2]) { RETURNFUNC(-RIG_ERJCTED); }
+    if (frm_len == 6 && NAK == buf[frm_len - 2])
+    {
+        Unhold_Decode(rig);
+        RETURNFUNC(-RIG_ERJCTED);
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: frm_len=%d, frm_len-1=%02x, frm_len-2=%02x\n",
               __func__, frm_len, buf[frm_len - 1], buf[frm_len - 2]);
 
     // has to be one of these two now or frame is corrupt
-    if (FI != buf[frm_len - 1] && ACK != buf[frm_len - 1]) { RETURNFUNC(-RIG_BUSBUSY); }
+    if (FI != buf[frm_len - 1] && ACK != buf[frm_len - 1])
+    {
+        Unhold_Decode(rig);
+        RETURNFUNC(-RIG_BUSBUSY);
+    }
 
-    *data_len = frm_len - (ACKFRMLEN - 1);
+    frm_data_len = frm_len - (ACKFRMLEN - 1);
 
-    if (*data_len <= 0) { RETURNFUNC(-RIG_EPROTO); }
+    if (frm_data_len <= 0)
+    {
+        Unhold_Decode(rig);
+        RETURNFUNC(-RIG_EPROTO);
+    }
 
+    if (icom_is_async_frame(rig, frm_len, buf))
+    {
+        int elapsed_ms;
+        icom_process_async_frame(rig, frm_len, buf);
+
+        gettimeofday(&current_time, NULL);
+        timersub(&current_time, &start_time, &elapsed_time);
+
+        elapsed_ms = (int) (elapsed_time.tv_sec * 1000 + elapsed_time.tv_usec / 1000);
+
+        if (elapsed_ms > rs->rigport.timeout)
+        {
+            Unhold_Decode(rig);
+            RETURNFUNC(-RIG_ETIMEOUT);
+        }
+
+        goto read_another_frame;
+    }
+
+    Unhold_Decode(rig);
+
+    *data_len = frm_data_len;
     memcpy(data, buf + 4, *data_len);
 
     /*
