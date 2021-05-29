@@ -1904,7 +1904,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     return -1;
 }
 
-#undef RIG_FLUSH_REMOVE
+#define RIG_FLUSH_REMOVE
 int HAMLIB_API rig_flush(hamlib_port_t *port)
 {
 #ifndef RIG_FLUSH_REMOVE
