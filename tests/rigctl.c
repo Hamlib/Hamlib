@@ -552,7 +552,7 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "rig_open: error = %s \n", rigerror(retcode));
+        fprintf(stderr, "rig_open: error = %s %s %s \n", rigerror(retcode), rig_file, strerror(errno));
 
         if (!ignore_rig_open_error) { exit(2); }
     }
