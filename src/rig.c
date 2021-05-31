@@ -90,7 +90,7 @@ const char *hamlib_license = "LGPL";
 //! @cond Doxygen_Suppress
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME;
-HAMLIB_EXPORT_VAR (int) cookie_use;
+HAMLIB_EXPORT_VAR(int) cookie_use;
 //! @endcond
 
 struct rig_caps caps_test;
@@ -719,6 +719,13 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rs->rigport.pathname);
         rs->rigport.type.rig = RIG_PORT_NETWORK;
+
+        if (rig->caps->rig_model & RIG_ICOM)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s(%d): Icom rig UDP network enabled\n", __FILE__,
+                      __LINE__);
+            rs->rigport.type.rig = RIG_PORT_UDP_NETWORK;
+        }
     }
 
     if (rs->comm_state)
@@ -1102,13 +1109,19 @@ int HAMLIB_API rig_close(RIG *rig)
     extern int multicast_server_run;
     multicast_server_run = 0;
     extern pthread_t multicast_server_threadId;
-    int err = pthread_join(multicast_server_threadId, NULL);
 
-    if (err)
+    if (multicast_server_threadId != 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s(%d): pthread_join error %s\n", __FILE__, __LINE__,
-                  strerror(errno));
-        // just ignore it
+        int err = pthread_join(multicast_server_threadId, NULL);
+
+        if (err)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): pthread_join error %s\n", __FILE__, __LINE__,
+                      strerror(errno));
+            // just ignore it
+        }
+
+        multicast_server_threadId = 0;
     }
 
     if (!rig || !rig->caps)
@@ -6526,6 +6539,7 @@ const char *HAMLIB_API rig_copyright()
  * while((cookie=rig_cookie(NULL, RIG_COOKIE_GET)) == NULL) hl_usleep(10*1000);
  * set_freq A;set mode A;set freq B;set modeB;
  * rig_cookie(cookie,RIG_COOKIE_RELEASE);
+ * if wait!=0 rig_cookie with RIG_COOKIE_GET will wait for the cookie to become available
  */
 int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
                           int cookie_len)
@@ -6539,6 +6553,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     static double time_last_used;
     double time_curr;
     struct timespec tp;
+    static pthread_mutex_t cookie_lock = PTHREAD_MUTEX_INITIALIZER;
 
     if (cookie_len < 27)
     {
@@ -6597,11 +6612,17 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         break;
 
     case RIG_COOKIE_GET:
+
         // the way we expire cookies is if somebody else asks for one and the last renewal is > 1 second ago
         // a polite client will have released the cookie
         // we are just allow for a crashed client that fails to release:q
+
         clock_gettime(CLOCK_REALTIME, &tp);
         time_curr = tp.tv_sec + tp.tv_nsec / 1e9;
+
+#ifdef HAVE_PTHREAD
+        pthread_mutex_lock(&cookie_lock);
+#endif
 
         if (cookie_save[0] != 0 && (strcmp(cookie_save, cookie) == 0)
                 && (time_curr - time_last_used < 1))  // then we will deny the request
@@ -6609,8 +6630,12 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
             printf("Cookie %s in use\n", cookie_save);
             rig_debug(RIG_DEBUG_ERR, "%s(%d): %s cookie is in use\n", __FILE__, __LINE__,
                       cookie_save);
+#ifdef HAVE_PTHREAD
+            pthread_mutex_unlock(&cookie_lock);
+#endif
             return -RIG_BUSBUSY;
         }
+
 
         if (cookie_save[0] != 0)
         {
@@ -6626,14 +6651,36 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         time_last_used = time_curr;
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s new cookie request granted\n",
                   __FILE__, __LINE__, cookie_save);
+#ifdef HAVE_PTHREAD
+        pthread_mutex_unlock(&cookie_lock);
+#endif
         return RIG_OK;
         break;
-
     }
 
     rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown condition!!\n'", __FILE__, __LINE__);
     return -RIG_EPROTO;
 }
 
+HAMLIB_EXPORT(void) sync_callback(int lock)
+{
+#ifdef HAVE_PTHREAD
+    static pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
+
+    if (lock)
+    {
+        pthread_mutex_lock(&client_lock);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: client lock engaged\n", __func__);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: client lock disengaged\n", __func__);
+        pthread_mutex_unlock(&client_lock);
+    }
+
+#endif
+}
+
 
 /*! @} */
+
