@@ -7944,7 +7944,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length, const unsigned char *
     int max_division = (int) from_bcd(frame_data + 2, 1 * 2);
 
     int spectrum_data_length_in_frame;
-    unsigned char *spectrum_data_start_in_frame;
+    const unsigned char *spectrum_data_start_in_frame;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
