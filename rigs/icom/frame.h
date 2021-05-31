@@ -28,6 +28,7 @@
  * helper functions
  */
 int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd, const unsigned char *data, int data_len);
+int icom_frame_fix_preamble(int frame_len, unsigned char *frame);
 
 int icom_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len);
 int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[], int rxbuffer_len);
