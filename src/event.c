@@ -56,9 +56,9 @@
 #include <signal.h>
 #include <errno.h>
 
-
 #include <hamlib/rig.h>
 #include "event.h"
+#include "misc.h"
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #  include "win32termios.h"
@@ -300,6 +300,8 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
     struct timeval tv;
     int retval;
 
+    ENTERFUNC;
+
     /*
      * so far, only file oriented ports have event reporting support
      */
@@ -307,6 +309,22 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
             || rig->state.rigport.fd == -1)
     {
         return -1;
+    }
+
+    /*
+     * TODO: FIXME: We may end up calling decode_event right before or after the hold_decode lock is released
+     *   by backend transaction routine. With the Icom backend this will end up waiting for the next CI-V frame
+     *   to be read and this will interfere with reading of the next response to any command.
+     *   => It is difficult to find a way to avoid this routine picking up regular responses.
+     */
+
+    /*
+     * Do not disturb, the backend is currently receiving data
+     */
+    if (rig->state.hold_decode)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: hold decode, backend is receiving data\n", __func__);
+        RETURNFUNC(-1);
     }
 
     /* FIXME: siginfo is not portable, however use it where available */
@@ -334,10 +352,10 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: select: %s\n",
+                  "%s: select() failed: %s\n",
                   __func__,
                   strerror(errno));
-        return -1;
+        RETURNFUNC(-1);
     }
 
 #endif
@@ -347,7 +365,8 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
      */
     if (rig->state.hold_decode)
     {
-        return -1;
+        rig_debug(RIG_DEBUG_TRACE, "%s: hold decode, backend is receiving data\n", __func__);
+        RETURNFUNC(-1);
     }
 
     if (rig->caps->decode_event)
@@ -355,7 +374,7 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
         rig->caps->decode_event(rig);
     }
 
-    return 1;   /* process each opened rig */
+    RETURNFUNC(1);   /* process each opened rig */
 }
 
 
