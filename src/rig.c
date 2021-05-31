@@ -720,7 +720,7 @@ int HAMLIB_API rig_open(RIG *rig)
                   rs->rigport.pathname);
         rs->rigport.type.rig = RIG_PORT_NETWORK;
 
-        if (rig->caps->rig_model & RIG_ICOM)
+        if ((rig->caps->rig_model & RIG_ICOM) == RIG_ICOM)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s(%d): Icom rig UDP network enabled\n", __FILE__,
                       __LINE__);
