@@ -346,6 +346,7 @@ read_another_frame:
         RETURNFUNC(-RIG_EPROTO);
     }
 
+    // TODO: Does ctrlid (detected by icom_is_async_frame) vary (seeing some code above using 0x80 for non-full-duplex)?
     if (icom_is_async_frame(rig, frm_len, buf))
     {
         int elapsed_ms;

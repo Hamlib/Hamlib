@@ -8061,9 +8061,6 @@ static int icom_parse_spectrum_frame(RIG *rig, int length, const unsigned char *
 
 int icom_is_async_frame(RIG *rig, int frame_len, const unsigned char *frame)
 {
-    struct rig_state *rs = &rig->state;
-    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
-
     if (frame_len < ACKFRMLEN)
     {
         return 0;
@@ -8167,7 +8164,7 @@ int icom_decode_event(RIG *rig)
 
     if (frm_len < 1)
     {
-        RETURNFUNC(0);
+        RETURNFUNC(RIG_OK);
     }
 
     retval = icom_frame_fix_preamble(frm_len, buf);

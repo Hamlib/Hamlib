@@ -910,11 +910,19 @@ int main(int argc, char *argv[])
         timeout.tv_usec = 0;
         retcode = select(sock_listen + 1, &set, NULL, NULL, &timeout);
 
-        if (-1 == retcode)
+        if (retcode == -1)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: select\n", __func__);
+            int errno_stored = errno;
+            rig_debug(RIG_DEBUG_ERR, "%s: select() failed: %s\n", __func__, strerror(errno_stored));
+
+            // TODO: FIXME: Why does this select() return EINTR after any command when set_trn RIG is enabled?
+            if (errno == EINTR)
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: ignoring interrupted system call\n", __func__);
+                retcode = 0;
+            }
         }
-        else if (!retcode)
+        else if (retcode == 0)
         {
             if (ctrl_c)
             {
@@ -1039,11 +1047,13 @@ void *handle_socket(void *arg)
     int ext_resp = 0;
     char resp_sep = '\n';
 
+    ENTERFUNC;
+
     fsockin = get_fsockin(handle_data_arg);
 
     if (!fsockin)
     {
-        rig_debug(RIG_DEBUG_ERR, "fdopen(0x%d) in: %s\n", handle_data_arg->sock,
+        rig_debug(RIG_DEBUG_ERR, "%s: fdopen(0x%d) in: %s\n", __func__, handle_data_arg->sock,
                   strerror(errno));
         goto handle_exit;
     }
@@ -1052,7 +1062,7 @@ void *handle_socket(void *arg)
 
     if (!fsockout)
     {
-        rig_debug(RIG_DEBUG_ERR, "fdopen out: %s\n", strerror(errno));
+        rig_debug(RIG_DEBUG_ERR, "%s: fdopen out: %s\n", __func__, strerror(errno));
         fclose(fsockin);
 
         goto handle_exit;
