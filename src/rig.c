@@ -2027,8 +2027,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int cache_ms_freq, cache_ms_mode, cache_ms_width;
     rig_get_cache(rig, vfo, freq, &cache_ms_freq, &mode, &cache_ms_mode, &width,
                   &cache_ms_width);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cache check1 age=%dms\n", __func__,
-              cache_ms_freq);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: cache check1 age=%dms\n", __func__, cache_ms_freq);
 
     cache_show(rig, __func__, __LINE__);
 
