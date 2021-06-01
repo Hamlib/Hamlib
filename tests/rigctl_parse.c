@@ -787,7 +787,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
 
             my_rig->state.vfo_opt = *vfo_opt;
-            rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
 
             if (cmd == 'Q' || cmd == 'q')
             {
