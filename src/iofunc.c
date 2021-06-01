@@ -433,7 +433,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 {
     int ret;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 
