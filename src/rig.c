@@ -2065,7 +2065,6 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                       rig_strvfo(vfo));
         }
 
-        TRACE;
         retcode = caps->get_freq(rig, vfo, freq);
 
         cache_show(rig, __func__, __LINE__);

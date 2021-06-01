@@ -749,7 +749,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     break;
                 }
 
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd==0x%02x\n", __func__, cmd);
+                //rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd==0x%02x\n", __func__, cmd);
 
                 if (cmd == 0x0a || cmd == 0x0d)
                 {
@@ -1679,7 +1679,6 @@ readline_repeat:
                                         p2 ? p2 : "",
                                         p3 ? p3 : "");
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
 
     if (retcode == -RIG_EIO)
     {
@@ -1735,7 +1734,6 @@ readline_repeat:
 
     fflush(fout);
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: retcode=%d\n", __func__, retcode);
 #ifdef HAVE_LIBREADLINE
     if (input_line != NULL && (result = strtok(NULL, " "))) goto readline_repeat;
 #endif
