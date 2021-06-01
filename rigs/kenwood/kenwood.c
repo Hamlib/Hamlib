@@ -573,7 +573,6 @@ transaction_quit:
     }
 
     rs->hold_decode = 0;
-    rig_debug(RIG_DEBUG_TRACE, "%s: returning retval=%d\n", __func__, retval);
     RETURNFUNC(retval);
 }
 
