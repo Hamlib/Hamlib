@@ -3913,7 +3913,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     else
     {
         TRACE;
-        retcode = caps->get_freq(rig, RIG_VFO_CURR, tx_freq);
+        retcode = caps->get_freq ? caps->get_freq(rig, RIG_VFO_CURR, tx_freq) :-RIG_ENIMPL;
     }
 
     /* try and revert even if we had an error above */
@@ -4042,7 +4042,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     else
     {
         TRACE;
-        retcode = caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+        retcode = caps->set_mode ? caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width) : -RIG_ENIMPL;
     }
 
     /* try and revert even if we had an error above */
@@ -4165,7 +4165,7 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     else
     {
         TRACE;
-        retcode = caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+        retcode = caps->get_mode ? caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width) : -RIG_ENIMPL;
     }
 
     /* try and revert even if we had an error above */
