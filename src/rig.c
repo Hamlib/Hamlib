@@ -61,7 +61,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 
 
 #include <hamlib/rig.h>
@@ -1108,6 +1110,7 @@ int HAMLIB_API rig_close(RIG *rig)
     // terminate the multicast server
     extern int multicast_server_run;
     multicast_server_run = 0;
+#ifdef HAVE_PTHREAD
     extern pthread_t multicast_server_threadId;
 
     if (multicast_server_threadId != 0)
@@ -1123,6 +1126,7 @@ int HAMLIB_API rig_close(RIG *rig)
 
         multicast_server_threadId = 0;
     }
+#endif
 
     if (!rig || !rig->caps)
     {
@@ -6551,7 +6555,9 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     static double time_last_used;
     double time_curr;
     struct timespec tp;
+#ifdef HAVE_PTHREAD
     static pthread_mutex_t cookie_lock = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
     if (cookie_len < 27)
     {
