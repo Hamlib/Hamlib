@@ -161,13 +161,14 @@ static struct kenwood_priv_caps thd74_priv_caps =
 
 int thd74_open(RIG *rig)
 {
-    int ret;
-    struct kenwood_priv_data *priv = rig->state.priv;
-    strcpy(priv->verify_cmd, "ID\r");
+    //int ret;
+    //struct kenwood_priv_data *priv = rig->state.priv;
+    // this is already done in kenwood_init
+    //strcpy(priv->verify_cmd, "ID\r");
 
-    ret = kenwood_transaction(rig, "", NULL, 0);
+    //ret = kenwood_transaction(rig, "", NULL, 0);
 
-    return ret;
+    return RIG_OK;
 }
 
 
@@ -1642,9 +1643,9 @@ const struct rig_caps thd74_caps =
     RIG_MODEL(RIG_MODEL_THD74),
     .model_name = "TH-D74",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_ALPHA,
+    .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
