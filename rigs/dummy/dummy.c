@@ -1059,8 +1059,6 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
-
         sprintf(lstr, "%f", val.f);
     }
     else
@@ -2139,7 +2137,7 @@ struct rig_caps dummy_caps =
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
-    .targetable_vfo = RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .targetable_vfo = RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_SPECTRUM,
     .ptt_type =       RIG_PTT_RIG,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NONE,
@@ -2149,7 +2147,12 @@ struct rig_caps dummy_caps =
     .has_set_level =  RIG_LEVEL_SET(DUMMY_LEVEL),
     .has_get_parm =    DUMMY_PARM,
     .has_set_parm =    RIG_PARM_SET(DUMMY_PARM),
-    .level_gran =      { [LVL_CWPITCH] = { .step = { .i = 10 } } },
+    .level_gran =      {
+        [LVL_CWPITCH] = { .step = { .i = 10 } },
+        [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+        [LVL_SPECTRUM_REF] = {.min = {.f = -30.0f}, .max = {.f = 10.0f}, .step = {.f = 0.5f}},
+        [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
+    },
     .ctcss_list =      common_ctcss_list,
     .dcs_list =        full_dcs_list,
     .chan_list =   {
@@ -2163,6 +2166,8 @@ struct rig_caps dummy_caps =
     .transceive =     RIG_TRN_OFF,
     .attenuator =     { 10, 20, 30, RIG_DBLST_END, },
     .preamp =          { 10, RIG_DBLST_END, },
+    .agc_level_count = 7,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_SUPERFAST, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW, RIG_AGC_AUTO, RIG_AGC_USER },
     .rx_range_list1 =  { {
             .startf = kHz(150), .endf = MHz(1500), .modes = DUMMY_MODES,
             .low_power = -1, .high_power = -1, DUMMY_VFOS, RIG_ANT_1 | RIG_ANT_2 | RIG_ANT_3 | RIG_ANT_4,
@@ -2210,6 +2215,61 @@ struct rig_caps dummy_caps =
     .max_rit = 9990,
     .max_xit = 9990,
     .max_ifshift = 10000,
+
+    .spectrum_scopes = {
+        {
+            .id = 0,
+            .name = "Main",
+        },
+        {
+            .id = 1,
+            .name = "Sub",
+        },
+        {
+            .id = -1,
+            .name = NULL,
+        },
+    },
+    .spectrum_modes = {
+        RIG_SPECTRUM_MODE_CENTER,
+        RIG_SPECTRUM_MODE_FIXED,
+        RIG_SPECTRUM_MODE_CENTER_SCROLL,
+        RIG_SPECTRUM_MODE_FIXED_SCROLL,
+        RIG_SPECTRUM_MODE_NONE,
+    },
+    .spectrum_spans = {
+        5000,
+        10000,
+        20000,
+        50000,
+        100000,
+        200000,
+        500000,
+        1000000,
+        2000000,
+        5000000,
+        0,
+    },
+    .spectrum_avg_modes = {
+        {
+            .id = 0,
+            .name = "OFF",
+        },
+        {
+            .id = 1,
+            .name = "2",
+        },
+        {
+            .id = 2,
+            .name = "3",
+        },
+        {
+            .id = 3,
+            .name = "4",
+        },
+    },
+    .spectrum_attenuator = { 10, 20, 30, RIG_DBLST_END, },
+
     .priv =  NULL,    /* priv */
 
     .extlevels =    dummy_ext_levels,
