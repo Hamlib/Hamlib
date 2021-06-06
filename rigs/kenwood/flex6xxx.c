@@ -631,6 +631,7 @@ int flex6k_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         if (ptt_cmd[4] != response[4])
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s != %s\n", __func__, ptt_cmd, response);
+            hl_usleep(20*1000); // takes a bit to do PTT off
         }
     }
     while (ptt_cmd[4] != response[4] && --retry);
@@ -1206,7 +1207,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20210527.0",
+    .version =      "20210605.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
