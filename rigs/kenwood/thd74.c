@@ -1643,7 +1643,7 @@ const struct rig_caps thd74_caps =
     RIG_MODEL(RIG_MODEL_THD74),
     .model_name = "TH-D74",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,
@@ -1727,7 +1727,7 @@ const struct rig_caps thd74_caps =
 
     .rig_init = kenwood_init,
     .rig_cleanup = kenwood_cleanup,
-    .rig_open = thd74_open,
+    .rig_open = kenwood_open,
     .set_freq = thd74_set_freq,
     .get_freq = thd74_get_freq,
     .set_mode = thd74_set_mode,
