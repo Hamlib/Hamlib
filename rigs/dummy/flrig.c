@@ -144,7 +144,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20210511",
+    .version = "20210607",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -674,7 +674,7 @@ static const char *modeMapGetFLRig(rmode_t modeHamlib)
                   "%s: checking modeMap[%d]=%.0f to modeHamlib=%.0f, mode_flrig='%s'\n", __func__,
                   i, (double)modeMap[i].mode_hamlib, (double)modeHamlib, modeMap[i].mode_flrig);
 
-        if (modeMap[i].mode_hamlib == modeHamlib)
+        if (modeMap[i].mode_hamlib == modeHamlib && strlen(modeMap[i].mode_flrig) > 0)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s matched mode=%.0f, returning '%s'\n", __func__,
                       (double)modeHamlib, modeMap[i].mode_flrig);
@@ -682,7 +682,7 @@ static const char *modeMapGetFLRig(rmode_t modeHamlib)
         }
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode requested: %s\n", __func__,
+    rig_debug(RIG_DEBUG_ERR, "%s: FlRig does not have mode: %s\n", __func__,
               rig_strrmode(modeHamlib));
     return ("ERROR");
 }
