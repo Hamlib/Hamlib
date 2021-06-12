@@ -4544,10 +4544,13 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
             || vfo == rig->state.current_vfo)
     {
         TRACE;
-        retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
-        rig->state.cache.split = *split;
-        rig->state.cache.split_vfo = *tx_vfo;
-        elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
+        if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
+        { // rigctld doesn't like nested calls
+            retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
+            rig->state.cache.split = *split;
+            rig->state.cache.split_vfo = *tx_vfo;
+            elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
+        }
         RETURNFUNC(retcode);
     }
 
