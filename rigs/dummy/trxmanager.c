@@ -1157,7 +1157,7 @@ static int trxmanager_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX)
+    if (vfo != RIG_VFO_CURR && vfo != RIG_VFO_TX && vfo != RIG_VFO_B)
     {
         return -RIG_ENTARGET;
     }
