@@ -580,6 +580,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
                   rig_strvfo(vfo));
         RETURNFUNC(-RIG_EINVAL);
     }
+    rig->state.current_vfo = vfo;
 
     RETURNFUNC(RIG_OK);
 }
@@ -2133,7 +2134,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20210504.0",
+    .version =        "20210613.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
