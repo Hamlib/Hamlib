@@ -2020,7 +2020,9 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     *width = 0;
 
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+    // IC7800 can set but not read with 0x26
+    if ((rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        && rig->caps->rig_model != RIG_MODEL_IC7800)
     {
         int vfosel = 0x00;
 
