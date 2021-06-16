@@ -2046,8 +2046,13 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     else
     {
-        snprintf(buf, sizeof(buf), "MD%c", c);
-        err = kenwood_transaction(rig, buf, NULL, 0);
+        pbwidth_t twidth;
+        err = rig_get_mode(rig, vfo, &priv->curr_mode, &twidth);
+        // only change mode if needed
+        if (priv->curr_mode != mode) {
+            snprintf(buf, sizeof(buf), "MD%c", c);
+            err = kenwood_transaction(rig, buf, NULL, 0);
+        }
     }
 
     if (err != RIG_OK) { RETURNFUNC(err); }
