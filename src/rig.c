@@ -1762,6 +1762,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
+    rig_debug(RIG_DEBUG_ERR, "%s called vfo=%s, freq=%.0f\n", __func__,
+              rig_strvfo(vfo), freq);
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -1973,13 +1975,15 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) called vfo=%s\n", __func__, __LINE__, rig_strvfo(vfo));
     cache_show(rig, __func__, __LINE__);
 
 
     curr_vfo = rig->state.current_vfo; // save vfo for restore later
 
     vfo = vfo_fixup(rig, vfo);
+
+    rig_debug(RIG_DEBUG_ERR, "%s(%d) vfo=%s, curr_vfo=%s\n", __FILE__, __LINE__, rig_strvfo(vfo), rig_strvfo(curr_vfo));
 
     if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
@@ -2623,11 +2627,13 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     TRACE;
+    vfo_t vfo_save = rig->state.current_vfo;
+    rig->state.current_vfo = vfo;
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode == RIG_OK)
     {
-        //vfo = rig->state.current_vfo; // vfo may change in the rig backend
+        vfo = rig->state.current_vfo; // vfo may change in the rig backend
         rig->state.cache.vfo = vfo;
         elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_SET);
         rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo=%s\n", __func__,
@@ -2637,6 +2643,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: set_vfo %s failed with '%.10000s'\n", __func__,
                   rig_strvfo(vfo), rigerror(retcode));
+        rig->state.current_vfo = vfo_save;
     }
 
     // we need to update our internal freq to avoid getting detected as twiddling
@@ -2648,6 +2655,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         rig_debug(RIG_DEBUG_TRACE, "%s: retcode from rig_get_freq = %.10000s\n",
                   __func__,
                   rigerror(retcode));
+        set_cache_freq(rig, vfo, curr_freq);
     }
     else
     {
@@ -2666,8 +2674,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_INVALIDATE);
 #endif
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: return %d, vfo=%s\n", __func__, retcode,
-              rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: return %d, vfo=%s, curr_vfo=%s\n", __func__, retcode,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
     RETURNFUNC(retcode);
 }
 
@@ -4420,6 +4428,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
             rig->state.tx_vfo = tx_vfo;
         }
 
+        rig->state.current_vfo = tx_vfo;
         rig->state.cache.split = split;
         rig->state.cache.split_vfo = tx_vfo;
         elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
@@ -4545,7 +4554,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     {
         TRACE;
         retcode = RIG_OK;
-        if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
+        //if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL)
         { // rigctld doesn't like nested calls
             retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
             rig->state.cache.split = *split;
@@ -6299,7 +6308,8 @@ void make_crc_table(unsigned long crcTable[])
         // Start with the data byte
         remainder = b;
 
-        for (unsigned long bit = 8; bit > 0; --bit)
+        unsigned long bit;
+        for (bit = 8; bit > 0; --bit)
         {
             if (remainder & 1)
             {
