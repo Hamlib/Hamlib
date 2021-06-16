@@ -1762,8 +1762,6 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
-    rig_debug(RIG_DEBUG_ERR, "%s called vfo=%s, freq=%.0f\n", __func__,
-              rig_strvfo(vfo), freq);
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -1983,7 +1981,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     vfo = vfo_fixup(rig, vfo);
 
-    rig_debug(RIG_DEBUG_ERR, "%s(%d) vfo=%s, curr_vfo=%s\n", __FILE__, __LINE__, rig_strvfo(vfo), rig_strvfo(curr_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) vfo=%s, curr_vfo=%s\n", __FILE__, __LINE__, rig_strvfo(vfo), rig_strvfo(curr_vfo));
 
     if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
