@@ -1106,6 +1106,10 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         rig_debug(RIG_DEBUG_TRACE, "%s(%d): mode/width no change, skipping\n", __FILE__, __LINE__);
         return RIG_OK;
     }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): changing mode=%s, oldmode=%s, width=%ld, oldwidth=%ld\n", __FILE__, __LINE__, rig_strrmode(tmode), rig_strrmode(mode), twidth, width);
+    }
 
     switch (mode)
     {
