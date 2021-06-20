@@ -23,6 +23,7 @@
 #define _PRM80_H 1
 
 #include <hamlib/rig.h>
+#include "misc.h"
 
 #define BACKEND_VER "20210416"
 
