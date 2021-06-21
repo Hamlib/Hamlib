@@ -4501,7 +4501,7 @@ declare_proto_rig(dump_state)
     if (chk_vfo_executed) // for 3.3 compatiblility
     {
         fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
-        fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt);
+        fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt==RIG_PTT_NONE?RIG_PTT_NONE:RIG_PTT_RIG);
         fprintf(fout, "targetable_vfo=0x%x\n", rig->caps->targetable_vfo);
         fprintf(fout, "has_set_vfo=%d\n", rig->caps->set_vfo != NULL);
         fprintf(fout, "has_get_vfo=%d\n", rig->caps->get_vfo != NULL);
