@@ -86,7 +86,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:x:z:lLuovhVZ"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:x:z:lLuovhVZM"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -144,11 +144,13 @@ static int volatile ctrl_c;
 
 const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
-const char *multicast_addr = "224.0.1.1";
+const char *multicast_addr = "0.0.0.0";
 
 #define MAXCONFLEN 1024
 
-static void sync_callback(int lock)
+extern void sync_callback(int lock);
+#if 0
+void sync_callback(int lock)
 {
 #ifdef HAVE_PTHREAD
     static pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -166,6 +168,7 @@ static void sync_callback(int lock)
 
 #endif
 }
+#endif
 
 #ifdef WIN32
 static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
@@ -666,7 +669,8 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "rig_open: error = %s %s %s \n", rigerror(retcode), rig_file, strerror(errno));
+        fprintf(stderr, "rig_open: error = %s %s %s \n", rigerror(retcode), rig_file,
+                strerror(errno));
         exit(2);
     }
 
@@ -746,7 +750,8 @@ int main(int argc, char *argv[])
 
     saved_result = result;
 
-    enum multicast_item_e items = RIG_MULTICAST_POLL|RIG_MULTICAST_TRANSCEIVE|RIG_MULTICAST_SPECTRUM;
+    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE |
+                                  RIG_MULTICAST_SPECTRUM;
     retcode = network_multicast_server(my_rig, multicast_addr, 4532, items);
 
     if (retcode != RIG_OK)
@@ -913,12 +918,14 @@ int main(int argc, char *argv[])
         if (retcode == -1)
         {
             int errno_stored = errno;
-            rig_debug(RIG_DEBUG_ERR, "%s: select() failed: %s\n", __func__, strerror(errno_stored));
+            rig_debug(RIG_DEBUG_ERR, "%s: select() failed: %s\n", __func__,
+                      strerror(errno_stored));
 
             // TODO: FIXME: Why does this select() return EINTR after any command when set_trn RIG is enabled?
             if (errno == EINTR)
             {
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: ignoring interrupted system call\n", __func__);
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: ignoring interrupted system call\n",
+                          __func__);
                 retcode = 0;
             }
         }
@@ -1053,7 +1060,8 @@ void *handle_socket(void *arg)
 
     if (!fsockin)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: fdopen(0x%d) in: %s\n", __func__, handle_data_arg->sock,
+        rig_debug(RIG_DEBUG_ERR, "%s: fdopen(0x%d) in: %s\n", __func__,
+                  handle_data_arg->sock,
                   strerror(errno));
         goto handle_exit;
     }
@@ -1255,7 +1263,7 @@ void usage(void)
         "  -W, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -M, --multicast-addr=addr     set multicast addr, default 224.0.1.1\n"
+        "  -M, --multicast-addr=addr     set multicast addr, default 0.0.0.0 (off), recommend 224.0.1.1\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
         portno);
