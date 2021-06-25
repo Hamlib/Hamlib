@@ -4426,7 +4426,6 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
             rig->state.tx_vfo = tx_vfo;
         }
 
-        rig->state.current_vfo = tx_vfo;
         rig->state.cache.split = split;
         rig->state.cache.split_vfo = tx_vfo;
         elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
