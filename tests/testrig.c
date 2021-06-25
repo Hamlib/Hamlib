@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }
 
-    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
+    //strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
     retcode = rig_open(my_rig);
 
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    printf("Port %s opened ok\n", SERIAL_PORT);
+//    printf("Port %s opened ok\n", SERIAL_PORT);
 
     /*
      * Below are examples of set/get routines.
@@ -136,6 +136,14 @@ int main(int argc, char *argv[])
            rig_strrmode(rmode),
            width / 1000.0);
 
+    if (freq != 29620000)
+    {
+        printf("rig_set_freq: error exptect %.0f got %.0f\n", 296290000.0, freq);
+    }
+    if (rmode != RIG_MODE_FM || width != rig_passband_narrow(my_rig, RIG_MODE_FM))
+    {
+        printf("rig_set_mode: error expected FM/%d, got %s/%d\n", (int)rig_passband_narrow(my_rig, RIG_MODE_FM), rig_strrmode(rmode), (int)width); 
+    }
     sleep(1);       /* so you can see it -- FS */
 
     /* 15m USB */
