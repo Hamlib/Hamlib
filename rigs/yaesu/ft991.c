@@ -49,7 +49,7 @@ const struct rig_caps ft991_caps =
     RIG_MODEL(RIG_MODEL_FT991),
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".2",
+    .version =            NEWCAT_VER ".3",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -87,7 +87,7 @@ const struct rig_caps ft991_caps =
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1200),
     .vfo_ops =            FT991_VFO_OPS,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 950 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
