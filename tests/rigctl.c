@@ -153,6 +153,11 @@ int main(int argc, char *argv[])
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
     char resp_sep = '\n';
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) Startup:", __FILE__, __LINE__);
+    for(i=0;i<argc;++i) rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
     while (1)
     {

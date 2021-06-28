@@ -267,6 +267,11 @@ int main(int argc, char *argv[])
 #endif
     struct handle_data *arg;
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) Startup:", __FILE__, __LINE__);
+    for(i=0;i<argc;++i) rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
     while (1)
     {
