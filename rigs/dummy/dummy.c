@@ -390,8 +390,11 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
+// Enable this if we need to emulate a rig with 100Hz resolution
+#if 0
     // we emulate a rig with 100Hz set freq interval limits -- truncation
     freq = freq - ((unsigned long)freq % 100);
+#endif
     usleep(CMDSLEEP);
     sprintf_freq(fstr, sizeof(fstr), freq);
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
@@ -2134,7 +2137,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20210613.0",
+    .version =        "20210630.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
