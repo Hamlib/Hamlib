@@ -71,9 +71,14 @@ struct dummy_priv_data
 
     channel_t *curr;    /* points to vfo_a, vfo_b or mem[] */
 
+    // we're trying to emulate all sorts of vfo possibilities so this looks redundant
     channel_t vfo_a;
     channel_t vfo_b;
     channel_t vfo_c;
+    channel_t vfo_maina;
+    channel_t vfo_mainb;
+    channel_t vfo_suba;
+    channel_t vfo_subb;
     channel_t mem[NB_CHAN];
 
     struct ext_list *ext_funcs;
@@ -150,7 +155,25 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
     chan->vfo = vfo;
     strcpy(chan->channel_desc, rig_strvfo(vfo));
 
-    chan->freq = MHz(145);
+    switch(vfo)
+    {
+        case RIG_VFO_A:
+        case RIG_VFO_MAIN_A:
+        chan->freq = MHz(145);
+        break;
+        case RIG_VFO_B:
+        case RIG_VFO_MAIN_B:
+        chan->freq = MHz(146);
+        break;
+        case RIG_VFO_SUB_A:
+        chan->freq = MHz(147);
+        break;
+        case RIG_VFO_SUB_B:
+        chan->freq = MHz(148);
+        break;
+        default:
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) unknown vfo=%s\n", __FILE__, __LINE__, rig_strvfo(vfo));
+    }
     chan->mode = RIG_MODE_FM;
     chan->width = rig_passband_normal(rig, RIG_MODE_FM);
     chan->tx_freq = chan->freq;
@@ -261,6 +284,10 @@ static int dummy_init(RIG *rig)
 
     init_chan(rig, RIG_VFO_A, &priv->vfo_a);
     init_chan(rig, RIG_VFO_B, &priv->vfo_b);
+    init_chan(rig, RIG_VFO_MAIN_A, &priv->vfo_maina);
+    init_chan(rig, RIG_VFO_MAIN_B, &priv->vfo_mainb);
+    init_chan(rig, RIG_VFO_SUB_A, &priv->vfo_suba);
+    init_chan(rig, RIG_VFO_SUB_B, &priv->vfo_subb);
     priv->curr = &priv->vfo_a;
 
     if (rig->caps->rig_model == RIG_MODEL_DUMMY_NOVFO)
@@ -390,10 +417,10 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
-// Enable this if we need to emulate a rig with 100Hz resolution
+// if needed for testing enable this to emulate a rig with 100hz resolution
 #if 0
     // we emulate a rig with 100Hz set freq interval limits -- truncation
-    freq = freq - ((unsigned long)freq % 100);
+    freq = freq - fmod(freq,100);
 #endif
     usleep(CMDSLEEP);
     sprintf_freq(fstr, sizeof(fstr), freq);
@@ -446,9 +473,13 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
     case RIG_VFO_MAIN:
     case RIG_VFO_A:  *freq = priv->vfo_a.freq; break;
+    case RIG_VFO_MAIN_A: *freq = priv->vfo_maina.freq;break;
+    case RIG_VFO_MAIN_B: *freq = priv->vfo_maina.freq;break;
 
     case RIG_VFO_SUB:
     case RIG_VFO_B:  *freq = priv->vfo_b.freq; break;
+    case RIG_VFO_SUB_A:  *freq = priv->vfo_suba.freq;break; 
+    case RIG_VFO_SUB_B:  *freq = priv->vfo_subb.freq;break;
 
     case RIG_VFO_C:  *freq = priv->vfo_c.freq; break;
 
@@ -554,10 +585,14 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_RX:
     case RIG_VFO_MAIN: priv->curr = &priv->vfo_a; break;
+    case RIG_VFO_MAIN_A: priv->curr = &priv->vfo_maina; break;
+    case RIG_VFO_MAIN_B: priv->curr = &priv->vfo_mainb; break;
 
     case RIG_VFO_A: priv->curr = &priv->vfo_a; break;
 
     case RIG_VFO_SUB: priv->curr = &priv->vfo_b; break;
+    case RIG_VFO_SUB_A: priv->curr = &priv->vfo_suba; break;
+    case RIG_VFO_SUB_B: priv->curr = &priv->vfo_subb; break;
 
     case RIG_VFO_B: priv->curr = &priv->vfo_b; break;
 
