@@ -474,7 +474,7 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     case RIG_VFO_MAIN:
     case RIG_VFO_A:  *freq = priv->vfo_a.freq; break;
     case RIG_VFO_MAIN_A: *freq = priv->vfo_maina.freq;break;
-    case RIG_VFO_MAIN_B: *freq = priv->vfo_maina.freq;break;
+    case RIG_VFO_MAIN_B: *freq = priv->vfo_mainb.freq;break;
 
     case RIG_VFO_SUB:
     case RIG_VFO_B:  *freq = priv->vfo_b.freq; break;
@@ -2172,7 +2172,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20210630.0",
+    .version =        "20210702.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
