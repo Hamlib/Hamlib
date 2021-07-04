@@ -1759,20 +1759,17 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
         rig2icom_mode(rig, vfo, mode, width, &mode_icom, &width_icom);
 
-        if (filter_byte && width_icom != -1)   // then we need the width byte too
+        if (filter_byte)   // then we need the filter width byte too
         {
-            // since width_icom is 0-2 for rigs that need this here we have to make it 1-3
-            datamode[1] = datamode[0] ? width_icom : 0;
+            if (width_icom == -1) datamode[1] = 1; // default to filter 1
+            else datamode[1] = width_icom;
             retval =
-                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2,
-                                 ackbuf,
-                                 &ack_len);
+                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2, ackbuf, &ack_len);
         }
         else
         {
             retval =
-                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 1, ackbuf,
-                                 &ack_len);
+                icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 1, ackbuf, &ack_len);
         }
 
         if (retval != RIG_OK)
@@ -4815,6 +4812,11 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
             cmd = C_SEND_SEL_FREQ;
             subcmd = 0x01; // set the unselected vfo
+            // if we're already on the tx_vfo don't need the "other" vfo
+            if (rig->state.current_vfo == rig->state.tx_vfo)
+            {
+                subcmd = 0x00;
+            }
             retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                                       &ack_len);
 
