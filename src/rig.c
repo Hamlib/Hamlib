@@ -367,6 +367,16 @@ static void cache_show(RIG *rig, const char *func, int line)
               "%s(%d): freqMainB=%.0f, modeMainB=%s, widthMainB=%d\n", func, line,
               rig->state.cache.freqMainB, rig_strrmode(rig->state.cache.modeMainB),
               (int)rig->state.cache.widthMainB);
+    if (rig->state.vfo_list & RIG_VFO_SUB_A) {
+    rig_debug(RIG_DEBUG_CACHE,
+              "%s(%d): freqSubA=%.0f, modeSubA=%s, widthSubA=%d\n", func, line,
+              rig->state.cache.freqSubA, rig_strrmode(rig->state.cache.modeSubA),
+              (int)rig->state.cache.widthSubA);
+    rig_debug(RIG_DEBUG_CACHE,
+              "%s(%d): freqSubB=%.0f, modeSubB=%s, widthSubB=%d\n", func, line,
+              rig->state.cache.freqSubB, rig_strrmode(rig->state.cache.modeSubB),
+              (int)rig->state.cache.widthSubB);
+    }
 }
 
 /**
