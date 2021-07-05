@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20210703"
+#define BACKEND_VER "20210705"
 
 #define ICOM_IS_SECONDARY_VFO(vfo) ((vfo) & (RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B))
 #define ICOM_GET_VFO_NUMBER(vfo) (ICOM_IS_SECONDARY_VFO(vfo) ? 0x01 : 0x00)
@@ -251,6 +251,10 @@ struct icom_priv_data
     freq_t curr_freq; /*!< Our current freq depending on which vfo is selected */
     freq_t main_freq; /*!< Track last setting of main -- not being used yet */
     freq_t sub_freq;  /*!< Track last setting of sub -- not being used yet */
+    freq_t maina_freq;
+    freq_t mainb_freq;
+    freq_t suba_freq;
+    freq_t subb_freq;
     freq_t vfoa_freq; /*!< Track last setting of vfoa -- used to return last freq when ptt is asserted */
     freq_t vfob_freq; /*!< Track last setting of vfob -- used to return last freq when ptt is asserted */
     int x25cmdfails; /*!< This will get set if the 0x25 command fails so we try just once */

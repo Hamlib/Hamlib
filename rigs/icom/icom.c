@@ -1111,26 +1111,17 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC(-RIG_ERJCTED);
     }
 
-    if (vfo == RIG_VFO_MAIN)
-    {
-        priv->main_freq = freq;
-    }
-    else if (vfo == RIG_VFO_SUB)
-    {
-        priv->sub_freq = freq;
-    }
-
     priv->curr_freq = freq;
 
     switch (vfo)
     {
-    case RIG_VFO_MAIN_A:
-    case RIG_VFO_SUB_A:
     case RIG_VFO_A: priv->vfoa_freq = freq; break;
+    case RIG_VFO_MAIN_A: priv->maina_freq = freq; break;
+    case RIG_VFO_SUB_A: priv->suba_freq = freq; break;
 
-    case RIG_VFO_MAIN_B:
-    case RIG_VFO_SUB_B:
     case RIG_VFO_B: priv->vfob_freq = freq; break;
+    case RIG_VFO_MAIN_B: priv->mainb_freq = freq;
+    case RIG_VFO_SUB_B: priv->subb_freq = freq;
 
     case RIG_VFO_MAIN: priv->main_freq = freq; break;
 
@@ -1377,13 +1368,13 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     switch (vfo)
     {
-    case RIG_VFO_MAIN_A:
-    case RIG_VFO_SUB_A:
     case RIG_VFO_A: priv->vfoa_freq = *freq; break;
+    case RIG_VFO_MAIN_A: priv->maina_freq = *freq; break;
+    case RIG_VFO_SUB_A: priv->suba_freq = *freq; break;
 
-    case RIG_VFO_MAIN_B:
-    case RIG_VFO_SUB_B:
     case RIG_VFO_B: priv->vfob_freq = *freq; break;
+    case RIG_VFO_MAIN_B: priv->mainb_freq = *freq; break;
+    case RIG_VFO_SUB_B: priv->subb_freq = *freq; break;
 
     case RIG_VFO_MAIN: priv->main_freq = *freq; break;
 
