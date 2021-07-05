@@ -431,9 +431,13 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
     case RIG_VFO_MAIN:
     case RIG_VFO_A: priv->vfo_a.freq = freq; break;
+    case RIG_VFO_MAIN_A: priv->vfo_maina.freq = freq; break;
+    case RIG_VFO_MAIN_B: priv->vfo_mainb.freq = freq; break;
 
     case RIG_VFO_SUB:
     case RIG_VFO_B: priv->vfo_b.freq = freq; break;
+    case RIG_VFO_SUB_A: priv->vfo_suba.freq = freq; break;
+    case RIG_VFO_SUB_B: priv->vfo_subb.freq = freq; break;
 
     case RIG_VFO_C: priv->vfo_c.freq = freq; break;
     }
@@ -2172,7 +2176,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20210702.0",
+    .version =        "20210705.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
