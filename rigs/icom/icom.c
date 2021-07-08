@@ -1267,12 +1267,17 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     // we'll use 0x25 command to get unselected frequency
-    // we are always assuming we're on VFOA/Main to start with
+    // we have to assume current_vfo is accurate to determin what "other" means
     if (priv->x25cmdfails == 0)
     {
         int cmd2 = 0x25;
         int subcmd2 = 0x00;
         vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B;
+        // if we are on the "other" vfo already then we have to allow for that
+        if (rig->state.current_vfo & vfo_unselected)
+        {
+            vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A;
+        }
 
         // if we ask for unselected but we're not on unselected subcmd2 changes
         if ((vfo & vfo_unselected) && !(rig->state.current_vfo & vfo_unselected))
@@ -2449,6 +2454,9 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                       ackbuf[0], ack_len);
             RETURNFUNC(-RIG_ERJCTED);
         }
+        // If SUB_A then we'll assume we're done and probably not in sat mode
+        // If rig has SUB_B active this may be a problem
+        if (vfo == RIG_VFO_SUB_A) return RIG_OK;
 
         icvfo = vfo == RIG_VFO_SUB_A ? S_VFOA : S_VFOB;
 
@@ -5225,7 +5233,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         RETURNFUNC(retval);
     }
 
-    if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
     }
@@ -5408,7 +5416,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
             RETURNFUNC(retval);
         }
 
-        if (RIG_OK != (retval = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode,
+        if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && RIG_OK != (retval = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode,
                                 tx_width)))
         {
             RETURNFUNC(retval);
@@ -5485,12 +5493,17 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
                   __func__, rig_strvfo(tx_vfo));
     }
 
-    if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) && RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
     }
 
     if (RIG_OK != (retval = rig_set_freq(rig, RIG_VFO_CURR, tx_freq)))
+    {
+        RETURNFUNC(retval);
+    }
+
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
     }
@@ -5501,7 +5514,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         RETURNFUNC(retval);
     }
 
-    if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         RETURNFUNC(retval);
     }
