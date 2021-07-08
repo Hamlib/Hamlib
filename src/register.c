@@ -257,7 +257,6 @@ static int rig_lookup_backend(rig_model_t rig_model)
 {
     int i;
 
-    //if (rig_model >= 1000) rig_model = RIG_BACKEND_NUM(rig_model);
     for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {
         if (RIG_BACKEND_NUM(rig_model) ==
@@ -307,7 +306,15 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
         return -RIG_ENAVAIL;
     }
 
-    retval = rig_load_backend(rig_backend_list[be_idx].be_name);
+    // do we need to load the backend?
+    if (rig_backend_list[be_idx].be_init_all == 0)
+    {
+        retval = rig_load_backend(rig_backend_list[be_idx].be_name);
+    }
+    else
+    {
+        retval = -RIG_ENAVAIL;
+    }
 
     return retval;
 }
