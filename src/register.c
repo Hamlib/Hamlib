@@ -257,10 +257,12 @@ static int rig_lookup_backend(rig_model_t rig_model)
 {
     int i;
 
+    //if (rig_model >= 1000) rig_model = RIG_BACKEND_NUM(rig_model);
     for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {
-        if (rig_model ==
-                rig_backend_list[i].be_num*1000)
+        if (RIG_BACKEND_NUM(rig_model) ==
+               rig_backend_list[i].be_num)
+
         {
             return i;
         }
