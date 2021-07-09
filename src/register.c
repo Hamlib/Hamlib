@@ -307,14 +307,16 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     }
 
     // do we need to load the backend?
-    if (rig_backend_list[be_idx].be_init_all == 0)
+//    if (rig_backend_list[be_idx].be_init_all == 0)
     {
         retval = rig_load_backend(rig_backend_list[be_idx].be_name);
     }
+#if 0
     else
     {
-        retval = -RIG_ENAVAIL;
+        retval = RIG_OK;
     }
+#endif
 
     return retval;
 }
