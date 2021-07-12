@@ -747,8 +747,8 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "timeout") == 0)
             {
-                // use the rig's timeout value pluse 200ms for potential network delays
-                rig->caps->timeout = strtol(value, NULL, 0) + 200;
+                // use the rig's timeout value pluse 500ms for potential network delays
+                rig->caps->timeout = strtol(value, NULL, 0) + 500;
                 rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n",
                           __func__, value, rig->caps->timeout);
             }
@@ -2548,7 +2548,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20210613.0",
+    .version =        "20210712.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
@@ -2556,8 +2556,8 @@ struct rig_caps netrigctl_caps =
     .ptt_type =       RIG_PTT_RIG_MICDATA,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NETWORK,
-    .timeout = 3000,  /* enough for the worst rig we have */
-    .retry =   5,     /* 5 seconds total */
+    .timeout = 10000,  /* enough for the worst rig we have */
+    .retry =   5,     
 
     /* following fields updated in rig_state at opening time */
     .has_get_func =   RIG_FUNC_NONE,
