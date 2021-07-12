@@ -2216,6 +2216,13 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(-RIG_EIO);
     }
 
+    // do not mess with mode while PTT is on
+    if (rig->state.cache.ptt)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s PTT on so set_mode ignored\n", __func__);
+        return RIG_OK;
+    }
+
     caps = rig->caps;
 
     if (caps->set_mode == NULL)
@@ -3997,6 +4004,13 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     if (CHECK_RIG_ARG(rig))
     {
         RETURNFUNC(-RIG_EIO);
+    }
+
+    // do not mess with mode while PTT is on
+    if (rig->state.cache.ptt)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s PTT on so set_split_mode ignored\n", __func__);
+        return RIG_OK;
     }
 
     caps = rig->caps;
