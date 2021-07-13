@@ -36,6 +36,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 
+#define RSHFIQ_INIT_RETRY 5
 
 static int rshfiq_open(RIG *rig)
 {
@@ -79,36 +80,28 @@ static int rshfiq_open(RIG *rig)
         }
     }
 
-    rig_flush(&rig->state.rigport);
-
-    snprintf(versionstr, sizeof(versionstr), "*w\r");
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, versionstr);
-    retval = write_block(&rig->state.rigport, versionstr, strlen(versionstr));
-
-    if (retval != RIG_OK)
+    //There is a delay between when the port is open and the RS-HFIQ can receive and respond.
+    //Make a few attempts at getting the version string just in case the RS-HFIQ has to catch up first.
+    retval = -RIG_ETIMEOUT;
+    for (int init_retry_count = 0; (init_retry_count < RSHFIQ_INIT_RETRY) && (retval == -RIG_ETIMEOUT); init_retry_count++)
     {
-        return retval;
-    }
-
-    retval = read_string(&rig->state.rigport, versionstr, 20, stopset, 2);
-
-    if (retval <= 0)
-    {
-        // Just one retry if the arduino is just booting
+        rig_flush(&rig->state.rigport);
+        snprintf(versionstr, sizeof(versionstr), "*w\r");
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, versionstr);
         retval = write_block(&rig->state.rigport, versionstr, strlen(versionstr));
-
         if (retval != RIG_OK)
         {
             return retval;
         }
-
         retval = read_string(&rig->state.rigport, versionstr, 20, stopset, 2);
-
-        if (retval <= 0)
-        {
-            return retval;
-        }
     }
+
+    if (retval <= 0)
+    {
+        return retval;
+    }
+
+    rig_flush(&rig->state.rigport);
 
     versionstr[retval] = 0;
     rig_debug(RIG_DEBUG_TRACE, "%s: Rigversion = %s\n", __func__, versionstr);
