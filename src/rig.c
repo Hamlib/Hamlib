@@ -1032,7 +1032,7 @@ int HAMLIB_API rig_open(RIG *rig)
      */
     TRACE;
 
-    if (rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
+    if (caps->get_vfo && rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
     {
         rs->tx_vfo = rs->current_vfo;
     }
@@ -2123,7 +2123,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         TRACE;
         retcode = caps->get_freq(rig, vfo, freq);
         /* try and revert even if we had an error above */
-        rc2 = caps->set_vfo(rig, curr_vfo);
+        rc2 = RIG_OK;
+        if (curr_vfo != RIG_VFO_NONE)
+        {
+            rc2 = caps->set_vfo(rig, curr_vfo);
+        }
 
         if (RIG_OK == retcode)
         {
