@@ -728,6 +728,9 @@ AS_IF([test x"${DL_LIBS}" = "x-ldl"],
 
 AC_SUBST([DL_LIBS])
 
+dnl check for c++11
+AX_CXX_COMPILE_STDCXX([11],[noext],[mandatory])
+
 
 dnl stuff that requires C++ support
 AS_IF([test x"${cf_with_usrp}" = "xyes"],[
