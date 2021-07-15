@@ -82,6 +82,9 @@ The library may be recompiled by the familiar "three step":
         make
         sudo make install
 
+For debugging use this configure
+        ./configure CFLAGS=-g -O0 -fPIC --no-create --no-recursio
+
 See the INSTALL file for more information.
 
 Contributing
