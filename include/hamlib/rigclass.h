@@ -38,7 +38,7 @@ public:
 
     virtual ~Rig();
 #if __cplusplus >= 201103L
-    Rig(const Rig&) = default;
+    Rig(const Rig&) = delete;
     Rig& operator=(const Rig&) = delete;
 #else
     Rig(const Rig&);
