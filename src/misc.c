@@ -1744,7 +1744,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
         if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
     }
 
-    else if (vfo == RIG_VFO_TX || vfo == RIG_VFO_B)
+    else if (vfo == RIG_VFO_TX)
     {
         int retval;
         split_t split = 0;
