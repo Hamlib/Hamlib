@@ -1762,8 +1762,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 
         int satmode = rig->state.cache.satmode;
 
-        if (split) { vfo = RIG_VFO_B; }
-        else { vfo = RIG_VFO_A; }
+        if (split && vfo == RIG_VFO_TX) { vfo = RIG_VFO_B; }
 
         if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode && vfo != RIG_VFO_B) { vfo = RIG_VFO_MAIN; }
 
