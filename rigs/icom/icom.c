@@ -5944,7 +5944,11 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
     {
         rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-        priv->x25cmdfails = satmode; // reset this so it tries again
+        if (satmode != rig->state.cache.satmode)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): satmode changed to reset x25cmdfails\n", __func__, __LINE__);
+            priv->x25cmdfails = satmode; // reset this so it tries again
+        }
     }
 
     rig->state.cache.satmode = satmode;
