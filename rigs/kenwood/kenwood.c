@@ -1273,15 +1273,14 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     priv->tx_vfo = txvfo;
 
-    if (RIG_IS_K2 || RIG_IS_K3)
+    /* do not attempt redundant split change commands on Elecraft as
+       they impact output power when transmitting 
+       and all other rigs don't need to set it if it's already set correctly 
+    */
+    if (RIG_OK == (retval = kenwood_safe_transaction(rig, "FT", cmdbuf,
+                            sizeof(cmdbuf), 3)))
     {
-        /* do not attempt redundant split change commands on Elecraft as
-           they impact output power when transmitting */
-        if (RIG_OK == (retval = kenwood_safe_transaction(rig, "FT", cmdbuf,
-                                sizeof(cmdbuf), 3)))
-        {
-            if (cmdbuf[2] == vfo_function) { RETURNFUNC(RIG_OK); }
-        }
+        if (cmdbuf[2] == vfo_function) { RETURNFUNC(RIG_OK); }
     }
 
     /* set TX VFO */
