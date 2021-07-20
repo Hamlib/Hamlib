@@ -1267,7 +1267,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     // we'll use 0x25 command to get unselected frequency
-    // we have to assume current_vfo is accurate to determin what "other" means
+    // we have to assume current_vfo is accurate to determine what "other" means
     if (priv->x25cmdfails == 0)
     {
         int cmd2 = 0x25;
