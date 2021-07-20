@@ -910,6 +910,7 @@ int kenwood_open(RIG *rig)
     /* compare id string */
     for (i = 0; kenwood_id_string_list[i].model != RIG_MODEL_NONE; i++)
     {
+        //rig_debug(RIG_DEBUG_ERR, "%s: comparing '%s'=='%s'\n", __func__, kenwood_id_string_list[i].id, idptr);
         if (strcmp(kenwood_id_string_list[i].id, idptr) != 0)
         {
             continue;
@@ -1121,6 +1122,11 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     if ('N' == cmdbuf[1] || priv->split != RIG_SPLIT_OFF)
     {
         RETURNFUNC(RIG_OK);
+    }
+    // some rigs need split turned on after VFOA is set
+    if (vfo == RIG_VFO_A && priv->split == RIG_SPLIT_ON)
+    {
+        rig_set_split_vfo(rig, RIG_VFO_CURR, 1, priv->tx_vfo);
     }
 
     /* set TX VFO */
