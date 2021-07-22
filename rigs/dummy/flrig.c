@@ -297,7 +297,7 @@ static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf, int xmlbu
                   __func__, (int)strlen(header), n);
     }
 
-    n = snprintf(xml, sizeof(xml), "<?xml version=\"1.0\"?>\r\n<?clientid=\"hamlib(%d)\"?\r\n", rig->state.rigport.client_port);
+    n = snprintf(xml, sizeof(xml), "<?xml version=\"1.0\"?>\r\n<?clientid=\"hamlib(%d)\"?>\r\n", rig->state.rigport.client_port);
 
     if (n != strlen(xml))
     {
