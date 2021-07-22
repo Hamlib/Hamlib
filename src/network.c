@@ -165,6 +165,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     int status;
     struct addrinfo hints, *res, *saved_res;
     struct in6_addr serveraddr;
+    struct sockaddr_in client;
     char hoststr[256], portstr[6] = "";
 
     ENTERFUNC;
@@ -298,6 +299,11 @@ int network_open(hamlib_port_t *rp, int default_port)
     }
 
     rp->fd = fd;
+
+    socklen_t clientLen = sizeof(client);
+    getsockname(rp->fd, (struct sockaddr *)&client, &clientLen);
+    rig_debug(RIG_DEBUG_ERR, "%s: client port=%d\n", __func__, client.sin_port);
+    rp->client_port = client.sin_port;
 
     RETURNFUNC(RIG_OK);
 }
