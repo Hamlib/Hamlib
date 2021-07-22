@@ -2179,6 +2179,7 @@ typedef struct hamlib_port {
             int value;      /*!< Toggle PTT ON or OFF */
         } gpio;             /*!< GPIO attributes */
     } parm;                 /*!< Port parameter union */
+    int client_port;      /*!< client socket port for tcp connection */
 } hamlib_port_t;
 //! @endcond
 
