@@ -83,11 +83,12 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "+m:r:s:C:o:O:t:LvhVluZ"
+#define SHORT_OPTIONS "+m:r:R:s:C:o:O:t:LvhVluZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
     {"rot-file",        1, 0, 'r'},
+    {"rot-file2",       1, 0, 'R'},
     {"serial-speed",    1, 0, 's'},
     {"send-cmd-term",   1, 0, 't'},
     {"list",            0, 0, 'l'},
@@ -135,6 +136,7 @@ int main(int argc, char *argv[])
 #endif  /* HAVE_READLINE_HISTORY */
 
     const char *rot_file = NULL;
+    const char *rot_file2 = NULL; // for 2nd controller for RT21
     int serial_rate = 0;
     char conf_parms[MAXCONFLEN] = "";
     int interactive = 1; /* if no cmd on command line, switch to interactive */
@@ -188,6 +190,16 @@ int main(int argc, char *argv[])
             }
 
             rot_file = optarg;
+            break;
+
+        case 'R':
+            if (!optarg)
+            {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            rot_file2 = optarg;
             break;
 
         case 's':
@@ -343,6 +355,11 @@ int main(int argc, char *argv[])
         strncpy(my_rot->state.rotport.pathname, rot_file, HAMLIB_FILPATHLEN - 1);
     }
 
+    if (rot_file2)
+    {
+        strncpy(my_rot->state.rotport2.pathname, rot_file2, HAMLIB_FILPATHLEN - 1);
+    }
+
     /* FIXME: bound checking and port type == serial */
     if (serial_rate != 0)
     {
@@ -493,6 +510,7 @@ void usage()
     printf(
         "  -m, --model=ID                select rotator model number. See model list\n"
         "  -r, --rot-file=DEVICE         set device of the rotator to operate on\n"
+        "  -R, --rot-file2=DEVICE        set device of the 2nd rotator controller to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -t, --send-cmd-term=CHAR      set send_cmd command termination char\n"
         "  -C, --set-conf=PARM=VAL       set config parameters\n"

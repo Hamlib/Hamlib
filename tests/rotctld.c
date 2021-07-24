@@ -84,11 +84,12 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:o:O:t:T:LuvhVlZ"
+#define SHORT_OPTIONS "m:r:R:s:C:o:O:t:T:LuvhVlZ"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
     {"rot-file",        1, 0, 'r'},
+    {"rot-file2",       1, 0, 'R'},
     {"serial-speed",    1, 0, 's'},
     {"port",            1, 0, 't'},
     {"listen-addr",     1, 0, 'T'},
@@ -160,6 +161,7 @@ int main(int argc, char *argv[])
     int show_conf = 0;
     int dump_caps_opt = 0;
     const char *rot_file = NULL;
+    const char *rot_file2 = NULL;
     int serial_rate = 0;
     char conf_parms[MAXCONFLEN] = "";
 
@@ -216,6 +218,16 @@ int main(int argc, char *argv[])
             }
 
             rot_file = optarg;
+            break;
+
+        case 'R':
+            if (!optarg)
+            {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            rot_file2 = optarg;
             break;
 
         case 's':
@@ -349,6 +361,11 @@ int main(int argc, char *argv[])
     if (rot_file)
     {
         strncpy(my_rot->state.rotport.pathname, rot_file, HAMLIB_FILPATHLEN - 1);
+    }
+
+    if (rot_file2)
+    {
+        strncpy(my_rot->state.rotport2.pathname, rot_file2, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
@@ -730,6 +747,7 @@ void usage()
     printf(
         "  -m, --model=ID                select rotator model number. See model list\n"
         "  -r, --rot-file=DEVICE         set device of the rotator to operate on\n"
+        "  -R, --rot-file2=DEVICE        set device of the 2nd rotator controller to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -t, --port=NUM                set TCP listening port, default %s\n"
         "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
