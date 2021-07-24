@@ -416,6 +416,21 @@ int HAMLIB_API rot_open(ROT *rot)
         }
 
         rs->rotport.fd = status;
+
+        // RT21 has 2nd serial port elevation
+        // so if a 2nd pathname is provided we'll open it
+        if (rot->caps->rot_model == ROT_MODEL_RT21 && rs->rotport2.pathname[0] != 0)
+        {
+            status = open(rs->rotport2.pathname, O_RDWR, 0);
+
+            if (status < 0)
+            {
+                return -RIG_EIO;
+            }
+
+            rs->rotport2.fd = status;
+        }
+
         break;
 
 #if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)
