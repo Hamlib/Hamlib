@@ -309,9 +309,9 @@ const struct rot_caps rt21_rot_caps =
     ROT_MODEL(ROT_MODEL_RT21),
     .model_name =       "RT-21",
     .mfg_name =     "Green Heron",
-    .version =      "20140914.0",
+    .version =      "20210723.0",
     .copyright =        "LGPL",
-    .status =       RIG_STATUS_ALPHA,
+    .status =       RIG_STATUS_STABLE,
     .rot_type =     ROT_TYPE_OTHER,
     .port_type =        RIG_PORT_SERIAL,
     .serial_rate_min =  4800,
@@ -328,7 +328,7 @@ const struct rot_caps rt21_rot_caps =
     .min_az =       0,
     .max_az =       359.9,
     .min_el =       0,
-    .max_el =       0,
+    .max_el =       90,
 
     .priv =         NULL,   /* priv */
 //  .cfgparams =        rotorez_cfg_params,
