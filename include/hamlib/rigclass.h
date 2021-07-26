@@ -295,6 +295,8 @@ inline void THROW(const RigException *e)
 #else
     throw *e;
 #endif
+#elif defined(_MSC_VER)
+    throw* e;
 #elif defined(__SUNPRO_CC)
     genericerror(1, ((e != 0) ? (char *)(e->message) : ""));
 #else
