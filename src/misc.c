@@ -1735,9 +1735,9 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
         return vfo;  // don't modify vfo for RIG_VFO_CURR
     }
 
-    if (vfo == RIG_VFO_RX || vfo == RIG_VFO_A)
+    if (vfo == RIG_VFO_RX || vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
-        vfo = RIG_VFO_A;
+        vfo = RIG_VFO_A; // default to mapping VFO_MAIN to VFO_A
 
         if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_MAIN; }
 
@@ -1779,6 +1779,10 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
     else if (vfo == RIG_VFO_B)
 
     {
+        if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_SUB; }
+
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_SUB; }
+
         rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
     }
 
