@@ -36,7 +36,7 @@ typedef enum nc_rigid_e
 int
 getmyline(int fd, char *buf)
 {
-    int c;
+    char c;
     int i = 0;
     memset(buf, 0, BUFSIZE);
 
@@ -99,8 +99,9 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        getmyline(fd, buf);
+        if(getmyline(fd, buf))
         printf("Cmd:%s\n", buf);
+        else return 0;
 
         if (strcmp(buf, "RM5;") == 0)
         {
