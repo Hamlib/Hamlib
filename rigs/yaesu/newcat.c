@@ -4678,7 +4678,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         break;
-    case RIG_METER_TEMP:
+    case RIG_LEVEL_TEMP_METER:
         if (is_ftdx9000)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM11%c", cat_term);
