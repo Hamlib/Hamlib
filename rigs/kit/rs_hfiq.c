@@ -202,12 +202,24 @@ static int rshfiq_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     return retval;
 }
 
+static int rsfhiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    switch (level)
+    {
+        case RIG_LEVEL_TEMP_METER:
+            return -RIG_ENIMPL;
+            break;
+    }
+    return -RIG_ENIMPL;
+}
+
+
 const struct rig_caps rshfiq_caps =
 {
     RIG_MODEL(RIG_MODEL_RSHFIQ),
     .model_name =     "RS-HFIQ",
     .mfg_name =       "HobbyPCB",
-    .version =        "20210712.0",
+    .version =        "20210802.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -246,6 +258,8 @@ const struct rig_caps rshfiq_caps =
     .get_freq =     rshfiq_get_freq,
     .set_freq =     rshfiq_set_freq,
     .set_ptt  =     rshfiq_set_ptt,
+    .has_get_level =      RIG_LEVEL_TEMP_METER,
+    .get_level =          rsfhiq_get_level,
 
 };
 
