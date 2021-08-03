@@ -405,17 +405,132 @@ int network_close(hamlib_port_t *rp)
 
 volatile int multicast_server_run = 1;
 pthread_t multicast_server_threadId;
+extern void sync_callback(int lock);
+
+struct multicast_server_args_s
+{
+    RIG *rig;
+} multicast_server_args;
 
 //! @cond Doxygen_Suppress
 // our multicast server loop
-static void *multicast_server(void *arg)
+void *multicast_server(void *arg)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s(%d): Starting multicast server\n", __FILE__, __LINE__);
-    do {
-        rig_debug(RIG_DEBUG_TRACE, "%s(%d): Multicast server poll\n", __FILE__, __LINE__);
-        hl_usleep(1000*1000);
-    } while(multicast_server_run);
-    rig_debug(RIG_DEBUG_TRACE, "%s(%d): Stopping multicast server\n", __FILE__, __LINE__);
+    struct multicast_server_args_s *args = (struct multicast_server_args_s *)arg;
+    RIG *rig = args->rig;
+    rig_debug(RIG_DEBUG_TRACE, "%s(%d): Starting multicast server\n", __FILE__,
+              __LINE__);
+    // we can and should use a really small cache time while we are polling
+    // rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, 100);
+
+    // this is really verbose since it runs very quickly
+    // so we only spit out WARN unless CACHE has been selected
+    //if (!rig_need_debug(RIG_DEBUG_CACHE)) { rig_set_debug(RIG_DEBUG_WARN); }
+
+
+    freq_t freqMain = 0, freqSub = 0, freqMainLast = 0, freqSubLast = 0;
+    rmode_t modeMain = RIG_MODE_NONE, modeSub = RIG_MODE_NONE,
+            modeMainLast = RIG_MODE_NONE, modeSubLast = RIG_MODE_NONE;
+    pbwidth_t widthMain = 0, widthSub = 0, widthMainLast = 0, widthSubLast = 0;
+    split_t split, splitLast = -1;
+
+    do
+    {
+        int retval;
+        int updateOccurred;
+
+        updateOccurred = 0;
+
+        if (rig->caps->get_freq)
+        {
+            sync_callback(1);
+            retval = rig_get_freq(rig, RIG_VFO_A, &freqMain);
+            sync_callback(0);
+
+            if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_freqA error %s\n", __FILE__, __LINE__, rigerror(retval)); }
+
+            sync_callback(1);
+            retval = rig_get_freq(rig, RIG_VFO_B, &freqSub);
+            sync_callback(0);
+
+            if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_freqB error %s\n", __FILE__, __LINE__, rigerror(retval)); }
+
+            if (freqMain != freqMainLast || freqSub != freqSubLast)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s(%d) freqMain=%.0f was %.0f, freqSub=%.0f was %.0f\n", __FILE__, __LINE__,
+                          freqMain, freqMainLast, freqSub, freqSubLast);
+                updateOccurred = 1;
+                freqMainLast = freqMain;
+                freqSubLast = freqSub;
+            }
+        }
+
+        if (rig->caps->get_mode)
+        {
+            sync_callback(1);
+            retval = rig_get_mode(rig, RIG_VFO_A, &modeMain, &widthMain);
+            sync_callback(0);
+
+            if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_modeA error %s\n", __FILE__, __LINE__, rigerror(retval)); }
+
+            sync_callback(1);
+            retval = rig_get_mode(rig, RIG_VFO_B, &modeSub, &widthSub);
+            sync_callback(0);
+
+            if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_modeB error %s\n", __FILE__, __LINE__, rigerror(retval)); }
+
+            if (modeMain != modeMainLast || modeSub != modeSubLast)
+            {
+                rig_debug(RIG_DEBUG_TRACE, "%s(%d) modeMain=%s was %s, modeSub=%s was %s\n",
+                          __FILE__, __LINE__, rig_strrmode(modeMain), rig_strrmode(modeMainLast),
+                          rig_strrmode(modeSub), rig_strrmode(modeSubLast));
+                updateOccurred = 1;
+                modeMainLast = modeMain;
+                modeSubLast = modeSub;
+            }
+
+            if (widthMain != widthMainLast || widthSub != widthSubLast)
+            {
+                rig_debug(RIG_DEBUG_WARN,
+                          "%s(%d) widthMain=%ld was %ld, widthSub=%ld was %ld\n", __FILE__, __LINE__,
+                          widthMain, widthMainLast, widthSub, widthSubLast);
+                updateOccurred = 1;
+                widthMainLast = widthMain;
+                widthSubLast = widthSub;
+            }
+        }
+
+        if (rig->caps->get_split_vfo)
+        {
+            vfo_t tx_vfo;
+            sync_callback(1);
+            retval = rig_get_split_vfo(rig, RIG_VFO_A, &split, &tx_vfo);
+            sync_callback(0);
+
+            if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_modeA error %s\n", __FILE__, __LINE__, rigerror(retval)); }
+
+            if (split != splitLast)
+            {
+                rig_debug(RIG_DEBUG_WARN, "%s(%d) split=%d was %d\n", __FILE__, __LINE__, split,
+                          splitLast);
+                updateOccurred = 1;
+                splitLast = split;
+            }
+        }
+
+        if (updateOccurred)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s(%d): update occurred...time to send multicast\n",
+                      __FILE__, __LINE__);
+        }
+
+        hl_usleep(100 * 1000);
+    }
+    while (multicast_server_run);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s(%d): Stopping multicast server\n", __FILE__,
+              __LINE__);
     return NULL;
 }
 //! @endcond
@@ -430,34 +545,58 @@ static void *multicast_server(void *arg)
  * \param default_port Default network socket port
  * \return RIG_OK or < 0 if error
  */
-int network_multicast_server(RIG *rig, const char *multicast_addr, int default_port, enum multicast_item_e items)
+int network_multicast_server(RIG *rig, const char *multicast_addr,
+                             int default_port, enum multicast_item_e items)
 {
     int status;
 
-    ENTERFUNC;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):network_multicast_server under development\n", __FILE__, __LINE__);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):ADDR=%s, port=%d\n", __FILE__, __LINE__, multicast_addr, default_port);
+    //ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s(%d):network_multicast_server under development\n", __FILE__, __LINE__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):ADDR=%s, port=%d\n", __FILE__, __LINE__,
+              multicast_addr, default_port);
+
+    if (strcmp(multicast_addr,"0.0.0.0")==0) 
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): not starting multicast\n", __FILE__, __LINE__);
+        return RIG_OK; // don't start it
+    }
+
+    if (multicast_server_threadId != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): multicast_server already running\n", __FILE__,
+                  __LINE__);
+    }
+
     status = network_init();
 
     if (status != RIG_OK) { RETURNFUNC(status); }
 
     if (items && RIG_MULTICAST_TRANSCEIVE)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) MULTICAST_TRANSCEIVE enabled\n", __FILE__, __LINE__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) MULTICAST_TRANSCEIVE enabled\n", __FILE__,
+                  __LINE__);
     }
+
     if (items && RIG_MULTICAST_SPECTRUM)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) MULTICAST_SPECTRUM enabled\n", __FILE__, __LINE__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) MULTICAST_SPECTRUM enabled\n", __FILE__,
+                  __LINE__);
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s(%d) unknown MULTICAST item requested=0x%x\n", __FILE__, __LINE__, items);
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) unknown MULTICAST item requested=0x%x\n",
+                  __FILE__, __LINE__, items);
     }
 
-    int err = pthread_create(&multicast_server_threadId, NULL, multicast_server, NULL);
+    multicast_server_args.rig = rig;
+    int err = pthread_create(&multicast_server_threadId, NULL, multicast_server,
+                             &multicast_server_args);
+
     if (err)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error %s\n", __FILE__, __LINE__, strerror(errno));
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error %s\n", __FILE__, __LINE__,
+                  strerror(errno));
         return -RIG_EINTERNAL;
     }
 

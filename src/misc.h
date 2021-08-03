@@ -106,7 +106,7 @@ extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t usec);
 
 extern HAMLIB_EXPORT(double) elapsed_ms(struct timespec *start, int start_flag);
 
-extern HAMLIB_EXPORT(vfo_t) vfo_fixup(RIG *rig, vfo_t vfo);
+extern HAMLIB_EXPORT(vfo_t) vfo_fixup(RIG *rig, vfo_t vfo, split_t split);
 
 extern HAMLIB_EXPORT(int) parse_hoststr(char *host, char hoststr[256], char port[6]);
 
