@@ -507,7 +507,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s %s\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), buf);
 
-    vfo = vfo_fixup(rig, vfo);
+    vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
     switch (vfo)
     {
     case RIG_VFO_MAIN:
@@ -522,7 +522,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    vfo = vfo_fixup(rig, vfo);
+    vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
 
     if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(RIG_OK); }
 

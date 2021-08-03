@@ -9,6 +9,13 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 Version 4.3
         * 2021-??-??
         * Generating documentation now requires GNU source-highlighter.
+        * Added IC-575
+        * Overhaul of rig split -- reverse split (VFOA=RX VFOB=TX) should work for rigs capable of it
+          Starting VFO does not matter -- rig will end up on RX VFO
+          S VFOA 1 VFOB
+          S VFOB 1 VFOA
+          S Main 1 Sub
+          S Sub 1 Main
 
 Version 4.2
         * 2021-05-17

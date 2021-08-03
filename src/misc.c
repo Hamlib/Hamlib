@@ -1724,7 +1724,7 @@ int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
 // we're mappping our VFO here to work with either VFO A/B rigs or Main/Sub
 // Hamlib uses VFO_A  and VFO_B as TX/RX as of 2021-04-13
 // So we map these to Main/Sub as required
-vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
+vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_curr=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
@@ -1746,6 +1746,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
 
     else if (vfo == RIG_VFO_TX)
     {
+#if 0
         int retval;
         split_t split = 0;
         // get split if we can -- it will default to off otherwise
@@ -1759,6 +1760,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo)
         {
             split = rig->state.cache.split;
         }
+#endif
 
         int satmode = rig->state.cache.satmode;
 

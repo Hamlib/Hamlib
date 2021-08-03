@@ -909,6 +909,7 @@ static int icom_set_default_vfo(RIG *rig)
             RETURNFUNC(retval);
         }
 
+        TRACE;
         retval = rig_set_vfo(rig, RIG_VFO_A);  // we'll default to Main in this case
 
         if (retval != RIG_OK)
@@ -1257,6 +1258,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         // we default to VFOA/MAIN as appropriate
         vfo = (rig->state.vfo_list & RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_MAIN;
+        TRACE;
         retval = rig_set_vfo(rig, vfo);
 
         if (retval != RIG_OK)
@@ -1301,6 +1303,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (priv->x25cmdfails) // then we're doing this the hard way....swap+read
     {
         freqbuf_offset = 1;
+        TRACE;
         retval = set_vfo_curr(rig, vfo, rig->state.current_vfo);
 
         if (retval != RIG_OK)
@@ -1311,6 +1314,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         }
 
         retval = icom_transaction(rig, cmd, subcmd, NULL, 0, freqbuf, &freq_len);
+        TRACE;
         set_vfo_curr(rig, vfo_save, rig->state.current_vfo);
     }
 
@@ -2143,6 +2147,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             if (vfosave != vfo)
             {
                 // right now forcing VFOA/B arrangement -- reverse not supported yet
+                TRACE;
                 rig_set_vfo(rig, RIG_VFO_B);
                 retval = icom_get_dsp_flt(rig, *mode);
                 *width = retval;
@@ -4773,6 +4778,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
 
 #if 0
+    TRACE;
     retval = set_vfo_curr(rig, RIG_VFO_TX, RIG_VFO_TX);
 
     if (retval != RIG_OK)
@@ -4900,7 +4906,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     {
         RETURNFUNC(retval);
     }
-
+ 
+    TRACE;
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
         // Then we return the VFO to the rx_vfo
@@ -5113,6 +5120,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         RETURNFUNC(retval);
     }
 
+    TRACE;
     if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
@@ -5123,6 +5131,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         RETURNFUNC(retval);
     }
 
+    TRACE;
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
         // Then we return the VFO to where it was
@@ -5233,6 +5242,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         RETURNFUNC(retval);
     }
 
+    TRACE;
     if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
@@ -5343,6 +5353,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         RETURNFUNC(retval);
     }
 
+    TRACE;
     if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
@@ -5493,6 +5504,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
                   __func__, rig_strvfo(tx_vfo));
     }
 
+    TRACE;
     if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) && RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
@@ -5618,6 +5630,7 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
         RETURNFUNC(retval);
     }
 
+    TRACE;
     if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
@@ -5665,16 +5678,17 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
     int split_sc;
-    vfo_t vfo_final = RIG_VFO_NONE;  // where does the VFO end up?
+    //vfo_t vfo_final = RIG_VFO_NONE;  // where does the VFO end up?
 
+    /* For Icom which VFO is active for this call is not important
+     * S VFOA 1 VFOB -- RX on VFOA, TX on VFOB
+     * S VFOB 1 VFOA -- RX on VFOB, TX on VFOA
+     * S Main 1 Sub -- RX on Main, TX on Sub
+     * S Sub 1 Main -- RX on Sub, TX on Main
+     */
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s called vfo='%s', split=%d, tx_vfo=%s, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), split, rig_strvfo(tx_vfo), rig_strvfo(rig->state.current_vfo));
-
-    if (vfo == RIG_VFO_CURR)
-    {
-        vfo = rig->state.current_vfo;
-    }
 
     // This should automatically switch between satmode on/off based on the requested split vfo
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
@@ -5748,34 +5762,37 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     case RIG_SPLIT_ON:
         split_sc = S_SPLT_ON;
-
+        rig_debug(RIG_DEBUG_TRACE, "trace %s(%d)\n", __func__, __LINE__);
+        // the VFO adjusting here could probably be done in rig.c for all rigs
         /* If asking for Sub or Main on rig that doesn't have it map it */
         if (VFO_HAS_A_B_ONLY && ((tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB)
                                  || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB))
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: vfo clause 1\n", __func__);
 
-            if (tx_vfo == RIG_VFO_MAIN) { tx_vfo = RIG_VFO_A; }
-            else if (tx_vfo == RIG_VFO_SUB) { tx_vfo = RIG_VFO_B; }
-
-            if (vfo == RIG_VFO_MAIN) { vfo = RIG_VFO_A; }
-            else if (vfo == RIG_VFO_SUB) { vfo = RIG_VFO_B; }
+            if (tx_vfo == RIG_VFO_MAIN) { tx_vfo = RIG_VFO_A; vfo = RIG_VFO_B; }
+            else if (tx_vfo == RIG_VFO_SUB) { tx_vfo = RIG_VFO_B; vfo = RIG_VFO_A; }
 
             priv->tx_vfo = tx_vfo;
-            //vfo_final = RIG_VFO_A; // do we need to switch back at all?
+            priv->rx_vfo = vfo;
         }
 
         /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
-        if (VFO_HAS_A_B && (tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_B))
+        else if (VFO_HAS_A_B && (tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_B))
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: vfo clause 2\n", __func__);
             rig_debug(RIG_DEBUG_TRACE,
                       "%s: rx_vfo to VFO_A, tx_vfo to VFO_B because tx_vfo=%s\n", __func__,
                       rig_strvfo(tx_vfo));
 
+            if (tx_vfo == RIG_VFO_B) {
             priv->tx_vfo = RIG_VFO_B;
-            priv->rx_vfo = RIG_VFO_A;
-            vfo_final = RIG_VFO_A;
+            priv->rx_vfo = vfo = RIG_VFO_A;
+            }
+            else {
+            priv->tx_vfo = RIG_VFO_A;
+            priv->rx_vfo = vfo = RIG_VFO_B;
+            }
         }
         else if (VFO_HAS_MAIN_SUB_A_B_ONLY && (tx_vfo == RIG_VFO_MAIN
                                                || tx_vfo == RIG_VFO_SUB))
@@ -5793,11 +5810,13 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 #if 0 // is this needed for satmode?
 
             // make sure we're on Main/VFOA
+            TRACE;
             if (RIG_OK != (retval = icom_set_vfo(rig, RIG_VFO_MAIN)))
             {
                 RETURNFUNC(retval);
             }
 
+            TRACE;
             if (RIG_OK != (retval = icom_set_vfo(rig, RIG_VFO_A)))
             {
                 RETURNFUNC(retval);
@@ -5813,6 +5832,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 #if 0 // do we need this for satmode?
 
+            TRACE;
             if (RIG_OK != (retval = icom_set_vfo(rig, tx_vfo)))
             {
                 RETURNFUNC(retval);
@@ -5862,10 +5882,12 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     priv->split_on = RIG_SPLIT_ON == split;
 
+#if 0 // don't think we need this anymore -- 20210731
     if (vfo_final != RIG_VFO_NONE && vfo_final != rig->state.current_vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo_final set %s\n", __func__,
                   rig_strvfo(vfo_final));
+        TRACE;
         retval = rig_set_vfo(rig, vfo_final);
 
         if (retval != RIG_OK)
@@ -5874,6 +5896,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                       rigerror(retval));
         }
     }
+#endif
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: vfo=%s curr_vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
@@ -7722,7 +7745,9 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         scan_sc = S_SCAN_STOP;
         break;
 
-    case RIG_SCAN_MEM: retval = rig_set_vfo(rig, RIG_VFO_MEM);
+    case RIG_SCAN_MEM: 
+        TRACE;
+        retval = rig_set_vfo(rig, RIG_VFO_MEM);
 
         if (retval != RIG_OK)
         {
@@ -7745,6 +7770,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         break;
 
     case RIG_SCAN_SLCT:
+        TRACE;
         retval = rig_set_vfo(rig, RIG_VFO_MEM);
 
         if (retval != RIG_OK)
@@ -7766,6 +7792,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
             RETURNFUNC(retval);
         }
 
+        TRACE;
         retval = rig_set_vfo(rig, RIG_VFO_VFO);
 
         if (retval != RIG_OK)
