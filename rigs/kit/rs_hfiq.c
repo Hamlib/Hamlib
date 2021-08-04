@@ -40,6 +40,8 @@
 
 #define RSHFIQ_LEVEL_ALL (RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_TEMP_METER)
 
+int rshfiq_version_major, rshfiq_version_minor;
+
 static int rshfiq_open(RIG *rig)
 {
     int retval;
@@ -113,6 +115,17 @@ static int rshfiq_open(RIG *rig)
         rig_debug(RIG_DEBUG_WARN, "%s: Invalid Rigversion: %s\n", __func__, versionstr);
         return -RIG_ECONF;
     }
+
+    retval = sscanf(versionstr, "RS-HFIQ FW %d.%d", &rshfiq_version_major, &rshfiq_version_minor);
+    
+    if (retval <= 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: Failed to parse RS-HFIQ firmware version string. Defaulting to 2.0.\n", __func__);
+        rshfiq_version_major = 2;
+        rshfiq_version_minor = 0;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "RS-HFIQ returned firmware version major=%d minor=%d\n", rshfiq_version_major, rshfiq_version_minor);
 
     return RIG_OK;
 }
