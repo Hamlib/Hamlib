@@ -38,7 +38,7 @@
 
 #define RSHFIQ_INIT_RETRY 5
 
-#define RSHFIQ_LEVEL_ALL (RIG_LEVEL_RFPOWER_METER)
+#define RSHFIQ_LEVEL_ALL (RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_TEMP_METER)
 
 static int rshfiq_open(RIG *rig)
 {
@@ -261,7 +261,39 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 break;
 
             case RIG_LEVEL_TEMP_METER:
-                return -RIG_ENIMPL;
+                
+                rig_flush(&rig->state.rigport);
+
+                snprintf(cmdstr, sizeof(cmdstr), "*T\r");
+
+                rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER command=%s\n", cmdstr);
+
+                retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
+
+                if (retval != RIG_OK)
+                {
+                    return retval;
+                }
+
+                stopset[0] = '\r';
+                stopset[1] = '\n';
+
+                retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2);
+
+                rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER reply=%s\n", cmdstr);
+
+                if (retval <= 0)
+                {
+                    return retval;
+                }
+
+                cmdstr[retval] = 0;
+
+                sscanf(cmdstr, "%d.", &val->i);
+
+                rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER val=%d\n", val->i);
+
+                return RIG_OK;
                 break;
         break;
     default:
@@ -276,7 +308,7 @@ const struct rig_caps rshfiq_caps =
     RIG_MODEL(RIG_MODEL_RSHFIQ),
     .model_name =     "RS-HFIQ",
     .mfg_name =       "HobbyPCB",
-    .version =        "20210803.0",
+    .version =        "20210804.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
