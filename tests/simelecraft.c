@@ -238,10 +238,6 @@ int main(int argc, char *argv[])
             write(fd, buf, strlen(buf));
         }
 
-        else if (strlen(buf) > 0)
-        {
-            fprintf(stderr, "Unknown command: %s\n", buf);
-        }
         else if (strncmp(buf,"FA",2)==0)
         {
             sscanf(buf,"FA%d",&freqa);
@@ -249,6 +245,10 @@ int main(int argc, char *argv[])
         else if (strncmp(buf,"FB",2)==0)
         {
             sscanf(buf,"FB%d",&freqb);
+        }
+        else if (strlen(buf) > 0)
+        {
+            fprintf(stderr, "Unknown command: %s\n", buf);
         }
 
     }
