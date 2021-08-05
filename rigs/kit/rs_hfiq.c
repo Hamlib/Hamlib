@@ -117,7 +117,7 @@ static int rshfiq_open(RIG *rig)
     }
 
     retval = sscanf(versionstr, "RS-HFIQ FW %d.%d", &rshfiq_version_major, &rshfiq_version_minor);
-    
+
     if (retval <= 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: Failed to parse RS-HFIQ firmware version string. Defaulting to 2.0.\n", __func__);
@@ -126,6 +126,11 @@ static int rshfiq_open(RIG *rig)
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "RS-HFIQ returned firmware version major=%d minor=%d\n", rshfiq_version_major, rshfiq_version_minor);
+
+    if (rshfiq_version_major < 4)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: RS-HFIQ firmware major version is less than 4. RFPOWER_METER support will be unavailable.\n", __func__);
+    }
 
     return RIG_OK;
 }
@@ -237,6 +242,11 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             //Requires RS-HFIQ firmware version 4 or later
             case RIG_LEVEL_RFPOWER_METER:
 
+                if (rshfiq_version_major <= 3)
+                {
+                    return -RIG_ENAVAIL;
+                }
+
                 rig_flush(&rig->state.rigport);
 
                 snprintf(cmdstr, sizeof(cmdstr), "*L\r");
@@ -310,10 +320,10 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 break;
         break;
     default:
-        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized RIG_LEVEL_* enum: %qu\n", __func__, level);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Unrecognized RIG_LEVEL_* enum: %qu\n", __func__, level);
+        return -RIG_EDOM;
         break;
     }
-    return -RIG_EINVAL;
 }
 
 const struct rig_caps rshfiq_caps =
@@ -321,7 +331,7 @@ const struct rig_caps rshfiq_caps =
     RIG_MODEL(RIG_MODEL_RSHFIQ),
     .model_name =     "RS-HFIQ",
     .mfg_name =       "HobbyPCB",
-    .version =        "20210804.0",
+    .version =        "20210805.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
