@@ -52,3 +52,6 @@ tests/rigsmtr
 tests/rigswr
 tests/rotctl
 tests/rotctld
+.vscode/settings.json
+.vscode/c_cpp_properties.json
+.gitignore
