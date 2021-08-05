@@ -22,3 +22,6 @@ Here is the list of the brave fellows:
 * Charles Suprin AA1VS, v1.2.12, 02/2011, all user programs/daemons
     $ rigctl -C MGP
 
+* Chuck Ritola
+    fclose of fsockin or fsockout when null 
+    https://github.com/Hamlib/Hamlib/issues/757
