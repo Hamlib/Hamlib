@@ -1221,8 +1221,8 @@ handle_exit:
     if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
 
 #endif
-    fclose(fsockin);
-    fclose(fsockout);
+    if (fsockin) fclose(fsockin);
+    if (fsockout) fclose(fsockout);
 
 // for everybody else we close the handle after fclose
 #ifndef __MINGW32__
