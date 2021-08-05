@@ -183,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".14",
+    .version =      BACKEND_VER ".15",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -334,7 +334,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".12",
+    .version =      BACKEND_VER ".13",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -484,7 +484,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".12",
+    .version =      BACKEND_VER ".13",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -633,7 +633,7 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".12",
+    .version =      BACKEND_VER ".13",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -782,7 +782,7 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".12",
+    .version =      BACKEND_VER ".13",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1467,59 +1467,78 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     char buf[32];
     char kmode;
     int err;
-    char cmd_m[4];
+    char cmd_m[16];
+    struct kenwood_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (tx_mode)
     {
     case RIG_MODE_PKTLSB:
-        tx_mode = RIG_MODE_RTTY; // "DT0" RIG_MODE_RTTY = LSB
+        tx_mode = RIG_MODE_RTTYR; // "DT0" RIG_MODE_RTTY = LSB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT0"); /* DATA A mode - DATA-R LSB, suppressed carrier */
+                 "DT0;"); /* DATA A mode - DATA-R LSB, suppressed carrier */
+        if (priv->is_k4d || priv->is_k4hd) {
+            strcat(cmd_m, "DT$0;");
+        }
         break;
 
     case RIG_MODE_PKTUSB:
-        tx_mode = RIG_MODE_RTTYR; // "DT0" RIG_MODE_RTTYR = USB
+        tx_mode = RIG_MODE_RTTY; // "DT0" RIG_MODE_RTTYR = USB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT0"); /* DATA A mode - DATA on USB, suppressed carrier */
+                 "DT0;"); /* DATA A mode - DATA on USB, suppressed carrier */
+        if (priv->is_k4d || priv->is_k4hd) {
+            strcat(cmd_m, "DT$0;");
+        }
         break;
 
     case RIG_MODE_RTTY:
         tx_mode = RIG_MODE_RTTY; // DT1" RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT1"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
+                 "DT2;"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
+        if (priv->is_k4d || priv->is_k4hd) {
+            strcat(cmd_m, "DT$2;");
+        }
         break;
 
     case RIG_MODE_RTTYR:
         tx_mode = RIG_MODE_RTTYR; // "DT2" RIG_MODE_RTTY = USB and RIG_MODE_RTTYR = USB
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT2"); /* FSK D mode - direct FSK on USB optimized for RTTY, VFO dial is MARK */
+                 "DT1;"); /* FSK D mode - direct FSK on USB optimized for RTTY, VFO dial is MARK */
+        if (priv->is_k4d || priv->is_k4hd) {
+            strcat(cmd_m, "DT$1;");
+        }
         break;
 
     case RIG_MODE_PSK:
         tx_mode = RIG_MODE_PSK;
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT3"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
+                 "DT3;"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
+        if (priv->is_k4d || priv->is_k4hd) {
+            strcat(cmd_m, "DT$3;");
+        }
         break;
 
     default:
         break;
     }
 
-#if 0
+// Enabling this clause for just the K4 for now
+#if 1
 
-    /* Set data sub-mode.  K3 needs to be in a DATA mode before setting
-     * the sub-mode or switching to VFOB so we do this before the MD$ command.
-     */
-    if (tx_mode == RIG_MODE_PKTLSB || tx_mode == RIG_MODE_PKTUSB
+    if (priv->is_k4d || priv->is_k4hd) {
+        /* Set data sub-mode.  K3 needs to be in a DATA mode before setting
+         * the sub-mode or switching to VFOB so we do this before the MD$ command.
+         */
+        if (tx_mode == RIG_MODE_PKTLSB || tx_mode == RIG_MODE_PKTUSB
             || tx_mode == RIG_MODE_RTTY || tx_mode == RIG_MODE_RTTYR)
-    {
-        err = kenwood_transaction(rig, cmd_m, NULL, 0);
-
-        if (err != RIG_OK)
         {
-            return err;
+            err = kenwood_transaction(rig, cmd_m, NULL, 0);
+
+            if (err != RIG_OK)
+            {
+                return err;
+            }
         }
     }
 
@@ -1556,8 +1575,8 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
          */
 
         /* passband widths vary by mode so gather lower and upper limits */
-        pbwidth_t pb_nar = rig_passband_narrow(rig, tx_mode);
-        pbwidth_t pb_wid = rig_passband_wide(rig, tx_mode);
+        //pbwidth_t pb_nar = rig_passband_narrow(rig, tx_mode);
+        //pbwidth_t pb_wid = rig_passband_wide(rig, tx_mode);
 
         if (tx_width < 0)
         {
@@ -1568,6 +1587,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         {
             tx_width = rig_passband_normal(rig, tx_mode);
         }
+#if 0
         else if (tx_width < pb_nar)
         {
             tx_width = pb_nar;
@@ -1576,6 +1596,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         {
             tx_width = pb_wid;
         }
+#endif
 
         snprintf(cmd_s, sizeof(cmd_s), "BW$%04ld", tx_width / 10);
         err = kenwood_transaction(rig, cmd_s, NULL, 0);
