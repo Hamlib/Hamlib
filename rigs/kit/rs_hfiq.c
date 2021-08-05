@@ -226,7 +226,7 @@ static int rshfiq_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called. level type =%qd\n", __func__, level);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called. level type =%lu\n", __func__, level);
 
     char cmdstr[15];
     char stopset[2];
@@ -320,7 +320,7 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 break;
         break;
     default:
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Unrecognized RIG_LEVEL_* enum: %qu\n", __func__, level);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Unrecognized RIG_LEVEL_* enum: %lu\n", __func__, level);
         return -RIG_EDOM;
         break;
     }
