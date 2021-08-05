@@ -370,7 +370,7 @@ int verify_kenwood_id(RIG *rig, char *id)
     if (strcmp("017", idptr) != 0)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig (%s) is not a K2 or K3\n", __func__, id);
-        return -RIG_EPROTO;
+//        return -RIG_EPROTO;
     }
     else
     {
