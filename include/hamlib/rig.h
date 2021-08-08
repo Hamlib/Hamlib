@@ -2493,7 +2493,7 @@ rig_set_vfo HAMLIB_PARAMS((RIG *rig,
 #else
 extern HAMLIB_EXPORT(int)
 rig_set_vfo HAMLIB_PARAMS((RIG *rig,
-                           vfo_t vfo);
+                           vfo_t vfo));
 #endif
 extern HAMLIB_EXPORT(int)
 rig_get_vfo HAMLIB_PARAMS((RIG *rig,
