@@ -40,6 +40,7 @@
 #include <register.h>
 
 #include <hamlib/rig.h>
+#include "misc.h"
 
 //! @cond Doxygen_Suppress
 #ifndef PATH_MAX
@@ -221,7 +222,7 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
     p->next = rig_hash_table[hval];
     rig_hash_table[hval] = p;
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 //! @endcond
 
