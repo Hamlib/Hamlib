@@ -2491,6 +2491,7 @@ extern HAMLIB_EXPORT(int)
 rig_set_vfo HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo, const char *func));
 #else
+extern HAMLIB_EXPORT(int)
 rig_set_vfo HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo);
 #endif
