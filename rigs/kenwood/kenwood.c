@@ -762,6 +762,12 @@ int kenwood_open(RIG *rig)
     id[0] = 0;
     rig->state.rigport.retry = 0;
     err = kenwood_get_id(rig, id);
+    if (err != RIG_OK)
+    {
+        // TS450S is flaky on the 1st ID call so we'll try again
+        hl_usleep(200*1000);
+        err = kenwood_get_id(rig, id);
+    }
 
     if (err == RIG_OK)   // some rigs give ID while in standby
     {
@@ -792,7 +798,7 @@ int kenwood_open(RIG *rig)
     if (RIG_OK != err)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: no response to get_id from rig...continuing anyways.\n", __func__);
+                  "%s: no response to get_id from rig...continuing anyway\n", __func__);
     }
 
     if (RIG_IS_TS2000
