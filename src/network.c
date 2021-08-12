@@ -572,13 +572,13 @@ int network_multicast_server(RIG *rig, const char *multicast_addr,
 
     if (status != RIG_OK) { RETURNFUNC(status); }
 
-    if (items && RIG_MULTICAST_TRANSCEIVE)
+    if (items & RIG_MULTICAST_TRANSCEIVE)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) MULTICAST_TRANSCEIVE enabled\n", __FILE__,
                   __LINE__);
     }
 
-    if (items && RIG_MULTICAST_SPECTRUM)
+    if (items & RIG_MULTICAST_SPECTRUM)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) MULTICAST_SPECTRUM enabled\n", __FILE__,
                   __LINE__);
