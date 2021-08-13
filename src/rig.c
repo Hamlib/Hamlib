@@ -1036,10 +1036,11 @@ int HAMLIB_API rig_open(RIG *rig)
     }
     else // vfo fails so set some sensible defaults
     {
-        int backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
+        //int backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
         rs->tx_vfo = RIG_VFO_TX;
         rs->current_vfo = RIG_VFO_CURR;
 
+#if 0 // done in the back end
         if (backend_num == RIG_ICOM)
         {
             TRACE;
@@ -1047,7 +1048,8 @@ int HAMLIB_API rig_open(RIG *rig)
             rig_debug(RIG_DEBUG_TRACE, "%s: Icom rig so default vfo = %s\n", __func__,
                       rig_strvfo(rs->current_vfo));
         }
-        else if (rig->caps->set_vfo == NULL)
+#endif
+        if (rig->caps->set_vfo == NULL)
         {
             // for non-Icom rigs if there's no set_vfo then we need to set one
             rs->current_vfo = vfo_fixup(rig, RIG_VFO_A, rig->state.cache.split);
@@ -2587,14 +2589,23 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
  *
  * \sa rig_get_vfo()
  */
+#if BUILTINFUNC
+#undef rig_set_vfo
+int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo, const char *func)
+#else
 int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
+#endif
 {
     const struct rig_caps *caps;
     int retcode;
     freq_t curr_freq;
 
     ENTERFUNC;
+#if BUILTINFUNC
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, called from %s\n", __func__, rig_strvfo(vfo),func);
+#else
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
+#endif
 
     if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
     {
@@ -2647,7 +2658,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
     TRACE;
     vfo_t vfo_save = rig->state.current_vfo;
-    rig->state.current_vfo = vfo;
+    if (vfo != RIG_VFO_CURR) rig->state.current_vfo = vfo;
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode == RIG_OK)
@@ -3782,7 +3793,9 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (caps->set_vfo)
     {
         TRACE;
-        retcode = caps->set_vfo(rig, tx_vfo);
+        retcode = RIG_OK;
+        if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
+            retcode = caps->set_vfo(rig, tx_vfo);
     }
     else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
     {
@@ -3825,7 +3838,9 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (caps->set_vfo)
     {
         TRACE;
-        rc2 = caps->set_vfo(rig, curr_vfo);
+        rc2 = RIG_OK;
+        if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
+            rc2 = caps->set_vfo(rig, curr_vfo);
     }
     else
     {
@@ -4439,7 +4454,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    vfo = vfo_fixup(rig, vfo, split);
+    vfo = vfo_fixup(rig, tx_vfo, split);
 
     if (vfo != RIG_VFO_A && vfo != RIG_VFO_B)
     {
@@ -4447,7 +4462,12 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     }
     // set rig to the the requested RX VFO
     TRACE;
-    rig_set_vfo(rig, vfo == RIG_VFO_B?RIG_VFO_B:RIG_VFO_A);
+    if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
+#if BUILTINFUNC
+        rig_set_vfo(rig, vfo == RIG_VFO_B?RIG_VFO_B:RIG_VFO_A, __builtin_FUNCTION());
+#else
+        rig_set_vfo(rig, vfo == RIG_VFO_B?RIG_VFO_B:RIG_VFO_A);
+#endif
 
     if (vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
@@ -4473,23 +4493,28 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
     curr_vfo = rig->state.current_vfo;
     TRACE;
-    retcode = caps->set_vfo(rig, vfo);
+    if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
+    {
+        retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
     {
         RETURNFUNC(retcode);
+    }
     }
 
     TRACE;
     retcode = caps->set_split_vfo(rig, vfo, split, tx_vfo);
 
     /* try and revert even if we had an error above */
-    rc2 = caps->set_vfo(rig, curr_vfo);
+    if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ)) {
+        rc2 = caps->set_vfo(rig, curr_vfo);
 
     if (RIG_OK == retcode)
     {
         /* return the first error code */
         retcode = rc2;
+    }
     }
 
     if (retcode == RIG_OK)
