@@ -691,7 +691,7 @@ int ft757_get_update_data(RIG *rig)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x10};
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
     int retval = 0;
-    int nbtries ;
+    long nbtries;
     /* Maximum number of attempts to ask/read the data. */
     int maxtries = rig->state.rigport.retry ;
 
@@ -723,7 +723,7 @@ int ft757_get_update_data(RIG *rig)
         }
 
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: read update_data failed, %d octets of %d read, retry %d out of %d\n",
+                  "%s: read update_data failed, %d octets of %d read, retry %ld out of %d\n",
                   __func__, retval, FT757GX_STATUS_UPDATE_DATA_LENGTH,
                   nbtries, maxtries);
         /* The delay is quadratic. */

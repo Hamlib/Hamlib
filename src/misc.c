@@ -2351,8 +2351,9 @@ char *date_strget(char *buf, int buflen)
     struct tm *mytm;
     time_t t;
     struct timeval tv;
+    struct tm result;
     t = time(NULL);
-    mytm = gmtime(&t);
+    mytm = gmtime_r(&t, &result);
     strftime(buf, buflen, "%Y-%m-%d:%H:%M:%S.", mytm);
     gettimeofday(&tv, NULL);
     sprintf(tmp, "%06ld", (long)tv.tv_usec);
