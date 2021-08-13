@@ -902,6 +902,7 @@ static int icom_set_default_vfo(RIG *rig)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN/VFOA\n",
                   __func__);
+                TRACE;
         retval = rig_set_vfo(rig, RIG_VFO_MAIN);  // we'll default to Main in this case
 
         if (retval != RIG_OK)
@@ -925,6 +926,7 @@ static int icom_set_default_vfo(RIG *rig)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN\n",
                   __func__);
+                TRACE;
         retval = rig_set_vfo(rig, RIG_VFO_MAIN);  // we'll default to Main in this case
         rig->state.current_vfo = RIG_VFO_MAIN;
     }
@@ -932,9 +934,14 @@ static int icom_set_default_vfo(RIG *rig)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as VFOA\n",
                   __func__);
+        TRACE;
+        retval = RIG_OK;
+        if (rig->state.current_vfo != RIG_VFO_A)
+        {
         retval = rig_set_vfo(rig,
                              RIG_VFO_A);     // we'll default to VFOA for all others
         rig->state.current_vfo = RIG_VFO_A;
+        }
     }
     else
     {
@@ -1009,7 +1016,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
-    if (rig->state.current_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
+    if (rig->state.current_vfo == RIG_VFO_NONE)
     {
         icom_set_default_vfo(rig);
     }
@@ -1021,16 +1028,20 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                   rig_strvfo(vfo));
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo_curr=%s\n", __func__,
-              rig_strvfo(rig->state.current_vfo));
-    retval = set_vfo_curr(rig, vfo, rig->state.current_vfo);
-
-    if (retval != RIG_OK)
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ))
     {
-        RETURNFUNC(retval);
+        TRACE;
+        rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo_curr=%s\n", __func__,
+              rig_strvfo(rig->state.current_vfo));
+        retval = set_vfo_curr(rig, vfo, rig->state.current_vfo);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
     }
 
-    retval = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq);
+    retval = rig_get_freq(rig, vfo, &curr_freq);
 
     if (retval != RIG_OK)
     {
@@ -1043,10 +1054,37 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      */
     to_bcd(freqbuf, freq, freq_len * 2);
 
-    cmd = C_SET_FREQ;
-    subcmd = -1;
-    retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
+    // mike
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
+    {
+        vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B;
+        // if we are on the "other" vfo already then we have to allow for that
+        if (rig->state.current_vfo & vfo_unselected)
+        {
+            TRACE;
+            vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A;
+        }
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): vfo=%s, currvfo=%s\n", __func__, __LINE__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+        subcmd  = 0x00;
+        // if we ask for unselected but we're not on unselected subcmd2 changes
+        if ((vfo & vfo_unselected) && !(rig->state.current_vfo & vfo_unselected))
+        {
+            TRACE;
+            subcmd = 0x01;  // get unselected VFO
+        }
+
+        cmd = 0x25;
+        retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                               &ack_len);
+    }
+    else
+    {
+        cmd = C_SET_FREQ;
+        subcmd = -1;
+        retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
+                              &ack_len);
+    }
     hl_usleep(50 * 1000); // pause for transceive message and we'll flush it
 
     if (retval != RIG_OK)
@@ -1677,6 +1715,48 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
     RETURNFUNC(RIG_OK);
 }
 
+static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode, int filter)
+{
+    struct icom_priv_data *priv = rig->state.priv;
+    int retval;
+    unsigned char buf[3];
+
+    ENTERFUNC;
+    if (priv->x26cmdfails) RETURNFUNC(-RIG_ENAVAIL);
+
+    int cmd2 = 0x26;
+    int subcmd2 = 0x00;
+    vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B;
+    // if we are on the "other" vfo already then we have to allow for that
+    if (rig->state.current_vfo & vfo_unselected)
+    {
+        vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A;
+    }
+
+    // if we ask for unselected but we're not on unselected subcmd2 changes
+    if ((vfo & vfo_unselected) && !(rig->state.current_vfo & vfo_unselected))
+    {
+        subcmd2 = 0x01;  // get unselected VFO
+    }
+    buf[0] = mode;
+    buf[1] = datamode;
+    // filter fixed to filter 1 due to IC7300 bug defaulting to filter 2 on mode changed -- yuck!!
+    // buf[2] = filter // if Icom ever fixed this
+    buf[2] = 1; 
+
+    retval = icom_transaction(rig, cmd2, subcmd2, buf, 3, NULL, NULL);
+
+    if (retval != RIG_OK)
+    {
+        priv->x26cmdfails = 1;
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: rig does not support 0x26 CI-V cmd\n", __func__);
+        return -RIG_ENAVAIL;
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
 /*
  * icom_set_mode_with_data
  */
@@ -1687,6 +1767,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     rmode_t icom_mode;
+    //struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     unsigned char dm_sub_cmd =
         rig->caps->rig_model == RIG_MODEL_IC7200  ? 0x04 : S_MEM_DATA_MODE;
     int filter_byte = rig->caps->rig_model == RIG_MODEL_IC7100
@@ -1728,8 +1809,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         break;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d, width=%d\n", __func__, (int)icom_mode,
-              (int)width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d, width=%d, curr_vfo=%s\n", __func__, (int)icom_mode,
+              (int)width, rig_strvfo(rig->state.current_vfo));
     retval = icom_set_mode(rig, vfo, icom_mode, width);
 
     hl_usleep(50 * 1000); // pause for possible transceive message which we'll flush
@@ -1739,21 +1820,21 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         unsigned char datamode[2];
         unsigned char mode_icom; // Not used, we only need the width
         signed char width_icom;
-
+ 
+        TRACE;
         switch (mode)
         {
         case RIG_MODE_PKTUSB:
         case RIG_MODE_PKTLSB:
         case RIG_MODE_PKTFM:
         case RIG_MODE_PKTAM:
-            /* some rigs (e.g. IC-7700 & IC-7800)
-               have D1/2/3 but we cannot know
-               which to set so just set D1 */
             datamode[0] = 0x01;
+            datamode[1] = 0x01; // default to filter 1
             break;
 
         default:
             datamode[0] = 0x00;
+            datamode[1] = 0x01; // default to filter 1
             break;
         }
 
@@ -1761,13 +1842,20 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
         if (filter_byte)   // then we need the filter width byte too
         {
-            if (width_icom == -1) datamode[1] = 1; // default to filter 1
-            else datamode[1] = width_icom;
-            retval =
+            TRACE;
+            if (datamode[0] == 0) datamode[1]=0;  // the only good combo possible according to manual
+            
+            rig_debug(RIG_DEBUG_TRACE, "%s(%d) mode_icom=%d, datamode[0]=%d, filter=%d\n", __func__, __LINE__, mode_icom, datamode[0], datamode[1]);
+            retval = icom_set_mode_x26(rig, vfo, mode_icom, datamode[0], datamode[1]);
+            if (retval != RIG_OK)
+            {
+                retval =
                 icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2, ackbuf, &ack_len);
+            }
         }
         else
         {
+        TRACE;
             retval =
                 icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 1, ackbuf, &ack_len);
         }
@@ -1805,9 +1893,10 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     unsigned char icmode;
     signed char icmode_ext;
     int ack_len = sizeof(ackbuf), retval, err;
+    int swapvfos = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, mode=%s, width=%d\n", __func__,
-              rig_strvfo(vfo), rig_strrmode(mode), (int)width);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, mode=%s, width=%d, current_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strrmode(mode), (int)width, rig_strvfo(rig->state.current_vfo));
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
@@ -1845,11 +1934,27 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         icmode_ext = -1;
     }
 
+    // some Icom rigs have seperate modes for VFOB/Sub
+    // switching to VFOB should not matter for the other rigs
+    // This needs to be improved for RIG_TARGETABLE_MODE rigs
+    if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) && ((rig->state.current_vfo == RIG_VFO_A || rig->state.current_vfo == RIG_VFO_MAIN) || rig->state.current_vfo == RIG_VFO_CURR))
+    {
+        TRACE;
+        swapvfos = 1;
+        rig_set_vfo(rig,RIG_VFO_B);
+    }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: #2 icmode=%d, icmode_ext=%d\n", __func__,
               icmode, icmode_ext);
     retval = icom_transaction(rig, C_SET_MODE, icmode,
                               (unsigned char *) &icmode_ext,
                               (icmode_ext == -1 ? 0 : 1), ackbuf, &ack_len);
+
+    if (swapvfos)
+    {
+        TRACE;
+        rig_set_vfo(rig,RIG_VFO_A);
+    }
 
     if (retval != RIG_OK)
     {
@@ -2125,6 +2230,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s(%d): forcing default VFO_A\n", __func__,
                           __LINE__);
+                TRACE;
                 rig_set_vfo(rig, RIG_VFO_A); // force VFOA
             }
 
@@ -2147,8 +2253,10 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             if (vfosave != vfo)
             {
                 // right now forcing VFOA/B arrangement -- reverse not supported yet
-                TRACE;
-                rig_set_vfo(rig, RIG_VFO_B);
+                // If VFOB width is ever different than VFOA
+                // we need to figure out how to read VFOB without swapping VFOs
+                //TRACE;
+                //rig_set_vfo(rig, RIG_VFO_B);
                 retval = icom_get_dsp_flt(rig, *mode);
                 *width = retval;
 
@@ -2159,7 +2267,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                 rig->state.cache.widthMainB = retval;
                 rig_debug(RIG_DEBUG_TRACE, "%s(%d): vfosave=%s, currvfo=%s\n", __func__,
                           __LINE__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
-                rig_set_vfo(rig, RIG_VFO_A);
+                //TRACE;
+                //rig_set_vfo(rig, RIG_VFO_A);
                 rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s returning mode=%s, width=%d\n", __func__,
                           rig_strvfo(vfo), rig_strrmode(*mode), (int)*width);
             }
@@ -4897,7 +5006,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: rx_vfo=%s, tx_vfo=%s\n", __func__,
               rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
 
-    if (RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
+                TRACE;
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) && RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
     }
@@ -4915,13 +5025,15 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
                   __func__,
                   priv->split_on, rig_strvfo(rx_vfo));
 
-        if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
+                TRACE;
+        if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) && RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
         {
             RETURNFUNC(retval);
         }
     }
     else if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
+                TRACE;
         RETURNFUNC(retval);
     }
 
@@ -5138,6 +5250,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE rig so returning vfo to %s\n", __func__,
                   rig_strvfo(rx_vfo));
 
+                TRACE;
         if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
         {
             RETURNFUNC(retval);
@@ -5145,6 +5258,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
     else if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
+                TRACE;
         RETURNFUNC(retval);
     }
 
@@ -5254,7 +5368,8 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         RETURNFUNC(retval);
     }
 
-    if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
+                TRACE;
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         RETURNFUNC(retval);
     }
@@ -5365,6 +5480,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         RETURNFUNC(retval);
     }
 
+                TRACE;
     if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         RETURNFUNC(retval);
@@ -5515,6 +5631,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         RETURNFUNC(retval);
     }
 
+                TRACE;
     if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
     {
         RETURNFUNC(retval);
@@ -5526,6 +5643,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         RETURNFUNC(retval);
     }
 
+                TRACE;
     if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE) && RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         RETURNFUNC(retval);
@@ -5647,6 +5765,7 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
         RETURNFUNC(retval);
     }
 
+                TRACE;
     if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
     {
         RETURNFUNC(retval);
@@ -8567,6 +8686,7 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
                       rig_strvfo(vfo));
+                TRACE;
             retval = rig_set_vfo(rig, vfo);
 
             if (retval != RIG_OK)
