@@ -2236,7 +2236,7 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
     /* chop term */
     priv->ret_data[ret_data_len - 1] = '\0';
 
-    *offs = atoi(retoffs) * step;
+    *offs = atol(retoffs) * step;
 
     RETURNFUNC(RIG_OK);
 }

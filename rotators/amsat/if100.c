@@ -45,7 +45,7 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
     int az_i;
     int el_i;
     int dataout, i;
-    float az_scale, el_scale;
+    double az_scale, el_scale;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
