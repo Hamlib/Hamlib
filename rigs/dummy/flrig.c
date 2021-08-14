@@ -144,7 +144,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "202100721",
+    .version = "202100814",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1414,7 +1414,13 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     // Set the mode
-    ttmode = strdup(modeMapGetFLRig(mode));
+    if (modeMapGetFLRig(mode)) {
+        ttmode = strdup(modeMapGetFLRig(mode));
+    }
+    else {
+        rig_debug(RIG_DEBUG_ERR, "%s: modeMapGetFlRig failed on mode=%d\n", __func__, (int)mode);
+        RETURNFUNC(-RIG_EINVAL);
+    }
     rig_debug(RIG_DEBUG_TRACE, "%s: got ttmode = %s\n", __func__,
               ttmode == NULL ? "NULL" : ttmode);
 
