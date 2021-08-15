@@ -289,6 +289,13 @@ then
     cp -a ${FILE} ${ZIP_DIR}/bin/.
 fi
 
+# Copy over the main MSYS2 Runtime DLL (v2.0 at time of development)
+FILE="${QTD_F}/msys-2.0.dll"
+if test -f "$FILE"
+then
+    cp -a ${FILE} ${ZIP_DIR}/bin/.
+fi
+
 # Required for MinGW with GCC 6.3 (Debian 9)
 FILE="/usr/lib/gcc/i686-w64-mingw32/6.3-posix/libgcc_s_sjlj-1.dll"
 if test -f "$FILE"
