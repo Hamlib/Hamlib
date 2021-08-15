@@ -183,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".15",
+    .version =      BACKEND_VER ".16",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -334,7 +334,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".13",
+    .version =      BACKEND_VER ".14",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -484,7 +484,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".13",
+    .version =      BACKEND_VER ".14",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -633,7 +633,7 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".13",
+    .version =      BACKEND_VER ".14",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -782,7 +782,7 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".13",
+    .version =      BACKEND_VER ".14",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1479,7 +1479,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT0;"); /* DATA A mode - DATA-R LSB, suppressed carrier */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$0;");
+            strcat(cmd_m, "DT$0;FT1;");
         }
         break;
 
@@ -1488,7 +1488,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT0;"); /* DATA A mode - DATA on USB, suppressed carrier */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$0;");
+            strcat(cmd_m, "DT$0;FT1;");
         }
         break;
 
@@ -1497,7 +1497,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT2;"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$2;");
+            strcat(cmd_m, "DT$2;FT1;");
         }
         break;
 
@@ -1506,16 +1506,16 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT1;"); /* FSK D mode - direct FSK on USB optimized for RTTY, VFO dial is MARK */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$1;");
+            strcat(cmd_m, "DT$1;FT1;");
         }
         break;
 
     case RIG_MODE_PSK:
         tx_mode = RIG_MODE_PSK;
         snprintf(cmd_m, sizeof(cmd_m),
-                 "DT3;"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
+                 "DT3;FT1;"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$3;");
+            strcat(cmd_m, "DT$3;FT1;");
         }
         break;
 
