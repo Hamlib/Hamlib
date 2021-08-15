@@ -1479,7 +1479,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT0;"); /* DATA A mode - DATA-R LSB, suppressed carrier */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$0;FT1;");
+            strcat(cmd_m, "DT$0;");
         }
         break;
 
@@ -1488,7 +1488,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT0;"); /* DATA A mode - DATA on USB, suppressed carrier */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$0;FT1;");
+            strcat(cmd_m, "DT$0;");
         }
         break;
 
@@ -1497,7 +1497,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT2;"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$2;FT1;");
+            strcat(cmd_m, "DT$2;");
         }
         break;
 
@@ -1506,7 +1506,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT1;"); /* FSK D mode - direct FSK on USB optimized for RTTY, VFO dial is MARK */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$1;FT1;");
+            strcat(cmd_m, "DT$1;");
         }
         break;
 
@@ -1515,7 +1515,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         snprintf(cmd_m, sizeof(cmd_m),
                  "DT3;FT1;"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
         if (priv->is_k4d || priv->is_k4hd) {
-            strcat(cmd_m, "DT$3;FT1;");
+            strcat(cmd_m, "DT$3;");
         }
         break;
 
@@ -1527,6 +1527,10 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 #if 1
 
     if (priv->is_k4d || priv->is_k4hd) {
+        // split can get turned off when modes are changing 
+        // so if the rig did this independtly of us we turn it back on
+        // even if the rig changes the split status should be the last thing we did
+        if (priv->split) strcat(cmd_m, "FT1;");
         /* Set data sub-mode.  K3 needs to be in a DATA mode before setting
          * the sub-mode or switching to VFOB so we do this before the MD$ command.
          */
