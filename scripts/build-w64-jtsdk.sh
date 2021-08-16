@@ -290,7 +290,8 @@ then
 fi
 
 # Copy over the main MSYS2 Runtime DLL (v2.0 at time of development)
-FILE="${QTD_F}/msys-2.0.dll"
+# This is dirty
+FILE="/usr/bin/msys-2.0.dll"
 if test -f "$FILE"
 then
     cp -a ${FILE} ${ZIP_DIR}/bin/.
