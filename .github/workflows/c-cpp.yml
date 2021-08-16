@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: packages
+    - run: sudo apt install libusb-1.0-0-dev
     - name: bootstrap
       run: ./bootstrap
     - name: configure
