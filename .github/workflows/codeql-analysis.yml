@@ -63,7 +63,8 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    #- run: |
+    - run: |
+        sudo apt install libusb-1.0-0-dev
     #   make bootstrap
     #   make release
 
