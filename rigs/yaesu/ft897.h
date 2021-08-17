@@ -115,22 +115,4 @@ enum ft897_native_cmd_e {
 
 typedef enum ft897_native_cmd_e ft897_native_cmd_t;
 
-
-struct ft897_priv_data {
-  yaesu_cmd_set_t pcs[FT897_NATIVE_SIZE];  /* TODO:  why? */
-
-  /* rx status */
-  struct timeval rx_status_tv;
-  unsigned char rx_status;
-
-  /* tx status */
-  struct timeval tx_status_tv;
-  unsigned char tx_status;
-
-  /* freq & mode status */
-  struct timeval fm_status_tv;
-  unsigned char fm_status[YAESU_CMD_LENGTH+1];
-};
-
-
 #endif /* _FT897_H */
