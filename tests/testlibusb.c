@@ -24,7 +24,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#if __has_include("libusb.h")
+#include "libusb.h"
+#else
 #include <libusb-1.0/libusb.h>
+#endif
 
 int verbose = 0;
 
