@@ -4,9 +4,15 @@
 # AUTOMAKE_OPTIONS = dejagnu
 # DEJATOOL = testfreq testbcd testloc rigctl
 
+if HAVE_LIBUSB
+    TESTLIBUSB = testlibusb
+else
+    TESTLIBUSB =
+endif
+
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
-bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom ampctl ampctld testlibusb
+bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom ampctl ampctld $(TESTLIBUSB)
 
 check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie
 
@@ -24,7 +30,9 @@ ampctld_SOURCES = ampctld.c $(AMPCOMMONSRC)
 rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
-testlibusb_SOURCES = testlibusb.c
+if HAVE_LIBUSB
+    testlibusb_SOURCES = testlibusb.c
+endif
 
 # include generated include files ahead of any in sources
 rigctl_CPPFLAGS = -I$(top_builddir)/tests -I$(top_builddir)/src -I$(srcdir) $(AM_CPPFLAGS)
@@ -39,7 +47,9 @@ rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 ampctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
+if HAVE_LIBUSB
+    testlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
+endif
 
 rigctl_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(LDADD)
 rigctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
@@ -49,7 +59,9 @@ ampctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 ampctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigmem_LDADD = $(LIBXML2_LIBS) $(LDADD)
 rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
-testlibusb_LDADD = $(LIBUSB_LIBS)
+if HAVE_LIBUSB
+    testlibusb_LDADD = $(LIBUSB_LIBS)
+endif
 
 # Linker options
 rigctl_LDFLAGS = $(WINEXELDFLAGS)
@@ -62,7 +74,9 @@ rigctld_LDFLAGS = $(WINEXELDFLAGS)
 rotctld_LDFLAGS = $(WINEXELDFLAGS)
 ampctld_LDFLAGS = $(WINEXELDFLAGS)
 rigctlcom_LDFLAGS = $(WINEXELDFLAGS)
-testlibusb_LDFLAGS = $(WINEXELDFLAGS)
+if HAVE_LIBUSB
+    testlibusb_LDFLAGS = $(WINEXELDFLAGS)
+endif
 
 
 if HTML_MATRIX
