@@ -127,13 +127,6 @@ typedef struct
 FT100_FLAG_INFO;
 
 
-struct ft100_priv_data {
-  /* TODO: make use of cached data */
-  FT100_STATUS_INFO status;
-  FT100_FLAG_INFO flags;
-};
-
-
 static int ft100_init(RIG *rig);
 static int ft100_open(RIG *rig);
 static int ft100_cleanup(RIG *rig);

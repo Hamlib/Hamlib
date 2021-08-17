@@ -145,26 +145,6 @@ typedef enum ft847_native_cmd_e ft847_native_cmd_t;
 
 
 /*
- * ft847 instance - private data
- *
- */
-
-struct ft847_priv_data {
-  split_t sat_mode;
-
-  unsigned char rx_status;	/* tx returned data */
-  unsigned char tx_status;	/* rx returned data */
-  /* for early ft847's we keep our own memory items */
-  /* Early rigs are one-way com to the rig */
-  freq_t freqA,freqB;
-  mode_t mode;
-  pbwidth_t width;
-  ptt_t ptt;
-};
-
-
-
-/*
  * API local implementation
  */
 

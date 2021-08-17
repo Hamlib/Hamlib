@@ -71,6 +71,22 @@
 #include "bandplan.h"
 #include "cal.h"
 
+struct ft817_priv_data
+{
+    yaesu_cmd_set_t pcs[FT817_NATIVE_SIZE];  /* TODO:  why? */
+
+    /* rx status */
+    struct timeval rx_status_tv;
+    unsigned char rx_status;
+
+    /* tx status */
+    struct timeval tx_status_tv;
+    unsigned char tx_status;
+
+    /* freq & mode status */
+    struct timeval fm_status_tv;
+    unsigned char fm_status[YAESU_CMD_LENGTH + 1];
+};
 
 /* Native ft817 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
