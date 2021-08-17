@@ -112,14 +112,6 @@ typedef struct
 FT600_FLAG_INFO;
 
 
-struct ft600_priv_data {
-  FT600_STATUS_INFO status;
-  FT600_FLAG_INFO flags;
-  unsigned char s_meter;
-
-};
-
-
 static int ft600_init(RIG *rig);
 static int ft600_open(RIG *rig);
 static int ft600_cleanup(RIG *rig);

@@ -71,6 +71,23 @@
 #include "bandplan.h"
 #include "cal.h"
 
+struct ft817_priv_data
+{
+    /* rx status */
+    struct timeval rx_status_tv;
+    unsigned char rx_status;
+
+    /* tx status */
+    struct timeval tx_status_tv;
+    unsigned char tx_status;
+
+    /* freq & mode status */
+    struct timeval fm_status_tv;
+    unsigned char fm_status[YAESU_CMD_LENGTH + 1];
+};
+
+static int ft817_get_vfo(RIG *rig, vfo_t *vfo);
+static int ft817_set_vfo(RIG *rig, vfo_t vfo);
 
 /* Native ft817 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
@@ -308,6 +325,8 @@ const struct rig_caps ft817_caps =
     .rig_cleanup =          ft817_cleanup,
     .rig_open =         ft817_open,
     .rig_close =        ft817_close,
+    .get_vfo =          ft817_get_vfo,
+    .set_vfo =          ft817_set_vfo,
     .set_freq =         ft817_set_freq,
     .get_freq =         ft817_get_freq,
     .set_mode =         ft817_set_mode,
@@ -446,6 +465,8 @@ const struct rig_caps ft818_caps =
     .rig_cleanup =          ft817_cleanup,
     .rig_open =         ft817_open,
     .rig_close =        ft817_close,
+    .get_vfo =          ft817_get_vfo,
+    .set_vfo =          ft817_set_vfo,
     .set_freq =         ft817_set_freq,
     .get_freq =         ft817_get_freq,
     .set_mode =         ft817_set_mode,
@@ -474,8 +495,6 @@ const struct rig_caps ft818_caps =
 
 int ft817_init(RIG *rig)
 {
-    struct ft817_priv_data *priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called, version %s\n", __func__,
               rig->caps->version);
 
@@ -485,9 +504,6 @@ int ft817_init(RIG *rig)
     }
 
     priv = rig->state.priv;
-
-    /* Copy complete native cmd set to private cmd storage area */
-    memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
     return RIG_OK;
 }
@@ -559,12 +575,11 @@ static int check_cache_timeout(struct timeval *tv)
 
 static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     unsigned char data[YAESU_CMD_LENGTH];
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-    memcpy(data, (char *)p->pcs[FT817_NATIVE_CAT_EEPROM_READ].nseq,
+    memcpy(data, ncmd[FT817_NATIVE_CAT_EEPROM_READ].nseq,
            YAESU_CMD_LENGTH);
 
     data[0] = addr >> 8;
@@ -626,7 +641,7 @@ static int ft817_get_status(RIG *rig, int status)
     do
     {
         rig_flush(&rig->state.rigport);
-        write_block(&rig->state.rigport, (char *) p->pcs[status].nseq,
+        write_block(&rig->state.rigport, (char *) ncmd[status].nseq,
                     YAESU_CMD_LENGTH);
         n = read_block(&rig->state.rigport, (char *) data, len);
     }
@@ -1059,18 +1074,16 @@ int ft817_read_ack(RIG *rig)
  */
 static int ft817_send_cmd(RIG *rig, int index)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (p->pcs[index].ncomp == 0)
+    if (ncmd[index].ncomp == 0)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Incomplete sequence\n", __func__);
         return -RIG_EINTERNAL;
     }
 
     rig_flush(&rig->state.rigport);
-    write_block(&rig->state.rigport, (char *) p->pcs[index].nseq, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, (char *) ncmd[index].nseq, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
 
@@ -1079,18 +1092,17 @@ static int ft817_send_cmd(RIG *rig, int index)
  */
 static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     unsigned char cmd[YAESU_CMD_LENGTH];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (p->pcs[index].ncomp == 1)
+    if (ncmd[index].ncomp == 1)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Complete sequence\n", __func__);
         return -RIG_EINTERNAL;
     }
 
-    cmd[YAESU_CMD_LENGTH - 1] = p->pcs[index].nseq[YAESU_CMD_LENGTH - 1];
+    cmd[YAESU_CMD_LENGTH - 1] = ncmd[index].nseq[YAESU_CMD_LENGTH - 1];
     memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
 
     write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -1098,6 +1110,48 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 }
 
 /* ---------------------------------------------------------------------- */
+static int ft817_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    unsigned char c;
+    *vfo = RIG_VFO_B;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+
+    if (ft817_read_eeprom(rig, 0x55, &c) < 0)   /* get vfo status */
+    {
+        return -RIG_EPROTO;
+    }
+
+    if ((c & 0x1) == 0) { *vfo = RIG_VFO_A; }
+
+    return RIG_OK;
+}
+
+static int ft817_set_vfo(RIG *rig, vfo_t vfo)
+{
+    vfo_t curvfo;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+
+    retval =  ft817_get_vfo(rig, &curvfo);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error get_vfo '%s'\n", __func__,
+                  rigerror(retval));
+        return retval;
+    }
+
+    if (curvfo == vfo)
+    {
+        return RIG_OK;
+    }
+
+    return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
+}
+
+
 
 int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -1447,8 +1501,6 @@ int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 int ft817_set_powerstat(RIG *rig, powerstat_t status)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     switch (status)
@@ -1459,9 +1511,9 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_ON:
         // send 5 bytes first, snooze a bit, then PWR_ON
         write_block(&rig->state.rigport,
-                    (char *) p->pcs[FT817_NATIVE_CAT_PWR_WAKE].nseq, YAESU_CMD_LENGTH);
+                    (char *) ncmd[FT817_NATIVE_CAT_PWR_WAKE].nseq, YAESU_CMD_LENGTH);
         hl_usleep(200 * 1000);
-        write_block(&rig->state.rigport, (char *) p->pcs[FT817_NATIVE_CAT_PWR_ON].nseq,
+        write_block(&rig->state.rigport, (char *) ncmd[FT817_NATIVE_CAT_PWR_ON].nseq,
                     YAESU_CMD_LENGTH);
         return RIG_OK;
 

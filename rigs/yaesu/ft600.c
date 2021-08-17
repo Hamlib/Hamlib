@@ -41,6 +41,14 @@
 #include "misc.h"
 #include "bandplan.h"
 
+struct ft600_priv_data {
+  FT600_STATUS_INFO status;
+  FT600_FLAG_INFO flags;
+  unsigned char s_meter;
+
+};
+
+
 /* prototypes */
 static int ft600_send_priv_cmd(RIG *rig, unsigned char cmd_index);
 
