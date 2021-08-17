@@ -39,7 +39,7 @@ rotctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 ampctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
-testlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
+testlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 
 rigctl_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(LDADD)
 rigctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
@@ -49,7 +49,7 @@ ampctl_LDADD = $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 ampctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigmem_LDADD = $(LIBXML2_LIBS) $(LDADD)
 rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
-testlibusb_LDADD = -L/c/JTSDK64-Tools/tools/libusb/1.0.24/VS2019/MS64/dll -lusb-1.0
+testlibusb_LDADD = $(LIBUSB_LIBS)
 
 # Linker options
 rigctl_LDFLAGS = $(WINEXELDFLAGS)
