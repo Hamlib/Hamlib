@@ -118,23 +118,6 @@ enum ft857_native_cmd_e {
 typedef enum ft857_native_cmd_e ft857_native_cmd_t;
 
 
-struct ft857_priv_data {
-  yaesu_cmd_set_t pcs[FT857_NATIVE_SIZE];  /* TODO:  why? */
-
-  /* rx status */
-  struct timeval rx_status_tv;
-  unsigned char rx_status;
-
-  /* tx status */
-  struct timeval tx_status_tv;
-  unsigned char tx_status;
-
-  /* freq & mode status */
-  struct timeval fm_status_tv;
-  unsigned char fm_status[YAESU_CMD_LENGTH+1];
-};
-
-
 static int ft857_init(RIG *rig);
 static int ft857_open(RIG *rig);
 static int ft857_cleanup(RIG *rig);

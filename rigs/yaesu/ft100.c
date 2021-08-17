@@ -41,6 +41,13 @@
 #include "misc.h"
 #include "bandplan.h"
 
+struct ft100_priv_data {
+  /* TODO: make use of cached data */
+  FT100_STATUS_INFO status;
+  FT100_FLAG_INFO flags;
+};
+
+
 /* prototypes */
 
 static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index);

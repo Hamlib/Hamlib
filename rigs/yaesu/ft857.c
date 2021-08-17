@@ -74,6 +74,24 @@
 #include "tones.h"
 #include "bandplan.h"
 
+struct ft857_priv_data {
+  yaesu_cmd_set_t pcs[FT857_NATIVE_SIZE];  /* TODO:  why? */
+
+  /* rx status */
+  struct timeval rx_status_tv;
+  unsigned char rx_status;
+
+  /* tx status */
+  struct timeval tx_status_tv;
+  unsigned char tx_status;
+
+  /* freq & mode status */
+  struct timeval fm_status_tv;
+  unsigned char fm_status[YAESU_CMD_LENGTH+1];
+};
+
+
+
 /* Native ft857 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
 /* Complete sequences (1) can be read and used directly as a cmd sequence . */
