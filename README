@@ -124,14 +124,14 @@ Major.minor.incremental
 
 Where
 
-Major:  Currently at 3, but can be advanced when changes to the API require
+Major:  Currently at 4, but can be advanced when changes to the API require
 client programs to be rewritten to take advantage of new features of
 Hamlib.  This number has advanced a couple of times throughout the life of
 Hamlib.  Advancement of the major number is only for frontend API changes
 that require modification of client source.  ABI compatibility is presently
 maintained to prior releases so that a program linked to an earlier
 1.2.Y.[Z] release will work with a later 3.Y[.Z] release without
-recompiling.  Itis our intention to maintain such ABI compatibility as long
+recompiling. It is our intention to maintain such ABI compatibility as long
 as practical.
 
 Minor:  This number advances when either new backend(s) or new rig
