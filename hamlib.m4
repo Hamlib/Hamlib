@@ -38,7 +38,7 @@ dnl Add any special include directories
 AC_MSG_CHECKING(for HAMLIB CFLAGS)
 if test "$hamlib_inc_prefix" != "" ; then
 	HAMLIB_CFLAGS="$HAMLIB_CFLAGS -I$hamlib_inc_prefix"
-	CFLAGS="$CFLAGS -I$hamlib_inc_prefix"
+	CFLAGS="$CFLAGS -I$hamlib_inc_prefix $LIBUSB_CFLAGS"
 fi
 AC_MSG_RESULT($HAMLIB_CFLAGS)
 
@@ -46,7 +46,7 @@ dnl add any special lib dirs
 AC_MSG_CHECKING(for HAMLIB LDFLAGS)
 if test "$hamlib_prefix" != "" ; then
 	HAMLIB_LIBS="$HAMLIB_LIBS -L$hamlib_prefix -Wl,--rpath -Wl,$hamlib_prefix"
-	LDFLAGS="$LDFLAGS $HAMLIB_LIBS"
+	LDFLAGS="$LDFLAGS $HAMLIB_LIBS $LIBUSB_LDFLAGS"
 fi
 
 dnl add the hamlib library
