@@ -225,6 +225,21 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
      * Open in Non-blocking mode. Watch for EAGAIN errors!
      */
     fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
+    if (fd == -1)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: open failed...trying withoud O_NOCTTY\n", __func__);
+        fd = OPEN(rp->pathname, O_RDWR | O_NDELAY);
+    }
+    if (fd == -1)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: open failed...trying withoud O_NDELAY\n", __func__);
+        fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY );
+    }
+    if (fd == -1)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: open failed...trying withoud O_NDELAY and O_NOCTTY\n", __func__);
+        fd = OPEN(rp->pathname, O_RDWR);
+    }
 
     if (fd == -1)
     {
