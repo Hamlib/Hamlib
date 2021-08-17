@@ -88,6 +88,9 @@ struct ft817_priv_data
     unsigned char fm_status[YAESU_CMD_LENGTH + 1];
 };
 
+static int ft817_get_vfo(RIG *rig, vfo_t *vfo);
+static int ft817_set_vfo(RIG *rig, vfo_t vfo);
+
 /* Native ft817 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
 /* Complete sequences (1) can be read and used directly as a cmd sequence . */
@@ -324,6 +327,8 @@ const struct rig_caps ft817_caps =
     .rig_cleanup =          ft817_cleanup,
     .rig_open =         ft817_open,
     .rig_close =        ft817_close,
+    .get_vfo =          ft817_get_vfo,
+    .set_vfo =          ft817_set_vfo,
     .set_freq =         ft817_set_freq,
     .get_freq =         ft817_get_freq,
     .set_mode =         ft817_set_mode,
@@ -462,6 +467,8 @@ const struct rig_caps ft818_caps =
     .rig_cleanup =          ft817_cleanup,
     .rig_open =         ft817_open,
     .rig_close =        ft817_close,
+    .get_vfo =          ft817_get_vfo,
+    .set_vfo =          ft817_set_vfo,
     .set_freq =         ft817_set_freq,
     .get_freq =         ft817_get_freq,
     .set_mode =         ft817_set_mode,
@@ -1114,6 +1121,48 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 }
 
 /* ---------------------------------------------------------------------- */
+static int ft817_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    unsigned char c;
+    *vfo = RIG_VFO_B;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+
+    if (ft817_read_eeprom(rig, 0x55, &c) < 0)   /* get vfo status */
+    {
+        return -RIG_EPROTO;
+    }
+
+    if ((c & 0x1) == 0) { *vfo = RIG_VFO_A; }
+
+    return RIG_OK;
+}
+
+static int ft817_set_vfo(RIG *rig, vfo_t vfo)
+{
+    vfo_t curvfo;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+
+    retval =  ft817_get_vfo(rig, &curvfo);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error get_vfo '%s'\n", __func__,
+                  rigerror(retval));
+        return retval;
+    }
+
+    if (curvfo == vfo)
+    {
+        return RIG_OK;
+    }
+
+    return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
+}
+
+
 
 int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
