@@ -315,6 +315,7 @@ AC_ARG_WITH([libusb],
     )
 
 AC_MSG_RESULT([$cf_with_libusb])
+AM_CONDITIONAL([HAVE_LIBUSB], [test x"${cf_with_libusb}" = "xyes"])
 
 LIBUSB=""
 AC_ARG_VAR([LIBUSB_CFLAGS], [C compiler flags for libusb, overriding configure defaults])
