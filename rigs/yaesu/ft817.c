@@ -503,8 +503,6 @@ int ft817_init(RIG *rig)
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
-
     return RIG_OK;
 }
 
