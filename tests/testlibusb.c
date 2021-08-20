@@ -242,7 +242,8 @@ static void print_device(libusb_device *dev, libusb_device_handle *handle)
 		libusb_close(handle);
 }
 
-#ifdef __linux__
+#if defined(LIBUSB_API_VERSION) && (LIBUSB_API_VERSION >= 0x01000107)
+
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -268,6 +269,7 @@ static int test_wrapped_device(const char *device_name)
 	return 0;
 }
 #else
+#warning LIBUSB-1.0.23 will be required in Hamlib > 4.3
 static int test_wrapped_device(const char *device_name)
 {
 	(void)device_name;
