@@ -2297,6 +2297,9 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  *  The value stored at \a mode location equals RIG_MODE_NONE when the current
  *  mode of the VFO is not defined (e.g. blank memory).
  *
+ *  Note that if either \a mode or \a width is NULL, -RIG_EINVAL is returned.
+ *  Both must be given even if only one is actually wanted.
+ *
  * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
