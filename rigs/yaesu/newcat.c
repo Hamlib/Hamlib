@@ -10080,16 +10080,13 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
 
     ENTERFUNC;
 
-    if (width != NULL)
-    {
-        *width = RIG_PASSBAND_NORMAL;
-    }
+    *width = RIG_PASSBAND_NORMAL;
 
     for (i = 0; i < sizeof(newcat_mode_conv) / sizeof(newcat_mode_conv[0]); i++)
     {
         if (newcat_mode_conv[i].modechar == mode)
         {
-            if (newcat_mode_conv[i].chk_width == TRUE && width != NULL)
+            if (newcat_mode_conv[i].chk_width == TRUE)
             {
                 if (newcat_is_rig(rig, RIG_MODEL_FT991)
                         && mode == 'E') // crude fix because 991 hangs on NA0; command while in C4FM

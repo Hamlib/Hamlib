@@ -1742,7 +1742,7 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode, in
     buf[1] = datamode;
     // filter fixed to filter 1 due to IC7300 bug defaulting to filter 2 on mode changed -- yuck!!
     // buf[2] = filter // if Icom ever fixed this
-    buf[2] = 1; 
+    buf[2] = 1;
 
     retval = icom_transaction(rig, cmd2, subcmd2, buf, 3, NULL, NULL);
 
@@ -1820,7 +1820,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         unsigned char datamode[2];
         unsigned char mode_icom; // Not used, we only need the width
         signed char width_icom;
- 
+
         TRACE;
         switch (mode)
         {
@@ -1844,7 +1844,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         {
             TRACE;
             if (datamode[0] == 0) datamode[1]=0;  // the only good combo possible according to manual
-            
+
             rig_debug(RIG_DEBUG_TRACE, "%s(%d) mode_icom=%d, datamode[0]=%d, filter=%d\n", __func__, __LINE__, mode_icom, datamode[0], datamode[1]);
             retval = icom_set_mode_x26(rig, vfo, mode_icom, datamode[0], datamode[1]);
             if (retval != RIG_OK)
@@ -2220,64 +2220,61 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     // if we already set width we won't update with except during set_vfo or set_mode
     // reason is we can't get width without swapping vfos -- yuck!!
-    if (width != NULL)
+    if (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
+               RIG_VFO_CURR))
     {
-        if (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
-                   RIG_VFO_CURR))
+        // then we get what was asked for
+        if (vfo == RIG_VFO_NONE && rig->state.current_vfo == RIG_VFO_NONE)
         {
-            // then we get what was asked for
-            if (vfo == RIG_VFO_NONE && rig->state.current_vfo == RIG_VFO_NONE)
-            {
-                rig_debug(RIG_DEBUG_TRACE, "%s(%d): forcing default VFO_A\n", __func__,
-                          __LINE__);
-                TRACE;
-                rig_set_vfo(rig, RIG_VFO_A); // force VFOA
-            }
+            rig_debug(RIG_DEBUG_TRACE, "%s(%d): forcing default VFO_A\n", __func__,
+                      __LINE__);
+            TRACE;
+            rig_set_vfo(rig, RIG_VFO_A); // force VFOA
+        }
 
+        retval = icom_get_dsp_flt(rig, *mode);
+        *width = retval;
+
+        if (retval == 0)
+        {
+            rig_debug(RIG_DEBUG_TRACE,
+                      "%s: vfo=%s returning mode=%s, width not available\n", __func__,
+                      rig_strvfo(vfo), rig_strrmode(*mode));
+        }
+    }
+    else if (rig->state.cache.widthMainB == 0)
+    {
+        // we need to swap vfos to get the bandwidth -- yuck
+        // so we read it once and will let set_mode and transceive capability (4.3 hamlib) update it
+        vfo_t vfosave = rig->state.current_vfo;
+
+        if (vfosave != vfo)
+        {
+            // right now forcing VFOA/B arrangement -- reverse not supported yet
+            // If VFOB width is ever different than VFOA
+            // we need to figure out how to read VFOB without swapping VFOs
+            //TRACE;
+            //rig_set_vfo(rig, RIG_VFO_B);
             retval = icom_get_dsp_flt(rig, *mode);
             *width = retval;
 
-            if (retval == 0)
-            {
-                rig_debug(RIG_DEBUG_TRACE,
-                          "%s: vfo=%s returning mode=%s, width not available\n", __func__,
-                          rig_strvfo(vfo), rig_strrmode(*mode));
-            }
+            if (*width == 0) { *width = rig->state.cache.widthMainA; } // we'll use VFOA's width
+
+            // dont' really care about cache time here
+            // this is just to prevent vfo swapping while getting width
+            rig->state.cache.widthMainB = retval;
+            rig_debug(RIG_DEBUG_TRACE, "%s(%d): vfosave=%s, currvfo=%s\n", __func__,
+                      __LINE__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+            //TRACE;
+            //rig_set_vfo(rig, RIG_VFO_A);
+            rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s returning mode=%s, width=%d\n", __func__,
+                      rig_strvfo(vfo), rig_strrmode(*mode), (int)*width);
         }
-        else if (rig->state.cache.widthMainB == 0)
+        else
         {
-            // we need to swap vfos to get the bandwidth -- yuck
-            // so we read it once and will let set_mode and transceive capability (4.3 hamlib) update it
-            vfo_t vfosave = rig->state.current_vfo;
-
-            if (vfosave != vfo)
-            {
-                // right now forcing VFOA/B arrangement -- reverse not supported yet
-                // If VFOB width is ever different than VFOA
-                // we need to figure out how to read VFOB without swapping VFOs
-                //TRACE;
-                //rig_set_vfo(rig, RIG_VFO_B);
-                retval = icom_get_dsp_flt(rig, *mode);
-                *width = retval;
-
-                if (*width == 0) { *width = rig->state.cache.widthMainA; } // we'll use VFOA's width
-
-                // dont' really care about cache time here
-                // this is just to prevent vfo swapping while getting width
-                rig->state.cache.widthMainB = retval;
-                rig_debug(RIG_DEBUG_TRACE, "%s(%d): vfosave=%s, currvfo=%s\n", __func__,
-                          __LINE__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
-                //TRACE;
-                //rig_set_vfo(rig, RIG_VFO_A);
-                rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s returning mode=%s, width=%d\n", __func__,
-                          rig_strvfo(vfo), rig_strrmode(*mode), (int)*width);
-            }
-            else
-            {
-                rig_debug(RIG_DEBUG_WARN,
-                          "%s: vfo arrangement not supported yet, vfo=%s, currvfo=%s\n", __func__,
-                          rig_strvfo(vfo), rig_strvfo(vfosave));
-            }
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: vfo arrangement not supported yet, vfo=%s, currvfo=%s\n", __func__,
+                      rig_strvfo(vfo), rig_strvfo(vfosave));
         }
     }
 
@@ -5016,7 +5013,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     {
         RETURNFUNC(retval);
     }
- 
+
     TRACE;
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
@@ -7864,7 +7861,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         scan_sc = S_SCAN_STOP;
         break;
 
-    case RIG_SCAN_MEM: 
+    case RIG_SCAN_MEM:
         TRACE;
         retval = rig_set_vfo(rig, RIG_VFO_MEM);
 
