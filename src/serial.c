@@ -720,7 +720,7 @@ int ser_open(hamlib_port_t *p)
              * pathname is not uh_rig or uh_ptt: simply open()
              */
             ret = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
-            if (ret == 1) // some serial ports fail to open 1st time
+            if (ret == -1) // some serial ports fail to open 1st time
             {
                 rig_debug(RIG_DEBUG_WARN, "%s(%d): open failed#1\n", __func__, __LINE__);
                 hl_usleep(500*1000);
