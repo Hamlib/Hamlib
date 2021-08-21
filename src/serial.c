@@ -722,7 +722,7 @@ int ser_open(hamlib_port_t *p)
             ret = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
             if (ret == 1) // some serial ports fail to open 1st time
             {
-                rig_debug(RIG_DEBUG_WARN, "%s(d): open failed#1\n", __func__, ___LINE__);
+                rig_debug(RIG_DEBUG_WARN, "%s(%d): open failed#1\n", __func__, __LINE__);
                 hl_usleep(500*1000);
                 ret = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
             }
