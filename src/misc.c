@@ -413,7 +413,7 @@ const char *HAMLIB_API rig_strstatus(enum rig_status_e status)
 }
 
 
-static struct
+static const struct
 {
     rmode_t mode;
     const char *str;
@@ -553,7 +553,7 @@ int HAMLIB_API rig_strrmodes(rmode_t modes, char *buf, int buflen)
 }
 
 
-static struct
+static const struct
 {
     vfo_t vfo;
     const char *str;
@@ -632,7 +632,7 @@ const char *HAMLIB_API rig_strvfo(vfo_t vfo)
 }
 
 
-static struct
+static const struct
 {
     setting_t func;
     const char *str;
@@ -686,7 +686,7 @@ static struct
 };
 
 
-static struct
+static const struct
 {
     setting_t func;
     const char *str;
@@ -817,7 +817,7 @@ const char *HAMLIB_API rot_strfunc(setting_t func)
 }
 
 
-static struct
+static const struct
 {
     setting_t level;
     const char *str;
@@ -874,7 +874,7 @@ static struct
 };
 
 
-static struct
+static const struct
 {
     setting_t level;
     const char *str;
@@ -885,7 +885,7 @@ static struct
 };
 
 
-static struct
+static const struct
 {
     setting_t level;
     const char *str;
@@ -1074,7 +1074,7 @@ const char *HAMLIB_API amp_strlevel(setting_t level)
 }
 
 
-static struct
+static const struct
 {
     setting_t parm;
     const char *str;
@@ -1092,7 +1092,7 @@ static struct
 };
 
 
-static struct
+static const struct
 {
     setting_t parm;
     const char *str;
@@ -1211,7 +1211,7 @@ const char *HAMLIB_API rot_strparm(setting_t parm)
     return "";
 }
 
-static struct
+static const struct
 {
     enum agc_level_e level;
     const char *str;
@@ -1253,7 +1253,7 @@ const char *HAMLIB_API rig_stragclevel(enum agc_level_e level)
 }
 
 
-static struct
+static const struct
 {
     vfo_op_t vfo_op;
     const char *str;
@@ -1327,7 +1327,7 @@ const char *HAMLIB_API rig_strvfop(vfo_op_t op)
 }
 
 
-static struct
+static const struct
 {
     scan_t rscan;
     const char *str;
@@ -1451,7 +1451,7 @@ rptr_shift_t HAMLIB_API rig_parse_rptr_shift(const char *s)
 }
 
 
-static struct
+static const struct
 {
     chan_type_t mtype;
     const char *str;
@@ -1522,7 +1522,7 @@ const char *HAMLIB_API rig_strmtype(chan_type_t mtype)
     return "";
 }
 
-static struct
+static const struct
 {
     enum rig_spectrum_mode_e mode;
     const char *str;
@@ -1937,7 +1937,7 @@ int HAMLIB_API rig_flush(hamlib_port_t *port)
 }
 
 
-static struct
+static const struct
 {
     rot_status_t status;
     const char *str;
