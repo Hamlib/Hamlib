@@ -173,7 +173,7 @@ static struct opened_rig_l *opened_rig_list = { NULL };
  * Careful, the order must be the same as their RIG_E* counterpart!
  * TODO: localise the messages..
  */
-static const char *rigerror_table[] =
+static const char * const rigerror_table[] =
 {
     "Command completed successfully",
     "Invalid parameter",
