@@ -71,6 +71,52 @@
 #include "bandplan.h"
 #include "cal.h"
 
+enum ft817_native_cmd_e
+{
+    FT817_NATIVE_CAT_LOCK_ON = 0,
+    FT817_NATIVE_CAT_LOCK_OFF,
+    FT817_NATIVE_CAT_PTT_ON,
+    FT817_NATIVE_CAT_PTT_OFF,
+    FT817_NATIVE_CAT_SET_FREQ,
+    FT817_NATIVE_CAT_SET_MODE_LSB,
+    FT817_NATIVE_CAT_SET_MODE_USB,
+    FT817_NATIVE_CAT_SET_MODE_CW,
+    FT817_NATIVE_CAT_SET_MODE_CWR,
+    FT817_NATIVE_CAT_SET_MODE_AM,
+    FT817_NATIVE_CAT_SET_MODE_FM,
+    FT817_NATIVE_CAT_SET_MODE_FM_N,
+    FT817_NATIVE_CAT_SET_MODE_DIG,
+    FT817_NATIVE_CAT_SET_MODE_PKT,
+    FT817_NATIVE_CAT_CLAR_ON,
+    FT817_NATIVE_CAT_CLAR_OFF,
+    FT817_NATIVE_CAT_SET_CLAR_FREQ,
+    FT817_NATIVE_CAT_SET_VFOAB,
+    FT817_NATIVE_CAT_SPLIT_ON,
+    FT817_NATIVE_CAT_SPLIT_OFF,
+    FT817_NATIVE_CAT_SET_RPT_SHIFT_MINUS,
+    FT817_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
+    FT817_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
+    FT817_NATIVE_CAT_SET_RPT_OFFSET,
+    FT817_NATIVE_CAT_SET_DCS_ON,
+    FT817_NATIVE_CAT_SET_CTCSS_ON,
+    FT817_NATIVE_CAT_SET_CTCSS_ENC_ON,
+    FT817_NATIVE_CAT_SET_CTCSS_DCS_OFF,
+    FT817_NATIVE_CAT_SET_CTCSS_FREQ,
+    FT817_NATIVE_CAT_SET_DCS_CODE,
+    FT817_NATIVE_CAT_GET_RX_STATUS,
+    FT817_NATIVE_CAT_GET_TX_STATUS,
+    FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS,
+    FT817_NATIVE_CAT_PWR_WAKE,
+    FT817_NATIVE_CAT_PWR_ON,
+    FT817_NATIVE_CAT_PWR_OFF,
+    FT817_NATIVE_CAT_EEPROM_READ,
+    FT817_NATIVE_SIZE       /* end marker */
+};
+
+
+typedef enum ft817_native_cmd_e ft817_native_cmd_t;
+
+
 struct ft817_priv_data
 {
     /* rx status */
@@ -83,11 +129,43 @@ struct ft817_priv_data
 
     /* freq & mode status */
     struct timeval fm_status_tv;
-    unsigned char fm_status[YAESU_CMD_LENGTH + 1];
+    unsigned char fm_status[YAESU_CMD_LENGTH];
+    /* Digi mode is not part of regular fm_status reponse.
+     * So keep track of it in a separate variable. */
+    unsigned char dig_mode;
 };
 
+static int ft817_init(RIG *rig);
+static int ft817_open(RIG *rig);
+static int ft817_cleanup(RIG *rig);
+static int ft817_close(RIG *rig);
 static int ft817_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft817_set_vfo(RIG *rig, vfo_t vfo);
+static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int ft817_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+static int ft817_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft817_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+static int ft817_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft817_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
+static int ft817_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
+static int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+static int ft817_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo);
+static int ft817_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                               vfo_t tx_vfo);
+static int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
+                          freq_t freq, rmode_t mode);
+static int ft817_mW2power(RIG *rig, float *power, unsigned int mwpower,
+                          freq_t freq, rmode_t mode);
 
 /* Native ft817 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
@@ -493,7 +571,7 @@ const struct rig_caps ft818_caps =
 
 /* ---------------------------------------------------------------------- */
 
-int ft817_init(RIG *rig)
+static int ft817_init(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called, version %s\n", __func__,
               rig->caps->version);
@@ -506,28 +584,25 @@ int ft817_init(RIG *rig)
     return RIG_OK;
 }
 
-int ft817_cleanup(RIG *rig)
+static int ft817_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (rig->state.priv)
-    {
-        free(rig->state.priv);
-    }
+    free(rig->state.priv);
 
     rig->state.priv = NULL;
 
     return RIG_OK;
 }
 
-int ft817_open(RIG *rig)
+static int ft817_open(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
     return RIG_OK;
 }
 
-int ft817_close(RIG *rig)
+static int ft817_close(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
@@ -657,12 +732,14 @@ static int ft817_get_status(RIG *rig, int status)
 
     if (status == FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)
     {
-        if ((n = ft817_read_eeprom(rig, 0x0065, &p->fm_status[5])) < 0)
+        unsigned char dig_mode;
+        if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
         {
             return n;
         }
 
-        p->fm_status[5] >>= 5;
+        /* Top 3 bit define the digi mode */
+        p->dig_mode = dig_mode >> 5;
     }
 
     gettimeofday(tv, NULL);
@@ -672,7 +749,7 @@ static int ft817_get_status(RIG *rig, int status)
 
 /* ---------------------------------------------------------------------- */
 
-int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     freq_t f1 = 0, f2 = 0;
@@ -693,7 +770,7 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         f1 = f2;
         f2 = from_bcd_be(p->fm_status, 8);
-        dump_hex(p->fm_status, 5);
+        dump_hex(p->fm_status, sizeof(p->fm_status)/sizeof(p->fm_status[0]));
     }
 
 #if 1 // user must be twiddling the VFO
@@ -716,7 +793,7 @@ int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 }
 
-int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
@@ -763,7 +840,7 @@ int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         break;
 
     case 0x0a:
-        switch (p->fm_status[5])
+        switch (p->dig_mode)
         {
         case FT817_DIGI_RTTY: *mode = RIG_MODE_RTTYR; break;
 
@@ -774,6 +851,9 @@ int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         case FT817_DIGI_USER_L: *mode = RIG_MODE_PKTLSB; break;
 
         case FT817_DIGI_USER_U: *mode = RIG_MODE_PKTUSB; break;
+
+        default:
+            *mode = RIG_MODE_NONE;
         }
 
         break;
@@ -798,7 +878,7 @@ int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return RIG_OK;
 }
 
-int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     int n;
@@ -831,7 +911,7 @@ int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     return RIG_OK;
 }
 
-int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
@@ -978,7 +1058,7 @@ static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 }
 
 
-int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     switch (level)
     {
@@ -1007,7 +1087,7 @@ int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
-int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+static int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
@@ -1151,7 +1231,7 @@ static int ft817_set_vfo(RIG *rig, vfo_t vfo)
 
 
 
-int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
     int retval;
@@ -1169,7 +1249,7 @@ int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return retval;
 }
 
-int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int index;  /* index of sequence to send */
 
@@ -1227,7 +1307,7 @@ int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return ft817_send_cmd(rig, index);
 }
 
-int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+static int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int index;
     ptt_t ptt_response = -1;
@@ -1288,7 +1368,7 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 }
 
-int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+static int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1329,7 +1409,7 @@ int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     }
 }
 
-int ft817_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
+static int ft817_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
     /*  int n; */
@@ -1356,7 +1436,7 @@ int ft817_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
     return ft817_send_icmd(rig, FT817_NATIVE_CAT_SET_DCS_CODE, data);
 }
 
-int ft817_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
+static int ft817_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
     int n;
@@ -1381,7 +1461,7 @@ int ft817_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 }
 
 
-int ft817_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
+static int ft817_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
     int n;
@@ -1406,7 +1486,7 @@ int ft817_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 }
 
 
-int ft817_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
+static int ft817_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
     int n;
@@ -1430,7 +1510,7 @@ int ft817_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_CTCSS_ON);
 }
 
-int ft817_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
+static int ft817_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
 {
     /* Note: this doesn't have effect unless FT817 is in FM mode
        although the command is accepted in any mode.
@@ -1454,7 +1534,7 @@ int ft817_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
     return -RIG_EINVAL;
 }
 
-int ft817_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
+static int ft817_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
 
@@ -1466,7 +1546,7 @@ int ft817_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
     return ft817_send_icmd(rig, FT817_NATIVE_CAT_SET_RPT_OFFSET, data);
 }
 
-int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+static int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
     int n;
@@ -1521,7 +1601,7 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
     }
 }
 
-int ft817_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+static int ft817_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1545,7 +1625,7 @@ int ft817_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 /* FIXME: this function silently ignores the vfo args and just turns
    split ON or OFF.
 */
-int ft817_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+static int ft817_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     int index, n;
 
@@ -1588,7 +1668,7 @@ int ft817_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                           3 bars = 1W
                           1 bar  = 0.5W
 */
-int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
+static int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
                    freq_t freq, rmode_t mode)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -1598,7 +1678,7 @@ int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
 
 
 /* FIXME: currently ignores mode and freq */
-int ft817_mW2power(RIG *rig, float *power, unsigned int mwpower,
+static int ft817_mW2power(RIG *rig, float *power, unsigned int mwpower,
                    freq_t freq, rmode_t mode)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);

@@ -75,6 +75,7 @@
 #include "serial.h"
 #include "yaesu.h"
 #include "ft897.h"
+#include "ft817.h" /* We use functions from the 817 code */
 #include "misc.h"
 #include "tones.h"
 #include "bandplan.h"
@@ -127,8 +128,6 @@ static int ft897_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
 static int ft897_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
 static int ft897_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
-extern int ft817_read_ack(RIG *rig);
-extern int ft817_set_powerstat(RIG *rig, powerstat_t status);
 
 /* Native ft897 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
