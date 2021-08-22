@@ -110,6 +110,7 @@ enum ft817_native_cmd_e
     FT817_NATIVE_CAT_PWR_ON,
     FT817_NATIVE_CAT_PWR_OFF,
     FT817_NATIVE_CAT_EEPROM_READ,
+    FT817_NATIVE_CAT_GET_TX_METERING,
     FT817_NATIVE_SIZE       /* end marker */
 };
 
@@ -211,6 +212,7 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0xbb } }, /* eeprom read */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0xbd } }, /* get TX metering levels (PWR, SWR, MOD, ALC) */
 };
 
 enum ft817_digi
