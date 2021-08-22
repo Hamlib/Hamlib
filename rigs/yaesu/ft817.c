@@ -126,7 +126,7 @@ struct ft817_priv_data
 
     /* freq & mode status */
     struct timeval fm_status_tv;
-    unsigned char fm_status[YAESU_CMD_LENGTH];
+    unsigned char fm_status[5]; /* 5 bytes, NOT related to YAESU_CMD_LENGTH */
     /* Digi mode is not part of regular fm_status reponse.
      * So keep track of it in a separate variable. */
     unsigned char dig_mode;
@@ -688,7 +688,7 @@ static int ft817_get_status(RIG *rig, int status)
     {
     case FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS:
         data = p->fm_status;
-        len  = YAESU_CMD_LENGTH;
+        len  = 5; /* Answer is 5 long; 4 bytes BCD freq, 1 byte status */
         tv   = &p->fm_status_tv;
         break;
 
