@@ -122,7 +122,14 @@ struct ft817_priv_data
 
     /* tx status */
     struct timeval tx_status_tv;
-    unsigned char tx_status;
+    unsigned char tx_status; /* Raw data from rig. Highest bit 0 = PTT */
+
+    /* tx levels */
+    struct timeval tx_level_tv;
+    unsigned char swr_level;
+    unsigned char alc_level;
+    unsigned char mod_level;
+    unsigned char pwr_level; /* TX power level */
 
     /* freq & mode status */
     struct timeval fm_status_tv;
@@ -231,7 +238,7 @@ enum ft817_digi
 #define FT817_AM_TX_MODES       (RIG_MODE_AM)
 
 #define FT817_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
-#define FT817_ANTS              0
+#define FT817_ANTS              (RIG_ANT_1|RIG_ANT_2) /* ant-1 on the back, ant-2 BNC at the front */
 
 #define FT817_STR_CAL { 16, \
                 { \
@@ -308,7 +315,9 @@ const struct rig_caps ft817_caps =
     .retry =               5,
     .has_get_func =        RIG_FUNC_NONE,
     .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
-    .has_get_level =       RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER,
+    .has_get_level =
+        RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
+        RIG_LEVEL_ALC | RIG_LEVEL_SWR,
     .has_set_level =       RIG_LEVEL_NONE,
     .has_get_parm =        RIG_PARM_NONE,
     .has_set_parm =        RIG_PARM_NONE,
@@ -451,7 +460,9 @@ const struct rig_caps ft818_caps =
     .retry =               5,
     .has_get_func =        RIG_FUNC_NONE,
     .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
-    .has_get_level =       RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER,
+    .has_get_level =
+        RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
+        RIG_LEVEL_ALC | RIG_LEVEL_SWR,
     .has_set_level =       RIG_LEVEL_NONE,
     .has_get_parm =        RIG_PARM_NONE,
     .has_set_parm =        RIG_PARM_NONE,
@@ -535,7 +546,10 @@ const struct rig_caps ft818_caps =
         RIG_FLT_END,
     },
 
-    .str_cal = FT817_STR_CAL,
+    .str_cal =          FT817_STR_CAL,
+    .swr_cal =          FT817_SWR_CAL,
+    .alc_cal =          FT817_ALC_CAL,
+    .rfpower_meter_cal = FT817_PWR_CAL,
 
     .rig_init =         ft817_init,
     .rig_cleanup =          ft817_cleanup,
@@ -681,6 +695,7 @@ static int ft817_get_status(RIG *rig, int status)
     int len;
     int n;
     int retries = rig->state.rigport.retry;
+    unsigned char result[2];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -688,7 +703,8 @@ static int ft817_get_status(RIG *rig, int status)
     {
     case FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS:
         data = p->fm_status;
-        len  = 5; /* Answer is 5 long; 4 bytes BCD freq, 1 byte status */
+        /* Answer is 5 long; 4 bytes BCD freq, 1 byte status */
+        len  = 5;
         tv   = &p->fm_status_tv;
         break;
 
@@ -698,11 +714,18 @@ static int ft817_get_status(RIG *rig, int status)
         tv   = &p->rx_status_tv;
         break;
 
+    case FT817_NATIVE_CAT_GET_TX_METERING:
+        data = result;
+        len = sizeof(result)/sizeof(result[0]); /* We expect two bytes */
+        tv = &p->tx_level_tv;
+        break;
+
     case FT817_NATIVE_CAT_GET_TX_STATUS:
         data = &p->tx_status;
         len  = 1;
         tv   = &p->tx_status_tv;
         break;
+
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: Internal error!\n", __func__);
@@ -725,19 +748,41 @@ static int ft817_get_status(RIG *rig, int status)
 
     if (n != len)
     {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Length mismatch exp %d got %d!\n",
+                __func__, len, n);
         return -RIG_EIO;
     }
 
-    if (status == FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS)
+    switch(status)
     {
-        unsigned char dig_mode;
-        if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
+    case FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS:
         {
-            return n;
-        }
+            unsigned char dig_mode;
+            if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
+            {
+                return n;
+            }
 
-        /* Top 3 bit define the digi mode */
-        p->dig_mode = dig_mode >> 5;
+            /* Top 3 bit define the digi mode */
+            p->dig_mode = dig_mode >> 5;
+        }
+        break;
+
+    case FT817_NATIVE_CAT_GET_TX_METERING:
+            /* FT-817 returns 2 bytes with 4 nibbles.
+             * Extract raw values here;
+             * convert to float when they are requested. */
+            p->swr_level = result[0] & 0xF;
+            p->pwr_level = result[0] >> 4;
+            p->alc_level = result[1] & 0xF;
+            p->mod_level = result[1] >> 4;
+            rig_debug(RIG_DEBUG_TRACE, "%s: swr: %d, pwr %d, alc %d, mod %d\n",
+                    __func__,
+                    p->swr_level,
+                    p->pwr_level,
+                    p->alc_level,
+                    p->mod_level);
+        break;
     }
 
     gettimeofday(tv, NULL);
@@ -930,64 +975,45 @@ static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     return RIG_OK;
 }
 
-static int ft817_get_alc_level(RIG *rig, value_t *val)
+static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level, const cal_table_float_t *cal)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (check_cache_timeout(&p->tx_status_tv))
+    if (check_cache_timeout(&p->tx_level_tv))
     {
         int n;
+        ptt_t ptt;
 
-        if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
+        /* Default to not keyed */
+        *tx_level = 0;
+
+        /* TX metering is special; it sends 1 byte if not keyed and 2 if keyed.
+         * To handle this properly we first verify the rig is keyed.
+         * Otherwise we experience at least a full timeout and
+         * perhaps pointless retries + timeouts.
+         */
+        n = ft817_get_ptt(rig, 0, &ptt);
+        if (n != RIG_OK)
+        {
+            return n;
+        }
+
+        if (ptt == RIG_PTT_OFF)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not keyed\n", __func__);
+            return -RIG_ERJCTED; //Or return OK?
+        }
+
+        n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_METERING);
+        if (n != RIG_OK)
         {
             return n;
         }
     }
 
-    /* Valid only if PTT is on.
-       FT-817 returns the number of bars in the lowest 4 bits
-    */
-    if ((p->tx_status & 0x80) == 0)
-    {
-        val->f = rig_raw2val_float(p->tx_status >> 4, &rig->caps->alc_cal);
-    }
-    else // not transmitting so zero
-    {
-        val->f = 0.0;
-    }
-
-    return RIG_OK;
-}
-
-static int ft817_get_pometer_level(RIG *rig, value_t *val)
-{
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-
-    if (check_cache_timeout(&p->tx_status_tv))
-    {
-        int n;
-
-        if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
-        {
-            return n;
-        }
-    }
-
-    /* Valid only if PTT is on.
-       FT-817 returns the number of bars in the lowest 4 bits
-    */
-    if ((p->tx_status & 0x80) == 0)
-    {
-        val->f = rig_raw2val_float(p->tx_status >> 4, &rig->caps->rfpower_meter_cal);
-    }
-    else // not transmitting so zero
-    {
-        val->f = 0.0;
-    }
+    val->f = rig_raw2val_float(*tx_level, cal);
 
     return RIG_OK;
 }
@@ -1058,25 +1084,25 @@ static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 
 static int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
+    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     switch (level)
     {
 
     case RIG_LEVEL_STRENGTH:
         /* The front-end will always call for RAWSTR and use the cal_table */
         return ft817_get_smeter_level(rig, val);
-        break;
 
     case RIG_LEVEL_RAWSTR:
         return ft817_get_raw_smeter_level(rig, val);
-        break;
 
     case RIG_LEVEL_RFPOWER:
-        return ft817_get_pometer_level(rig, val);
-        break;
+        return ft817_get_tx_level(rig, val, &p->pwr_level, &rig->caps->rfpower_meter_cal);
 
     case RIG_LEVEL_ALC:
-        return ft817_get_alc_level(rig, val);
-        break;
+        return ft817_get_tx_level(rig, val, &p->alc_level, &rig->caps->alc_cal);
+
+    case RIG_LEVEL_SWR:
+        return ft817_get_tx_level(rig, val, &p->swr_level, &rig->caps->swr_cal);
 
     default:
         return -RIG_EINVAL;
