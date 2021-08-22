@@ -70,6 +70,7 @@
 #include "serial.h"
 #include "yaesu.h"
 #include "ft857.h"
+#include "ft817.h" /* We use functions from the 817 code */
 #include "misc.h"
 #include "tones.h"
 #include "bandplan.h"
@@ -163,8 +164,6 @@ enum ft857_digi
 #define FT857_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
 #define FT857_ANTS              0
 
-extern int ft817_read_ack(RIG *rig);
-extern int ft817_set_powerstat(RIG *rig, powerstat_t status);
 static int ft857_send_icmd(RIG *rig, int index, unsigned char *data);
 
 const struct rig_caps ft857_caps =
