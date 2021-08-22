@@ -127,7 +127,7 @@ static const struct icom_priv_caps ic756_priv_caps =
     0,       /* 731 mode */
     0,       /* no XCHG */
     ic756_ts_sc_list,
-    .antack_len = 2,
+    .antack_len = 3,
     .ant_count = 2,
     .r2i_mode = r2i_mode,
     .agc_levels_present = 1,
@@ -291,7 +291,7 @@ static const struct icom_priv_caps ic756pro_priv_caps =
     0,        /* 731 mode */
     0,    /* no XCHG */
     ic756pro_ts_sc_list,
-    .antack_len = 2,
+    .antack_len = 3,
     .ant_count = 2,
     .agc_levels_present = 1,
     .agc_levels = {
@@ -461,7 +461,7 @@ static const struct icom_priv_caps ic756pro2_priv_caps =
     0,       /* 731 mode */
     0,       /* no XCHG */
     ic756pro_ts_sc_list,
-    .antack_len = 2,
+    .antack_len = 3,
     .ant_count = 2,
     .agc_levels_present = 1,
     .agc_levels = {
@@ -890,7 +890,7 @@ static const struct icom_priv_caps ic756pro3_priv_caps =
     0,       /* 731 mode */
     0,       /* no XCHG */
     ic756pro_ts_sc_list,
-    .antack_len = 2,
+    .antack_len = 3,
     .ant_count = 2,
     .agc_levels_present = 1,
     .agc_levels = {
@@ -976,7 +976,7 @@ const struct rig_caps ic756pro3_caps =
     RIG_MODEL(RIG_MODEL_IC756PROIII),
     .model_name = "IC-756PROIII",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
