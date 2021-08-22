@@ -680,7 +680,7 @@ int ser_open(hamlib_port_t *p)
 {
     int ret;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called port=%s\n", __func__, p->pathname);
 
     if (!strncmp(p->pathname, "uh-rig", 6))
     {
