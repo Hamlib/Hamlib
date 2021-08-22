@@ -27,6 +27,8 @@ mode_t modeA = RIG_MODE_CW;
 mode_t modeB = RIG_MODE_USB;
 pbwidth_t widthA = 0;
 pbwidth_t widthB = 1;
+ant_t ant_curr = 0;
+int ant_option = 0;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -159,6 +161,25 @@ void frameParse(int fd, unsigned char *frame, int len)
         write(fd, frame, 6);
         break;
 
+    case 0x12: // we're simulating the 3-byte version -- not the 2-byte
+        if (frame[5] != 0xfd)
+        {
+            printf("Set ant %d\n", -1);
+            ant_curr = frame[5];
+            ant_option = frame[6];
+            dump_hex(frame,8);
+        }
+        else {
+            printf("Get ant\n");
+        }
+        frame[5] = ant_curr;
+        frame[6] = ant_option;
+        frame[7]=0xfd;
+        printf("write 8 bytes\n");
+        dump_hex(frame,8);
+        write(fd, frame, 8);
+        break;
+
     case 0x1a: // miscellaneous things 
         switch (frame[5])
         {
@@ -173,7 +194,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         break;
 
-#if 0
+#if 1
     case 0x25:
         if (frame[6] == 0xfd)
         {

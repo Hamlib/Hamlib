@@ -7601,7 +7601,6 @@ int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
             RETURNFUNC(retval);
         }
 
-        antopt_len = 0;
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: antack_len=%d so antopt_len=%d, antopt=0x%02x\n",
                   __func__, priv_caps->antack_len, antopt_len, antopt[0]);
@@ -7729,13 +7728,14 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     rig_debug(RIG_DEBUG_ERR, "%s: ackbuf= 0x%02x 0x%02x 0x%02x\n", __func__,
               ackbuf[0], ackbuf[1], ackbuf[2]);
 
-    *ant_curr = rig_idx2setting(ackbuf[1]);
+    *ant_curr = *ant_tx = *ant_rx = rig_idx2setting(ackbuf[1]);
 
     // Note: with IC756/IC-756Pro/IC-7800 and more, ackbuf[2] deals with [RX ANT]
     // Hopefully any ack_len=3 can fit in the option field
     if (ack_len == 3)
     {
         option->i = ackbuf[2];
+        *ant_rx = rig_idx2setting(ackbuf[2]);
     }
 
     RETURNFUNC(RIG_OK);
