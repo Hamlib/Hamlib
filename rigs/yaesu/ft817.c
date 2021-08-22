@@ -114,10 +114,6 @@ enum ft817_native_cmd_e
     FT817_NATIVE_SIZE       /* end marker */
 };
 
-
-typedef enum ft817_native_cmd_e ft817_native_cmd_t;
-
-
 struct ft817_priv_data
 {
     /* rx status */
