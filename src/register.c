@@ -284,6 +284,7 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     const struct rig_caps *caps;
     int be_idx;
     int retval;
+    int i,n;
 
     /* already loaded ? */
     caps = rig_get_caps(rig_model);
@@ -291,6 +292,17 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     if (caps)
     {
         return RIG_OK;
+    }
+
+    // hmmm...no caps so did we already load the rigs?
+    for(n=0, i=0; i< RIGLSTHASHSZ; i++)
+    {
+        if (rig_hash_table[i]) ++n;
+    }
+    if (n > 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig model %d not found and rig count=%d\n", __func__, rig_model, n);
+        return -RIG_ENAVAIL;
     }
 
     be_idx = rig_lookup_backend(rig_model);
