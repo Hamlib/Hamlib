@@ -170,6 +170,8 @@ static int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode);
 static int ft817_mW2power(RIG *rig, float *power, unsigned int mwpower,
                           freq_t freq, rmode_t mode);
+static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 
 /* Native ft817 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
@@ -238,7 +240,9 @@ enum ft817_digi
 #define FT817_AM_TX_MODES       (RIG_MODE_AM)
 
 #define FT817_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
-#define FT817_ANTS              (RIG_ANT_1|RIG_ANT_2) /* ant-1 on the back, ant-2 BNC at the front */
+#define FT817_ANT_FRONT         (RIG_ANT_1)
+#define FT817_ANT_REAR          (RIG_ANT_2)
+#define FT817_ANTS              (FT817_ANT_FRONT | FT817_ANT_REAR)
 
 #define FT817_STR_CAL { 16, \
                 { \
@@ -338,10 +342,10 @@ const struct rig_caps ft817_caps =
     .chan_list =           { RIG_CHAN_END, },
 
     .rx_range_list1 =  {
-        {kHz(100), MHz(56), FT817_ALL_RX_MODES, -1, -1},
-        {MHz(76), MHz(108), RIG_MODE_WFM,      -1, -1},
-        {MHz(118), MHz(164), FT817_ALL_RX_MODES, -1, -1},
-        {MHz(420), MHz(470), FT817_ALL_RX_MODES, -1, -1},
+        {kHz(100), MHz(56), FT817_ALL_RX_MODES,  -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(76), MHz(108), RIG_MODE_WFM,        -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(118), MHz(164), FT817_ALL_RX_MODES, -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(420), MHz(470), FT817_ALL_RX_MODES, -1, -1, FT817_VFO_ALL, FT817_ANTS},
         RIG_FRNG_END,
     },
     .tx_range_list1 =  {
@@ -362,10 +366,10 @@ const struct rig_caps ft817_caps =
 
 
     .rx_range_list2 =  {
-        {kHz(100), MHz(56), FT817_ALL_RX_MODES, -1, -1},
-        {MHz(76), MHz(108), RIG_MODE_WFM,      -1, -1},
-        {MHz(118), MHz(164), FT817_ALL_RX_MODES, -1, -1},
-        {MHz(420), MHz(470), FT817_ALL_RX_MODES, -1, -1},
+        {kHz(100), MHz(56), FT817_ALL_RX_MODES,  -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(76), MHz(108), RIG_MODE_WFM,        -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(118), MHz(164), FT817_ALL_RX_MODES, -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(420), MHz(470), FT817_ALL_RX_MODES, -1, -1, FT817_VFO_ALL, FT817_ANTS},
         RIG_FRNG_END,
     },
 
@@ -407,7 +411,7 @@ const struct rig_caps ft817_caps =
     .rfpower_meter_cal = FT817_PWR_CAL,
 
     .rig_init =         ft817_init,
-    .rig_cleanup =          ft817_cleanup,
+    .rig_cleanup =      ft817_cleanup,
     .rig_open =         ft817_open,
     .rig_close =        ft817_close,
     .get_vfo =          ft817_get_vfo,
@@ -416,24 +420,24 @@ const struct rig_caps ft817_caps =
     .get_freq =         ft817_get_freq,
     .set_mode =         ft817_set_mode,
     .get_mode =         ft817_get_mode,
-    .set_ptt =      ft817_set_ptt,
-    .get_ptt =      ft817_get_ptt,
-    .get_dcd =      ft817_get_dcd,
+    .set_ptt =          ft817_set_ptt,
+    .get_ptt =          ft817_get_ptt,
+    .get_dcd =          ft817_get_dcd,
     .set_rptr_shift =   ft817_set_rptr_shift,
     .set_rptr_offs =    ft817_set_rptr_offs,
     .set_split_vfo =    ft817_set_split_vfo,
     .get_split_vfo =    ft817_get_split_vfo,
-    .set_rit =      ft817_set_rit,
+    .set_rit =          ft817_set_rit,
     .set_dcs_code =     ft817_set_dcs_code,
     .set_ctcss_tone =   ft817_set_ctcss_tone,
-    .set_dcs_sql =          ft817_set_dcs_sql,
+    .set_dcs_sql =      ft817_set_dcs_sql,
     .set_ctcss_sql =    ft817_set_ctcss_sql,
-    .power2mW =             ft817_power2mW,
-    .mW2power =             ft817_mW2power,
+    .power2mW =         ft817_power2mW,
+    .mW2power =         ft817_mW2power,
     .set_powerstat =    ft817_set_powerstat,
     .get_level =        ft817_get_level,
     .set_func =         ft817_set_func,
-    .vfo_op =               ft817_vfo_op,
+    .vfo_op =           ft817_vfo_op,
 };
 
 const struct rig_caps ft818_caps =
@@ -483,15 +487,16 @@ const struct rig_caps ft818_caps =
     .chan_list =           { RIG_CHAN_END, },
 
     .rx_range_list1 =  {
-        {kHz(100), MHz(56), FT817_ALL_RX_MODES, -1, -1},
-        {MHz(76), MHz(108), RIG_MODE_WFM,      -1, -1},
-        {MHz(118), MHz(164), FT817_ALL_RX_MODES, -1, -1},
-        {MHz(420), MHz(470), FT817_ALL_RX_MODES, -1, -1},
+        {kHz(100), MHz(56), FT817_ALL_RX_MODES,  -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(76), MHz(108), RIG_MODE_WFM,        -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(118), MHz(164), FT817_ALL_RX_MODES, -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(420), MHz(470), FT817_ALL_RX_MODES, -1, -1, FT817_VFO_ALL, FT817_ANTS},
         RIG_FRNG_END,
     },
     .tx_range_list1 =  {
         FRQ_RNG_HF(1, FT817_OTHER_TX_MODES, W(0.5), W(5), FT817_VFO_ALL, FT817_ANTS),
         FRQ_RNG_HF(1, FT817_AM_TX_MODES, W(0.5), W(1.5), FT817_VFO_ALL, FT817_ANTS),
+        /* TODO 60m is available seems always available on the 818 */
 
         FRQ_RNG_6m(1, FT817_OTHER_TX_MODES, W(0.5), W(5), FT817_VFO_ALL, FT817_ANTS),
         FRQ_RNG_6m(1, FT817_AM_TX_MODES, W(0.5), W(1.5), FT817_VFO_ALL, FT817_ANTS),
@@ -507,10 +512,10 @@ const struct rig_caps ft818_caps =
 
 
     .rx_range_list2 =  {
-        {kHz(100), MHz(56), FT817_ALL_RX_MODES, -1, -1},
-        {MHz(76), MHz(108), RIG_MODE_WFM,      -1, -1},
-        {MHz(118), MHz(164), FT817_ALL_RX_MODES, -1, -1},
-        {MHz(420), MHz(470), FT817_ALL_RX_MODES, -1, -1},
+        {kHz(100), MHz(56), FT817_ALL_RX_MODES,  -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(76), MHz(108), RIG_MODE_WFM,        -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(118), MHz(164), FT817_ALL_RX_MODES, -1, -1, FT817_VFO_ALL, FT817_ANTS},
+        {MHz(420), MHz(470), FT817_ALL_RX_MODES, -1, -1, FT817_VFO_ALL, FT817_ANTS},
         RIG_FRNG_END,
     },
 
@@ -552,7 +557,7 @@ const struct rig_caps ft818_caps =
     .rfpower_meter_cal = FT817_PWR_CAL,
 
     .rig_init =         ft817_init,
-    .rig_cleanup =          ft817_cleanup,
+    .rig_cleanup =      ft817_cleanup,
     .rig_open =         ft817_open,
     .rig_close =        ft817_close,
     .get_vfo =          ft817_get_vfo,
@@ -561,24 +566,25 @@ const struct rig_caps ft818_caps =
     .get_freq =         ft817_get_freq,
     .set_mode =         ft817_set_mode,
     .get_mode =         ft817_get_mode,
-    .set_ptt =      ft817_set_ptt,
-    .get_ptt =      ft817_get_ptt,
-    .get_dcd =      ft817_get_dcd,
+    .set_ptt =          ft817_set_ptt,
+    .get_ptt =          ft817_get_ptt,
+    .get_dcd =          ft817_get_dcd,
     .set_rptr_shift =   ft817_set_rptr_shift,
     .set_rptr_offs =    ft817_set_rptr_offs,
     .set_split_vfo =    ft817_set_split_vfo,
     .get_split_vfo =    ft817_get_split_vfo,
-    .set_rit =      ft817_set_rit,
+    .set_rit =          ft817_set_rit,
     .set_dcs_code =     ft817_set_dcs_code,
     .set_ctcss_tone =   ft817_set_ctcss_tone,
-    .set_dcs_sql =          ft817_set_dcs_sql,
+    .set_dcs_sql =      ft817_set_dcs_sql,
     .set_ctcss_sql =    ft817_set_ctcss_sql,
-    .power2mW =             ft817_power2mW,
-    .mW2power =             ft817_mW2power,
+    .power2mW =         ft817_power2mW,
+    .mW2power =         ft817_mW2power,
     .set_powerstat =    ft817_set_powerstat,
+    .get_ant =          ft817_get_ant,
     .get_level =        ft817_get_level,
     .set_func =         ft817_set_func,
-    .vfo_op =               ft817_vfo_op,
+    .vfo_op =           ft817_vfo_op,
 };
 
 /* ---------------------------------------------------------------------- */
@@ -1136,6 +1142,103 @@ static int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     {
         *dcd = RIG_DCD_ON;
     }
+
+    return RIG_OK;
+}
+
+static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+{
+    /* The FT818/817 has no targetable antenna, so rig.c switched the active VFO */
+    int ret;
+    unsigned char eeprom_band, eeprom_ant;
+
+    /* Read eeprom for current 'band' for both VFO's */
+    ret = ft817_read_eeprom(rig, 0x59, &eeprom_band);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* Read eeprom for antenna selection per band.
+     * The FT818/817 stores antenna per band not per VFO!
+     * So changing antenna will change for both VFO's */
+    ret = ft817_read_eeprom(rig, 0x7A, &eeprom_ant);
+    if (ret != RIG_OK)
+    {
+        return ret;
+    }
+
+    /* if CURR then get real VFO before parsing EEPROM */
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = rig->state.current_vfo;
+    }
+
+    /* band info is 4 bit per VFO, for A lower nibble, B is upper nible */
+    switch(vfo) {
+        case RIG_VFO_A:
+            eeprom_band &= 0xF;
+        break;
+        case RIG_VFO_B:
+            eeprom_band = eeprom_band >> 4;
+        break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d!\n",
+                __func__, vfo);
+            return -RIG_EINTERNAL;
+    }
+
+    /* The 817/818 does not have a antenna selection per VFO but per band.
+     * So we read the band for the requested VFO and then map it to the
+     * selected antenna.
+     * TODO THIS IS 818 specific info: the 817 does not have 60m and
+     * thus has a shifted numbering!
+     */
+    switch(eeprom_band) {
+        case 0:  /* 160M */
+        case 1:  /*  80M */
+        case 2:  /*  60M */
+        case 3:  /*  40M */
+        case 4:  /*  30M */
+        case 5:  /*  20M */
+        case 6:  /*  17M */
+        case 7:  /*  15M */
+        case 8:  /*  12M */
+        case 9:  /*  10M */
+            /* All HF use the same antenna setting, bit 0 */
+            eeprom_ant &= 1<<0;
+        break;
+
+        case 0xA:  /* 6m, bit 1 */
+            eeprom_ant &= 1<<1;
+        break;
+
+        case 0xB:  /* FM BCB 76Mhz - 108Mhz, bit 2 */
+            eeprom_ant &= 1<<2;
+        break;
+
+        case 0xC:  /* Airband, bit 3 */
+            eeprom_ant &= 1<<3;
+        break;
+
+        case 0xD:  /* 2M, bit 4 */
+            eeprom_ant &= 1<<4;
+        break;
+
+        case 0xE:  /* 70cm / UHF, bit 5 */
+            eeprom_ant &= 1<<5;
+        break;
+
+        case 0xF: /* Free-tuning?, bit 6 */
+            eeprom_ant &= 1<<6;
+        break;
+    }
+
+    /* We have no split TX/RX capability per VFO.
+     * So only set ant_curr and leave rx/tx set to unknown. */
+    *ant_curr = eeprom_ant ? FT817_ANT_REAR : FT817_ANT_FRONT;
 
     return RIG_OK;
 }
