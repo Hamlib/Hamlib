@@ -673,7 +673,7 @@ static int netrigctl_open(RIG *rig)
             // setting targetable_vfo this way breaks WSJTX in rig split with rigctld
             // Ends up putting VFOB freq on VFOA
             // Have to figure out why but disabling this fixes it for now
-#if 0 
+#if 0
             else if (strcmp(setting, "targetable_vfo") == 0)
             {
                 rig->caps->targetable_vfo = strtol(value, NULL, 0);
@@ -2111,8 +2111,6 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
-
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), vfo);
 
     if (ret != RIG_OK) { return ret; }
@@ -2557,7 +2555,7 @@ struct rig_caps netrigctl_caps =
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NETWORK,
     .timeout = 10000,  /* enough for the worst rig we have */
-    .retry =   5,     
+    .retry =   5,
 
     /* following fields updated in rig_state at opening time */
     .has_get_func =   RIG_FUNC_NONE,

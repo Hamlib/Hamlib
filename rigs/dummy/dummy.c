@@ -482,7 +482,7 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     case RIG_VFO_SUB:
     case RIG_VFO_B:  *freq = priv->vfo_b.freq; break;
-    case RIG_VFO_SUB_A:  *freq = priv->vfo_suba.freq;break; 
+    case RIG_VFO_SUB_A:  *freq = priv->vfo_suba.freq;break;
     case RIG_VFO_SUB_B:  *freq = priv->vfo_subb.freq;break;
 
     case RIG_VFO_C:  *freq = priv->vfo_c.freq; break;
@@ -1670,8 +1670,6 @@ static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     ENTERFUNC;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
-
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     switch (ant)
     {

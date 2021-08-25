@@ -2125,8 +2125,6 @@ int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     char respbuf[TT565_BUFSIZE];
     int resp_len, retval;
 
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
-
     resp_len = sizeof(respbuf);
     retval = tt565_transaction(rig, "?KA" EOM, 4, respbuf, &resp_len);
 
