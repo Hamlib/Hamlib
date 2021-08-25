@@ -7663,8 +7663,6 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, ant=0x%02x\n", __func__, ant);
 
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
-
     if (ant != RIG_ANT_CURR)
     {
         ant = rig_setting2idx(ant);
