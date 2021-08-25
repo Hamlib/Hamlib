@@ -5188,15 +5188,18 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
  * \brief get the current antenna
  * \param rig   The rig handle
  * \param vfo   The target VFO
- * \param ant   The location where to store the current antenna
- * \param option  The option value for the antenna
+ * \param ant   The antenna to query option for
+ * \param option  The option value for the antenna, rig specific.
  * \param ant_curr  The currently selected antenna
  * \param ant_tx  The currently selected TX antenna
  * \param ant_rx  The currently selected RX antenna
  *
  *  Retrieves the current antenna.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ *  If \a ant_tx and/or \a ant_rx are unused by the rig they will be set to
+ *  RIG_ANT_UNKNOWN and only \a ant_curr will be set.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5224,14 +5227,17 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
-
     caps = rig->caps;
 
     if (caps->get_ant == NULL)
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
+
+    /* Set antenna default to unknown and clear option.
+     * So we have sane defaults for all backends */
+    *ant_tx = *ant_rx = *ant_curr = RIG_ANT_UNKNOWN;
+    option->i = 0;
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_ANT)
             || vfo == RIG_VFO_CURR

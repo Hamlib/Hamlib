@@ -760,8 +760,6 @@ int ra37xx_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     char buf[BUFSZ];
     int retval, buflen, ra_ant;
 
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
-
     retval = ra37xx_transaction(rig, "QANT", buf, &buflen);
 
     if (retval != RIG_OK)
