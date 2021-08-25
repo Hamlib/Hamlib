@@ -512,8 +512,6 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     char mdbuf[BUFSZ];
     char cant;
 
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
-
     retval = drake_transaction(rig, "RM" EOM, 3, mdbuf, &mdbuf_len);
 
     if (retval != RIG_OK)
@@ -542,7 +540,6 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
         rig_debug(RIG_DEBUG_ERR,
                   "drake_get_ant: unsupported antenna %c\n",
                   cant);
-        *ant_curr = RIG_ANT_UNKNOWN;
         return -RIG_EINVAL;
     }
 

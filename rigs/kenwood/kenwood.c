@@ -1299,8 +1299,8 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     priv->tx_vfo = txvfo;
 
     /* do not attempt redundant split change commands on Elecraft as
-       they impact output power when transmitting 
-       and all other rigs don't need to set it if it's already set correctly 
+       they impact output power when transmitting
+       and all other rigs don't need to set it if it's already set correctly
     */
     if (RIG_OK == (retval = kenwood_safe_transaction(rig, "FT", cmdbuf,
                             sizeof(cmdbuf), 3)))
@@ -4187,8 +4187,6 @@ int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
 
     if (!ant_curr)
     {

@@ -2532,8 +2532,6 @@ int th_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
-
     retval = kenwood_safe_transaction(rig, "ANT", buf, sizeof(buf), 5);
 
     if (retval != RIG_OK)

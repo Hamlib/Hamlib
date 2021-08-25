@@ -505,7 +505,6 @@ int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     char infobuf[50];
     int info_len, retval;
 
-    *ant_tx = *ant_rx = RIG_ANT_UNKNOWN;
     info_len = 4;
     retval = ic10_transaction(rig, "AN;", 3, infobuf, &info_len);
 
