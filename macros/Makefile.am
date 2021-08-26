@@ -8,6 +8,7 @@ MACROS = \
 	ax_python_devel.m4 \
 	ax_lib_indi.m4 \
 	ax_lib_nova.m4 \
+    ax_cxx_compile_stdcxx.m4 \
 	gr_doxygen.m4 \
 	gr_pwin32.m4 \
 	hl_getaddrinfo.m4 \
