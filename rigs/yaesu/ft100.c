@@ -41,10 +41,11 @@
 #include "misc.h"
 #include "bandplan.h"
 
-struct ft100_priv_data {
-  /* TODO: make use of cached data */
-  FT100_STATUS_INFO status;
-  FT100_FLAG_INFO flags;
+struct ft100_priv_data
+{
+    /* TODO: make use of cached data */
+    FT100_STATUS_INFO status;
+    FT100_FLAG_INFO flags;
 };
 
 

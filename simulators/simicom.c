@@ -118,6 +118,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { freqA = freq; }
         else { freqB = freq; }
+
         frame[4] = 0xfb;
         frame[5] = 0xfd;
         write(fd, frame, 6);
@@ -126,6 +127,7 @@ void frameParse(int fd, unsigned char *frame, int len)
     case 0x06:
         if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { modeA = frame[6]; }
         else { modeB = frame[6]; }
+
         frame[4] = 0xfb;
         frame[5] = 0xfd;
         write(fd, frame, 6);
@@ -167,20 +169,22 @@ void frameParse(int fd, unsigned char *frame, int len)
             printf("Set ant %d\n", -1);
             ant_curr = frame[5];
             ant_option = frame[6];
-            dump_hex(frame,8);
+            dump_hex(frame, 8);
         }
-        else {
+        else
+        {
             printf("Get ant\n");
         }
+
         frame[5] = ant_curr;
         frame[6] = ant_option;
-        frame[7]=0xfd;
+        frame[7] = 0xfd;
         printf("write 8 bytes\n");
-        dump_hex(frame,8);
+        dump_hex(frame, 8);
         write(fd, frame, 8);
         break;
 
-    case 0x1a: // miscellaneous things 
+    case 0x1a: // miscellaneous things
         switch (frame[5])
         {
         case 0x03:  // width
@@ -195,6 +199,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         break;
 
 #if 1
+
     case 0x25:
         if (frame[6] == 0xfd)
         {

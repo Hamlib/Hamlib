@@ -270,7 +270,9 @@ int main(int argc, char *argv[])
     int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) Startup:", __FILE__, __LINE__);
-    for(i=0;i<argc;++i) rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]);
+
+    for (i = 0; i < argc; ++i) { rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]); }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
     while (1)
@@ -1221,8 +1223,10 @@ handle_exit:
     if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: fclose(fsockin) %s\n", __func__, strerror(retcode)); }
 
 #endif
-    if (fsockin) fclose(fsockin);
-    if (fsockout) fclose(fsockout);
+
+    if (fsockin) { fclose(fsockin); }
+
+    if (fsockout) { fclose(fsockout); }
 
 // for everybody else we close the handle after fclose
 #ifndef __MINGW32__

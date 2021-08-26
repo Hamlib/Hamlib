@@ -99,9 +99,11 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        if(getmyline(fd, buf))
-        printf("Cmd:%s\n", buf);
-        else return 0;
+        if (getmyline(fd, buf))
+        {
+            printf("Cmd:%s\n", buf);
+        }
+        else { return 0; }
 
         if (strcmp(buf, "RM5;") == 0)
         {
@@ -139,7 +141,7 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             usleep(50 * 1000);
             int id = NC_RIGID_FTDX3000;
-            snprintf(buf,sizeof(buf),"ID%03d;", id);
+            snprintf(buf, sizeof(buf), "ID%03d;", id);
             n = snprintf(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);

@@ -272,7 +272,8 @@ static int check_vfo(vfo_t vfo)
 * So we'll hand craft them
 * xml_build takes a value and return an xml string for FLRig
 */
-static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf, int xmlbuflen)
+static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf,
+                       int xmlbuflen)
 {
     char xml[4096]; // we shouldn't need more the 4096 bytes for this
     char tmp[32];
@@ -297,7 +298,9 @@ static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf, int xmlbu
                   __func__, (int)strlen(header), n);
     }
 
-    n = snprintf(xml, sizeof(xml), "<?xml version=\"1.0\"?>\r\n<?clientid=\"hamlib(%d)\"?>\r\n", rig->state.rigport.client_port);
+    n = snprintf(xml, sizeof(xml),
+                 "<?xml version=\"1.0\"?>\r\n<?clientid=\"hamlib(%d)\"?>\r\n",
+                 rig->state.rigport.client_port);
 
     if (n != strlen(xml))
     {
@@ -1414,13 +1417,17 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     // Set the mode
-    if (modeMapGetFLRig(mode)) {
+    if (modeMapGetFLRig(mode))
+    {
         ttmode = strdup(modeMapGetFLRig(mode));
     }
-    else {
-        rig_debug(RIG_DEBUG_ERR, "%s: modeMapGetFlRig failed on mode=%d\n", __func__, (int)mode);
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: modeMapGetFlRig failed on mode=%d\n", __func__,
+                  (int)mode);
         RETURNFUNC(-RIG_EINVAL);
     }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: got ttmode = %s\n", __func__,
               ttmode == NULL ? "NULL" : ttmode);
 
