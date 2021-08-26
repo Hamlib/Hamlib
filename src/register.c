@@ -261,7 +261,7 @@ static int rig_lookup_backend(rig_model_t rig_model)
     for (i = 0; i < RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++)
     {
         if (RIG_BACKEND_NUM(rig_model) ==
-               rig_backend_list[i].be_num)
+                rig_backend_list[i].be_num)
 
         {
             return i;
@@ -284,7 +284,7 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     const struct rig_caps *caps;
     int be_idx;
     int retval;
-    int i,n;
+    int i, n;
 
     /* already loaded ? */
     caps = rig_get_caps(rig_model);
@@ -295,13 +295,15 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     }
 
     // hmmm...no caps so did we already load the rigs?
-    for(n=0, i=0; i< RIGLSTHASHSZ; i++)
+    for (n = 0, i = 0; i < RIGLSTHASHSZ; i++)
     {
-        if (rig_hash_table[i]) ++n;
+        if (rig_hash_table[i]) { ++n; }
     }
+
     if (n > 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig model %d not found and rig count=%d\n", __func__, rig_model, n);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig model %d not found and rig count=%d\n",
+                  __func__, rig_model, n);
         return -RIG_ENAVAIL;
     }
 
@@ -329,6 +331,7 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     {
         retval = RIG_OK;
     }
+
 #endif
 
     return retval;

@@ -156,7 +156,9 @@ int main(int argc, char *argv[])
     int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) Startup:", __FILE__, __LINE__);
-    for(i=0;i<argc;++i) rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]);
+
+    for (i = 0; i < argc; ++i) { rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]); }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
 
     while (1)
@@ -181,6 +183,7 @@ int main(int argc, char *argv[])
         case '!':
             cookie_use = 1;
             break;
+
         case 'h':
             usage();
             exit(0);
@@ -558,7 +561,8 @@ int main(int argc, char *argv[])
 
     if (retcode != RIG_OK)
     {
-        fprintf(stderr, "rig_open: error = %s %s %s \n", rigerror(retcode), rig_file, strerror(errno));
+        fprintf(stderr, "rig_open: error = %s %s %s \n", rigerror(retcode), rig_file,
+                strerror(errno));
 
         if (!ignore_rig_open_error) { exit(2); }
     }

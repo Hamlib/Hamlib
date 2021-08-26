@@ -556,9 +556,10 @@ int network_multicast_server(RIG *rig, const char *multicast_addr,
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):ADDR=%s, port=%d\n", __FILE__, __LINE__,
               multicast_addr, default_port);
 
-    if (strcmp(multicast_addr,"0.0.0.0")==0) 
+    if (strcmp(multicast_addr, "0.0.0.0") == 0)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s(%d): not starting multicast\n", __FILE__, __LINE__);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): not starting multicast\n", __FILE__,
+                  __LINE__);
         return RIG_OK; // don't start it
     }
 

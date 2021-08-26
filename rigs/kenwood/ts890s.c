@@ -120,12 +120,13 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         retval = kenwood_safe_transaction(rig, "VD0", ackbuf, sizeof(ackbuf), 6);
 
         if (retval != RIG_OK)
-        {   
+        {
             return retval;
         }
 
         sscanf(ackbuf + 3, "%d", &levelint);
-        val->i = levelint * 3 / 2;               /* 150ms units converted to 100ms units */
+        val->i = levelint * 3 /
+                 2;               /* 150ms units converted to 100ms units */
         return RIG_OK;
 
     case RIG_LEVEL_RF:

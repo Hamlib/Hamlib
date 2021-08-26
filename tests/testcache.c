@@ -64,10 +64,10 @@ int main(int argc, char *argv[])
 
     if (info_buf)
     {
-	char *s = strdup(info_buf);
+        char *s = strdup(info_buf);
         strtok(s, "\r\n");
         printf("Rig_info: '%s'\n", s);
-	free(s);
+        free(s);
     }
 
     vfo_t vfo;

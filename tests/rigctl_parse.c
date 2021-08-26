@@ -671,7 +671,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                     RETURNFUNC(RIGCTL_PARSE_ERROR);
                 }
 
-                if (cmd != 0xa && cmd !=0xd)
+                if (cmd != 0xa && cmd != 0xd)
                 {
                     rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x)\n", __func__,
                               isprint(cmd) ? cmd : ' ', cmd);
@@ -1143,6 +1143,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
          */
         result = strtok(input_line, " ");
 readline_repeat:
+
         /* parsed_input stores pointers into input_line where the token strings
          * start.
          */
@@ -1735,7 +1736,9 @@ readline_repeat:
     fflush(fout);
 
 #ifdef HAVE_LIBREADLINE
-    if (input_line != NULL && (result = strtok(NULL, " "))) goto readline_repeat;
+
+    if (input_line != NULL && (result = strtok(NULL, " "))) { goto readline_repeat; }
+
 #endif
 
     if (sync_cb) { sync_cb(0); }    /* unlock if necessary */
@@ -4058,7 +4061,8 @@ static int mydcd_event(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
 }
 
 
-static int print_spectrum_line(char *str, size_t length, struct rig_spectrum_line *line)
+static int print_spectrum_line(char *str, size_t length,
+                               struct rig_spectrum_line *line)
 {
     int data_level_max = line->data_level_max / 2;
     int aggregate_count = line->spectrum_data_length / 120;
@@ -4081,7 +4085,9 @@ static int print_spectrum_line(char *str, size_t length, struct rig_spectrum_lin
             }
 
             int level = aggregate_value * 10 / data_level_max;
-            if (level >= 8) {
+
+            if (level >= 8)
+            {
                 strcpy(str + c, "█");
                 c += charlen;
             }
@@ -4114,7 +4120,8 @@ static int print_spectrum_line(char *str, size_t length, struct rig_spectrum_lin
 }
 
 
-static int myspectrum_event(RIG *rig, struct rig_spectrum_line *line, rig_ptr_t arg)
+static int myspectrum_event(RIG *rig, struct rig_spectrum_line *line,
+                            rig_ptr_t arg)
 {
     ENTERFUNC;
 
@@ -4122,7 +4129,8 @@ static int myspectrum_event(RIG *rig, struct rig_spectrum_line *line, rig_ptr_t 
     {
         char spectrum_debug[line->spectrum_data_length * 4];
         print_spectrum_line(spectrum_debug, sizeof(spectrum_debug), line);
-        rig_debug(RIG_DEBUG_TRACE, "%s: ASCII Spectrum Scope: %s\n", __func__, spectrum_debug);
+        rig_debug(RIG_DEBUG_TRACE, "%s: ASCII Spectrum Scope: %s\n", __func__,
+                  spectrum_debug);
     }
 
     // TODO: Push out spectrum data via multicast server once it is implemented
@@ -4501,7 +4509,8 @@ declare_proto_rig(dump_state)
     if (chk_vfo_executed) // for 3.3 compatiblility
     {
         fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
-        fprintf(fout, "ptt_type=0x%x\n", rig->state.pttport.type.ptt==RIG_PTT_NONE?RIG_PTT_NONE:RIG_PTT_RIG);
+        fprintf(fout, "ptt_type=0x%x\n",
+                rig->state.pttport.type.ptt == RIG_PTT_NONE ? RIG_PTT_NONE : RIG_PTT_RIG);
         fprintf(fout, "targetable_vfo=0x%x\n", rig->caps->targetable_vfo);
         fprintf(fout, "has_set_vfo=%d\n", rig->caps->set_vfo != NULL);
         fprintf(fout, "has_get_vfo=%d\n", rig->caps->get_vfo != NULL);
