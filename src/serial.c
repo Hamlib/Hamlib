@@ -224,16 +224,20 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
     /*
      * Open in Non-blocking mode. Watch for EAGAIN errors!
      */
-    int i=1;
-    do { // some serial ports fail to open 1st time for some unknown reason
+    int i = 1;
+
+    do   // some serial ports fail to open 1st time for some unknown reason
+    {
         fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
+
         if (fd == -1) // some serial ports fail to open 1st time for some unknown reason
-        {   
+        {
             rig_debug(RIG_DEBUG_WARN, "%s(%d): open failed#%d\n", __func__, __LINE__, i);
-            hl_usleep(500*1000);
+            hl_usleep(500 * 1000);
             fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
         }
-    } while(++i <= 4 && fd == -1);
+    }
+    while (++i <= 4 && fd == -1);
 
     if (fd == -1)
     {
@@ -710,17 +714,20 @@ int ser_open(hamlib_port_t *p)
             /*
              * pathname is not uh_rig or uh_ptt: simply open()
              */
-            int i=1;
+            int i = 1;
+
             do // some serial ports fail to open 1st time
             {
                 ret = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
+
                 if (ret == -1) // some serial ports fail to open 1st time
                 {
                     rig_debug(RIG_DEBUG_WARN, "%s(%d): open failed#%d\n", __func__, __LINE__, i);
-                    hl_usleep(500*1000);
+                    hl_usleep(500 * 1000);
                     ret = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
                 }
-            } while(++i <= 4 && ret == -1);
+            }
+            while (++i <= 4 && ret == -1);
         }
     }
 

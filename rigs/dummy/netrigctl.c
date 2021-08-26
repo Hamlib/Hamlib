@@ -670,6 +670,7 @@ static int netrigctl_open(RIG *rig)
                     rig->caps->ptt_type = temp;
                 }
             }
+
             // setting targetable_vfo this way breaks WSJTX in rig split with rigctld
             // Ends up putting VFOB freq on VFOA
             // Have to figure out why but disabling this fixes it for now
@@ -680,6 +681,7 @@ static int netrigctl_open(RIG *rig)
                 rig_debug(RIG_DEBUG_ERR, "%s: targetable_vfo=0x%2x\n", __func__,
                           rig->caps->targetable_vfo);
             }
+
 #endif
             else if (strcmp(setting, "has_set_vfo") == 0)
             {

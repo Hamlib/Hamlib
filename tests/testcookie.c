@@ -71,6 +71,7 @@ int test2()
 
     if (retcode != RIG_OK) { printf("Test#2d OK\n"); }
     else {printf("Test#2d Failed cookie=%s\n", cookie); return 1;}
+
     return 0;
 }
 

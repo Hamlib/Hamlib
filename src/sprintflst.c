@@ -727,7 +727,8 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
     return len;
 }
 
-int rig_sprintf_spectrum_modes(char *str, int nlen, const enum rig_spectrum_mode_e *modes)
+int rig_sprintf_spectrum_modes(char *str, int nlen,
+                               const enum rig_spectrum_mode_e *modes)
 {
     int i, len = 0, lentmp;
 
@@ -750,11 +751,13 @@ int rig_sprintf_spectrum_modes(char *str, int nlen, const enum rig_spectrum_mode
         }
 
         lentmp = snprintf(str + len, nlen - len, "%d=%s ", modes[i], sm);
+
         if (len < 0 || lentmp >= nlen - len)
         {
-            rig_debug(RIG_DEBUG_ERR,"%s(%d): overflowed str buffer\n", __FILE__, __LINE__);
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): overflowed str buffer\n", __FILE__, __LINE__);
             break;
         }
+
         len += lentmp;
 
     }
@@ -776,18 +779,21 @@ int rig_sprintf_spectrum_spans(char *str, int nlen, const freq_t *spans)
         }
 
         lentmp = snprintf(str + len, nlen - len, "%.0f ", spans[i]);
+
         if (len < 0 || lentmp >= nlen - len)
         {
-            rig_debug(RIG_DEBUG_ERR,"%s(%d): overflowed str buffer\n", __FILE__, __LINE__);
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): overflowed str buffer\n", __FILE__, __LINE__);
             break;
         }
+
         len += lentmp;
     }
 
     return len;
 }
 
-int rig_sprintf_spectrum_avg_modes(char *str, int nlen, const struct rig_spectrum_avg_mode *avg_modes)
+int rig_sprintf_spectrum_avg_modes(char *str, int nlen,
+                                   const struct rig_spectrum_avg_mode *avg_modes)
 {
     int i, len = 0, lentmp;
 
@@ -800,12 +806,15 @@ int rig_sprintf_spectrum_avg_modes(char *str, int nlen, const struct rig_spectru
             break;
         }
 
-        lentmp = snprintf(str + len, nlen - len, "%d=\"%s\" ", avg_modes[i].id, avg_modes[i].name);
+        lentmp = snprintf(str + len, nlen - len, "%d=\"%s\" ", avg_modes[i].id,
+                          avg_modes[i].name);
+
         if (len < 0 || lentmp >= nlen - len)
         {
-            rig_debug(RIG_DEBUG_ERR,"%s(%d): overflowed str buffer\n", __FILE__, __LINE__);
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): overflowed str buffer\n", __FILE__, __LINE__);
             break;
         }
+
         len += lentmp;
     }
 

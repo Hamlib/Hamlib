@@ -631,7 +631,7 @@ int flex6k_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         if (ptt_cmd[4] != response[4])
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s != %s\n", __func__, ptt_cmd, response);
-            hl_usleep(20*1000); // takes a bit to do PTT off
+            hl_usleep(20 * 1000); // takes a bit to do PTT off
         }
     }
     while (ptt_cmd[4] != response[4] && --retry);

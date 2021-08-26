@@ -762,10 +762,11 @@ int kenwood_open(RIG *rig)
     id[0] = 0;
     rig->state.rigport.retry = 0;
     err = kenwood_get_id(rig, id);
+
     if (err != RIG_OK)
     {
         // TS450S is flaky on the 1st ID call so we'll try again
-        hl_usleep(200*1000);
+        hl_usleep(200 * 1000);
         err = kenwood_get_id(rig, id);
     }
 
@@ -962,7 +963,8 @@ int kenwood_open(RIG *rig)
             rig->state.rigport.retry = retry_save;
 
             // Default to 1st VFO and split off
-            if (rig->caps->set_vfo) {
+            if (rig->caps->set_vfo)
+            {
                 rig_set_vfo(rig, vfo_fixup(rig, RIG_VFO_A, 0));
             }
 
@@ -1115,9 +1117,10 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     snprintf(cmdbuf, sizeof(cmdbuf), "FR%c", vfo_function);
+
     // FR can turn off split on some Kenwood rigs
     // So we'll turn it back on just in case
-    if (priv->split) strcat(cmdbuf,"FT1;");
+    if (priv->split) { strcat(cmdbuf, "FT1;"); }
 
     if (RIG_IS_TS50 || RIG_IS_TS940)
     {
@@ -1138,6 +1141,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     {
         RETURNFUNC(RIG_OK);
     }
+
     // some rigs need split turned on after VFOA is set
     if (vfo == RIG_VFO_A && priv->split == RIG_SPLIT_ON)
     {
@@ -1254,9 +1258,11 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
         /* set RX VFO */
         snprintf(cmdbuf, sizeof(cmdbuf), "FR%c", vfo_function);
+
         // FR can turn off split on some Kenwood rigs
         // So we'll turn it back on just in case
-        if (priv->split) strcat(cmdbuf,"FT1;");
+        if (priv->split) { strcat(cmdbuf, "FT1;"); }
+
         retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
         if (retval != RIG_OK)
@@ -2072,8 +2078,10 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         pbwidth_t twidth;
         err = rig_get_mode(rig, vfo, &priv->curr_mode, &twidth);
+
         // only change mode if needed
-        if (priv->curr_mode != mode) {
+        if (priv->curr_mode != mode)
+        {
             snprintf(buf, sizeof(buf), "MD%c", c);
             err = kenwood_transaction(rig, buf, NULL, 0);
         }

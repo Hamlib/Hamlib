@@ -1761,6 +1761,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         {
             split = rig->state.cache.split;
         }
+
 #endif
 
         int satmode = rig->state.cache.satmode;

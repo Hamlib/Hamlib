@@ -155,25 +155,31 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
     chan->vfo = vfo;
     strcpy(chan->channel_desc, rig_strvfo(vfo));
 
-    switch(vfo)
+    switch (vfo)
     {
-        case RIG_VFO_A:
-        case RIG_VFO_MAIN_A:
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN_A:
         chan->freq = MHz(145);
         break;
-        case RIG_VFO_B:
-        case RIG_VFO_MAIN_B:
+
+    case RIG_VFO_B:
+    case RIG_VFO_MAIN_B:
         chan->freq = MHz(146);
         break;
-        case RIG_VFO_SUB_A:
+
+    case RIG_VFO_SUB_A:
         chan->freq = MHz(147);
         break;
-        case RIG_VFO_SUB_B:
+
+    case RIG_VFO_SUB_B:
         chan->freq = MHz(148);
         break;
-        default:
-        rig_debug(RIG_DEBUG_ERR, "%s(%d) unknown vfo=%s\n", __FILE__, __LINE__, rig_strvfo(vfo));
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) unknown vfo=%s\n", __FILE__, __LINE__,
+                  rig_strvfo(vfo));
     }
+
     chan->mode = RIG_MODE_FM;
     chan->width = rig_passband_normal(rig, RIG_MODE_FM);
     chan->tx_freq = chan->freq;
@@ -420,7 +426,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 // if needed for testing enable this to emulate a rig with 100hz resolution
 #if 0
     // we emulate a rig with 100Hz set freq interval limits -- truncation
-    freq = freq - fmod(freq,100);
+    freq = freq - fmod(freq, 100);
 #endif
     usleep(CMDSLEEP);
     sprintf_freq(fstr, sizeof(fstr), freq);
@@ -431,12 +437,16 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
     case RIG_VFO_MAIN:
     case RIG_VFO_A: priv->vfo_a.freq = freq; break;
+
     case RIG_VFO_MAIN_A: priv->vfo_maina.freq = freq; break;
+
     case RIG_VFO_MAIN_B: priv->vfo_mainb.freq = freq; break;
 
     case RIG_VFO_SUB:
     case RIG_VFO_B: priv->vfo_b.freq = freq; break;
+
     case RIG_VFO_SUB_A: priv->vfo_suba.freq = freq; break;
+
     case RIG_VFO_SUB_B: priv->vfo_subb.freq = freq; break;
 
     case RIG_VFO_C: priv->vfo_c.freq = freq; break;
@@ -477,13 +487,17 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
     case RIG_VFO_MAIN:
     case RIG_VFO_A:  *freq = priv->vfo_a.freq; break;
-    case RIG_VFO_MAIN_A: *freq = priv->vfo_maina.freq;break;
-    case RIG_VFO_MAIN_B: *freq = priv->vfo_mainb.freq;break;
+
+    case RIG_VFO_MAIN_A: *freq = priv->vfo_maina.freq; break;
+
+    case RIG_VFO_MAIN_B: *freq = priv->vfo_mainb.freq; break;
 
     case RIG_VFO_SUB:
     case RIG_VFO_B:  *freq = priv->vfo_b.freq; break;
-    case RIG_VFO_SUB_A:  *freq = priv->vfo_suba.freq;break;
-    case RIG_VFO_SUB_B:  *freq = priv->vfo_subb.freq;break;
+
+    case RIG_VFO_SUB_A:  *freq = priv->vfo_suba.freq; break;
+
+    case RIG_VFO_SUB_B:  *freq = priv->vfo_subb.freq; break;
 
     case RIG_VFO_C:  *freq = priv->vfo_c.freq; break;
 
@@ -508,6 +522,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               rig_strvfo(vfo), rig_strrmode(mode), buf);
 
     vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
+
     switch (vfo)
     {
     case RIG_VFO_MAIN:
@@ -517,6 +532,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_VFO_B: priv->vfo_b.mode = mode; priv->vfo_b.width = width; break;
 
     case RIG_VFO_C: priv->vfo_c.mode = mode; priv->vfo_c.width = width; break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO=%s\n", __func__, rig_strvfo(vfo));
         RETURNFUNC(-RIG_EINVAL);
@@ -589,13 +605,17 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_RX:
     case RIG_VFO_MAIN: priv->curr = &priv->vfo_a; break;
+
     case RIG_VFO_MAIN_A: priv->curr = &priv->vfo_maina; break;
+
     case RIG_VFO_MAIN_B: priv->curr = &priv->vfo_mainb; break;
 
     case RIG_VFO_A: priv->curr = &priv->vfo_a; break;
 
     case RIG_VFO_SUB: priv->curr = &priv->vfo_b; break;
+
     case RIG_VFO_SUB_A: priv->curr = &priv->vfo_suba; break;
+
     case RIG_VFO_SUB_B: priv->curr = &priv->vfo_subb; break;
 
     case RIG_VFO_B: priv->curr = &priv->vfo_b; break;
@@ -622,6 +642,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
                   rig_strvfo(vfo));
         RETURNFUNC(-RIG_EINVAL);
     }
+
     rig->state.current_vfo = vfo;
 
     RETURNFUNC(RIG_OK);

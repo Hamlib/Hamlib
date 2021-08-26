@@ -323,7 +323,8 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
      */
     if (rig->state.hold_decode)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: hold decode, backend is receiving data\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: hold decode, backend is receiving data\n",
+                  __func__);
         RETURNFUNC(-1);
     }
 
@@ -365,7 +366,8 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
      */
     if (rig->state.hold_decode)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: hold decode, backend is receiving data\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: hold decode, backend is receiving data\n",
+                  __func__);
         RETURNFUNC(-1);
     }
 
@@ -724,7 +726,8 @@ int HAMLIB_API rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
  *
  * \sa rig_set_trn()
  */
-int HAMLIB_API rig_set_spectrum_callback(RIG *rig, spectrum_cb_t cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_spectrum_callback(RIG *rig, spectrum_cb_t cb,
+        rig_ptr_t arg)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

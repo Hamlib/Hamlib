@@ -297,7 +297,8 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && i < caps->agc_level_count; i++)
     {
-        fprintf(fout, " %d=%s", caps->agc_levels[i], rig_stragclevel(caps->agc_levels[i]));
+        fprintf(fout, " %d=%s", caps->agc_levels[i],
+                rig_stragclevel(caps->agc_levels[i]));
     }
 
     if (i == 0)
@@ -700,9 +701,11 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Spectrum scopes:");
 
-    for (i = 0; i < HAMLIB_MAX_SPECTRUM_SCOPES && caps->spectrum_scopes[i].name != NULL; i++)
+    for (i = 0; i < HAMLIB_MAX_SPECTRUM_SCOPES
+            && caps->spectrum_scopes[i].name != NULL; i++)
     {
-        fprintf(fout, " %d=\"%s\"", caps->spectrum_scopes[i].id, caps->spectrum_scopes[i].name);
+        fprintf(fout, " %d=\"%s\"", caps->spectrum_scopes[i].id,
+                caps->spectrum_scopes[i].name);
     }
 
     if (i == 0)
@@ -718,7 +721,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     rig_sprintf_spectrum_spans(prntbuf, sizeof(prntbuf), caps->spectrum_spans);
     fprintf(fout, "Spectrum spans: %s\n", prntbuf);
 
-    rig_sprintf_spectrum_avg_modes(prntbuf, sizeof(prntbuf), caps->spectrum_avg_modes);
+    rig_sprintf_spectrum_avg_modes(prntbuf, sizeof(prntbuf),
+                                   caps->spectrum_avg_modes);
     fprintf(fout, "Spectrum averaging modes: %s\n", prntbuf);
 
     fprintf(fout, "Spectrum attenuator:");

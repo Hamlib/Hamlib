@@ -101,7 +101,8 @@ int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
     }
     else
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: invalid Icom CI-V frame, no preamble found\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: invalid Icom CI-V frame, no preamble found\n",
+                  __func__);
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -284,6 +285,7 @@ read_another_frame:
     }
 
     retval = icom_frame_fix_preamble(frm_len, buf);
+
     if (retval < 0)
     {
         Unhold_Decode(rig);
@@ -355,7 +357,7 @@ read_another_frame:
         gettimeofday(&current_time, NULL);
         timersub(&current_time, &start_time, &elapsed_time);
 
-        elapsed_ms = (int) (elapsed_time.tv_sec * 1000 + elapsed_time.tv_usec / 1000);
+        elapsed_ms = (int)(elapsed_time.tv_sec * 1000 + elapsed_time.tv_usec / 1000);
 
         if (elapsed_ms > rs->rigport.timeout)
         {
