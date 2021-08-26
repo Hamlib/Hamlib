@@ -490,7 +490,11 @@ static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth,
     }
 
     if (rot->state.rotport2.pathname[0] != 0)
-    sprintf(cmdstr, "AP1%05.1f\r;", elevation);   /* Total field width of 5 chars */
+    {
+        sprintf(cmdstr, "AP1%05.1f\r;",
+                elevation);    /* Total field width of 5 chars */
+    }
+
     err = rotorez_send_priv_cmd2(rot, cmdstr);
 
     if (err != RIG_OK)

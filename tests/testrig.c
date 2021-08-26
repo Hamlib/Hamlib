@@ -140,10 +140,13 @@ int main(int argc, char *argv[])
     {
         printf("rig_set_freq: error exptect %.0f got %.0f\n", 296290000.0, freq);
     }
+
     if (rmode != RIG_MODE_FM || width != rig_passband_narrow(my_rig, RIG_MODE_FM))
     {
-        printf("rig_set_mode: error expected FM/%d, got %s/%d\n", (int)rig_passband_narrow(my_rig, RIG_MODE_FM), rig_strrmode(rmode), (int)width); 
+        printf("rig_set_mode: error expected FM/%d, got %s/%d\n",
+               (int)rig_passband_narrow(my_rig, RIG_MODE_FM), rig_strrmode(rmode), (int)width);
     }
+
     sleep(1);       /* so you can see it -- FS */
 
     /* 15m USB */

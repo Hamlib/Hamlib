@@ -76,7 +76,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: serial_open(%s) status=%d\n", __func__, p->pathname, status);
+            rig_debug(RIG_DEBUG_ERR, "%s: serial_open(%s) status=%d\n", __func__,
+                      p->pathname, status);
             RETURNFUNC(status);
         }
 

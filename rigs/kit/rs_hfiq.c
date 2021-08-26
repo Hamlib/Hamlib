@@ -88,16 +88,20 @@ static int rshfiq_open(RIG *rig)
     //There is a delay between when the port is open and the RS-HFIQ can receive and respond.
     //Make a few attempts at getting the version string just in case the RS-HFIQ has to catch up first.
     retval = -RIG_ETIMEOUT;
-    for (int init_retry_count = 0; (init_retry_count < RSHFIQ_INIT_RETRY) && (retval == -RIG_ETIMEOUT); init_retry_count++)
+
+    for (int init_retry_count = 0; (init_retry_count < RSHFIQ_INIT_RETRY)
+            && (retval == -RIG_ETIMEOUT); init_retry_count++)
     {
         rig_flush(&rig->state.rigport);
         snprintf(versionstr, sizeof(versionstr), "*w\r");
         rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, versionstr);
         retval = write_block(&rig->state.rigport, versionstr, strlen(versionstr));
+
         if (retval != RIG_OK)
         {
             return retval;
         }
+
         retval = read_string(&rig->state.rigport, versionstr, 20, stopset, 2);
     }
 
@@ -117,20 +121,27 @@ static int rshfiq_open(RIG *rig)
         return -RIG_ECONF;
     }
 
-    retval = sscanf(versionstr, "RS-HFIQ FW %d.%d", &rshfiq_version_major, &rshfiq_version_minor);
+    retval = sscanf(versionstr, "RS-HFIQ FW %d.%d", &rshfiq_version_major,
+                    &rshfiq_version_minor);
 
     if (retval <= 0)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: Failed to parse RS-HFIQ firmware version string. Defaulting to 2.0.\n", __func__);
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: Failed to parse RS-HFIQ firmware version string. Defaulting to 2.0.\n",
+                  __func__);
         rshfiq_version_major = 2;
         rshfiq_version_minor = 0;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "RS-HFIQ returned firmware version major=%d minor=%d\n", rshfiq_version_major, rshfiq_version_minor);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "RS-HFIQ returned firmware version major=%d minor=%d\n", rshfiq_version_major,
+              rshfiq_version_minor);
 
     if (rshfiq_version_major < 4)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: RS-HFIQ firmware major version is less than 4. RFPOWER_METER support will be unavailable.\n", __func__);
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: RS-HFIQ firmware major version is less than 4. RFPOWER_METER support will be unavailable.\n",
+                  __func__);
     }
 
     return RIG_OK;
@@ -227,7 +238,8 @@ static int rshfiq_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called. level type =%"PRIll"\n", __func__, level);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called. level type =%"PRIll"\n", __func__,
+              level);
 
     char cmdstr[15];
     char stopset[2];
@@ -238,90 +250,92 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_EINVAL;
     }
 
-        switch (level)
+    switch (level)
+    {
+    //Requires RS-HFIQ firmware version 4 or later
+    case RIG_LEVEL_RFPOWER_METER:
+
+        if (rshfiq_version_major <= 3)
         {
-            //Requires RS-HFIQ firmware version 4 or later
-            case RIG_LEVEL_RFPOWER_METER:
+            return -RIG_ENAVAIL;
+        }
 
-                if (rshfiq_version_major <= 3)
-                {
-                    return -RIG_ENAVAIL;
-                }
+        rig_flush(&rig->state.rigport);
 
-                rig_flush(&rig->state.rigport);
+        snprintf(cmdstr, sizeof(cmdstr), "*L\r");
 
-                snprintf(cmdstr, sizeof(cmdstr), "*L\r");
+        rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER command=%s\n", cmdstr);
 
-                rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER command=%s\n", cmdstr);
+        retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
 
-                retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
 
-                if (retval != RIG_OK)
-                {
-                    return retval;
-                }
+        stopset[0] = '\r';
+        stopset[1] = '\n';
 
-                stopset[0] = '\r';
-                stopset[1] = '\n';
+        retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2);
 
-                retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2);
+        rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER reply=%s\n", cmdstr);
 
-                rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER reply=%s\n", cmdstr);
+        if (retval <= 0)
+        {
+            return retval;
+        }
 
-                if (retval <= 0)
-                {
-                    return retval;
-                }
+        cmdstr[retval] = 0;
 
-                cmdstr[retval] = 0;
+        //Range is 0-110. Unit is percent
+        val->i = atoi(cmdstr);
+        val->f = (float)(val->i) / 100;
 
-                //Range is 0-110. Unit is percent
-                val->i = atoi(cmdstr);
-                val->f = (float)(val->i) / 100;
+        rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER val=%f\n", val->f);
 
-                rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER val=%f\n", val->f);
-
-                return RIG_OK;
-                break;
-
-            case RIG_LEVEL_TEMP_METER:
-                
-                rig_flush(&rig->state.rigport);
-
-                snprintf(cmdstr, sizeof(cmdstr), "*T\r");
-
-                rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER command=%s\n", cmdstr);
-
-                retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
-
-                if (retval != RIG_OK)
-                {
-                    return retval;
-                }
-
-                stopset[0] = '\r';
-                stopset[1] = '\n';
-
-                retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2);
-
-                rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER reply=%s\n", cmdstr);
-
-                if (retval <= 0)
-                {
-                    return retval;
-                }
-
-                cmdstr[retval] = 0;
-
-                sscanf(cmdstr, "%d.", &val->i);
-
-                rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER val=%d\n", val->i);
-
-                return RIG_OK;
-                break;
+        return RIG_OK;
         break;
+
+    case RIG_LEVEL_TEMP_METER:
+
+        rig_flush(&rig->state.rigport);
+
+        snprintf(cmdstr, sizeof(cmdstr), "*T\r");
+
+        rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER command=%s\n", cmdstr);
+
+        retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        stopset[0] = '\r';
+        stopset[1] = '\n';
+
+        retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2);
+
+        rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER reply=%s\n", cmdstr);
+
+        if (retval <= 0)
+        {
+            return retval;
+        }
+
+        cmdstr[retval] = 0;
+
+        sscanf(cmdstr, "%d.", &val->i);
+
+        rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER val=%d\n", val->i);
+
+        return RIG_OK;
+        break;
+        break;
+
     default:
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Unrecognized RIG_LEVEL_* enum: %"PRIll"\n", __func__, level);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Unrecognized RIG_LEVEL_* enum: %"PRIll"\n",
+                  __func__, level);
         return -RIG_EDOM;
         break;
     }
@@ -373,7 +387,7 @@ const struct rig_caps rshfiq_caps =
     .get_freq =     rshfiq_get_freq,
     .set_freq =     rshfiq_set_freq,
     .set_ptt  =     rshfiq_set_ptt,
-    .get_level=     rshfiq_get_level,
+    .get_level =     rshfiq_get_level,
 
 };
 
