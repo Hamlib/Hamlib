@@ -2950,6 +2950,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                 /* try and revert even if we had an error above */
                 TRACE;
 
+                rc2 = RIG_OK;
                 if (!targetable_ptt)
                 {
                     rc2 = caps->set_vfo(rig, curr_vfo);
