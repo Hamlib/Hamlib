@@ -1106,7 +1106,7 @@ int HAMLIB_API rig_open(RIG *rig)
     case RIG_ICOM:
     case RIG_KENWOOD:
     case RIG_YAESU:
-        rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT;
+        if (rig->caps->targetable_vfo) rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT;
         break;
     }
 
