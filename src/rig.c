@@ -2896,6 +2896,8 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         else
         {
             vfo_t curr_vfo;
+            int backend_num;
+            int targetable_ptt;
 
             if (!caps->set_vfo)
             {
@@ -2904,7 +2906,22 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
             curr_vfo = rig->state.current_vfo;
             TRACE;
-            retcode = caps->set_vfo(rig, vfo);
+            backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
+
+            switch (backend_num)
+            {
+            // most rigs have only one PTT VFO so we can set that flag here
+            case RIG_ICOM:
+            case RIG_KENWOOD:
+            case RIG_YAESU:
+                targetable_ptt = 1;
+            }
+
+
+            if (!targetable_ptt)
+            {
+                retcode = caps->set_vfo(rig, vfo);
+            }
 
             if (retcode == RIG_OK)
             {
@@ -2932,7 +2949,11 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
                 /* try and revert even if we had an error above */
                 TRACE;
-                rc2 = caps->set_vfo(rig, curr_vfo);
+
+                if (!targetable_ptt)
+                {
+                    rc2 = caps->set_vfo(rig, curr_vfo);
+                }
 
                 /* return the first error code */
                 if (RIG_OK == retcode)
@@ -3134,21 +3155,10 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             *ptt = rs->transmit ? RIG_PTT_ON : RIG_PTT_OFF;
             RETURNFUNC(RIG_OK);
         }
-        backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
-
-        switch (backend_num)
-        {
-        // most rigs have only one PTT VFO so we can set that flag here
-        case RIG_ICOM:
-        case RIG_KENWOOD:
-        case RIG_YAESU:
-            targetable_ptt = 1;
-        }
 
         if ((caps->targetable_vfo & RIG_TARGETABLE_PTT)
                 || vfo == RIG_VFO_CURR
-                || vfo == rig->state.current_vfo
-                || targetable_ptt)
+                || vfo == rig->state.current_vfo)
         {
             TRACE;
             retcode = caps->get_ptt(rig, vfo, ptt);
@@ -3169,7 +3179,22 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
         curr_vfo = rig->state.current_vfo;
         TRACE;
-        retcode = caps->set_vfo(rig, vfo);
+        backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
+
+        switch (backend_num)
+        {
+        // most rigs have only one PTT VFO so we can set that flag here
+        case RIG_ICOM:
+        case RIG_KENWOOD:
+        case RIG_YAESU:
+            targetable_ptt = 1;
+        }
+
+
+        if (!targetable_ptt)
+        {
+            retcode = caps->set_vfo(rig, vfo);
+        }
 
         if (retcode != RIG_OK)
         {
@@ -3178,15 +3203,19 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
         TRACE;
         retcode = caps->get_ptt(rig, vfo, ptt);
-        /* try and revert even if we had an error above */
-        rc2 = caps->set_vfo(rig, curr_vfo);
 
-        if (RIG_OK == retcode)
+        /* try and revert even if we had an error above */
+        if (!targetable_ptt)
         {
-            /* return the first error code */
-            retcode = rc2;
-            rig->state.cache.ptt = *ptt;
-            elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
+            rc2 = caps->set_vfo(rig, curr_vfo);
+
+            if (RIG_OK == retcode)
+            {
+                /* return the first error code */
+                retcode = rc2;
+                rig->state.cache.ptt = *ptt;
+                elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
+            }
         }
 
         RETURNFUNC(retcode);
