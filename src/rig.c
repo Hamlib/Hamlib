@@ -3815,7 +3815,8 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (caps->set_split_freq
             && (vfo == RIG_VFO_CURR
                 || vfo == RIG_VFO_TX
-                || tx_vfo == rig->state.current_vfo))
+                || tx_vfo == rig->state.current_vfo
+                || (caps->targetable_vfo & RIG_TARGETABLE_FREQ)))
     {
         TRACE;
         retcode = caps->set_split_freq(rig, vfo, tx_freq);
@@ -3828,7 +3829,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     /* Assisted mode */
     curr_vfo = rig->state.current_vfo;
 
-    if (caps->set_freq && (caps->targetable_vfo & RIG_TARGETABLE_FREQ))
+    if (caps->set_freq)
     {
         int retry = 3;
         freq_t tfreq;
@@ -3856,10 +3857,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         TRACE;
         retcode = RIG_OK;
 
-        if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
-        {
-            retcode = caps->set_vfo(rig, tx_vfo);
-        }
+        retcode = caps->set_vfo(rig, tx_vfo);
     }
     else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
     {
@@ -3994,7 +3992,8 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     if (caps->set_vfo)
     {
         // if the underlying rig has OP_XCHG we don't need to set VFO
-        if (!rig_has_vfo_op(rig, RIG_OP_XCHG))
+        if (!rig_has_vfo_op(rig, RIG_OP_XCHG)
+                && !(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
         {
             TRACE;
             retcode = caps->set_vfo(rig, tx_vfo);
@@ -4040,7 +4039,16 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: restoring vfo=%s\n", __func__,
                   rig_strvfo(save_vfo));
         TRACE;
-        rc2 = caps->set_vfo(rig, save_vfo);
+
+        if (!rig_has_vfo_op(rig, RIG_OP_XCHG)
+                && !(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
+        {
+            rc2 = caps->set_vfo(rig, save_vfo);
+        }
+        else
+        {
+            rc2 = RIG_OK;
+        }
     }
     else
     {
