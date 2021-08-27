@@ -1973,8 +1973,12 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 || rig->state.current_vfo == RIG_VFO_CURR))
     {
         TRACE;
-        swapvfos = 1;
-        rig_set_vfo(rig, RIG_VFO_B);
+
+        if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE))
+        {
+            swapvfos = 1;
+            rig_set_vfo(rig, RIG_VFO_B);
+        }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: #2 icmode=%d, icmode_ext=%d\n", __func__,
