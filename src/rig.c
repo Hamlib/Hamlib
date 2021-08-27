@@ -1098,6 +1098,18 @@ int HAMLIB_API rig_open(RIG *rig)
 //    freq_t freq;
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_A, &freq);
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_B, &freq);
+    int backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
+
+    switch (backend_num)
+    {
+    // most rigs have only one PTT VFO so we can set that flag here
+    case RIG_ICOM:
+    case RIG_KENWOOD:
+    case RIG_YAESU:
+        rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT;
+        break;
+    }
+
     RETURNFUNC(RIG_OK);
 }
 
