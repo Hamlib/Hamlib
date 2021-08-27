@@ -1098,17 +1098,6 @@ int HAMLIB_API rig_open(RIG *rig)
 //    freq_t freq;
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_A, &freq);
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_B, &freq);
-    int backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
-
-    switch (backend_num)
-    {
-    // most rigs have only one PTT VFO so we can set that flag here
-    case RIG_ICOM:
-    case RIG_KENWOOD:
-    case RIG_YAESU:
-        if (rig->caps->targetable_vfo) rig->caps->targetable_vfo |= RIG_TARGETABLE_PTT;
-        break;
-    }
 
     RETURNFUNC(RIG_OK);
 }
@@ -3105,6 +3094,8 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     int rc2, status;
     vfo_t curr_vfo;
     int cache_ms;
+    int targetable_ptt = 0;
+    int backend_num;
 
     ENTERFUNC;
 
@@ -3143,10 +3134,21 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             *ptt = rs->transmit ? RIG_PTT_ON : RIG_PTT_OFF;
             RETURNFUNC(RIG_OK);
         }
+        backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
+
+        switch (backend_num)
+        {
+        // most rigs have only one PTT VFO so we can set that flag here
+        case RIG_ICOM:
+        case RIG_KENWOOD:
+        case RIG_YAESU:
+            targetable_ptt = 1;
+        }
 
         if ((caps->targetable_vfo & RIG_TARGETABLE_PTT)
                 || vfo == RIG_VFO_CURR
-                || vfo == rig->state.current_vfo)
+                || vfo == rig->state.current_vfo
+                || targetable_ptt)
         {
             TRACE;
             retcode = caps->get_ptt(rig, vfo, ptt);
