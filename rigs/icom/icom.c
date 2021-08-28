@@ -1809,6 +1809,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
     switch (mode)
     {
+#if 0 // don't think this is needed anymore -- W9MDB 20210828
     case RIG_MODE_PKTUSB:
         // xFE xFE x6E xE0 x1A x06 x01 xFD switches mod input from MIC to ACC
         // This apparently works for IC-756ProIII but nobody has asked for it yet
@@ -1826,6 +1827,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     case RIG_MODE_PKTAM:
         icom_mode = RIG_MODE_AM;
         break;
+#endif
 
     default:
         icom_mode = mode;
