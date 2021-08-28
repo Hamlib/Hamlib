@@ -269,12 +269,6 @@ int main(int argc, char *argv[])
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) Startup:", __FILE__, __LINE__);
-
-    for (i = 0; i < argc; ++i) { rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]); }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
-
     while (1)
     {
         int c;
@@ -582,6 +576,13 @@ int main(int argc, char *argv[])
 #endif
 
     rig_set_debug(verbose);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) Startup:", __FILE__, __LINE__);
+
+    for (i = 0; i < argc; ++i) { rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]); }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+
 
     rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
