@@ -311,7 +311,7 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
      */
     switch (mode)
     {
-    case RIG_MODE_CW: 	 md = MD_CW; break;
+    case RIG_MODE_CW:    md = MD_CW; break;
 
     case RIG_MODE_CWN:    md = MD_CWN; break;
 
@@ -319,7 +319,7 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     case RIG_MODE_LSB:    md = MD_LSB; break;
 
-    case RIG_MODE_FM: 	 md = MD_FM; break;
+    case RIG_MODE_FM:    md = MD_FM; break;
 
     case RIG_MODE_FMN:    md = MD_FMN; break;
 
