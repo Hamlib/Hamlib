@@ -1809,7 +1809,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
     switch (mode)
     {
-#if 0 // don't think this is needed anymore -- W9MDB 20210828
+
     case RIG_MODE_PKTUSB:
         // xFE xFE x6E xE0 x1A x06 x01 xFD switches mod input from MIC to ACC
         // This apparently works for IC-756ProIII but nobody has asked for it yet
@@ -1827,7 +1827,6 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     case RIG_MODE_PKTAM:
         icom_mode = RIG_MODE_AM;
         break;
-#endif
 
     default:
         icom_mode = mode;
@@ -1837,7 +1836,16 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     rig_debug(RIG_DEBUG_VERBOSE, "%s mode=%d, width=%d, curr_vfo=%s\n", __func__,
               (int)icom_mode,
               (int)width, rig_strvfo(rig->state.current_vfo));
-    retval = icom_set_mode(rig, vfo, icom_mode, width);
+
+    // we only need to change base mode if we aren't using cmd 26 later
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_MODE))
+    {
+        retval = icom_set_mode(rig, vfo, icom_mode, width);
+    }
+    else
+    {
+        retval = RIG_OK;
+    }
 
     hl_usleep(50 * 1000); // pause for possible transceive message which we'll flush
 
