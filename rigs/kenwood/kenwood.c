@@ -1257,7 +1257,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
         // FR can turn off split on some Kenwood rigs
         // So we'll turn it back on just in case
-        if (split && vfo_function=='0') { strcat(cmdbuf, ";FT1"); }
+        if (split && vfo_function == '0') { strcat(cmdbuf, ";FT1"); }
 
         retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
