@@ -4512,7 +4512,7 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
  * \sa rig_get_split_vfo()
  */
 int HAMLIB_API rig_set_split_vfo(RIG *rig,
-                                 vfo_t vfo,
+                                 vfo_t rx_vfo,
                                  split_t split,
                                  vfo_t tx_vfo)
 {
@@ -4521,6 +4521,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     vfo_t curr_vfo;
 
     ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rx_vfo=%s, split=%d, tx_vfo=%s\n", __func__,
+              rig_strvfo(rx_vfo), split, rig_strvfo(tx_vfo));
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -4534,31 +4536,26 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    vfo = vfo_fixup(rig, tx_vfo, split);
-
-    if (vfo != RIG_VFO_A && vfo != RIG_VFO_B)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected VFOA/B but got %s\n", __func__,
-                  rig_strvfo(vfo));
-    }
+    rx_vfo = vfo_fixup(rig, rx_vfo, split);
+    tx_vfo = vfo_fixup(rig, tx_vfo, split);
 
     // set rig to the the requested RX VFO
     TRACE;
 
     if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
 #if BUILTINFUNC
-        rig_set_vfo(rig, vfo == RIG_VFO_B ? RIG_VFO_B : RIG_VFO_A,
+        rig_set_vfo(rig, rx_vfo == RIG_VFO_B ? RIG_VFO_B : RIG_VFO_A,
                     __builtin_FUNCTION());
 
 #else
-        rig_set_vfo(rig, vfo == RIG_VFO_B ? RIG_VFO_B : RIG_VFO_A);
+        rig_set_vfo(rig, rx_vfo == RIG_VFO_B ? RIG_VFO_B : RIG_VFO_A);
 #endif
 
-    if (vfo == RIG_VFO_CURR
-            || vfo == rig->state.current_vfo)
+    if (rx_vfo == RIG_VFO_CURR
+            || rx_vfo == rig->state.current_vfo)
     {
         TRACE;
-        retcode = caps->set_split_vfo(rig, vfo, split, tx_vfo);
+        retcode = caps->set_split_vfo(rig, rx_vfo, split, tx_vfo);
 
         if (retcode == RIG_OK)
         {
@@ -4581,7 +4578,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
     if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
     {
-        retcode = caps->set_vfo(rig, vfo);
+        retcode = caps->set_vfo(rig, rx_vfo);
 
         if (retcode != RIG_OK)
         {
@@ -4590,7 +4587,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     }
 
     TRACE;
-    retcode = caps->set_split_vfo(rig, vfo, split, tx_vfo);
+    retcode = caps->set_split_vfo(rig, rx_vfo, split, tx_vfo);
 
     /* try and revert even if we had an error above */
     if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
