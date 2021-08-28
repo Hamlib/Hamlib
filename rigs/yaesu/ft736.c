@@ -38,7 +38,7 @@
 
 
 
-#define FT736_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM)
+#define FT736_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_CWN)
 
 #define FT736_VFOS (RIG_VFO_A)
 
@@ -181,10 +181,10 @@ const struct rig_caps ft736_caps =
 
     /* mode/filter list, remember: order matters! */
     .filters =            {
-        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_CWR,  kHz(2.2)},
-        {RIG_MODE_CW | RIG_MODE_CWR,   Hz(600)},
-        {RIG_MODE_FM,   kHz(12)},
-        {RIG_MODE_FM,   kHz(8)},
+        {RIG_MODE_CW | RIG_MODE_SSB,    kHz(2.2)},
+        {RIG_MODE_FM,    kHz(12)},
+        {RIG_MODE_FMN,   kHz(8)},
+        {RIG_MODE_CWN,   Hz(600)},
 
         RIG_FLT_END,
     },
@@ -291,9 +291,9 @@ int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #define MD_LSB  0x00
 #define MD_USB  0x01
 #define MD_CW   0x02
-#define MD_CWR  0x03
-#define MD_AM   0x04
+#define MD_CWN  0x82
 #define MD_FM   0x08
+#define MD_FMN  0x88
 
 int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
@@ -311,17 +311,17 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
      */
     switch (mode)
     {
-    case RIG_MODE_CW: md = MD_CW; break;
+    case RIG_MODE_CW: 	 md = MD_CW; break;
 
-    case RIG_MODE_CWR:    md = MD_CWR; break;
+    case RIG_MODE_CWN:    md = MD_CWN; break;
 
     case RIG_MODE_USB:    md = MD_USB; break;
 
     case RIG_MODE_LSB:    md = MD_LSB; break;
 
-    case RIG_MODE_FM: md = MD_FM; break;
+    case RIG_MODE_FM: 	 md = MD_FM; break;
 
-    case RIG_MODE_AM: md = MD_AM; break;
+    case RIG_MODE_FMN:    md = MD_FMN; break;
 
     default:
         return -RIG_EINVAL;         /* sorry, wrong MODE */
@@ -397,17 +397,17 @@ int ft736_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
      */
     switch (mode)
     {
-    case RIG_MODE_CW: md = MD_CW; break;
+    case RIG_MODE_CW:     md = MD_CW; break;
 
-    case RIG_MODE_CWR:    md = MD_CWR; break;
+    case RIG_MODE_CWN:    md = MD_CWN; break;
 
     case RIG_MODE_USB:    md = MD_USB; break;
 
     case RIG_MODE_LSB:    md = MD_LSB; break;
 
-    case RIG_MODE_FM: md = MD_FM; break;
+    case RIG_MODE_FM:     md = MD_FM; break;
 
-    case RIG_MODE_AM: md = MD_AM; break;
+    case RIG_MODE_FMN:    md = MD_FMN; break;
 
     default:
         return -RIG_EINVAL;         /* sorry, wrong MODE */
