@@ -155,12 +155,6 @@ int main(int argc, char *argv[])
     char resp_sep = '\n';
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) Startup:", __FILE__, __LINE__);
-
-    for (i = 0; i < argc; ++i) { rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]); }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
-
     while (1)
     {
         int c;
@@ -445,6 +439,13 @@ int main(int argc, char *argv[])
     }
 
     rig_set_debug(verbose);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) Startup:", __FILE__, __LINE__);
+
+    for (i = 0; i < argc; ++i) { rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]); }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
+
 
     rig_debug(RIG_DEBUG_VERBOSE, "rigctl %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
