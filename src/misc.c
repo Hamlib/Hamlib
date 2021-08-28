@@ -453,6 +453,7 @@ static const struct
     { RIG_MODE_PSKR, "PSKR"},
     { RIG_MODE_C4FM, "C4FM"},
     { RIG_MODE_SPEC, "SPEC"},
+    { RIG_MODE_CWN, "CWN"},
     { RIG_MODE_NONE, "" },
 };
 
