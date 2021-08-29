@@ -36,6 +36,9 @@
 #include <ctype.h>
 #include <errno.h>
 
+// If true adds some debug statements to see flow of rigctl parsing
+int debugflow = 0;
+
 #ifdef HAVE_LIBREADLINE
 #  if defined(HAVE_READLINE_READLINE_H)
 #    include <readline/readline.h>
@@ -878,18 +881,19 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: debug1\n", __func__);
+        if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug1\n", __func__); }
 
         if ((cmd_entry->flags & ARG_IN_LINE)
                 && (cmd_entry->flags & ARG_IN1)
                 && cmd_entry->arg1)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: debug2\n", __func__);
+            if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug2\n", __func__); }
 
             if (interactive)
             {
                 char *nl;
-                rig_debug(RIG_DEBUG_TRACE, "%s: debug2a\n", __func__);
+
+                if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug2a\n", __func__); }
 
 
                 if (fgets(arg1, MAXARGSZ, fin) == NULL)
@@ -899,7 +903,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 if (arg1[0] == 0xa)
                 {
-                    //rig_debug(RIG_DEBUG_TRACE, "%s: debug2b\n", __func__);
+                    if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug2b\n", __func__); }
 
                     if (prompt)
                     {
@@ -948,13 +952,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         }
         else if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: debug3\n", __func__);
+            if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug3\n", __func__); }
 
             if (interactive)
             {
                 arg1[0] = fgetc(fin);
                 arg1[1] = 0;
-                rig_debug(RIG_DEBUG_TRACE, "%s: debug4 arg1=%c\n", __func__, arg1[0]);
+
+                if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug4 arg1=%c\n", __func__, arg1[0]); }
 
                 if (prompt && arg1[0] == 0x0a)
                 {
@@ -988,25 +993,26 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: debug5\n", __func__);
+        if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug5\n", __func__); }
 
         if (p1
                 && p1[0] != '?'
                 && (cmd_entry->flags & ARG_IN2)
                 && cmd_entry->arg2)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: debug6\n", __func__);
+            if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug6\n", __func__); }
 
             if (interactive)
             {
-                rig_debug(RIG_DEBUG_TRACE, "%s: debug7\n", __func__);
+                if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug7\n", __func__); }
 
                 arg1[0] = fgetc(fin);
                 arg1[1] = 0;
 
                 if (prompt && arg1[0]  == 0x0a)
                 {
-                    rig_debug(RIG_DEBUG_TRACE, "%s: debug8\n", __func__);
+                    if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug8\n", __func__); }
+
                     fprintf_flush(fout, "%s: ", cmd_entry->arg2);
                 }
 
@@ -1020,7 +1026,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                rig_debug(RIG_DEBUG_TRACE, "%s: debug9\n", __func__);
+                if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug9\n", __func__); }
+
                 retcode = next_word(arg2, argc, argv, 0);
 
                 if (EOF == retcode)
@@ -1038,22 +1045,23 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: debug10\n", __func__);
+        if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug10\n", __func__); }
 
         if (p1
                 && p1[0] != '?'
                 && (cmd_entry->flags & ARG_IN3)
                 && cmd_entry->arg3)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: debug11\n", __func__);
+            if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug11\n", __func__); }
 
             if (interactive)
             {
-                rig_debug(RIG_DEBUG_TRACE, "%s: debug12\n", __func__);
+                if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug12\n", __func__); }
 
                 if (prompt)
                 {
-                    rig_debug(RIG_DEBUG_TRACE, "%s: debug13\n", __func__);
+                    if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug13\n", __func__); }
+
                     fprintf_flush(fout, "%s: ", cmd_entry->arg3);
                 }
 
@@ -1067,7 +1075,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
             else
             {
-                rig_debug(RIG_DEBUG_TRACE, "%s: debug14\n", __func__);
+                if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug14\n", __func__); }
+
                 retcode = next_word(arg3, argc, argv, 0);
 
                 if (EOF == retcode)
