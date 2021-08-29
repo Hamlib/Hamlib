@@ -500,7 +500,10 @@ const struct rig_caps ft818_caps =
     .tx_range_list1 =  {
         FRQ_RNG_HF(1, FT817_OTHER_TX_MODES, W(0.5), W(5), FT817_VFO_ALL, FT817_ANTS),
         FRQ_RNG_HF(1, FT817_AM_TX_MODES, W(0.5), W(1.5), FT817_VFO_ALL, FT817_ANTS),
-        /* TODO 60m is available seems always available on the 818 */
+
+        /* One of the key differences between 817 and 818: the 818 has 60m! */
+        FRQ_RNG_60m(1, FT817_OTHER_TX_MODES, W(0.5), W(5), FT817_VFO_ALL, FT817_ANTS),
+        FRQ_RNG_60m(1, FT817_AM_TX_MODES, W(0.5), W(1.5), FT817_VFO_ALL, FT817_ANTS),
 
         FRQ_RNG_6m(1, FT817_OTHER_TX_MODES, W(0.5), W(5), FT817_VFO_ALL, FT817_ANTS),
         FRQ_RNG_6m(1, FT817_AM_TX_MODES, W(0.5), W(1.5), FT817_VFO_ALL, FT817_ANTS),
@@ -526,7 +529,10 @@ const struct rig_caps ft818_caps =
     .tx_range_list2 =  {
         FRQ_RNG_HF(2, FT817_OTHER_TX_MODES, W(0.5), W(5), FT817_VFO_ALL, FT817_ANTS),
         FRQ_RNG_HF(2, FT817_AM_TX_MODES, W(0.5), W(1.5), FT817_VFO_ALL, FT817_ANTS),
-        /* FIXME: 60 meters in US version */
+
+        /* One of the key differences between 817 and 818: the 818 has 60m! */
+        FRQ_RNG_60m(2, FT817_OTHER_TX_MODES, W(0.5), W(5), FT817_VFO_ALL, FT817_ANTS),
+        FRQ_RNG_60m(2, FT817_AM_TX_MODES, W(0.5), W(1.5), FT817_VFO_ALL, FT817_ANTS),
 
         FRQ_RNG_6m(2, FT817_OTHER_TX_MODES, W(0.5), W(5), FT817_VFO_ALL, FT817_ANTS),
         FRQ_RNG_6m(2, FT817_AM_TX_MODES, W(0.5), W(1.5), FT817_VFO_ALL, FT817_ANTS),
