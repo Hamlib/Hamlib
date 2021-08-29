@@ -1119,7 +1119,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     snprintf(cmdbuf, sizeof(cmdbuf), "FR%c", vfo_function);
 
     // as we change VFO we will change split to the other VFO
-    // some rigs turn split off with FR command 
+    // some rigs turn split off with FR command
     if (priv->split)
     {
         if (vfo_function == '0')
@@ -1272,6 +1272,18 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         // FR can turn off split on some Kenwood rigs
         // So we'll turn it back on just in case
         if (split && vfo_function == '0') { strcat(cmdbuf, ";FT1"); }
+
+        if (priv->split)
+        {
+            if (vfo_function == '0')
+            {
+                strcat(cmdbuf, ";FT1");
+            }
+            else
+            {
+                strcat(cmdbuf, ";FT0");
+            }
+        }
 
         retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
