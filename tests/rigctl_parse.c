@@ -1006,10 +1006,10 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug7\n", __func__); }
 
-                arg1[0] = fgetc(fin);
-                arg1[1] = 0;
+                arg2[0] = fgetc(fin);
+                arg2[1] = 0;
 
-                if (prompt && arg1[0]  == 0x0a)
+                if (prompt && arg2[0]  == 0x0a)
                 {
                     if (debugflow) { rig_debug(RIG_DEBUG_TRACE, "%s: debug8\n", __func__); }
 
