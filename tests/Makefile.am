@@ -127,4 +127,4 @@ testcookie.sh:
 	echo './testcookie 1' > testcookie.sh
 	chmod +x ./testcookie.sh
 
-CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh testlibusb
+CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh testlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh
