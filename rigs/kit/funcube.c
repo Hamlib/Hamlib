@@ -57,7 +57,8 @@
 
 #include "funcube.h"
 
-static int funcube_hid_cmd(RIG *rig, unsigned char *au8BufOut, unsigned char *au8BufIn, int inputSize);
+static int funcube_hid_cmd(RIG *rig, unsigned char *au8BufOut,
+                           unsigned char *au8BufIn, int inputSize);
 
 static int funcube_init(RIG *rig);
 static int funcubeplus_init(RIG *rig);
@@ -760,7 +761,8 @@ int funcube_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
-int funcube_hid_cmd(RIG *rig, unsigned char *au8BufOut, unsigned char *au8BufIn, int inputSize)
+int funcube_hid_cmd(RIG *rig, unsigned char *au8BufOut, unsigned char *au8BufIn,
+                    int inputSize)
 {
     libusb_device_handle *udh = rig->state.rigport.handle;
     int ret;
@@ -813,10 +815,10 @@ int funcubepro_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_PREAMP:
         rig_debug(RIG_DEBUG_TRACE, "%s: Setting PREAMP state to %d.\n",
-              __func__, val.i);
+                  __func__, val.i);
         au8BufOut[0] = REQUEST_SET_LNA_GAIN; // Command to set LNA gain
 
-        if( val.i == 10 || val.i == 30  )
+        if (val.i == 10 || val.i == 30)
         {
             au8BufOut[1] = 1;
         }
@@ -824,17 +826,17 @@ int funcubepro_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             au8BufOut[1] = 0;
         }
-        
+
         ret = funcube_hid_cmd(rig, au8BufOut, au8BufIn, sizeof(au8BufIn));
-        
-        if( ret < 0 )
+
+        if (ret < 0)
         {
             return ret;
         }
 
         au8BufOut[0] = REQUEST_SET_MIXER_GAIN; // Set mixer gain
 
-        if( val.i == 20 || val.i == 30  )
+        if (val.i == 20 || val.i == 30)
         {
             au8BufOut[1] = 1;
         }
@@ -878,13 +880,13 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         au8BufOut[0] = REQUEST_GET_MIXER_GAIN;   // Command to get mixer gain enabled
         ret = funcube_hid_cmd(rig, au8BufOut, au8BufIn, sizeof(au8BufIn));
 
-        if( ret < 0 )
+        if (ret < 0)
         {
             return ret;
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: Mixer gain state returned %d.\n",
-              __func__, au8BufIn[2] & 0xFF);
+                  __func__, au8BufIn[2] & 0xFF);
 
         gain_state = au8BufIn[2] & 0x1;
 
@@ -892,30 +894,30 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         ret = funcube_hid_cmd(rig, au8BufOut, au8BufIn, sizeof(au8BufIn));
 
-        if( ret < 0 )
+        if (ret < 0)
         {
             return ret;
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: LNA gain state returned %d.\n",
-              __func__, au8BufIn[2] & 0xFF);
+                  __func__, au8BufIn[2] & 0xFF);
 
         //Mixer gain is 20dB 0x2
         gain_state *= 2;
 
         //Add the LNA gain if present (10dB) 0x1
-        gain_state += ( au8BufIn[2] & 0x1 );
+        gain_state += (au8BufIn[2] & 0x1);
 
         //Scale it to tens 1->10dB 2->20dB 3->30dB
         gain_state *= 10;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: Calculated gain state is %d.\n",
-              __func__, gain_state);
+                  __func__, gain_state);
 
-        if( gain_state > 30 || gain_state < 0 || gain_state % 10 != 0)
+        if (gain_state > 30 || gain_state < 0 || gain_state % 10 != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unrecognized composite gain: %d\n", __func__,
-                  gain_state);
+                      gain_state);
             return -RIG_EINVAL;
         }
 
