@@ -19,6 +19,7 @@ rotctl \- control antenna rotators
 .OP \-hiIlLuV
 .OP \-m id
 .OP \-r device
+.OP \-R device2
 .OP \-s baud
 .OP \-t char
 .OP \-C parm=val
@@ -78,6 +79,20 @@ See model list (use \(lqrotctl -l\(rq).
 Use
 .I device
 as the file name of the port connected to the rotator.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.
+.TP
+.BR \-R ", " \-\-rot\-file2 = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the 2nd rotator.
+e.g. 2nd rotator used for elevation.
 .IP
 Often a serial port, but could be a USB to serial adapter.  Typically
 .IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
