@@ -257,6 +257,7 @@ int main(int argc, char *argv[])
     int uplink = 0;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
+    char rigstartup[1024];
 #if HAVE_SIGACTION
     struct sigaction act;
 #endif
@@ -577,12 +578,11 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) Startup:", __FILE__, __LINE__);
+    snprintf(rigstartup, sizeof(rigstartup), "%s(%d) Startup:", __FILE__, __LINE__);
 
-    for (i = 0; i < argc; ++i) { rig_debug(RIG_DEBUG_VERBOSE, " %s", argv[i]); }
+    for (i = 0; i < argc; ++i) { strcat(rigstartup, " "); strcat(rigstartup, argv[i]); }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s", "\n");
-
+    rig_debug(RIG_DEBUG_VERBOSE, "%s\n", rigstartup);
 
     rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
