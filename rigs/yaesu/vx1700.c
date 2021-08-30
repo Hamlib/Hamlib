@@ -288,7 +288,7 @@ static int vx1700_do_transaction(RIG *rig,
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the ncmd struct
+ *              ci      Command index of the ncmd table
  *
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
@@ -314,7 +314,7 @@ static int vx1700_do_static_cmd(RIG *rig, unsigned char ci)
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the ncmd struct
+ *              ci      Command index of the cmd struct
  *              p1-p4   Command parameters
  *
  * Returns:     RIG_OK if all called functions are successful,

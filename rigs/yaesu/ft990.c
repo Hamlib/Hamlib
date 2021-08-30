@@ -125,7 +125,6 @@ struct ft990_priv_data
     unsigned int read_update_delay;           /* depends on pacing value */
     vfo_t current_vfo;                        /* active VFO from last cmd */
     unsigned char p_cmd[YAESU_CMD_LENGTH];    /* private copy of CAT cmd */
-    yaesu_cmd_set_t pcs[FT990_NATIVE_SIZE];   /* private cmd set */
     ft990_update_data_t update_data;          /* returned data */
 };
 
@@ -309,9 +308,6 @@ int ft990_init(RIG *rig)
     }
 
     priv = rig->state.priv;
-
-// Copy native cmd set to private cmd storage area
-    memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
     // Set default pacing value
     priv->pacing = FT990_PACING_DEFAULT_VALUE;
@@ -3221,7 +3217,7 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
@@ -3229,7 +3225,6 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
 int ft990_send_static_cmd(RIG *rig, unsigned char ci)
 {
     struct rig_state *rig_s;
-    struct ft990_priv_data *priv;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -3239,17 +3234,16 @@ int ft990_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft990_priv_data *)rig->state.priv;
     rig_s = &rig->state;
 
-    if (!priv->pcs[ci].ncomp)
+    if (!ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: Attempt to send incomplete sequence\n", __func__);
         return -RIG_EINVAL;
     }
 
-    err = write_block(&rig_s->rigport, (char *) priv->pcs[ci].nseq,
+    err = write_block(&rig_s->rigport, (char *) ncmd[ci].nseq,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -3267,7 +3261,7 @@ int ft990_send_static_cmd(RIG *rig, unsigned char ci)
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *              p1-p4   Command parameters
  *
  * Returns:     RIG_OK if all called functions are successful,
@@ -3295,7 +3289,7 @@ int ft990_send_dynamic_cmd(RIG *rig, unsigned char ci,
 
     priv = (struct ft990_priv_data *)rig->state.priv;
 
-    if (priv->pcs[ci].ncomp)
+    if (ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: Attempt to modify complete sequence\n", __func__);
@@ -3328,7 +3322,7 @@ int ft990_send_dynamic_cmd(RIG *rig, unsigned char ci,
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *              freq    freq_t frequency value
  *
  * Returns:     RIG_OK if all called functions are successful,
@@ -3354,7 +3348,7 @@ int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
 
     priv = (struct ft990_priv_data *)rig->state.priv;
 
-    if (priv->pcs[ci].ncomp)
+    if (ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: Attempt to modify complete sequence\n", __func__);
@@ -3388,7 +3382,7 @@ int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
  * change the rit frequency.
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *              rit    shortfreq_t frequency value
  *
  * Returns:     RIG_OK if all called functions are successful,
@@ -3413,7 +3407,7 @@ int ft990_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     priv = (struct ft990_priv_data *) rig->state.priv;
     rig_s = &rig->state;
 
-    if (priv->pcs[ci].ncomp)
+    if (ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Attempt to modify complete sequence\n",
                   __func__);

@@ -135,7 +135,6 @@ struct ft920_priv_data
     split_t split;                              /* split active or not */
     unsigned char
     p_cmd[YAESU_CMD_LENGTH];      /* private copy of 1 constructed CAT cmd */
-    yaesu_cmd_set_t pcs[FT920_NATIVE_SIZE];     /* private cmd set */
     unsigned char
     update_data[FT920_VFO_DATA_LENGTH];   /* returned data--max value, some are less */
 };
@@ -381,11 +380,6 @@ static int ft920_init(RIG *rig)
     }
 
     priv = rig->state.priv;
-
-    /*
-     * Copy native cmd set to private cmd storage area
-     */
-    memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
     /* TODO: read pacing from preferences */
     priv->pacing =
@@ -2397,7 +2391,7 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
@@ -2406,7 +2400,6 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
 static int ft920_send_static_cmd(RIG *rig, unsigned char ci)
 {
     struct rig_state *rig_s;
-    struct ft920_priv_data *priv;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2416,21 +2409,19 @@ static int ft920_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
     rig_s = &rig->state;
-
     /*
      * If we've been passed a command index (ci) that is marked
      * as dynamic (0), then bail out.
      */
-    if (!priv->pcs[ci].ncomp)
+    if (!ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Attempt to send incomplete sequence\n",
                   __func__);
         return -RIG_EINVAL;
     }
 
-    err = write_block(&rig_s->rigport, (char *) priv->pcs[ci].nseq,
+    err = write_block(&rig_s->rigport, (char *) ncmd[ci].nseq,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -2449,7 +2440,7 @@ static int ft920_send_static_cmd(RIG *rig, unsigned char ci)
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *              p1-p4   Command parameters
  *
  * Returns:     RIG_OK if all called functions are successful,
@@ -2482,7 +2473,7 @@ static int ft920_send_dynamic_cmd(RIG *rig, unsigned char ci,
      * If we've been passed a command index (ci) that is marked
      * as static (1), then bail out.
      */
-    if (priv->pcs[ci].ncomp)
+    if (ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: Attempted to modify a complete command sequence: %i\n",
@@ -2516,7 +2507,7 @@ static int ft920_send_dynamic_cmd(RIG *rig, unsigned char ci,
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *              freq    freq_t frequency value
  *
  * Returns:     RIG_OK if all called functions are successful,
@@ -2547,7 +2538,7 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
      * If we've been passed a command index (ci) that is marked
      * as static (1), then bail out.
      */
-    if (priv->pcs[ci].ncomp)
+    if (ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Attempt to modify complete sequence\n",
                   __func__);
@@ -2583,7 +2574,7 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *              rit     shortfreq_t frequency value
  *              p1      P1 value -- CLAR_SET_FREQ
  *              p2      P2 value -- CLAR_OFFSET_PLUS || CLAR_OFFSET_MINUS
@@ -2618,7 +2609,7 @@ static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
      * If we've been passed a command index (ci) that is marked
      * as static (1), then bail out.
      */
-    if (priv->pcs[ci].ncomp)
+    if (ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Attempt to modify complete sequence\n",
                   __func__);
