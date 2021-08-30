@@ -206,7 +206,6 @@ struct ft1000mp_priv_data
     unsigned int read_update_delay;           /* depends on pacing value */
     unsigned char
     p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
-    yaesu_cmd_set_t pcs[FT1000MP_NATIVE_SIZE];  /* private cmd set */
     unsigned char update_data[2 *
                                 FT1000MP_STATUS_UPDATE_LENGTH]; /* returned data--max value, some are less */
 };
@@ -641,11 +640,6 @@ int ft1000mp_init(RIG *rig)
     }
 
     priv = rig->state.priv;
-
-    /*
-     * Copy native cmd set to private cmd storage area
-     */
-    memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
     /* TODO: read pacing from preferences */
     priv->pacing =
@@ -1601,25 +1595,23 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
 static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
 {
     struct rig_state *rig_s;
-    struct ft1000mp_priv_data *p;
     unsigned char *cmd;           /* points to sequence to send */
     unsigned char cmd_index;      /* index of sequence to send */
 
     ENTERFUNC;
 
-    p = (struct ft1000mp_priv_data *)rig->state.priv;
     rig_s = &rig->state;
 
     cmd_index = ci;               /* get command */
 
-    if (! p->pcs[cmd_index].ncomp)
+    if (! ncmd[cmd_index].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: attempt to send incomplete sequence\n",
                   __func__);
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
+    cmd = (unsigned char *) ncmd[cmd_index].nseq; /* get native sequence */
     rig_flush(&rig_s->rigport);
     write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
