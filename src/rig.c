@@ -4369,6 +4369,19 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
     caps = rig->caps;
 
+    // if split is off we'll turn it on
+    if (rig->state.cache.split == 0)
+    {
+        if (rig->state.current_vfo & (RIG_VFO_A | RIG_VFO_MAIN))
+        {
+            rig_set_split_vfo(rig, RIG_VFO_A, 1, RIG_VFO_B);
+        }
+        else
+        {
+            rig_set_split_vfo(rig, RIG_VFO_B, 1, RIG_VFO_A);
+        }
+    }
+
     vfo = vfo_fixup(rig, RIG_VFO_TX, rig->state.cache.split); // get the TX VFO
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: vfo=%s, tx_freq=%.0f, tx_mode=%s, tx_width=%d\n", __func__,
