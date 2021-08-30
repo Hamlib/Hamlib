@@ -703,7 +703,7 @@ int ft1000mp_open(RIG *rig)
 
     /* send PACING cmd to rig  */
     cmd = p->p_cmd;
-    write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
     ft1000mp_get_vfo(rig, &rig->state.current_vfo);
     /* TODO */
@@ -715,7 +715,6 @@ int ft1000mp_open(RIG *rig)
 
 int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct rig_state *rig_s;
     struct ft1000mp_priv_data *p;
     unsigned char *cmd;           /* points to sequence to send */
     int cmd_index = 0;
@@ -723,8 +722,6 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     ENTERFUNC;
 
     p = (struct ft1000mp_priv_data *)rig->state.priv;
-
-    rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: requested freq = %"PRIfreq" Hz \n", __func__,
               freq);
@@ -768,7 +765,7 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               (freq_t)from_bcd(p->p_cmd, 8) * 10);
 
     cmd = p->p_cmd;               /* get native sequence */
-    write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
     RETURNFUNC(RIG_OK);
 }
@@ -1560,21 +1557,19 @@ int ft1000mp_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
                                     unsigned char rl)
 {
-    struct rig_state *rig_s;
     struct ft1000mp_priv_data *p;
     int n;                        /* for read_  */
 
     ENTERFUNC;
 
     p = (struct ft1000mp_priv_data *)rig->state.priv;
-    rig_s = &rig->state;
 
     // timeout retries are done in read_block now
     // based on rig backed retry value
     /* send UPDATE command to fetch data*/
     ft1000mp_send_priv_cmd(rig, ci);
 
-    n = read_block(&rig_s->rigport, (char *) p->update_data, rl);
+    n = read_block(&rig->state.rigport, (char *) p->update_data, rl);
 
     if (n == -RIG_ETIMEOUT)
     {
@@ -1594,26 +1589,15 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
 
 static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
 {
-    struct rig_state *rig_s;
-    unsigned char *cmd;           /* points to sequence to send */
-    unsigned char cmd_index;      /* index of sequence to send */
-
     ENTERFUNC;
 
-    rig_s = &rig->state;
-
-    cmd_index = ci;               /* get command */
-
-    if (! ncmd[cmd_index].ncomp)
+    if (! ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: attempt to send incomplete sequence\n",
                   __func__);
         RETURNFUNC(-RIG_EINVAL);
     }
-
-    cmd = (unsigned char *) ncmd[cmd_index].nseq; /* get native sequence */
-    rig_flush(&rig_s->rigport);
-    write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, (char *) ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
     RETURNFUNC(RIG_OK);
 

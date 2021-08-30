@@ -372,7 +372,7 @@ int ft747_open(RIG *rig)
 
     /* send PACING cmd to rig, once for all */
 
-    ret = write_block(&rig_s->rigport, (char *)p->p_cmd, YAESU_CMD_LENGTH);
+    ret = write_block(&rig->state.rigport, (char *)p->p_cmd, YAESU_CMD_LENGTH);
 
     if (ret < 0)
     {
@@ -407,15 +407,12 @@ int ft747_close(RIG *rig)
 
 int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct rig_state *rig_s;
     struct ft747_priv_data *p;
     unsigned char *cmd;       /* points to sequence to send */
     // cppcheck-suppress *
     char *fmt = "%s: requested freq after conversion = %"PRIll" Hz \n";
 
     p = (struct ft747_priv_data *)rig->state.priv;
-
-    rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft747: requested freq = %"PRIfreq" Hz \n", freq);
 
@@ -435,7 +432,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_force_cache_timeout(&p->status_tv);
 
     cmd = p->p_cmd; /* get native sequence */
-    return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -909,24 +906,14 @@ static int ft747_get_update_data(RIG *rig)
 
 static int ft747_send_priv_cmd(RIG *rig, unsigned char ci)
 {
-
-    struct rig_state *rig_s;
-    unsigned char *cmd;       /* points to sequence to send */
-    unsigned char cmd_index;  /* index of sequence to send */
-
-    rig_s = &rig->state;
-
-    cmd_index = ci;       /* get command */
-
-    if (! ft747_ncmd[cmd_index].ncomp)
+    if (! ft747_ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: attempt to send incomplete sequence\n",
                   __func__);
         return -RIG_EINVAL;
     }
 
-    cmd = (unsigned char *) ft747_ncmd[cmd_index].nseq; /* get native sequence */
-    return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) ft747_ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
 }
 

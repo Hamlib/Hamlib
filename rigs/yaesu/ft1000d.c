@@ -2332,7 +2332,6 @@ int ft1000d_get_vfo(RIG *rig, vfo_t *vfo)
 int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
 {
     struct ft1000d_priv_data *priv;
-    struct rig_state *rig_s;
     unsigned char mdata[YAESU_CMD_LENGTH];
     int err;
 
@@ -2375,8 +2374,7 @@ int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
         return err;
     }
 
-    rig_s = &rig->state;
-    err = read_block(&rig_s->rigport, (char *) mdata, FT1000D_READ_METER_LENGTH);
+    err = read_block(&rig->state.rigport, (char *) mdata, FT1000D_READ_METER_LENGTH);
 
     if (err < 0)
     {
@@ -3267,7 +3265,7 @@ int ft1000d_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
             return -RIG_EINVAL;
         }
 
-        n = read_block(&rig_s->rigport, p, rl);
+        n = read_block(&rig->state.rigport, p, rl);
 
     }
     while (n < 0 && retry-- >= 0);
@@ -3300,7 +3298,6 @@ int ft1000d_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
  */
 int ft1000d_send_static_cmd(RIG *rig, unsigned char ci)
 {
-    struct rig_state *rig_s;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -3311,8 +3308,6 @@ int ft1000d_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    rig_s = &rig->state;
-
     if (!ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE,
@@ -3320,7 +3315,7 @@ int ft1000d_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    err = write_block(&rig_s->rigport, (char *) ncmd[ci].nseq,
+    err = write_block(&rig->state.rigport, (char *) ncmd[ci].nseq,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -3328,7 +3323,7 @@ int ft1000d_send_static_cmd(RIG *rig, unsigned char ci)
         return err;
     }
 
-    hl_usleep(rig_s->rigport.write_delay * 1000);
+    hl_usleep(rig->state.rigport.write_delay * 1000);
     return RIG_OK;
 }
 
@@ -3349,7 +3344,6 @@ int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
                              unsigned char p1, unsigned char p2,
                              unsigned char p3, unsigned char p4)
 {
-    struct rig_state *rig_s;
     struct ft1000d_priv_data *priv;
     int err;
 
@@ -3375,7 +3369,6 @@ int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
         return -RIG_EINVAL;
     }
 
-    rig_s = &rig->state;
     memcpy(&priv->p_cmd, &ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
     priv->p_cmd[3] = p1;
@@ -3383,7 +3376,7 @@ int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
     priv->p_cmd[1] = p3;
     priv->p_cmd[0] = p4;
 
-    err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
+    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -3391,7 +3384,7 @@ int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
         return err;
     }
 
-    hl_usleep(rig_s->rigport.write_delay * 1000);
+    hl_usleep(rig->state.rigport.write_delay * 1000);
     return RIG_OK;
 }
 
@@ -3409,7 +3402,6 @@ int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
  */
 int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
 {
-    struct rig_state *rig_s;
     struct ft1000d_priv_data *priv;
     int err;
     // cppcheck-suppress *
@@ -3434,8 +3426,6 @@ int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
         return -RIG_EINVAL;
     }
 
-    rig_s = &rig->state;
-
     /* Copy native cmd freq_set to private cmd storage area */
     memcpy(&priv->p_cmd, &ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
@@ -3445,7 +3435,7 @@ int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(priv->p_cmd,
               FT1000D_BCD_DIAL) * 10);
 
-    err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
+    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -3453,7 +3443,7 @@ int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
         return err;
     }
 
-    hl_usleep(rig_s->rigport.write_delay * 1000);
+    hl_usleep(rig->state.rigport.write_delay * 1000);
     return RIG_OK;
 }
 
@@ -3471,7 +3461,6 @@ int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
 int ft1000d_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
 {
     struct ft1000d_priv_data *priv;
-    struct rig_state *rig_s;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -3485,7 +3474,6 @@ int ft1000d_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed rit = %li Hz\n", __func__, rit);
 
     priv = (struct ft1000d_priv_data *) rig->state.priv;
-    rig_s = &rig->state;
 
     if (ncmd[ci].ncomp)
     {
@@ -3513,7 +3501,7 @@ int ft1000d_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     // Store bcd format into privat command storage area
     to_bcd(priv->p_cmd, labs(rit) / 10, FT1000D_BCD_RIT);
 
-    err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
+    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -3521,7 +3509,7 @@ int ft1000d_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
         return err;
     }
 
-    hl_usleep(rig_s->rigport.write_delay * 1000);
+    hl_usleep(rig->state.rigport.write_delay * 1000);
     return RIG_OK;
 }
 
