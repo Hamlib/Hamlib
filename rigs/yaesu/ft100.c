@@ -386,19 +386,12 @@ int ft100_close(RIG *rig)
 
 static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index)
 {
-
-    struct rig_state *rig_s;
-    unsigned char *cmd;       /* points to sequence to send */
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called (%d)\n", __func__, cmd_index);
 
     if (!rig) { return -RIG_EINVAL; }
 
-    rig_s = &rig->state;
-
-    cmd = (unsigned char *) &ncmd[cmd_index].nseq; /* get native sequence */
-
-    return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) &ncmd[cmd_index].nseq,
+            YAESU_CMD_LENGTH);
 }
 
 static int ft100_read_status(RIG *rig)
@@ -463,13 +456,10 @@ static int ft100_read_flags(RIG *rig)
 
 int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct rig_state *rig_s;
     unsigned char p_cmd[YAESU_CMD_LENGTH];
     unsigned char cmd_index;  /* index of sequence to send */
 
     if (!rig) { return -RIG_EINVAL; }
-
-    rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft100: requested freq = %"PRIfreq" Hz \n", freq);
 
@@ -481,7 +471,7 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     freq = (int)freq / 10;
     to_bcd(p_cmd, freq, 8); /* store bcd format in in p_cmd */
 
-    return write_block(&rig_s->rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -1045,12 +1035,9 @@ int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
  */
 int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
-    struct rig_state *rig_s;
     unsigned char p_cmd[YAESU_CMD_LENGTH];
     unsigned char cmd_index;  /* index of sequence to send */
     int pcode;
-
-    rig_s = &rig->state;
 
     for (pcode = 0; pcode < 104 && ft100_dcs_list[pcode] != 0; pcode++)
     {
@@ -1075,7 +1062,7 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
     p_cmd[3] = (char)pcode;
 
-    return write_block(&rig_s->rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
@@ -1102,7 +1089,6 @@ int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
  */
 int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    struct rig_state *rig_s;
     unsigned char p_cmd[YAESU_CMD_LENGTH];
     unsigned char cmd_index;  /* index of sequence to send */
     int ptone;
@@ -1121,8 +1107,6 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
         return -RIG_EINVAL;
     }
 
-    rig_s = &rig->state;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s = %.1f Hz, n=%d\n", __func__,
               (float)tone / 10, ptone);
 
@@ -1132,7 +1116,7 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     p_cmd[3] = (char)ptone;
 
-    return write_block(&rig_s->rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
