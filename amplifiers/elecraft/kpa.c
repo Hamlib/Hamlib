@@ -505,7 +505,7 @@ int kpa_get_powerstat(AMP *amp, powerstat_t *status)
     int retval;
     int operate;
     int ampon;
-    int nargs = sscanf(responsebuf, "^ON%d", &ampon);
+    int nargs;
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -517,6 +517,8 @@ int kpa_get_powerstat(AMP *amp, powerstat_t *status)
     retval = kpa_transaction(amp, "^ON;", responsebuf, sizeof(responsebuf));
 
     if (retval != RIG_OK) { return retval; }
+
+    nargs = sscanf(responsebuf, "^ON%d", &ampon);
 
     if (nargs != 1)
     {
