@@ -6579,7 +6579,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     case RIG_FUNC_DUAL_WATCH:
         fct_cn = C_SET_VFO;
-        fct_sc = S_DUAL;
+        fct_sc = status ? S_DUAL_ON : S_DUAL_OFF;
         break;
 
     case RIG_FUNC_SATMODE:
