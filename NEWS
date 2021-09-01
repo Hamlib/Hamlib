@@ -7,7 +7,7 @@ Copyright (C) 2000-2021  Michael Black W9MDB, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 4.3
-        * 2021-08-31
+        * 2021-09-01
         * libusb-1.0.23 or greater is now required or use --without-libusb
         * Generating documentation now requires GNU source-highlighter.
         * Added IC-575
