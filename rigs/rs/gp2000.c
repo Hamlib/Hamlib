@@ -237,7 +237,7 @@ gp2000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int buf_len, retval;
     int nmode;
     char *pmode = "UNKNOWN";
-    int n = sscanf(buf, "%*cI%d", &nmode);
+    int n;
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
@@ -252,8 +252,11 @@ gp2000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return retval;
     }
 
+    n = sscanf(buf, "%*cI%d", &nmode);
+
     if (n != 1)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse mode from '%s'\n", __func__, buf);
         return -RIG_EPROTO;
     }
 
