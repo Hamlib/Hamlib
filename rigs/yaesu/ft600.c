@@ -298,19 +298,11 @@ int ft600_close(RIG *rig)
 
 static int ft600_send_priv_cmd(RIG *rig, unsigned char cmd_index)
 {
-
-    struct rig_state *rig_s;
-    unsigned char *cmd;       /* points to sequence to send */
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called (%d)\n", __func__, cmd_index);
 
     if (!rig) { return -RIG_EINVAL; }
 
-    rig_s = &rig->state;
-
-    cmd = (unsigned char *) &ncmd[cmd_index].nseq; /* get native sequence */
-
-    return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
 }
 
 static int ft600_read_status(RIG *rig)
@@ -386,13 +378,10 @@ int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct rig_state *rig_s;
     unsigned char p_cmd[YAESU_CMD_LENGTH];
     unsigned char cmd_index;  /* index of sequence to send */
 
     if (!rig) { return -RIG_EINVAL; }
-
-    rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft600: requested freq = %"PRIfreq" Hz \n", freq);
 
@@ -403,7 +392,7 @@ int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     freq = (int)freq / 10;
     to_bcd(p_cmd, freq, 8); /* store bcd format in in p_cmd */
 
-    return write_block(&rig_s->rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)

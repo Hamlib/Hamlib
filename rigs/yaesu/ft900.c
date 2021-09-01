@@ -140,7 +140,6 @@ struct ft900_priv_data
     vfo_t current_vfo;                        /* active VFO from last cmd */
     unsigned char
     p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
-    yaesu_cmd_set_t pcs[FT900_NATIVE_SIZE];   /* private cmd set */
     unsigned char
     update_data[FT900_ALL_DATA_LENGTH]; /* returned data--max value, some are less */
     unsigned char current_mem;                /* private memory channel number */
@@ -303,11 +302,6 @@ static int ft900_init(RIG *rig)
     }
 
     priv = rig->state.priv;
-
-    /*
-     * Copy native cmd set to private cmd storage area
-     */
-    memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
     /* TODO: read pacing from preferences */
     priv->pacing = FT900_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
@@ -1644,10 +1638,9 @@ static int ft900_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 static int ft900_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
 {
-    struct rig_state *rig_s;
     struct ft900_priv_data *priv;
-    int n, err;                       /* for read_  */
-
+    int err;
+    int n;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
@@ -1656,7 +1649,6 @@ static int ft900_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
     }
 
     priv = (struct ft900_priv_data *)rig->state.priv;
-    rig_s = &rig->state;
 
     err = ft900_send_static_cmd(rig, ci);
 
@@ -1665,7 +1657,7 @@ static int ft900_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
         return err;
     }
 
-    n = read_block(&rig_s->rigport, (char *) priv->update_data, rl);
+    n = read_block(&rig->state.rigport, (char *) priv->update_data, rl);
 
     if (n < 0)
     {
@@ -1684,7 +1676,7 @@ static int ft900_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
@@ -1692,8 +1684,6 @@ static int ft900_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
 
 static int ft900_send_static_cmd(RIG *rig, unsigned char ci)
 {
-    struct rig_state *rig_s;
-    struct ft900_priv_data *priv;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1703,17 +1693,14 @@ static int ft900_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
-    rig_s = &rig->state;
-
-    if (!priv->pcs[ci].ncomp)
+    if (!ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: Attempt to send incomplete sequence\n", __func__);
         return -RIG_EINVAL;
     }
 
-    err = write_block(&rig_s->rigport, (char *) priv->pcs[ci].nseq,
+    err = write_block(&rig->state.rigport, (char *) ncmd[ci].nseq,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -1732,7 +1719,7 @@ static int ft900_send_static_cmd(RIG *rig, unsigned char ci)
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *              p1-p4   Command parameters
  *
  * Returns:     RIG_OK if all called functions are successful,
@@ -1743,7 +1730,6 @@ static int ft900_send_dynamic_cmd(RIG *rig, unsigned char ci,
                                   unsigned char p1, unsigned char p2,
                                   unsigned char p3, unsigned char p4)
 {
-    struct rig_state *rig_s;
     struct ft900_priv_data *priv;
     int err;
 
@@ -1761,14 +1747,13 @@ static int ft900_send_dynamic_cmd(RIG *rig, unsigned char ci,
 
     priv = (struct ft900_priv_data *)rig->state.priv;
 
-    if (priv->pcs[ci].ncomp)
+    if (ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: Attempt to modify complete sequence\n", __func__);
         return -RIG_EINVAL;
     }
 
-    rig_s = &rig->state;
     memcpy(&priv->p_cmd, &ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
     priv->p_cmd[P1] = p1;         /* ick */
@@ -1776,7 +1761,7 @@ static int ft900_send_dynamic_cmd(RIG *rig, unsigned char ci,
     priv->p_cmd[P3] = p3;
     priv->p_cmd[P4] = p4;
 
-    err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
+    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -1795,7 +1780,7 @@ static int ft900_send_dynamic_cmd(RIG *rig, unsigned char ci,
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *              freq    freq_t frequency value
  *
  * Returns:     RIG_OK if all called functions are successful,
@@ -1804,7 +1789,6 @@ static int ft900_send_dynamic_cmd(RIG *rig, unsigned char ci,
 
 static int ft900_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
 {
-    struct rig_state *rig_s;
     struct ft900_priv_data *priv;
     int err;
     // cppcheck-suppress *
@@ -1822,14 +1806,12 @@ static int ft900_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
 
     priv = (struct ft900_priv_data *)rig->state.priv;
 
-    if (priv->pcs[ci].ncomp)
+    if (ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: Attempt to modify complete sequence\n", __func__);
         return -RIG_EINVAL;
     }
-
-    rig_s = &rig->state;
 
     /* Copy native cmd freq_set to private cmd storage area */
     memcpy(&priv->p_cmd, &ncmd[ci].nseq, YAESU_CMD_LENGTH);
@@ -1840,7 +1822,7 @@ static int ft900_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(priv->p_cmd,
               FT900_BCD_DIAL) * 10);
 
-    err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
+    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -1859,7 +1841,7 @@ static int ft900_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
  * TODO: place variant of this in yaesu.c
  *
  * Arguments:   *rig    Valid RIG instance
- *              ci      Command index of the pcs struct
+ *              ci      Command index of the ncmd table
  *              rit     shortfreq_t frequency value
  *              p1      P1 value -- CLAR_SET_FREQ
  *              p2      P2 value -- CLAR_OFFSET_PLUS || CLAR_OFFSET_MINUS
@@ -1872,7 +1854,6 @@ static int ft900_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
 
 static int ft900_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
 {
-    struct rig_state *rig_s;
     struct ft900_priv_data *priv;
     unsigned char p1;
     unsigned char p2;
@@ -1890,14 +1871,12 @@ static int ft900_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
 
     priv = (struct ft900_priv_data *)rig->state.priv;
 
-    if (priv->pcs[ci].ncomp)
+    if (ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: Attempt to modify complete sequence\n", __func__);
         return -RIG_EINVAL;
     }
-
-    rig_s = &rig->state;
 
     p1 = CLAR_SET_FREQ;
 
@@ -1924,7 +1903,7 @@ static int ft900_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     priv->p_cmd[P1] = p1;         /* ick */
     priv->p_cmd[P2] = p2;
 
-    err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
+    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
