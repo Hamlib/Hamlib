@@ -4549,8 +4549,12 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    rx_vfo = vfo_fixup(rig, rx_vfo, split);
-    tx_vfo = vfo_fixup(rig, tx_vfo, split);
+    // We fix up vfos for non-satmode rigs
+    if (!(rig->caps->has_get_func & RIG_FUNC_SATMODE))
+    {
+        rx_vfo = vfo_fixup(rig, rx_vfo, split);
+        tx_vfo = vfo_fixup(rig, tx_vfo, split);
+    }
 
     // set rig to the the requested RX VFO
     TRACE;
