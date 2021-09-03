@@ -6,7 +6,7 @@
 AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/include -I$(top_srcdir)/bindings  \
 	$(TCL_INCLUDE_SPEC) $(PYTHON_CPPFLAGS)
 
-AM_CFLAGS = -fno-strict-aliasing
+AM_CFLAGS = @AM_CPPFLAGS@ -fno-strict-aliasing
 AM_CXXFLAGS = -O2
 
 SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg amplifier.swg
