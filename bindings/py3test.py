@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 # Change this path to match your "make install" path
-sys.path.append('/usr/local/lib/python3.8/site-packages')
+sys.path.append('/usr/local/lib/python3.9/site-packages')
 
 ## Uncomment to run this script from an in-tree build (or adjust to the
 ## build directory) without installing the bindings.
