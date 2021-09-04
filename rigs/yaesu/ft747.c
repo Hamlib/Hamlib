@@ -47,6 +47,142 @@
 #include "yaesu.h"
 #include "ft747.h"
 
+/*
+ * Native FT747 functions. This is what I have to work with :-)
+ *
+ */
+
+enum ft747_native_cmd_e {
+  FT_747_NATIVE_SPLIT_OFF = 0,
+  FT_747_NATIVE_SPLIT_ON,
+  FT_747_NATIVE_RECALL_MEM,
+  FT_747_NATIVE_VFO_TO_MEM,
+  FT_747_NATIVE_DLOCK_OFF,
+  FT_747_NATIVE_DLOCK_ON,
+  FT_747_NATIVE_VFO_A,
+  FT_747_NATIVE_VFO_B,
+  FT_747_NATIVE_M_TO_VFO,
+  FT_747_NATIVE_UP_500K,
+  FT_747_NATIVE_DOWN_500K,
+  FT_747_NATIVE_CLARIFY_OFF,
+  FT_747_NATIVE_CLARIFY_ON,
+  FT_747_NATIVE_FREQ_SET,
+  FT_747_NATIVE_MODE_SET_LSB,
+  FT_747_NATIVE_MODE_SET_USB,
+  FT_747_NATIVE_MODE_SET_CWW,
+  FT_747_NATIVE_MODE_SET_CWN,
+  FT_747_NATIVE_MODE_SET_AMW,
+  FT_747_NATIVE_MODE_SET_AMN,
+  FT_747_NATIVE_MODE_SET_FMW,
+  FT_747_NATIVE_MODE_SET_FMN,
+  FT_747_NATIVE_PACING,
+  FT_747_NATIVE_PTT_OFF,
+  FT_747_NATIVE_PTT_ON,
+  FT_747_NATIVE_UPDATE,
+  FT_747_NATIVE_SIZE		/* end marker, value indicates number of */
+				/* native cmd entries */
+
+};
+
+typedef enum ft747_native_cmd_e ft747_native_cmd_t;
+
+
+
+/* Internal MODES - when setting modes via cmd_mode_set() */
+
+#define MODE_SET_LSB    0x00
+#define MODE_SET_USB    0x01
+#define MODE_SET_CWW    0x02
+#define MODE_SET_CWN    0x03
+#define MODE_SET_AMW    0x04
+#define MODE_SET_AMN    0x05
+#define MODE_SET_FMW    0x06
+#define MODE_SET_FMN    0x07
+
+
+/*
+ * Mode Bitmap. Bits 5 and 6 unused
+ * When READING modes
+ */
+
+#define MODE_FM     0x01
+#define MODE_AM     0x02
+#define MODE_CW     0x04
+#define MODE_FMN    0x81
+#define MODE_AMN    0x82
+#define MODE_CWN    0x84
+#define MODE_USB    0x08
+#define MODE_LSB    0x10
+#define MODE_NAR    0x80
+
+/* All relevant bits */
+#define MODE_MASK   0x9f
+
+
+/*
+ * Status Flag Masks when reading
+ */
+
+#define SF_DLOCK   0x01
+#define SF_SPLIT   0x02
+#define SF_CLAR    0x04
+#define SF_VFOAB   0x08
+#define SF_VFOMR   0x10
+#define SF_RXTX    0x20
+#define SF_RESV    0x40
+#define SF_PRI     0x80
+
+
+/*
+ * Local VFO CMD's, according to spec
+ */
+
+#define FT747_VFO_A                  0x00
+#define FT747_VFO_B                  0x01
+
+
+/*
+ * Some useful offsets in the status update map (offset)
+ *
+ * Manual appears to be full of mistakes regarding offsets etc.. -- FS
+ *
+ */
+
+#define FT747_SUMO_DISPLAYED_MEM              0x17
+#define FT747_SUMO_DISPLAYED_MODE             0x18
+#define FT747_SUMO_DISPLAYED_STATUS           0x00
+#define FT747_SUMO_DISPLAYED_FREQ             0x01
+#define FT747_SUMO_VFO_A_FREQ                 0x09
+#define FT747_SUMO_VFO_B_FREQ                 0x11
+
+
+
+/*
+ * API local implementation
+ */
+
+static int ft747_init(RIG *rig);
+static int ft747_cleanup(RIG *rig);
+static int ft747_open(RIG *rig);
+static int ft747_close(RIG *rig);
+
+static int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+static int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
+static int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
+
+static int ft747_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
+static int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
+
+static int ft747_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+
+static int ft747_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft747_get_split(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+
+static int ft747_set_mem(RIG *rig, vfo_t vfo, int ch);
+static int ft747_get_mem(RIG *rig, vfo_t vfo, int *ch);
+
 
 /* Private helper function prototypes */
 
