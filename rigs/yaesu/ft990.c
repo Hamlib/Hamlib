@@ -47,6 +47,98 @@
 #include "yaesu.h"
 #include "ft990.h"
 
+// FT990 native commands
+enum ft990_native_cmd_e {
+  FT990_NATIVE_SPLIT_OFF = 0,
+  FT990_NATIVE_SPLIT_ON,
+  FT990_NATIVE_RECALL_MEM,
+  FT990_NATIVE_VFO_TO_MEM,
+  FT990_NATIVE_LOCK_OFF,
+  FT990_NATIVE_LOCK_ON,
+  FT990_NATIVE_VFO_A,
+  FT990_NATIVE_VFO_B,
+  FT990_NATIVE_MEM_TO_VFO,
+  FT990_NATIVE_VFO_STEP_UP,
+  FT990_NATIVE_VFO_STEP_UP_FAST,
+  FT990_NATIVE_VFO_STEP_DOWN,
+  FT990_NATIVE_VFO_STEP_DOWN_FAST,
+  FT990_NATIVE_RX_CLARIFIER_OFF,
+  FT990_NATIVE_RX_CLARIFIER_ON,
+  FT990_NATIVE_TX_CLARIFIER_OFF,
+  FT990_NATIVE_TX_CLARIFIER_ON,
+  FT990_NATIVE_CLEAR_CLARIFIER_OFFSET,
+  FT990_NATIVE_CLARIFIER_OPS,
+  FT990_NATIVE_FREQ_SET,
+  FT990_NATIVE_MODE_SET_LSB,
+  FT990_NATIVE_MODE_SET_USB,
+  FT990_NATIVE_MODE_SET_CW_W,
+  FT990_NATIVE_MODE_SET_CW_N,
+  FT990_NATIVE_MODE_SET_AM_W,
+  FT990_NATIVE_MODE_SET_AM_N,
+  FT990_NATIVE_MODE_SET_FM,
+  FT990_NATIVE_MODE_SET_RTTY_LSB,
+  FT990_NATIVE_MODE_SET_RTTY_USB,
+  FT990_NATIVE_MODE_SET_PKT_LSB,
+  FT990_NATIVE_MODE_SET_PKT_FM,
+  FT990_NATIVE_PACING,
+  FT990_NATIVE_PTT_OFF,
+  FT990_NATIVE_PTT_ON,
+  FT990_NATIVE_UPDATE_ALL_DATA,
+  FT990_NATIVE_UPDATE_MEM_CHNL,
+  FT990_NATIVE_UPDATE_OP_DATA,
+  FT990_NATIVE_UPDATE_VFO_DATA,
+  FT990_NATIVE_UPDATE_MEM_CHNL_DATA,
+  FT990_NATIVE_TUNER_OFF,
+  FT990_NATIVE_TUNER_ON,
+  FT990_NATIVE_TUNER_START,
+  FT990_NATIVE_RPTR_SHIFT_NONE,
+  FT990_NATIVE_RPTR_SHIFT_MINUS,
+  FT990_NATIVE_RPTR_SHIFT_PLUS,
+  FT990_NATIVE_VFO_TO_VFO,
+  FT990_NATIVE_BANDWIDTH,
+  FT990_NATIVE_OP_FREQ_STEP_UP,
+  FT990_NATIVE_OP_FREQ_STEP_DOWN,
+  FT990_NATIVE_READ_METER,
+  FT990_NATIVE_DIM_LEVEL,
+  FT990_NATIVE_RPTR_OFFSET,
+  FT990_NATIVE_READ_FLAGS,
+  FT990_NATIVE_SIZE
+};
+
+
+/* HAMLIB API implementation */
+static int ft990_init(RIG *rig);
+static int ft990_cleanup(RIG *rig);
+static int ft990_open(RIG *rig);
+static int ft990_close(RIG *rig);
+static int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ft990_set_vfo(RIG *rig, vfo_t vfo);
+static int ft990_get_vfo(RIG *rig, vfo_t *vfo);
+static int ft990_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
+static int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);
+static int ft990_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
+static int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int ft990_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+static int ft990_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+static int ft990_set_parm(RIG *rig, setting_t parm, value_t val);
+static int ft990_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+static int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+static int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+static int ft990_set_mem(RIG *rig, vfo_t vfo, int ch);
+static int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch);
+static int ft990_set_channel (RIG *rig, vfo_t vfo, const channel_t *chan);
+static int ft990_get_channel (RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+
+
 
 
 

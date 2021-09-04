@@ -41,6 +41,98 @@
 #include "misc.h"
 #include "bandplan.h"
 
+enum ft600_native_cmd_e {
+
+  FT600_NATIVE_CAT_LOCK_ON = 0,
+  FT600_NATIVE_CAT_LOCK_OFF,
+  FT600_NATIVE_CAT_PTT_ON,
+  FT600_NATIVE_CAT_PTT_OFF,
+  FT600_NATIVE_CAT_SET_FREQ,
+  FT600_NATIVE_CAT_SET_MODE_LSB,
+  FT600_NATIVE_CAT_SET_MODE_USB,
+  FT600_NATIVE_CAT_SET_MODE_DIG,
+  FT600_NATIVE_CAT_SET_MODE_CW,
+  FT600_NATIVE_CAT_SET_MODE_AM,
+  FT600_NATIVE_CAT_CLAR_ON,
+  FT600_NATIVE_CAT_CLAR_OFF,
+  FT600_NATIVE_CAT_SET_CLAR_FREQ,
+  FT600_NATIVE_CAT_SET_VFOAB,
+  FT600_NATIVE_CAT_SET_VFOA,
+  FT600_NATIVE_CAT_SET_VFOB,
+  FT600_NATIVE_CAT_SPLIT_ON,
+  FT600_NATIVE_CAT_SPLIT_OFF,
+  FT600_NATIVE_CAT_SET_RPT_SHIFT_MINUS,
+  FT600_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
+  FT600_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
+  FT600_NATIVE_CAT_SET_RPT_OFFSET,
+/* fix me */
+  FT600_NATIVE_CAT_SET_DCS_ON,
+  FT600_NATIVE_CAT_SET_CTCSS_ENC_ON,
+  FT600_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON,
+  FT600_NATIVE_CAT_SET_CTCSS_DCS_OFF,
+/* em xif */
+  FT600_NATIVE_CAT_SET_CTCSS_FREQ,
+  FT600_NATIVE_CAT_SET_DCS_CODE,
+  FT600_NATIVE_CAT_GET_RX_STATUS,
+  FT600_NATIVE_CAT_GET_TX_STATUS,
+  FT600_NATIVE_CAT_GET_FREQ_MODE_STATUS,
+  FT600_NATIVE_CAT_PWR_WAKE,
+  FT600_NATIVE_CAT_PWR_ON,
+  FT600_NATIVE_CAT_PWR_OFF,
+  FT600_NATIVE_CAT_READ_STATUS,
+  FT600_NATIVE_CAT_READ_METERS,
+  FT600_NATIVE_CAT_READ_FLAGS
+};
+
+
+/*
+ *  we are able to get way more info
+ *  than we can set
+ *
+ */
+typedef struct
+{
+   unsigned char band_no;
+   unsigned char freq[16];
+   unsigned char mode;
+   unsigned char ctcss;
+   unsigned char dcs;
+   unsigned char flag1;
+   unsigned char flag2;
+   unsigned char clarifier[2];
+   unsigned char not_used;
+   unsigned char step1;
+   unsigned char step2;
+   unsigned char filter;
+
+   unsigned char stuffing[16];
+}
+ FT600_STATUS_INFO;
+
+
+typedef struct
+{
+   unsigned char byte[8];
+}
+FT600_FLAG_INFO;
+
+
+static int ft600_init(RIG *rig);
+static int ft600_open(RIG *rig);
+static int ft600_cleanup(RIG *rig);
+static int ft600_close(RIG *rig);
+
+static int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+static int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+
+static int ft600_get_vfo(RIG *rig, vfo_t *vfo);
+
+static int ft600_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
 struct ft600_priv_data
 {
     FT600_STATUS_INFO status;
@@ -249,7 +341,7 @@ const struct rig_caps ft600_caps =
     .get_parm =       NULL,
 };
 
-int ft600_init(RIG *rig)
+static int ft600_init(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -261,7 +353,7 @@ int ft600_init(RIG *rig)
     return RIG_OK;
 }
 
-int ft600_cleanup(RIG *rig)
+static int ft600_cleanup(RIG *rig)
 {
     if (!rig)
     {
@@ -280,7 +372,7 @@ int ft600_cleanup(RIG *rig)
     return RIG_OK;
 }
 
-int ft600_open(RIG *rig)
+static int ft600_open(RIG *rig)
 {
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -288,7 +380,7 @@ int ft600_open(RIG *rig)
     return RIG_OK;
 }
 
-int ft600_close(RIG *rig)
+static int ft600_close(RIG *rig)
 {
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s:called\n", __func__);
@@ -340,7 +432,7 @@ static int ft600_read_status(RIG *rig)
     return RIG_OK;
 }
 
-int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 
     struct ft600_priv_data *priv;
@@ -376,7 +468,7 @@ int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
-int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+static int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char p_cmd[YAESU_CMD_LENGTH];
     unsigned char cmd_index;  /* index of sequence to send */
@@ -395,7 +487,7 @@ int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return write_block(&rig->state.rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
 
-int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+static int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 
     struct ft600_priv_data *priv = (struct ft600_priv_data *)rig->state.priv;
@@ -422,7 +514,7 @@ int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return RIG_OK;
 }
 
-int ft600_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+static int ft600_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 
     unsigned char cmd_index;
@@ -446,7 +538,7 @@ int ft600_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     return ft600_send_priv_cmd(rig, cmd_index);
 }
 
-int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 
     struct ft600_priv_data *priv = (struct ft600_priv_data *)rig->state.priv;
@@ -501,7 +593,7 @@ int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return RIG_OK;
 }
 
-int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char cmd_index;  /* index of sequence to send */
     int ret;
@@ -573,7 +665,7 @@ int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return RIG_OK;
 }
 
-int ft600_get_vfo(RIG *rig, vfo_t *vfo)
+static int ft600_get_vfo(RIG *rig, vfo_t *vfo)
 {
 
 
