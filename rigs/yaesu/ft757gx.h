@@ -88,27 +88,4 @@
  */
 #define FT757GX_ALL_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 
-
-/* Backend function prototypes.  These map to frontend functions. */
-static int ft757_init(RIG *rig);
-static int ft757_cleanup(RIG *rig);
-static int ft757_open(RIG *rig);
-
-static int ft757gx_get_conf(RIG *rig, token_t token, char *val);
-static int ft757gx_set_conf(RIG *rig, token_t token, const char *val);
-
-static int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-
-static int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
-static int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
-
-static int ft757_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
-static int ft757_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
-
-static int ft757_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-static int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-
-
 #endif /* _FT757GX_H */
