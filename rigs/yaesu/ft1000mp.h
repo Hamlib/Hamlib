@@ -25,8 +25,6 @@
 #ifndef _FT1000MP_H
 #define _FT1000MP_H 1
 
-//#include "rig.h"
-
 #define FT1000MP_STATUS_FLAGS_LENGTH      5          /* 0xfa return size */
 #define FT1000MP_STATUS_UPDATE_LENGTH         16         /* 0x10 U = 02 return size */
 
@@ -61,66 +59,6 @@
  *
  */
 
-
-
-/*
- * Native FT1000MP functions. More to come :-)
- *
- */
-
-enum ft1000mp_native_cmd_e
-{
-    FT1000MP_NATIVE_SPLIT_OFF = 0,
-    FT1000MP_NATIVE_SPLIT_ON,
-    FT1000MP_NATIVE_RECALL_MEM,
-    FT1000MP_NATIVE_VFO_TO_MEM,
-    FT1000MP_NATIVE_VFO_A,
-    FT1000MP_NATIVE_VFO_B,
-    FT1000MP_NATIVE_M_TO_VFO,
-    FT1000MP_NATIVE_RIT_ON,
-    FT1000MP_NATIVE_RIT_OFF,
-    FT1000MP_NATIVE_XIT_ON,
-    FT1000MP_NATIVE_XIT_OFF,
-    FT1000MP_NATIVE_RXIT_SET,
-    FT1000MP_NATIVE_FREQA_SET,
-    FT1000MP_NATIVE_FREQB_SET,
-    FT1000MP_NATIVE_MODE_SET_LSB,
-    FT1000MP_NATIVE_MODE_SET_USB,
-    FT1000MP_NATIVE_MODE_SET_CW,
-    FT1000MP_NATIVE_MODE_SET_CWR,
-    FT1000MP_NATIVE_MODE_SET_AM,
-    FT1000MP_NATIVE_MODE_SET_AMS,
-    FT1000MP_NATIVE_MODE_SET_FM,
-    FT1000MP_NATIVE_MODE_SET_FMW,
-    FT1000MP_NATIVE_MODE_SET_RTTY_LSB,
-    FT1000MP_NATIVE_MODE_SET_RTTY_USB,
-    FT1000MP_NATIVE_MODE_SET_DATA_LSB,
-    FT1000MP_NATIVE_MODE_SET_DATA_FM,
-    FT1000MP_NATIVE_MODE_SET_LSB_B,
-    FT1000MP_NATIVE_MODE_SET_USB_B,
-    FT1000MP_NATIVE_MODE_SET_CW_B,
-    FT1000MP_NATIVE_MODE_SET_CWR_B,
-    FT1000MP_NATIVE_MODE_SET_AM_B,
-    FT1000MP_NATIVE_MODE_SET_AMS_B,
-    FT1000MP_NATIVE_MODE_SET_FM_B,
-    FT1000MP_NATIVE_MODE_SET_FMW_B,
-    FT1000MP_NATIVE_MODE_SET_RTTY_LSB_B,
-    FT1000MP_NATIVE_MODE_SET_RTTY_USB_B,
-    FT1000MP_NATIVE_MODE_SET_DATA_LSB_B,
-    FT1000MP_NATIVE_MODE_SET_DATA_FM_B,
-    FT1000MP_NATIVE_PACING,
-    FT1000MP_NATIVE_PTT_OFF,
-    FT1000MP_NATIVE_PTT_ON,
-    FT1000MP_NATIVE_VFO_UPDATE,
-    FT1000MP_NATIVE_CURR_VFO_UPDATE,
-    FT1000MP_NATIVE_UPDATE,
-    FT1000MP_NATIVE_AB,
-    FT1000MP_NATIVE_SIZE            /* end marker, value indicates number of */
-    /* native cmd entries */
-
-};
-
-typedef enum ft1000mp_native_cmd_e ft1000mp_native_cmd_t;
 
 
 /*
@@ -209,44 +147,6 @@ typedef enum ft1000mp_native_cmd_e ft1000mp_native_cmd_t;
 /* mask extra mode bit from IF Filter status byte in VFO status
    block */
 #define IF_MODE_MASK 0x80
-
-
-/*
- * API local implementation
- *
- */
-
-int ft1000mp_init(RIG *rig);
-int ft1000mp_cleanup(RIG *rig);
-int ft1000mp_open(RIG *rig);
-int ft1000mp_close(RIG *rig);
-
-int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-
-int ft1000mp_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
-int ft1000mp_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
-int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-
-int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
-                      pbwidth_t width); /* select mode */
-int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
-                      pbwidth_t *width); /* get mode */
-
-int ft1000mp_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
-int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
-
-int ft1000mp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-int ft1000mp_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-int ft1000mp_set_rxit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-int ft1000mp_get_rxit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
-
-int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int ft1000mp_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-
-int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 
 
 #endif /* _FT1000MP_H */
