@@ -75,7 +75,6 @@
  */
 #define FT817_CACHE_TIMEOUT     50
 
-
 int ft817_set_powerstat(RIG *rig, powerstat_t status);
 int ft817_read_ack(RIG *rig);
 
