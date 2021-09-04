@@ -57,6 +57,7 @@
 #include <stdlib.h>
 #include <string.h>     /* String function definitions */
 #include <unistd.h>     /* UNIX standard function definitions */
+#include <stdbool.h>
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -171,6 +172,8 @@ static int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
 static int ft817_mW2power(RIG *rig, float *power, unsigned int mwpower,
                           freq_t freq, rmode_t mode);
 static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
+static int ft818_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
                              ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 
 /* Native ft817 cmd set prototypes. These are READ ONLY as each */
@@ -435,6 +438,7 @@ const struct rig_caps ft817_caps =
     .power2mW =         ft817_power2mW,
     .mW2power =         ft817_mW2power,
     .set_powerstat =    ft817_set_powerstat,
+    .get_ant =          ft817_get_ant,
     .get_level =        ft817_get_level,
     .set_func =         ft817_set_func,
     .vfo_op =           ft817_vfo_op,
@@ -581,7 +585,7 @@ const struct rig_caps ft818_caps =
     .power2mW =         ft817_power2mW,
     .mW2power =         ft817_mW2power,
     .set_powerstat =    ft817_set_powerstat,
-    .get_ant =          ft817_get_ant,
+    .get_ant =          ft818_get_ant,
     .get_level =        ft817_get_level,
     .set_func =         ft817_set_func,
     .vfo_op =           ft817_vfo_op,
@@ -1020,6 +1024,7 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level, c
     }
 
     val->f = rig_raw2val_float(*tx_level, cal);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: level %f\n", __func__, val->f);
 
     return RIG_OK;
 }
@@ -1146,10 +1151,11 @@ static int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     return RIG_OK;
 }
 
-static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
-                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx, bool is817)
 {
-    /* The FT818/817 has no targetable antenna, so rig.c switched the active VFO */
+    /* The FT818/817 has no RIG_TARGETABLE_ALL
+     * so rig.c switched the active VFO to the one requested */
     int ret;
     unsigned char eeprom_band, eeprom_ant;
 
@@ -1176,7 +1182,7 @@ static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     }
 
     /* band info is 4 bit per VFO, for A lower nibble, B is upper nible */
-    switch(vfo) {
+    switch (vfo) {
         case RIG_VFO_A:
             eeprom_band &= 0xF;
         break;
@@ -1190,16 +1196,29 @@ static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
             return -RIG_EINTERNAL;
     }
 
+    /* The 818 and the 817 differ in bands: the 818 has 60m.
+     * The band selection flags for the 818 and 817 thus differ:
+     * 2 means 60m on 818 and 40m for 817.
+     * And the rest of the values are shifted.
+     *
+     * So to make the code simple: if we have a 817 and 2 or higher band then
+     * add 1 to the value to align it on the 818 mapping.
+     */
+    if (is817 && eeprom_band >= 2)
+    {
+        eeprom_band++;
+    }
+
     /* The 817/818 does not have a antenna selection per VFO but per band.
      * So we read the band for the requested VFO and then map it to the
      * selected antenna.
-     * TODO THIS IS 818 specific info: the 817 does not have 60m and
-     * thus has a shifted numbering!
      */
-    switch(eeprom_band) {
+
+
+    switch (eeprom_band) {
         case 0:  /* 160M */
         case 1:  /*  80M */
-        case 2:  /*  60M */
+        case 2:  /*  60M, 818 only */
         case 3:  /*  40M */
         case 4:  /*  30M */
         case 5:  /*  20M */
@@ -1243,6 +1262,21 @@ static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     return RIG_OK;
 }
 
+static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+{
+    return ft818_817_get_ant(rig, vfo, ant, option, ant_curr, ant_tx, ant_rx,
+            true);
+
+}
+
+static int ft818_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
+                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+{
+    return ft818_817_get_ant(rig, vfo, ant, option, ant_curr, ant_tx, ant_rx,
+            false);
+
+}
 /* ---------------------------------------------------------------------- */
 
 int ft817_read_ack(RIG *rig)
