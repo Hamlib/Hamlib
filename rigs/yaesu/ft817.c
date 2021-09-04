@@ -1396,8 +1396,6 @@ static int ft817_set_vfo(RIG *rig, vfo_t vfo)
     return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
 }
 
-
-
 static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
