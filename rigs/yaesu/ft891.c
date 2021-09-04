@@ -42,6 +42,14 @@
 #include "ft891.h"
 #include "idx_builtin.h"
 
+/* Prototypes */
+static int ft891_init(RIG *rig);
+static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
+static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+static int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+
 /*
  * FT-891 rig capabilities
  */
@@ -253,7 +261,7 @@ const struct rig_caps ft891_caps =
  *           the correct TX VFO is selected by the rig in split mode.
  *           An error is returned if vfo and tx_vfo are the same.
  */
-int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct newcat_priv_data *priv;
     struct rig_state *state;
@@ -322,7 +330,7 @@ int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  *
  * Comments: The passed value for the vfo is ignored since can only split one way
  */
-int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     struct newcat_priv_data *priv;
     int err;
@@ -380,7 +388,7 @@ int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
  *
  */
 
-int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                          pbwidth_t *tx_width)
 {
     struct newcat_priv_data *priv;
@@ -427,7 +435,7 @@ int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
  *
  */
 
-int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                          pbwidth_t tx_width)
 {
     struct newcat_priv_data *priv;
@@ -493,7 +501,7 @@ int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 }
 
 
-int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct newcat_priv_data *priv;
     int err;
@@ -515,7 +523,7 @@ int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return RIG_OK;
 }
 
-int ft891_init(RIG *rig)
+static int ft891_init(RIG *rig)
 {
     int ret;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s\n", __func__,
