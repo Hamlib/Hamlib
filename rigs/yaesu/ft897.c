@@ -76,9 +76,54 @@
 #include "yaesu.h"
 #include "ft897.h"
 #include "ft817.h" /* We use functions from the 817 code */
+#include "ft857.h" //Needed for ft857_set_vfo, ft857_get_vfo
 #include "misc.h"
 #include "tones.h"
 #include "bandplan.h"
+
+enum ft897_native_cmd_e {
+  FT897_NATIVE_CAT_LOCK_ON = 0,
+  FT897_NATIVE_CAT_LOCK_OFF,
+  FT897_NATIVE_CAT_PTT_ON,
+  FT897_NATIVE_CAT_PTT_OFF,
+  FT897_NATIVE_CAT_SET_FREQ,
+  FT897_NATIVE_CAT_SET_MODE_LSB,
+  FT897_NATIVE_CAT_SET_MODE_USB,
+  FT897_NATIVE_CAT_SET_MODE_CW,
+  FT897_NATIVE_CAT_SET_MODE_CWR,
+  FT897_NATIVE_CAT_SET_MODE_AM,
+  FT897_NATIVE_CAT_SET_MODE_FM,
+  FT897_NATIVE_CAT_SET_MODE_FM_N,
+  FT897_NATIVE_CAT_SET_MODE_DIG,
+  FT897_NATIVE_CAT_SET_MODE_PKT,
+  FT897_NATIVE_CAT_CLAR_ON,
+  FT897_NATIVE_CAT_CLAR_OFF,
+  FT897_NATIVE_CAT_SET_CLAR_FREQ,
+  FT897_NATIVE_CAT_SET_VFOAB,
+  FT897_NATIVE_CAT_SPLIT_ON,
+  FT897_NATIVE_CAT_SPLIT_OFF,
+  FT897_NATIVE_CAT_SET_RPT_SHIFT_MINUS,
+  FT897_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
+  FT897_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
+  FT897_NATIVE_CAT_SET_RPT_OFFSET,
+  FT897_NATIVE_CAT_SET_DCS_ON,
+  FT897_NATIVE_CAT_SET_DCS_DEC_ON,
+  FT897_NATIVE_CAT_SET_DCS_ENC_ON,
+  FT897_NATIVE_CAT_SET_CTCSS_ON,
+  FT897_NATIVE_CAT_SET_CTCSS_DEC_ON,
+  FT897_NATIVE_CAT_SET_CTCSS_ENC_ON,
+  FT897_NATIVE_CAT_SET_CTCSS_DCS_OFF,
+  FT897_NATIVE_CAT_SET_CTCSS_FREQ,
+  FT897_NATIVE_CAT_SET_DCS_CODE,
+  FT897_NATIVE_CAT_GET_RX_STATUS,
+  FT897_NATIVE_CAT_GET_TX_STATUS,
+  FT897_NATIVE_CAT_GET_FREQ_MODE_STATUS,
+  FT897_NATIVE_CAT_PWR_WAKE,
+  FT897_NATIVE_CAT_PWR_ON,
+  FT897_NATIVE_CAT_PWR_OFF,
+  FT897_NATIVE_CAT_EEPROM_READ,
+  FT897_NATIVE_SIZE		/* end marker */
+};
 
 struct ft897_priv_data
 {
@@ -105,8 +150,6 @@ static int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-extern int ft857_set_vfo(RIG *rig, vfo_t vfo);
-extern int ft857_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft897_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                vfo_t tx_vfo);
 static int ft897_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
