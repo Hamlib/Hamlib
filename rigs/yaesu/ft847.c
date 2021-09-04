@@ -61,6 +61,146 @@
 #include "tones.h"
 
 /*
+ * Native FT847 functions. This is what I have to work with :-)
+ *
+ */
+
+enum ft847_native_cmd_e {
+
+  /* Set commands to the rig */
+
+  FT_847_NATIVE_CAT_ON = 0,
+  FT_847_NATIVE_CAT_OFF,
+
+  FT_847_NATIVE_CAT_PTT_ON,
+  FT_847_NATIVE_CAT_PTT_OFF,
+
+  FT_847_NATIVE_CAT_SAT_MODE_ON,
+  FT_847_NATIVE_CAT_SAT_MODE_OFF,
+
+  FT_847_NATIVE_CAT_SET_FREQ_MAIN,
+  FT_847_NATIVE_CAT_SET_FREQ_SAT_RX_VFO,
+  FT_847_NATIVE_CAT_SET_FREQ_SAT_TX_VFO,
+
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_LSB, /* MAIN VFO */
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_USB,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_CW,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_CWR,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_AM,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_FM,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_CWN,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_CWRN,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_AMN,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_FMN,
+
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_LSB, /* SAT RX VFO */
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_USB,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CW,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWR,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_AM,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_FM,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWRN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_AMN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_FMN,
+
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_LSB, /* SAT TX VFO */
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_USB,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CW,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWR,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_AM,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_FM,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWRN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_AMN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_FMN,
+
+  FT_847_NATIVE_CAT_SET_DCS_ON_MAIN, /* MAIN CTCSS/DCS */
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_MAIN,
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_MAIN,
+  FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_MAIN,
+
+  FT_847_NATIVE_CAT_SET_DCS_ON_SAT_RX, /* SAT RX CTCSS/DCS */
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_SAT_RX,
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_SAT_RX,
+  FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_SAT_RX,
+
+  FT_847_NATIVE_CAT_SET_DCS_ON_SAT_TX, /* SAT TX CTCSS/DCS */
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_SAT_TX,
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_SAT_TX,
+  FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_SAT_TX,
+
+  FT_847_NATIVE_CAT_SET_CTCSS_FREQ_MAIN, /* CTCSS Freq */
+  FT_847_NATIVE_CAT_SET_CTCSS_FREQ_SAT_RX,
+  FT_847_NATIVE_CAT_SET_CTCSS_FREQ_SAT_TX,
+
+  FT_847_NATIVE_CAT_SET_DCS_CODE_MAIN, /* DCS code */
+  FT_847_NATIVE_CAT_SET_DCS_CODE_SAT_RX,
+  FT_847_NATIVE_CAT_SET_DCS_CODE_SAT_TX,
+
+  FT_847_NATIVE_CAT_SET_RPT_SHIFT_MINUS, /* RPT SHIFT */
+  FT_847_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
+  FT_847_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
+
+  FT_847_NATIVE_CAT_SET_RPT_OFFSET, /* RPT Offset frequency */
+
+  /* Get info from the rig */
+
+  FT_847_NATIVE_CAT_GET_RX_STATUS,
+  FT_847_NATIVE_CAT_GET_TX_STATUS,
+
+  FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_MAIN,
+  FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_RX,
+  FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_TX,
+
+  FT_847_NATIVE_SIZE		/* end marker, value indicates number of */
+				/* native cmd entries */
+
+};
+
+typedef enum ft847_native_cmd_e ft847_native_cmd_t;
+
+
+
+/*
+ * API local implementation
+ */
+
+static int ft847_init(RIG *rig);
+static int ft847_open(RIG *rig);
+
+static int ft847_cleanup(RIG *rig);
+static int ft847_close(RIG *rig);
+
+static int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+static int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
+static int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
+
+static int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+
+static int ft847_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft847_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+static int ft847_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+
+static int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int ft847_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+
+static int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val);
+
+static int ft847_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int ft847_set_ctcss_tone (RIG *rig, vfo_t vfo, tone_t tone);
+static int ft847_set_ctcss_sql (RIG *rig, vfo_t vfo, tone_t tone);
+static int ft847_set_dcs_sql (RIG *rig, vfo_t vfo, tone_t code);
+static int ft847_set_rptr_shift (RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
+static int ft847_set_rptr_offs (RIG *rig, vfo_t vfo, shortfreq_t rptr_offs);
+
+/*
  * ft847 instance - private data
  *
  */
@@ -542,7 +682,7 @@ const struct rig_caps ft847uni_caps =
  * serial port is already open (rig->state->fd)
  */
 
-int ft847_init(RIG *rig)
+static int ft847_init(RIG *rig)
 {
     struct ft847_priv_data *priv;
 
@@ -584,7 +724,7 @@ int ft847_init(RIG *rig)
  * the serial port is closed by the frontend
  */
 
-int ft847_cleanup(RIG *rig)
+static int ft847_cleanup(RIG *rig)
 {
     if (!rig)
     {
@@ -609,7 +749,7 @@ int ft847_cleanup(RIG *rig)
  *
  */
 
-int ft847_open(RIG *rig)
+static int ft847_open(RIG *rig)
 {
 
     /* Good time to set CAT ON */
@@ -624,7 +764,7 @@ int ft847_open(RIG *rig)
  *
  */
 
-int ft847_close(RIG *rig)
+static int ft847_close(RIG *rig)
 {
 
     /* Good time to set CAT OFF */
@@ -702,7 +842,7 @@ static int opcode_vfo(RIG *rig, unsigned char *cmd, int cmd_index, vfo_t vfo)
  */
 
 
-int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+static int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
     int ret;
@@ -876,7 +1016,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
  * runs. The Operating Manual does not show the codes for polling the radio.
  * Note that you cannot query the sub-VFO, nor can you swap VFOs via software.
  */
-int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+static int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     rmode_t mode;
     pbwidth_t width;
@@ -887,7 +1027,7 @@ int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 
 
-int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char cmd_index;  /* index of sequence to send */
     struct rig_state *rs = &rig->state;
@@ -1002,7 +1142,7 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return write_block(&rs->rigport, (char *)p_cmd, YAESU_CMD_LENGTH);
 }
 
-int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     freq_t freq;
 
@@ -1013,7 +1153,7 @@ int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 /*
  * Not exactly Split mode, this will set *SAT* Mode
  */
-int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+static int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
     unsigned char cmd_index;  /* index of sequence to send */
@@ -1045,7 +1185,7 @@ int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     return ret;
 }
 
-int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
 
@@ -1057,7 +1197,7 @@ int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     return RIG_OK;
 }
 
-int ft847_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
+static int ft847_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
 
@@ -1066,17 +1206,17 @@ int ft847_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return ft847_set_freq(rig, RIG_VFO_TX, freq);
 }
 
-int ft847_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+static int ft847_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     return ft847_get_freq(rig, RIG_VFO_TX, freq);
 }
 
-int ft847_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int ft847_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     return ft847_set_mode(rig, RIG_VFO_TX, mode, width);
 }
 
-int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     return ft847_get_mode(rig, RIG_VFO_TX, mode, width);
 }
@@ -1087,7 +1227,7 @@ int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 
 
-int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+static int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     unsigned char cmd_index;  /* index of sequence to send */
 
@@ -1175,7 +1315,7 @@ static int ft847_get_status(RIG *rig, int status_ci)
     return RIG_OK;
 }
 
-int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 
     struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
@@ -1209,7 +1349,7 @@ int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 }
 
 
-int ft847_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+static int ft847_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
 
     struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
@@ -1342,7 +1482,7 @@ static int ft847_get_alc_level(RIG *rig, value_t *val)
  * and PO/ALC in transmit mode.  There is no way
  * to determine whether it's PO or ALC, unfortunately.
  */
-int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
     {
@@ -1368,7 +1508,7 @@ int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 }
 
-int ft847_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+static int ft847_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
     int ret;
@@ -1406,7 +1546,7 @@ int ft847_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 }
 
 
-int ft847_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
+static int ft847_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
     unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
     int i, ret;
@@ -1450,13 +1590,13 @@ int ft847_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     return write_block(&rig->state.rigport, (char *)p_cmd, YAESU_CMD_LENGTH);
 }
 
-int ft847_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
+static int ft847_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
     /* same opcode as tone */
     return ft847_set_ctcss_tone(rig, vfo, tone);
 }
 
-int ft847_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
+static int ft847_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
     unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
     int ret;
@@ -1477,7 +1617,7 @@ int ft847_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
 }
 
-int ft847_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
+static int ft847_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
     unsigned char cmd_index;  /* index of sequence to send */
 
@@ -1502,7 +1642,7 @@ int ft847_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
     return ft847_send_priv_cmd(rig, cmd_index);
 }
 
-int ft847_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
+static int ft847_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
     unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
 

@@ -129,14 +129,6 @@
 
 #define FT891_POST_WRITE_DELAY               50
 
-/* Prototypes */
-int ft891_init(RIG *rig);
-static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
-static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
-static int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-
 /* Reuse newcat_get_cmd */
 extern int newcat_get_cmd(RIG *rig);
 

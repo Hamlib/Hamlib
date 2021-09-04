@@ -41,6 +41,24 @@
 #include "ft991.h"
 #include "idx_builtin.h"
 
+/* Prototypes */
+static int ft991_init(RIG *rig);
+static int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                                pbwidth_t *tx_width);
+static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                                pbwidth_t tx_width);
+static int ft991_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+static int ft991_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
+static void debug_ft991info_data(const ft991info *rdata);
+static int ft991_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft991_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+static int ft991_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+static int ft991_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
+static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft991_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
+static int ft991_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code);
+static int ft991_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+
 /*
  * FT-991 rig capabilities
  */
@@ -349,7 +367,7 @@ ft991_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  *
  */
 
-int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+static int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                          pbwidth_t *tx_width)
 {
     struct newcat_priv_data *priv;
@@ -435,7 +453,7 @@ static void debug_ft991info_data(const ft991info *rdata)
  *
  */
 
-int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                          pbwidth_t tx_width)
 {
     struct newcat_priv_data *priv;
@@ -517,7 +535,7 @@ int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     return newcat_set_cmd(rig);
 }
 
-int ft991_init(RIG *rig)
+static int ft991_init(RIG *rig)
 {
     int ret;
 
