@@ -1370,7 +1370,6 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 static int ft817_get_vfo(RIG *rig, vfo_t *vfo)
 {
     unsigned char c;
-    *vfo = RIG_VFO_B;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
@@ -1379,7 +1378,14 @@ static int ft817_get_vfo(RIG *rig, vfo_t *vfo)
         return -RIG_EPROTO;
     }
 
-    if ((c & 0x1) == 0) { *vfo = RIG_VFO_A; }
+    if ((c & 0x1) == 0)
+    {
+        *vfo = RIG_VFO_A;
+    }
+    else
+    {
+        *vfo = RIG_VFO_B;
+    }
 
     return RIG_OK;
 }
