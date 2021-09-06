@@ -4549,8 +4549,12 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    // We fix up vfos for non-satmode rigs
-    if (!(rig->caps->has_get_func & RIG_FUNC_SATMODE))
+    // We fix up vfos for non-satmode rigs only
+    if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: satmode rig...not fixing up vfos rx=%s tx=%s\n", __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
+    }
+    else
     {
         rx_vfo = vfo_fixup(rig, rx_vfo, split);
         tx_vfo = vfo_fixup(rig, tx_vfo, split);
