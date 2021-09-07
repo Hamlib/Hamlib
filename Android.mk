@@ -48,3 +48,4 @@ include $(TOP_PATH)/rotators/sartek/Android.mk
 include $(TOP_PATH)/rotators/satel/Android.mk
 include $(TOP_PATH)/rotators/spid/Android.mk
 include $(TOP_PATH)/rotators/ts7400/Android.mk
+include $(TOP_PATH)/rotators/radant/Android.mk
