@@ -1790,6 +1790,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     rmode_t icom_mode;
+    rmode_t tmode;
+    pbwidth_t twidth;
     //struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     unsigned char dm_sub_cmd =
         rig->caps->rig_model == RIG_MODEL_IC7200  ? 0x04 : S_MEM_DATA_MODE;
@@ -1806,6 +1808,23 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
                       || rig->caps->rig_model == RIG_MODEL_IC705;
 
     ENTERFUNC;
+
+    // if our current mode and width is not changing do nothing
+    retval = rig_get_mode(rig, vfo, &tmode, &twidth);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: get_mode failed: %s\n", __func__,
+                  rigerror(retval));
+        RETURNFUNC(retval);
+    }
+
+    if (tmode == mode && width == RIG_PASSBAND_NOCHANGE)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: mode/width not changing\n", __func__);
+        RETURNFUNC(RIG_OK);
+    }
+    // looks like we need to change it
 
     switch (mode)
     {
