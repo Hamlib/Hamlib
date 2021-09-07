@@ -1883,12 +1883,12 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         case RIG_MODE_PKTFM:
         case RIG_MODE_PKTAM:
             datamode[0] = 0x01;
-            datamode[1] = 0x01; // default to filter 1
+            datamode[1] = 0x02; // default to filter 2
             break;
 
         default:
             datamode[0] = 0x00;
-            datamode[1] = 0x01; // default to filter 1
+            datamode[1] = 0x02; // default to filter 2
             break;
         }
 
