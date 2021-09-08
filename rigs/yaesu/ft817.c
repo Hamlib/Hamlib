@@ -773,14 +773,25 @@ static int ft817_get_status(RIG *rig, int status)
     {
     case FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS:
         {
-            unsigned char dig_mode;
-            if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
+            /* Only in digimode we need fetch to extra bits from EEPROM.
+             * This save communication cycle for all other modes.
+             * Because mode and frequency are shared this saves also when
+             * getting the frequency. */
+            switch (p->fm_status[4] & 0x7f)
             {
-                return n;
-            }
+                unsigned char dig_mode;
+                case 0x0a:
+                    if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
+                    {
+                        return n;
+                    }
 
-            /* Top 3 bit define the digi mode */
-            p->dig_mode = dig_mode >> 5;
+                    /* Top 3 bit define the digi mode */
+                    p->dig_mode = dig_mode >> 5;
+
+                default:
+                    break;
+            }
         }
         break;
 
