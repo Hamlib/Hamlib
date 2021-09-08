@@ -951,22 +951,26 @@ static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    ptt_t ptt;
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (check_cache_timeout(&p->tx_status_tv))
-        if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
-        {
-            return n;
-        }
+    n = ft817_get_ptt(rig, 0, &ptt);
+    if (n != RIG_OK)
+    {
+        return n;
+    }
 
-    if (p->tx_status & 0x80)
+    /* Check if rig is in TX mode */
+    if (ptt == RIG_PTT_OFF)
     {
         // TX status not valid when in RX
         unsigned char c;
 
-        if ((n = ft817_read_eeprom(rig, 0x007a, &c)) < 0) /* get split status */
+        /* Get split status from EEPROM */
+        n = ft817_read_eeprom(rig, 0x7a, &c);
+        if (n != RIG_OK)
         {
             return n;
         }
