@@ -139,9 +139,9 @@ directory.
 
 In short, the command syntax is of the form:
 
-  rigctl -m 120 -r COM1 -vvvvv
+  rigctl -m 1020 -r COM1 -vvvvv
 
-  -m -> Radio model 120, or Yaesu FT-817 (use 'rigctl -l' for a list)
+  -m -> Radio model 1020, or Yaesu FT-817 (use 'rigctl -l' for a list)
   -r -> Radio device, in this case COM1
   -v -> Verbosity level.  For testing four or five v characters are required.
         Five 'v's set a debug level of TRACE which generates a lot of screen
