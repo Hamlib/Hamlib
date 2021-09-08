@@ -286,6 +286,10 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
 #endif /* !DOC_HIDDEN */
 
 
+char debugmsgsave[DEBUGMSGSAVE_SIZE] = "No message";
+char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "No message";
+char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "No message";
+
 /**
  * \brief get string describing the error code
  * \param errnum    The error code
@@ -297,10 +301,6 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
  *
  * \todo support gettext/localization
  */
-char debugmsgsave[DEBUGMSGSAVE_SIZE] = "No message";
-char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "No message";
-char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "No message";
-
 const char *HAMLIB_API rigerror(int errnum)
 {
     errnum = abs(errnum);
