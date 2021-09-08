@@ -1514,22 +1514,33 @@ static int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     {
         int n;
         n = ft817_send_cmd(rig, index);
-
-        rig_force_cache_timeout(
-            &((struct ft817_priv_data *)rig->state.priv)->tx_status_tv);
-
         if (n < 0 && n != -RIG_ERJCTED)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s: send ptt cmd failed\n", __func__);
             return n;
         }
 
-        if (ft817_get_ptt(rig, vfo, &ptt_response) != RIG_OK)
+        /* Read TX status it contains the PTT flag.
+         * Use TX_STATUS instead of ft817_get_ptt to skip the cache. */
+        n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS);
+        if (n < 0 && n != -RIG_ERJCTED)
         {
-            ptt_response = -1;
+            rig_debug(RIG_DEBUG_ERR, "%s: get ptt cmd failed\n", __func__);
+            return n;
+        }
+
+        /* Should be in cache now! But if above command was rejected
+         * we will still try again here. */
+        n = ft817_get_ptt(rig, vfo, &ptt_response);
+        if (n < 0 && n != -RIG_ERJCTED)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get ptt cmd failed\n", __func__);
+            return n;
         }
 
         if (ptt_response != ptt)
         {
+            rig_debug(RIG_DEBUG_TRACE, "%s: ptt not requested level, retry\n", __func__);
             hl_usleep(1000l *
                       FT817_RETRY_DELAY); // Wait before next try. Helps with slower rigs cloning FT817 protocol (e.g. MCHF)
         }
