@@ -343,7 +343,7 @@ static int test_wrapped_device(const char *device_name)
     return 0;
 }
 #else
-#warning LIBUSB-1.0.23 will be required in Hamlib > 4.3
+#warning LIBUSB-1.0.23 may be required in Hamlib > 4.3
 static int test_wrapped_device(const char *device_name)
 {
     (void)device_name;
