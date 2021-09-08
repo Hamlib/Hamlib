@@ -8,6 +8,7 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 4.4
         * 2021-??-??
+        * Icom rigs now default filter 2 when setting PKTUSB but user can override 
 
 Version 4.3
         * 2021-09-01
