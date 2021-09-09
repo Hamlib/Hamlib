@@ -6484,7 +6484,7 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
 }
 
 
-void make_crc_table(unsigned long crcTable[])
+static void make_crc_table(unsigned long crcTable[])
 {
     unsigned long POLYNOMIAL = 0xEDB88320;
     unsigned long remainder;
@@ -6516,7 +6516,7 @@ void make_crc_table(unsigned long crcTable[])
 
 static unsigned long crcTable[256];
 
-unsigned long gen_crc(unsigned char *p, size_t n)
+static unsigned long gen_crc(unsigned char *p, size_t n)
 {
     unsigned long crc = 0xfffffffful;
     size_t i;
