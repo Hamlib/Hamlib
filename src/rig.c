@@ -329,7 +329,7 @@ void *caps_test_macro_name = &caps_test.macro_name;
 
 // check and show WARN if rig_caps structure doesn't match
 // this tests for shared library incompatibility
-int rig_check_rig_caps()
+static int rig_check_rig_caps()
 {
     int rc = RIG_OK;
 
@@ -1580,6 +1580,25 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return RIG_OK;
 }
 
+/**
+ * \brief get cached values for a VFO
+ * \param rig           The rig handle
+ * \param vfo           The VFO to get information from
+ * \param freq          The frequency is stored here
+ * \param cache_ms_freq The age of the last frequency update in ms
+ * \param mode          The mode is stored here
+ * \param cache_ms_mode The age of the last mode update in ms
+ * \param width         The width is stored here
+ * \param cache_ms_width The age of the last width update in ms
+ *
+ * Use this to query the cache and then determine to actually fetch data from
+ * the rig.
+ *
+ * \note All pointers must be given. No pointer can be left at NULL
+ *
+ * \return RIG_OK
+ *
+ */
 int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
                   rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width)
 {
@@ -1708,7 +1727,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
 // detect if somebody is twiddling the VFO
 // indicator is last set freq doesn't match current freq
 // so we have to query freq every time we set freq or vfo to handle this
-int twiddling(RIG *rig)
+static int twiddling(RIG *rig)
 {
     const struct rig_caps *caps;
 
