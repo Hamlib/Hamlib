@@ -6463,9 +6463,9 @@ int HAMLIB_API rig_set_vfo_opt(RIG *rig, int status)
  * Retrieves some general information from the radio.
  * This can include firmware revision, exact model name, or just nothing.
  *
- * \return a pointer to freshly allocated memory containing the ASCIIZ string
+ * \return a pointer to memory containing the ASCIIZ string
  * if the operation has been successful, otherwise NULL if an error occurred
- * or get_info not part of capabilities.
+ * or if get_info is not part of the capabilities.
  */
 const char *HAMLIB_API rig_get_info(RIG *rig)
 {
