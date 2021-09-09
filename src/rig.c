@@ -5623,7 +5623,7 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
  * \param reset The reset operation to perform
  *
  *  Resets the radio.
- *  See RIG_RESET_NONE, RIG_RESET_SOFT and RIG_RESET_MCALL defines
+ *  See #RIG_RESET_NONE, #RIG_RESET_SOFT and #RIG_RESET_MCALL defines
  *  for the \a reset.
  *
  * \return RIG_OK if the operation has been successful, otherwise
