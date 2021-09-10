@@ -321,7 +321,7 @@ static struct test_table test_list[] =
     { '*',  "reset",            ACTION(reset),          ARG_IN, "Reset" },
     { 'w',  "send_cmd",         ACTION(send_cmd),       ARG_IN1 | ARG_IN_LINE | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply" },
     { 'W',  "send_cmd_rx",      ACTION(send_cmd),       ARG_IN | ARG_OUT2 | ARG_NOVFO, "Cmd", "Reply"},
-    { 'b',  "send_morse",       ACTION(send_morse),     ARG_IN  | ARG_IN_LINE, "Morse" },
+    { 'b',  "send_morse",       ACTION(send_morse),     ARG_IN | ARG_NOVFO  | ARG_IN_LINE, "Morse" },
     { 0xbb, "stop_morse",       ACTION(stop_morse),     },
     { 0xbc, "wait_morse",       ACTION(wait_morse),     },
     { 0x94, "send_voice_mem",   ACTION(send_voice_mem), ARG_IN, "Voice Mem#" },
