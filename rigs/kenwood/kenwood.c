@@ -1053,7 +1053,7 @@ int kenwood_get_if(RIG *rig)
  */
 int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 {
-    char cmdbuf[6];
+    char cmdbuf[12];
     int retval;
     char vfo_function;
     struct kenwood_priv_data *priv = rig->state.priv;
@@ -1231,7 +1231,7 @@ int kenwood_get_vfo_main_sub(RIG *rig, vfo_t *vfo)
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
-    char cmdbuf[6];
+    char cmdbuf[12];
     int retval;
     unsigned char vfo_function;
 

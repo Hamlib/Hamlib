@@ -25,3 +25,7 @@ Here is the list of the brave fellows:
 * Chuck Ritola
     fclose of fsockin or fsockout when null 
     https://github.com/Hamlib/Hamlib/issues/757
+
+* John Nelson G4KLA 09/2021
+    kenwood_set_vfo
+    https://github.com/Hamlib/Hamlib/issues/794
