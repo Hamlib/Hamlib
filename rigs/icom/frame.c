@@ -294,6 +294,12 @@ read_another_frame:
 
     frm_len = retval;
 
+    if (frm_len < 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "Unexpected frame len=%d\n", frm_len);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
     switch (buf[frm_len - 1])
     {
     case COL:
