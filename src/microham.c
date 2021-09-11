@@ -404,7 +404,7 @@ static int incontrol = 0;
 static unsigned char controlstring[256];
 static int numcontrolbytes = 0;
 
-static void parseFrame(unsigned char *frame)
+static void parseFrame(const unsigned char *frame)
 {
     unsigned char byte;
     FRAME("RCV frame %02x %02x %02x %02x\n", frame[0], frame[1], frame[2],
@@ -519,7 +519,7 @@ static void parseFrame(unsigned char *frame)
 //
 // Send radio bytes to microHam device
 //
-static void writeRadio(unsigned char *bytes, int len)
+static void writeRadio(const unsigned char *bytes, int len)
 {
     unsigned char seq[4];
     int i;
@@ -606,7 +606,7 @@ static void writeFlags()
 //
 // Send bytes to the WinKeyer within microHam device
 //
-static void writeWkey(unsigned char *bytes, int len)
+static void writeWkey(const unsigned char *bytes, int len)
 {
     unsigned char seq[12];
     int i;
@@ -665,7 +665,7 @@ static void writeWkey(unsigned char *bytes, int len)
 //
 // Write a control string to the microHam device
 //
-static void writeControl(unsigned char *data, int len)
+static void writeControl(const unsigned char *data, int len)
 {
     int i;
     unsigned char seq[8];
@@ -1078,7 +1078,7 @@ static void start_thread()
         return;
     }
 
-    TRACE("Started daemonized thread reading microHam\n");
+    //TRACE("Started daemonized thread reading microHam\n");
 #endif
 // if we do not have pthreads, this function does nothing.
 }
