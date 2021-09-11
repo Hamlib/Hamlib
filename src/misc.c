@@ -2326,13 +2326,14 @@ void errmsg(int err, char *s, const char *func, const char *file, int line)
 uint32_t CRC32_function(uint8_t *buf, uint32_t len)
 {
 
-    uint32_t val, crc;
+    uint32_t crc;
     uint8_t i;
 
     crc = 0xFFFFFFFF;
 
     while (len--)
     {
+        uint32_t val;
         val = (crc^*buf++) & 0xFF;
 
         for (i = 0; i < 8; i++)
