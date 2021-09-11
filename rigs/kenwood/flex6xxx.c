@@ -919,8 +919,8 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                       __func__, lvlbuf);
             return -RIG_EPROTO;
         }
-
-        val->f = (val->i + 20.0) / (120.0 - -20.0);
+        n = val->i;
+        val->f = (n + 20.0) / (120.0 - -20.0);
 
         break;
 
@@ -1083,7 +1083,7 @@ const struct rig_caps f6k_caps =
     RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
     .mfg_name =     "FlexRadio",
-    .version =      "20210527.0",
+    .version =      "20210911.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
