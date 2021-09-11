@@ -947,39 +947,6 @@ int bcd2Int(const unsigned char bcd)
     return (rc);
 }
 
-#ifdef XXREMOVEDXX
-// this function is not referenced anywhere
-/*
- * \brief Convert int into 2 digit BCD number
- *
- * \param int Integer value (0-99)
- *
- * \return 2 digit BCD equivalent (0-99), 0xff on failure
- */
-unsigned char int2BCD(const unsigned int val)
-{
-    unsigned char rc = (unsigned char) 0xff;
-    unsigned char tens = (unsigned char)(val / 10);
-    unsigned char ones = (unsigned char)(val % 10);
-
-    if ((unsigned char) 10 > tens)
-    {
-        rc = (tens << 4);
-
-        if ((unsigned char) 10 > ones)
-        {
-            rc = rc | ones;
-        }
-        else
-        {
-            rc = (unsigned char) 0xff;
-        }
-    }
-
-    return (rc);
-}
-#endif
-
 /*
  * \brief Convert raw AGC value to calibrated level in dBm
  *
