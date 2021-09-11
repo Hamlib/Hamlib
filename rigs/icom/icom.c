@@ -1824,6 +1824,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         rig_debug(RIG_DEBUG_TRACE, "%s: mode/width not changing\n", __func__);
         RETURNFUNC(RIG_OK);
     }
+
     // looks like we need to change it
 
     switch (mode)
@@ -8493,6 +8494,13 @@ int icom_decode_event(RIG *rig)
     }
 
     frm_len = retval;
+
+    if (frm_len < 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "Unexpected frame len=%d\n", frm_len);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
 
     switch (buf[frm_len - 1])
     {
