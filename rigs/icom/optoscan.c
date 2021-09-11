@@ -244,7 +244,7 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 {
     unsigned char dtmfbuf[MAXFRAMELEN], digit;
     int len, digitpos;
-    unsigned char xlate[] = {'0', '1', '2', '3', '4', '5', '6',
+    const unsigned char xlate[] = {'0', '1', '2', '3', '4', '5', '6',
                              '7', '8', '9', 'A', 'B', 'C', 'D',
                              '*', '#'
                             };
