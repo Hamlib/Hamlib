@@ -751,7 +751,6 @@ int icom_get_usb_echo_off(RIG *rig)
 
     if (ack_len == 1) // then we got an echo of the cmd
     {
-        struct rig_state *rs = &rig->state;
         unsigned char buf[16];
         priv->serial_USB_echo_off = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n", __func__);
