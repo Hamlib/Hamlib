@@ -859,7 +859,7 @@ icom_rig_open(RIG *rig)
 int
 icom_rig_close(RIG *rig)
 {
-    int retval = RIG_OK;
+    int retval;
     // Nothing to do yet
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
