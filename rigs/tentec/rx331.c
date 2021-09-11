@@ -99,7 +99,7 @@ const struct rig_caps rx331_caps =
     RIG_MODEL(RIG_MODEL_RX331),
     .model_name = "RX-331",
     .mfg_name =  "Ten-Tec",
-    .version =  "20200323.0",
+    .version =  "20200911.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_RECEIVER,
