@@ -142,7 +142,6 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             int id = NC_RIGID_FTDX3000;
             snprintf(buf, sizeof(buf), "ID%03d;", id);
-            n = snprintf(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
