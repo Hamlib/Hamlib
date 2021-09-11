@@ -6948,6 +6948,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
                   rig_strparm(parm));
         RETURNFUNC(-RIG_EINVAL);
     }
+    RETURNFUNC(-RIG_EINVAL);
 }
 
 /*
