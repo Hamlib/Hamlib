@@ -8,7 +8,7 @@ LOCAL_SRC_FILES := ts850.c ts870s.c ts570.c ts450s.c ts950.c ts50s.c \
 		ts440.c ts940.c ts711.c ts811.c r5000.c \
 		thd7.c thf7.c thg71.c tmd700.c tmv7.c thf6a.c thd72.c tmd710.c \
 		kenwood.c th.c ic10.c elecraft.c transfox.c flex6xxx.c ts990s.c \
-		xg3.c thd74.c flex.c pihpsdr.c
+		xg3.c thd74.c flex.c pihpsdr.c ts890s.c
 LOCAL_MODULE := kenwood
 
 LOCAL_CFLAGS := -DHAVE_CONFIG_H
