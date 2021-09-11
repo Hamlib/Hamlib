@@ -106,7 +106,6 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
     struct amp_state *rs;
     int err;
     int len = 0;
-    char responsebuf[KPABUFSZ];
     int loop;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s\n", __func__, cmd);
@@ -127,11 +126,11 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
 
         if (err != RIG_OK) { return err; }
 
-        len = read_string(&rs->ampport, responsebuf, KPABUFSZ, ";", 1);
+        len = read_string(&rs->ampport, response, response_len, ";", 1);
 
         if (len < 0) { return len; }
     }
-    while (--loop > 0 && (len != 1 || responsebuf[0] != ';'));
+    while (--loop > 0 && (len != 1 || response[0] != ';'));
 
     // Now send our command
     err = write_block(&rs->ampport, cmd, strlen(cmd));
@@ -140,8 +139,8 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
 
     if (response) // if response expected get it
     {
-        responsebuf[0] = 0;
-        len = read_string(&rs->ampport, responsebuf, KPABUFSZ, ";", 1);
+        response[0] = 0;
+        len = read_string(&rs->ampport, response, response_len, ";", 1);
 
         if (len < 0)
         {
@@ -151,10 +150,12 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
         }
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s called, response='%s'\n", __func__,
-                  responsebuf);
+                  response);
     }
     else   // if no response expected try to get one
     {
+        char responsebuf[KPABUFSZ];
+        responsebuf[0] = 0;
         loop = 3;
 
         do
