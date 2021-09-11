@@ -8247,7 +8247,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
     // The first byte indicates spectrum scope ID/VFO: 0 = Main, 1 = Sub
     int spectrum_id = frame_data[0];
 
-    if (spectrum_id < 0 || spectrum_id >= priv->spectrum_scope_count)
+    if (spectrum_id >= priv->spectrum_scope_count)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: invalid spectrum scope ID from CI-V frame: %d\n",
                   __func__, spectrum_id);
