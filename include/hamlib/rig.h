@@ -428,7 +428,7 @@ typedef unsigned int vfo_t;
 
 /** \brief '' -- used in caps */
 
-#define RIG_VFO_N(n)        ((vfo_t)(1u<<(n)))
+#define RIG_VFO_N(n)        (1u<<(n))
 
 /** \brief \c VFONone -- vfo unknown */
 #define RIG_VFO_NONE        0
