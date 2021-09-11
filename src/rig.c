@@ -286,6 +286,10 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
 #endif /* !DOC_HIDDEN */
 
 
+char debugmsgsave[DEBUGMSGSAVE_SIZE] = "No message";
+char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "No message";
+char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "No message";
+
 /**
  * \brief get string describing the error code
  * \param errnum    The error code
@@ -297,10 +301,6 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
  *
  * \todo support gettext/localization
  */
-char debugmsgsave[DEBUGMSGSAVE_SIZE] = "No message";
-char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "No message";
-char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "No message";
-
 const char *HAMLIB_API rigerror(int errnum)
 {
     errnum = abs(errnum);
@@ -329,7 +329,7 @@ void *caps_test_macro_name = &caps_test.macro_name;
 
 // check and show WARN if rig_caps structure doesn't match
 // this tests for shared library incompatibility
-int rig_check_rig_caps()
+static int rig_check_rig_caps()
 {
     int rc = RIG_OK;
 
@@ -663,7 +663,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
  * Opens communication to a radio which \a RIG handle has been passed
  * by argument.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -1110,7 +1110,7 @@ int HAMLIB_API rig_open(RIG *rig)
  * Closes communication to a radio which \a RIG handle has been passed
  * by argument that was previously open with rig_open().
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -1288,7 +1288,7 @@ int HAMLIB_API rig_close(RIG *rig)
  * Releases a rig struct which port has eventually been closed already
  * with rig_close().
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -1332,7 +1332,7 @@ int HAMLIB_API rig_cleanup(RIG *rig)
  * timeout seconds to stop rigctld when VFO is manually changed
  * turns on/off the radio.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -1357,7 +1357,7 @@ int HAMLIB_API rig_set_twiddle(RIG *rig, int seconds)
  * \param rig   The rig handle
  * \param seconds    1=Ignore Sub, 2=Ignore Main
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -1383,7 +1383,7 @@ int HAMLIB_API rig_set_uplink(RIG *rig, int val)
  * \param rig   The rig handle
  * \param seconds    The timeout value
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -1580,6 +1580,25 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return RIG_OK;
 }
 
+/**
+ * \brief get cached values for a VFO
+ * \param rig           The rig handle
+ * \param vfo           The VFO to get information from
+ * \param freq          The frequency is stored here
+ * \param cache_ms_freq The age of the last frequency update in ms
+ * \param mode          The mode is stored here
+ * \param cache_ms_mode The age of the last mode update in ms
+ * \param width         The width is stored here
+ * \param cache_ms_width The age of the last width update in ms
+ *
+ * Use this to query the cache and then determine to actually fetch data from
+ * the rig.
+ *
+ * \note All pointers must be given. No pointer can be left at NULL
+ *
+ * \return RIG_OK
+ *
+ */
 int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
                   rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width)
 {
@@ -1708,7 +1727,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
 // detect if somebody is twiddling the VFO
 // indicator is last set freq doesn't match current freq
 // so we have to query freq every time we set freq or vfo to handle this
-int twiddling(RIG *rig)
+static int twiddling(RIG *rig)
 {
     const struct rig_caps *caps;
 
@@ -1764,7 +1783,7 @@ int twiddling(RIG *rig)
  *
  * Sets the frequency of the target VFO.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -1965,7 +1984,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  *  The value stored at \a freq location equals RIG_FREQ_NONE when the current
  *  frequency of the VFO is not defined (e.g. blank memory).
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -2183,7 +2202,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  *  The value stored at \a freq location equals RIG_FREQ_NONE when the current
  *  frequency of the VFO is not defined (e.g. blank memory).
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -2211,7 +2230,7 @@ int HAMLIB_API rig_get_freqs(RIG *rig, freq_t *freqA, freq_t freqB)
  * unchanged from the current value or default for the mode determined
  * by the rig.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -2310,7 +2329,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  *  Note that if either \a mode or \a width is NULL, -RIG_EINVAL is returned.
  *  Both must be given even if only one is actually wanted.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -2596,7 +2615,7 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
  *  for VFOA, VFOB, VFOC respectively or RIG_VFO_MEM for Memory mode.
  *  Supported VFOs depends on rig capabilities.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -2738,7 +2757,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
  *  for VFOA, VFOB, VFOC respectively or RIG_VFO_MEM for Memory mode.
  *  Supported VFOs depends on rig capabilities.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -2818,7 +2837,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
  *
  *  Sets "Push-To-Talk" on/off.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -3103,7 +3122,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  *
  *  Retrieves the status of PTT (are we on the air?).
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -3375,7 +3394,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  *
  *  Retrieves the status of DCD (is squelch open?).
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -3489,7 +3508,7 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  *
  *  Sets the current repeater shift.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -3560,7 +3579,7 @@ int HAMLIB_API rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
  *
  *  Retrieves the current repeater shift.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -3636,7 +3655,7 @@ int HAMLIB_API rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
  *
  *  Sets the current repeater offset.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -3706,7 +3725,7 @@ int HAMLIB_API rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
  *
  *  Retrieves the current repeater offset.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -3781,7 +3800,7 @@ int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
  *
  *  Sets the split(TX) frequency.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -3932,7 +3951,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
  *
  *  Retrieves the current split(TX) frequency.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4081,7 +4100,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  *
  *  Sets the split(TX) mode.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4211,7 +4230,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
  *  The value stored at \a tx_mode location equals RIG_MODE_NONE
  *  when the current mode of the VFO is not defined (e.g. blank memory).
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4345,7 +4364,7 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
  *  the rig VFOs have to be exchanged or swapped to complete this
  *  combined function.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4460,7 +4479,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
  *  the rig VFOs have to be exchanged or swapped to complete this
  *  combined function.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4518,7 +4537,7 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
  *
  *  Sets the current split mode.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4643,7 +4662,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
  *
  *  Retrieves the current split mode.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4775,7 +4794,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
  *
  *  Sets the current RIT offset. A value of 0 for \a rit disables RIT.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4846,7 +4865,7 @@ int HAMLIB_API rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
  *
  *  Retrieves the current RIT offset.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4923,7 +4942,7 @@ int HAMLIB_API rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  *
  *  Sets the current XIT offset. A value of 0 for \a xit disables XIT.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -4994,7 +5013,7 @@ int HAMLIB_API rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
  *
  *  Retrieves the current XIT offset.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5071,7 +5090,7 @@ int HAMLIB_API rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
  *
  *  Sets the Tuning Step.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5142,7 +5161,7 @@ int HAMLIB_API rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
  *
  *  Retrieves the current tuning step.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5223,7 +5242,7 @@ int HAMLIB_API rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
     rig_set_ant(rig, RIG_VFO_RX, RIG_ANT_2);
 \endcode
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5394,7 +5413,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
  *  also provided since the relative power is peculiar to a specific
  *  freq and mode range of the radio.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5450,7 +5469,7 @@ int HAMLIB_API rig_power2mW(RIG *rig,
  * also provided since the relative power is peculiar to a specific
  * freq and mode range of the radio.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5547,7 +5566,7 @@ shortfreq_t HAMLIB_API rig_get_resolution(RIG *rig, rmode_t mode)
  * See #RIG_POWER_ON, #RIG_POWER_OFF and #RIG_POWER_STANDBY defines
  * for the \a status.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, ortherwise
+ * \return RIG_OK if the operation has been successful, ortherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5584,7 +5603,7 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
  *  Retrieve the status of the radio. See RIG_POWER_ON, RIG_POWER_OFF and
  *  RIG_POWER_STANDBY defines for the \a status.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5623,10 +5642,10 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
  * \param reset The reset operation to perform
  *
  *  Resets the radio.
- *  See RIG_RESET_NONE, RIG_RESET_SOFT and RIG_RESET_MCALL defines
+ *  See #RIG_RESET_NONE, #RIG_RESET_SOFT and #RIG_RESET_MCALL defines
  *  for the \a reset.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5701,7 +5720,7 @@ rig_model_t HAMLIB_API rig_probe(hamlib_port_t *port)
  * \warning this is really Experimental, It has been tested only
  * with IC-706MkIIG. any feedback welcome! --SF
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  */
@@ -5761,7 +5780,7 @@ vfo_op_t HAMLIB_API rig_has_vfo_op(RIG *rig, vfo_op_t op)
  *  Performs Memory/VFO operation.
  *  See #vfo_op_t for more information.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5865,7 +5884,7 @@ scan_t HAMLIB_API rig_has_scan(RIG *rig, scan_t scan)
  *  Performs scanning operation.
  *  See #scan_t for more information.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -5937,7 +5956,7 @@ int HAMLIB_API rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
  *  Sends DTMF digits.
  *  See DTMF change speed, etc. (TODO).
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -6013,7 +6032,7 @@ int HAMLIB_API rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
  *  Receives DTMF digits (not blocking).
  *  See DTMF change speed, etc. (TODO).
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -6088,7 +6107,7 @@ int HAMLIB_API rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
  *  Sends morse message.
  *  See keyer change speed, etc. (TODO).
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -6160,7 +6179,7 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
  *
  *  Stops the send morse message.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -6258,7 +6277,7 @@ static int wait_morse_ptt(RIG *rig, vfo_t vfo)
  *
  *  waits for the end of the morse message to be sent.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -6315,7 +6334,7 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
  *
  *  Sends voice memory content.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -6444,9 +6463,9 @@ int HAMLIB_API rig_set_vfo_opt(RIG *rig, int status)
  * Retrieves some general information from the radio.
  * This can include firmware revision, exact model name, or just nothing.
  *
- * \return a pointer to freshly allocated memory containing the ASCIIZ string
+ * \return a pointer to memory containing the ASCIIZ string
  * if the operation has been successful, otherwise NULL if an error occurred
- * or get_info not part of capabilities.
+ * or if get_info is not part of the capabilities.
  */
 const char *HAMLIB_API rig_get_info(RIG *rig)
 {
@@ -6465,7 +6484,7 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
 }
 
 
-void make_crc_table(unsigned long crcTable[])
+static void make_crc_table(unsigned long crcTable[])
 {
     unsigned long POLYNOMIAL = 0xEDB88320;
     unsigned long remainder;
@@ -6497,7 +6516,7 @@ void make_crc_table(unsigned long crcTable[])
 
 static unsigned long crcTable[256];
 
-unsigned long gen_crc(unsigned char *p, size_t n)
+static unsigned long gen_crc(unsigned char *p, size_t n)
 {
     unsigned long crc = 0xfffffffful;
     size_t i;
@@ -6599,7 +6618,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
  *  for VFOA, VFOB, VFOC respectively or RIG_VFO_MEM for Memory mode.
  *  Supported VFOs depends on rig capabilities.
  *
- * \RETURNFUNC(RIG_OK) if the operation has been successful, otherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case use rigerror(return)
  * for error message).
  *
