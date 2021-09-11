@@ -756,7 +756,6 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "ctcss_list") == 0)
             {
-                int i;
                 int n;
                 double ctcss[CTCSS_LIST_SIZE];
                 rig->caps->ctcss_list = calloc(CTCSS_LIST_SIZE, sizeof(tone_t));
@@ -768,7 +767,6 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "dcs_list") == 0)
             {
-                int i;
                 int n;
                 int dcs[DCS_LIST_SIZE + 1];
                 rig->caps->dcs_list = calloc(DCS_LIST_SIZE, sizeof(tone_t));
