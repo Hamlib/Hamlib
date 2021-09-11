@@ -126,10 +126,10 @@ int network_init()
 {
 #ifdef __MINGW32__
     WSADATA wsadata;
-    int ret;
 
     if (wsstarted == 0)
     {
+        int ret;
         ret = WSAStartup(MAKEWORD(1, 1), &wsadata);
 
         if (ret == 0)
