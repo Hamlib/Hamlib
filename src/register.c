@@ -302,7 +302,7 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
 
     if (n > 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig model %d not found and rig count=%d\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: rig model %u not found and rig count=%d\n",
                   __func__, rig_model, n);
         return -RIG_ENAVAIL;
     }
