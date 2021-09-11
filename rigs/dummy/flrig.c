@@ -144,7 +144,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "202100814",
+    .version = "202100911",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -804,7 +804,7 @@ static int flrig_open(RIG *rig)
     int v1, v2, v3, v4;
     sscanf(value, "%d.%d.%d.%d", &v1, &v2, &v3, &v4);
 
-    if (v1 >= 1 || (v1 >= 1 && v2 >= 3) || (v1 >= 1 && v2 >= 3 && v3 >= 54))
+    if (v1 >= 1 && v2 >= 3 && v3 >= 54)
     {
         priv->has_verify_cmds = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: verify set_vfoA/ptt is available\n",
