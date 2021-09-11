@@ -103,7 +103,7 @@ static int add_opened_amp(AMP *amp)
 }
 
 
-static int remove_opened_amp(AMP *amp)
+static int remove_opened_amp(const AMP *amp)
 {
     struct opened_amp_l *p, *q;
     q = NULL;
