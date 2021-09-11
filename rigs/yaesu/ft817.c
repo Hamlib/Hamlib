@@ -303,7 +303,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20201015.0",
+    .version =             "20210911.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1197,7 +1197,7 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
         break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d!\n",
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %0x!\n",
                 __func__, vfo);
             return -RIG_EINTERNAL;
     }
