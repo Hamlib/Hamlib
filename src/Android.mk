@@ -23,11 +23,12 @@ LOCAL_SRC_FILES := \
         parallel.c \
         debug.c \
         network.c \
-	sleep.c \
-	gpio.c \
-	microham.c \
-	rot_ext.c \
-        cm108.c
+        sleep.c \
+        gpio.c \
+        microham.c \
+        rot_ext.c \
+        cm108.c \
+        sprintflst.c
 
 
 LOCAL_MODULE := libhamlib
@@ -38,7 +39,7 @@ LOCAL_STATIC_LIBRARIES := adat alinco amsat aor ars barrett celestron cnctrk \
         gs232a heathkit icmarine icom ioptron jrc kachina kenwood kit \
         lowe m2 meade pcr prm80 prosistel racal rft \
         rotorez rs sartek satel skanti spid tapr tentec ts7400 tuner \
-        uniden wj yaesu
+        uniden wj yaesu radant
 
 LOCAL_LDLIBS := -llog
 
