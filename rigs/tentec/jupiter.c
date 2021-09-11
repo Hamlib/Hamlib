@@ -512,7 +512,7 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     unsigned char cmdbuf[16], respbuf[32];
     char ttmode;
     /* Find bandwidth according to response from table. */
-    static int pbwidth[39] =
+    const static int pbwidth[39] =
     {
         8000, 6000, 5700, 5400, 5100, 4800, 4500, 4200,
         3900, 3600, 3300, 3000, 2850, 2700, 2550, 2400,
@@ -594,7 +594,7 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     rpb = respbuf[1];
 
-    if (rpb >= 0 && rpb <= 38)
+    if (rpb <= 38)
     {
         *width = pbwidth[rpb];
     }
