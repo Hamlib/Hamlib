@@ -26,7 +26,7 @@
 
 
 #undef BACKEND_VER
-#define BACKEND_VER "20200114"
+#define BACKEND_VER "20210911"
 
 extern const struct confparams ra37xx_cfg_params[];
 
