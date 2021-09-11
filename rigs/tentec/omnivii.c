@@ -129,7 +129,7 @@ const struct rig_caps tt588_caps =
     RIG_MODEL(RIG_MODEL_TT588),
     .model_name = "TT-588 Omni VII",
     .mfg_name =  "Ten-Tec",
-    .version =  "20200113.0",
+    .version =  "20200911.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -258,7 +258,7 @@ static int tt588_rxFilter[] =
    sometimes get things going again, hence this hack, er, function. */
 /* Note: data should be at least data_len+1 long for null byte insertion */
 static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
-                             int *data_len)
+                             const int *data_len)
 {
     int i, retval = -RIG_EINTERNAL;
     struct  rig_state *rs = &rig->state;
