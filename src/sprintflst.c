@@ -702,7 +702,8 @@ int rig_sprintf_scan(char *str, int nlen, scan_t rscan)
 
 int rot_sprintf_status(char *str, int nlen, rot_status_t status)
 {
-    int i, len = 0;
+    int len = 0;
+    unsigned long i;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: status=%08x\n", __func__, status);
     *str = '\0';
