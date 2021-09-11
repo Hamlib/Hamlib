@@ -97,7 +97,6 @@ int main(int argc, char *argv[])
     int n;
     int fd = openPort(argv[1]);
     int freqa = 14074000, freqb = 140735000;
-    int modea = 0, modeb = 0;
 
     while (1)
     {
