@@ -834,7 +834,7 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC(-RIG_ENIMPL);
 
     default:
-        rig_debug(RIG_DEBUG_WARN, "%s: unknown VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_WARN, "%s: unknown VFO %0x\n", __func__, vfo);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -1322,9 +1322,8 @@ static int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                   rig_strfunc(func));
         RETURNFUNC(-RIG_EINVAL);
     }
-
-    RETURNFUNC(-RIG_EINVAL);
 }
+
 static int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     int retval;
