@@ -224,6 +224,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     default:
         return kenwood_get_level(rig, vfo, level, val);
     }
+    return -RIG_EINTERNAL;
 }
 
 static struct kenwood_priv_caps ts890s_priv_caps =
