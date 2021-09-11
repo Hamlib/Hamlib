@@ -143,8 +143,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
         }
 
         /* drop other receiver id, and "pause" (empty) packets */
-        if ((priv->receiver_id != -1 && (respbuf[1] - '0') != priv->receiver_id) ||
-                retval == pkt_header_len + 1)
+        if ((priv->receiver_id != -1 && (respbuf[1] - '0') != priv->receiver_id))
         {
             if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
             {
