@@ -1,3 +1,6 @@
+Update Note:
+These Android NDK scripts can compile the 4.3 version of hamlib normally, but they may be corrupted as the master branch code is updated. If you encounter compile-time errors, please try to fix them, or choose to recompile with version 4.3.
+
 This is android port of hamlib
 (C) 2012 Ladislav Vaiz <ok1zia@nagano.cz>
 
