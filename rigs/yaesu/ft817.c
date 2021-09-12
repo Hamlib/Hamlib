@@ -39,9 +39,6 @@
  *      - received ctcss/dcs matched (yes/no flag)                     TBC
  *
  *   - TX status command returns info that is not used:
- *      - split on/off flag; actually this could have been used
- *        for get_split_vfo, but the flag is valid only when
- *        PTT is ON.
  *      - high swr flag
  *
  * Todo / tocheck list (oz9aec):
