@@ -60,3 +60,5 @@ tests/rotctld
 src/hamlibdatetime.h
 .gdbinit
 build/
+libs/
+obj/

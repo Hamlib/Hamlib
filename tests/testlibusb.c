@@ -218,7 +218,10 @@ static void print_device(libusb_device *dev, libusb_device_handle *handle)
 
     case LIBUSB_SPEED_SUPER:    speed = "5G"; break;
 
+#if defined(LIBUSB_API_VERSION) && (LIBUSB_API_VERSION >= 0x01000107)
+
     case LIBUSB_SPEED_SUPER_PLUS:   speed = "10G"; break;
+#endif
 
     default:            speed = "Unknown";
     }
@@ -340,7 +343,7 @@ static int test_wrapped_device(const char *device_name)
     return 0;
 }
 #else
-#warning LIBUSB-1.0.23 will be required in Hamlib > 4.3
+#warning LIBUSB-1.0.23 may be required in Hamlib > 4.3
 static int test_wrapped_device(const char *device_name)
 {
     (void)device_name;
