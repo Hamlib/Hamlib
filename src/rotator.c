@@ -124,7 +124,7 @@ static int add_opened_rot(ROT *rot)
 }
 
 
-static int remove_opened_rot(ROT *rot)
+static int remove_opened_rot(const ROT *rot)
 {
     struct opened_rot_l *p, *q;
     q = NULL;
