@@ -2117,8 +2117,6 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         // so we'll just reuse the cache for that condition
         if (*freq == 0)
         {
-            rmode_t mode;
-            pbwidth_t width;
             int freq_ms, mode_ms, width_ms;
             rig_get_cache(rig, vfo, freq, &freq_ms, &mode, &mode_ms, &width, &width_ms);
         }
