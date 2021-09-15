@@ -77,7 +77,7 @@ const struct rig_caps xk2100_caps =
     .mfg_name = "Rohde&Schwarz",
     .version = BACKEND_VER ".0",
     .copyright = "LGPL",
-    .status = RIG_STATUS_STAB,
+    .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
     .ptt_type = RIG_PTT_RIG,
     // Need to set RTS on for some reason
