@@ -73,6 +73,7 @@ CHECK="\
 -U IPV6_V6ONLY \
 -D SIGINT \
 -D WIN32 \
+-D CLOCK_REALTIME \
 -D HAVE_SIGNAL"
 
 # If no directory or file name provided, scan the entire project.
