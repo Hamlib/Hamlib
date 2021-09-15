@@ -1776,7 +1776,7 @@ const struct rig_caps ar7030p_caps =
     .mfg_name = "AOR",
     .version = "20200319.0",
     .copyright = "LGPL",
-    .status = RIG_STATUS_BETA,
+    .status = RIG_STATUS_STAB,
     .rig_type = RIG_TYPE_RECEIVER,
 
     .dcd_type = RIG_DCD_RIG,

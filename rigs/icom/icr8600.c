@@ -156,9 +156,8 @@ const struct rig_caps icr8600_caps =
     .has_set_level = RIG_LEVEL_SET(ICR8600_LEVEL_ALL),
     .has_get_parm = ICR8600_PARM_ALL,
     .has_set_parm = RIG_PARM_SET(ICR8600_PARM_ALL),
-    // cppcheck-suppress *
     .level_gran = {
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 }, .step = {.i = 0}},
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
         [LVL_SPECTRUM_REF] = {.min = {.f = -20.0f}, .max = {.f = 20.0f}, .step = {.f = 0.5f}},
         [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
