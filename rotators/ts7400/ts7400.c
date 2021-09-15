@@ -277,7 +277,7 @@ const struct rot_caps ts7400_rot_caps =
     .mfg_name =       "LA7LKA",
     .version =        "20200113.0",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_BETA,
+    .status =         RIG_STATUS_STAB,
     .rot_type =       ROT_TYPE_AZEL,
     .port_type =      RIG_PORT_NONE,
 

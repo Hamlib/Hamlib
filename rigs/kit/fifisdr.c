@@ -133,7 +133,7 @@ const struct rig_caps fifisdr_caps =
     .mfg_name = "FiFi",
     .version = "20200112.0",
     .copyright = "LGPL",
-    .status = RIG_STATUS_BETA,
+    .status = RIG_STATUS_STAB,
 
     .rig_type = RIG_TYPE_RECEIVER,
     .ptt_type = RIG_PTT_NONE,

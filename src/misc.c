@@ -399,7 +399,7 @@ const char *HAMLIB_API rig_strstatus(enum rig_status_e status)
     case RIG_STATUS_UNTESTED:
         return "Untested";
 
-    case RIG_STATUS_BETA:
+    case RIG_STATUS_STAB:
         return "Beta";
 
     case RIG_STATUS_STABLE:

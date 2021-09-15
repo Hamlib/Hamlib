@@ -105,6 +105,7 @@ typedef struct
    unsigned char step2;
    unsigned char filter;
 
+// cppcheck-suppress *
    unsigned char stuffing[16];
 }
  FT600_STATUS_INFO;
@@ -114,6 +115,7 @@ typedef struct
 {
    unsigned char byte[8];
 }
+// cppcheck-suppress *
 FT600_FLAG_INFO;
 
 
@@ -239,7 +241,7 @@ const struct rig_caps ft600_caps =
     .mfg_name =       "Yaesu",
     .version =        "20201009.0",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_BETA,
+    .status =         RIG_STATUS_STAB,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
     .ptt_type =       RIG_PTT_RIG,
     .dcd_type =       RIG_DCD_NONE,

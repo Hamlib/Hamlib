@@ -304,7 +304,6 @@ static char *mystrtok(char *s, char delim)
         }
     }
 
-    // cppcheck-suppress *
     return str + ent_pos;
 }
 
