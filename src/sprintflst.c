@@ -731,13 +731,14 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
 int rig_sprintf_spectrum_modes(char *str, int nlen,
                                const enum rig_spectrum_mode_e *modes)
 {
-    int i, len = 0, lentmp;
+    int i, len = 0;
 
     *str = '\0';
 
     for (i = 0; i < HAMLIB_MAX_SPECTRUM_MODES; i++)
     {
         const char *sm;
+        int lentmp;
 
         if (modes[i] == RIG_SPECTRUM_MODE_NONE)
         {
@@ -768,12 +769,14 @@ int rig_sprintf_spectrum_modes(char *str, int nlen,
 
 int rig_sprintf_spectrum_spans(char *str, int nlen, const freq_t *spans)
 {
-    int i, len = 0, lentmp;
+    int i, len = 0;
 
     *str = '\0';
 
     for (i = 0; i < HAMLIB_MAX_SPECTRUM_SPANS; i++)
     {
+        int lentmp;
+
         if (spans[i] == 0)
         {
             break;
@@ -796,12 +799,14 @@ int rig_sprintf_spectrum_spans(char *str, int nlen, const freq_t *spans)
 int rig_sprintf_spectrum_avg_modes(char *str, int nlen,
                                    const struct rig_spectrum_avg_mode *avg_modes)
 {
-    int i, len = 0, lentmp;
+    int i, len = 0;
 
     *str = '\0';
 
     for (i = 0; i < HAMLIB_MAX_SPECTRUM_MODES; i++)
     {
+        int lentmp;
+
         if (avg_modes[i].name == NULL || avg_modes[i].id < 0)
         {
             break;
