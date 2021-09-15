@@ -22,7 +22,7 @@
 
 AC_DEFUN([GR_PWIN32],
 [
-AC_SEARCH_LIBS([nanosleep], [pthread], [], [AC_MSG_ERROR([unable to find nanosleep])])
+AC_SEARCH_LIBS([nanosleep], [pthread])
 AC_CHECK_HEADERS([pthread.h])
 AC_CHECK_HEADERS([sys/types.h])
 AC_CHECK_HEADERS([windows.h])
