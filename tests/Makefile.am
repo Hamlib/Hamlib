@@ -5,7 +5,7 @@
 # DEJATOOL = testfreq testbcd testloc rigctl
 
 if HAVE_LIBUSB
-    TESTLIBUSB = testlibusb
+    TESTLIBUSB = rigtestlibusb
 else
     TESTLIBUSB =
 endif
@@ -31,7 +31,7 @@ rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c
 if HAVE_LIBUSB
-    testlibusb_SOURCES = testlibusb.c
+    rigtestlibusb_SOURCES = rigtestlibusb.c
 endif
 
 # include generated include files ahead of any in sources
@@ -48,7 +48,7 @@ ampctl_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 ampctld_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 rigctlcom_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS)
 if HAVE_LIBUSB
-    testlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
+    rigtestlibusb_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) $(LIBUSB_CFLAGS)
 endif
 
 rigctl_LDADD = $(PTHREAD_LIBS) $(READLINE_LIBS) $(LDADD)
@@ -60,7 +60,7 @@ ampctld_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 rigmem_LDADD = $(LIBXML2_LIBS) $(LDADD)
 rigctlcom_LDADD = $(NET_LIBS) $(PTHREAD_LIBS) $(LDADD) $(READLINE_LIBS)
 if HAVE_LIBUSB
-    testlibusb_LDADD = $(LIBUSB_LIBS)
+    rigtestlibusb_LDADD = $(LIBUSB_LIBS)
 endif
 
 # Linker options
@@ -75,7 +75,7 @@ rotctld_LDFLAGS = $(WINEXELDFLAGS)
 ampctld_LDFLAGS = $(WINEXELDFLAGS)
 rigctlcom_LDFLAGS = $(WINEXELDFLAGS)
 if HAVE_LIBUSB
-    testlibusb_LDFLAGS = $(WINEXELDFLAGS)
+    rigtestlibusb_LDFLAGS = $(WINEXELDFLAGS)
 endif
 
 
@@ -127,4 +127,4 @@ testcookie.sh:
 	echo './testcookie 1' > testcookie.sh
 	chmod +x ./testcookie.sh
 
-CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh testlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh
+CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh rigtestlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh
