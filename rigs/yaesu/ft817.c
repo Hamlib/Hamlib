@@ -39,9 +39,6 @@
  *      - received ctcss/dcs matched (yes/no flag)                     TBC
  *
  *   - TX status command returns info that is not used:
- *      - split on/off flag; actually this could have been used
- *        for get_split_vfo, but the flag is valid only when
- *        PTT is ON.
  *      - high swr flag
  *
  * Todo / tocheck list (oz9aec):
@@ -773,14 +770,25 @@ static int ft817_get_status(RIG *rig, int status)
     {
     case FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS:
         {
-            unsigned char dig_mode;
-            if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
+            /* Only in digimode we need fetch to extra bits from EEPROM.
+             * This save communication cycle for all other modes.
+             * Because mode and frequency are shared this saves also when
+             * getting the frequency. */
+            switch (p->fm_status[4] & 0x7f)
             {
-                return n;
-            }
+                unsigned char dig_mode;
+                case 0x0a:
+                    if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
+                    {
+                        return n;
+                    }
 
-            /* Top 3 bit define the digi mode */
-            p->dig_mode = dig_mode >> 5;
+                    /* Top 3 bit define the digi mode */
+                    p->dig_mode = dig_mode >> 5;
+
+                default:
+                    break;
+            }
         }
         break;
 
@@ -940,22 +948,26 @@ static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    ptt_t ptt;
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (check_cache_timeout(&p->tx_status_tv))
-        if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
-        {
-            return n;
-        }
+    n = ft817_get_ptt(rig, 0, &ptt);
+    if (n != RIG_OK)
+    {
+        return n;
+    }
 
-    if (p->tx_status & 0x80)
+    /* Check if rig is in TX mode */
+    if (ptt == RIG_PTT_OFF)
     {
         // TX status not valid when in RX
         unsigned char c;
 
-        if ((n = ft817_read_eeprom(rig, 0x007a, &c)) < 0) /* get split status */
+        /* Get split status from EEPROM */
+        n = ft817_read_eeprom(rig, 0x7a, &c);
+        if (n != RIG_OK)
         {
             return n;
         }
@@ -1358,7 +1370,6 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 static int ft817_get_vfo(RIG *rig, vfo_t *vfo)
 {
     unsigned char c;
-    *vfo = RIG_VFO_B;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
@@ -1367,7 +1378,14 @@ static int ft817_get_vfo(RIG *rig, vfo_t *vfo)
         return -RIG_EPROTO;
     }
 
-    if ((c & 0x1) == 0) { *vfo = RIG_VFO_A; }
+    if ((c & 0x1) == 0)
+    {
+        *vfo = RIG_VFO_A;
+    }
+    else
+    {
+        *vfo = RIG_VFO_B;
+    }
 
     return RIG_OK;
 }
@@ -1499,22 +1517,33 @@ static int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     {
         int n;
         n = ft817_send_cmd(rig, index);
-
-        rig_force_cache_timeout(
-            &((struct ft817_priv_data *)rig->state.priv)->tx_status_tv);
-
         if (n < 0 && n != -RIG_ERJCTED)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s: send ptt cmd failed\n", __func__);
             return n;
         }
 
-        if (ft817_get_ptt(rig, vfo, &ptt_response) != RIG_OK)
+        /* Read TX status it contains the PTT flag.
+         * Use TX_STATUS instead of ft817_get_ptt to skip the cache. */
+        n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS);
+        if (n < 0 && n != -RIG_ERJCTED)
         {
-            ptt_response = -1;
+            rig_debug(RIG_DEBUG_ERR, "%s: get ptt cmd failed\n", __func__);
+            return n;
+        }
+
+        /* Should be in cache now! But if above command was rejected
+         * we will still try again here. */
+        n = ft817_get_ptt(rig, vfo, &ptt_response);
+        if (n < 0 && n != -RIG_ERJCTED)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: get ptt cmd failed\n", __func__);
+            return n;
         }
 
         if (ptt_response != ptt)
         {
+            rig_debug(RIG_DEBUG_TRACE, "%s: ptt not requested level, retry\n", __func__);
             hl_usleep(1000l *
                       FT817_RETRY_DELAY); // Wait before next try. Helps with slower rigs cloning FT817 protocol (e.g. MCHF)
         }
