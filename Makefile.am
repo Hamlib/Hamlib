@@ -23,7 +23,7 @@ SUBDIRS = macros include lib \
 	tests doc
 
 ## Static list of distributed directories.
-DIST_SUBDIRS = macros include lib src c++ bindings tests doc android scripts rotators/indi \
+DIST_SUBDIRS = macros include lib src c++ bindings tests doc android scripts rotators/indi simulators\
 	$(BACKEND_LIST) $(RIG_BACKEND_LIST) $(ROT_BACKEND_LIST) $(AMP_BACKEND_LIST)
 
 # Install any third party macros into our tree for distribution

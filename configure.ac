@@ -870,6 +870,7 @@ tests/Makefile
 scripts/Makefile
 android/Makefile
 amplifiers/elecraft/Makefile
+simulators/Makefile
 hamlib.pc
 ])
 
