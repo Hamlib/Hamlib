@@ -310,7 +310,15 @@ static void print_device(libusb_device *dev, libusb_device_handle *handle)
     }
 }
 
-#if defined(LIBUSB_API_VERSION) && (LIBUSB_API_VERSION >= 0x01000107)
+#if defined(ANDROID) && defined(LIBUSB_API_VERSION) && (LIBUSB_API_VERSION < 0x01000107)
+#warning LIBUSB-1.0.23 or greater is required for Android devices
+static int test_wrapped_device(const char *device_name)
+{
+    (void)device_name;
+    printf("Testing wrapped devices is not supported on your platform\n");
+    return 1;
+}
+#else
 
 #include <errno.h>
 #include <fcntl.h>
@@ -341,14 +349,6 @@ static int test_wrapped_device(const char *device_name)
     print_device(libusb_get_device(handle), handle);
     close(fd);
     return 0;
-}
-#else
-#warning LIBUSB-1.0.23 may be required in Hamlib > 4.3
-static int test_wrapped_device(const char *device_name)
-{
-    (void)device_name;
-    printf("Testing wrapped devices is not supported on your platform\n");
-    return 1;
 }
 #endif
 
