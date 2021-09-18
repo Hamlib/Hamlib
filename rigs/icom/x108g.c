@@ -8,7 +8,7 @@
  *  If they do the functions below can go back to the icom routines
  *  #1 the response to PTT
  *  #2 the inability to set_dsp_mode
- *  #3 setting splie which impacts 3 routines
+ *  #3 setting split which impacts 3 routines
  *
  *  Copyright (c) 2004-2010 by Stephane Fillod
  *
