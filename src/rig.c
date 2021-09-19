@@ -1596,12 +1596,20 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
  *
  * \note All pointers must be given. No pointer can be left at NULL
  *
- * \return RIG_OK
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
  *
  */
 int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
                   rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width)
 {
+    if (CHECK_RIG_ARG(rig) || !freq || !cache_ms_freq ||
+            !mode || !cache_ms_mode || !width || !cache_ms_width)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
         ENTERFUNC;
@@ -6189,6 +6197,11 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
     vfo_t curr_vfo;
 
     ENTERFUNC;
+    if (CHECK_RIG_ARG(rig))
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
     caps = rig->caps;
 
     if (caps->stop_morse == NULL)
@@ -6287,6 +6300,11 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
     vfo_t curr_vfo;
 
     ENTERFUNC;
+    if (CHECK_RIG_ARG(rig))
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
     caps = rig->caps;
 
     if (vfo == RIG_VFO_CURR
@@ -6413,6 +6431,11 @@ const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t *range_list,
 {
     int i;
 
+    if (!range_list)
+    {
+        return NULL;
+    }
+
     for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
         if (range_list[i].startf == 0 && range_list[i].endf == 0)
@@ -6443,6 +6466,11 @@ int HAMLIB_API rig_set_vfo_opt(RIG *rig, int status)
     int retcode;
 
     ENTERFUNC;
+
+    if CHECK_RIG_ARG(rig)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
 
     if (rig->caps->set_vfo_opt == NULL)
     {
@@ -6546,6 +6574,11 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
     int ret;
     int rxa, txa, rxb, txb;
     response[0] = 0;
+
+    if (CHECK_RIG_ARG(rig) || !response)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
 
     vfoA = vfo_fixup(rig, RIG_VFO_A, rig->state.cache.split);
     vfoB = vfo_fixup(rig, RIG_VFO_B, rig->state.cache.split);
