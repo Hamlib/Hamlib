@@ -6763,17 +6763,27 @@ const char *HAMLIB_API rig_copyright()
 
 /**
  * \brief get a cookie to grab rig control
+ * \param rig   Not used
+ * \param cookie_cmd The command to execute on \a cookie.
+ * \param cookie     The cookie to operate on, cannot be NULL or RIG_EINVAL will be returned.
+ * \param cookie_len The length of the cookie, must be #HAMLIB_COOKIE_SIZE or larger.
  *
- * RIG_COOKIE_GET must have cookie=NULL or NULL returned
- * RIG_COOKIE_RENEW must have cookie!=NULL or NULL returned
- * RIG_COOKIE_RELEASE must have cookie!=NULL or NULL returned;
+ * #RIG_COOKIE_GET will set \a cookie with a cookie.
+ * #RIG_COOKIE_RENEW will update the timeout with 1 second.
+ * #RIG_COOKIE_RELEASE will release the cookie and allow a new one to be grabbed.
+ *
  * Cookies should only be used when needed to keep commands sequenced correctly
  * For example, when setting both VFOA and VFOB frequency and mode
  * Example to wait for cookie, do rig commands, and release
- * while((cookie=rig_cookie(NULL, RIG_COOKIE_GET)) == NULL) hl_usleep(10*1000);
- * set_freq A;set mode A;set freq B;set modeB;
- * rig_cookie(cookie,RIG_COOKIE_RELEASE);
- * if wait!=0 rig_cookie with RIG_COOKIE_GET will wait for the cookie to become available
+ * \code
+ *  while((rig_cookie(NULL, RIG_COOKIE_GET, cookie, sizeof(cookie))) != RIG_OK)
+ *      hl_usleep(10*1000);
+ *
+ *  //Pseudo code
+ *  set_freq A;set mode A;set freq B;set modeB;
+ *
+ *  rig_cookie(NULL, RIG_COOKIE_RELEASE, cookie, sizeof(cookie)));
+ * \endcode
  */
 int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
                           int cookie_len)
@@ -6791,27 +6801,27 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     static pthread_mutex_t cookie_lock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-    if (cookie_len < 27)
+    if (cookie_len < HAMLIB_COOKIE_SIZE)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s(%d): cookie_len < 32 so returning NULL!!\n",
-                  __FILE__, __LINE__);
-        return -RIG_EINTERNAL;
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): cookie_len < %d\n",
+                  __FILE__, __LINE__, HAMLIB_COOKIE_SIZE);
+        return -RIG_EINVAL;
+    }
+
+    if (!cookie)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): cookie == NULL\n",
+                __FILE__, __LINE__);
+        return -RIG_EINVAL; // nothing to do
     }
 
     switch (cookie_cmd)
     {
     case RIG_COOKIE_RELEASE:
-        if (cookie == NULL)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): coookie NULL so nothing to do\n",
-                      __FILE__, __LINE__);
-            return -RIG_EINVAL; // nothing to do
-        }
-
         if (cookie_save[0] != 0
                 && strcmp(cookie, cookie_save) == 0) // matching cookie so we'll clear it
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s coookie released\n",
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s cookie released\n",
                       __FILE__, __LINE__, cookie_save);
             memset(cookie_save, 0, sizeof(cookie_save));
             return RIG_OK;
@@ -6894,7 +6904,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         break;
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown condition!!\n'", __FILE__, __LINE__);
+    rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown cmd!!\n'", __FILE__, __LINE__);
     return -RIG_EPROTO;
 }
 
