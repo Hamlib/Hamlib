@@ -3740,7 +3740,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         switch (val.i)
         {
-        case RIG_METER_ALC: snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 1);
+        case RIG_METER_ALC: snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, is_ftdx9000? 7 : 1);
             break;
 
         case RIG_METER_PO:
@@ -3750,21 +3750,21 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
             else
             {
-                snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 2);
+                snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, is_ftdx9000? 8 : 2);
             }
 
             break;
 
-        case RIG_METER_SWR:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 3);
+        case RIG_METER_SWR:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, is_ftdx9000? 9 : 3);
             break;
 
-        case RIG_METER_COMP: snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 0);
+        case RIG_METER_COMP: snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, is_ftdx9000? 6 : 0);
             break;
 
-        case RIG_METER_IC:   snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 4);
+        case RIG_METER_IC:   snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, is_ftdx9000? 10: 4);
             break;
 
-        case RIG_METER_VDD:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, 5);
+        case RIG_METER_VDD:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), format, is_ftdx9000? 11 : 5);
             break;
 
             rig_debug(RIG_DEBUG_ERR, "%s: unknown val.i=%d\n", __func__, val.i);
