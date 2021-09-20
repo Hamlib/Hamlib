@@ -159,7 +159,6 @@ DECLARE_PROBERIG_BACKEND(yaesu)
         port->parm.serial.rate = rates[rates_idx];
         port->timeout = 2 * 1000 / rates[rates_idx] + 50;
 
-        printf("Yaesu trying rate = %d\n", rates[rates_idx]);
         retval = serial_open(port);
 
         if (retval != RIG_OK)
