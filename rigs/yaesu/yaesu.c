@@ -134,7 +134,7 @@ DECLARE_PROBERIG_BACKEND(yaesu)
     static const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xfa};
     int id_len = -1, i, id1, id2;
     int retval = -1;
-    int rates[] = { 4800, 57600, 9600, 38400, 0 };  /* possible baud rates */
+    static const int rates[] = { 4800, 57600, 9600, 38400, 0 };  /* possible baud rates */
     int rates_idx;
 
     if (!port)
@@ -172,9 +172,9 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 
         close(port->fd);
 
-        if (retval != RIG_OK || id_len < 0)
+        if (retval == RIG_OK && id_len > 0)
         {
-            continue;
+            break;
         }
     }
 

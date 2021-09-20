@@ -3706,7 +3706,7 @@ DECLARE_PROBERIG_BACKEND(adat)
     }
 
     port->write_delay = port->post_write_delay = 10;
-    port->parm.serial.stop_bits = 0;
+    port->parm.serial.stop_bits = 2;
     port->retry = 1;
 
 
