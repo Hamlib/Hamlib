@@ -9,6 +9,29 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 Version 4.4
         * 2021-??-??
         * Icom rigs now default filter 2 when setting PKTUSB but user can override 
+        * Fix FTDX9000 meter readings
+
+Version 4.3.1
+        * 2021-09-14
+        * Bug fix release
+            - Do not do vfo_fixup on satmode rigs
+            - Fix compilation of misc.c with gmtime_r replacement function for
+              mingw
+            - Fix python build.  For some reason casting tp vfo_t in the
+              RIG_VFO_N macro broke the swig parsing
+            - Append the missing information to build hamlib v4.3 for Android
+              NDK
+            - Change set_icom_set_mode_with_data to not change mode unless
+              necessary
+            - Since Icom rigs default to filter 2 if a filter is not selected
+              we will do the same when turning on data mode
+            - Fix segfault in kenwood_set_vfo
+            - scripts: Update example in readme, since 4.0 817 is 1020
+            - Make testlibusb.c compatible with libusb < 1.0.23
+              Note: On systems with libusb < 1.0.23 a warning will be emmitted
+              but compliation should proceed without error.
+            - Update testlibusb.c warning to "may be" instead of "will be"
+            - Change kenwood to only set VFOA default on 1st rig_open call
 
 Version 4.3
         * 2021-09-01
