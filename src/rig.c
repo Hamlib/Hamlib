@@ -6791,16 +6791,16 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     // only 1 client can have the cookie so these can be static
     // this should also prevent problems with DLLs & shared libraies
     // the debug_msg is another non-thread-safe which this will help fix
-    // 27 char cookie will last until the year 10000
     static char
-    cookie_save[HAMLIB_COOKIE_SIZE];  // only one client can have the 26-char cookie
+    cookie_save[HAMLIB_COOKIE_SIZE];  // only one client can have the cookie
     static double time_last_used;
-    double time_curr;
     struct timespec tp;
+    int ret;
 #ifdef HAVE_PTHREAD
     static pthread_mutex_t cookie_lock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
+    /* This is not needed for RIG_COOKIE_RELEASE but keep it simple. */
     if (cookie_len < HAMLIB_COOKIE_SIZE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): cookie_len < %d\n",
@@ -6815,6 +6815,12 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         return -RIG_EINVAL; // nothing to do
     }
 
+    /* Accesing cookie_save and time_last_used must be done with lock held.
+     * So keep code simple and lock it during the whole operation. */
+#ifdef HAVE_PTHREAD
+    pthread_mutex_lock(&cookie_lock);
+#endif
+
     switch (cookie_cmd)
     {
     case RIG_COOKIE_RELEASE:
@@ -6824,14 +6830,14 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s cookie released\n",
                       __FILE__, __LINE__, cookie_save);
             memset(cookie_save, 0, sizeof(cookie_save));
-            return RIG_OK;
+            ret = RIG_OK;
         }
         else // not the right cookie!!
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s(%d): %s can't release cookie as cookie %s is active\n", __FILE__, __LINE__,
                       cookie, cookie_save);
-            return -RIG_BUSBUSY;
+            ret = -RIG_BUSBUSY;
         }
 
         break;
@@ -6847,13 +6853,15 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
                       __LINE__, cookie);
             clock_gettime(CLOCK_REALTIME, &tp);
             time_last_used = tp.tv_sec + tp.tv_nsec / 1e9;
-            return RIG_OK;
+            ret = RIG_OK;
         }
-
-        rig_debug(RIG_DEBUG_ERR,
-                  "%s(%d): %s renew request refused %s is active\n",
-                  __FILE__, __LINE__, cookie, cookie_save);
-        return -RIG_EINVAL; // wrong cookie
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                    "%s(%d): %s renew request refused %s is active\n",
+                    __FILE__, __LINE__, cookie, cookie_save);
+            ret = -RIG_EINVAL; // wrong cookie
+        }
 
         break;
 
@@ -6864,48 +6872,48 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         // we are just allow for a crashed client that fails to release:q
 
         clock_gettime(CLOCK_REALTIME, &tp);
-        time_curr = tp.tv_sec + tp.tv_nsec / 1e9;
-
-#ifdef HAVE_PTHREAD
-        pthread_mutex_lock(&cookie_lock);
-#endif
+        double time_curr = tp.tv_sec + tp.tv_nsec / 1e9;
 
         if (cookie_save[0] != 0 && (strcmp(cookie_save, cookie) == 0)
                 && (time_curr - time_last_used < 1))  // then we will deny the request
         {
-            printf("Cookie %s in use\n", cookie_save);
             rig_debug(RIG_DEBUG_ERR, "%s(%d): %s cookie is in use\n", __FILE__, __LINE__,
                       cookie_save);
-#ifdef HAVE_PTHREAD
-            pthread_mutex_unlock(&cookie_lock);
-#endif
-            return -RIG_BUSBUSY;
+            ret = -RIG_BUSBUSY;
         }
-
-
-        if (cookie_save[0] != 0)
+        else
         {
-            rig_debug(RIG_DEBUG_ERR,
+            if (cookie_save[0] != 0)
+            {
+                rig_debug(RIG_DEBUG_ERR,
                       "%s(%d): %s cookie has expired after %.3f seconds....overriding with new cookie\n",
                       __FILE__, __LINE__, cookie_save, time_curr - time_last_used);
-        }
+            }
 
-        date_strget(cookie_save, sizeof(cookie_save));
-        // add on our random number to ensure uniqueness
-        snprintf(cookie, cookie_len, "%s %d\n", cookie_save, rand());
-        strcpy(cookie_save, cookie);
-        time_last_used = time_curr;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s new cookie request granted\n",
-                  __FILE__, __LINE__, cookie_save);
-#ifdef HAVE_PTHREAD
-        pthread_mutex_unlock(&cookie_lock);
-#endif
-        return RIG_OK;
+            date_strget(cookie, cookie_len);
+            size_t len = strlen(cookie);
+            // add on our random number to ensure uniqueness
+            // The cookie should never be longer then HAMLIB_COOKIE_SIZE
+            snprintf(cookie + len, HAMLIB_COOKIE_SIZE - len, " %d\n", rand());
+            strcpy(cookie_save, cookie);
+            time_last_used = time_curr;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s new cookie request granted\n",
+                    __FILE__, __LINE__, cookie_save);
+            ret = RIG_OK;
+        }
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown cmd!!\n'", __FILE__, __LINE__);
+        ret = -RIG_EPROTO;
         break;
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown cmd!!\n'", __FILE__, __LINE__);
-    return -RIG_EPROTO;
+#ifdef HAVE_PTHREAD
+    pthread_mutex_unlock(&cookie_lock);
+#endif
+    return ret;
+
 }
 
 HAMLIB_EXPORT(void) sync_callback(int lock)
