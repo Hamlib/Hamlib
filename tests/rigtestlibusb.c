@@ -24,12 +24,13 @@
 
 #include <stdio.h>
 #include <string.h>
-#if __has_include("libusb.h")
+#if defined(HAVE_LIBUSB_H)
 #include "libusb.h"
-#else
+#elif defined(HAVE_LIBUSB_1_0_LIBUSB_H)
 #include <libusb-1.0/libusb.h>
 #endif
 
+#if HAVE_LIBUSB
 int verbose = 0;
 
 static void print_endpoint_comp(const struct
@@ -410,3 +411,10 @@ int main(int argc, char *argv[])
     libusb_exit(NULL);
     return r;
 }
+#else
+int main()
+{
+    puts("libusb not installed");
+    return 0;
+}
+#endif
