@@ -148,9 +148,8 @@ const char *multicast_addr = "0.0.0.0";
 
 #define MAXCONFLEN 1024
 
-extern void sync_callback(int lock);
-#if 0
-void sync_callback(int lock)
+
+void mutex_rigctld(int lock)
 {
 #ifdef HAVE_PTHREAD
     static pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -168,7 +167,6 @@ void sync_callback(int lock)
 
 #endif
 }
-#endif
 
 #ifdef WIN32
 static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
@@ -999,7 +997,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_PTHREAD
     /* allow threads to finish current action */
-    sync_callback(1);
+    mutex_rigctld(1);
 
     if (client_count)
     {
@@ -1007,7 +1005,7 @@ int main(int argc, char *argv[])
     }
 
     rig_close(my_rig);
-    sync_callback(0);
+    mutex_rigctld(0);
 #else
     rig_close(my_rig); /* close port */
 #endif
@@ -1085,7 +1083,7 @@ void *handle_socket(void *arg)
     }
 
 #ifdef HAVE_PTHREAD
-    sync_callback(1);
+    mutex_rigctld(1);
 
 //    ++client_count;
 #if 0
@@ -1104,7 +1102,7 @@ void *handle_socket(void *arg)
 
 #endif
 
-    sync_callback(0);
+    mutex_rigctld(0);
 #else
     retcode = rig_open(my_rig);
 
@@ -1134,7 +1132,7 @@ void *handle_socket(void *arg)
             rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d\n", __func__,
                       handle_data_arg->vfo_mode);
             retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
-                                   sync_callback,
+                                   mutex_rigctld,
                                    1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
 
             if (retcode != 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
@@ -1168,7 +1166,7 @@ void *handle_socket(void *arg)
 
 #ifdef HAVE_PTHREAD
 #if 0
-    sync_callback(1);
+    mutex_rigctld(1);
 
     /* Release rig if there are no clients */
     if (!--client_count)
@@ -1183,7 +1181,7 @@ void *handle_socket(void *arg)
         }
     }
 
-    sync_callback(0);
+    mutex_rigctld(0);
 #endif
 #else
     rig_close(my_rig);
