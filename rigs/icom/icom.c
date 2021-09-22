@@ -2196,7 +2196,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         vfo_t vfoask = vfo_fixup(rig, vfo, 0);
         vfo_t vfocurr = vfo_fixup(rig, rig->state.current_vfo, 0);
 
-        if (vfoask != vfocurr) { vfosel = 0x01; }
+        if (vfo != RIG_VFO_CURR && vfoask != vfocurr) { vfosel = 0x01; }
 
         // use cache for the non-selected VFO -- can't get it by VFO
         // this avoids vfo swapping but accurate answers for these rigs
