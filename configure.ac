@@ -324,8 +324,8 @@ AC_ARG_VAR([LIBUSB_LIBS], [linker flags for libusb, overriding configure check (
 AS_IF([test x"${cf_with_libusb}" = "xyes"], [
     AS_IF([test -z $LIBUSB_LIBS],
 	[AC_CHECK_LIB([usb-1.0], [libusb_init], [LIBUSB_LIBS="-lusb-1.0"],
-	    [AC_MSG_WARN([libusb_init was not found in libusb-1.0--USB backends will be disabled])])
-        [cf_with_libusb="no"]
+	    [AC_MSG_WARN([libusb_init was not found in libusb-1.0--USB backends will be disabled])]
+        [cf_with_libusb="no"])
 	], [cf_with_libusb="yes"])
 
     AS_IF([test x"${cf_with_libusb}" = "xyes"],
