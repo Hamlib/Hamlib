@@ -89,6 +89,9 @@ DEFINE_INITROT_BACKEND(radant);
 #if HAVE_LIBINDI
 DEFINE_INITROT_BACKEND(indi);
 #endif
+#if defined(ANDROID) || defined(__ANDROID__)
+DEFINE_INITROT_BACKEND(androidsensor);
+#endif
 //! @endcond
 
 /**
@@ -132,6 +135,9 @@ static struct
     { ROT_RADANT, ROT_BACKEND_RADANT, ROT_FUNCNAMA(radant)},
 #if HAVE_LIBINDI
     { ROT_INDI, ROT_BACKEND_INDI, ROT_FUNCNAMA(indi) },
+#endif
+#if defined(ANDROID) || defined(__ANDROID__)
+    { ROT_ANDROIDSENSOR, ROT_BACKEND_ANDROIDSENSOR, ROT_FUNCNAMA(androidsensor) },
 #endif
     { 0, NULL }, /* end */
 };
