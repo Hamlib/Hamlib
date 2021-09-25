@@ -577,6 +577,7 @@ static const struct
     { RIG_VFO_SUB_B, "SubB" },
     { RIG_VFO_SUB_C, "SubC" },
     { RIG_VFO_NONE, "None" },
+    { RIG_VFO_OTHER, "otherVFO" },
     { 0xffffff, "" },
 };
 
