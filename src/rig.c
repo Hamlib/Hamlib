@@ -157,6 +157,8 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
+#define ELAPSED1 clock_t __begin = clock()
+#define ELAPSED2 double __elapsed = ((double)clock() - __begin) / CLOCKS_PER_SEC; rig_debug(RIG_DEBUG_TRACE, "%s: elapsed=%.0lfms\n", __func__, __elapsed)
 
 /*
  * Data structure to track the opened rig (by rig_open)
@@ -1812,6 +1814,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    ELAPSED1;
+
     if (rig->state.twiddle_state == TWIDDLE_ON)
     {
         // we keep skipping set_freq while the vfo knob is in motion
@@ -1855,6 +1859,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 rig_set_vfo(rig, vfo_save);
             }
 
+            ELAPSED2;
             RETURNFUNC(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
@@ -1928,6 +1933,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 rig_set_vfo(rig, vfo_save);
             }
 
+            ELAPSED2;
             RETURNFUNC(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
@@ -1978,6 +1984,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_set_vfo(rig, vfo_save);
     }
 
+    ELAPSED2;
     RETURNFUNC(retcode);
 }
 
@@ -2010,6 +2017,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
+    ELAPSED1;
 
     if (!freq)
     {
@@ -2044,6 +2052,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         int cache_ms_freq, cache_ms_mode, cache_ms_width;
         rig_get_cache(rig, vfo, freq, &cache_ms_freq, &mode, &cache_ms_mode, &width,
                       &cache_ms_width);
+        ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
 
@@ -2087,6 +2096,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%.0f\n", __func__,
                   rig_strvfo(vfo), cache_ms_freq, *freq);
+        ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
     else
@@ -2195,6 +2205,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     set_cache_freq(rig, vfo, *freq);
     cache_show(rig, __func__, __LINE__);
 
+    ELAPSED2;
     RETURNFUNC(retcode);
 }
 
@@ -2776,6 +2787,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     int cache_ms;
 
     ENTERFUNC;
+    ELAPSED1;
 
     if (CHECK_RIG_ARG(rig) || !vfo)
     {
@@ -2804,6 +2816,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
         *vfo = rig->state.cache.vfo;
+        ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
     else
@@ -2831,6 +2844,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
                   rigerror(retcode));
     }
 
+    ELAPSED2;
     RETURNFUNC(retcode);
 }
 
@@ -4577,7 +4591,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     // We fix up vfos for non-satmode rigs only
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: satmode rig...not fixing up vfos rx=%s tx=%s\n", __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
+        rig_debug(RIG_DEBUG_TRACE, "%s: satmode rig...not fixing up vfos rx=%s tx=%s\n",
+                  __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
     }
     else
     {
@@ -6197,6 +6212,7 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
     vfo_t curr_vfo;
 
     ENTERFUNC;
+
     if (CHECK_RIG_ARG(rig))
     {
         RETURNFUNC(-RIG_EINVAL);
@@ -6300,6 +6316,7 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
     vfo_t curr_vfo;
 
     ENTERFUNC;
+
     if (CHECK_RIG_ARG(rig))
     {
         RETURNFUNC(-RIG_EINVAL);
@@ -6466,6 +6483,7 @@ int HAMLIB_API rig_set_vfo_opt(RIG *rig, int status)
     int retcode;
 
     ENTERFUNC;
+    ELAPSED1;
 
     if CHECK_RIG_ARG(rig)
     {
@@ -6477,8 +6495,8 @@ int HAMLIB_API rig_set_vfo_opt(RIG *rig, int status)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    TRACE;
     retcode = rig->caps->set_vfo_opt(rig, status);
+    ELAPSED2;
     RETURNFUNC(retcode);
 }
 
@@ -6580,6 +6598,8 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    ELAPSED1;
+
     vfoA = vfo_fixup(rig, RIG_VFO_A, rig->state.cache.split);
     vfoB = vfo_fixup(rig, RIG_VFO_B, rig->state.cache.split);
     ret = rig_get_vfo_info(rig, vfoA, &freqA, &modeA, &widthA, &split, &satmode);
@@ -6633,6 +6653,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
         RETURNFUNC(RIG_EINTERNAL);
     }
 
+    ELAPSED2;
     RETURNFUNC(RIG_OK);
 }
 
@@ -6811,7 +6832,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     if (!cookie)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): cookie == NULL\n",
-                __FILE__, __LINE__);
+                  __FILE__, __LINE__);
         return -RIG_EINVAL; // nothing to do
     }
 
@@ -6858,8 +6879,8 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         else
         {
             rig_debug(RIG_DEBUG_ERR,
-                    "%s(%d): %s renew request refused %s is active\n",
-                    __FILE__, __LINE__, cookie, cookie_save);
+                      "%s(%d): %s renew request refused %s is active\n",
+                      __FILE__, __LINE__, cookie, cookie_save);
             ret = -RIG_EINVAL; // wrong cookie
         }
 
@@ -6886,8 +6907,8 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
             if (cookie_save[0] != 0)
             {
                 rig_debug(RIG_DEBUG_ERR,
-                      "%s(%d): %s cookie has expired after %.3f seconds....overriding with new cookie\n",
-                      __FILE__, __LINE__, cookie_save, time_curr - time_last_used);
+                          "%s(%d): %s cookie has expired after %.3f seconds....overriding with new cookie\n",
+                          __FILE__, __LINE__, cookie_save, time_curr - time_last_used);
             }
 
             date_strget(cookie, cookie_len);
@@ -6898,9 +6919,10 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
             strcpy(cookie_save, cookie);
             time_last_used = time_curr;
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s new cookie request granted\n",
-                    __FILE__, __LINE__, cookie_save);
+                      __FILE__, __LINE__, cookie_save);
             ret = RIG_OK;
         }
+
         break;
 
     default:
