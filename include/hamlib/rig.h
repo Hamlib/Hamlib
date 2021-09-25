@@ -463,6 +463,9 @@ typedef unsigned int vfo_t;
 /** \brief \c MainC -- alias for MAIN_C */
 #define RIG_VFO_MAIN_C      RIG_VFO_N(4)
 
+/** \brief \c Other -- alias for OTHER -- e.g. Icom rigs without get_vfo capability */
+#define RIG_VFO_OTHER       RIG_VFO_N(5)
+
 /** \brief \c Sub -- alias for SUB */
 #define RIG_VFO_SUB         RIG_VFO_N(25)
 
