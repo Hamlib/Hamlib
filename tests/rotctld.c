@@ -664,6 +664,9 @@ void *handle_socket(void *arg)
     }
 
     fsockin = _fdopen(sock_osfhandle,  "rb");
+#elif defined(ANDROID) || defined(__ANDROID__)
+    // fdsan does not allow fdopen the same fd twice in Android
+    fsockin = fdopen(dup(handle_data_arg->sock), "rb");
 #else
     fsockin = fdopen(handle_data_arg->sock, "rb");
 #endif
@@ -676,6 +679,9 @@ void *handle_socket(void *arg)
 
 #ifdef __MINGW32__
     fsockout = _fdopen(sock_osfhandle, "wb");
+#elif defined(ANDROID) || defined(__ANDROID__)
+    // fdsan does not allow fdopen the same fd twice in Android
+    fsockout = fdopen(dup(handle_data_arg->sock), "wb");
 #else
     fsockout = fdopen(handle_data_arg->sock, "wb");
 #endif

@@ -39,8 +39,8 @@ LOCAL_STATIC_LIBRARIES := adat alinco amsat aor ars barrett celestron cnctrk \
         gs232a heathkit icmarine icom ioptron jrc kachina kenwood kit \
         lowe m2 meade pcr prm80 prosistel racal rft \
         rotorez rs sartek satel skanti spid tapr tentec ts7400 tuner \
-        uniden wj yaesu radant
+        uniden wj yaesu radant androidsensor
 
-LOCAL_LDLIBS := -llog
+LOCAL_LDLIBS := -llog -landroid
 
 include $(BUILD_SHARED_LIBRARY)
