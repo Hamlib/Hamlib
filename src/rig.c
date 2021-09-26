@@ -158,7 +158,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
 #define ELAPSED1 clock_t __begin = clock()
-#define ELAPSED2 double __elapsed = ((double)clock() - __begin) / CLOCKS_PER_SEC; rig_debug(RIG_DEBUG_TRACE, "%s: elapsed=%.0lfms\n", __func__, __elapsed)
+#define ELAPSED2 double __elapsed = ((double)clock() - __begin) / CLOCKS_PER_SEC*1000; rig_debug(RIG_DEBUG_TRACE, "%s: elapsed=%.0lfms\n", __func__, __elapsed)
 
 /*
  * Data structure to track the opened rig (by rig_open)
@@ -2017,6 +2017,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
+
     ELAPSED1;
 
     if (!freq)
