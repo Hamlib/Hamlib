@@ -130,7 +130,7 @@ const struct rig_caps ic7200_caps =
     RIG_MODEL(RIG_MODEL_IC7200),
     .model_name = "IC-7200",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -247,6 +247,7 @@ const struct rig_caps ic7200_caps =
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
     .set_vfo =  icom_set_vfo,
+    .get_vfo =  icom_get_vfo,
     .set_ant =  NULL,  /*automatically set by rig depending band */
     .get_ant =  NULL,
 

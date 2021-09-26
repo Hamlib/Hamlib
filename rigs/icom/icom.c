@@ -43,6 +43,7 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
+#include "misc.h"
 
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
 static int icom_set_default_vfo(RIG *rig);
@@ -767,6 +768,134 @@ int icom_get_usb_echo_off(RIG *rig)
     RETURNFUNC(priv->serial_USB_echo_off);
 }
 
+// figure out what VFO is current for rigs with 0x25 command
+static vfo_t icom_current_vfo_x25(RIG *rig)
+{
+    int fOffset = 0;
+    freq_t fCurr, f2, f3;
+    vfo_t currVFO = RIG_VFO_NONE;
+    vfo_t chkVFO = RIG_VFO_A;
+
+    rig_get_freq(rig, RIG_VFO_CURR, &fCurr);
+    rig_get_freq(rig, RIG_VFO_OTHER, &f2);
+
+    if (fCurr == f2)
+    {
+        fOffset = 100;
+        rig_set_freq(rig, RIG_VFO_CURR, fCurr + fOffset);
+    }
+
+    if (rig->state.current_vfo == RIG_VFO_B) { chkVFO = RIG_VFO_B; }
+
+    rig_set_vfo(rig, chkVFO);
+    rig_get_freq(rig, RIG_VFO_CURR, &f3);
+
+    if (f3 == fCurr + fOffset) // then we are on the chkVFO
+    {
+        currVFO = chkVFO;
+    }
+    else // the other VFO is the current one
+    {
+        rig_set_vfo(rig, chkVFO == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A);
+        currVFO = chkVFO == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+    }
+
+    if (fOffset) // then we need to change fCurr back to original freq
+    {
+        rig_set_freq(rig, RIG_VFO_CURR, fCurr);
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: currVFO=%s\n", __func__, rig_strvfo(currVFO));
+    return currVFO;
+}
+
+// figure out what VFO is current
+static vfo_t icom_current_vfo(RIG *rig)
+{
+    int retval;
+    int fOffset = 0;
+    freq_t fCurr, f2, f3;
+    vfo_t currVFO = RIG_VFO_NONE;
+    vfo_t chkVFO = RIG_VFO_A;
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+
+    if (priv->x25cmdfails == 0) // these newer rigs get special treatment
+    {
+        if (access("w9mdb.txt", F_OK) != -1)
+        {
+            return icom_current_vfo_x25(rig);
+        }
+    }
+    else if (rig->state.cache.ptt) // don't do this if transmitting -- XCHG would mess it up
+    {
+        return rig->state.current_vfo;
+    }
+    else if (priv->no_xchg || !rig_has_vfo_op(rig, RIG_OP_XCHG))
+    {
+        // for now we will just set vfoa and be done with it
+        // will take more logic for rigs without XCHG
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: defaulting to VFOA as no XCHG or x25 available\n",
+                  __func__);
+        rig_set_vfo(rig, RIG_VFO_A);
+        return RIG_VFO_A;
+    }
+
+    rig_get_freq(rig, RIG_VFO_CURR, &fCurr);
+
+    if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: Using XCHG to swap\n", __func__);
+
+        if (RIG_OK != (retval = icom_vfo_op(rig, currVFO, RIG_OP_XCHG)))
+        {
+            RETURNFUNC(retval);
+        }
+    }
+
+    rig_get_freq(rig, RIG_VFO_CURR, &f2);
+
+    if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: Using XCHG to swap back\n", __func__);
+
+        if (RIG_OK != (retval = icom_vfo_op(rig, currVFO, RIG_OP_XCHG)))
+        {
+            RETURNFUNC(retval);
+        }
+    }
+
+    if (fCurr == f2)
+    {
+        fOffset = 100;
+        rig_set_freq(rig, RIG_VFO_CURR, fCurr + fOffset);
+    }
+
+
+    if (rig->state.current_vfo == RIG_VFO_B) { chkVFO = RIG_VFO_B; }
+
+    rig_set_vfo(rig, chkVFO);
+    rig_get_freq(rig, RIG_VFO_CURR, &f3);
+
+    if (f3 == fCurr + fOffset)
+    {
+        currVFO = chkVFO;
+    }
+    else
+    {
+        rig_set_vfo(rig, chkVFO == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A);
+        currVFO = chkVFO == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
+    }
+
+    if (fOffset) // then we need to change fCurr back to original freq
+    {
+        rig_set_freq(rig, RIG_VFO_CURR, fCurr);
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: currVFO=%s\n", __func__, rig_strvfo(currVFO));
+    return currVFO;
+}
 
 /*
  * ICOM rig open routine
@@ -788,10 +917,11 @@ icom_rig_open(RIG *rig)
 
     if (retval == RIG_OK) // then echo is on so let's try freq now
     {
+        rig->state.current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
         // so asking for freq now should timeout if such a rig
         freq_t tfreq;
-        retval = rig_get_freq(rig, RIG_VFO_A, &tfreq);
+        retval = rig_get_freq(rig, RIG_VFO_CURR, &tfreq);
     }
 
     if (retval != RIG_OK && priv->poweron == 0 && rs->auto_power_on)
@@ -820,9 +950,13 @@ icom_rig_open(RIG *rig)
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
             RETURNFUNC(retval);
         }
+
+        // Determine active vfo again since it would have failed the 1st time
+        rig->state.current_vfo = icom_current_vfo(rig);
+        icom_current_vfo(rig);
     }
 
-    icom_set_default_vfo(rig);
+    rig->state.current_vfo = icom_current_vfo(rig);
     priv->poweron = 1;
 
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
@@ -1021,10 +1155,17 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
+#if 0
+
     if (rig->state.current_vfo == RIG_VFO_NONE)
     {
+        TRACE;
         icom_set_default_vfo(rig);
     }
+
+#endif
+
+#if 0
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1032,6 +1173,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: currVFO asked for so vfo set to %s\n", __func__,
                   rig_strvfo(vfo));
     }
+
+#endif
 
     if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ))
     {
@@ -1062,13 +1205,15 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // mike
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
     {
-        vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B;
+        vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B
+                               | RIG_VFO_OTHER;
 
         // if we are on the "other" vfo already then we have to allow for that
         if (rig->state.current_vfo & vfo_unselected)
         {
             TRACE;
-            vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A;
+            vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
+                             RIG_VFO_OTHER;
         }
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): vfo=%s, currvfo=%s\n", __func__, __LINE__,
@@ -1179,7 +1324,9 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     case RIG_VFO_SUB: priv->sub_freq = freq; break;
 
-    case RIG_VFO_CURR: break;
+    case RIG_VFO_CURR: priv->curr_freq = freq; break;
+
+    case RIG_VFO_OTHER: priv->other_freq = freq; break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO?  VFO=%s\n", __func__,
@@ -1305,6 +1452,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: using vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
+#if 0
+
     if (rig->state.current_vfo == RIG_VFO_NONE)
     {
         // we default to VFOA/MAIN as appropriate
@@ -1319,18 +1468,22 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         }
     }
 
+#endif
+
     // we'll use 0x25 command to get unselected frequency
     // we have to assume current_vfo is accurate to determine what "other" means
     if (priv->x25cmdfails == 0)
     {
         int cmd2 = 0x25;
         int subcmd2 = 0x00;
-        vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B;
+        vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B
+                               | RIG_VFO_OTHER;
 
         // if we are on the "other" vfo already then we have to allow for that
         if (rig->state.current_vfo & vfo_unselected)
         {
-            vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A;
+            vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
+                             RIG_VFO_OTHER;
         }
 
         // if we ask for unselected but we're not on unselected subcmd2 changes
@@ -1445,7 +1598,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     case RIG_VFO_SUB: priv->sub_freq = *freq; break;
 
-    case RIG_VFO_CURR: break;
+    case RIG_VFO_OTHER: priv->other_freq = *freq; break;
+
+    case RIG_VFO_CURR: priv->curr_freq = *freq; break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO?  VFO=%s\n", __func__,
@@ -1746,12 +1901,14 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
 
     int cmd2 = 0x26;
     int subcmd2 = 0x00;
-    vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B;
+    vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B
+                           | RIG_VFO_OTHER;
 
     // if we are on the "other" vfo already then we have to allow for that
     if (rig->state.current_vfo & vfo_unselected)
     {
-        vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A;
+        vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
+                         RIG_VFO_OTHER;
     }
 
     // if we ask for unselected but we're not on unselected subcmd2 changes
@@ -2180,6 +2337,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     unsigned char modebuf[MAXFRAMELEN];
     const struct icom_priv_caps *priv_caps;
     struct icom_priv_data *priv_data;
+    vfo_t vfocurr = vfo_fixup(rig, rig->state.current_vfo, 0);
     int mode_len, retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
@@ -2188,15 +2346,19 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     *width = 0;
 
+    TRACE;
+
     // IC7800 can set but not read with 0x26
     if ((rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
             && rig->caps->rig_model != RIG_MODEL_IC7800)
     {
         int vfosel = 0x00;
         vfo_t vfoask = vfo_fixup(rig, vfo, 0);
-        vfo_t vfocurr = vfo_fixup(rig, rig->state.current_vfo, 0);
 
-        if (vfo != RIG_VFO_CURR && vfoask != vfocurr) { vfosel = 0x01; }
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfoask=%s, vfocurr=%s\n", __func__,
+                  rig_strvfo(vfo), rig_strvfo(vfoask), rig_strvfo(vfocurr));
+
+        if (vfoask != RIG_VFO_CURR && vfoask != vfocurr) { vfosel = 0x01; }
 
         // use cache for the non-selected VFO -- can't get it by VFO
         // this avoids vfo swapping but accurate answers for these rigs
@@ -2350,44 +2512,21 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     RETURNFUNC(RIG_OK);
 }
 
-#ifdef XXREMOVEDXX
-// not implemented yet
 /*
  * icom_get_vfo
- * The IC-9700 has introduced the ability to see MAIN/SUB selection
- * Maybe we'll see this in future ICOMs or firmware upgrades
- * Command 0x07 0XD2 -- but as of version 1.05 it doesn't work
- * We will, by default, force Main=VFOA and Sub=VFOB, and may want
- * an option to not force that behavior
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
 int icom_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    unsigned char ackbuf[MAXFRAMELEN];
-    int ack_len = sizeof(ackbuf), retval;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    *vfo = icom_current_vfo(rig);
 
-    retval = icom_transaction(rig, C_SET_VFO, S_SUB_SEL, NULL, 0,
-                              ackbuf, &ack_len);
+    if (vfo == NULL) { RETURNFUNC(-RIG_EINTERNAL); }
 
-    if (retval != RIG_OK)
-    {
-        RETURNFUNC(retval);
-    }
-
-    if (ack_len != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s wrong frame len=%d\n", __func__, ack_len);
-        RETURNFUNC(-RIG_ERJCTED);
-    }
-
-    *vfo = ackbuf[2] == 0 ? RIG_VFO_A : RIG_VFO_B;
     RETURNFUNC(RIG_OK);
 }
-#endif
 
 /*
- * icom_get_vfo
+ * icom_set_vfo
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
 int icom_set_vfo(RIG *rig, vfo_t vfo)
@@ -4978,6 +5117,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (rig->state.current_vfo == RIG_VFO_NONE)
     {
+        TRACE;
         retval = icom_set_default_vfo(rig);
 
         if (retval != RIG_OK)
@@ -5218,6 +5358,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
     if (rig->state.current_vfo == RIG_VFO_NONE)
     {
+        TRACE;
         icom_set_default_vfo(rig);
     }
 
@@ -5645,6 +5786,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
 
     if (rig->state.current_vfo == RIG_VFO_NONE)
     {
+        TRACE;
         icom_set_default_vfo(rig);
     }
 
@@ -7961,6 +8103,9 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         RETURNFUNC(retval);
     }
 
+    // since we're messing with VFOs our cache may be invalid
+    CACHE_RESET;
+
     if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
     {
         //  if we don't get ACK/NAK some serial corruption occurred
@@ -8841,6 +8986,7 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     // So if you ask for frequency or such without setting VFO first you'll get Main/VFOA
     if (rig->state.current_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
+        TRACE;
         icom_set_default_vfo(rig);
     }
     // asking for vfo_curr so give it to them
