@@ -158,7 +158,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
 #define ELAPSED1 clock_t __begin = clock()
-#define ELAPSED2 double __elapsed = ((double)clock() - __begin) / CLOCKS_PER_SEC*1000; rig_debug(RIG_DEBUG_TRACE, "%s: elapsed=%.0lfms\n", __func__, __elapsed)
+#define ELAPSED2 rig_debug(RIG_DEBUG_TRACE, "%s: elapsed=%.0lfms\n", __func__, ((double)clock() - __begin) / CLOCKS_PER_SEC * 1000)
 
 /*
  * Data structure to track the opened rig (by rig_open)
@@ -2266,6 +2266,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
+    ELAPSED1;
 
     // do not mess with mode while PTT is on
     if (rig->state.cache.ptt)
@@ -2328,6 +2329,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     set_cache_mode(rig, vfo, mode, width);
 
+    ELAPSED2;
     RETURNFUNC(retcode);
 }
 
@@ -2363,6 +2365,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     freq_t freq;
 
     ENTERFUNC;
+    ELAPSED1;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -2397,6 +2400,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
         rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age mode=%dms, width=%dms\n",
                   __func__, cache_ms_mode, cache_ms_width);
 
+        ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
     else
@@ -2468,6 +2472,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     set_cache_mode(rig, vfo, *mode, *width);
     cache_show(rig, __func__, __LINE__);
 
+    ELAPSED2;
     RETURNFUNC(retcode);
 }
 
