@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20210922"
+#define BACKEND_VER "20210926"
 
 #define ICOM_IS_SECONDARY_VFO(vfo) ((vfo) & (RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B))
 #define ICOM_GET_VFO_NUMBER(vfo) (ICOM_IS_SECONDARY_VFO(vfo) ? 0x01 : 0x00)
@@ -265,6 +265,7 @@ struct icom_priv_data
     unsigned char datamode; /*!< Current datamode */
     int spectrum_scope_count; /*!< Number of spectrum scopes, calculated from caps */
     struct icom_spectrum_scope_cache spectrum_scope_cache[HAMLIB_MAX_SPECTRUM_SCOPES]; /*!< Cached Icom spectrum scope data used during reception of the data. The array index must match the scope ID. */
+    freq_t other_freq; /*!< Our other freq depending on which vfo is selected */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];

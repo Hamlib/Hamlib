@@ -10,6 +10,8 @@ Version 4.4
         * 2021-??-??
         * Icom rigs now default filter 2 when setting PKTUSB but user can override 
         * Fix FTDX9000 meter readings
+        * Add Android sensor as a rotator
+        * Added rig_get_vfo to some Icom rigs that have XCHG or 0x25 command capability
 
 Version 4.3.1
         * 2021-09-14
