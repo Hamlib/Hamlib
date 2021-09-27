@@ -305,49 +305,49 @@
 /*
  * Function settings (C_CTL_FUNC) subcommands  Set and Read
  */
-#define S_FUNC_PAMP   0x02		/* Preamp setting */
-#define S_FUNC_AGCOFF 0x10		/* IC-R8500 only */
-#define S_FUNC_AGCON  0x11		/* IC-R8500 only */
-#define S_FUNC_AGC    0x12		/* AGC setting presets: the dsp models allow these to be modified */
-#define S_FUNC_NBOFF  0x20		/* IC-R8500 only */
-#define S_FUNC_NBON   0x21		/* IC-R8500 only */
-#define S_FUNC_NB     0x22		/* NB setting */
-#define S_FUNC_APFOFF 0x30		/* IC-R8500 only */
-#define S_FUNC_APFON  0x31		/* IC-R8500 only */
-#define S_FUNC_APF    0x32		/* APF setting */
-#define S_FUNC_NR     0x40		/* NR setting */
-#define S_FUNC_ANF    0x41		/* ANF setting */
-#define S_FUNC_TONE   0x42		/* TONE setting */
-#define S_FUNC_TSQL   0x43		/* TSQL setting */
-#define S_FUNC_COMP   0x44		/* COMP setting */
-#define S_FUNC_MON    0x45		/* Monitor setting */
-#define S_FUNC_VOX    0x46		/* VOX setting */
-#define S_FUNC_BKIN   0x47		/* BK-IN setting */
-#define S_FUNC_MN     0x48		/* Manual notch setting */
-#define S_FUNC_RF	0x49		/* RTTY Filter setting */
-#define S_FUNC_AFC  	0x4A        	/* Auto Frequency Control (AFC) setting */
-#define S_FUNC_CSQL	0x4B		/* DTCS tone code squelch setting*/
-#define S_FUNC_VSC	0x4C		/* voice squelch control useful for scanning*/
-#define S_FUNC_MANAGC	0x4D		/* manual AGC */
-#define S_FUNC_DIGISEL	0x4E		/* DIGI-SEL */
-#define S_FUNC_TW_PK	0x4F		/* RTTY Twin Peak filter 0= off 1 = on */
-#define S_FUNC_DIAL_LK	0x50		/* Dial lock */
-#define S_FUNC_P25SQL	0x52		/* P25 DSQL */
-#define S_FUNC_ANTRX	0x53		/* ANT-RX */
-#define S_FUNC_IF1F	0x55		/* 1st IF filter */
-#define S_FUNC_DSPF	0x56		/* DSP filter */
-#define S_FUNC_MANN	0x57		/* Manual notch width */
-#define S_FUNC_SSBT	0x58		/* SSB Tx bandwidth */
-#define S_FUNC_SUBB	0x59		/* Sub band */
-#define S_FUNC_SATM	0x5A		/* Satellite mode */
-#define S_FUNC_DSSQL	0x5B		/* D-STAR DSQL */
-#define S_FUNC_DPSQL	0x5F		/* dPMR DSQL */
-#define S_FUNC_NXSQL	0x60		/* NXDN DSQL */
-#define S_FUNC_DCSQL	0x61		/* DCR DSQL */
-#define S_FUNC_DPSCM	0x62		/* dPMR scrambler */
-#define S_FUNC_NXENC	0x63		/* NXDN encryption */
-#define S_FUNC_DCENC	0x64		/* DCR encryption */
-#define S_FUNC_IPP	0x65		/* IP+ setting */
+#define S_FUNC_PAMP    0x02		/* Preamp setting */
+#define S_FUNC_AGCOFF  0x10		/* IC-R8500 only */
+#define S_FUNC_AGCON   0x11		/* IC-R8500 only */
+#define S_FUNC_AGC     0x12		/* AGC setting presets: the dsp models allow these to be modified */
+#define S_FUNC_NBOFF   0x20		/* IC-R8500 only */
+#define S_FUNC_NBON    0x21		/* IC-R8500 only */
+#define S_FUNC_NB      0x22		/* NB setting */
+#define S_FUNC_APFOFF  0x30		/* IC-R8500 only */
+#define S_FUNC_APFON   0x31		/* IC-R8500 only */
+#define S_FUNC_APF     0x32		/* APF setting */
+#define S_FUNC_NR      0x40		/* NR setting */
+#define S_FUNC_ANF     0x41		/* ANF setting */
+#define S_FUNC_TONE    0x42		/* TONE setting */
+#define S_FUNC_TSQL    0x43		/* TSQL setting */
+#define S_FUNC_COMP    0x44		/* COMP setting */
+#define S_FUNC_MON     0x45		/* Monitor setting */
+#define S_FUNC_VOX     0x46		/* VOX setting */
+#define S_FUNC_BKIN    0x47		/* BK-IN setting */
+#define S_FUNC_MN      0x48		/* Manual notch setting */
+#define S_FUNC_RF      0x49		/* RTTY Filter setting */
+#define S_FUNC_AFC     0x4A     /* Auto Frequency Control (AFC) setting */
+#define S_FUNC_CSQL    0x4B		/* DTCS tone code squelch setting*/
+#define S_FUNC_VSC     0x4C		/* voice squelch control useful for scanning*/
+#define S_FUNC_MANAGC  0x4D		/* manual AGC */
+#define S_FUNC_DIGISEL 0x4E		/* DIGI-SEL */
+#define S_FUNC_TW_PK   0x4F		/* RTTY Twin Peak filter 0= off 1 = on */
+#define S_FUNC_DIAL_LK 0x50		/* Dial lock */
+#define S_FUNC_P25SQL  0x52		/* P25 DSQL */
+#define S_FUNC_ANTRX   0x53		/* ANT-RX */
+#define S_FUNC_IF1F    0x55		/* 1st IF filter */
+#define S_FUNC_DSPF    0x56		/* DSP filter */
+#define S_FUNC_MANN    0x57		/* Manual notch width */
+#define S_FUNC_SSBT    0x58		/* SSB Tx bandwidth */
+#define S_FUNC_SUBB    0x59		/* Sub band */
+#define S_FUNC_SATM    0x5A		/* Satellite mode */
+#define S_FUNC_DSSQL   0x5B		/* D-STAR DSQL */
+#define S_FUNC_DPSQL   0x5F		/* dPMR DSQL */
+#define S_FUNC_NXSQL   0x60		/* NXDN DSQL */
+#define S_FUNC_DCSQL   0x61		/* DCR DSQL */
+#define S_FUNC_DPSCM   0x62		/* dPMR scrambler */
+#define S_FUNC_NXENC   0x63		/* NXDN encryption */
+#define S_FUNC_DCENC   0x64		/* DCR encryption */
+#define S_FUNC_IPP     0x65		/* IP+ setting */
 
 /*
  * Set Power On/Off (C_SET_PWR) subcommands
