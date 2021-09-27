@@ -373,23 +373,23 @@
 /*
  * RIT/XIT control (C_CTL_RIT) subcommands
  */
-#define S_RIT_FREQ	0x00
-#define S_RIT	0x01	/* RIT 0 = OFF, 1 = ON */
-#define S_XIT	0x02	/* XIT (delta TX) 0 = OFF, 1 = ON */
+#define S_RIT_FREQ 0x00
+#define S_RIT      0x01	/* RIT 0 = OFF, 1 = ON */
+#define S_XIT      0x02	/* XIT (delta TX) 0 = OFF, 1 = ON */
 
 /*
  * Misc contents (C_CTL_MEM) subcommands applies to newer rigs.
  *
  * Beware the IC-7200 which is non-standard.
  */
-#define S_MEM_CNTNT		0x00	/* Memory content 2 bigendian */
-#define S_MEM_BAND_REG		0x01	/* band stacking register */
-#define S_MEM_FILT_WDTH		0x03	/* current passband filter width */
-#define S_MEM_PARM		0x05	/* rig parameters; extended parm # + param value:  should be coded */
-					/* in the rig files because they are different for each rig */
-#define S_MEM_DATA_MODE		0x06	/* data mode */
-#define S_MEM_TX_PB		0x07	/* SSB tx passband */
-#define S_MEM_FLTR_SHAPE	0x08	/* DSP filter shape 0=sharp 1=soft */
+#define S_MEM_CNTNT	     0x00	/* Memory content 2 bigendian */
+#define S_MEM_BAND_REG   0x01	/* band stacking register */
+#define S_MEM_FILT_WDTH  0x03	/* current passband filter width */
+#define S_MEM_PARM       0x05	/* rig parameters; extended parm # + param value:  should be coded */
+            					/* in the rig files because they are different for each rig */
+#define S_MEM_DATA_MODE  0x06	/* data mode */
+#define S_MEM_TX_PB      0x07	/* SSB tx passband */
+#define S_MEM_FLTR_SHAPE 0x08	/* DSP filter shape 0=sharp 1=soft */
 
 					/* Icr75c */
 #define S_MEM_CNTNT_SLCT	0x01
@@ -431,18 +431,18 @@
 /*
  * Tone control (C_SET_TONE) subcommands
  */
-#define S_TONE_RPTR	0x00		/* Tone frequency setting for repeater receive */
-#define S_TONE_SQL	0x01		/* Tone frequency setting for squelch */
-#define S_TONE_DTCS	0x02		/* DTCS code and polarity for squelch */
-#define S_TONE_P25NAC	0x03		/* P25 NAC */
-#define S_TONE_DSCSQL	0x07		/* D-STAR CSQL */
-#define S_TONE_DPCOM	0x08		/* dPMR COM ID */
-#define S_TONE_DPCC	0x09		/* dPMR CC */
-#define S_TONE_NXRAN	0x0A		/* NXDN RAN */
-#define S_TONE_DCUC	0x0B		/* DCR UC */
-#define S_TONE_DPSCK	0x0C		/* dPMR scrambler key */
-#define S_TONE_NXENK	0x0D		/* NXDN encryption key */
-#define S_TONE_DCENK	0x0E		/* DCR encryption key */
+#define S_TONE_RPTR   0x00		/* Tone frequency setting for repeater receive */
+#define S_TONE_SQL    0x01		/* Tone frequency setting for squelch */
+#define S_TONE_DTCS   0x02		/* DTCS code and polarity for squelch */
+#define S_TONE_P25NAC 0x03		/* P25 NAC */
+#define S_TONE_DSCSQL 0x07		/* D-STAR CSQL */
+#define S_TONE_DPCOM  0x08		/* dPMR COM ID */
+#define S_TONE_DPCC   0x09		/* dPMR CC */
+#define S_TONE_NXRAN  0x0A		/* NXDN RAN */
+#define S_TONE_DCUC   0x0B		/* DCR UC */
+#define S_TONE_DPSCK  0x0C		/* dPMR scrambler key */
+#define S_TONE_NXENK  0x0D		/* NXDN encryption key */
+#define S_TONE_DCENK  0x0E		/* DCR encryption key */
 
 /*
  * Transceiver ID (C_RD_TRXID) subcommands
