@@ -876,6 +876,15 @@ static vfo_t icom_current_vfo(RIG *rig)
 
     if (fCurr == f2)
     {
+        if (priv->vfo_flag != 0)
+        {
+            // we can't change freqs unless rig is idle and we don't know that
+            // so we only check vfo once when freqs are equal
+            rig_debug(RIG_DEBUG_TRACE,"%s: vfo already determined...returning current_vfo", __func__);
+            return rig->state.current_vfo;
+        }
+        priv->vfo_flag = 1;
+
         fOffset = 100;
         rig_set_freq(rig, RIG_VFO_CURR, fCurr + fOffset);
     }
