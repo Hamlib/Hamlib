@@ -775,12 +775,23 @@ static vfo_t icom_current_vfo_x25(RIG *rig)
     freq_t fCurr, f2, f3;
     vfo_t currVFO = RIG_VFO_NONE;
     vfo_t chkVFO = RIG_VFO_A;
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
     rig_get_freq(rig, RIG_VFO_CURR, &fCurr);
     rig_get_freq(rig, RIG_VFO_OTHER, &f2);
 
     if (fCurr == f2)
     {
+        if (priv->vfo_flag != 0)
+        {
+            // we can't change freqs unless rig is idle and we don't know that
+            // so we only check vfo once when freqs are equal
+            rig_debug(RIG_DEBUG_TRACE,"%s: vfo already determined...returning current_vfo", __func__);
+            return rig->state.current_vfo;
+        }
+        priv->vfo_flag = 1;
+
         fOffset = 100;
         rig_set_freq(rig, RIG_VFO_CURR, fCurr + fOffset);
     }
@@ -822,10 +833,7 @@ static vfo_t icom_current_vfo(RIG *rig)
 
     if (priv->x25cmdfails == 0) // these newer rigs get special treatment
     {
-        if (access("w9mdb.txt", F_OK) != -1)
-        {
-            return icom_current_vfo_x25(rig);
-        }
+        return icom_current_vfo_x25(rig);
     }
     else if (rig->state.cache.ptt) // don't do this if transmitting -- XCHG would mess it up
     {
@@ -1846,23 +1854,46 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
         }
     }
 
-    if (mode & RIG_MODE_AM)
+    switch (rig->caps->rig_model)
     {
-        flt_idx = (width / 200) - 1;  /* TBC: Ic_7800? */
-    }
-    else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY |
-                     RIG_MODE_RTTYR))
-    {
-        if (width == 0)
+    case RIG_MODEL_IC7000:
+    case RIG_MODEL_IC7800:
+        if (mode & RIG_MODE_AM)
         {
-            width = 1;
+            flt_idx = (width / 200) - 1;  /* TBC: IC_7800? */
+        }
+        else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY |
+                         RIG_MODE_RTTYR))
+        {
+            if (width == 0)
+            {
+                width = 1;
+            }
+
+            flt_idx =
+                width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
+        }
+        else
+        {
+            RETURNFUNC(RIG_OK);
         }
 
-        flt_idx =
-            width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
-    }
-    else
-    {
+        break;
+
+    case RIG_MODEL_IC7300:
+        if (mode & RIG_MODE_AM)
+        {
+            flt_idx = (width / 200) - 1;  /* TBC: IC_7800? */
+        }
+        else
+        {
+            flt_idx =
+                width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
+        }
+
+        break;
+
+    default:
         RETURNFUNC(RIG_OK);
     }
 
