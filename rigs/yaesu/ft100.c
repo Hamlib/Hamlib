@@ -316,7 +316,7 @@ const struct rig_caps ft100_caps =
     RIG_MODEL(RIG_MODEL_FT100),
     .model_name =     "FT-100",
     .mfg_name =       "Yaesu",
-    .version =        "20210110.0",
+    .version =        "20210928.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -955,15 +955,13 @@ int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 /*
  * Rem: The FT-100(D) has no set_level ability
  */
-
-/*
- * blind implementation of get_level.
- * Please test on real hardware and send report on hamlib mailing list
- */
 int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 
     int ret;
+    int split = rig->state.cache.split;
+    int ptt = rig->state.cache.ptt;
+
     FT100_METER_INFO ft100_meter;
 
     if (!rig) { return -RIG_EINVAL; }
@@ -972,7 +970,10 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, rig_strlevel(level));
 
+    // if in split have to switch to VFOB to read power and back to VFOA
+    if (split && ptt) rig_set_vfo(rig, RIG_VFO_B);
     ret = ft100_send_priv_cmd(rig, FT100_NATIVE_CAT_READ_METERS);
+    if (split && ptt) rig_set_vfo(rig, RIG_VFO_A);
 
     if (ret != RIG_OK)
     {
