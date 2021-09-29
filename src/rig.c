@@ -6800,13 +6800,13 @@ const char *HAMLIB_API rig_copyright()
 #ifdef PTHREAD
 #define MUTEX_LOCK(var) pthread_mutex_lock(var)
 #else
-#define MUTEX_LOCK1(var)
+#define MUTEX_LOCK(var)
 #endif
 
 #ifdef PTHREAD
 #define MUTEX_UNLOCK(var)  pthread_mutex_unlock(var)
 #else
-#define MUTEX_UNLOCK2(var)
+#define MUTEX_UNLOCK(var)
 #endif
 
 /**
