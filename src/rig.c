@@ -1866,8 +1866,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 RIG_OK); // would be better as error but other software won't handle errors
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: TARGETABLE_FREQ vfo=%s\n", __func__,
-                  rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE, "%s: TARGETABLE_FREQ vfo=%s\n", __func__, rig_strvfo(vfo));
         int retry = 3;
         freq_t tfreq = 0;
 
@@ -1916,8 +1915,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: not a TARGETABLE_FREQ vfo=%s\n", __func__,
-                  rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_TRACE, "%s: not a TARGETABLE_FREQ vfo=%s\n", __func__, rig_strvfo(vfo));
 
         if (!caps->set_vfo)
         {
@@ -1929,7 +1927,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (retcode != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: set_vfo failed: %s\n", __func__,
-                      rig_strerror(retcode));
+                      rigerror(retcode));
         }
 
 
