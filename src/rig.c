@@ -1924,6 +1924,15 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+        retcode = rig_set_vfo(rig, vfo);
+
+        if (retcode != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: set_vfo failed: %s\n", __func__,
+                      rig_strerror(retcode));
+        }
+
+
         if (twiddling(rig))
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_freq due to VFO twiddling\n",
