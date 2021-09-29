@@ -967,10 +967,6 @@ icom_rig_open(RIG *rig)
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
             RETURNFUNC(retval);
         }
-
-        // Determine active vfo again since it would have failed the 1st time
-        rig->state.current_vfo = icom_current_vfo(rig);
-        icom_current_vfo(rig);
     }
 
     rig->state.current_vfo = icom_current_vfo(rig);
@@ -1736,7 +1732,12 @@ int icom_set_xit_new(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
     Has been tested for IC-746pro,  Should work on the all dsp rigs ie pro models.
     The 746 documentation says it has the get_if_filter, but doesn't give any decoding information ? Please test.
+
+   DSP filter setting ($1A$03), but not supported by every rig,
+   and some models like IC910/Omni VI Plus have a different meaning for
+   this subcommand
 */
+   
 
 pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 {
@@ -1750,6 +1751,9 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=%s\n", __func__,
               rig_strrmode(mode));
+
+    // only these models that we know of -- keep set_dsp_flt in sync
+    if ((rig->caps->rig_model & (RIG_MODEL_IC7000 | RIG_MODEL_IC7800 | RIG_MODEL_IC7300 || RIG_MODEL_IC9700 || RIG_MODEL_IC7610)) == 0) RETURNFUNC(RIG_OK);
 
     if (rig_has_get_func(rig, RIG_FUNC_RF)
             && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR)))
@@ -1830,6 +1834,9 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
                                S_MEM_FILT_WDTH;
 
     ENTERFUNC;
+
+    // only these models that we know of -- keep get_dsp in sync here
+    if ((rig->caps->rig_model & (RIG_MODEL_IC7000 | RIG_MODEL_IC7800 | RIG_MODEL_IC7300 || RIG_MODEL_IC9700 || RIG_MODEL_IC7610)) == 0) RETURNFUNC(RIG_OK);
 
     if (RIG_PASSBAND_NOCHANGE == width)
     {
@@ -2238,14 +2245,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(-RIG_ERJCTED);
     }
 
-    /* DSP filter setting ($1A$03), but not supported by every rig,
-     * and some models like IC910/Omni VI Plus have a different meaning for
-     * this subcommand
-     */
-    if (rig->caps->rig_model == RIG_MODEL_IC7000)
-    {
-        icom_set_dsp_flt(rig, mode, width);
-    }
+    icom_set_dsp_flt(rig, mode, width);
 
     RETURNFUNC(RIG_OK);
 }
@@ -2552,6 +2552,9 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     RETURNFUNC(RIG_OK);
 }
 
+#if 0
+// this seems to work but not for cqrlog and user twiddling VFO knob.
+// may be able to use twiddle but will disable for now
 /*
  * icom_get_vfo
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -2564,6 +2567,7 @@ int icom_get_vfo(RIG *rig, vfo_t *vfo)
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
 /*
  * icom_set_vfo
