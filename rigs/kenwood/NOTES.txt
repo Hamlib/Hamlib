@@ -1,0 +1,1 @@
+FT-100 PTT source is determined by mode, rear connector used in data mode
