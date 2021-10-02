@@ -1738,6 +1738,7 @@ int icom_set_xit_new(RIG *rig, vfo_t vfo, shortfreq_t ts)
    this subcommand
 */
    
+int filtericom[] = { 50,100,150,200,250,300,350,400,450,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000,3100,3200,3300,3400,3500,3600 };
 
 pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 {
@@ -1751,9 +1752,6 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=%s\n", __func__,
               rig_strrmode(mode));
-
-    // only these models that we know of -- keep set_dsp_flt in sync
-    if ((rig->caps->rig_model & (RIG_MODEL_IC7000 | RIG_MODEL_IC7800 | RIG_MODEL_IC7300 || RIG_MODEL_IC9700 || RIG_MODEL_IC7610)) == 0) RETURNFUNC(RIG_OK);
 
     if (rig_has_get_func(rig, RIG_FUNC_RF)
             && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR)))
@@ -1790,14 +1788,14 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     if (-RIG_ERJCTED == retval)
     {
         priv->no_1a_03_cmd = -1;  /* do not keep asking */
-        return (0);
+        return (RIG_OK);
     }
 
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), "
                   "len=%d\n", __func__, resbuf[0], res_len);
-        return (0);        /* use default */
+        return (RIG_OK);        /* use default */
     }
 
     if (res_len == 3 && resbuf[0] == C_CTL_MEM)
@@ -1809,18 +1807,22 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
         if (mode & RIG_MODE_AM)
         {
-            return ((i + 1) * 200); /* Ic_7800 */
+            if (i > 49) {
+                rig_debug(RIG_DEBUG_ERR, "%s: Expected max 49, got %d for filter\n", __func__, i);
+                RETURNFUNC(-RIG_EPROTO);
+            }
+            return ((i + 1) * 200); /* All Icoms that we know of */
         }
         else if (mode &
                  (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY |
                   RIG_MODE_RTTYR | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB))
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: using width=%d\n", __func__, i);
-            RETURNFUNC(i < 10 ? (i + 1) * 50 : (i - 4) * 100);
+            rig_debug(RIG_DEBUG_TRACE, "%s: using filtericom width=%d\n", __func__, i);
+            RETURNFUNC(filtericom[i]);
         }
     }
 
-    RETURNFUNC(0);
+    RETURNFUNC(RIG_OK);
 }
 
 int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
@@ -1830,14 +1832,13 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
     unsigned char flt_ext;
     value_t rfwidth;
     int ack_len = sizeof(ackbuf), flt_idx;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     unsigned char fw_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x02 :
                                S_MEM_FILT_WDTH;
 
     ENTERFUNC;
 
-    // only these models that we know of -- keep get_dsp in sync here
-    if ((rig->caps->rig_model & (RIG_MODEL_IC7000 | RIG_MODEL_IC7800 | RIG_MODEL_IC7300 || RIG_MODEL_IC9700 || RIG_MODEL_IC7610)) == 0) RETURNFUNC(RIG_OK);
-
+    
     if (RIG_PASSBAND_NOCHANGE == width)
     {
         RETURNFUNC(RIG_OK);
@@ -1869,47 +1870,26 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
             RETURNFUNC(-RIG_EINVAL);
         }
     }
+    if (priv->no_1a_03_cmd) RETURNFUNC(RIG_OK); // don't bother to try since it doesn't work
 
-    switch (rig->caps->rig_model)
+    if (mode & RIG_MODE_AM)
     {
-    case RIG_MODEL_IC7000:
-    case RIG_MODEL_IC7800:
-        if (mode & RIG_MODE_AM)
+        flt_idx = (width / 200) - 1;  /* TBC: IC_7800? */
+    }
+    else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY |
+                     RIG_MODE_RTTYR))
+    {
+        if (width == 0)
         {
-            flt_idx = (width / 200) - 1;  /* TBC: IC_7800? */
-        }
-        else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY |
-                         RIG_MODE_RTTYR))
-        {
-            if (width == 0)
-            {
-                width = 1;
-            }
-
-            flt_idx =
-                width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
-        }
-        else
-        {
-            RETURNFUNC(RIG_OK);
+            width = 1;
         }
 
-        break;
-
-    case RIG_MODEL_IC7300:
-        if (mode & RIG_MODE_AM)
-        {
-            flt_idx = (width / 200) - 1;  /* TBC: IC_7800? */
-        }
-        else
-        {
-            flt_idx =
-                width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
-        }
-
-        break;
-
-    default:
+        flt_idx =
+            width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown mode=%s\n", __func__, rig_strrmode(mode));
         RETURNFUNC(RIG_OK);
     }
 
@@ -1917,6 +1897,12 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
 
     retval = icom_transaction(rig, C_CTL_MEM, fw_sub_cmd, &flt_ext, 1,
                               ackbuf, &ack_len);
+
+    if (-RIG_ERJCTED == retval)
+    {
+        priv->no_1a_03_cmd = -1;  /* do not keep asking */
+        return (RIG_OK);
+    }
 
     if (retval != RIG_OK)
     {
@@ -7663,7 +7649,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     }
 
     i = 0;
-    retry = 1;
+    retry = 3;
 
     if (status == RIG_POWER_ON)   // wait for wakeup only
     {
