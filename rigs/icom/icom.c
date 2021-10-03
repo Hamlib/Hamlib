@@ -2008,7 +2008,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         RETURNFUNC(retval);
     }
 
-    if (tmode == mode && width == RIG_PASSBAND_NOCHANGE)
+    if (tmode == mode && ((width == RIG_PASSBAND_NOCHANGE) || (width == twidth))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: mode/width not changing\n", __func__);
         RETURNFUNC(RIG_OK);
