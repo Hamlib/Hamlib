@@ -316,7 +316,7 @@ const struct rig_caps ft100_caps =
     RIG_MODEL(RIG_MODEL_FT100),
     .model_name =     "FT-100",
     .mfg_name =       "Yaesu",
-    .version =        "20210928.0",
+    .version =        "20210929.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -912,6 +912,7 @@ int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 
     unsigned char cmd_index;
+    int split = rig->state.cache.split;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -919,16 +920,18 @@ int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     {
     case RIG_PTT_ON:
         cmd_index = FT100_NATIVE_CAT_PTT_ON;
+        if (split) rig_set_vfo(rig,RIG_VFO_B);
         break;
 
     case RIG_PTT_OFF:
         cmd_index = FT100_NATIVE_CAT_PTT_OFF;
+        if (split) rig_set_vfo(rig,RIG_VFO_A);
+        hl_usleep(100*1000); // give ptt some time to do it's thing -- fake it was not reseting freq after tx
         break;
 
     default:
         return -RIG_EINVAL;
     }
-
     return ft100_send_priv_cmd(rig, cmd_index);
 }
 
