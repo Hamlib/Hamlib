@@ -1,0 +1,13 @@
+This is all about building hamlib inside docker contariner - so that you do not need to install dependencied on your local machine.
+
+1. Build docker container
+
+(cd docker-build && docker build --no-cache -t this.registry.is.invalid/hamlib-build .)
+
+2. Build hamlib
+
+docker run -ti -u root -v $(pwd):/home/hamlib/build -v /usr/local/hamlib-alpha:/usr/local/hamlib-alpha this.registry.is.invalid/hamlib-build
+
+3. Execute hamlib
+
+/usr/local/hamlib-alpha/bin/rigctl <your options here>
