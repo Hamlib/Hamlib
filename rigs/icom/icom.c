@@ -7604,12 +7604,17 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     int fe_max = 175;
     unsigned char fe_buf[fe_max]; // for FE's to power up
     int i;
-    int retry;
+    int retry, retry_save;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__,
               (int) status);
+
+    // elimininate retries to speed this up
+    // especially important when rig is not turned on
+    retry_save = rs->rigport.retry;
+    rs->rigport.retry = 0;
 
     switch (status)
     {
@@ -7628,40 +7633,31 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
         fe_buf[0] = 0;
-        retry = rs->rigport.retry;
-        rs->rigport.retry = 0;
         priv->serial_USB_echo_off = 1;
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
-        rs->rigport.retry = retry;
-        // why was this sleep here?  We'll try without it
-        //hl_usleep(3000 * 1000); // give it 3 seconds to wake up
 
         break;
 
     default:
         pwr_sc = S_PWR_OFF;
         fe_buf[0] = 0;
-        retry = rs->rigport.retry;
-        rs->rigport.retry = 0;
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
-        rs->rigport.retry = retry;
     }
 
     i = 0;
-    retry = 3;
+    retry = 2;
 
     if (status == RIG_POWER_ON)   // wait for wakeup only
     {
-
         for (i = 0; i < retry; ++i)   // up to 10 attempts
         {
             freq_t freq;
-            sleep(1);
             // need to see if echo is on or not first
             // until such time as rig is awake we don't know
-            icom_get_usb_echo_off(rig);
+            retval = icom_get_usb_echo_off(rig);
+            if (retval == -RIG_ETIMEOUT) continue;
 
             // Use get_freq as all rigs should repond to this
             retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
@@ -7680,6 +7676,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
                       __func__, i + 1, retry);
         }
     }
+    rs->rigport.retry = retry_save;
 
     if (i == retry)
     {
