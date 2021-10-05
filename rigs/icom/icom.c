@@ -7629,13 +7629,13 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // sending more than enough 0xfe's to wake up the rs232
         write_block(&rs->rigport, (char *) fe_buf, fe_max);
 
-        hl_usleep(100 * 1000);
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
         fe_buf[0] = 0;
         priv->serial_USB_echo_off = 1;
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
+        hl_usleep(4000*1000); // give some time to wake up
 
         break;
 
@@ -7647,7 +7647,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     }
 
     i = 0;
-    retry = 2;
+    retry = 3;
 
     if (status == RIG_POWER_ON)   // wait for wakeup only
     {
@@ -7657,7 +7657,10 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
             // need to see if echo is on or not first
             // until such time as rig is awake we don't know
             retval = icom_get_usb_echo_off(rig);
-            if (retval == -RIG_ETIMEOUT) continue;
+            if (retval == -RIG_ETIMEOUT) {
+                rig_debug(RIG_DEBUG_WARN, "%s: get_usb_echo_off timeout...try#%d\n", __func__, i+1);
+                continue;
+            }
 
             // Use get_freq as all rigs should repond to this
             retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
