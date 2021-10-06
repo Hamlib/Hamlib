@@ -39,13 +39,21 @@
 
 /* ************************************************************************* */
 
-static NdkImu *imu;
+struct androidsensor_rot_priv_data
+{
+    NdkImu *imu;
+    azimuth_t target_az;
+    elevation_t target_el;
+};
 
 static int
 androidsensor_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
-    // To-Do
+    struct androidsensor_rot_priv_data *priv = (struct androidsensor_rot_priv_data *)rot->state.priv;
+
+    priv->target_az = az;
+    priv->target_el = el;
     return RIG_OK;
 }
 
@@ -53,31 +61,24 @@ static int
 androidsensor_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called: ", __func__);
+    struct androidsensor_rot_priv_data *priv = (struct androidsensor_rot_priv_data *)rot->state.priv;
 
-    imu->update();
+    priv->imu->update();
 
     float accData[3], magData[3];
-    imu->getAccData(accData);
-    imu->getMagData(magData);
+    priv->imu->getAccData(accData);
+    priv->imu->getMagData(magData);
 
     float R[9] = {0}, I[9] = {0}, orientation[3] = {0};
-    bool status = imu->getRotationMatrix(R, 9, I, 9, accData, magData);
+    bool status = priv->imu->getRotationMatrix(R, 9, I, 9, accData, magData);
     if(status)
-        imu->getOrientation(R, 9, orientation);
+        priv->imu->getOrientation(R, 9, orientation);
 
     *az = (orientation[0] / M_PI * 180 );
     *el = (orientation[1] / M_PI * 180 ) * -1;
 
-    rig_debug(RIG_DEBUG_TRACE, "%f %f\n", az, el);
+    rig_debug(RIG_DEBUG_TRACE, "%f %f\n", *az, *el);
 
-    return RIG_OK;
-}
-
-static int
-androidsensor_rot_stop(ROT *rot)
-{
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
-    // To-Do
     return RIG_OK;
 }
 
@@ -85,7 +86,17 @@ static int
 androidsensor_rot_init(ROT *rot)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called, make new NdkImu\n", __func__);
-    imu = new NdkImu();
+    rot->state.priv = (struct androidsensor_rot_priv_data *)malloc(sizeof(struct androidsensor_rot_priv_data));
+    struct androidsensor_rot_priv_data *priv = (struct androidsensor_rot_priv_data *)rot->state.priv;
+
+    if (!rot->state.priv)
+    {
+        return -RIG_ENOMEM;
+    }
+
+    priv->imu = new NdkImu();
+    priv->target_az = 0;
+    priv->target_el = 0;
     return RIG_OK;
 }
 
@@ -93,7 +104,10 @@ static int
 androidsensor_rot_cleanup(ROT *rot)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called, delete imu\n", __func__);
-    delete imu;
+    struct androidsensor_rot_priv_data *priv = (struct androidsensor_rot_priv_data *)rot->state.priv;
+
+    delete priv->imu;
+    free(rot->state.priv);
     return RIG_OK;
 }
 
@@ -104,7 +118,7 @@ const struct rot_caps androidsensor_rot_caps =
     ROT_MODEL(ROT_MODEL_ANDROIDSENSOR),
     .model_name =     "ACC/MAG",
     .mfg_name =       "Android Sensor",
-    .version =        "20210925.0",
+    .version =        "20211006.0",
     .copyright =      "LGPL",
     .rot_type =       ROT_TYPE_AZEL,
     .port_type =      RIG_PORT_NONE,
@@ -116,11 +130,10 @@ const struct rot_caps androidsensor_rot_caps =
 
     .priv =  NULL,    /* priv */
 
-    .set_position = androidsensor_rot_set_position,
-    .get_position = androidsensor_rot_get_position,
-    .stop =         androidsensor_rot_stop,
     .rot_init =     androidsensor_rot_init,
     .rot_cleanup =  androidsensor_rot_cleanup,
+    .set_position = androidsensor_rot_set_position,
+    .get_position = androidsensor_rot_get_position,
 };
 
 /* ************************************************************************* */
