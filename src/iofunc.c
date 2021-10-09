@@ -676,6 +676,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
     fd_set rfds, efds;
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
     int total_count = 0;
+    int i=0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d\n", __func__, (int)rxmax);
 
@@ -763,7 +764,16 @@ int HAMLIB_API read_string(hamlib_port_t *p,
              * read 1 character from the rig, (check if in stop set)
          * The file descriptor must have been set up non blocking.
          */
-        rd_count = port_read(p, &rxbuffer[total_count], 1);
+        do 
+        {
+            rd_count = port_read(p, &rxbuffer[total_count], 1);
+            if (errno == EBUSY)
+            {
+                hl_usleep(5*1000);
+                rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy?\n", __func__);
+            }
+
+        } while( ++i < 10 && errno == EBUSY); // 50ms should be enough
 
         /* if we get 0 bytes or an error something is wrong */
         if (rd_count <= 0)
