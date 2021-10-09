@@ -962,13 +962,6 @@ int kenwood_open(RIG *rig)
 
             rig->state.rigport.retry = retry_save;
 
-            // Default to 1st VFO and split off -- but only 1 time
-            if (rig->caps->set_vfo && priv->opened == 0)
-            {
-                rig_set_vfo(rig, vfo_fixup(rig, RIG_VFO_A, 0));
-                priv->opened = 1;
-            }
-
             RETURNFUNC(RIG_OK);
         }
 
