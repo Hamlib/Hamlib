@@ -439,8 +439,8 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
 }
 
 /* used in read_icom_frame as end of block */
-static const char icom_block_end[2] = {FI, COL};
-#define icom_block_end_length 2
+static const char icom_block_end[1] = {COL};
+#define icom_block_end_length 1
 
 /*
  * read_icom_frame
@@ -469,7 +469,7 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[],
         int i = read_string(p, rx_ptr, MAXFRAMELEN - read,
                             icom_block_end, icom_block_end_length);
 
-        if (i < 0) /* die on errors */
+        if (i < 0 && i != RIG_BUSBUSY) /* die on errors */
         {
             RETURNFUNC(i);
         }
@@ -483,8 +483,11 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[],
         }
 
         /* OK, we got something. add it in and continue */
-        read   += i;
-        rx_ptr += i;
+        if (i > 0)
+        {
+            read   += i;
+            rx_ptr += i;
+        }
     }
     while ((read < rxbuffer_len) && (rxbuffer[read - 1] != FI)
             && (rxbuffer[read - 1] != COL));
