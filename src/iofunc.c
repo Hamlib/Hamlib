@@ -767,7 +767,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         do 
         {
             rd_count = port_read(p, &rxbuffer[total_count], 1);
-            if (errno == EBUSY)
+            if (errno == EAGAIN)
             {
                 hl_usleep(5*1000);
                 rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy?\n", __func__);
