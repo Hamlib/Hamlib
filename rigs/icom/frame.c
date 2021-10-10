@@ -439,8 +439,8 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
 }
 
 /* used in read_icom_frame as end of block */
-static const char icom_block_end[3] = { FA, FI, COL};
-#define icom_block_end_length 3
+static const char icom_block_end[2] = { FI, COL};
+#define icom_block_end_length 2
 
 /*
  * read_icom_frame
