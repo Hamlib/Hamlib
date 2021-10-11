@@ -117,6 +117,7 @@ static int ft1000mp_open(RIG *rig);
 static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft1000mp_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+static int ft1000mp_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width);
 static int ft1000mp_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 static int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
@@ -310,7 +311,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20210913.0",
+    .version =            "20211011.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -422,6 +423,7 @@ const struct rig_caps ft1000mp_caps =
 
     .set_split_freq =     ft1000mp_set_split_freq,
     .get_split_freq =     ft1000mp_get_split_freq,
+    .set_split_freq_mode =ft1000mp_set_split_freq_mode,
     .set_split_vfo =      ft1000mp_set_split_vfo,
     .get_split_vfo =      ft1000mp_get_split_vfo,
 
@@ -444,7 +446,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20210318.0",
+    .version =            "20211011.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -556,6 +558,7 @@ const struct rig_caps ft1000mpmkv_caps =
 
     .set_split_freq =     ft1000mp_set_split_freq,
     .get_split_freq =     ft1000mp_get_split_freq,
+    .set_split_freq_mode =ft1000mp_set_split_freq_mode,
     .set_split_vfo =      ft1000mp_set_split_vfo,
     .get_split_vfo =      ft1000mp_get_split_vfo,
 
@@ -578,7 +581,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20210318.0",
+    .version =            "20211011.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -690,6 +693,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
 
     .set_split_freq =     ft1000mp_set_split_freq,
     .get_split_freq =     ft1000mp_get_split_freq,
+    .set_split_freq_mode =ft1000mp_set_split_freq_mode,
     .set_split_vfo =      ft1000mp_set_split_vfo,
     .get_split_vfo =      ft1000mp_get_split_vfo,
 
@@ -1772,6 +1776,12 @@ static int ft1000mp_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     RETURNFUNC(ft1000mp_set_freq(rig, RIG_VFO_B, tx_freq));
+}
+
+static int ft1000mp_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width)
+{
+    // don't believe mode on VFOB can be different than mode on VFOA
+    return ft1000mp_set_split_freq(rig, vfo, freq);
 }
 
 static int ft1000mp_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
