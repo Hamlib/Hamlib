@@ -54,4 +54,4 @@ doc: hamlib.cfg $(SRCDOCLST)
 	doxygen hamlib.cfg
 
 clean-local:
-	-rm -rf $(top_builddir)/doc/html $(top_builddir)/doc/latex $(top_builddir)/scripts/build-w*
+	-rm -rf $(top_builddir)/doc/html $(top_builddir)/doc/latex
