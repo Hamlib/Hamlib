@@ -45,6 +45,9 @@
 #include "frame.h"
 #include "misc.h"
 
+// we automatically determine availability of the 1A 03 command
+enum { ENUM_1A_03_UNK, ENUM_1A_03_YES, ENUM_1A_03_NO };
+
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
 static int icom_set_default_vfo(RIG *rig);
 static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo);
@@ -928,6 +931,8 @@ icom_rig_open(RIG *rig)
 
     ENTERFUNC;
 
+    priv->no_1a_03_cmd = ENUM_1A_03_UNK;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s v%s\n", __func__, rig->caps->model_name,
               rig->caps->version);
     retval = icom_get_usb_echo_off(rig);
@@ -1774,10 +1779,10 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
     if (RIG_MODEL_X108G == rig->caps->rig_model)
     {
-        priv->no_1a_03_cmd = 1;
+        priv->no_1a_03_cmd = ENUM_1A_03_NO;
     }
 
-    if (priv->no_1a_03_cmd)
+    if (priv->no_1a_03_cmd == ENUM_1A_03_NO)
     {
         return (0);
     }
@@ -1787,8 +1792,15 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
     if (-RIG_ERJCTED == retval)
     {
-        priv->no_1a_03_cmd = -1;  /* do not keep asking */
-        return (RIG_OK);
+        if (priv->no_1a_03_cmd == ENUM_1A_03_UNK) {
+            priv->no_1a_03_cmd = ENUM_1A_03_NO;  /* do not keep asking */
+            return (RIG_OK);
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: 1a 03 cmd failed\n", __func__);
+            return (retval);
+        }
     }
 
     if (retval != RIG_OK)
@@ -1837,6 +1849,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
                                S_MEM_FILT_WDTH;
 
     ENTERFUNC;
+    rig_debug(RIG_DEBUG_TRACE, "%s: mode=%s, width=%d\n", __func__, rig_strrmode(mode), (int)width);
 
     
     if (RIG_PASSBAND_NOCHANGE == width)
@@ -1870,7 +1883,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
             RETURNFUNC(-RIG_EINVAL);
         }
     }
-    if (priv->no_1a_03_cmd) RETURNFUNC(RIG_OK); // don't bother to try since it doesn't work
+    if (priv->no_1a_03_cmd == ENUM_1A_03_NO) RETURNFUNC(RIG_OK); // don't bother to try since it doesn't work
 
     if (mode & RIG_MODE_AM)
     {
@@ -1894,14 +1907,23 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
     }
 
     to_bcd(&flt_ext, flt_idx, 2);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: flt_ext=%d, flt_idx=%d\n", __func__, flt_ext, flt_idx);
 
     retval = icom_transaction(rig, C_CTL_MEM, fw_sub_cmd, &flt_ext, 1,
                               ackbuf, &ack_len);
 
     if (-RIG_ERJCTED == retval)
     {
-        priv->no_1a_03_cmd = -1;  /* do not keep asking */
-        return (RIG_OK);
+        if (priv->no_1a_03_cmd == ENUM_1A_03_UNK)
+        {
+            priv->no_1a_03_cmd = ENUM_1A_03_NO;  /* do not keep asking */
+            return (RIG_OK);
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: 1A 03 %02x failed\n", __func__, flt_ext);
+            return (retval);
+        }
     }
 
     if (retval != RIG_OK)
@@ -2375,9 +2397,10 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     TRACE;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: targetable=%x, targetable_mode=%x, and=%d\n", __func__, rig->caps->targetable_vfo,RIG_TARGETABLE_MODE, rig->caps->targetable_vfo & RIG_TARGETABLE_MODE); 
     // IC7800 can set but not read with 0x26
     if ((rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
-            && rig->caps->rig_model != RIG_MODEL_IC7800)
+            && (rig->caps->rig_model != RIG_MODEL_IC7800))
     {
         int vfosel = 0x00;
         vfo_t vfoask = vfo_fixup(rig, vfo, 0);
