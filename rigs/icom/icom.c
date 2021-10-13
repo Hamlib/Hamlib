@@ -1949,6 +1949,8 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     struct icom_priv_data *priv = rig->state.priv;
     int retval;
     unsigned char buf[3];
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf);
 
     ENTERFUNC;
 
@@ -1978,7 +1980,7 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     // buf[2] = filter // if Icom ever fixed this
     buf[2] = 1;
 
-    retval = icom_transaction(rig, cmd2, subcmd2, buf, 3, NULL, NULL);
+    retval = icom_transaction(rig, cmd2, subcmd2, buf, 3, ackbuf, &ack_len);
 
     if (retval != RIG_OK)
     {
