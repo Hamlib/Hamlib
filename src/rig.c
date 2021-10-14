@@ -2892,6 +2892,8 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    ELAPSED1;
+
     caps = rig->caps;
 
     switch (rig->state.pttport.type.ptt)
@@ -3146,6 +3148,8 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     if (retcode != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: return code=%d\n", __func__, retcode); }
 
+    ELAPSED2;
+
     RETURNFUNC(retcode);
 }
 
@@ -3175,6 +3179,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     int targetable_ptt = 0;
     int backend_num;
 
+    ELAPSED1;
     ENTERFUNC;
 
     if (CHECK_RIG_ARG(rig))
@@ -3194,6 +3199,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
         *ptt = rig->state.cache.ptt;
+        ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
     else
@@ -3210,6 +3216,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         if (!caps->get_ptt)
         {
             *ptt = rs->transmit ? RIG_PTT_ON : RIG_PTT_OFF;
+            ELAPSED2;
             RETURNFUNC(RIG_OK);
         }
 
@@ -3226,6 +3233,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
                 elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
             }
 
+            ELAPSED2;
             RETURNFUNC(retcode);
         }
 
@@ -3275,6 +3283,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             }
         }
 
+        ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_PTT_SERIAL_RTS:
@@ -3307,6 +3316,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
         rig->state.cache.ptt = *ptt;
         elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
+        ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_PTT_SERIAL_DTR:
@@ -3339,6 +3349,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
         rig->state.cache.ptt = *ptt;
         elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
+        ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_PTT_PARALLEL:
@@ -3364,6 +3375,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             rig->state.cache.ptt = *ptt;
         }
 
+        ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_PTT_CM108:
@@ -3389,6 +3401,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             rig->state.cache.ptt = *ptt;
         }
 
+        ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_PTT_GPIO:
@@ -3408,7 +3421,9 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         }
 
         elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
-        RETURNFUNC(gpio_ptt_get(&rig->state.pttport, ptt));
+        retcode = gpio_ptt_get(&rig->state.pttport, ptt);
+        ELAPSED2;
+        RETURNFUNC(retcode);
 
     case RIG_PTT_NONE:
         RETURNFUNC(-RIG_ENAVAIL);    /* not available */
@@ -3418,6 +3433,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     }
 
     elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
+    ELAPSED2;
     RETURNFUNC(RIG_OK);
 }
 
