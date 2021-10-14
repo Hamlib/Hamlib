@@ -311,7 +311,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20211011.0",
+    .version =            "20211014.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -446,7 +446,7 @@ const struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20211011.0",
+    .version =            "20211014.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -581,7 +581,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20211011.0",
+    .version =            "20211014.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1695,10 +1695,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
 
 static int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    // FT1000 transmits on A and receives on B
-
     unsigned char cmd_index = 0;      /* index of sequence to send */
-    freq_t tx_freq;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s called rx_vfo=%s, tx_vfo=%s\n", __func__,
@@ -1719,14 +1716,12 @@ static int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_v
         RETURNFUNC(-RIG_EINVAL);         /* sorry, wrong VFO */
     }
 
-    rig_get_freq(rig, RIG_VFO_B, &tx_freq);
     // manual says VFO_A=Tx and VFO_B=Rx but testing shows otherwise
     rig->state.current_vfo = RIG_VFO_A;
     rig->state.tx_vfo = RIG_VFO_B;
-    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_AB); // Copy A to B
     ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_A); // make A active
+    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_AB); // Copy A to B
     ft1000mp_send_priv_cmd(rig, cmd_index);
-    rig_set_freq(rig, RIG_VFO_B, tx_freq); // restore orig frequency
 
     RETURNFUNC(RIG_OK);
 }
