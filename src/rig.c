@@ -2400,7 +2400,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     rig_get_cache(rig, vfo, &freq, &cache_ms_freq, mode, &cache_ms_mode, width,
                   &cache_ms_width);
     rig_debug(RIG_DEBUG_TRACE, "%s: %s cache check age=%dms\n", __func__,
-              rig_strvfo(vfo), cache_ms_freq);
+              rig_strvfo(vfo), cache_ms_mode);
 
     cache_show(rig, __func__, __LINE__);
 
