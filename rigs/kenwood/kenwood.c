@@ -1228,6 +1228,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     char cmdbuf[12];
     int retval;
     unsigned char vfo_function;
+    split_t tsplit;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1324,10 +1325,13 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
        they impact output power when transmitting
        and all other rigs don't need to set it if it's already set correctly
     */
-    if (RIG_OK == (retval = kenwood_safe_transaction(rig, "FT", cmdbuf,
-                            sizeof(cmdbuf), 3)))
+    tsplit = RIG_SPLIT_OFF; // default in case rig does not set split status
+    retval = rig_get_split(rig, vfo, &tsplit);
+    // and it should be OK to do a SPLIT_OFF at any time so we won's skip that
+    if (retval == RIG_OK && split == RIG_SPLIT_ON && tsplit == RIG_SPLIT_ON)
     {
-        if (cmdbuf[2] == vfo_function) { RETURNFUNC(RIG_OK); }
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: already set split=%d\n", __func__, tsplit);
+        RETURNFUNC(RIG_OK); 
     }
 
     /* set TX VFO */
