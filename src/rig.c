@@ -6816,19 +6816,11 @@ const char *HAMLIB_API rig_copyright()
 
 #ifdef PTHREAD
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
-#else
-#define MUTEX(var)
-#endif
-
-#ifdef PTHREAD
 #define MUTEX_LOCK(var) pthread_mutex_lock(var)
-#else
-#define MUTEX_LOCK(var)
-#endif
-
-#ifdef PTHREAD
 #define MUTEX_UNLOCK(var)  pthread_mutex_unlock(var)
 #else
+#define MUTEX(var)
+#define MUTEX_LOCK(var)
 #define MUTEX_UNLOCK(var)
 #endif
 
