@@ -2797,11 +2797,10 @@ declare_proto_rig(set_split_mode)
         RETURNFUNC(RIG_OK);
     }
 
+    // mode could be RIG_MODE_NONE here
+    // we treat it as non-fatal 
+    // rig_parse_mode will spit out error msg
     mode = rig_parse_mode(arg1);
-    if (mode == RIG_MODE_NONE)
-    {
-        rig_debug(RIG_DEBUG_WARN, "%s: unknown mode=%s\n", __func__, arg1);
-    }
     CHKSCN1ARG(sscanf(arg2, "%d", &width));
     RETURNFUNC(rig_set_split_mode(rig, txvfo, mode, (pbwidth_t) width));
 }

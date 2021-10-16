@@ -431,8 +431,8 @@ static const struct
     { RIG_MODE_AMS, "AMS" },
     { RIG_MODE_PKTLSB, "PKTLSB" },
     { RIG_MODE_PKTUSB, "PKTUSB" },
-    { RIG_MODE_PKTUSB, "USB-D" },
     { RIG_MODE_PKTLSB, "LSB-D" },
+    { RIG_MODE_PKTUSB, "USB-D" },
     { RIG_MODE_PKTFM, "PKTFM" },
     { RIG_MODE_PKTFMN, "PKTFMN" },
     { RIG_MODE_ECSSUSB, "ECSSUSB" },
@@ -481,6 +481,7 @@ rmode_t HAMLIB_API rig_parse_mode(const char *s)
         }
     }
 
+    rig_debug(RIG_DEBUG_WARN, "%s: mode '%s' not found\n", __func__, s);
     return RIG_MODE_NONE;
 }
 
