@@ -242,6 +242,8 @@ declare_proto_rig(set_cache);
 declare_proto_rig(get_cache);
 declare_proto_rig(halt);
 declare_proto_rig(pause);
+declare_proto_rig(password);
+declare_proto_rig(set_password);
 
 
 /*
@@ -345,6 +347,8 @@ static struct test_table test_list[] =
     { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
+    { 0x98, "password",         ACTION(password),       ARG_IN, "Password" },
+    { 0x99, "set_password",     ACTION(set_password),   ARG_IN, "Password" },
     { 0x00, "", NULL },
 };
 
@@ -2794,6 +2798,10 @@ declare_proto_rig(set_split_mode)
     }
 
     mode = rig_parse_mode(arg1);
+    if (mode == RIG_MODE_NONE)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: unknown mode=%s\n", __func__, arg1);
+    }
     CHKSCN1ARG(sscanf(arg2, "%d", &width));
     RETURNFUNC(rig_set_split_mode(rig, txvfo, mode, (pbwidth_t) width));
 }
@@ -5082,6 +5090,31 @@ declare_proto_rig(pause)
     CHKSCN1ARG(sscanf(arg1, "%u", &seconds));
     sleep(seconds);
 
+    RETURNFUNC(RIG_OK);
+}
+
+char rig_passwd[256];
+/* 0x98 */
+declare_proto_rig(password)
+{
+    const char *passwd = arg1;
+    if (strcmp(passwd,rig_passwd)==0) {
+    rig_debug(RIG_DEBUG_ERR, "%s: #1 password OK\n", __func__);
+    return(RIG_EINVAL);
+    }
+    else{
+    rig_debug(RIG_DEBUG_ERR, "%s: #2 password error, '%s'!='%s'\n", __func__,passwd,rig_passwd);
+    }
+    RETURNFUNC(RIG_OK);
+}
+
+/* 0x99 */
+declare_proto_rig(set_password)
+{
+    const char *passwd = arg1;
+    strncpy(rig_passwd, passwd, sizeof(passwd)-1);
+    rig_debug(RIG_DEBUG_ERR, "%s: set_password %s\n", __func__, rig_passwd);
+    fprintf(fout, "set_password %s\n", rig_passwd);
     RETURNFUNC(RIG_OK);
 }
 
