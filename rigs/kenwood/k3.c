@@ -965,7 +965,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         vfo = rig->state.current_vfo;
     }
 
-    err = kenwood_safe_transaction(rig, cmd_mode, buf, KENWOOD_MAX_BUF_LEN);
+    err = kenwood_get_mode(rig, vfo, &temp_m, &temp_w);
 
     if (err != RIG_OK)
     {
