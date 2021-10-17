@@ -2131,20 +2131,20 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
             TRACE;
             retval =
                 icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 1, ackbuf, &ack_len);
-        }
 
-        if (retval != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), len=%d\n",
-                      __func__, ackbuf[0], ack_len);
-        }
-        else
-        {
-            if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
+            if (retval != RIG_OK)
             {
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: command not supported ? (%#.2x), len=%d\n",
+                rig_debug(RIG_DEBUG_ERR, "%s: protocol error (%#.2x), len=%d\n",
                           __func__, ackbuf[0], ack_len);
+            }
+            else
+            {
+                if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
+                {
+                    rig_debug(RIG_DEBUG_ERR,
+                              "%s: command not supported ? (%#.2x), len=%d\n",
+                              __func__, ackbuf[0], ack_len);
+                }
             }
         }
     }
