@@ -1894,7 +1894,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
         flt_idx = (width / 200) - 1;  /* TBC: IC_7800? */
     }
     else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY |
-                     RIG_MODE_RTTYR | RIG_MODE_PKTUSB | RIG_MODE_PKBLSB))
+                     RIG_MODE_RTTYR | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB))
     {
         if (width == 0)
         {
