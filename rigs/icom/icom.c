@@ -45,9 +45,8 @@
 #include "frame.h"
 #include "misc.h"
 
-// we automatically determine availability of some commands
-// defaults to UNK and then set when command is tested
-enum { ENUM_CMD_UNK, ENUM_CMD_WORKS, ENUM_CMD_FAILS };
+// we automatically determine availability of the 1A 03 command
+enum { ENUM_1A_03_UNK, ENUM_1A_03_YES, ENUM_1A_03_NO };
 
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo);
 static int icom_set_default_vfo(RIG *rig);
@@ -932,10 +931,7 @@ icom_rig_open(RIG *rig)
 
     ENTERFUNC;
 
-    priv->no_1a_03_cmd = ENUM_CMD_UNK;
-    priv->x25cmdfails = ENUM_CMD_UNK;
-    priv->x26cmdfails = ENUM_CMD_UNK;
-
+    priv->no_1a_03_cmd = ENUM_1A_03_UNK;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s v%s\n", __func__, rig->caps->model_name,
               rig->caps->version);
@@ -1494,7 +1490,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     // we'll use 0x25 command to get unselected frequency
     // we have to assume current_vfo is accurate to determine what "other" means
-    if (priv->x25cmdfails == ENUM_CMD_WORKS)
+    if (priv->x25cmdfails == 0)
     {
         int cmd2 = 0x25;
         int subcmd2 = 0x00;
@@ -1783,10 +1779,10 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
     if (RIG_MODEL_X108G == rig->caps->rig_model)
     {
-        priv->no_1a_03_cmd = ENUM_CMD_FAILS;
+        priv->no_1a_03_cmd = ENUM_1A_03_NO;
     }
 
-    if (priv->no_1a_03_cmd == ENUM_CMD_FAILS)
+    if (priv->no_1a_03_cmd == ENUM_1A_03_NO)
     {
         return (0);
     }
@@ -1796,8 +1792,8 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
     if (-RIG_ERJCTED == retval)
     {
-        if (priv->no_1a_03_cmd == ENUM_CMD_UNK) {
-            priv->no_1a_03_cmd = ENUM_CMD_FAILS;  /* do not keep asking */
+        if (priv->no_1a_03_cmd == ENUM_1A_03_UNK) {
+            priv->no_1a_03_cmd = ENUM_1A_03_NO;  /* do not keep asking */
             return (RIG_OK);
         }
         else
@@ -1887,7 +1883,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
             RETURNFUNC(-RIG_EINVAL);
         }
     }
-    if (priv->no_1a_03_cmd == ENUM_CMD_FAILS) RETURNFUNC(RIG_OK); // don't bother to try since it doesn't work
+    if (priv->no_1a_03_cmd == ENUM_1A_03_NO) RETURNFUNC(RIG_OK); // don't bother to try since it doesn't work
 
     if (mode & RIG_MODE_AM)
     {
@@ -1918,9 +1914,9 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
 
     if (-RIG_ERJCTED == retval)
     {
-        if (priv->no_1a_03_cmd == ENUM_CMD_UNK)
+        if (priv->no_1a_03_cmd == ENUM_1A_03_UNK)
         {
-            priv->no_1a_03_cmd = ENUM_CMD_FAILS;  /* do not keep asking */
+            priv->no_1a_03_cmd = ENUM_1A_03_NO;  /* do not keep asking */
             return (RIG_OK);
         }
         else
@@ -2008,7 +2004,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     int ack_len = sizeof(ackbuf);
     rmode_t icom_mode;
     rmode_t tmode;
-    pbwidth_t twidth = 0;
+    pbwidth_t twidth;
     //struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     unsigned char dm_sub_cmd =
         rig->caps->rig_model == RIG_MODEL_IC7200  ? 0x04 : S_MEM_DATA_MODE;
@@ -2091,7 +2087,6 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         unsigned char datamode[2];
         unsigned char mode_icom; // Not used, we only need the width
         signed char width_icom;
-        struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
 
         TRACE;
 
@@ -2115,7 +2110,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
         rig2icom_mode(rig, vfo, mode, width, &mode_icom, &width_icom);
 
-        if (filter_byte && priv->x26cmdfails == ENUM_CMD_WORKS)   // then we need the filter width byte too
+        if (filter_byte)   // then we need the filter width byte too
         {
             TRACE;
 
