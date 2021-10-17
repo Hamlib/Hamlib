@@ -5959,9 +5959,22 @@ int newcat_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 
 int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int rc;
+    char *s = strdup(msg);
     ENTERFUNC;
-
-    RETURNFUNC(-RIG_ENAVAIL);
+    if (newcat_is_rig(rig, RIG_MODEL_FT450))
+    {
+        // 450 manual says 1/2/3 playback needs P1=6/7/8
+        s[0] += 5;
+    }
+    else
+    {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "KY%c%c", s[0], cat_term);
+    }
+    rc = newcat_set_cmd(rig);
+    free(s);
+    RETURNFUNC(rc);
 }
 
 

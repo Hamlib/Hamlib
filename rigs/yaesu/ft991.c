@@ -67,7 +67,7 @@ const struct rig_caps ft991_caps =
     RIG_MODEL(RIG_MODEL_FT991),
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".3",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -244,7 +244,7 @@ const struct rig_caps ft991_caps =
     .get_trn =            newcat_get_trn,
     .set_channel =        newcat_set_channel,
     .get_channel =        newcat_get_channel,
-
+    .send_morse =         newcat_send_morse,
 };
 
 
