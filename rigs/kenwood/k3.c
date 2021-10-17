@@ -484,7 +484,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".15",
+    .version =      BACKEND_VER ".16",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -943,9 +943,18 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int err;
     rmode_t temp_m;
     pbwidth_t temp_w;
+    char *cmd_mode = "DT";
+    char *cmd_bw = "BW";
+    struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
+    if (vfo == RIG_VFO_B && (priv->is_k4 || priv->is_k4d || priv->is_k4hd))
+    {
+        cmd_mode = "DT$";
+        cmd_bw = "Bw$";
+
+    }
     if (!mode || !width)
     {
         return -RIG_EINVAL;
@@ -956,7 +965,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         vfo = rig->state.current_vfo;
     }
 
-    err = kenwood_get_mode(rig, vfo, &temp_m, &temp_w);
+    err = kenwood_safe_transaction(rig, cmd_mode, buf, KENWOOD_MAX_BUF_LEN);
 
     if (err != RIG_OK)
     {
@@ -965,7 +974,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (temp_m == RIG_MODE_RTTY)
     {
-        err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 3);
+        err = kenwood_safe_transaction(rig, cmd_mode, buf, KENWOOD_MAX_BUF_LEN, 3);
 
         if (err != RIG_OK)
         {
@@ -992,7 +1001,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
     else if (temp_m == RIG_MODE_RTTYR)
     {
-        err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 3);
+        err = kenwood_safe_transaction(rig, cmd_mode, buf, KENWOOD_MAX_BUF_LEN, 3);
 
         if (err != RIG_OK)
         {
@@ -1026,14 +1035,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* The K3 is not limited to specific filter widths so we can query
      * the actual bandwidth using the BW command
      */
-    if (vfo == RIG_VFO_B)
-    {
-        err = kenwood_safe_transaction(rig, "BW$", buf, KENWOOD_MAX_BUF_LEN, 7);
-    }
-    else
-    {
-        err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 6);
-    }
+    err = kenwood_safe_transaction(rig, cmd_bw, buf, KENWOOD_MAX_BUF_LEN, 7);
 
     if (err != RIG_OK)
     {
