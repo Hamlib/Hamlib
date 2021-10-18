@@ -1335,7 +1335,14 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
 
     /* set TX VFO */
-    snprintf(cmdbuf, sizeof(cmdbuf), "FT%c", vfo_function);
+    if (rig->caps->rig_model == RIG_MODEL_K4) // K4 needs VFOB to be same band as VFOA
+    {
+        snprintf(cmdbuf, sizeof(cmdbuf), "AB0;FT%c", vfo_function);
+    }
+    else
+    {
+        snprintf(cmdbuf, sizeof(cmdbuf), "FT%c", vfo_function);
+    }
     retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
     if (retval != RIG_OK)
