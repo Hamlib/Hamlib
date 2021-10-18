@@ -974,7 +974,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (temp_m == RIG_MODE_RTTY)
     {
-        err = kenwood_safe_transaction(rig, cmd_mode, buf, KENWOOD_MAX_BUF_LEN, 3);
+        err = kenwood_safe_transaction(rig, cmd_mode, buf, KENWOOD_MAX_BUF_LEN, strlen(cmd_mode)+1);
 
         if (err != RIG_OK)
         {
@@ -1001,7 +1001,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
     else if (temp_m == RIG_MODE_RTTYR)
     {
-        err = kenwood_safe_transaction(rig, cmd_mode, buf, KENWOOD_MAX_BUF_LEN, 3);
+        err = kenwood_safe_transaction(rig, cmd_mode, buf, KENWOOD_MAX_BUF_LEN, strlen(cmd_mode)+1);
 
         if (err != RIG_OK)
         {
