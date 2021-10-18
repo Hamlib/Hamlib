@@ -952,7 +952,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (vfo == RIG_VFO_B && (priv->is_k4 || priv->is_k4d || priv->is_k4hd))
     {
         cmd_mode = "DT$";
-        cmd_bw = "Bw$";
+        cmd_bw = "BW$";
 
     }
     if (!mode || !width)
