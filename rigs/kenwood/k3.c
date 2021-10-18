@@ -183,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".16",
+    .version =      BACKEND_VER ".17",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1035,7 +1035,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* The K3 is not limited to specific filter widths so we can query
      * the actual bandwidth using the BW command
      */
-    err = kenwood_safe_transaction(rig, cmd_bw, buf, KENWOOD_MAX_BUF_LEN, 7);
+    err = kenwood_safe_transaction(rig, cmd_bw, buf, KENWOOD_MAX_BUF_LEN, 6);
 
     if (err != RIG_OK)
     {
