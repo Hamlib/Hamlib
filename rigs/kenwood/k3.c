@@ -945,6 +945,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     pbwidth_t temp_w;
     char *cmd_mode = "DT";
     char *cmd_bw = "BW";
+    int cmd_bw_len = 6;
     struct kenwood_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
@@ -953,6 +954,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         cmd_mode = "DT$";
         cmd_bw = "BW$";
+        cmd_bw_len = 7;
 
     }
     if (!mode || !width)
@@ -1035,7 +1037,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* The K3 is not limited to specific filter widths so we can query
      * the actual bandwidth using the BW command
      */
-    err = kenwood_safe_transaction(rig, cmd_bw, buf, KENWOOD_MAX_BUF_LEN, 6);
+    err = kenwood_safe_transaction(rig, cmd_bw, buf, KENWOOD_MAX_BUF_LEN, cmd_bw_len);
 
     if (err != RIG_OK)
     {
@@ -1043,14 +1045,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return err;
     }
 
-    if (vfo == RIG_VFO_B)
-    {
-        *width = atoi(&buf[3]) * 10;
-    }
-    else
-    {
-        *width = atoi(&buf[2]) * 10;
-    }
+    *width = atoi(&buf[cmd_bw_len-4]) * 10;
 
     return RIG_OK;
 }
