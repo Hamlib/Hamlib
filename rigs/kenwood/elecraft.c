@@ -257,9 +257,9 @@ int elecraft_open(RIG *rig)
         }
 
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: model=%s, is_k2=%d, is_k3=%d, is_k3s=%d, is_kx3=%d, is_kx2=%d, is_k4d=%d, is_k4hd=%d, kpa3=%d\n",
+                  "%s: model=%s, is_k2=%d, is_k3=%d, is_k3s=%d, is_kx3=%d, is_kx2=%d, is_k4=%d, is_k4d=%d, is_k4hd=%d, kpa3=%d\n",
                   __func__, model, priv->is_k2, priv->is_k3, priv->is_k3s, priv->is_kx3,
-                  priv->is_kx2, priv->is_k4d,  priv->is_k4hd, priv->has_kpa3);
+                  priv->is_kx2, priv->is_k4, priv->is_k4d,  priv->is_k4hd, priv->has_kpa3);
 
         err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
 
