@@ -206,15 +206,15 @@ const struct rig_caps funcubeplus_caps =
     .chan_list = { RIG_CHAN_END, },
 
     .rx_range_list1 = {
-        {kHz(150), MHz(1900), RIG_MODE_USB, -1, -1, RIG_VFO_A},
+        {kHz(150), MHz(1900), RIG_MODE_IQ, -1, -1, RIG_VFO_A},
         RIG_FRNG_END,
     },
     .tuning_steps = {
-        {RIG_MODE_USB, kHz(1)},
+        {RIG_MODE_IQ, kHz(1)},
         RIG_TS_END,
     },
     .filters = {
-        {RIG_MODE_USB, kHz(192)},
+        {RIG_MODE_IQ, kHz(192)},
         RIG_FLT_END,
     },
     .cfgparams =        funcube_cfg_params,
