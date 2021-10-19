@@ -183,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".17",
+    .version =      BACKEND_VER ".18",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1089,7 +1089,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    int err;
+    int err,err2;
     char cmd_m[5];
     char buf[KENWOOD_MAX_BUF_LEN];
     char *dtcmd;
@@ -1103,11 +1103,14 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         vfo = rig->state.current_vfo;
     }
 
-    rmode_t tmode;
+    rmode_t tmodeA,tmodeB;
     pbwidth_t twidth;
-    err = k3_get_mode(rig, vfo, &tmode, &twidth);
+    err = k3_get_mode(rig, RIG_VFO_A, &tmodeA, &twidth);
+    err2 = k3_get_mode(rig, RIG_VFO_B, &tmodeB, &twidth);
 
-    if (err == RIG_OK && tmode == mode && width == RIG_PASSBAND_NOCHANGE)
+    // we keep both vfos in the same mode -- any reason they should ever be differnet?  If so, fix this
+    // if we change mode on one VFO we'll also change the other
+    if (err == RIG_OK && err2 == RIG_OK && tmodeA == mode && tmodeB == mode && width == RIG_PASSBAND_NOCHANGE)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s(%d): mode/width no change, skipping\n", __FILE__,
                   __LINE__);
@@ -1116,8 +1119,8 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     else
     {
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s(%d): changing oldmode=%s, to mode=%s, oldwidth=%ld, to width=%ld\n", __FILE__,
-                  __LINE__, rig_strrmode(tmode), rig_strrmode(mode), twidth, width);
+                  "%s(%d): changing oldmode=A=%s B=%s, to mode=%s, oldwidth=%ld, to width=%ld\n", __FILE__,
+                  __LINE__, rig_strrmode(tmodeA), rig_strrmode(tmodeB), rig_strrmode(mode), twidth, width);
     }
 
     dtcmd = "DT";
@@ -1191,6 +1194,12 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     else
     {
         snprintf(buf, sizeof(buf), "MD%c", c);
+    }
+
+    if (priv->split)
+    {
+        // then we keep both VFOS in the same mode
+        snprintf(buf, sizeof(buf), "MD%c;MD$%c", c, c);
     }
 
     err = kenwood_transaction(rig, buf, NULL, 0);
