@@ -2324,8 +2324,16 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
     else
     {
-        snprintf(cmd, sizeof(cmd), "MD");
-        offs = 2;
+        if (vfo == RIG_VFO_B && rig->caps->rig_model == RIG_MODEL_K4) // K4 new MD$ command for VFOB
+        {
+            snprintf(cmd, sizeof(cmd), "MD$");
+            offs = 3;
+        }
+        else
+        {
+            snprintf(cmd, sizeof(cmd), "MD");
+            offs = 2;
+        }
     }
 
     retval = kenwood_safe_transaction(rig, cmd, modebuf, 6, offs + 1);
