@@ -2702,6 +2702,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
     case RIG_VFO_MAIN:
         icvfo = S_MAIN;
+        // If not split or satmode then we must want VFOA
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode) { icvfo = S_VFOA; }
         break;
 
     case RIG_VFO_SUB:
