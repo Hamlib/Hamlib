@@ -484,7 +484,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".16",
+    .version =      BACKEND_VER ".17",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -946,11 +946,10 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char *cmd_mode = "DT";
     char *cmd_bw = "BW";
     int cmd_bw_len = 6;
-    struct kenwood_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    if (vfo == RIG_VFO_B && (priv->is_k4 || priv->is_k4d || priv->is_k4hd))
+    if (vfo == RIG_VFO_B && rig->caps->rig_model == RIG_MODEL_K4)
     {
         cmd_mode = "DT$";
         cmd_bw = "BW$";
