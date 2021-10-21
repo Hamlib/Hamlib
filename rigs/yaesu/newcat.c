@@ -5558,7 +5558,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PB%d%c", status, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PB0%d%c", status, cat_term);
         break;
 
     default:
