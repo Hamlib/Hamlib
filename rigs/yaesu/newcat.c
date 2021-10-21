@@ -5552,7 +5552,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                  cat_term);
         break;
 
-    case RIG_FUNCTION_SEND_VOICE_MEM:
+    case RIG_FUNC_SEND_VOICE_MEM:
         if (!newcat_valid_command(rig, "PB"))
         {
             RETURNFUNC(-RIG_ENAVAIL);
