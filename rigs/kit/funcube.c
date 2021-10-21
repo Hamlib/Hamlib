@@ -75,7 +75,7 @@ static int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level,
                                 value_t *val);
 
 static const char *funcube_get_info(RIG *rig);
-static int funcube_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int funcube_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
 static const struct confparams funcube_cfg_params[] =
 {
