@@ -341,12 +341,19 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 }
 
+static int rshfiq_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+    *mode = RIG_MODE_IQ;
+    return RIG_OK;
+}
+
+
 const struct rig_caps rshfiq_caps =
 {
     RIG_MODEL(RIG_MODEL_RSHFIQ),
     .model_name =     "RS-HFIQ",
     .mfg_name =       "HobbyPCB",
-    .version =        "20210805.0",
+    .version =        "20211020.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -388,6 +395,6 @@ const struct rig_caps rshfiq_caps =
     .set_freq =     rshfiq_set_freq,
     .set_ptt  =     rshfiq_set_ptt,
     .get_level =     rshfiq_get_level,
-
+    .get_mode =     rshfiq_get_mode,
 };
 

@@ -107,7 +107,7 @@ const struct rig_caps funcube_caps =
     RIG_MODEL(RIG_MODEL_FUNCUBEDONGLE),
     .model_name =       "FUNcube Dongle",
     .mfg_name =     "AMSAT-UK",
-    .version =      BACKEND_VER ".0",
+    .version =      BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TUNER,
@@ -162,6 +162,7 @@ const struct rig_caps funcube_caps =
     .get_level =        funcube_get_level,
     .set_level =        funcube_set_level,
     .get_info =     funcube_get_info,
+    .get_mode =     funcube_get_mode,
 };
 
 
@@ -170,7 +171,7 @@ const struct rig_caps funcubeplus_caps =
     RIG_MODEL(RIG_MODEL_FUNCUBEDONGLEPLUS),
     .model_name =       "FUNcube Dongle Pro+",
     .mfg_name =     "AMSAT-UK",
-    .version =      BACKEND_VER ".0",
+    .version =      BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TUNER,
@@ -226,6 +227,7 @@ const struct rig_caps funcubeplus_caps =
     .get_level =        funcubepro_get_level,
     .set_level =        funcubepro_set_level,
     .get_info =     funcube_get_info,
+    .get_mode =     funcube_get_mode,
 };
 
 int funcube_init(RIG *rig)
@@ -937,6 +939,20 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_EINVAL;
     }
 
+    return RIG_OK;
+}
+
+int funcube_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+    if (rig->state.rig_model == RIG_MODEL_FUNCUBEDONGLE)
+    {
+        *mode = RIG_MODE_USB;
+    }
+    else
+    {
+        *mode = RIG_MODE_IQ;
+    }
+    *width = 192000;
     return RIG_OK;
 }
 
