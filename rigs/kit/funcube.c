@@ -944,7 +944,7 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int funcube_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    if (rig->state.rig_model == RIG_MODEL_FUNCUBEDONGLE)
+    if (rig->caps->rig_model == RIG_MODEL_FUNCUBEDONGLE)
     {
         *mode = RIG_MODE_USB;
     }
