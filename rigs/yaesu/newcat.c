@@ -5552,15 +5552,6 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                  cat_term);
         break;
 
-    case RIG_FUNC_SEND_VOICE_MEM:
-        if (!newcat_valid_command(rig, "PB"))
-        {
-            RETURNFUNC(-RIG_ENAVAIL);
-        }
-
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PB0%d%c", status, cat_term);
-        break;
-
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -10165,3 +10156,18 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
 
     RETURNFUNC('0');
 }
+
+int newcat_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
+{
+    char *p1 = "0";  // newer rigs have 2 bytes where is fixed at zero e.g. FT991
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    if (!newcat_valid_command(rig, "PB"))
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+    // we don't do any channel checking -- varies by rig -- could do it but not critical
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PB%s%d%c", p1, ch, cat_term);
+    RETURNFUNC(newcat_set_cmd(rig));
+}
+
