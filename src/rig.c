@@ -1622,7 +1622,39 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
     rig_debug(RIG_DEBUG_CACHE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
-    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+    if (vfo == RIG_VFO_CURR) 
+    {
+        vfo = rig->state.current_vfo;
+    }
+    else if (vfo == RIG_VFO_OTHER)
+    {
+        switch (vfo)
+        {
+            case RIG_VFO_A:
+                vfo = RIG_VFO_B;
+                break;
+            case RIG_VFO_MAIN_A:
+                vfo = RIG_VFO_MAIN_B;
+                break;
+            case RIG_VFO_MAIN:
+                vfo = RIG_VFO_SUB;
+                break;
+            case RIG_VFO_B:
+                vfo = RIG_VFO_A;
+                break;
+            case RIG_VFO_MAIN_B:
+                vfo = RIG_VFO_MAIN_A;
+                break;
+            case RIG_VFO_SUB_A:
+                vfo = RIG_VFO_SUB_B;
+                break;
+            case RIG_VFO_SUB_B:
+                vfo = RIG_VFO_SUB_A;
+                break;
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo=%s\n", __func__, rig_strvfo(vfo));
+        }
+    }
 
     // pick a sane default
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
