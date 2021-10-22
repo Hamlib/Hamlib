@@ -3281,12 +3281,12 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         switch (backend_num)
         {
         // most rigs have only one PTT VFO so we can set that flag here
+        case 0:
         case RIG_ICOM:
         case RIG_KENWOOD:
         case RIG_YAESU:
             targetable_ptt = 1;
         }
-
 
         if (!targetable_ptt)
         {
