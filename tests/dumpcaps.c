@@ -1199,6 +1199,7 @@ static void dump_chan_caps(const channel_cap_t *chan, FILE *fout)
 
 int dumpconf(RIG *rig, FILE *fout)
 {
+    fprintf(fout, "model: %s\n", rig->caps->model_name);
     rig_token_foreach(rig, print_conf_list, (rig_ptr_t)rig);
 
     return 0;
