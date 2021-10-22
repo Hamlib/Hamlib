@@ -692,7 +692,6 @@ static const struct
     { RIG_FUNC_TRANSCEIVE, "TRANSCEIVE" },
     { RIG_FUNC_SPECTRUM, "SPECTRUM" },
     { RIG_FUNC_SPECTRUM_HOLD, "SPECTRUM_HOLD" },
-    { RIG_FUNC_SEND_VOICE_MEM , "VOICE_MEM" },
     { RIG_FUNC_NONE, "" },
 };
 
