@@ -194,11 +194,17 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[7] = 0xfd;
             write(fd, frame, 8);
             break;
+        case 0x07: // satmode
+            frame[6] = 0;
+            frame[7] = 0xfd;
+            write(fd, frame, 8);
+            break;
+
         }
 
         break;
 
-#if 1
+#if 0
 
     case 0x25:
         if (frame[6] == 0xfd)
@@ -229,6 +235,11 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[5] = 0xfd;
         }
 
+        break;
+#else
+    case 0x25:
+        frame[4] = 0xfa;
+        frame[5] = 0xfd;
         break;
 #endif
 
