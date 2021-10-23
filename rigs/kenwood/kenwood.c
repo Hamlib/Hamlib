@@ -1339,6 +1339,18 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     {
         snprintf(cmdbuf, sizeof(cmdbuf), "AB3;FT%c", vfo_function);
     }
+    else if (rig->caps->rig_model == RIG_MODEL_K3)
+    {
+        snprintf(cmdbuf, sizeof(cmdbuf), "SWT13;FT%c", vfo_function);
+    }
+    else if (rig->caps->rig_model == RIG_MODEL_KX3)
+    {
+        snprintf(cmdbuf, sizeof(cmdbuf), "SWT25;FT%c", vfo_function);
+    }
+    else if (rig->caps->rig_model == RIG_MODEL_KX2)
+    {
+        snprintf(cmdbuf, sizeof(cmdbuf), "SWH44;FT%c", vfo_function);
+    }
     else
     {
         snprintf(cmdbuf, sizeof(cmdbuf), "FT%c", vfo_function);
