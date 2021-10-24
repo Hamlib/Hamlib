@@ -311,7 +311,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20211014.0",
+    .version =            "20211023.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1317,7 +1317,7 @@ static int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         cmd = priv->p_cmd;
 
-        write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);        break;
+        write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
         RETURNFUNC(RIG_OK);
 
     default:
