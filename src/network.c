@@ -170,9 +170,11 @@ int network_open(hamlib_port_t *rp, int default_port)
 
     ENTERFUNC;
 
+#ifdef __MINGW32__
     status = network_init();
 
     if (status != RIG_OK) { RETURNFUNC(status); }
+#endif
 
     if (!rp)
     {
