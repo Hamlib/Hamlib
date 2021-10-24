@@ -3669,8 +3669,17 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
+        // Firmware bug in TS570D has to adjust keyer speed
+        // At this point not sure which value is correct so we'll assume the requested rate is correct
+        if (rig->caps->rig_model == RIG_MODEL_TS570D)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "KS%03d%c", (val.i-10)*2, cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "KS%03d%c", val.i, cat_term);
+        }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "KS%03d%c", val.i, cat_term);
         break;
 
     case RIG_LEVEL_MICGAIN:
