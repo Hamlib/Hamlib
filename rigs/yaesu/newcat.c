@@ -837,7 +837,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
            and select the correct VFO before setting the frequency
         */
         // Plus we can't do the VFO swap if transmitting
-        if (target_vfo == 'B' && rig->state.cache.ptt == RIG_PTT_ON) { RETURNFUNC(-RIG_ENTARGET); }
+        if (target_vfo == '1' && rig->state.cache.ptt == RIG_PTT_ON) { RETURNFUNC(-RIG_ENTARGET); }
 
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c", cat_term);
 
@@ -849,6 +849,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (priv->ret_data[2] != target_vfo)
         {
+            TRACE;
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c%c", target_vfo, cat_term);
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -918,6 +919,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             && rig->caps->get_vfo != NULL
             && rig->caps->set_vfo != NULL) // gotta' have get_vfo too
     {
+        TRACE;
         if (rig->state.current_vfo != vfo)
         {
             int vfo1 = 1, vfo2 = 0;
