@@ -3673,7 +3673,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         // Firmware bug in TS570D has to adjust keyer speed
         // At this point not sure which value is correct so we'll assume the requested rate is correct
-        if (rig->caps->rig_model == RIG_MODEL_TS570D)
+        if (rig->caps->rig_model == RIG_MODEL_TS570D || rig->caps->rig_model == RIG_MODEL_TS570S)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "KS%03d%c", (val.i-10)*2, cat_term);
         }
@@ -5050,7 +5050,14 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RAWSTR:
     case RIG_LEVEL_KEYSPD:
-        val->i = atoi(retlvl);
+        if (rig->caps->rig_model == RIG_MODEL_TS570D || rig->caps->rig_model == RIG_MODEL_TS570S)
+        { // TS570 uses 010-~060 scale according to manual
+            val->i = atoi(retlvl)/2 + 10;
+        }
+        else
+        {
+            val->i = atoi(retlvl);
+        }
         break;
 
     case RIG_LEVEL_IF:
