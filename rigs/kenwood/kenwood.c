@@ -1335,6 +1335,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
 
     /* set TX VFO */
+    // if turning on split need to do some VFOB setup on Elecraft rigs to avoid SPLIT N/A and ER59 messages
     if (rig->caps->rig_model == RIG_MODEL_K4) // K4 needs VFOB to be same band as VFOA
     {
         snprintf(cmdbuf, sizeof(cmdbuf), "AB3;FT%c", vfo_function);
