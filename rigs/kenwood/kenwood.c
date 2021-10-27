@@ -1333,6 +1333,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: already set split=%d\n", __func__, tsplit);
         RETURNFUNC(RIG_OK); 
     }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: split is=%d, split wants=%d\n", __func__, tsplit, split);
 
     /* set TX VFO */
     // if turning on split need to do some VFOB setup on Elecraft rigs to avoid SPLIT N/A and ER59 messages
