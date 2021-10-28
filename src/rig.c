@@ -4651,6 +4651,12 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
+    
+     if (rig->state.cache.ptt)
+     {
+         rig_debug(RIG_DEBUG_WARN, "%s: cannot execute when PTT is on\n", __func__);
+         return RIG_OK;
+     }
 
     // We fix up vfos for non-satmode rigs only
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
