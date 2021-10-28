@@ -2670,7 +2670,6 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
     RETURNFUNC(0);
 }
 
-//#define BUILTINFUNC 1
 
 /**
  * \brief set the current VFO
@@ -4239,18 +4238,14 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         tx_vfo = vfo;
     }
 
-    // if mode is not targetable than we don't need to set VFOB mode
-    int modefixed = !(caps->targetable_vfo & RIG_TARGETABLE_MODE);
-    if (modefixed) vfo = RIG_VFO_A;
-    if ((caps->set_mode && (caps->targetable_vfo & RIG_TARGETABLE_MODE)))
+    if (caps->set_mode && (caps->targetable_vfo & RIG_TARGETABLE_MODE))
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: mode targetable\n", __func__);
+        TRACE;
         retcode = caps->set_mode(rig, tx_vfo, tx_mode, tx_width);
         RETURNFUNC(retcode);
     }
 
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode not targetable\n", __func__);
     if (caps->set_vfo)
     {
         TRACE;
@@ -4655,12 +4650,6 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     if (caps->set_split_vfo == NULL)
     {
         RETURNFUNC(-RIG_ENAVAIL);
-    }
-
-    if (rig->state.cache.ptt)
-    {
-        rig_debug(RIG_DEBUG_WARN, "%s: cannot execute when PTT is on\n", __func__);
-        return RIG_OK;
     }
 
     // We fix up vfos for non-satmode rigs only
