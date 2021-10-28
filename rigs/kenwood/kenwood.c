@@ -1337,21 +1337,13 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     /* set TX VFO */
     // if turning on split need to do some VFOB setup on Elecraft rigs to avoid SPLIT N/A and ER59 messages
-    if (rig->caps->rig_model == RIG_MODEL_K4) // K4 needs VFOB to be same band as VFOA
+    if (rig->caps->rig_model == RIG_MODEL_K4 //  Elecraft needs VFOB to be same band as VFOA
+      ||rig->caps->rig_model == RIG_MODEL_K3
+      ||rig->caps->rig_model == RIG_MODEL_KX2
+      ||rig->caps->rig_model == RIG_MODEL_KX3)
     {
-        snprintf(cmdbuf, sizeof(cmdbuf), "AB3;FT%c", vfo_function);
-    }
-    else if (rig->caps->rig_model == RIG_MODEL_K3)
-    {
-        snprintf(cmdbuf, sizeof(cmdbuf), "SWT13;FT%c", vfo_function);
-    }
-    else if (rig->caps->rig_model == RIG_MODEL_KX3)
-    {
-        snprintf(cmdbuf, sizeof(cmdbuf), "SWT25;FT%c", vfo_function);
-    }
-    else if (rig->caps->rig_model == RIG_MODEL_KX2)
-    {
-        snprintf(cmdbuf, sizeof(cmdbuf), "SWH44;FT%c", vfo_function);
+        rig_set_freq(rig, RIG_VFO_B, rig->state.cache.freqMainA);
+        snprintf(cmdbuf, sizeof(cmdbuf), "FT%c", vfo_function);
     }
     else
     {
