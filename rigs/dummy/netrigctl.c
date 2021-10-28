@@ -2424,6 +2424,28 @@ static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     }
 }
 
+static int netrigctl_stop_morse(RIG *rig, vfo_t vfo, const char *msg)
+{
+    int ret, len;
+    char cmd[] = "\\stop_morse\n";
+    char buf[BUF_MAX];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    len = strlen(cmd);
+
+    ret = netrigctl_transaction(rig, cmd, len, buf);
+
+    if (ret > 0)
+    {
+        return -RIG_EPROTO;
+    }
+    else
+    {
+        return ret;
+    }
+}
+
 static int netrigctl_set_vfo_opt(RIG *rig, int status)
 {
     char cmdbuf[32];
@@ -2642,6 +2664,7 @@ struct rig_caps netrigctl_caps =
     .send_dtmf =  netrigctl_send_dtmf,
     .recv_dtmf =  netrigctl_recv_dtmf,
     .send_morse =  netrigctl_send_morse,
+    .stop_morse =  netrigctl_stop_morse,
     .set_channel =    netrigctl_set_channel,
     .get_channel =    netrigctl_get_channel,
     .set_vfo_opt = netrigctl_set_vfo_opt,
