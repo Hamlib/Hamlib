@@ -1062,6 +1062,12 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
      */
     if (priv->is_emulation && priv->curr_mode > 0) { RETURNFUNC(RIG_OK); }
 
+    if (rig->state.current_vfo == vfo)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo already is %s...skipping\n", __func__, rig_strvfo(vfo));
+        RETURNFUNC(RIG_OK);
+    }
+
     switch (vfo)
     {
     case RIG_VFO_A:
