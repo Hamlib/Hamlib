@@ -367,7 +367,7 @@ transaction_write:
 
 transaction_read:
     /* allow room for most any response */
-    len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 32,
+    len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 48,
               KENWOOD_MAX_BUF_LEN);
     retval = read_string(&rs->rigport, buffer, len, cmdtrm_str, strlen(cmdtrm_str));
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string(len=%d)='%s'\n", __func__,
@@ -466,6 +466,11 @@ transaction_read:
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Unknown command or rig busy '%s'\n", __func__,
                           cmdstr);
+                // sometimes IF; command after TX; will return ? but still return IF response
+                if (retry_read++ <= 1) {
+                    hl_usleep(100*1000);
+                    goto transaction_read;
+                }
             }
 
             if (retry_read++ < rs->rigport.retry)
