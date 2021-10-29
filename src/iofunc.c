@@ -243,7 +243,7 @@ extern int is_uh_radio_fd(int fd);
 /* On MinGW32/MSVC/.. the appropriate accessor must be used
  * depending on the port type, sigh.
  */
-static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
+ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 {
     int i;
     ssize_t ret;
@@ -370,7 +370,7 @@ static int port_select(hamlib_port_t *p,
 
 /* POSIX */
 
-static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
+ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 {
     if (p->type.rig == RIG_PORT_SERIAL && p->parm.serial.data_bits == 7)
     {
