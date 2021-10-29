@@ -639,6 +639,9 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
  */
 int HAMLIB_API serial_flush(hamlib_port_t *p)
 {
+    int len;
+    int timeout_save;
+    unsigned char buf[4096];
     ENTERFUNC;
 
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd || p->flushx)
@@ -669,8 +672,34 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
         RETURNFUNC(RIG_OK);
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "tcflush%s\n", "");
-    tcflush(p->fd, TCIFLUSH);
+    timeout_save = p->timeout;
+    p->timeout = 1;
+    do
+    {
+        len = read_string(p, (char*)buf, sizeof(buf)-1, NULL, 0);
+        if  (len > 0)
+        {
+            int i, binary=0;
+            for(i=0;i<len;++i)
+            {
+                if (!isprint(buf[i])) binary = 1;
+            }
+            if (binary)
+            {
+                char *hbuf = calloc(len*3+1, 1);
+                for(i=0;i<len;++i) sprintf(&hbuf[i*3], "%02X ", buf[i]);
+                rig_debug(RIG_DEBUG_WARN, "%s: flush hex:%s\n", __func__, hbuf);
+                free(hbuf);
+            }
+            else
+            {
+                rig_debug(RIG_DEBUG_WARN, "%s: flush string:%s\n", __func__, buf);
+            }
+        }
+    } while(len > 0);
+    p->timeout = timeout_save;
+    //rig_debug(RIG_DEBUG_VERBOSE, "tcflush%s\n", "");
+    //tcflush(p->fd, TCIFLUSH);
     RETURNFUNC(RIG_OK);
 }
 
