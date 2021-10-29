@@ -26,6 +26,7 @@
 #include <hamlib/rig.h>
 
 
+
 extern HAMLIB_EXPORT(int) port_open(hamlib_port_t *p);
 extern HAMLIB_EXPORT(int) port_close(hamlib_port_t *p, rig_port_t port_type);
 
@@ -44,4 +45,5 @@ extern HAMLIB_EXPORT(int) read_string(hamlib_port_t *p,
                                       const char *stopset,
                                       int stopset_len);
 
+extern ssize_t port_read(hamlib_port_t *p, void *buf, size_t count);
 #endif /* _IOFUNC_H */
