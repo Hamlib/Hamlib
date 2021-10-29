@@ -657,7 +657,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
         memset(pbuf,0,sizeof(pbuf));
         memset(hbuf,0,sizeof(hbuf));
         for (i = 0; i < n; ++i) { pbuf[i] = isprint(buf[i]) ? buf[i] : '~'; }
-        for (i = 0; i < n; ++i) { sprintf(&hbuf[i*3], "%02X ", buf[i]); }
+        for (i = 0; i < n; ++i) { sprintf(&hbuf[i], "%02X ", buf[i]); }
         rig_debug(RIG_DEBUG_VERBOSE, "%s: flushed=%s   %s\n",__func__,pbuf,hbuf);
         //for (i = 0; i < n; ++i) { printf("0x%02x(%c) ", buf[i], isprint(buf[i]) ? buf[i] : '~'); }
 
