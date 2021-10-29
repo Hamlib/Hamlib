@@ -81,7 +81,6 @@
 #include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"
-#include "iofunc.h"
 
 #ifdef HAVE_SYS_IOCCOM_H
 #  include <sys/ioccom.h>
@@ -640,31 +639,39 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
  */
 int HAMLIB_API serial_flush(hamlib_port_t *p)
 {
-    //ENTERFUNC; // too verbose
+    ENTERFUNC;
 
-    unsigned char buf[32];
-    int n, nbytes = 0;
-
-    //rig_debug(RIG_DEBUG_TRACE, "%s: flushing\n", __func__);
-
-    while ((n = port_read(p, buf, 32)) > 0)
+    if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd || p->flushx)
     {
-        int i;
-        char pbuf[sizeof(buf)+1];
-        char hbuf[sizeof(buf)*3+1];
-        nbytes += n;
+        unsigned char buf[32];
+        /*
+         * Catch microHam case:
+         * if fd corresponds to a microHam device drain the line
+         * (which is a socket) by reading until it is empty.
+         */
+        int n, nbytes = 0;
 
-        memset(pbuf,0,sizeof(pbuf));
-        memset(hbuf,0,sizeof(hbuf));
-        for (i = 0; i < n; ++i) { pbuf[i] = isprint(buf[i]) ? buf[i] : '~'; }
-        for (i = 0; i < n; ++i) { sprintf(&hbuf[i], "%02X ", buf[i]); }
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: flushed=%s   %s\n",__func__,pbuf,hbuf);
-        //for (i = 0; i < n; ++i) { printf("0x%02x(%c) ", buf[i], isprint(buf[i]) ? buf[i] : '~'); }
+        rig_debug(RIG_DEBUG_TRACE, "%s: flushing\n", __func__);
 
-        /* do nothing */
+        while ((n = read(p->fd, buf, 32)) > 0)
+        {
+            nbytes += n;
+            //int i;
+
+            //for (i = 0; i < n; ++i) { printf("0x%02x(%c) ", buf[i], isprint(buf[i]) ? buf[i] : '~'); }
+
+            /* do nothing */
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "read flushed %d bytes\n", nbytes);
+
+
+        RETURNFUNC(RIG_OK);
     }
 
-    return RIG_OK;
+    rig_debug(RIG_DEBUG_VERBOSE, "tcflush%s\n", "");
+    tcflush(p->fd, TCIFLUSH);
+    RETURNFUNC(RIG_OK);
 }
 
 
