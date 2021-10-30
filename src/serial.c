@@ -676,7 +676,10 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
     p->timeout = 1;
     do
     {
-        len = read_string(p, (char*)buf, sizeof(buf)-1, NULL, 0);
+        // we pass an empty stopset so read_string can determine
+        // the appropriate stopset for async data
+        char stopset[1];
+        len = read_string(p, (char*)buf, sizeof(buf)-1, stopset, 0);
         if  (len > 0)
         {
             int i, binary=0;
