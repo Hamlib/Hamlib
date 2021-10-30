@@ -2184,6 +2184,7 @@ typedef struct hamlib_port {
         } gpio;             /*!< GPIO attributes */
     } parm;                 /*!< Port parameter union */
     int client_port;      /*!< client socket port for tcp connection */
+    RIG *rig;             /*!< our parent RIG device */
 } hamlib_port_t;
 //! @endcond
 

@@ -694,6 +694,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     caps = rig->caps;
     rs = &rig->state;
+    rs->rigport.rig = rig;
 
     if (strlen(rs->rigport.pathname) > 0)
     {
