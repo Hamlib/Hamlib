@@ -2424,7 +2424,7 @@ static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     }
 }
 
-static int netrigctl_stop_morse(RIG *rig, vfo_t vfo, const char *msg)
+static int netrigctl_stop_morse(RIG *rig, vfo_t vfo)
 {
     int ret, len;
     char cmd[] = "\\stop_morse\n";
@@ -2568,7 +2568,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20210712.0",
+    .version =        "20211030.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
