@@ -4226,6 +4226,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         RETURNFUNC(retcode);
     }
 
+    rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_OFF, RIG_VFO_CURR);
     /* Assisted mode */
     curr_vfo = rig->state.current_vfo;
 
@@ -4297,6 +4298,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         /* return the first error code */
         retcode = rc2;
     }
+    rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_CURR);
 
     RETURNFUNC(retcode);
 }
