@@ -703,9 +703,9 @@ int HAMLIB_API read_string(hamlib_port_t *p,
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
-    rxbuffer[0] = 0; /* ensure string is terminated */
+    memset(rxbuffer, 0, rxmax);
 
-    while (total_count < rxmax - 1)
+    while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
         int rd_count;
         int retval;
@@ -793,7 +793,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         // check to see if our string startis with \...if so we need more chars
         if (total_count == 0 && rxbuffer[total_count] == '\\') { rxmax = (rxmax - 1) * 5; }
 
-        ++total_count;
+        total_count += rd_count;
 
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {
