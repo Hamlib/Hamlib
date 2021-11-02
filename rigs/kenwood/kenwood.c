@@ -1241,7 +1241,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     unsigned char vfo_function;
     split_t tsplit;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called %s,%d,%s\n", __func__, rig_strvfo(vfo), split, rig_strvfo(txvfo));
 
     if (RIG_IS_TS990S)
     {
@@ -1257,8 +1257,8 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         RETURNFUNC(kenwood_transaction(rig, cmdbuf, NULL, 0));
     }
 
-    if (vfo != RIG_VFO_CURR)
-    {
+    if (vfo == RIG_VFO_CURR) vfo = rig->state.current_vfo;
+
         switch (vfo)
         {
         case RIG_VFO_A: vfo_function = '0'; break;
@@ -1297,7 +1297,6 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         {
             RETURNFUNC(retval);
         }
-    }
 
     /* Split off means Rx and Tx are the same */
     if (split == RIG_SPLIT_OFF)
@@ -1315,6 +1314,14 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         }
     }
 
+    if (txvfo == RIG_VFO_CURR && vfo == RIG_VFO_A) {
+        if (vfo == RIG_VFO_A) txvfo = RIG_VFO_B;
+        else if (vfo == RIG_VFO_B) txvfo = RIG_VFO_A;
+        else {
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported split VFO=%s\n", __func__, rig_strvfo(txvfo));
+            RETURNFUNC(-RIG_EINVAL);
+        }
+    }
     switch (txvfo)
     {
     case RIG_VFO_VFO:
