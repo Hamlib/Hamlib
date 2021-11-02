@@ -285,7 +285,7 @@ int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = read_string(&rs->rigport, replybuf, replysize, ";", 1);
+        retval = read_string(&rs->rigport, replybuf, replysize, ";", 1, 0);
 
         if (retval < 0)
         {
@@ -462,7 +462,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    retval = read_string(&rs->rigport, freqbuf, freqsize, ";", 1);
+    retval = read_string(&rs->rigport, freqbuf, freqsize, ";", 1, 0);
 
     if (retval < 0)
     {
@@ -514,7 +514,7 @@ int xg3_get_powerstat(RIG *rig, powerstat_t *status)
     if (retval == RIG_OK)
     {
         char reply[32];
-        retval = read_string(&rs->rigport, reply, sizeof(reply), ";", 1);
+        retval = read_string(&rs->rigport, reply, sizeof(reply), ";", 1, 0);
         *status = RIG_POWER_ON;
         priv->powerstat = RIG_POWER_ON;
     }
@@ -578,7 +578,7 @@ int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
         return retval;
     }
 
-    retval = read_string(&rs->rigport, reply, sizeof(reply), ";", 1);
+    retval = read_string(&rs->rigport, reply, sizeof(reply), ";", 1, 0);
 
     if (retval < 0)
     {

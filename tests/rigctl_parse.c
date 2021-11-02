@@ -4958,7 +4958,7 @@ declare_proto_rig(send_cmd)
 
         /* Assumes CR or LF is end of line char for all ASCII protocols. */
         retval = read_string(&rs->rigport, (char *)buf, rxbytes, eom_buf,
-                             strlen(eom_buf));
+                             strlen(eom_buf), 0);
 
         if (retval < 0)
         {

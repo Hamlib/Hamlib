@@ -467,7 +467,7 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[],
     do
     {
         int i = read_string(p, rx_ptr, MAXFRAMELEN - read,
-                            icom_block_end, icom_block_end_length);
+                            icom_block_end, icom_block_end_length, 0);
 
         if (i < 0 && i != RIG_BUSBUSY) /* die on errors */
         {

@@ -671,7 +671,8 @@ int HAMLIB_API read_string(hamlib_port_t *p,
                            char *rxbuffer,
                            size_t rxmax,
                            const char *stopset,
-                           int stopset_len)
+                           int stopset_len,
+                           int flush_flag)
 {
     fd_set rfds, efds;
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
@@ -725,12 +726,14 @@ int HAMLIB_API read_string(hamlib_port_t *p,
                 timersub(&end_time, &start_time, &elapsed_time);
 
                 dump_hex((unsigned char *) rxbuffer, total_count);
+                if (!flush_flag) {
                 rig_debug(RIG_DEBUG_WARN,
                           "%s(): Timed out %d.%03d seconds after %d chars\n",
                           __func__,
                           (int)elapsed_time.tv_sec,
                           (int)elapsed_time.tv_usec / 1000,
                           total_count);
+                }
 
                 return -RIG_ETIMEOUT;
             }

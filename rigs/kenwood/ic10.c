@@ -110,7 +110,7 @@ transaction:
         }
 
         // this should be the ID response
-        retval = read_string(&rs->rigport, buffer, sizeof(buffer), ";", 1);
+        retval = read_string(&rs->rigport, buffer, sizeof(buffer), ";", 1, 0);
 
         // might be ?; too
         if (buffer[0] == '?' && retry_cmd++ < rs->rigport.retry)
@@ -129,7 +129,7 @@ transaction:
         return RIG_OK;
     }
 
-    retval = read_string(&rs->rigport, data, 50, ";", 1);
+    retval = read_string(&rs->rigport, data, 50, ";", 1, 0);
 
     if (retval == -RIG_ETIMEOUT)
     {

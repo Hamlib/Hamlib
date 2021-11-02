@@ -243,7 +243,7 @@ static int read_transaction(RIG *rig, char *response, int response_len)
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
     len = read_string(&rs->rigport, response, response_len, delims,
-                      strlen(delims));
+                      strlen(delims), 0);
 
     if (len <= 0)
     {

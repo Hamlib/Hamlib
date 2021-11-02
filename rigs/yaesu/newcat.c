@@ -9639,7 +9639,7 @@ int newcat_get_cmd(RIG *rig)
 
         /* read the reply */
         if ((rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
-                              &cat_term, sizeof(cat_term))) <= 0)
+                              &cat_term, sizeof(cat_term), 0)) <= 0)
         {
             continue;             /* usually a timeout - retry */
         }
@@ -9827,7 +9827,7 @@ int newcat_set_cmd_validate(RIG *rig)
         if (strlen(valcmd) == 0) { RETURNFUNC(RIG_OK); }
 
         bytes = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
-                            &cat_term, sizeof(cat_term));
+                            &cat_term, sizeof(cat_term), 0);
 
         // FA and FB success is now verified in rig.c with a followup query
         // so no validation is needed
@@ -9955,7 +9955,7 @@ int newcat_set_cmd(RIG *rig)
 
         /* read the reply */
         if ((rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
-                              &cat_term, sizeof(cat_term))) <= 0)
+                              &cat_term, sizeof(cat_term), 0)) <= 0)
         {
             continue;             /* usually a timeout - retry */
         }
@@ -10025,7 +10025,7 @@ int newcat_set_cmd(RIG *rig)
 
                 /* read/flush the verify command reply which should still be there */
                 if ((rc = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
-                                      &cat_term, sizeof(cat_term))) > 0)
+                                      &cat_term, sizeof(cat_term), 0)) > 0)
                 {
                     rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
                               __func__, rc, priv->ret_data);

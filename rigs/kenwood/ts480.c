@@ -442,7 +442,7 @@ static int ts480_read_meters(RIG *rig, int *swr, int *comp, int *alc)
 
     // TS-480 returns values for all meters at the same time, for example: RM10000;RM20000;RM30000;
 
-    retval = read_string(&rs->rigport, ackbuf, expected_len + 1, NULL, 0);
+    retval = read_string(&rs->rigport, ackbuf, expected_len + 1, NULL, 0, 0);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string retval=%d\n", __func__, retval);
 

@@ -211,7 +211,7 @@ static int ar3k_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return RIG_OK;
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
+    retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM), 0);
 
     if (retval == -RIG_ETIMEOUT)
     {
