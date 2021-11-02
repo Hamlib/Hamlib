@@ -12,7 +12,7 @@
 
 #define LOOP_COUNT 100
 
-#define SERIAL_PORT "/dev/ttyS0"
+#define SERIAL_PORT "/dev/ttyUSB0"
 
 
 int main(int argc, char *argv[])
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
         hamlib_port_t myport;
         /* may be overridden by backend probe */
         myport.type.rig = RIG_PORT_SERIAL;
-        myport.parm.serial.rate = 9600;
+        myport.parm.serial.rate = 19200;
         myport.parm.serial.data_bits = 8;
         myport.parm.serial.stop_bits = 1;
         myport.parm.serial.parity = RIG_PARITY_NONE;
@@ -67,7 +67,10 @@ int main(int argc, char *argv[])
            my_rig->caps->version,
            rig_strstatus(my_rig->caps->status));
 
-    printf("Serial speed: %d bauds\n", my_rig->state.rigport.parm.serial.rate);
+    printf("Serial speed: %d baud\n", my_rig->state.rigport.parm.serial.rate);
+#if 0 // if we want to bench serial or network I/O use this time
+    rig_set_cache_timeout_ms(my_rig, HAMLIB_CACHE_ALL, 0);
+#endif
 
     strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
