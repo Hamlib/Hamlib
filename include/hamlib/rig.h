@@ -2227,6 +2227,8 @@ struct rig_cache {
     // Most rigs have MainA and MainB
     // Dual VFO rigs can have SubA and SubB too
     // For dual VFO rigs simplex operations are all done on MainA/MainB -- ergo this abstraction
+    freq_t freqCurr; // Other VFO
+    freq_t freqOther; // Other VFO
     freq_t freqMainA; // VFO_A, VFO_MAIN, and VFO_MAINA
     freq_t freqMainB; // VFO_B, VFO_SUB, and VFO_MAINB
     freq_t freqMainC; // VFO_C, VFO_MAINC
@@ -2234,6 +2236,8 @@ struct rig_cache {
     freq_t freqSubB;  // VFO_SUBB -- only for rigs with dual Sub VFOs
     freq_t freqSubC;  // VFO_SUBC -- only for rigs with 3 Sub VFOs
     freq_t freqMem;   // VFO_MEM -- last MEM channel
+    rmode_t modeCurr;
+    rmode_t modeOther;
     rmode_t modeMainA;
     rmode_t modeMainB;
     rmode_t modeMainC;
@@ -2241,6 +2245,8 @@ struct rig_cache {
     rmode_t modeSubB;
     rmode_t modeSubC;
     rmode_t modeMem;
+    pbwidth_t widthCurr; // if non-zero then rig has separate width for MainA
+    pbwidth_t widthOther; // if non-zero then rig has separate width for MainA
     pbwidth_t widthMainA; // if non-zero then rig has separate width for MainA
     pbwidth_t widthMainB; // if non-zero then rig has separate width for MainB
     pbwidth_t widthMainC; // if non-zero then rig has separate width for MainC
@@ -2251,6 +2257,8 @@ struct rig_cache {
     ptt_t ptt;
     split_t split;
     vfo_t split_vfo;  // split caches two values
+    struct timespec time_freqCurr;
+    struct timespec time_freqOther;
     struct timespec time_freqMainA;
     struct timespec time_freqMainB;
     struct timespec time_freqMainC;
@@ -2259,6 +2267,8 @@ struct rig_cache {
     struct timespec time_freqSubC;
     struct timespec time_freqMem;
     struct timespec time_vfo;
+    struct timespec time_modeCurr;
+    struct timespec time_modeOther;
     struct timespec time_modeMainA;
     struct timespec time_modeMainB;
     struct timespec time_modeMainC;
@@ -2266,6 +2276,8 @@ struct rig_cache {
     struct timespec time_modeSubB;
     struct timespec time_modeSubC;
     struct timespec time_modeMem;
+    struct timespec time_widthCurr;
+    struct timespec time_widthOther;
     struct timespec time_widthMainA;
     struct timespec time_widthMainB;
     struct timespec time_widthMainC;
