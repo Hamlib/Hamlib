@@ -1957,7 +1957,7 @@ declare_proto_amp(send_cmd)
          * assumes CR or LF is end of line char
          * for all ascii protocols
          */
-        retval = read_string(&rs->ampport, buf, BUFSZ, eom_buf, strlen(eom_buf));
+        retval = read_string(&rs->ampport, buf, BUFSZ, eom_buf, strlen(eom_buf), 0);
 
         if (retval < 0)
         {

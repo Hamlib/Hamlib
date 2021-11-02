@@ -93,7 +93,7 @@ static int kachina_transaction(RIG *rig, unsigned char cmd1, unsigned char cmd2)
         return retval;
     }
 
-    count = read_string(&rs->rigport, (char *) buf4, 1, "", 0);
+    count = read_string(&rs->rigport, (char *) buf4, 1, "", 0, 0);
 
     if (count != 1)
     {
@@ -128,7 +128,7 @@ static int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data,
         return retval;
     }
 
-    count = read_string(&rs->rigport, (char *) buf, 1, "", 0);
+    count = read_string(&rs->rigport, (char *) buf, 1, "", 0, 0);
 
     if (count != 1)
     {
@@ -273,7 +273,7 @@ int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     rig_flush(&rig->state.rigport);
 
     count = read_string(&rig->state.rigport, (char *) buf, 31, rcv_signal_range,
-                        128);
+                        128, 0);
 
     if (count < 1)
     {

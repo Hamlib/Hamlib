@@ -2499,7 +2499,7 @@ declare_proto_rot(send_cmd)
          * assumes CR or LF is end of line char
          * for all ascii protocols
          */
-        retval = read_string(&rs->rotport, buf, BUFSZ, eom_buf, strlen(eom_buf));
+        retval = read_string(&rs->rotport, buf, BUFSZ, eom_buf, strlen(eom_buf), 0);
 
         if (retval < 0)
         {

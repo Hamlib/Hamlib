@@ -1294,7 +1294,7 @@ int adat_receive(RIG  *pRig,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = %p\n",
               gFnLevel, __func__, __FILE__, __LINE__, pRig);
 
-    nRC = read_string(&pRigState->rigport, pcData, ADAT_RESPSZ, ADAT_EOL, 1);
+    nRC = read_string(&pRigState->rigport, pcData, ADAT_RESPSZ, ADAT_EOL, 1, 0);
 
     if (nRC > 0)
     {
@@ -3726,7 +3726,7 @@ DECLARE_PROBERIG_BACKEND(adat)
         nRC = write_block(port,
                           ADAT_CMD_DEF_STRING_GET_ID_CODE,
                           strlen(ADAT_CMD_DEF_STRING_GET_ID_CODE));
-        nRead = read_string(port, acBuf, ADAT_RESPSZ, ADAT_EOM, 1);
+        nRead = read_string(port, acBuf, ADAT_RESPSZ, ADAT_EOM, 1, 0);
         close(port->fd);
 
         if ((nRC != RIG_OK || nRead < 0))

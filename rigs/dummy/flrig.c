@@ -456,7 +456,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
         }
 
         int len = read_string(&rs->rigport, tmp_buf, sizeof(tmp_buf), delims,
-                              strlen(delims));
+                              strlen(delims), 0);
         rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, tmp_buf);
 
         // if our first response we should see the HTTP header

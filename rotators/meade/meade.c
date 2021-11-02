@@ -129,7 +129,7 @@ transaction:
         if (data != NULL)
         {
             return_value = read_string(&rs->rotport, data, expected_return_length + 1,
-                                       "\r\n", strlen("\r\n"));
+                                       "\r\n", strlen("\r\n"), 0);
 
             if (return_value > 0)
             {

@@ -85,7 +85,7 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return 0;
     }
 
-    retval = read_string(&rs->rigport, data, *data_len, NULL, 0);
+    retval = read_string(&rs->rigport, data, *data_len, NULL, 0, 0);
 
     if (retval == -RIG_ETIMEOUT)
     {

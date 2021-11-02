@@ -93,7 +93,7 @@ static int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return 0;
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
+    retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM), 0);
 
     Unhold_Decode(rig);
 
@@ -1632,7 +1632,7 @@ int jrc_decode_event(RIG *rig)
     //#define SETUP_STATUS_LEN 17
 
     //count = read_string(&rs->rigport, buf, SETUP_STATUS_LEN, "", 0);
-    count = read_string(&rs->rigport, buf, priv->info_len, "", 0);
+    count = read_string(&rs->rigport, buf, priv->info_len, "", 0, 0);
 
     if (count < 0)
     {

@@ -1631,6 +1631,9 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
     {
         switch (vfo)
         {
+            case RIG_VFO_OTHER:
+                vfo = RIG_VFO_OTHER;
+                break;
             case RIG_VFO_A:
                 vfo = RIG_VFO_B;
                 break;
@@ -1665,6 +1668,28 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
 
     switch (vfo)
     {
+    case RIG_VFO_CURR:
+        *freq = rig->state.cache.freqCurr;
+        *mode = rig->state.cache.modeCurr;
+        *width = rig->state.cache.widthCurr;
+        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqCurr,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeCurr,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthCurr,
+                                     HAMLIB_ELAPSED_GET);
+        break;
+    case RIG_VFO_OTHER:
+        *freq = rig->state.cache.freqOther;
+        *mode = rig->state.cache.modeOther;
+        *width = rig->state.cache.widthOther;
+        *cache_ms_freq = elapsed_ms(&rig->state.cache.time_freqOther,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_mode = elapsed_ms(&rig->state.cache.time_modeOther,
+                                    HAMLIB_ELAPSED_GET);
+        *cache_ms_width = elapsed_ms(&rig->state.cache.time_widthOther,
+                                     HAMLIB_ELAPSED_GET);
+        break;
     case RIG_VFO_A:
     case RIG_VFO_MAIN:
     case RIG_VFO_MAIN_A:

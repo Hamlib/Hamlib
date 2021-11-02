@@ -646,7 +646,6 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd || p->flushx)
     {
-        unsigned char buf[32];
         /*
          * Catch microHam case:
          * if fd corresponds to a microHam device drain the line
@@ -656,7 +655,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 
         rig_debug(RIG_DEBUG_TRACE, "%s: flushing\n", __func__);
 
-        while ((n = read(p->fd, buf, 32)) > 0)
+        while ((n = read(p->fd, buf, sizeof(buf))) > 0)
         {
             nbytes += n;
             //int i;
@@ -679,7 +678,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
         // we pass an empty stopset so read_string can determine
         // the appropriate stopset for async data
         char stopset[1];
-        len = read_string(p, (char*)buf, sizeof(buf)-1, stopset, 0);
+        len = read_string(p, (char*)buf, sizeof(buf)-1, stopset, 0, 1);
         if  (len > 0)
         {
             int i, binary=0;
