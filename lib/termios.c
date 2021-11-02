@@ -1719,7 +1719,9 @@ int win32_serial_read(int fd, void *vb, int size)
 
                 size -= nBytes;
                 total += nBytes;
+                return (total);
 
+#if 0
                 if (size > 0)
                 {
                     now = GetTickCount();
@@ -1745,6 +1747,7 @@ int win32_serial_read(int fd, void *vb, int size)
                 */
                 report("ERROR_IO_PENDING\n");
                 break;
+#endif
 
             default:
                 /*
@@ -1918,7 +1921,8 @@ int win32_serial_read(int fd, void *vb, int size)
 
                 size -= nBytes;
                 total += nBytes;
-
+                return (total);
+#if 0
                 if (size > 0)
                 {
                     now = GetTickCount();
@@ -1945,6 +1949,7 @@ int win32_serial_read(int fd, void *vb, int size)
                 */
                 report("ERROR_IO_PENDING\n");
                 break;
+#endif
 
             default:
                 /*
