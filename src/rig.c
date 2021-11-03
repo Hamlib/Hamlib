@@ -4697,6 +4697,15 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {
         rx_vfo = vfo_fixup(rig, rx_vfo, split);
         tx_vfo = vfo_fixup(rig, tx_vfo, split);
+        if (rx_vfo == RIG_VFO_CURR)
+        {
+            rx_vfo = rig->state.current_vfo;
+        }
+        if (tx_vfo == RIG_VFO_CURR)
+        {
+            tx_vfo = rig->state.tx_vfo;
+        }
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: final rxvfo=%s, txvfo=%s\n", __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
     }
 
     // set rig to the the requested RX VFO
