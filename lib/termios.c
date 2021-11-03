@@ -1585,7 +1585,7 @@ int win32_serial_read(int fd, void *vb, int size)
     /* unsigned long waiting = 0; */
     int err;
     struct termios_list *index;
-    char message[80];
+//    char message[80];
     COMSTAT stat;
     clock_t c;
     unsigned char *dest = vb;
