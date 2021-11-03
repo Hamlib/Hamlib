@@ -2288,7 +2288,8 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     int err;
     vfo_t rx_vfo = RIG_VFO_NONE;
 
-    ENTERFUNC;
+    //ENTERFUNC;
+    rig_debug(RIG_DEBUG_TRACE, "%s: entered, rxvfo=%s, txvfo=%s, split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(tx_vfo), split);
 
     err = newcat_set_vfo_from_alias(rig, &vfo);
 
