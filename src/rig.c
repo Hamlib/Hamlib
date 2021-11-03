@@ -4273,14 +4273,15 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     }
 
 
-    if (caps->set_vfo)
+    // prefer the vfo swap method to reduce rig display flashing
+    if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
+    {
+        retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+    }
+    else if (caps->set_vfo)
     {
         TRACE;
         retcode = caps->set_vfo(rig, tx_vfo);
-    }
-    else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
-    {
-        retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
     }
     else
     {
