@@ -6849,12 +6849,12 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
     {
     case RIG_VFO_A:
     case RIG_VFO_MAIN:
-        p1 = '0';
+        p1 = '2';
         break;
 
     case RIG_VFO_B:
     case RIG_VFO_SUB:
-        p1 = '1';
+        p1 = '3';
         break;
 
     case RIG_VFO_MEM:
