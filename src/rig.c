@@ -4224,7 +4224,6 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     const struct rig_caps *caps;
     int retcode, rc2;
     vfo_t curr_vfo, tx_vfo;
-    int split_fix = 0;
 
     ENTERFUNC;
 
@@ -4252,13 +4251,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         RETURNFUNC(retcode);
     }
 
-    // some rigs exhibit undesirable flashing when split is on
-    // and and we have to switch VFOS to set things
-    if (rig->caps->rig_model == RIG_MODEL_FT950)
-    {
-        rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_OFF, RIG_VFO_CURR);
-        split_fix = 1;
-    }
+    rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_OFF, RIG_VFO_CURR);
     /* Assisted mode */
     curr_vfo = rig->state.current_vfo;
 
@@ -4330,10 +4323,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         /* return the first error code */
         retcode = rc2;
     }
-    if (split_fix)
-    {
-        rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_CURR);
-    }
+    rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_CURR);
 
     RETURNFUNC(retcode);
 }
