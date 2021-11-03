@@ -1228,23 +1228,28 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MD0x%c", cat_term);
 
-    /* FT9000 RIG_TARGETABLE_MODE (mode and width) */
-    /* FT2000 mode only */
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
-    {
-        priv->cmd_str[2] = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s \n",
-              __func__, rig_strrmode(mode));
-
-
     priv->cmd_str[3] = newcat_modechar(mode);
 
     if (priv->cmd_str[3] == '0')
     {
         RETURNFUNC(-RIG_EINVAL);
     }
+
+
+    /* FT9000 RIG_TARGETABLE_MODE (mode and width) */
+    /* FT2000 mode only */
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+    {
+        priv->cmd_str[2] = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
+    }
+    else // since we don't have targetable mode we will swap VFOS, set, and swap back
+    { // this should avoid some rig flashing 
+        sprintf(priv->cmd_str,"AB;MD0%c;AB;", newcat_modechar(mode));
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s \n",
+              __func__, rig_strrmode(mode));
+
 
     err = newcat_set_cmd(rig);
 
