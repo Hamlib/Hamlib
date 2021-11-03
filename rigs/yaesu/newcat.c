@@ -6849,12 +6849,12 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
     {
     case RIG_VFO_A:
     case RIG_VFO_MAIN:
-        p1 = '2';
+        p1 = '0';
         break;
 
     case RIG_VFO_B:
     case RIG_VFO_SUB:
-        p1 = '3';
+        p1 = '1';
         break;
 
     case RIG_VFO_MEM:
@@ -6886,6 +6886,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
             newcat_is_rig(rig, RIG_MODEL_FTDX10) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX3000))
     {
+        TRACE;
         p1 = p1 + 2;    /* use non-Toggle commands */
     }
 
