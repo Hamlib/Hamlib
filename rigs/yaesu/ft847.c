@@ -518,6 +518,155 @@ const struct rig_caps ft847_caps =
 
 };
 
+const struct rig_caps mchfqrp_caps =
+{
+    RIG_MODEL(RIG_MODEL_MCHFQRP),
+    .model_name = "mcHF QRP",
+    .mfg_name =  "M0NKA",
+    .version =  "20211103.0",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_BETA,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  57600,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  2,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  FT847_WRITE_DELAY,
+    .post_write_delay =  FT847_POST_WRITE_DELAY,
+    .timeout =  1000,
+    .retry =  0,
+
+    .has_get_func =  RIG_FUNC_NONE,
+    .has_set_func =  FT847_FUNC_ALL,
+    .has_get_level =  FT847_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_NONE,
+    .has_get_parm =  RIG_PARM_NONE,
+    .has_set_parm =  RIG_PARM_NONE,
+    .level_gran =  {},      /* granularity */
+    .parm_gran =  {},
+    .ctcss_list =  ft847_ctcss_list,
+    .dcs_list =  common_dcs_list,
+    .preamp =   { RIG_DBLST_END, }, /* no preamp/att in CAT */
+    .attenuator =   { RIG_DBLST_END, },
+    .max_rit =  Hz(0),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_TONE | RIG_TARGETABLE_FUNC,
+    .transceive =  RIG_TRN_OFF,
+    .bank_qty =   0,
+    .chan_desc_sz =  0,
+    .str_cal = FT847_STR_CAL,
+
+    .chan_list =  { RIG_CHAN_END, }, /* FIXME: memory chan list: 78, but only in clonable mode? */
+
+    .rx_range_list1 =  {
+        {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"}, /* rx range begin */
+        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
+        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
+        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
+
+        RIG_FRNG_END,
+    }, /* rx range end */
+
+    .tx_range_list1 =  {
+        FRQ_RNG_HF(1, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_HF(1, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_6m(1, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_6m(1, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_4m(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_4m(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_2m(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_2m(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_70cm(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_70cm(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+
+        RIG_FRNG_END,
+    }, /* tx range end */
+
+    .rx_range_list2 =  {
+        {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"}, /* rx range begin */
+        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
+        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
+        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
+
+        RIG_FRNG_END,
+    }, /* rx range end */
+
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_HF(2, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_6m(2, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_6m(2, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_2m(2, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_2m(2, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_70cm(2, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_70cm(2, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+
+        RIG_FRNG_END,
+    }, /* tx range end */
+
+    .tuning_steps =  { {FT847_SSB_CW_RX_MODES, 1}, /* normal */
+        {FT847_SSB_CW_RX_MODES, 10}, /* fast */
+        {FT847_SSB_CW_RX_MODES, 100}, /* faster */
+
+
+        {FT847_AM_FM_RX_MODES, 10}, /* normal */
+        {FT847_AM_FM_RX_MODES, 100}, /* fast  */
+
+        RIG_TS_END,
+    },
+    /* mode/filter list, .remember =  order matters! */
+    .filters =  {
+        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_CWR, kHz(2.2)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(500)},
+        {RIG_MODE_AM, kHz(9)},
+        {RIG_MODE_AM, kHz(2.2)},
+        {RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_FM, kHz(9)},
+        RIG_FLT_END,
+    },
+
+    .priv =   NULL,
+    .rig_init =   ft847_init,
+    .rig_cleanup =  ft847_cleanup,
+    .rig_open =   ft847_open,
+    .rig_close =  ft847_close,
+
+    .set_freq =   ft847_set_freq,       /* set freq */
+    .get_freq =  ft847_get_freq,        /* get freq */
+    .set_mode =  ft847_set_mode,        /* set mode */
+    .get_mode =  ft847_get_mode,        /* get mode */
+    .set_split_vfo  = ft847_set_split_vfo,
+    .get_split_vfo  = ft847_get_split_vfo,
+    .set_split_freq = ft847_set_split_freq,
+    .get_split_freq = ft847_get_split_freq,
+    .set_split_mode = ft847_set_split_mode,
+    .get_split_mode = ft847_get_split_mode,
+    .set_ptt =  ft847_set_ptt,      /* set ptt */
+    .get_ptt =  ft847_get_ptt,      /* get ptt */
+    .get_dcd =  ft847_get_dcd,      /* get dcd */
+    .get_level = ft847_get_level,           /* get level */
+
+    .set_func       = ft847_set_func,
+    .set_ctcss_tone = ft847_set_ctcss_tone,
+    .set_ctcss_sql  = ft847_set_ctcss_sql,
+    .set_dcs_sql    = ft847_set_dcs_sql,
+    .set_rptr_shift = ft847_set_rptr_shift,
+    .set_rptr_offs  = ft847_set_rptr_offs,
+
+};
 
 /*
  * ft847uni rigs capabilities.
