@@ -531,7 +531,7 @@ const struct rig_caps mchfqrp_caps =
     .dcd_type =  RIG_DCD_RIG,
     .port_type =  RIG_PORT_SERIAL,
     .serial_rate_min =  4800,
-    .serial_rate_max =  57600,
+    .serial_rate_max =  115200,
     .serial_data_bits =  8,
     .serial_stop_bits =  2,
     .serial_parity =  RIG_PARITY_NONE,
@@ -566,9 +566,9 @@ const struct rig_caps mchfqrp_caps =
 
     .rx_range_list1 =  {
         {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"}, /* rx range begin */
-        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
-        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
-        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
+        // {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
+        // {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
+        // {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
 
         RIG_FRNG_END,
     }, /* rx range end */
@@ -577,26 +577,26 @@ const struct rig_caps mchfqrp_caps =
         FRQ_RNG_HF(1, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
         FRQ_RNG_HF(1, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
 
-        FRQ_RNG_6m(1, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_6m(1, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_6m(1, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_6m(1, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
 
-        FRQ_RNG_4m(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_4m(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_4m(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_4m(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
 
-        FRQ_RNG_2m(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_2m(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_2m(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_2m(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
 
-        FRQ_RNG_70cm(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_70cm(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_70cm(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_70cm(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
 
         RIG_FRNG_END,
     }, /* tx range end */
 
     .rx_range_list2 =  {
         {kHz(100), MHz(30), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"}, /* rx range begin */
-        {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
-        {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
-        {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
+        // {MHz(36), MHz(76), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
+        // {MHz(108), MHz(174), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
+        // {MHz(420), MHz(512), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
 
         RIG_FRNG_END,
     }, /* rx range end */
@@ -605,14 +605,14 @@ const struct rig_caps mchfqrp_caps =
         FRQ_RNG_HF(2, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
         FRQ_RNG_HF(2, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
 
-        FRQ_RNG_6m(2, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_6m(2, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_6m(2, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_6m(2, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
 
-        FRQ_RNG_2m(2, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_2m(2, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_2m(2, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_2m(2, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
 
-        FRQ_RNG_70cm(2, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
-        FRQ_RNG_70cm(2, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_70cm(2, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        // FRQ_RNG_70cm(2, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
 
         RIG_FRNG_END,
     }, /* tx range end */
