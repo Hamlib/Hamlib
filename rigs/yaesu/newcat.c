@@ -385,7 +385,7 @@ static int newcat_get_narrow(RIG *rig, vfo_t vfo, ncboolean *narrow);
 static int newcat_set_faststep(RIG *rig, ncboolean fast_step);
 static int newcat_get_faststep(RIG *rig, ncboolean *fast_step);
 static int newcat_get_rigid(RIG *rig);
-static int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode);
+static int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, rmode_t *vfo_mode);
 static int newcat_vfomem_toggle(RIG *rig);
 static int set_roofing_filter(RIG *rig, vfo_t vfo, int index);
 static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width);
@@ -870,8 +870,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // Call this after open to set width_frequency for later use
     if (priv->width_frequency == 0)
     {
-        vfo_t vfo_mode;
-        newcat_get_vfo_mode(rig, &vfo_mode);
+        rmode_t vfo_mode;
+        newcat_get_vfo_mode(rig, vfo, &vfo_mode);
     }
 
     //
@@ -1207,6 +1207,8 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct newcat_priv_data *priv;
     int err;
+    rmode_t tmode;
+    pbwidth_t twidth;
     split_t split_save = rig->state.cache.split;
 
     priv = (struct newcat_priv_data *)rig->state.priv;
@@ -1226,6 +1228,14 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC(err);
     }
 
+    // if vfo is current the same don't do anything
+    // we don't want to use cache in case the user is twiddling the rig
+    if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+    {
+        rig_get_mode(rig, vfo, &tmode, &twidth);
+        if (mode == tmode && (twidth == width || twidth == RIG_PASSBAND_NOCHANGE))
+            RETURNFUNC(RIG_OK);
+    }
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MD0x%c", cat_term);
 
     priv->cmd_str[3] = newcat_modechar(mode);
@@ -1241,10 +1251,6 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
     {
         priv->cmd_str[2] = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
-    }
-    else // since we don't have targetable mode we will swap VFOS, set, and swap back
-    { // this should avoid some rig flashing 
-        sprintf(priv->cmd_str,"AB;MD0%c;AB;", newcat_modechar(mode));
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s \n",
@@ -1366,7 +1372,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
     struct rig_state *state;
     char c;
     int err, mem;
-    vfo_t vfo_mode;
+    rmode_t vfo_mode;
     char command[] = "VS";
 
     priv = (struct newcat_priv_data *)rig->state.priv;
@@ -1409,7 +1415,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
             c = '0';
         }
 
-        err = newcat_get_vfo_mode(rig, &vfo_mode);
+        err = newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
 
         if (err != RIG_OK)
         {
@@ -1522,7 +1528,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv  = (struct newcat_priv_data *)rig->state.priv;
     int err;
-    vfo_t vfo_mode;
+    rmode_t vfo_mode;
     char const *command = "VS";
 
     ENTERFUNC;
@@ -1570,7 +1576,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
     }
 
     /* Check to see if RIG is in MEM mode */
-    err = newcat_get_vfo_mode(rig, &vfo_mode);
+    err = newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
 
     if (err != RIG_OK)
     {
@@ -2474,6 +2480,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
     {
+        // OI always returns VFOB and IF always VFOA
         cmd = "OI";
     }
 
@@ -2589,6 +2596,7 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 
     if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
     {
+        // OI always returns VFOB and IF always VFOA
         cmd = "OI";
     }
 
@@ -6922,7 +6930,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     char c;
-    vfo_t vfo_mode;
+    rmode_t vfo_mode;
     char const *command = "FT";
 
     ENTERFUNC;
@@ -6972,7 +6980,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     }
 
     /* Check to see if RIG is in MEM mode */
-    err = newcat_get_vfo_mode(rig, &vfo_mode);
+    err = newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
 
     if (err != RIG_OK)
     {
@@ -9432,26 +9440,32 @@ int newcat_get_rigid(RIG *rig)
 
 /*
  * input:   RIG *, vfo_t *
- * output:  VFO mode: RIG_VFO_VFO for VFO A and B
+ * output:  VFO mode: RIG_VFO_VFO for VFO A or B
  *                    RIG_VFO_MEM for VFO MEM
  * return: RIG_OK or error
  */
-int newcat_get_vfo_mode(RIG *rig, vfo_t *vfo_mode)
+int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, rmode_t *vfo_mode)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     int offset = 0;
-    char command[] = "IF";
+    char *cmd = "IF";
 
     ENTERFUNC;
 
-    if (!newcat_valid_command(rig, command))
+    if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+    {
+        // OI always returns VFOB and IF always VFOA
+        cmd = "OI";
+    }
+
+    if (!newcat_valid_command(rig, cmd))
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    /* Get VFO A Information ****************** */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
+    /* Get VFO Information ****************** */
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", cmd, cat_term);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
@@ -9600,6 +9614,7 @@ int newcat_get_cmd(RIG *rig)
         || strcmp(priv->cmd_str, "NR1;") == 0
         || strcmp(priv->cmd_str, "NR0;") == 0
         || strcmp(priv->cmd_str, "NR1;") == 0
+        || strcmp(priv->cmd_str, "OI;") == 0
         || strcmp(priv->cmd_str, "OS0;") == 0
         || strcmp(priv->cmd_str, "OS0;") == 0
         || strcmp(priv->cmd_str, "OS1;") == 0
