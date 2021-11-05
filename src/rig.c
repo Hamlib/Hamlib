@@ -1041,11 +1041,13 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         rs->tx_vfo = rs->current_vfo;
     }
-    else // vfo fails so set some sensible defaults
+    else // no get_vfo so set some sensible defaults
     {
         //int backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
         rs->tx_vfo = RIG_VFO_TX;
-        rs->current_vfo = RIG_VFO_CURR;
+        // If we haven't gotten the vfo by now we will default to VFO_CURR
+        if (rs->current_vfo == RIG_VFO_NONE) rs->current_vfo = RIG_VFO_CURR;
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo_curr=%s, tx_vfo=%s\n", __func__, rig_strvfo(rs->current_vfo), rig_strvfo(rs->tx_vfo));
 
 #if 0 // done in the back end
 
