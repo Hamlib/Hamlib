@@ -1242,9 +1242,14 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         priv->cmd_str[2] = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
+    else // since we don't have targetable mode we will swap VFOS, set, and swap back
+    { // this should avoid some rig flashing 
+        sprintf(priv->cmd_str,"AB;MD0%c;AB;", newcat_modechar(mode));
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s \n",
               __func__, rig_strrmode(mode));
+
 
     err = newcat_set_cmd(rig);
 
