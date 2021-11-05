@@ -13,6 +13,7 @@ Version 4.4
         * Add Android sensor as a rotator
         * Added rig_get_vfo to some Icom rigs that have XCHG or 0x25 command capability
         * Added ability to build hamlib with docker
+        * Added M0NKA mcHF URP rig
 
 Version 4.3.1
         * 2021-09-14
