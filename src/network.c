@@ -304,7 +304,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 
     socklen_t clientLen = sizeof(client);
     getsockname(rp->fd, (struct sockaddr *)&client, &clientLen);
-    rig_debug(RIG_DEBUG_ERR, "%s: client port=%d\n", __func__, client.sin_port);
+    rig_debug(RIG_DEBUG_TRACE, "%s: client port=%d\n", __func__, client.sin_port);
     rp->client_port = client.sin_port;
 
     RETURNFUNC(RIG_OK);
