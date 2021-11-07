@@ -2538,13 +2538,14 @@ static int netrigctl_mW2power(RIG *rig, float *power, unsigned int mwpower,
 static int netrigctl_power2mW(RIG *rig, unsigned int *mwpower, float power,
                               freq_t freq, rmode_t mode)
 {
-    char cmdbuf[32];
+    char cmdbuf[64];
     char buf[BUF_MAX];
     int ret;
 
     ENTERFUNC;
 
-    sprintf(cmdbuf, "\\power2mW %f %.0f %s\n", power, freq, rig_strrmode(mode));
+    // we shouldn't need any precision than microwatts
+    snprintf(cmdbuf, sizeof(cmdbuf), "\\power2mW %.3f %.0f %s\n", power, freq, rig_strrmode(mode));
     ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
 
     if (ret <= 0)
@@ -2568,7 +2569,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20211030.0",
+    .version =        "20211107.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
