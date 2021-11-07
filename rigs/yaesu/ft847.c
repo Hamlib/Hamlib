@@ -900,12 +900,13 @@ static int ft847_cleanup(RIG *rig)
 
 static int ft847_open(RIG *rig)
 {
-
+    int retval;
     /* Good time to set CAT ON */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    return ft847_send_priv_cmd(rig, FT_847_NATIVE_CAT_ON);
+    retval = ft847_send_priv_cmd(rig, FT_847_NATIVE_CAT_ON);
+    RETURNFUNC(retval);
 }
 
 /*
