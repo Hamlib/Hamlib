@@ -29,3 +29,7 @@ Here is the list of the brave fellows:
 * John Nelson G4KLA 09/2021
     kenwood_set_vfo
     https://github.com/Hamlib/Hamlib/issues/794
+
+* Josef 'Jeff' Sipek
+    netrigctl power2mW overflow
+    https://github.com/Hamlib/Hamlib/issues/855
