@@ -1739,7 +1739,7 @@ static int linenum = 0;
 vfo_t HAMLIB_API vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split, const char *func, int line)
 {
     funcname = (char*)func;
-    linenum = line;
+    linenum = (int)line;
     return vfo_fixup(rig,vfo,split);
 }
 
@@ -1748,8 +1748,8 @@ vfo_t HAMLIB_API vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split, const char *fun
 // So we map these to Main/Sub as required
 vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s(from %s:%d): vfo=%s, vfo_curr=%s\n", __func__, funcname, linenum,
-              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s:(from %s:%d) vfo=%s, vfo_curr=%s, split=%d\n", __func__, funcname, linenum,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), split);
 
     if (vfo == RIG_VFO_CURR)
     {
