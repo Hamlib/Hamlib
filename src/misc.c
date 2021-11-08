@@ -1732,12 +1732,23 @@ int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
     return RIG_OK;
 }
 
+static char *funcname = "Unknown";
+static int linenum = 0;
+
+#undef vfo_fixup
+vfo_t HAMLIB_API vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split, const char *func, int line)
+{
+    funcname = (char*)func;
+    linenum = line;
+    return vfo_fixup(rig,vfo,split);
+}
+
 // we're mappping our VFO here to work with either VFO A/B rigs or Main/Sub
 // Hamlib uses VFO_A  and VFO_B as TX/RX as of 2021-04-13
 // So we map these to Main/Sub as required
 vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_curr=%s\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s(from %s:%d): vfo=%s, vfo_curr=%s\n", __func__, funcname, linenum,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR)
