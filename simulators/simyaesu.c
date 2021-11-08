@@ -147,6 +147,16 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("ID"); }
         }
+        else if (strcmp(buf, "AI;") == 0)
+        {
+            printf("%s\n", buf);
+            usleep(50 * 1000);
+            snprintf(buf, sizeof(buf), "AI0;");
+            n = write(fd, buf, strlen(buf));
+            printf("n=%d\n", n);
+
+            if (n <= 0) { perror("ID"); }
+        }
 
 #if 0
         else if (strncmp(buf, "AI", 2) == 0)
