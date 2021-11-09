@@ -476,10 +476,12 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 //  Works on K4
 int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 {
-    int retval;
+    int retval,err;
     int fr,ft,tx;
     char cmdbuf[10];
     char splitbuf[12];
+    struct rig_state *rs = &rig->state;
+
     snprintf(cmdbuf,sizeof(cmdbuf),"FR;FT;TQ;");
     memset(splitbuf,0,sizeof(splitbuf));
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 12);
@@ -489,12 +491,32 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC(retval);
     }
 
-    if(sscanf(splitbuf, "FT%1d;FT%1d;TQ%1d", &fr, &ft, &tx) == 3)
+    err = read_string(&rs->rigport, splitbuf, sizeof(splitbuf), ";", 1, 0);
+    if (err != RIG_OK)
     {
-        RETURNFUNC(RIG_OK);
+        RETURNFUNC(RIG_EPROTO);
     }
-    else {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse '%s'\n", __func__, splitbuf);
+    if(sscanf(splitbuf, "FR%1d", &fr) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FR '%s'\n", __func__, splitbuf);
+    }
+    err = read_string(&rs->rigport, splitbuf, sizeof(splitbuf), ";", 1, 0);
+    if (err != RIG_OK)
+    {
+        RETURNFUNC(RIG_EPROTO);
+    }
+    if(sscanf(splitbuf, "FT%1d", &ft) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FT '%s'\n", __func__, splitbuf);
+    }
+    err = read_string(&rs->rigport, splitbuf, sizeof(splitbuf), ";", 1, 0);
+    if (err != RIG_OK)
+    {
+        RETURNFUNC(RIG_EPROTO);
+    }
+    if(sscanf(splitbuf, "TQ%1d", &tx) != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TX '%s'\n", __func__, splitbuf);
     }
     if (tx) *vfo = ft;
     else *vfo = fr;
