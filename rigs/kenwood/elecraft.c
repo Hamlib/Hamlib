@@ -482,7 +482,7 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
     char splitbuf[12];
     snprintf(cmdbuf,sizeof(cmdbuf),"FR;FT;TQ;");
     memset(splitbuf,0,sizeof(splitbuf));
-    retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 9, 12);
+    retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 12);
 
     if (retval != RIG_OK)
     {
