@@ -132,5 +132,7 @@ int elecraft_open(RIG *rig);
 		{ 103, 60 }, \
 	} }
 
+// K4 is the only we know that has this as of 2021-11-09
+int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo);
 
 #endif /* _ELECRAFT_H */

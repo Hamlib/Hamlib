@@ -471,3 +471,33 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 
     return RIG_OK;
 }
+
+//  FR;FT;TQ; is faster than IF;
+//  Works on K4
+int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
+{
+    int retval;
+    int fr,ft,tx;
+    char cmdbuf[10];
+    char splitbuf[12];
+    snprintf(cmdbuf,sizeof(cmdbuf),"FR;FT;TQ;");
+    memset(splitbuf,0,sizeof(splitbuf));
+    retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 9, 12);
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    if(sscanf(splitbuf, "FT%1d;FT%1d;TQ%1d", &fr, &ft, &tx) == 3)
+    {
+        RETURNFUNC(RIG_OK);
+    }
+    else {
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse '%s'\n", __func__, splitbuf);
+    }
+    if (tx) *vfo = ft;
+    else *vfo = fr;
+    RETURNFUNC(RIG_OK);
+}
+
