@@ -183,7 +183,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".18",
+    .version =      BACKEND_VER ".19",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -197,7 +197,7 @@ const struct rig_caps k3_caps =
     .serial_parity =    RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay =      0,  /* Timing between bytes */
-    .post_write_delay = 0,  /* Timing between command strings */
+    .post_write_delay = 10,  /* Timing between command strings */
     .timeout =      1000,   /* FA and FB make take up to 500 ms on band change */
     .retry =        5,
 
@@ -334,7 +334,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".14",
+    .version =      BACKEND_VER ".15",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -348,7 +348,7 @@ const struct rig_caps k3s_caps =
     .serial_parity =    RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay =      0,  /* Timing between bytes */
-    .post_write_delay = 0,  /* Timing between command strings */
+    .post_write_delay = 10,  /* Timing between command strings */
     .timeout =      1000,   /* FA and FB make take up to 500 ms on band change */
     .retry =        5,
 
@@ -497,7 +497,7 @@ const struct rig_caps k4_caps =
     .serial_stop_bits = 1,
     .serial_parity =    RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
-    .write_delay =      10, /* Timing between bytes */
+    .write_delay =      0, /* Timing between bytes */
     .post_write_delay = 0,  /* Timing between command strings */
     .timeout =      1000,   /* FA and FB make take up to 500 ms on band change */
     .retry =        5,
