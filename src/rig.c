@@ -3923,6 +3923,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     const struct rig_caps *caps;
     int retcode, rc2;
     vfo_t curr_vfo, tx_vfo;
+    freq_t tfreq = 0;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -3943,6 +3944,14 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     else
     {
         tx_vfo = vfo;
+    }
+
+    rig_get_freq(rig, tx_vfo, &tfreq);    
+
+    if (tfreq == tx_freq)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: freq set not needed\n", __func__);
+        RETURNFUNC(RIG_OK);
     }
 
     if (caps->set_split_freq
@@ -4007,7 +4016,6 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
 
     int retry = 3;
-    freq_t tfreq;
 
     do
     {
