@@ -1239,7 +1239,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     char cmdbuf[12];
     int retval;
     unsigned char vfo_function;
-    split_t tsplit;
+    split_t tsplit=0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s,%d,%s\n", __func__, rig_strvfo(vfo), split, rig_strvfo(txvfo));
 
@@ -1270,6 +1270,14 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
             RETURNFUNC(-RIG_EINVAL);
+        }
+
+        rig_get_split(rig, vfo, &tsplit);
+
+        if (tsplit == split)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: split already set\n", __func__);
+            RETURNFUNC(RIG_OK);
         }
 
         /* set RX VFO */
