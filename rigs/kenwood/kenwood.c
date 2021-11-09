@@ -1588,6 +1588,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char freqbuf[16];
     unsigned char vfo_letter = '\0';
     vfo_t tvfo;
+    freq_t tfreq = 0;
     int err;
     struct kenwood_priv_data *priv = rig->state.priv;
 
@@ -1605,6 +1606,13 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         err = rig_get_vfo(rig, &tvfo);
 
         if (RIG_OK != err) { RETURNFUNC(err); }
+    }
+
+    rig_get_freq(rig, tvfo, &tfreq);
+    if (tfreq == freq)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: no freq change needed\n", __func__);
+        RETURNFUNC(RIG_OK);
     }
 
     switch (tvfo)
