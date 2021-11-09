@@ -1297,6 +1297,9 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         {
             RETURNFUNC(retval);
         }
+        rig->state.cache.split = split;
+        rig->state.cache.split_vfo = txvfo;
+        elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
 
     /* Split off means Rx and Tx are the same */
     if (split == RIG_SPLIT_OFF)
