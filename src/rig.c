@@ -4854,9 +4854,9 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
 
     if (cache_ms < rig->state.cache.timeout_ms)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
         *split = rig->state.cache.split;
         *tx_vfo = rig->state.cache.split_vfo;
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms, split=%d, tx_vfo=%s\n", __func__, cache_ms, *split, rig_strvfo(*tx_vfo));
         RETURNFUNC(RIG_OK);
     }
     else
