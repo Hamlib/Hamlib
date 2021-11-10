@@ -4272,7 +4272,6 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         RETURNFUNC(retcode);
     }
 
-    rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_OFF, RIG_VFO_CURR);
     /* Assisted mode */
     curr_vfo = rig->state.current_vfo;
 
@@ -4294,7 +4293,9 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         RETURNFUNC(retcode);
     }
 
-
+    // some rigs exhibit undesirable flashing when swapping vfos in split
+    // so we turn it off, do our thing, and turn split back on
+    rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_OFF, RIG_VFO_CURR);
     if (caps->set_vfo)
     {
         TRACE;
