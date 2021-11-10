@@ -1756,6 +1756,24 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         rig_debug(RIG_DEBUG_TRACE, "%s: Leaving currVFO alone\n", __func__);
         return vfo;  // don't modify vfo for RIG_VFO_CURR
     }
+    if (vfo == RIG_VFO_OTHER)
+    {
+        switch(rig->state.current_vfo)
+        {
+            case RIG_VFO_A:
+                return RIG_VFO_B;
+            case RIG_VFO_MAIN:
+                return RIG_VFO_SUB;
+            case RIG_VFO_B:
+                return RIG_VFO_A;
+            case RIG_VFO_SUB:
+                return RIG_VFO_MAIN;
+            case RIG_VFO_SUB_A:
+                return RIG_VFO_SUB_B;
+            case RIG_VFO_SUB_B:
+                return RIG_VFO_SUB_A;
+        }
+    }
 
     if (vfo == RIG_VFO_RX || vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
