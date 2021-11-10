@@ -167,6 +167,9 @@ int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
                            int *mode_tx);
 int kx3_get_bar_graph_level(RIG *rig, float *level);
 
+/* K4 functions */
+int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 
 /*
  * K3 rig capabilities.
@@ -606,8 +609,8 @@ const struct rig_caps k4_caps =
     .get_rit =      kenwood_get_rit,
     .set_xit =      k3_set_xit,
     .get_xit =      kenwood_get_xit,
-    .get_ptt =      kenwood_get_ptt,
-    .set_ptt =      kenwood_set_ptt,
+    .get_ptt =      k4_get_ptt,
+    .set_ptt =      k4_set_ptt,
     .get_dcd =      kenwood_get_dcd,
     .set_func =     k3_set_func,
     .get_func =     k3_get_func,
@@ -2655,6 +2658,73 @@ int kx3_get_bar_graph_level(RIG *rig, float *level)
     {
         return -RIG_EPROTO;
     }
+
+    return RIG_OK;
+}
+
+int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+    char pttbuf[6];
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!ptt)
+    {
+        return -RIG_EINVAL;
+    }
+
+    retval = kenwood_safe_transaction(rig, "TQ", pttbuf, 6, 4);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    *ptt = pttbuf[2] == '1' ? RIG_PTT_ON : RIG_PTT_OFF;
+    // we're not caching this for now
+    return RIG_OK;
+}
+
+
+// The K4 has a problem in Fake It mode where the FA command is ignored
+// We will use it's special TQ command to try and ensure PTT is really off
+int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+    char pttbuf[6];
+    int retval;
+    ptt_t ptt2;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!ptt)
+    {
+        return -RIG_EINVAL;
+    }
+
+    retval = kenwood_safe_transaction(rig, "TX", pttbuf, 6, 4);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    do
+    {
+        hl_usleep(10*1000);
+        retval = kenwood_safe_transaction(rig, "TQ", pttbuf, 6, 4);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+        ptt2 = pttbuf[2] == '1'? RIG_PTT_ON : RIG_PTT_OFF;
+        if (ptt2 != ptt)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: ptt=%d, expected=%d\n", __func__, ptt2, ptt);
+        }
+
+    } while (ptt != ptt2);  
 
     return RIG_OK;
 }
