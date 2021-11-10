@@ -476,50 +476,51 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 //  Works on K4
 int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 {
-    int retval,err;
-    int fr,ft,tx;
+    int retval;
+    int fr,ft,tq;
     char cmdbuf[10];
     char splitbuf[12];
-    struct rig_state *rs = &rig->state;
 
-    snprintf(cmdbuf,sizeof(cmdbuf),"FR;FT;TQ;");
     memset(splitbuf,0,sizeof(splitbuf));
-    retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 12);
+    snprintf(cmdbuf,sizeof(cmdbuf),"FR;");
+    retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
     }
 
-    err = read_string(&rs->rigport, splitbuf, sizeof(splitbuf), ";", 1, 0);
-    if (err != RIG_OK)
-    {
-        RETURNFUNC(RIG_EPROTO);
-    }
     if(sscanf(splitbuf, "FR%1d", &fr) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FR '%s'\n", __func__, splitbuf);
     }
-    err = read_string(&rs->rigport, splitbuf, sizeof(splitbuf), ";", 1, 0);
-    if (err != RIG_OK)
+    snprintf(cmdbuf,sizeof(cmdbuf),"FT;");
+    retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
+
+    if (retval != RIG_OK)
     {
-        RETURNFUNC(RIG_EPROTO);
+        RETURNFUNC(retval);
     }
+
     if(sscanf(splitbuf, "FT%1d", &ft) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FT '%s'\n", __func__, splitbuf);
     }
-    err = read_string(&rs->rigport, splitbuf, sizeof(splitbuf), ";", 1, 0);
-    if (err != RIG_OK)
+    snprintf(cmdbuf,sizeof(cmdbuf),"TQ;");
+    retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
+
+    if (retval != RIG_OK)
     {
-        RETURNFUNC(RIG_EPROTO);
+        RETURNFUNC(retval);
     }
-    if(sscanf(splitbuf, "TQ%1d", &tx) != 1)
+
+    if(sscanf(splitbuf, "TQ%1d", &tq) != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TX '%s'\n", __func__, splitbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ '%s'\n", __func__, splitbuf);
     }
-    if (tx) *vfo = ft;
-    else *vfo = fr;
+    *vfo = RIG_VFO_A;
+    if (tq && ft == 1) *vfo = RIG_VFO_B;
+    if (!tq && fr == 1) *vfo = RIG_VFO_B;
     RETURNFUNC(RIG_OK);
 }
 
