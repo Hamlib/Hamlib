@@ -2694,6 +2694,7 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     char pttbuf[6];
     int retval;
     ptt_t ptt2;
+    char *cmd = "TX0";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2702,7 +2703,8 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         return -RIG_EINVAL;
     }
 
-    retval = kenwood_safe_transaction(rig, "TX", pttbuf, 6, 4);
+    if (ptt) cmd[2] = '1';
+    retval = kenwood_transaction(rig, cmd, NULL, 0);
 
     if (retval != RIG_OK)
     {
