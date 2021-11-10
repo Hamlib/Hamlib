@@ -2674,7 +2674,7 @@ int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return -RIG_EINVAL;
     }
 
-    retval = kenwood_safe_transaction(rig, "TQ", pttbuf, 6, 4);
+    retval = kenwood_safe_transaction(rig, "TQ", pttbuf, 6, 3);
 
     if (retval != RIG_OK)
     {
@@ -2712,7 +2712,7 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     do
     {
         hl_usleep(10*1000);
-        retval = kenwood_safe_transaction(rig, "TQ", pttbuf, 6, 4);
+        retval = kenwood_safe_transaction(rig, "TQ", pttbuf, 6, 3);
 
         if (retval != RIG_OK)
         {
