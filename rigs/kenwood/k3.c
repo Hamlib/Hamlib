@@ -2698,8 +2698,8 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    snprintf(cmd, sizeof(cmd), "TX0");
-    if (ptt) cmd[2] = '1';
+    snprintf(cmd, sizeof(cmd), "RX");
+    if (ptt) cmd[0] = 'T';
     retval = kenwood_transaction(rig, cmd, NULL, 0);
 
     if (retval != RIG_OK)
