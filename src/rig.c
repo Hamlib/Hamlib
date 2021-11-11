@@ -2046,7 +2046,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     set_cache_freq(rig, vfo, freq_new);
 
-    if (vfo != vfo_save && vfo != RIG_VFO_CURR)
+    if (vfo != RIG_VFO_CURR)
     {
         TRACE;
         rig_set_vfo(rig, vfo_save);
