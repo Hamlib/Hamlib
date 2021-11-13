@@ -2388,6 +2388,7 @@ struct rig_state {
     unsigned char disable_yaesu_bandselect; /*!< Disables Yaeus band select logic */
     int twiddle_rit;            /*!< Suppresses VFOB reading (cached value used) so RIT control can be used */
     int twiddle_state;          /*!< keeps track of twiddle status */
+    vfo_t rx_vfo;               /*!< Rx VFO currently set */
 };
 
 //! @cond Doxygen_Suppress
