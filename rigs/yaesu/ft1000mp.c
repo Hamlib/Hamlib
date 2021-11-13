@@ -311,7 +311,7 @@ const struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20211023.0",
+    .version =            "20211113.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -815,8 +815,8 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     p = (struct ft1000mp_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: requested freq = %"PRIfreq" Hz \n", __func__,
-              freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s: requested freq on %s = %"PRIfreq" Hz \n", __func__,
+              rig_strvfo(vfo), freq);
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1718,9 +1718,8 @@ static int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_v
 
     // manual says VFO_A=Tx and VFO_B=Rx but testing shows otherwise
     rig->state.current_vfo = RIG_VFO_A;
+    rig->state.rx_vfo = RIG_VFO_B;
     rig->state.tx_vfo = RIG_VFO_B;
-    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_VFO_A); // make A active
-    ft1000mp_send_priv_cmd(rig, FT1000MP_NATIVE_AB); // Copy A to B
     ft1000mp_send_priv_cmd(rig, cmd_index);
 
     RETURNFUNC(RIG_OK);
