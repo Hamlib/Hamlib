@@ -37,12 +37,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hamlib/rig.h"
+#include "misc.h"
 #include "newcat.h"
 #include "ft991.h"
 #include "idx_builtin.h"
 
 /* Prototypes */
 static int ft991_init(RIG *rig);
+static int ft991_set_vfo(RIG *rig, vfo_t vfo);
+static int ft991_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                                 pbwidth_t *tx_width);
 static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
@@ -67,7 +70,7 @@ const struct rig_caps ft991_caps =
     RIG_MODEL(RIG_MODEL_FT991),
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".6",
+    .version =            NEWCAT_VER ".7",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -202,6 +205,8 @@ const struct rig_caps ft991_caps =
     .get_freq =           newcat_get_freq,
     .set_mode =           newcat_set_mode,
     .get_mode =           newcat_get_mode,
+    .set_vfo =            ft991_set_vfo,
+    .get_vfo =            ft991_get_vfo,
     .set_ptt =            newcat_set_ptt,
     .get_ptt =            newcat_get_ptt,
     .set_split_vfo =      newcat_set_split_vfo,
@@ -1015,4 +1020,17 @@ static int ft991_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
     *code = rig->caps->dcs_list[codeindex];
 
     return RIG_OK;
+}
+
+// VFO functions so rigctld can be used without --vfo argument
+static int ft991_set_vfo(RIG *rig, vfo_t vfo)
+{
+    rig->state.current_vfo = vfo;
+    RETURNFUNC(RIG_OK);
+}
+
+static int ft991_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    *vfo = rig->state.current_vfo;
+    RETURNFUNC(RIG_OK);
 }
