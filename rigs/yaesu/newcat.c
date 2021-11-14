@@ -9781,7 +9781,7 @@ int newcat_get_cmd(RIG *rig)
 
 /*
  * This tries to set and read to validate the set command actually worked
- * returns RIG_OK if set, -RIG_EIMPL if not implemented yet, or -RIG_EPROTO if unsuccesful
+ * returns RIG_OK if set, -RIG_EIMPL if not implemented yet, or -RIG_EPROTO if unsuccessful
  */
 int newcat_set_cmd_validate(RIG *rig)
 {
@@ -9830,9 +9830,17 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "VS;");
     }
-    else if ((strncmp(priv->cmd_str, "SV", 2) == 0) && (strlen(priv->cmd_str) > 3))
+    else if (strncmp(priv->cmd_str, "SV", 2) == 0)
     {
-        strcpy(valcmd, "SV;");
+        strcpy(valcmd, ""); // nothing to validate
+    }
+    else if (strncmp(priv->cmd_str, "BA", 2) == 0)
+    {
+        strcpy(valcmd, ""); // nothing to validate
+    }
+    else if (strncmp(priv->cmd_str, "AB", 2) == 0)
+    {
+        strcpy(valcmd, ""); // nothing to validate
     }
     else
     {
