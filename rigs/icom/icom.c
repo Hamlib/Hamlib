@@ -928,6 +928,7 @@ icom_rig_open(RIG *rig)
     int satmode = 0;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+    int retry_flag = 1;
 
     ENTERFUNC;
 
@@ -935,6 +936,7 @@ icom_rig_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s v%s\n", __func__, rig->caps->model_name,
               rig->caps->version);
+retry_open:
     retval = icom_get_usb_echo_off(rig);
 
     if (retval == RIG_OK) // then echo is on so let's try freq now
@@ -972,6 +974,18 @@ icom_rig_open(RIG *rig)
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
             RETURNFUNC(retval);
         }
+    }
+    else if (retval != RIG_OK)
+    {
+        // didnt' ask for power on so let's retry one more time
+        rig_debug(RIG_DEBUG_ERR, "%s: rig error getting frequency retry=%d, err=%s\n", __func__,retry_flag,rigerror(retval));
+        if (retry_flag)
+        {
+            retry_flag = 0;
+            hl_usleep(500*1000); // 500ms pause
+            goto retry_open;
+        }
+        RETURNFUNC(retval);
     }
 
     rig->state.current_vfo = icom_current_vfo(rig);
