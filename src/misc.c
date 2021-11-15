@@ -1775,7 +1775,11 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         }
     }
 
-    if (vfo == RIG_VFO_RX || vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    if (vfo == RIG_VFO_RX)
+    {
+        vfo = rig->state.rx_vfo;
+    }
+    else if (vfo == RIG_VFO_RX || vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
         vfo = RIG_VFO_A; // default to mapping VFO_MAIN to VFO_A
 
