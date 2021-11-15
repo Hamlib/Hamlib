@@ -621,6 +621,7 @@ static int netrigctl_open(RIG *rig)
         rs->mode_list |= rs->tx_range_list[i].modes;
         rs->vfo_list |= rs->tx_range_list[i].vfo;
     }
+    if (rs->vfo_list == 0) rs->vfo_list = RIG_VFO_A|RIG_VFO_B;
 
     if (prot_ver == 0) { return RIG_OK; }
 
