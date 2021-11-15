@@ -202,6 +202,31 @@ static const char *const rigerror_table[] =
 
 #define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
+#ifdef HAVE_PTHREAD
+// Any call to rig_set or rig_get functions will lock the rig
+// for non-targetable rigs this will still be problematic for rigctld
+// in non-vfo mode as a transaction may be set_vfo/set_x/set_vfo
+// this would require the client to request a lock
+static pthread_mutex_t rig_lock_mutex = PTHREAD_MUTEX_INITIALIZER;
+void rig_lock()
+{
+#ifdef HAVE_PTHREAD
+    pthread_mutex_lock(&rig_lock_mutex);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+#endif
+}
+void rig_unlock()
+{
+#ifdef HAVE_PTHREAD
+    pthread_mutex_unlock(&rig_lock_mutex);
+    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+#endif
+}
+#else
+void rig_lock() {};
+void rig_unlock() {};
+#endif
+
 /*
  * track which rig is opened (with rig_open)
  * needed at least for transceive mode

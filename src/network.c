@@ -445,15 +445,11 @@ void *multicast_server(void *arg)
 
         if (rig->caps->get_freq)
         {
-            sync_callback(1);
             retval = rig_get_freq(rig, RIG_VFO_A, &freqMain);
-            sync_callback(0);
 
             if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_freqA error %s\n", __FILE__, __LINE__, rigerror(retval)); }
 
-            sync_callback(1);
             retval = rig_get_freq(rig, RIG_VFO_B, &freqSub);
-            sync_callback(0);
 
             if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_freqB error %s\n", __FILE__, __LINE__, rigerror(retval)); }
 
@@ -470,15 +466,11 @@ void *multicast_server(void *arg)
 
         if (rig->caps->get_mode)
         {
-            sync_callback(1);
             retval = rig_get_mode(rig, RIG_VFO_A, &modeMain, &widthMain);
-            sync_callback(0);
 
             if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_modeA error %s\n", __FILE__, __LINE__, rigerror(retval)); }
 
-            sync_callback(1);
             retval = rig_get_mode(rig, RIG_VFO_B, &modeSub, &widthSub);
-            sync_callback(0);
 
             if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_modeB error %s\n", __FILE__, __LINE__, rigerror(retval)); }
 
@@ -506,9 +498,7 @@ void *multicast_server(void *arg)
         if (rig->caps->get_split_vfo)
         {
             vfo_t tx_vfo;
-            sync_callback(1);
             retval = rig_get_split_vfo(rig, RIG_VFO_A, &split, &tx_vfo);
-            sync_callback(0);
 
             if (retval != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_modeA error %s\n", __FILE__, __LINE__, rigerror(retval)); }
 

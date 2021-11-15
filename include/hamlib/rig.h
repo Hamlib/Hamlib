@@ -3181,6 +3181,10 @@ extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);
 
 extern HAMLIB_EXPORT(int) rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie, int cookie_len);
 
+// two functions globally accessible so rig backends can lock for an I/O transaction
+void rig_lock();
+void rig_unlock();
+
 //! @endcond
 
 __END_DECLS
