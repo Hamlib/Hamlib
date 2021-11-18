@@ -1518,8 +1518,8 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
     }
 
     priv->tx_vfo = *txvfo;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->tx_vfo=%s\n", __func__,
-              rig_strvfo(priv->tx_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->tx_vfo=%s, split=%d\n", __func__,
+              rig_strvfo(priv->tx_vfo), *split);
     RETURNFUNC(RIG_OK);
 }
 
