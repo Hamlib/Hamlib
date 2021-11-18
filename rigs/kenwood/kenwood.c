@@ -2092,6 +2092,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         /* emulations like PowerSDR and SmartSDR normally hijack the
            RTTY modes for SSB-DATA AFSK modes */
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: emulate=%d, HPSDR=%d, changing PKT mode to RTTY\n", __func__, priv->is_emulation, RIG_IS_HPSDR); 
         if (RIG_MODE_PKTLSB == mode) { mode = RIG_MODE_RTTY; }
 
         if (RIG_MODE_PKTUSB == mode) { mode = RIG_MODE_RTTYR; }
@@ -2413,6 +2414,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         /* emulations like PowerSDR and SmartSDR normally hijack the
            RTTY modes for SSB-DATA AFSK modes */
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: emulate=%d, HPSDR=%d, changing RTTY mode to PKT\n", __func__, priv->is_emulation, RIG_IS_HPSDR); 
         if (RIG_MODE_RTTY == *mode) { *mode = RIG_MODE_PKTLSB; }
 
         if (RIG_MODE_RTTYR == *mode) { *mode = RIG_MODE_PKTUSB; }
