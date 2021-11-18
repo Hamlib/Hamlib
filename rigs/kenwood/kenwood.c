@@ -2053,7 +2053,10 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char kmode;
     char buf[6];
     char data_mode = '0';
+    char *data_cmd = "DA";
     int err;
+    int datamode = 0;
+    int needdata;
     struct kenwood_priv_data *priv = rig->state.priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
@@ -2149,12 +2152,6 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         pbwidth_t twidth;
         err = rig_get_mode(rig, vfo, &priv->curr_mode, &twidth);
 
-        // only change mode if needed
-        if (priv->curr_mode != mode)
-        {
-            snprintf(buf, sizeof(buf), "MD%c", c);
-            err = kenwood_transaction(rig, buf, NULL, 0);
-        }
     }
 
     if (err != RIG_OK) { RETURNFUNC(err); }
@@ -2167,19 +2164,34 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 || RIG_MODE_RTTY == mode
                 || RIG_MODE_RTTYR == mode))
         {
-            char *data_cmd = "DA";
-
             if (RIG_IS_TS950S || RIG_IS_TS950SDX)
             {
                 data_cmd = "DT";
             }
 
-            /* supports DATA sub modes - see above */
-            snprintf(buf, sizeof(buf), "%s%c", data_cmd, data_mode);
-            err = kenwood_transaction(rig, buf, NULL, 0);
-
-            if (err != RIG_OK) { RETURNFUNC(err); }
+            datamode = 1;
         }
+    }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_mode=%s, new_mode=%s\n", __func__, rig_strrmode(priv->curr_mode), rig_strrmode(mode));
+    // only change mode if needed
+    if (priv->curr_mode != mode)
+    {
+        snprintf(buf, sizeof(buf), "MD%c", c);
+        err = kenwood_transaction(rig, buf, NULL, 0);
+    }
+    needdata = 0;
+    if ((vfo == RIG_VFO_A) && ((priv->datamodeA ==  0 && datamode) || (priv->datamodeA == 1 && !datamode)))
+        needdata = 1;
+    if ((vfo == RIG_VFO_B) && ((priv->datamodeB ==  0 && datamode) || (priv->datamodeB == 1 && !datamode)))
+        needdata = 1;
+
+    if (needdata)
+    {
+        /* supports DATA sub modes - see above */
+        snprintf(buf, sizeof(buf), "%s%c", data_cmd, data_mode);
+        err = kenwood_transaction(rig, buf, NULL, 0);
+
+        if (err != RIG_OK) { RETURNFUNC(err); }
     }
 
     if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(RIG_OK); }
@@ -2418,6 +2430,8 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
         if ('1' == modebuf[2])
         {
+            if (vfo == RIG_VFO_A) priv->datamodeA = 1;
+            else priv->datamodeB = 1;
             switch (*mode)
             {
             case RIG_MODE_USB: *mode = RIG_MODE_PKTUSB; break;
@@ -2426,8 +2440,15 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
             case RIG_MODE_FM: *mode = RIG_MODE_PKTFM; break;
 
+            case RIG_MODE_AM: *mode = RIG_MODE_PKTAM; break;
+
             default: break;
             }
+        }
+        else
+        {
+            if (vfo == RIG_VFO_A) priv->datamodeA = 0;
+            else priv->datamodeB = 0;
         }
     }
 
@@ -2447,6 +2468,9 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         *width = rig_passband_normal(rig, *mode);
     }
+    
+    if (vfo == RIG_VFO_A) priv->modeA = *mode;
+    else priv->modeB = *mode;
 
     RETURNFUNC(RIG_OK);
 }
