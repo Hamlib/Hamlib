@@ -1810,8 +1810,8 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    rig_debug(RIG_DEBUG_CACHE, "%s: vfo=%s, freq=%.0f\n", __func__, rig_strvfo(vfo),
-              (double)*freq);
+    rig_debug(RIG_DEBUG_CACHE, "%s: vfo=%s, freq=%.0f, mode=%s, width=%d\n", __func__, rig_strvfo(vfo),
+              (double)*freq, rig_strrmode(*mode), (int)*width);
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
