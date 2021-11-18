@@ -28,7 +28,7 @@
 #include "token.h"
 #include "misc.h"
 
-#define BACKEND_VER "20211109"
+#define BACKEND_VER "20211118"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -166,6 +166,10 @@ struct kenwood_priv_data
     int is_k4hd;
     int no_id;  // if true will not send ID; with every set command
     int opened; // true once rig_open is called to avoid setting VFOA every open call
+    rmode_t modeA;
+    rmode_t modeB;
+    int datamodeA; // datamode status from get_mode or set_mode
+    int datamodeB; // datamode status from get_mode or set_mode
 };
 
 
