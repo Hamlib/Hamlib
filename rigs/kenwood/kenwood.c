@@ -1057,7 +1057,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     char vfo_function;
     struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
 
     /* Emulations do not need to set VFO since VFOB is a copy of VFOA
@@ -1088,6 +1088,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
     case RIG_VFO_CURR:
+        rig->state.current_vfo = RIG_VFO_CURR;
         RETURNFUNC(RIG_OK);
 
     default:
@@ -1149,6 +1150,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     {
         RETURNFUNC(retval);
     }
+    rig->state.current_vfo = vfo;
 
     /* if FN command then there's no FT or FR */
     /* If split mode on, the don't change TxVFO */
