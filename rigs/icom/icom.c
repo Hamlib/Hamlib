@@ -2859,6 +2859,37 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
         break;
 
+    case RIG_VFO_OTHER:
+        switch(rig->state.current_vfo)
+        {
+            case RIG_VFO_A:
+                icvfo = vfo = RIG_VFO_B;
+                break;
+            case RIG_VFO_B:
+                icvfo = vfo = RIG_VFO_A;
+                break;
+            case RIG_VFO_MAIN:
+                icvfo = vfo = RIG_VFO_SUB;
+                break;
+            case RIG_VFO_SUB:
+                icvfo = vfo = RIG_VFO_MAIN;
+                break;
+            case RIG_VFO_MAIN_A:
+                icvfo = vfo = RIG_VFO_MAIN_B;
+                break;
+            case RIG_VFO_MAIN_B:
+                icvfo = vfo = RIG_VFO_MAIN_A;
+                break;
+            case RIG_VFO_SUB_A:
+                icvfo = vfo = RIG_VFO_SUB_B;
+                break;
+            case RIG_VFO_SUB_B:
+                icvfo = vfo = RIG_VFO_SUB_A;
+                break;
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo '%s'\n", __func__, rig_strvfo(rig->state.current_vfo));
+        }
+
     default:
         if (!priv->x25cmdfails)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__,
