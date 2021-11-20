@@ -929,6 +929,7 @@ icom_rig_open(RIG *rig)
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
     int retry_flag = 1;
+    int echo_off;
 
     ENTERFUNC;
 
@@ -937,9 +938,9 @@ icom_rig_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s v%s\n", __func__, rig->caps->model_name,
               rig->caps->version);
 retry_open:
-    retval = icom_get_usb_echo_off(rig);
+    echo_off = icom_get_usb_echo_off(rig);
 
-    if (retval == RIG_OK) // then echo is on so let's try freq now
+    if (echo_off == 0) // then echo is on so let's try freq now
     {
         rig->state.current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
@@ -967,9 +968,9 @@ retry_open:
         }
 
         // Now that we're powered up let's try again
-        retval = icom_get_usb_echo_off(rig);
+        echo_off = icom_get_usb_echo_off(rig);
 
-        if (retval < 0)
+        if (echo_off < 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
             RETURNFUNC(retval);
@@ -7675,7 +7676,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // we'll just send a few more to be sure for all speeds
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
-        write_block(&rs->rigport, (char *) fe_buf, fe_max);
+        write_block(&rs->rigport, fe_buf, fe_max);
 
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
@@ -8601,9 +8602,9 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
     RETURNFUNC(RIG_OK);
 }
 
-int icom_is_async_frame(RIG *rig, int frame_len, const unsigned char *frame)
+int icom_is_async_frame(RIG *rig, size_t frame_length, const unsigned char *frame)
 {
-    if (frame_len < ACKFRMLEN)
+    if (frame_length < ACKFRMLEN)
     {
         return 0;
     }
@@ -8613,7 +8614,7 @@ int icom_is_async_frame(RIG *rig, int frame_len, const unsigned char *frame)
                                    && frame[5] == S_SCP_DAT);
 }
 
-int icom_process_async_frame(RIG *rig, int frame_len,
+int icom_process_async_frame(RIG *rig, size_t frame_length,
                              const unsigned char *frame)
 {
     struct rig_state *rs = &rig->state;
@@ -8670,7 +8671,7 @@ int icom_process_async_frame(RIG *rig, int frame_len,
     case C_CTL_SCP:
         if (frame[5] == S_SCP_DAT)
         {
-            icom_parse_spectrum_frame(rig, frame_len - (6 + 1), frame + 6);
+            icom_parse_spectrum_frame(rig, frame_length - (6 + 1), frame + 6);
         }
 
         break;
@@ -8706,6 +8707,7 @@ int icom_decode_event(RIG *rig)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: got a timeout before the first character\n", __func__);
+        RETURNFUNC(-RIG_ETIMEOUT);
     }
 
     if (frm_len < 1)
@@ -8753,6 +8755,11 @@ int icom_decode_event(RIG *rig)
     }
 
     RETURNFUNC(icom_process_async_frame(rig, frm_len, buf));
+}
+
+int icom_read_frame_direct(RIG *rig, size_t buffer_length, const unsigned char *buffer)
+{
+    return read_icom_frame_direct(&rig->state.rigport, buffer, buffer_length);
 }
 
 int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen,
@@ -9216,11 +9223,11 @@ DECLARE_PROBERIG_BACKEND(icom)
         for (civ_addr = 0x01; civ_addr <= 0x7f; civ_addr++)
         {
 
-            frm_len = make_cmd_frame((char *) buf, civ_addr, CTRLID,
+            frm_len = make_cmd_frame(buf, civ_addr, CTRLID,
                                      C_RD_TRXID, S_RD_TRXID, NULL, 0);
 
             rig_flush(port);
-            write_block(port, (char *) buf, frm_len);
+            write_block(port, buf, frm_len);
 
             /* read out the bytes we just sent
              * TODO: check this is what we expect
@@ -9290,11 +9297,11 @@ DECLARE_PROBERIG_BACKEND(icom)
         for (civ_addr = 0x80; civ_addr <= 0x8f; civ_addr++)
         {
 
-            frm_len = make_cmd_frame((char *) buf, civ_addr, CTRLID,
+            frm_len = make_cmd_frame(buf, civ_addr, CTRLID,
                                      C_CTL_MISC, S_OPTO_RDID, NULL, 0);
 
             rig_flush(port);
-            write_block(port, (char *) buf, frm_len);
+            write_block(port, buf, frm_len);
 
             /* read out the bytes we just sent
              * TODO: check this is what we expect

@@ -588,6 +588,7 @@ static int tmd710_resolve_vfo(RIG *rig, vfo_t vfo, vfo_t *resolved_vfo,
     switch (vfo)
     {
     case RIG_VFO_CURR:
+    case RIG_VFO_MEM:
         return tmd710_get_vfo_num(rig, resolved_vfonum, resolved_vfo);
 
     case RIG_VFO_A:

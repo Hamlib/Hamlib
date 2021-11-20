@@ -25,24 +25,38 @@
 #include <sys/types.h>
 #include <hamlib/rig.h>
 
-
 extern HAMLIB_EXPORT(int) port_open(hamlib_port_t *p);
 extern HAMLIB_EXPORT(int) port_close(hamlib_port_t *p, rig_port_t port_type);
 
 
 extern HAMLIB_EXPORT(int) read_block(hamlib_port_t *p,
-                                     char *rxbuffer,
+                                     unsigned char *rxbuffer,
                                      size_t count);
 
+extern HAMLIB_EXPORT(int) read_block_direct(hamlib_port_t *p,
+                                            unsigned char *rxbuffer,
+                                            size_t count);
+
 extern HAMLIB_EXPORT(int) write_block(hamlib_port_t *p,
-                                      const char *txbuffer,
+                                      const unsigned char *txbuffer,
                                       size_t count);
 
+extern HAMLIB_EXPORT(int) write_block_sync(hamlib_port_t *p,
+                                           const unsigned char *txbuffer,
+                                           size_t count);
+
 extern HAMLIB_EXPORT(int) read_string(hamlib_port_t *p,
-                                      char *rxbuffer,
+                                      unsigned char *rxbuffer,
                                       size_t rxmax,
                                       const char *stopset,
                                       int stopset_len,
                                       int flush_flag);
+
+extern HAMLIB_EXPORT(int) read_string_direct(hamlib_port_t *p,
+                                             unsigned char *rxbuffer,
+                                             size_t rxmax,
+                                             const char *stopset,
+                                             int stopset_len,
+                                             int flush_flag);
 
 #endif /* _IOFUNC_H */

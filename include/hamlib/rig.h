@@ -1984,6 +1984,17 @@ struct rig_caps {
     const char *clone_combo_set;    /*!< String describing key combination to enter load cloning mode */
     const char *clone_combo_get;    /*!< String describing key combination to enter save cloning mode */
     const char *macro_name;     /*!< Rig model macro name */
+
+    int async_data_supported;
+    int (*read_frame_direct)(RIG *rig,
+                             size_t buffer_length,
+                             const unsigned char *buffer);
+    int (*is_async_frame)(RIG *rig,
+                          size_t frame_length,
+                          const unsigned char *frame);
+    int (*process_async_frame)(RIG *rig,
+                               size_t frame_length,
+                               const unsigned char *frame);
 };
 //! @endcond
 
@@ -2186,6 +2197,10 @@ typedef struct hamlib_port {
     } parm;                 /*!< Port parameter union */
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
+
+    int async;            /*!< enable asynchronous data handling if true */
+    int fd_sync_write;    /*!< file descriptor for writing synchronous data */
+    int fd_sync_read;     /*!< file descriptor for reading synchronous data */
 } hamlib_port_t;
 //! @endcond
 

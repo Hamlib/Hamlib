@@ -4144,11 +4144,11 @@ static int myspectrum_event(RIG *rig, struct rig_spectrum_line *line,
 {
     ENTERFUNC;
 
-    if (rig_need_debug(RIG_DEBUG_TRACE))
+    if (rig_need_debug(RIG_DEBUG_ERR))
     {
         char spectrum_debug[line->spectrum_data_length * 4];
         print_spectrum_line(spectrum_debug, sizeof(spectrum_debug), line);
-        rig_debug(RIG_DEBUG_TRACE, "%s: ASCII Spectrum Scope: %s\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: ASCII Spectrum Scope: %s\n", __func__,
                   spectrum_debug);
     }
 
@@ -4198,7 +4198,8 @@ declare_proto_rig(set_trn)
         rig_set_spectrum_callback(rig, myspectrum_event, NULL);
     }
 
-    RETURNFUNC(rig_set_trn(rig, trn));
+    RETURNFUNC(RIG_OK);
+    //RETURNFUNC(rig_set_trn(rig, trn));
 }
 
 
@@ -4932,7 +4933,7 @@ declare_proto_rig(send_cmd)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
               rs->rigport.fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
-    retval = write_block(&rs->rigport, (char *)bufcmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) bufcmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -4957,7 +4958,7 @@ declare_proto_rig(send_cmd)
         }
 
         /* Assumes CR or LF is end of line char for all ASCII protocols. */
-        retval = read_string(&rs->rigport, (char *)buf, rxbytes, eom_buf,
+        retval = read_string(&rs->rigport, buf, rxbytes, eom_buf,
                              strlen(eom_buf), 0);
 
         if (retval < 0)
