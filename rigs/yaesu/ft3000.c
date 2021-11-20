@@ -77,12 +77,75 @@ const struct confparams ftdx3000_ext_levels[] =
             }
         }
     },
+    {
+        TOK_KEYER,
+        "KEYER",
+        "Keyer",
+        "Keyer on/off",
+        NULL,
+        RIG_CONF_CHECKBUTTON,
+    },
+    {
+        TOK_APF_FREQ,
+        "APF_FREQ",
+        "APF frequency",
+        "Audio peak filter frequency",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = -250, .max = 250, .step = 10 } },
+    },
+    {
+        TOK_APF_WIDTH,
+        "APF_WIDTH",
+        "APF width",
+        "Audio peak filter width",
+        NULL,
+        RIG_CONF_COMBO,
+        { .c = { .combostr = { "Narrow", "Medium", "Wide", NULL } } },
+    },
+    {
+        TOK_CONTOUR,
+        "CONTOUR",
+        "Contour",
+        "Contour on/off",
+        NULL,
+        RIG_CONF_CHECKBUTTON,
+    },
+    {
+        TOK_CONTOUR_FREQ,
+        "CONTOUR_FREQ",
+        "Contour frequency",
+        "Contour frequency",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = 100, .max = 4000, .step = 100 } },
+    },
+    {
+        TOK_CONTOUR_LEVEL,
+        "CONTOUR_LEVEL",
+        "Contour level",
+        "Contour level (dB)",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = -40, .max = 20, .step = 1 } },
+    },
+    {
+        TOK_CONTOUR_WIDTH,
+        "CONTOUR_WIDTH",
+        "Contour width",
+        "Contour width",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = 1, .max = 11, .step = 1 } },
+    },
     { RIG_CONF_END, NULL, }
 };
 
 int ftdx3000_ext_tokens[] =
 {
-    TOK_ROOFING_FILTER, TOK_BACKEND_NONE
+    TOK_ROOFING_FILTER, TOK_KEYER, TOK_APF_FREQ, TOK_APF_WIDTH,
+    TOK_CONTOUR, TOK_CONTOUR_FREQ, TOK_CONTOUR_LEVEL, TOK_CONTOUR_WIDTH,
+    TOK_BACKEND_NONE
 };
 
 int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)

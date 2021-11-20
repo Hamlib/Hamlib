@@ -1859,8 +1859,8 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    rig_debug(RIG_DEBUG_CACHE, "%s: vfo=%s, freq=%.0f\n", __func__, rig_strvfo(vfo),
-              (double)*freq);
+    rig_debug(RIG_DEBUG_CACHE, "%s: vfo=%s, freq=%.0f, mode=%s, width=%d\n", __func__, rig_strvfo(vfo),
+              (double)*freq, rig_strrmode(*mode), (int)*width);
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
@@ -4315,7 +4315,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
 {
     const struct rig_caps *caps;
     int retcode, rc2;
-    vfo_t curr_vfo, tx_vfo;
+    vfo_t curr_vfo, tx_vfo, rx_vfo;
 
     ELAPSED1;
     ENTERFUNC;
@@ -4352,12 +4352,15 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     /* Use previously setup TxVFO */
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
     {
+        TRACE;
         tx_vfo = rig->state.tx_vfo;
     }
     else
     {
+        TRACE;
         tx_vfo = vfo;
     }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s, tx_vfo=%s\n", __func__, rig_strvfo(curr_vfo), rig_strvfo(tx_vfo));
 
     if (caps->set_mode && (caps->targetable_vfo & RIG_TARGETABLE_MODE))
     {
@@ -4369,7 +4372,13 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
 
     // some rigs exhibit undesirable flashing when swapping vfos in split
     // so we turn it off, do our thing, and turn split back on
-    rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_OFF, RIG_VFO_CURR);
+    rx_vfo = RIG_VFO_A;
+    if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_B) rx_vfo = RIG_VFO_A;
+    else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_A) rx_vfo = RIG_VFO_B;
+    else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_MAIN) rx_vfo = RIG_VFO_SUB;
+    else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_SUB) rx_vfo = RIG_VFO_MAIN;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rx_vfo=%s, tx_vfo=%s\n", __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
+    rig_set_split_vfo(rig,rx_vfo, RIG_SPLIT_OFF, rx_vfo);
     if (caps->set_vfo)
     {
         TRACE;
@@ -4409,7 +4418,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     if (caps->set_vfo)
     {
         TRACE;
-        rc2 = caps->set_vfo(rig, curr_vfo);
+        rc2 = caps->set_vfo(rig, rx_vfo);
     }
     else
     {
@@ -4421,7 +4430,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         /* return the first error code */
         retcode = rc2;
     }
-    rig_set_split_vfo(rig,RIG_VFO_CURR, RIG_SPLIT_ON, RIG_VFO_CURR);
+    rig_set_split_vfo(rig,rx_vfo, RIG_SPLIT_ON, tx_vfo);
 
     ELAPSED2;
     RETURNFUNC(retcode);
