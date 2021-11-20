@@ -586,7 +586,7 @@ static const struct
     { RIG_VFO_SUB_C, "SubC" },
     { RIG_VFO_NONE, "None" },
     { RIG_VFO_OTHER, "otherVFO" },
-    { 0xffffff, "" },
+    { 0xffffffff, "" },
 };
 
 
@@ -607,10 +607,12 @@ vfo_t HAMLIB_API rig_parse_vfo(const char *s)
     {
         if (!strcmp(s, vfo_str[i].str))
         {
+            rig_debug(RIG_DEBUG_CACHE, "%s: str='%s' vfo='%s'\n", __func__, vfo_str[i].str, rig_strvfo(vfo_str[i].vfo));
             return vfo_str[i].vfo;
         }
     }
 
+    rig_debug(RIG_DEBUG_ERR, "%s: '%s' not found so vfo='%s'\n", __func__, s, rig_strvfo(RIG_VFO_NONE));
     return RIG_VFO_NONE;
 }
 

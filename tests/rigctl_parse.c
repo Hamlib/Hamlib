@@ -3633,6 +3633,7 @@ declare_proto_rig(vfo_op)
 
     if (RIG_OP_NONE == op)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_parse_vfo failed with '%s'\n", __func__, arg1);
         RETURNFUNC(-RIG_EINVAL);
     }
 

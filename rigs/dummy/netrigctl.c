@@ -2289,10 +2289,15 @@ static int netrigctl_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     int ret, len;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
+    char vfostr[16] = "";
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "J %s\n", rig_strvfop(op));
+    ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), vfo);
+
+    if (ret != RIG_OK) { return ret; }
+
+    len = sprintf(cmd, "G%s %s\n", vfostr, rig_strvfop(op));
 
     ret = netrigctl_transaction(rig, cmd, len, buf);
 
@@ -2579,7 +2584,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20211118.0",
+    .version =        "20211120.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
