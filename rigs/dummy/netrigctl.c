@@ -49,6 +49,8 @@ struct netrigctl_priv_data
 {
     vfo_t vfo_curr;
     int rigctld_vfo_mode;
+    vfo_t rx_vfo;
+    vfo_t tx_vfo;
 };
 
 int netrigctl_get_vfo_mode(RIG *rig)
@@ -120,6 +122,8 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 
         if (vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
     }
+    else if (vfo == RIG_VFO_RX) vfo = priv->rx_vfo;
+    else if (vfo == RIG_VFO_TX) vfo = priv->tx_vfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, rig->state.vfo_opt);
 
@@ -262,6 +266,8 @@ static int netrigctl_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     priv = (struct netrigctl_priv_data *)rig->state.priv;
+    priv->rx_vfo = RIG_VFO_A;
+    priv->tx_vfo = RIG_VFO_B;
 
     len = sprintf(cmd, "\\chk_vfo\n");
     ret = netrigctl_transaction(rig, cmd, len, buf);
@@ -621,7 +627,10 @@ static int netrigctl_open(RIG *rig)
         rs->mode_list |= rs->tx_range_list[i].modes;
         rs->vfo_list |= rs->tx_range_list[i].vfo;
     }
-    if (rs->vfo_list == 0) rs->vfo_list = RIG_VFO_A|RIG_VFO_B;
+    if (rs->vfo_list == 0) {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo_list empty, defaulting to A/B\n", __func__);
+        rs->vfo_list = RIG_VFO_A|RIG_VFO_B;
+    }
 
     if (prot_ver == 0) { return RIG_OK; }
 
@@ -2570,7 +2579,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20211107.0",
+    .version =        "20211118.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

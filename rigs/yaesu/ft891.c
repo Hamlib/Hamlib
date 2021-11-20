@@ -50,6 +50,79 @@ static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t 
 static int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 
+const struct confparams ft891_ext_levels[] =
+{
+    {
+        TOK_KEYER,
+        "KEYER",
+        "Keyer",
+        "Keyer on/off",
+        NULL,
+        RIG_CONF_CHECKBUTTON,
+    },
+    {
+        TOK_APF_FREQ,
+        "APF_FREQ",
+        "APF frequency",
+        "Audio peak filter frequency",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = -250, .max = 250, .step = 10 } },
+    },
+    {
+        TOK_APF_WIDTH,
+        "APF_WIDTH",
+        "APF width",
+        "Audio peak filter width",
+        NULL,
+        RIG_CONF_COMBO,
+        { .c = { .combostr = { "Narrow", "Medium", "Wide", NULL } } },
+    },
+    {
+        TOK_CONTOUR,
+        "CONTOUR",
+        "Contour",
+        "Contour on/off",
+        NULL,
+        RIG_CONF_CHECKBUTTON,
+    },
+    {
+        TOK_CONTOUR_FREQ,
+        "CONTOUR_FREQ",
+        "Contour frequency",
+        "Contour frequency",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = 10, .max = 3200, .step = 1 } },
+    },
+    {
+        TOK_CONTOUR_LEVEL,
+        "CONTOUR_LEVEL",
+        "Contour level",
+        "Contour level (dB)",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = -40, .max = 20, .step = 1 } },
+    },
+    {
+        TOK_CONTOUR_WIDTH,
+        "CONTOUR_WIDTH",
+        "Contour width",
+        "Contour width",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = 1, .max = 11, .step = 1 } },
+    },
+    { RIG_CONF_END, NULL, }
+};
+
+int ft891_ext_tokens[] =
+{
+    TOK_KEYER, TOK_APF_FREQ, TOK_APF_WIDTH,
+    TOK_CONTOUR, TOK_CONTOUR_FREQ, TOK_CONTOUR_LEVEL, TOK_CONTOUR_WIDTH,
+    TOK_BACKEND_NONE
+};
+
 /*
  * FT-891 rig capabilities
  */
@@ -190,6 +263,9 @@ const struct rig_caps ft891_caps =
         RIG_FLT_END,
     },
 
+    .ext_tokens =         ft891_ext_tokens,
+    .extlevels =          ft891_ext_levels,
+
     .priv =               NULL,           /* private data FIXME: */
 
     .rig_init =           ft891_init,
@@ -237,6 +313,8 @@ const struct rig_caps ft891_caps =
     .get_trn =            newcat_get_trn,
     .set_channel =        newcat_set_channel,
     .get_channel =        newcat_get_channel,
+    .set_ext_level =      newcat_set_ext_level,
+    .get_ext_level =      newcat_get_ext_level,
     .send_morse =         newcat_send_morse,
 };
 

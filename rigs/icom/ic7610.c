@@ -248,7 +248,7 @@ const struct rig_caps ic7610_caps =
     RIG_MODEL(RIG_MODEL_IC7610),
     .model_name = "IC-7610",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -477,5 +477,6 @@ const struct rig_caps ic7610_caps =
     .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
-    .wait_morse = rig_wait_morse
+    .wait_morse = rig_wait_morse,
+    .send_voice_mem = rig_send_voice_mem
 };
