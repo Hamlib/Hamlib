@@ -494,7 +494,7 @@ const
     RIG_FUNC_ANF      =	(1 shl 8);		{* Automatic Notch Filter (DSP); *}
     RIG_FUNC_NR       =	(1 shl 9);		{* Noise Reduction (DSP); *}
     RIG_FUNC_AIP      =	(1 shl 10);		{* AIP (Kenwood); *}
-    RIG_FUNC_APF      =	(1 shl 11);		{* Auto Passband Filter *}
+    RIG_FUNC_APF      =	(1 shl 11);		{* Audio Peak Filter *}
     RIG_FUNC_MON      =	(1 shl 12);		{* Monitor transmitted signal, != rev *}
     RIG_FUNC_MN       =	(1 shl 13);		{* Manual Notch (Icom); *}
     RIG_FUNC_RF       =	(1 shl 14);		{* RTTY Filter (Icom);  TNX AD7AI -- N0NB *}
