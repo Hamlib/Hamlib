@@ -226,5 +226,12 @@ int newcat_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
 #define TOKEN_BACKEND(t) (t)
 
 #define TOK_ROOFING_FILTER TOKEN_BACKEND(100)
+#define TOK_KEYER          TOKEN_BACKEND(101)
+#define TOK_APF_FREQ       TOKEN_BACKEND(102)
+#define TOK_APF_WIDTH      TOKEN_BACKEND(103)
+#define TOK_CONTOUR        TOKEN_BACKEND(104)
+#define TOK_CONTOUR_FREQ   TOKEN_BACKEND(105)
+#define TOK_CONTOUR_LEVEL  TOKEN_BACKEND(106)
+#define TOK_CONTOUR_WIDTH  TOKEN_BACKEND(107)
 
 #endif /* _NEWCAT_H */

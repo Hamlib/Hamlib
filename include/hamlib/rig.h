@@ -1088,7 +1088,7 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_ANF        CONSTANT_64BIT_FLAG (8)    /*!< \c ANF -- Automatic Notch Filter (DSP) */
 #define RIG_FUNC_NR         CONSTANT_64BIT_FLAG (9)    /*!< \c NR -- Noise Reduction (DSP) */
 #define RIG_FUNC_AIP        CONSTANT_64BIT_FLAG (10)   /*!< \c AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.) */
-#define RIG_FUNC_APF        CONSTANT_64BIT_FLAG (11)   /*!< \c APF -- Auto Passband/Audio Peak Filter */
+#define RIG_FUNC_APF        CONSTANT_64BIT_FLAG (11)   /*!< \c APF -- Audio Peak Filter */
 #define RIG_FUNC_MON        CONSTANT_64BIT_FLAG (12)   /*!< \c MON -- Monitor transmitted signal */
 #define RIG_FUNC_MN         CONSTANT_64BIT_FLAG (13)   /*!< \c MN -- Manual Notch */
 #define RIG_FUNC_RF         CONSTANT_64BIT_FLAG (14)   /*!< \c RF -- RTTY Filter */
