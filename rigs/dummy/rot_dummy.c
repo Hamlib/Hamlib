@@ -190,6 +190,11 @@ static int dummy_rot_open(ROT *rot)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    if (rot->caps->rot_model == ROT_MODEL_DUMMY) {
+        simulating = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: dummy rotator so simulating speed\n", __func__);
+    }
+
     return RIG_OK;
 }
 
@@ -918,7 +923,7 @@ const struct rot_caps dummy_rot_caps =
     ROT_MODEL(ROT_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20210207.0",
+    .version =        "20211120.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
