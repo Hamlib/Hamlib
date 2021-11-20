@@ -963,7 +963,7 @@ int main(int argc, char *argv[])
                                        sizeof(host),
                                        serv,
                                        sizeof(serv),
-                                       NI_NOFQDN))
+                                       NI_NUMERICHOST|NI_NUMERICSERV))
                     < 0)
             {
                 rig_debug(RIG_DEBUG_WARN,
@@ -1201,7 +1201,7 @@ void *handle_socket(void *arg)
                                sizeof(host),
                                serv,
                                sizeof(serv),
-                               NI_NOFQDN))
+                               NI_NUMERICHOST|NI_NUMERICSERV))
             < 0)
     {
 

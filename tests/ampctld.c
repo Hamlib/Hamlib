@@ -568,7 +568,7 @@ int main(int argc, char *argv[])
                                    sizeof(host),
                                    serv,
                                    sizeof(serv),
-                                   NI_NOFQDN))
+                                   NI_NUMERICHOST|NI_NUMERICSERV))
                 < 0)
         {
 
@@ -674,7 +674,7 @@ void *handle_socket(void *arg)
                                sizeof(host),
                                serv,
                                sizeof(serv),
-                               NI_NOFQDN))
+                               NI_NUMERICHOST|NI_NUMERICSERV))
             < 0)
     {
 
