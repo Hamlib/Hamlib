@@ -55,6 +55,18 @@
 #include "cm108.h"
 #include "gpio.h"
 
+static void close_sync_data_pipe(hamlib_port_t *p)
+{
+    if (p->fd_sync_read != -1) {
+        close(p->fd_sync_read);
+        p->fd_sync_read = -1;
+    }
+    if (p->fd_sync_write != -1) {
+        close(p->fd_sync_write);
+        p->fd_sync_write = -1;
+    }
+}
+
 /**
  * \brief Open a hamlib_port based on its rig port type
  * \param p rig port descriptor
@@ -64,10 +76,30 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 {
     int status;
     int want_state_delay = 0;
+    int sync_pipe_fds[2];
 
     ENTERFUNC;
 
     p->fd = -1;
+    p->fd_sync_write = -1;
+    p->fd_sync_read = -1;
+
+    if (p->async)
+    {
+        status = pipe2(sync_pipe_fds, O_NONBLOCK);
+        if (status != 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: synchronous data pipe open status=%d, err=%s\n", __func__,
+                    status, strerror(errno));
+            close_sync_data_pipe(p);
+            RETURNFUNC(-RIG_EINTERNAL);
+        }
+
+        p->fd_sync_read = sync_pipe_fds[0];
+        p->fd_sync_write = sync_pipe_fds[1];
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: created synchronous data pipe\n", __func__);
+    }
 
     switch (p->type.rig)
     {
@@ -78,6 +110,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: serial_open(%s) status=%d, err=%s\n", __func__,
                       p->pathname, status, strerror(errno));
+            close_sync_data_pipe(p);
             RETURNFUNC(status);
         }
 
@@ -92,6 +125,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: set_rts status=%d\n", __func__, status);
+            close_sync_data_pipe(p);
             RETURNFUNC(status);
         }
 
@@ -105,6 +139,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: set_dtr status=%d\n", __func__, status);
+            close_sync_data_pipe(p);
             RETURNFUNC(status);
         }
 
@@ -124,6 +159,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+            close_sync_data_pipe(p);
             RETURNFUNC(status);
         }
 
@@ -134,6 +170,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+            close_sync_data_pipe(p);
             RETURNFUNC(status);
         }
 
@@ -144,6 +181,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+            close_sync_data_pipe(p);
             RETURNFUNC(-RIG_EIO);
         }
 
@@ -157,6 +195,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+            close_sync_data_pipe(p);
             RETURNFUNC(status);
         }
 
@@ -174,12 +213,14 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+            close_sync_data_pipe(p);
             RETURNFUNC(status);
         }
 
         break;
 
     default:
+        close_sync_data_pipe(p);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -230,6 +271,8 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 
         p->fd = -1;
     }
+
+    close_sync_data_pipe(p);
 
     RETURNFUNC(ret);
 }
@@ -370,16 +413,18 @@ static int port_select(hamlib_port_t *p,
 
 /* POSIX */
 
-static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
+static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int direct)
 {
+    int fd = direct ? p->fd : p->fd_sync_read;
+
     if (p->type.rig == RIG_PORT_SERIAL && p->parm.serial.data_bits == 7)
     {
         unsigned char *pbuf = buf;
 
-        int ret = read(p->fd, buf, count);
+        ssize_t ret = read(fd, buf, count);
 
         /* clear MSB */
-        int i;
+        ssize_t i;
 
         for (i = 0; i < ret; i++)
         {
@@ -390,12 +435,12 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
     }
     else
     {
-        return read(p->fd, buf, count);
+        return read(fd, buf, count);
     }
 }
 
 //! @cond Doxygen_Suppress
-#define port_write(p,b,c) write((p)->fd,(b),(c))
+#define port_write_generic(p,b,c,d) write((d) ? (p)->fd : (p)->fd_sync_write,(b),(c))
 #define port_select(p,n,r,w,e,t) select((n),(r),(w),(e),(t))
 //! @endcond
 
@@ -430,7 +475,7 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
  * it could work very well also with any file handle, like a socket.
  */
 
-int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
+static int write_block_generic(hamlib_port_t *p, const unsigned char *txbuffer, size_t count, int direct)
 {
     int ret;
 
@@ -468,7 +513,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
         for (i = 0; i < count; i++)
         {
-            ret = port_write(p, txbuffer + i, 1);
+            ret = port_write_generic(p, txbuffer + i, 1, direct);
 
             if (ret != 1)
             {
@@ -487,7 +532,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
     }
     else
     {
-        ret = port_write(p, txbuffer, count);
+        ret = port_write_generic(p, txbuffer, count, direct);
 
         if (ret != count)
         {
@@ -530,30 +575,54 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
 
 /**
- * \brief Read bytes from an fd
+ * \brief Write a block of characters to an fd.
  * \param p rig port descriptor
- * \param rxbuffer buffer to receive text
- * \param count number of bytes
- * \return count of bytes received
+ * \param txbuffer command sequence to be sent
+ * \param count number of bytes to send
+ * \return 0 = OK, <0 = NOK
  *
- * Read "num" bytes from "fd" and put results into
- * an array of unsigned char pointed to by "rxbuffer"
+ * Write a block of count characters to port file descriptor,
+ * with a pause between each character if write_delay is > 0
  *
- * Blocks on read until timeout hits.
+ * The write_delay is for Yaesu type rigs..require 5 character
+ * sequence to be sent with 50-200msec between each char.
  *
- * It then reads "num" bytes into rxbuffer.
+ * Also, post_write_delay is for some Yaesu rigs (eg: FT747) that
+ * get confused with sequential fast writes between cmd sequences.
+ *
+ * input:
+ *
+ * fd - file descriptor to write to
+ * txbuffer - pointer to a command sequence array
+ * count - count of byte to send from the txbuffer
+ * write_delay - write delay in ms between 2 chars
+ * post_write_delay - minimum delay between two writes
+ * post_write_date - timeval of last write
  *
  * Actually, this function has nothing specific to serial comm,
  * it could work very well also with any file handle, like a socket.
  */
 
-int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
+int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
+{
+    return write_block_generic(p, txbuffer, count, 1);
+}
+
+int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
+{
+    return write_block_generic(p, txbuffer, count, 0);
+}
+
+static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t count, int direct)
 {
     fd_set rfds, efds;
+    int fd;
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
     int total_count = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    fd = direct ? p->fd : p->fd_sync_read;
 
     /*
      * Wait up to timeout ms.
@@ -571,10 +640,10 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
         tv = tv_timeout;    /* select may have updated it */
 
         FD_ZERO(&rfds);
-        FD_SET(p->fd, &rfds);
+        FD_SET(fd, &rfds);
         efds = rfds;
 
-        retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
+        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv);
 
         if (retval == 0)
         {
@@ -605,7 +674,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
             return -RIG_EIO;
         }
 
-        if (FD_ISSET(p->fd, &efds))
+        if (FD_ISSET(fd, &efds))
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): fd error after %d chars\n",
@@ -619,7 +688,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
          * grab bytes from the rig
          * The file descriptor must have been set up non blocking.
          */
-        rd_count = port_read(p, rxbuffer + total_count, count);
+        rd_count = (int) port_read_generic(p, rxbuffer + total_count, count, direct);
 
         if (rd_count < 0)
         {
@@ -643,38 +712,61 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 
 
 /**
- * \brief Read a string from an fd
- * \param p Hamlib port descriptor
- * \param rxbuffer buffer to receive string
- * \param rxmax maximum string size + 1
- * \param stopset string of recognized end of string characters
- * \param stopset_len length of stopset
- * \return number of characters read if the operation has been successful,
- * otherwise a negative value if an error occurred (in which case, cause is
- * set appropriately).
+ * \brief Read bytes from the device directly or from the synchronous data pipe, depending on the device caps
+ * \param p rig port descriptor
+ * \param rxbuffer buffer to receive text
+ * \param count number of bytes
+ * \return count of bytes received
  *
- * Read a string from "fd" and put result into
+ * Read "num" bytes from "fd" and put results into
  * an array of unsigned char pointed to by "rxbuffer"
  *
  * Blocks on read until timeout hits.
  *
- * It then reads characters until one of the characters in
- * "stopset" is found, or until "rxmax-1" characters was copied
- * into rxbuffer.  String termination character is added at the end.
+ * It then reads "num" bytes into rxbuffer.
  *
  * Actually, this function has nothing specific to serial comm,
  * it could work very well also with any file handle, like a socket.
- *
- * Assumes rxbuffer!=NULL
  */
-int HAMLIB_API read_string(hamlib_port_t *p,
-                           char *rxbuffer,
-                           size_t rxmax,
-                           const char *stopset,
-                           int stopset_len,
-                           int flush_flag)
+
+int HAMLIB_API read_block(hamlib_port_t *p, unsigned char *rxbuffer, size_t count)
+{
+    return read_block_generic(p, rxbuffer, count, !p->async);
+}
+
+/**
+ * \brief Read bytes directly from the device file descriptor
+ * \param p rig port descriptor
+ * \param rxbuffer buffer to receive text
+ * \param count number of bytes
+ * \return count of bytes received
+ *
+ * Read "num" bytes from "fd" and put results into
+ * an array of unsigned char pointed to by "rxbuffer"
+ *
+ * Blocks on read until timeout hits.
+ *
+ * It then reads "num" bytes into rxbuffer.
+ *
+ * Actually, this function has nothing specific to serial comm,
+ * it could work very well also with any file handle, like a socket.
+ */
+
+int HAMLIB_API read_block_direct(hamlib_port_t *p, unsigned char *rxbuffer, size_t count)
+{
+    return read_block_generic(p, rxbuffer, count, 1);
+}
+
+static int read_string_generic(hamlib_port_t *p,
+                               unsigned char *rxbuffer,
+                               size_t rxmax,
+                               const char *stopset,
+                               int stopset_len,
+                               int flush_flag,
+                               int direct)
 {
     fd_set rfds, efds;
+    int fd;
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
     int total_count = 0;
     int i=0;
@@ -694,6 +786,8 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         return 0;
     }
 
+    fd = direct ? p->fd : p->fd_sync_read;
+
     /*
      * Wait up to timeout ms.
      */
@@ -707,15 +801,16 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
-        int rd_count;
+        ssize_t rd_count;
         int retval;
+
         tv = tv_timeout;    /* select may have updated it */
 
         FD_ZERO(&rfds);
-        FD_SET(p->fd, &rfds);
+        FD_SET(fd, &rfds);
         efds = rfds;
 
-        retval = port_select(p, p->fd + 1, &rfds, NULL, &efds, &tv);
+        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv);
 
         if (retval == 0)
         {
@@ -743,7 +838,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
         if (retval < 0)
         {
-            dump_hex((unsigned char *) rxbuffer, total_count);
+            dump_hex(rxbuffer, total_count);
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): select() error after %d chars: %s\n",
                       __func__,
@@ -753,7 +848,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
             return -RIG_EIO;
         }
 
-        if (FD_ISSET(p->fd, &efds))
+        if (FD_ISSET(fd, &efds))
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): fd error after %d chars\n",
@@ -769,13 +864,12 @@ int HAMLIB_API read_string(hamlib_port_t *p,
          */
         do 
         {
-            rd_count = port_read(p, &rxbuffer[total_count], 1);
+            rd_count = port_read_generic(p, &rxbuffer[total_count], 1, direct);
             if (errno == EAGAIN)
             {
                 hl_usleep(5*1000);
                 rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy?\n", __func__);
             }
-
         } while( ++i < 10 && errno == EBUSY); // 50ms should be enough
 
         /* if we get 0 bytes or an error something is wrong */
@@ -793,7 +887,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         // check to see if our string startis with \...if so we need more chars
         if (total_count == 0 && rxbuffer[total_count] == '\\') { rxmax = (rxmax - 1) * 5; }
 
-        total_count += rd_count;
+        total_count += (int) rd_count;
 
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {
@@ -815,6 +909,79 @@ int HAMLIB_API read_string(hamlib_port_t *p,
     dump_hex((unsigned char *) rxbuffer, total_count);
 
     return total_count;           /* return bytes count read */
+}
+
+/**
+ * \brief Read a string from the device directly or from the synchronous data pipe, depending on the device caps
+ * \param p Hamlib port descriptor
+ * \param rxbuffer buffer to receive string
+ * \param rxmax maximum string size + 1
+ * \param stopset string of recognized end of string characters
+ * \param stopset_len length of stopset
+ * \return number of characters read if the operation has been successful,
+ * otherwise a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ *
+ * Read a string from "fd" and put result into
+ * an array of unsigned char pointed to by "rxbuffer"
+ *
+ * Blocks on read until timeout hits.
+ *
+ * It then reads characters until one of the characters in
+ * "stopset" is found, or until "rxmax-1" characters was copied
+ * into rxbuffer.  String termination character is added at the end.
+ *
+ * Actually, this function has nothing specific to serial comm,
+ * it could work very well also with any file handle, like a socket.
+ *
+ * Assumes rxbuffer!=NULL
+ */
+
+int HAMLIB_API read_string(hamlib_port_t *p,
+        unsigned char *rxbuffer,
+        size_t rxmax,
+        const char *stopset,
+        int stopset_len,
+        int flush_flag)
+{
+    return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, !p->async);
+}
+
+
+/**
+ * \brief Read a string directly from the device file descriptor
+ * \param p Hamlib port descriptor
+ * \param rxbuffer buffer to receive string
+ * \param rxmax maximum string size + 1
+ * \param stopset string of recognized end of string characters
+ * \param stopset_len length of stopset
+ * \return number of characters read if the operation has been successful,
+ * otherwise a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ *
+ * Read a string from "fd" and put result into
+ * an array of unsigned char pointed to by "rxbuffer"
+ *
+ * Blocks on read until timeout hits.
+ *
+ * It then reads characters until one of the characters in
+ * "stopset" is found, or until "rxmax-1" characters was copied
+ * into rxbuffer.  String termination character is added at the end.
+ *
+ * Actually, this function has nothing specific to serial comm,
+ * it could work very well also with any file handle, like a socket.
+ *
+ * Assumes rxbuffer!=NULL
+ */
+
+int HAMLIB_API read_string_direct(hamlib_port_t *p,
+                                  unsigned char *rxbuffer,
+                                  size_t rxmax,
+                                  const char *stopset,
+                                  int stopset_len,
+                                  int flush_flag)
+{
+    return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, 1);
 }
 
 /** @} */

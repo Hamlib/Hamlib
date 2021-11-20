@@ -227,6 +227,18 @@ void rig_lock() {};
 void rig_unlock() {};
 #endif
 
+#ifdef HAVE_PTHREAD
+volatile int async_data_handler_thread_run = 0;
+pthread_t async_data_handler_thread_id;
+
+struct async_data_handler_args_s
+{
+    RIG *rig;
+} async_data_handler_args;
+
+void *async_data_handler(void *arg);
+#endif
+
 /*
  * track which rig is opened (with rig_open)
  * needed at least for transceive mode
@@ -365,13 +377,13 @@ static int rig_check_rig_caps()
     if (&caps_test.rig_model != caps_test_rig_model)
     {
         rc = -RIG_EINTERNAL;
-        rig_debug(RIG_DEBUG_WARN, "%s: shared libary change#1\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: shared library change#1\n", __func__);
     }
 
     if (&caps_test.macro_name != caps_test_macro_name)
     {
         rc = -RIG_EINTERNAL;
-        rig_debug(RIG_DEBUG_WARN, "%s: shared libary change#2\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: shared library change#2\n", __func__);
     }
 
     //if (rc != RIG_OK)
@@ -467,6 +479,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->pttport.fd = -1;
     rs->comm_state = 0;
     rs->rigport.type.rig = caps->port_type; /* default from caps */
+    rs->rigport.async = caps->async_data_supported;
+    rs->rigport.fd_sync_write = -1;
+    rs->rigport.fd_sync_read = -1;
 
     switch (caps->port_type)
     {
@@ -1039,6 +1054,22 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC(status);
     }
 
+    if (caps->async_data_supported)
+    {
+        async_data_handler_thread_run = 1;
+        async_data_handler_args.rig = rig;
+        int err = pthread_create(&async_data_handler_thread_id, NULL,
+                async_data_handler, &async_data_handler_args);
+
+        if (err)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error: %s\n", __FILE__, __LINE__,
+                    strerror(errno));
+            port_close(&rs->rigport, rs->rigport.type.rig);
+            return -RIG_EINTERNAL;
+        }
+    }
+
     add_opened_rig(rig);
 
     rs->comm_state = 1;
@@ -1053,6 +1084,8 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (status != RIG_OK)
         {
+            // TODO: stop async reader
+            port_close(&rs->rigport, rs->rigport.type.rig);
             RETURNFUNC(status);
         }
     }
@@ -1176,6 +1209,22 @@ int HAMLIB_API rig_close(RIG *rig)
     }
 
 #endif
+
+    async_data_handler_thread_run = 0;
+
+    if (async_data_handler_thread_id != 0)
+    {
+        int err = pthread_join(async_data_handler_thread_id, NULL);
+
+        if (err)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): pthread_join error: %s\n", __FILE__, __LINE__,
+                    strerror(errno));
+            // just ignore the error
+        }
+
+        async_data_handler_thread_id = 0;
+    }
 
     if (!rig || !rig->caps)
     {
@@ -7139,3 +7188,64 @@ HAMLIB_EXPORT(void) sync_callback(int lock)
 
 /*! @} */
 
+#ifdef HAVE_PTHREAD
+
+#define MAX_FRAME_LENGTH 1024
+
+void *async_data_handler(void *arg)
+{
+    struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)arg;
+    unsigned char frame[MAX_FRAME_LENGTH];
+    RIG *rig = args->rig;
+    struct rig_state *rs = &rig->state;
+    int result;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s(%d): Starting async data handler thread\n", __FILE__,
+            __LINE__);
+
+    while (async_data_handler_thread_run)
+    {
+        int frame_length;
+        int async_frame;
+
+        result = rig->caps->read_frame_direct(rig, sizeof(frame), frame);
+        if (result < 0)
+        {
+            // TODO: error handling
+            rig_debug(RIG_DEBUG_ERR, "%s: read_frame_direct() failed, result=%d\n", __func__, result);
+            continue;
+        }
+
+        frame_length = result;
+
+        async_frame = rig->caps->is_async_frame(rig, frame_length, frame);
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: received frame: len=%d async=%d\n", __func__, frame_length, async_frame);
+
+        if (async_frame)
+        {
+            result = rig->caps->process_async_frame(rig, frame_length, frame);
+            if (result < 0)
+            {
+                // TODO: error handling
+                continue;
+            }
+        }
+        else
+        {
+            result = write_block_sync(&rs->rigport, frame, frame_length);
+            if (result < 0)
+            {
+                // TODO: error handling
+                rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__, result);
+                continue;
+            }
+        }
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s(%d): Stopping async data handler thread\n", __FILE__,
+            __LINE__);
+
+    return NULL;
+}
+#endif

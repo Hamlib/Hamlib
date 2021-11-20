@@ -46,7 +46,8 @@
  * NB: the frame array must be big enough to hold the frame.
  *      The smallest frame is 6 bytes, the biggest is at least 13 bytes.
  */
-int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd,
+int make_cmd_frame(unsigned char frame[], unsigned char re_id, unsigned char ctrl_id,
+                   unsigned char cmd, int subcmd,
                    const unsigned char *data, int data_len)
 {
     int i = 0;
@@ -121,7 +122,7 @@ int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
  * return RIG_OK if transaction completed,
  * or a negative value otherwise indicating the error.
  */
-int icom_one_transaction(RIG *rig, int cmd, int subcmd,
+int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
                          const unsigned char *payload, int payload_len, unsigned char *data,
                          int *data_len)
 {
@@ -134,7 +135,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     unsigned char buf[200];
     unsigned char sendbuf[MAXFRAMELEN];
     int frm_len, frm_data_len, retval;
-    int ctrl_id;
+    unsigned char ctrl_id;
 
     ENTERFUNC;
     rig_lock();
@@ -146,7 +147,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
     ctrl_id = priv_caps->serial_full_duplex == 0 ? CTRLID : 0x80;
 
-    frm_len = make_cmd_frame((char *) sendbuf, priv->re_civ_addr, ctrl_id, cmd,
+    frm_len = make_cmd_frame(sendbuf, priv->re_civ_addr, ctrl_id, cmd,
                              subcmd, payload, payload_len);
 
     /*
@@ -158,7 +159,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
 
     if (data_len) { *data_len = 0; }
 
-    retval = write_block(&rs->rigport, (char *) sendbuf, frm_len);
+    retval = write_block(&rs->rigport, sendbuf, frm_len);
 
     if (retval != RIG_OK)
     {
@@ -234,7 +235,7 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
             RETURNFUNC(-RIG_EPROTO);
         }
 
-        if (memcmp(buf, sendbuf, frm_len))
+        if (memcmp(buf, sendbuf, frm_len) != 0)
         {
             /* Frames are different? */
             /* Problem on ci-v bus? */
@@ -466,17 +467,17 @@ static const char icom_block_end[2] = { FI, COL};
 #define icom_block_end_length 2
 
 /*
- * read_icom_frame
- * read a whole CI-V frame (until 0xfd is encountered)
+ * Read a whole CI-V frame (until 0xfd is encountered).
+ *
  * TODO: strips padding/collisions
  * FIXME: check return codes/bytes read
  */
-int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[],
-                    int rxbuffer_len)
+static int read_icom_frame_generic(hamlib_port_t *p, const unsigned char rxbuffer[],
+                                   size_t rxbuffer_len, int direct)
 {
     int read = 0;
     int retries = 10;
-    char *rx_ptr = (char *)rxbuffer;
+    unsigned char *rx_ptr = (unsigned char *) rxbuffer;
 
     ENTERFUNC;
     // zeroize the buffer so we can still check contents after timeouts
@@ -484,13 +485,20 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[],
 
     /*
      * OK, now sometimes we may time out, e.g. the IC7000 can time out
-     * during a PTT operation. So, we will insure that the last thing we
+     * during a PTT operation. So, we will ensure that the last thing we
      * read was a proper end marker - if not, we will try again.
      */
     do
     {
-        int i = read_string(p, rx_ptr, MAXFRAMELEN - read,
-                            icom_block_end, icom_block_end_length, 0);
+        int i;
+        if (direct)
+        {
+            i = read_string_direct(p, rx_ptr, MAXFRAMELEN - read, icom_block_end, icom_block_end_length, 0);
+        }
+        else
+        {
+            i = read_string(p, rx_ptr, MAXFRAMELEN - read, icom_block_end, icom_block_end_length, 0);
+        }
 
         if (i < 0 && i != RIG_BUSBUSY) /* die on errors */
         {
@@ -518,6 +526,17 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[],
     RETURNFUNC(read);
 }
 
+int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
+                    size_t rxbuffer_len)
+{
+    return read_icom_frame_generic(p, rxbuffer, rxbuffer_len, 0);
+}
+
+int read_icom_frame_direct(hamlib_port_t *p, const unsigned char rxbuffer[],
+                           size_t rxbuffer_len)
+{
+    return read_icom_frame_generic(p, rxbuffer, rxbuffer_len, 1);
+}
 
 /*
  * convert mode and width as expressed by Hamlib frontend
