@@ -1122,6 +1122,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         }
     }
 
+    TRACE;
     snprintf(cmdbuf, sizeof(cmdbuf), "FR%c", vfo_function);
 
     // as we change VFO we will change split to the other VFO
@@ -1287,18 +1288,23 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
         // FR can turn off split on some Kenwood rigs
         // So we'll turn it back on just in case
-        if (split && vfo_function == '0') { strcat(cmdbuf, ";FT1"); }
-
-        if (priv->split)
+TRACE;
+        if (split)
         {
             if (vfo_function == '0')
             {
+TRACE;
                 strcat(cmdbuf, ";FT1");
             }
             else
             {
+TRACE;
                 strcat(cmdbuf, ";FT0");
             }
+        }
+        else
+        {
+            strcat(cmdbuf, ";FT0");
         }
 
         retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
@@ -1374,13 +1380,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
       ||rig->caps->rig_model == RIG_MODEL_KX3)
     {
         rig_set_freq(rig, RIG_VFO_B, rig->state.cache.freqMainA);
-        snprintf(cmdbuf, sizeof(cmdbuf), "FT%c", vfo_function);
     }
-    else
-    {
-        snprintf(cmdbuf, sizeof(cmdbuf), "FT%c", vfo_function);
-    }
-    retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
     if (retval != RIG_OK)
     {
