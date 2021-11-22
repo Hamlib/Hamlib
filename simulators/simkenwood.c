@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
     int n;
     int fd = openPort(argv[1]);
     int freqa = 14074000, freqb = 140735000;
+    int modeA = 0; // , modeB = 0;
 
     while (1)
     {
@@ -203,10 +204,24 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "FB%d", &freqb);
         }
-        else if (strncmp(buf, "AI;", 2) == 0)
+        else if (strncmp(buf, "AI;", 3) == 0)
         {
             sprintf(buf, "AI0;");
             write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "SA;", 3) == 0)
+        {
+            sprintf(buf, "SA0;");
+            write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "MD;", 3) == 0)
+        {
+            sprintf(buf, "MD%d;", modeA); // not worried about modeB yet for simulator
+            write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "MD", 2) == 0)
+        {
+            sscanf(buf, "MD%d", &modeA); // not worried about modeB yet for simulator
         }
 
 
