@@ -2223,17 +2223,18 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             datamode = 1;
         }
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_mode=%s, new_mode=%s\n", __func__, rig_strrmode(priv->curr_mode), rig_strrmode(mode));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, curr_mode=%s, new_mode=%s\n", __func__, rig_strvfo(vfo), rig_strrmode(priv->curr_mode), rig_strrmode(mode));
     // only change mode if needed
     if (priv->curr_mode != mode)
     {
         snprintf(buf, sizeof(buf), "MD%c", c);
         err = kenwood_transaction(rig, buf, NULL, 0);
     }
+    // determine if we need to set datamode on A or B
     needdata = 0;
-    if ((vfo == RIG_VFO_A) && ((priv->datamodeA ==  0 && datamode) || (priv->datamodeA == 1 && !datamode)))
+    if ((vfo & (RIG_VFO_A|RIG_VFO_MAIN)) && ((priv->datamodeA ==  0 && datamode) || (priv->datamodeA == 1 && !datamode)))
         needdata = 1;
-    if ((vfo == RIG_VFO_B) && ((priv->datamodeB ==  0 && datamode) || (priv->datamodeB == 1 && !datamode)))
+    if ((vfo == (RIG_VFO_B|RIG_VFO_SUB)) && ((priv->datamodeB ==  0 && datamode) || (priv->datamodeB == 1 && !datamode)))
         needdata = 1;
 
     if (needdata)
@@ -2243,6 +2244,10 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         err = kenwood_transaction(rig, buf, NULL, 0);
 
         if (err != RIG_OK) { RETURNFUNC(err); }
+    }
+    else if (datamode)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: datamode set on %s not needed\n", __func__, rig_strvfo(vfo));
     }
 
     if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(RIG_OK); }

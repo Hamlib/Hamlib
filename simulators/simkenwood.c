@@ -11,6 +11,7 @@
 
 float freqA = 14074000;
 float freqB = 14074500;
+int filternum = 7;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -223,6 +224,16 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "MD%d", &modeA); // not worried about modeB yet for simulator
         }
+        else if (strncmp(buf,"FL;",3) == 0)
+        {
+            sprintf(buf, "FL%03d;", filternum);
+            write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf,"FL",2) == 0)
+        {
+            sscanf(buf, "FL%d", &filternum);
+        }
+
 
 
         else if (strlen(buf) > 0)
