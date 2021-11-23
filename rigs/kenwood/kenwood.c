@@ -2232,6 +2232,12 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     // determine if we need to set datamode on A or B
     needdata = 0;
+    
+    if (vfo == RIG_VFO_CURR) 
+    {
+        TRACE;
+        vfo = priv->rig.state.current_vfo;
+    }
     if ((vfo & (RIG_VFO_A|RIG_VFO_MAIN)) && ((priv->datamodeA ==  0 && datamode) || (priv->datamodeA == 1 && !datamode)))
         needdata = 1;
     if ((vfo == (RIG_VFO_B|RIG_VFO_SUB)) && ((priv->datamodeB ==  0 && datamode) || (priv->datamodeB == 1 && !datamode)))
@@ -2247,7 +2253,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     else if (datamode)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: datamode set on %s not needed\n", __func__, rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): datamode set on %s not needed\n", __func__, __LINE__, rig_strvfo(vfo));
     }
 
     if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(RIG_OK); }
