@@ -2236,7 +2236,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (vfo == RIG_VFO_CURR) 
     {
         TRACE;
-        vfo = priv->rig.state.current_vfo;
+        vfo = rig->state.current_vfo;
     }
     if ((vfo & (RIG_VFO_A|RIG_VFO_MAIN)) && ((priv->datamodeA ==  0 && datamode) || (priv->datamodeA == 1 && !datamode)))
         needdata = 1;
