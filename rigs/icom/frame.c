@@ -137,7 +137,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     int ctrl_id;
 
     ENTERFUNC;
-    rig_lock();
     memset(buf, 0, 200);
     memset(sendbuf, 0, MAXFRAMELEN);
     rs = &rig->state;
@@ -163,7 +162,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     if (retval != RIG_OK)
     {
         Unhold_Decode(rig);
-        rig_unlock();
         RETURNFUNC(retval);
     }
 
@@ -185,14 +183,12 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         {
             /* Nothing received, CI-V interface is not echoing */
             Unhold_Decode(rig);
-            rig_unlock();
             RETURNFUNC(-RIG_BUSERROR);
         }
 
         if (retval < 0)
         {
             Unhold_Decode(rig);
-            rig_unlock();
             /* Other error, return it */
             RETURNFUNC(retval);
         }
@@ -200,7 +196,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         if (retval < 1)
         {
             Unhold_Decode(rig);
-            rig_unlock();
             RETURNFUNC(-RIG_EPROTO);
         }
 
@@ -209,7 +204,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
         case COL:
             /* Collision */
             Unhold_Decode(rig);
-            rig_unlock();
             RETURNFUNC(-RIG_BUSBUSY);
 
         case FI:
@@ -220,7 +214,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
             /* Timeout after reading at least one character */
             /* Problem on ci-v bus? */
             Unhold_Decode(rig);
-            rig_unlock();
             RETURNFUNC(-RIG_BUSERROR);
         }
 
@@ -230,7 +223,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
             /* Problem on ci-v bus? */
             /* Someone else got a packet in? */
             Unhold_Decode(rig);
-            rig_unlock();
             RETURNFUNC(-RIG_EPROTO);
         }
 
@@ -240,7 +232,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
             /* Problem on ci-v bus? */
             /* Someone else got a packet in? */
             Unhold_Decode(rig);
-            rig_unlock();
             RETURNFUNC(-RIG_EPROTO);
         }
     }
@@ -251,7 +242,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     if (data_len == NULL)
     {
         Unhold_Decode(rig);
-        rig_unlock();
         RETURNFUNC(RIG_OK);
     }
 
@@ -282,7 +272,6 @@ read_another_frame:
 
     if (frm_len < 0)
     {
-        rig_unlock();
         Unhold_Decode(rig);
         /* RIG_TIMEOUT: timeout getting response, return timeout */
         /* other error: return it */
@@ -291,7 +280,6 @@ read_another_frame:
 
     if (frm_len < 1)
     {
-        rig_unlock();
         Unhold_Decode(rig);
         RETURNFUNC(-RIG_EPROTO);
     }
@@ -301,7 +289,6 @@ read_another_frame:
     if (retval < 0)
     {
         Unhold_Decode(rig);
-        rig_unlock();
         RETURNFUNC(retval);
     }
 
@@ -310,7 +297,6 @@ read_another_frame:
     if (frm_len < 1)
     {
         rig_debug(RIG_DEBUG_ERR, "Unexpected frame len=%d\n", frm_len);
-        rig_unlock();
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -319,7 +305,6 @@ read_another_frame:
     case COL:
         Unhold_Decode(rig);
         /* Collision */
-        rig_unlock();
         RETURNFUNC(-RIG_BUSBUSY);
 
     case FI:
@@ -328,21 +313,18 @@ read_another_frame:
 
     case NAK:
         Unhold_Decode(rig);
-        rig_unlock();
         RETURNFUNC(-RIG_ERJCTED);
 
     default:
         Unhold_Decode(rig);
         /* Timeout after reading at least one character */
         /* Problem on ci-v bus? */
-        rig_unlock();
         RETURNFUNC(-RIG_EPROTO);
     }
 
     if (frm_len < ACKFRMLEN)
     {
         Unhold_Decode(rig);
-        rig_unlock();
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -351,7 +333,6 @@ read_another_frame:
     if (frm_len == 6 && NAK == buf[frm_len - 2])
     {
         Unhold_Decode(rig);
-        rig_unlock();
         RETURNFUNC(-RIG_ERJCTED);
     }
 
@@ -362,7 +343,6 @@ read_another_frame:
     if (FI != buf[frm_len - 1] && ACK != buf[frm_len - 1])
     {
         Unhold_Decode(rig);
-        rig_unlock();
         RETURNFUNC(-RIG_BUSBUSY);
     }
 
@@ -371,7 +351,6 @@ read_another_frame:
     if (frm_data_len <= 0)
     {
         Unhold_Decode(rig);
-        rig_unlock();
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -389,7 +368,6 @@ read_another_frame:
         if (elapsed_ms > rs->rigport.timeout)
         {
             Unhold_Decode(rig);
-            rig_unlock();
             RETURNFUNC(-RIG_ETIMEOUT);
         }
 
@@ -405,7 +383,6 @@ read_another_frame:
      * TODO: check addresses in reply frame
      */
 
-    rig_unlock();
     RETURNFUNC(RIG_OK);
 }
 
