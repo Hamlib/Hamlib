@@ -4792,6 +4792,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     }
     else
     {
+        if (rig->state.current_vfo == RIG_VFO_A) rx_vfo = RIG_VFO_B; // possible reverse split
         rx_vfo = vfo_fixup(rig, rx_vfo, split);
         tx_vfo = vfo_fixup(rig, tx_vfo, split);
         if (rx_vfo == RIG_VFO_CURR)
