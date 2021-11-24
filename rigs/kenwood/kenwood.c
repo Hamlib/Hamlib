@@ -369,7 +369,7 @@ transaction_read:
     /* allow room for most any response */
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 48,
               KENWOOD_MAX_BUF_LEN);
-    retval = read_string(&rs->rigport, buffer, len, cmdtrm_str, strlen(cmdtrm_str), 0);
+    retval = read_string(&rs->rigport, buffer, len, cmdtrm_str, strlen(cmdtrm_str), 0, 1);
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string(len=%d)='%s'\n", __func__,
               (int)strlen(buffer), buffer);
 
@@ -2601,7 +2601,7 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = read_string(&rs->rigport, levelbuf, sizeof(levelbuf), NULL, 0, 0);
+    retval = read_string(&rs->rigport, levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
@@ -2700,7 +2700,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = read_string(&rs->rigport, levelbuf, sizeof(levelbuf), NULL, 0, 0);
+    retval = read_string(&rs->rigport, levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
@@ -5367,7 +5367,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
         }
 
         retval = write_block(port, "ID;", 3);
-        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0);
+        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0, 1);
         close(port->fd);
 
         if (retval != RIG_OK || id_len < 0)
@@ -5434,7 +5434,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
         }
 
         retval = write_block(port, "K2;", 3);
-        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0);
+        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0, 1);
         close(port->fd);
 
         if (retval != RIG_OK)

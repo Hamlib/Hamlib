@@ -122,7 +122,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
 
     do
     {
-        retval = read_string(&rs->rigport, respbuf, BUFSZ, EOM, strlen(EOM), 0);
+        retval = read_string(&rs->rigport, respbuf, BUFSZ, EOM, strlen(EOM), 0, 1);
 
         if (retval < 0)
         {

@@ -156,7 +156,7 @@ transaction_write:
     }
 
     memset(data, 0, *datasize);
-    retval = read_string(&rs->rigport, data, *datasize, EOM, strlen(EOM), 0);
+    retval = read_string(&rs->rigport, data, *datasize, EOM, strlen(EOM), 0, 1);
 
     if (retval < 0)
     {
@@ -838,7 +838,7 @@ DECLARE_PROBERIG_BACKEND(uniden)
         }
 
         retval = write_block(port, "SI"EOM, 3);
-        id_len = read_string(port, idbuf, IDBUFSZ, EOM, 1, 0);
+        id_len = read_string(port, idbuf, IDBUFSZ, EOM, 1, 0, 1);
         close(port->fd);
 
         if (retval != RIG_OK || id_len < 0)

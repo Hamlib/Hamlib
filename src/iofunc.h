@@ -43,6 +43,7 @@ extern HAMLIB_EXPORT(int) read_string(hamlib_port_t *p,
                                       size_t rxmax,
                                       const char *stopset,
                                       int stopset_len,
-                                      int flush_flag);
+                                      int flush_flag,
+                                      int expected_len);
 
 #endif /* _IOFUNC_H */

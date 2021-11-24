@@ -100,7 +100,7 @@ static int racal_transaction(RIG *rig, const char *cmd, char *data,
         return retval;
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM), 0);
+    retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM), 0, 1);
 
     if (retval <= 0)
     {
