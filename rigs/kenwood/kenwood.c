@@ -1312,7 +1312,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         }
 
         rig_get_split(rig, vfo, &tsplit);
-
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): tsplit=%d, split=%d\n", __func__, __LINE__, tsplit, split);
         if (tsplit == split)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: split already set\n", __func__);

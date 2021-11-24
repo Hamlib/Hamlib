@@ -2208,6 +2208,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): vfo_opt=%d, model=%d\n", __func__, __LINE__, rig->state.vfo_opt, rig->caps->rig_model);
     // If we're in vfo_mode then rigctld will do any VFO swapping we need
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo
@@ -4295,7 +4296,8 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     if (caps->set_split_mode
             && (vfo == RIG_VFO_CURR
                 || vfo == RIG_VFO_TX
-                || vfo == rig->state.current_vfo))
+                || vfo == rig->state.current_vfo
+                || rig->caps->rig_model == RIG_MODEL_NETRIGCTL))
     {
         TRACE;
         retcode = caps->set_split_mode(rig, vfo, tx_mode, tx_width);
@@ -4307,7 +4309,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     curr_vfo = rig->state.current_vfo;
 
     /* Use previously setup TxVFO */
-    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX || rig->state.tx_vfo != RIG_VFO_NONE)
     {
         TRACE;
         tx_vfo = rig->state.tx_vfo;
@@ -4319,7 +4321,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     }
     rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s, tx_vfo=%s\n", __func__, rig_strvfo(curr_vfo), rig_strvfo(tx_vfo));
 
-    if (caps->set_mode && (caps->targetable_vfo & RIG_TARGETABLE_MODE))
+    if (caps->set_mode && ((caps->targetable_vfo & RIG_TARGETABLE_MODE) || (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)))
     {
         TRACE;
         retcode = caps->set_mode(rig, tx_vfo, tx_mode, tx_width);
@@ -4334,7 +4336,28 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_A) rx_vfo = RIG_VFO_B;
     else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_MAIN) rx_vfo = RIG_VFO_SUB;
     else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_SUB) rx_vfo = RIG_VFO_MAIN;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rx_vfo=%s, tx_vfo=%s\n", __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): rx_vfo=%s, tx_vfo=%s\n", __func__, __LINE__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
+    // we will reuse cached mode instead of trying to set mode again
+    if ((tx_vfo & (RIG_VFO_A|RIG_VFO_MAIN|RIG_VFO_MAIN_A|RIG_VFO_SUB_A)) && (tx_mode == rig->state.cache.modeMainA)) 
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): VFOA mode=%s already set...ignoring\n", __func__, __LINE__, rig_strrmode(tx_mode));
+        ELAPSED2;
+        RETURNFUNC(RIG_OK);
+    }
+    else if ((tx_vfo & (RIG_VFO_B|RIG_VFO_SUB|RIG_VFO_MAIN_B|RIG_VFO_SUB_B)) && (tx_mode == rig->state.cache.modeMainB))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): VFOB mode=%s already set...ignoring\n", __func__, __LINE__, rig_strrmode(tx_mode));
+        ELAPSED2;
+        RETURNFUNC(RIG_OK);
+    }
+    rig_debug(RIG_DEBUG_WARN, "%s(%d): Unhandled VFO=%s, tx_mode=%s\n", __func__, __LINE__, rig_strvfo(tx_vfo), rig_strrmode(tx_mode));
+
+    // code below here should be dead code now -- but maybe we have  VFO situatiuon we need to handle
+    if (caps->rig_model == RIG_MODEL_NETRIGCTL)
+    { // special handlingt for netrigctl to avoid set_vfo
+        retcode = caps->set_split_mode(rig, vfo, tx_mode, tx_width);
+        RETURNFUNC(retcode);
+    }
     rig_set_split_vfo(rig,rx_vfo, RIG_SPLIT_OFF, rx_vfo);
     if (caps->set_vfo)
     {
@@ -4785,7 +4808,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     // set rig to the the requested RX VFO
     TRACE;
 
-    if (!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
+    if ((!(caps->targetable_vfo & RIG_TARGETABLE_FREQ)) && (!(rig->caps->rig_model == RIG_MODEL_NETRIGCTL)))
 #if BUILTINFUNC
         rig_set_vfo(rig, rx_vfo == RIG_VFO_B ? RIG_VFO_B : RIG_VFO_A,
                     __builtin_FUNCTION());
@@ -4797,6 +4820,12 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     if (rx_vfo == RIG_VFO_CURR
             || rx_vfo == rig->state.current_vfo)
     {
+        // for non-targetable VFOs we will not set split again
+        if (rig->state.cache.split == split && rig->state.cache.split_vfo == tx_vfo)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split already set...ignoring\n", __func__, __LINE__);
+            RETURNFUNC(RIG_OK);
+        }
         TRACE;
         retcode = caps->set_split_vfo(rig, rx_vfo, split, tx_vfo);
 
