@@ -274,6 +274,7 @@ static int netrigctl_open(RIG *rig)
 
     if (sscanf(buf, "CHKVFO %d", &priv->rigctld_vfo_mode) == 1)
     {
+        rig->state.vfo_opt = 1;
         rig_debug(RIG_DEBUG_TRACE, "%s: chkvfo=%d\n", __func__, priv->rigctld_vfo_mode);
     }
     else if (ret == 2)
@@ -1595,7 +1596,7 @@ static int netrigctl_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
     char buf[BUF_MAX];
     char vfostr[16] = "";
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, vfotx=%s, split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(tx_vfo), split);
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), RIG_VFO_A);
 
@@ -2584,7 +2585,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20211120.0",
+    .version =        "20211123.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
