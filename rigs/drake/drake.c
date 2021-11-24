@@ -84,7 +84,7 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return 0;
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, LF, 1, 0);
+    retval = read_string(&rs->rigport, data, BUFSZ, LF, 1, 0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {
@@ -1252,7 +1252,7 @@ DECLARE_PROBERIG_BACKEND(drake)
     }
 
     retval = write_block(port, "ID" EOM, 3);
-    id_len = read_string(port, idbuf, BUFSZ, LF, 1, 0);
+    id_len = read_string(port, idbuf, BUFSZ, LF, 1, 0, 1);
 
     close(port->fd);
 

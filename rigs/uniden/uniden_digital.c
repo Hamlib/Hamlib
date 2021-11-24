@@ -138,7 +138,7 @@ transaction_write:
     }
 
     memset(data, 0, *datasize);
-    retval = read_string(&rs->rigport, data, *datasize, EOM, strlen(EOM), 0);
+    retval = read_string(&rs->rigport, data, *datasize, EOM, strlen(EOM), 0, 1);
 
     if (retval < 0)
     {

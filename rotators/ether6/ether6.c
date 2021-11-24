@@ -60,7 +60,7 @@ static int ether_transaction(ROT *rot, char *cmd, int len, char *buf)
         return ret;
     }
 
-    ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"), 0);
+    ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"), 0, 1);
     rig_debug(RIG_DEBUG_VERBOSE, "function %s(2): ret=%d || receive=%s\n", __func__,
               ret, buf);
 

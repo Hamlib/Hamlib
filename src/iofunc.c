@@ -672,7 +672,8 @@ int HAMLIB_API read_string(hamlib_port_t *p,
                            size_t rxmax,
                            const char *stopset,
                            int stopset_len,
-                           int flush_flag)
+                           int flush_flag,
+                           int expected_len)
 {
     fd_set rfds, efds;
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;

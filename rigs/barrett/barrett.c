@@ -244,7 +244,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     {
         // response format is 0x11,data...,0x0d,0x0a,0x13
         retval = read_string(&rs->rigport, priv->ret_data, sizeof(priv->ret_data),
-                             "\x11", 1, 0);
+                             "\x11", 1, 0, 1);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: resultlen=%d\n", __func__,
                   (int)strlen(priv->ret_data));
 

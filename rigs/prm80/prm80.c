@@ -170,7 +170,7 @@ static int read_prompt_and_send(hamlib_port_t *rigport,
 
     buflen = (data_len == NULL) ? sizeof(buf) : *data_len;
 
-    retval = read_string(rigport, data, buflen, delimiter, 1, 0);
+    retval = read_string(rigport, data, buflen, delimiter, 1, 0, 1);
 
     if (retval < 0)
     {
@@ -230,7 +230,7 @@ static int prm80_wait_for_prompt(hamlib_port_t *rigport)
     int retval;
 
     // Read up to the '>' prompt and discard content.
-    retval = read_string(rigport, buf, sizeof(buf), ">", 1, 0);
+    retval = read_string(rigport, buf, sizeof(buf), ">", 1, 0, 1);
 
     if (retval < 0)
     {
@@ -910,7 +910,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         if (ret == 3 && buf[2] == 'T')
         {
             // Read the question
-            ret = read_string(&rs->rigport, buf, sizeof(buf), "?", 1, 0);
+            ret = read_string(&rs->rigport, buf, sizeof(buf), "?", 1, 0, 1);
 
             if (ret < 0)
             {
@@ -1126,7 +1126,7 @@ static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
     }
 
     // Read CRLF
-    ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1, 0);
+    ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
@@ -1142,7 +1142,7 @@ static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
 
     for (i = 0; i < (RSSI_HOLD_ADDR / 16) + 1; i++)
     {
-        ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1, 0);
+        ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1, 0, 1);
 
         if (ret < 0)
         {
@@ -1158,7 +1158,7 @@ static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
     // discard the remaining content of RAM print
     for (i = 0; i < (16 - RSSI_HOLD_ADDR / 16) - 1; i++)
     {
-        read_string(&rs->rigport, buf, BUFSZ, "\n", 1, 0);
+        read_string(&rs->rigport, buf, BUFSZ, "\n", 1, 0, 1);
     }
 
     prm80_wait_for_prompt(&rs->rigport);
@@ -1281,7 +1281,7 @@ const char *prm80_get_info(RIG *rig)
         return NULL;
     }
 
-    ret = read_string(&rs->rigport, s_buf, BUFSZ, ">", 1, 0);
+    ret = read_string(&rs->rigport, s_buf, BUFSZ, ">", 1, 0, 1);
 
     if (ret < 0)
     {

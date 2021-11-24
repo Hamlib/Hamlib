@@ -763,7 +763,7 @@ static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
 
     rs = &rot->state;
 
-    err = read_string(&rs->rotport, az, RT21_AZ_LEN + 1, ";", strlen(";"), 0);
+    err = read_string(&rs->rotport, az, RT21_AZ_LEN + 1, ";", strlen(";"), 0, 1);
 
     if (err < 0)    /* read_string returns negative on error. */
     {

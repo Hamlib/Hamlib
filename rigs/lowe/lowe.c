@@ -79,7 +79,7 @@ int lowe_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return 0;
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, CR, 1, 0);
+    retval = read_string(&rs->rigport, data, BUFSZ, CR, 1, 0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {
@@ -342,7 +342,7 @@ DECLARE_PROBERIG_BACKEND(lowe)
     }
 
     retval = write_block(port, "TYP?" EOM, 4);
-    id_len = read_string(port, idbuf, BUFSZ, CR, 2, 0);
+    id_len = read_string(port, idbuf, BUFSZ, CR, 2, 0, 1);
 
     close(port->fd);
 
