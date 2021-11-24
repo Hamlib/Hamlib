@@ -2240,7 +2240,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     if ((vfo & (RIG_VFO_A|RIG_VFO_MAIN)) && ((priv->datamodeA ==  0 && datamode) || (priv->datamodeA == 1 && !datamode)))
         needdata = 1;
-    if ((vfo == (RIG_VFO_B|RIG_VFO_SUB)) && ((priv->datamodeB ==  0 && datamode) || (priv->datamodeB == 1 && !datamode)))
+    if ((vfo & (RIG_VFO_B|RIG_VFO_SUB)) && ((priv->datamodeB ==  0 && datamode) || (priv->datamodeB == 1 && !datamode)))
         needdata = 1;
 
     if (needdata)
