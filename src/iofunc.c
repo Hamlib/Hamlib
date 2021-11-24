@@ -679,6 +679,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
     int total_count = 0;
     int i=0;
+    static int minlen = 1; // dynamic minimum length of rig response data
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d\n", __func__, (int)rxmax);
 
@@ -708,7 +709,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
-        int rd_count;
+        int rd_count = 0;
         int retval;
         tv = tv_timeout;    /* select may have updated it */
 
@@ -770,7 +771,8 @@ int HAMLIB_API read_string(hamlib_port_t *p,
          */
         do 
         {
-            rd_count = port_read(p, &rxbuffer[total_count], 1);
+            minlen -= rd_count;
+            rd_count = port_read(p, &rxbuffer[total_count], expected_len==1?1:minlen);
             if (errno == EAGAIN)
             {
                 hl_usleep(5*1000);
@@ -798,6 +800,12 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {
+            if (minlen == 1) minlen = total_count;
+            if (minlen < total_count) 
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: minlen now %d\n", __func__, minlen);
+                minlen = total_count;
+            }
             break;
         }
     }
