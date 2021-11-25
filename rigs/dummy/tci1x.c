@@ -46,7 +46,7 @@
 #define MAXARGLEN 128
 #define MAXBANDWIDTHLEN 4096
 
-#define DEFAULTPATH "127.0.0.1:40001"
+#define DEFAULTPATH "127.0.0.1:50001"
 
 #define FALSE 0
 #define TRUE (!FALSE)
@@ -148,7 +148,7 @@ const struct rig_caps tci1x_caps =
     .rig_type = RIG_TYPE_TRANSCEIVER,
     .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .ptt_type = RIG_PTT_RIG,
-    .port_type = RIG_PORT_NETWORK,
+    .port_type = RIG_PORT_SERIAL,
     .write_delay = 0,
     .post_write_delay = 0,
     .timeout = 5000,
