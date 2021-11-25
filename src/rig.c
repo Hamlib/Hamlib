@@ -4325,7 +4325,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
-    rig_debug(RIG_DEBUG_WARN, "%s(%d): Unhandled VFO=%s, tx_mode=%s\n", __func__, __LINE__, rig_strvfo(tx_vfo), rig_strrmode(tx_mode));
+    rig_debug(RIG_DEBUG_WARN, "%s(%d): Unhandled TXVFO=%s, tx_mode=%s\n", __func__, __LINE__, rig_strvfo(tx_vfo), rig_strrmode(tx_mode));
 
     // code below here should be dead code now -- but maybe we have  VFO situatiuon we need to handle
     if (caps->rig_model == RIG_MODEL_NETRIGCTL)
@@ -4769,8 +4769,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {  
         switch(tx_vfo)
         {
-            case RIG_VFO_A: rx_vfo = RIG_VFO_B;break; // reverse split
-            case RIG_VFO_B: rx_vfo = RIG_VFO_A;break;
+            case RIG_VFO_A: rx_vfo = split==1?RIG_VFO_B:RIG_VFO_A;break; 
+            case RIG_VFO_B: rx_vfo = split==1?RIG_VFO_A:RIG_VFO_B;break;
         }
         rx_vfo = vfo_fixup(rig, rx_vfo, split);
         tx_vfo = vfo_fixup(rig, tx_vfo, split);
