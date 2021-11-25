@@ -803,8 +803,8 @@ int HAMLIB_API read_string(hamlib_port_t *p,
             if (minlen == 1) minlen = total_count;
             if (minlen < total_count) 
             {
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: minlen now %d\n", __func__, minlen);
                 minlen = total_count;
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: minlen now %d\n", __func__, minlen);
             }
             break;
         }
