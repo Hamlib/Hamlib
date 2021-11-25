@@ -4766,18 +4766,16 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
                   __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
     }
     else
-    {
-        if (rig->state.current_vfo == RIG_VFO_A) rx_vfo = RIG_VFO_B; // possible reverse split
+    {  
+        switch(tx_vfo)
+        {
+            case RIG_VFO_A: rx_vfo = RIG_VFO_B;break; // reverse split
+            case RIG_VFO_B: rx_vfo = RIG_VFO_A;break;
+        }
         rx_vfo = vfo_fixup(rig, rx_vfo, split);
         tx_vfo = vfo_fixup(rig, tx_vfo, split);
-        if (rx_vfo == RIG_VFO_CURR)
-        {
-            rx_vfo = rig->state.current_vfo;
-        }
-        if (tx_vfo == RIG_VFO_CURR)
-        {
-            tx_vfo = rig->state.tx_vfo;
-        }
+        rig->state.rx_vfo = rx_vfo;
+        rig->state.tx_vfo = tx_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: final rxvfo=%s, txvfo=%s\n", __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
     }
 
