@@ -137,10 +137,6 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     int ctrl_id;
 
     ENTERFUNC;
-    if (data == NULL)
-    {
-        RETURNFUNC(RIG_EINTERNAL);
-    }
     memset(buf, 0, 200);
     memset(sendbuf, 0, MAXFRAMELEN);
     rs = &rig->state;
@@ -381,7 +377,7 @@ read_another_frame:
     Unhold_Decode(rig);
 
     *data_len = frm_data_len;
-    memcpy(data, buf + 4, *data_len);
+    if (data != NULL && data_len != NULL) memcpy(data, buf + 4, *data_len);
 
     /*
      * TODO: check addresses in reply frame
