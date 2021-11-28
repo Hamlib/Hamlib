@@ -4023,218 +4023,25 @@ declare_proto_rig(get_channel)
 }
 
 
-static int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
-{
-    ENTERFUNC;
-
-    printf("Event: freq changed to %"PRIll"Hz on %s\n",
-           (int64_t)freq,
-           rig_strvfo(vfo));
-
-    RETURNFUNC(0);
-}
-
-
-static int mymode_event(RIG *rig,
-                        vfo_t vfo,
-                        rmode_t mode,
-                        pbwidth_t width,
-                        rig_ptr_t arg)
-{
-    ENTERFUNC;
-
-    printf("Event: mode changed to %s, width %liHz on %s\n",
-           rig_strrmode(mode),
-           width, rig_strvfo(vfo));
-
-    RETURNFUNC(0);
-}
-
-
-static int myvfo_event(RIG *rig, vfo_t vfo, rig_ptr_t arg)
-{
-    ENTERFUNC;
-
-    printf("Event: vfo changed to %s\n", rig_strvfo(vfo));
-    RETURNFUNC(0);
-}
-
-
-static int myptt_event(RIG *rig, vfo_t vfo, ptt_t ptt, rig_ptr_t arg)
-{
-    ENTERFUNC;
-
-    printf("Event: PTT changed to %i on %s\n", ptt, rig_strvfo(vfo));
-
-    RETURNFUNC(0);
-}
-
-
-static int mydcd_event(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
-{
-    ENTERFUNC;
-
-    printf("Event: DCD changed to %i on %s\n", dcd, rig_strvfo(vfo));
-
-    RETURNFUNC(0);
-}
-
-
-static int print_spectrum_line(char *str, size_t length,
-                               struct rig_spectrum_line *line)
-{
-    int data_level_max = line->data_level_max / 2;
-    int aggregate_count = line->spectrum_data_length / 120;
-    int aggregate_value = 0;
-    int i, c;
-    int charlen = strlen("█");
-
-    str[0] = '\0';
-
-    for (i = 0, c = 0; i < line->spectrum_data_length; i++)
-    {
-        int current = line->spectrum_data[i];
-        aggregate_value = current > aggregate_value ? current : aggregate_value;
-
-        if (i > 0 && i % aggregate_count == 0)
-        {
-            if (c + charlen >= length)
-            {
-                break;
-            }
-
-            int level = aggregate_value * 10 / data_level_max;
-
-            if (level >= 8)
-            {
-                strcpy(str + c, "█");
-                c += charlen;
-            }
-            else if (level >= 6)
-            {
-                strcpy(str + c, "▓");
-                c += charlen;
-            }
-            else if (level >= 4)
-            {
-                strcpy(str + c, "▒");
-                c += charlen;
-            }
-            else if (level >= 2)
-            {
-                strcpy(str + c, "░");
-                c += charlen;
-            }
-            else if (level >= 0)
-            {
-                strcpy(str + c, " ");
-                c += 1;
-            }
-
-            aggregate_value = 0;
-        }
-    }
-
-    return c;
-}
-
-
-static int myspectrum_event(RIG *rig, struct rig_spectrum_line *line,
-                            rig_ptr_t arg)
-{
-    ENTERFUNC;
-
-    if (rig_need_debug(RIG_DEBUG_ERR))
-    {
-        char spectrum_debug[line->spectrum_data_length * 4];
-        print_spectrum_line(spectrum_debug, sizeof(spectrum_debug), line);
-        rig_debug(RIG_DEBUG_ERR, "%s: ASCII Spectrum Scope: %s\n", __func__,
-                  spectrum_debug);
-    }
-
-    // TODO: Push out spectrum data via multicast server once it is implemented
-
-    RETURNFUNC(0);
-}
-
-
 /* 'A' */
+/**
+ * \deprecated Function deprecated. Use the new async data functionality instead.
+ */
 declare_proto_rig(set_trn)
 {
-    int trn;
-
     ENTERFUNC;
-
-    if (!strcmp(arg1, "?"))
-    {
-        fprintf(fout, "OFF RIG POLL\n");
-        RETURNFUNC(RIG_OK);
-    }
-
-    if (!strcmp(arg1, "OFF"))
-    {
-        trn = RIG_TRN_OFF;
-    }
-    else if (!strcmp(arg1, "RIG") || !strcmp(arg1, "ON"))
-    {
-        trn = RIG_TRN_RIG;
-    }
-    else if (!strcmp(arg1, "POLL"))
-    {
-        trn = RIG_TRN_POLL;
-    }
-    else
-    {
-        RETURNFUNC(-RIG_EINVAL);
-    }
-
-    if (trn != RIG_TRN_OFF)
-    {
-        rig_set_freq_callback(rig, myfreq_event, NULL);
-        rig_set_mode_callback(rig, mymode_event, NULL);
-        rig_set_vfo_callback(rig, myvfo_event, NULL);
-        rig_set_ptt_callback(rig, myptt_event, NULL);
-        rig_set_dcd_callback(rig, mydcd_event, NULL);
-        rig_set_spectrum_callback(rig, myspectrum_event, NULL);
-    }
-
-    RETURNFUNC(RIG_OK);
-    //RETURNFUNC(rig_set_trn(rig, trn));
+    RETURNFUNC(-RIG_EDEPRECATED);
 }
 
 
 /* 'a' */
+/**
+ * \deprecated Function deprecated. Use the new async data functionality instead.
+ */
 declare_proto_rig(get_trn)
 {
-    int status;
-    int trn;
-    static const char *trn_txt[] =
-    {
-        "OFF",
-        "RIG",
-        "POLL"
-    };
-
     ENTERFUNC;
-
-    status = rig_get_trn(rig, &trn);
-
-    if (status != RIG_OK)
-    {
-        RETURNFUNC(status);
-    }
-
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-    {
-        fprintf(fout, "%s: ", cmd->arg1);
-    }
-
-    if (trn >= 0 && trn <= 2)
-    {
-        fprintf(fout, "%s%c", trn_txt[trn], resp_sep);
-    }
-
-    RETURNFUNC(status);
+    RETURNFUNC(-RIG_EDEPRECATED);
 }
 
 

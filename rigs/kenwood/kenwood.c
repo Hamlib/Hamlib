@@ -254,7 +254,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
 
     rs = &rig->state;
 
-    rs->hold_decode = 1;
+    rs->transaction_active = 1;
 
     /* Emulators don't need any post_write_delay */
     if (priv->is_emulation) { rs->rigport.post_write_delay = 0; }
@@ -350,7 +350,7 @@ transaction_write:
 
     if (!datasize)
     {
-        rig->state.hold_decode = 0;
+        rig->state.transaction_active = 0;
 
         // there are some commands that have problems with immediate follow-up
         // so we'll just ignore them
@@ -578,7 +578,7 @@ transaction_quit:
         strncpy(priv->last_if_response, buffer, caps->if_len);
     }
 
-    rs->hold_decode = 0;
+    rs->transaction_active = 0;
     RETURNFUNC(retval);
 }
 

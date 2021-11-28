@@ -89,9 +89,9 @@ static const struct confparams frontend_cfg_params[] =
         "0", RIG_CONF_NUMERIC, { .n = { 0.0, 1000.0, .001 } }
     },
     {
-        TOK_POLL_INTERVAL, "poll_interval", "Polling interval",
-        "Polling interval in millisecond for transceive emulation",
-        "500", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
+        TOK_POLL_INTERVAL, "poll_interval", "Rig state poll interval in milliseconds",
+        "Polling interval in milliseconds for transceive emulation, value of 0 disables polling",
+        "0", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
     },
     {
         TOK_PTT_TYPE, "ptt_type", "PTT type",
@@ -582,6 +582,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 
     case TOK_POLL_INTERVAL:
         rs->poll_interval = atof(val);
+        // Make sure cache times out before next poll cycle
+        rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, atol(val));
         break;
 
     case TOK_LO_FREQ:

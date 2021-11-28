@@ -128,7 +128,7 @@ uniden_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     size_t reply_len = BUFSZ;
 
     rs = &rig->state;
-    rs->hold_decode = 1;
+    rs->transaction_active = 1;
 
 transaction_write:
 
@@ -267,7 +267,7 @@ transaction_write:
 
     retval = RIG_OK;
 transaction_quit:
-    rs->hold_decode = 0;
+    rs->transaction_active = 0;
     return retval;
 }
 

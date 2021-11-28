@@ -189,7 +189,7 @@ int elad_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
 
     rs = &rig->state;
 
-    rs->hold_decode = 1;
+    rs->transaction_active = 1;
 
     /* Emulators don't need any post_write_delay */
     if (priv->is_emulation) { rs->rigport.post_write_delay = 0; }
@@ -237,7 +237,7 @@ transaction_write:
 
     if (!datasize)
     {
-        rig->state.hold_decode = 0;
+        rig->state.transaction_active = 0;
 
         /* no reply expected so we need to write a command that always
            gives a reply so we can read any error replies from the actual
@@ -414,7 +414,7 @@ transaction_read:
 
 transaction_quit:
 
-    rs->hold_decode = 0;
+    rs->transaction_active = 0;
     return retval;
 }
 
