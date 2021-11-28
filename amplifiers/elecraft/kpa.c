@@ -369,7 +369,8 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
         //
         do
         {
-            retval = read_string(&rs->ampport, responsebuf, sizeof(responsebuf), ";", 1, 0, 1);
+            retval = read_string(&rs->ampport, responsebuf, sizeof(responsebuf), ";", 1, 0,
+                                 1);
 
             if (retval != RIG_OK) { return retval; }
 

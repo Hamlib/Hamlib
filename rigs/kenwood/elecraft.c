@@ -477,12 +477,12 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 {
     int retval;
-    int fr,ft,tq;
+    int fr, ft, tq;
     char cmdbuf[10];
     char splitbuf[12];
 
-    memset(splitbuf,0,sizeof(splitbuf));
-    snprintf(cmdbuf,sizeof(cmdbuf),"FR;");
+    memset(splitbuf, 0, sizeof(splitbuf));
+    snprintf(cmdbuf, sizeof(cmdbuf), "FR;");
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)
@@ -490,11 +490,12 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC(retval);
     }
 
-    if(sscanf(splitbuf, "FR%1d", &fr) != 1)
+    if (sscanf(splitbuf, "FR%1d", &fr) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FR '%s'\n", __func__, splitbuf);
     }
-    snprintf(cmdbuf,sizeof(cmdbuf),"FT;");
+
+    snprintf(cmdbuf, sizeof(cmdbuf), "FT;");
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)
@@ -502,11 +503,12 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC(retval);
     }
 
-    if(sscanf(splitbuf, "FT%1d", &ft) != 1)
+    if (sscanf(splitbuf, "FT%1d", &ft) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FT '%s'\n", __func__, splitbuf);
     }
-    snprintf(cmdbuf,sizeof(cmdbuf),"TQ;");
+
+    snprintf(cmdbuf, sizeof(cmdbuf), "TQ;");
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)
@@ -514,13 +516,17 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC(retval);
     }
 
-    if(sscanf(splitbuf, "TQ%1d", &tq) != 1)
+    if (sscanf(splitbuf, "TQ%1d", &tq) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ '%s'\n", __func__, splitbuf);
     }
+
     *vfo = RIG_VFO_A;
-    if (tq && ft == 1) *vfo = RIG_VFO_B;
-    if (!tq && fr == 1) *vfo = RIG_VFO_B;
+
+    if (tq && ft == 1) { *vfo = RIG_VFO_B; }
+
+    if (!tq && fr == 1) { *vfo = RIG_VFO_B; }
+
     RETURNFUNC(RIG_OK);
 }
 

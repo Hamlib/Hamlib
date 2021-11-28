@@ -76,31 +76,32 @@
  *
  */
 
-enum ft900_native_cmd_e {
-  FT900_NATIVE_SPLIT_OFF = 0,
-  FT900_NATIVE_SPLIT_ON,
-  FT900_NATIVE_RECALL_MEM,
-  FT900_NATIVE_VFO_TO_MEM,
-  FT900_NATIVE_VFO_A,
-  FT900_NATIVE_VFO_B,
-  FT900_NATIVE_MEM_TO_VFO,
-  FT900_NATIVE_CLARIFIER_OPS,
-  FT900_NATIVE_FREQ_SET,
-  FT900_NATIVE_MODE_SET,
-  FT900_NATIVE_PACING,
-  FT900_NATIVE_PTT_OFF,
-  FT900_NATIVE_PTT_ON,
-  FT900_NATIVE_MEM_CHNL,
-  FT900_NATIVE_OP_DATA,
-  FT900_NATIVE_VFO_DATA,
-  FT900_NATIVE_MEM_CHNL_DATA,
-  FT900_NATIVE_TUNER_OFF,
-  FT900_NATIVE_TUNER_ON,
-  FT900_NATIVE_TUNER_START,
-  FT900_NATIVE_READ_METER,
-  FT900_NATIVE_READ_FLAGS,
-  FT900_NATIVE_SIZE             /* end marker, value indicates number of */
-				                /* native cmd entries */
+enum ft900_native_cmd_e
+{
+    FT900_NATIVE_SPLIT_OFF = 0,
+    FT900_NATIVE_SPLIT_ON,
+    FT900_NATIVE_RECALL_MEM,
+    FT900_NATIVE_VFO_TO_MEM,
+    FT900_NATIVE_VFO_A,
+    FT900_NATIVE_VFO_B,
+    FT900_NATIVE_MEM_TO_VFO,
+    FT900_NATIVE_CLARIFIER_OPS,
+    FT900_NATIVE_FREQ_SET,
+    FT900_NATIVE_MODE_SET,
+    FT900_NATIVE_PACING,
+    FT900_NATIVE_PTT_OFF,
+    FT900_NATIVE_PTT_ON,
+    FT900_NATIVE_MEM_CHNL,
+    FT900_NATIVE_OP_DATA,
+    FT900_NATIVE_VFO_DATA,
+    FT900_NATIVE_MEM_CHNL_DATA,
+    FT900_NATIVE_TUNER_OFF,
+    FT900_NATIVE_TUNER_ON,
+    FT900_NATIVE_TUNER_START,
+    FT900_NATIVE_READ_METER,
+    FT900_NATIVE_READ_FLAGS,
+    FT900_NATIVE_SIZE             /* end marker, value indicates number of */
+    /* native cmd entries */
 };
 
 typedef enum ft900_native_cmd_e ft900_native_cmd_t;
@@ -322,8 +323,10 @@ static int ft900_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft900_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft900_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
-static int ft900_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-static int ft900_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int ft900_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                               vfo_t tx_vfo);
+static int ft900_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo);
 
 static int ft900_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft900_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);

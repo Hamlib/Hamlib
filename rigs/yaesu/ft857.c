@@ -75,48 +75,49 @@
 #include "tones.h"
 #include "bandplan.h"
 
-enum ft857_native_cmd_e {
-  FT857_NATIVE_CAT_LOCK_ON = 0,
-  FT857_NATIVE_CAT_LOCK_OFF,
-  FT857_NATIVE_CAT_PTT_ON,
-  FT857_NATIVE_CAT_PTT_OFF,
-  FT857_NATIVE_CAT_SET_FREQ,
-  FT857_NATIVE_CAT_SET_MODE_LSB,
-  FT857_NATIVE_CAT_SET_MODE_USB,
-  FT857_NATIVE_CAT_SET_MODE_CW,
-  FT857_NATIVE_CAT_SET_MODE_CWR,
-  FT857_NATIVE_CAT_SET_MODE_AM,
-  FT857_NATIVE_CAT_SET_MODE_FM,
-  FT857_NATIVE_CAT_SET_MODE_FM_N,
-  FT857_NATIVE_CAT_SET_MODE_DIG,
-  FT857_NATIVE_CAT_SET_MODE_PKT,
-  FT857_NATIVE_CAT_CLAR_ON,
-  FT857_NATIVE_CAT_CLAR_OFF,
-  FT857_NATIVE_CAT_SET_CLAR_FREQ,
-  FT857_NATIVE_CAT_SET_VFOAB,
-  FT857_NATIVE_CAT_SPLIT_ON,
-  FT857_NATIVE_CAT_SPLIT_OFF,
-  FT857_NATIVE_CAT_SET_RPT_SHIFT_MINUS,
-  FT857_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
-  FT857_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
-  FT857_NATIVE_CAT_SET_RPT_OFFSET,
-  FT857_NATIVE_CAT_SET_DCS_ON,
-  FT857_NATIVE_CAT_SET_DCS_DEC_ON,
-  FT857_NATIVE_CAT_SET_DCS_ENC_ON,
-  FT857_NATIVE_CAT_SET_CTCSS_ON,
-  FT857_NATIVE_CAT_SET_CTCSS_DEC_ON,
-  FT857_NATIVE_CAT_SET_CTCSS_ENC_ON,
-  FT857_NATIVE_CAT_SET_CTCSS_DCS_OFF,
-  FT857_NATIVE_CAT_SET_CTCSS_FREQ,
-  FT857_NATIVE_CAT_SET_DCS_CODE,
-  FT857_NATIVE_CAT_GET_RX_STATUS,
-  FT857_NATIVE_CAT_GET_TX_STATUS,
-  FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS,
-  FT857_NATIVE_CAT_PWR_WAKE,
-  FT857_NATIVE_CAT_PWR_ON,
-  FT857_NATIVE_CAT_PWR_OFF,
-  FT857_NATIVE_CAT_EEPROM_READ,
-  FT857_NATIVE_SIZE		/* end marker */
+enum ft857_native_cmd_e
+{
+    FT857_NATIVE_CAT_LOCK_ON = 0,
+    FT857_NATIVE_CAT_LOCK_OFF,
+    FT857_NATIVE_CAT_PTT_ON,
+    FT857_NATIVE_CAT_PTT_OFF,
+    FT857_NATIVE_CAT_SET_FREQ,
+    FT857_NATIVE_CAT_SET_MODE_LSB,
+    FT857_NATIVE_CAT_SET_MODE_USB,
+    FT857_NATIVE_CAT_SET_MODE_CW,
+    FT857_NATIVE_CAT_SET_MODE_CWR,
+    FT857_NATIVE_CAT_SET_MODE_AM,
+    FT857_NATIVE_CAT_SET_MODE_FM,
+    FT857_NATIVE_CAT_SET_MODE_FM_N,
+    FT857_NATIVE_CAT_SET_MODE_DIG,
+    FT857_NATIVE_CAT_SET_MODE_PKT,
+    FT857_NATIVE_CAT_CLAR_ON,
+    FT857_NATIVE_CAT_CLAR_OFF,
+    FT857_NATIVE_CAT_SET_CLAR_FREQ,
+    FT857_NATIVE_CAT_SET_VFOAB,
+    FT857_NATIVE_CAT_SPLIT_ON,
+    FT857_NATIVE_CAT_SPLIT_OFF,
+    FT857_NATIVE_CAT_SET_RPT_SHIFT_MINUS,
+    FT857_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
+    FT857_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
+    FT857_NATIVE_CAT_SET_RPT_OFFSET,
+    FT857_NATIVE_CAT_SET_DCS_ON,
+    FT857_NATIVE_CAT_SET_DCS_DEC_ON,
+    FT857_NATIVE_CAT_SET_DCS_ENC_ON,
+    FT857_NATIVE_CAT_SET_CTCSS_ON,
+    FT857_NATIVE_CAT_SET_CTCSS_DEC_ON,
+    FT857_NATIVE_CAT_SET_CTCSS_ENC_ON,
+    FT857_NATIVE_CAT_SET_CTCSS_DCS_OFF,
+    FT857_NATIVE_CAT_SET_CTCSS_FREQ,
+    FT857_NATIVE_CAT_SET_DCS_CODE,
+    FT857_NATIVE_CAT_GET_RX_STATUS,
+    FT857_NATIVE_CAT_GET_TX_STATUS,
+    FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS,
+    FT857_NATIVE_CAT_PWR_WAKE,
+    FT857_NATIVE_CAT_PWR_ON,
+    FT857_NATIVE_CAT_PWR_OFF,
+    FT857_NATIVE_CAT_EEPROM_READ,
+    FT857_NATIVE_SIZE     /* end marker */
 };
 
 static int ft857_init(RIG *rig);
@@ -127,10 +128,14 @@ static int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-static int ft857_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width);
-static int ft857_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width);
-static int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-static int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int ft857_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
+                                     rmode_t mode, pbwidth_t width);
+static int ft857_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
+                                     rmode_t *mode, pbwidth_t *width);
+static int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                               vfo_t tx_vfo);
+static int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo);
 // static int ft857_set_vfo(RIG *rig, vfo_t vfo);
 // static int ft857_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);

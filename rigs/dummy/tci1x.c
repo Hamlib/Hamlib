@@ -151,8 +151,8 @@ const struct rig_caps tci1x_caps =
     .port_type = RIG_PORT_SERIAL,
     .write_delay = 0,
     .post_write_delay = 0,
-    .timeout = 5000,
-    .retry = 2,
+    .timeout = 1000,
+    .retry = 1,
 
     .has_get_func = RIG_FUNC_NONE,
     .has_set_func = RIG_FUNC_NONE,
@@ -281,20 +281,18 @@ static int read_transaction(RIG *rig, char *buf, int buf_len)
 
     ENTERFUNC;
 
-    retry = 2;
+    retry = 0;
 
     do
     {
-        char tmp_buf[MAXBUFLEN];        // plenty big for expected tci1x responses hopefully
-
         if (retry < 2)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: retry needed? retry=%d\n", __func__, retry);
         }
 
-        int len = read_string(&rs->rigport, tmp_buf, sizeof(tmp_buf), delims,
+        int len = read_string(&rs->rigport, buf, buf_len, delims,
                               strlen(delims), 0, 1);
-        rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, tmp_buf);
+        rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, buf);
 
         if (len <= 0)
         {
@@ -303,7 +301,7 @@ static int read_transaction(RIG *rig, char *buf, int buf_len)
         }
 
     }
-    while (retry-- > 0 && strstr(buf, delims) == NULL);
+    while (retry-- > 0 && strlen(buf) == 0);
 
     if (retry == 0)
     {
@@ -343,7 +341,7 @@ static int write_transaction(RIG *rig, char *buf, int buf_len)
 
     while (try-- >= 0 && retval != RIG_OK)
         {
-            retval = write_block(&rs->rigport, buf, strlen(buf));
+            retval = write_block(&rs->rigport, buf, buf_len);
 
             if (retval  < 0)
             {
@@ -357,14 +355,31 @@ static int write_transaction(RIG *rig, char *buf, int buf_len)
 static int tci1x_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
                              int value_len)
 {
-    int retry = 5;
+    int retry = 0;
+    char frame[1024];
 
     ENTERFUNC;
+
+    memset(frame, 0, sizeof(frame));
 
     if (value)
     {
         value[0] = 0;
     }
+
+    frame[0] = 0x81;
+    frame[1] = strlen(cmd);
+    frame[2] = 0x00;
+    frame[3] = 0x00;
+    frame[4] = 0x00;
+    frame[5] = 0x00;
+    frame[6] = 0x00;
+    frame[7] = 0x00;
+    frame[8] = 0x00;
+    frame[9] = 0x00;
+    frame[10] = 0x00;
+    frame[11] = 0x00;
+    strcat(&frame[12], cmd);
 
     do
     {
@@ -375,7 +390,7 @@ static int tci1x_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
             rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s, retry=%d\n", __func__, cmd, retry);
         }
 
-        retval = write_transaction(rig, cmd, strlen(cmd));
+        retval = write_transaction(rig, frame, strlen(cmd) + 12);
 
         if (retval != RIG_OK)
         {
@@ -388,12 +403,12 @@ static int tci1x_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
             hl_usleep(50 * 1000); // 50ms sleep if error
         }
 
-        read_transaction(rig, value, value_len); 
+        read_transaction(rig, value, value_len);
 
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%s\n", __func__,value);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%s\n", __func__, value);
 
     }
-    while ((value && (strlen(value) == 0) )
+    while ((value && (strlen(value) == 0))
             && retry--); // we'll do retries if needed
 
     if (value && strlen(value) == 0) { RETURNFUNC(RIG_EPROTO); }
@@ -468,7 +483,8 @@ static const char *modeMapGetTCI(rmode_t modeHamlib)
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
-        if (modeMap[i].mode_tci1x == NULL) continue;
+        if (modeMap[i].mode_tci1x == NULL) { continue; }
+
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: checking modeMap[%d]=%.0f to modeHamlib=%.0f, mode_tci1x='%s'\n", __func__,
                   i, (double)modeMap[i].mode_hamlib, (double)modeHamlib, modeMap[i].mode_tci1x);
@@ -578,7 +594,7 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_tci1x)
 static int tci1x_open(RIG *rig)
 {
     int retval;
-    int trx_count=0;
+    int trx_count = 0;
     char value[MAXBUFLEN];
     char arg[MAXBUFLEN];
     rmode_t modes;
@@ -588,37 +604,49 @@ static int tci1x_open(RIG *rig)
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: version %s\n", __func__, rig->caps->version);
+    char *websocket =
+        "GET / HTTP/1.1\r\nHost: localhost:50001\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: TnwnvtFT6akIBYQC7nh3vA==\r\nSec-WebSocket-Version: 13\r\n\r\n";
 
-    retval = tci1x_transaction(rig, "DEVICE;", NULL, value, sizeof(value));
+    write_transaction(rig, websocket, strlen(websocket));
+
+    do
+    {
+        retval = read_transaction(rig, value, sizeof(value));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%s\n", __func__, value);
+    }
+    while (retval == RIG_OK && strlen(value) > 0);
+
+    retval = tci1x_transaction(rig, "device;", NULL, value, sizeof(value));
+    dump_hex((unsigned char *)value, strlen(value));
 
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: DEVICE failed: %s\n", __func__,
                   rigerror(retval));
         // we fall through and assume old version
-        RETURNFUNC(retval);
+        //RETURNFUNC(retval);
     }
 
-    sscanf(value,"DEVICE:%s", arg);
+    sscanf(&value[2], "device:%s", value);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: TCI Device is %s\n", __func__, arg);
 
     // Receive only
-    retval = tci1x_transaction(rig, "RECEIVE_ONLY;", NULL, value, sizeof(value));
+    retval = tci1x_transaction(rig, "receive_only;", NULL, value, sizeof(value));
 
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RECEIVE_ONLY failed: %s\n", __func__,
                   rigerror(retval));
         // we fall through and assume old version
-        RETURNFUNC(retval);
+        //RETURNFUNC(retval);
     }
 
-    sscanf(value,"RECEIVE_ONLY:%s", arg);
+    sscanf(&value[2], "receive_only:%s", value);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: readonly is %s\n", __func__, arg);
-    
+
     // TRX count
-    retval = tci1x_transaction(rig, "TRX_COUNT;", NULL, value, sizeof(value));
+    retval = tci1x_transaction(rig, "trx_count;", NULL, value, sizeof(value));
 
     if (retval != RIG_OK)
     {
@@ -626,7 +654,7 @@ static int tci1x_open(RIG *rig)
                   rigerror(retval));
     }
 
-    sscanf(value, "TRX_COUNT:%d", &trx_count);
+    sscanf(&value[2], "trx_count:%d", &trx_count);
     rig_debug(RIG_DEBUG_VERBOSE, "Trx count=%d\n", trx_count);
 
     freq_t freq;
@@ -635,20 +663,22 @@ static int tci1x_open(RIG *rig)
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: tci1x_get_freq not working!!\n", __func__);
-        RETURNFUNC(RIG_EPROTO);
+        //RETURNFUNC(RIG_EPROTO);
     }
 
     rig->state.current_vfo = RIG_VFO_A;
     rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __func__,
               rig_strvfo(rig->state.current_vfo), value);
     //tci1x_get_split_vfo(rig, vfo, &priv->split, &vfo_tx);
+    RETURNFUNC(RIG_OK);
 
     /* find out available widths and modes */
-    retval = tci1x_transaction(rig, "MODULATIONS_LIST;", NULL, value, sizeof(value));
+    retval = tci1x_transaction(rig, "modulations_list;", NULL, value,
+                               sizeof(value));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    sscanf(value, "MODULATIONS_LIST:%s", arg);
+    sscanf(&value[2], "modulations_list:%s", arg);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: modes=%s\n", __func__, arg);
     modes = 0;
     pr = value;
@@ -861,7 +891,7 @@ static int tci1x_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                   __func__, rig_strvfo(vfo));
     }
 
-    char *cmd = vfo == RIG_VFO_A ? "VFO:0:0;" : "VFO:0:1:";
+    char *cmd = vfo == RIG_VFO_A ? "vfo:0:0;" : "vfo:0:1:";
     int retval;
     int n;
 
@@ -874,8 +904,9 @@ static int tci1x_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         RETURNFUNC(retval);
     }
 
-    n = sscanf(value,"VFO:%*d,%*d,%lf", freq);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: got '%s', scanned %d items\n", __func__, value, n);
+    n = sscanf(&value[2], "vfo:%*d,%*d,%lf", freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: got '%s', scanned %d items\n", __func__,
+              value, n);
 
     if (*freq == 0)
     {

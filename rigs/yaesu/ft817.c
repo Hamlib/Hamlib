@@ -169,9 +169,9 @@ static int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
 static int ft817_mW2power(RIG *rig, float *power, unsigned int mwpower,
                           freq_t freq, rmode_t mode);
 static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
-                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
+                         ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 static int ft818_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
-                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
+                         ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
 
 /* Native ft817 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
@@ -320,8 +320,8 @@ const struct rig_caps ft817_caps =
     .has_get_func =        RIG_FUNC_NONE,
     .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
     .has_get_level =
-        RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
-        RIG_LEVEL_ALC | RIG_LEVEL_SWR,
+    RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
+    RIG_LEVEL_ALC | RIG_LEVEL_SWR,
     .has_set_level =       RIG_LEVEL_NONE,
     .has_get_parm =        RIG_PARM_NONE,
     .has_set_parm =        RIG_PARM_NONE,
@@ -466,8 +466,8 @@ const struct rig_caps ft818_caps =
     .has_get_func =        RIG_FUNC_NONE,
     .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
     .has_get_level =
-        RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
-        RIG_LEVEL_ALC | RIG_LEVEL_SWR,
+    RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
+    RIG_LEVEL_ALC | RIG_LEVEL_SWR,
     .has_set_level =       RIG_LEVEL_NONE,
     .has_get_parm =        RIG_PARM_NONE,
     .has_set_parm =        RIG_PARM_NONE,
@@ -729,7 +729,7 @@ static int ft817_get_status(RIG *rig, int status)
 
     case FT817_NATIVE_CAT_GET_TX_METERING:
         data = result;
-        len = sizeof(result)/sizeof(result[0]); /* We expect two bytes */
+        len = sizeof(result) / sizeof(result[0]); /* We expect two bytes */
         tv = &p->tx_level_tv;
         break;
 
@@ -762,50 +762,51 @@ static int ft817_get_status(RIG *rig, int status)
     if (n != len)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Length mismatch exp %d got %d!\n",
-                __func__, len, n);
+                  __func__, len, n);
         return -RIG_EIO;
     }
 
-    switch(status)
+    switch (status)
     {
     case FT817_NATIVE_CAT_GET_FREQ_MODE_STATUS:
+    {
+        /* Only in digimode we need fetch to extra bits from EEPROM.
+         * This save communication cycle for all other modes.
+         * Because mode and frequency are shared this saves also when
+         * getting the frequency. */
+        switch (p->fm_status[4] & 0x7f)
         {
-            /* Only in digimode we need fetch to extra bits from EEPROM.
-             * This save communication cycle for all other modes.
-             * Because mode and frequency are shared this saves also when
-             * getting the frequency. */
-            switch (p->fm_status[4] & 0x7f)
+            unsigned char dig_mode;
+
+        case 0x0a:
+            if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
             {
-                unsigned char dig_mode;
-                case 0x0a:
-                    if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
-                    {
-                        return n;
-                    }
-
-                    /* Top 3 bit define the digi mode */
-                    p->dig_mode = dig_mode >> 5;
-
-                default:
-                    break;
+                return n;
             }
+
+            /* Top 3 bit define the digi mode */
+            p->dig_mode = dig_mode >> 5;
+
+        default:
+            break;
         }
-        break;
+    }
+    break;
 
     case FT817_NATIVE_CAT_GET_TX_METERING:
-            /* FT-817 returns 2 bytes with 4 nibbles.
-             * Extract raw values here;
-             * convert to float when they are requested. */
-            p->swr_level = result[0] & 0xF;
-            p->pwr_level = result[0] >> 4;
-            p->alc_level = result[1] & 0xF;
-            p->mod_level = result[1] >> 4;
-            rig_debug(RIG_DEBUG_TRACE, "%s: swr: %d, pwr %d, alc %d, mod %d\n",
-                    __func__,
-                    p->swr_level,
-                    p->pwr_level,
-                    p->alc_level,
-                    p->mod_level);
+        /* FT-817 returns 2 bytes with 4 nibbles.
+         * Extract raw values here;
+         * convert to float when they are requested. */
+        p->swr_level = result[0] & 0xF;
+        p->pwr_level = result[0] >> 4;
+        p->alc_level = result[1] & 0xF;
+        p->mod_level = result[1] >> 4;
+        rig_debug(RIG_DEBUG_TRACE, "%s: swr: %d, pwr %d, alc %d, mod %d\n",
+                  __func__,
+                  p->swr_level,
+                  p->pwr_level,
+                  p->alc_level,
+                  p->mod_level);
         break;
     }
 
@@ -837,7 +838,7 @@ static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         f1 = f2;
         f2 = from_bcd_be(p->fm_status, 8);
-        dump_hex(p->fm_status, sizeof(p->fm_status)/sizeof(p->fm_status[0]));
+        dump_hex(p->fm_status, sizeof(p->fm_status) / sizeof(p->fm_status[0]));
     }
 
 #if 1 // user must be twiddling the VFO
@@ -945,7 +946,8 @@ static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return RIG_OK;
 }
 
-static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     ptt_t ptt;
@@ -954,6 +956,7 @@ static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     n = ft817_get_ptt(rig, 0, &ptt);
+
     if (n != RIG_OK)
     {
         return n;
@@ -967,6 +970,7 @@ static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
 
         /* Get split status from EEPROM */
         n = ft817_read_eeprom(rig, 0x7a, &c);
+
         if (n != RIG_OK)
         {
             return n;
@@ -1003,7 +1007,8 @@ static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     return RIG_OK;
 }
 
-static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level, const cal_table_float_t *cal)
+static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
+                              const cal_table_float_t *cal)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
 
@@ -1023,6 +1028,7 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level, c
          * perhaps pointless retries + timeouts.
          */
         n = ft817_get_ptt(rig, 0, &ptt);
+
         if (n != RIG_OK)
         {
             return n;
@@ -1035,6 +1041,7 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level, c
         }
 
         n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_METERING);
+
         if (n != RIG_OK)
         {
             return n;
@@ -1114,6 +1121,7 @@ static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 static int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+
     switch (level)
     {
 
@@ -1125,7 +1133,8 @@ static int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return ft817_get_raw_smeter_level(rig, val);
 
     case RIG_LEVEL_RFPOWER:
-        return ft817_get_tx_level(rig, val, &p->pwr_level, &rig->caps->rfpower_meter_cal);
+        return ft817_get_tx_level(rig, val, &p->pwr_level,
+                                  &rig->caps->rfpower_meter_cal);
 
     case RIG_LEVEL_ALC:
         return ft817_get_tx_level(rig, val, &p->alc_level, &rig->caps->alc_cal);
@@ -1179,6 +1188,7 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 
     /* Read eeprom for current 'band' for both VFO's */
     ret = ft817_read_eeprom(rig, 0x59, &eeprom_band);
+
     if (ret != RIG_OK)
     {
         return ret;
@@ -1188,6 +1198,7 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
      * The FT818/817 stores antenna per band not per VFO!
      * So changing antenna will change for both VFO's */
     ret = ft817_read_eeprom(rig, 0x7A, &eeprom_ant);
+
     if (ret != RIG_OK)
     {
         return ret;
@@ -1200,18 +1211,20 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     }
 
     /* band info is 4 bit per VFO, for A lower nibble, B is upper nible */
-    switch (vfo) {
-        case RIG_VFO_A:
-            eeprom_band &= 0xF;
-        break;
-        case RIG_VFO_B:
-            eeprom_band = eeprom_band >> 4;
+    switch (vfo)
+    {
+    case RIG_VFO_A:
+        eeprom_band &= 0xF;
         break;
 
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %0x!\n",
-                __func__, vfo);
-            return -RIG_EINTERNAL;
+    case RIG_VFO_B:
+        eeprom_band = eeprom_band >> 4;
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %0x!\n",
+                  __func__, vfo);
+        return -RIG_EINTERNAL;
     }
 
     /* The 818 and the 817 differ in bands: the 818 has 60m.
@@ -1233,43 +1246,44 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
      */
 
 
-    switch (eeprom_band) {
-        case 0:  /* 160M */
-        case 1:  /*  80M */
-        case 2:  /*  60M, 818 only */
-        case 3:  /*  40M */
-        case 4:  /*  30M */
-        case 5:  /*  20M */
-        case 6:  /*  17M */
-        case 7:  /*  15M */
-        case 8:  /*  12M */
-        case 9:  /*  10M */
-            /* All HF use the same antenna setting, bit 0 */
-            eeprom_ant &= 1<<0;
+    switch (eeprom_band)
+    {
+    case 0:  /* 160M */
+    case 1:  /*  80M */
+    case 2:  /*  60M, 818 only */
+    case 3:  /*  40M */
+    case 4:  /*  30M */
+    case 5:  /*  20M */
+    case 6:  /*  17M */
+    case 7:  /*  15M */
+    case 8:  /*  12M */
+    case 9:  /*  10M */
+        /* All HF use the same antenna setting, bit 0 */
+        eeprom_ant &= 1 << 0;
         break;
 
-        case 0xA:  /* 6m, bit 1 */
-            eeprom_ant &= 1<<1;
+    case 0xA:  /* 6m, bit 1 */
+        eeprom_ant &= 1 << 1;
         break;
 
-        case 0xB:  /* FM BCB 76Mhz - 108Mhz, bit 2 */
-            eeprom_ant &= 1<<2;
+    case 0xB:  /* FM BCB 76Mhz - 108Mhz, bit 2 */
+        eeprom_ant &= 1 << 2;
         break;
 
-        case 0xC:  /* Airband, bit 3 */
-            eeprom_ant &= 1<<3;
+    case 0xC:  /* Airband, bit 3 */
+        eeprom_ant &= 1 << 3;
         break;
 
-        case 0xD:  /* 2M, bit 4 */
-            eeprom_ant &= 1<<4;
+    case 0xD:  /* 2M, bit 4 */
+        eeprom_ant &= 1 << 4;
         break;
 
-        case 0xE:  /* 70cm / UHF, bit 5 */
-            eeprom_ant &= 1<<5;
+    case 0xE:  /* 70cm / UHF, bit 5 */
+        eeprom_ant &= 1 << 5;
         break;
 
-        case 0xF: /* Free-tuning?, bit 6 */
-            eeprom_ant &= 1<<6;
+    case 0xF: /* Free-tuning?, bit 6 */
+        eeprom_ant &= 1 << 6;
         break;
     }
 
@@ -1281,18 +1295,18 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 }
 
 static int ft817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
-                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+                         ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     return ft818_817_get_ant(rig, vfo, ant, option, ant_curr, ant_tx, ant_rx,
-            true);
+                             true);
 
 }
 
 static int ft818_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
-                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+                         ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     return ft818_817_get_ant(rig, vfo, ant, option, ant_curr, ant_tx, ant_rx,
-            false);
+                             false);
 
 }
 /* ---------------------------------------------------------------------- */
@@ -1517,6 +1531,7 @@ static int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     {
         int n;
         n = ft817_send_cmd(rig, index);
+
         if (n < 0 && n != -RIG_ERJCTED)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: send ptt cmd failed\n", __func__);
@@ -1526,6 +1541,7 @@ static int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         /* Read TX status it contains the PTT flag.
          * Use TX_STATUS instead of ft817_get_ptt to skip the cache. */
         n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS);
+
         if (n < 0 && n != -RIG_ERJCTED)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: get ptt cmd failed\n", __func__);
@@ -1535,6 +1551,7 @@ static int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         /* Should be in cache now! But if above command was rejected
          * we will still try again here. */
         n = ft817_get_ptt(rig, vfo, &ptt_response);
+
         if (n < 0 && n != -RIG_ERJCTED)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: get ptt cmd failed\n", __func__);
@@ -1863,7 +1880,7 @@ static int ft817_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                           1 bar  = 0.5W
 */
 static int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
-                   freq_t freq, rmode_t mode)
+                          freq_t freq, rmode_t mode)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     *mwpower = (int)(power * 6000);
@@ -1873,7 +1890,7 @@ static int ft817_power2mW(RIG *rig, unsigned int *mwpower, float power,
 
 /* FIXME: currently ignores mode and freq */
 static int ft817_mW2power(RIG *rig, float *power, unsigned int mwpower,
-                   freq_t freq, rmode_t mode)
+                          freq_t freq, rmode_t mode)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
     *power = mwpower / 6000.0;

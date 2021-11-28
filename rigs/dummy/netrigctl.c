@@ -122,8 +122,8 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 
         if (vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
     }
-    else if (vfo == RIG_VFO_RX) vfo = priv->rx_vfo;
-    else if (vfo == RIG_VFO_TX) vfo = priv->tx_vfo;
+    else if (vfo == RIG_VFO_RX) { vfo = priv->rx_vfo; }
+    else if (vfo == RIG_VFO_TX) { vfo = priv->tx_vfo; }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, rig->state.vfo_opt);
 
@@ -628,9 +628,12 @@ static int netrigctl_open(RIG *rig)
         rs->mode_list |= rs->tx_range_list[i].modes;
         rs->vfo_list |= rs->tx_range_list[i].vfo;
     }
-    if (rs->vfo_list == 0) {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo_list empty, defaulting to A/B\n", __func__);
-        rs->vfo_list = RIG_VFO_A|RIG_VFO_B;
+
+    if (rs->vfo_list == 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo_list empty, defaulting to A/B\n",
+                  __func__);
+        rs->vfo_list = RIG_VFO_A | RIG_VFO_B;
     }
 
     if (prot_ver == 0) { return RIG_OK; }
@@ -1596,7 +1599,8 @@ static int netrigctl_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
     char buf[BUF_MAX];
     char vfostr[16] = "";
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, vfotx=%s, split=%d\n", __func__, rig_strvfo(vfo), rig_strvfo(tx_vfo), split);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, vfotx=%s, split=%d\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(tx_vfo), split);
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), RIG_VFO_A);
 
@@ -2561,7 +2565,8 @@ static int netrigctl_power2mW(RIG *rig, unsigned int *mwpower, float power,
     ENTERFUNC;
 
     // we shouldn't need any precision than microwatts
-    snprintf(cmdbuf, sizeof(cmdbuf), "\\power2mW %.3f %.0f %s\n", power, freq, rig_strrmode(mode));
+    snprintf(cmdbuf, sizeof(cmdbuf), "\\power2mW %.3f %.0f %s\n", power, freq,
+             rig_strrmode(mode));
     ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
 
     if (ret <= 0)

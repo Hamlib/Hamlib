@@ -63,8 +63,10 @@ static int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-static int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
-static int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
+static int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
+                          pbwidth_t width); /* select mode */
+static int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                          pbwidth_t *width); /* get mode */
 
 static int ft757_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 static int ft757_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */

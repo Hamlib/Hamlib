@@ -1699,7 +1699,8 @@ tt550_decode_event(RIG *rig)
     priv = (struct tt550_priv_data *) rs->priv;
 
 
-    data_len = read_string(&rs->rigport, (char *) buf, MAXFRAMELEN, "\n\r", 2, 0, 1);
+    data_len = read_string(&rs->rigport, (char *) buf, MAXFRAMELEN, "\n\r", 2, 0,
+                           1);
 
 
     if (data_len == -RIG_ETIMEOUT)

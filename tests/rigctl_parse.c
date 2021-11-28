@@ -2798,7 +2798,7 @@ declare_proto_rig(set_split_mode)
     }
 
     // mode could be RIG_MODE_NONE here
-    // we treat it as non-fatal 
+    // we treat it as non-fatal
     // rig_parse_mode will spit out error msg
     mode = rig_parse_mode(arg1);
     CHKSCN1ARG(sscanf(arg2, "%d", &width));
@@ -3633,7 +3633,8 @@ declare_proto_rig(vfo_op)
 
     if (RIG_OP_NONE == op)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig_parse_vfo failed with '%s'\n", __func__, arg1);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_parse_vfo failed with '%s'\n", __func__,
+                  arg1);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -5098,13 +5099,18 @@ char rig_passwd[256];
 declare_proto_rig(password)
 {
     const char *passwd = arg1;
-    if (strcmp(passwd,rig_passwd)==0) {
-    rig_debug(RIG_DEBUG_ERR, "%s: #1 password OK\n", __func__);
-    return(RIG_EINVAL);
+
+    if (strcmp(passwd, rig_passwd) == 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: #1 password OK\n", __func__);
+        return (RIG_EINVAL);
     }
-    else{
-    rig_debug(RIG_DEBUG_ERR, "%s: #2 password error, '%s'!='%s'\n", __func__,passwd,rig_passwd);
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: #2 password error, '%s'!='%s'\n", __func__,
+                  passwd, rig_passwd);
     }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -5112,7 +5118,7 @@ declare_proto_rig(password)
 declare_proto_rig(set_password)
 {
     const char *passwd = arg1;
-    strncpy(rig_passwd, passwd, sizeof(passwd)-1);
+    strncpy(rig_passwd, passwd, sizeof(passwd) - 1);
     rig_debug(RIG_DEBUG_ERR, "%s: set_password %s\n", __func__, rig_passwd);
     fprintf(fout, "set_password %s\n", rig_passwd);
     RETURNFUNC(RIG_OK);

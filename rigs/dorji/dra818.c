@@ -60,7 +60,8 @@ struct dra818_priv
 static int dra818_response(RIG *rig, const char *expected)
 {
     char response[80];
-    int r = read_string(&rig->state.rigport, response, sizeof(response), "\n", 1, 0, 1);
+    int r = read_string(&rig->state.rigport, response, sizeof(response), "\n", 1, 0,
+                        1);
 
     if (r != strlen(expected))
     {

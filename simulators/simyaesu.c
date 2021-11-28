@@ -130,23 +130,23 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            pbuf=strdup("FA3456789012;");
-            sprintf(pbuf,"FA%010.0f", freqA);
+            pbuf = strdup("FA3456789012;");
+            sprintf(pbuf, "FA%010.0f", freqA);
             free(pbuf);
         }
-        else if (strncmp(buf, "FA",2)==0)
+        else if (strncmp(buf, "FA", 2) == 0)
         {
-            sscanf(buf,"FA%f",&freqA);
+            sscanf(buf, "FA%f", &freqA);
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            pbuf=strdup("FB3456789012;");
-            sprintf(pbuf,"FB%010.0f", freqB);
+            pbuf = strdup("FB3456789012;");
+            sprintf(pbuf, "FB%010.0f", freqB);
             free(pbuf);
         }
-        else if (strncmp(buf, "FB",2)==0)
+        else if (strncmp(buf, "FB", 2) == 0)
         {
-            sscanf(buf,"FB%f",&freqB);
+            sscanf(buf, "FB%f", &freqB);
         }
         else if (strcmp(buf, "IF;") == 0)
         {
@@ -205,20 +205,22 @@ int main(int argc, char *argv[])
 
             if (n < 0) { perror("VS"); }
         }
-        else if (strcmp(buf, "FT;")==0)
+        else if (strcmp(buf, "FT;") == 0)
         {
-            usleep(50*1000);
+            usleep(50 * 1000);
             pbuf = strdup("FTx;");
             pbuf[2] = tx_vfo;
             n = write(fd, pbuf, strlen(pbuf));
             free(pbuf);
+
             if (n < 0) { perror("FT"); }
         }
         else if (strncmp(buf, "FT", 2) == 0)
         {
             tx_vfo = buf[2];
-            if (tx_vfo == '3') tx_vfo = '1';
-            else if (tx_vfo == '2') tx_vfo = '0';
+
+            if (tx_vfo == '3') { tx_vfo = '1'; }
+            else if (tx_vfo == '2') { tx_vfo = '0'; }
             else { perror("Expected 2 or 3"); }
         }
         else if (strcmp(buf, "EX032;") == 0)

@@ -190,9 +190,11 @@ static int dummy_rot_open(ROT *rot)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (rot->caps->rot_model == ROT_MODEL_DUMMY) {
+    if (rot->caps->rot_model == ROT_MODEL_DUMMY)
+    {
         simulating = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: dummy rotator so simulating speed\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: dummy rotator so simulating speed\n",
+                  __func__);
     }
 
     return RIG_OK;
