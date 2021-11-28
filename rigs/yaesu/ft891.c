@@ -44,11 +44,15 @@
 
 /* Prototypes */
 static int ft891_init(RIG *rig);
-static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
-static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo);
+static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                                pbwidth_t *tx_width);
+static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                                pbwidth_t tx_width);
 static int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                               vfo_t tx_vfo);
 
 const struct confparams ft891_ext_levels[] =
 {
@@ -408,7 +412,8 @@ static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  *
  * Comments: The passed value for the vfo is ignored since can only split one way
  */
-static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo)
 {
     struct newcat_priv_data *priv;
     int err;
@@ -467,7 +472,7 @@ static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
  */
 
 static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
-                         pbwidth_t *tx_width)
+                                pbwidth_t *tx_width)
 {
     struct newcat_priv_data *priv;
     int err;
@@ -514,7 +519,7 @@ static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
  */
 
 static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
-                         pbwidth_t tx_width)
+                                pbwidth_t tx_width)
 {
     struct newcat_priv_data *priv;
     struct rig_state *state;

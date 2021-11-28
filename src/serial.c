@@ -673,23 +673,29 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 
     timeout_save = p->timeout;
     p->timeout = 1;
+
     do
     {
         // we pass an empty stopset so read_string can determine
         // the appropriate stopset for async data
         char stopset[1];
-        len = read_string(p, (char*)buf, sizeof(buf)-1, stopset, 0, 1, 1);
-        if  (len > 0)
+        len = read_string(p, (char *)buf, sizeof(buf) - 1, stopset, 0, 1, 1);
+
+        if (len > 0)
         {
-            int i, binary=0;
-            for(i=0;i<len;++i)
+            int i, binary = 0;
+
+            for (i = 0; i < len; ++i)
             {
-                if (!isprint(buf[i])) binary = 1;
+                if (!isprint(buf[i])) { binary = 1; }
             }
+
             if (binary)
             {
-                char *hbuf = calloc(len*3+1, 1);
-                for(i=0;i<len;++i) sprintf(&hbuf[i*3], "%02X ", buf[i]);
+                char *hbuf = calloc(len * 3 + 1, 1);
+
+                for (i = 0; i < len; ++i) { sprintf(&hbuf[i * 3], "%02X ", buf[i]); }
+
                 rig_debug(RIG_DEBUG_WARN, "%s: flush hex:%s\n", __func__, hbuf);
                 free(hbuf);
             }
@@ -698,7 +704,9 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
                 rig_debug(RIG_DEBUG_WARN, "%s: flush string:%s\n", __func__, buf);
             }
         }
-    } while(len > 0);
+    }
+    while (len > 0);
+
     p->timeout = timeout_save;
     //rig_debug(RIG_DEBUG_VERBOSE, "tcflush%s\n", "");
     //tcflush(p->fd, TCIFLUSH);

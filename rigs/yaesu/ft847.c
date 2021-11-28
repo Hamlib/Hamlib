@@ -65,96 +65,97 @@
  *
  */
 
-enum ft847_native_cmd_e {
+enum ft847_native_cmd_e
+{
 
-  /* Set commands to the rig */
+    /* Set commands to the rig */
 
-  FT_847_NATIVE_CAT_ON = 0,
-  FT_847_NATIVE_CAT_OFF,
+    FT_847_NATIVE_CAT_ON = 0,
+    FT_847_NATIVE_CAT_OFF,
 
-  FT_847_NATIVE_CAT_PTT_ON,
-  FT_847_NATIVE_CAT_PTT_OFF,
+    FT_847_NATIVE_CAT_PTT_ON,
+    FT_847_NATIVE_CAT_PTT_OFF,
 
-  FT_847_NATIVE_CAT_SAT_MODE_ON,
-  FT_847_NATIVE_CAT_SAT_MODE_OFF,
+    FT_847_NATIVE_CAT_SAT_MODE_ON,
+    FT_847_NATIVE_CAT_SAT_MODE_OFF,
 
-  FT_847_NATIVE_CAT_SET_FREQ_MAIN,
-  FT_847_NATIVE_CAT_SET_FREQ_SAT_RX_VFO,
-  FT_847_NATIVE_CAT_SET_FREQ_SAT_TX_VFO,
+    FT_847_NATIVE_CAT_SET_FREQ_MAIN,
+    FT_847_NATIVE_CAT_SET_FREQ_SAT_RX_VFO,
+    FT_847_NATIVE_CAT_SET_FREQ_SAT_TX_VFO,
 
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_LSB, /* MAIN VFO */
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_USB,
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_CW,
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_CWR,
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_AM,
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_FM,
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_CWN,
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_CWRN,
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_AMN,
-  FT_847_NATIVE_CAT_SET_MODE_MAIN_FMN,
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_LSB, /* MAIN VFO */
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_USB,
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_CW,
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_CWR,
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_AM,
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_FM,
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_CWN,
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_CWRN,
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_AMN,
+    FT_847_NATIVE_CAT_SET_MODE_MAIN_FMN,
 
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_LSB, /* SAT RX VFO */
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_USB,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CW,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWR,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_AM,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_FM,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWN,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWRN,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_AMN,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_FMN,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_LSB, /* SAT RX VFO */
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_USB,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CW,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWR,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_AM,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_FM,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWN,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWRN,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_AMN,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_RX_FMN,
 
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_LSB, /* SAT TX VFO */
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_USB,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CW,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWR,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_AM,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_FM,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWN,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWRN,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_AMN,
-  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_FMN,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_LSB, /* SAT TX VFO */
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_USB,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CW,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWR,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_AM,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_FM,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWN,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWRN,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_AMN,
+    FT_847_NATIVE_CAT_SET_MODE_SAT_TX_FMN,
 
-  FT_847_NATIVE_CAT_SET_DCS_ON_MAIN, /* MAIN CTCSS/DCS */
-  FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_MAIN,
-  FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_MAIN,
-  FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_MAIN,
+    FT_847_NATIVE_CAT_SET_DCS_ON_MAIN, /* MAIN CTCSS/DCS */
+    FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_MAIN,
+    FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_MAIN,
+    FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_MAIN,
 
-  FT_847_NATIVE_CAT_SET_DCS_ON_SAT_RX, /* SAT RX CTCSS/DCS */
-  FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_SAT_RX,
-  FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_SAT_RX,
-  FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_SAT_RX,
+    FT_847_NATIVE_CAT_SET_DCS_ON_SAT_RX, /* SAT RX CTCSS/DCS */
+    FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_SAT_RX,
+    FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_SAT_RX,
+    FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_SAT_RX,
 
-  FT_847_NATIVE_CAT_SET_DCS_ON_SAT_TX, /* SAT TX CTCSS/DCS */
-  FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_SAT_TX,
-  FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_SAT_TX,
-  FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_SAT_TX,
+    FT_847_NATIVE_CAT_SET_DCS_ON_SAT_TX, /* SAT TX CTCSS/DCS */
+    FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_SAT_TX,
+    FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_SAT_TX,
+    FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_SAT_TX,
 
-  FT_847_NATIVE_CAT_SET_CTCSS_FREQ_MAIN, /* CTCSS Freq */
-  FT_847_NATIVE_CAT_SET_CTCSS_FREQ_SAT_RX,
-  FT_847_NATIVE_CAT_SET_CTCSS_FREQ_SAT_TX,
+    FT_847_NATIVE_CAT_SET_CTCSS_FREQ_MAIN, /* CTCSS Freq */
+    FT_847_NATIVE_CAT_SET_CTCSS_FREQ_SAT_RX,
+    FT_847_NATIVE_CAT_SET_CTCSS_FREQ_SAT_TX,
 
-  FT_847_NATIVE_CAT_SET_DCS_CODE_MAIN, /* DCS code */
-  FT_847_NATIVE_CAT_SET_DCS_CODE_SAT_RX,
-  FT_847_NATIVE_CAT_SET_DCS_CODE_SAT_TX,
+    FT_847_NATIVE_CAT_SET_DCS_CODE_MAIN, /* DCS code */
+    FT_847_NATIVE_CAT_SET_DCS_CODE_SAT_RX,
+    FT_847_NATIVE_CAT_SET_DCS_CODE_SAT_TX,
 
-  FT_847_NATIVE_CAT_SET_RPT_SHIFT_MINUS, /* RPT SHIFT */
-  FT_847_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
-  FT_847_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
+    FT_847_NATIVE_CAT_SET_RPT_SHIFT_MINUS, /* RPT SHIFT */
+    FT_847_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
+    FT_847_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
 
-  FT_847_NATIVE_CAT_SET_RPT_OFFSET, /* RPT Offset frequency */
+    FT_847_NATIVE_CAT_SET_RPT_OFFSET, /* RPT Offset frequency */
 
-  /* Get info from the rig */
+    /* Get info from the rig */
 
-  FT_847_NATIVE_CAT_GET_RX_STATUS,
-  FT_847_NATIVE_CAT_GET_TX_STATUS,
+    FT_847_NATIVE_CAT_GET_RX_STATUS,
+    FT_847_NATIVE_CAT_GET_TX_STATUS,
 
-  FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_MAIN,
-  FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_RX,
-  FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_TX,
+    FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_MAIN,
+    FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_RX,
+    FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_TX,
 
-  FT_847_NATIVE_SIZE		/* end marker, value indicates number of */
-				/* native cmd entries */
+    FT_847_NATIVE_SIZE        /* end marker, value indicates number of */
+    /* native cmd entries */
 
 };
 
@@ -175,30 +176,36 @@ static int ft847_close(RIG *rig);
 static int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-static int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
-static int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
+static int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
+                          pbwidth_t width); /* select mode */
+static int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                          pbwidth_t *width); /* get mode */
 
-static int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-static int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                               vfo_t tx_vfo);
+static int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo);
 
 static int ft847_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft847_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-static int ft847_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ft847_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
+                                pbwidth_t width);
+static int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                                pbwidth_t *width);
 
 static int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int ft847_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 
-static int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val);
+static int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 static int ft847_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-static int ft847_set_ctcss_tone (RIG *rig, vfo_t vfo, tone_t tone);
-static int ft847_set_ctcss_sql (RIG *rig, vfo_t vfo, tone_t tone);
-static int ft847_set_dcs_sql (RIG *rig, vfo_t vfo, tone_t code);
-static int ft847_set_rptr_shift (RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
-static int ft847_set_rptr_offs (RIG *rig, vfo_t vfo, shortfreq_t rptr_offs);
+static int ft847_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft847_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft847_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+static int ft847_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
+static int ft847_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs);
 
 /*
  * ft847 instance - private data
@@ -942,7 +949,8 @@ static int ft847_send_priv_cmd(RIG *rig, int cmd_index)
         return -RIG_EINVAL;
     }
 
-    return write_block(&rig->state.rigport, (char *) ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) ncmd[cmd_index].nseq,
+                       YAESU_CMD_LENGTH);
 }
 
 
@@ -1335,7 +1343,8 @@ static int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     return ret;
 }
 
-static int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo)
 {
     struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
 
@@ -1361,12 +1370,14 @@ static int ft847_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return ft847_get_freq(rig, RIG_VFO_TX, freq);
 }
 
-static int ft847_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int ft847_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
+                                pbwidth_t width)
 {
     return ft847_set_mode(rig, RIG_VFO_TX, mode, width);
 }
 
-static int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                                pbwidth_t *width)
 {
     return ft847_get_mode(rig, RIG_VFO_TX, mode, width);
 }

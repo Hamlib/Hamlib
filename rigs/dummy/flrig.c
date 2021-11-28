@@ -673,7 +673,8 @@ static const char *modeMapGetFLRig(rmode_t modeHamlib)
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {
-        if (modeMap[i].mode_flrig == NULL) continue;
+        if (modeMap[i].mode_flrig == NULL) { continue; }
+
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: checking modeMap[%d]=%.0f to modeHamlib=%.0f, mode_flrig='%s'\n", __func__,
                   i, (double)modeMap[i].mode_hamlib, (double)modeHamlib, modeMap[i].mode_flrig);
@@ -797,12 +798,13 @@ static int flrig_open(RIG *rig)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: get_version failed: %s\nAssuming version < 1.3.54", __func__,
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: get_version failed: %s\nAssuming version < 1.3.54", __func__,
                   rigerror(retval));
         // we fall through and assume old version
     }
 
-    int v1=0, v2=0, v3=0, v4=0;
+    int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
     sscanf(value, "%d.%d.%d.%d", &v1, &v2, &v3, &v4);
 
     if (v1 >= 1 && v2 >= 3 && v3 >= 54)

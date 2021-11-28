@@ -452,7 +452,7 @@ ft991_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  */
 
 static int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
-                         pbwidth_t *tx_width)
+                                pbwidth_t *tx_width)
 {
     struct newcat_priv_data *priv;
     int err;
@@ -538,7 +538,7 @@ static void debug_ft991info_data(const ft991info *rdata)
  */
 
 static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
-                         pbwidth_t tx_width)
+                                pbwidth_t tx_width)
 {
     struct newcat_priv_data *priv;
     struct rig_state *state;

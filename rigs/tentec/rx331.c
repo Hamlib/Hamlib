@@ -780,6 +780,7 @@ int rx331_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             return -RIG_EPROTO;
         }
+
         f = val->i / 120.0;
         val->f = 1.0 - f;
 

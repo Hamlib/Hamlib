@@ -1722,6 +1722,7 @@ int win32_serial_read(int fd, void *vb, int size)
                 return (total);
 
 #if 0
+
                 if (size > 0)
                 {
                     now = GetTickCount();
@@ -1923,6 +1924,7 @@ int win32_serial_read(int fd, void *vb, int size)
                 total += nBytes;
                 return (total);
 #if 0
+
                 if (size > 0)
                 {
                     now = GetTickCount();

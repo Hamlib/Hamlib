@@ -288,7 +288,8 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
             if (data)
             {
-                retval = read_string(&rs->rigport, data, (*data_len) + 1, term, strlen(term), 0, 1);
+                retval = read_string(&rs->rigport, data, (*data_len) + 1, term, strlen(term), 0,
+                                     1);
 
                 if (retval != -RIG_ETIMEOUT)
                 {

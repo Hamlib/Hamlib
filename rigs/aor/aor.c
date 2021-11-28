@@ -1428,7 +1428,8 @@ int aor_get_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
             /*
              * get next line
              */
-            retval = read_string(&rig->state.rigport, chanbuf, BUFSZ, EOM, strlen(EOM), 0, 1);
+            retval = read_string(&rig->state.rigport, chanbuf, BUFSZ, EOM, strlen(EOM), 0,
+                                 1);
 
             if (retval < 0)
             {

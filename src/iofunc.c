@@ -678,7 +678,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
     fd_set rfds, efds;
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
     int total_count = 0;
-    int i=0;
+    int i = 0;
     static int minlen = 1; // dynamic minimum length of rig response data
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d\n", __func__, (int)rxmax);
@@ -728,13 +728,15 @@ int HAMLIB_API read_string(hamlib_port_t *p,
                 timersub(&end_time, &start_time, &elapsed_time);
 
                 dump_hex((unsigned char *) rxbuffer, total_count);
-                if (!flush_flag) {
-                rig_debug(RIG_DEBUG_WARN,
-                          "%s(): Timed out %d.%03d seconds after %d chars\n",
-                          __func__,
-                          (int)elapsed_time.tv_sec,
-                          (int)elapsed_time.tv_usec / 1000,
-                          total_count);
+
+                if (!flush_flag)
+                {
+                    rig_debug(RIG_DEBUG_WARN,
+                              "%s(): Timed out %d.%03d seconds after %d chars\n",
+                              __func__,
+                              (int)elapsed_time.tv_sec,
+                              (int)elapsed_time.tv_usec / 1000,
+                              total_count);
                 }
 
                 return -RIG_ETIMEOUT;
@@ -769,17 +771,19 @@ int HAMLIB_API read_string(hamlib_port_t *p,
              * read 1 character from the rig, (check if in stop set)
          * The file descriptor must have been set up non blocking.
          */
-        do 
+        do
         {
             minlen -= rd_count;
-            rd_count = port_read(p, &rxbuffer[total_count], expected_len==1?1:minlen);
+            rd_count = port_read(p, &rxbuffer[total_count], expected_len == 1 ? 1 : minlen);
+
             if (errno == EAGAIN)
             {
-                hl_usleep(5*1000);
+                hl_usleep(5 * 1000);
                 rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy?\n", __func__);
             }
 
-        } while( ++i < 10 && errno == EBUSY); // 50ms should be enough
+        }
+        while (++i < 10 && errno == EBUSY);   // 50ms should be enough
 
         /* if we get 0 bytes or an error something is wrong */
         if (rd_count <= 0)
@@ -800,12 +804,14 @@ int HAMLIB_API read_string(hamlib_port_t *p,
 
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {
-            if (minlen == 1) minlen = total_count;
-            if (minlen < total_count) 
+            if (minlen == 1) { minlen = total_count; }
+
+            if (minlen < total_count)
             {
                 minlen = total_count;
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: minlen now %d\n", __func__, minlen);
             }
+
             break;
         }
     }

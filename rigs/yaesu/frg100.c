@@ -36,7 +36,8 @@
 #include "yaesu.h"
 #include "frg100.h"
 
-enum frg100_native_cmd_e {
+enum frg100_native_cmd_e
+{
     FRG100_NATIVE_RECALL_MEM = 0,       /* 0x02, p1=ch */
     FRG100_NATIVE_VFO_TO_MEM,           /* 0x03, p1=ch, p2=0 */
     FRG100_NATIVE_MEM_HIDE,             /* 0x03, p1=ch, p2=1 */

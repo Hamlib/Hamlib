@@ -607,12 +607,14 @@ vfo_t HAMLIB_API rig_parse_vfo(const char *s)
     {
         if (!strcmp(s, vfo_str[i].str))
         {
-            rig_debug(RIG_DEBUG_CACHE, "%s: str='%s' vfo='%s'\n", __func__, vfo_str[i].str, rig_strvfo(vfo_str[i].vfo));
+            rig_debug(RIG_DEBUG_CACHE, "%s: str='%s' vfo='%s'\n", __func__, vfo_str[i].str,
+                      rig_strvfo(vfo_str[i].vfo));
             return vfo_str[i].vfo;
         }
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: '%s' not found so vfo='%s'\n", __func__, s, rig_strvfo(RIG_VFO_NONE));
+    rig_debug(RIG_DEBUG_ERR, "%s: '%s' not found so vfo='%s'\n", __func__, s,
+              rig_strvfo(RIG_VFO_NONE));
     return RIG_VFO_NONE;
 }
 
@@ -1738,11 +1740,12 @@ static char *funcname = "Unknown";
 static int linenum = 0;
 
 #undef vfo_fixup
-vfo_t HAMLIB_API vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split, const char *func, int line)
+vfo_t HAMLIB_API vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split,
+                             const char *func, int line)
 {
-    funcname = (char*)func;
+    funcname = (char *)func;
     linenum = (int)line;
-    return vfo_fixup(rig,vfo,split);
+    return vfo_fixup(rig, vfo, split);
 }
 
 // we're mappping our VFO here to work with either VFO A/B rigs or Main/Sub
@@ -1750,7 +1753,8 @@ vfo_t HAMLIB_API vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split, const char *fun
 // So we map these to Main/Sub as required
 vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 {
-    rig_debug(RIG_DEBUG_TRACE, "%s:(from %s:%d) vfo=%s, vfo_curr=%s, split=%d\n", __func__, funcname, linenum,
+    rig_debug(RIG_DEBUG_TRACE, "%s:(from %s:%d) vfo=%s, vfo_curr=%s, split=%d\n",
+              __func__, funcname, linenum,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), split);
 
     if (vfo == RIG_VFO_CURR)
@@ -1758,22 +1762,28 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         rig_debug(RIG_DEBUG_TRACE, "%s: Leaving currVFO alone\n", __func__);
         return vfo;  // don't modify vfo for RIG_VFO_CURR
     }
+
     if (vfo == RIG_VFO_OTHER)
     {
-        switch(rig->state.current_vfo)
+        switch (rig->state.current_vfo)
         {
-            case RIG_VFO_A:
-                return RIG_VFO_B;
-            case RIG_VFO_MAIN:
-                return RIG_VFO_SUB;
-            case RIG_VFO_B:
-                return RIG_VFO_A;
-            case RIG_VFO_SUB:
-                return RIG_VFO_MAIN;
-            case RIG_VFO_SUB_A:
-                return RIG_VFO_SUB_B;
-            case RIG_VFO_SUB_B:
-                return RIG_VFO_SUB_A;
+        case RIG_VFO_A:
+            return RIG_VFO_B;
+
+        case RIG_VFO_MAIN:
+            return RIG_VFO_SUB;
+
+        case RIG_VFO_B:
+            return RIG_VFO_A;
+
+        case RIG_VFO_SUB:
+            return RIG_VFO_MAIN;
+
+        case RIG_VFO_SUB_A:
+            return RIG_VFO_SUB_B;
+
+        case RIG_VFO_SUB_B:
+            return RIG_VFO_SUB_A;
         }
     }
 
@@ -1811,7 +1821,9 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 
         int satmode = rig->state.cache.satmode;
 
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split=%d, vfo==%s tx_vfo=%s\n", __func__, __LINE__, split, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split=%d, vfo==%s tx_vfo=%s\n", __func__,
+                  __LINE__, split, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));
+
         if (split && vfo == RIG_VFO_TX) { vfo = rig->state.tx_vfo; }
 
         if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode && vfo != RIG_VFO_B) { vfo = RIG_VFO_MAIN; }

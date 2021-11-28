@@ -75,7 +75,8 @@ static int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level,
                                 value_t *val);
 
 static const char *funcube_get_info(RIG *rig);
-static int funcube_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int funcube_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                            pbwidth_t *width);
 
 static const struct confparams funcube_cfg_params[] =
 {
@@ -943,7 +944,8 @@ int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
-static int funcube_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int funcube_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                            pbwidth_t *width)
 {
     if (rig->caps->rig_model == RIG_MODEL_FUNCUBEDONGLE)
     {
@@ -953,6 +955,7 @@ static int funcube_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width
     {
         *mode = RIG_MODE_IQ;
     }
+
     *width = 192000;
     return RIG_OK;
 }
