@@ -510,7 +510,7 @@ static const char *modeMapGetTCI(rmode_t modeHamlib)
 static rmode_t modeMapGetHamlib(const char *modeTCI)
 {
     int i;
-    char modeTCICheck[64];
+    char modeTCICheck[MAXBUFLEN];
 
     ENTERFUNC;
 
