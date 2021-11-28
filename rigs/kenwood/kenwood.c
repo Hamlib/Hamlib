@@ -4626,18 +4626,15 @@ int kenwood_set_trn(RIG *rig, int trn)
     case RIG_MODEL_TS990S:
         RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI2" : "AI0", NULL,
                                        0));
-        break;
 
     case RIG_MODEL_THD7A:
     case RIG_MODEL_THD74:
         RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI 1" : "AI 0", buf,
                                        sizeof buf));
-        break;
 
     default:
         RETURNFUNC(kenwood_transaction(rig, (trn == RIG_TRN_RIG) ? "AI1" : "AI0", NULL,
                                        0));
-        break;
     }
 }
 
