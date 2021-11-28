@@ -361,11 +361,11 @@ pcr_send(RIG *rig, const char *cmd)
     /* XXX not required in auto update mode? (should not harm) */
     priv->cmd_buf[len + 0] = 0x0a;
 
-    rs->hold_decode = 1;
+    rs->transaction_active = 1;
 
     err = write_block(&rs->rigport, priv->cmd_buf, len + 1);
 
-    rs->hold_decode = 0;
+    rs->transaction_active = 0;
 
     return err;
 }
@@ -519,8 +519,6 @@ pcr_init(RIG *rig)
 
     priv->sub_rcvr = priv->main_rcvr;
     priv->current_vfo = RIG_VFO_MAIN;
-
-    rig->state.transceive   = RIG_TRN_OFF;
 
     return RIG_OK;
 }

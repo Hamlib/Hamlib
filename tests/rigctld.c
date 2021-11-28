@@ -111,6 +111,7 @@ static struct option long_options[] =
     {"uplink",          1, 0, 'x'},
     {"debug-time-stamps", 0, 0, 'Z'},
     {"multicast-addr",  1, 0, 'M'},
+    {"multicast-port",  1, 0, 'n'},
     {0, 0, 0, 0}
 };
 
@@ -145,6 +146,7 @@ static int volatile ctrl_c;
 const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
 const char *multicast_addr = "0.0.0.0";
+int multicast_port = 4532;
 
 #define MAXCONFLEN 1024
 
@@ -558,6 +560,21 @@ int main(int argc, char *argv[])
             multicast_addr = optarg;
             break;
 
+        case 'n':
+            if (!optarg)
+            {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            multicast_port = atoi(optarg);
+            if (multicast_port == 0)
+            {
+                fprintf(stderr, "Invalid multicast port: %s\n", optarg);
+                exit(1);
+            }
+            break;
+
         default:
             usage();    /* unknown option? */
             exit(1);
@@ -756,9 +773,8 @@ int main(int argc, char *argv[])
 
     saved_result = result;
 
-    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE |
-                                  RIG_MULTICAST_SPECTRUM;
-    retcode = network_multicast_server(my_rig, multicast_addr, 4532, items);
+    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE | RIG_MULTICAST_SPECTRUM;
+    retcode = network_multicast_publisher_start(my_rig, multicast_addr, multicast_port, items);
 
     if (retcode != RIG_OK)
     {
@@ -927,7 +943,6 @@ int main(int argc, char *argv[])
             rig_debug(RIG_DEBUG_ERR, "%s: select() failed: %s\n", __func__,
                       strerror(errno_stored));
 
-            // TODO: FIXME: Why does this select() return EINTR after any command when set_trn RIG is enabled?
             if (errno == EINTR)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: ignoring interrupted system call\n",
@@ -994,6 +1009,8 @@ int main(int argc, char *argv[])
         }
     }
     while (retcode == 0 && !ctrl_c);
+
+    network_multicast_publisher_stop(my_rig);
 
 #ifdef HAVE_PTHREAD
     /* allow threads to finish current action */
@@ -1271,7 +1288,8 @@ void usage(void)
         "  -W, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -M, --multicast-addr=addr     set multicast addr, default 0.0.0.0 (off), recommend 224.0.1.1\n"
+        "  -M, --multicast-addr=addr     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
+        "  -n, --multicast-port=port     set multicast UDP port, default 4532\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
         portno);

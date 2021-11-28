@@ -77,25 +77,25 @@ static int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rig_flush(&rs->rigport);
 
-    Hold_Decode(rig);
+    set_transaction_active(rig);
 
     retval = write_block(&rs->rigport, cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         return retval;
     }
 
     if (!data || !data_len)
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         return 0;
     }
 
     retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM), 0);
 
-    Unhold_Decode(rig);
+    set_transaction_inactive(rig);
 
     if (retval < 0)
     {

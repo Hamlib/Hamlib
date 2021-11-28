@@ -153,7 +153,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
     /*
      * should check return code and that write wrote cmd_len chars!
      */
-    Hold_Decode(rig);
+    set_transaction_active(rig);
 
     rig_flush(&rs->rigport);
 
@@ -163,7 +163,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
 
     if (retval != RIG_OK)
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         rig_unlock();
         RETURNFUNC(retval);
     }
@@ -185,14 +185,14 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
         if (retval == -RIG_ETIMEOUT || retval == 0)
         {
             /* Nothing received, CI-V interface is not echoing */
-            Unhold_Decode(rig);
+            set_transaction_inactive(rig);
             rig_unlock();
             RETURNFUNC(-RIG_BUSERROR);
         }
 
         if (retval < 0)
         {
-            Unhold_Decode(rig);
+            set_transaction_inactive(rig);
             rig_unlock();
             /* Other error, return it */
             RETURNFUNC(retval);
@@ -200,7 +200,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
 
         if (retval < 1)
         {
-            Unhold_Decode(rig);
+            set_transaction_inactive(rig);
             rig_unlock();
             RETURNFUNC(-RIG_EPROTO);
         }
@@ -209,7 +209,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
         {
         case COL:
             /* Collision */
-            Unhold_Decode(rig);
+            set_transaction_inactive(rig);
             rig_unlock();
             RETURNFUNC(-RIG_BUSBUSY);
 
@@ -220,7 +220,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
         default:
             /* Timeout after reading at least one character */
             /* Problem on ci-v bus? */
-            Unhold_Decode(rig);
+            set_transaction_inactive(rig);
             rig_unlock();
             RETURNFUNC(-RIG_BUSERROR);
         }
@@ -230,7 +230,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
             /* Not the same length??? */
             /* Problem on ci-v bus? */
             /* Someone else got a packet in? */
-            Unhold_Decode(rig);
+            set_transaction_inactive(rig);
             rig_unlock();
             RETURNFUNC(-RIG_EPROTO);
         }
@@ -240,7 +240,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
             /* Frames are different? */
             /* Problem on ci-v bus? */
             /* Someone else got a packet in? */
-            Unhold_Decode(rig);
+            set_transaction_inactive(rig);
             rig_unlock();
             RETURNFUNC(-RIG_EPROTO);
         }
@@ -251,7 +251,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
      */
     if (data_len == NULL)
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         rig_unlock();
         RETURNFUNC(RIG_OK);
     }
@@ -284,7 +284,7 @@ read_another_frame:
     if (frm_len < 0)
     {
         rig_unlock();
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         /* RIG_TIMEOUT: timeout getting response, return timeout */
         /* other error: return it */
         RETURNFUNC(frm_len);
@@ -293,7 +293,7 @@ read_another_frame:
     if (frm_len < 1)
     {
         rig_unlock();
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         RETURNFUNC(-RIG_EPROTO);
     }
 
@@ -301,7 +301,7 @@ read_another_frame:
 
     if (retval < 0)
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         rig_unlock();
         RETURNFUNC(retval);
     }
@@ -318,7 +318,7 @@ read_another_frame:
     switch (buf[frm_len - 1])
     {
     case COL:
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         /* Collision */
         rig_unlock();
         RETURNFUNC(-RIG_BUSBUSY);
@@ -328,12 +328,12 @@ read_another_frame:
         break;
 
     case NAK:
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         rig_unlock();
         RETURNFUNC(-RIG_ERJCTED);
 
     default:
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         /* Timeout after reading at least one character */
         /* Problem on ci-v bus? */
         rig_unlock();
@@ -342,7 +342,7 @@ read_another_frame:
 
     if (frm_len < ACKFRMLEN)
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         rig_unlock();
         RETURNFUNC(-RIG_EPROTO);
     }
@@ -351,7 +351,7 @@ read_another_frame:
     // e.g. fe fe e0 50 fa fd
     if (frm_len == 6 && NAK == buf[frm_len - 2])
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         rig_unlock();
         RETURNFUNC(-RIG_ERJCTED);
     }
@@ -362,7 +362,7 @@ read_another_frame:
     // has to be one of these two now or frame is corrupt
     if (FI != buf[frm_len - 1] && ACK != buf[frm_len - 1])
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         rig_unlock();
         RETURNFUNC(-RIG_BUSBUSY);
     }
@@ -371,7 +371,7 @@ read_another_frame:
 
     if (frm_data_len <= 0)
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         rig_unlock();
         RETURNFUNC(-RIG_EPROTO);
     }
@@ -389,7 +389,7 @@ read_another_frame:
 
         if (elapsed_ms > rs->rigport.timeout)
         {
-            Unhold_Decode(rig);
+            set_transaction_inactive(rig);
             rig_unlock();
             RETURNFUNC(-RIG_ETIMEOUT);
         }
@@ -397,7 +397,7 @@ read_another_frame:
         goto read_another_frame;
     }
 
-    Unhold_Decode(rig);
+    set_transaction_inactive(rig);
 
     *data_len = frm_data_len;
     memcpy(data, buf + 4, *data_len);

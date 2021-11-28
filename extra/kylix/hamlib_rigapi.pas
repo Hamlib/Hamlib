@@ -967,7 +967,7 @@ type
         {*
          * non overridable fields, internal use
          *}
-        hold_decode : integer;
+        transaction_active : integer;
         current_vfo : vfo_t;
         transceive : integer;
         vfo_list : integer;

@@ -181,7 +181,7 @@ struct icom_spectrum_scope_cache
     freq_t spectrum_span_freq; /*!< The frequency span of the current spectrum scope line being received */
     freq_t spectrum_low_edge_freq; /*!< The low edge frequency of the current spectrum scope line being received */
     freq_t spectrum_high_edge_freq; /*!< The high edge frequency of the current spectrum scope line being received */
-    int spectrum_data_length;     /*!< Number of bytes of 8-bit spectrum data in the data buffer. The amount of data may vary if the rig has multiple spectrum scopes, depending on the scope. */
+    size_t spectrum_data_length;     /*!< Number of bytes of 8-bit spectrum data in the data buffer. The amount of data may vary if the rig has multiple spectrum scopes, depending on the scope. */
     unsigned char *spectrum_data; /*!< Dynamically allocated buffer for raw spectrum data */
 };
 

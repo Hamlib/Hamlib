@@ -31,8 +31,8 @@
  * thus not ensure mutual exclusion.
  * Fix it when making Hamlib reentrant!  --SF
  */
-#define Hold_Decode(rig) {(rig)->state.hold_decode = 1;}
-#define Unhold_Decode(rig) {(rig)->state.hold_decode = 0;}
+#define set_transaction_active(rig) {(rig)->state.transaction_active = 1;}
+#define set_transaction_inactive(rig) {(rig)->state.transaction_active = 0;}
 
 __BEGIN_DECLS
 
@@ -71,6 +71,11 @@ extern HAMLIB_EXPORT(unsigned char *) to_bcd_be(unsigned char bcd_data[],
 extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char
                                                      bcd_data[],
                                                      unsigned bcd_len);
+
+extern HAMLIB_EXPORT(size_t) to_hex(size_t source_length,
+                                    const unsigned char *source_data,
+                                    size_t dest_length,
+                                    char *dest_data);
 
 extern HAMLIB_EXPORT(double) morse_code_dot_to_millis(int wpm);
 extern HAMLIB_EXPORT(int) dot10ths_to_millis(int dot10ths, int wpm);

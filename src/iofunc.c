@@ -65,6 +65,16 @@ static void close_sync_data_pipe(hamlib_port_t *p)
         close(p->fd_sync_write);
         p->fd_sync_write = -1;
     }
+
+
+    if (p->fd_sync_error_read != -1) {
+        close(p->fd_sync_error_read);
+        p->fd_sync_error_read = -1;
+    }
+    if (p->fd_sync_error_write != -1) {
+        close(p->fd_sync_error_write);
+        p->fd_sync_error_write = -1;
+    }
 }
 
 /**
@@ -83,6 +93,8 @@ int HAMLIB_API port_open(hamlib_port_t *p)
     p->fd = -1;
     p->fd_sync_write = -1;
     p->fd_sync_read = -1;
+    p->fd_sync_error_write = -1;
+    p->fd_sync_error_read = -1;
 
     if (p->async)
     {
@@ -97,6 +109,18 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         p->fd_sync_read = sync_pipe_fds[0];
         p->fd_sync_write = sync_pipe_fds[1];
+
+        status = pipe2(sync_pipe_fds, O_NONBLOCK);
+        if (status != 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: synchronous data error code pipe open status=%d, err=%s\n", __func__,
+                    status, strerror(errno));
+            close_sync_data_pipe(p);
+            RETURNFUNC(-RIG_EINTERNAL);
+        }
+
+        p->fd_sync_error_read = sync_pipe_fds[0];
+        p->fd_sync_error_write = sync_pipe_fds[1];
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: created synchronous data pipe\n", __func__);
     }
@@ -440,7 +464,7 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int 
 }
 
 //! @cond Doxygen_Suppress
-#define port_write_generic(p,b,c,d) write((d) ? (p)->fd : (p)->fd_sync_write,(b),(c))
+#define port_write(p,b,c) write((p)->fd,(b),(c))
 #define port_select(p,n,r,w,e,t) select((n),(r),(w),(e),(t))
 //! @endcond
 
@@ -475,7 +499,7 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int 
  * it could work very well also with any file handle, like a socket.
  */
 
-static int write_block_generic(hamlib_port_t *p, const unsigned char *txbuffer, size_t count, int direct)
+int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
 {
     int ret;
 
@@ -513,7 +537,7 @@ static int write_block_generic(hamlib_port_t *p, const unsigned char *txbuffer, 
 
         for (i = 0; i < count; i++)
         {
-            ret = port_write_generic(p, txbuffer + i, 1, direct);
+            ret = port_write(p, txbuffer + i, 1);
 
             if (ret != 1)
             {
@@ -532,7 +556,7 @@ static int write_block_generic(hamlib_port_t *p, const unsigned char *txbuffer, 
     }
     else
     {
-        ret = port_write_generic(p, txbuffer, count, direct);
+        ret = port_write(p, txbuffer, count);
 
         if (ret != count)
         {
@@ -573,44 +597,16 @@ static int write_block_generic(hamlib_port_t *p, const unsigned char *txbuffer, 
     return RIG_OK;
 }
 
-
-/**
- * \brief Write a block of characters to an fd.
- * \param p rig port descriptor
- * \param txbuffer command sequence to be sent
- * \param count number of bytes to send
- * \return 0 = OK, <0 = NOK
- *
- * Write a block of count characters to port file descriptor,
- * with a pause between each character if write_delay is > 0
- *
- * The write_delay is for Yaesu type rigs..require 5 character
- * sequence to be sent with 50-200msec between each char.
- *
- * Also, post_write_delay is for some Yaesu rigs (eg: FT747) that
- * get confused with sequential fast writes between cmd sequences.
- *
- * input:
- *
- * fd - file descriptor to write to
- * txbuffer - pointer to a command sequence array
- * count - count of byte to send from the txbuffer
- * write_delay - write delay in ms between 2 chars
- * post_write_delay - minimum delay between two writes
- * post_write_date - timeval of last write
- *
- * Actually, this function has nothing specific to serial comm,
- * it could work very well also with any file handle, like a socket.
- */
-
-int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
-{
-    return write_block_generic(p, txbuffer, count, 1);
-}
-
 int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
 {
-    return write_block_generic(p, txbuffer, count, 0);
+    // TODO: Macro for write()
+    return (int) write((p)->fd_sync_write, txbuffer, count);
+}
+
+int HAMLIB_API write_block_sync_error(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
+{
+    // TODO: Macro for write()
+    return (int) write((p)->fd_sync_error_write, txbuffer, count);
 }
 
 static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t count, int direct)
@@ -757,6 +753,43 @@ int HAMLIB_API read_block_direct(hamlib_port_t *p, unsigned char *rxbuffer, size
     return read_block_generic(p, rxbuffer, count, 1);
 }
 
+static int flush_and_read_last_byte(int fd)
+{
+    fd_set rfds, efds;
+    ssize_t bytes_read;
+    struct timeval tv_timeout;
+    int retval;
+    char data;
+
+    do {
+        tv_timeout.tv_sec = 0;
+        tv_timeout.tv_usec = 0;
+
+        FD_ZERO(&rfds);
+        FD_SET(fd, &rfds);
+        efds = rfds;
+
+        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv_timeout);
+        if (retval < 0)
+        {
+            return -RIG_ETIMEOUT;
+        }
+        if (retval == 0)
+        {
+            return -RIG_EIO;
+        }
+
+        if (FD_ISSET(fd, &efds))
+        {
+            return -RIG_EIO;
+        }
+
+        bytes_read = read(fd, &data, 1);
+    } while (bytes_read > 0);
+
+    return data;
+}
+
 static int read_string_generic(hamlib_port_t *p,
                                unsigned char *rxbuffer,
                                size_t rxmax,
@@ -766,10 +799,10 @@ static int read_string_generic(hamlib_port_t *p,
                                int direct)
 {
     fd_set rfds, efds;
-    int fd;
+    int fd, errorfd, maxfd;
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
     int total_count = 0;
-    int i=0;
+    int i = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d\n", __func__, (int)rxmax);
 
@@ -787,6 +820,8 @@ static int read_string_generic(hamlib_port_t *p,
     }
 
     fd = direct ? p->fd : p->fd_sync_read;
+    errorfd = direct ? -1 : p->fd_sync_error_read;
+    maxfd = (fd > errorfd) ? fd : errorfd;
 
     /*
      * Wait up to timeout ms.
@@ -808,9 +843,13 @@ static int read_string_generic(hamlib_port_t *p,
 
         FD_ZERO(&rfds);
         FD_SET(fd, &rfds);
+        if (!direct)
+        {
+            FD_SET(errorfd, &rfds);
+        }
         efds = rfds;
 
-        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv);
+        retval = port_select(p, maxfd + 1, &rfds, NULL, &efds, &tv);
 
         if (retval == 0)
         {
@@ -820,7 +859,10 @@ static int read_string_generic(hamlib_port_t *p,
                 gettimeofday(&end_time, NULL);
                 timersub(&end_time, &start_time, &elapsed_time);
 
-                dump_hex((unsigned char *) rxbuffer, total_count);
+                if (direct)
+                {
+                    dump_hex((unsigned char *) rxbuffer, total_count);
+                }
                 if (!flush_flag) {
                 rig_debug(RIG_DEBUG_WARN,
                           "%s(): Timed out %d.%03d seconds after %d chars\n",
@@ -838,7 +880,10 @@ static int read_string_generic(hamlib_port_t *p,
 
         if (retval < 0)
         {
-            dump_hex(rxbuffer, total_count);
+            if (direct)
+            {
+                dump_hex(rxbuffer, total_count);
+            }
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): select() error after %d chars: %s\n",
                       __func__,
@@ -857,9 +902,25 @@ static int read_string_generic(hamlib_port_t *p,
 
             return -RIG_EIO;
         }
+        if (!direct)
+        {
+            if (FD_ISSET(errorfd, &efds))
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                        "%s(): fd error from sync error pipe after %d chars\n",
+                        __func__,
+                        total_count);
+                return -RIG_EIO;
+            }
+
+            if (FD_ISSET(errorfd, &rfds))
+            {
+                return flush_and_read_last_byte(errorfd);
+            }
+        }
 
         /*
-             * read 1 character from the rig, (check if in stop set)
+         * read 1 character from the rig, (check if in stop set)
          * The file descriptor must have been set up non blocking.
          */
         do 
@@ -875,7 +936,10 @@ static int read_string_generic(hamlib_port_t *p,
         /* if we get 0 bytes or an error something is wrong */
         if (rd_count <= 0)
         {
-            dump_hex((unsigned char *) rxbuffer, total_count);
+            if (direct)
+            {
+                dump_hex((unsigned char *) rxbuffer, total_count);
+            }
             rig_debug(RIG_DEBUG_ERR,
                       "%s(): read() failed - %s\n",
                       __func__,
@@ -901,10 +965,13 @@ static int read_string_generic(hamlib_port_t *p,
      */
     rxbuffer[total_count] = '\000';
 
-    rig_debug(RIG_DEBUG_TRACE,
-              "%s(): RX %d characters\n",
-              __func__,
-              total_count);
+    if (direct)
+    {
+        rig_debug(RIG_DEBUG_TRACE,
+                "%s(): RX %d characters\n",
+                __func__,
+                total_count);
+    }
 
     dump_hex((unsigned char *) rxbuffer, total_count);
 

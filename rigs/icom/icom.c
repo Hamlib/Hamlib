@@ -44,6 +44,7 @@
 #include "icom_defs.h"
 #include "frame.h"
 #include "misc.h"
+#include "event.h"
 
 // we automatically determine availability of the 1A 03 command
 enum { ENUM_1A_03_UNK, ENUM_1A_03_YES, ENUM_1A_03_NO };
@@ -8455,7 +8456,7 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     RETURNFUNC(RIG_OK);
 }
 
-static int icom_parse_spectrum_frame(RIG *rig, int length,
+static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                                      const unsigned char *frame_data)
 {
     struct rig_caps *caps = rig->caps;
@@ -8466,7 +8467,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
     int division = (int) from_bcd(frame_data + 1, 1 * 2);
     int max_division = (int) from_bcd(frame_data + 2, 1 * 2);
 
-    int spectrum_data_length_in_frame;
+    size_t spectrum_data_length_in_frame;
     const unsigned char *spectrum_data_start_in_frame;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -8541,7 +8542,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
         cache->spectrum_metadata_valid = 1;
 
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: Spectrum line start: id=%d division=%d max_division=%d mode=%d center=%.0f span=%.0f low_edge=%.0f high_edge=%.0f oor=%d data_length=%d\n",
+                  "%s: Spectrum line start: id=%d division=%d max_division=%d mode=%d center=%.0f span=%.0f low_edge=%.0f high_edge=%.0f oor=%d data_length=%ld\n",
                   __func__, spectrum_id, division, max_division, spectrum_scope_mode,
                   cache->spectrum_center_freq, cache->spectrum_span_freq,
                   cache->spectrum_low_edge_freq, cache->spectrum_high_edge_freq, out_of_range,
@@ -8563,7 +8564,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
                 priv_caps->spectrum_scope_caps.spectrum_line_length)
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: too much spectrum scope data received: %d bytes > %d bytes expected\n",
+                      "%s: too much spectrum scope data received: %ld bytes > %d bytes expected\n",
                       __func__, offset + spectrum_data_length_in_frame,
                       priv_caps->spectrum_scope_caps.spectrum_line_length);
             RETURNFUNC(-RIG_EPROTO);
@@ -8578,6 +8579,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
     {
         struct rig_spectrum_line spectrum_line =
         {
+            .id = spectrum_id,
             .data_level_min = priv_caps->spectrum_scope_caps.data_level_min,
             .data_level_max = priv_caps->spectrum_scope_caps.data_level_max,
             .signal_strength_min = priv_caps->spectrum_scope_caps.signal_strength_min,
@@ -8591,10 +8593,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
             .spectrum_data = cache->spectrum_data,
         };
 
-        if (rig->callbacks.spectrum_event)
-        {
-            rig->callbacks.spectrum_event(rig, &spectrum_line, rig->callbacks.spectrum_arg);
-        }
+        rig_fire_spectrum_event(rig, &spectrum_line);
 
         cache->spectrum_metadata_valid = 0;
     }
@@ -8634,38 +8633,19 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
      */
     switch (frame[4])
     {
-    case C_SND_FREQ:
-
+    case C_SND_FREQ: {
         /*
          * TODO: the freq length might be less than 4 or 5 bytes
          *          on older rigs!
          */
-        if (rig->callbacks.freq_event)
-        {
-            freq_t freq;
-            freq = from_bcd(frame + 5, (priv->civ_731_mode ? 4 : 5) * 2);
-            RETURNFUNC(rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
-                                                 rig->callbacks.freq_arg));
-        }
-        else
-        {
-            RETURNFUNC(-RIG_ENAVAIL);
-        }
-
+        freq_t freq = (freq_t) from_bcd(frame + 5, (priv->civ_731_mode ? 4 : 5) * 2);
+        rig_fire_freq_event(rig, RIG_VFO_CURR, freq);
         break;
+    }
 
     case C_SND_MODE:
-        if (rig->callbacks.mode_event)
-        {
-            icom2rig_mode(rig, frame[5], frame[6], &mode, &width);
-            RETURNFUNC(rig->callbacks.mode_event(rig, RIG_VFO_CURR,
-                                                 mode, width, rig->callbacks.mode_arg));
-        }
-        else
-        {
-            RETURNFUNC(-RIG_ENAVAIL);
-        }
-
+        icom2rig_mode(rig, frame[5], frame[6], &mode, &width);
+        rig_fire_mode_event(rig, RIG_VFO_CURR, mode, width);
         break;
 
     case C_CTL_SCP:
@@ -8673,7 +8653,6 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         {
             icom_parse_spectrum_frame(rig, frame_length - (6 + 1), frame + 6);
         }
-
         break;
 
     default:
