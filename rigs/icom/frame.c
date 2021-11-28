@@ -137,6 +137,10 @@ int icom_one_transaction(RIG *rig, int cmd, int subcmd,
     int ctrl_id;
 
     ENTERFUNC;
+    if (data == NULL)
+    {
+        RETURNFUNC(RIG_EINTERNAL);
+    }
     memset(buf, 0, 200);
     memset(sendbuf, 0, MAXFRAMELEN);
     rs = &rig->state;
