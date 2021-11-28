@@ -86,7 +86,7 @@ static int tci1x_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
                                      rmode_t mode, pbwidth_t width);
 static int tci1x_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
                                      rmode_t *mode, pbwidth_t *width);
-#if 0
+#ifdef XXNOTIMPLEMENTED
 static int tci1x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int tci1x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
@@ -205,7 +205,7 @@ const struct rig_caps tci1x_caps =
     .get_split_vfo = tci1x_get_split_vfo,
     .set_split_freq_mode = tci1x_set_split_freq_mode,
     .get_split_freq_mode = tci1x_get_split_freq_mode,
-#if 0
+#ifdef XXNOTIMPLEMENTED
     .set_level = tci1x_set_level,
     .get_level = tci1x_get_level,
     .set_ext_parm =  tci1x_set_ext_parm,
@@ -1781,7 +1781,7 @@ static int tci1x_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
     RETURNFUNC(retval);
 }
 
-#if 0
+#ifdef XXNOTIMPLEMENTED
 static int tci1x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     int retval;
@@ -1951,7 +1951,7 @@ static int tci1x_mW2power(RIG *rig, float *power, unsigned int mwpower,
 
 }
 
-#if 0
+#ifdef XXNOTIMPLEMENTED
 static int tci1x_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
     struct tci1x_priv_data *priv = (struct tci1x_priv_data *)rig->state.priv;
