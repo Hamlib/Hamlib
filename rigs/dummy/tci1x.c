@@ -840,26 +840,6 @@ static int tci1x_cleanup(RIG *rig)
 
     rig->state.priv = NULL;
 
-    // we really don't need to free this up as it's only done once
-    // was causing problem when cleanup was followed by rig_open
-    // model_tci1x was not getting refilled
-    // if we can figure out that one we can re-enable this
-#if 0
-    int i;
-
-    for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
-    {
-        if (modeMap[i].mode_tci1x)
-        {
-            free(modeMap[i].mode_tci1x);
-            modeMap[i].mode_tci1x = NULL;
-            modeMap[i].mode_hamlib = 0;
-        }
-
-    }
-
-#endif
-
     RETURNFUNC(RIG_OK);
 }
 
