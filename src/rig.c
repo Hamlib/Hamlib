@@ -356,7 +356,7 @@ static int rig_check_rig_caps()
                   &caps_test.macro_name);
     }
 
-    return rc;
+    RETURNFUNC(rc);
 }
 
 static void cache_show(RIG *rig, const char *func, int line)
@@ -1587,7 +1587,7 @@ static int set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC(RIG_OK);
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 /**
@@ -1807,7 +1807,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
         RETURNFUNC(RIG_OK);
     }
 
-    return RIG_OK;
+    return (RIG_OK);
 }
 
 // detect if somebody is twiddling the VFO
@@ -2317,7 +2317,7 @@ int HAMLIB_API rig_get_freqs(RIG *rig, freq_t *freqA, freq_t freqB)
 {
     // we will attempt to avoid vfo swapping in this routine
 
-    return -RIG_ENIMPL;
+    RETURNFUNC(-RIG_ENIMPL);
 
 }
 
@@ -4732,10 +4732,9 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
 
     if (caps->get_split_freq_mode)
     {
-        TRACE;
         retcode = caps->get_split_freq_mode(rig, vfo, tx_freq, tx_mode, tx_width);
         ELAPSED2;
-        return retcode;
+        RETURNFUNC(retcode);
     }
 
     TRACE;
@@ -5746,12 +5745,12 @@ int HAMLIB_API rig_mW2power(RIG *rig,
 
     if (!rig || !rig->caps || !power || mwpower == 0)
     {
-        return (-RIG_EINVAL);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (rig->caps->mW2power != NULL)
     {
-        return (rig->caps->mW2power(rig, power, mwpower, freq, mode));
+        RETURNFUNC(rig->caps->mW2power(rig, power, mwpower, freq, mode));
     }
 
     txrange = rig_get_range(rig->state.tx_range_list, freq, mode);
@@ -5761,13 +5760,13 @@ int HAMLIB_API rig_mW2power(RIG *rig,
         /*
          * freq is not on the tx range!
          */
-        return (-RIG_EINVAL); /* could be RIG_EINVAL ? */
+        RETURNFUNC(-RIG_EINVAL);  /* could be RIG_EINVAL ? */
     }
 
     if (txrange->high_power == 0)
     {
         *power = 0.0;
-        return (RIG_OK);
+        RETURNFUNC(RIG_OK);
     }
 
     *power = (float)mwpower / txrange->high_power;
@@ -5777,7 +5776,7 @@ int HAMLIB_API rig_mW2power(RIG *rig,
         *power = 1.0;
     }
 
-    return (mwpower > txrange->high_power ? RIG_OK : -RIG_ETRUNC);
+    RETURNFUNC(mwpower > txrange->high_power ? RIG_OK : -RIG_ETRUNC);
 }
 
 
@@ -6690,7 +6689,7 @@ const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t *range_list,
 
     if (!range_list)
     {
-        return NULL;
+        return (NULL);
     }
 
     for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
