@@ -6376,7 +6376,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
 
     if (ret != RIG_OK) { RETURNFUNC(ret); }
 
-    // we need both vfo and mode targtable to avoid vfo swapping
+    // we need both vfo and mode targetable to avoid vfo swapping
     if ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE))
     {

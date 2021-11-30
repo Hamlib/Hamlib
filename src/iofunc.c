@@ -310,26 +310,26 @@ extern int is_uh_radio_fd(int fd);
 /* On MinGW32/MSVC/.. the appropriate accessor must be used
  * depending on the port type, sigh.
  */
-static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
+static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int direct)
 {
+    int fd = direct ? p->fd : p->fd_sync_read;
     int i;
     ssize_t ret;
 
-    //ENTERFUNC; // too verbose
     /*
      * Since WIN32 does its special serial read, we have
      * to catch the microHam case to do just "read".
      * Note that we always have RIG_PORT_SERIAL in the
      * microHam case.
      */
-    if (is_uh_radio_fd(p->fd))
+    if (direct && is_uh_radio_fd(fd))
     {
-        return read(p->fd, buf, count);
+        return read(fd, buf, count);
     }
 
-    if (p->type.rig == RIG_PORT_SERIAL)
+    if (direct && p->type.rig == RIG_PORT_SERIAL)
     {
-        ret = win32_serial_read(p->fd, buf, count);
+        ret = win32_serial_read(fd, buf, (int) count);
 
         if (p->parm.serial.data_bits == 7)
         {
@@ -342,17 +342,15 @@ static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
             }
         }
 
-        //RETURNFUNC(ret); // too verbose
         return ret;
     }
-    else if (p->type.rig == RIG_PORT_NETWORK
-             || p->type.rig == RIG_PORT_UDP_NETWORK)
+    else if (direct && (p->type.rig == RIG_PORT_NETWORK || p->type.rig == RIG_PORT_UDP_NETWORK))
     {
-        return recv(p->fd, buf, count, 0);
+        return recv(fd, buf, count, 0);
     }
     else
     {
-        return read(p->fd, buf, count);
+        return read(fd, buf, count);
     }
 }
 
@@ -371,7 +369,7 @@ static ssize_t port_write(hamlib_port_t *p, const void *buf, size_t count)
 
     if (p->type.rig == RIG_PORT_SERIAL)
     {
-        return win32_serial_write(p->fd, buf, count);
+        return win32_serial_write(p->fd, buf, (int) count);
     }
     else if (p->type.rig == RIG_PORT_NETWORK
              || p->type.rig == RIG_PORT_UDP_NETWORK)
@@ -390,7 +388,8 @@ static int port_select(hamlib_port_t *p,
                        fd_set *readfds,
                        fd_set *writefds,
                        fd_set *exceptfds,
-                       struct timeval *timeout)
+                       struct timeval *timeout,
+                       int direct)
 {
 #if 1
 
@@ -417,12 +416,12 @@ static int port_select(hamlib_port_t *p,
      * Note that we always have RIG_PORT_SERIAL in the
      * microHam case.
      */
-    if (is_uh_radio_fd(p->fd))
+    if (direct && is_uh_radio_fd(p->fd))
     {
         return select(n, readfds, writefds, exceptfds, timeout);
     }
 
-    if (p->type.rig == RIG_PORT_SERIAL)
+    if (direct && p->type.rig == RIG_PORT_SERIAL)
     {
         return win32_serial_select(n, readfds, writefds, exceptfds, timeout);
     }
@@ -465,7 +464,7 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int 
 
 //! @cond Doxygen_Suppress
 #define port_write(p,b,c) write((p)->fd,(b),(c))
-#define port_select(p,n,r,w,e,t) select((n),(r),(w),(e),(t))
+#define port_select(p,n,r,w,e,t,d) select((n),(r),(w),(e),(t))
 //! @endcond
 
 #endif
@@ -502,8 +501,6 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int 
 int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
 {
     int ret;
-
-    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 
@@ -599,14 +596,22 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
 
 int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
 {
-    // TODO: Macro for write()
-    return (int) write((p)->fd_sync_write, txbuffer, count);
+    if (!p->async)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    return (int) write(p->fd_sync_write, txbuffer, count);
 }
 
 int HAMLIB_API write_block_sync_error(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
 {
-    // TODO: Macro for write()
-    return (int) write((p)->fd_sync_error_write, txbuffer, count);
+    if (!p->async)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    return (int) write(p->fd_sync_error_write, txbuffer, count);
 }
 
 static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t count, int direct)
@@ -617,6 +622,11 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
     int total_count = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!p->async && !direct)
+    {
+        return -RIG_EINTERNAL;
+    }
 
     fd = direct ? p->fd : p->fd_sync_read;
 
@@ -639,7 +649,7 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
         FD_SET(fd, &rfds);
         efds = rfds;
 
-        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv);
+        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv, direct);
 
         if (retval == 0)
         {
@@ -753,7 +763,7 @@ int HAMLIB_API read_block_direct(hamlib_port_t *p, unsigned char *rxbuffer, size
     return read_block_generic(p, rxbuffer, count, 1);
 }
 
-static int flush_and_read_last_byte(int fd)
+static int flush_and_read_last_byte(hamlib_port_t *p, int fd, int direct)
 {
     fd_set rfds, efds;
     ssize_t bytes_read;
@@ -769,7 +779,7 @@ static int flush_and_read_last_byte(int fd)
         FD_SET(fd, &rfds);
         efds = rfds;
 
-        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv_timeout);
+        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv_timeout, direct);
         if (retval < 0)
         {
             return -RIG_ETIMEOUT;
@@ -803,6 +813,11 @@ static int read_string_generic(hamlib_port_t *p,
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
     int total_count = 0;
     int i = 0;
+
+    if (!p->async && !direct)
+    {
+        return -RIG_EINTERNAL;
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d\n", __func__, (int)rxmax);
 
@@ -849,7 +864,7 @@ static int read_string_generic(hamlib_port_t *p,
         }
         efds = rfds;
 
-        retval = port_select(p, maxfd + 1, &rfds, NULL, &efds, &tv);
+        retval = port_select(p, maxfd + 1, &rfds, NULL, &efds, &tv, direct);
 
         if (retval == 0)
         {
@@ -915,7 +930,7 @@ static int read_string_generic(hamlib_port_t *p,
 
             if (FD_ISSET(errorfd, &rfds))
             {
-                return flush_and_read_last_byte(errorfd);
+                return flush_and_read_last_byte(p, errorfd, 0);
             }
         }
 

@@ -658,12 +658,13 @@ static int multicast_publisher_read_packet(int fd, uint8_t *type, struct rig_spe
 
 void *multicast_publisher(void *arg)
 {
+    unsigned char spectrum_data[HAMLIB_MAX_SPECTRUM_DATA];
+    char snapshot_buffer[HAMLIB_MAX_SNAPSHOT_PACKET_SIZE];
+
     struct multicast_publisher_args_s *args = (struct multicast_publisher_args_s *)arg;
     RIG *rig = args->rig;
     struct rig_state *rs = &rig->state;
     struct rig_spectrum_line spectrum_line;
-    unsigned char spectrum_data[2048];
-    char snapshot_buffer[16 * 1024];
     uint8_t packet_type;
 
     struct sockaddr_in dest_addr;
