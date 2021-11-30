@@ -9,13 +9,64 @@
 
 #include "cJSON.h"
 
-// Maximum number of data bytes in a single spectrum line
-#define SPECTRUM_DATA_MAX_LENGTH 2048
-
 #define MAX_VFO_COUNT 4
 
 #define SPECTRUM_MODE_FIXED "FIXED"
 #define SPECTRUM_MODE_CENTER "CENTER"
+
+static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
+{
+    cJSON *node;
+
+    // TODO: need to assign rig an ID, e.g. from command line
+    node = cJSON_AddStringToObject(rig_node, "id", "rig_id");
+    if (node == NULL)
+    {
+        goto error;
+    }
+
+    // TODO: what kind of status should this reflect?
+    node = cJSON_AddStringToObject(rig_node, "status", rig->state.comm_state ? "OK" : "CLOSED");
+    if (node == NULL)
+    {
+        goto error;
+    }
+    // TODO: need to store last error code
+    node = cJSON_AddStringToObject(rig_node, "errorMsg", "");
+    if (node == NULL)
+    {
+        goto error;
+    }
+
+    node = cJSON_AddStringToObject(rig_node, "name", rig->caps->model_name);
+    if (node == NULL)
+    {
+        goto error;
+    }
+
+    node = cJSON_AddBoolToObject(rig_node, "split", rig->state.cache.split == RIG_SPLIT_ON ? 1 : 0);
+    if (node == NULL)
+    {
+        goto error;
+    }
+
+    node = cJSON_AddStringToObject(rig_node, "splitVfo", rig_strvfo(rig->state.cache.split_vfo));
+    if (node == NULL)
+    {
+        goto error;
+    }
+
+    node = cJSON_AddBoolToObject(rig_node, "satMode", rig->state.cache.satmode ? 1 : 0);
+    if (node == NULL)
+    {
+        goto error;
+    }
+
+    RETURNFUNC(RIG_OK);
+
+    error:
+    RETURNFUNC(-RIG_EINTERNAL);
+}
 
 static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
 {
@@ -91,7 +142,7 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
 static int snapshot_serialize_spectrum(cJSON *spectrum_node, RIG *rig, struct rig_spectrum_line *spectrum_line)
 {
     // Spectrum data is represented as a hexadecimal ASCII string where each data byte is represented as 2 ASCII letters
-    char spectrum_data_string[SPECTRUM_DATA_MAX_LENGTH * 2];
+    char spectrum_data_string[HAMLIB_MAX_SPECTRUM_DATA * 2];
     cJSON *node;
     int i;
     struct rig_spectrum_scope *scopes = rig->caps->spectrum_scopes;
@@ -243,48 +294,14 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig, struct rig_
         goto error;
     }
 
+    result = snapshot_serialize_rig(rig_node, rig);
+    if (result != RIG_OK)
+    {
+        cJSON_Delete(rig_node);
+        goto error;
+    }
+
     cJSON_AddItemToObject(root_node, "rig", rig_node);
-
-    node = cJSON_AddStringToObject(rig_node, "id", "rig_id");
-    if (node == NULL)
-    {
-        goto error;
-    }
-
-    node = cJSON_AddStringToObject(rig_node, "status", "");
-    if (node == NULL)
-    {
-        goto error;
-    }
-    node = cJSON_AddStringToObject(rig_node, "errorMsg", "");
-    if (node == NULL)
-    {
-        goto error;
-    }
-
-    node = cJSON_AddStringToObject(rig_node, "name", rig->caps->model_name);
-    if (node == NULL)
-    {
-        goto error;
-    }
-
-    node = cJSON_AddBoolToObject(rig_node, "split", rig->state.cache.split == RIG_SPLIT_ON ? 1 : 0);
-    if (node == NULL)
-    {
-        goto error;
-    }
-
-    node = cJSON_AddStringToObject(rig_node, "splitVfo", rig_strvfo(rig->state.cache.split_vfo));
-    if (node == NULL)
-    {
-        goto error;
-    }
-
-    node = cJSON_AddBoolToObject(rig_node, "satMode", 0);
-    if (node == NULL)
-    {
-        goto error;
-    }
 
     vfos_array = cJSON_CreateArray();
     if (vfos_array == NULL)

@@ -751,11 +751,11 @@ int rig_fire_spectrum_event(RIG *rig, struct rig_spectrum_line *line)
 {
     ENTERFUNC;
 
-    if (rig_need_debug(RIG_DEBUG_ERR))
+    if (rig_need_debug(RIG_DEBUG_TRACE))
     {
         char spectrum_debug[line->spectrum_data_length * 4];
         print_spectrum_line(spectrum_debug, sizeof(spectrum_debug), line);
-        rig_debug(RIG_DEBUG_ERR, "%s: ASCII Spectrum Scope: %s\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: ASCII Spectrum Scope: %s\n", __func__,
                 spectrum_debug);
     }
 
