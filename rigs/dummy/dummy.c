@@ -2140,6 +2140,55 @@ static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
     RETURNFUNC(RIG_OK);
 }
 
+static int m_year, m_month, m_day, m_hour, m_min, m_sec, m_utc_offset;
+static double m_msec;
+
+int dummy_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+                    int sec, double msec, int utc_offset)
+{
+    int retval = RIG_OK;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: %04d-%02d-%02dT%02d:%02d:%02d.%.03f%s%02d\n",
+              __func__, year,
+              month, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
+              (unsigned)(abs(utc_offset)));
+    m_year = year;
+    m_month = month;
+    m_day = day;
+
+    if (hour >= 0)
+    {
+        m_hour = hour;
+        m_min = min;
+        m_sec = sec;
+        m_msec = msec;
+        m_utc_offset = utc_offset;
+    }
+
+    return retval;
+}
+
+int dummy_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+                    int *min, int *sec, double *msec, int *utc_offset)
+{
+    int retval = RIG_OK;
+
+    *year = m_year;
+    *month = m_month;
+    *day = m_day;
+    *hour = m_hour;
+    *min = m_min;
+    *sec = m_sec;
+    *msec = m_msec;
+    *utc_offset = m_utc_offset;
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: %02d-%02d-%02dT%02d:%02d:%02d:%0.3lf%s%02d\n'",
+              __func__, *year, *month, *day, *hour, *min, *sec, *msec,
+              *utc_offset >= 0 ? "+" : "-", (unsigned)abs(*utc_offset));
+    return retval;
+}
+
 
 /*
  * Dummy rig capabilities.
@@ -2195,7 +2244,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20210705.0",
+    .version =        "20211130.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
@@ -2415,6 +2464,8 @@ struct rig_caps dummy_caps =
     .get_trn =    dummy_get_trn,
     .power2mW =   dummy_power2mW,
     .mW2power =   dummy_mW2power,
+    .set_clock = dummy_set_clock,
+    .get_clock = dummy_get_clock
 };
 
 struct rig_caps dummy_no_vfo_caps =
@@ -2580,6 +2631,8 @@ struct rig_caps dummy_no_vfo_caps =
     .get_trn =    dummy_get_trn,
     .power2mW =   dummy_power2mW,
     .mW2power =   dummy_mW2power,
+    .set_clock = dummy_set_clock,
+    .get_clock = dummy_get_clock
 };
 
 DECLARE_INITRIG_BACKEND(dummy)

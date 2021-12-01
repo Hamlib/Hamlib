@@ -1980,6 +1980,8 @@ struct rig_caps {
                              rmode_t *mode,
                              pbwidth_t *width,
                              split_t *split);
+    int(*set_clock) (RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset);
+    int(*get_clock) (RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset);
 
     const char *clone_combo_set;    /*!< String describing key combination to enter load cloning mode */
     const char *clone_combo_get;    /*!< String describing key combination to enter save cloning mode */
@@ -3175,6 +3177,8 @@ extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rm
 extern HAMLIB_EXPORT(int) rig_get_rig_info(RIG *rig, char *response, int max_response_len);
 extern HAMLIB_EXPORT(int) rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int * cache_ms_freq, rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width);
 
+extern HAMLIB_EXPORT(int) rig_set_clock(RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset);
+extern HAMLIB_EXPORT(int) rig_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset);
 
 typedef unsigned long rig_useconds_t;
 extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);

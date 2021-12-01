@@ -244,6 +244,8 @@ declare_proto_rig(halt);
 declare_proto_rig(pause);
 declare_proto_rig(password);
 declare_proto_rig(set_password);
+declare_proto_rig(set_clock);
+declare_proto_rig(get_clock);
 
 
 /*
@@ -344,11 +346,13 @@ static struct test_table test_list[] =
     { 0xf5, "get_rig_info",     ACTION(get_rig_info),   ARG_NOVFO | ARG_OUT, "RigInfo" }, /* get several vfo parameters at once */
     { 0xf4, "get_vfo_list",    ACTION(get_vfo_list),   ARG_OUT | ARG_NOVFO, "VFOs" },
     { 0xf6, "get_modes",       ACTION(get_modes),   ARG_OUT | ARG_NOVFO, "Modes" },
-    { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
+    { 0xf9, "get_clock",        ACTION(get_clock),      ARG_IN | ARG_NOVFO, "local/utc" },
+    { 0xf8, "set_clock",        ACTION(set_clock),      ARG_IN | ARG_NOVFO, "YYYYMMDDHHMMSS.sss+ZZ" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x98, "password",         ACTION(password),       ARG_IN, "Password" },
     { 0x99, "set_password",     ACTION(set_password),   ARG_IN, "Password" },
+    { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
     { 0x00, "", NULL },
 };
 
@@ -5205,4 +5209,46 @@ declare_proto_rig(get_cache)
     fprintf(fout, "%d\n", ms);
 
     RETURNFUNC(RIG_OK);
+}
+
+/* '0xf8' */
+declare_proto_rig(set_clock)
+{
+    int year, mon, day, hour = -1, min = -1, sec = -1;
+    double msec;
+    int utc_offset = 0;
+    int n;
+
+    ENTERFUNC;
+
+    n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
+               &min, &sec, &msec, &utc_offset);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: n=%d, %04d-%02d-%02dT%02d:%02d:%02d.%0.3f%s%02d\n",
+              __func__, n, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
+              (unsigned)abs(utc_offset));
+
+    RETURNFUNC(rig_set_clock(rig, year, mon, day, hour, min, sec, msec,
+                             utc_offset));
+}
+
+/* '0xf9' */
+declare_proto_rig(get_clock)
+{
+    char option[64];
+    int year, month, day, hour, min, sec, utc_offset;
+    int retval;
+    double msec;
+
+    ENTERFUNC;
+
+    CHKSCN1ARG(sscanf(arg1, "%63s", option));
+
+    retval = rig_get_clock(rig, &year, &month, &day, &hour, &min, &sec, &msec,
+                           &utc_offset);
+
+    fprintf(fout, "%04d-%02d-%02dT%02d:%02d:%02d.%0.3f%s%02d\n", year, month, day,
+            hour, min, sec, msec, utc_offset >= 0 ? "+" : "-", (unsigned)abs(utc_offset));
+
+    return retval;
 }

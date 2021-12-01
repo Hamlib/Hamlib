@@ -6995,6 +6995,42 @@ int HAMLIB_API rig_get_vfo_list(RIG *rig, char *buf, int buflen)
 }
 
 /**
+ * \brief set the rig's clock
+ *
+ */
+int HAMLIB_API rig_set_clock(RIG *rig, int year, int month, int day, int hour,
+                             int min, int sec, double msec, int utc_offset)
+{
+    if (rig->caps->set_clock == NULL)
+    {
+        return -RIG_ENIMPL;
+    }
+
+    RETURNFUNC(rig->caps->set_clock(rig, year, month, day, hour, min, sec,
+                                    msec, utc_offset));
+}
+
+/**
+ * \brief get the rig's clock
+ *
+ */
+int HAMLIB_API rig_get_clock(RIG *rig, int *year, int *month, int *day,
+                             int *hour,
+                             int *min, int *sec, double *msec, int *utc_offset)
+{
+    int retval;
+
+    if (rig->caps->get_clock == NULL)
+    {
+        return -RIG_ENIMPL;
+    }
+
+    retval = rig->caps->get_clock(rig, year, month, day, hour, min, sec,
+                                  msec, utc_offset);
+    RETURNFUNC(retval);
+}
+
+/**
  * \brief get the Hamlib license
  *
  */
