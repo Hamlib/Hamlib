@@ -1538,9 +1538,9 @@ int ic7300_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     resplen = sizeof(respbuf);
     retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
     dump_hex(respbuf, resplen);
-    *year = from_bcd(&respbuf[4], 4);
-    *month = from_bcd(&respbuf[5], 2);
-    *day = from_bcd(&respbuf[6], 2);
+    *year = from_bcd(&respbuf[4], 2)*1000+from_bcd(&respbuf[5],2);
+    *month = from_bcd(&respbuf[6], 2);
+    *day = from_bcd(&respbuf[7], 2);
 
     if (hour != NULL)
     {
