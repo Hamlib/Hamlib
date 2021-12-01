@@ -24,7 +24,8 @@
 #include "config.h"
 #endif
 
-#include <string.h>  /* String function definitions */
+#include <string.h>
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "idx_builtin.h"
@@ -41,10 +42,10 @@
 static int ic7300_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
 int ic7300_set_clock(RIG *rig, int year, int month, int day, int hour,
-                            int min, int sec, double msec, int utc_offset);
+                     int min, int sec, double msec, int utc_offset);
 int ic7300_get_clock(RIG *rig, int *year, int *month, int *day,
-                            int *hour,
-                            int *min, int *sec, double *msec, int *utc_offset);
+                     int *hour,
+                     int *min, int *sec, double *msec, int *utc_offset);
 
 
 #define IC7300_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
@@ -1537,18 +1538,29 @@ int ic7300_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     resplen = sizeof(respbuf);
     retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
     dump_hex(respbuf, resplen);
-    *year = respbuf[4];
-    *month = respbuf[5];
-    *day = respbuf[6];
+    *year = from_bcd(&respbuf[4], 4);
+    *month = from_bcd(&respbuf[5], 2);
+    *day = from_bcd(&respbuf[6], 2);
 
-    if (hour >= 0) //
+    if (hour != NULL)
     {
         prmbuf[0] = 0x00;
         prmbuf[1] = 0x95;
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
         dump_hex(respbuf, resplen);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: %02d-%02d-%02dT%02d:%02d:%02d:%0.3lf\n'",
-                  __func__, *year, *month, *day, *hour, *min, *sec, *msec);
+        *hour = from_bcd(&respbuf[4], 2);
+        *min = from_bcd(&respbuf[5], 2);
+        *sec = 0;
+        *msec = 0;
+
+        prmbuf[0] = 0x00;
+        prmbuf[1] = 0x96;
+        retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
+        *utc_offset = from_bcd(&respbuf[4], 2);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: %02d-%02d-%02dT%02d:%02d:%02d:%0.3lf%s%02d\n'",
+                  __func__, *year, *month, *day, *hour, *min, *sec, *msec,
+                  *utc_offset >= 0 ? "+" : "-", (unsigned)abs(*utc_offset));
     }
 
     return retval;
@@ -1627,7 +1639,7 @@ int ic9700_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     *month = respbuf[5];
     *day = respbuf[6];
 
-    if (hour != NULL) 
+    if (hour != NULL)
     {
         prmbuf[0] = 0x01;
         prmbuf[1] = 0x80;
@@ -1644,7 +1656,8 @@ int ic9700_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
         dump_hex(respbuf, resplen);
         *utc_offset = respbuf[4];
-        if (respbuf[5] > 0) *utc_offset = *utc_offset*100 + respbuf[5];
+
+        if (respbuf[5] > 0) { *utc_offset = *utc_offset * 100 + respbuf[5]; }
     }
 
     return retval;
