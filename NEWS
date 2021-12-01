@@ -7,13 +7,15 @@ Copyright (C) 2000-2021  Michael Black W9MDB, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 4.4
-        * 2021-??-??
+        * 2021-12-01
         * Icom rigs now default filter 2 when setting PKTUSB but user can override 
         * Fix FTDX9000 meter readings
         * Add Android sensor as a rotator
         * Added rig_get_vfo to some Icom rigs that have XCHG or 0x25 command capability
         * Added ability to build hamlib with docker
         * Added M0NKA mcHF URP rig
+        * Faster serial i/o noticeable on higher baud rates
+        * IC7300 set_clock/get_clock routines added -- no auto set yet
 
 Version 4.3.1
         * 2021-09-14
