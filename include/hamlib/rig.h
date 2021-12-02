@@ -2199,6 +2199,8 @@ typedef hamlib_port_t port_t;
 #define HAMLIB_ELAPSED_SET 1
 #define HAMLIB_ELAPSED_INVALIDATE 2
 
+#define HAMLIB_CACHE_ALWAYS -1 /*< value to set cache timeout to always use cache */
+
 typedef enum {
     HAMLIB_CACHE_ALL, // to set all cache timeouts at once
     HAMLIB_CACHE_VFO,
