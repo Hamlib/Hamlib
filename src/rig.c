@@ -2492,6 +2492,14 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     cache_show(rig, __func__, __LINE__);
 
+    if (rig->state.cache.timeout_ms == HAMLIB_CACHE_ALWAYS)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age mode=%dms, width=%dms\n",
+                  __func__, cache_ms_mode, cache_ms_width);
+
+        ELAPSED2;
+        RETURNFUNC(RIG_OK);
+    }
     if ((*mode != RIG_MODE_NONE && cache_ms_mode < rig->state.cache.timeout_ms)
             && cache_ms_width < rig->state.cache.timeout_ms)
     {
