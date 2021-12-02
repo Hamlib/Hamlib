@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20211114"
+#define NEWCAT_VER "20211202"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -222,6 +222,11 @@ int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 
 int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 int newcat_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
+int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+                     int sec, double msec, int utc_offset);
+int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+                     int *min, int *sec, double *msec, int *utc_offset);
+
 
 #define TOKEN_BACKEND(t) (t)
 
