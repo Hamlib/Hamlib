@@ -377,7 +377,8 @@ read_another_frame:
     Unhold_Decode(rig);
 
     *data_len = frm_data_len;
-    if (data != NULL && data_len != NULL) memcpy(data, buf + 4, *data_len);
+
+    if (data != NULL && data_len != NULL) { memcpy(data, buf + 4, *data_len); }
 
     /*
      * TODO: check addresses in reply frame

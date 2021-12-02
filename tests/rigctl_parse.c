@@ -346,7 +346,8 @@ static struct test_table test_list[] =
     { 0xf5, "get_rig_info",     ACTION(get_rig_info),   ARG_NOVFO | ARG_OUT, "RigInfo" }, /* get several vfo parameters at once */
     { 0xf4, "get_vfo_list",    ACTION(get_vfo_list),   ARG_OUT | ARG_NOVFO, "VFOs" },
     { 0xf6, "get_modes",       ACTION(get_modes),   ARG_OUT | ARG_NOVFO, "Modes" },
-    { 0xf9, "get_clock",        ACTION(get_clock),      ARG_IN | ARG_NOVFO, "local/utc" },
+//    { 0xf9, "get_clock",        ACTION(get_clock),      ARG_IN | ARG_NOVFO, "local/utc" },
+    { 0xf9, "get_clock",        ACTION(get_clock),      ARG_NOVFO },
     { 0xf8, "set_clock",        ACTION(set_clock),      ARG_IN | ARG_NOVFO, "YYYYMMDDHHMMSS.sss+ZZ" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
@@ -5228,6 +5229,10 @@ declare_proto_rig(set_clock)
               __func__, n, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
               (unsigned)abs(utc_offset));
 
+    rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
+    if (utc_offset < 24) utc_offset *= 100; // allow for minutes offset too
+    rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
+   
     RETURNFUNC(rig_set_clock(rig, year, mon, day, hour, min, sec, msec,
                              utc_offset));
 }
@@ -5235,20 +5240,21 @@ declare_proto_rig(set_clock)
 /* '0xf9' */
 declare_proto_rig(get_clock)
 {
-    char option[64];
-    int year, month, day, hour, min, sec, utc_offset;
+    //char option[64];
+    int year, month, day, hour, min, sec, utc_offset, aoffset;
     int retval;
     double msec;
 
     ENTERFUNC;
 
-    CHKSCN1ARG(sscanf(arg1, "%63s", option));
+    //CHKSCN1ARG(sscanf(arg1, "%63s", option));
 
     retval = rig_get_clock(rig, &year, &month, &day, &hour, &min, &sec, &msec,
                            &utc_offset);
-
-    fprintf(fout, "%04d-%02d-%02dT%02d:%02d:%02d.%0.3f%s%02d\n", year, month, day,
-            hour, min, sec, msec, utc_offset >= 0 ? "+" : "-", (unsigned)abs(utc_offset));
+    aoffset = abs(utc_offset);
+    fprintf(fout, "%04d-%02d-%02dT%02d:%02d:%06.3f%s%02d:%02d\n", year, month, day,
+            hour, min, sec + msec / 1000, utc_offset >= 0 ? "+" : "-",
+            aoffset/100, aoffset % 100);
 
     return retval;
 }

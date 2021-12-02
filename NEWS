@@ -15,7 +15,7 @@ Version 4.4
         * Added ability to build hamlib with docker
         * Added M0NKA mcHF URP rig
         * Faster serial i/o noticeable on higher baud rates
-        * IC7300 set_clock/get_clock routines added -- no auto set yet
+        * IC7300/9700/7800/785x set_clock/get_clock routines added -- no auto set yet
 
 Version 4.3.1
         * 2021-09-14
