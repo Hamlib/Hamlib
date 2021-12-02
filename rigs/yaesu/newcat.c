@@ -11026,3 +11026,112 @@ static int newcat_get_contour_width(RIG *rig, vfo_t vfo, int *width)
 
     RETURNFUNC(RIG_OK);
 }
+
+int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+                     int sec, double msec, int utc_offset)
+{
+    int retval = RIG_OK;
+    int err;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+
+    if (!newcat_valid_command(rig, "DT"))
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT0%04d%02d%02d%c", year, month,
+             day, cat_term);
+
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
+                  err);
+        RETURNFUNC(err);
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT1%02d%02d%02d%c", hour, min, sec, cat_term);
+
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
+                  err);
+        RETURNFUNC(err);
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT2%c%04d%c", utc_offset>=0?'+':'-', utc_offset, cat_term);
+
+    if (RIG_OK != (err = newcat_set_cmd(rig)))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
+                  err);
+        RETURNFUNC(err);
+    }
+
+    RETURNFUNC(retval);
+}
+
+int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+                     int *min, int *sec, double *msec, int *utc_offset)
+{
+    int retval = RIG_OK;
+    int err;
+    int n;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+
+    if (!newcat_valid_command(rig, "DT"))
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT0%c", cat_term);
+
+    if ((err = newcat_get_cmd(rig)) != RIG_OK)
+    {
+        RETURNFUNC(err);
+    }
+
+    n = sscanf(priv->ret_data, "DT0%04d%02d%02d", year, month, day);
+
+    if (n != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: DT0 unable to parse '%s'\n", __func__,
+                  priv->ret_data);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT1%c", cat_term);
+
+    if ((err = newcat_get_cmd(rig)) != RIG_OK)
+    {
+        RETURNFUNC(err);
+    }
+
+    n = sscanf(priv->ret_data, "DT1%02d%02d%02d", hour, min, sec);
+
+    if (n != 3)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: DT1 unable to parse '%s'\n", __func__,
+                  priv->ret_data);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT2%c", cat_term);
+
+    if ((err = newcat_get_cmd(rig)) != RIG_OK)
+    {
+        RETURNFUNC(err);
+    }
+
+    // we keep utc_offset in HHMM format rather than converting
+    n = sscanf(priv->ret_data, "DT2%d", utc_offset);
+
+    if (n != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: DT2 unable to parse '%s'\n", __func__,
+                  priv->ret_data);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+
+    RETURNFUNC(retval);
+}
+
