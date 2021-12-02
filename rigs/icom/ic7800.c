@@ -24,6 +24,7 @@
 #endif
 
 #include <string.h>  /* String function definitions */
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "token.h"
@@ -155,7 +156,7 @@ const struct rig_caps ic7800_caps =
     RIG_MODEL(RIG_MODEL_IC7800),
     .model_name = "IC-7800",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".4",
+    .version =  BACKEND_VER ".5",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -417,12 +418,12 @@ int ic7800_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
 
     if (year >= 0)
     {
-        prmbuf[0] = 0x01;
-        prmbuf[1] = 0x20;
-        prmbuf[2] = year / 100;
-        prmbuf[3] = year % 100;
-        prmbuf[4] = month;
-        prmbuf[5] = day;
+        prmbuf[0] = 0x00;
+        prmbuf[1] = 0x59;
+        to_bcd(&prmbuf[2], year / 100, 2);
+        to_bcd(&prmbuf[3], year % 100, 2);
+        to_bcd(&prmbuf[4], month, 2);
+        to_bcd(&prmbuf[5], day, 2);
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 6, NULL, NULL);
 
         if (retval != RIG_OK)
@@ -433,10 +434,10 @@ int ic7800_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
 
     if (hour >= 0)
     {
-        prmbuf[0] = 0x01;
-        prmbuf[1] = 0x21;
-        prmbuf[2] = hour;
-        prmbuf[3] = min;
+        prmbuf[0] = 0x00;
+        prmbuf[1] = 0x60;
+        to_bcd(&prmbuf[2], hour, 2);
+        to_bcd(&prmbuf[3], min, 2);
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 4, NULL, NULL);
 
         if (retval != RIG_OK)
@@ -444,11 +445,12 @@ int ic7800_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
             rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\b", __func__, __LINE__, rigerror(retval));
         }
 
-        prmbuf[0] = 0x01;
-        prmbuf[1] = 0x23;
-        prmbuf[2] = utc_offset / 100;
-        prmbuf[3] = utc_offset % 100;
-        prmbuf[4] = utc_offset >= 0 ? 0 : 1;
+        prmbuf[0] = 0x00;
+        prmbuf[1] = 0x62;
+        rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
+        to_bcd(&prmbuf[2], abs(utc_offset) / 100, 2);
+        to_bcd(&prmbuf[3], abs(utc_offset) % 100, 2);
+        to_bcd(&prmbuf[4], utc_offset >= 0 ? 0 : 1, 2);
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 5, NULL, NULL);
 
         if (retval != RIG_OK)
@@ -459,7 +461,6 @@ int ic7800_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
 
     return retval;
 }
-
 
 int ic7800_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
                      int *min, int *sec, double *msec, int *utc_offset)
@@ -472,30 +473,36 @@ int ic7800_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     unsigned char respbuf[MAXFRAMELEN];
 
     prmbuf[0] = 0x00;
-    prmbuf[1] = 0x94;
+    prmbuf[1] = 0x59;
     resplen = sizeof(respbuf);
     retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
-    dump_hex(respbuf, resplen);
-    *year = respbuf[4];
-    *month = respbuf[5];
-    *day = respbuf[6];
+    *year = from_bcd(&respbuf[4], 2) * 100 + from_bcd(&respbuf[5], 2);
+    *month = from_bcd(&respbuf[6], 2);
+    *day = from_bcd(&respbuf[7], 2);
 
-    if (hour >= 0) //
+    if (hour != NULL)
     {
         prmbuf[0] = 0x00;
-        prmbuf[1] = 0x95;
+        prmbuf[1] = 0x60;
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
-        dump_hex(respbuf, resplen);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: %02d-%02d-%02dT%02d:%02d:%02d:%0.3lf\n'",
-                  __func__, *year, *month, *day, *hour, *min, *sec, *msec);
-                prmbuf[0] = 0x01;
-        prmbuf[1] = 0x81;
+        *hour = from_bcd(&respbuf[4], 2);
+        *min = from_bcd(&respbuf[5], 2);
+        *sec = 0;
+        *msec = 0;
+
+        prmbuf[0] = 0x00;
+        prmbuf[1] = 0x62;
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
-        dump_hex(respbuf, resplen);
-        *utc_offset = respbuf[4];
-        if (respbuf[5] > 0) *utc_offset = *utc_offset*100 + respbuf[5];
+        *utc_offset = from_bcd(&respbuf[4], 2) * 100;
+        *utc_offset += from_bcd(&respbuf[5], 2);
+
+        if (respbuf[6] != 0x00) { *utc_offset *= -1; }
+
+        //rig_debug(RIG_DEBUG_VERBOSE,
+        //          "%s: %02d-%02d-%02dT%02d:%02d:%06.3lf%s%04d\n'",
+        //          __func__, *year, *month, *day, *hour, *min, *sec + *msec / 1000,
+        //          *utc_offset >= 0 ? "+" : "-", (unsigned)abs(*utc_offset));
     }
 
     return retval;
 }
-
