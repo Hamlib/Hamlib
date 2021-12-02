@@ -32,6 +32,7 @@
 #include "idx_builtin.h"
 #include "bandplan.h"
 #include "token.h"
+#include "misc.h"
 
 
 #define IC7100_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|\
