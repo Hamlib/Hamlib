@@ -157,9 +157,6 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
-#define ELAPSED1 struct timespec __begin; elapsed_ms(&__begin, HAMLIB_ELAPSED_SET);
-#define ELAPSED2 rig_debug(RIG_DEBUG_TRACE, "%s: elapsed=%.0lfms\n", __func__, elapsed_ms(&__begin, HAMLIB_ELAPSED_GET));
-
 #define LOCK \
 
 /*
