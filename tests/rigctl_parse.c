@@ -2262,6 +2262,7 @@ declare_proto_rig(get_vfo_info)
     int retval;
 
     ENTERFUNC;
+    ELAPSED1;
 
     if (!strcmp(arg1, "?"))
     {
@@ -2301,6 +2302,7 @@ declare_proto_rig(get_vfo_info)
         fprintf(fout, "%.0f\n%s\n%d\n", freq, modestr, (int)width);
     }
 
+    ELAPSED2;
     RETURNFUNC(retval);
 }
 
@@ -5230,9 +5232,11 @@ declare_proto_rig(set_clock)
               (unsigned)abs(utc_offset));
 
     rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
-    if (utc_offset < 24) utc_offset *= 100; // allow for minutes offset too
+
+    if (utc_offset < 24) { utc_offset *= 100; } // allow for minutes offset too
+
     rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
-   
+
     RETURNFUNC(rig_set_clock(rig, year, mon, day, hour, min, sec, msec,
                              utc_offset));
 }
@@ -5254,7 +5258,7 @@ declare_proto_rig(get_clock)
     aoffset = abs(utc_offset);
     fprintf(fout, "%04d-%02d-%02dT%02d:%02d:%06.3f%s%02d:%02d\n", year, month, day,
             hour, min, sec + msec / 1000, utc_offset >= 0 ? "+" : "-",
-            aoffset/100, aoffset % 100);
+            aoffset / 100, aoffset % 100);
 
     return retval;
 }
