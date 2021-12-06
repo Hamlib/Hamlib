@@ -2442,7 +2442,7 @@ char *date_strget(char *buf, int buflen, int localtime)
         mytm = gmtime_r(&t, &result);
     }
 
-    strftime(buf, buflen, "%Y-%m-%d:%H:%M:%S.", mytm);
+    strftime(buf, buflen, "%Y-%m-%dT%H:%M:%S.", mytm);
     gettimeofday(&tv, NULL);
     snprintf(tmpbuf, sizeof(tmpbuf), "%06ld", (long)tv.tv_usec);
     strcat(buf, tmpbuf);
