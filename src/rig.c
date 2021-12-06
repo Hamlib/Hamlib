@@ -2174,7 +2174,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     cache_show(rig, __func__, __LINE__);
 
-    if (*freq != 0 && (cache_ms_freq < rig->state.cache.timeout_ms || rig->state.cache.timeout_ms == HAMLIB_CACHE_ALWAYS))
+    if (*freq != 0 && (cache_ms_freq < rig->state.cache.timeout_ms
+                       || rig->state.cache.timeout_ms == HAMLIB_CACHE_ALWAYS))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%.0f\n", __func__,
                   rig_strvfo(vfo), cache_ms_freq, *freq);
@@ -2497,6 +2498,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
         ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
+
     if ((*mode != RIG_MODE_NONE && cache_ms_mode < rig->state.cache.timeout_ms)
             && cache_ms_width < rig->state.cache.timeout_ms)
     {
@@ -7199,7 +7201,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
                           __FILE__, __LINE__, cookie_save, time_curr - time_last_used);
             }
 
-            date_strget(cookie, cookie_len);
+            date_strget(cookie, cookie_len, 0);
             size_t len = strlen(cookie);
             // add on our random number to ensure uniqueness
             // The cookie should never be longer then HAMLIB_COOKIE_SIZE
