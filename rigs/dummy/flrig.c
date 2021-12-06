@@ -144,7 +144,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "202101014.0",
+    .version = "20211206.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -555,9 +555,10 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
                              int value_len)
 {
     char xml[MAXXMLLEN];
-    int retry = 5;
+    int retry = 3;
 
     ENTERFUNC;
+    ELAPSED1;
 
     if (value)
     {
@@ -569,7 +570,7 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
         char *pxml;
         int retval;
 
-        if (retry < 2)
+        if (retry != 3)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s, retry=%d\n", __func__, cmd, retry);
         }
@@ -601,8 +602,13 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
     while (((value && strlen(value) == 0) || (strlen(xml) == 0))
             && retry--); // we'll do retries if needed
 
-    if (value && strlen(value) == 0) { RETURNFUNC(RIG_EPROTO); }
+    if (value && strlen(value) == 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: no value returned\n", __func__);
+        RETURNFUNC(RIG_EPROTO);
+    }
 
+    ELAPSED2;
     RETURNFUNC(RIG_OK);
 }
 
