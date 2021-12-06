@@ -5221,11 +5221,32 @@ declare_proto_rig(set_clock)
     double msec;
     int utc_offset = 0;
     int n;
+    char timebuf[64];
 
     ENTERFUNC;
 
-    n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
-               &min, &sec, &msec, &utc_offset);
+    if (arg1 && strcasecmp(arg1, "local") == 0)
+    {
+        date_strget(timebuf, sizeof(timebuf), 1);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: local time set = %s\n", __func__, timebuf);
+        n = sscanf(timebuf, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day,
+                   &hour,
+                   &min, &sec, &msec, &utc_offset);
+    }
+    else if (arg1 && strcasecmp(arg1, "utc") == 0)
+    {
+        date_strget(timebuf, sizeof(timebuf), 0);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: utc time set = %s\n", __func__, timebuf);
+        n = sscanf(timebuf, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day,
+                   &hour,
+                   &min, &sec, &msec, &utc_offset);
+    }
+    else
+    {
+        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
+                   &min, &sec, &msec, &utc_offset);
+    }
+
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: n=%d, %04d-%02d-%02dT%02d:%02d:%02d.%0.3f%s%02d\n",
               __func__, n, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",

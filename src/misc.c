@@ -2423,19 +2423,30 @@ static struct tm *gmtime_r(const time_t *t, struct tm *r)
 #endif // _WIN32
 
 //! @cond Doxygen_Suppress
-char *date_strget(char *buf, int buflen)
+char *date_strget(char *buf, int buflen, int localtime)
 {
-    char tmp[16];
+    char tmpbuf[64];
     struct tm *mytm;
     time_t t;
     struct timeval tv;
     struct tm result;
     t = time(NULL);
-    mytm = gmtime_r(&t, &result);
-    strftime(buf, buflen, "%Y-%m-%d:%H:%M:%S.", mytm);
+
+    if (localtime)
+    {
+        mytm = localtime_r(&t, &result);
+    }
+    else
+    {
+        mytm = gmtime_r(&t, &result);
+    }
+
+    strftime(buf, buflen, "%FT%T.", mytm);
     gettimeofday(&tv, NULL);
-    sprintf(tmp, "%06ld", (long)tv.tv_usec);
-    strcat(buf, tmp);
+    sprintf(tmpbuf, "%06ld", (long)tv.tv_usec);
+    strcat(buf, tmpbuf);
+    strftime(tmpbuf, sizeof(tmpbuf), "%z", mytm);
+    strcat(buf, tmpbuf);
     return buf;
 }
 
