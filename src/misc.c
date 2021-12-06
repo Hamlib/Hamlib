@@ -2430,6 +2430,7 @@ char *date_strget(char *buf, int buflen, int localtime)
     time_t t;
     struct timeval tv;
     struct tm result;
+
     t = time(NULL);
 
     if (localtime)
@@ -2441,11 +2442,11 @@ char *date_strget(char *buf, int buflen, int localtime)
         mytm = gmtime_r(&t, &result);
     }
 
-    strftime(buf, buflen, "%FT%T.", mytm);
+    strftime(buf, buflen, "%Y-%m-%d:%H:%M:%S.", mytm);
     gettimeofday(&tv, NULL);
-    sprintf(tmpbuf, "%06ld", (long)tv.tv_usec);
+    snprintf(tmpbuf, sizeof(tmpbuf), "%06ld", (long)tv.tv_usec);
     strcat(buf, tmpbuf);
-    strftime(tmpbuf, sizeof(tmpbuf), "%z", mytm);
+    snprintf(tmpbuf, sizeof(tmpbuf), "%s%04d", timezone >=0? "-":"+", ((int)abs(timezone)/3600)*100);
     strcat(buf, tmpbuf);
     return buf;
 }
