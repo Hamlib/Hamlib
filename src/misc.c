@@ -1266,6 +1266,57 @@ const char *HAMLIB_API rig_stragclevel(enum agc_level_e level)
     return "";
 }
 
+/**
+ * \brief Convert a value to agc_level_e -- constrains the range
+ * \param integer...
+ * \return agc_level_e
+ */
+enum agc_level_e levelagcvalue(int agcValue)
+{
+    enum agc_level_e agcLevel;
+
+    switch (agcValue)
+    {
+    case 0: agcLevel = RIG_AGC_OFF; break;
+
+    case 1: agcLevel = RIG_AGC_SUPERFAST; break;
+
+    case 2: agcLevel = RIG_AGC_FAST; break;
+
+    case 3: agcLevel = RIG_AGC_SLOW; break;
+
+    case 4: agcLevel = RIG_AGC_USER; break;
+
+    case 5: agcLevel = RIG_AGC_MEDIUM; break;
+
+    case 6: agcLevel = RIG_AGC_AUTO; break;
+
+    default: agcLevel = RIG_AGC_AUTO; break;
+    }
+
+    return agcLevel;
+}
+
+/**
+ * \brief Convert AGC string... to agc_level_e
+ * \param mode AGC string...
+ * \return agc_level_e
+ */
+enum agc_level_e levelagcstr(char *agcString)
+{
+    enum agc_level_e agcLevel;
+
+    if (strcmp(agcString, "OFF") == 0) { agcLevel = RIG_AGC_OFF; }
+    else if (strcmp(agcString, "SUPERFAST") == 0) { agcLevel = RIG_AGC_SUPERFAST; }
+    else if (strcmp(agcString, "FAST") == 0) { agcLevel = RIG_AGC_FAST; }
+    else if (strcmp(agcString, "SLOW") == 0) { agcLevel = RIG_AGC_SLOW; }
+    else if (strcmp(agcString, "USER") == 0) { agcLevel = RIG_AGC_USER; }
+    else if (strcmp(agcString, "MEDIUM") == 0) { agcLevel = RIG_AGC_MEDIUM; }
+    else { agcLevel = RIG_AGC_AUTO; }
+
+    return agcLevel;
+}
+
 
 static const struct
 {
@@ -2449,7 +2500,8 @@ char *date_strget(char *buf, int buflen, int localtime)
     gettimeofday(&tv, NULL);
     snprintf(tmpbuf, sizeof(tmpbuf), "%06ld", (long)tv.tv_usec);
     strcat(buf, tmpbuf);
-    snprintf(tmpbuf, sizeof(tmpbuf), "%s%04d", mytimezone >=0? "-":"+", ((int)abs(mytimezone)/3600)*100);
+    snprintf(tmpbuf, sizeof(tmpbuf), "%s%04d", mytimezone >= 0 ? "-" : "+",
+             ((int)abs(mytimezone) / 3600) * 100);
     strcat(buf, tmpbuf);
     return buf;
 }
