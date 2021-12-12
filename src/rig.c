@@ -2731,10 +2731,10 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         retcode = ser_set_dtr(&rig->state.pttport, ptt != RIG_PTT_OFF);
 
+        rig_debug(RIG_DEBUG_TRACE, "%s:  rigport=%s, pttport=%s, ptt_share=%d\n", __func__, rs->pttport.pathname, rs->rigport.pathname, rs->ptt_share);
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
                 && ptt == RIG_PTT_OFF && rs->ptt_share != 0)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: ptt_share=%d\n", __func__, rs->ptt_share);
             /* free the port */
             ser_close(&rs->pttport);
         }
@@ -2778,10 +2778,10 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         retcode = ser_set_rts(&rig->state.pttport, ptt != RIG_PTT_OFF);
 
+        rig_debug(RIG_DEBUG_TRACE, "%s:  rigport=%s, pttport=%s, ptt_share=%d\n", __func__, rs->pttport.pathname, rs->rigport.pathname, rs->ptt_share);
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
                 && ptt == RIG_PTT_OFF && rs->ptt_share != 0)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: ptt_share=%d\n", __func__, rs->ptt_share);
             /* free the port */
             ser_close(&rs->pttport);
         }
