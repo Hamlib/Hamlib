@@ -288,7 +288,8 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
             if (data)
             {
-                retval = read_string(&rs->rigport, data, (*data_len) + 1, term, strlen(term), 0);
+                retval = read_string(&rs->rigport, data, (*data_len) + 1, term, strlen(term), 0,
+                                     1);
 
                 if (retval != -RIG_ETIMEOUT)
                 {
@@ -310,7 +311,7 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         write_block(&rs->rigport, "XX" EOM,
                     3); // we wont' worry about the response here
         retval = read_string(&rs->rigport, xxbuf, sizeof(xxbuf), "",
-                             0, 0); // this should timeout
+                             0, 0, 1); // this should timeout
 
         if (retval != RIG_OK)
         {

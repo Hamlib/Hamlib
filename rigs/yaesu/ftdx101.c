@@ -139,7 +139,7 @@ const struct rig_caps ftdx101d_caps =
     RIG_MODEL(RIG_MODEL_FTDX101D),
     .model_name =         "FTDX-101D",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".12",
+    .version =            NEWCAT_VER ".13",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -309,4 +309,6 @@ const struct rig_caps ftdx101d_caps =
     .set_ext_level =      newcat_set_ext_level,
     .get_ext_level =      newcat_get_ext_level,
     .send_morse =         newcat_send_morse,
+    .set_clock =          newcat_set_clock,
+    .get_clock =          newcat_get_clock
 };

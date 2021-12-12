@@ -919,6 +919,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                       __func__, lvlbuf);
             return -RIG_EPROTO;
         }
+
         n = val->i;
         val->f = (n + 20.0) / (120.0 - -20.0);
 

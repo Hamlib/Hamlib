@@ -247,7 +247,7 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
         if (data)
         {
             /* expecting 0x0d0x0a on all commands so wait for the 0x0a */
-            retval = read_string(&rs->rigport, data, BUFSZ, "\x0a", 1, 0);
+            retval = read_string(&rs->rigport, data, BUFSZ, "\x0a", 1, 0, 1);
 
             if (retval == -RIG_ETIMEOUT)
             {

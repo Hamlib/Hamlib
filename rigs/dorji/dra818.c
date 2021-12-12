@@ -60,7 +60,8 @@ struct dra818_priv
 static int dra818_response(RIG *rig, const char *expected)
 {
     char response[80];
-    int r = read_string(&rig->state.rigport, response, sizeof(response), "\n", 1, 0);
+    int r = read_string(&rig->state.rigport, response, sizeof(response), "\n", 1, 0,
+                        1);
 
     if (r != strlen(expected))
     {
@@ -294,7 +295,7 @@ int dra818_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
             (int)(priv->rx_freq / 1000000), (int)((priv->rx_freq % 1000000) / 100));
     write_block(&rig->state.rigport, cmd, strlen(cmd));
 
-    r = read_string(&rig->state.rigport, response, sizeof(response), "\n", 1, 0);
+    r = read_string(&rig->state.rigport, response, sizeof(response), "\n", 1, 0, 1);
 
     if (r != 5)
     {

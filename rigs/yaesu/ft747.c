@@ -52,35 +52,36 @@
  *
  */
 
-enum ft747_native_cmd_e {
-  FT_747_NATIVE_SPLIT_OFF = 0,
-  FT_747_NATIVE_SPLIT_ON,
-  FT_747_NATIVE_RECALL_MEM,
-  FT_747_NATIVE_VFO_TO_MEM,
-  FT_747_NATIVE_DLOCK_OFF,
-  FT_747_NATIVE_DLOCK_ON,
-  FT_747_NATIVE_VFO_A,
-  FT_747_NATIVE_VFO_B,
-  FT_747_NATIVE_M_TO_VFO,
-  FT_747_NATIVE_UP_500K,
-  FT_747_NATIVE_DOWN_500K,
-  FT_747_NATIVE_CLARIFY_OFF,
-  FT_747_NATIVE_CLARIFY_ON,
-  FT_747_NATIVE_FREQ_SET,
-  FT_747_NATIVE_MODE_SET_LSB,
-  FT_747_NATIVE_MODE_SET_USB,
-  FT_747_NATIVE_MODE_SET_CWW,
-  FT_747_NATIVE_MODE_SET_CWN,
-  FT_747_NATIVE_MODE_SET_AMW,
-  FT_747_NATIVE_MODE_SET_AMN,
-  FT_747_NATIVE_MODE_SET_FMW,
-  FT_747_NATIVE_MODE_SET_FMN,
-  FT_747_NATIVE_PACING,
-  FT_747_NATIVE_PTT_OFF,
-  FT_747_NATIVE_PTT_ON,
-  FT_747_NATIVE_UPDATE,
-  FT_747_NATIVE_SIZE		/* end marker, value indicates number of */
-				/* native cmd entries */
+enum ft747_native_cmd_e
+{
+    FT_747_NATIVE_SPLIT_OFF = 0,
+    FT_747_NATIVE_SPLIT_ON,
+    FT_747_NATIVE_RECALL_MEM,
+    FT_747_NATIVE_VFO_TO_MEM,
+    FT_747_NATIVE_DLOCK_OFF,
+    FT_747_NATIVE_DLOCK_ON,
+    FT_747_NATIVE_VFO_A,
+    FT_747_NATIVE_VFO_B,
+    FT_747_NATIVE_M_TO_VFO,
+    FT_747_NATIVE_UP_500K,
+    FT_747_NATIVE_DOWN_500K,
+    FT_747_NATIVE_CLARIFY_OFF,
+    FT_747_NATIVE_CLARIFY_ON,
+    FT_747_NATIVE_FREQ_SET,
+    FT_747_NATIVE_MODE_SET_LSB,
+    FT_747_NATIVE_MODE_SET_USB,
+    FT_747_NATIVE_MODE_SET_CWW,
+    FT_747_NATIVE_MODE_SET_CWN,
+    FT_747_NATIVE_MODE_SET_AMW,
+    FT_747_NATIVE_MODE_SET_AMN,
+    FT_747_NATIVE_MODE_SET_FMW,
+    FT_747_NATIVE_MODE_SET_FMN,
+    FT_747_NATIVE_PACING,
+    FT_747_NATIVE_PTT_OFF,
+    FT_747_NATIVE_PTT_ON,
+    FT_747_NATIVE_UPDATE,
+    FT_747_NATIVE_SIZE        /* end marker, value indicates number of */
+    /* native cmd entries */
 
 };
 
@@ -169,8 +170,10 @@ static int ft747_close(RIG *rig);
 static int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-static int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
-static int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
+static int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
+                          pbwidth_t width); /* select mode */
+static int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                          pbwidth_t *width); /* get mode */
 
 static int ft747_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 static int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
@@ -1049,7 +1052,8 @@ static int ft747_send_priv_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    return write_block(&rig->state.rigport, (char *) ft747_ncmd[ci].nseq, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) ft747_ncmd[ci].nseq,
+                       YAESU_CMD_LENGTH);
 
 }
 

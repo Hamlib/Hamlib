@@ -33,6 +33,7 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "bandplan.h"
+#include "ic7300.h"
 
 #define IC785x_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM|RIG_MODE_PKTFM)
 #define IC785x_1HZ_TS_MODES IC785x_ALL_RX_MODES
@@ -242,7 +243,7 @@ const struct rig_caps ic785x_caps =
     RIG_MODEL(RIG_MODEL_IC785x),
     .model_name = "IC-7850/7851",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -472,7 +473,9 @@ const struct rig_caps ic785x_caps =
     .get_powerstat =  icom_get_powerstat,
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
-    .wait_morse = rig_wait_morse
+    .wait_morse = rig_wait_morse,
+    .set_clock = ic7300_set_clock,
+    .get_clock = ic7300_get_clock
 };
 
 int ic785x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)

@@ -11,8 +11,6 @@
 
 float freqA = 14074000;
 float freqB = 14074500;
-char tx_vfo = 0;
-char rx_vfo = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -128,26 +126,6 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("AN"); }
         }
-        else if (strcmp(buf, "FA;") == 0)
-        {
-            pbuf = strdup("FA3456789012;");
-            sprintf(pbuf, "FA%010.0f", freqA);
-            free(pbuf);
-        }
-        else if (strncmp(buf, "FA", 2) == 0)
-        {
-            sscanf(buf, "FA%f", &freqA);
-        }
-        else if (strcmp(buf, "FB;") == 0)
-        {
-            pbuf = strdup("FB3456789012;");
-            sprintf(pbuf, "FB%010.0f", freqB);
-            free(pbuf);
-        }
-        else if (strncmp(buf, "FB", 2) == 0)
-        {
-            sscanf(buf, "FB%f", &freqB);
-        }
         else if (strcmp(buf, "IF;") == 0)
         {
             printf("%s\n", buf);
@@ -204,24 +182,6 @@ int main(int argc, char *argv[])
             printf("n=%d\n", n);
 
             if (n < 0) { perror("VS"); }
-        }
-        else if (strcmp(buf, "FT;") == 0)
-        {
-            usleep(50 * 1000);
-            pbuf = strdup("FTx;");
-            pbuf[2] = tx_vfo;
-            n = write(fd, pbuf, strlen(pbuf));
-            free(pbuf);
-
-            if (n < 0) { perror("FT"); }
-        }
-        else if (strncmp(buf, "FT", 2) == 0)
-        {
-            tx_vfo = buf[2];
-
-            if (tx_vfo == '3') { tx_vfo = '1'; }
-            else if (tx_vfo == '2') { tx_vfo = '0'; }
-            else { perror("Expected 2 or 3"); }
         }
         else if (strcmp(buf, "EX032;") == 0)
         {

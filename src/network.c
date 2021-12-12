@@ -205,6 +205,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     status = network_init();
 
     if (status != RIG_OK) { RETURNFUNC(status); }
+
 #endif
 
     if (!rp)
@@ -392,9 +393,10 @@ void network_flush(hamlib_port_t *rp)
             }
 
             rig_debug(RIG_DEBUG_WARN,
-                      "%s: network data cleared: ret=%d, len_read=%d/0x%x, '%s'\n",
+                      "%s: network data cleared: ret=%d, len_read=%d/0x%x\n",
                       __func__,
-                      ret, len_read, len_read, buffer);
+                      ret, len_read, len_read);
+            dump_hex((unsigned char *)buffer, len_read);
         }
         else
         {

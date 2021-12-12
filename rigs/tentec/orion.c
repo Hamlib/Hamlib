@@ -156,7 +156,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 #endif
         *data_len = data_len_init;  /* restore orig. buffer length */
         *data_len = read_string(&rs->rigport, data, *data_len,
-                                EOM, strlen(EOM), 0);
+                                EOM, strlen(EOM), 0, 1);
 
         if (!strncmp(data, "Z!", 2))     // command unrecognized??
         {
@@ -197,7 +197,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                           passcount, itry);
                 *data_len = data_len_init;  /* restore orig. buffer length */
                 read_string(&rs->rigport, data, *data_len,
-                            EOM, strlen(EOM), 0);      // purge the input stream...
+                            EOM, strlen(EOM), 0, 1);      // purge the input stream...
                 continue;                   // now go retry the full command
             }
         }

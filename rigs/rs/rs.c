@@ -80,7 +80,7 @@ int rs_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return RIG_OK;
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, CR, 1, 0);
+    retval = read_string(&rs->rigport, data, BUFSZ, CR, 1, 0, 1);
 
     if (retval < 0)
     {
