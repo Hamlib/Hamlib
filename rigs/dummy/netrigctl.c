@@ -768,6 +768,14 @@ static int netrigctl_open(RIG *rig)
                 rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n",
                           __func__, value, rig->caps->timeout);
             }
+            else if (strcmp(setting, "rig_model") == 0)
+            {
+                rig_debug(RIG_DEBUG_TRACE, "%s: rig_model=%s\n", __func__, value);
+            }
+            else if (strcmp(setting, "rigctld_version") == 0)
+            {
+                rig_debug(RIG_DEBUG_TRACE, "%s: rigctld_version=%s\n", __func__, value);
+            }
             else if (strcmp(setting, "ctcss_list") == 0)
             {
                 int n;
