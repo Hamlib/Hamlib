@@ -928,7 +928,7 @@ static vfo_t icom_current_vfo(RIG *rig)
 int
 icom_rig_open(RIG *rig)
 {
-    int retval = RIG_OK;
+    int retval, retval_echo;
     int satmode = 0;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
@@ -941,15 +941,19 @@ icom_rig_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s v%s\n", __func__, rig->caps->model_name,
               rig->caps->version);
 retry_open:
-    retval = icom_get_usb_echo_off(rig);
+    retval_echo = icom_get_usb_echo_off(rig);
 
-    if (retval == RIG_OK) // then echo is on so let's try freq now
+    if (retval_echo == 0 || retval_echo == 1) // then we know our echo status
     {
         rig->state.current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
         // so asking for freq now should timeout if such a rig
         freq_t tfreq;
         retval = rig_get_freq(rig, RIG_VFO_CURR, &tfreq);
+    }
+    else
+    {
+        retval = -RIG_EPROTO;
     }
 
     if (retval != RIG_OK && priv->poweron == 0 && rs->auto_power_on)
@@ -971,9 +975,9 @@ retry_open:
         }
 
         // Now that we're powered up let's try again
-        retval = icom_get_usb_echo_off(rig);
+        retval_echo = icom_get_usb_echo_off(rig);
 
-        if (retval < 0)
+        if (retval_echo != 0 && retval_echo != 1)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
             RETURNFUNC(retval);
