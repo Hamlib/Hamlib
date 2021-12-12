@@ -12,6 +12,7 @@
 float freqA = 14074000;
 float freqB = 14074500;
 int filternum = 7;
+int datamode = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -233,9 +234,15 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "FL%d", &filternum);
         }
-
-
-
+        else if (strncmp(buf, "DA;", 3) == 0)
+        {
+            sprintf(buf, "DA%d;", datamode);
+            write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "DA", 2) == 0)
+        {
+            sscanf(buf, "DA%d", &datamode);
+        }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);

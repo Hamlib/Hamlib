@@ -307,6 +307,21 @@ typedef enum {
     RIG_FLAG_TUNER = (1 << 11)          /*!< dumb tuner */
 } rig_type_t;
 
+/**
+ * \brief AGC delay settings
+ */
+/* TODO: kill me, and replace by real AGC delay */
+enum agc_level_e {
+    RIG_AGC_OFF =       0,
+    RIG_AGC_SUPERFAST,
+    RIG_AGC_FAST,
+    RIG_AGC_SLOW,
+    RIG_AGC_USER,           /*!< user selectable */
+    RIG_AGC_MEDIUM,
+    RIG_AGC_AUTO
+};
+
+
 //! @cond Doxygen_Suppress
 #define RIG_FLAG_TRANSCEIVER (RIG_FLAG_RECEIVER|RIG_FLAG_TRANSMITTER)
 #define RIG_TYPE_MASK (RIG_FLAG_TRANSCEIVER|RIG_FLAG_SCANNER|RIG_FLAG_MOBILE|RIG_FLAG_HANDHELD|RIG_FLAG_COMPUTER|RIG_FLAG_TRUNKING|RIG_FLAG_TUNER)
@@ -835,20 +850,6 @@ typedef unsigned int ant_t;
 
 #define RIG_ANT_MAX 32
 
-
-/**
- * \brief AGC delay settings
- */
-/* TODO: kill me, and replace by real AGC delay */
-enum agc_level_e {
-    RIG_AGC_OFF =       0,
-    RIG_AGC_SUPERFAST,
-    RIG_AGC_FAST,
-    RIG_AGC_SLOW,
-    RIG_AGC_USER,           /*!< user selectable */
-    RIG_AGC_MEDIUM,
-    RIG_AGC_AUTO
-};
 
 //! @cond Doxygen_Suppress
 #define RIG_AGC_LAST RIG_AGC_AUTO
@@ -3188,6 +3189,8 @@ extern HAMLIB_EXPORT(const char *) rig_strfunc(setting_t);
 extern HAMLIB_EXPORT(const char *) rig_strlevel(setting_t);
 extern HAMLIB_EXPORT(const char *) rig_strparm(setting_t);
 extern HAMLIB_EXPORT(const char *) rig_stragclevel(enum agc_level_e level);
+extern HAMLIB_EXPORT(enum agc_level_e)  rig_levelagcstr (char *agcString);
+extern HAMLIB_EXPORT(enum agc_level_e)  rig_levelagcvalue (int agcValue);
 extern HAMLIB_EXPORT(const char *) rig_strptrshift(rptr_shift_t);
 extern HAMLIB_EXPORT(const char *) rig_strvfop(vfo_op_t op);
 extern HAMLIB_EXPORT(const char *) rig_strscan(scan_t scan);
