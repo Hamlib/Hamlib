@@ -1136,6 +1136,35 @@ option above, will terminate each command string sent to the radio.  This
 character should not be a part of the input string.
 .
 .TP
+.BR set_clock " \(aq" \fIDateTime\fP \(aq
+Set
+.RI \(aq DateTime \(aq
+.IP
+Sets rig clock -- note that some rigs do not handle seconds or milliseconds.
+If you try to set sec/msec and rig does not support it you will get a debug warning message.
+Format is ISO8601,
+.EX
+Formats accepted
+YYYY-MM-DDTHH:MM:SS.SSS+ZZ (where +ZZ is either -/+ UTC offset)
+YYYY-MM-DDTHH:MM:SS+ZZ
+YYYY-MM-DDTHH:MM+ZZ
+YYYY-MM-DD (sets date only)
+Note: Icom rigs expect you to set local time and the hours off to UTC.
+So...4PM EST example would be 2021-12-01T16:00:00+05
+But...if you want to display GMT you must set the clock for GMT with zero UTC offset.  
+Hopefully Icom will allow displaying either clock in the future
+
+.EE
+.
+.TP
+.BR get_clock
+Get
+.RI \(aq RigTime \(aq
+.IP
+Gets rig clock -- note that some rigs do not handle seconds or milliseconds.
+Format is ISO8601 YYYY-MM-DDTHH:MM:SS.sss+ZZ where +ZZ is either -/+ UTC offset
+.
+.TP
 .BR chk_vfo
 Get
 .RI \(aq Status \(aq

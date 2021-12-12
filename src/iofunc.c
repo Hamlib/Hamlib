@@ -806,6 +806,7 @@ static int read_string_generic(hamlib_port_t *p,
                                const char *stopset,
                                int stopset_len,
                                int flush_flag,
+                               int expected_len,
                                int direct)
 {
     fd_set rfds, efds;
@@ -813,6 +814,7 @@ static int read_string_generic(hamlib_port_t *p,
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
     int total_count = 0;
     int i = 0;
+    static ssize_t minlen = 1; // dynamic minimum length of rig response data
 
     if (!p->async && !direct)
     {
@@ -851,7 +853,7 @@ static int read_string_generic(hamlib_port_t *p,
 
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
-        ssize_t rd_count;
+        ssize_t rd_count = 0;
         int retval;
 
         tv = tv_timeout;    /* select may have updated it */
@@ -879,12 +881,12 @@ static int read_string_generic(hamlib_port_t *p,
                     dump_hex((unsigned char *) rxbuffer, total_count);
                 }
                 if (!flush_flag) {
-                rig_debug(RIG_DEBUG_WARN,
-                          "%s(): Timed out %d.%03d seconds after %d chars\n",
-                          __func__,
-                          (int)elapsed_time.tv_sec,
-                          (int)elapsed_time.tv_usec / 1000,
-                          total_count);
+                    rig_debug(RIG_DEBUG_WARN,
+                            "%s(): Timed out %d.%03d seconds after %d chars\n",
+                            __func__,
+                            (int)elapsed_time.tv_sec,
+                            (int)elapsed_time.tv_usec / 1000,
+                            total_count);
                 }
 
                 return -RIG_ETIMEOUT;
@@ -938,15 +940,17 @@ static int read_string_generic(hamlib_port_t *p,
          * read 1 character from the rig, (check if in stop set)
          * The file descriptor must have been set up non blocking.
          */
-        do 
+        do
         {
-            rd_count = port_read_generic(p, &rxbuffer[total_count], 1, direct);
+            rd_count = port_read_generic(p, &rxbuffer[total_count], expected_len == 1 ? 1 : minlen, direct);
+            minlen -= rd_count;
             if (errno == EAGAIN)
             {
-                hl_usleep(5*1000);
+                hl_usleep(5 * 1000);
                 rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy?\n", __func__);
             }
-        } while( ++i < 10 && errno == EBUSY); // 50ms should be enough
+        }
+        while (++i < 10 && errno == EBUSY);   // 50ms should be enough
 
         /* if we get 0 bytes or an error something is wrong */
         if (rd_count <= 0)
@@ -970,6 +974,14 @@ static int read_string_generic(hamlib_port_t *p,
 
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {
+            if (minlen == 1) { minlen = total_count; }
+
+            if (minlen < total_count)
+            {
+                minlen = total_count;
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: minlen now %ld\n", __func__, minlen);
+            }
+
             break;
         }
     }
@@ -1024,9 +1036,10 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         size_t rxmax,
         const char *stopset,
         int stopset_len,
-        int flush_flag)
+        int flush_flag,
+        int expected_len)
 {
-    return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, !p->async);
+    return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, expected_len, !p->async);
 }
 
 
@@ -1061,9 +1074,10 @@ int HAMLIB_API read_string_direct(hamlib_port_t *p,
                                   size_t rxmax,
                                   const char *stopset,
                                   int stopset_len,
-                                  int flush_flag)
+                                  int flush_flag,
+                                  int expected_len)
 {
-    return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, 1);
+    return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, expected_len, 1);
 }
 
 /** @} */

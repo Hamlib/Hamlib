@@ -11,6 +11,7 @@
 
 float freqA = 14074000;
 float freqB = 14074500;
+int filternum = 7;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -97,6 +98,7 @@ int main(int argc, char *argv[])
     int n;
     int fd = openPort(argv[1]);
     int freqa = 14074000, freqb = 140735000;
+    int modeA = 0; // , modeB = 0;
 
     while (1)
     {
@@ -203,11 +205,35 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "FB%d", &freqb);
         }
-        else if (strncmp(buf, "AI;", 2) == 0)
+        else if (strncmp(buf, "AI;", 3) == 0)
         {
             sprintf(buf, "AI0;");
             write(fd, buf, strlen(buf));
         }
+        else if (strncmp(buf, "SA;", 3) == 0)
+        {
+            sprintf(buf, "SA0;");
+            write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "MD;", 3) == 0)
+        {
+            sprintf(buf, "MD%d;", modeA); // not worried about modeB yet for simulator
+            write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "MD", 2) == 0)
+        {
+            sscanf(buf, "MD%d", &modeA); // not worried about modeB yet for simulator
+        }
+        else if (strncmp(buf, "FL;", 3) == 0)
+        {
+            sprintf(buf, "FL%03d;", filternum);
+            write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "FL", 2) == 0)
+        {
+            sscanf(buf, "FL%d", &filternum);
+        }
+
 
 
         else if (strlen(buf) > 0)

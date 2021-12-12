@@ -264,7 +264,7 @@ int dxsr8_transaction(RIG *rig,
      * Transceiver sends an echo of cmd followed by a CR/LF
      * TODO: check whether cmd and echobuf match (optional)
      */
-    retval = read_string(&rs->rigport, replybuf, BUFSZ, LF, strlen(LF), 0);
+    retval = read_string(&rs->rigport, replybuf, BUFSZ, LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {
@@ -272,7 +272,7 @@ int dxsr8_transaction(RIG *rig,
     }
 
 
-    retval = read_string(&rs->rigport, replybuf, BUFSZ, LF, strlen(LF), 0);
+    retval = read_string(&rs->rigport, replybuf, BUFSZ, LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {

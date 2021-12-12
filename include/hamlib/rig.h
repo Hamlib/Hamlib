@@ -905,7 +905,7 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_AF         CONSTANT_64BIT_FLAG(3)       /*!< \c AF -- Volume, arg float [0.0 ... 1.0] */
 #define RIG_LEVEL_RF         CONSTANT_64BIT_FLAG(4)       /*!< \c RF -- RF gain (not TX power) arg float [0.0 ... 1.0] */
 #define RIG_LEVEL_SQL        CONSTANT_64BIT_FLAG(5)       /*!< \c SQL -- Squelch, arg float [0.0 ... 1.0] */
-#define RIG_LEVEL_IF         CONSTANT_64BIT_FLAG(6)       /*!< \c IF -- IF, arg int (Hz) */
+#define RIG_LEVEL_IF         CONSTANT_64BIT_FLAG(6)       /*!< \c IF shift -- IF, arg int (+/-Hz) */
 #define RIG_LEVEL_APF        CONSTANT_64BIT_FLAG(7)       /*!< \c APF -- Audio Peak Filter, arg float [0.0 ... 1.0] */
 #define RIG_LEVEL_NR         CONSTANT_64BIT_FLAG(8)       /*!< \c NR -- Noise Reduction, arg float [0.0 ... 1.0] */
 #define RIG_LEVEL_PBT_IN     CONSTANT_64BIT_FLAG(9)       /*!< \c PBT_IN -- Twin PBT (inside) arg float [0.0 ... 1.0] */
@@ -1986,6 +1986,8 @@ struct rig_caps {
                              rmode_t *mode,
                              pbwidth_t *width,
                              split_t *split);
+    int(*set_clock) (RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset);
+    int(*get_clock) (RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset);
 
     const char *clone_combo_set;    /*!< String describing key combination to enter load cloning mode */
     const char *clone_combo_get;    /*!< String describing key combination to enter save cloning mode */
@@ -2222,6 +2224,8 @@ typedef hamlib_port_t port_t;
 #define HAMLIB_ELAPSED_GET 0
 #define HAMLIB_ELAPSED_SET 1
 #define HAMLIB_ELAPSED_INVALIDATE 2
+
+#define HAMLIB_CACHE_ALWAYS -1 /*< value to set cache timeout to always use cache */
 
 typedef enum {
     HAMLIB_CACHE_ALL, // to set all cache timeouts at once
@@ -3126,6 +3130,11 @@ extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debu
 #define rig_debug(debug_level,fmt,...) do { strncpy(debugmsgsave3, debugmsgsave2,sizeof(debugmsgsave3));strncpy(debugmsgsave2, debugmsgsave, sizeof(debugmsgsave2));snprintf(debugmsgsave,sizeof(debugmsgsave),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); } while(0);
 #endif
 #endif
+
+// Measuring elapsed time -- local variable inside function when macro is used
+#define ELAPSED1 struct timespec __begin; elapsed_ms(&__begin, HAMLIB_ELAPSED_SET);
+#define ELAPSED2 rig_debug(RIG_DEBUG_TRACE, "%s: elapsed=%.0lfms\n", __func__, elapsed_ms(&__begin, HAMLIB_ELAPSED_GET));
+
 extern HAMLIB_EXPORT(void)
 rig_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level,
                          const char *fmt, ...));
@@ -3210,15 +3219,13 @@ extern HAMLIB_EXPORT(int) rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq, rm
 extern HAMLIB_EXPORT(int) rig_get_rig_info(RIG *rig, char *response, int max_response_len);
 extern HAMLIB_EXPORT(int) rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int * cache_ms_freq, rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width);
 
+extern HAMLIB_EXPORT(int) rig_set_clock(RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset);
+extern HAMLIB_EXPORT(int) rig_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset);
 
 typedef unsigned long rig_useconds_t;
 extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);
 
 extern HAMLIB_EXPORT(int) rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie, int cookie_len);
-
-// two functions globally accessible so rig backends can lock for an I/O transaction
-void rig_lock();
-void rig_unlock();
 
 //! @endcond
 

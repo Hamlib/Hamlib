@@ -102,7 +102,7 @@ static int rshfiq_open(RIG *rig)
             return retval;
         }
 
-        retval = read_string(&rig->state.rigport, versionstr, 20, stopset, 2, 0);
+        retval = read_string(&rig->state.rigport, versionstr, 20, stopset, 2, 0, 1);
     }
 
     if (retval <= 0)
@@ -191,7 +191,7 @@ static int rshfiq_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2, 0);
+    retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2, 0, 1);
 
     if (retval <= 0)
     {
@@ -276,7 +276,7 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         stopset[0] = '\r';
         stopset[1] = '\n';
 
-        retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2, 0);
+        retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2, 0, 1);
 
         rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER reply=%s\n", cmdstr);
 
@@ -314,7 +314,7 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         stopset[0] = '\r';
         stopset[1] = '\n';
 
-        retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2, 0);
+        retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2, 0, 1);
 
         rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER reply=%s\n", cmdstr);
 

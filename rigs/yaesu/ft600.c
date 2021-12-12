@@ -41,47 +41,48 @@
 #include "misc.h"
 #include "bandplan.h"
 
-enum ft600_native_cmd_e {
+enum ft600_native_cmd_e
+{
 
-  FT600_NATIVE_CAT_LOCK_ON = 0,
-  FT600_NATIVE_CAT_LOCK_OFF,
-  FT600_NATIVE_CAT_PTT_ON,
-  FT600_NATIVE_CAT_PTT_OFF,
-  FT600_NATIVE_CAT_SET_FREQ,
-  FT600_NATIVE_CAT_SET_MODE_LSB,
-  FT600_NATIVE_CAT_SET_MODE_USB,
-  FT600_NATIVE_CAT_SET_MODE_DIG,
-  FT600_NATIVE_CAT_SET_MODE_CW,
-  FT600_NATIVE_CAT_SET_MODE_AM,
-  FT600_NATIVE_CAT_CLAR_ON,
-  FT600_NATIVE_CAT_CLAR_OFF,
-  FT600_NATIVE_CAT_SET_CLAR_FREQ,
-  FT600_NATIVE_CAT_SET_VFOAB,
-  FT600_NATIVE_CAT_SET_VFOA,
-  FT600_NATIVE_CAT_SET_VFOB,
-  FT600_NATIVE_CAT_SPLIT_ON,
-  FT600_NATIVE_CAT_SPLIT_OFF,
-  FT600_NATIVE_CAT_SET_RPT_SHIFT_MINUS,
-  FT600_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
-  FT600_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
-  FT600_NATIVE_CAT_SET_RPT_OFFSET,
-/* fix me */
-  FT600_NATIVE_CAT_SET_DCS_ON,
-  FT600_NATIVE_CAT_SET_CTCSS_ENC_ON,
-  FT600_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON,
-  FT600_NATIVE_CAT_SET_CTCSS_DCS_OFF,
-/* em xif */
-  FT600_NATIVE_CAT_SET_CTCSS_FREQ,
-  FT600_NATIVE_CAT_SET_DCS_CODE,
-  FT600_NATIVE_CAT_GET_RX_STATUS,
-  FT600_NATIVE_CAT_GET_TX_STATUS,
-  FT600_NATIVE_CAT_GET_FREQ_MODE_STATUS,
-  FT600_NATIVE_CAT_PWR_WAKE,
-  FT600_NATIVE_CAT_PWR_ON,
-  FT600_NATIVE_CAT_PWR_OFF,
-  FT600_NATIVE_CAT_READ_STATUS,
-  FT600_NATIVE_CAT_READ_METERS,
-  FT600_NATIVE_CAT_READ_FLAGS
+    FT600_NATIVE_CAT_LOCK_ON = 0,
+    FT600_NATIVE_CAT_LOCK_OFF,
+    FT600_NATIVE_CAT_PTT_ON,
+    FT600_NATIVE_CAT_PTT_OFF,
+    FT600_NATIVE_CAT_SET_FREQ,
+    FT600_NATIVE_CAT_SET_MODE_LSB,
+    FT600_NATIVE_CAT_SET_MODE_USB,
+    FT600_NATIVE_CAT_SET_MODE_DIG,
+    FT600_NATIVE_CAT_SET_MODE_CW,
+    FT600_NATIVE_CAT_SET_MODE_AM,
+    FT600_NATIVE_CAT_CLAR_ON,
+    FT600_NATIVE_CAT_CLAR_OFF,
+    FT600_NATIVE_CAT_SET_CLAR_FREQ,
+    FT600_NATIVE_CAT_SET_VFOAB,
+    FT600_NATIVE_CAT_SET_VFOA,
+    FT600_NATIVE_CAT_SET_VFOB,
+    FT600_NATIVE_CAT_SPLIT_ON,
+    FT600_NATIVE_CAT_SPLIT_OFF,
+    FT600_NATIVE_CAT_SET_RPT_SHIFT_MINUS,
+    FT600_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
+    FT600_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
+    FT600_NATIVE_CAT_SET_RPT_OFFSET,
+    /* fix me */
+    FT600_NATIVE_CAT_SET_DCS_ON,
+    FT600_NATIVE_CAT_SET_CTCSS_ENC_ON,
+    FT600_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON,
+    FT600_NATIVE_CAT_SET_CTCSS_DCS_OFF,
+    /* em xif */
+    FT600_NATIVE_CAT_SET_CTCSS_FREQ,
+    FT600_NATIVE_CAT_SET_DCS_CODE,
+    FT600_NATIVE_CAT_GET_RX_STATUS,
+    FT600_NATIVE_CAT_GET_TX_STATUS,
+    FT600_NATIVE_CAT_GET_FREQ_MODE_STATUS,
+    FT600_NATIVE_CAT_PWR_WAKE,
+    FT600_NATIVE_CAT_PWR_ON,
+    FT600_NATIVE_CAT_PWR_OFF,
+    FT600_NATIVE_CAT_READ_STATUS,
+    FT600_NATIVE_CAT_READ_METERS,
+    FT600_NATIVE_CAT_READ_FLAGS
 };
 
 
@@ -92,28 +93,28 @@ enum ft600_native_cmd_e {
  */
 typedef struct
 {
-   unsigned char band_no;
-   unsigned char freq[16];
-   unsigned char mode;
-   unsigned char ctcss;
-   unsigned char dcs;
-   unsigned char flag1;
-   unsigned char flag2;
-   unsigned char clarifier[2];
-   unsigned char not_used;
-   unsigned char step1;
-   unsigned char step2;
-   unsigned char filter;
+    unsigned char band_no;
+    unsigned char freq[16];
+    unsigned char mode;
+    unsigned char ctcss;
+    unsigned char dcs;
+    unsigned char flag1;
+    unsigned char flag2;
+    unsigned char clarifier[2];
+    unsigned char not_used;
+    unsigned char step1;
+    unsigned char step2;
+    unsigned char filter;
 
 // cppcheck-suppress *
-   unsigned char stuffing[16];
+    unsigned char stuffing[16];
 }
- FT600_STATUS_INFO;
+FT600_STATUS_INFO;
 
 
 typedef struct
 {
-   unsigned char byte[8];
+    unsigned char byte[8];
 }
 // cppcheck-suppress *
 FT600_FLAG_INFO;
@@ -396,7 +397,8 @@ static int ft600_send_priv_cmd(RIG *rig, unsigned char cmd_index)
 
     if (!rig) { return -RIG_EINVAL; }
 
-    return write_block(&rig->state.rigport, (char *) &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) &ncmd[cmd_index].nseq,
+                       YAESU_CMD_LENGTH);
 }
 
 static int ft600_read_status(RIG *rig)

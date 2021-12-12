@@ -1077,6 +1077,29 @@ and
 also need to be provided as output power may vary according to these values.
 .IP
 VFO parameter is not used in VFO mode.
+.TP
+.BR set_clock " \(aq" \fIDateTime\fP \(aq
+Set
+.RI \(aq DateTime \(aq
+.IP
+Sets rig clock -- note that some rigs do not handle seconds or milliseconds.
+If you try to set that you will get a debug warning message.
+Format is ISO8601.
+.EX
+Formats accepted
+YYYY-MM-DDTHH:MM:SS.sss+ZZ (where +ZZ is either -/+ UTC offset)
+YYYY-MM-DDTHH:MM:SS+ZZ
+YYYY-MM-DDTHH:MM+ZZ
+YYYY-MM-DD (sets date only)
+.EE
+.
+.TP
+.BR get_clock
+Get
+.RI \(aq RigTime \(aq
+.IP
+Gets rig clock -- note that some rigs do not handle seconds or milliseconds.
+Format is ISO8601 YYYY-MM-DDTHH:MM:SS.sss+ZZ where +ZZ is either -/+ UTC offset
 .
 .TP
 .B chk_vfo

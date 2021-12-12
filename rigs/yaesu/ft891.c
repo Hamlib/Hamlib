@@ -44,11 +44,15 @@
 
 /* Prototypes */
 static int ft891_init(RIG *rig);
-static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
-static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo);
+static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                                pbwidth_t *tx_width);
+static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                                pbwidth_t tx_width);
 static int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                               vfo_t tx_vfo);
 
 const struct confparams ft891_ext_levels[] =
 {
@@ -131,7 +135,7 @@ const struct rig_caps ft891_caps =
     RIG_MODEL(RIG_MODEL_FT891),
     .model_name =         "FT-891",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".4",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -316,6 +320,8 @@ const struct rig_caps ft891_caps =
     .set_ext_level =      newcat_set_ext_level,
     .get_ext_level =      newcat_get_ext_level,
     .send_morse =         newcat_send_morse,
+    .set_clock =          newcat_set_clock,
+    .get_clock =          newcat_get_clock
 };
 
 /*
@@ -408,7 +414,8 @@ static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  *
  * Comments: The passed value for the vfo is ignored since can only split one way
  */
-static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo)
 {
     struct newcat_priv_data *priv;
     int err;
@@ -467,7 +474,7 @@ static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
  */
 
 static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
-                         pbwidth_t *tx_width)
+                                pbwidth_t *tx_width)
 {
     struct newcat_priv_data *priv;
     int err;
@@ -514,7 +521,7 @@ static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
  */
 
 static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
-                         pbwidth_t tx_width)
+                                pbwidth_t tx_width)
 {
     struct newcat_priv_data *priv;
     struct rig_state *state;

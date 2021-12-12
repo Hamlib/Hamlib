@@ -86,7 +86,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:x:z:lLuovhVZM"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:x:z:lLuovhVZM:"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -978,7 +978,7 @@ int main(int argc, char *argv[])
                                        sizeof(host),
                                        serv,
                                        sizeof(serv),
-                                       NI_NUMERICHOST|NI_NUMERICSERV))
+                                       NI_NUMERICHOST | NI_NUMERICSERV))
                     < 0)
             {
                 rig_debug(RIG_DEBUG_WARN,
@@ -1218,7 +1218,7 @@ void *handle_socket(void *arg)
                                sizeof(host),
                                serv,
                                sizeof(serv),
-                               NI_NUMERICHOST|NI_NUMERICSERV))
+                               NI_NUMERICHOST | NI_NUMERICSERV))
             < 0)
     {
 

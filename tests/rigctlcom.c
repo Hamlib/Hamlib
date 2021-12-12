@@ -626,7 +626,8 @@ int main(int argc, char *argv[])
                              sizeof(ts2000),
                              stop_set,
                              strlen(stop_set),
-                             0);
+                             0,
+                             1);
 
         rig_debug(RIG_DEBUG_TRACE, "%s: status=%d\n", __func__, status);
 

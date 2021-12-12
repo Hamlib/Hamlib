@@ -71,7 +71,8 @@
  *
  */
 
-enum ft920_native_cmd_e {
+enum ft920_native_cmd_e
+{
     FT920_NATIVE_SPLIT_OFF = 0,
     FT920_NATIVE_SPLIT_ON,
     FT920_NATIVE_RECALL_MEM,
@@ -99,7 +100,7 @@ enum ft920_native_cmd_e {
     FT920_NATIVE_VFO_B_PASSBAND_NAR,
     FT920_NATIVE_STATUS_FLAGS,
     FT920_NATIVE_SIZE   /* end marker, value indicates number of */
-                        /* native cmd entries */
+    /* native cmd entries */
 };
 
 /*
@@ -302,14 +303,18 @@ static int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int ft920_set_vfo(RIG *rig, vfo_t vfo);
 static int ft920_get_vfo(RIG *rig, vfo_t *vfo);
 
-static int ft920_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-static int ft920_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int ft920_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                               vfo_t tx_vfo);
+static int ft920_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                               vfo_t *tx_vfo);
 
 static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 
-static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
-static int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
+static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                                pbwidth_t tx_width);
+static int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                                pbwidth_t *tx_width);
 
 static int ft920_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft920_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);

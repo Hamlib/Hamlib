@@ -288,7 +288,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     /*
      * Transceiver sends an echo of cmd followed by a CR/LF
      */
-    retval = read_string(&rs->rigport, respbuf, BUFSZ, LF, strlen(LF), 0);
+    retval = read_string(&rs->rigport, respbuf, BUFSZ, LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {

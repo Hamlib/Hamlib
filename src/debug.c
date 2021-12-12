@@ -226,7 +226,7 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
         if (rig_debug_time_stamp)
         {
             char buf[256];
-            fprintf(rig_debug_stream, "%s: ", date_strget(buf, sizeof(buf)));
+            fprintf(rig_debug_stream, "%s: ", date_strget(buf, sizeof(buf), 1));
         }
 
         vfprintf(rig_debug_stream, fmt, ap);

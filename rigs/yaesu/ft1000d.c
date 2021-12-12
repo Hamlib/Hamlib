@@ -44,73 +44,74 @@
 #include "ft1000d.h"
 
 // FT1000D native commands
-enum FT1000D_native_cmd_e {
-  FT1000D_NATIVE_SPLIT_OFF = 0,
-  FT1000D_NATIVE_SPLIT_ON,
-  FT1000D_NATIVE_RECALL_MEM,
-  FT1000D_NATIVE_VFO_TO_MEM,
-  FT1000D_NATIVE_LOCK_OFF,
-  FT1000D_NATIVE_LOCK_ON,
-  FT1000D_NATIVE_VFO_A,
-  FT1000D_NATIVE_VFO_B,
-  FT1000D_NATIVE_MEM_TO_VFO,
-  FT1000D_NATIVE_VFO_STEP_UP,
-  FT1000D_NATIVE_VFO_STEP_UP_FAST,
-  FT1000D_NATIVE_VFO_STEP_DOWN,
-  FT1000D_NATIVE_VFO_STEP_DOWN_FAST,
-  FT1000D_NATIVE_RX_CLARIFIER_OFF,
-  FT1000D_NATIVE_RX_CLARIFIER_ON,
-  FT1000D_NATIVE_TX_CLARIFIER_OFF,
-  FT1000D_NATIVE_TX_CLARIFIER_ON,
-  FT1000D_NATIVE_CLEAR_CLARIFIER_OFFSET,
-  FT1000D_NATIVE_CLARIFIER_OPS,
-  FT1000D_NATIVE_FREQ_SET,
-  FT1000D_NATIVE_MODE_SET_LSB,
-  FT1000D_NATIVE_MODE_SET_USB,
-  FT1000D_NATIVE_MODE_SET_CW_W,
-  FT1000D_NATIVE_MODE_SET_CW_N,
-  FT1000D_NATIVE_MODE_SET_AM_W,
-  FT1000D_NATIVE_MODE_SET_AM_N,
-  FT1000D_NATIVE_MODE_SET_FM,
-  FT1000D_NATIVE_MODE_SET_RTTY_LSB,
-  FT1000D_NATIVE_MODE_SET_RTTY_USB,
-  FT1000D_NATIVE_MODE_SET_PKT_LSB,
-  FT1000D_NATIVE_MODE_SET_PKT_FM,
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_LSB, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_USB, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_CW_W, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_CW_N, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_AM_W, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_AM_N, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_FM, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_RTTY_LSB, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_RTTY_USB, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_PKT_LSB, /* Added December 2016 */
-  FT1000D_NATIVE_MODE_SUB_VFOB_SET_PKT_FM, /* Added December 2016 */
-  FT1000D_NATIVE_PACING,
-  FT1000D_NATIVE_PTT_OFF,
-  FT1000D_NATIVE_PTT_ON,
-  FT1000D_NATIVE_UPDATE_ALL_DATA,
-  FT1000D_NATIVE_UPDATE_MEM_CHNL,
-  FT1000D_NATIVE_UPDATE_OP_DATA,
-  FT1000D_NATIVE_UPDATE_VFO_DATA,
-  FT1000D_NATIVE_UPDATE_MEM_CHNL_DATA,
-  FT1000D_NATIVE_TUNER_OFF,
-  FT1000D_NATIVE_TUNER_ON,
-  FT1000D_NATIVE_TUNER_START,
-  FT1000D_NATIVE_RPTR_SHIFT_NONE,
-  FT1000D_NATIVE_RPTR_SHIFT_MINUS,
-  FT1000D_NATIVE_RPTR_SHIFT_PLUS,
-  FT1000D_NATIVE_VFO_TO_VFO,
-  FT1000D_NATIVE_SET_SUB_VFO_FREQ,
-  FT1000D_NATIVE_BANDWIDTH,
-  FT1000D_NATIVE_OP_FREQ_STEP_UP,
-  FT1000D_NATIVE_OP_FREQ_STEP_DOWN,
-  FT1000D_NATIVE_READ_METER,
-  FT1000D_NATIVE_DIM_LEVEL,
-  FT1000D_NATIVE_RPTR_OFFSET,
-  FT1000D_NATIVE_READ_FLAGS,
-  FT1000D_NATIVE_SIZE
+enum FT1000D_native_cmd_e
+{
+    FT1000D_NATIVE_SPLIT_OFF = 0,
+    FT1000D_NATIVE_SPLIT_ON,
+    FT1000D_NATIVE_RECALL_MEM,
+    FT1000D_NATIVE_VFO_TO_MEM,
+    FT1000D_NATIVE_LOCK_OFF,
+    FT1000D_NATIVE_LOCK_ON,
+    FT1000D_NATIVE_VFO_A,
+    FT1000D_NATIVE_VFO_B,
+    FT1000D_NATIVE_MEM_TO_VFO,
+    FT1000D_NATIVE_VFO_STEP_UP,
+    FT1000D_NATIVE_VFO_STEP_UP_FAST,
+    FT1000D_NATIVE_VFO_STEP_DOWN,
+    FT1000D_NATIVE_VFO_STEP_DOWN_FAST,
+    FT1000D_NATIVE_RX_CLARIFIER_OFF,
+    FT1000D_NATIVE_RX_CLARIFIER_ON,
+    FT1000D_NATIVE_TX_CLARIFIER_OFF,
+    FT1000D_NATIVE_TX_CLARIFIER_ON,
+    FT1000D_NATIVE_CLEAR_CLARIFIER_OFFSET,
+    FT1000D_NATIVE_CLARIFIER_OPS,
+    FT1000D_NATIVE_FREQ_SET,
+    FT1000D_NATIVE_MODE_SET_LSB,
+    FT1000D_NATIVE_MODE_SET_USB,
+    FT1000D_NATIVE_MODE_SET_CW_W,
+    FT1000D_NATIVE_MODE_SET_CW_N,
+    FT1000D_NATIVE_MODE_SET_AM_W,
+    FT1000D_NATIVE_MODE_SET_AM_N,
+    FT1000D_NATIVE_MODE_SET_FM,
+    FT1000D_NATIVE_MODE_SET_RTTY_LSB,
+    FT1000D_NATIVE_MODE_SET_RTTY_USB,
+    FT1000D_NATIVE_MODE_SET_PKT_LSB,
+    FT1000D_NATIVE_MODE_SET_PKT_FM,
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_LSB, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_USB, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_CW_W, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_CW_N, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_AM_W, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_AM_N, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_FM, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_RTTY_LSB, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_RTTY_USB, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_PKT_LSB, /* Added December 2016 */
+    FT1000D_NATIVE_MODE_SUB_VFOB_SET_PKT_FM, /* Added December 2016 */
+    FT1000D_NATIVE_PACING,
+    FT1000D_NATIVE_PTT_OFF,
+    FT1000D_NATIVE_PTT_ON,
+    FT1000D_NATIVE_UPDATE_ALL_DATA,
+    FT1000D_NATIVE_UPDATE_MEM_CHNL,
+    FT1000D_NATIVE_UPDATE_OP_DATA,
+    FT1000D_NATIVE_UPDATE_VFO_DATA,
+    FT1000D_NATIVE_UPDATE_MEM_CHNL_DATA,
+    FT1000D_NATIVE_TUNER_OFF,
+    FT1000D_NATIVE_TUNER_ON,
+    FT1000D_NATIVE_TUNER_START,
+    FT1000D_NATIVE_RPTR_SHIFT_NONE,
+    FT1000D_NATIVE_RPTR_SHIFT_MINUS,
+    FT1000D_NATIVE_RPTR_SHIFT_PLUS,
+    FT1000D_NATIVE_VFO_TO_VFO,
+    FT1000D_NATIVE_SET_SUB_VFO_FREQ,
+    FT1000D_NATIVE_BANDWIDTH,
+    FT1000D_NATIVE_OP_FREQ_STEP_UP,
+    FT1000D_NATIVE_OP_FREQ_STEP_DOWN,
+    FT1000D_NATIVE_READ_METER,
+    FT1000D_NATIVE_DIM_LEVEL,
+    FT1000D_NATIVE_RPTR_OFFSET,
+    FT1000D_NATIVE_READ_FLAGS,
+    FT1000D_NATIVE_SIZE
 };
 
 static int ft1000d_init(RIG *rig);
@@ -120,20 +121,28 @@ static int ft1000d_close(RIG *rig);
 static int ft1000d_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft1000d_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft1000d_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int ft1000d_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ft1000d_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                            pbwidth_t *width);
 static int ft1000d_set_vfo(RIG *rig, vfo_t vfo);
 static int ft1000d_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft1000d_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft1000d_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int ft1000d_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
-static int ft1000d_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);
+static int ft1000d_get_rptr_shift(RIG *rig, vfo_t vfo,
+                                  rptr_shift_t *rptr_shift);
 static int ft1000d_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
-static int ft1000d_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq); /* Added December 2016 */
-static int ft1000d_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq); /* Added December 2016 */
-static int ft1000d_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-static int ft1000d_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-static int ft1000d_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width); /* Added December 2016 */
-static int ft1000d_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width); /* Added December 2016 */
+static int ft1000d_set_split_freq(RIG *rig, vfo_t vfo,
+                                  freq_t tx_freq); /* Added December 2016 */
+static int ft1000d_get_split_freq(RIG *rig, vfo_t vfo,
+                                  freq_t *tx_freq); /* Added December 2016 */
+static int ft1000d_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                                 vfo_t tx_vfo);
+static int ft1000d_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                                 vfo_t *tx_vfo);
+static int ft1000d_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                                  pbwidth_t tx_width); /* Added December 2016 */
+static int ft1000d_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                                  pbwidth_t *tx_width); /* Added December 2016 */
 static int ft1000d_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft1000d_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 static int ft1000d_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
@@ -141,12 +150,14 @@ static int ft1000d_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 static int ft1000d_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ft1000d_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
 static int ft1000d_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
-static int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value);
+static int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level,
+                             value_t *value);
 static int ft1000d_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 static int ft1000d_set_mem(RIG *rig, vfo_t vfo, int ch);
 static int ft1000d_get_mem(RIG *rig, vfo_t vfo, int *ch);
-static int ft1000d_set_channel (RIG *rig, vfo_t vfo, const channel_t *chan);
-static int ft1000d_get_channel (RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
+static int ft1000d_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
+static int ft1000d_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                               int read_only);
 
 
 
@@ -1121,7 +1132,8 @@ static int ft1000d_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
  *           the correct TX VFO is selected by the rig in split mode.
  *           An error is returned if vfo and tx_vfo are the same.
  */
-static int ft1000d_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+static int ft1000d_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
+                                 vfo_t tx_vfo)
 {
     struct ft1000d_priv_data *priv;
     unsigned char ci;
@@ -1222,7 +1234,8 @@ static int ft1000d_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vf
  * Comments: The passed value for the vfo is ignored in order to
  *           preserve the current split vfo system settings.
  */
-static int ft1000d_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int ft1000d_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                                 vfo_t *tx_vfo)
 {
     struct ft1000d_priv_data *priv;
     int err;
@@ -2076,7 +2089,8 @@ static int ft1000d_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft1000d_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int ft1000d_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                            pbwidth_t *width)
 {
     struct ft1000d_priv_data *priv;
     unsigned char *p;
@@ -2435,7 +2449,8 @@ static int ft1000d_get_vfo(RIG *rig, vfo_t *vfo)
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
+static int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level,
+                             value_t *value)
 {
     struct ft1000d_priv_data *priv;
     unsigned char mdata[YAESU_CMD_LENGTH];
@@ -2480,7 +2495,8 @@ static int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *valu
         return err;
     }
 
-    err = read_block(&rig->state.rigport, (char *) mdata, FT1000D_READ_METER_LENGTH);
+    err = read_block(&rig->state.rigport, (char *) mdata,
+                     FT1000D_READ_METER_LENGTH);
 
     if (err < 0)
     {
@@ -2798,7 +2814,8 @@ static int ft1000d_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
  *           Status for split operation, active rig functions and tuning steps
  *           are only relevant for currVFO
  */
-static int ft1000d_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
+static int ft1000d_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
+                               int read_only)
 {
     struct ft1000d_priv_data *priv;
     ft1000d_op_data_t *p;
@@ -3279,7 +3296,8 @@ static int ft1000d_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_on
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
  */
-static int ft1000d_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
+static int ft1000d_get_update_data(RIG *rig, unsigned char ci,
+                                   unsigned short ch)
 {
     struct rig_state *rig_s;
     struct ft1000d_priv_data *priv;
@@ -3447,8 +3465,8 @@ static int ft1000d_send_static_cmd(RIG *rig, unsigned char ci)
  *              otherwise returns error from called functiion
  */
 static int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
-                             unsigned char p1, unsigned char p2,
-                             unsigned char p3, unsigned char p4)
+                                    unsigned char p1, unsigned char p2,
+                                    unsigned char p3, unsigned char p4)
 {
     struct ft1000d_priv_data *priv;
     int err;
@@ -3768,7 +3786,7 @@ static int ft1000d_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  */
 
 static int ft1000d_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
-                           pbwidth_t tx_width)
+                                  pbwidth_t tx_width)
 {
     int err;
     unsigned char bw;
@@ -3901,7 +3919,7 @@ static int ft1000d_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
  */
 
 static int ft1000d_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
-                           pbwidth_t *tx_width)
+                                  pbwidth_t *tx_width)
 {
     struct ft1000d_priv_data *priv;
     int err;

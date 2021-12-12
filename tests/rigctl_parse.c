@@ -244,6 +244,8 @@ declare_proto_rig(halt);
 declare_proto_rig(pause);
 declare_proto_rig(password);
 declare_proto_rig(set_password);
+declare_proto_rig(set_clock);
+declare_proto_rig(get_clock);
 
 
 /*
@@ -344,11 +346,14 @@ static struct test_table test_list[] =
     { 0xf5, "get_rig_info",     ACTION(get_rig_info),   ARG_NOVFO | ARG_OUT, "RigInfo" }, /* get several vfo parameters at once */
     { 0xf4, "get_vfo_list",    ACTION(get_vfo_list),   ARG_OUT | ARG_NOVFO, "VFOs" },
     { 0xf6, "get_modes",       ACTION(get_modes),   ARG_OUT | ARG_NOVFO, "Modes" },
-    { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
+//    { 0xf9, "get_clock",        ACTION(get_clock),      ARG_IN | ARG_NOVFO, "local/utc" },
+    { 0xf9, "get_clock",        ACTION(get_clock),      ARG_NOVFO },
+    { 0xf8, "set_clock",        ACTION(set_clock),      ARG_IN | ARG_NOVFO, "YYYYMMDDHHMMSS.sss+ZZ" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x98, "password",         ACTION(password),       ARG_IN, "Password" },
     { 0x99, "set_password",     ACTION(set_password),   ARG_IN, "Password" },
+    { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
     { 0x00, "", NULL },
 };
 
@@ -2257,6 +2262,7 @@ declare_proto_rig(get_vfo_info)
     int retval;
 
     ENTERFUNC;
+    ELAPSED1;
 
     if (!strcmp(arg1, "?"))
     {
@@ -2296,6 +2302,7 @@ declare_proto_rig(get_vfo_info)
         fprintf(fout, "%.0f\n%s\n%d\n", freq, modestr, (int)width);
     }
 
+    ELAPSED2;
     RETURNFUNC(retval);
 }
 
@@ -2798,7 +2805,7 @@ declare_proto_rig(set_split_mode)
     }
 
     // mode could be RIG_MODE_NONE here
-    // we treat it as non-fatal 
+    // we treat it as non-fatal
     // rig_parse_mode will spit out error msg
     mode = rig_parse_mode(arg1);
     CHKSCN1ARG(sscanf(arg2, "%d", &width));
@@ -3633,6 +3640,8 @@ declare_proto_rig(vfo_op)
 
     if (RIG_OP_NONE == op)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_parse_vfo failed with '%s'\n", __func__,
+                  arg1);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -4766,7 +4775,7 @@ declare_proto_rig(send_cmd)
 
         /* Assumes CR or LF is end of line char for all ASCII protocols. */
         retval = read_string(&rs->rigport, buf, rxbytes, eom_buf,
-                             strlen(eom_buf), 0);
+                             strlen(eom_buf), 0, 1);
 
         if (retval < 0)
         {
@@ -4905,13 +4914,18 @@ char rig_passwd[256];
 declare_proto_rig(password)
 {
     const char *passwd = arg1;
-    if (strcmp(passwd,rig_passwd)==0) {
-    rig_debug(RIG_DEBUG_ERR, "%s: #1 password OK\n", __func__);
-    return(RIG_EINVAL);
+
+    if (strcmp(passwd, rig_passwd) == 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: #1 password OK\n", __func__);
+        return (RIG_EINVAL);
     }
-    else{
-    rig_debug(RIG_DEBUG_ERR, "%s: #2 password error, '%s'!='%s'\n", __func__,passwd,rig_passwd);
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: #2 password error, '%s'!='%s'\n", __func__,
+                  passwd, rig_passwd);
     }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -4919,7 +4933,7 @@ declare_proto_rig(password)
 declare_proto_rig(set_password)
 {
     const char *passwd = arg1;
-    strncpy(rig_passwd, passwd, sizeof(passwd)-1);
+    strncpy(rig_passwd, passwd, sizeof(passwd) - 1);
     rig_debug(RIG_DEBUG_ERR, "%s: set_password %s\n", __func__, rig_passwd);
     fprintf(fout, "set_password %s\n", rig_passwd);
     RETURNFUNC(RIG_OK);
@@ -5006,4 +5020,74 @@ declare_proto_rig(get_cache)
     fprintf(fout, "%d\n", ms);
 
     RETURNFUNC(RIG_OK);
+}
+
+/* '0xf8' */
+declare_proto_rig(set_clock)
+{
+    int year, mon, day, hour = -1, min = -1, sec = -1;
+    double msec;
+    int utc_offset = 0;
+    int n;
+    char timebuf[64];
+
+    ENTERFUNC;
+
+    if (arg1 && strcasecmp(arg1, "local") == 0)
+    {
+        date_strget(timebuf, sizeof(timebuf), 1);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: local time set = %s\n", __func__, timebuf);
+        n = sscanf(timebuf, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day,
+                   &hour,
+                   &min, &sec, &msec, &utc_offset);
+    }
+    else if (arg1 && strcasecmp(arg1, "utc") == 0)
+    {
+        date_strget(timebuf, sizeof(timebuf), 0);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: utc time set = %s\n", __func__, timebuf);
+        n = sscanf(timebuf, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day,
+                   &hour,
+                   &min, &sec, &msec, &utc_offset);
+    }
+    else
+    {
+        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
+                   &min, &sec, &msec, &utc_offset);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: n=%d, %04d-%02d-%02dT%02d:%02d:%02d.%0.3f%s%02d\n",
+              __func__, n, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
+              (unsigned)abs(utc_offset));
+
+    rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
+
+    if (utc_offset < 24) { utc_offset *= 100; } // allow for minutes offset too
+
+    rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
+
+    RETURNFUNC(rig_set_clock(rig, year, mon, day, hour, min, sec, msec,
+                             utc_offset));
+}
+
+/* '0xf9' */
+declare_proto_rig(get_clock)
+{
+    //char option[64];
+    int year, month, day, hour, min, sec, utc_offset, aoffset;
+    int retval;
+    double msec;
+
+    ENTERFUNC;
+
+    //CHKSCN1ARG(sscanf(arg1, "%63s", option));
+
+    retval = rig_get_clock(rig, &year, &month, &day, &hour, &min, &sec, &msec,
+                           &utc_offset);
+    aoffset = abs(utc_offset);
+    fprintf(fout, "%04d-%02d-%02dT%02d:%02d:%06.3f%s%02d:%02d\n", year, month, day,
+            hour, min, sec + msec / 1000, utc_offset >= 0 ? "+" : "-",
+            aoffset / 100, aoffset % 100);
+
+    return retval;
 }

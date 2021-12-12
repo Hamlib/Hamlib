@@ -253,7 +253,7 @@ transaction_read:
     /* allow one extra byte for terminator we don't return */
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 13,
               ELAD_MAX_BUF_LEN);
-    retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm), 0);
+    retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm), 0, 1);
 
     if (retval < 0)
     {
@@ -3739,7 +3739,7 @@ DECLARE_PROBERIG_BACKEND(elad)
         }
 
         retval = write_block(port, "ID;", 3);
-        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0);
+        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0, 1);
         close(port->fd);
 
         if (retval != RIG_OK || id_len < 0)
@@ -3800,7 +3800,7 @@ DECLARE_PROBERIG_BACKEND(elad)
         }
 
         retval = write_block(port, "K2;", 3);
-        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0);
+        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0, 1);
         close(port->fd);
 
         if (retval != RIG_OK)
