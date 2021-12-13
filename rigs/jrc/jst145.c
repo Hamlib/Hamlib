@@ -154,6 +154,102 @@ const struct rig_caps jst145_caps =
 };
 
 /*
+ * JST-245 rig capabilities.
+ *
+ */
+const struct rig_caps jst245_caps =
+{
+    RIG_MODEL(RIG_MODEL_JST245),
+    .model_name = "JST-245",
+    .mfg_name =  "JRC",
+    .version =  BACKEND_VER ".0",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_ALPHA,
+    .rig_type =  RIG_TYPE_RECEIVER,
+    .ptt_type =  RIG_PTT_NONE,
+    .dcd_type =  RIG_DCD_NONE,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  4800,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  20,
+    .timeout =  1000,
+    .retry =  0,
+
+    .has_get_func =  RIG_FUNC_NONE,
+    .has_set_func =  RIG_FUNC_NONE,
+    .has_get_level =  RIG_LEVEL_NONE,
+    .has_set_level =  JST145_LEVEL,
+    .has_get_parm =  RIG_PARM_NONE,
+    .has_set_parm =  RIG_PARM_NONE,
+    .level_gran = {},
+    .parm_gran =  {},
+    .ctcss_list =  NULL,
+    .dcs_list =  NULL,
+    .preamp =   { RIG_DBLST_END },
+    .attenuator =   { 20, RIG_DBLST_END },
+    .max_rit =  Hz(0),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  RIG_TARGETABLE_FREQ,
+    .transceive =  RIG_TRN_OFF,
+    .vfo_ops =  RIG_OP_FROM_VFO,
+    .scan_ops =  RIG_SCAN_NONE,
+    .bank_qty =   0,
+    .chan_desc_sz =  0,
+
+    .chan_list =  {
+        { 0, 199, RIG_MTYPE_MEM, JST145_MEM_CAP },
+        RIG_CHAN_END
+    },
+
+    .rx_range_list1 =  {
+        {kHz(10), MHz(30), JST145_MODES, -1, -1, JST145_VFO},
+        RIG_FRNG_END,
+    },
+    .tx_range_list1 =  { RIG_FRNG_END, },
+    .rx_range_list2 =  {
+        {kHz(10), MHz(30), JST145_MODES, -1, -1, JST145_VFO},
+        RIG_FRNG_END,
+    },
+    .tx_range_list2 =  { RIG_FRNG_END, },
+
+    .tuning_steps =  {
+        {JST145_MODES, 10},
+        RIG_TS_END,
+    },
+    /* mode/filter list, .remember =  order matters! */
+    .filters =  {
+        {RIG_MODE_FM, kHz(12)},
+        {RIG_MODE_FM, kHz(6)},
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_AM, kHz(2)},
+        {RIG_MODE_AM, kHz(12)},
+        {RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_FAX, kHz(2)},
+        {RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_FAX, kHz(1)},
+        {RIG_MODE_SSB | RIG_MODE_RTTY | RIG_MODE_FAX, kHz(6)},
+        {RIG_MODE_CW, kHz(1)},
+        {RIG_MODE_CW, kHz(2)},
+        RIG_FLT_END,
+    },
+
+    .rig_open =  jst145_open,
+    .rig_close =  jst145_close,
+    .set_freq =  jst145_set_freq,
+    .get_freq =  jst145_get_freq,
+    .set_mode =  jst145_set_mode,
+    .get_mode =  jst145_get_mode,
+    .set_func =  jst145_set_func,
+    .set_level =  jst145_set_level,
+    .set_mem =  jst145_set_mem,
+    .vfo_op =  jst145_vfo_op
+};
+
+/*
  * Function definitions below
  */
 
