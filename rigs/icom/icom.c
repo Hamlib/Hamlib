@@ -943,11 +943,14 @@ icom_rig_open(RIG *rig)
 retry_open:
     retval_echo = icom_get_usb_echo_off(rig);
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: retval_echo=%d\n",  __func__, retval_echo);
+
     if (retval_echo == 0 || retval_echo == 1) { retval = RIG_OK; }
     else { retval = retval_echo; }
 
     if (retval == RIG_OK) // then we know our echo status
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting freq\n", __func__);
         rig->state.current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
         // so asking for freq now should timeout if such a rig
@@ -956,6 +959,7 @@ retry_open:
     }
     else
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: echo status unknown\n", __func__);
         retval = -RIG_EPROTO;
     }
 
