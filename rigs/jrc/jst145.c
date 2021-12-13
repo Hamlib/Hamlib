@@ -34,6 +34,8 @@
 
 static int jst145_open(RIG *rig);
 static int jst145_close(RIG *rig);
+static int jst145_set_vfo(RIG *rig, vfo_t vfo);
+static int jst145_get_vfo(RIG *rig, vfo_t *vfo);
 static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int jst145_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
@@ -143,6 +145,8 @@ const struct rig_caps jst145_caps =
 
     .rig_open =  jst145_open,
     .rig_close =  jst145_close,
+    .set_vfo = jst145_set_vfo,
+    .get_vfo = jst145_get_vfo,
     .set_freq =  jst145_set_freq,
     .get_freq =  jst145_get_freq,
     .set_mode =  jst145_set_mode,
@@ -239,6 +243,8 @@ const struct rig_caps jst245_caps =
 
     .rig_open =  jst145_open,
     .rig_close =  jst145_close,
+    .set_vfo = jst145_set_vfo,
+    .get_vfo = jst145_get_vfo,
     .set_freq =  jst145_set_freq,
     .get_freq =  jst145_get_freq,
     .set_mode =  jst145_set_mode,
@@ -263,6 +269,37 @@ static int jst145_close(RIG *rig)
     return write_block(&rig->state.rigport, "H0\r", 3);
 }
 
+static int jst145_set_vfo(RIG *rig, vfo_t vfo)
+{
+    char cmd[12];
+    snprintf(cmd, sizeof(cmd), "F%c\r", vfo == RIG_VFO_A ? 'A' : 'B');
+
+    return write_block(&rig->state.rigport, cmd, strlen(cmd));
+}
+
+static int jst145_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    char cmd[12];
+    char channel[12];
+    int channel_size = sizeof(channel);
+    int retval;
+
+    snprintf(cmd, sizeof(cmd), "L\r");
+
+    retval = jrc_transaction(rig, cmd, strlen(cmd), channel, &channel_size);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: jrc_transaction error: %s\n", __func__,
+                  rigerror(retval));
+        return retval;
+    }
+
+    *vfo = channel[1] == 'A' ? RIG_VFO_A : RIG_VFO_B;
+
+    return RIG_OK;
+}
+
 static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[12];
@@ -279,8 +316,10 @@ static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int freqbuf_size = 12;
     int retval;
     int n;
+    char vfoc;
 
-    snprintf(cmd, sizeof(cmd), "F%c\r", vfo == RIG_VFO_A ? 'A' : 'B');
+    rig_set_vfo(rig, vfo);
+    snprintf(cmd, sizeof(cmd), "L\r");
     retval = jrc_transaction(rig, cmd, strlen(cmd), freqbuf, &freqbuf_size);
 
     if (retval != RIG_OK)
@@ -290,9 +329,11 @@ static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    n = sscanf(freqbuf, "F%lf", freq);
+    n = sscanf(freqbuf, "L%c%lf", &vfoc, freq);
 
-    if (n != 1) { retval = -RIG_EPROTO; }
+    if (n != 2) { retval = -RIG_EPROTO; }
+
+    if (vfoc == 'B') { rig_set_vfo(rig, RIG_VFO_A); }
 
     return retval;
 }
@@ -350,6 +391,21 @@ static int jst145_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: jrc_transcation failed: %s\n", __func__,
                   rigerror(retval));
+    }
+
+    switch (modebuf[3])
+    {
+    case '0': *mode = RIG_MODE_RTTY; break;
+
+    case '1': *mode = RIG_MODE_CW; break;
+
+    case '2': *mode = RIG_MODE_USB; break;
+
+    case '3': *mode = RIG_MODE_LSB; break;
+
+    case '4': *mode = RIG_MODE_AM; break;
+
+    case '5': *mode = RIG_MODE_FM; break;
     }
 
     return retval;
