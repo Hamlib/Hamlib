@@ -218,7 +218,6 @@ static const yaesu_cmd_set_t ncmd[] =
 struct ft990_priv_data
 {
     unsigned char pacing;                     /* pacing value */
-    unsigned int read_update_delay;           /* depends on pacing value */
     vfo_t current_vfo;                        /* active VFO from last cmd */
     unsigned char p_cmd[YAESU_CMD_LENGTH];    /* private copy of CAT cmd */
     ft990_update_data_t update_data;          /* returned data */
@@ -407,9 +406,6 @@ int ft990_init(RIG *rig)
 
     // Set default pacing value
     priv->pacing = FT990_PACING_DEFAULT_VALUE;
-
-    // Set update timeout
-    priv->read_update_delay = FT990_DEFAULT_READ_TIMEOUT;
 
     // Set operating vfo mode to current VFO
     priv->current_vfo =  RIG_VFO_MAIN;

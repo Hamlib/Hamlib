@@ -88,7 +88,6 @@ static int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width);
 struct ft757_priv_data
 {
     unsigned char pacing;       /* pacing value */
-    unsigned int read_update_delay; /* depends on pacing value */
     unsigned char
     current_vfo;  /* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
     unsigned char
@@ -375,8 +374,6 @@ static int ft757_init(RIG *rig)
 
     priv->pacing =
         FT757GX_PACING_DEFAULT_VALUE;   /* set pacing to minimum for now */
-    priv->read_update_delay =
-        FT757GX_DEFAULT_READ_TIMEOUT;    /* set update timeout to safe value */
     priv->current_vfo =  RIG_VFO_A;            /* default to VFO_A ? */
 
     return RIG_OK;

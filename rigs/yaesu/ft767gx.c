@@ -240,7 +240,6 @@ static int rig2ctcss(RIG *rig, unsigned char tn, tone_t *tone);
 struct ft767_priv_data
 {
     unsigned char pacing;     /* pacing value */
-    unsigned int read_update_delay;    /* depends on pacing value */
     unsigned char
     current_vfo;    /* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
     unsigned char
@@ -413,8 +412,6 @@ int ft767_init(RIG *rig)
     /* TODO: read pacing from preferences */
 
     priv->pacing = FT767GX_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-    priv->read_update_delay =
-        FT767GX_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
     priv->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
     priv->ack_cmd[0] = 00;
     priv->ack_cmd[1] = 00;

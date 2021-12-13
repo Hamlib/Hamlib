@@ -392,7 +392,6 @@ static const yaesu_cmd_set_t ncmd[] =
 struct ft920_priv_data
 {
     unsigned char pacing;                       /* pacing value */
-    unsigned int read_update_delay;             /* depends on pacing value */
     vfo_t current_vfo;                          /* active VFO from last cmd */
     vfo_t split_vfo;                            /* TX VFO in split mode */
     split_t split;                              /* split active or not */
@@ -647,8 +646,6 @@ static int ft920_init(RIG *rig)
     /* TODO: read pacing from preferences */
     priv->pacing =
         FT920_PACING_DEFAULT_VALUE;              /* set pacing to minimum for now */
-    priv->read_update_delay =
-        FT920_DEFAULT_READ_TIMEOUT;   /* set update timeout to safe value */
     priv->current_vfo =  RIG_VFO_A;                         /* default to VFO_A */
 
     return RIG_OK;

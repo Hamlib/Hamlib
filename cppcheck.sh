@@ -80,7 +80,7 @@ CHECK="\
 if test $# -eq 0 ; then
         echo "See cppcheck.log when done"
         echo "This takes a while to run"
-        strace -f cppcheck --inline-suppr \
+        cppcheck --inline-suppr \
                  -I src \
                  -I include \
                  --include=include/config.h \
