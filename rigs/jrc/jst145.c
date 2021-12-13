@@ -66,7 +66,7 @@ const struct rig_caps jst145_caps =
     RIG_MODEL(RIG_MODEL_JST145),
     .model_name = "JST-145",
     .mfg_name =  "JRC",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_RECEIVER,
@@ -162,7 +162,7 @@ const struct rig_caps jst245_caps =
     RIG_MODEL(RIG_MODEL_JST245),
     .model_name = "JST-245",
     .mfg_name =  "JRC",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_RECEIVER,
@@ -255,12 +255,12 @@ const struct rig_caps jst245_caps =
 
 static int jst145_open(RIG *rig)
 {
-    return write_block(&rig->state.rigport, "H1\r", 2);
+    return write_block(&rig->state.rigport, "H1\r", 3);
 }
 
 static int jst145_close(RIG *rig)
 {
-    return write_block(&rig->state.rigport, "H0\r", 2);
+    return write_block(&rig->state.rigport, "H0\r", 3);
 }
 
 static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
@@ -367,8 +367,8 @@ static int jst145_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_AGC:
         return write_block(&rig->state.rigport,
-                           val.i == RIG_AGC_SLOW ? "G0" :
-                           (val.i == RIG_AGC_FAST ? "G1" : "G2"), 2);
+                           val.i == RIG_AGC_SLOW ? "G0\r" :
+                           (val.i == RIG_AGC_FAST ? "G1\r" : "G2\r"), 3);
 
     default:
         return -RIG_EINVAL;
@@ -381,7 +381,7 @@ static int jst145_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     char membuf[12];
 
-    sprintf(membuf, "C%03d", ch);
+    sprintf(membuf, "C%03d\r", ch);
 
     return write_block(&rig->state.rigport, membuf, strlen(membuf));
 }
@@ -391,7 +391,7 @@ static int jst145_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     switch (op)
     {
     case RIG_OP_FROM_VFO:
-        return write_block(&rig->state.rigport, "E1", 2);
+        return write_block(&rig->state.rigport, "E1\r", 3);
 
     default:
         return -RIG_EINVAL;
