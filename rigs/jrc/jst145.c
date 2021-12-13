@@ -271,7 +271,7 @@ static int jst145_close(RIG *rig)
 
 static int jst145_set_vfo(RIG *rig, vfo_t vfo)
 {
-    char cmd[12];
+    char cmd[24];
     snprintf(cmd, sizeof(cmd), "F%c\r", vfo == RIG_VFO_A ? 'A' : 'B');
 
     return write_block(&rig->state.rigport, cmd, strlen(cmd));
@@ -279,8 +279,8 @@ static int jst145_set_vfo(RIG *rig, vfo_t vfo)
 
 static int jst145_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    char cmd[12];
-    char channel[12];
+    char cmd[24];
+    char channel[24];
     int channel_size = sizeof(channel);
     int retval;
 
@@ -302,7 +302,7 @@ static int jst145_get_vfo(RIG *rig, vfo_t *vfo)
 
 static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    char freqbuf[12];
+    char freqbuf[24];
 
     snprintf(freqbuf, sizeof(freqbuf), "F%08u%c\r", (unsigned)(freq / 10),
              vfo == RIG_VFO_A ? 'A' : 'B');
@@ -311,9 +311,9 @@ static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 }
 static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    char freqbuf[12];
-    char cmd[12];
-    int freqbuf_size = 12;
+    char freqbuf[24];
+    char cmd[24];
+    int freqbuf_size = sizeof(freqbuf);
     int retval;
     int n;
     char vfoc;
@@ -378,8 +378,8 @@ static int jst145_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 static int jst145_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    char cmd[12];
-    char modebuf[12];
+    char cmd[24];
+    char modebuf[24];
     int modebuf_len = sizeof(modebuf);
     int retval;
 
@@ -435,7 +435,7 @@ static int jst145_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 static int jst145_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    char membuf[12];
+    char membuf[24];
 
     sprintf(membuf, "C%03d\r", ch);
 
