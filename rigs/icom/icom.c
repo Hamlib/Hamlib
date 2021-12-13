@@ -943,7 +943,10 @@ icom_rig_open(RIG *rig)
 retry_open:
     retval_echo = icom_get_usb_echo_off(rig);
 
-    if (retval_echo == 0 || retval_echo == 1) // then we know our echo status
+    if (retval_echo == 0 || retval_echo == 1) { retval = RIG_OK; }
+    else { retval = retval_echo; }
+
+    if (retval == RIG_OK) // then we know our echo status
     {
         rig->state.current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
