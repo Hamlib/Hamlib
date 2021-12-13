@@ -68,6 +68,7 @@ extern const struct rig_caps nrd535_caps;
 extern const struct rig_caps nrd545_caps;
 extern const struct rig_caps nrd525_caps;
 extern const struct rig_caps jst145_caps;
+extern const struct rig_caps jst245_caps;
 
 
 #endif /* _JRC_H */
