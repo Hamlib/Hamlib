@@ -3156,6 +3156,7 @@ extern HAMLIB_EXPORT(const char *) rig_strparm(setting_t);
 extern HAMLIB_EXPORT(const char *) rig_stragclevel(enum agc_level_e level);
 extern HAMLIB_EXPORT(enum agc_level_e)  rig_levelagcstr (char *agcString);
 extern HAMLIB_EXPORT(enum agc_level_e)  rig_levelagcvalue (int agcValue);
+extern HAMLIB_EXPORT(value_t) rig_valueagclevel (enum agc_level_e agcLevel);
 extern HAMLIB_EXPORT(const char *) rig_strptrshift(rptr_shift_t);
 extern HAMLIB_EXPORT(const char *) rig_strvfop(vfo_op_t op);
 extern HAMLIB_EXPORT(const char *) rig_strscan(scan_t scan);
