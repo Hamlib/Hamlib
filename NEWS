@@ -6,8 +6,9 @@ Copyright (C) 2000-2021  Michael Black W9MDB, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
-Version 4.5
+Version 4.x
         * 202?-??-??
+        * Added JRC JST-145 and JST-245
 
 Version 4.4
         * 2021-12-02

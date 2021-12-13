@@ -296,7 +296,6 @@ static tone_t ft1000mp_ctcss_list[] =
 struct ft1000mp_priv_data
 {
     unsigned char pacing;                     /* pacing value */
-    unsigned int read_update_delay;           /* depends on pacing value */
     unsigned char
     p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
     unsigned char update_data[2 *
@@ -740,8 +739,6 @@ static int ft1000mp_init(RIG *rig)
     /* TODO: read pacing from preferences */
     priv->pacing =
         FT1000MP_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-    priv->read_update_delay =
-        FT1000MP_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
 
     RETURNFUNC(RIG_OK);
 }

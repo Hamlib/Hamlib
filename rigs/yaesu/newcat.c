@@ -469,11 +469,6 @@ int newcat_init(RIG *rig)
 
     priv = rig->state.priv;
 
-    /* TODO: read pacing from preferences */
-    //    priv->pacing = NEWCAT_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-    priv->read_update_delay =
-        NEWCAT_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-
     //    priv->current_vfo =  RIG_VFO_MAIN;          /* default to whatever */
 //    priv->current_vfo = RIG_VFO_A;
 
