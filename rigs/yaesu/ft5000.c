@@ -142,7 +142,7 @@ const struct rig_caps ftdx5000_caps =
     RIG_MODEL(RIG_MODEL_FTDX5000),
     .model_name =         "FTDX-5000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".1",
+    .version =            NEWCAT_VER ".2",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -184,6 +184,7 @@ const struct rig_caps ftdx5000_caps =
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 5000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
+    .rfpower_meter_cal =  FT5000_RFPOWER_METER_CAL,
     .str_cal =            FTDX5000_STR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
