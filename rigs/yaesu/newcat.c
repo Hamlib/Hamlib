@@ -4585,7 +4585,14 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
+        if (is_ftdx9000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM09%c", cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
+        }
         break;
 
     case RIG_LEVEL_ALC:
