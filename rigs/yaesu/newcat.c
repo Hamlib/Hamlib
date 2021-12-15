@@ -4608,6 +4608,10 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM08%c", cat_term);
         }
+        else if (is_ftdx3000 || is_ftdx5000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
+        }
         else
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM5%c", cat_term);
