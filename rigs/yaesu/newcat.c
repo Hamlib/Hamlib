@@ -4589,6 +4589,21 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM09%c", cat_term);
         }
+        else if (is_ftdx3000 || is_ftdx5000)
+        {
+            // The 3000 has to use the meter read for SWR when the tuner is on
+            // We'll assume the 5000 is the same way for now
+            // Also need to ensure SWR is selected for the meter
+            int tuner;
+            value_t meter;
+            newcat_get_func(rig, RIG_VFO_A, RIG_FUNC_TUNER, &tuner);
+            newcat_get_level(rig, RIG_VFO_A, RIG_LEVEL_METER, &meter);
+
+            if (meter.i == RIG_METER_SWR)
+                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM%c%c", (tuner
+                         && meter.i == RIG_METER_SWR) ? '2' : '6',
+                         cat_term);
+        }
         else
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
@@ -4623,22 +4638,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if (is_ftdx9000)
         {
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM08%c", cat_term);
-        }
-        else if (is_ftdx3000 || is_ftdx5000)
-        {
-            // The 3000 has to use the meter read for SWR when the tuner is on
-            // We'll assume the 5000 is the same way for now
-            int tuner;
-            newcat_get_func(rig, RIG_VFO_A, RIG_FUNC_TUNER, &tuner);
-
-            if (tuner)
-            {
-                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM2%c", cat_term);
-            }
-            else
-            {
-                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
-            }
         }
         else
         {
