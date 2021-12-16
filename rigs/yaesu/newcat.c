@@ -4599,10 +4599,14 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             newcat_get_func(rig, RIG_VFO_A, RIG_FUNC_TUNER, &tuner);
             newcat_get_level(rig, RIG_VFO_A, RIG_LEVEL_METER, &meter);
 
-            if (meter.i == RIG_METER_SWR)
-                snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM%c%c", (tuner
-                         && meter.i == RIG_METER_SWR) ? '2' : '6',
-                         cat_term);
+            if (tuner && meter.i != RIG_METER_SWR)
+            {
+                RETURNFUNC(-RIG_ENAVAIL); // if meter not SWR can't read SWR
+            }
+
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM%c%c", (tuner
+                     && meter.i == RIG_METER_SWR) ? '2' : '6',
+                     cat_term);
         }
         else
         {
