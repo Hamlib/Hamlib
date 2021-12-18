@@ -230,7 +230,6 @@ static const yaesu_cmd_set_t ncmd[] =
 struct ft840_priv_data
 {
     unsigned char pacing;                     /* pacing value */
-    unsigned int read_update_delay;           /* depends on pacing value */
     vfo_t current_vfo;                        /* active VFO from last cmd */
     unsigned char
     p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
@@ -400,8 +399,6 @@ static int ft840_init(RIG *rig)
 
     /* TODO: read pacing from preferences */
     priv->pacing = FT840_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-    priv->read_update_delay =
-        FT840_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
     priv->current_vfo =  RIG_VFO_MAIN;  /* default to whatever */
 
     return RIG_OK;

@@ -469,11 +469,6 @@ int newcat_init(RIG *rig)
 
     priv = rig->state.priv;
 
-    /* TODO: read pacing from preferences */
-    //    priv->pacing = NEWCAT_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-    priv->read_update_delay =
-        NEWCAT_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-
     //    priv->current_vfo =  RIG_VFO_MAIN;          /* default to whatever */
 //    priv->current_vfo = RIG_VFO_A;
 
@@ -4590,7 +4585,34 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
+        if (is_ftdx9000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM09%c", cat_term);
+        }
+        else if (is_ftdx3000 || is_ftdx5000)
+        {
+            // The 3000 has to use the meter read for SWR when the tuner is on
+            // We'll assume the 5000 is the same way for now
+            // Also need to ensure SWR is selected for the meter
+            int tuner;
+            value_t meter;
+            newcat_get_func(rig, RIG_VFO_A, RIG_FUNC_TUNER, &tuner);
+            newcat_get_level(rig, RIG_VFO_A, RIG_LEVEL_METER, &meter);
+
+            if (tuner && meter.i != RIG_METER_SWR)
+            {
+                RETURNFUNC(-RIG_ENAVAIL); // if meter not SWR can't read SWR
+            }
+
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM%c%c", (tuner
+                     && meter.i == RIG_METER_SWR) ? '2' : '6',
+                     cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM6%c", cat_term);
+        }
+
         break;
 
     case RIG_LEVEL_ALC:
@@ -4599,7 +4621,15 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM4%c", cat_term);
+        if (is_ftdx9000)
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM07%c", cat_term);
+        }
+        else
+        {
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RM4%c", cat_term);
+        }
+
         break;
 
     case RIG_LEVEL_RFPOWER_METER:
@@ -9868,8 +9898,7 @@ int newcat_get_cmd(RIG *rig)
         || strcmp(priv->cmd_str, "RF1;") == 0
         || strcmp(priv->cmd_str, "RL0;") == 0
         || strcmp(priv->cmd_str, "RL1;") == 0
-        || strcmp(priv->cmd_str, "RM0;") == 0
-        || strcmp(priv->cmd_str, "RM1;") == 0
+        || strncmp(priv->cmd_str, "RM", 2) == 0
         || strcmp(priv->cmd_str, "SM0;") == 0
         || strcmp(priv->cmd_str, "SM1;") == 0
         || strcmp(priv->cmd_str, "SQ0;") == 0
@@ -11049,7 +11078,8 @@ int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
         RETURNFUNC(err);
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT1%02d%02d%02d%c", hour, min, sec, cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT1%02d%02d%02d%c", hour, min,
+             sec, cat_term);
 
     if (RIG_OK != (err = newcat_set_cmd(rig)))
     {
@@ -11058,7 +11088,8 @@ int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
         RETURNFUNC(err);
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT2%c%04d%c", utc_offset>=0?'+':'-', utc_offset, cat_term);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "DT2%c%04d%c",
+             utc_offset >= 0 ? '+' : '-', utc_offset, cat_term);
 
     if (RIG_OK != (err = newcat_set_cmd(rig)))
     {

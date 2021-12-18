@@ -130,6 +130,7 @@ int main(int argc, char *argv[])
 
     if (widthC != 3000) { printf("widthC = %d\n", (int)widthC); exit(1); }
 
+#if 0 // PTT does not work for dummy device
     printf("PTT ON\n");
     rig_set_ptt(my_rig, RIG_VFO_CURR, RIG_PTT_ON);
     ptt_t ptt;
@@ -151,6 +152,7 @@ int main(int argc, char *argv[])
 
     rig_get_ptt(my_rig, RIG_VFO_CURR, &ptt);
     printf("PTT get ptt OFF\n");
+#endif
 
     vfo_t tx_vfo;
     split_t split;

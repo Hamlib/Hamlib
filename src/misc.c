@@ -1294,11 +1294,31 @@ const char *HAMLIB_API rig_stragclevel(enum agc_level_e level)
 }
 
 /**
+ * \brief Convert a enum agc_level_e to value
+ * \param integer...
+ * \return agc_level_e value
+ */
+value_t rig_valueagclevel (enum agc_level_e agcLevel)
+{
+    value_t value;
+
+    if (agcLevel == RIG_AGC_OFF) value.i = 0;
+    else if (agcLevel == RIG_AGC_SUPERFAST) value.i = 1;
+    else if (agcLevel == RIG_AGC_FAST) value.i = 2;
+    else if (agcLevel == RIG_AGC_SLOW) value.i = 3;
+    else if (agcLevel == RIG_AGC_USER) value.i = 4;
+    else if (agcLevel == RIG_AGC_MEDIUM) value.i = 5;
+    else value.i = 6; //RIG_AGC_AUTO
+
+    return value;
+}
+
+/**
  * \brief Convert a value to agc_level_e -- constrains the range
  * \param integer...
  * \return agc_level_e
  */
-enum agc_level_e levelagcvalue(int agcValue)
+enum agc_level_e rig_levelagcvalue(int agcValue)
 {
     enum agc_level_e agcLevel;
 
@@ -1329,7 +1349,7 @@ enum agc_level_e levelagcvalue(int agcValue)
  * \param mode AGC string...
  * \return agc_level_e
  */
-enum agc_level_e levelagcstr(char *agcString)
+enum agc_level_e rig_levelagcstr(char *agcString)
 {
     enum agc_level_e agcLevel;
 

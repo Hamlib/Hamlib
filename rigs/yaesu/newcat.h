@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20211202"
+#define NEWCAT_VER "20211216"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -102,9 +102,6 @@ struct newcat_priv_caps
  */
 struct newcat_priv_data
 {
-    unsigned int
-    read_update_delay;              /* depends on pacing value */
-//    vfo_t               current_vfo;                    /* active VFO from last cmd */
     char                cmd_str[NEWCAT_DATA_LEN];       /* command string buffer */
     char
     ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */

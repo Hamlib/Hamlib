@@ -733,19 +733,13 @@ int icom_get_usb_echo_off(RIG *rig)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
     struct rig_state *rs = &rig->state;
-    int retry_save = rs->rigport.retry;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    // reduce the retry here so it's quicker
-    rs->rigport.retry = 0;
     // Check for echo on first by assuming echo is off and checking the answer
     priv->serial_USB_echo_off = 1;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: retry temp set to %d\n", __func__,
-              rs->rigport.retry);
 
     retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, ackbuf, &ack_len);
 
@@ -758,17 +752,17 @@ int icom_get_usb_echo_off(RIG *rig)
     {
         unsigned char buf[16];
         priv->serial_USB_echo_off = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected\n", __func__);
         // we should have a freq response so we'll read it and don't really care
         // flushing doesn't always work as it depends on timing
-        read_icom_frame(&rs->rigport, buf, sizeof(buf));
+        retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected, get freq retval=%d\n", __func__, retval);
+        if (retval <= 0) RETURNFUNC(-RIG_ETIMEOUT);
     }
     else
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo off detected\n", __func__);
     }
 
-    rs->rigport.retry = retry_save;
     RETURNFUNC(priv->serial_USB_echo_off);
 }
 
@@ -929,29 +923,42 @@ static vfo_t icom_current_vfo(RIG *rig)
 int
 icom_rig_open(RIG *rig)
 {
-    int retval = RIG_OK;
+    int retval, retval_echo;
     int satmode = 0;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
     int retry_flag = 1;
-    int echo_off;
+    int retry_save = rs->rigport.retry;
 
     ENTERFUNC;
+
+    rs->rigport.retry = 0;
 
     priv->no_1a_03_cmd = ENUM_1A_03_UNK;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s v%s\n", __func__, rig->caps->model_name,
               rig->caps->version);
 retry_open:
-    echo_off = icom_get_usb_echo_off(rig);
+    retval_echo = icom_get_usb_echo_off(rig);
 
-    if (echo_off == 0) // then echo is on so let's try freq now
+    rig_debug(RIG_DEBUG_TRACE, "%s: retval_echo=%d\n",  __func__, retval_echo);
+
+    if (retval_echo == 0 || retval_echo == 1) { retval = RIG_OK; }
+    else { retval = retval_echo; }
+
+    if (retval == RIG_OK) // then we know our echo status
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting freq\n", __func__);
+        rs->rigport.retry = 0;
         rig->state.current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
         // so asking for freq now should timeout if such a rig
         freq_t tfreq;
         retval = rig_get_freq(rig, RIG_VFO_CURR, &tfreq);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: echo status unknown\n", __func__);
     }
 
     if (retval != RIG_OK && priv->poweron == 0 && rs->auto_power_on)
@@ -969,15 +976,17 @@ retry_open:
 
             rig_debug(RIG_DEBUG_WARN, "%s: rig_set_powerstat failed: =%s\n", __func__,
                       rigerror(retval));
+            rs->rigport.retry = retry_save;
             RETURNFUNC(retval);
         }
 
         // Now that we're powered up let's try again
-        echo_off = icom_get_usb_echo_off(rig);
+        retval_echo = icom_get_usb_echo_off(rig);
 
-        if (echo_off < 0)
+        if (retval_echo != 0 && retval_echo != 1)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
+            rs->rigport.retry = retry_save;
             RETURNFUNC(retval);
         }
     }
@@ -994,6 +1003,7 @@ retry_open:
             goto retry_open;
         }
 
+        rs->rigport.retry = retry_save;
         RETURNFUNC(retval);
     }
 
@@ -1025,6 +1035,7 @@ retry_open:
     icom_get_freq_range(rig); // try get to get rig range capability dyamically
 #endif
 
+    rs->rigport.retry = retry_save;
     RETURNFUNC(RIG_OK);
 }
 
@@ -2155,10 +2166,19 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
             rig_debug(RIG_DEBUG_TRACE, "%s(%d) mode_icom=%d, datamode[0]=%d, filter=%d\n",
                       __func__, __LINE__, mode_icom, datamode[0], datamode[1]);
-            retval = icom_set_mode_x26(rig, vfo, mode_icom, datamode[0], datamode[1]);
+
+            if (!priv->x26cmdfails)
+            {
+                retval = icom_set_mode_x26(rig, vfo, mode_icom, datamode[0], datamode[1]);
+            }
+            else
+            {
+                retval = -RIG_EPROTO;
+            }
 
             if (retval != RIG_OK)
             {
+                TRACE;
                 retval =
                     icom_transaction(rig, C_CTL_MEM, dm_sub_cmd, datamode, 2, ackbuf, &ack_len);
             }
@@ -2316,7 +2336,7 @@ int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     struct rig_state *rs;
     struct icom_priv_data *priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;

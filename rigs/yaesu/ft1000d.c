@@ -247,7 +247,6 @@ static const yaesu_cmd_set_t ncmd[] =
 struct ft1000d_priv_data
 {
     unsigned char pacing;                     /* pacing value */
-    unsigned int read_update_delay;           /* depends on pacing value */
     vfo_t current_vfo;                        /* active VFO from last cmd */
     vfo_t split_vfo;                          /* TX VFO in split mode Added on 16 Dec 2016 to include FT1000D function */
     split_t split;                              /* split active or not Added on 16 Dec 2016 to include FT1000D function */
@@ -443,9 +442,6 @@ static int ft1000d_init(RIG *rig)
 
     // Set default pacing value
     priv->pacing = FT1000D_PACING_DEFAULT_VALUE;
-
-    // Set update timeout
-    priv->read_update_delay = FT1000D_DEFAULT_READ_TIMEOUT;
 
     // Set operating vfo mode to current VFO changed from RIG_VFO_MAIN to RIG_VFO_A December 2016
     priv->current_vfo =  RIG_VFO_A;
