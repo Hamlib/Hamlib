@@ -278,7 +278,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     cmd_len += snprintf(cmdbuf + cmd_len, BUFSZ - cmd_len, "*%02X" EOM, csum);
 
     /* I/O */
-    retval = write_block(&rs->rigport, cmdbuf, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -288,7 +288,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     /*
      * Transceiver sends an echo of cmd followed by a CR/LF
      */
-    retval = read_string(&rs->rigport, respbuf, BUFSZ, LF, strlen(LF), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) respbuf, BUFSZ, LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {
@@ -302,7 +302,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     }
 
     /* check response */
-    if (memcmp(respbuf, "$PICOA,", strlen("$PICOA,")))
+    if (memcmp(respbuf, "$PICOA,", strlen("$PICOA,")) != 0)
     {
         return -RIG_EPROTO;
     }

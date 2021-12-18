@@ -177,7 +177,7 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
     /* already in sync? */
     if (priv->sync && !caps->always_sync)
     {
-        return read_block(&rs->rigport, rxbuffer, count);
+        return read_block(&rs->rigport, (unsigned char *) rxbuffer, count);
     }
 
     /* read first char */
@@ -186,7 +186,7 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
         char *p = &rxbuffer[0];
 
         /* read first char */
-        int err = read_block(&rs->rigport, p, 1);
+        int err = read_block(&rs->rigport, (unsigned char *) p, 1);
 
         if (err < 0)
         {
@@ -209,7 +209,7 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
         count--;
         p++;
 
-        err = read_block(&rs->rigport, p, count);
+        err = read_block(&rs->rigport, (unsigned char *) p, count);
 
         if (err < 0)
         {
@@ -363,7 +363,7 @@ pcr_send(RIG *rig, const char *cmd)
 
     rs->transaction_active = 1;
 
-    err = write_block(&rs->rigport, priv->cmd_buf, len + 1);
+    err = write_block(&rs->rigport, (unsigned char *) priv->cmd_buf, len + 1);
 
     rs->transaction_active = 0;
 

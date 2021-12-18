@@ -72,7 +72,7 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rig_flush(&rs->rigport);
 
-    retval = write_block(&rs->rigport, cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -85,7 +85,7 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return 0;
     }
 
-    retval = read_string(&rs->rigport, data, *data_len, NULL, 0, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, *data_len, NULL, 0, 0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {
@@ -251,7 +251,7 @@ int tentec_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                        priv->ftf >> 8, priv->ftf & 0xff,
                        priv->btf >> 8, priv->btf & 0xff);
 
-    retval = write_block(&rs->rigport, freqbuf, freq_len);
+    retval = write_block(&rs->rigport, (unsigned char *) freqbuf, freq_len);
 
     if (retval != RIG_OK)
     {
@@ -352,7 +352,7 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                             priv->ftf >> 8, priv->ftf & 0xff,
                             priv->btf >> 8, priv->btf & 0xff,
                             ttmode);
-        retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
+        retval = write_block(&rs->rigport, (unsigned char *) mdbuf, mdbuf_len);
 
         if (retval != RIG_OK)
         {
@@ -370,7 +370,7 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                             priv->ftf >> 8, priv->ftf & 0xff,
                             priv->btf >> 8, priv->btf & 0xff,
                             ttmode);
-        retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
+        retval = write_block(&rs->rigport, (unsigned char *) mdbuf, mdbuf_len);
 
         if (retval != RIG_OK)
         {
@@ -419,7 +419,7 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         cmd_len = sprintf(cmdbuf, "G%c" EOM,
                           val.i == RIG_AGC_SLOW ? '1' : (
                               val.i == RIG_AGC_FAST ? '3' : '2'));
-        retval = write_block(&rs->rigport, cmdbuf, cmd_len);
+        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, cmd_len);
 
         if (retval == RIG_OK)
         {
@@ -433,7 +433,7 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
          * -> need to create RIG_LEVEL_LINEOUT ?
          */
         cmd_len = sprintf(cmdbuf, "C\x7f%c" EOM, (int)((1.0 - val.f) * 63.0));
-        retval = write_block(&rs->rigport, cmdbuf, cmd_len);
+        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, cmd_len);
 
         if (retval == RIG_OK)
         {

@@ -273,7 +273,7 @@ static int check_vfo(vfo_t vfo)
 * read_transaction
 * Assumes rig!=NULL, buf!=NULL, buf_len big enough to hold response
 */
-static int read_transaction(RIG *rig, char *buf, int buf_len)
+static int read_transaction(RIG *rig, unsigned char *buf, int buf_len)
 {
     int retry;
     struct rig_state *rs = &rig->state;
@@ -301,7 +301,7 @@ static int read_transaction(RIG *rig, char *buf, int buf_len)
         }
 
     }
-    while (retry-- > 0 && strlen(buf) == 0);
+    while (retry-- > 0 && strlen((char *) buf) == 0);
 
     if (retry == 0)
     {
@@ -316,7 +316,7 @@ static int read_transaction(RIG *rig, char *buf, int buf_len)
 * write_transaction
 * Assumes rig!=NULL, xml!=NULL, xml_len=total size of xml for response
 */
-static int write_transaction(RIG *rig, char *buf, int buf_len)
+static int write_transaction(RIG *rig, unsigned char *buf, int buf_len)
 {
 
     int try = rig->caps->retry;
@@ -356,7 +356,7 @@ static int tci1x_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
                              int value_len)
 {
     int retry = 0;
-    char frame[1024];
+    unsigned char frame[1024];
 
     ENTERFUNC;
 
@@ -379,7 +379,7 @@ static int tci1x_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
     frame[9] = 0x00;
     frame[10] = 0x00;
     frame[11] = 0x00;
-    strcat(&frame[12], cmd);
+    strcat((char *) &frame[12], cmd);
 
     do
     {
@@ -403,7 +403,7 @@ static int tci1x_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
             hl_usleep(50 * 1000); // 50ms sleep if error
         }
 
-        read_transaction(rig, value, value_len);
+        read_transaction(rig, (unsigned char *) value, value_len);
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%s\n", __func__, value);
 
@@ -607,11 +607,11 @@ static int tci1x_open(RIG *rig)
     char *websocket =
         "GET / HTTP/1.1\r\nHost: localhost:50001\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: TnwnvtFT6akIBYQC7nh3vA==\r\nSec-WebSocket-Version: 13\r\n\r\n";
 
-    write_transaction(rig, websocket, strlen(websocket));
+    write_transaction(rig, (unsigned char *) websocket, strlen(websocket));
 
     do
     {
-        retval = read_transaction(rig, value, sizeof(value));
+        retval = read_transaction(rig, (unsigned char *) value, sizeof(value));
         rig_debug(RIG_DEBUG_VERBOSE, "%s: value=%s\n", __func__, value);
     }
     while (retval == RIG_OK && strlen(value) > 0);

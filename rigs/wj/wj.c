@@ -179,7 +179,7 @@ static int wj_transaction(RIG *rig, int monitor)
 
     rig_flush(&rig->state.rigport);
 
-    retval = write_block(&rig->state.rigport, (char *) buf, CMDSZ);
+    retval = write_block(&rig->state.rigport, buf, CMDSZ);
 
     if (retval != RIG_OK)
     {
@@ -191,7 +191,7 @@ static int wj_transaction(RIG *rig, int monitor)
         /*
         * Transceiver sends back ">"
         */
-        retval = read_block(&rig->state.rigport, (char *) rxbuf, CMDSZ);
+        retval = read_block(&rig->state.rigport, rxbuf, CMDSZ);
 
         if (retval < 0 || retval > CMDSZ)
         {

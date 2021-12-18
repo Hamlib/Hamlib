@@ -2495,8 +2495,7 @@ static int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level,
         return err;
     }
 
-    err = read_block(&rig->state.rigport, (char *) mdata,
-                     FT1000D_READ_METER_LENGTH);
+    err = read_block(&rig->state.rigport, mdata,FT1000D_READ_METER_LENGTH);
 
     if (err < 0)
     {
@@ -3305,8 +3304,8 @@ static int ft1000d_get_update_data(RIG *rig, unsigned char ci,
     int err;
     int rl;
     int retry;
-    char temp[5];
-    char *p;
+    unsigned char temp[5];
+    unsigned char *p;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed ci 0x%02x\n", __func__, ci);
@@ -3342,7 +3341,7 @@ static int ft1000d_get_update_data(RIG *rig, unsigned char ci,
         switch (ci)
         {
         case FT1000D_NATIVE_UPDATE_ALL_DATA:
-            p = (char *) &priv->update_data;
+            p = (unsigned char *) &priv->update_data;
             rl = FT1000D_ALL_DATA_LENGTH;
 
             /* FT1000D */
@@ -3354,12 +3353,12 @@ static int ft1000d_get_update_data(RIG *rig, unsigned char ci,
             break;
 
         case FT1000D_NATIVE_UPDATE_MEM_CHNL:
-            p = (char *) &priv->update_data.channelnumber;
+            p = (unsigned char *) &priv->update_data.channelnumber;
             rl = FT1000D_MEM_CHNL_LENGTH;
             break;
 
         case FT1000D_NATIVE_UPDATE_OP_DATA:
-            p = (char *) &priv->update_data.current_front;
+            p = (unsigned char *) &priv->update_data.current_front;
             rl = FT1000D_OP_DATA_LENGTH;
 
             /* FT1000D */
@@ -3371,12 +3370,12 @@ static int ft1000d_get_update_data(RIG *rig, unsigned char ci,
             break;
 
         case FT1000D_NATIVE_UPDATE_VFO_DATA:
-            p = (char *) &priv->update_data.vfoa;
+            p = (unsigned char *) &priv->update_data.vfoa;
             rl = FT1000D_VFO_DATA_LENGTH;
             break;
 
         case FT1000D_NATIVE_UPDATE_MEM_CHNL_DATA:
-            p = (char *) &priv->update_data.channel[ch];
+            p = (unsigned char *) &priv->update_data.channel[ch];
             rl = FT1000D_MEM_CHNL_DATA_LENGTH;
             break;
 
@@ -3439,7 +3438,7 @@ static int ft1000d_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    err = write_block(&rig->state.rigport, (char *) ncmd[ci].nseq,
+    err = write_block(&rig->state.rigport, ncmd[ci].nseq,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -3500,8 +3499,7 @@ static int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
     priv->p_cmd[1] = p3;
     priv->p_cmd[0] = p4;
 
-    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
-                      YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
@@ -3559,8 +3557,7 @@ static int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(priv->p_cmd,
               FT1000D_BCD_DIAL) * 10);
 
-    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
-                      YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
@@ -3625,8 +3622,7 @@ static int ft1000d_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     // Store bcd format into privat command storage area
     to_bcd(priv->p_cmd, labs(rit) / 10, FT1000D_BCD_RIT);
 
-    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
-                      YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {

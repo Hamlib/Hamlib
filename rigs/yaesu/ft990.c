@@ -2419,7 +2419,7 @@ int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
         return err;
     }
 
-    err = read_block(&rig->state.rigport, (char *) mdata, FT990_READ_METER_LENGTH);
+    err = read_block(&rig->state.rigport, mdata, FT990_READ_METER_LENGTH);
 
     if (err < 0)
     {
@@ -3222,8 +3222,8 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
     int n;
     int err;
     int rl;
-    char temp[5];
-    char *p;
+    unsigned char temp[5];
+    unsigned char *p;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed ci 0x%02x\n", __func__, ci);
@@ -3258,22 +3258,22 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
         break;
 
     case FT990_NATIVE_UPDATE_MEM_CHNL:
-        p = (char *) &priv->update_data.channelnumber;
+        p = (unsigned char *) &priv->update_data.channelnumber;
         rl = FT990_MEM_CHNL_LENGTH;
         break;
 
     case FT990_NATIVE_UPDATE_OP_DATA:
-        p = (char *) &priv->update_data.current_front;
+        p = (unsigned char *) &priv->update_data.current_front;
         rl = FT990_OP_DATA_LENGTH;
         break;
 
     case FT990_NATIVE_UPDATE_VFO_DATA:
-        p = (char *) &priv->update_data.vfoa;
+        p = (unsigned char *) &priv->update_data.vfoa;
         rl = FT990_VFO_DATA_LENGTH;
         break;
 
     case FT990_NATIVE_UPDATE_MEM_CHNL_DATA:
-        p = (char *) &priv->update_data.channel[ch];
+        p = (unsigned char *) &priv->update_data.channel[ch];
         rl = FT990_MEM_CHNL_DATA_LENGTH;
         break;
 
@@ -3332,8 +3332,7 @@ int ft990_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    err = write_block(&rig->state.rigport, (char *) ncmd[ci].nseq,
-                      YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
@@ -3391,8 +3390,7 @@ int ft990_send_dynamic_cmd(RIG *rig, unsigned char ci,
     priv->p_cmd[1] = p3;
     priv->p_cmd[0] = p4;
 
-    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
-                      YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
@@ -3450,8 +3448,7 @@ int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(priv->p_cmd,
               FT990_BCD_DIAL) * 10);
 
-    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
-                      YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
@@ -3515,8 +3512,7 @@ int ft990_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     // Store bcd format into privat command storage area
     to_bcd(priv->p_cmd, labs(rit) / 10, FT990_BCD_RIT);
 
-    err = write_block(&rig->state.rigport, (char *) &priv->p_cmd,
-                      YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {

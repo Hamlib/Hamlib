@@ -280,7 +280,7 @@ int tt585_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     /* toggle VFOs */
-    return write_block(&rig->state.rigport, "F", 1);
+    return write_block(&rig->state.rigport, (unsigned char *) "F", 1);
 }
 
 int tt585_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
@@ -302,7 +302,7 @@ int tt585_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
 
     /* toggle split mode */
-    return write_block(&rig->state.rigport, "J", 1);
+    return write_block(&rig->state.rigport, (unsigned char *) "J", 1);
 }
 
 int tt585_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
@@ -376,7 +376,7 @@ int tt585_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_force_cache_timeout(&priv->status_tv);
 
-    return write_block(&rig->state.rigport, buf, ret);
+    return write_block(&rig->state.rigport, (unsigned char *) buf, ret);
 }
 
 /*
@@ -482,7 +482,7 @@ int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig_force_cache_timeout(&priv->status_tv);
 
-    ret =  write_block(&rig->state.rigport, mcmd, strlen(mcmd));
+    ret =  write_block(&rig->state.rigport, (unsigned char *) mcmd, strlen(mcmd));
 
     if (ret < 0)
     {
@@ -517,7 +517,7 @@ int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         wcmd = "R";
     }
 
-    return write_block(&rig->state.rigport, wcmd, strlen(mcmd));
+    return write_block(&rig->state.rigport, (unsigned char *) wcmd, strlen(mcmd));
 }
 
 int tt585_set_mem(RIG *rig, vfo_t vfo, int ch)
@@ -536,7 +536,7 @@ int tt585_set_mem(RIG *rig, vfo_t vfo, int ch)
     /* does it work without a command after the channel number? */
     ret = sprintf(buf, ":%02d", ch);
 
-    return write_block(&rig->state.rigport, buf, ret);
+    return write_block(&rig->state.rigport, (unsigned char *) buf, ret);
 }
 
 int tt585_get_mem(RIG *rig, vfo_t vfo, int *ch)
@@ -586,14 +586,14 @@ int tt585_get_status_data(RIG *rig)
 
     /* send STATUS command to fetch data*/
 
-    ret = write_block(rigport, "\\", 1);
+    ret = write_block(rigport, (unsigned char *) "\\", 1);
 
     if (ret < 0)
     {
         return ret;
     }
 
-    ret = read_block(rigport, (char *) priv->status_data,
+    ret = read_block(rigport, (unsigned char *) (char *) priv->status_data,
                      sizeof(priv->status_data));
 
     if (ret < 0)
@@ -615,7 +615,7 @@ int tt585_set_parm(RIG *rig, setting_t parm, value_t val)
     {
     case RIG_PARM_ANN:
         /* FIXME: > is a toggle command only */
-        ret = write_block(&rig->state.rigport, ">", 1);
+        ret = write_block(&rig->state.rigport, (unsigned char *) ">", 1);
 
         if (ret < 0)
         {
@@ -685,5 +685,5 @@ int tt585_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     rig_force_cache_timeout(&priv->status_tv);
 
-    return write_block(&rig->state.rigport, cmd, strlen(cmd));
+    return write_block(&rig->state.rigport, (unsigned char *) cmd, strlen(cmd));
 }

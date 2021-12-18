@@ -680,7 +680,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
         // we pass an empty stopset so read_string can determine
         // the appropriate stopset for async data
         char stopset[1];
-        len = read_string(p, (char *)buf, sizeof(buf) - 1, stopset, 0, 1, 1);
+        len = read_string(p, buf, sizeof(buf) - 1, stopset, 0, 1, 1);
 
         if (len > 0)
         {

@@ -799,7 +799,7 @@ static int ft1000mp_open(RIG *rig)
 
     /* send PACING cmd to rig  */
     cmd = p->p_cmd;
-    write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
     ft1000mp_get_vfo(rig, &rig->state.current_vfo);
     /* TODO */
@@ -861,7 +861,7 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               (freq_t)from_bcd(p->p_cmd, 8) * 10);
 
     cmd = p->p_cmd;               /* get native sequence */
-    write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
     RETURNFUNC(RIG_OK);
 }
@@ -1308,7 +1308,7 @@ static int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         cmd = priv->p_cmd;
 
-        write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+        write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
         RETURNFUNC(RIG_OK);
 
     case RIG_FUNC_XIT:
@@ -1323,7 +1323,7 @@ static int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         cmd = priv->p_cmd;
 
-        write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+        write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
         RETURNFUNC(RIG_OK);
 
     default:
@@ -1465,7 +1465,7 @@ static int ft1000mp_set_rxit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     priv->p_cmd[2] = direction;
 
     cmd = priv->p_cmd;               /* get native sequence */
-    write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
 
     RETURNFUNC(RIG_OK);
 }
@@ -1590,9 +1590,9 @@ static int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level,
 
     do
     {
-        write_block(&rs->rigport, (char *) priv->p_cmd, YAESU_CMD_LENGTH);
+        write_block(&rs->rigport, priv->p_cmd, YAESU_CMD_LENGTH);
 
-        retval = read_block(&rs->rigport, (char *) lvl_data, YAESU_CMD_LENGTH);
+        retval = read_block(&rs->rigport, lvl_data, YAESU_CMD_LENGTH);
     }
     while (retry-- && retval == -RIG_ETIMEOUT);
 
@@ -1667,7 +1667,7 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
     /* send UPDATE command to fetch data*/
     ft1000mp_send_priv_cmd(rig, ci);
 
-    n = read_block(&rig->state.rigport, (char *) p->update_data, rl);
+    n = read_block(&rig->state.rigport, p->update_data, rl);
 
     if (n == -RIG_ETIMEOUT)
     {
@@ -1696,7 +1696,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    write_block(&rig->state.rigport, (char *) ncmd[ci].nseq, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
     RETURNFUNC(RIG_OK);
 
