@@ -1477,11 +1477,11 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
     }
 
     /* send the command block */
-    write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
     /* read back the command block echo */
     retval = read_block(&rig->state.rigport,
-                        (char *) cmd_echo_buf,
+                        cmd_echo_buf,
                         YAESU_CMD_LENGTH);
 
     if (retval < 0)
@@ -1500,11 +1500,11 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
     }
 
     /* send the ACK */
-    write_block(&rig->state.rigport, (char *) priv->ack_cmd, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, priv->ack_cmd, YAESU_CMD_LENGTH);
 
     /* read back the response (status bytes) */
     retval = read_block(&rig->state.rigport,
-                        (char *) priv->rx_data,
+                        priv->rx_data,
                         replylen);
 
     // update data

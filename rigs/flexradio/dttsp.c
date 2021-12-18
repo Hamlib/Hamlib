@@ -334,7 +334,7 @@ static int send_command(RIG *rig, const char *cmdstr, size_t buflen)
 {
     int ret;
 
-    ret = write_block(&rig->state.rigport, cmdstr, buflen);
+    ret = write_block(&rig->state.rigport, (unsigned char *) cmdstr, buflen);
 
     return ret;
 }
@@ -349,7 +349,7 @@ static int fetch_meter(RIG *rig, int *label, float *data, int npts)
         char buf[sizeof(float)*MAXMETERPTS * MAXRX];
         buf_len = sizeof(buf);
 
-        ret = read_block(&priv->meter_port, buf, buf_len);
+        ret = read_block(&priv->meter_port, (unsigned char *) buf, buf_len);
 
         if (ret != buf_len)
         {
@@ -365,7 +365,7 @@ static int fetch_meter(RIG *rig, int *label, float *data, int npts)
     {
         /* IPC */
         buf_len = sizeof(int);
-        ret = read_block(&priv->meter_port, (char *)label, buf_len);
+        ret = read_block(&priv->meter_port, (unsigned char *) label, buf_len);
 
         if (ret != buf_len)
         {
@@ -377,7 +377,7 @@ static int fetch_meter(RIG *rig, int *label, float *data, int npts)
             return ret;
         }
 
-        buf_len = sizeof(float) * npts;
+        buf_len = (int) sizeof(float) * npts;
 
         if (sizeof(float) != 4)
         {
@@ -386,7 +386,7 @@ static int fetch_meter(RIG *rig, int *label, float *data, int npts)
             return -RIG_EINTERNAL;
         }
 
-        ret = read_block(&priv->meter_port, (char *)(void *)data, buf_len);
+        ret = read_block(&priv->meter_port, (unsigned char *) data, buf_len);
 
         if (ret != buf_len)
         {

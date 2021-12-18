@@ -1,5 +1,6 @@
 /*
  *  Hamlib Interface - event handling
+ *  Copyright (c) 2021 by Mikael Nousiainen
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
@@ -578,7 +579,7 @@ int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
 {
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_ERR, "Event: freq changed to %"PRIll"Hz on %s\n",
+    rig_debug(RIG_DEBUG_TRACE, "Event: freq changed to %"PRIll"Hz on %s\n",
             (int64_t)freq, rig_strvfo(vfo));
 
     rig_set_cache_freq(rig, vfo, freq);
@@ -598,7 +599,7 @@ int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_ERR, "Event: mode changed to %s, width %liHz on %s\n",
+    rig_debug(RIG_DEBUG_TRACE, "Event: mode changed to %s, width %liHz on %s\n",
             rig_strrmode(mode), width, rig_strvfo(vfo));
 
     rig_set_cache_mode(rig, vfo, mode, width);
@@ -618,7 +619,7 @@ int rig_fire_vfo_event(RIG *rig, vfo_t vfo)
 {
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_ERR, "Event: vfo changed to %s\n", rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "Event: vfo changed to %s\n", rig_strvfo(vfo));
 
     rig->state.cache.vfo = vfo;
     elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_SET);
@@ -638,7 +639,7 @@ int rig_fire_ptt_event(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_ERR, "Event: PTT changed to %i on %s\n", ptt, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "Event: PTT changed to %i on %s\n", ptt, rig_strvfo(vfo));
 
     rig->state.cache.ptt = ptt;
     elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
@@ -658,7 +659,7 @@ int rig_fire_dcd_event(RIG *rig, vfo_t vfo, dcd_t dcd)
 {
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_ERR, "Event: DCD changed to %i on %s\n", dcd, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "Event: DCD changed to %i on %s\n", dcd, rig_strvfo(vfo));
 
     network_publish_rig_transceive_data(rig);
 
@@ -675,7 +676,7 @@ int rig_fire_pltune_event(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwi
 {
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_ERR, "Event: Pipelined tuning event, vfo=%s\n", rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "Event: Pipelined tuning event, vfo=%s\n", rig_strvfo(vfo));
 
     network_publish_rig_transceive_data(rig);
 

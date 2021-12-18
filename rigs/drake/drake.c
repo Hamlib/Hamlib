@@ -71,7 +71,7 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rig_flush(&rs->rigport);
 
-    retval = write_block(&rs->rigport, cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -84,7 +84,8 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return 0;
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, LF, 1, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ,
+            LF, 1, 0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {
@@ -1251,8 +1252,8 @@ DECLARE_PROBERIG_BACKEND(drake)
         return RIG_MODEL_NONE;
     }
 
-    retval = write_block(port, "ID" EOM, 3);
-    id_len = read_string(port, idbuf, BUFSZ, LF, 1, 0, 1);
+    retval = write_block(port, (unsigned char *) "ID" EOM, 3);
+    id_len = read_string(port, (unsigned char *) idbuf, BUFSZ, LF, 1, 0, 1);
 
     close(port->fd);
 

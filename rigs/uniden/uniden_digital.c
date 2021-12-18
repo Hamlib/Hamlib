@@ -118,7 +118,7 @@ transaction_write:
 
     if (cmdstr)
     {
-        retval = write_block(&rs->rigport, cmdstr, strlen(cmdstr));
+        retval = write_block(&rs->rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 
         if (retval != RIG_OK)
         {
@@ -138,7 +138,7 @@ transaction_write:
     }
 
     memset(data, 0, *datasize);
-    retval = read_string(&rs->rigport, data, *datasize, EOM, strlen(EOM), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, *datasize, EOM, strlen(EOM), 0, 1);
 
     if (retval < 0)
     {

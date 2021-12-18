@@ -683,9 +683,9 @@ static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
     data[0] = addr >> 8;
     data[1] = addr & 0xfe;
 
-    write_block(&rig->state.rigport, (char *) data, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, data, YAESU_CMD_LENGTH);
 
-    if ((n = read_block(&rig->state.rigport, (char *) data, 2)) < 0)
+    if ((n = read_block(&rig->state.rigport, data, 2)) < 0)
     {
         return n;
     }
@@ -748,9 +748,9 @@ static int ft817_get_status(RIG *rig, int status)
     do
     {
         rig_flush(&rig->state.rigport);
-        write_block(&rig->state.rigport, (char *) ncmd[status].nseq,
+        write_block(&rig->state.rigport, ncmd[status].nseq,
                     YAESU_CMD_LENGTH);
-        n = read_block(&rig->state.rigport, (char *) data, len);
+        n = read_block(&rig->state.rigport, data, len);
     }
     while (retries-- && n < 0);
 
@@ -1313,7 +1313,7 @@ static int ft818_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 
 int ft817_read_ack(RIG *rig)
 {
-    char dummy;
+    unsigned char dummy;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     if (rig->state.rigport.post_write_delay == 0)
@@ -1354,7 +1354,7 @@ static int ft817_send_cmd(RIG *rig, int index)
     }
 
     rig_flush(&rig->state.rigport);
-    write_block(&rig->state.rigport, (char *) ncmd[index].nseq, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, ncmd[index].nseq, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
 
@@ -1376,7 +1376,7 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
     cmd[YAESU_CMD_LENGTH - 1] = ncmd[index].nseq[YAESU_CMD_LENGTH - 1];
     memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
 
-    write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
 
@@ -1800,9 +1800,9 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_ON:
         // send 5 bytes first, snooze a bit, then PWR_ON
         write_block(&rig->state.rigport,
-                    (char *) ncmd[FT817_NATIVE_CAT_PWR_WAKE].nseq, YAESU_CMD_LENGTH);
+                    ncmd[FT817_NATIVE_CAT_PWR_WAKE].nseq, YAESU_CMD_LENGTH);
         hl_usleep(200 * 1000);
-        write_block(&rig->state.rigport, (char *) ncmd[FT817_NATIVE_CAT_PWR_ON].nseq,
+        write_block(&rig->state.rigport, ncmd[FT817_NATIVE_CAT_PWR_ON].nseq,
                     YAESU_CMD_LENGTH);
         return RIG_OK;
 

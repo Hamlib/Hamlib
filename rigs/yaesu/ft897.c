@@ -620,9 +620,9 @@ static int ft897_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
     data[0] = addr >> 8;
     data[1] = addr & 0xfe;
 
-    write_block(&rig->state.rigport, (char *) data, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, data, YAESU_CMD_LENGTH);
 
-    if ((n = read_block(&rig->state.rigport, (char *) data, 2)) < 0)
+    if ((n = read_block(&rig->state.rigport, data, 2)) < 0)
     {
         return n;
     }
@@ -674,10 +674,10 @@ static int ft897_get_status(RIG *rig, int status)
 
     rig_flush(&rig->state.rigport);
 
-    write_block(&rig->state.rigport, (char *) ncmd[status].nseq,
+    write_block(&rig->state.rigport, ncmd[status].nseq,
                 YAESU_CMD_LENGTH);
 
-    if ((n = read_block(&rig->state.rigport, (char *) data, len)) < 0)
+    if ((n = read_block(&rig->state.rigport, data, len)) < 0)
     {
         return n;
     }
@@ -997,7 +997,7 @@ static int ft897_send_cmd(RIG *rig, int index)
         return -RIG_EINTERNAL;
     }
 
-    write_block(&rig->state.rigport, (char *) ncmd[index].nseq, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, ncmd[index].nseq, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
 
@@ -1019,7 +1019,7 @@ static int ft897_send_icmd(RIG *rig, int index, unsigned char *data)
     cmd[YAESU_CMD_LENGTH - 1] = ncmd[index].nseq[YAESU_CMD_LENGTH - 1];
     memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
 
-    write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
 

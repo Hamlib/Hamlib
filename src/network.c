@@ -1,5 +1,6 @@
 /*
  *  Hamlib Interface - network communication low-level support
+ *  Copyright (c) 2021 by Mikael Nousiainen
  *  Copyright (c) 2000-2012 by Stephane Fillod
  *
  *   This library is free software; you can redistribute it and/or

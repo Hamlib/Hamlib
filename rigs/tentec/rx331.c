@@ -256,7 +256,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     rig_flush(&rs->rigport);
 
     num_snprintf(str, BUFSZ, "$%u%s", priv->receiver_id, cmd);
-    retval = write_block(&rs->rigport, str, strlen(str));
+    retval = write_block(&rs->rigport, (unsigned char *) str, strlen(str));
 
     if (retval != RIG_OK)
     {
@@ -269,7 +269,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return RIG_OK;
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, EOM, 1, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM, 1, 0, 1);
 
     if (retval < 0)
     {
@@ -401,7 +401,7 @@ int rx331_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     freq_len = num_sprintf(freqbuf, "$%uF%.6f" EOM,
                            priv->receiver_id, freq / 1e6);
 
-    retval = write_block(&rs->rigport, freqbuf, freq_len);
+    retval = write_block(&rs->rigport, (unsigned char *) freqbuf, freq_len);
 
     return retval;
 }
@@ -491,7 +491,7 @@ int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         mdbuf_len = num_sprintf(mdbuf,  "$%uD%c" EOM, priv->receiver_id, dmode);
     }
 
-    retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
+    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, mdbuf_len);
 
     return retval;
 }
@@ -634,7 +634,7 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    retval = write_block(&rs->rigport, cmdbuf, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, cmd_len);
     return retval;
 }
 

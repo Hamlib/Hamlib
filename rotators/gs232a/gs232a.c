@@ -81,7 +81,7 @@ transaction_write:
 
     if (cmdstr)
     {
-        retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
+        retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
 
         if (retval != RIG_OK)
         {
@@ -103,8 +103,8 @@ transaction_write:
     if (!no_reply)
     {
         memset(data, 0, data_len);
-        retval = read_string(&rs->rotport, data, data_len, REPLY_EOM,
-                             strlen(REPLY_EOM), 0, 1);
+        retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
+                REPLY_EOM, strlen(REPLY_EOM), 0, 1);
 
         if (strncmp(data, "\r\n", 2) == 0
                 || strchr(data, '>'))

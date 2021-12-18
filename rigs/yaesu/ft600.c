@@ -397,8 +397,7 @@ static int ft600_send_priv_cmd(RIG *rig, unsigned char cmd_index)
 
     if (!rig) { return -RIG_EINVAL; }
 
-    return write_block(&rig->state.rigport, (char *) &ncmd[cmd_index].nseq,
-                       YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (unsigned char *) &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
 }
 
 static int ft600_read_status(RIG *rig)
@@ -420,11 +419,8 @@ static int ft600_read_status(RIG *rig)
     }
 
 
-    ret = read_block(
-              &rig->state.rigport,
-              (char *)&priv->status
-              , FT600_STATUS_UPDATE_DATA_LENGTH
-          );
+    ret = read_block(&rig->state.rigport,
+            (unsigned char *) &priv->status, FT600_STATUS_UPDATE_DATA_LENGTH);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read status=%i \n", __func__, ret);
 
@@ -455,9 +451,7 @@ static int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read tx status=%i \n", __func__, ret);
 
-    ret = read_block(&rig->state.rigport,
-                     (char *)&priv->s_meter,
-                     5);
+    ret = read_block(&rig->state.rigport, &priv->s_meter, 5);
 
     if (ret < 0)
     {
@@ -488,7 +482,7 @@ static int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     freq = (int)freq / 10;
     to_bcd(p_cmd, freq, 8); /* store bcd format in in p_cmd */
 
-    return write_block(&rig->state.rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, p_cmd, YAESU_CMD_LENGTH);
 }
 
 static int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -656,7 +650,7 @@ static int ft600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         else if (width <= 2400) { p_cmd[3] = 0x00; }
         else { p_cmd[3] = 0x01; }
 
-        ret = write_block(&rig->state.rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
+        ret = write_block(&rig->state.rigport, p_cmd, YAESU_CMD_LENGTH);
 
         if (ret != RIG_OK)
         {

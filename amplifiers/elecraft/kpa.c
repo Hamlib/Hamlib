@@ -122,25 +122,25 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
     {
         char c = ';';
         rig_debug(RIG_DEBUG_VERBOSE, "%s waiting for ;\n", __func__);
-        err = write_block(&rs->ampport, &c, 1);
+        err = write_block(&rs->ampport, (unsigned char *) &c, 1);
 
         if (err != RIG_OK) { return err; }
 
-        len = read_string(&rs->ampport, response, response_len, ";", 1, 0, 1);
+        len = read_string(&rs->ampport, (unsigned char *) response, response_len, ";", 1, 0, 1);
 
         if (len < 0) { return len; }
     }
     while (--loop > 0 && (len != 1 || response[0] != ';'));
 
     // Now send our command
-    err = write_block(&rs->ampport, cmd, strlen(cmd));
+    err = write_block(&rs->ampport, (unsigned char *) cmd, strlen(cmd));
 
     if (err != RIG_OK) { return err; }
 
     if (response) // if response expected get it
     {
         response[0] = 0;
-        len = read_string(&rs->ampport, response, response_len, ";", 1, 0, 1);
+        len = read_string(&rs->ampport, (unsigned char *) response, response_len, ";", 1, 0, 1);
 
         if (len < 0)
         {
@@ -162,11 +162,11 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
         {
             char c = ';';
             rig_debug(RIG_DEBUG_VERBOSE, "%s waiting for ;\n", __func__);
-            err = write_block(&rs->ampport, &c, 1);
+            err = write_block(&rs->ampport, (unsigned char *) &c, 1);
 
             if (err != RIG_OK) { return err; }
 
-            len = read_string(&rs->ampport, responsebuf, KPABUFSZ, ";", 1, 0, 1);
+            len = read_string(&rs->ampport, (unsigned char *) responsebuf, KPABUFSZ, ";", 1, 0, 1);
 
             if (len < 0) { return len; }
         }
@@ -369,7 +369,7 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
         //
         do
         {
-            retval = read_string(&rs->ampport, responsebuf, sizeof(responsebuf), ";", 1, 0,
+            retval = read_string(&rs->ampport, (unsigned char *) responsebuf, sizeof(responsebuf), ";", 1, 0,
                                  1);
 
             if (retval != RIG_OK) { return retval; }

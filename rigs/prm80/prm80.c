@@ -170,7 +170,7 @@ static int read_prompt_and_send(hamlib_port_t *rigport,
 
     buflen = (data_len == NULL) ? sizeof(buf) : *data_len;
 
-    retval = read_string(rigport, data, buflen, delimiter, 1, 0, 1);
+    retval = read_string(rigport, (unsigned char *) data, buflen, delimiter, 1, 0, 1);
 
     if (retval < 0)
     {
@@ -188,7 +188,7 @@ static int read_prompt_and_send(hamlib_port_t *rigport,
     // Read one (dummy) space character after the colon
     if (space_after_delim)
     {
-        retval = read_block(rigport, spacebuf, 1);
+        retval = read_block(rigport, (unsigned char *) spacebuf, 1);
 
         if (retval < 0 && retval != -RIG_ETIMEOUT)
         {
@@ -197,7 +197,7 @@ static int read_prompt_and_send(hamlib_port_t *rigport,
     }
 
     // Here is the answer to the prompt
-    retval = write_block(rigport, s, strlen(s));
+    retval = write_block(rigport, (unsigned char *) s, strlen(s));
 
     return retval;
 }
@@ -230,7 +230,7 @@ static int prm80_wait_for_prompt(hamlib_port_t *rigport)
     int retval;
 
     // Read up to the '>' prompt and discard content.
-    retval = read_string(rigport, buf, sizeof(buf), ">", 1, 0, 1);
+    retval = read_string(rigport, (unsigned char *) buf, sizeof(buf), ">", 1, 0, 1);
 
     if (retval < 0)
     {
@@ -256,7 +256,7 @@ static int prm80_transaction(RIG *rig, const char *cmd,
     rig_flush(&rs->rigport);
 
     // Start with the command
-    retval = write_block(&rs->rigport, cmd, strlen(cmd));
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval != RIG_OK)
     {
@@ -642,7 +642,7 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
     rig_flush(rigport);
 
     /* [E] = Show system state */
-    ret = write_block(rigport, "E", 1);
+    ret = write_block(rigport, (unsigned char *) "E", 1);
 
     if (ret < 0)
     {
@@ -650,7 +650,7 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
     }
 
     // The response length is fixed
-    ret = read_block(rigport, statebuf, CMD_E_RSP_LEN);
+    ret = read_block(rigport, (unsigned char *) statebuf, CMD_E_RSP_LEN);
 
     if (ret < 0)
     {
@@ -675,7 +675,7 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
     {
         int left_to_read = (p - statebuf) + 1;
         memmove(statebuf, p + 1, CMD_E_RSP_LEN - left_to_read);
-        ret = read_block(rigport, statebuf + CMD_E_RSP_LEN - left_to_read,
+        ret = read_block(rigport, (unsigned char *) statebuf + CMD_E_RSP_LEN - left_to_read,
                          left_to_read);
 
         if (ret < 0)
@@ -900,7 +900,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         // Determine if prompt came back (CRLF'>') or have to
         // handle the possible query from the rig:
         // "This channel number doesn't exist. Add new channel (Y/N) ? "
-        ret = read_block(&rs->rigport, buf, 3);
+        ret = read_block(&rs->rigport, (unsigned char *) buf, 3);
 
         if (ret < 0)
         {
@@ -910,7 +910,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         if (ret == 3 && buf[2] == 'T')
         {
             // Read the question
-            ret = read_string(&rs->rigport, buf, sizeof(buf), "?", 1, 0, 1);
+            ret = read_string(&rs->rigport, (unsigned char *) buf, sizeof(buf), "?", 1, 0, 1);
 
             if (ret < 0)
             {
@@ -918,7 +918,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
             }
 
             // Read extra space
-            ret = read_block(&rs->rigport, buf, 1);
+            ret = read_block(&rs->rigport, (unsigned char *) buf, 1);
 
             if (ret < 0)
             {
@@ -926,7 +926,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
             }
 
             // Send confirmation
-            ret = write_block(&rs->rigport, "Y", 1);
+            ret = write_block(&rs->rigport, (unsigned char *) "Y", 1);
 
             if (ret < 0)
             {
@@ -1274,14 +1274,14 @@ const char *prm80_get_info(RIG *rig)
     rig_flush(&rs->rigport);
 
     /* [V] = Print firmware version. */
-    ret = write_block(&rs->rigport, "V", 1);
+    ret = write_block(&rs->rigport, (unsigned char *) "V", 1);
 
     if (ret < 0)
     {
         return NULL;
     }
 
-    ret = read_string(&rs->rigport, s_buf, BUFSZ, ">", 1, 0, 1);
+    ret = read_string(&rs->rigport, (unsigned char *) s_buf, BUFSZ, ">", 1, 0, 1);
 
     if (ret < 0)
     {

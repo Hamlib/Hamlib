@@ -127,7 +127,7 @@ int elecraft_open(RIG *rig)
 
         strcpy(data, "EMPTY");
         // Not going to get carried away with retries and such
-        err = write_block(&rs->rigport, cmd, strlen(cmd));
+        err = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
         if (err != RIG_OK)
         {
@@ -135,7 +135,8 @@ int elecraft_open(RIG *rig)
             return err;
         }
 
-        err = read_string(&rs->rigport, buf, sizeof(buf), ";", 1, 0, 1);
+        err = read_string(&rs->rigport, (unsigned char *) buf, sizeof(buf),
+                ";", 1, 0, 1);
 
         if (err < 0)
         {

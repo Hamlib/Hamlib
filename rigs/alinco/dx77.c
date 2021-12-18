@@ -310,7 +310,7 @@ int dx77_transaction(RIG *rig,
 
     rig_flush(&rs->rigport);
 
-    retval = write_block(&rs->rigport, cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -321,7 +321,8 @@ int dx77_transaction(RIG *rig,
      * Transceiver sends an echo of cmd followed by a CR/LF
      * TODO: check whether cmd and echobuf match (optional)
      */
-    retval = read_string(&rs->rigport, echobuf, BUFSZ, LF, strlen(LF), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) echobuf, BUFSZ,
+            LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {
@@ -337,7 +338,8 @@ int dx77_transaction(RIG *rig,
     /* no data expected, check for OK returned */
     if (data == NULL)
     {
-        retval = read_string(&rs->rigport, echobuf, BUFSZ, LF, strlen(LF), 0, 1);
+        retval = read_string(&rs->rigport, (unsigned char *) echobuf, BUFSZ,
+                LF, strlen(LF), 0, 1);
 
         if (retval < 0)
         {
@@ -358,7 +360,8 @@ int dx77_transaction(RIG *rig,
         }
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ,
+            LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {

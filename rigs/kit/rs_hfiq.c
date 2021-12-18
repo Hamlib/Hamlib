@@ -95,14 +95,15 @@ static int rshfiq_open(RIG *rig)
         rig_flush(&rig->state.rigport);
         snprintf(versionstr, sizeof(versionstr), "*w\r");
         rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, versionstr);
-        retval = write_block(&rig->state.rigport, versionstr, strlen(versionstr));
+        retval = write_block(&rig->state.rigport, (unsigned char *) versionstr, strlen(versionstr));
 
         if (retval != RIG_OK)
         {
             return retval;
         }
 
-        retval = read_string(&rig->state.rigport, versionstr, 20, stopset, 2, 0, 1);
+        retval = read_string(&rig->state.rigport, (unsigned char *) versionstr, 20,
+                stopset, 2, 0, 1);
     }
 
     if (retval <= 0)
@@ -161,7 +162,7 @@ static int rshfiq_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     snprintf(cmdstr, sizeof(cmdstr), "*f%lu\r", (unsigned long int)(freq));
 
-    retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
+    retval = write_block(&rig->state.rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 
     if (retval != RIG_OK)
     {
@@ -184,14 +185,15 @@ static int rshfiq_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, cmdstr);
 
-    retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
+    retval = write_block(&rig->state.rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 
     if (retval != RIG_OK)
     {
         return retval;
     }
 
-    retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2, 0, 1);
+    retval = read_string(&rig->state.rigport, (unsigned char *) cmdstr, 9,
+            stopset, 2, 0, 1);
 
     if (retval <= 0)
     {
@@ -232,7 +234,7 @@ static int rshfiq_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, cmdstr);
 
-    retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
+    retval = write_block(&rig->state.rigport, (unsigned char *) cmdstr, strlen(cmdstr));
     return retval;
 }
 
@@ -266,7 +268,7 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER command=%s\n", cmdstr);
 
-        retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
+        retval = write_block(&rig->state.rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 
         if (retval != RIG_OK)
         {
@@ -276,7 +278,8 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         stopset[0] = '\r';
         stopset[1] = '\n';
 
-        retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2, 0, 1);
+        retval = read_string(&rig->state.rigport, (unsigned char *) cmdstr, 9,
+                stopset, 2, 0, 1);
 
         rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER reply=%s\n", cmdstr);
 
@@ -304,7 +307,7 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER command=%s\n", cmdstr);
 
-        retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
+        retval = write_block(&rig->state.rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 
         if (retval != RIG_OK)
         {
@@ -314,7 +317,8 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         stopset[0] = '\r';
         stopset[1] = '\n';
 
-        retval = read_string(&rig->state.rigport, cmdstr, 9, stopset, 2, 0, 1);
+        retval = read_string(&rig->state.rigport, (unsigned char *) cmdstr, 9,
+                stopset, 2, 0, 1);
 
         rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER reply=%s\n", cmdstr);
 

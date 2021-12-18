@@ -1,5 +1,6 @@
 /*
  *  Hamlib Interface - generic file based io functions
+ *  Copyright (c) 2021 by Mikael Nousiainen
  *  Copyright (c) 2000-2012 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
