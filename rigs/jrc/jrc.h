@@ -37,6 +37,7 @@ struct jrc_priv_caps {
 	const char * cw_pitch;
 };
 
+int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
 int jrc_open(RIG *rig);
 int jrc_close(RIG *rig);
 int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -66,6 +67,8 @@ int jrc_decode_event(RIG *rig);
 extern const struct rig_caps nrd535_caps;
 extern const struct rig_caps nrd545_caps;
 extern const struct rig_caps nrd525_caps;
+extern const struct rig_caps jst145_caps;
+extern const struct rig_caps jst245_caps;
 
 
 #endif /* _JRC_H */

@@ -67,7 +67,7 @@
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
-static int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
+int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                            int *data_len)
 {
     int retval;
@@ -1683,6 +1683,8 @@ DECLARE_INITRIG_BACKEND(jrc)
     rig_register(&nrd535_caps);
     rig_register(&nrd545_caps);
     rig_register(&nrd525_caps);
+    rig_register(&jst145_caps);
+    rig_register(&jst245_caps);
 
     return RIG_OK;
 }
