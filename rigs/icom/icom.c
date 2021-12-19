@@ -8722,16 +8722,17 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
     switch (frame[4])
     {
     case C_SND_FREQ: {
-        /*
-         * TODO: the freq length might be less than 4 or 5 bytes
-         *          on older rigs!
-         */
+        // TODO: The freq length might be less than 4 or 5 bytes on older rigs!
+        // TODO: Disable cache timeout for frequency after first transceive packet once we figure out how to get active VFO reliably with transceive updates
+        // TODO: rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_FREQ, HAMLIB_CACHE_ALWAYS);
         freq_t freq = (freq_t) from_bcd(frame + 5, (priv->civ_731_mode ? 4 : 5) * 2);
         rig_fire_freq_event(rig, RIG_VFO_CURR, freq);
         break;
     }
 
     case C_SND_MODE:
+        // TODO: Disable cache timeout for frequency after first transceive packet once we figure out how to get active VFO reliably with transceive updates
+        // TODO: rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_MODE, HAMLIB_CACHE_ALWAYS);
         icom2rig_mode(rig, frame[5], frame[6], &mode, &width);
         rig_fire_mode_event(rig, RIG_VFO_CURR, mode, width);
         break;
