@@ -696,6 +696,8 @@ static const struct
     { RIG_FUNC_TRANSCEIVE, "TRANSCEIVE" },
     { RIG_FUNC_SPECTRUM, "SPECTRUM" },
     { RIG_FUNC_SPECTRUM_HOLD, "SPECTRUM_HOLD" },
+    { RIG_FUNC_SEND_MORSE, "SEND_MORSE" },
+    { RIG_FUNC_SEND_VOICE_MEM, "SEND_VOICE_MEM" },
     { RIG_FUNC_NONE, "" },
 };
 
@@ -2325,6 +2327,9 @@ void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
 
     case RIG_FUNCTION_WAIT_MORSE:
         return caps->wait_morse;
+
+    case RIG_FUNCTION_SEND_VOICE_MEM:
+        return caps->send_voice_mem;
 
     case RIG_FUNCTION_SET_BANK:
         return caps->set_bank;
