@@ -815,7 +815,7 @@ static int read_string_generic(hamlib_port_t *p,
     struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
     int total_count = 0;
     int i = 0;
-    static ssize_t minlen = 1; // dynamic minimum length of rig response data
+    static int minlen = 1; // dynamic minimum length of rig response data
 
     if (!p->async && !direct)
     {
@@ -980,7 +980,7 @@ static int read_string_generic(hamlib_port_t *p,
             if (minlen < total_count)
             {
                 minlen = total_count;
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: minlen now %ld\n", __func__, minlen);
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: minlen now %d\n", __func__, minlen);
             }
 
             break;
