@@ -67,7 +67,7 @@ static int tapr_cmd(RIG *rig, unsigned char cmd, unsigned char c1,
     cmdbuf[4] = c3;
     cmdbuf[5] = c4;
 
-    retval = write_block(&rs->rigport, (char *) cmdbuf, 6);
+    retval = write_block(&rs->rigport, cmdbuf, 6);
 
     if (retval != RIG_OK)
     {

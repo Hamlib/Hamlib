@@ -622,7 +622,7 @@ int main(int argc, char *argv[])
         memset(ts2000, 0, sizeof(ts2000));
 
         status = read_string(&my_com,
-                             ts2000,
+                             (unsigned char *) ts2000,
                              sizeof(ts2000),
                              stop_set,
                              strlen(stop_set),
@@ -695,7 +695,7 @@ static int write_block2(void *func,
                         const char *txbuffer,
                         size_t count)
 {
-    int retval = write_block(p, txbuffer, count);
+    int retval = write_block(p, (unsigned char *) txbuffer, count);
     hl_usleep(5000);
 
     if (retval != RIG_OK)

@@ -147,7 +147,8 @@ enum rig_errcode_e {
     RIG_BUSBUSY,    /*!< 14 Collision on the bus */
     RIG_EARG,       /*!< 15 NULL RIG handle or any invalid pointer parameter in get arg */
     RIG_EVFO,       /*!< 16 Invalid VFO */
-    RIG_EDOM        /*!< 17 Argument out of domain of func */
+    RIG_EDOM,       /*!< 17 Argument out of domain of func */
+    RIG_EDEPRECATED /*!< 18 Function deprecated */
 };
 
 /**
@@ -210,12 +211,14 @@ typedef struct s_rig RIG;
 #define HAMLIB_MAX_SPECTRUM_MODES 5 /* max number of spectrum modes supported */
 #define HAMLIB_MAX_SPECTRUM_AVG_MODES 12 /* max number of spectrum averaging modes supported */
 #define HAMLIB_MAX_SPECTRUM_SPANS 20 /* max number of spectrum modes supported */
+#define HAMLIB_MAX_SPECTRUM_DATA 2048 /* max number of data bytes in a single spectrum line */
 #define HAMLIB_MAX_CAL_LENGTH 32   /* max calibration plots in cal_table_t */
 #define HAMLIB_MAX_MODES 63
 #define HAMLIB_MAX_VFOS 31
 #define HAMLIB_MAX_ROTORS 63
 #define HAMLIB_MAX_VFO_OPS 31
 #define HAMLIB_MAX_RSCANS 31
+#define HAMLIB_MAX_SNAPSHOT_PACKET_SIZE 16384 /* maximum number of bytes in a UDP snapshot packet */
 //! @endcond
 
 
@@ -1046,12 +1049,15 @@ typedef uint64_t setting_t;
  * \brief Transceive mode
  * The rig notifies the host of any event, like freq changed, mode changed, etc.
  * \def RIG_TRN_OFF
+ * \deprecated
  * Turn it off
  * \brief Transceive mode
  * \def RIG_TRN_RIG
+ * \deprecated
  * RIG_TRN_RIG means the rig acts asynchronously
  * \brief Transceive mode
  * \def RIG_TRN_POLL
+ * \deprecated
  * RIG_TRN_POLL means we have to poll the rig
  *
  */
@@ -1682,7 +1688,7 @@ struct rig_spectrum_line
     freq_t low_edge_freq;  /*!< Low edge frequency of the spectrum scope in Hz in RIG_SPECTRUM_FIXED mode. */
     freq_t high_edge_freq; /*!< High edge frequency of the spectrum scope in Hz in RIG_SPECTRUM_FIXED mode. */
 
-    int spectrum_data_length;     /*!< Number of bytes of 8-bit spectrum data in the data buffer. The amount of data may vary if the rig has multiple spectrum scopes, depending on the scope. */
+    size_t spectrum_data_length;     /*!< Number of bytes of 8-bit spectrum data in the data buffer. The amount of data may vary if the rig has multiple spectrum scopes, depending on the scope. */
     unsigned char *spectrum_data; /*!< 8-bit spectrum data covering bandwidth of either the span_freq in center mode or from low edge to high edge in fixed mode. A higher value represents higher signal strength. */
 };
 
@@ -1764,7 +1770,7 @@ struct rig_caps {
     vfo_op_t vfo_ops;           /*!< VFO op bit field list */
     scan_t scan_ops;            /*!< Scan bit field list */
     int targetable_vfo;         /*!< Bit field list of direct VFO access commands */
-    int transceive;             /*!< Supported transceive mode */
+    int transceive;             /*!< \deprecated Use async_data_supported instead */
 
     int bank_qty;               /*!< Number of banks */
     int chan_desc_sz;           /*!< Max length of memory channel name */
@@ -1987,6 +1993,17 @@ struct rig_caps {
     const char *clone_combo_set;    /*!< String describing key combination to enter load cloning mode */
     const char *clone_combo_get;    /*!< String describing key combination to enter save cloning mode */
     const char *macro_name;     /*!< Rig model macro name */
+
+    int async_data_supported;       /*!< Indicates that rig is capable of outputting asynchronous data updates, such as transceive state updates or spectrum data. 1 if true, 0 otherwise. */
+    int (*read_frame_direct)(RIG *rig,
+                             size_t buffer_length,
+                             const unsigned char *buffer);
+    int (*is_async_frame)(RIG *rig,
+                          size_t frame_length,
+                          const unsigned char *frame);
+    int (*process_async_frame)(RIG *rig,
+                               size_t frame_length,
+                               const unsigned char *frame);
 };
 //! @endcond
 
@@ -2081,6 +2098,9 @@ enum rig_function_e {
     RIG_FUNCTION_SET_MEM_ALL_CB,
     RIG_FUNCTION_GET_MEM_ALL_CB,
     RIG_FUNCTION_SET_VFO_OPT,
+    RIG_FUNCTION_READ_FRAME_DIRECT,
+    RIG_FUNCTION_IS_ASYNC_FRAME,
+    RIG_FUNCTION_PROCESS_ASYNC_FRAME,
 };
 
 /**
@@ -2190,6 +2210,12 @@ typedef struct hamlib_port {
     } parm;                 /*!< Port parameter union */
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
+
+    int async;                  /*!< enable asynchronous data handling if true */
+    int fd_sync_write;          /*!< file descriptor for writing synchronous data */
+    int fd_sync_read;           /*!< file descriptor for reading synchronous data */
+    int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
+    int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
 } hamlib_port_t;
 //! @endcond
 
@@ -2354,15 +2380,15 @@ struct rig_state {
      * non overridable fields, internal use
      */
 
-    int hold_decode;    /*!< set to 1 to hold the event decoder (async) otherwise 0 */
+    int transaction_active;    /*!< set to 1 to inform the async reader thread that a synchronous command transaction is waiting for a response, otherwise 0 */
     vfo_t current_vfo;  /*!< VFO currently set */
     int vfo_list;       /*!< Complete list of VFO for this rig */
     int comm_state;     /*!< Comm port state, opened/closed. */
     rig_ptr_t priv;     /*!< Pointer to private rig state data. */
     rig_ptr_t obj;      /*!< Internal use by hamlib++ for event handling. */
 
-    int transceive;             /*!< Whether the transceive mode is on */
-    int poll_interval;          /*!< Event notification polling period in milliseconds */
+    int async_data;             /*!< Whether async data mode is on */
+    int poll_interval;          /*!< Rig state polling period in milliseconds */
     freq_t current_freq;        /*!< Frequency currently set */
     rmode_t current_mode;       /*!< Mode currently set */
     //rmode_t current_modeB;      /*!< Mode currently set VFOB */
@@ -2392,10 +2418,19 @@ struct rig_state {
     int power_now;              /*!< Current RF power level in rig units */
     int power_min;              /*!< Minimum RF power level in rig units */
     int power_max;              /*!< Maximum RF power level in rig units */
-    unsigned char disable_yaesu_bandselect; /*!< Disables Yaeus band select logic */
+    unsigned char disable_yaesu_bandselect; /*!< Disables Yaesu band select logic */
     int twiddle_rit;            /*!< Suppresses VFOB reading (cached value used) so RIT control can be used */
     int twiddle_state;          /*!< keeps track of twiddle status */
     vfo_t rx_vfo;               /*!< Rx VFO currently set */
+
+    volatile unsigned int snapshot_packet_sequence_number;
+
+    volatile int multicast_publisher_run;
+    void *multicast_publisher_priv_data;
+    volatile int async_data_handler_thread_run;
+    void *async_data_handler_priv_data;
+    volatile int poll_routine_thread_run;
+    void *poll_routine_priv_data;
 };
 
 //! @cond Doxygen_Suppress

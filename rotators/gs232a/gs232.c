@@ -73,7 +73,7 @@ transaction_write:
 
     if (cmdstr)
     {
-        retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
+        retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
 
         if (retval != RIG_OK)
         {
@@ -93,8 +93,8 @@ transaction_write:
     }
 
     memset(data, 0, data_len);
-    retval = read_string(&rs->rotport, data, data_len, REPLY_EOM,
-                         strlen(REPLY_EOM), 0, 1);
+    retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
+            REPLY_EOM, strlen(REPLY_EOM), 0, 1);
 
     if (retval < 0)
     {
@@ -148,7 +148,7 @@ static int
 gs232_wo_transaction(ROT *rot, const char *cmdstr,
                      char *data, size_t data_len)
 {
-    return write_block(&rot->state.rotport, cmdstr, strlen(cmdstr));
+    return write_block(&rot->state.rotport, (unsigned char *) cmdstr, strlen(cmdstr));
 }
 
 

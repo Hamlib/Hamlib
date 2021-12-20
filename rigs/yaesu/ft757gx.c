@@ -448,7 +448,7 @@ static int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd(cmd, freq / 10, BCD_LEN);
 
     priv->curfreq = freq;
-    return write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -474,7 +474,7 @@ static int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     /* fill in p1 */
     cmd[3] = mode2rig(rig, mode, width);
 
-    return write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -602,7 +602,7 @@ static int ft757_set_vfo(RIG *rig, vfo_t vfo)
 
     priv->current_vfo = vfo;
 
-    return write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -676,7 +676,7 @@ static int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     rig_flush(&rig->state.rigport);
 
     /* send READ STATUS(Meter only) cmd to rig  */
-    retval = write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
+    retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
     if (retval < 0)
     {
@@ -684,7 +684,7 @@ static int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     /* read back the 1 byte */
-    retval = read_block(&rig->state.rigport, (char *)cmd, 1);
+    retval = read_block(&rig->state.rigport, cmd, 1);
 
     if (retval != 1)
     {
@@ -726,7 +726,7 @@ static int ft757_get_update_data(RIG *rig)
         rig_flush(&rig->state.rigport);
 
         /* send READ STATUS cmd to rig  */
-        retval = write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
+        retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
         if (retval < 0)
         {
@@ -735,7 +735,7 @@ static int ft757_get_update_data(RIG *rig)
 
         /* read back the 75 status bytes */
         retval = read_block(&rig->state.rigport,
-                            (char *)priv->update_data,
+                            priv->update_data,
                             FT757GX_STATUS_UPDATE_DATA_LENGTH);
 
         if (retval == FT757GX_STATUS_UPDATE_DATA_LENGTH)

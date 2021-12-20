@@ -357,11 +357,11 @@ static int vx1700_do_transaction(RIG *rig,
     memset(retbuf, 0, retbuf_len);
 
     rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, (const char *)cmd, YAESU_CMD_LENGTH);
+    retval = write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
 
     if (retval != RIG_OK) { return retval; }
 
-    retval = read_block(&rs->rigport, (char *)retbuf, retbuf_len);
+    retval = read_block(&rs->rigport, retbuf, retbuf_len);
 
     if (retval != retbuf_len)
     {

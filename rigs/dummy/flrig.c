@@ -455,7 +455,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
             rig_debug(RIG_DEBUG_WARN, "%s: retry needed? retry=%d\n", __func__, retry);
         }
 
-        int len = read_string(&rs->rigport, tmp_buf, sizeof(tmp_buf), delims,
+        int len = read_string(&rs->rigport, (unsigned char *) tmp_buf, sizeof(tmp_buf), delims,
                               strlen(delims), 0, 1);
         rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, tmp_buf);
 
@@ -540,7 +540,7 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
 
     while (try-- >= 0 && retval != RIG_OK)
         {
-            retval = write_block(&rs->rigport, xml, strlen(xml));
+            retval = write_block(&rs->rigport, (unsigned char *) xml, strlen(xml));
 
             if (retval  < 0)
             {

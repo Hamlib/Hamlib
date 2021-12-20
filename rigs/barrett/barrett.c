@@ -233,7 +233,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     cmd_len = snprintf(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
 
     rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, cmd_buf, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, cmd_len);
 
     if (retval < 0)
     {
@@ -243,7 +243,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     if (expected == 0)
     {
         // response format is 0x11,data...,0x0d,0x0a,0x13
-        retval = read_string(&rs->rigport, priv->ret_data, sizeof(priv->ret_data),
+        retval = read_string(&rs->rigport, (unsigned char *) priv->ret_data, sizeof(priv->ret_data),
                              "\x11", 1, 0, 1);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: resultlen=%d\n", __func__,
                   (int)strlen(priv->ret_data));
@@ -255,7 +255,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     }
     else
     {
-        retval = read_block(&rs->rigport, priv->ret_data, expected);
+        retval = read_block(&rs->rigport, (unsigned char *) priv->ret_data, expected);
 
         if (retval < 0)
         {

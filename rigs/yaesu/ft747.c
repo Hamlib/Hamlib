@@ -511,7 +511,7 @@ int ft747_open(RIG *rig)
 
     /* send PACING cmd to rig, once for all */
 
-    ret = write_block(&rig->state.rigport, (char *)p->p_cmd, YAESU_CMD_LENGTH);
+    ret = write_block(&rig->state.rigport, p->p_cmd, YAESU_CMD_LENGTH);
 
     if (ret < 0)
     {
@@ -571,7 +571,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_force_cache_timeout(&p->status_tv);
 
     cmd = p->p_cmd; /* get native sequence */
-    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -949,7 +949,7 @@ int ft747_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     rig_force_cache_timeout(&p->status_tv);
 
-    return write_block(&rig->state.rigport, (char *) p->p_cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, p->p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft747_get_mem(RIG *rig, vfo_t vfo, int *ch)
@@ -991,7 +991,7 @@ static int ft747_get_update_data(RIG *rig)
 {
     hamlib_port_t *rigport;
     struct ft747_priv_data *p;
-    char last_byte;
+    unsigned char last_byte;
 
     p = (struct ft747_priv_data *)rig->state.priv;
     rigport = &rig->state.rigport;
@@ -1016,7 +1016,7 @@ static int ft747_get_update_data(RIG *rig)
             return ret;
         }
 
-        ret = read_block(rigport, (char *) p->update_data,
+        ret = read_block(rigport, p->update_data,
                          FT747_STATUS_UPDATE_DATA_LENGTH);
 
         if (ret < 0)
@@ -1045,15 +1045,14 @@ static int ft747_get_update_data(RIG *rig)
 
 static int ft747_send_priv_cmd(RIG *rig, unsigned char ci)
 {
-    if (! ft747_ncmd[ci].ncomp)
+    if (!ft747_ncmd[ci].ncomp)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: attempt to send incomplete sequence\n",
                   __func__);
         return -RIG_EINVAL;
     }
 
-    return write_block(&rig->state.rigport, (char *) ft747_ncmd[ci].nseq,
-                       YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, ft747_ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
 }
 

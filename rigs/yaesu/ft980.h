@@ -382,8 +382,8 @@ typedef struct _ft980_memory_t
 /*
  * Start of Command Code Defines
  */
-static const char cmd_OK[YAESU_CMD_LENGTH]     = { 0x00, 0x00, 0x00, 0x00, 0x0B};
-static const char cmd_ON_OFF[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
+static const unsigned char cmd_OK[YAESU_CMD_LENGTH]     = { 0x00, 0x00, 0x00, 0x00, 0x0B};
+static const unsigned char cmd_ON_OFF[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
 
 /* Opcodes 00 to 0B */
 enum ft980_native_cmd_e {

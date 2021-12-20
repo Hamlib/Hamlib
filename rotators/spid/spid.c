@@ -182,7 +182,7 @@ static int spid_rot1prog_rot_set_position(ROT *rot, azimuth_t az,
     cmdstr[11] = 0x2F;                      /* K   */
     cmdstr[12] = 0x20;                      /* END */
 
-    retval = write_block(&rs->rotport, cmdstr, 13);
+    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, 13);
 
     if (retval != RIG_OK)
     {
@@ -210,7 +210,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
         do
         {
             retval = write_block(&rs->rotport,
-                                 "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
+                    (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
             if (retval != RIG_OK)
             {
@@ -218,7 +218,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
             }
 
             memset(cmdstr, 0, 12);
-            retval = read_block(&rs->rotport, cmdstr, 12);
+            retval = read_block(&rs->rotport, (unsigned char *) cmdstr, 12);
         }
         while (retval < 0 && retry_read++ < rot->state.rotport.retry);
 
@@ -250,7 +250,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
     cmdstr[11] = 0x2F;                      /* K   */
     cmdstr[12] = 0x20;                      /* END */
 
-    retval = write_block(&rs->rotport, cmdstr, 13);
+    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, 13);
 
     if (retval != RIG_OK)
     {
@@ -265,7 +265,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
 
         do
         {
-            retval = read_block(&rs->rotport, cmdstr, 12);
+            retval = read_block(&rs->rotport, (unsigned char *) cmdstr, 12);
         }
         while ((retval < 0) && (retry_read++ < rot->state.rotport.retry));
     }
@@ -285,7 +285,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     do
     {
         retval = write_block(&rs->rotport,
-                             "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
+                (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
         if (retval != RIG_OK)
         {
@@ -296,12 +296,12 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
         if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
         {
-            retval = read_block(&rs->rotport, posbuf, 5);
+            retval = read_block(&rs->rotport, (unsigned char *) posbuf, 5);
         }
         else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
                  rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
         {
-            retval = read_block(&rs->rotport, posbuf, 12);
+            retval = read_block(&rs->rotport, (unsigned char *) posbuf, 12);
         }
         else
         {
@@ -357,7 +357,7 @@ static int spid_rot_stop(ROT *rot)
     do
     {
         retval = write_block(&rs->rotport,
-                             "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
+                (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
 
         if (retval != RIG_OK)
         {
@@ -368,12 +368,12 @@ static int spid_rot_stop(ROT *rot)
 
         if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
         {
-            retval = read_block(&rs->rotport, posbuf, 5);
+            retval = read_block(&rs->rotport, (unsigned char *) posbuf, 5);
         }
         else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
                  rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
         {
-            retval = read_block(&rs->rotport, posbuf, 12);
+            retval = read_block(&rs->rotport, (unsigned char *) posbuf, 12);
         }
     }
     while (retval < 0 && retry_read++ < rot->state.rotport.retry);
@@ -431,7 +431,7 @@ static int spid_md01_rot2prog_rot_move(ROT *rot, int direction, int speed)
        moving at all), always send the stop command first. */
     spid_rot_stop(rot);
 
-    retval = write_block(&rs->rotport, cmdstr, 13);
+    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, 13);
     return retval;
 }
 

@@ -247,8 +247,8 @@ int dumpcaps(RIG *rig, FILE *fout)
             caps->targetable_vfo ? "Y" : "N");
 
     fprintf(fout,
-            "Has transceive: %s\n",
-            caps->transceive ? "Y" : "N");
+            "Has async data support: %s\n",
+            caps->async_data_supported ? "Y" : "N");
 
     fprintf(fout, "Announce: 0x%x\n", caps->announces);
     fprintf(fout,

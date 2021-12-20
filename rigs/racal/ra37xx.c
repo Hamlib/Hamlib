@@ -106,7 +106,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
 
     rig_flush(&rs->rigport);
 
-    retval = write_block(&rs->rigport, cmdbuf, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -122,7 +122,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
 
     do
     {
-        retval = read_string(&rs->rigport, respbuf, BUFSZ, EOM, strlen(EOM), 0, 1);
+        retval = read_string(&rs->rigport, (unsigned char *) respbuf, BUFSZ, EOM, strlen(EOM), 0, 1);
 
         if (retval < 0)
         {

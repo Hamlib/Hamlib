@@ -44,6 +44,7 @@
 #include "icom_defs.h"
 #include "frame.h"
 #include "misc.h"
+#include "event.h"
 
 // we automatically determine availability of the 1A 03 command
 enum { ENUM_1A_03_UNK, ENUM_1A_03_YES, ENUM_1A_03_NO };
@@ -7760,7 +7761,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // we'll just send a few more to be sure for all speeds
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
-        write_block(&rs->rigport, (char *) fe_buf, fe_max);
+        write_block(&rs->rigport, fe_buf, fe_max);
 
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
@@ -8543,7 +8544,7 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     RETURNFUNC(RIG_OK);
 }
 
-static int icom_parse_spectrum_frame(RIG *rig, int length,
+static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                                      const unsigned char *frame_data)
 {
     struct rig_caps *caps = rig->caps;
@@ -8554,7 +8555,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
     int division = (int) from_bcd(frame_data + 1, 1 * 2);
     int max_division = (int) from_bcd(frame_data + 2, 1 * 2);
 
-    int spectrum_data_length_in_frame;
+    size_t spectrum_data_length_in_frame;
     const unsigned char *spectrum_data_start_in_frame;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -8629,7 +8630,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
         cache->spectrum_metadata_valid = 1;
 
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: Spectrum line start: id=%d division=%d max_division=%d mode=%d center=%.0f span=%.0f low_edge=%.0f high_edge=%.0f oor=%d data_length=%d\n",
+                  "%s: Spectrum line start: id=%d division=%d max_division=%d mode=%d center=%.0f span=%.0f low_edge=%.0f high_edge=%.0f oor=%d data_length=%ld\n",
                   __func__, spectrum_id, division, max_division, spectrum_scope_mode,
                   cache->spectrum_center_freq, cache->spectrum_span_freq,
                   cache->spectrum_low_edge_freq, cache->spectrum_high_edge_freq, out_of_range,
@@ -8651,7 +8652,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
                 priv_caps->spectrum_scope_caps.spectrum_line_length)
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: too much spectrum scope data received: %d bytes > %d bytes expected\n",
+                      "%s: too much spectrum scope data received: %ld bytes > %d bytes expected\n",
                       __func__, offset + spectrum_data_length_in_frame,
                       priv_caps->spectrum_scope_caps.spectrum_line_length);
             RETURNFUNC(-RIG_EPROTO);
@@ -8666,6 +8667,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
     {
         struct rig_spectrum_line spectrum_line =
         {
+            .id = spectrum_id,
             .data_level_min = priv_caps->spectrum_scope_caps.data_level_min,
             .data_level_max = priv_caps->spectrum_scope_caps.data_level_max,
             .signal_strength_min = priv_caps->spectrum_scope_caps.signal_strength_min,
@@ -8679,10 +8681,7 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
             .spectrum_data = cache->spectrum_data,
         };
 
-        if (rig->callbacks.spectrum_event)
-        {
-            rig->callbacks.spectrum_event(rig, &spectrum_line, rig->callbacks.spectrum_arg);
-        }
+        rig_fire_spectrum_event(rig, &spectrum_line);
 
         cache->spectrum_metadata_valid = 0;
     }
@@ -8690,9 +8689,9 @@ static int icom_parse_spectrum_frame(RIG *rig, int length,
     RETURNFUNC(RIG_OK);
 }
 
-int icom_is_async_frame(RIG *rig, int frame_len, const unsigned char *frame)
+int icom_is_async_frame(RIG *rig, size_t frame_length, const unsigned char *frame)
 {
-    if (frame_len < ACKFRMLEN)
+    if (frame_length < ACKFRMLEN)
     {
         return 0;
     }
@@ -8702,7 +8701,7 @@ int icom_is_async_frame(RIG *rig, int frame_len, const unsigned char *frame)
                                    && frame[5] == S_SCP_DAT);
 }
 
-int icom_process_async_frame(RIG *rig, int frame_len,
+int icom_process_async_frame(RIG *rig, size_t frame_length,
                              const unsigned char *frame)
 {
     struct rig_state *rs = &rig->state;
@@ -8722,46 +8721,27 @@ int icom_process_async_frame(RIG *rig, int frame_len,
      */
     switch (frame[4])
     {
-    case C_SND_FREQ:
-
-        /*
-         * TODO: the freq length might be less than 4 or 5 bytes
-         *          on older rigs!
-         */
-        if (rig->callbacks.freq_event)
-        {
-            freq_t freq;
-            freq = from_bcd(frame + 5, (priv->civ_731_mode ? 4 : 5) * 2);
-            RETURNFUNC(rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
-                                                 rig->callbacks.freq_arg));
-        }
-        else
-        {
-            RETURNFUNC(-RIG_ENAVAIL);
-        }
-
+    case C_SND_FREQ: {
+        // TODO: The freq length might be less than 4 or 5 bytes on older rigs!
+        // TODO: Disable cache timeout for frequency after first transceive packet once we figure out how to get active VFO reliably with transceive updates
+        // TODO: rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_FREQ, HAMLIB_CACHE_ALWAYS);
+        freq_t freq = (freq_t) from_bcd(frame + 5, (priv->civ_731_mode ? 4 : 5) * 2);
+        rig_fire_freq_event(rig, RIG_VFO_CURR, freq);
         break;
+    }
 
     case C_SND_MODE:
-        if (rig->callbacks.mode_event)
-        {
-            icom2rig_mode(rig, frame[5], frame[6], &mode, &width);
-            RETURNFUNC(rig->callbacks.mode_event(rig, RIG_VFO_CURR,
-                                                 mode, width, rig->callbacks.mode_arg));
-        }
-        else
-        {
-            RETURNFUNC(-RIG_ENAVAIL);
-        }
-
+        // TODO: Disable cache timeout for frequency after first transceive packet once we figure out how to get active VFO reliably with transceive updates
+        // TODO: rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_MODE, HAMLIB_CACHE_ALWAYS);
+        icom2rig_mode(rig, frame[5], frame[6], &mode, &width);
+        rig_fire_mode_event(rig, RIG_VFO_CURR, mode, width);
         break;
 
     case C_CTL_SCP:
         if (frame[5] == S_SCP_DAT)
         {
-            icom_parse_spectrum_frame(rig, frame_len - (6 + 1), frame + 6);
+            icom_parse_spectrum_frame(rig, frame_length - (6 + 1), frame + 6);
         }
-
         break;
 
     default:
@@ -8795,6 +8775,7 @@ int icom_decode_event(RIG *rig)
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: got a timeout before the first character\n", __func__);
+        RETURNFUNC(-RIG_ETIMEOUT);
     }
 
     if (frm_len < 1)
@@ -8842,6 +8823,11 @@ int icom_decode_event(RIG *rig)
     }
 
     RETURNFUNC(icom_process_async_frame(rig, frm_len, buf));
+}
+
+int icom_read_frame_direct(RIG *rig, size_t buffer_length, const unsigned char *buffer)
+{
+    return read_icom_frame_direct(&rig->state.rigport, buffer, buffer_length);
 }
 
 int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen,
@@ -9305,11 +9291,11 @@ DECLARE_PROBERIG_BACKEND(icom)
         for (civ_addr = 0x01; civ_addr <= 0x7f; civ_addr++)
         {
 
-            frm_len = make_cmd_frame((char *) buf, civ_addr, CTRLID,
+            frm_len = make_cmd_frame(buf, civ_addr, CTRLID,
                                      C_RD_TRXID, S_RD_TRXID, NULL, 0);
 
             rig_flush(port);
-            write_block(port, (char *) buf, frm_len);
+            write_block(port, buf, frm_len);
 
             /* read out the bytes we just sent
              * TODO: check this is what we expect
@@ -9379,11 +9365,11 @@ DECLARE_PROBERIG_BACKEND(icom)
         for (civ_addr = 0x80; civ_addr <= 0x8f; civ_addr++)
         {
 
-            frm_len = make_cmd_frame((char *) buf, civ_addr, CTRLID,
+            frm_len = make_cmd_frame(buf, civ_addr, CTRLID,
                                      C_CTL_MISC, S_OPTO_RDID, NULL, 0);
 
             rig_flush(port);
-            write_block(port, (char *) buf, frm_len);
+            write_block(port, buf, frm_len);
 
             /* read out the bytes we just sent
              * TODO: check this is what we expect
