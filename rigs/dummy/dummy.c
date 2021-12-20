@@ -2104,6 +2104,13 @@ static int dummy_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     RETURNFUNC(RIG_OK);
 }
 
+static int dummy_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
+{
+    ENTERFUNC;
+
+    RETURNFUNC(RIG_OK);
+}
+
 static int dummy_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode)
 {
@@ -2458,6 +2465,7 @@ struct rig_caps dummy_caps =
     .send_dtmf =  dummy_send_dtmf,
     .recv_dtmf =  dummy_recv_dtmf,
     .send_morse =  dummy_send_morse,
+    .send_voice_mem =  dummy_send_voice_mem,
     .set_channel =    dummy_set_channel,
     .get_channel =    dummy_get_channel,
     .set_trn =    dummy_set_trn,
@@ -2625,6 +2633,7 @@ struct rig_caps dummy_no_vfo_caps =
     .send_dtmf =  dummy_send_dtmf,
     .recv_dtmf =  dummy_recv_dtmf,
     .send_morse =  dummy_send_morse,
+    .send_voice_mem =  dummy_send_voice_mem,
     .set_channel =    dummy_set_channel,
     .get_channel =    dummy_get_channel,
     .set_trn =    dummy_set_trn,
