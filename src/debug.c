@@ -68,7 +68,7 @@
 
 static int rig_debug_level = RIG_DEBUG_TRACE;
 static int rig_debug_time_stamp = 0;
-static FILE *rig_debug_stream;
+FILE *rig_debug_stream;
 static vprintf_cb_t rig_vprintf_cb;
 static rig_ptr_t rig_vprintf_arg;
 
