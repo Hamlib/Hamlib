@@ -82,7 +82,7 @@ const struct rig_caps jst145_caps =
     RIG_MODEL(RIG_MODEL_JST145),
     .model_name = "JST-145",
     .mfg_name =  "JRC",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -182,7 +182,7 @@ const struct rig_caps jst245_caps =
     RIG_MODEL(RIG_MODEL_JST245),
     .model_name = "JST-245",
     .mfg_name =  "JRC",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -309,11 +309,11 @@ static int jst145_open(RIG *rig)
         return retval;
     }
 
-    jst145_get_freq(rig, RIG_VFO_A, &freq);
+    rig_get_freq(rig, RIG_VFO_A, &freq);
     priv->freqA = freq;
-    jst145_get_freq(rig, RIG_VFO_B, &freq);
+    rig_get_freq(rig, RIG_VFO_B, &freq);
     priv->freqB = freq;
-    jst145_get_mode(rig, RIG_VFO_A, &mode, &width);
+    rig_get_mode(rig, RIG_VFO_A, &mode, &width);
     priv->mode = mode;
     return retval;
 }
@@ -338,12 +338,17 @@ static int jst145_get_vfo(RIG *rig, vfo_t *vfo)
     int channel_size = sizeof(channel);
     int retval;
     ptt_t ptt;
+    int retry = 1;
 
-    jst145_get_ptt(rig, RIG_VFO_A, &ptt); // set priv->ptt to current transmit status
+    jst145_get_ptt(rig, RIG_VFO_A,
+                   &ptt); // set priv->ptt to current transmit status
+    rig->state.cache.ptt = ptt;
+
+ptt_retry:
 
     if (ptt)  // can't get vfo while transmitting
     {
-        *vfo = RIG_VFO_A;
+        *vfo = rig->state.current_vfo;
         return RIG_OK;
     }
 
@@ -353,6 +358,8 @@ static int jst145_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (retval != RIG_OK)
     {
+        if (retry-- > 0) { goto ptt_retry; }
+
         rig_debug(RIG_DEBUG_ERR, "%s: jrc_transaction error: %s\n", __func__,
                   rigerror(retval));
         return retval;
@@ -366,7 +373,9 @@ static int jst145_get_vfo(RIG *rig, vfo_t *vfo)
 static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[MAX_LEN];
+    int retval;
     struct jst145_priv_data *priv = rig->state.priv;
+    vfo_t save_vfo = rig->state.current_vfo;
 
     snprintf(freqbuf, sizeof(freqbuf), "F%08u%c\r", (unsigned)(freq),
              vfo == RIG_VFO_A ? 'A' : 'B');
@@ -380,7 +389,21 @@ static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         priv->freqA = freq;
     }
 
-    return write_block(&rig->state.rigport, (unsigned char *) freqbuf, strlen(freqbuf));
+    retval = write_block(&rig->state.rigport,  (unsigned char *) freqbuf, strlen(freqbuf));
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: write_block: %s\n", __func__,
+                  rigerror(retval));
+        return retval;
+    }
+
+    if (vfo != save_vfo)
+    {
+        retval = rig_set_vfo(rig, save_vfo);
+    }
+
+    return retval;
 }
 
 
@@ -391,14 +414,16 @@ static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int freqbuf_size = sizeof(freqbuf);
     int retval;
     int n;
+    vfo_t save_vfo = rig->state.current_vfo;
 
-    struct jst145_priv_data *priv = rig->state.priv;
+    //struct jst145_priv_data *priv = rig->state.priv;
 
-    if (!priv->ptt)  // can't get freq while transmitting
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s curr_vfo=%s\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(save_vfo));
+
+    if (save_vfo != vfo)
     {
-        jst145_set_vfo(rig, vfo);
-        //*freq = vfo == RIG_VFO_B ? priv->freqB : priv->freqA;
-        //return RIG_OK;
+        rig_set_vfo(rig, vfo);
     }
 
     snprintf(cmd, sizeof(cmd), "I\r");
@@ -413,7 +438,13 @@ static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     n = sscanf(freqbuf, "I%*c%*c%*c%8lf", freq);
 
+
     if (n != 1) { retval = -RIG_EPROTO; }
+
+    if (save_vfo != vfo)
+    {
+        rig_set_vfo(rig, save_vfo);
+    }
 
     return retval;
 }
@@ -571,7 +602,8 @@ static int jst145_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     if (pttstatus[1] == '1') { *ptt = RIG_PTT_ON; }
     else { *ptt = RIG_PTT_OFF; }
-    priv->ptt = *ptt;
+
+    priv->ptt = rig->state.cache.ptt = *ptt;
 
     return RIG_OK;
 }

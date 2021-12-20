@@ -67,8 +67,7 @@
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
-int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
-                           int *data_len)
+int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
     int retval;
     struct rig_state *rs;
