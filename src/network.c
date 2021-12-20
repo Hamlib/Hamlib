@@ -81,6 +81,9 @@
 #include "misc.h"
 #include "snapshot_data.h"
 
+#ifdef HAVE_WINDOWS_H
+#include "io.h"
+#endif
 
 #ifdef __MINGW32__
 static int wsstarted;
@@ -451,15 +454,15 @@ static int multicast_publisher_write_data(int fd, size_t length, const unsigned 
     result = write(fd, data, length);
     if (result < 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: error writing to multicast publisher data pipe, status=%ld, err=%s\n", __func__,
-                result, strerror(errno));
+        rig_debug(RIG_DEBUG_ERR, "%s: error writing to multicast publisher data pipe, status=%d, err=%s\n", __func__,
+                (int)result, strerror(errno));
         RETURNFUNC(-RIG_EIO);
     }
 
     if (result != length)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: could not write to multicast publisher data pipe, expected %ld bytes, wrote %ld bytes\n",
-                __func__, length, result);
+        rig_debug(RIG_DEBUG_ERR, "%s: could not write to multicast publisher data pipe, expected %d bytes, wrote %d bytes\n",
+                __func__, (int)length, (int)result);
         RETURNFUNC(-RIG_EIO);
     }
 
@@ -516,8 +519,8 @@ static int multicast_publisher_read_data(int fd, size_t length, unsigned char *d
 
     if (result != length)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: could not read from multicast publisher data pipe, expected %ld bytes, read %ld bytes\n",
-                __func__, length, result);
+        rig_debug(RIG_DEBUG_ERR, "%s: could not read from multicast publisher data pipe, expected %d bytes, read %d bytes\n",
+                __func__, (int)length, (int)result);
         RETURNFUNC(-RIG_EIO);
     }
 
@@ -636,8 +639,8 @@ static int multicast_publisher_read_packet(int fd, uint8_t *type, struct rig_spe
 
             if (packet.data_length - sizeof(struct rig_spectrum_line) != spectrum_line->spectrum_data_length)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: multicast publisher data error, expected %ld bytes of spectrum data, got %ld bytes\n",
-                        __func__, spectrum_line->spectrum_data_length, packet.data_length - sizeof(struct rig_spectrum_line));
+                rig_debug(RIG_DEBUG_ERR, "%s: multicast publisher data error, expected %d bytes of spectrum data, got %d bytes\n",
+                        __func__, (int)spectrum_line->spectrum_data_length, (int)(packet.data_length - sizeof(struct rig_spectrum_line)));
                 RETURNFUNC(-RIG_EPROTO);
             }
 
@@ -814,7 +817,12 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
         RETURNFUNC(-RIG_ENOMEM);
     }
 
-    status = pipe2(data_pipe_fds, O_NONBLOCK);
+#ifdef HAVE_WINDOWS_H
+    // Need to replace this with overlapped I/O to achieve O_NONBLOCK
+    status = _pipe(data_pipe_fds, 256, O_BINARY);
+#else
+    status = pipe(data_pipe_fds);
+#endif
     if (status != 0)
     {
         free(rs->multicast_publisher_priv_data);
@@ -824,6 +832,15 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
                 status, strerror(errno));
         RETURNFUNC(-RIG_EINTERNAL);
     }
+#ifndef HAVE_WINDOWS_H
+    int flags = fcntl(data_pipe_fds[0], F_GETFD);
+    flags |= O_NONBLOCK;
+    if (fcntl(data_pipe_fds[0], F_SETFD, flags))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on pipe=%s\n", __func__, strerror(errno));
+    }
+#endif
+
 
     mcast_publisher_priv = (multicast_publisher_priv_data *) rs->multicast_publisher_priv_data;
     mcast_publisher_priv->args.socket_fd = socket_fd;
