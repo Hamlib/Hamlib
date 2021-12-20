@@ -173,7 +173,7 @@ int elad_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
     int retval;
     char cmdtrm[2];  /* Default Command/Reply termination char */
     char *cmd;
-    int len;
+    size_t len;
     int retry_read = 0;
 
     char buffer[ELAD_MAX_BUF_LEN]; /* use our own buffer since
@@ -189,7 +189,7 @@ int elad_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
 
     rs = &rig->state;
 
-    rs->hold_decode = 1;
+    rs->transaction_active = 1;
 
     /* Emulators don't need any post_write_delay */
     if (priv->is_emulation) { rs->rigport.post_write_delay = 0; }
@@ -225,7 +225,7 @@ transaction_write:
         /* flush anything in the read buffer before command is sent */
         rig_flush(&rs->rigport);
 
-        retval = write_block(&rs->rigport, cmd, len);
+        retval = write_block(&rs->rigport, (unsigned char *) cmd, len);
 
         free(cmd);
 
@@ -237,13 +237,13 @@ transaction_write:
 
     if (!datasize)
     {
-        rig->state.hold_decode = 0;
+        rig->state.transaction_active = 0;
 
         /* no reply expected so we need to write a command that always
            gives a reply so we can read any error replies from the actual
            command being sent without blocking */
-        if (RIG_OK != (retval = write_block(&rs->rigport, priv->verify_cmd
-                                            , strlen(priv->verify_cmd))))
+        if (RIG_OK != (retval = write_block(&rs->rigport,
+                (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
         {
             goto transaction_quit;
         }
@@ -253,7 +253,8 @@ transaction_read:
     /* allow one extra byte for terminator we don't return */
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 13,
               ELAD_MAX_BUF_LEN);
-    retval = read_string(&rs->rigport, buffer, len, cmdtrm, strlen(cmdtrm), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) buffer, len,
+            cmdtrm, strlen(cmdtrm), 0, 1);
 
     if (retval < 0)
     {
@@ -414,7 +415,7 @@ transaction_read:
 
 transaction_quit:
 
-    rs->hold_decode = 0;
+    rs->transaction_active = 0;
     return retval;
 }
 
@@ -3738,8 +3739,8 @@ DECLARE_PROBERIG_BACKEND(elad)
             return RIG_MODEL_NONE;
         }
 
-        retval = write_block(port, "ID;", 3);
-        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0, 1);
+        retval = write_block(port, (unsigned char *) "ID;", 3);
+        id_len = read_string(port, (unsigned char *) idbuf, IDBUFSZ, ";\r", 2, 0, 1);
         close(port->fd);
 
         if (retval != RIG_OK || id_len < 0)
@@ -3799,8 +3800,8 @@ DECLARE_PROBERIG_BACKEND(elad)
             return RIG_MODEL_NONE;
         }
 
-        retval = write_block(port, "K2;", 3);
-        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0, 1);
+        retval = write_block(port, (unsigned char *) "K2;", 3);
+        id_len = read_string(port, (unsigned char *) idbuf, IDBUFSZ, ";\r", 2, 0, 1);
         close(port->fd);
 
         if (retval != RIG_OK)

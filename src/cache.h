@@ -1,6 +1,7 @@
 /*
- *  Hamlib Interface - event handling header
- *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
+ *  Hamlib Interface - rig state cache routines
+ *  Copyright (c) 2000-2012 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -19,21 +20,13 @@
  *
  */
 
-#ifndef _EVENT_H
-#define _EVENT_H 1
+#ifndef _CACHE_H
+#define _CACHE_H
 
 #include <hamlib/rig.h>
 
-int rig_poll_routine_start(RIG *rig);
-int rig_poll_routine_stop(RIG *rig);
+int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq);
+void rig_cache_show(RIG *rig, const char *func, int line);
 
-int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq);
-int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int rig_fire_vfo_event(RIG *rig, vfo_t vfo);
-int rig_fire_ptt_event(RIG *rig, vfo_t vfo, ptt_t ptt);
-int rig_fire_dcd_event(RIG *rig, vfo_t vfo, dcd_t dcd);
-int rig_fire_pltune_event(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode, pbwidth_t *width);
-int rig_fire_spectrum_event(RIG *rig, struct rig_spectrum_line *line);
-
-#endif /* _EVENT_H */
-
+#endif

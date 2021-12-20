@@ -67,8 +67,7 @@
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
-int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
-                           int *data_len)
+int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
     int retval;
     struct rig_state *rs;
@@ -77,25 +76,25 @@ int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rig_flush(&rs->rigport);
 
-    Hold_Decode(rig);
+    set_transaction_active(rig);
 
-    retval = write_block(&rs->rigport, cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         return retval;
     }
 
     if (!data || !data_len)
     {
-        Unhold_Decode(rig);
+        set_transaction_inactive(rig);
         return 0;
     }
 
-    retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM, strlen(EOM), 0, 1);
 
-    Unhold_Decode(rig);
+    set_transaction_inactive(rig);
 
     if (retval < 0)
     {
@@ -1632,7 +1631,7 @@ int jrc_decode_event(RIG *rig)
     //#define SETUP_STATUS_LEN 17
 
     //count = read_string(&rs->rigport, buf, SETUP_STATUS_LEN, "", 0);
-    count = read_string(&rs->rigport, buf, priv->info_len, "", 0, 0, 1);
+    count = read_string(&rs->rigport, (unsigned char *) buf, priv->info_len, "", 0, 0, 1);
 
     if (count < 0)
     {

@@ -131,7 +131,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         int retval;
         rs = &rig->state;
         rig_flush(&rs->rigport); /* discard pending i/p */
-        retval = write_block(&rs->rigport, cmd, cmd_len);
+        retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
         if (retval != RIG_OK)
         {
@@ -155,7 +155,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         ft1 = tt565_timenow();
 #endif
         *data_len = data_len_init;  /* restore orig. buffer length */
-        *data_len = read_string(&rs->rigport, data, *data_len,
+        *data_len = read_string(&rs->rigport, (unsigned char *) data, *data_len,
                                 EOM, strlen(EOM), 0, 1);
 
         if (!strncmp(data, "Z!", 2))     // command unrecognized??
@@ -196,7 +196,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                           "** retry after delay (io=%d, retry=%d) **\n",
                           passcount, itry);
                 *data_len = data_len_init;  /* restore orig. buffer length */
-                read_string(&rs->rigport, data, *data_len,
+                read_string(&rs->rigport, (unsigned char *) data, *data_len,
                             EOM, strlen(EOM), 0, 1);      // purge the input stream...
                 continue;                   // now go retry the full command
             }
@@ -667,7 +667,7 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                         (int)width
                        );
 
-    retval = write_block(&rs->rigport, mdbuf, mdbuf_len);
+    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, mdbuf_len);
 
     return retval;
 }
@@ -939,7 +939,7 @@ int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     struct rig_state *rs = &rig->state;
 
     return write_block(&rs->rigport,
-                       ptt == RIG_PTT_ON ? "*TK" EOM : "*TU" EOM, 4);
+            (unsigned char *) (ptt == RIG_PTT_ON ? "*TK" EOM : "*TU" EOM), 4);
 }
 
 /**

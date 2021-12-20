@@ -287,7 +287,7 @@ static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len,
 
     rig_flush(&rs->rigport);
 
-    retval = write_block(&rs->rigport, cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -307,7 +307,7 @@ static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len,
     /*
      * Do wait for a reply
      */
-    retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM, strlen(EOM), 0, 1);
 
     if (retval < 0)
     {
@@ -328,7 +328,7 @@ static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len,
     if (data[0] == '?')
     {
         /* command failed? resync with radio */
-        write_block(&rs->rigport, EOM, 1);
+        write_block(&rs->rigport, (unsigned char *) EOM, 1);
 
         return -RIG_EPROTO;
     }

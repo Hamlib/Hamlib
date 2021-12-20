@@ -27,11 +27,14 @@
 /*
  * helper functions
  */
-int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd, const unsigned char *data, int data_len);
+int make_cmd_frame(unsigned char frame[], unsigned char re_id, unsigned char ctrl_id,
+                   unsigned char cmd, int subcmd,
+                   const unsigned char *data, int data_len);
 int icom_frame_fix_preamble(int frame_len, unsigned char *frame);
 
 int icom_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len);
-int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[], int rxbuffer_len);
+int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[], size_t rxbuffer_len);
+int read_icom_frame_direct(hamlib_port_t *p, const unsigned char rxbuffer[], size_t rxbuffer_len);
 
 int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width, unsigned char *md, signed char *pd);
 void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t *width);

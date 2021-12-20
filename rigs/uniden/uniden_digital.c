@@ -110,7 +110,7 @@ uniden_digital_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     size_t reply_len = BUFSZ;
 
     rs = &rig->state;
-    rs->hold_decode = 1;
+    rs->transaction_active = 1;
 
 transaction_write:
 
@@ -118,7 +118,7 @@ transaction_write:
 
     if (cmdstr)
     {
-        retval = write_block(&rs->rigport, cmdstr, strlen(cmdstr));
+        retval = write_block(&rs->rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 
         if (retval != RIG_OK)
         {
@@ -138,7 +138,7 @@ transaction_write:
     }
 
     memset(data, 0, *datasize);
-    retval = read_string(&rs->rigport, data, *datasize, EOM, strlen(EOM), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, *datasize, EOM, strlen(EOM), 0, 1);
 
     if (retval < 0)
     {
@@ -262,7 +262,7 @@ transaction_write:
 
     retval = RIG_OK;
 transaction_quit:
-    rs->hold_decode = 0;
+    rs->transaction_active = 0;
     return retval;
 }
 

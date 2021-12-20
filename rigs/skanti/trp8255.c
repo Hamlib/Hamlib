@@ -189,14 +189,14 @@ static int cu_transaction(RIG *rig, const char *cmd, int cmd_len)
     for (i = 0; i < cmd_len; i++)
     {
 
-        int ret = write_block(&rig->state.rigport, &cmd[i], 1);
+        int ret = write_block(&rig->state.rigport, (unsigned char *) &cmd[i], 1);
 
         if (ret != RIG_OK)
         {
             return ret;
         }
 
-        ret = read_block(&rig->state.rigport, &retchar, 1);
+        ret = read_block(&rig->state.rigport, (unsigned char *) &retchar, 1);
 
         switch (retchar)
         {

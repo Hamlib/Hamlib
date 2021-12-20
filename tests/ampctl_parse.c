@@ -1890,8 +1890,8 @@ declare_proto_amp(send_cmd)
     struct amp_state *rs;
     int backend_num, cmd_len;
 #define BUFSZ 128
-    char bufcmd[BUFSZ];
-    char buf[BUFSZ];
+    unsigned char bufcmd[BUFSZ];
+    unsigned char buf[BUFSZ];
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
 
     /*
@@ -1921,10 +1921,10 @@ declare_proto_amp(send_cmd)
     else
     {
         /* text protocol */
-        strncpy(bufcmd, arg1, BUFSZ);
+        strncpy((char *) bufcmd, arg1, BUFSZ);
         bufcmd[BUFSZ - 2] = '\0';
 
-        cmd_len = strlen(bufcmd);
+        cmd_len = strlen((char *) bufcmd);
 
         /* Automatic termination char */
         if (send_cmd_term != 0)

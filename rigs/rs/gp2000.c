@@ -75,7 +75,7 @@ gp2000_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rig_debug(RIG_DEBUG_VERBOSE, "gp2000_transaction: len=%d,cmd=%s\n",
               cmd_len, cmd);
-    retval = write_block(&rs->rigport, cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -89,7 +89,8 @@ gp2000_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return RIG_OK;
     }
 
-    retval = read_string(&rs->rigport, data, RESPSZ, CR, 1, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, RESPSZ,
+            CR, 1, 0, 1);
 
     if (retval < 0)
     {

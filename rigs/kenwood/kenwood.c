@@ -254,7 +254,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
 
     rs = &rig->state;
 
-    rs->hold_decode = 1;
+    rs->transaction_active = 1;
 
     /* Emulators don't need any post_write_delay */
     if (priv->is_emulation) { rs->rigport.post_write_delay = 0; }
@@ -318,7 +318,7 @@ transaction_write:
         /* flush anything in the read buffer before command is sent */
         rig_flush(&rs->rigport);
 
-        retval = write_block(&rs->rigport, cmd, len);
+        retval = write_block(&rs->rigport, (unsigned char *) cmd, len);
 
         free(cmd);
 
@@ -351,7 +351,7 @@ transaction_write:
 
     if (!datasize)
     {
-        rig->state.hold_decode = 0;
+        rig->state.transaction_active = 0;
 
         // there are some commands that have problems with immediate follow-up
         // so we'll just ignore them
@@ -359,8 +359,7 @@ transaction_write:
         /* no reply expected so we need to write a command that always
            gives a reply so we can read any error replies from the actual
            command being sent without blocking */
-        if (RIG_OK != (retval = write_block(&rs->rigport, priv->verify_cmd
-                                            , strlen(priv->verify_cmd))))
+        if (RIG_OK != (retval = write_block(&rs->rigport, (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
         {
             goto transaction_quit;
         }
@@ -370,8 +369,8 @@ transaction_read:
     /* allow room for most any response */
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 48,
               KENWOOD_MAX_BUF_LEN);
-    retval = read_string(&rs->rigport, buffer, len, cmdtrm_str, strlen(cmdtrm_str),
-                         0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) buffer, len,
+            cmdtrm_str, strlen(cmdtrm_str), 0, 1);
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string(len=%d)='%s'\n", __func__,
               (int)strlen(buffer), buffer);
 
@@ -582,7 +581,7 @@ transaction_quit:
         strncpy(priv->last_if_response, buffer, caps->if_len);
     }
 
-    rs->hold_decode = 0;
+    rs->transaction_active = 0;
     RETURNFUNC(retval);
 }
 
@@ -2686,11 +2685,11 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
     struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-    retval = write_block(&rs->rigport, cmd, strlen(cmd));
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = read_string(&rs->rigport, levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
@@ -2785,11 +2784,11 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         RETURNFUNC(RIG_OK);
     }
 
-    retval = write_block(&rs->rigport, cmd, strlen(cmd));
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = read_string(&rs->rigport, levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
@@ -5417,7 +5416,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
     int rates[] = { 115200, 57600, 38400, 19200, 9600, 4800, 1200, 0 }; /* possible baud rates */
     int rates_idx;
     int write_delay = port->write_delay;
-    int retry = port->retry;
+    short retry = port->retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -5452,8 +5451,8 @@ DECLARE_PROBERIG_BACKEND(kenwood)
             RETURNFUNC(RIG_MODEL_NONE);
         }
 
-        retval = write_block(port, "ID;", 3);
-        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0, 1);
+        retval = write_block(port, (unsigned char *) "ID;", 3);
+        id_len = read_string(port, (unsigned char *) idbuf, IDBUFSZ, ";\r", 2, 0, 1);
         close(port->fd);
 
         if (retval != RIG_OK || id_len < 0)
@@ -5519,8 +5518,8 @@ DECLARE_PROBERIG_BACKEND(kenwood)
             RETURNFUNC(RIG_MODEL_NONE);
         }
 
-        retval = write_block(port, "K2;", 3);
-        id_len = read_string(port, idbuf, IDBUFSZ, ";\r", 2, 0, 1);
+        retval = write_block(port, (unsigned char *) "K2;", 3);
+        id_len = read_string(port, (unsigned char *) idbuf, IDBUFSZ, ";\r", 2, 0, 1);
         close(port->fd);
 
         if (retval != RIG_OK)

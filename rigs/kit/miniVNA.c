@@ -50,7 +50,7 @@ static int miniVNA_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     sprintf(cmdstr, "0\r%lu\r1\r0\r", (unsigned long int)(freq * DDS_RATIO));
 
-    retval = write_block(&rig->state.rigport, cmdstr, strlen(cmdstr));
+    retval = write_block(&rig->state.rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 
     if (retval != RIG_OK)
     {

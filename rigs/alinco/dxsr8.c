@@ -253,7 +253,7 @@ int dxsr8_transaction(RIG *rig,
 
     rig_flush(&rs->rigport);
 
-    retval = write_block(&rs->rigport, cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -264,7 +264,8 @@ int dxsr8_transaction(RIG *rig,
      * Transceiver sends an echo of cmd followed by a CR/LF
      * TODO: check whether cmd and echobuf match (optional)
      */
-    retval = read_string(&rs->rigport, replybuf, BUFSZ, LF, strlen(LF), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) replybuf, BUFSZ,
+            LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {
@@ -272,7 +273,8 @@ int dxsr8_transaction(RIG *rig,
     }
 
 
-    retval = read_string(&rs->rigport, replybuf, BUFSZ, LF, strlen(LF), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) replybuf, BUFSZ,
+            LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {

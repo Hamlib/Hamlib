@@ -168,8 +168,8 @@ DECLARE_PROBERIG_BACKEND(yaesu)
         }
 
         /* send READ STATUS cmd to rig  */
-        retval = write_block(port, (char *) cmd, YAESU_CMD_LENGTH);
-        id_len = read_block(port, (char *) idbuf, YAESU_CMD_LENGTH);
+        retval = write_block(port, cmd, YAESU_CMD_LENGTH);
+        id_len = read_block(port, idbuf, YAESU_CMD_LENGTH);
 
         close(port->fd);
 

@@ -288,6 +288,33 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[],
     return f;
 }
 
+size_t HAMLIB_API to_hex(size_t source_length, const unsigned char *source_data, size_t dest_length, char *dest_data)
+{
+    size_t i;
+    size_t length = source_length;
+    const unsigned char *source = source_data;
+    char *dest = dest_data;
+
+    if (source_length == 0 || dest_length == 0)
+    {
+        return 0;
+    }
+
+    if (source_length * 2 > dest_length)
+    {
+        length = dest_length / 2 - 1;
+    }
+
+    for (i = 0; i < length; i++)
+    {
+        sprintf(dest, "%02X", source[0]);
+        source++;
+        dest += 2;
+    }
+
+    return length;
+}
+
 /**
  * \brief Convert duration of one morse code dot (element) to milliseconds at the given speed.
  * \param wpm morse code speed in words per minute
@@ -2378,6 +2405,15 @@ void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
 
     case RIG_FUNCTION_SET_VFO_OPT:
         return caps->set_vfo_opt;
+
+    case RIG_FUNCTION_READ_FRAME_DIRECT:
+        return caps->read_frame_direct;
+
+    case RIG_FUNCTION_IS_ASYNC_FRAME:
+        return caps->is_async_frame;
+
+    case RIG_FUNCTION_PROCESS_ASYNC_FRAME:
+        return caps->process_async_frame;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "Unknown function?? function=%d\n", rig_function);
