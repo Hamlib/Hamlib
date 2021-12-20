@@ -8652,8 +8652,8 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                 priv_caps->spectrum_scope_caps.spectrum_line_length)
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: too much spectrum scope data received: %ld bytes > %d bytes expected\n",
-                      __func__, offset + spectrum_data_length_in_frame,
+                      "%s: too much spectrum scope data received: %d bytes > %d bytes expected\n",
+                      __func__, (int)(offset + spectrum_data_length_in_frame),
                       priv_caps->spectrum_scope_caps.spectrum_line_length);
             RETURNFUNC(-RIG_EPROTO);
         }
