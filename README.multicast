@@ -1,15 +1,16 @@
 Planned for version 5.0 -- comments/suggestions about this are more than welcome
-Multicast UDP broadcast on port 4532
+Multicast UDP broadcast containing rig snapshot data
 Bidirectional rig control and status
 Choice of token pairs or JSON
 All packets will be tagged with ID=[unique name] -- so multiple rigs can broadcast/rx on the same port
+Will be able to set freq, mode, width, ptt, satmode, and split to start since those are common to many apps.
+More functions will be added as time goes on.
 
 Broadcast packet contents to be based on get_rig_info output
 This will be the text format of name=value pairs
 Can be multiple VFO lines
 Parsers should allow for unknown tags that may be added in the future
 
-Rig command: \get_rig_info
 Rig command: \get_rig_info
 VFO=Main Freq=145000000 Mode=None Width=0 RX=1 TX=1
 VFO=VFOB Freq=145000000 Mode=FM Width=15000 RX=0 TX=0
@@ -22,15 +23,15 @@ Status=OK   (possible values OK, Offline, Error)
 ErrorMsg=msg text (pipe delimited multi-line error message)
 CRC=0xf49f4708   (this is just an example CRC and not accurate for this example)
 
-Example JSON
+JSON data snapshot format for UDP packets:
 {
   "app": "Hamlib",
   "__comment_version__": "protocol version YYYYMMDD x.x.x, 1.0.0 will be used when this is implemented",
   "version": "20210521 0.0.0",
   "__comment_seq__": "Seq is 1-up sequence number 32-bit -- wraps around to 1 from 2^32-1",
   "seq": 1,
-  "__comment_crc__": "32-bit CRC of entire JSON record replacing the CRC value with 0x00000000",
-  "crc": "0x00000000",
+  "__comment_crc__": "32-bit CRC of the entire JSON record replacing the CRC value with 0",
+  "crc": 0,
   "rig": {
     "__comment1__": "customizable rig identification -- will allow multiple rigs to be on the multicast",
     "id": "Rig#1",
@@ -113,5 +114,57 @@ Example JSON
   },
 }
 
-Will be able to set freq, mode, width, ptt, satmode, and split to start since those are common to many apps.
-More functions will be added as time goes on.
+An example UDP packet containing spectrum data from IC-7300 (crc, id and lastCommand not implemented yet):
+
+{
+  "app": "Hamlib",
+  "version": "4.5~git Sun Dec 19 20:56:24 2021 +0000 SHA=0fe723",
+  "seq": 109,
+  "crc": 0,
+  "rig": {
+    "id": "rig_id",
+    "status": "OK",
+    "errorMsg": "",
+    "name": "IC-7300",
+    "split": false,
+    "splitVfo": "VFOA",
+    "satMode": false
+  },
+  "vfos": [
+    {
+      "name": "VFOA",
+      "freq": 3718000,
+      "mode": "LSB",
+      "width": 3000,
+      "ptt": false,
+      "rx": true,
+      "tx": true
+    },
+    {
+      "name": "VFOB",
+      "freq": 3698750,
+      "mode": "",
+      "width": 0,
+      "ptt": false,
+      "rx": false,
+      "tx": false
+    }
+  ],
+  "spectra": [
+    {
+      "id": 0,
+      "name": "Main",
+      "type": "CENTER",
+      "minLevel": 0,
+      "maxLevel": 160,
+      "minStrength": -80,
+      "maxStrength": 0,
+      "centerFreq": 3718000,
+      "span": 50000,
+      "lowFreq": 3693000,
+      "highFreq": 3743000,
+      "length": 475,
+      "data": "121514000000000000000811070000060F12090000000000000908000A0B000000000A130D000A04100C0C17141D1B20353A2D404537341D06110608070200000D0D02000000000B0A000709000005050504000D0B00040400000000070F0D081F29240E262E2C21222E3D3E343C383235393E505361624E4445252A2220191A2B2D28222217121619130D0C1513130F060100000509090200090B03000000000003000000000001000A0802000500000000010C0907000100000000050B0B000100000600000808000306000806000000000C030000000000070000000000020E000A000001000C0B0008000B080700020709000400070100000000000000000A07000A0905000000000002000000000B05010307050506080B050C0F0E100702131528230A0B1E13160B10000000050812231B001422251209181B1A201E0B1713050C020C0D001B1A2209000100000C050400040B0B110D07000009192010040700000910020D0C1928302526282D353F3B2E1F191C25281F0D0A0B1518140A0603030907030100000300060B0000060000000403000400000811221B0A131200040E070000110F0B150005141515211B1F0C0000040500000000000400000000000000000808070D0B00000000000000000000000000000000"
+    }
+  ]
+}
