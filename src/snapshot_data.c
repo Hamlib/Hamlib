@@ -281,7 +281,7 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig, struct rig_
         goto error;
     }
 
-    // TODO: What content should CRC be based on?
+    // TODO: Calculate 32-bit CRC of the entire JSON record replacing the CRC value with 0
     node = cJSON_AddNumberToObject(root_node, "crc", 0);
     if (node == NULL)
     {
