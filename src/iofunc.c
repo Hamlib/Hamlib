@@ -104,9 +104,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         status = _pipe(sync_pipe_fds, 256, O_BINARY);
 #else
         status = pipe(sync_pipe_fds);
-        int flags = fcntl(sync_pipe_fds[0], F_GETFD);
+        int flags = fcntl(sync_pipe_fds[0], F_GETFL);
         flags |= O_NONBLOCK;
-        if (fcntl(sync_pipe_fds[0], F_SETFD, flags))
+        if (fcntl(sync_pipe_fds[0], F_SETFL, flags))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on pipe=%s\n", __func__, strerror(errno));
         }
@@ -127,9 +127,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         status = _pipe(sync_pipe_fds, 256, O_BINARY);
 #else
         status = pipe(sync_pipe_fds);
-        flags = fcntl(sync_pipe_fds[0], F_GETFD);
+        flags = fcntl(sync_pipe_fds[0], F_GETFL);
         flags |= O_NONBLOCK;
-        if (fcntl(sync_pipe_fds[0], F_SETFD, flags))
+        if (fcntl(sync_pipe_fds[0], F_SETFL, flags))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on pipe#2=%s\n", __func__, strerror(errno));
         }
