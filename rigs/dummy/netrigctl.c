@@ -2421,6 +2421,28 @@ static int netrigctl_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
     return RIG_OK;
 }
 
+static int netrigctl_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
+{
+    int ret, len;
+    char cmd[CMD_MAX];
+    char buf[BUF_MAX];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    len = sprintf(cmd, "\\send_voice_mem %d\n", ch);
+
+    ret = netrigctl_transaction(rig, cmd, len, buf);
+
+    if (ret > 0)
+    {
+        return -RIG_EPROTO;
+    }
+    else
+    {
+        return ret;
+    }
+}
+
 static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     int ret, len;
@@ -2694,6 +2716,7 @@ struct rig_caps netrigctl_caps =
     .send_dtmf =  netrigctl_send_dtmf,
     .recv_dtmf =  netrigctl_recv_dtmf,
     .send_morse =  netrigctl_send_morse,
+    .send_voice_mem =  netrigctl_send_voice_mem,
     .stop_morse =  netrigctl_stop_morse,
     .set_channel =    netrigctl_set_channel,
     .get_channel =    netrigctl_get_channel,
