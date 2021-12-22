@@ -22,7 +22,8 @@
 #ifndef _FRAME_H
 #define _FRAME_H 1
 
-#define MAXFRAMELEN 80
+// Has to be big enough for 0xfe sequence to wake up rig
+#define MAXFRAMELEN 200
 
 /*
  * helper functions
