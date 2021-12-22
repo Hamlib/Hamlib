@@ -7762,6 +7762,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
         write_block(&rs->rigport, fe_buf, fe_max);
+        hl_usleep(200*1000); // short sleep
+        rig_flush(&rs->rigport); // flush any echo of 0xFE
 
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
