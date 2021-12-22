@@ -200,6 +200,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
             RETURNFUNC(-RIG_EPROTO);
         }
         // we might have 0xfe string during rig wakeup
+        rig_debug(RIG_DEBUG_TRACE, "%s: DEBUG retval=%d, frm_len=%d, cmd=0x%02x\n", __func__, retval, frm_len, cmd);
         if (retval != frm_len && cmd == C_SET_PWR)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: removing 0xfe power up echo, len=%d", __func__, frm_len);
