@@ -16,7 +16,7 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom ampctl ampctld $(TESTLIBUSB)
 
-check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie
+check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testgrid
 
 RIGCOMMONSRC = rigctl_parse.c rigctl_parse.h dumpcaps.c uthash.h 
 ROTCOMMONSRC = rotctl_parse.c rotctl_parse.h dumpcaps_rot.c uthash.h 
@@ -96,7 +96,7 @@ endif
 EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk testctld.pl testrotctld.pl
 
 # Support 'make check' target for simple tests
-check_SCRIPTS = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh
+check_SCRIPTS = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh testgrid.sh
 
 TESTS = $(check_SCRIPTS)
 
@@ -129,4 +129,8 @@ testcookie.sh:
 	echo './testcookie 1' > testcookie.sh
 	chmod +x ./testcookie.sh
 
-CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh rigtestlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh
+testgrid.sh:
+	echo './testgrid' > testgrid.sh
+	chmod +x ./testgrid.sh
+
+CLEANFILES = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh testcache.sh testcookie.sh rigtestlibusb build-w32.sh build-w64.sh build-w64-jtsdk.sh testgrid.sh
