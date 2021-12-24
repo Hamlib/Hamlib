@@ -9507,6 +9507,7 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic475_caps);
     rig_register(&ic575_caps);
     rig_register(&ic1275_caps);
+    rig_register(&icf8101_caps);
 
     rig_register(&os535_caps);
     rig_register(&os456_caps);
