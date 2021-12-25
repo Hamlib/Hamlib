@@ -33,6 +33,13 @@
 #include "frame.h"
 #include "idx_builtin.h"
 
+static int icf8101_rig_open(RIG *rig)
+{
+    // turn on VFO mode
+    icom_set_vfo(rig, RIG_VFO_A);
+    return icom_rig_open(rig);
+}
+
 static int icf8101_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
@@ -227,9 +234,9 @@ const struct rig_caps icf8101_caps =
     RIG_MODEL(RIG_MODEL_ICF8101),
     .model_name =   "IC-F8101",
     .mfg_name =   "Icom",
-    .version =    BACKEND_VER ".0",
+    .version =    BACKEND_VER ".1",
     .copyright =    "LGPL",
-    .status =   RIG_STATUS_ALPHA,
+    .status =   RIG_STATUS_BETA,
     .rig_type =   RIG_TYPE_TRANSCEIVER,
     .ptt_type =   RIG_PTT_RIG,
     .dcd_type =   RIG_DCD_RIG,
@@ -330,7 +337,7 @@ const struct rig_caps icf8101_caps =
     .scan =  icom_scan,
     .get_dcd =  icom_get_dcd,
     .decode_event =  icom_decode_event,
-    .rig_open =  icom_rig_open,
+    .rig_open =  icf8101_rig_open,
     .rig_close =  icom_rig_close,
     .set_split_vfo = icom_set_split_vfo,
     .set_split_freq = icom_set_split_freq,
