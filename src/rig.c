@@ -1020,7 +1020,10 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC(status);
     }
 
+#if !defined(WIN32)
     status = async_data_handler_start(rig);
+#endif
+
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
