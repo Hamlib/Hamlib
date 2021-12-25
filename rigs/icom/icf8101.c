@@ -159,7 +159,7 @@ static int icf8101_r2i_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
                             RIG_FUNC_COMP| \
                             RIG_FUNC_VOX| \
                             RIG_FUNC_FBKIN| \
-                            RIG_FUNC_AFC) 
+                            RIG_FUNC_AFC)
 
 #define ICF8101_LEVEL_ALL    (RIG_LEVEL_AF| \
                             RIG_LEVEL_RF| \
@@ -229,12 +229,74 @@ int icf8101_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 }
 
+int icf8101_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+{
+    return rig_set_freq(rig, RIG_VFO_B, tx_freq);
+}
+
+int icf8101_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+{
+    return rig_get_freq(rig, RIG_VFO_B, tx_freq);
+}
+
+int icf8101_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
+                                rmode_t mode, pbwidth_t width)
+{
+    rig_set_freq(rig, RIG_VFO_B, tx_freq);
+    return rig_set_mode(rig, RIG_VFO_B, mode, -1);
+}
+
+int icf8101_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
+                                rmode_t *mode, pbwidth_t *width)
+{
+    rig_get_freq(rig, RIG_VFO_B, tx_freq);
+    return rig_get_mode(rig, RIG_VFO_B, mode, width);
+}
+
+
+
+int icf8101_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+    unsigned char cmdbuf[3];
+    int ack_len;
+    unsigned char ackbuf[MAXFRAMELEN];
+
+    cmdbuf[0] = 0x03;
+    cmdbuf[1] = 0x17;
+    cmdbuf[2] = split;
+    return icom_transaction(rig, 0x1a, 0x05, cmdbuf, sizeof(cmdbuf), ackbuf,
+                            &ack_len);
+}
+
+int icf8101_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+    int retval;
+    int ack_len;
+    unsigned char ackbuf[MAXFRAMELEN];
+    unsigned char cmdbuf[2];
+
+    cmdbuf[0] = 0x03;
+    cmdbuf[1] = 0x17;
+    retval = icom_transaction(rig, 0x1a, 0x05, cmdbuf, sizeof(cmdbuf), ackbuf,
+                              &ack_len);
+
+    if (retval == RIG_OK && ack_len >= 1)
+    {
+        dump_hex(ackbuf, ack_len);
+        *split = ackbuf[0] == 1;
+        *tx_vfo = RIG_VFO_B;
+    }
+
+    return retval;
+}
+
+
 const struct rig_caps icf8101_caps =
 {
     RIG_MODEL(RIG_MODEL_ICF8101),
     .model_name =   "IC-F8101",
     .mfg_name =   "Icom",
-    .version =    BACKEND_VER ".1",
+    .version =    BACKEND_VER ".1a",
     .copyright =    "LGPL",
     .status =   RIG_STATUS_BETA,
     .rig_type =   RIG_TYPE_TRANSCEIVER,
@@ -272,7 +334,7 @@ const struct rig_caps icf8101_caps =
     .dcs_list =   NULL,
     .preamp =   { 20, RIG_DBLST_END, },
     .attenuator =   { 20, RIG_DBLST_END, }, // is it really 20dB? */
-    .max_rit =    Hz(0),    
+    .max_rit =    Hz(0),
     .max_xit =    Hz(0),
     .max_ifshift =    Hz(0),    /* there is RTTY shift */
     .targetable_vfo = RIG_TARGETABLE_FREQ,
@@ -320,6 +382,13 @@ const struct rig_caps icf8101_caps =
 
     .get_mode =   icf8101_get_mode,
     .set_mode =   icf8101_set_mode,
+
+    .set_split_freq = icf8101_set_split_freq,
+    .get_split_freq = icf8101_get_split_freq,
+    .set_split_vfo = icf8101_set_split_vfo,
+    .get_split_vfo = icf8101_get_split_vfo,
+    .set_split_freq_mode = icf8101_set_split_freq_mode,
+    .get_split_freq_mode = icf8101_get_split_freq_mode,
 
     .set_ptt = icom_set_ptt,
     .get_ptt = icom_get_ptt,
