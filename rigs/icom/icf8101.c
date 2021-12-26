@@ -257,13 +257,14 @@ int icf8101_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
 
 int icf8101_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    unsigned char cmdbuf[3];
+    unsigned char cmdbuf[4];
     int ack_len;
     unsigned char ackbuf[MAXFRAMELEN];
 
     cmdbuf[0] = 0x03;
     cmdbuf[1] = 0x17;
-    cmdbuf[2] = split;
+    cmdbuf[2] = 0x00;
+    cmdbuf[3] = split == RIG_SPLIT_ON;
     return icom_transaction(rig, 0x1a, 0x05, cmdbuf, sizeof(cmdbuf), ackbuf,
                             &ack_len);
 }
@@ -296,7 +297,7 @@ const struct rig_caps icf8101_caps =
     RIG_MODEL(RIG_MODEL_ICF8101),
     .model_name =   "IC-F8101",
     .mfg_name =   "Icom",
-    .version =    BACKEND_VER ".1a",
+    .version =    BACKEND_VER ".1b",
     .copyright =    "LGPL",
     .status =   RIG_STATUS_BETA,
     .rig_type =   RIG_TYPE_TRANSCEIVER,
