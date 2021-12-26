@@ -157,7 +157,7 @@ void errmsg(int err, char *s, const char *func, const char *file, int line);
 // could be a function call 
 #define RETURNFUNC(rc) do { \
 			            int rctmp = rc; \
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return(%ld) %s\n", __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror(rctmp):""); \
+                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return(%ld)\n", __FILENAME__, __LINE__, __func__, (long int) (rctmp)); \
                         return (rctmp); \
                        } while(0)
 
