@@ -3232,14 +3232,14 @@ extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);
 
 extern HAMLIB_EXPORT(int) rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie, int cookie_len);
 
-extern HAMLIB_EXPORT(int)
-longlat2locator HAMLIB_PARAMS((double longitude,
+//extern HAMLIB_EXPORT(int)
+int longlat2locator HAMLIB_PARAMS((double longitude,
                                double latitude,
                                char *locator_res,
                                int pair_count));
 
-extern HAMLIB_EXPORT(int)
-locator2longlat HAMLIB_PARAMS((double *longitude,
+//extern HAMLIB_EXPORT(int)
+int locator2longlat HAMLIB_PARAMS((double *longitude,
                                double *latitude,
                                const char *locator));
 
