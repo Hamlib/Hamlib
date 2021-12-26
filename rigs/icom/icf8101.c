@@ -285,7 +285,7 @@ int icf8101_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     {
         dump_hex(ackbuf, ack_len);
         *split = ackbuf[0] == 1;
-        *tx_vfo = RIG_VFO_B;
+        *tx_vfo = *split ? RIG_VFO_B : RIG_VFO_A;
     }
 
     return retval;
@@ -297,7 +297,7 @@ const struct rig_caps icf8101_caps =
     RIG_MODEL(RIG_MODEL_ICF8101),
     .model_name =   "IC-F8101",
     .mfg_name =   "Icom",
-    .version =    BACKEND_VER ".1b",
+    .version =    BACKEND_VER ".1c",
     .copyright =    "LGPL",
     .status =   RIG_STATUS_BETA,
     .rig_type =   RIG_TYPE_TRANSCEIVER,
@@ -384,13 +384,6 @@ const struct rig_caps icf8101_caps =
     .get_mode =   icf8101_get_mode,
     .set_mode =   icf8101_set_mode,
 
-    .set_split_freq = icf8101_set_split_freq,
-    .get_split_freq = icf8101_get_split_freq,
-    .set_split_vfo = icf8101_set_split_vfo,
-    .get_split_vfo = icf8101_get_split_vfo,
-    .set_split_freq_mode = icf8101_set_split_freq_mode,
-    .get_split_freq_mode = icf8101_get_split_freq_mode,
-
     .set_ptt = icom_set_ptt,
     .get_ptt = icom_get_ptt,
     .set_vfo = icom_set_vfo,
@@ -409,11 +402,12 @@ const struct rig_caps icf8101_caps =
     .decode_event =  icom_decode_event,
     .rig_open =  icf8101_rig_open,
     .rig_close =  icom_rig_close,
-    .set_split_vfo = icom_set_split_vfo,
-    .set_split_freq = icom_set_split_freq,
-    .get_split_freq = icom_get_split_freq,
-    .set_split_mode = icom_set_split_mode,
-    .get_split_mode = icom_get_split_mode,
-    .set_split_freq_mode =  icom_set_split_freq_mode,
-    .get_split_freq_mode =  icom_get_split_freq_mode,
+
+    .set_split_freq = icf8101_set_split_freq,
+    .get_split_freq = icf8101_get_split_freq,
+    .set_split_vfo = icf8101_set_split_vfo,
+    .get_split_vfo = icf8101_get_split_vfo,
+    .set_split_freq_mode = icf8101_set_split_freq_mode,
+    .get_split_freq_mode = icf8101_get_split_freq_mode,
+
 };
