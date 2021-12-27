@@ -373,7 +373,11 @@ extern int is_uh_radio_fd(int fd);
  */
 static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int direct)
 {
+#if ASYNC_BUG
     int fd = direct ? p->fd : p->fd_sync_read;
+#else
+    int fd = direct;
+#endif
     int i;
     ssize_t ret;
 
