@@ -39,7 +39,7 @@
 #define CODAN_DATA_LEN 64
 
 extern const struct rig_caps envoy_caps;
-extern const struct rig_caps ngt_caps;
+extern const struct rig_caps ngs_caps;
 
 struct codan_priv_data {
     char cmd_str[CODAN_DATA_LEN];       /* command string buffer */

@@ -503,7 +503,7 @@ DECLARE_INITRIG_BACKEND(codan)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
     rig_register(&envoy_caps);
-    rig_register(&ngt_caps);
+    rig_register(&ngs_caps);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init back from rig_register\n", __func__);
 
     return RIG_OK;
