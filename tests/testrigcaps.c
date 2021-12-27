@@ -4,7 +4,7 @@
 int main()
 {
     printf("Check rig_caps offsets\n");
-    printf("If changed can affect shared library API\n");
+    printf("If changed will break shared library API\n");
     RIG *rig;
     int retcode = 0;
     rig_set_debug_level(RIG_DEBUG_NONE);
@@ -18,7 +18,7 @@ int main()
 #elif defined(WIN32) || defined (_WIN32) || defined(__WIN32__)
     int expected = 10144; // mingw32
 #else
-    int expected = 13280; // should be most 64-bit compilers
+    int expected = 13328; // should be most 64-bit compilers
 #endif
 
     if (offset == 9384) { expected = 9384; }  // 32-bit Intel
@@ -41,7 +41,7 @@ int main()
 #elif defined(WIN32) || defined (_WIN32) || defined(__WIN32__)
     expected = 10448; // mingw32
 #else
-    expected = 13696;
+    expected = 14188;
 #endif
 
     if (offset == 9676) { expected = 9676; } // 32-bit Intel
@@ -52,7 +52,11 @@ int main()
     {
         printf("Warning...offset of power_max has changed!!!\n");
         printf("was %d, now %lu\n", expected, offset);
-        retcode = 0;
+        retcode = 2;
+    }
+    if (retcode == 0)
+    {
+        printf("Offsets are OK (i.e. have not changed)\n");
     }
 
     return retcode;
