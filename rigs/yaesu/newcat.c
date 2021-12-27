@@ -834,7 +834,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
         while (err == RIG_OK && ptt == RIG_PTT_ON && retry-- > 0);
 
-        if (ptt) { return RIG_ENTARGET; }
+        if (ptt) { return -RIG_ENTARGET; }
     }
 
     if (RIG_MODEL_FT450 == caps->rig_model)
