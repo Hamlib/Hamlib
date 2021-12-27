@@ -407,6 +407,7 @@
 #define S_MEM_BANDSCOPE     0x08    /* Simple bandscope (on/off) */
 
 /* For IC9700 and IC9100 and likely future Icoms */
+#define S_MEM_DUALMODE      0x59    /* Dualwatch mode (on/off) */
 #define S_MEM_SATMODE       0x5a    /* Satellite mode (on/off) */
 
 /* IC-R8600 and others */

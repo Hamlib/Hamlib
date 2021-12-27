@@ -6906,8 +6906,18 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         break;
 
     case RIG_FUNC_DUAL_WATCH:
-        fct_cn = C_SET_VFO;
-        fct_sc = status ? S_DUAL_ON : S_DUAL_OFF;
+        if ((rig->caps->rig_model == RIG_MODEL_IC9100) ||
+            (rig->caps->rig_model == RIG_MODEL_IC9700))
+        {
+            fct_cn = C_CTL_FUNC;
+            fct_sc = S_MEM_DUALMODE;
+        }
+        else
+        {
+            fct_cn = C_SET_VFO;
+            fct_sc = status ? S_DUAL_ON : S_DUAL_OFF;
+        }
+
         break;
 
     case RIG_FUNC_SATMODE:
@@ -7133,8 +7143,18 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         fct_sc = S_ANT_TUN;
         break;
 
-    case RIG_FUNC_DUAL_WATCH: fct_cn = C_SET_VFO;
-        fct_sc = S_DUAL;
+    case RIG_FUNC_DUAL_WATCH:
+        if ((rig->caps->rig_model == RIG_MODEL_IC9100) ||
+            (rig->caps->rig_model == RIG_MODEL_IC9700))
+        {
+            fct_cn = C_CTL_FUNC;
+            fct_sc = S_MEM_DUALMODE;
+        }
+        else
+        {
+            fct_cn = C_SET_VFO;
+            fct_sc = S_DUAL;
+        }
         break;
 
     case RIG_FUNC_SATMODE:
