@@ -136,6 +136,7 @@ int codan_init(RIG *rig)
 
     codan_transaction(rig, "login admin ''\r", 0, NULL);
     codan_transaction(rig, "login\r", 1, &results);
+    codan_transaction(rig, "scan off\r", 1, &results);
 
     return RIG_OK;
 }
