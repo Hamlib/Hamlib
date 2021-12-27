@@ -214,9 +214,11 @@ typedef struct async_data_handler_priv_data_s
     async_data_handler_args args;
 } async_data_handler_priv_data;
 
+#ifdef ASYNC_BUG
 static int async_data_handler_start(RIG *rig);
 static int async_data_handler_stop(RIG *rig);
 void *async_data_handler(void *arg);
+#endif
 #endif
 
 /*
@@ -1021,7 +1023,9 @@ int HAMLIB_API rig_open(RIG *rig)
     }
 
 #if !defined(WIN32)
+#ifdef ASYNC_BUG
     status = async_data_handler_start(rig);
+#endif
 #endif
 
     if (status < 0)
@@ -1044,7 +1048,9 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (status != RIG_OK)
         {
+#ifdef ASYNC_BUG
             async_data_handler_stop(rig);
+#endif
             port_close(&rs->rigport, rs->rigport.type.rig);
             RETURNFUNC(status);
         }
@@ -1156,7 +1162,9 @@ int HAMLIB_API rig_close(RIG *rig)
         caps->rig_close(rig);
     }
 
+#ifdef ASYNC_BUG
     async_data_handler_stop(rig);
+#endif
 
     /*
      * FIXME: what happens if PTT and rig ports are the same?
@@ -6834,6 +6842,7 @@ HAMLIB_EXPORT(void) sync_callback(int lock)
 
 #define MAX_FRAME_LENGTH 1024
 
+#ifdef ASYNC_BUG
 static int async_data_handler_start(RIG *rig)
 {
     const struct rig_caps *caps = rig->caps;
@@ -6903,6 +6912,7 @@ static int async_data_handler_stop(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
 void *async_data_handler(void *arg)
 {
