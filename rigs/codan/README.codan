@@ -1,0 +1,11 @@
+CODAN NGT and Envoy Radio Control Process.
+
+User Programming Responsibilities
+
+1. Set Admin password to '' (empty, or NO password)
+2. Enable Free TX mode by the sales option available from CODAN USA
+3. Must know the serial port connected to "CICS" in the radio
+programming.  This is most often the GP (general purpose) port which
+is a 15-pin D-Sub connector on a flying lead on the back of the radio.
+(NGT and Envoy models).  Programming must be set to select "CICS" as
+the device which is addressed via the GP port.
