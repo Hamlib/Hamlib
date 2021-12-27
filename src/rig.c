@@ -1526,6 +1526,9 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             TRACE;
             retcode = caps->set_freq(rig, vfo, freq);
 
+            // some rig will return -RIG_ENTARGET if cannot set ptt while transmitting
+            // we will just return RIG_OK and the frequency set will be ignored
+            if (retcode == -RIG_ENTARGET) RETURNFUNC(RIG_OK);
             if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
             rig_set_cache_freq(rig, vfo, (freq_t)0);
