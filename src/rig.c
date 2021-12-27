@@ -436,14 +436,14 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->comm_state = 0;
     rs->rigport.type.rig = caps->port_type; /* default from caps */
 #ifdef HAVE_PTHREAD
-    rs->rigport.async = caps->async_data_supported;
+    rs->asyncport.async = caps->async_data_supported;
 #else
     rs->rigport.async = 0;
 #endif
-    rs->rigport.fd_sync_write = -1;
-    rs->rigport.fd_sync_read = -1;
-    rs->rigport.fd_sync_error_write = -1;
-    rs->rigport.fd_sync_error_read = -1;
+    rs->asyncport.fd_sync_write = -1;
+    rs->asyncport.fd_sync_read = -1;
+    rs->asyncport.fd_sync_error_write = -1;
+    rs->asyncport.fd_sync_error_read = -1;
 
     switch (caps->port_type)
     {
@@ -6903,11 +6903,13 @@ static int async_data_handler_stop(RIG *rig)
 
 void *async_data_handler(void *arg)
 {
+#ifdef ASYNC_BUG
     struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)arg;
-    unsigned char frame[MAX_FRAME_LENGTH];
     RIG *rig = args->rig;
+    unsigned char frame[MAX_FRAME_LENGTH];
     struct rig_state *rs = &rig->state;
     int result;
+#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting async data handler thread\n", __FILE__,
             __LINE__);
@@ -6916,6 +6918,7 @@ void *async_data_handler(void *arg)
     // TODO: add initial support for async in Kenwood kenwood_transaction (+one) functions -> add transaction_active flag usage
     // TODO: add initial support for async in Yaesu newcat_get_cmd/set_cmd (+validate) functions -> add transaction_active flag usage
 
+#ifdef ASYNC_BUG
     while (rs->async_data_handler_thread_run)
     {
         int frame_length;
@@ -6967,6 +6970,7 @@ void *async_data_handler(void *arg)
             }
         }
     }
+#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping async data handler thread\n", __FILE__,
             __LINE__);

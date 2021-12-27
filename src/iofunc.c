@@ -56,7 +56,8 @@
 #include "cm108.h"
 #include "gpio.h"
 
-static void close_sync_data_pipe(hamlib_port_t *p)
+#ifdef ASYNC_BUG
+static void close_sync_data_pipe(hamlib_async_t *p)
 {
     if (p->fd_sync_read != -1) {
         close(p->fd_sync_read);
@@ -77,6 +78,7 @@ static void close_sync_data_pipe(hamlib_port_t *p)
         p->fd_sync_error_write = -1;
     }
 }
+#endif
 
 /**
  * \brief Open a hamlib_port based on its rig port type
@@ -87,16 +89,19 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 {
     int status;
     int want_state_delay = 0;
+#ifdef ASYNC_BUG
     int sync_pipe_fds[2];
+#endif
 
     ENTERFUNC;
 
     p->fd = -1;
-    p->fd_sync_write = -1;
-    p->fd_sync_read = -1;
-    p->fd_sync_error_write = -1;
-    p->fd_sync_error_read = -1;
+    //p->fd_sync_write = -1;
+    //p->fd_sync_read = -1;
+    //p->fd_sync_error_write = -1;
+    //p->fd_sync_error_read = -1;
 
+#if 0
     if (p->async)
     {
 #ifdef HAVE_WINDOWS_H
@@ -159,6 +164,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: created synchronous data pipe\n", __func__);
     }
+#endif
 
     switch (p->type.rig)
     {
@@ -169,7 +175,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: serial_open(%s) status=%d, err=%s\n", __func__,
                       p->pathname, status, strerror(errno));
+#ifdef ASYNC_BUG
             close_sync_data_pipe(p);
+#endif
             RETURNFUNC(status);
         }
 
@@ -184,7 +192,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: set_rts status=%d\n", __func__, status);
+#ifdef ASYNC_BUG
             close_sync_data_pipe(p);
+#endif
             RETURNFUNC(status);
         }
 
@@ -198,7 +208,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status != 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: set_dtr status=%d\n", __func__, status);
+#ifdef ASYNC_BUG
             close_sync_data_pipe(p);
+#endif
             RETURNFUNC(status);
         }
 
@@ -218,7 +230,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+#ifdef ASYNC_BUG
             close_sync_data_pipe(p);
+#endif
             RETURNFUNC(status);
         }
 
@@ -229,7 +243,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+#ifdef ASYNC_BUG
             close_sync_data_pipe(p);
+#endif
             RETURNFUNC(status);
         }
 
@@ -240,7 +256,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+#ifdef ASYNC_BUG
             close_sync_data_pipe(p);
+#endif
             RETURNFUNC(-RIG_EIO);
         }
 
@@ -254,7 +272,9 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+#ifdef ASYNC_BUG
             close_sync_data_pipe(p);
+#endif
             RETURNFUNC(status);
         }
 
@@ -272,14 +292,18 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+#ifdef ASYNC_BUG
             close_sync_data_pipe(p);
+#endif
             RETURNFUNC(status);
         }
 
         break;
 
     default:
+#ifdef ASYNC_BUG
         close_sync_data_pipe(p);
+#endif
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -331,7 +355,9 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
         p->fd = -1;
     }
 
+#ifdef ASYNC_BUG
     close_sync_data_pipe(p);
+#endif
 
     RETURNFUNC(ret);
 }
@@ -473,7 +499,11 @@ static int port_select(hamlib_port_t *p,
 
 static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int direct)
 {
+#ifdef ASYNC_BUG
     int fd = direct ? p->fd : p->fd_sync_read;
+#else
+    int fd = p->fd;
+#endif
 
     if (p->type.rig == RIG_PORT_SERIAL && p->parm.serial.data_bits == 7)
     {
@@ -629,7 +659,8 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
     return RIG_OK;
 }
 
-int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
+#ifdef ASYNC_BUG
+int HAMLIB_API write_block_sync(async_port_t *p, const unsigned char *txbuffer, size_t count)
 {
     if (!p->async)
     {
@@ -639,7 +670,7 @@ int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer,
     return (int) write(p->fd_sync_write, txbuffer, count);
 }
 
-int HAMLIB_API write_block_sync_error(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
+int HAMLIB_API write_block_sync_error(async_port_t *p, const unsigned char *txbuffer, size_t count)
 {
     if (!p->async)
     {
@@ -648,6 +679,7 @@ int HAMLIB_API write_block_sync_error(hamlib_port_t *p, const unsigned char *txb
 
     return (int) write(p->fd_sync_error_write, txbuffer, count);
 }
+#endif
 
 static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t count, int direct)
 {
@@ -658,12 +690,20 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+#ifdef ASYNC_BUG
     if (!p->async && !direct)
+#else
+    if (!direct)
+#endif
     {
         return -RIG_EINTERNAL;
     }
 
+#ifdef ASYNC_GBUG
     fd = direct ? p->fd : p->fd_sync_read;
+#else
+    fd = p->fd;
+#endif
 
     /*
      * Wait up to timeout ms.
@@ -772,7 +812,11 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
 
 int HAMLIB_API read_block(hamlib_port_t *p, unsigned char *rxbuffer, size_t count)
 {
+#ifdef ASYNC_BUG
     return read_block_generic(p, rxbuffer, count, !p->async);
+#else
+    return read_block_generic(p, rxbuffer, count, 1);
+#endif
 }
 
 /**
@@ -851,7 +895,11 @@ static int read_string_generic(hamlib_port_t *p,
     int i = 0;
     static int minlen = 1; // dynamic minimum length of rig response data
 
+#ifdef ASYNC_BUG
     if (!p->async && !direct)
+#else
+    if (!direct)
+#endif
     {
         return -RIG_EINTERNAL;
     }
@@ -871,9 +919,15 @@ static int read_string_generic(hamlib_port_t *p,
         return 0;
     }
 
+#if ASYNC_BUG
     fd = direct ? p->fd : p->fd_sync_read;
     errorfd = direct ? -1 : p->fd_sync_error_read;
     maxfd = (fd > errorfd) ? fd : errorfd;
+#else
+    fd = p->fd;
+    errorfd = -1;
+    maxfd = (fd > errorfd) ? fd : errorfd;
+#endif
 
     /*
      * Wait up to timeout ms.
@@ -1074,7 +1128,11 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         int flush_flag,
         int expected_len)
 {
+#ifdef ASYNC_BUG
     return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, expected_len, !p->async);
+#else
+    return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, expected_len, 1);
+#endif
 }
 
 
