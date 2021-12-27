@@ -2211,13 +2211,16 @@ typedef struct hamlib_port {
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
 
+} hamlib_port_t;
+//! @endcond
+
+typedef struct hamlib_async {
     int async;                  /*!< enable asynchronous data handling if true */
     int fd_sync_write;          /*!< file descriptor for writing synchronous data */
     int fd_sync_read;           /*!< file descriptor for reading synchronous data */
     int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
-} hamlib_port_t;
-//! @endcond
+} hamlib_async_t;
 
 #if !defined(__APPLE__) || !defined(__cplusplus)
 typedef hamlib_port_t port_t;
@@ -2431,6 +2434,7 @@ struct rig_state {
     void *async_data_handler_priv_data;
     volatile int poll_routine_thread_run;
     void *poll_routine_priv_data;
+    hamlib_async_t asyncport;
 };
 
 //! @cond Doxygen_Suppress
