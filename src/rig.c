@@ -436,6 +436,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->rigport.fd = -1;
     rs->pttport.fd = -1;
     rs->comm_state = 0;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__, rs->comm_state);
     rs->rigport.type.rig = caps->port_type; /* default from caps */
 #ifdef HAVE_PTHREAD
     rs->asyncport.async = caps->async_data_supported;
@@ -755,6 +756,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (rs->comm_state)
     {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==1?=%d\n", __func__, rs->comm_state);
         port_close(&rs->rigport, rs->rigport.type.rig);
         rs->comm_state = 0;
         RETURNFUNC(-RIG_EINVAL);
@@ -804,6 +806,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (status < 0)
     {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__, rs->comm_state);
         rs->comm_state = 0;
         RETURNFUNC(status);
     }
@@ -1037,7 +1040,7 @@ int HAMLIB_API rig_open(RIG *rig)
     add_opened_rig(rig);
 
     rs->comm_state = 1;
-
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==1?=%d\n", __func__, rs->comm_state);
     /*
      * Maybe the backend has something to initialize
      * In case of failure, just close down and report error code.
@@ -1269,6 +1272,7 @@ int HAMLIB_API rig_close(RIG *rig)
     remove_opened_rig(rig);
 
     rs->comm_state = 0;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__, rs->comm_state);
 
     RETURNFUNC(RIG_OK);
 }
