@@ -643,7 +643,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
     int timeout_save;
     unsigned char buf[4096];
     ENTERFUNC;
-    RETURNFUNC(RIG_OK);
+    //RETURNFUNC(RIG_OK);
 
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd || p->flushx)
     {
