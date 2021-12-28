@@ -1025,14 +1025,14 @@ int HAMLIB_API rig_open(RIG *rig)
 #if !defined(WIN32)
 #ifdef ASYNC_BUG
     status = async_data_handler_start(rig);
-#endif
-#endif
 
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
         RETURNFUNC(status);
     }
+#endif
+#endif
 
     add_opened_rig(rig);
 
