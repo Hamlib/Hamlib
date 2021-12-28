@@ -37,7 +37,7 @@
 
 #include "codan.h"
 
-#define MAXCMDLEN 32
+#define MAXCMDLEN 64
 
 #define CODAN_VFOS (RIG_VFO_A|RIG_VFO_B)
 
@@ -55,6 +55,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
     int retval, cmd_len;
     struct rig_state *rs = &rig->state;
     struct codan_priv_data *priv = rig->state.priv;
+    //int retry = 3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
 
@@ -62,6 +63,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     rig_flush(&rs->rigport);
     retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, cmd_len);
+    hl_usleep(rig->caps->post_write_delay);
 
     if (retval < 0)
     {
@@ -103,6 +105,23 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
         }
     }
 
+#if 0
+    int hr, min, sec;
+
+    while (--retry >= 0 && strncmp(priv->ret_data, "OK", 2) != 0
+            && sscanf(priv->ret_data, "%d:%d:%d", &hr, &min, &sec) != 3)
+    {
+        char tmpbuf[256];
+        retval = read_string(&rs->rigport, (unsigned char *) tmpbuf,
+                             sizeof(priv->ret_data),
+                             "\x0a", 1, 0, 1);
+
+        dump_hex((unsigned char *)priv->ret_data, strlen(priv->ret_data));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, priv->ret_data);
+    }
+
+#endif
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: retval=%d\n", __func__, retval);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, priv->ret_data);
 
@@ -122,7 +141,6 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
 
 int codan_init(RIG *rig)
 {
-    char *results = NULL;
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__,
               rig->caps->version);
     // cppcheck claims leak here but it's freed in cleanup
@@ -134,11 +152,33 @@ int codan_init(RIG *rig)
         return -RIG_ENOMEM;
     }
 
-    codan_transaction(rig, "login admin ''\r", 0, NULL);
-    codan_transaction(rig, "login\r", 1, &results);
-    codan_transaction(rig, "scan off\r", 1, &results);
+    RETURNFUNC(RIG_OK);
+}
 
-    return RIG_OK;
+int codan_open(RIG *rig)
+{
+    char *results = NULL;
+    codan_transaction(rig, "scan off\r", 1, &results);
+    codan_transaction(rig, "echo off", 1, &results);
+    //codan_transaction(rig, "prompt time", 1, &results);
+    codan_transaction(rig, "login", 1, &results);
+
+    if (!strstr(results, "admin"))
+    {
+        codan_transaction(rig, "login admin ''", 0, NULL);
+    }
+
+    codan_transaction(rig, "login", 1, &results);
+    codan_set_freq(rig, RIG_VFO_A, 14074000.0);
+
+    RETURNFUNC(RIG_OK);
+}
+
+int codan_close(RIG *rig)
+{
+    char *results = NULL;
+    codan_transaction(rig, "logout admin\rfreq", 1, &results);
+    RETURNFUNC(RIG_OK);
 }
 
 int codan_cleanup(RIG *rig)
@@ -170,12 +210,12 @@ int codan_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     char *result = NULL;
     char modeA[8], modeB[8];
-    int widthA, widthB;
+    int widthA, center;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    retval = codan_transaction(rig, "mode\r", 0, &result);
+    retval = codan_transaction(rig, "mode", 0, &result);
 
     if (retval != RIG_OK)
     {
@@ -184,8 +224,8 @@ int codan_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: result=%s", __func__, result);
-    int n = sscanf(result, "MODE: %[A-Z], %[A-Z], %d, %d", modeA, modeB, &widthA,
-                   &widthB);
+    int n = sscanf(result, "MODE: %[A-Z], %[A-Z], %d, %d", modeA, modeB, &center,
+                   &widthA);
 
     if (n != 4)
     {
@@ -238,7 +278,7 @@ int codan_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    sprintf((char *) cmd_buf, "mode %s\r", ttmode);
+    sprintf((char *) cmd_buf, "mode %s", ttmode);
 
     retval = codan_transaction(rig, cmd_buf, 0, &response);
 
@@ -264,7 +304,7 @@ int codan_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               rig_strvfo(vfo), freq);
 
     // Purportedly can't do split so we just set VFOB=VFOA
-    sprintf(cmd_buf, "connect tcvr rf %.0f %.0f\r", freq, freq);
+    sprintf(cmd_buf, "connect tcvr rf %.0f %.0f\rfreq", freq, freq);
 
     char *response = NULL;
     retval = codan_transaction(rig, cmd_buf, 0, &response);
@@ -289,7 +329,7 @@ int codan_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
     *freq = 0;
 
-    retval = codan_transaction(rig, "freq\r", 0, &response);
+    retval = codan_transaction(rig, "freq", 0, &response);
 
     if (retval != RIG_OK)
     {
@@ -298,6 +338,8 @@ int codan_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     retval = sscanf(response, "FREQ: %lg", freq);
+
+    *freq *= 1000; // returne freq is in kHz
 
     if (retval != 1)
     {
@@ -355,7 +397,7 @@ int codan_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d\n", __func__, ptt);
 
-    sprintf(cmd_buf, "connect tcvr rf ptt %s\r", ptt == 0 ? "off" : "on");
+    sprintf(cmd_buf, "connect tcvr rf ptt %s\rptt", ptt == 0 ? "off" : "on");
     response = NULL;
     retval = codan_transaction(rig, cmd_buf, 0, &response);
 
@@ -380,7 +422,7 @@ const struct rig_caps envoy_caps =
     .mfg_name =         "CODAN",
     .version =          BACKEND_VER ".0",
     .copyright =        "LGPL",
-    .status =           RIG_STATUS_ALPHA,
+    .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
     .targetable_vfo =   RIG_TARGETABLE_FREQ,
     .ptt_type =         RIG_PTT_RIG,
@@ -424,6 +466,8 @@ const struct rig_caps envoy_caps =
     .priv = NULL,
 
     .rig_init =     codan_init,
+    .rig_open =     codan_open,
+    .rig_close =     codan_close,
     .rig_cleanup =  codan_cleanup,
 
     .set_freq = codan_set_freq,
@@ -442,7 +486,7 @@ const struct rig_caps ngs_caps =
     .mfg_name =         "CODAN",
     .version =          BACKEND_VER ".0",
     .copyright =        "LGPL",
-    .status =           RIG_STATUS_ALPHA,
+    .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
     .targetable_vfo =   RIG_TARGETABLE_FREQ,
     .ptt_type =         RIG_PTT_RIG,
