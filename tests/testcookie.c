@@ -27,6 +27,7 @@ static int test1()
     if (retcode == RIG_OK) { printf("Test#1c OK\n"); }
     else {printf("Test#1c Failed\n"); return 1;}
 
+#if 0
     // after 1 second we should be able to get a coookie
     // this means the cookie holder did not renew within 1 second
     hl_usleep(1500 * 1000); // after 1 second we should be able to get a coookie
@@ -35,6 +36,7 @@ static int test1()
 
     if (retcode == RIG_OK) { printf("Test#1d OK\n"); }
     else {printf("Test#1d Failed\n"); return 1;}
+#endif
 
     retcode = rig_cookie(NULL, RIG_COOKIE_RELEASE, cookie2, sizeof(cookie2));
 
