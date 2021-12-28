@@ -16,7 +16,7 @@ int main()
 #if defined(WIN64) || defined (_WIN64) || defined (__WIN64__)
     int expected = 13264; // mingw64
 #elif defined(WIN32) || defined (_WIN32) || defined(__WIN32__)
-    int expected = 10144; // mingw32
+    int expected = 10168; // mingw32
 #else
     int expected = 13328; // should be most 64-bit compilers
 #endif
@@ -39,7 +39,7 @@ int main()
 #if defined(WIN64) || defined (_WIN64) || defined (__WIN64__)
     expected = 13664; // mingw64
 #elif defined(WIN32) || defined (_WIN32) || defined(__WIN32__)
-    expected = 10448; // mingw32
+    expected = 10734; // mingw32
 #else
     expected = 14188;
 #endif
