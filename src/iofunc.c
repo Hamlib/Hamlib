@@ -191,7 +191,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status != 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: set_rts status=%d\n", __func__, status);
 #ifdef ASYNC_BUG
             close_sync_data_pipe(p);
 #endif
@@ -940,7 +939,6 @@ static int read_string_generic(hamlib_port_t *p,
     tv_timeout.tv_sec = p->timeout / 1000;
     tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
 
-    rig_debug(RIG_DEBUG_ERR, "%s: timeout=%d.%d\n:", __func__, (int)tv_timeout.tv_sec, (int)tv_timeout.tv_usec);
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
