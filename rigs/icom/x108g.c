@@ -331,7 +331,7 @@ const struct rig_caps x6100_caps =
     RIG_MODEL(RIG_MODEL_X6100),
     .model_name = "X6100",
     .mfg_name =  "Xeigu",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -491,12 +491,13 @@ const struct rig_caps x6100_caps =
     .get_ctcss_sql =  icom_get_ctcss_sql,
     .set_dcs_code =  icom_set_dcs_code,
     .get_dcs_code =  icom_get_dcs_code,
-    .set_split_freq =  x108g_set_split_freq,
-    .get_split_freq =  icom_get_split_freq,
-    .set_split_mode =  x108g_set_split_mode,
-    .get_split_mode =  icom_get_split_mode,
-    .set_split_vfo =  x108g_set_split_vfo,
-    .get_split_vfo =  NULL,
+    // testing with X6100 showed it rejected the 0x0f 0x01 command
+    //.set_split_freq =  x108g_set_split_freq,
+    //.get_split_freq =  icom_get_split_freq,
+    //.set_split_mode =  x108g_set_split_mode,
+    //.get_split_mode =  icom_get_split_mode,
+    //.set_split_vfo =  x108g_set_split_vfo,
+    //.get_split_vfo =  NULL,
 
 };
 
