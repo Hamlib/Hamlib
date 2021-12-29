@@ -288,7 +288,8 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[],
     return f;
 }
 
-size_t HAMLIB_API to_hex(size_t source_length, const unsigned char *source_data, size_t dest_length, char *dest_data)
+size_t HAMLIB_API to_hex(size_t source_length, const unsigned char *source_data,
+                         size_t dest_length, char *dest_data)
 {
     size_t i;
     size_t length = source_length;
@@ -1300,17 +1301,17 @@ const char *HAMLIB_API rig_stragclevel(enum agc_level_e level)
  * \param integer...
  * \return agc_level_e value
  */
-value_t rig_valueagclevel (enum agc_level_e agcLevel)
+value_t rig_valueagclevel(enum agc_level_e agcLevel)
 {
     value_t value;
 
-    if (agcLevel == RIG_AGC_OFF) value.i = 0;
-    else if (agcLevel == RIG_AGC_SUPERFAST) value.i = 1;
-    else if (agcLevel == RIG_AGC_FAST) value.i = 2;
-    else if (agcLevel == RIG_AGC_SLOW) value.i = 3;
-    else if (agcLevel == RIG_AGC_USER) value.i = 4;
-    else if (agcLevel == RIG_AGC_MEDIUM) value.i = 5;
-    else value.i = 6; //RIG_AGC_AUTO
+    if (agcLevel == RIG_AGC_OFF) { value.i = 0; }
+    else if (agcLevel == RIG_AGC_SUPERFAST) { value.i = 1; }
+    else if (agcLevel == RIG_AGC_FAST) { value.i = 2; }
+    else if (agcLevel == RIG_AGC_SLOW) { value.i = 3; }
+    else if (agcLevel == RIG_AGC_USER) { value.i = 4; }
+    else if (agcLevel == RIG_AGC_MEDIUM) { value.i = 5; }
+    else { value.i = 6; } //RIG_AGC_AUTO
 
     return value;
 }
@@ -1891,7 +1892,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
     {
         vfo = rig->state.rx_vfo;
     }
-    else if (vfo == RIG_VFO_RX || vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    else if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
     {
         vfo = RIG_VFO_A; // default to mapping VFO_MAIN to VFO_A
 
@@ -1899,7 +1900,6 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 
         if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
     }
-
     else if (vfo == RIG_VFO_TX)
     {
 #if 0
@@ -1938,9 +1938,10 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
                   "%s: RIG_VFO_TX changed to %s, split=%d, satmode=%d\n", __func__,
                   rig_strvfo(vfo), split, satmode);
     }
-    else if (vfo == RIG_VFO_B)
-
+    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
     {
+        vfo = RIG_VFO_B;  // default to VFO_B
+
         if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_SUB; }
 
         if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_SUB; }
