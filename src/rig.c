@@ -2077,6 +2077,8 @@ int HAMLIB_API rig_get_mode(RIG *rig,
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
+    vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
+
     *mode = RIG_MODE_NONE;
     rig_cache_show(rig, __func__, __LINE__);
     int cache_ms_freq, cache_ms_mode, cache_ms_width;
