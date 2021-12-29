@@ -376,7 +376,7 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int 
 #if ASYNC_BUG
     int fd = direct ? p->fd : p->fd_sync_read;
 #else
-    int fd = direct;
+    int fd = p->fd;
 #endif
     int i;
     ssize_t ret;
@@ -936,9 +936,11 @@ static int read_string_generic(hamlib_port_t *p,
     /*
      * Wait up to timeout ms.
      */
+
     tv_timeout.tv_sec = p->timeout / 1000;
     tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
 
+    rig_debug(RIG_DEBUG_ERR, "%s: timeout=%d.%d\n:", __func__, (int)tv_timeout.tv_sec, (int)tv_timeout.tv_usec);
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
