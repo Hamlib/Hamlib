@@ -1967,6 +1967,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
+    vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
+
     if ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
             || vfo == rig->state.current_vfo)
     {
