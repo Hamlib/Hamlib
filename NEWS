@@ -16,6 +16,7 @@ Version 4.5
         * 202?-??-??
         * Added IC-F8101
         * Added JRC JST-145 and JST-245
+        * Added Xiegu X108G, G90, and X6100
         * Added CODAN Envoy and NGS
         * Deprecated: rigctl commands \set_trn (A) and \get_trn (a) as they never worked as intended
         * Deprecated: field rig_caps.transceive and RIG_TRN_* macros
