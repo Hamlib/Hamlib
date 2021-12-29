@@ -14,10 +14,13 @@ int main()
     unsigned long offset = p2 - p1;
     printf("offset vfo_list=%lu -- this is the important one\n", offset);
 #if defined(WIN64) || defined (_WIN64) || defined (__WIN64__)
-    int expected = 13264; // mingw64
+    printf("Testing WIN64\n");
+    int expected = 13312; // mingw64
 #elif defined(WIN32) || defined (_WIN32) || defined(__WIN32__)
+    printf("Testing WIN32\n");
     int expected = 10168; // mingw32
 #else
+    printf("Testing Other\n");
     int expected = 13328; // should be most 64-bit compilers
 #endif
 
@@ -37,10 +40,13 @@ int main()
     printf("offset power_max=%lu\n", offset);
 
 #if defined(WIN64) || defined (_WIN64) || defined (__WIN64__)
-    expected = 13664; // mingw64
+    printf("Testing WIN64\n");
+    expected = 14124; // mingw64
 #elif defined(WIN32) || defined (_WIN32) || defined(__WIN32__)
+    printf("Testing WIN32\n");
     expected = 10734; // mingw32
 #else
+    printf("Testing Other\n");
     expected = 14188;
 #endif
 
