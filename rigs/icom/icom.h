@@ -489,6 +489,7 @@ extern const struct rig_caps perseus_caps;
 
 extern const struct rig_caps x108g_caps;
 extern const struct rig_caps x6100_caps;
+extern const struct rig_caps g90_caps;
 
 extern const struct rig_caps icr8600_caps;
 extern const struct rig_caps icr30_caps;
