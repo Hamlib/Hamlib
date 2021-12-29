@@ -132,8 +132,6 @@ static int x108g_rig_open(RIG *rig)
         RETURNFUNC(retval);
     }
     rs = &rig->state;
-    ser_set_rts(&rs->rigport, 1);
-    ser_set_dtr(&rs->rigport, 1);
 
     RETURNFUNC(RIG_OK);
 }
