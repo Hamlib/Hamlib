@@ -44,7 +44,7 @@ int main()
     expected = 14124; // mingw64
 #elif defined(WIN32) || defined (_WIN32) || defined(__WIN32__)
     printf("Testing WIN32\n");
-    expected = 10734; // mingw32
+    expected = 10732; // mingw32
 #else
     printf("Testing Other\n");
     expected = 14188;
