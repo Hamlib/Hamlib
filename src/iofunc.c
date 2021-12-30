@@ -570,6 +570,11 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
 {
     int ret;
 
+    if (p->fd < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: port not open\n", __func__);
+        RETURNFUNC(-RIG_EIO);
+    }
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 
     if (p->post_write_date.tv_sec != 0)
