@@ -6859,6 +6859,7 @@ static int async_data_handler_start(RIG *rig)
 
     ENTERFUNC;
 
+#ifdef ASYNC_BUG
 #ifdef HAVE_PTHREAD
     if (caps->async_data_supported)
     {
@@ -6882,10 +6883,12 @@ static int async_data_handler_start(RIG *rig)
         }
     }
 #endif
+#endif
 
     RETURNFUNC(RIG_OK);
 }
 
+#ifdef ASYNC_BUG
 static int async_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -6920,6 +6923,7 @@ static int async_data_handler_stop(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 #endif
 
 void *async_data_handler(void *arg)
