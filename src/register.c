@@ -192,17 +192,19 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
     int hval;
     struct rig_list *p;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!caps)
     {
         return -RIG_EINVAL;
     }
 
+#if 0
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: rig_register (%u)\n",
               __func__,
               caps->rig_model);
+#endif
 
     p = (struct rig_list *)malloc(sizeof(struct rig_list));
 
@@ -224,7 +226,8 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
     p->next = rig_hash_table[hval];
     rig_hash_table[hval] = p;
 
-    RETURNFUNC(RIG_OK);
+    //RETURNFUNC(RIG_OK);
+    return RIG_OK;
 }
 //! @endcond
 
