@@ -177,6 +177,7 @@ const struct rig_caps ts440_caps =
     .get_channel = ic10_get_channel,
     .decode_event = ic10_decode_event,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 /*

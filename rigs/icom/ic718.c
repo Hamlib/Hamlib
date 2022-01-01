@@ -206,6 +206,7 @@ const struct rig_caps ic718_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  icom_mem_get_split_vfo,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 
