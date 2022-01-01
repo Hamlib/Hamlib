@@ -160,6 +160,7 @@ const struct rig_caps transfox_caps =
     .get_conf =     transfox_get_conf,
 #endif
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 

@@ -288,5 +288,6 @@ const struct rig_caps ic7410_caps =
     .get_split_vfo =  icom_mem_get_split_vfo,
     .send_morse =  icom_send_morse,
     .stop_morse =  icom_stop_morse,
-    .wait_morse = rig_wait_morse
+    .wait_morse = rig_wait_morse,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };

@@ -186,6 +186,7 @@ const struct rig_caps ic78_caps =
     .scan =  icom_scan,
     .get_dcd =  icom_get_dcd,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 

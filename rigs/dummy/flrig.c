@@ -212,7 +212,8 @@ const struct rig_caps flrig_caps =
     .set_ext_parm =  flrig_set_ext_parm,
     .get_ext_parm =  flrig_get_ext_parm,
     .power2mW =   flrig_power2mW,
-    .mW2power =   flrig_mW2power
+    .mW2power =   flrig_mW2power,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 //Structure for mapping flrig dynmamic modes to hamlib modes

@@ -174,5 +174,6 @@ const struct rig_caps ic820h_caps =
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 

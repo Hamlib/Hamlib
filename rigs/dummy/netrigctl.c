@@ -2726,4 +2726,5 @@ struct rig_caps netrigctl_caps =
     .power2mW =   netrigctl_power2mW,
     .mW2power =   netrigctl_mW2power,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };

@@ -320,6 +320,7 @@ const struct rig_caps x108g_caps =
     .set_split_vfo =  x108g_set_split_vfo,
     .get_split_vfo =  NULL,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 const struct rig_caps x6100_caps =

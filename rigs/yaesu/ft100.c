@@ -465,6 +465,7 @@ const struct rig_caps ft100_caps =
     .get_func =       NULL,
     .set_parm =       NULL,
     .get_parm =       NULL,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 

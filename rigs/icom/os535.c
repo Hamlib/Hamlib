@@ -178,5 +178,6 @@ const struct rig_caps os535_caps =
 
     .scan = optoscan_scan,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 

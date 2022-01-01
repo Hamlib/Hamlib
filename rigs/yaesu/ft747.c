@@ -434,6 +434,7 @@ const struct rig_caps ft747_caps =
     .set_ptt =    ft747_set_ptt,      /* set ptt */
     .set_mem =    ft747_set_mem,      /* set mem */
     .get_mem =    ft747_get_mem,      /* get mem */
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 

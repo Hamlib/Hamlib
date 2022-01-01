@@ -272,6 +272,7 @@ const struct rig_caps thf7e_caps =
     .get_ant    = th_get_ant,
 
     .reset      = th_reset,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 
