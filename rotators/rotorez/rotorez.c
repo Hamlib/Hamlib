@@ -338,7 +338,7 @@ const struct rot_caps rt21_rot_caps =
     .rot_cleanup =      rotorez_rot_cleanup,
     .set_position =     rt21_rot_set_position,
     .get_position =     rt21_rot_get_position,
-//  .stop =             rotorez_rot_stop,
+    .stop =             rotorez_rot_stop,
 //  .set_conf =         rotorez_rot_set_conf,
 //  .get_info =         rotorez_rot_get_info,
 
