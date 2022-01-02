@@ -1147,7 +1147,7 @@ token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
 {
     const struct confparams *cfp;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, name);
 
     cfp = rig_confparam_lookup(rig, name);
 
