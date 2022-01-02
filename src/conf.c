@@ -1093,7 +1093,7 @@ const struct confparams *HAMLIB_API rig_confparam_lookup(RIG *rig,
     const struct confparams *cfp;
     token_t token;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, name);
 
     if (!rig || !rig->caps)
     {
