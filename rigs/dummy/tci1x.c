@@ -212,7 +212,8 @@ const struct rig_caps tci1x_caps =
     .get_ext_parm =  tci1x_get_ext_parm,
 #endif
     .power2mW =   tci1x_power2mW,
-    .mW2power =   tci1x_mW2power
+    .mW2power =   tci1x_mW2power,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 //Structure for mapping tci1x dynmamic modes to hamlib modes

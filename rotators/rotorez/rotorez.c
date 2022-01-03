@@ -493,15 +493,14 @@ static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth,
     {
         sprintf(cmdstr, "AP1%05.1f\r;",
                 elevation);    /* Total field width of 5 chars */
+
+        err = rotorez_send_priv_cmd2(rot, cmdstr);
+
+        if (err != RIG_OK)
+        {
+            return err;
+        }
     }
-
-    err = rotorez_send_priv_cmd2(rot, cmdstr);
-
-    if (err != RIG_OK)
-    {
-        return err;
-    }
-
     return RIG_OK;
 }
 
@@ -1101,3 +1100,4 @@ DECLARE_INITROT_BACKEND(rotorez)
 
     return RIG_OK;
 }
+

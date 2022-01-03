@@ -1107,6 +1107,7 @@ const struct rig_caps ts570s_caps =
     .scan =  kenwood_scan,
     .reset =  kenwood_reset,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 /*
@@ -1294,6 +1295,7 @@ const struct rig_caps ts570d_caps =
     .scan =  kenwood_scan,
     .reset =  kenwood_reset,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 

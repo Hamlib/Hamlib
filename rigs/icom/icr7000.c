@@ -161,6 +161,7 @@ const struct rig_caps icr7000_caps =
     .decode_event =  icom_decode_event,
     .set_mem =  icom_set_mem,
     .vfo_op =  icom_vfo_op,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 

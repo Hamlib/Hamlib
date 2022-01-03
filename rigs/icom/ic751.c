@@ -228,4 +228,5 @@ const struct rig_caps ic751_caps =
 
     .get_level =  icom_get_level,
     .set_ptt =  icom_set_ptt,/* Piexx UX-14px has no get_ptt only set_ptt */
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };

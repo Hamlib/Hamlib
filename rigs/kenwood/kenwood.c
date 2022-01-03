@@ -5632,6 +5632,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&ts890s_caps);
     rig_register(&pt8000a_caps);
     rig_register(&malachite_caps);
+    rig_register(&tx500_caps);
 
     RETURNFUNC(RIG_OK);
 }

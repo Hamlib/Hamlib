@@ -141,6 +141,7 @@ const struct rig_caps frg8800_caps =
     .set_mode =           frg8800_set_mode,
 
     .set_powerstat =  frg8800_set_powerstat,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 

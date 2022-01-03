@@ -2473,7 +2473,8 @@ struct rig_caps dummy_caps =
     .power2mW =   dummy_power2mW,
     .mW2power =   dummy_mW2power,
     .set_clock = dummy_set_clock,
-    .get_clock = dummy_get_clock
+    .get_clock = dummy_get_clock,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 struct rig_caps dummy_no_vfo_caps =
@@ -2641,7 +2642,8 @@ struct rig_caps dummy_no_vfo_caps =
     .power2mW =   dummy_power2mW,
     .mW2power =   dummy_mW2power,
     .set_clock = dummy_set_clock,
-    .get_clock = dummy_get_clock
+    .get_clock = dummy_get_clock,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 DECLARE_INITRIG_BACKEND(dummy)

@@ -408,6 +408,25 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         return (NULL);
     }
 
+    if (caps->hamlib_check_rig_caps != NULL)
+    {
+        if (caps->hamlib_check_rig_caps[0] != 'H'
+                || strncmp(caps->hamlib_check_rig_caps, HAMLIB_CHECK_RIG_CAPS,
+                           strlen(caps->hamlib_check_rig_caps)) != 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: Error validating integrity of rig_caps\nPossible hamlib DLL incompatiblity\n",
+                      __func__);
+            return (NULL);
+        }
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: backend for %s does not contain hamlib_check_rig_caps\n", __func__,
+                  caps->model_name);
+    }
+
     /*
      * okay, we've found it. Allocate some memory and set it to zeros,
      * and especially  the callbacks
@@ -436,7 +455,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->rigport.fd = -1;
     rs->pttport.fd = -1;
     rs->comm_state = 0;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__, rs->comm_state);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
+              rs->comm_state);
     rs->rigport.type.rig = caps->port_type; /* default from caps */
 #ifdef ASYNC_BUG
 #ifdef HAVE_PTHREAD
@@ -754,7 +774,8 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (rs->comm_state)
     {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==1?=%d\n", __func__, rs->comm_state);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==1?=%d\n", __func__,
+                  rs->comm_state);
         port_close(&rs->rigport, rs->rigport.type.rig);
         rs->comm_state = 0;
         RETURNFUNC(-RIG_EINVAL);
@@ -804,7 +825,8 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (status < 0)
     {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__, rs->comm_state);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
+                  rs->comm_state);
         rs->comm_state = 0;
         RETURNFUNC(status);
     }
@@ -1031,12 +1053,15 @@ int HAMLIB_API rig_open(RIG *rig)
         port_close(&rs->rigport, rs->rigport.type.rig);
         RETURNFUNC(status);
     }
+
 #endif
 
     add_opened_rig(rig);
 
     rs->comm_state = 1;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==1?=%d\n", __func__, rs->comm_state);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==1?=%d\n", __func__,
+              rs->comm_state);
+
     /*
      * Maybe the backend has something to initialize
      * In case of failure, just close down and report error code.
@@ -1268,7 +1293,8 @@ int HAMLIB_API rig_close(RIG *rig)
     remove_opened_rig(rig);
 
     rs->comm_state = 0;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__, rs->comm_state);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
+              rs->comm_state);
 
     RETURNFUNC(RIG_OK);
 }
@@ -1536,7 +1562,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             // some rig will return -RIG_ENTARGET if cannot set ptt while transmitting
             // we will just return RIG_OK and the frequency set will be ignored
-            if (retcode == -RIG_ENTARGET) RETURNFUNC(RIG_OK);
+            if (retcode == -RIG_ENTARGET) { RETURNFUNC(RIG_OK); }
+
             if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
             rig_set_cache_freq(rig, vfo, (freq_t)0);
@@ -2750,7 +2777,9 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         retcode = ser_set_dtr(&rig->state.pttport, ptt != RIG_PTT_OFF);
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:  rigport=%s, pttport=%s, ptt_share=%d\n", __func__, rs->pttport.pathname, rs->rigport.pathname, rs->ptt_share);
+        rig_debug(RIG_DEBUG_TRACE, "%s:  rigport=%s, pttport=%s, ptt_share=%d\n",
+                  __func__, rs->pttport.pathname, rs->rigport.pathname, rs->ptt_share);
+
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
                 && ptt == RIG_PTT_OFF && rs->ptt_share != 0)
         {
@@ -2797,7 +2826,9 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         retcode = ser_set_rts(&rig->state.pttport, ptt != RIG_PTT_OFF);
 
-        rig_debug(RIG_DEBUG_TRACE, "%s:  rigport=%s, pttport=%s, ptt_share=%d\n", __func__, rs->pttport.pathname, rs->rigport.pathname, rs->ptt_share);
+        rig_debug(RIG_DEBUG_TRACE, "%s:  rigport=%s, pttport=%s, ptt_share=%d\n",
+                  __func__, rs->pttport.pathname, rs->rigport.pathname, rs->ptt_share);
+
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
                 && ptt == RIG_PTT_OFF && rs->ptt_share != 0)
         {
@@ -6855,33 +6886,42 @@ static int async_data_handler_start(RIG *rig)
 
     ENTERFUNC;
 
+#ifdef ASYNC_BUG
 #ifdef HAVE_PTHREAD
+
     if (caps->async_data_supported)
     {
         rs->async_data_handler_thread_run = 1;
-        rs->async_data_handler_priv_data = calloc(1, sizeof(async_data_handler_priv_data));
+        rs->async_data_handler_priv_data = calloc(1,
+                                           sizeof(async_data_handler_priv_data));
+
         if (rs->async_data_handler_priv_data == NULL)
         {
             RETURNFUNC(-RIG_ENOMEM);
         }
 
-        async_data_handler_priv = (async_data_handler_priv_data *) rs->async_data_handler_priv_data;
+        async_data_handler_priv = (async_data_handler_priv_data *)
+                                  rs->async_data_handler_priv_data;
         async_data_handler_priv->args.rig = rig;
         int err = pthread_create(&async_data_handler_priv->thread_id, NULL,
-                async_data_handler, &async_data_handler_priv->args);
+                                 async_data_handler, &async_data_handler_priv->args);
 
         if (err)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error: %s\n", __FILE__, __LINE__,
-                    strerror(errno));
+            rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error: %s\n", __FILE__,
+                      __LINE__,
+                      strerror(errno));
             RETURNFUNC(-RIG_EINTERNAL);
         }
     }
+
+#endif
 #endif
 
     RETURNFUNC(RIG_OK);
 }
 
+#ifdef ASYNC_BUG
 static int async_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -6892,7 +6932,9 @@ static int async_data_handler_stop(RIG *rig)
 #ifdef HAVE_PTHREAD
     rs->async_data_handler_thread_run = 0;
 
-    async_data_handler_priv = (async_data_handler_priv_data *) rs->async_data_handler_priv_data;
+    async_data_handler_priv = (async_data_handler_priv_data *)
+                              rs->async_data_handler_priv_data;
+
     if (async_data_handler_priv != NULL)
     {
         if (async_data_handler_priv->thread_id != 0)
@@ -6902,7 +6944,7 @@ static int async_data_handler_stop(RIG *rig)
             if (err)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s(%d): pthread_join error: %s\n", __FILE__, __LINE__,
-                        strerror(errno));
+                          strerror(errno));
                 // just ignore the error
             }
 
@@ -6912,36 +6954,42 @@ static int async_data_handler_stop(RIG *rig)
         free(rs->async_data_handler_priv_data);
         rs->async_data_handler_priv_data = NULL;
     }
+
 #endif
 
     RETURNFUNC(RIG_OK);
 }
 #endif
+#endif
 
 void *async_data_handler(void *arg)
 {
 #ifdef ASYNC_BUG
-    struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)arg;
+    struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)
+            arg;
     RIG *rig = args->rig;
     unsigned char frame[MAX_FRAME_LENGTH];
     struct rig_state *rs = &rig->state;
     int result;
 #endif
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting async data handler thread\n", __FILE__,
-            __LINE__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting async data handler thread\n",
+              __FILE__,
+              __LINE__);
 
     // TODO: check how to enable "transceive" on recent Kenwood/Yaesu rigs
     // TODO: add initial support for async in Kenwood kenwood_transaction (+one) functions -> add transaction_active flag usage
     // TODO: add initial support for async in Yaesu newcat_get_cmd/set_cmd (+validate) functions -> add transaction_active flag usage
 
 #ifdef ASYNC_BUG
+
     while (rs->async_data_handler_thread_run)
     {
         int frame_length;
         int async_frame;
 
         result = rig->caps->read_frame_direct(rig, sizeof(frame), frame);
+
         if (result < 0)
         {
             // TODO: it may be necessary to have mutex locking on transaction_active flag
@@ -6954,9 +7002,11 @@ void *async_data_handler(void *arg)
             if (result != -RIG_ETIMEOUT)
             {
                 // TODO: error handling -> store errors in rig state -> to be exposed in async snapshot packets
-                rig_debug(RIG_DEBUG_ERR, "%s: read_frame_direct() failed, result=%d\n", __func__, result);
+                rig_debug(RIG_DEBUG_ERR, "%s: read_frame_direct() failed, result=%d\n",
+                          __func__, result);
                 hl_usleep(500 * 1000);
             }
+
             continue;
         }
 
@@ -6964,33 +7014,40 @@ void *async_data_handler(void *arg)
 
         async_frame = rig->caps->is_async_frame(rig, frame_length, frame);
 
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: received frame: len=%d async=%d\n", __func__, frame_length, async_frame);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: received frame: len=%d async=%d\n", __func__,
+                  frame_length, async_frame);
 
         if (async_frame)
         {
             result = rig->caps->process_async_frame(rig, frame_length, frame);
+
             if (result < 0)
             {
                 // TODO: error handling -> store errors in rig state -> to be exposed in async snapshot packets
-                rig_debug(RIG_DEBUG_ERR, "%s: process_async_frame() failed, result=%d\n", __func__, result);
+                rig_debug(RIG_DEBUG_ERR, "%s: process_async_frame() failed, result=%d\n",
+                          __func__, result);
                 continue;
             }
         }
         else
         {
             result = write_block_sync(&rs->rigport, frame, frame_length);
+
             if (result < 0)
             {
                 // TODO: error handling? can writing to a pipe really fail in ways we can recover from?
-                rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__, result);
+                rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__,
+                          result);
                 continue;
             }
         }
     }
+
 #endif
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping async data handler thread\n", __FILE__,
-            __LINE__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping async data handler thread\n",
+              __FILE__,
+              __LINE__);
 
     return NULL;
 }

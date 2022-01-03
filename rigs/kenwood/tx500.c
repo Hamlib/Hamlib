@@ -1,5 +1,6 @@
 /*
- *  Hamlib Kenwood backend - TS2000 description
+ *  Hamlib Lab599 backend - TX-500 description
+ *  Copyright (c) 2021 by Michael Black W9MDB - borrowed from ts2000.c
  *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *
@@ -29,22 +30,22 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 
-#define TS2000_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
-#define TS2000_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
-#define TS2000_AM_TX_MODES RIG_MODE_AM
+#define TX500_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define TX500_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define TX500_AM_TX_MODES RIG_MODE_AM
 
-#define TS2000_FUNC_ALL (RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_BC|RIG_FUNC_NB|RIG_FUNC_NR|RIG_FUNC_ANF|RIG_FUNC_COMP|RIG_FUNC_RIT|RIG_FUNC_XIT)
+#define TX500_FUNC_ALL (RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_BC|RIG_FUNC_NB|RIG_FUNC_NR|RIG_FUNC_ANF|RIG_FUNC_COMP|RIG_FUNC_RIT|RIG_FUNC_XIT)
 
-#define TS2000_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_COMP|RIG_LEVEL_AGC|RIG_LEVEL_BKINDL|RIG_LEVEL_METER|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
+#define TX500_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_COMP|RIG_LEVEL_AGC|RIG_LEVEL_BKINDL|RIG_LEVEL_METER|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
-#define TS2000_MAINVFO (RIG_VFO_A|RIG_VFO_B)
-#define TS2000_SUBVFO (RIG_VFO_C)
+#define TX500_MAINVFO (RIG_VFO_A|RIG_VFO_B)
+#define TX500_SUBVFO (RIG_VFO_C)
 
-#define TS2000_VFO_OP (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN)
-#define TS2000_SCAN_OP (RIG_SCAN_VFO)
-#define TS2000_ANTS (RIG_ANT_1|RIG_ANT_2)
+#define TX500_VFO_OP (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN)
+#define TX500_SCAN_OP (RIG_SCAN_VFO)
+#define TX500_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-#define TS2000_STR_CAL {9, {\
+#define TX500_STR_CAL {9, {\
                {0x00, -54},\
                {0x03, -48},\
                {0x06, -36},\
@@ -65,7 +66,7 @@ static int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 /*
  * 38 CTCSS sub-audible tones + 1750 tone
  */
-tone_t ts2000_ctcss_list[] =
+tone_t tx500_ctcss_list[] =
 {
     670,  719,  744,  770,  797,  825,  854,  885,  915,  948,
     974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
@@ -79,7 +80,7 @@ tone_t ts2000_ctcss_list[] =
 /*
  * 103 available DCS codes
  */
-tone_t ts2000_dcs_list[] =
+tone_t tx500_dcs_list[] =
 {
     23,  25,  26,  31,   32,  36,  43,  47,       51,  53,
     54,  65,  71,  72,  73,   74, 114, 115, 116, 122, 125, 131,
@@ -93,13 +94,13 @@ tone_t ts2000_dcs_list[] =
     0,
 };
 
-static struct kenwood_priv_caps  ts2000_priv_caps  =
+static struct kenwood_priv_caps  tx500_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
 };
 
 /* memory capabilities */
-#define TS2000_MEM_CAP {    \
+#define TX500_MEM_CAP {    \
     .freq = 1,      \
     .mode = 1,      \
     .tx_freq=1,     \
@@ -120,18 +121,17 @@ static struct kenwood_priv_caps  ts2000_priv_caps  =
 
 
 /*
- * ts2000 rig capabilities.
+ * TX-500 rig capabilities.
  *
- * part of infos comes from http://www.kenwood.net/
  */
-const struct rig_caps ts2000_caps =
+const struct rig_caps tx500_caps =
 {
-    RIG_MODEL(RIG_MODEL_TS2000),
-    .model_name = "TS-2000",
-    .mfg_name =  "Kenwood",
+    RIG_MODEL(RIG_MODEL_LAB599_TX500),
+    .model_name = "TX-500",
+    .mfg_name =  "Lab599",
     .version =  BACKEND_VER ".0",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_STABLE,
+    .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
@@ -147,18 +147,18 @@ const struct rig_caps ts2000_caps =
     .timeout =  200,
     .retry =  10,
 
-    .has_get_func =  TS2000_FUNC_ALL,
-    .has_set_func =  TS2000_FUNC_ALL,
-    .has_get_level =  TS2000_LEVEL_ALL,
-    .has_set_level =  RIG_LEVEL_SET(TS2000_LEVEL_ALL),
+    .has_get_func =  TX500_FUNC_ALL,
+    .has_set_func =  TX500_FUNC_ALL,
+    .has_get_level =  TX500_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_SET(TX500_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
     .level_gran =  {},                 /* FIXME: granularity */
     .parm_gran =  {},
-    .vfo_ops =  TS2000_VFO_OP,
-    .scan_ops =  TS2000_SCAN_OP,
-    .ctcss_list =  ts2000_ctcss_list,
-    .dcs_list =  ts2000_dcs_list,
+    .vfo_ops =  TX500_VFO_OP,
+    .scan_ops =  TX500_SCAN_OP,
+    .ctcss_list =  tx500_ctcss_list,
+    .dcs_list =  tx500_dcs_list,
     .preamp =   { 20, RIG_DBLST_END, }, /* FIXME: real preamp? */
     .attenuator =   { 20, RIG_DBLST_END, },
     .max_rit =  kHz(20),
@@ -170,90 +170,90 @@ const struct rig_caps ts2000_caps =
     .chan_desc_sz =  7,
 
     .chan_list =  {
-        { 0, 299, RIG_MTYPE_MEM, TS2000_MEM_CAP  },
+        { 0, 299, RIG_MTYPE_MEM, TX500_MEM_CAP  },
         RIG_CHAN_END,
     },
 
     .rx_range_list1 =  {
-        {kHz(300), MHz(60), TS2000_ALL_MODES, -1, -1, TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(144), MHz(146), TS2000_ALL_MODES, -1, -1, TS2000_MAINVFO},
-        {MHz(430), MHz(440), TS2000_ALL_MODES, -1, -1, TS2000_MAINVFO},
-        {MHz(144), MHz(146), TS2000_ALL_MODES, -1, -1, TS2000_SUBVFO},
-        {MHz(430), MHz(440), TS2000_ALL_MODES, -1, -1, TS2000_SUBVFO},
+        {kHz(300), MHz(60), TX500_ALL_MODES, -1, -1, TX500_MAINVFO, TX500_ANTS},
+        {MHz(144), MHz(146), TX500_ALL_MODES, -1, -1, TX500_MAINVFO},
+        {MHz(430), MHz(440), TX500_ALL_MODES, -1, -1, TX500_MAINVFO},
+        {MHz(144), MHz(146), TX500_ALL_MODES, -1, -1, TX500_SUBVFO},
+        {MHz(430), MHz(440), TX500_ALL_MODES, -1, -1, TX500_SUBVFO},
         RIG_FRNG_END,
     }, /* rx range */
     .tx_range_list1 =  {
-        {kHz(1830), kHz(1850), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(1830), kHz(1850), TS2000_AM_TX_MODES, 2000, 25000, TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(3500), kHz(3800), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(3500), kHz(3800), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(7), kHz(7100), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(7), kHz(7100), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(10.1), MHz(10.15), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(10.1), MHz(10.15), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(14), kHz(14350), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(14), kHz(14350), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(18068), kHz(18168), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(18068), kHz(18168), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(21), kHz(21450), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(21), kHz(21450), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(24890), kHz(24990), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(24890), kHz(24990), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(28), kHz(29700), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(28), kHz(29700), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(50), MHz(50.2), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(50), MHz(50.2), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(144), MHz(146), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO},
-        {MHz(144), MHz(146), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO},
-        {MHz(430), MHz(440), TS2000_OTHER_TX_MODES, W(5), W(50), TS2000_MAINVFO},
-        {MHz(430), MHz(440), TS2000_AM_TX_MODES, W(5), W(12.5), TS2000_MAINVFO},
+        {kHz(1830), kHz(1850), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {kHz(1830), kHz(1850), TX500_AM_TX_MODES, 2000, 25000, TX500_MAINVFO, TX500_ANTS},
+        {kHz(3500), kHz(3800), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {kHz(3500), kHz(3800), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(7), kHz(7100), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(7), kHz(7100), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(10.1), MHz(10.15), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(10.1), MHz(10.15), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(14), kHz(14350), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(14), kHz(14350), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {kHz(18068), kHz(18168), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {kHz(18068), kHz(18168), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(21), kHz(21450), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(21), kHz(21450), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {kHz(24890), kHz(24990), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {kHz(24890), kHz(24990), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(28), kHz(29700), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(28), kHz(29700), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(50), MHz(50.2), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(50), MHz(50.2), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(144), MHz(146), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO},
+        {MHz(144), MHz(146), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO},
+        {MHz(430), MHz(440), TX500_OTHER_TX_MODES, W(5), W(50), TX500_MAINVFO},
+        {MHz(430), MHz(440), TX500_AM_TX_MODES, W(5), W(12.5), TX500_MAINVFO},
         RIG_FRNG_END,
     }, /* tx range */
 
     .rx_range_list2 =  {
-        {kHz(300), MHz(60), TS2000_ALL_MODES, -1, -1, TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(142), MHz(152), TS2000_ALL_MODES, -1, -1, TS2000_MAINVFO},
-        {MHz(420), MHz(450), TS2000_ALL_MODES, -1, -1, TS2000_MAINVFO},
-        {MHz(118), MHz(174), TS2000_ALL_MODES, -1, -1, TS2000_SUBVFO},
-        {MHz(220), MHz(512), TS2000_ALL_MODES, -1, -1, TS2000_SUBVFO},
+        {kHz(300), MHz(60), TX500_ALL_MODES, -1, -1, TX500_MAINVFO, TX500_ANTS},
+        {MHz(142), MHz(152), TX500_ALL_MODES, -1, -1, TX500_MAINVFO},
+        {MHz(420), MHz(450), TX500_ALL_MODES, -1, -1, TX500_MAINVFO},
+        {MHz(118), MHz(174), TX500_ALL_MODES, -1, -1, TX500_SUBVFO},
+        {MHz(220), MHz(512), TX500_ALL_MODES, -1, -1, TX500_SUBVFO},
         RIG_FRNG_END,
     }, /* rx range */
     .tx_range_list2 =  {
-        {kHz(1800), MHz(2), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(1800), MHz(2), TS2000_AM_TX_MODES, 2000, 25000, TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(3500), MHz(4), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(3500), MHz(4), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(7), kHz(7300), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(7), kHz(7300), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(10.1), MHz(10.15), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(10.1), MHz(10.15), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(14), kHz(14350), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(14), kHz(14350), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(18068), kHz(18168), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(18068), kHz(18168), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(21), kHz(21450), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(21), kHz(21450), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(24890), kHz(24990), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {kHz(24890), kHz(24990), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(28), kHz(29700), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(28), kHz(29700), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(50), MHz(54), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(50), MHz(54), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO, TS2000_ANTS},
-        {MHz(144), MHz(148), TS2000_OTHER_TX_MODES, W(5), W(100), TS2000_MAINVFO},
-        {MHz(144), MHz(148), TS2000_AM_TX_MODES, W(5), W(25), TS2000_MAINVFO},
-        {MHz(430), MHz(450), TS2000_OTHER_TX_MODES, W(5), W(50), TS2000_MAINVFO},
-        {MHz(430), MHz(450), TS2000_AM_TX_MODES, W(5), W(12.5), TS2000_MAINVFO},
+        {kHz(1800), MHz(2), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {kHz(1800), MHz(2), TX500_AM_TX_MODES, 2000, 25000, TX500_MAINVFO, TX500_ANTS},
+        {kHz(3500), MHz(4), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {kHz(3500), MHz(4), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(7), kHz(7300), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(7), kHz(7300), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(10.1), MHz(10.15), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(10.1), MHz(10.15), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(14), kHz(14350), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(14), kHz(14350), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {kHz(18068), kHz(18168), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {kHz(18068), kHz(18168), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(21), kHz(21450), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(21), kHz(21450), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {kHz(24890), kHz(24990), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {kHz(24890), kHz(24990), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(28), kHz(29700), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(28), kHz(29700), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(50), MHz(54), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO, TX500_ANTS},
+        {MHz(50), MHz(54), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO, TX500_ANTS},
+        {MHz(144), MHz(148), TX500_OTHER_TX_MODES, W(5), W(100), TX500_MAINVFO},
+        {MHz(144), MHz(148), TX500_AM_TX_MODES, W(5), W(25), TX500_MAINVFO},
+        {MHz(430), MHz(450), TX500_OTHER_TX_MODES, W(5), W(50), TX500_MAINVFO},
+        {MHz(430), MHz(450), TX500_AM_TX_MODES, W(5), W(12.5), TX500_MAINVFO},
         RIG_FRNG_END,
     }, /* tx range */
     .tuning_steps =  {
         {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_RTTY, 1},
-        {TS2000_ALL_MODES, 10},
-        {TS2000_ALL_MODES, 100},
-        {TS2000_ALL_MODES, kHz(1)},
-        {TS2000_ALL_MODES, kHz(2.5)},
-        {TS2000_ALL_MODES, kHz(5)},
+        {TX500_ALL_MODES, 10},
+        {TX500_ALL_MODES, 100},
+        {TX500_ALL_MODES, kHz(1)},
+        {TX500_ALL_MODES, kHz(2.5)},
+        {TX500_ALL_MODES, kHz(5)},
         {RIG_MODE_AM | RIG_MODE_FM, kHz(6.25)},
-        {TS2000_ALL_MODES, kHz(10)},
+        {TX500_ALL_MODES, kHz(10)},
         {RIG_MODE_AM | RIG_MODE_FM, kHz(12.5)},
         {RIG_MODE_AM | RIG_MODE_FM, kHz(12.5)},
         {RIG_MODE_AM | RIG_MODE_FM, kHz(15)},
@@ -262,8 +262,8 @@ const struct rig_caps ts2000_caps =
         {RIG_MODE_AM | RIG_MODE_FM, kHz(30)},
         {RIG_MODE_AM | RIG_MODE_FM, kHz(50)},
         {RIG_MODE_AM | RIG_MODE_FM, kHz(100)},
-        {TS2000_ALL_MODES, MHz(1)},
-        {TS2000_ALL_MODES, 0}, /* any tuning step */
+        {TX500_ALL_MODES, MHz(1)},
+        {TX500_ALL_MODES, 0}, /* any tuning step */
         RIG_TS_END,
     },
 
@@ -277,9 +277,9 @@ const struct rig_caps ts2000_caps =
         RIG_FLT_END,
     },
 
-    .str_cal = TS2000_STR_CAL,
+    .str_cal = TX500_STR_CAL,
 
-    .priv = (void *)& ts2000_priv_caps,
+    .priv = (void *)& tx500_priv_caps,
 
     .rig_init = kenwood_init,
     .rig_open = kenwood_open,
@@ -325,7 +325,6 @@ const struct rig_caps ts2000_caps =
     .get_info =  kenwood_get_info,
     .reset =  kenwood_reset,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 /*
