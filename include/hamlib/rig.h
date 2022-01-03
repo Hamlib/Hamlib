@@ -2145,6 +2145,10 @@ extern HAMLIB_EXPORT (long long) rig_get_caps_int(rig_model_t rig_model, enum ri
 //! @cond Doxygen_Suppress
 extern HAMLIB_EXPORT (const char *) rig_get_caps_cptr(rig_model_t rig_model, enum rig_caps_cptr_e rig_caps);
 
+struct hamlib_async_pipe;
+
+typedef struct hamlib_async_pipe hamlib_async_pipe_t;
+
 /**
  * \brief Port definition
  *
@@ -2211,16 +2215,18 @@ typedef struct hamlib_port {
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
 
-} hamlib_port_t;
-//! @endcond
-
-typedef struct hamlib_async {
     int async;                  /*!< enable asynchronous data handling if true */
+#if defined(_WIN32)
+    hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
+    hamlib_async_pipe_t *sync_data_error_pipe;   /*!< pipe data structure for synchronous data error codes */
+#else
     int fd_sync_write;          /*!< file descriptor for writing synchronous data */
     int fd_sync_read;           /*!< file descriptor for reading synchronous data */
     int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
-} hamlib_async_t;
+#endif
+} hamlib_port_t;
+//! @endcond
 
 #if !defined(__APPLE__) || !defined(__cplusplus)
 typedef hamlib_port_t port_t;
@@ -2434,7 +2440,6 @@ struct rig_state {
     void *async_data_handler_priv_data;
     volatile int poll_routine_thread_run;
     void *poll_routine_priv_data;
-    hamlib_async_t asyncport;
 };
 
 //! @cond Doxygen_Suppress

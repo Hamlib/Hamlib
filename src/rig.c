@@ -438,15 +438,13 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->comm_state = 0;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__, rs->comm_state);
     rs->rigport.type.rig = caps->port_type; /* default from caps */
+#ifdef ASYNC_BUG
 #ifdef HAVE_PTHREAD
-    rs->asyncport.async = caps->async_data_supported;
+    rs->rigport.async = caps->async_data_supported;
 #else
     rs->rigport.async = 0;
 #endif
-    rs->asyncport.fd_sync_write = -1;
-    rs->asyncport.fd_sync_read = -1;
-    rs->asyncport.fd_sync_error_write = -1;
-    rs->asyncport.fd_sync_error_read = -1;
+#endif
 
     switch (caps->port_type)
     {
@@ -1025,7 +1023,6 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC(status);
     }
 
-#if !defined(WIN32)
 #ifdef ASYNC_BUG
     status = async_data_handler_start(rig);
 
@@ -1034,7 +1031,6 @@ int HAMLIB_API rig_open(RIG *rig)
         port_close(&rs->rigport, rs->rigport.type.rig);
         RETURNFUNC(status);
     }
-#endif
 #endif
 
     add_opened_rig(rig);
