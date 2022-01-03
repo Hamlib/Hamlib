@@ -332,6 +332,7 @@ const struct rig_caps ic746_caps =
     .set_ptt =  icom_set_ptt,
     .get_ptt =  icom_get_ptt,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 
@@ -583,6 +584,7 @@ const struct rig_caps ic746pro_caps =
     .get_ext_parm =  ic746pro_get_ext_parm,
     .get_channel = ic746pro_get_channel,
     .set_channel = ic746pro_set_channel,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 

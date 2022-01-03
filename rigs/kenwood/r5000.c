@@ -161,6 +161,7 @@ const struct rig_caps r5000_caps =
     .get_info = ic10_get_info,
     .decode_event = ic10_decode_event,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 /*

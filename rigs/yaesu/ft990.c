@@ -241,9 +241,9 @@ const struct rig_caps ft990_caps =
     RIG_MODEL(RIG_MODEL_FT990),
     .model_name =         "FT-990",
     .mfg_name =           "Yaesu",
-    .version =            "20201009.0",
+    .version =            "20211231.0",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_ALPHA,
+    .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -519,6 +519,7 @@ int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct ft990_priv_data *priv;
     int err;
+    vfo_t vfo_save;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -537,6 +538,7 @@ int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     priv = (struct ft990_priv_data *)rig->state.priv;
+    vfo_save = priv->current_vfo;
 
     // Set to selected VFO
     if (vfo == RIG_VFO_CURR)
@@ -547,7 +549,7 @@ int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
     else
     {
-        if (vfo != priv->current_vfo)
+        if (vfo != vfo_save)
         {
             err = ft990_set_vfo(rig, vfo);
 
@@ -564,6 +566,16 @@ int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         return err;
     }
+
+        if (vfo != vfo_save)
+        {
+            err = ft990_set_vfo(rig, vfo_save);
+
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+        }
 
     return RIG_OK;
 }

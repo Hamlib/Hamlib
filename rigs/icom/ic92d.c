@@ -217,6 +217,7 @@ const struct rig_caps ic92d_caps =
 
     .get_info =  ic92d_get_info,
 
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
 
 const char *ic92d_get_info(RIG *rig)

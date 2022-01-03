@@ -510,5 +510,6 @@ const struct rig_caps ic7100_caps =
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,
     .set_clock = ic7100_set_clock,
-    .get_clock = ic7100_get_clock
+    .get_clock = ic7100_get_clock,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };

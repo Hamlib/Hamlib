@@ -1713,6 +1713,7 @@ struct rig_spectrum_line
  */
 //! @cond Doxygen_Suppress
 #define RIG_MODEL(arg) .rig_model=arg,.macro_name=#arg
+#define HAMLIB_CHECK_RIG_CAPS "HAMLIB_CHECK_RIG_CAPS"
 struct rig_caps {
     rig_model_t rig_model;      /*!< Rig model. */
     const char *model_name;     /*!< Model name. */
@@ -2004,6 +2005,8 @@ struct rig_caps {
     int (*process_async_frame)(RIG *rig,
                                size_t frame_length,
                                const unsigned char *frame);
+// this will be used to check rigcaps structure is compatible with client
+    const char *hamlib_check_rig_caps;   // a constant value we can check for hamlib integrity
 };
 //! @endcond
 

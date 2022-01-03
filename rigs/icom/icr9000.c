@@ -194,4 +194,5 @@ const struct rig_caps icr9000_caps =
     .vfo_op =  icom_vfo_op,
     .scan =  icom_scan,
     .get_dcd =  icom_get_dcd,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
