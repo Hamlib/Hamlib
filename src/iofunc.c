@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - generic file based io functions
- *  Copyright (c) 2021 by Mikael Nousiainen
+ *  Copyright (c) 2021-2022 by Mikael Nousiainen
  *  Copyright (c) 2000-2012 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
@@ -55,9 +55,72 @@
 #include "network.h"
 #include "cm108.h"
 #include "gpio.h"
+#include "asyncpipe.h"
 
 #ifdef ASYNC_BUG
-static void close_sync_data_pipe(hamlib_async_t *p)
+
+#if defined(WIN32) && defined(HAVE_WINDOWS_H)
+#include <windows.h>
+
+static void init_sync_data_pipe(hamlib_port_t *p)
+{
+    p->sync_data_pipe = NULL;
+    p->sync_data_error_pipe = NULL;
+}
+
+static void close_sync_data_pipe(hamlib_port_t *p)
+{
+    ENTERFUNC;
+
+    if (p->sync_data_pipe != NULL)
+    {
+        async_pipe_close(p->sync_data_pipe);
+        p->sync_data_pipe = NULL;
+    }
+
+    if (p->sync_data_error_pipe != NULL)
+    {
+        async_pipe_close(p->sync_data_error_pipe);
+        p->sync_data_error_pipe = NULL;
+    }
+}
+
+static int create_sync_data_pipe(hamlib_port_t *p)
+{
+    int status;
+
+    ENTERFUNC;
+
+    status = async_pipe_create(&p->sync_data_pipe, PIPE_BUFFER_SIZE_DEFAULT, p->timeout);
+    if (status < 0)
+    {
+        close_sync_data_pipe(p);
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    status = async_pipe_create(&p->sync_data_error_pipe, PIPE_BUFFER_SIZE_DEFAULT, p->timeout);
+    if (status < 0)
+    {
+        close_sync_data_pipe(p);
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: created data pipe for synchronous transactions\n", __func__);
+
+    RETURNFUNC(RIG_OK);
+}
+
+#else
+
+static void init_sync_data_pipe(hamlib_port_t *p)
+{
+    p->fd_sync_write = -1;
+    p->fd_sync_read = -1;
+    p->fd_sync_error_write = -1;
+    p->fd_sync_error_read = -1;
+}
+
+static void close_sync_data_pipe(hamlib_port_t *p)
 {
     if (p->fd_sync_read != -1) {
         close(p->fd_sync_read);
@@ -78,6 +141,67 @@ static void close_sync_data_pipe(hamlib_async_t *p)
         p->fd_sync_error_write = -1;
     }
 }
+
+static int create_sync_data_pipe(hamlib_port_t *p)
+{
+    int status;
+    int sync_pipe_fds[2];
+    int flags;
+
+    status = pipe(sync_pipe_fds);
+    flags = fcntl(sync_pipe_fds[0], F_GETFL);
+    flags |= O_NONBLOCK;
+    if (fcntl(sync_pipe_fds[0], F_SETFL, flags))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on sync_read=%s\n", __func__, strerror(errno));
+    }
+    flags = fcntl(sync_pipe_fds[1], F_GETFL);
+    flags |= O_NONBLOCK;
+    if (fcntl(sync_pipe_fds[1], F_SETFL, flags))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on sync_write=%s\n", __func__, strerror(errno));
+    }
+    if (status != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: synchronous data pipe open status=%d, err=%s\n", __func__,
+                status, strerror(errno));
+        close_sync_data_pipe(p);
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    p->fd_sync_read = sync_pipe_fds[0];
+    p->fd_sync_write = sync_pipe_fds[1];
+
+    status = pipe(sync_pipe_fds);
+    flags = fcntl(sync_pipe_fds[0], F_GETFL);
+    flags |= O_NONBLOCK;
+    if (fcntl(sync_pipe_fds[0], F_SETFL, flags))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on error_read=%s\n", __func__, strerror(errno));
+    }
+    flags = fcntl(sync_pipe_fds[1], F_GETFL);
+    flags |= O_NONBLOCK;
+    if (fcntl(sync_pipe_fds[1], F_SETFL, flags))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on error_write=%s\n", __func__, strerror(errno));
+    }
+    if (status != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: synchronous data error code pipe open status=%d, err=%s\n", __func__,
+                status, strerror(errno));
+        close_sync_data_pipe(p);
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    p->fd_sync_error_read = sync_pipe_fds[0];
+    p->fd_sync_error_write = sync_pipe_fds[1];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: created data pipe for synchronous transactions\n", __func__);
+
+    RETURNFUNC(RIG_OK);
+}
+
+#endif
 #endif
 
 /**
@@ -89,80 +213,22 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 {
     int status;
     int want_state_delay = 0;
-#ifdef ASYNC_BUG
-    int sync_pipe_fds[2];
-#endif
 
     ENTERFUNC;
 
     p->fd = -1;
-    //p->fd_sync_write = -1;
-    //p->fd_sync_read = -1;
-    //p->fd_sync_error_write = -1;
-    //p->fd_sync_error_read = -1;
+#ifdef ASYNC_BUG
+    init_sync_data_pipe(p);
+#endif
 
-#if 0
+#ifdef ASYNC_BUG
     if (p->async)
     {
-#ifdef HAVE_WINDOWS_H
-        // this needs to be done with overlapping I/O to achieve non-blocking
-        status = _pipe(sync_pipe_fds, 256, O_BINARY);
-#else
-        status = pipe(sync_pipe_fds);
-        int flags = fcntl(sync_pipe_fds[0], F_GETFL);
-        flags |= O_NONBLOCK;
-        if (fcntl(sync_pipe_fds[0], F_SETFL, flags))
+        status = create_sync_data_pipe(p);
+        if (status < 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on sync_read=%s\n", __func__, strerror(errno));
+            RETURNFUNC(status);
         }
-        flags = fcntl(sync_pipe_fds[1], F_GETFL);
-        flags |= O_NONBLOCK;
-        if (fcntl(sync_pipe_fds[1], F_SETFL, flags))
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on sync_write=%s\n", __func__, strerror(errno));
-        }
-#endif
-        if (status != 0)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: synchronous data pipe open status=%d, err=%s\n", __func__,
-                    status, strerror(errno));
-            close_sync_data_pipe(p);
-            RETURNFUNC(-RIG_EINTERNAL);
-        }
-
-        p->fd_sync_read = sync_pipe_fds[0];
-        p->fd_sync_write = sync_pipe_fds[1];
-
-#ifdef HAVE_WINDOWS_H
-        // this needs to be done with overlapping I/O to achieve non-blocking
-        status = _pipe(sync_pipe_fds, 256, O_BINARY);
-#else
-        status = pipe(sync_pipe_fds);
-        flags = fcntl(sync_pipe_fds[0], F_GETFL);
-        flags |= O_NONBLOCK;
-        if (fcntl(sync_pipe_fds[0], F_SETFL, flags))
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on error_read=%s\n", __func__, strerror(errno));
-        }
-        flags = fcntl(sync_pipe_fds[1], F_GETFL);
-        flags |= O_NONBLOCK;
-        if (fcntl(sync_pipe_fds[1], F_SETFL, flags))
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: error setting O_NONBLOCK on error_write=%s\n", __func__, strerror(errno));
-        }
-#endif
-        if (status != 0)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: synchronous data error code pipe open status=%d, err=%s\n", __func__,
-                    status, strerror(errno));
-            close_sync_data_pipe(p);
-            RETURNFUNC(-RIG_EINTERNAL);
-        }
-
-        p->fd_sync_error_read = sync_pipe_fds[0];
-        p->fd_sync_error_write = sync_pipe_fds[1];
-
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: created synchronous data pipe\n", __func__);
     }
 #endif
 
@@ -367,18 +433,162 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 
 extern int is_uh_radio_fd(int fd);
 
+static int port_read_sync_data_error_code(hamlib_port_t *p)
+{
+    ssize_t total_bytes_read = 0;
+    unsigned char data;
+    int result;
+
+    do {
+        // Wait for data using a zero-length read
+        result = async_pipe_read(p->sync_data_error_pipe, &data, 0, p->timeout);
+        if (result < 0)
+        {
+            if (result == -RIG_ETIMEOUT)
+            {
+                if (total_bytes_read > 0)
+                {
+                    return data;
+                }
+            }
+
+            return result;
+        }
+
+        result = async_pipe_read(p->sync_data_error_pipe, &data, 1, p->timeout);
+        if (result < 0)
+        {
+            if (result == -RIG_ETIMEOUT)
+            {
+                if (total_bytes_read > 0)
+                {
+                    return data;
+                }
+            }
+
+            return result;
+        }
+
+        total_bytes_read += result;
+    } while (result > 0);
+
+    return data;
+}
+
+static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
+{
+    // Wait for data in both the response data pipe and the error code pipe to detect errors occurred during read
+    HANDLE event_handles[2] = {
+        p->sync_data_pipe->read_overlapped.hEvent,
+        p->sync_data_error_pipe->read_overlapped.hEvent,
+    };
+    HANDLE read_handle = p->sync_data_pipe->read;
+    LPOVERLAPPED overlapped = &p->sync_data_pipe->read_overlapped;
+    DWORD wait_result;
+    int result;
+    ssize_t bytes_read;
+
+    result = ReadFile(p->sync_data_pipe->read, buf, count, NULL, overlapped);
+    if (!result)
+    {
+        result = GetLastError();
+        switch (result)
+        {
+            case ERROR_SUCCESS:
+                // No error?
+                break;
+            case ERROR_IO_PENDING:
+                wait_result = WaitForMultipleObjects(2, event_handles, FALSE, p->timeout);
+
+                switch (wait_result)
+                {
+                    case WAIT_OBJECT_0 + 0:
+                        break;
+
+                    case WAIT_OBJECT_0 + 1:
+                        return port_read_sync_data_error_code(p);
+
+                    case WAIT_TIMEOUT:
+                        if (count == 0)
+                        {
+                            CancelIo(read_handle);
+                            return -RIG_ETIMEOUT;
+                        }
+                        else
+                        {
+                            // Should not happen
+                            return -RIG_EINTERNAL;
+                        }
+
+                    default:
+                        result = GetLastError();
+                        rig_debug(RIG_DEBUG_ERR, "%s(): WaitForMultipleObjects() error: %d\n", __func__, result);
+                        return -RIG_EINTERNAL;
+                }
+                break;
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s(): ReadFile() error: %d\n", __func__, result);
+                return -RIG_EIO;
+        }
+    }
+
+    result = GetOverlappedResult(read_handle, overlapped, (LPDWORD) &bytes_read, FALSE);
+    if (!result)
+    {
+        result = GetLastError();
+        switch (result)
+        {
+            case ERROR_SUCCESS:
+                // No error?
+                break;
+            case ERROR_IO_PENDING:
+                // Shouldn't happen?
+                return -RIG_ETIMEOUT;
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s(): GetOverlappedResult() error: %d\n", __func__, result);
+                return -RIG_EIO;
+        }
+    }
+
+    return bytes_read;
+}
+
+static int port_wait_for_data_sync_pipe(hamlib_port_t *p)
+{
+    unsigned char data;
+    int result;
+
+    // Use a zero-length read to wait for data in pipe
+    result = port_read_sync_data(p, &data, 0);
+
+    if (result > 0)
+    {
+        return RIG_OK;
+    }
+
+    return result;
+}
+
+static ssize_t port_read_sync_data_pipe(hamlib_port_t *p, void *buf, size_t count)
+{
+    return port_read_sync_data(p, buf, count);
+}
+
 /* On MinGW32/MSVC/.. the appropriate accessor must be used
  * depending on the port type, sigh.
  */
 static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int direct)
 {
-#if ASYNC_BUG
-    int fd = direct ? p->fd : p->fd_sync_read;
-#else
     int fd = p->fd;
-#endif
     int i;
-    ssize_t ret;
+    ssize_t bytes_read;
+
+#if ASYNC_BUG
+    if (!direct)
+    {
+        return port_read_sync_data_pipe(p, buf, count);
+    }
+#endif
 
     /*
      * Since WIN32 does its special serial read, we have
@@ -386,29 +596,29 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int 
      * Note that we always have RIG_PORT_SERIAL in the
      * microHam case.
      */
-    if (direct && is_uh_radio_fd(fd))
+    if (is_uh_radio_fd(fd))
     {
         return read(fd, buf, count);
     }
 
-    if (direct && p->type.rig == RIG_PORT_SERIAL)
+    if (p->type.rig == RIG_PORT_SERIAL)
     {
-        ret = win32_serial_read(fd, buf, (int) count);
+        bytes_read = win32_serial_read(fd, buf, (int) count);
 
         if (p->parm.serial.data_bits == 7)
         {
             unsigned char *pbuf = buf;
 
             /* clear MSB */
-            for (i = 0; i < ret; i++)
+            for (i = 0; i < bytes_read; i++)
             {
                 pbuf[i] &= ~0x80;
             }
         }
 
-        return ret;
+        return bytes_read;
     }
-    else if (direct && (p->type.rig == RIG_PORT_NETWORK || p->type.rig == RIG_PORT_UDP_NETWORK))
+    else if (p->type.rig == RIG_PORT_NETWORK || p->type.rig == RIG_PORT_UDP_NETWORK)
     {
         return recv(fd, buf, count, 0);
     }
@@ -445,7 +655,6 @@ static ssize_t port_write(hamlib_port_t *p, const void *buf, size_t count)
         return write(p->fd, buf, count);
     }
 }
-
 
 static int port_select(hamlib_port_t *p,
                        int n,
@@ -495,6 +704,67 @@ static int port_select(hamlib_port_t *p,
     }
 }
 
+static int port_wait_for_data_direct(hamlib_port_t *p)
+{
+    fd_set rfds, efds;
+    int fd = p->fd;
+    struct timeval tv, tv_timeout;
+    int result;
+
+    tv_timeout.tv_sec = p->timeout / 1000;
+    tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
+
+    tv = tv_timeout;    /* select may have updated it */
+
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    efds = rfds;
+
+    result = port_select(p, fd + 1, &rfds, NULL, &efds, &tv, 1);
+
+    if (result == 0)
+    {
+        return -RIG_ETIMEOUT;
+    }
+    else if (result < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                    "%s(): select() error: %s\n",
+                    __func__,
+                    strerror(errno));
+        return -RIG_EIO;
+    }
+
+    if (FD_ISSET(fd, &efds))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(): fd error\n", __func__);
+        return -RIG_EIO;
+    }
+
+    return RIG_OK;
+}
+
+static int port_wait_for_data(hamlib_port_t *p, int direct)
+{
+    if (direct)
+    {
+        return port_wait_for_data_direct(p);
+    }
+
+    return port_wait_for_data_sync_pipe(p);
+}
+
+#ifdef ASYNC_BUG
+int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
+{
+    return async_pipe_write(p->sync_data_pipe, txbuffer, count, p->timeout);
+}
+
+int HAMLIB_API write_block_sync_error(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
+{
+    return async_pipe_write(p->sync_data_error_pipe, txbuffer, count, p->timeout);
+}
+#endif
 
 #else
 
@@ -534,6 +804,133 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int 
 #define port_write(p,b,c) write((p)->fd,(b),(c))
 #define port_select(p,n,r,w,e,t,d) select((n),(r),(w),(e),(t))
 //! @endcond
+
+static int flush_and_read_last_byte(hamlib_port_t *p, int fd, int direct)
+{
+    fd_set rfds, efds;
+    ssize_t bytes_read;
+    struct timeval tv_timeout;
+    int result;
+    char data;
+
+    do {
+        tv_timeout.tv_sec = 0;
+        tv_timeout.tv_usec = 0;
+
+        FD_ZERO(&rfds);
+        FD_SET(fd, &rfds);
+        efds = rfds;
+
+        result = port_select(p, fd + 1, &rfds, NULL, &efds, &tv_timeout, direct);
+        if (result < 0)
+        {
+            return -RIG_ETIMEOUT;
+        }
+        if (result == 0)
+        {
+            return -RIG_EIO;
+        }
+
+        if (FD_ISSET(fd, &efds))
+        {
+            return -RIG_EIO;
+        }
+
+        bytes_read = read(fd, &data, 1);
+    } while (bytes_read > 0);
+
+    return data;
+}
+
+static int port_wait_for_data(hamlib_port_t *p, int direct)
+{
+    fd_set rfds, efds;
+    int fd, errorfd, maxfd;
+    struct timeval tv, tv_timeout;
+    int result;
+
+#if ASYNC_BUG
+    fd = direct ? p->fd : p->fd_sync_read;
+    errorfd = direct ? -1 : p->fd_sync_error_read;
+    maxfd = (fd > errorfd) ? fd : errorfd;
+#else
+    fd = p->fd;
+    errorfd = -1;
+    maxfd = (fd > errorfd) ? fd : errorfd;
+#endif
+
+    tv_timeout.tv_sec = p->timeout / 1000;
+    tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
+
+    tv = tv_timeout;    /* select may have updated it */
+
+    FD_ZERO(&rfds);
+    FD_SET(fd, &rfds);
+    if (!direct)
+    {
+        FD_SET(errorfd, &rfds);
+    }
+    efds = rfds;
+
+    result = port_select(p, maxfd + 1, &rfds, NULL, &efds, &tv, direct);
+
+    if (result == 0)
+    {
+        return -RIG_ETIMEOUT;
+    }
+    else if (result < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                    "%s(): select() error: %s\n",
+                    __func__,
+                    strerror(errno));
+        return -RIG_EIO;
+    }
+
+    if (FD_ISSET(fd, &efds))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(): fd error\n", __func__);
+        return -RIG_EIO;
+    }
+    if (!direct)
+    {
+        if (FD_ISSET(errorfd, &efds))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s(): fd error from sync error pipe\n", __func__);
+            return -RIG_EIO;
+        }
+
+        if (FD_ISSET(errorfd, &rfds))
+        {
+            return flush_and_read_last_byte(p, errorfd, 0);
+        }
+    }
+
+    return RIG_OK;
+}
+
+#ifdef ASYNC_BUG
+int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
+{
+
+    if (!p->async)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    return (int) write(p->fd_sync_write, txbuffer, count);
+}
+
+int HAMLIB_API write_block_sync_error(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
+{
+    if (!p->async)
+    {
+        return -RIG_EINTERNAL;
+    }
+
+    return (int) write(p->fd_sync_error_write, txbuffer, count);
+}
+#endif
 
 #endif
 
@@ -662,33 +1059,9 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
     return RIG_OK;
 }
 
-#ifdef ASYNC_BUG
-int HAMLIB_API write_block_sync(async_port_t *p, const unsigned char *txbuffer, size_t count)
-{
-    if (!p->async)
-    {
-        return -RIG_EINTERNAL;
-    }
-
-    return (int) write(p->fd_sync_write, txbuffer, count);
-}
-
-int HAMLIB_API write_block_sync_error(async_port_t *p, const unsigned char *txbuffer, size_t count)
-{
-    if (!p->async)
-    {
-        return -RIG_EINTERNAL;
-    }
-
-    return (int) write(p->fd_sync_error_write, txbuffer, count);
-}
-#endif
-
 static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t count, int direct)
 {
-    fd_set rfds, efds;
-    int fd;
-    struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
+    struct timeval start_time, end_time, elapsed_time;
     int total_count = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -702,40 +1075,27 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
         return -RIG_EINTERNAL;
     }
 
-#ifdef ASYNC_GBUG
-    fd = direct ? p->fd : p->fd_sync_read;
-#else
-    fd = p->fd;
-#endif
-
-    /*
-     * Wait up to timeout ms.
-     */
-    tv_timeout.tv_sec = p->timeout / 1000;
-    tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
-
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
     while (count > 0)
     {
-        int retval;
+        int result;
         int rd_count;
-        tv = tv_timeout;    /* select may have updated it */
 
-        FD_ZERO(&rfds);
-        FD_SET(fd, &rfds);
-        efds = rfds;
+        result = port_wait_for_data(p, direct);
 
-        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv, direct);
-
-        if (retval == 0)
+        if (result == -RIG_ETIMEOUT)
         {
             /* Record timeout time and calculate elapsed time */
             gettimeofday(&end_time, NULL);
             timersub(&end_time, &start_time, &elapsed_time);
 
-            dump_hex((unsigned char *) rxbuffer, total_count);
+            if (direct)
+            {
+                dump_hex((unsigned char *) rxbuffer, total_count);
+            }
+
             rig_debug(RIG_DEBUG_WARN,
                       "%s(): Timed out %d.%d seconds after %d chars\n",
                       __func__,
@@ -746,26 +1106,14 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
             return -RIG_ETIMEOUT;
         }
 
-        if (retval < 0)
+        if (result < 0)
         {
-            dump_hex((unsigned char *) rxbuffer, total_count);
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s(): select() error after %d chars: %s\n",
-                      __func__,
-                      total_count,
-                      strerror(errno));
-
-            return -RIG_EIO;
-        }
-
-        if (FD_ISSET(fd, &efds))
-        {
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s(): fd error after %d chars\n",
-                      __func__,
-                      total_count);
-
-            return -RIG_EIO;
+            if (direct)
+            {
+                dump_hex((unsigned char *) rxbuffer, total_count);
+            }
+            rig_debug(RIG_DEBUG_ERR, "%s(): I/O error after %d chars: %d\n", __func__, total_count, result);
+            return result;
         }
 
         /*
@@ -776,11 +1124,7 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
 
         if (rd_count < 0)
         {
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s(): read() failed - %s\n",
-                      __func__,
-                      strerror(errno));
-
+            rig_debug(RIG_DEBUG_ERR, "%s(): read failed - %s\n", __func__, strerror(errno));
             return -RIG_EIO;
         }
 
@@ -788,8 +1132,11 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
         count -= rd_count;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s(): RX %d bytes\n", __func__, total_count);
-    dump_hex((unsigned char *) rxbuffer, total_count);
+    if (direct)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s(): RX %d bytes\n", __func__, total_count);
+        dump_hex((unsigned char *) rxbuffer, total_count);
+    }
 
     return total_count;           /* return bytes count read */
 }
@@ -845,43 +1192,6 @@ int HAMLIB_API read_block_direct(hamlib_port_t *p, unsigned char *rxbuffer, size
     return read_block_generic(p, rxbuffer, count, 1);
 }
 
-static int flush_and_read_last_byte(hamlib_port_t *p, int fd, int direct)
-{
-    fd_set rfds, efds;
-    ssize_t bytes_read;
-    struct timeval tv_timeout;
-    int retval;
-    char data;
-
-    do {
-        tv_timeout.tv_sec = 0;
-        tv_timeout.tv_usec = 0;
-
-        FD_ZERO(&rfds);
-        FD_SET(fd, &rfds);
-        efds = rfds;
-
-        retval = port_select(p, fd + 1, &rfds, NULL, &efds, &tv_timeout, direct);
-        if (retval < 0)
-        {
-            return -RIG_ETIMEOUT;
-        }
-        if (retval == 0)
-        {
-            return -RIG_EIO;
-        }
-
-        if (FD_ISSET(fd, &efds))
-        {
-            return -RIG_EIO;
-        }
-
-        bytes_read = read(fd, &data, 1);
-    } while (bytes_read > 0);
-
-    return data;
-}
-
 static int read_string_generic(hamlib_port_t *p,
                                unsigned char *rxbuffer,
                                size_t rxmax,
@@ -891,9 +1201,7 @@ static int read_string_generic(hamlib_port_t *p,
                                int expected_len,
                                int direct)
 {
-    fd_set rfds, efds;
-    int fd, errorfd, maxfd;
-    struct timeval tv, tv_timeout, start_time, end_time, elapsed_time;
+    struct timeval start_time, end_time, elapsed_time;
     int total_count = 0;
     int i = 0;
     static int minlen = 1; // dynamic minimum length of rig response data
@@ -922,23 +1230,6 @@ static int read_string_generic(hamlib_port_t *p,
         return 0;
     }
 
-#if ASYNC_BUG
-    fd = direct ? p->fd : p->fd_sync_read;
-    errorfd = direct ? -1 : p->fd_sync_error_read;
-    maxfd = (fd > errorfd) ? fd : errorfd;
-#else
-    fd = p->fd;
-    errorfd = -1;
-    maxfd = (fd > errorfd) ? fd : errorfd;
-#endif
-
-    /*
-     * Wait up to timeout ms.
-     */
-
-    tv_timeout.tv_sec = p->timeout / 1000;
-    tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
-
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
@@ -947,21 +1238,11 @@ static int read_string_generic(hamlib_port_t *p,
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
         ssize_t rd_count = 0;
-        int retval;
+        int result;
 
-        tv = tv_timeout;    /* select may have updated it */
+        result = port_wait_for_data(p, direct);
 
-        FD_ZERO(&rfds);
-        FD_SET(fd, &rfds);
-        if (!direct)
-        {
-            FD_SET(errorfd, &rfds);
-        }
-        efds = rfds;
-
-        retval = port_select(p, maxfd + 1, &rfds, NULL, &efds, &tv, direct);
-
-        if (retval == 0)
+        if (result == -RIG_ETIMEOUT)
         {
             if (0 == total_count)
             {
@@ -973,7 +1254,8 @@ static int read_string_generic(hamlib_port_t *p,
                 {
                     dump_hex((unsigned char *) rxbuffer, total_count);
                 }
-                if (!flush_flag) {
+                if (!flush_flag)
+                {
                     rig_debug(RIG_DEBUG_WARN,
                             "%s(): Timed out %d.%03d seconds after %d chars\n",
                             __func__,
@@ -985,48 +1267,17 @@ static int read_string_generic(hamlib_port_t *p,
                 return -RIG_ETIMEOUT;
             }
 
-            break;                      /* return what we have read */
+            break; /* return what we have read */
         }
 
-        if (retval < 0)
+        if (result < 0)
         {
             if (direct)
             {
                 dump_hex(rxbuffer, total_count);
             }
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s(): select() error after %d chars: %s\n",
-                      __func__,
-                      total_count,
-                      strerror(errno));
-
-            return -RIG_EIO;
-        }
-
-        if (FD_ISSET(fd, &efds))
-        {
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s(): fd error after %d chars\n",
-                      __func__,
-                      total_count);
-
-            return -RIG_EIO;
-        }
-        if (!direct)
-        {
-            if (FD_ISSET(errorfd, &efds))
-            {
-                rig_debug(RIG_DEBUG_ERR,
-                        "%s(): fd error from sync error pipe after %d chars\n",
-                        __func__,
-                        total_count);
-                return -RIG_EIO;
-            }
-
-            if (FD_ISSET(errorfd, &rfds))
-            {
-                return flush_and_read_last_byte(p, errorfd, 0);
-            }
+            rig_debug(RIG_DEBUG_ERR, "%s(): I/O error after %d chars: %d\n", __func__, total_count, result);
+            return result;
         }
 
         /*
@@ -1052,10 +1303,7 @@ static int read_string_generic(hamlib_port_t *p,
             {
                 dump_hex((unsigned char *) rxbuffer, total_count);
             }
-            rig_debug(RIG_DEBUG_ERR,
-                      "%s(): read() failed - %s\n",
-                      __func__,
-                      strerror(errno));
+            rig_debug(RIG_DEBUG_ERR, "%s(): read failed - %s\n", __func__, strerror(errno));
 
             return -RIG_EIO;
         }
@@ -1091,9 +1339,8 @@ static int read_string_generic(hamlib_port_t *p,
                 "%s(): RX %d characters\n",
                 __func__,
                 total_count);
+        dump_hex((unsigned char *) rxbuffer, total_count);
     }
-
-    dump_hex((unsigned char *) rxbuffer, total_count);
 
     return total_count;           /* return bytes count read */
 }
