@@ -352,7 +352,7 @@ const struct rig_caps ic7610_caps =
     RIG_MODEL(RIG_MODEL_IC7610),
     .model_name = "IC-7610",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".5",
+    .version =  BACKEND_VER ".6",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -582,7 +582,7 @@ const struct rig_caps ic7610_caps =
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,
-    .send_voice_mem = rig_send_voice_mem,
+    .send_voice_mem = icom_send_voice_mem,
     .set_clock = ic7610_set_clock,
     .get_clock = ic7610_get_clock,
     .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
