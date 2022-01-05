@@ -433,7 +433,6 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 
 extern int is_uh_radio_fd(int fd);
 
-#ifdef ASYNC_BUG
 static int port_read_sync_data_error_code(hamlib_port_t *p)
 {
     ssize_t total_bytes_read = 0;
@@ -574,7 +573,6 @@ static ssize_t port_read_sync_data_pipe(hamlib_port_t *p, void *buf, size_t coun
 {
     return port_read_sync_data(p, buf, count);
 }
-#endif
 
 /* On MinGW32/MSVC/.. the appropriate accessor must be used
  * depending on the port type, sigh.
