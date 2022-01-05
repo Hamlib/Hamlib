@@ -58,6 +58,13 @@
 #include "serial.h"
 #include "network.h"
 
+#if defined(_WIN32)
+#  include <time.h>
+#  ifndef localtime_r
+#    define localtime_r(T,Tm) (localtime_s(Tm,T) ? NULL : Tm)
+#  endif
+#endif
+
 #ifdef __APPLE__
 
 #include <time.h>
