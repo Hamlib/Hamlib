@@ -615,11 +615,7 @@ const struct rig_caps ic706mkiig_caps =
     .get_split_mode =  icom_get_split_mode,
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  icom_mem_get_split_vfo,
-    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS,
-    .async_data_supported = 1,
-    .read_frame_direct = icom_read_frame_direct,
-    .is_async_frame = icom_is_async_frame,
-    .process_async_frame = icom_process_async_frame,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

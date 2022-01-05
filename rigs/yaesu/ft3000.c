@@ -234,18 +234,6 @@ int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     RETURNFUNC(RIG_OK);
 }
 
-static int dx3000_set_vfo(RIG *rig, vfo_t vfo)
-{
-    rig->state.current_vfo = vfo;
-    RETURNFUNC(RIG_OK);
-}
-
-static int dx3000_get_vfo(RIG *rig, vfo_t *vfo)
-{
-    *vfo = rig->state.current_vfo;
-    RETURNFUNC(RIG_OK);
-}
-
 
 /*
  * FTDX 3000 rig capabilities
@@ -258,7 +246,7 @@ const struct rig_caps ftdx3000_caps =
     RIG_MODEL(RIG_MODEL_FTDX3000),
     .model_name =         "FTDX-3000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".5a",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -273,8 +261,8 @@ const struct rig_caps ftdx3000_caps =
     .serial_handshake =   RIG_HANDSHAKE_HARDWARE,
     // write_delay 5ms or less was causing VS1;VS; to answer with VS0 instead of VS1 even though change did occur
     // see https://github.com/Hamlib/Hamlib/issues/906
-    .write_delay =        0, 
-    .post_write_delay =   25, // same as FT-991
+    .write_delay =        10, 
+    .post_write_delay =   FTDX5000_POST_WRITE_DELAY,
     .timeout =            2000,
     .retry =              3,
     .has_get_func =       FTDX5000_FUNCS,
@@ -297,7 +285,7 @@ const struct rig_caps ftdx3000_caps =
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1000),
     .vfo_ops =            FTDX5000_VFO_OPS,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE, /* one of the few diffs from the 5000 */
+    .targetable_vfo =     RIG_TARGETABLE_FREQ, /* one of the few diffs from the 5000 */
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 5000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
@@ -384,8 +372,8 @@ const struct rig_caps ftdx3000_caps =
     .get_freq =           newcat_get_freq,
     .set_mode =           newcat_set_mode,
     .get_mode =           newcat_get_mode,
-    .set_vfo =            dx3000_set_vfo,
-    .get_vfo =            dx3000_get_vfo,
+    .set_vfo =            newcat_set_vfo,
+    .get_vfo =            newcat_get_vfo,
     .set_ptt =            newcat_set_ptt,
     .get_ptt =            newcat_get_ptt,
     .set_split_vfo =      newcat_set_split_vfo,
