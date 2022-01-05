@@ -10099,7 +10099,7 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if ((strncmp(priv->cmd_str, "VS", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
-        strcpy(valcmd, "VS;");
+        strcpy(valcmd, "ID;");
     }
     else if (strncmp(priv->cmd_str, "SV", 2) == 0)
     {
