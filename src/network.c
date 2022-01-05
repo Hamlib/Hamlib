@@ -692,21 +692,37 @@ static int multicast_publisher_write_packet_header(RIG *rig, multicast_publisher
 
 int network_publish_rig_poll_data(RIG *rig)
 {
+    struct rig_state *rs = &rig->state;
     multicast_publisher_data_packet packet = {
         .type = MULTICAST_PUBLISHER_DATA_PACKET_TYPE_POLL,
         .padding = 0,
         .data_length = 0,
     };
+
+    if (rs->multicast_publisher_priv_data == NULL)
+    {
+        // Silently ignore call if multicast publisher is not enabled
+        return RIG_OK;
+    }
+
     return multicast_publisher_write_packet_header(rig, &packet);
 }
 
 int network_publish_rig_transceive_data(RIG *rig)
 {
+    struct rig_state *rs = &rig->state;
     multicast_publisher_data_packet packet = {
             .type = MULTICAST_PUBLISHER_DATA_PACKET_TYPE_TRANSCEIVE,
             .padding = 0,
             .data_length = 0,
     };
+
+    if (rs->multicast_publisher_priv_data == NULL)
+    {
+        // Silently ignore call if multicast publisher is not enabled
+        return RIG_OK;
+    }
+
     return multicast_publisher_write_packet_header(rig, &packet);
 }
 
@@ -724,8 +740,8 @@ int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line)
 
     if (rs->multicast_publisher_priv_data == NULL)
     {
-        // Silently ignore if multicast publisher is not enabled
-        RETURNFUNC(RIG_OK);
+        // Silently ignore call if multicast publisher is not enabled
+        return RIG_OK;
     }
 
     result = multicast_publisher_write_packet_header(rig, &packet);

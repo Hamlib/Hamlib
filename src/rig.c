@@ -452,18 +452,15 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      */
     rs = &rig->state;
 
+    rs->async_data_enabled = 0;
     rs->rigport.fd = -1;
     rs->pttport.fd = -1;
     rs->comm_state = 0;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
               rs->comm_state);
     rs->rigport.type.rig = caps->port_type; /* default from caps */
-#ifdef ASYNC_BUG
-#ifdef HAVE_PTHREAD
-    rs->rigport.async = caps->async_data_supported;
-#else
+#if defined(ASYNC_BUG) && defined(HAVE_PTHREAD)
     rs->rigport.async = 0;
-#endif
 #endif
 
     switch (caps->port_type)
@@ -513,11 +510,6 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->vfo_comp = 0.0; /* override it with preferences */
     rs->current_vfo = RIG_VFO_CURR; /* we don't know yet! */
     rs->tx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
-#ifdef HAVE_PTHREAD
-    rs->async_data = caps->async_data_supported;
-#else
-    rs->async_data = 0;
-#endif
     rs->poll_interval = 0; // disable polling by default
     rs->lo_freq = 0;
     rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
@@ -722,6 +714,12 @@ int HAMLIB_API rig_open(RIG *rig)
     caps = rig->caps;
     rs = &rig->state;
     rs->rigport.rig = rig;
+
+#if defined(ASYNC_BUG) && defined(HAVE_PTHREAD)
+    // Enable async data only if it's enabled through conf settings *and* supported by the backend
+    rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
+    rs->rigport.async = rs->async_data_enabled;
+#endif
 
     if (strlen(rs->rigport.pathname) > 0)
     {
@@ -6880,39 +6878,39 @@ HAMLIB_EXPORT(void) sync_callback(int lock)
 #ifdef ASYNC_BUG
 static int async_data_handler_start(RIG *rig)
 {
-    const struct rig_caps *caps = rig->caps;
     struct rig_state *rs = &rig->state;
     async_data_handler_priv_data *async_data_handler_priv;
 
     ENTERFUNC;
 
+    if (!rs->async_data_enabled)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: async data support disabled\n", __func__);
+        RETURNFUNC(RIG_OK);
+    }
+
 #ifdef ASYNC_BUG
 #ifdef HAVE_PTHREAD
 
-    if (caps->async_data_supported)
+    rs->async_data_handler_thread_run = 1;
+    rs->async_data_handler_priv_data = calloc(1,
+                                       sizeof(async_data_handler_priv_data));
+
+    if (rs->async_data_handler_priv_data == NULL)
     {
-        rs->async_data_handler_thread_run = 1;
-        rs->async_data_handler_priv_data = calloc(1,
-                                           sizeof(async_data_handler_priv_data));
+        RETURNFUNC(-RIG_ENOMEM);
+    }
 
-        if (rs->async_data_handler_priv_data == NULL)
-        {
-            RETURNFUNC(-RIG_ENOMEM);
-        }
+    async_data_handler_priv = (async_data_handler_priv_data *)
+                              rs->async_data_handler_priv_data;
+    async_data_handler_priv->args.rig = rig;
+    int err = pthread_create(&async_data_handler_priv->thread_id, NULL,
+                             async_data_handler, &async_data_handler_priv->args);
 
-        async_data_handler_priv = (async_data_handler_priv_data *)
-                                  rs->async_data_handler_priv_data;
-        async_data_handler_priv->args.rig = rig;
-        int err = pthread_create(&async_data_handler_priv->thread_id, NULL,
-                                 async_data_handler, &async_data_handler_priv->args);
-
-        if (err)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error: %s\n", __FILE__,
-                      __LINE__,
-                      strerror(errno));
-            RETURNFUNC(-RIG_EINTERNAL);
-        }
+    if (err)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__, strerror(errno));
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
 #endif
@@ -6943,8 +6941,7 @@ static int async_data_handler_stop(RIG *rig)
 
             if (err)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s(%d): pthread_join error: %s\n", __FILE__, __LINE__,
-                          strerror(errno));
+                rig_debug(RIG_DEBUG_ERR, "%s: pthread_join error: %s\n", __func__, strerror(errno));
                 // just ignore the error
             }
 
@@ -6973,9 +6970,7 @@ void *async_data_handler(void *arg)
     int result;
 #endif
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting async data handler thread\n",
-              __FILE__,
-              __LINE__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting async data handler thread\n", __func__);
 
     // TODO: check how to enable "transceive" on recent Kenwood/Yaesu rigs
     // TODO: add initial support for async in Kenwood kenwood_transaction (+one) functions -> add transaction_active flag usage
@@ -7045,9 +7040,7 @@ void *async_data_handler(void *arg)
 
 #endif
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping async data handler thread\n",
-              __FILE__,
-              __LINE__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Stopping async data handler thread\n", __func__);
 
     return NULL;
 }

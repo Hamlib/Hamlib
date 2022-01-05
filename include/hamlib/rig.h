@@ -2218,6 +2218,7 @@ typedef struct hamlib_port {
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
 
+#ifdef ASYNC_BUG
     int async;                  /*!< enable asynchronous data handling if true */
 #if defined(_WIN32)
     hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
@@ -2227,6 +2228,7 @@ typedef struct hamlib_port {
     int fd_sync_read;           /*!< file descriptor for reading synchronous data */
     int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
+#endif
 #endif
 } hamlib_port_t;
 //! @endcond
@@ -2239,7 +2241,7 @@ typedef hamlib_port_t port_t;
 #define HAMLIB_ELAPSED_SET 1
 #define HAMLIB_ELAPSED_INVALIDATE 2
 
-#define HAMLIB_CACHE_ALWAYS -1 /*< value to set cache timeout to always use cache */
+#define HAMLIB_CACHE_ALWAYS (-1) /*< value to set cache timeout to always use cache */
 
 typedef enum {
     HAMLIB_CACHE_ALL, // to set all cache timeouts at once
@@ -2399,7 +2401,7 @@ struct rig_state {
     rig_ptr_t priv;     /*!< Pointer to private rig state data. */
     rig_ptr_t obj;      /*!< Internal use by hamlib++ for event handling. */
 
-    int async_data;             /*!< Whether async data mode is on */
+    int async_data_enabled;     /*!< Whether async data mode is enabled */
     int poll_interval;          /*!< Rig state polling period in milliseconds */
     freq_t current_freq;        /*!< Frequency currently set */
     rmode_t current_mode;       /*!< Mode currently set */
