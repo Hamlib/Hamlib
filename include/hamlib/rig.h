@@ -2148,6 +2148,10 @@ extern HAMLIB_EXPORT (long long) rig_get_caps_int(rig_model_t rig_model, enum ri
 //! @cond Doxygen_Suppress
 extern HAMLIB_EXPORT (const char *) rig_get_caps_cptr(rig_model_t rig_model, enum rig_caps_cptr_e rig_caps);
 
+struct hamlib_async_pipe;
+
+typedef struct hamlib_async_pipe hamlib_async_pipe_t;
+
 /**
  * \brief Port definition
  *
@@ -2214,16 +2218,20 @@ typedef struct hamlib_port {
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
 
-} hamlib_port_t;
-//! @endcond
-
-typedef struct hamlib_async {
+#ifdef ASYNC_BUG
     int async;                  /*!< enable asynchronous data handling if true */
+#if defined(_WIN32)
+    hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
+    hamlib_async_pipe_t *sync_data_error_pipe;   /*!< pipe data structure for synchronous data error codes */
+#else
     int fd_sync_write;          /*!< file descriptor for writing synchronous data */
     int fd_sync_read;           /*!< file descriptor for reading synchronous data */
     int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
-} hamlib_async_t;
+#endif
+#endif
+} hamlib_port_t;
+//! @endcond
 
 #if !defined(__APPLE__) || !defined(__cplusplus)
 typedef hamlib_port_t port_t;
@@ -2233,7 +2241,7 @@ typedef hamlib_port_t port_t;
 #define HAMLIB_ELAPSED_SET 1
 #define HAMLIB_ELAPSED_INVALIDATE 2
 
-#define HAMLIB_CACHE_ALWAYS -1 /*< value to set cache timeout to always use cache */
+#define HAMLIB_CACHE_ALWAYS (-1) /*< value to set cache timeout to always use cache */
 
 typedef enum {
     HAMLIB_CACHE_ALL, // to set all cache timeouts at once
@@ -2393,7 +2401,7 @@ struct rig_state {
     rig_ptr_t priv;     /*!< Pointer to private rig state data. */
     rig_ptr_t obj;      /*!< Internal use by hamlib++ for event handling. */
 
-    int async_data;             /*!< Whether async data mode is on */
+    int async_data_enabled;     /*!< Whether async data mode is enabled */
     int poll_interval;          /*!< Rig state polling period in milliseconds */
     freq_t current_freq;        /*!< Frequency currently set */
     rmode_t current_mode;       /*!< Mode currently set */
@@ -2437,7 +2445,6 @@ struct rig_state {
     void *async_data_handler_priv_data;
     volatile int poll_routine_thread_run;
     void *poll_routine_priv_data;
-    hamlib_async_t asyncport;
 };
 
 //! @cond Doxygen_Suppress
