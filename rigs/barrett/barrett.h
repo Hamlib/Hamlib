@@ -28,7 +28,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20181111"
+#define BACKEND_VER "20220107"
 
 #define EOM "\x0d"
 #define TRUE 1
@@ -40,6 +40,7 @@
 
 extern const struct rig_caps barrett_caps;
 extern const struct rig_caps barrett950_caps;
+extern const struct rig_caps barrett4050_caps;
 
 struct barrett_priv_data {
     char cmd_str[BARRETT_DATA_LEN];       /* command string buffer */
