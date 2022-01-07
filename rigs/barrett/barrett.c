@@ -435,7 +435,7 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    sprintf((char *) cmd_buf, "XB%c" EOM, ttmode);
+    sprintf((char *) cmd_buf, "TB%c" EOM, ttmode);
 
     retval = barrett_transaction(rig, cmd_buf, 0, NULL);
 
