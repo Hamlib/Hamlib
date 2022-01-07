@@ -168,6 +168,11 @@ static const struct confparams frontend_cfg_params[] =
         "Suppress get_freq on VFOB for RIT tuning satellites",
         "Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
     },
+    {
+        TOK_ASYNC, "async", "Asynchronous data transfer support",
+        "True enables asynchronous data transfer for backends that support it. This allows use of transceive and spectrum data.",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
 
     { RIG_CONF_END, NULL, }
 };
@@ -666,6 +671,15 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rs->twiddle_rit = val_i ? 1 : 0;
         break;
 
+    case TOK_ASYNC:
+        if (1 != sscanf(val, "%d", &val_i))
+        {
+            return -RIG_EINVAL; //value format error
+        }
+
+        rs->async_data_enabled = val_i ? 1 : 0;
+        break;
+
     default:
         return -RIG_EINVAL;
     }
@@ -1010,6 +1024,9 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
         sprintf(val, "%d", rs->twiddle_rit);
         break;
 
+    case TOK_ASYNC:
+        sprintf(val, "%d", rs->async_data_enabled);
+        break;
 
     default:
         return -RIG_EINVAL;
