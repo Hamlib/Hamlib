@@ -200,7 +200,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return retval;
     }
 
-    if (sscanf(response, "%4d%8lf%8lf", &chan, &freq_rx, &freq_tx) != 2)
+    if (sscanf(response, "%4d%8lf%8lf", &chan, &freq_rx, &freq_tx) != 3)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse chan/freq from %s\n", __func__,
                   response);

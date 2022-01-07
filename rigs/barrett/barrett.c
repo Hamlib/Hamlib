@@ -659,15 +659,12 @@ const char *barrett_get_info(RIG *rig)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: IDS command failed: %s\n", __func__,
                   strerror(retval));
-    }
-    else
-    {
         response = "unknown";
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Barrett series %s, serial# %s\n", __func__,
               series, response);
-    retval = barrett_transaction(rig, "IVF", 0, &response);
+    retval = barrett_transaction(rig, "IV", 0, &response);
 
     if (retval == RIG_OK)
     {
@@ -675,7 +672,7 @@ const char *barrett_get_info(RIG *rig)
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "Software Version %s\n", response);
+        rig_debug(RIG_DEBUG_VERBOSE, "Barrett software Version %s\n", response);
     }
 
     return response;
