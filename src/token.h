@@ -91,6 +91,9 @@
 #define TOK_PTT_SHARE        TOKEN_FRONTEND(35)
 /** \brief  PTT share with other applications */
 #define TOK_FLUSHX        TOKEN_FRONTEND(36)
+/** \brief  Asynchronous data transfer support */
+#define TOK_ASYNC        TOKEN_FRONTEND(37)
+
 /*
  * rig specific tokens
  */
