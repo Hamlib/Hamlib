@@ -28,7 +28,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20220107"
+#define BACKEND_VER "20220108"
 
 #define EOM "\x0d"
 #define TRUE 1
@@ -37,6 +37,8 @@
 // This will need a lot more room for some channel commands like IDFA which return all channels
 // But that would 9999*41 or 406KB so didn't do that right now
 #define BARRETT_DATA_LEN 64
+// RET_LEN is # of max channels times the per-channel response length
+#define BARRETT_RET_LEN 24*1000
 
 extern const struct rig_caps barrett_caps;
 extern const struct rig_caps barrett950_caps;
@@ -44,7 +46,7 @@ extern const struct rig_caps barrett4050_caps;
 
 struct barrett_priv_data {
     char cmd_str[BARRETT_DATA_LEN];       /* command string buffer */
-    char ret_data[BARRETT_DATA_LEN];      /* returned data--max value, most are less */
+    char ret_data[BARRETT_RET_LEN];      /* returned data--max value, most are less */
     char split;                           /* split on/off */
 };
 
