@@ -48,43 +48,17 @@
 #define BARRETT4050_FUNCTIONS (RIG_FUNC_TUNER)
 
 
-static int barrett4050_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-
 static int barrett4050_get_level(RIG *rig, vfo_t vfo, setting_t level,
                                 value_t *val);
 
 static const char *barrett4050_get_info(RIG *rig);
-
-// 10 band channel from 441 to 450
-#define CHANNEL_BASE 441
-
-struct chan_map_s
-{
-    float lo, hi;
-    int chan_offset;
-};
-
-// Our 10 bands
-static struct chan_map_s chan_map[] =
-{
-    { 1.8, 2.0, 0},
-    { 3.5, 4.0, 1},
-    { 5.3, 5.4, 2},
-    { 7.0, 7.3, 3},
-    { 10.1, 10.15, 4},
-    { 14.0, 14.35, 5},
-    { 18.068, 18.168, 6},
-    { 21.0, 21.45, 7},
-    { 24.89, 24.99, 8},
-    { 28.0, 29.7, 9}
-};
 
 const struct rig_caps barrett4050_caps =
 {
     RIG_MODEL(RIG_MODEL_BARRETT_4050),
     .model_name =       "4050",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER ".0a",
+    .version =          BACKEND_VER ".0b",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_ALPHA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -131,8 +105,9 @@ const struct rig_caps barrett4050_caps =
 
     .rig_init =     barrett_init,
     .rig_cleanup =  barrett_cleanup,
+    .rig_open = barrett_open,
 
-    .set_freq = barrett4050_set_freq,
+    .set_freq = barrett_set_freq,
     .get_freq = barrett_get_freq,
     .set_mode = barrett_set_mode,
     .get_mode = barrett_get_mode,
@@ -145,93 +120,8 @@ const struct rig_caps barrett4050_caps =
     .set_split_freq =   barrett_set_split_freq,
     .set_split_vfo =    barrett_set_split_vfo,
     .get_split_vfo =    barrett_get_split_vfo,
+    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
-
-/*
- * barrett4050_set_freq
- * assumes rig!=NULL, rig->state.priv!=NULL
- */
-int barrett4050_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
-{
-    char cmd_buf[MAXCMDLEN];
-    int retval;
-    int i;
-    int chan = -1;
-    freq_t freq_rx, freq_tx;
-    freq_t freq_MHz;
-    char *response = NULL;
-    //struct barrett_priv_data *priv = rig->state.priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __func__,
-              rig_strvfo(vfo), freq);
-
-    // 950 can only set freq via memory channel
-    // So we make a 10-channel memory from 441-450 by band
-    // And we don't care about VFO -- we set TX=RX to avoid doing split freq changes
-    // Trying to minimize writes to EEPROM
-
-    // What band is being requested?
-    freq_MHz = freq / 1e6;
-
-    for (i = 0; i < 10; ++i)
-    {
-        if (freq_MHz >= chan_map[i].lo && freq_MHz <= chan_map[i].hi)
-        {
-            chan = CHANNEL_BASE + chan_map[i].chan_offset;
-        }
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: using chan %d for freq %.0f \n", __func__,
-              chan, freq);
-
-    // Set the channel
-    sprintf((char *) cmd_buf, "XC%04d", chan);
-    retval = barrett_transaction(rig, cmd_buf, 0, &response);
-
-    if (retval < 0)
-    {
-        return retval;
-    }
-
-    // Read the current channel for the requested freq to see if it needs changing
-    sprintf((char *) cmd_buf, "IDC%04d", chan);
-    retval = barrett_transaction(rig, cmd_buf, 0, &response);
-
-    if (retval < 0)
-    {
-        return retval;
-    }
-
-    if (sscanf(response, "%4d%8lf%8lf", &chan, &freq_rx, &freq_tx) != 3)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse chan/freq from %s\n", __func__,
-                  response);
-        return -RIG_EPROTO;
-    }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: got chan %d, freq_rx=%.0f, freq_tx=%.0f",
-              __func__, chan,
-              freq_rx, freq_tx);
-
-    if (freq_rx == freq && freq_tx == freq)
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: no freq change needed\n", __func__);
-        return RIG_OK;
-    }
-
-    // New freq so let's update the channel
-    // We do not support split mode -- too many writes to EEPROM to support it
-    sprintf((char *) cmd_buf, "PC%04dR%08.0lfT%08.0lf", chan, freq, freq);
-    retval = barrett_transaction(rig, cmd_buf, 0, &response);
-
-    if (retval != RIG_OK || strncmp(response, "OK", 2) != 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: Expected OK, got '%s'\n", __func__, response);
-        return -RIG_EPROTO;
-    }
-
-    return RIG_OK;
-}
 
 /*
  * barrett4050_get_level
