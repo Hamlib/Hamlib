@@ -4198,15 +4198,15 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
             break;
 
         case RIG_CONF_COMBO:
-            sprintf(lstr, "%d", chan->ext_levels[idx].val.i);
+            snprintf(lstr, sizeof(lstr), "%d", chan->ext_levels[idx].val.i);
             break;
 
         case RIG_CONF_NUMERIC:
-            sprintf(lstr, "%f", chan->ext_levels[idx].val.f);
+            snprintf(lstr, sizeof(lstr), "%f", chan->ext_levels[idx].val.f);
             break;
 
         case RIG_CONF_CHECKBUTTON:
-            sprintf(lstr, "%s", chan->ext_levels[idx].val.i ? "ON" : "OFF");
+            snprintf(lstr, sizeof(lstr), "%s", chan->ext_levels[idx].val.i ? "ON" : "OFF");
             break;
 
         case RIG_CONF_BUTTON:
