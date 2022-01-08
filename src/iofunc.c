@@ -752,8 +752,11 @@ static int port_wait_for_data(hamlib_port_t *p, int direct)
     {
         return port_wait_for_data_direct(p);
     }
-
+#ifdef ASYNC_BUG
     return port_wait_for_data_sync_pipe(p);
+#else
+    RETURNFUNC(-RIG_EINTERNAL);
+#endif
 }
 
 #ifdef ASYNC_BUG
