@@ -2342,7 +2342,7 @@ declare_proto_rot(inter_set_conf)
         return -RIG_EINVAL;
     }
 
-    sprintf(buf, "%s=%s", arg1, arg2);
+    snprintf(buf, sizeof(buf), "%s=%s", arg1, arg2);
     return set_conf(rot, buf);
 }
 
