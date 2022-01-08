@@ -48,19 +48,63 @@
 #define BARRETT4050_FUNCTIONS (RIG_FUNC_TUNER)
 
 
+/*
+ * barrett4050_get_level
+ */
 static int barrett4050_get_level(RIG *rig, vfo_t vfo, setting_t level,
-                                value_t *val);
+                                 value_t *val)
+{
+    return -RIG_ENIMPL;
+}
 
-static const char *barrett4050_get_info(RIG *rig);
+/*
+ * barrett4050_get_info
+ */
+static const char *barrett4050_get_info(RIG *rig)
+{
+    char *response = NULL;
+    int retval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    retval = barrett_transaction(rig, "IV", 0, &response);
+
+    if (retval == RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __func__, response);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "Software Version %s\n", response);
+    }
+
+    return response;
+}
+
+static int barrett4050_open(RIG *rig)
+{
+    int retval;
+    char *response;
+    ENTERFUNC;
+    barrett4050_get_info(rig);
+    retval = barrett_transaction(rig, "IDFS", 0, &response);
+
+    if (retval == RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __func__, response);
+    }
+
+    RETURNFUNC(RIG_OK);
+}
 
 const struct rig_caps barrett4050_caps =
 {
     RIG_MODEL(RIG_MODEL_BARRETT_4050),
     .model_name =       "4050",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER ".0b",
+    .version =          BACKEND_VER ".0c",
     .copyright =        "LGPL",
-    .status =           RIG_STATUS_ALPHA,
+    .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
     .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .ptt_type =         RIG_PTT_RIG,
@@ -74,7 +118,7 @@ const struct rig_caps barrett4050_caps =
     .serial_handshake = RIG_HANDSHAKE_XONXOFF,
     .write_delay =      0,
     .post_write_delay = 0,
-    .timeout =          1000,
+    .timeout =          500,
     .retry =            3,
 
     .has_get_func =     BARRETT4050_FUNCTIONS,
@@ -105,7 +149,7 @@ const struct rig_caps barrett4050_caps =
 
     .rig_init =     barrett_init,
     .rig_cleanup =  barrett_cleanup,
-    .rig_open = barrett_open,
+    .rig_open = barrett4050_open,
 
     .set_freq = barrett_set_freq,
     .get_freq = barrett_get_freq,
@@ -122,35 +166,3 @@ const struct rig_caps barrett4050_caps =
     .get_split_vfo =    barrett_get_split_vfo,
     .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
 };
-
-/*
- * barrett4050_get_level
- */
-int barrett4050_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
-    return -RIG_ENIMPL;
-}
-
-/*
- * barrett4050_get_info
- */
-const char *barrett4050_get_info(RIG *rig)
-{
-    char *response = NULL;
-    int retval;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    retval = barrett_transaction(rig, "IV", 0, &response);
-
-    if (retval == RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __func__, response);
-    }
-    else
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "Software Version %s\n", response);
-    }
-
-    return response;
-}

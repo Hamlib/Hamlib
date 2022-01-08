@@ -277,7 +277,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo != RIG_VFO_B)
     {
         char *response = NULL;
-        sprintf((char *) cmd_buf, "PR%08.0f", freq);
+        sprintf((char *) cmd_buf, "TC9999R%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
@@ -299,7 +299,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
 
         char *response = NULL;
-        sprintf((char *) cmd_buf, "PT%08.0f", freq);
+        sprintf((char *) cmd_buf, "TC9999T%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
