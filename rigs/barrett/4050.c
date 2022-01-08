@@ -174,7 +174,7 @@ const struct rig_caps barrett4050_caps =
 
     .get_info =     barrett4050_get_info,
     .set_ptt =      barrett_set_ptt,
-    .get_ptt =      NULL,
+    .get_ptt =      barrett_get_ptt,
     .set_split_freq =   barrett_set_split_freq,
     .set_split_vfo =    barrett_set_split_vfo,
     .get_split_vfo =    barrett_get_split_vfo,
