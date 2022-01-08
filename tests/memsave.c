@@ -136,11 +136,11 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->bank_num)
     {
-        sprintf(attrbuf, sizeof(attrbuf), "%d", chan.bank_num);
+        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.bank_num);
         xmlNewProp(node, (unsigned char *) "bank_num", (unsigned char *) attrbuf);
     }
 
-    sprintf(attrbuf, sizeof(attrbuf), "%d", chan.channel_num);
+    snprintf(attrbuf, sizeof(attrbuf), "%d", chan.channel_num);
     xmlNewProp(node, (unsigned char *) "num", (unsigned char *) attrbuf);
 
     if (mem_caps->channel_desc && chan.channel_desc[0] != '\0')
@@ -255,37 +255,37 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->ctcss_tone && chan.ctcss_tone != 0)
     {
-        sprintf(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_tone);
+        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_tone);
         xmlNewProp(node, (unsigned char *) "ctcss_tone", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->ctcss_sql && chan.ctcss_sql != 0)
     {
-        sprintf(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_sql);
+        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_sql);
         xmlNewProp(node, (unsigned char *) "ctcss_sql", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->dcs_code && chan.dcs_code != 0)
     {
-        sprintf(attrbuf, sizeof(attrbuf), "%d", chan.dcs_code);
+        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.dcs_code);
         xmlNewProp(node, (unsigned char *) "dcs_code", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->dcs_sql && chan.dcs_sql != 0)
     {
-        sprintf(attrbuf, sizeof(attrbuf), "%d", chan.dcs_sql);
+        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.dcs_sql);
         xmlNewProp(node, (unsigned char *) "dcs_sql", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->scan_group)
     {
-        sprintf(attrbuf, sizeof(attrbuf), "%d", chan.scan_group);
+        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.scan_group);
         xmlNewProp(node, (unsigned char *) "scan_group", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->flags)
     {
-        sprintf(attrbuf, sizeof(attrbuf), "%x", chan.flags);
+        snprintf(attrbuf, sizeof(attrbuf), "%x", chan.flags);
         xmlNewProp(node, (unsigned char *) "flags", (unsigned char *) attrbuf);
     }
 
