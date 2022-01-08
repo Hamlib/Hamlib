@@ -87,7 +87,7 @@ static int barrett4050_open(RIG *rig)
     char *response;
     ENTERFUNC;
     barrett4050_get_info(rig);
-    retval = barrett_transaction(rig, "IDFS", 0, &response);
+    retval = barrett_transaction(rig, "IDC", 0, &response);
 
     if (retval == RIG_OK)
     {
