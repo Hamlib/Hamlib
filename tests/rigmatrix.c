@@ -749,7 +749,13 @@ int main(int argc, char *argv[])
         }
 
         bitmap_level |= level;
-        pbuf += sprintf(pbuf, "<TD>%s</TD>", s);
+        nbytes = strlen("<TD></TD>") + strlen(s) + 1;
+        nbytes_total += nbytes;
+        pbuf += snprintf(pbuf, sizeof(pbuf)-nbytes_total, "<TD>%s</TD>", s);
+        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        {
+            printf("Buffer overflow in %s\n", __func__);
+        }
     }
 
     printf("Set level");
@@ -785,7 +791,13 @@ int main(int argc, char *argv[])
         }
 
         bitmap_parm |= parm;
-        pbuf += sprintf(pbuf, "<TD>%s</TD>", s);
+        nbytes = strlen("<TD></TD>") + strlen(s) + 1;
+        nbytes_total += nbytes;
+        pbuf += snprintf(pbuf, sizeof(pbuf)-nbytes_total, "<TD>%s</TD>", s);
+        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        {
+            printf("Buffer overflow in %s\n", __func__);
+        }
     }
 
     printf("Set parm");
