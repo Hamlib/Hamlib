@@ -28,7 +28,7 @@
 #define _FT100_H 1
 
 #define FT100_WRITE_DELAY                    0
-#define FT100_POST_WRITE_DELAY               100     /* max is 200ms */
+#define FT100_POST_WRITE_DELAY               25     /* max is 200ms */
 #define FT100_DEFAULT_READ_TIMEOUT           2000
 
 #endif /* _FT100_H */
