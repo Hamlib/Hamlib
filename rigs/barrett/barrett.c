@@ -277,7 +277,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo != RIG_VFO_B)
     {
         char *response = NULL;
-        sprintf((char *) cmd_buf, "TR%08.0f", freq);
+        sprintf((char *) cmd_buf, "PR%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
@@ -299,7 +299,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
 
         char *response = NULL;
-        sprintf((char *) cmd_buf, "TT%08.0f", freq);
+        sprintf((char *) cmd_buf, "PT%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
@@ -666,9 +666,9 @@ const char *barrett_get_info(RIG *rig)
               series, response);
     retval = barrett_transaction(rig, "IV", 0, &response);
 
-    if (retval == RIG_OK)
+    if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __func__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s: IV failed result=%s\n", __func__, response);
     }
     else
     {
