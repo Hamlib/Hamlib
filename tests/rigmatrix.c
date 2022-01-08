@@ -615,7 +615,7 @@ int create_png_range(const freq_range_t rx_range_list[],
         and in the latest web browsers) */
     gdImageInterlace(im_rng, 1);
 
-    sprintf(rng_fname, "range%d.png", num);
+    snprintf(rng_fname, sizeof(rng_fname), "range%d.png", num);
     out = fopen(rng_fname, "wb");
 
     /* Write PNG */
@@ -631,7 +631,7 @@ int main(int argc, char *argv[])
 {
     time_t gentime;
     int set_or_get;
-    int i;
+    int i,nbytes,nbytes_total=0;
     char *pbuf, prntbuf[4096];
 
     rig_load_all_backends();
@@ -707,7 +707,13 @@ int main(int argc, char *argv[])
         }
 
         bitmap_func |= func;
-        pbuf += sprintf(pbuf, "<TD>%s</TD>", s);
+        nbytes = strlen("<TD></TD>") + strlen(s) + 1;
+        nbytes_total += nbytes;
+        pbuf += snprintf(pbuf, sizeof(pbuf)-nbytes_total, "<TD>%s</TD>", s);
+        if (strlen(pbuf) > sizeof(pbuf) + nbytes)
+        {
+            printf("Buffer overflow in %s\n", __func__);
+        }
     }
 
     printf("Has set func");
