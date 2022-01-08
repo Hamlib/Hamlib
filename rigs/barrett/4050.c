@@ -91,7 +91,7 @@ static int barrett4050_open(RIG *rig)
 
     if (retval == RIG_OK)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: channel 9999 info=%s\n", response);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: channel 9999 info=%s\n", __func__, response);
     }
 
     retval = barrett_transaction(rig, "XC9999", 0, &response);
