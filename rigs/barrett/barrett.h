@@ -61,6 +61,7 @@ extern int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 extern int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
                             pbwidth_t *width);
 extern int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+extern int barrett_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 extern int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 extern int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split,
                                  vfo_t txvfo);
