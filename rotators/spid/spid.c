@@ -96,7 +96,7 @@ static int spid_rot_cleanup(ROT *rot)
     return RIG_OK;
 }
 
-static int spid_get_conf(ROT *rot, token_t token, char *val)
+static int spid_get_conf2(ROT *rot, token_t token, char *val, int val_len)
 {
     struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
                                            rot->state.priv;
@@ -112,11 +112,11 @@ static int spid_get_conf(ROT *rot, token_t token, char *val)
     switch (token)
     {
     case TOK_AZRES:
-        sprintf(val, "%d", priv->az_resolution);
+        snprintf(val, val_len, "%d", priv->az_resolution);
         break;
 
     case TOK_ELRES:
-        sprintf(val, "%d", priv->el_resolution);
+        snprintf(val, val_len, "%d", priv->el_resolution);
         break;
 
     default:
@@ -124,6 +124,11 @@ static int spid_get_conf(ROT *rot, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+static int spid_get_conf(ROT *rot, token_t token, char *val)
+{
+    return spid_get_conf2(rot, token, val, 128);
 }
 
 static int spid_set_conf(ROT *rot, token_t token, const char *val)
@@ -453,7 +458,7 @@ const struct rot_caps spid_rot1prog_rot_caps =
     ROT_MODEL(ROT_MODEL_SPID_ROT1PROG),
     .model_name =        "Rot1Prog",
     .mfg_name =          "SPID",
-    .version =           "20211023.0",
+    .version =           "20220109.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rot_type =          ROT_TYPE_AZIMUTH,
@@ -476,6 +481,7 @@ const struct rot_caps spid_rot1prog_rot_caps =
 
     .cfgparams =         spid_cfg_params,
     .get_conf =          spid_get_conf,
+    .get_conf2 =         spid_get_conf2,
     .set_conf =          spid_set_conf,
 
     .rot_init =          spid_rot_init,
@@ -490,7 +496,7 @@ const struct rot_caps spid_rot2prog_rot_caps =
     ROT_MODEL(ROT_MODEL_SPID_ROT2PROG),
     .model_name =        "Rot2Prog",
     .mfg_name =          "SPID",
-    .version =           "20211023.0",
+    .version =           "20220109.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rot_type =          ROT_TYPE_AZEL,
@@ -514,6 +520,7 @@ const struct rot_caps spid_rot2prog_rot_caps =
     .cfgparams =         spid_cfg_params,
     .get_conf =          spid_get_conf,
     .set_conf =          spid_set_conf,
+    .get_conf2 =         spid_get_conf2,
 
     .rot_init =          spid_rot_init,
     .rot_cleanup =       spid_rot_cleanup,
@@ -527,7 +534,7 @@ const struct rot_caps spid_md01_rot2prog_rot_caps =
     ROT_MODEL(ROT_MODEL_SPID_MD01_ROT2PROG),
     .model_name =        "MD-01/02 (ROT2 mode)",
     .mfg_name =          "SPID",
-    .version =           "20211023.0",
+    .version =           "20220109.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rot_type =          ROT_TYPE_AZEL,
@@ -550,6 +557,7 @@ const struct rot_caps spid_md01_rot2prog_rot_caps =
 
     .cfgparams =         spid_cfg_params,
     .get_conf =          spid_get_conf,
+    .get_conf2 =         spid_get_conf2,
     .set_conf =          spid_set_conf,
 
     .rot_init =          spid_rot_init,
