@@ -67,7 +67,7 @@ const struct rot_caps hd1780_rot_caps =
     ROT_MODEL(ROT_MODEL_HD1780),
     .model_name =         "HD 1780 Intellirotor",
     .mfg_name =           "Heathkit",
-    .version =            "20200112.0",
+    .version =            "20220109.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rot_type =           ROT_TYPE_OTHER,
@@ -190,7 +190,7 @@ static int hd1780_rot_set_position(ROT *rot, azimuth_t azimuth,
 
     if (azimuth < 0) { azimuth = azimuth + 360; }
 
-    sprintf(cmdstr, "%03.0f", azimuth);    /* Target bearing */
+    snprintf(cmdstr, sizeof(cmdstr), "%03.0f", azimuth);    /* Target bearing */
     err = hd1780_send_priv_cmd(rot, cmdstr);
 
     if (err != RIG_OK)
