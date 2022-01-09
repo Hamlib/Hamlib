@@ -109,11 +109,11 @@ easycomm_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     if (rot->caps->rot_model == ROT_MODEL_EASYCOMM1)
     {
-        sprintf(cmdstr, "AZ%.1f EL%.1f UP000 XXX DN000 XXX\n", az, el);
+        snprintf(cmdstr, sizeof(cmdstr), "AZ%.1f EL%.1f UP000 XXX DN000 XXX\n", az, el);
     }
     else   // for easycomm 2 & 3 and upwards
     {
-        sprintf(cmdstr, "AZ%.1f EL%.1f\n", az, el);
+        snprintf(cmdstr, sizeof(cmdstr), "AZ%.1f EL%.1f\n", az, el);
     }
 
     retval = easycomm_transaction(rot, cmdstr, NULL, 0);
@@ -135,7 +135,7 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    sprintf(cmdstr, "AZ EL \n");
+    snprintf(cmdstr, sizeof(cmdstr), "AZ EL \n");
 
     retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
 
@@ -220,19 +220,19 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
     switch (direction)
     {
     case ROT_MOVE_UP:       /* Elevation increase */
-        sprintf(cmdstr, "MU\n");
+        snprintf(cmdstr, sizeof(cmdstr), "MU\n");
         break;
 
     case ROT_MOVE_DOWN:     /* Elevation decrease */
-        sprintf(cmdstr, "MD\n");
+        snprintf(cmdstr, sizeof(cmdstr), "MD\n");
         break;
 
     case ROT_MOVE_LEFT:     /* Azimuth decrease */
-        sprintf(cmdstr, "ML\n");
+        snprintf(cmdstr, sizeof(cmdstr), "ML\n");
         break;
 
     case ROT_MOVE_RIGHT:    /* Azimuth increase */
-        sprintf(cmdstr, "MR\n");
+        snprintf(cmdstr, sizeof(cmdstr), "MR\n");
         break;
 
     default:
@@ -281,19 +281,19 @@ static int easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
     switch (direction)
     {
     case ROT_MOVE_UP:       /* Elevation increase */
-        sprintf(cmdstr, "VU%04d\n", easycomm_speed);
+        snprintf(cmdstr, sizeof(cmdstr), "VU%04d\n", easycomm_speed);
         break;
 
     case ROT_MOVE_DOWN:     /* Elevation decrease */
-        sprintf(cmdstr, "VD%04d\n", easycomm_speed);
+        snprintf(cmdstr, sizeof(cmdstr), "VD%04d\n", easycomm_speed);
         break;
 
     case ROT_MOVE_LEFT:     /* Azimuth decrease */
-        sprintf(cmdstr, "VL%04d\n", easycomm_speed);
+        snprintf(cmdstr, sizeof(cmdstr), "VL%04d\n", easycomm_speed);
         break;
 
     case ROT_MOVE_RIGHT:    /* Azimuth increase */
-        sprintf(cmdstr, "VR%04d\n", easycomm_speed);
+        snprintf(cmdstr, sizeof(cmdstr), "VR%04d\n", easycomm_speed);
         break;
 
     default:
@@ -406,27 +406,27 @@ static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val)
     switch (token)
     {
     case TOK_GET_STATUS:
-        sprintf(cmdstr, "GS\n;");
+        snprintf(cmdstr, sizeof(cmdstr), "GS\n;");
         break;
 
     case TOK_GET_ERRORS:
-        sprintf(cmdstr, "GE\n;");
+        snprintf(cmdstr, sizeof(cmdstr), "GE\n;");
         break;
 
     case TOK_GET_INPUT:
-        sprintf(cmdstr, "IP\n;");
+        snprintf(cmdstr, sizeof(cmdstr), "IP\n;");
         break;
 
     case TOK_GET_ANALOG_INPUT:
-        sprintf(cmdstr, "AN\n;");
+        snprintf(cmdstr, sizeof(cmdstr), "AN\n;");
         break;
 
     case TOK_GET_VERSION:
-        sprintf(cmdstr, "VE\n;");
+        snprintf(cmdstr, sizeof(cmdstr), "VE\n;");
         break;
 
     case TOK_GET_CONFIG:
-        sprintf(cmdstr, "CR %c\n;", *val);
+        snprintf(cmdstr, sizeof(cmdstr), "CR %c\n;", *val);
         break;
 
     default:
@@ -478,7 +478,7 @@ static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val)
     switch (token)
     {
     case TOK_SET_CONFIG:
-        sprintf(cmdstr, "CW%s\n;", val);
+        snprintf(cmdstr, sizeof(cmdstr), "CW%s\n;", val);
         break;
 
     default:
@@ -526,7 +526,7 @@ const struct rot_caps easycomm1_rot_caps =
     ROT_MODEL(ROT_MODEL_EASYCOMM1),
     .model_name =     "EasycommI",
     .mfg_name =       "Hamlib",
-    .version =        "20191206.0",
+    .version =        "20220109.0",
     .copyright =   "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_OTHER,
