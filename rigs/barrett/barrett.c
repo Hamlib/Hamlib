@@ -269,10 +269,22 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char cmd_buf[MAXCMDLEN];
     int retval;
     struct barrett_priv_data *priv = rig->state.priv;
+    freq_t tfreq;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 
+    retval = rig_get_freq(rig, vfo, &tfreq);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_freq failed: %s\n", __func__, strerror(retval));
+        return retval;
+    }
+    if (tfreq == freq)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: freq not changing\n", __func__);
+        return RIG_OK;
+    }
     // If we are not explicitly asking for VFO_B then we'll set the receive side also
     if (vfo != RIG_VFO_B)
     {
@@ -299,7 +311,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
 
         char *response = NULL;
-        sprintf((char *) cmd_buf, "TT%08.0f", freq);
+        sprintf((char *) cmd_buf, "TC9999T%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
@@ -401,11 +413,25 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char cmd_buf[32], ttmode;
     int retval;
+    rmode_t tmode;
+    pbwidth_t twidth;
 
     //struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), (int)width);
+
+    retval = rig_get_mode(rig, vfo, &tmode, &twidth);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: get_mode failed %s\n", __func__, strerror(retval));
+    }
+    if (tmode == mode)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: already mode %s so not changing\n", __func__, rig_strrmode(mode));
+        return RIG_OK;
+    }
 
     switch (mode)
     {
