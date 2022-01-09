@@ -135,7 +135,7 @@ const struct rot_caps rotorez_rot_caps =
     ROT_MODEL(ROT_MODEL_ROTOREZ),
     .model_name =       "Rotor-EZ",
     .mfg_name =         "Idiom Press",
-    .version =          "20100214.0",
+    .version =          "20220109.0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_OTHER,
@@ -436,7 +436,7 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth,
         azimuth = 0;
     }
 
-    sprintf(cmdstr, "AP1%03.0f;", azimuth);     /* Target bearing */
+    snprintf(cmdstr, sizeof(cmdstr), "AP1%03.0f;", azimuth);     /* Target bearing */
     err = rotorez_send_priv_cmd(rot, cmdstr);
 
     if (err != RIG_OK)
@@ -481,7 +481,7 @@ static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth,
         return -RIG_EINVAL;
     }
 
-    sprintf(cmdstr, "AP1%05.1f\r;", azimuth);   /* Total field width of 5 chars */
+    snprintf(cmdstr, sizeof(cmdstr), "AP1%05.1f\r;", azimuth);   /* Total field width of 5 chars */
     err = rotorez_send_priv_cmd(rot, cmdstr);
 
     if (err != RIG_OK)
@@ -491,7 +491,7 @@ static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth,
 
     if (rot->state.rotport2.pathname[0] != 0)
     {
-        sprintf(cmdstr, "AP1%05.1f\r;",
+        snprintf(cmdstr, sizeof(cmdstr), "AP1%05.1f\r;",
                 elevation);    /* Total field width of 5 chars */
 
         err = rotorez_send_priv_cmd2(rot, cmdstr);
