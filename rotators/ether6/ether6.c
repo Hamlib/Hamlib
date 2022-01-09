@@ -100,7 +100,7 @@ static int ether_rot_open(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     /* elevation not need */
 
-    len = sprintf(cmd, "rotor state\n");
+    len = snprintf(cmd, sizeof(cmd), "rotor state\n");
     /*-180/180 0/90*/
 
     ret = ether_transaction(rot, cmd, len, buf);
@@ -140,7 +140,7 @@ static int ether_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %f %f\n", __func__,
               az, el);
 
-    len = sprintf(cmd, "rotor move %d %d\n", (int)az, (int)el);
+    len = snprintf(cmd, sizeof(cmd), "rotor move %d %d\n", (int)az, (int)el);
 
     ret = ether_transaction(rot, cmd, len, buf);
 
@@ -163,7 +163,7 @@ static int ether_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "rotor status\n");
+    len = snprintf(cmd, sizeof(cmd), "rotor status\n");
 
     ret = ether_transaction(rot, cmd, len, buf);
 
@@ -198,7 +198,7 @@ static int ether_rot_stop(ROT *rot)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "rotor stop\n");
+    len = snprintf(cmd, sizeof(cmd), "rotor stop\n");
 
     ret = ether_transaction(rot, cmd, len, buf);
 
@@ -224,7 +224,7 @@ static int ether_rot_park(ROT *rot)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "rotor park\n");
+    len = snprintf(cmd, sizeof(cmd), "rotor park\n");
 
     ret = ether_transaction(rot, cmd, len, buf);
 
@@ -246,8 +246,8 @@ static int ether_rot_reset(ROT *rot, rot_reset_t reset)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    // orig len = sprintf(cmd, "R %d\n", reset);
-    len = sprintf(cmd, "reset\n");
+    // orig len = snprintf(cmd, sizeof(cmd), "R %d\n", reset);
+    len = snprintf(cmd, sizeof(cmd), "reset\n");
 
     ret = ether_transaction(rot, cmd, len, buf);
 
@@ -294,11 +294,11 @@ static int ether_rot_move(ROT *rot, int direction, int speed)
 
     if (direction == 0)
     {
-        len = sprintf(cmd, "rotor cw %d\n", ether_speed);
+        len = snprintf(cmd, sizeof(cmd), "rotor cw %d\n", ether_speed);
     }
     else
     {
-        len = sprintf(cmd, "rotor ccw %d\n", ether_speed);
+        len = snprintf(cmd, sizeof(cmd), "rotor ccw %d\n", ether_speed);
     }
 
     ret = ether_transaction(rot, cmd, len, buf);
@@ -398,7 +398,7 @@ const struct rot_caps ether6_rot_caps =
     ROT_MODEL(ROT_MODEL_ETHER6),
     .model_name =     "Ether6 (via ethernet)",
     .mfg_name =       "DG9OAA",
-    .version =        "20201203.0",
+    .version =        "20220109.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_FLAG_AZIMUTH,
