@@ -25,7 +25,7 @@
 #include <hamlib/amplifier.h>
 
 int frontamp_set_conf(AMP *amp, token_t token, const char *val);
-int frontamp_get_conf(AMP *amp, token_t token, char *val);
+static int frontamp_get_conf2(AMP *amp, token_t token, char *val, int val_len);
 
 
 #endif /* _AMP_CONF_H */
