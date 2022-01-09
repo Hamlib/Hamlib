@@ -164,7 +164,7 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
     faz = az * 360000;
     fel = el * 360000;
     /* set azmiuth, returns '1" if OK */
-    sprintf(cmdstr, ":Sz%09.0f#", faz);
+    snprintf(cmdstr, sizeof(cmdstr), ":Sz%09.0f#", faz);
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -173,7 +173,7 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
     }
 
     /* set altitude, returns '1" if OK */
-    sprintf(cmdstr, ":Sa+%08.0f#", fel);
+    snprintf(cmdstr, sizeof(cmdstr), ":Sa+%08.0f#", fel);
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -182,7 +182,7 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
     }
 
     /* move to set target, V2 command, returns '1" if OK */
-    sprintf(cmdstr, ":MS#"); //
+    snprintf(cmdstr, sizeof(cmdstr), ":MS#"); //
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -191,7 +191,7 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
     }
 
     /* stop tracking, V2 command, returns '1" if OK */
-    sprintf(cmdstr, ":ST0#");
+    snprintf(cmdstr, sizeof(cmdstr), ":ST0#");
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -273,7 +273,7 @@ ioptron_stop(ROT *rot)
 static const char *
 ioptron_get_info(ROT *rot)
 {
-    static char info[16];
+    static char info[32];
     char str[6];
     int retval;
 
@@ -284,7 +284,7 @@ ioptron_get_info(ROT *rot)
     rig_debug(RIG_DEBUG_TRACE, "retval, RIG_OK str %d  %d  %str\n", retval, RIG_OK,
               str);
 
-    sprintf(info, "MountInfo %s", str);
+    snprintf(info, sizeof(info), "MountInfo %s", str);
 
     return info;
 }
@@ -306,7 +306,7 @@ const struct rot_caps ioptron_rot_caps =
     ROT_MODEL(ROT_MODEL_IOPTRON),
     .model_name =     "iOptron",
     .mfg_name =       "iOptron",
-    .version =        "20191209.0",
+    .version =        "20220109.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_ALPHA,
     .rot_type =       ROT_TYPE_AZEL,
