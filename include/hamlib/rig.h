@@ -2007,6 +2007,7 @@ struct rig_caps {
                                const unsigned char *frame);
 // this will be used to check rigcaps structure is compatible with client
     const char *hamlib_check_rig_caps;   // a constant value we can check for hamlib integrity
+    int (*get_conf2)(RIG *rig, token_t token, char *val, int val_len);
 };
 //! @endcond
 
