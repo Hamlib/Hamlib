@@ -127,7 +127,7 @@ static int sartek_rot_set_position(ROT *rot, azimuth_t azimuth,
         azimuth = 358;
     }
 
-    len = sprintf(cmdstr, "P%c", (int)((azimuth * 255) / 360));
+    len = snprintf(cmdstr, sizeof(cmdstr), "P%c", (int)((azimuth * 255) / 360));
 
     err = write_block(&rot->state.rotport, (unsigned char *) cmdstr, len);
 
