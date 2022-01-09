@@ -169,7 +169,7 @@ gs232_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     u_az = (unsigned)rint(az);
     u_el = (unsigned)rint(el);
 
-    sprintf(cmdstr, "W%03u %03u" EOM, u_az, u_el);
+    snprintf(cmdstr, sizeof(cmdstr), "W%03u %03u" EOM, u_az, u_el);
     retval = gs232_wo_transaction(rot, cmdstr, NULL, 0);
 
     if (retval != RIG_OK)
@@ -243,7 +243,7 @@ const struct rot_caps gs232_generic_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232_GENERIC),
     .model_name =     "GS-232 Generic",
     .mfg_name =       "Various",
-    .version =        "20200424.0",
+    .version =        "20220109.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -279,7 +279,7 @@ const struct rot_caps amsat_lvb_rot_caps =
     ROT_MODEL(ROT_MODEL_LVB),
     .model_name =     "LVB Tracker",
     .mfg_name =       "AMSAT",
-    .version =        "20200424.0",
+    .version =        "20220109.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_ALPHA,
     .rot_type =       ROT_TYPE_AZEL,
@@ -316,7 +316,7 @@ const struct rot_caps st2_rot_caps =
     ROT_MODEL(ROT_MODEL_ST2),
     .model_name =     "GS232/ST2",
     .mfg_name =       "FoxDelta",
-    .version =        "20200424.0",
+    .version =        "20220109.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_ALPHA,
     .rot_type =       ROT_TYPE_AZEL,
@@ -354,7 +354,7 @@ const struct rot_caps f1tetracker_rot_caps =
     ROT_MODEL(ROT_MODEL_F1TETRACKER),
     .model_name =     "GS232/F1TE Tracker",
     .mfg_name =       "F1TE",
-    .version =        "20200424.0",
+    .version =        "20220109.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
