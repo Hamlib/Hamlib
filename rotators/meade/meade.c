@@ -446,7 +446,7 @@ static const char *meade_get_info(ROT *rot)
     struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    sprintf(buf, "Meade telescope rotator with LX200 protocol.\nModel: %s",
+    snprintf(buf, sizeof(buf), "Meade telescope rotator with LX200 protocol.\nModel: %s",
             priv->product_name);
     return buf;
 }
@@ -460,7 +460,7 @@ const struct rot_caps meade_caps =
     ROT_MODEL(ROT_MODEL_MEADE),
     .model_name =       "LX200/Autostar",
     .mfg_name =         "Meade",
-    .version =          "20200610.0",
+    .version =          "20220109.0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_AZEL,
