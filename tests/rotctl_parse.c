@@ -1566,7 +1566,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
     int i;
     char buf[128] = "";
 
-    rot_get_conf(rot, cfp->token, buf);
+    rot_get_conf2(rot, cfp->token, buf, sizeof(buf));
     printf("%s: \"%s\"\n" "\tDefault: %s, Value: %s\n",
            cfp->name,
            cfp->tooltip,

@@ -453,6 +453,7 @@ struct rot_caps {
     int (*get_status)(ROT *rot, rot_status_t *status); /*!< Pointer to backend implementation of ::rot_get_status(). */
 
     const char *macro_name;                    /*!< Rotator model macro name. */
+    int (*get_conf2)(ROT *rot, token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of ::rot_get_conf2(). */
 };
 //! @cond Doxygen_Suppress
 #define ROT_MODEL(arg) .rot_model=arg,.macro_name=#arg
@@ -548,6 +549,12 @@ extern HAMLIB_EXPORT(int)
 rot_get_conf HAMLIB_PARAMS((ROT *rot,
                             token_t token,
                             char *val));
+
+extern HAMLIB_EXPORT(int)
+rot_get_conf2 HAMLIB_PARAMS((ROT *rot,
+                            token_t token,
+                            char *val,
+                            int val_len));
 
 /*
  *  General API commands, from most primitive to least.. )
