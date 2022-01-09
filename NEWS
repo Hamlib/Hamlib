@@ -8,13 +8,15 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
 Version 5.x
+        * rot_get_conf deprecated and replaced by rot_get_conf2
         * Asynchronous rig data output handling to support transceive and spectrum data. Mikael, OH3BHX
         * Multicast UDP packet output for asynchronous data. Mikael, OH3BHX
         * Rig state poll routine to serve commonly used data like frequency and mode from cache. Mikael, OH3BHX
 
 Version 4.5
         * 202?-??-??
-        * Added Barrett 4050
+        * Added Barrett 4050 -- not functional yet
+        * Added TCI 1.X -- not functional yet
         * Added TM-V71(A)
         * Added IC-F8101
         * Added JRC JST-145 and JST-245
