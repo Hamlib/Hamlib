@@ -8,6 +8,7 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
 Version 5.x
+        * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Asynchronous rig data output handling to support transceive and spectrum data. Mikael, OH3BHX
         * Multicast UDP packet output for asynchronous data. Mikael, OH3BHX
@@ -15,6 +16,8 @@ Version 5.x
 
 Version 4.5
         * 202?-??-??
+        * New rig_get_conf2 to replace rig_get_conf buffer overflow potential
+        * New rot_get_conf2 to reaplce rot_get_conf buffer overflow potential
         * Added Barrett 4050 -- not functional yet
         * Added TCI 1.X -- not functional yet
         * Added TM-V71(A)

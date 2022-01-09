@@ -165,6 +165,7 @@ const struct rig_caps icm710_caps =
     .cfgparams = icm710_cfg_params,
     .set_conf = icm710_set_conf,
     .get_conf = icm710_get_conf,
+    .get_conf2 = icm710_get_conf2,
 
     .priv = (void *)& icm710_priv_caps,
     .rig_init =  icm710_init,
@@ -356,7 +357,7 @@ int icm710_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int icm710_get_conf(RIG *rig, token_t token, char *val)
+int icm710_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct icm710_priv_data *priv;
 
@@ -365,7 +366,7 @@ int icm710_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_REMOTEID:
-        sprintf(val, "%u", priv->remote_id);
+        snprintf(val, val_len, "%u", priv->remote_id);
         break;
 
     default:
@@ -373,6 +374,11 @@ int icm710_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int icm710_get_conf(RIG *rig, token_t token, char *val)
+{
+    return icm710_get_conf2(rig, token, val, 128);
 }
 
 int icm710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
