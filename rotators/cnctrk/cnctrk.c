@@ -50,7 +50,7 @@ cnctrk_set_position(ROT *rot, azimuth_t az, elevation_t el)
         return retval;
     }
 
-    sprintf(axcmd, "/usr/bin/axis-remote --mdi 'G00 X %6.2f Y %6.2f' \n", az, el);
+    snprintf(axcmd, sizeof(axcmd), "/usr/bin/axis-remote --mdi 'G00 X %6.2f Y %6.2f' \n", az, el);
     return system(axcmd);
 }
 
@@ -62,7 +62,7 @@ const struct rot_caps cnctrk_rot_caps =
     ROT_MODEL(ROT_MODEL_CNCTRK),
     .model_name =     "CNCTRK",
     .mfg_name =       "CNCTRK",
-    .version =        "20191220.0",
+    .version =        "20220109.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_UNTESTED,
     .rot_type =       ROT_TYPE_OTHER,
