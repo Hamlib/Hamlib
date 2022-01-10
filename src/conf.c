@@ -692,7 +692,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
  * frontend_get_conf
  * assumes rig!=NULL, val!=NULL
  */
-static int frontend_get_conf(RIG *rig, token_t token, char *val)
+static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct rig_state *rs;
     const char *s = "";
@@ -1246,6 +1246,11 @@ int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
  */
 int HAMLIB_API rig_get_conf(RIG *rig, token_t token, char *val)
 {
+    return rig_get_conf2(rig, token, val, 128);
+}
+
+int HAMLIB_API rig_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+{
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig || !rig->caps || !val)
@@ -1255,7 +1260,12 @@ int HAMLIB_API rig_get_conf(RIG *rig, token_t token, char *val)
 
     if (IS_TOKEN_FRONTEND(token))
     {
-        return frontend_get_conf(rig, token, val);
+        return frontend_get_conf2(rig, token, val, val_len);
+    }
+    
+    if (rig->caps->get_conf2)
+    {
+        return rig->caps->get_conf2(rig, token, val, val_len);
     }
 
     if (rig->caps->get_conf == NULL)
