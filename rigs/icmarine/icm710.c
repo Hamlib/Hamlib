@@ -389,7 +389,7 @@ int icm710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     priv = (struct icm710_priv_data *)rig->state.priv;
 
-    sprintf(freqbuf, "%.6f", freq / MHz(1));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "%.6f", freq / MHz(1));
 
     /* no error reporting upon TXFREQ failure */
     if (RIG_SPLIT_OFF == priv->split)
@@ -436,7 +436,7 @@ int icm710_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     priv = (struct icm710_priv_data *)rig->state.priv;
 
-    sprintf(freqbuf, "%.6f", freq / MHz(1));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "%.6f", freq / MHz(1));
 
     retval = icmarine_transaction(rig, CMD_TXFREQ, freqbuf, NULL);
 
@@ -631,7 +631,7 @@ int icm710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_AF:
         value = (unsigned)(val.f * 255);
-        sprintf(lvlbuf, "%u", value);
+        SNPRINTF(lvlbuf, sizeof(lvlbuf), "%u", value);
         retval = icmarine_transaction(rig, CMD_AFGAIN, lvlbuf, NULL);
 
         if (retval == RIG_OK)
@@ -643,7 +643,7 @@ int icm710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_RF:
         value = (unsigned)(val.f * 9);
-        sprintf(lvlbuf, "%u", value);
+        SNPRINTF(lvlbuf, sizeof(lvlbuf), "%u", value);
         retval = icmarine_transaction(rig, CMD_RFGAIN, lvlbuf, NULL);
 
         if (retval == RIG_OK)
@@ -655,7 +655,7 @@ int icm710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_RFPOWER:
         value = (unsigned)(val.f * 2);
-        sprintf(lvlbuf, "%u", value);
+        SNPRINTF(lvlbuf, sizeof(lvlbuf), "%u", value);
         retval = icmarine_transaction(rig, CMD_RFPWR, lvlbuf, NULL);
 
         if (retval == RIG_OK)
