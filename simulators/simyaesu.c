@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <hamlib/rig.h>
 
 #define BUFSIZE 256
 
@@ -131,7 +132,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FA;") == 0)
         {
             pbuf = strdup("FA3456789012;");
-            sprintf(pbuf, "FA%010.0f", freqA);
+            SNPRINTF(pbuf, strlen(pbuf), "FA%010.0f", freqA);
             free(pbuf);
         }
         else if (strncmp(buf, "FA", 2) == 0)
@@ -141,7 +142,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FB;") == 0)
         {
             pbuf = strdup("FB3456789012;");
-            sprintf(pbuf, "FB%010.0f", freqB);
+            SNPRINTF(pbuf, strlen(pbuf), "FB%010.0f", freqB);
             free(pbuf);
         }
         else if (strncmp(buf, "FB", 2) == 0)
