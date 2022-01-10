@@ -41,7 +41,7 @@
 // eventually should make this -RIG_EINTERNAL
 int check_buffer_overflow(char *str, int len, int nlen)
 {
-    if (len + 1 >= nlen)
+    if (len + 32 >= nlen) // make sure at least 32 bytes are available
     {
         rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n",
                   __func__, len, nlen, str);
@@ -71,10 +71,10 @@ int rig_sprintf_vfo(char *str, int nlen, vfo_t vfo)
         if (sv && sv[0] && (strstr(sv, "None") == 0))
         {
             len += sprintf(str + len, "%s ", sv);
+            check_buffer_overflow(str, len, nlen);
         }
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -102,9 +102,9 @@ int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -149,10 +149,10 @@ int rig_sprintf_ant(char *str, int nlen, ant_t ant)
             }
 
             len += sprintf(str + len, "%s ", ant_name);
+            check_buffer_overflow(str, len, nlen);
         }
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -180,9 +180,9 @@ int rig_sprintf_func(char *str, int nlen, setting_t func)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -210,9 +210,9 @@ int rot_sprintf_func(char *str, int nlen, setting_t func)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -240,9 +240,9 @@ int rig_sprintf_level(char *str, int nlen, setting_t level)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -270,9 +270,9 @@ int rot_sprintf_level(char *str, int nlen, setting_t level)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -300,9 +300,9 @@ int amp_sprintf_level(char *str, int nlen, setting_t level)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -341,9 +341,9 @@ int sprintf_level_ext(char *str, int nlen, const struct confparams *extlevels)
             /* ignore case RIG_CONF_BUTTON */
             break;
         }
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -399,9 +399,9 @@ int rig_sprintf_level_gran(char *str, int nlen, setting_t level,
                            gran[i].max.i,
                            gran[i].step.i);
         }
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -457,9 +457,9 @@ int rot_sprintf_level_gran(char *str, int nlen, setting_t level,
                            gran[i].max.i,
                            gran[i].step.i);
         }
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -487,9 +487,9 @@ int rig_sprintf_parm(char *str, int nlen, setting_t parm)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -517,9 +517,9 @@ int rot_sprintf_parm(char *str, int nlen, setting_t parm)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -575,9 +575,9 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
                            gran[i].max.i,
                            gran[i].step.i);
         }
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -633,9 +633,9 @@ int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm,
                            gran[i].max.i,
                            gran[i].step.i);
         }
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -663,9 +663,9 @@ int rig_sprintf_vfop(char *str, int nlen, vfo_op_t op)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -693,9 +693,9 @@ int rig_sprintf_scan(char *str, int nlen, scan_t rscan)
         strcat(str, ms);
         strcat(str, " ");
         len += strlen(ms) + 1;
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -722,9 +722,9 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
         {
             len += sprintf(str + len, "%s ", sv);
         }
+        check_buffer_overflow(str, len, nlen);
     }
 
-    check_buffer_overflow(str, len, nlen);
     return len;
 }
 
@@ -762,6 +762,8 @@ int rig_sprintf_spectrum_modes(char *str, int nlen,
 
         len += lentmp;
 
+        check_buffer_overflow(str, len, nlen);
+
     }
 
     return len;
@@ -791,6 +793,7 @@ int rig_sprintf_spectrum_spans(char *str, int nlen, const freq_t *spans)
         }
 
         len += lentmp;
+        check_buffer_overflow(str, len, nlen);
     }
 
     return len;
@@ -822,6 +825,7 @@ int rig_sprintf_spectrum_avg_modes(char *str, int nlen,
         }
 
         len += lentmp;
+        check_buffer_overflow(str, len, nlen);
     }
 
     return len;
