@@ -513,16 +513,19 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     switch (rp->parm.serial.handshake)
     {
     case RIG_HANDSHAKE_NONE:
+        rig_debug(RIG_DEBUG_TRACE, "%s: Handshake=None\n", __func__);
         options.c_cflag &= ~CRTSCTS;
         options.c_iflag &= ~IXON;
         break;
 
     case RIG_HANDSHAKE_XONXOFF:
+        rig_debug(RIG_DEBUG_TRACE, "%s: Handshake=Xon/Xoff\n", __func__);
         options.c_cflag &= ~CRTSCTS;
         options.c_iflag |= IXON;        /* Enable Xon/Xoff software handshaking */
         break;
 
     case RIG_HANDSHAKE_HARDWARE:
+        rig_debug(RIG_DEBUG_TRACE, "%s: Handshake=Hardware\n", __func__);
         options.c_cflag |= CRTSCTS;     /* Enable Hardware handshaking */
         options.c_iflag &= ~IXON;
         break;
