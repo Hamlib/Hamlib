@@ -636,7 +636,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     /* now convert it .... */
 
-    sprintf(freq_str, "%02X%02X%02X%02X",
+    SNPRINTF(freq_str, sizeof(freq_str), "%02X%02X%02X%02X",
             priv->status.freq[0],
             priv->status.freq[1],
             priv->status.freq[2],

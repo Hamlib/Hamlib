@@ -888,7 +888,7 @@ static int ft757gx_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_FAKEFREQ:
-        sprintf(val, "%d", priv->fakefreq);
+        SNPRINTF(val, sizeof(val), "%d", priv->fakefreq);
         break;
 
     default:
