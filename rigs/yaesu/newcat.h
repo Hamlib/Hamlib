@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20211227"
+#define NEWCAT_VER "20220110"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -160,6 +160,7 @@ int newcat_close(RIG *rig);
 
 int newcat_set_conf(RIG *rig, token_t token, const char *val);
 int newcat_get_conf(RIG *rig, token_t token, char *val);
+int newcat_get_conf2(RIG *rig, token_t token, char *val, int val_len);
 
 int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);

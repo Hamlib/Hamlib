@@ -679,7 +679,7 @@ int newcat_set_conf(RIG *rig, token_t token, const char *val)
  * Get Configuration Token for Yaesu Radios
  */
 
-int newcat_get_conf(RIG *rig, token_t token, char *val)
+int newcat_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     int ret = RIG_OK;
     struct newcat_priv_data *priv;
@@ -701,7 +701,7 @@ int newcat_get_conf(RIG *rig, token_t token, char *val)
             RETURNFUNC(-RIG_ENOMEM);
         }
 
-        sprintf(val, "%d", priv->fast_set_commands);
+        SNPRINTF(val, val_len, "%d", priv->fast_set_commands);
         break;
 
     default:
