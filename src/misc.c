@@ -2351,6 +2351,9 @@ void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
     case RIG_FUNCTION_GET_CONF:
         return caps->get_conf;
 
+    case RIG_FUNCTION_GET_CONF2:
+        return caps->get_conf2;
+
     case RIG_FUNCTION_SEND_DTMF:
         return caps->send_dtmf;
 
