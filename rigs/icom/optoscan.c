@@ -166,7 +166,7 @@ const char *optoscan_get_info(RIG *rig)
         return NULL;
     }
 
-    sprintf(info, "OptoScan%c%c%c, software version %d.%d, "
+    SNPRINTF(info, sizeof(info), "OptoScan%c%c%c, software version %d.%d, "
             "interface version %d.%d\n",
             ackbuf[2], ackbuf[3], ackbuf[4],
             ackbuf[5] >> 4, ackbuf[5] & 0xf,
