@@ -233,7 +233,7 @@ int kpa_set_freq(AMP *amp, freq_t freq)
 
     if (!amp) { return -RIG_EINVAL; }
 
-    sprintf(cmd, "^FR%05ld;", (long)freq / 1000);
+    SNPRINTF(cmd, sizeof(cmd), "^FR%05ld;", (long)freq / 1000);
     retval = kpa_transaction(amp, cmd, NULL, 0);
 
     if (retval != RIG_OK) { return retval; }
@@ -486,7 +486,7 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
         }
 
         rig_debug(RIG_DEBUG_ERR, "%s unknown fault from %s\n", __func__, responsebuf);
-        sprintf(priv->tmpbuf, "Unknown fault code=0x%02x", fault);
+        SNPRINTF(priv->tmpbuf, sizeof(priv->tmpbuf), "Unknown fault code=0x%02x", fault);
         val->s = priv->tmpbuf;
         return RIG_OK;
 
