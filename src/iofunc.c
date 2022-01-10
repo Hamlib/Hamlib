@@ -971,6 +971,7 @@ int HAMLIB_API write_block_sync_error(hamlib_port_t *p, const unsigned char *txb
 int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
 {
     int ret;
+    int method=0;
 
     if (p->fd < 0)
     {
@@ -1006,6 +1007,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
     if (p->write_delay > 0)
     {
         int i;
+        method = 1;
 
         for (i = 0; i < count; i++)
         {
@@ -1028,6 +1030,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
     }
     else
     {
+        method = 2;
         ret = port_write(p, txbuffer, count);
 
         if (ret != count)
@@ -1045,6 +1048,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
 
     if (p->post_write_delay > 0)
     {
+        method |= 4;
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 #define POST_WRITE_DELAY_TRSHLD 10
 
@@ -1063,7 +1067,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
         /* with sequential fast writes*/
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes\n", __func__, (int)count);
+    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes, method=%d\n", __func__, (int)count, method);
     dump_hex((unsigned char *) txbuffer, count);
 
     return RIG_OK;
