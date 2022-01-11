@@ -208,7 +208,7 @@ static int thd72_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         vfonum = '1';
     }
 
-    sprintf(vfobuf, "BC %c", vfonum);
+    SNPRINTF(vfobuf, sizeof(vfobuf), "BC %c", vfonum);
     retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 
     if (retval != RIG_OK)
@@ -275,7 +275,7 @@ static int thd72_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
 
     /* Set VFO mode */
-    sprintf(vfobuf, "VMC 0,0");
+    SNPRINTF(vfobuf, sizeof(vfobuf), "VMC 0,0");
     retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 
     if (retval != RIG_OK)
@@ -283,7 +283,7 @@ static int thd72_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         return retval;
     }
 
-    sprintf(vfobuf, "VMC 1,0");
+    SNPRINTF(vfobuf, sizeof(vfobuf), "VMC 1,0");
     retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 
     if (retval != RIG_OK)
@@ -291,7 +291,7 @@ static int thd72_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         return retval;
     }
 
-    sprintf(vfobuf, "BC 1"); // leave VFOB as selected VFO
+    SNPRINTF(vfobuf, sizeof(vfobuf), "BC 1"); // leave VFOB as selected VFO
     retval = kenwood_transaction(rig, vfobuf, NULL, 0);
 
     if (retval != RIG_OK)
@@ -378,7 +378,7 @@ static int thd72_get_freq_info(RIG *rig, vfo_t vfo, char *buf)
         return retval;
     }
 
-    sprintf(cmd, "FO %c", c);
+    SNPRINTF(cmd, sizeof(cmd), "FO %c", c);
     retval = kenwood_transaction(rig, cmd, buf, 53);
     return retval;
 }
@@ -457,7 +457,7 @@ static int thd72_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               (int)ts);
     freq = roundl(freq / ts) * ts;
     // cppcheck-suppress *
-    sprintf(fbuf, "%010"PRIll, (int64_t)freq);
+    SNPRINTF(fbuf, sizeof(fbuf), "%010"PRIll, (int64_t)freq);
     memcpy(buf + 5, fbuf, 10);
     retval = kenwood_simple_transaction(rig, buf, 52);
     return retval;
@@ -580,7 +580,7 @@ static int thd72_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
         return retval;
     }
 
-    sprintf(boff, "%08ld", offs);
+    SNPRINTF(boff, sizeof(boff), "%08ld", offs);
     memcpy(buf + 42, boff, 8);
     retval = kenwood_simple_transaction(rig, buf, 52);
     return retval;
@@ -672,7 +672,7 @@ static int thd72_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     }
 
     buf[22] = (tone == 0) ? '0' : '1';
-    sprintf(tmp, "%02d", tinx);
+    SNPRINTF(tmp, sizeof(tmp), "%02d", tinx);
     memcpy(buf + 30, tmp, 2);
     return kenwood_simple_transaction(rig, buf, 52);
 }
@@ -745,7 +745,7 @@ static int thd72_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
     }
 
     buf[26] = (code == 0) ? '0' : '1';
-    sprintf(tmp, "%03d", cinx);
+    SNPRINTF(tmp, sizeof(tmp), "%03d", cinx);
     memcpy(buf + 36, tmp, 3);
     return kenwood_simple_transaction(rig, buf, 52);
 }
@@ -810,7 +810,7 @@ static int thd72_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
     }
 
     buf[24] = (tone == 0) ? '0' : '1';
-    sprintf(tmp, "%02d", tinx);
+    SNPRINTF(tmp, sizeof(tmp), "%02d", tinx);
     memcpy(buf + 33, tmp, 2);
     return kenwood_simple_transaction(rig, buf, 52);
 }
@@ -943,7 +943,7 @@ static int thd72_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else if (val.f <= 0.10) { lvlc = '1'; }
         else { lvlc = '0'; }
 
-        sprintf(cmd, "PC %c,%c", c, lvlc);
+        SNPRINTF(cmd, sizeof(cmd), "PC %c,%c", c, lvlc);
         return kenwood_simple_transaction(rig, cmd, 6);
 
     case RIG_LEVEL_VOXGAIN:
@@ -958,7 +958,7 @@ static int thd72_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_SQL:
         lvlc = '0' + (int)(val.f * 5);
-        sprintf(cmd, "PC %c,%c", c, lvlc);
+        SNPRINTF(cmd, sizeof(cmd), "PC %c,%c", c, lvlc);
         return kenwood_simple_transaction(rig, cmd, 6);
 
     case RIG_LEVEL_BALANCE:
@@ -992,7 +992,7 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_RFPOWER:
-        sprintf(cmd, "PC %c", c);
+        SNPRINTF(cmd, sizeof(cmd), "PC %c", c);
         retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
 
         if (retval != RIG_OK)
@@ -1044,7 +1044,7 @@ static int thd72_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SQL:
-        sprintf(cmd, "SQ %c", c);
+        SNPRINTF(cmd, sizeof(cmd), "SQ %c", c);
         retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
 
         if (retval != RIG_OK)
@@ -1241,7 +1241,7 @@ static int thd72_set_mem(RIG *rig, vfo_t vfo, int ch)
         return retval;
     }
 
-    sprintf(cmd, "MR %c,%03d", c, ch);
+    SNPRINTF(cmd, sizeof(cmd), "MR %c,%03d", c, ch);
     return kenwood_simple_transaction(rig, cmd, 10);
 }
 
@@ -1259,7 +1259,7 @@ static int thd72_get_mem(RIG *rig, vfo_t vfo, int *ch)
         return retval;
     }
 
-    sprintf(cmd, "MR %c", c);
+    SNPRINTF(cmd, sizeof(cmd), "MR %c", c);
     retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
 
     if (retval != RIG_OK)
@@ -1370,7 +1370,7 @@ static int thd72_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
     {
         int len;
         char cmd[16];
-        sprintf(cmd, "ME %03d", chan->channel_num);
+        SNPRINTF(cmd, sizeof(cmd), "ME %03d", chan->channel_num);
         retval = kenwood_transaction(rig, cmd, buf, sizeof(buf));
 
         if (retval != RIG_OK)

@@ -190,7 +190,7 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    sprintf(buf, "MD%c", kmode);
+    SNPRINTF(buf, sizeof(buf), "MD%c", kmode);
     retval = kenwood_transaction(rig, buf, NULL, 0);
 
     if (retval != RIG_OK) { return retval; }
@@ -203,7 +203,7 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_CWR:
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-        sprintf(buf, "FW%04d", (int)width);
+        SNPRINTF(buf, sizeof(buf), "FW%04d", (int)width);
         retval = kenwood_transaction(rig, buf, NULL, 0);
 
         if (retval != RIG_OK) { return retval; }
@@ -214,7 +214,7 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_LSB:
     case RIG_MODE_FM:
     case RIG_MODE_AM:
-        sprintf(buf, "SL%02d", (int)width / 50);
+        SNPRINTF(buf, sizeof(buf), "SL%02d", (int)width / 50);
         retval = kenwood_transaction(rig, buf, NULL, 0);
 
         if (retval != RIG_OK) { return retval; }
@@ -249,11 +249,11 @@ int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             return -RIG_EINVAL;
         }
 
-        sprintf(fctbuf, "NR%01d", status);
+        SNPRINTF(fctbuf, sizeof(fctbuf), "NR%01d", status);
         return kenwood_transaction(rig, fctbuf, NULL, 0);
 
     case RIG_FUNC_TUNER:
-        sprintf(fctbuf, "AC %c0", (0 == status) ? '0' : '1');
+        SNPRINTF(fctbuf, sizeof(fctbuf), "AC %c0", (0 == status) ? '0' : '1');
         return kenwood_transaction(rig, fctbuf, NULL, 0);
 
     default:
@@ -346,7 +346,7 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         /* set the preamplifier if a correct value is entered */
         if (kenwood_val == 0)
         {
-            sprintf(levelbuf, "PA0");
+            SNPRINTF(levelbuf, sizeof(levelbuf), "PA0");
         }
         else
         {
@@ -355,7 +355,7 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             for (i = 0; i < HAMLIB_MAXDBLSTSIZ; i++)
                 if (kenwood_val == rig->state.preamp[i])
                 {
-                    sprintf(levelbuf, "PA%01d", i + 1);
+                    SNPRINTF(levelbuf, sizeof(levelbuf), "PA%01d", i + 1);
                     break;  /* found - stop searching */
                 }
                 else
@@ -369,13 +369,13 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_RFPOWER:
         /* level for TS570D is from 0.. 100W in SSB and CW */
         kenwood_val = val.f * 100;
-        sprintf(levelbuf, "PC%03d", kenwood_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "PC%03d", kenwood_val);
         return kenwood_transaction(rig, levelbuf, NULL, 0);
 
     case RIG_LEVEL_MICGAIN:
         /* level is from 0..100 */
         kenwood_val = val.f * 100;
-        sprintf(levelbuf, "MG%03d", kenwood_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "MG%03d", kenwood_val);
         return kenwood_transaction(rig, levelbuf, NULL, 0);
 
     default:
@@ -561,7 +561,7 @@ int ts570_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
     char cmdbuf[16], ackbuf[20];
-    int cmd_len, retval;
+    int retval;
     unsigned char vfo_function;
 
     if (vfo != RIG_VFO_CURR)
@@ -582,12 +582,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         }
 
         /* set RX VFO */
-        cmd_len = sprintf(cmdbuf, "FR%c%c", vfo_function, cmd_trm(rig));
-
-        if (cmd_len < 0)
-        {
-            return -RIG_ETRUNC;
-        }
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "FR%c%c", vfo_function, cmd_trm(rig));
 
         retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
@@ -629,12 +624,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         }
 
         /* set TX VFO */
-        cmd_len = sprintf(cmdbuf, "FT%c%c", vfo_function, cmd_trm(rig));
-
-        if (cmd_len < 0)
-        {
-            return -RIG_ETRUNC;
-        }
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "FT%c%c", vfo_function, cmd_trm(rig));
 
         retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
@@ -658,12 +648,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
             /* and then set it to both vfo's */
             vfo_function = ackbuf[2];
-            cmd_len = sprintf(cmdbuf, "FT%c%c", vfo_function, cmd_trm(rig));
-
-            if (cmd_len < 0)
-            {
-                return -RIG_ETRUNC;
-            }
+            SNPRINTF(cmdbuf, sizeof(cmdbuf), "FT%c%c", vfo_function, cmd_trm(rig));
 
             retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
@@ -691,7 +676,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 int ts570_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char cmdbuf[30];
-    int retval, cmd_len;
+    int retval;
     int num, freq, tx_freq, tone;
     char mode, tx_mode, tones;
 
@@ -728,13 +713,8 @@ int ts570_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         tone = 0;
     }
 
-    cmd_len = sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ",
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "MW0 %02d%011d%c0%c%02d ",
                       num, freq, mode, tones, tone);
-
-    if (cmd_len < 0)
-    {
-        return -RIG_ETRUNC;
-    }
 
     retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
@@ -743,13 +723,8 @@ int ts570_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         return retval;
     }
 
-    cmd_len = sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ",
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "MW1 %02d%011d%c0%c%02d ",
                       num, tx_freq, tx_mode, tones, tone);
-
-    if (cmd_len < 0)
-    {
-        return -RIG_ETRUNC;
-    }
 
     retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
@@ -799,7 +774,7 @@ int ts570_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     char buf[50];
     unsigned char c;
-    int retval, len, i;
+    int retval, i;
 
     if (rit == 0)
     {
@@ -833,12 +808,7 @@ int ts570_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         c = 'D';
     }
 
-    len = sprintf(buf, "R%c", c);
-
-    if (len < 0)
-    {
-        return -RIG_ETRUNC;
-    }
+    SNPRINTF(buf, sizeof(buf), "R%c", c);
 
     retval = kenwood_transaction(rig, "RC", NULL, 0);
 
@@ -864,7 +834,7 @@ int ts570_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     char buf[50];
     unsigned char c;
-    int retval, len, i;
+    int retval, i;
 
     if (rit == 0)
     {
@@ -898,12 +868,7 @@ int ts570_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         c = 'D';
     }
 
-    len = sprintf(buf, "R%c", c);
-
-    if (len < 0)
-    {
-        return -RIG_ETRUNC;
-    }
+    SNPRINTF(buf, sizeof(buf), "R%c", c);
 
     retval = kenwood_transaction(rig, "RC", NULL, 0);
 

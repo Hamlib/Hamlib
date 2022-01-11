@@ -1609,7 +1609,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         return -RIG_EINVAL;
     }
 
-    sprintf(buf, "MD$%c", '0' + kmode);
+    snprintf(buf, sizeof(buf), "MD$%c", '0' + kmode);
     err = kenwood_transaction(rig, buf, NULL, 0);
 
     if (err != RIG_OK)

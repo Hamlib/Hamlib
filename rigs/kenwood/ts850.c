@@ -287,7 +287,7 @@ int ts850_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         c = 'D';
     }
 
-    sprintf(buf, "R%c", c);
+    SNPRINTF(buf, sizeof(buf), "R%c", c);
 
     retval = kenwood_transaction(rig, "RC", NULL, 0);
 
@@ -350,7 +350,7 @@ int ts850_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
         c = 'D';
     }
 
-    sprintf(buf, "R%c", c);
+    SNPRINTF(buf, sizeof(buf), "R%c", c);
 
     for (i = 0; i < labs(lrint(xit / 20)); i++)
     {
@@ -553,7 +553,7 @@ int ts850_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         tone = 0;
     }
 
-    sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ",
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "MW0 %02d%011d%c0%c%02d ",
             num, freq, mode, tones, tone);
     retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 
@@ -562,7 +562,7 @@ int ts850_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         return retval;
     }
 
-    sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ",
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "MW1 %02d%011d%c0%c%02d ",
             num, tx_freq, tx_mode, tones, tone);
     retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
 

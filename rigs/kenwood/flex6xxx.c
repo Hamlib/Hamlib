@@ -441,7 +441,7 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    sprintf(buf, "MD%c", '0' + kmode);
+    SNPRINTF(buf, sizeof(buf), "MD%c", '0' + kmode);
     err = kenwood_transaction(rig, buf, NULL, 0);
 
     if (err != RIG_OK)
@@ -471,11 +471,11 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     switch (vfo)
     {
     case RIG_VFO_A:
-        sprintf(buf, "ZZFI%02d;", idx);
+        SNPRINTF(buf, sizeof(buf), "ZZFI%02d;", idx);
         break;
 
     case RIG_VFO_B:
-        sprintf(buf, "ZZFJ%02d;", idx);
+        SNPRINTF(buf, sizeof(buf), "ZZFJ%02d;", idx);
         break;
 
     default:
@@ -513,7 +513,7 @@ static int powersdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    sprintf(buf, "ZZMD%02d", kmode);
+    SNPRINTF(buf, sizeof(buf), "ZZMD%02d", kmode);
     err = kenwood_transaction(rig, buf, NULL, 0);
 
     if (err != RIG_OK)
@@ -548,11 +548,11 @@ static int powersdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             // 150Hz on the low end should be enough
             // Set high to the width requested
-            sprintf(buf, "ZZFL00150;ZZFH%05d;", (int)width);
+            SNPRINTF(buf, sizeof(buf), "ZZFL00150;ZZFH%05d;", (int)width);
         }
         else
         {
-            sprintf(buf, "ZZFI%02d;", idx);
+            SNPRINTF(buf, sizeof(buf), "ZZFI%02d;", idx);
         }
 
         break;

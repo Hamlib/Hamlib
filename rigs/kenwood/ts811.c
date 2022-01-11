@@ -76,7 +76,7 @@ ts811_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;
     }
 
-    sprintf(cmdbuf, "FN%c", vfo_function);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "FN%c", vfo_function);
     return kenwood_transaction(rig, cmdbuf, NULL, 0);
 }
 

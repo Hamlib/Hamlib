@@ -387,7 +387,7 @@ int ts2000_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     }
 
     /* put channel num in the command string */
-    sprintf(cmd, "MR0%03d;", chan->channel_num);
+    SNPRINTF(cmd, sizeof(cmd), "MR0%03d;", chan->channel_num);
 
     err = kenwood_transaction(rig, cmd, buf, sizeof(buf));
 
@@ -788,7 +788,7 @@ int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
     if (chan->split == RIG_SPLIT_ON)
     {
-        sprintf(buf, "MW1%03d%011u%c%c%c%02d%02d%03d%c%c%09d0%c%c%s;\n",
+        SNPRINTF(buf, sizeof(buf), "MW1%03d%011u%c%c%c%02d%02d%03d%c%c%09d0%c%c%s;\n",
                 chan->channel_num,
                 (unsigned) chan->tx_freq,       /*  4 - frequency */
                 '0' + tx_mode,                  /*  5 - mode */

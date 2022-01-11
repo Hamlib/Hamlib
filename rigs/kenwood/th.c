@@ -243,7 +243,7 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     freq_sent = freq_sent >= MHz(470) ? (round(freq_sent / 10000) * 10000) :
                 freq_sent;
     // cppcheck-suppress *
-    sprintf(buf, "FQ %011"PRIll",%X", (int64_t) freq_sent, step);
+    SNPRINTF(buf, sizeof(buf), "FQ %011"PRIll",%X", (int64_t) freq_sent, step);
 
     return kenwood_transaction(rig, buf, buf, sizeof buf);
 }
@@ -335,7 +335,7 @@ th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
     }
 
-    sprintf(mdbuf, "MD %c", kmode);
+    SNPRINTF(mdbuf, sizeof(mdbuf), "MD %c", kmode);
 
     return kenwood_transaction(rig, mdbuf, mdbuf, sizeof mdbuf);
 }
@@ -570,7 +570,7 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 
     /* Get mode of the VFO band */
 
-    sprintf(cmdbuf, "VMC %c", vfoc);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "VMC %c", vfoc);
 
     retval = kenwood_safe_transaction(rig, cmdbuf, buf, 10, 7);
 
@@ -1154,7 +1154,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_RAWSTR:
-        sprintf(buf, "SM %c", vch);
+        SNPRINTF(buf, sizeof(buf), "SM %c", vch);
 
         // XXX use kenwood_safe_transaction
         retval = kenwood_transaction(rig, buf, ackbuf, sizeof(ackbuf));
@@ -1177,7 +1177,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SQL:
-        sprintf(buf, "SQ %c", vch);
+        SNPRINTF(buf, sizeof(buf), "SQ %c", vch);
         retval = kenwood_safe_transaction(rig, buf, ackbuf, 10, 7);
 
         if (retval != RIG_OK)
@@ -1201,7 +1201,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_AF:
-        sprintf(buf, "AG %c", vch);
+        SNPRINTF(buf, sizeof(buf), "AG %c", vch);
         retval = kenwood_transaction(rig, buf, ackbuf, sizeof(ackbuf));
 
         if (retval != RIG_OK)
@@ -1225,7 +1225,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-        sprintf(buf, "PC %c", vch);
+        SNPRINTF(buf, sizeof(buf), "PC %c", vch);
         retval = kenwood_transaction(rig, buf, ackbuf, sizeof(ackbuf));
 
         if (retval != RIG_OK)
@@ -1345,7 +1345,7 @@ int th_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
 
     case RIG_LEVEL_RFPOWER :
-        sprintf(buf, "PC %c,%01d", vch,
+        SNPRINTF(buf, sizeof(buf), "PC %c,%01d", vch,
                 (int)(val.f * (rig->caps->level_gran[LVL_RFPOWER].max.i -
                                rig->caps->level_gran[LVL_RFPOWER].min.i))
                 + rig->caps->level_gran[LVL_RFPOWER].min.i);
@@ -1353,26 +1353,26 @@ int th_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case RIG_LEVEL_SQL :
-        sprintf(buf, "SQ %c,%02x", vch,
+        SNPRINTF(buf, sizeof(buf), "SQ %c,%02x", vch,
                 (int)(val.f * (rig->caps->level_gran[LVL_SQL].max.i -
                                rig->caps->level_gran[LVL_SQL].min.i))
                 + rig->caps->level_gran[LVL_SQL].min.i);
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case RIG_LEVEL_AF :
-        sprintf(buf, "AG %c,%02x", vch, (int)(val.f * 32.0));
+        SNPRINTF(buf, sizeof(buf), "AG %c,%02x", vch, (int)(val.f * 32.0));
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case RIG_LEVEL_ATT :
-        sprintf(buf, "ATT %c", val.i ? '1' : '0');
+        SNPRINTF(buf, sizeof(buf), "ATT %c", val.i ? '1' : '0');
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case RIG_LEVEL_BALANCE :
-        sprintf(buf, "BAL %c", '4' - (int)(val.f * ('4' - '0')));
+        SNPRINTF(buf, sizeof(buf), "BAL %c", '4' - (int)(val.f * ('4' - '0')));
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case RIG_LEVEL_VOXGAIN:
-        sprintf(buf, "VXG %d", (int)(val.f * 9));
+        SNPRINTF(buf, sizeof(buf), "VXG %d", (int)(val.f * 9));
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case RIG_LEVEL_VOXDELAY: /* "VXD" */
@@ -1949,11 +1949,11 @@ int th_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
         if (chan_caps[1].type == RIG_MTYPE_PRIO)
         {
             /* Info */
-            sprintf(req, "MR %s0,I-%01d", mr_extra, channel_num);
+            SNPRINTF(req, sizeof(req), "MR %s0,I-%01d", mr_extra, channel_num);
         }
         else
         {
-            sprintf(req, "MR %s0,%03d", mr_extra, channel_num);
+            SNPRINTF(req, sizeof(req), "MR %s0,%03d", mr_extra, channel_num);
         }
 
         break;
@@ -1962,12 +1962,12 @@ int th_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
         if (chan_caps[1].type == RIG_MTYPE_EDGE)
         {
             snprintf(req, sizeof(req), "MR %s0,L%01d", mr_extra, channel_num);
-            sprintf(chan->channel_desc, "L%01d", channel_num);
+            SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "L%01d", channel_num);
         }
         else
         {
             snprintf(req, sizeof(req), "MR %s0,U%01d", mr_extra, channel_num);
-            sprintf(chan->channel_desc, "U%01d", channel_num);
+            SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "U%01d", channel_num);
         }
 
         break;
@@ -1976,35 +1976,35 @@ int th_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
         if (chan_caps->startc == chan_caps->endc)
         {
             snprintf(req, sizeof(req), "MR %s0,PR", mr_extra);
-            sprintf(chan->channel_desc, "Pr");
+            SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "Pr");
         }
         else
         {
             snprintf(req, sizeof(req), "MR %s0,PR%01d", mr_extra, channel_num + 1);
-            sprintf(chan->channel_desc, "Pr%01d", channel_num + 1);
+            SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "Pr%01d", channel_num + 1);
         }
 
         break;
 
     case RIG_MTYPE_CALL:
-        sprintf(req, "CR 0,%01d", channel_num);
+        SNPRINTF(req, sizeof(req), "CR 0,%01d", channel_num);
 
-        if (chan->channel_num == chan_caps->startc) { sprintf(chan->channel_desc, "Call V"); }
-        else if (chan->channel_num == chan_caps->endc) { sprintf(chan->channel_desc, "Call U"); }
-        else { sprintf(chan->channel_desc, "Call"); }
+        if (chan->channel_num == chan_caps->startc) { SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "Call V"); }
+        else if (chan->channel_num == chan_caps->endc) { SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "Call U"); }
+        else { SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "Call"); }
 
         break;
 
     case RIG_MTYPE_BAND:
-        sprintf(req, "VR %01X", channel_num);
-        sprintf(chan->channel_desc, "BAND %01X", channel_num);
+        SNPRINTF(req, sizeof(req), "VR %01X", channel_num);
+        SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "BAND %01X", channel_num);
         break;
 
     default:
         return -RIG_EINVAL;
     }
 
-    sprintf(membuf, "%s", req);
+    SNPRINTF(membuf, sizeof(membuf), "%s", req);
 
     retval = kenwood_transaction(rig, membuf, ackbuf, sizeof(ackbuf));
 
@@ -2140,7 +2140,7 @@ int th_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     {
         /* split ? */
         req[3 + strlen(mr_extra)] = '1';
-        sprintf(membuf, "%s", req);
+        SNPRINTF(membuf, sizeof(membuf), "%s", req);
         retval = kenwood_transaction(rig, membuf, ackbuf, sizeof(ackbuf));
 
         if (retval == RIG_OK)
@@ -2160,11 +2160,11 @@ int th_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
         if (chan_caps[1].type == RIG_MTYPE_PRIO)
         {
-            sprintf(membuf, "MNA %sI-%01d", mr_extra, channel_num);
+            SNPRINTF(membuf, sizeof(membuf), "MNA %sI-%01d", mr_extra, channel_num);
         }
         else
         {
-            sprintf(membuf, "MNA %s%03d", mr_extra, channel_num);
+            SNPRINTF(membuf, sizeof(membuf), "MNA %s%03d", mr_extra, channel_num);
         }
 
         /* Get memory name */
@@ -2343,13 +2343,13 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         if (chan_caps[1].type == RIG_MTYPE_PRIO)
         {
             /* Info */
-            sprintf(req, "MW %s0,I-%01d", mr_extra, channel_num);
+            SNPRINTF(req, sizeof(req), "MW %s0,I-%01d", mr_extra, channel_num);
             channel_desc = chan->channel_desc;
         }
         else
         {
             /* Regular */
-            sprintf(req, "MW %s0,%03d", mr_extra, channel_num);
+            SNPRINTF(req, sizeof(req), "MW %s0,%03d", mr_extra, channel_num);
             channel_desc = chan->channel_desc;
         }
 
@@ -2358,11 +2358,11 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     case RIG_MTYPE_EDGE:
         if (chan_caps[1].type == RIG_MTYPE_EDGE)
         {
-            sprintf(req, "MW %s0,L%01d", mr_extra, channel_num);
+            SNPRINTF(req, sizeof(req), "MW %s0,L%01d", mr_extra, channel_num);
         }
         else
         {
-            sprintf(req, "MW %s0,U%01d", mr_extra, channel_num);
+            SNPRINTF(req, sizeof(req), "MW %s0,U%01d", mr_extra, channel_num);
         }
 
         break;
@@ -2370,21 +2370,21 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     case RIG_MTYPE_PRIO:
         if (chan_caps->startc == chan_caps->endc)
         {
-            sprintf(req, "MW %s0,PR", mr_extra);
+            SNPRINTF(req, sizeof(req), "MW %s0,PR", mr_extra);
         }
         else
         {
-            sprintf(req, "MW %s0,PR%01d", mr_extra, channel_num + 1);
+            SNPRINTF(req, sizeof(req), "MW %s0,PR%01d", mr_extra, channel_num + 1);
         }
 
         break;
 
     case RIG_MTYPE_CALL:
-        sprintf(req, "CW 0,%01d", channel_num);
+        SNPRINTF(req, sizeof(req), "CW 0,%01d", channel_num);
         break;
 
     case RIG_MTYPE_BAND:
-        sprintf(req, "VW %01X", channel_num);
+        SNPRINTF(req, sizeof(req), "VW %01X", channel_num);
         break;
 
     default:
@@ -2396,7 +2396,7 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
     if (chan_caps->mem_caps.flags)
     {
-        sprintf(lockoutstr, ",%d", lockout);
+        SNPRINTF(lockoutstr, sizeof(lockoutstr), ",%d", lockout);
     }
     else
     {
@@ -2435,7 +2435,7 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     {
 
         /* Without DCS,mode */
-        sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
+        SNPRINTF(membuf, sizeof(membuf), "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
                 req, (int64_t)chan->freq, step, shift, rev, tone,
                 ctcss, tonefq, ctcssfq,
                 (int64_t)labs((long)(chan->rptr_offs)), lockoutstr
@@ -2457,7 +2457,7 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
         req[3 + strlen(mr_extra)] = '1';
 
-        sprintf(membuf, "%s,%011"PRIll",%X", req, (int64_t)chan->tx_freq, step);
+        SNPRINTF(membuf, sizeof(membuf), "%s,%011"PRIll",%X", req, (int64_t)chan->tx_freq, step);
         retval = kenwood_transaction(rig, membuf, membuf, sizeof membuf);
 
         if (retval != RIG_OK)
@@ -2472,11 +2472,11 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         /* TODO: check strlen(channel_desc) < rig->caps->chan_desc_sz */
         if (chan_caps[1].type == RIG_MTYPE_PRIO)
         {
-            sprintf(membuf, "MNA %sI-%01d,%s", mr_extra, channel_num, channel_desc);
+            SNPRINTF(membuf, sizeof(membuf), "MNA %sI-%01d,%s", mr_extra, channel_num, channel_desc);
         }
         else
         {
-            sprintf(membuf, "MNA %s%03d,%s", mr_extra, channel_num, channel_desc);
+            SNPRINTF(membuf, sizeof(membuf), "MNA %s%03d,%s", mr_extra, channel_num, channel_desc);
         }
 
         retval = kenwood_transaction(rig, membuf, membuf, sizeof membuf);
