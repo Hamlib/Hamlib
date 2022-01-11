@@ -752,7 +752,7 @@ pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct pcr_priv_data *priv;
     struct pcr_rcvr *rcvr;
     unsigned char buf[20];
-    int freq_len, err;
+    int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo = %s, freq = %.0f\n",
               __func__, rig_strvfo(vfo), freq);
@@ -761,12 +761,10 @@ pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
     // cppcheck-suppress *
-    freq_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
+    SNPRINTF((char *) buf, sizeof(buf), "K%c%010" PRIll "0%c0%c00",
                        is_sub_rcvr(rig, vfo) ? '1' : '0',
                        (int64_t) freq,
                        rcvr->last_mode, rcvr->last_filter);
-
-    buf[freq_len] = '\0';
 
     err = pcr_transaction(rig, (char *) buf);
 
@@ -810,7 +808,7 @@ pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                                         vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
     unsigned char buf[20];
-    int buf_len, err;
+    int err;
     int pcrmode;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: mode = %s, width = %d\n",
@@ -904,14 +902,9 @@ pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: filter set to %d (%c)\n",
                   __func__, (int)width, pcrfilter);
 
-        buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
+        SNPRINTF((char *) buf, sizeof(buf), "K%c%010" PRIll "0%c0%c00",
                           is_sub_rcvr(rig, vfo) ? '1' : '0',
                           (int64_t) rcvr->last_freq, pcrmode, pcrfilter);
-
-        if (buf_len < 0)
-        {
-            return -RIG_ETRUNC;
-        }
 
         err = pcr_transaction(rig, (char *) buf);
 
@@ -924,14 +917,9 @@ pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     else
     {
-        buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
+        SNPRINTF((char *) buf, sizeof(buf), "K%c%010" PRIll "0%c0%c00",
                           is_sub_rcvr(rig, vfo) ? '1' : '0',
                           (int64_t) rcvr->last_freq, pcrmode, rcvr->last_filter);
-
-        if (buf_len < 0)
-        {
-            return -RIG_ETRUNC;
-        }
 
         err = pcr_transaction(rig, (char *) buf);
 
@@ -1072,7 +1060,7 @@ pcr_get_info(RIG *rig)
         country = "Not queried yet";
     }
 
-    sprintf(priv->info, "Firmware v%d.%d, Protocol v%d.%d, "
+    SNPRINTF(priv->info, sizeof(priv->info), "Firmware v%d.%d, Protocol v%d.%d, "
             "Optional devices:%s%s%s, Country: %s",
             priv->firmware / 10, priv->firmware % 10,
             priv->protocol / 10, priv->protocol % 10,
@@ -1443,7 +1431,7 @@ pcr_set_level_cmd(RIG *rig, const char *base, int level)
         return -RIG_EINVAL;
     }
 
-    snprintf(buf, 12, "%s%02X", base, level);
+    SNPRINTF(buf, 12, "%s%02X", base, level);
     buf[11] = '\0';
     return pcr_transaction(rig, buf);
 }
