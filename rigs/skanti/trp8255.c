@@ -249,7 +249,6 @@ int cu_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct cu_priv_data *priv = (struct cu_priv_data *)rig->state.priv;
     char cmdbuf[16];
-    int cmd_len;
     int ret;
 
     if (freq >= MHz(100))
@@ -258,9 +257,9 @@ int cu_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     /* RX freq */
-    cmd_len = sprintf(cmdbuf, ":%06u"CR, (unsigned)(freq / Hz(100)));
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), ":%06u"CR, (unsigned)(freq / Hz(100)));
 
-    ret = cu_transaction(rig, cmdbuf, cmd_len);
+    ret = cu_transaction(rig, cmdbuf, strlen(cmdbuf));
 
     if (ret != RIG_OK)
     {
@@ -287,7 +286,6 @@ static int cu_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 int cu_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char cmdbuf[16];
-    int cmd_len;
 
     if (freq >= MHz(100))
     {
@@ -295,9 +293,9 @@ int cu_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     /* TX freq */
-    cmd_len = sprintf(cmdbuf, ";%06u"CR, (unsigned)(freq / Hz(100)));
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), ";%06u"CR, (unsigned)(freq / Hz(100)));
 
-    return cu_transaction(rig, cmdbuf, cmd_len);
+    return cu_transaction(rig, cmdbuf, strlen(cmdbuf));
 }
 
 int cu_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
@@ -357,9 +355,8 @@ int cu_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int cu_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char cmdbuf[16];
-    int cmd_len;
 
-    cmd_len = 1;
+    cmdbuf[1] = 0;
 
     switch (level)
     {
@@ -408,14 +405,14 @@ int cu_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_AF:
-        cmd_len = sprintf(cmdbuf, "y%02u"CR, (unsigned)(99 - val.f * 99));
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "y%02u"CR, (unsigned)(99 - val.f * 99));
         break;
 
     default:
         return -RIG_EINVAL;
     }
 
-    return cu_transaction(rig, cmdbuf, cmd_len);
+    return cu_transaction(rig, cmdbuf, strlen(cmdbuf));
 }
 
 int cu_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
@@ -441,40 +438,35 @@ int cu_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int cu_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
     char cmdbuf[16];
-    int cmd_len;
 
-    cmd_len = sprintf(cmdbuf, "w%c"CR,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "w%c"CR,
                       ts >= s_kHz(1) ? '2' :
                       ts >= s_Hz(100) ? '1' : '0');
 
-    return cu_transaction(rig, cmdbuf, cmd_len);
+    return cu_transaction(rig, cmdbuf, strlen(cmdbuf));
 }
 
 int cu_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     char cmdbuf[16];
-    int cmd_len;
-
-    cmd_len = 1;
-
     switch (parm)
     {
     case RIG_PARM_TIME:
         /* zap seconds */
         val.i /= 60;
-        cmd_len = sprintf(cmdbuf, "f%02d%02d"CR,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "f%02d%02d"CR,
                           val.i / 60, val.i % 60);
         break;
 
     case RIG_PARM_BACKLIGHT:
-        cmd_len = sprintf(cmdbuf, "z%1u"CR, (unsigned)(val.f * 5));
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "z%1u"CR, (unsigned)(val.f * 5));
         break;
 
     default:
         return -RIG_EINVAL;
     }
 
-    return cu_transaction(rig, cmdbuf, cmd_len);
+    return cu_transaction(rig, cmdbuf, strlen(cmdbuf));
 }
 
 
@@ -502,35 +494,34 @@ int cu_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     struct cu_priv_data *priv = (struct cu_priv_data *)rig->state.priv;
     char cmdbuf[16];
-    int cmd_len;
 
     switch (op)
     {
     case RIG_OP_TUNE:
         cmdbuf[0] = 'R';
-        cmd_len = 1;
+        cmdbuf[1] = 0;
         break;
 
     case RIG_OP_CPY:
         cmdbuf[0] = ':';
         cmdbuf[1] = ';';
         cmdbuf[2] = 0x0d;
-        cmd_len = 3;
+        cmdbuf[3] = 0;
         break;
 
     case RIG_OP_TO_VFO:
-        cmd_len = sprintf(cmdbuf, "<%02u"CR, (unsigned)priv->ch);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "<%02u"CR, (unsigned)priv->ch);
         break;
 
     case RIG_OP_FROM_VFO:
-        cmd_len = sprintf(cmdbuf, "d%02u"CR, (unsigned)priv->ch);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "d%02u"CR, (unsigned)priv->ch);
         break;
 
     default:
         return -RIG_EINVAL;
     }
 
-    return cu_transaction(rig, cmdbuf, cmd_len);
+    return cu_transaction(rig, cmdbuf, strlen(cmdbuf));
 }
 
 
