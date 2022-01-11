@@ -873,7 +873,7 @@ static int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-static int ft757gx_get_conf(RIG *rig, token_t token, char *val)
+static int ft757gx_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct ft757_priv_data *priv;
     struct rig_state *rs;
@@ -888,7 +888,7 @@ static int ft757gx_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_FAKEFREQ:
-        SNPRINTF(val, sizeof(val), "%d", priv->fakefreq);
+        SNPRINTF(val, val_len, "%d", priv->fakefreq);
         break;
 
     default:
@@ -898,6 +898,12 @@ static int ft757gx_get_conf(RIG *rig, token_t token, char *val)
 
     return RIG_OK;
 }
+
+static int ft757gx_get_conf(RIG *rig, token_t token, char *val)
+{
+    return ft757gx_get_conf2(rig, token, val, 128);
+}
+
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
