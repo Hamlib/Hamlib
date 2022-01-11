@@ -1198,7 +1198,7 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         vfo = RIG_VFO_B; // if split always TX on VFOB
     }
 
-    sprintf(cmd_arg,
+    SNPRINTF(cmd_arg, sizeof(cmd_arg),
             "<params><param><value><double>%.0f</double></value></param></params>", freq);
 
     value_t val;
@@ -1255,7 +1255,7 @@ static int flrig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    sprintf(cmd_arg,
+    SNPRINTF(cmd_arg, sizeof(cmd_arg),
             "<params><param><value><i4>%d</i4></value></param></params>",
             ptt);
 
@@ -1457,7 +1457,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (p) { *p = 0; } // remove any other pipe
 
-    sprintf(cmd_arg, "<params><param><value>%s</value></param></params>", pttmode);
+    SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value>%s</value></param></params>", pttmode);
     free(ttmode);
 
     if (!priv->has_get_modeA)
@@ -1513,7 +1513,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // Need to update the bandwidth
     if (width > 0 && needBW)
     {
-        sprintf(cmd_arg, "<params><param><value><i4>%ld</i4></value></param></params>",
+        SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value><i4>%ld</i4></value></param></params>",
                 width);
 
         retval = flrig_transaction(rig, "rig.set_bandwidth", cmd_arg, NULL, 0);
@@ -1750,7 +1750,7 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
         vfo = rig->state.current_vfo;
     }
 
-    sprintf(cmd_arg, "<params><param><value>%s</value></param></params>",
+    SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value>%s</value></param></params>",
             vfo == RIG_VFO_A ? "A" : "B");
     retval = flrig_transaction(rig, "rig.set_AB", cmd_arg, NULL, 0);
 
@@ -1768,7 +1768,7 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
     /* so if we are in split and asked for A we have to turn split back on */
     if (priv->split && vfo == RIG_VFO_A)
     {
-        sprintf(cmd_arg, "<params><param><value><i4>%d</i4></value></param></params>",
+        SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value><i4>%d</i4></value></param></params>",
                 priv->split);
         retval = flrig_transaction(rig, "rig.set_split", cmd_arg, NULL, 0);
 
@@ -1861,7 +1861,7 @@ static int flrig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (tx_freq == qtx_freq) { RETURNFUNC(RIG_OK); }
 
-    sprintf(cmd_arg,
+    SNPRINTF(cmd_arg, sizeof(cmd_arg),
             "<params><param><value><double>%.6f</double></value></param></params>",
             tx_freq);
     retval = flrig_transaction(rig, "rig.set_vfoB", cmd_arg, NULL, 0);
@@ -1922,7 +1922,7 @@ static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         RETURNFUNC(RIG_OK);  // just return OK and ignore this
     }
 
-    sprintf(cmd_arg, "<params><param><value><i4>%d</i4></value></param></params>",
+    SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value><i4>%d</i4></value></param></params>",
             split);
     retval = flrig_transaction(rig, "rig.set_split", cmd_arg, NULL, 0);
 
@@ -2072,7 +2072,7 @@ static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    sprintf(cmd_arg,
+    SNPRINTF(cmd_arg, sizeof(cmd_arg),
             "<params><param><value><%s>%d</%s></value></param></params>",
             param_type, (int)val.f, param_type);
 
@@ -2248,15 +2248,15 @@ static int flrig_set_ext_parm(RIG *rig, token_t token, value_t val)
 
 
     case RIG_CONF_COMBO:
-        sprintf(lstr, "%d", val.i);
+        SNPRINTF(lstr, sizeof(lstr), "%d", val.i);
         break;
 
     case RIG_CONF_NUMERIC:
-        sprintf(lstr, "%f", val.f);
+        SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
         break;
 
     case RIG_CONF_CHECKBUTTON:
-        sprintf(lstr, "%s", val.i ? "ON" : "OFF");
+        SNPRINTF(lstr, sizeof(lstr), "%s", val.i ? "ON" : "OFF");
         break;
 
     case RIG_CONF_BUTTON:
@@ -2344,11 +2344,11 @@ static int flrig_set_ext_parm(RIG *rig, setting_t parm, value_t val)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
-        sprintf(pstr, "%f", val.f);
+        SNPRINTF(pstr, sizeof(pstr), "%f", val.f);
     }
     else
     {
-        sprintf(pstr, "%d", val.i);
+        SNPRINTF(pstr, sizeof(pstr), "%d", val.i);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,

@@ -74,7 +74,7 @@ static int netrotctl_transaction(ROT *rot, char *cmd, int len, char *buf)
 
 static int netrotctl_open(ROT *rot)
 {
-    int ret, len;
+    int ret;
     struct rot_state *rs = &rot->state;
     int prot_ver;
     char cmd[CMD_MAX];
@@ -83,9 +83,9 @@ static int netrotctl_open(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 
-    len = sprintf(cmd, "\\dump_state\n");
+    SNPRINTF(cmd, sizeof(cmd), "\\dump_state\n");
 
-    ret = netrotctl_transaction(rot, cmd, len, buf);
+    ret = netrotctl_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret <= 0)
     {
@@ -158,16 +158,16 @@ static int netrotctl_close(ROT *rot)
 
 static int netrotctl_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %f %f\n", __func__,
               az, el);
 
-    len = sprintf(cmd, "P %f %f\n", az, el);
+    SNPRINTF(cmd, sizeof(cmd), "P %f %f\n", az, el);
 
-    ret = netrotctl_transaction(rot, cmd, len, buf);
+    ret = netrotctl_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
@@ -181,15 +181,15 @@ static int netrotctl_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
 static int netrotctl_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "p\n");
+    SNPRINTF(cmd, sizeof(cmd), "p\n");
 
-    ret = netrotctl_transaction(rot, cmd, len, buf);
+    ret = netrotctl_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret <= 0)
     {
@@ -213,15 +213,15 @@ static int netrotctl_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
 static int netrotctl_stop(ROT *rot)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "S\n");
+    SNPRINTF(cmd, sizeof(cmd), "S\n");
 
-    ret = netrotctl_transaction(rot, cmd, len, buf);
+    ret = netrotctl_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
@@ -236,15 +236,15 @@ static int netrotctl_stop(ROT *rot)
 
 static int netrotctl_park(ROT *rot)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "K\n");
+    SNPRINTF(cmd, sizeof(cmd), "K\n");
 
-    ret = netrotctl_transaction(rot, cmd, len, buf);
+    ret = netrotctl_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
@@ -258,15 +258,15 @@ static int netrotctl_park(ROT *rot)
 
 static int netrotctl_reset(ROT *rot, rot_reset_t reset)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "R %d\n", reset);
+    SNPRINTF(cmd, sizeof(cmd), "R %d\n", reset);
 
-    ret = netrotctl_transaction(rot, cmd, len, buf);
+    ret = netrotctl_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
@@ -280,15 +280,15 @@ static int netrotctl_reset(ROT *rot, rot_reset_t reset)
 
 static int netrotctl_move(ROT *rot, int direction, int speed)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "M %d %d\n", direction, speed);
+    SNPRINTF(cmd, sizeof(cmd), "M %d %d\n", direction, speed);
 
-    ret = netrotctl_transaction(rot, cmd, len, buf);
+    ret = netrotctl_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
@@ -302,15 +302,15 @@ static int netrotctl_move(ROT *rot, int direction, int speed)
 
 static const char *netrotctl_get_info(ROT *rot)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     static char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = sprintf(cmd, "_\n");
+    SNPRINTF(cmd, sizeof(cmd), "_\n");
 
-    ret = netrotctl_transaction(rot, cmd, len, buf);
+    ret = netrotctl_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret < 0)
     {
