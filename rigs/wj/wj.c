@@ -283,14 +283,14 @@ int wj_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int wj_get_conf(RIG *rig, token_t token, char *val)
+int wj_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
     switch (token)
     {
     case TOK_RIGID:
-        sprintf(val, "%u", priv->receiver_id);
+        SNPRINTF(val, val_len, "%u", priv->receiver_id);
         break;
 
     default:
@@ -298,6 +298,11 @@ int wj_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int wj_get_conf(RIG *rig, token_t token, char *val)
+{
+    return wj_get_conf2(rig, token, val, 128);
 }
 
 /*
