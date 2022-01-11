@@ -445,7 +445,7 @@ int dttsp_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int dttsp_get_conf(RIG *rig, token_t token, char *val)
+int dttsp_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct dttsp_priv_data *priv;
     struct rig_state *rs;
@@ -456,11 +456,11 @@ int dttsp_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_TUNER_MODEL:
-        sprintf(val, "%u", priv->tuner_model);
+        SNPRINTF(val, val_len, "%u", priv->tuner_model);
         break;
 
     case TOK_SAMPLE_RATE:
-        sprintf(val, "%d", priv->sample_rate);
+        SNPRINTF(val, val_len, "%d", priv->sample_rate);
         break;
 
     default:
@@ -477,6 +477,11 @@ int dttsp_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int dttsp_get_conf(RIG *rig, token_t token, char *val)
+{
+    return dttsp_get_conf2(rig, token, val, 128);
 }
 
 int dttsp_init(RIG *rig)
@@ -688,7 +693,6 @@ int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int ret;
     char fstr[20];
     char buf[32];
-    int buf_len;
     shortfreq_t max_delta;
     freq_t freq_offset;
 
@@ -735,8 +739,8 @@ int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               __func__, fstr, priv->rx_delta_f);
 
     /* setRxFrequenc */
-    buf_len = sprintf(buf, "setOsc %d\n", priv->rx_delta_f);
-    ret = send_command(rig, buf, buf_len);
+    SNPRINTF(buf, sizeof(buf), "setOsc %d\n", priv->rx_delta_f);
+    ret = send_command(rig, buf, strlen(buf));
 
     return ret;
 }
@@ -783,14 +787,13 @@ static enum dttsp_mode_e rmode2dttsp(rmode_t mode)
 int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char buf[32];
-    int buf_len;
     int ret = RIG_OK;
     int filter_l, filter_h;
 
     /* DttSP set mode */
 
-    buf_len = sprintf(buf, "setMode %d\n", rmode2dttsp(mode));
-    ret = send_command(rig, buf, buf_len);
+    SNPRINTF(buf, sizeof(buf), "setMode %d\n", rmode2dttsp(mode));
+    ret = send_command(rig, buf, strlen(buf));
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n",
               __func__, buf);
@@ -832,8 +835,8 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    buf_len = sprintf(buf, "setFilter %d %d\n", filter_l, filter_h);
-    ret = send_command(rig, buf, buf_len);
+    SNPRINTF(buf, sizeof(buf), "setFilter %d %d\n", filter_l, filter_h);
+    ret = send_command(rig, buf, strlen(buf));
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n",
               __func__, buf);
@@ -866,14 +869,13 @@ int dttsp_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     struct dttsp_priv_data *priv = (struct dttsp_priv_data *)rig->state.priv;
     int ret = RIG_OK;
-    int buf_len;
     char buf[32];
 
     switch (level)
     {
     case RIG_LEVEL_AGC:
-        buf_len = sprintf(buf, "setRXAGC %d\n", agc_level2dttsp(val.i));
-        ret = send_command(rig, buf, buf_len);
+        SNPRINTF(buf, sizeof(buf), "setRXAGC %d\n", agc_level2dttsp(val.i));
+        ret = send_command(rig, buf, strlen(buf));
         break;
 
     default:
@@ -890,7 +892,6 @@ int dttsp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     struct dttsp_priv_data *priv = (struct dttsp_priv_data *)rig->state.priv;
     int ret = RIG_OK;
-    int buf_len;
     char buf[32];
     float rxm[MAXRX][RXMETERPTS];
 
@@ -901,8 +902,8 @@ int dttsp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
     case RIG_LEVEL_RAWSTR:
     case RIG_LEVEL_STRENGTH:
-        buf_len = sprintf(buf, "reqRXMeter %d\n", getpid());
-        ret = send_command(rig, buf, buf_len);
+        SNPRINTF(buf, sizeof(buf), "reqRXMeter %d\n", getpid());
+        ret = send_command(rig, buf, strlen(buf));
 
         if (ret < 0)
         {
@@ -940,7 +941,6 @@ int dttsp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     struct dttsp_priv_data *priv = (struct dttsp_priv_data *)rig->state.priv;
     char buf[32];
     const char *cmd;
-    int buf_len;
     int ret;
 
     status = status ? 1 : 0;
@@ -970,8 +970,8 @@ int dttsp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return rig_set_func(priv->tuner, vfo, func, status);
     }
 
-    buf_len = sprintf(buf, "%s %d\n", cmd, status);
-    ret = send_command(rig, buf, buf_len);
+    SNPRINTF(buf, sizeof(buf), "%s %d\n", cmd, status);
+    ret = send_command(rig, buf, strlen(buf));
 
     return ret;
 }
