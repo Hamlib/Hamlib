@@ -163,12 +163,11 @@ int skanti_reset(RIG *rig, reset_t reset)
 int skanti_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[BUFSZ];
-    int freq_len;
 
     /* 6 digits */
-    freq_len = sprintf(freqbuf, "Z%06ld" EOM, (long)(freq / 100));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "Z%06ld" EOM, (long)(freq / 100));
 
-    return skanti_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    return skanti_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 }
 
 /*
@@ -242,12 +241,11 @@ int skanti_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int skanti_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     char freqbuf[BUFSZ];
-    int freq_len;
 
     /* 6 digits */
-    freq_len = sprintf(freqbuf, "T%06ld" EOM, (long)(tx_freq / 100));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "T%06ld" EOM, (long)(tx_freq / 100));
 
-    return skanti_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    return skanti_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 }
 
 
@@ -259,7 +257,6 @@ int skanti_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
  */
 int skanti_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    int cmd_len;
     char cmdbuf[BUFSZ], *agc;
 
     /* Optimize:
@@ -268,20 +265,20 @@ int skanti_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_PREAMP:
-        cmd_len = sprintf(cmdbuf, "R%c" EOM, val.i ? 'F' : 'O');
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "R%c" EOM, val.i ? 'F' : 'O');
 
-        return skanti_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return skanti_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_LEVEL_ATT:
-        cmd_len = sprintf(cmdbuf, "A%c" EOM, val.i ? 'T' : 'O');
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "A%c" EOM, val.i ? 'T' : 'O');
 
-        return skanti_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return skanti_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_LEVEL_RFPOWER:
-        cmd_len = sprintf(cmdbuf, "M%cO" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "M%cO" EOM,
                           val.f < 0.33 ? 'L' : (val.f < 0.66 ? 'M' : 'F'));
 
-        return skanti_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return skanti_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_LEVEL_AGC:
         switch (val.i)
@@ -315,11 +312,10 @@ int skanti_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int skanti_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char cmdbuf[BUFSZ];
-    int cmd_len;
 
-    cmd_len = sprintf(cmdbuf, "X%c" EOM, ptt == RIG_PTT_ON ? 'N' : 'F');
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "X%c" EOM, ptt == RIG_PTT_ON ? 'N' : 'F');
 
-    return skanti_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    return skanti_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 }
 
 
