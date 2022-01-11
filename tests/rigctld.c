@@ -593,7 +593,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    snprintf(rigstartup, sizeof(rigstartup), "%s(%d) Startup:", __FILE__, __LINE__);
+    SNPRINTF(rigstartup, sizeof(rigstartup), "%s(%d) Startup:", __FILE__, __LINE__);
 
     for (i = 0; i < argc; ++i) { strcat(rigstartup, " "); strcat(rigstartup, argv[i]); }
 

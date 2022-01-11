@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
             hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
             hist_path = (char *)calloc(hist_path_size, sizeof(char));
 
-            snprintf(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
+            SNPRINTF(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
 
         }
 

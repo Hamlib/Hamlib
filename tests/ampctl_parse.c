@@ -235,11 +235,11 @@ void hash_add_model(int id,
     s = (struct mod_lst *)malloc(sizeof(struct mod_lst));
 
     s->id = id;
-    snprintf(s->mfg_name, sizeof(s->mfg_name), "%s", mfg_name);
-    snprintf(s->model_name, sizeof(s->model_name), "%s", model_name);
-    snprintf(s->version, sizeof(s->version), "%s", version);
-    snprintf(s->status, sizeof(s->status), "%s", status);
-    snprintf(s->macro_name, sizeof(s->macro_name), "%s", macro_name);
+    SNPRINTF(s->mfg_name, sizeof(s->mfg_name), "%s", mfg_name);
+    SNPRINTF(s->model_name, sizeof(s->model_name), "%s", model_name);
+    SNPRINTF(s->version, sizeof(s->version), "%s", version);
+    SNPRINTF(s->status, sizeof(s->status), "%s", status);
+    SNPRINTF(s->macro_name, sizeof(s->macro_name), "%s", macro_name);
 
     HASH_ADD_INT(models, id, s);    /* id: name of key field */
 }
@@ -968,7 +968,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
             /* The starting position of the source string is the first
              * character past the initial '\'.
              */
-            snprintf(cmd_name, sizeof(cmd_name), "%s", parsed_input[0] + 1);
+            SNPRINTF(cmd_name, sizeof(cmd_name), "%s", parsed_input[0] + 1);
 
             /* Sanity check as valid multiple character commands consist of
              * alphanumeric characters and the underscore ('_') character.

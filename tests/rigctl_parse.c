@@ -413,11 +413,11 @@ void hash_add_model(int id,
     s = (struct mod_lst *)malloc(sizeof(struct mod_lst));
 
     s->id = id;
-    snprintf(s->mfg_name, sizeof(s->mfg_name), "%s", mfg_name);
-    snprintf(s->model_name, sizeof(s->model_name), "%s", model_name);
-    snprintf(s->version, sizeof(s->version), "%s", version);
-    snprintf(s->status, sizeof(s->status), "%s", status);
-    snprintf(s->macro_name, sizeof(s->macro_name), "%s", macro_name);
+    SNPRINTF(s->mfg_name, sizeof(s->mfg_name), "%s", mfg_name);
+    SNPRINTF(s->model_name, sizeof(s->model_name), "%s", model_name);
+    SNPRINTF(s->version, sizeof(s->version), "%s", version);
+    SNPRINTF(s->status, sizeof(s->status), "%s", status);
+    SNPRINTF(s->macro_name, sizeof(s->macro_name), "%s", macro_name);
 
     HASH_ADD_INT(models, id, s);    /* id: name of key field */
 }
@@ -1224,7 +1224,7 @@ readline_repeat:
             /* The starting position of the source string is the first
              * character past the initial '\'.
              */
-            snprintf(cmd_name, sizeof(cmd_name), "%s", parsed_input[0] + 1);
+            SNPRINTF(cmd_name, sizeof(cmd_name), "%s", parsed_input[0] + 1);
 
             /* Sanity check as valid multiple character commands consist of
              * alphanumeric characters and the underscore ('_') character.
@@ -2393,14 +2393,14 @@ declare_proto_rig(get_mode_bandwidths)
         }
 
 //        sprintf_freq(freqbuf, sizeof(freqbuf), pbnorm);
-        snprintf(freqbuf, sizeof(freqbuf), "%ldHz", pbnorm);
+        SNPRINTF(freqbuf, sizeof(freqbuf), "%ldHz", pbnorm);
         fprintf(fout, "Mode=%s\n", rig_strrmode(i));
         fprintf(fout, "Normal=%s\n", freqbuf);
 
-        snprintf(freqbuf, sizeof(freqbuf), "%ldHz", rig_passband_narrow(rig, i));
+        SNPRINTF(freqbuf, sizeof(freqbuf), "%ldHz", rig_passband_narrow(rig, i));
         fprintf(fout, "Narrow=%s\n", freqbuf);
 
-        snprintf(freqbuf, sizeof(freqbuf), "%ldHz", rig_passband_wide(rig, i));
+        SNPRINTF(freqbuf, sizeof(freqbuf), "%ldHz", rig_passband_wide(rig, i));
         fprintf(fout, "Wide=%s", freqbuf);
     }
 
@@ -4198,15 +4198,15 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
             break;
 
         case RIG_CONF_COMBO:
-            snprintf(lstr, sizeof(lstr), "%d", chan->ext_levels[idx].val.i);
+            SNPRINTF(lstr, sizeof(lstr), "%d", chan->ext_levels[idx].val.i);
             break;
 
         case RIG_CONF_NUMERIC:
-            snprintf(lstr, sizeof(lstr), "%f", chan->ext_levels[idx].val.f);
+            SNPRINTF(lstr, sizeof(lstr), "%f", chan->ext_levels[idx].val.f);
             break;
 
         case RIG_CONF_CHECKBUTTON:
-            snprintf(lstr, sizeof(lstr), "%s", chan->ext_levels[idx].val.i ? "ON" : "OFF");
+            SNPRINTF(lstr, sizeof(lstr), "%s", chan->ext_levels[idx].val.i ? "ON" : "OFF");
             break;
 
         case RIG_CONF_BUTTON:
@@ -4705,16 +4705,16 @@ declare_proto_rig(send_cmd)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: we're netrigctl#2\n", __func__);
 
-        //snprintf(bufcmd, sizeof(bufcmd), "%s %s\n", cmd->cmd, arg1);
+        //SNPRINTF(bufcmd, sizeof(bufcmd), "%s %s\n", cmd->cmd, arg1);
         if (cmd->cmd == 'w')
         {
-            snprintf(bufcmd, sizeof(bufcmd), "%c %s\n", cmd->cmd, arg1);
+            SNPRINTF(bufcmd, sizeof(bufcmd), "%c %s\n", cmd->cmd, arg1);
         }
         else
         {
             int nbytes = 0;
             sscanf(arg2, "%d", &nbytes);
-            snprintf(bufcmd, sizeof(bufcmd), "%c %s %d\n", cmd->cmd, arg1, nbytes);
+            SNPRINTF(bufcmd, sizeof(bufcmd), "%c %s %d\n", cmd->cmd, arg1, nbytes);
         }
 
         cmd_len = strlen(bufcmd);
@@ -4738,7 +4738,7 @@ declare_proto_rig(send_cmd)
 
         eom_buf[2] = send_cmd_term;
 
-        snprintf(tmpbuf, sizeof(tmpbuf), "0x%02x 0x%02x 0x%02x", eom_buf[0], eom_buf[1],
+        SNPRINTF(tmpbuf, sizeof(tmpbuf), "0x%02x 0x%02x 0x%02x", eom_buf[0], eom_buf[1],
                  eom_buf[2]);
 
         rig_debug(RIG_DEBUG_TRACE, "%s: text protocol, send_cmd_term=%s\n", __func__,
@@ -4814,7 +4814,7 @@ declare_proto_rig(send_cmd)
 
             for (i = 0; i < retval; ++i)
             {
-                snprintf(hex, sizeof(hex), "\\0x%02X", (unsigned char)buf[i]);
+                SNPRINTF(hex, sizeof(hex), "\\0x%02X", (unsigned char)buf[i]);
 
                 if ((strlen(hexbuf) + strlen(hex) + 1) >= hexbufbytes)
                 {

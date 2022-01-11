@@ -136,11 +136,11 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->bank_num)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.bank_num);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.bank_num);
         xmlNewProp(node, (unsigned char *) "bank_num", (unsigned char *) attrbuf);
     }
 
-    snprintf(attrbuf, sizeof(attrbuf), "%d", chan.channel_num);
+    SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.channel_num);
     xmlNewProp(node, (unsigned char *) "num", (unsigned char *) attrbuf);
 
     if (mem_caps->channel_desc && chan.channel_desc[0] != '\0')
@@ -152,13 +152,13 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->vfo)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.vfo);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.vfo);
         xmlNewProp(node, (unsigned char *) "vfo", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->ant && chan.ant != RIG_ANT_NONE)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.ant);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.ant);
         xmlNewProp(node, (unsigned char *) "ant", (unsigned char *) attrbuf);
     }
 
@@ -166,7 +166,7 @@ int dump_xml_chan(RIG *rig,
     {
         // cppcheck-suppress *
         char *fmt = "%"PRIll;
-        snprintf(attrbuf, sizeof(attrbuf), fmt, (int64_t)chan.freq);
+        SNPRINTF(attrbuf, sizeof(attrbuf), fmt, (int64_t)chan.freq);
         xmlNewProp(node, (unsigned char *) "freq", (unsigned char *) attrbuf);
     }
 
@@ -178,13 +178,13 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->width && chan.width != 0)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", (int)chan.width);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", (int)chan.width);
         xmlNewProp(node, (unsigned char *) "width", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->tx_freq && chan.tx_freq != RIG_FREQ_NONE)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%"PRIll, (int64_t)chan.tx_freq);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%"PRIll, (int64_t)chan.tx_freq);
         xmlNewProp(node, (unsigned char *) "tx_freq", (unsigned char *) attrbuf);
     }
 
@@ -197,7 +197,7 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->tx_width && chan.tx_width != 0)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", (int)chan.tx_width);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", (int)chan.tx_width);
         xmlNewProp(node, (unsigned char *) "tx_width", (unsigned char *) attrbuf);
     }
 
@@ -207,7 +207,7 @@ int dump_xml_chan(RIG *rig,
 
         if (mem_caps->tx_vfo)
         {
-            snprintf(attrbuf, sizeof(attrbuf), "%x", chan.tx_vfo);
+            SNPRINTF(attrbuf, sizeof(attrbuf), "%x", chan.tx_vfo);
             xmlNewProp(node,
                        (unsigned char *) "tx_vfo",
                        (unsigned char *) attrbuf);
@@ -222,7 +222,7 @@ int dump_xml_chan(RIG *rig,
 
         if (mem_caps->rptr_offs && (int)chan.rptr_offs != 0)
         {
-            snprintf(attrbuf, sizeof(attrbuf), "%d", (int)chan.rptr_offs);
+            SNPRINTF(attrbuf, sizeof(attrbuf), "%d", (int)chan.rptr_offs);
             xmlNewProp(node,
                        (unsigned char *) "rptr_offs",
                        (unsigned char *) attrbuf);
@@ -231,61 +231,61 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->tuning_step && chan.tuning_step != 0)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", (int)chan.tuning_step);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", (int)chan.tuning_step);
         xmlNewProp(node, (unsigned char *) "tuning_step", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->rit && chan.rit != 0)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", (int)chan.rit);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", (int)chan.rit);
         xmlNewProp(node, (unsigned char *) "rit", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->xit && chan.xit != 0)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", (int)chan.xit);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", (int)chan.xit);
         xmlNewProp(node, (unsigned char *) "xit", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->funcs)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%lx", chan.funcs);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%lx", chan.funcs);
         xmlNewProp(node, (unsigned char *) "funcs", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->ctcss_tone && chan.ctcss_tone != 0)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_tone);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_tone);
         xmlNewProp(node, (unsigned char *) "ctcss_tone", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->ctcss_sql && chan.ctcss_sql != 0)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_sql);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_sql);
         xmlNewProp(node, (unsigned char *) "ctcss_sql", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->dcs_code && chan.dcs_code != 0)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.dcs_code);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.dcs_code);
         xmlNewProp(node, (unsigned char *) "dcs_code", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->dcs_sql && chan.dcs_sql != 0)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.dcs_sql);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.dcs_sql);
         xmlNewProp(node, (unsigned char *) "dcs_sql", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->scan_group)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%d", chan.scan_group);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.scan_group);
         xmlNewProp(node, (unsigned char *) "scan_group", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->flags)
     {
-        snprintf(attrbuf, sizeof(attrbuf), "%x", chan.flags);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%x", chan.flags);
         xmlNewProp(node, (unsigned char *) "flags", (unsigned char *) attrbuf);
     }
 

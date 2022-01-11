@@ -799,7 +799,7 @@ static int handle_ts2000(void *arg)
             rig_debug(RIG_DEBUG_ERR, "%s: unexpected vfo=%d\n", __func__, vfo);
         }
 
-        snprintf(response,
+        SNPRINTF(response,
                  sizeof(response),
                  fmt,
                  (uint64_t)freq,
@@ -824,14 +824,14 @@ static int handle_ts2000(void *arg)
         rmode_t mode = ts2000_get_mode();
         char response[32];
 
-        snprintf(response, sizeof(response), "MD%1d;", (int)mode);
+        SNPRINTF(response, sizeof(response), "MD%1d;", (int)mode);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strcmp(arg, "AG0;") == 0)
     {
         char response[32];
 
-        snprintf(response, sizeof(response), "AG0000;");
+        SNPRINTF(response, sizeof(response), "AG0000;");
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strcmp(arg, "FA;") == 0)
@@ -849,7 +849,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "FA%011"PRIll";", (uint64_t)freq);
+        SNPRINTF(response, sizeof(response), "FA%011"PRIll";", (uint64_t)freq);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strcmp(arg, "FB;") == 0)
@@ -866,14 +866,14 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "FB%011"PRIll";", (uint64_t)freq);
+        SNPRINTF(response, sizeof(response), "FB%011"PRIll";", (uint64_t)freq);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strcmp(arg, "SA;") == 0)
     {
         char response[32];
 
-        snprintf(response, sizeof(response), "SA0;");
+        SNPRINTF(response, sizeof(response), "SA0;");
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strcmp(arg, "RX;") == 0)
@@ -881,7 +881,7 @@ static int handle_ts2000(void *arg)
         char response[32];
 
         rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A, my_rig->state.cache.split), 0);
-        snprintf(response, sizeof(response), "RX0;");
+        SNPRINTF(response, sizeof(response), "RX0;");
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     // Now some commands to set things
@@ -957,7 +957,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "FR%c;", nvfo + '0');
+        SNPRINTF(response, sizeof(response), "FR%c;", nvfo + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
 
         return retval;
@@ -986,7 +986,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "FT%c;", nvfo + '0');
+        SNPRINTF(response, sizeof(response), "FT%c;", nvfo + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
 
         return retval;
@@ -1004,7 +1004,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "TN%02d;", val);
+        SNPRINTF(response, sizeof(response), "TN%02d;", val);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "TN", 2) == 0)
@@ -1059,7 +1059,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "PA%c%c;", valA + '0', valB + '0');
+        SNPRINTF(response, sizeof(response), "PA%c%c;", valA + '0', valB + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "PA", 2) == 0)
@@ -1118,7 +1118,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "XT%c;", val + '0');
+        SNPRINTF(response, sizeof(response), "XT%c;", val + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "XT", 2) == 0)
@@ -1162,7 +1162,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "NR%c;", val + '0');
+        SNPRINTF(response, sizeof(response), "NR%c;", val + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "NR", 2) == 0)
@@ -1207,7 +1207,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "NB%c;", val + '0');
+        SNPRINTF(response, sizeof(response), "NB%c;", val + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "NB", 2) == 0)
@@ -1254,7 +1254,7 @@ static int handle_ts2000(void *arg)
         }
 
         level = val.f * 255;
-        snprintf(response, sizeof(response), "AG0%03d;", level);
+        SNPRINTF(response, sizeof(response), "AG0%03d;", level);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "AG", 2) == 0)
@@ -1305,7 +1305,7 @@ static int handle_ts2000(void *arg)
         }
 
         speechLevel = val.f * 255;
-        snprintf(response, sizeof(response), "PR%03d;", speechLevel);
+        SNPRINTF(response, sizeof(response), "PR%03d;", speechLevel);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "PR", 2) == 0)
@@ -1363,7 +1363,7 @@ static int handle_ts2000(void *arg)
         }
 
         agcLevel = val.f * 255;
-        snprintf(response, sizeof(response), "GT%03d;", agcLevel);
+        SNPRINTF(response, sizeof(response), "GT%03d;", agcLevel);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "GT", 2) == 0)
@@ -1414,7 +1414,7 @@ static int handle_ts2000(void *arg)
         }
 
         sqlev = val.f * 255;
-        snprintf(response, sizeof(response), "SQ%03d;", sqlev);
+        SNPRINTF(response, sizeof(response), "SQ%03d;", sqlev);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "SQ", 2) == 0)
@@ -1463,7 +1463,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "DC%c;", split + '0');
+        SNPRINTF(response, sizeof(response), "DC%c;", split + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
 
         return retval;
@@ -1494,7 +1494,7 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        snprintf(response, sizeof(response), "DC%c;", split + '0');
+        SNPRINTF(response, sizeof(response), "DC%c;", split + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
 
         return retval;
@@ -1558,7 +1558,7 @@ static int handle_ts2000(void *arg)
         case 9: mode = RIG_MODE_RTTYR; break;
         }
 
-        snprintf(response, sizeof(response), "MD%c;", mode + '0');
+        SNPRINTF(response, sizeof(response), "MD%c;", mode + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strcmp(arg, "PS1;") == 0)
@@ -1573,7 +1573,7 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
 
-        snprintf(response, sizeof(response), "PS1;");
+        SNPRINTF(response, sizeof(response), "PS1;");
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strncmp(arg, "SB", 2) == 0
@@ -1606,7 +1606,7 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
 
-        snprintf(response, sizeof(response), "?;");
+        SNPRINTF(response, sizeof(response), "?;");
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else
