@@ -346,14 +346,14 @@ int rx331_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int rx331_get_conf(RIG *rig, token_t token, char *val)
+int rx331_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
 
     switch (token)
     {
     case TOK_RIGID:
-        sprintf(val, "%u", priv->receiver_id);
+        SNPRINTF(val, val_len, "%u", priv->receiver_id);
         break;
 
     default:
@@ -361,6 +361,11 @@ int rx331_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int rx331_get_conf(RIG *rig, token_t token, char *val)
+{
+    return rx331_get_conf2(rig, token, val, 128);
 }
 
 int rx331_open(RIG *rig)
@@ -398,7 +403,7 @@ int rx331_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int freq_len, retval;
     char freqbuf[16];
 
-    freq_len = num_sprintf(freqbuf, "$%uF%.6f" EOM,
+    freq_len = num_snprintf(freqbuf, sizeof(freqbuf), "$%uF%.6f" EOM,
                            priv->receiver_id, freq / 1e6);
 
     retval = write_block(&rs->rigport, (unsigned char *) freqbuf, freq_len);
@@ -480,7 +485,7 @@ int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         /*
          * Set DETECTION MODE and IF FILTER
          */
-        mdbuf_len = num_sprintf(mdbuf,  "$%uD%cI%.02f" EOM, priv->receiver_id,
+        mdbuf_len = num_snprintf(mdbuf, sizeof(mdbuf),  "$%uD%cI%.02f" EOM, priv->receiver_id,
                                 dmode, (float)width / 1e3);
     }
     else
@@ -488,7 +493,7 @@ int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         /*
          * Set DETECTION MODE
          */
-        mdbuf_len = num_sprintf(mdbuf,  "$%uD%c" EOM, priv->receiver_id, dmode);
+        mdbuf_len = num_snprintf(mdbuf, sizeof(mdbuf),  "$%uD%c" EOM, priv->receiver_id, dmode);
     }
 
     retval = write_block(&rs->rigport, (unsigned char *) mdbuf, mdbuf_len);
@@ -563,19 +568,19 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
     struct rig_state *rs = &rig->state;
-    int cmd_len, retval = RIG_OK;
+    int retval = RIG_OK;
     char cmdbuf[32];
 
     switch (level)
     {
     case RIG_LEVEL_ATT:
-        cmd_len = sprintf(cmdbuf, "$%uK%i" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uK%i" EOM,
                           priv->receiver_id,
                           val.i ? RX331_ATT_ON : RX331_ATT_OFF);
         break;
 
     case RIG_LEVEL_PREAMP:
-        cmd_len = sprintf(cmdbuf, "$%uK%i" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uK%i" EOM,
                           priv->receiver_id,
                           val.i ? RX331_PREAMP_ON : RX331_PREAMP_OFF);
         break;
@@ -598,33 +603,33 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
         }
 
-        cmd_len = sprintf(cmdbuf, "$%uM%i" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uM%i" EOM,
                           priv->receiver_id, val.i);
         break;
 
     case RIG_LEVEL_RF:
-        cmd_len = sprintf(cmdbuf, "$%uA%d" EOM, priv->receiver_id,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uA%d" EOM, priv->receiver_id,
                           120 - (int)(val.f * 120));
         break;
 
     case RIG_LEVEL_SQL:
-        cmd_len = sprintf(cmdbuf, "$%uQ%d" EOM, priv->receiver_id,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uQ%d" EOM, priv->receiver_id,
                           120 - (int)(val.f * 120));
         break;
 
     case RIG_LEVEL_NOTCHF:
-        cmd_len = num_sprintf(cmdbuf, "$%uN%f" EOM, priv->receiver_id,
+        num_snprintf(cmdbuf, sizeof(cmdbuf), "$%uN%f" EOM, priv->receiver_id,
                               ((float)val.i) / 1e3);
         break;
 
     case RIG_LEVEL_IF:
-        cmd_len = num_sprintf(cmdbuf, "$%uP%f" EOM, priv->receiver_id,
+        num_snprintf(cmdbuf, sizeof(cmdbuf), "$%uP%f" EOM, priv->receiver_id,
                               ((float)val.i) / 1e3);
         break;
 
     case RIG_LEVEL_CWPITCH:
         /* only in CW mode */
-        cmd_len = num_sprintf(cmdbuf, "$%uB%f" EOM, priv->receiver_id,
+        num_snprintf(cmdbuf, sizeof(cmdbuf), "$%uB%f" EOM, priv->receiver_id,
                               ((float)val.i) / 1e3);
         break;
 
@@ -634,7 +639,7 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
     return retval;
 }
 

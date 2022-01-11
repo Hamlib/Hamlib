@@ -367,7 +367,7 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 
 int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    int cmd_len, retval, i, in_range;
+    int retval, i, in_range;
     freq_range_t this_range;
     char cmdbuf[TT565_BUFSIZE];
     /* Check for valid frequency request.
@@ -402,7 +402,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #ifdef TT565_ASCII_FREQ
     /*  Use ASCII mode to set frequencies */
     // cppcheck-suppress *
-    cmd_len = sprintf(cmdbuf, "*%cF%"PRIll EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "*%cF%"PRIll EOM,
                       which_vfo(rig, vfo),
                       (int64_t)freq);
 #else
@@ -414,7 +414,6 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* Construct command packet by brute force. */
     unsigned int myfreq;
     myfreq = freq;
-    cmd_len = 7;
     cmdbuf[0] = '*';
     cmdbuf[1] = which_vfo(rig, vfo);
     cmdbuf[2] = (myfreq & 0xff000000) >> 24;
@@ -422,8 +421,9 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     cmdbuf[4] = (myfreq & 0x0000ff00) >> 8;
     cmdbuf[5] =  myfreq & 0x000000ff;
     cmdbuf[6] = '\r';   /* i.e. EOM */
+    cmdbuf[7] = 0;
 #endif
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     return retval;
 }
@@ -438,20 +438,20 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    int cmd_len, resp_len, retval;
+    int resp_len, retval;
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
     unsigned int binf;
 #ifdef TT565_ASCII_FREQ
     /*  use ASCII mode */
-    cmd_len = sprintf(cmdbuf, "?%cF" EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "?%cF" EOM,
                       which_vfo(rig, vfo));
 #else
     /* Get freq with Orion binary mode short sequence. */
-    cmd_len = sprintf(cmdbuf, "?%c" EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "?%c" EOM,
                       which_vfo(rig, vfo));
 #endif
     resp_len = sizeof(respbuf);
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, respbuf, &resp_len);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
 
     if (retval != RIG_OK)
     {
@@ -501,10 +501,10 @@ int tt565_set_vfo(RIG *rig, vfo_t vfo)
     {
         char vfobuf[TT565_BUFSIZE];
         /* Select Sub or Main RX */
-        int vfo_len = sprintf(vfobuf, "*K%c" EOM,
+        SNPRINTF(vfobuf, sizeof(vfobuf), "*K%c" EOM,
                               vfo == RIG_VFO_SUB ? 'S' : 'M');
 
-        return tt565_transaction(rig, vfobuf, vfo_len, NULL, NULL);
+        return tt565_transaction(rig, vfobuf, strlen(vfobuf), NULL, NULL);
     }
 
     priv->vfo_curr = vfo;
@@ -539,15 +539,15 @@ int tt565_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int tt565_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    int cmd_len, retval;
+    int retval;
     char cmdbuf[TT565_BUFSIZE];
 
-    cmd_len = sprintf(cmdbuf, "*KV%c%c%c" EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "*KV%c%c%c" EOM,
                       which_vfo(rig, vfo),
                       'N',           /* FIXME */
                       which_vfo(rig, RIG_SPLIT_ON == split ? tx_vfo : vfo));
 
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     return retval;
 }
@@ -580,13 +580,13 @@ static vfo_t tt2vfo(char c)
  */
 int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    int cmd_len, resp_len, retval;
+    int resp_len, retval;
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
     char ttreceiver;
 
-    cmd_len = sprintf(cmdbuf, "?KV" EOM);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "?KV" EOM);
     resp_len = sizeof(respbuf);
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, respbuf, &resp_len);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
 
     if (retval != RIG_OK)
     {
@@ -628,7 +628,7 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct rig_state *rs = &rig->state;
     char ttmode, ttreceiver;
-    int mdbuf_len, retval;
+    int retval;
     char mdbuf[TT565_BUFSIZE];
 
     switch (mode)
@@ -660,14 +660,14 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     ttreceiver = which_receiver(rig, vfo);
 
-    mdbuf_len = sprintf(mdbuf, "*R%cM%c" EOM "*R%cF%d" EOM,
+    SNPRINTF(mdbuf, sizeof(mdbuf), "*R%cM%c" EOM "*R%cF%d" EOM,
                         ttreceiver,
                         ttmode,
                         ttreceiver,
                         (int)width
                        );
 
-    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, mdbuf_len);
+    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
 
     return retval;
 }
@@ -684,16 +684,16 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    int cmd_len, resp_len, retval;
+    int resp_len, retval;
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
     char ttmode, ttreceiver;
 
     ttreceiver = which_receiver(rig, vfo);
 
     /* Query mode */
-    cmd_len = sprintf(cmdbuf, "?R%cM" EOM, ttreceiver);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cM" EOM, ttreceiver);
     resp_len = sizeof(respbuf);
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, respbuf, &resp_len);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
 
     if (retval != RIG_OK)
     {
@@ -734,9 +734,9 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* Orion may need some time to "recover" from ?RxM before ?RxF */
     hl_usleep(80000);      // try 80 ms
     /* Query passband width (filter) */
-    cmd_len = sprintf(cmdbuf, "?R%cF" EOM, ttreceiver);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cF" EOM, ttreceiver);
     resp_len = sizeof(respbuf);
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, respbuf, &resp_len);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
 
     if (retval != RIG_OK)
     {
@@ -764,14 +764,14 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int tt565_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-    int cmd_len, retval;
+    int retval;
     char cmdbuf[TT565_BUFSIZE];
 
-    cmd_len = sprintf(cmdbuf, "*R%cI%d" EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cI%d" EOM,
                       which_receiver(rig, vfo),
                       (int)ts);
 
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     return retval;
 }
@@ -785,14 +785,14 @@ int tt565_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
  */
 int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
-    int cmd_len, resp_len, retval;
+    int resp_len, retval;
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
-    cmd_len = sprintf(cmdbuf, "?R%cI" EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cI" EOM,
                       which_receiver(rig, vfo));
 
     resp_len = sizeof(respbuf);
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, respbuf, &resp_len);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
 
     if (retval != RIG_OK)
     {
@@ -821,14 +821,14 @@ int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  */
 int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-    int cmd_len, retval;
+    int retval;
     char cmdbuf[TT565_BUFSIZE];
 
-    cmd_len = sprintf(cmdbuf, "*R%cR%d" EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cR%d" EOM,
                       which_receiver(rig, vfo),
                       (int)rit);
 
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     return retval;
 }
@@ -842,14 +842,14 @@ int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
  */
 int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-    int cmd_len, resp_len, retval;
+    int resp_len, retval;
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
-    cmd_len = sprintf(cmdbuf, "?R%cR" EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cR" EOM,
                       which_receiver(rig, vfo));
 
     resp_len = sizeof(respbuf);
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, respbuf, &resp_len);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
 
     if (retval != RIG_OK)
     {
@@ -878,16 +878,16 @@ int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  */
 int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
-    int cmd_len, retval;
+    int retval;
     char cmdbuf[TT565_BUFSIZE];
 
     /* Sub receiver does not contain an XIT setting */
 
-    cmd_len = sprintf(cmdbuf, "*R%cX%d" EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cX%d" EOM,
                       'M',
                       (int)xit);
 
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     return retval;
 }
@@ -901,14 +901,14 @@ int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
  */
 int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
-    int cmd_len, resp_len, retval;
+    int resp_len, retval;
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
-    cmd_len = sprintf(cmdbuf, "?R%cX" EOM,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cX" EOM,
                       'M');
 
     resp_len = sizeof(respbuf);
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, respbuf, &resp_len);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
 
     if (retval != RIG_OK)
     {
@@ -1071,13 +1071,13 @@ const char *tt565_get_info(RIG *rig)
  */
 int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    int retval, cmd_len = 0, ii;
+    int retval, ii;
     char cmdbuf[TT565_BUFSIZE], cc;
 
     switch (level)
     {
     case RIG_LEVEL_RFPOWER:
-        cmd_len = sprintf(cmdbuf, "*TP%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*TP%d" EOM,
                           (int)(val.f * 100));
         break;
 
@@ -1097,28 +1097,28 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         default: cc = 'M';
         }
 
-        cmd_len = sprintf(cmdbuf, "*R%cA%c" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cA%c" EOM,
                           which_receiver(rig, vfo),
                           cc);
         break;
 
     case RIG_LEVEL_AF:
         /* AF Gain, float 0.0 - 1.0 */
-        cmd_len = sprintf(cmdbuf, "*U%c%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*U%c%d" EOM,
                           which_receiver(rig, vfo),
                           (int)(val.f * 255));
         break;
 
     case RIG_LEVEL_IF:
         /* This is passband tuning int Hz */
-        cmd_len = sprintf(cmdbuf, "*R%cP%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cP%d" EOM,
                           which_receiver(rig, vfo),
                           val.i);
         break;
 
     case RIG_LEVEL_RF:
         /* This is IF Gain, float 0.0 - 1.0 */
-        cmd_len = sprintf(cmdbuf, "*R%cG%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cG%d" EOM,
                           which_receiver(rig, vfo),
                           (int)(val.f * 100));
         break;
@@ -1132,7 +1132,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             if (rig->caps->attenuator[ii] > val.i) { break; }
         }
 
-        cmd_len = sprintf(cmdbuf, "*R%cT%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cT%d" EOM,
                           which_receiver(rig, vfo),
                           ii);
         break;
@@ -1146,26 +1146,26 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         /* RF Preamp (main Rx), int 0 or 1 */
-        cmd_len = sprintf(cmdbuf, "*RME%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*RME%d" EOM,
                           val.i == 0 ? 0 : 1);
         break;
 
     case RIG_LEVEL_SQL:
         /* Squelch level, float 0.0 - 1.0 */
-        cmd_len = sprintf(cmdbuf, "*R%cS%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cS%d" EOM,
                           which_receiver(rig, vfo),
                           (int)((val.f * 127) - 127));
         break;
 
     case RIG_LEVEL_MICGAIN:
         /* Mic gain, float 0.0 - 1.0 */
-        cmd_len = sprintf(cmdbuf, "*TM%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*TM%d" EOM,
                           (int)(val.f * 100));
         break;
 
     case RIG_LEVEL_COMP:
         /* Speech Processor, float 0.0 - 1.0 */
-        cmd_len = sprintf(cmdbuf, "*TS%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*TS%d" EOM,
                           (int)(val.f * 9));
         break;
 
@@ -1178,7 +1178,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (val.i > TT565_TONE_MAX) { val.i = TT565_TONE_MAX; }
         else if (val.i < TT565_TONE_MIN) { val.i = TT565_TONE_MIN; }
 
-        cmd_len = sprintf(cmdbuf, "*CT%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*CT%d" EOM,
                           val.i);
         break;
 
@@ -1191,7 +1191,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (val.i > TT565_CW_MAX) { val.i = TT565_CW_MAX; }
         else if (val.i < TT565_CW_MIN) { val.i = TT565_CW_MIN; }
 
-        cmd_len = sprintf(cmdbuf, "*CS%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*CS%d" EOM,
                           val.i);
         break;
 
@@ -1201,24 +1201,24 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
            NR, NOTCH, and AN are not.
            FOR NOW -- RIG_LEVEL_NR controls the Orion NB setting
         */
-        cmd_len = sprintf(cmdbuf, "*R%cNB%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cNB%d" EOM,
                           which_receiver(rig, vfo),
                           (int)(val.f * 9));
         break;
 
     case RIG_LEVEL_VOXDELAY:
         /* VOX delay, float tenths of seconds */
-        cmd_len = sprintf(cmdbuf, "*TH%4.2f" EOM, 0.1 * val.f);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*TH%4.2f" EOM, 0.1 * val.f);
         break;
 
     case RIG_LEVEL_VOXGAIN:
         /* Float, 0.0 - 1.0 */
-        cmd_len = sprintf(cmdbuf, "*TG%d" EOM, (int)(100.0 * val.f));
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*TG%d" EOM, (int)(100.0 * val.f));
         break;
 
     case RIG_LEVEL_ANTIVOX:
         /* Float, 0.0 - 1.0 */
-        cmd_len = sprintf(cmdbuf, "*TA%d" EOM, (int)(100.0 * val.f));
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*TA%d" EOM, (int)(100.0 * val.f));
         break;
 
     default:
@@ -1227,7 +1227,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
     return retval;
 }
 
@@ -1265,7 +1265,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    int retval, cmd_len, lvl_len;
+    int retval, lvl_len;
     char cmdbuf[TT565_BUFSIZE], lvlbuf[TT565_BUFSIZE];
 
     /* Optimize: sort the switch cases with the most frequent first */
@@ -1368,11 +1368,11 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_AGC:
-        cmd_len = sprintf(cmdbuf, "?R%cA" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cA" EOM,
                           which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
-        retval = tt565_transaction(rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+        retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
 
         if (retval != RIG_OK)
         {
@@ -1405,11 +1405,11 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_AF:
-        cmd_len = sprintf(cmdbuf, "?U%c" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?U%c" EOM,
                           which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
-        retval = tt565_transaction(rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+        retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
 
         if (retval != RIG_OK)
         {
@@ -1427,11 +1427,11 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_IF:
-        cmd_len = sprintf(cmdbuf, "?R%cP" EOM,  /* passband tuning */
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cP" EOM,  /* passband tuning */
                           which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
-        retval = tt565_transaction(rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+        retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
 
         if (retval != RIG_OK)
         {
@@ -1449,11 +1449,11 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RF:
-        cmd_len = sprintf(cmdbuf, "?R%cG" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cG" EOM,
                           which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
-        retval = tt565_transaction(rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+        retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
 
         if (retval != RIG_OK)
         {
@@ -1471,11 +1471,11 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_ATT:
-        cmd_len = sprintf(cmdbuf, "?R%cT" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cT" EOM,
                           which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
-        retval = tt565_transaction(rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+        retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
 
         if (retval != RIG_OK)
         {
@@ -1528,11 +1528,11 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SQL:
-        cmd_len = sprintf(cmdbuf, "?R%cS" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cS" EOM,
                           which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
-        retval = tt565_transaction(rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+        retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
 
         if (retval != RIG_OK)
         {
@@ -1627,11 +1627,11 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_NR:
         /* RIG_LEVEL_NR controls Orion NB setting - TEMP */
-        cmd_len = sprintf(cmdbuf, "?R%cNB" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cNB" EOM,
                           which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
-        retval = tt565_transaction(rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+        retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
 
         if (retval != RIG_OK)
         {
@@ -1766,13 +1766,12 @@ int tt565_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
     char cmdbuf[TT565_BUFSIZE];
     int retval;
-    int cmd_len;
 
     switch (op)
     {
     case RIG_OP_TO_VFO:
     case RIG_OP_FROM_VFO:
-        cmd_len = sprintf(cmdbuf, "*K%c%c%d" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*K%c%c%d" EOM,
                           op == RIG_OP_TO_VFO ? 'R' : 'W',
                           which_vfo(rig, vfo),
                           priv->ch);
@@ -1780,12 +1779,11 @@ int tt565_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     case RIG_OP_TUNE:
         strcpy(cmdbuf, "*TTT" EOM);
-        cmd_len = 5;
         break;
 
     case RIG_OP_UP:
     case RIG_OP_DOWN:
-        cmd_len = sprintf(cmdbuf, "*%cS%c1" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*%cS%c1" EOM,
                           which_vfo(rig, vfo),
                           op == RIG_OP_UP ? '+' : '-');
         break;
@@ -1796,7 +1794,7 @@ int tt565_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         return -RIG_EINVAL;
     }
 
-    retval = tt565_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
     return retval;
 }
 
@@ -1845,8 +1843,8 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     for (ic = 0; ic < msg_len; ic++)
     {
-        int cmdl = sprintf(morsecmd, "/%c" EOM, msg[ic]);
-        retval = tt565_transaction(rig, morsecmd, cmdl, NULL, NULL);
+        SNPRINTF(morsecmd, sizeof(morsecmd), "/%c" EOM, msg[ic]);
+        retval = tt565_transaction(rig, morsecmd, strlen(morsecmd), NULL, NULL);
 
         if (retval != RIG_OK)
         {
@@ -1876,7 +1874,7 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char fcmdbuf[TT565_BUFSIZE];
-    int retval, fcmdlen;
+    int retval;
 
     if (vfo != RIG_VFO_CURR)
     {
@@ -1886,15 +1884,15 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     switch (func)
     {
     case RIG_FUNC_TUNER:
-        fcmdlen = sprintf(fcmdbuf, "*TT%c" EOM, !status ? 0 : 1);
+        SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "*TT%c" EOM, !status ? 0 : 1);
         break;
 
     case RIG_FUNC_VOX:
-        fcmdlen = sprintf(fcmdbuf, "*TV%c" EOM, !status ? 0 : 1);
+        SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "*TV%c" EOM, !status ? 0 : 1);
         break;
 
     case RIG_FUNC_LOCK:
-        fcmdlen = sprintf(fcmdbuf, "*%c%c" EOM,
+        SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "*%c%c" EOM,
                           which_vfo(rig, vfo),
                           !status ? 'U' : 'L');
         break;
@@ -1904,7 +1902,7 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         RIG_LEVEL_NR which maps to NB setting due to firmware
         limitation.
         */
-        fcmdlen = sprintf(fcmdbuf, "*R%cNB%c" EOM,
+        SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "*R%cNB%c" EOM,
                           which_receiver(rig, vfo),
                           !status ? '0' : '4');
         break;
@@ -1915,7 +1913,7 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return -RIG_EINVAL;
     }
 
-    retval = tt565_transaction(rig, fcmdbuf, fcmdlen, NULL, NULL);
+    retval = tt565_transaction(rig, fcmdbuf, strlen(fcmdbuf), NULL, NULL);
 
     if (retval != RIG_OK)
     {
@@ -1937,7 +1935,7 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     char fcmdbuf[TT565_BUFSIZE], frespbuf[TT565_BUFSIZE];
-    int retval, fcmdlen, fresplen;
+    int retval, fresplen;
 
     if (vfo != RIG_VFO_CURR)
     {
@@ -1947,19 +1945,19 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     switch (func)
     {
     case RIG_FUNC_TUNER:
-        fcmdlen = sprintf(fcmdbuf, "?TT" EOM);
+        SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "?TT" EOM);
         break;
 
     case RIG_FUNC_VOX:
-        fcmdlen = sprintf(fcmdbuf, "?TV" EOM);
+        SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "?TV" EOM);
         break;
 
     case RIG_FUNC_LOCK:
-        fcmdlen = sprintf(fcmdbuf, "?%cU" EOM,
+        SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "?%cU" EOM,
                           which_vfo(rig, vfo));
         /* needs special treatment */
         fresplen = sizeof(frespbuf);
-        retval = tt565_transaction(rig, fcmdbuf, fcmdlen,
+        retval = tt565_transaction(rig, fcmdbuf, strlen(fcmdbuf),
                                    frespbuf, &fresplen);
 
         if (retval != RIG_OK)
@@ -1975,11 +1973,11 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         /* Note NB should be a LEVEL for Orion. It is also
            available through LEVEL_NR
         */
-        fcmdlen = sprintf(fcmdbuf, "?R%cNB" EOM,
+        SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "?R%cNB" EOM,
                           which_receiver(rig, vfo));
         /* needs special treatment */
         fresplen = sizeof(frespbuf);
-        retval = tt565_transaction(rig, fcmdbuf, fcmdlen,
+        retval = tt565_transaction(rig, fcmdbuf, strlen(fcmdbuf),
                                    frespbuf, &fresplen);
 
         if (retval != RIG_OK)
@@ -1998,7 +1996,7 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     }
 
     fresplen = sizeof(frespbuf);
-    retval = tt565_transaction(rig, fcmdbuf, fcmdlen, frespbuf, &fresplen);
+    retval = tt565_transaction(rig, fcmdbuf, strlen(fcmdbuf), frespbuf, &fresplen);
 
     if (retval != RIG_OK)
     {
