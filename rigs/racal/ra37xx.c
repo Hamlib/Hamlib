@@ -312,6 +312,11 @@ int ra37xx_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
+int ra37xx_get_conf(RIG *rig, token_t token, char *val)
+{
+    return ra37xx_get_conf2(rig, token, val, 128);
+}
+
 /*
  * ra37xx_open
  * Assumes rig!=NULL
