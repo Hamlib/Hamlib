@@ -95,12 +95,12 @@ int rft_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int rft_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[16], ackbuf[16];
-    int freq_len, ack_len, retval;
+    int ack_len, retval;
 
     /*
      */
-    freq_len = sprintf(freqbuf, "FRQ%f" EOM, (float)freq / 1000);
-    retval = rft_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
+    SNPRINTF(freqbuf, sizeof(freqbuf), "FRQ%f" EOM, (float)freq / 1000);
+    retval = rft_transaction(rig, freqbuf, strlen(freqbuf), ackbuf, &ack_len);
 
     return retval;
 }
