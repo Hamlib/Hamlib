@@ -412,11 +412,11 @@ int thg71_set_vfo(RIG *rig, vfo_t vfo)
     {
     case RIG_VFO_A:
     case RIG_VFO_VFO:
-        sprintf(vfobuf, "VMC 0,0");
+        SNPRINTF(vfobuf, sizeof(vfobuf), "VMC 0,0");
         break;
 
     case RIG_VFO_MEM:
-        sprintf(vfobuf, "VMC 0,2");
+        SNPRINTF(vfobuf, sizeof(vfobuf), "VMC 0,2");
         break;
 
     default:

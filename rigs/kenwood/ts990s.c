@@ -418,7 +418,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EINVAL;
         }
 
-        sprintf(cmd, "RA%c", v);
+        SNPRINTF(cmd, sizeof(cmd), "RA%c", v);
         retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), 4);
 
         if (retval != RIG_OK)
@@ -465,7 +465,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EINVAL;
         }
 
-        sprintf(cmd, "AG%c", v);
+        SNPRINTF(cmd, sizeof(cmd), "AG%c", v);
         retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), 6);
 
         if (retval != RIG_OK)
@@ -494,7 +494,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EINVAL;
         }
 
-        sprintf(cmd, "RG%c", v);
+        SNPRINTF(cmd, sizeof(cmd), "RG%c", v);
         retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), 6);
 
         if (retval != RIG_OK)
@@ -523,7 +523,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EINVAL;
         }
 
-        sprintf(cmd, "SQ%c", v);
+        SNPRINTF(cmd, sizeof(cmd), "SQ%c", v);
         retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), 6);
 
         if (retval != RIG_OK)
@@ -605,7 +605,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EINVAL;
         }
 
-        sprintf(cmd, "GC%c", v);
+        SNPRINTF(cmd, sizeof(cmd), "GC%c", v);
 
         if (RIG_OK != (retval = kenwood_safe_transaction(rig, cmd, lvlbuf,
                                 sizeof(lvlbuf), 4)))
@@ -701,7 +701,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EINVAL;
         }
 
-        sprintf(cmd, "SM%c", v);
+        SNPRINTF(cmd, sizeof(cmd), "SM%c", v);
         retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), 7);
 
         if (retval != RIG_OK)

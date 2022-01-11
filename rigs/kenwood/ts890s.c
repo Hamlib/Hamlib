@@ -54,12 +54,12 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_RF:
         kenwood_val = val.f * 255;
-        sprintf(levelbuf, "RG%03d", kenwood_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "RG%03d", kenwood_val);
         break;
 
     case RIG_LEVEL_SQL:
         kenwood_val = val.f * 255;
-        sprintf(levelbuf, "SQ%03d", kenwood_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "SQ%03d", kenwood_val);
         break;
 
     case RIG_LEVEL_AGC:
@@ -94,7 +94,7 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
         }
 
-        sprintf(levelbuf, "GC%d", kenwood_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "GC%d", kenwood_val);
         break;
 
     default:
