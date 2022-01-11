@@ -524,7 +524,6 @@ int tt585_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
     char buf[16];
-    int ret;
 
     if (ch < 0 || ch > 61)
     {
@@ -534,9 +533,9 @@ int tt585_set_mem(RIG *rig, vfo_t vfo, int ch)
     priv->channel_num = ch;
 
     /* does it work without a command after the channel number? */
-    ret = sprintf(buf, ":%02d", ch);
+    SNPRINTF(buf, sizeof(buf), ":%02d", ch);
 
-    return write_block(&rig->state.rigport, (unsigned char *) buf, ret);
+    return write_block(&rig->state.rigport, (unsigned char *) buf, strlen(buf));
 }
 
 int tt585_get_mem(RIG *rig, vfo_t vfo, int *ch)
@@ -652,17 +651,17 @@ int tt585_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     case RIG_OP_TUNE: cmd = "Q"; break;
 
     case RIG_OP_MCL:
-        sprintf(buf, ":%02dXD", priv->channel_num);
+        SNPRINTF(buf, sizeof(buf), ":%02dXD", priv->channel_num);
         cmd = buf;
         break;
 
     case RIG_OP_TO_VFO:
-        sprintf(buf, ":%02d", priv->channel_num);
+        SNPRINTF(buf, sizeof(buf), ":%02d", priv->channel_num);
         cmd = buf;
         break;
 
     case RIG_OP_FROM_VFO:
-        sprintf(buf, "<%02d", priv->channel_num);
+        SNPRINTF(buf, sizeof(buf), "<%02d", priv->channel_num);
         cmd = buf;
         break;
 

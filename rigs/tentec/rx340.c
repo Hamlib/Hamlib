@@ -299,12 +299,12 @@ int rx340_close(RIG *rig)
 int rx340_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct rig_state *rs = &rig->state;
-    int freq_len, retval;
+    int retval;
     char freqbuf[16];
 
-    freq_len = num_sprintf(freqbuf, "F%.6f" EOM, freq / 1e6);
+    SNPRINTF(freqbuf, sizeof(freqbuf), "F%.6f" EOM, freq / 1e6);
 
-    retval = write_block(&rs->rigport, (unsigned char *) freqbuf, freq_len);
+    retval = write_block(&rs->rigport, (unsigned char *) freqbuf, strlen(freqbuf));
 
     return retval;
 }
@@ -347,7 +347,7 @@ int rx340_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct rig_state *rs = &rig->state;
     char dmode;
-    int mdbuf_len, retval;
+    int retval;
     char mdbuf[32];
 
     switch (mode)
@@ -383,7 +383,7 @@ int rx340_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         /*
          * Set DETECTION MODE and IF FILTER
          */
-        mdbuf_len = num_sprintf(mdbuf,  "D%cI%.02f" EOM,
+        SNPRINTF(mdbuf, sizeof(mdbuf), "D%cI%.02f" EOM,
                                 dmode, (float)width / 1e3);
     }
     else
@@ -391,10 +391,10 @@ int rx340_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         /*
          * Set DETECTION MODE
          */
-        mdbuf_len = num_sprintf(mdbuf,  "D%c" EOM, dmode);
+        SNPRINTF(mdbuf, sizeof(mdbuf),  "D%c" EOM, dmode);
     }
 
-    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, mdbuf_len);
+    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
 
     return retval;
 }
@@ -467,45 +467,45 @@ int rx340_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int rx340_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     struct rig_state *rs = &rig->state;
-    int cmd_len, retval = RIG_OK;
+    int retval = RIG_OK;
     char cmdbuf[32];
 
     switch (level)
     {
     case RIG_LEVEL_ATT:
-        cmd_len = sprintf(cmdbuf, "K%c" EOM, val.i ? '3' : '1');
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "K%c" EOM, val.i ? '3' : '1');
         break;
 
     case RIG_LEVEL_PREAMP:
-        cmd_len = sprintf(cmdbuf, "K%c" EOM, val.i ? '2' : '1');
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "K%c" EOM, val.i ? '2' : '1');
         break;
 
     case RIG_LEVEL_AGC:
         /* default to MEDIUM */
-        cmd_len = sprintf(cmdbuf, "M%c" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "M%c" EOM,
                           val.i == RIG_AGC_SLOW ? '3' : (
                               val.i == RIG_AGC_FAST ? '1' : '2'));
         break;
 
     case RIG_LEVEL_RF:
-        cmd_len = sprintf(cmdbuf, "A%d" EOM, 120 - (int)(val.f * 120));
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "A%d" EOM, 120 - (int)(val.f * 120));
         break;
 
     case RIG_LEVEL_SQL:
-        cmd_len = sprintf(cmdbuf, "Q%d" EOM, 150 - (int)(val.f * 150));
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "Q%d" EOM, 150 - (int)(val.f * 150));
         break;
 
     case RIG_LEVEL_NOTCHF:
-        cmd_len = num_sprintf(cmdbuf, "N%f" EOM, ((float)val.i) / 1e3);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "N%f" EOM, ((float)val.i) / 1e3);
         break;
 
     case RIG_LEVEL_IF:
-        cmd_len = num_sprintf(cmdbuf, "P%f" EOM, ((float)val.i) / 1e3);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "P%f" EOM, ((float)val.i) / 1e3);
         break;
 
     case RIG_LEVEL_CWPITCH:
         /* only in CW mode */
-        cmd_len = num_sprintf(cmdbuf, "B%f" EOM, ((float)val.i) / 1e3);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "B%f" EOM, ((float)val.i) / 1e3);
         break;
 
     default:
@@ -514,7 +514,7 @@ int rx340_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
     return retval;
 }
 
