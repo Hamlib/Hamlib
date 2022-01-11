@@ -1123,11 +1123,11 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        sprintf(lstr, "%f", val.f);
+        SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
     }
     else
     {
-        sprintf(lstr, "%d", val.i);
+        SNPRINTF(lstr, sizeof(lstr), "%d", val.i);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
@@ -1296,15 +1296,15 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         break;
 
     case RIG_CONF_COMBO:
-        sprintf(lstr, "%d", val.i);
+        SNPRINTF(lstr, sizeof(lstr), "%d", val.i);
         break;
 
     case RIG_CONF_NUMERIC:
-        sprintf(lstr, "%f", val.f);
+        SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
         break;
 
     case RIG_CONF_CHECKBUTTON:
-        sprintf(lstr, "%s", val.i ? "ON" : "OFF");
+        SNPRINTF(lstr, sizeof(lstr), "%s", val.i ? "ON" : "OFF");
         break;
 
     case RIG_CONF_BUTTON:
@@ -1505,11 +1505,11 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
-        sprintf(pstr, "%f", val.f);
+        SNPRINTF(pstr, sizeof(pstr), "%f", val.f);
     }
     else
     {
-        sprintf(pstr, "%d", val.i);
+        SNPRINTF(pstr, sizeof(pstr), "%d", val.i);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
@@ -1571,15 +1571,15 @@ static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
         break;
 
     case RIG_CONF_COMBO:
-        sprintf(lstr, "%d", val.i);
+        SNPRINTF(lstr, sizeof(lstr), "%d", val.i);
         break;
 
     case RIG_CONF_NUMERIC:
-        sprintf(lstr, "%f", val.f);
+        SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
         break;
 
     case RIG_CONF_CHECKBUTTON:
-        sprintf(lstr, "%s", val.i ? "ON" : "OFF");
+        SNPRINTF(lstr, sizeof(lstr), "%s", val.i ? "ON" : "OFF");
         break;
 
     case RIG_CONF_BUTTON:
