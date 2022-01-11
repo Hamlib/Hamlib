@@ -4814,7 +4814,7 @@ int icom_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int icom_get_conf(RIG *rig, token_t token, char *val)
+int icom_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
@@ -4826,13 +4826,13 @@ int icom_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_CIVADDR:
-        sprintf(val, "%d", priv->re_civ_addr);
+        SNPRINTF(val, val_len, "%d", priv->re_civ_addr);
         break;
 
-    case TOK_MODE731: sprintf(val, "%d", priv->civ_731_mode);
+    case TOK_MODE731: SNPRINTF(val, val_len, "%d", priv->civ_731_mode);
         break;
 
-    case TOK_NOXCHG: sprintf(val, "%d", priv->no_xchg);
+    case TOK_NOXCHG: SNPRINTF(val, val_len, "%d", priv->no_xchg);
         break;
 
     default: RETURNFUNC(-RIG_EINVAL);
@@ -4840,6 +4840,12 @@ int icom_get_conf(RIG *rig, token_t token, char *val)
 
     RETURNFUNC(RIG_OK);
 }
+
+int icom_get_conf(RIG *rig, token_t token, char *val)
+{
+    return icom_get_conf2(rig, token, val, 128);
+}
+
 
 
 /*
