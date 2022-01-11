@@ -385,9 +385,9 @@ int prm80_set_rx_tx_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
     int rc;
 
     // for RX, compute the PLL word without the IF
-    sprintf(rx_freq_buf, "%04X",
+    SNPRINTF(rx_freq_buf, sizeof(rx_freq_buf), "%04X",
             rx_freq_to_pll_value(rx_freq));
-    sprintf(tx_freq_buf, "%04X",
+    SNPRINTF(tx_freq_buf, sizeof(tx_freq_buf), "%04X",
             (unsigned)(tx_freq / FREQ_DIV));
 
     // The protocol is like this :
@@ -576,7 +576,7 @@ int prm80_set_mem(RIG *rig, vfo_t vfo, int ch)
         return -RIG_EINVAL;
     }
 
-    sprintf(chbuf, "%02u", (unsigned)ch);
+    SNPRINTF(chbuf, sizeof(chbuf), "%02u", (unsigned)ch);
 
     prm80_force_cache_timeout(rig);
 
@@ -853,7 +853,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
             "This channel number doesn't exist. Add new channel (Y/N) ? "
            */
 
-        sprintf(buf, "%02u", (unsigned)chan->channel_num);
+        SNPRINTF(buf, sizeof(buf), "%02u", (unsigned)chan->channel_num);
 
         ret = prm80_transaction(rig, "P", buf, 0);
 
@@ -863,7 +863,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         }
 
         // Set the RX frequency as PLL word.
-        sprintf(buf, "%04X", rx_freq_to_pll_value(chan->freq));
+        SNPRINTF(buf, sizeof(buf), "%04X", rx_freq_to_pll_value(chan->freq));
 
         // "PLL value to load : $"
         ret = read_dollar_prompt_and_send(&rs->rigport, NULL, NULL, buf);
@@ -887,7 +887,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
         chanstate |= (chan->flags & RIG_CHFLAG_SKIP) ? 0x08 : 0;
 
-        sprintf(buf, "%02X", chanstate);
+        SNPRINTF(buf, sizeof(buf), "%02X", chanstate);
 
         // "Channel state : $"
         ret = read_dollar_prompt_and_send(&rs->rigport, NULL, NULL, buf);
@@ -1063,12 +1063,12 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_AF:
         // Unlike system state, volume decimal
-        sprintf(buf, "%02u", (unsigned)(val.f * 16));
+        SNPRINTF(buf, sizeof(buf), "%02u", (unsigned)(val.f * 16));
 
         return prm80_transaction(rig, "O", buf, 1);
 
     case RIG_LEVEL_SQL:
-        sprintf(buf, "%02u", (unsigned)(val.f * 15));
+        SNPRINTF(buf, sizeof(buf), "%02u", (unsigned)(val.f * 15));
 
         return prm80_transaction(rig, "F", buf, 1);
 
@@ -1090,7 +1090,7 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         mode_byte  = hhtoi(buf);
         mode_byte &= ~0x02;
         mode_byte |= (val.f == 0.) ? 0 : 0x02;
-        sprintf(buf, "%02X", (unsigned)mode_byte);
+        SNPRINTF(buf, sizeof(buf), "%02X", (unsigned)mode_byte);
 
         return prm80_transaction(rig, "D", buf, 1);
 
