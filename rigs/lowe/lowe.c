@@ -103,12 +103,12 @@ int lowe_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int lowe_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[16], ackbuf[16];
-    int freq_len, ack_len, retval;
+    int ack_len, retval;
 
     /*
      */
-    freq_len = sprintf(freqbuf, "FRQ%f" EOM, (float)freq / 1000);
-    retval = lowe_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
+    SNPRINTF(freqbuf, sizeof(freqbuf), "FRQ%f" EOM, (float)freq / 1000);
+    retval = lowe_transaction(rig, freqbuf, strlen(freqbuf), ackbuf, &ack_len);
 
     return retval;
 }
@@ -147,7 +147,7 @@ int lowe_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char mdbuf[16], ackbuf[16];
     char *mode_sel;
-    int mdbuf_len, ack_len, retval;
+    int ack_len, retval;
 
     switch (mode)
     {
@@ -171,8 +171,8 @@ int lowe_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    mdbuf_len = sprintf(mdbuf, "MOD%s" EOM, mode_sel);
-    retval = lowe_transaction(rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+    SNPRINTF(mdbuf, sizeof(mdbuf), "MOD%s" EOM, mode_sel);
+    retval = lowe_transaction(rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
 
     return retval;
 }
