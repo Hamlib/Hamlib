@@ -114,12 +114,12 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     if (xon == 0x13 && xoff == 0x11)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: removing xoff char\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: removing xoff char\n", __func__);
         p[strlen(p) - 1] = 0;
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR,
+        rig_debug(RIG_DEBUG_TRACE,
                   "%s: expected XOFF=0x13 as first and XON=0x11 as last byte, got %02x/%02x\n",
                   __func__, xon, xoff);
     }
