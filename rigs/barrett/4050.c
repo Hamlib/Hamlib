@@ -104,7 +104,7 @@ static int barrett4050_open(RIG *rig)
         rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __func__, response);
     }
 
-    retval = barrett_transaction(rig, "IDC", 0, &response);
+    retval = barrett_transaction(rig, "IC", 0, &response);
 
     if (retval == RIG_OK)
     {
