@@ -260,6 +260,7 @@ int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 }
 
 
+// TC command does not work on 4050 -- not implemented as of 2022-01-12
 /*
  * barrett_set_freq
  * assumes rig!=NULL, rig->state.priv!=NULL

@@ -47,6 +47,7 @@
 
 #define BARRETT4050_FUNCTIONS (RIG_FUNC_TUNER)
 
+extern int barret950_get_freq(RIG *rig, vfo_t vfo, freq_t freq);
 
 /*
  * barrett4050_get_level
@@ -85,6 +86,7 @@ static int barrett4050_open(RIG *rig)
 {
     int retval;
     char *response;
+    struct barrett_priv_data *priv = rig->state.priv;
     ENTERFUNC;
     barrett4050_get_info(rig);
     retval = barrett_transaction(rig, "IDC9999", 0, &response);
@@ -92,6 +94,7 @@ static int barrett4050_open(RIG *rig)
     if (retval == RIG_OK)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: channel 9999 info=%s\n", __func__, response);
+        priv->channel_base = 9990;
     }
 
     retval = barrett_transaction(rig, "XC9999", 0, &response);
@@ -116,9 +119,9 @@ const struct rig_caps barrett4050_caps =
     RIG_MODEL(RIG_MODEL_BARRETT_4050),
     .model_name =       "4050",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER ".0c",
+    .version =          BACKEND_VER ".0d",
     .copyright =        "LGPL",
-    .status =           RIG_STATUS_STABLE,
+    .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
     .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .ptt_type =         RIG_PTT_RIG,
@@ -165,7 +168,9 @@ const struct rig_caps barrett4050_caps =
     .rig_cleanup =  barrett_cleanup,
     .rig_open = barrett4050_open,
 
-    .set_freq = barrett_set_freq,
+    // Barrett said eeprom is good for 1M writes so channelized should be OK for a long time
+    // TC command was not implemented as of 2022-01-12 which would be better
+    .set_freq = barrett950_set_freq,
     .get_freq = barrett_get_freq,
     .set_mode = barrett_set_mode,
     .get_mode = barrett_get_mode,

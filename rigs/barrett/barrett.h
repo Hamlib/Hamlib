@@ -28,7 +28,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20220109"
+#define BACKEND_VER "20220112"
 
 #define EOM "\x0d"
 #define TRUE 1
@@ -46,8 +46,9 @@ extern const struct rig_caps barrett4050_caps;
 
 struct barrett_priv_data {
     char cmd_str[BARRETT_DATA_LEN];       /* command string buffer */
-    char ret_data[BARRETT_RET_LEN];      /* returned data--max value, most are less */
+    char ret_data[BARRETT_RET_LEN];       /* returned data--max value, most are less */
     char split;                           /* split on/off */
+    int channel_base;                     /* base channel for 0-9 10-channel assignment if needed */
 };
 
 extern int barrett_transaction(RIG *rig, char *cmd, int expected, char **result);
@@ -55,7 +56,7 @@ extern int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 extern int barrett_init(RIG *rig);
 extern int barrett_cleanup(RIG *rig);
 extern int barrett_open(RIG *rig);
-extern int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+extern int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 extern int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 extern int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 extern int barrett_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
