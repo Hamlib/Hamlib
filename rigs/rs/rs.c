@@ -99,11 +99,11 @@ int rs_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int rs_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[32];
-    int freq_len, retval;
+    int retval;
 
     // cppcheck-suppress *
-    freq_len = sprintf(freqbuf, BOM "FREQ %"PRIll EOM, (int64_t)freq);
-    retval = rs_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    SNPRINTF(freqbuf, sizeof(freqbuf), BOM "FREQ %"PRIll EOM, (int64_t)freq);
+    retval = rs_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 
     return retval;
 }
@@ -138,7 +138,7 @@ int rs_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int rs_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char buf[32], *smode;
-    int len, retval;
+    int retval;
 
     switch (mode)
     {
@@ -157,8 +157,8 @@ int rs_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    len = sprintf(buf, BOM "DEM %s" EOM, smode);
-    retval = rs_transaction(rig, buf, len, NULL, NULL);
+    SNPRINTF(buf, sizeof(buf), BOM "DEM %s" EOM, smode);
+    retval = rs_transaction(rig, buf, strlen(buf), NULL, NULL);
 
     if (retval < 0)
     {
@@ -174,8 +174,8 @@ int rs_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width > 0)
     {
-        len = sprintf(buf, BOM "BAND %d" EOM, (int) width);
-        retval = rs_transaction(rig, buf, len, NULL, NULL);
+        SNPRINTF(buf, sizeof(buf), BOM "BAND %d" EOM, (int) width);
+        retval = rs_transaction(rig, buf, strlen(buf), NULL, NULL);
     }
 
     return retval;
@@ -218,7 +218,7 @@ int rs_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int rs_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char buf[32], *sfunc;
-    int len, retval;
+    int retval;
 
     switch (func)
     {
@@ -232,8 +232,8 @@ int rs_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return -RIG_EINVAL;
     }
 
-    len = sprintf(buf, BOM "%s %s" EOM, sfunc, status ? "ON" : "OFF");
-    retval = rs_transaction(rig, buf, len, NULL, NULL);
+    SNPRINTF(buf, sizeof(buf), BOM "%s %s" EOM, sfunc, status ? "ON" : "OFF");
+    retval = rs_transaction(rig, buf, strlen(buf), NULL, NULL);
 
     return retval;
 }
@@ -270,21 +270,21 @@ int rs_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int rs_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char buf[32];
-    int len, retval;
+    int retval;
 
     switch (level)
     {
     case RIG_LEVEL_ATT:
-        len = sprintf(buf, BOM "INP:ATT:STAT %s" EOM, val.i ? "ON" : "OFF");
+        SNPRINTF(buf, sizeof(buf), BOM "INP:ATT:STAT %s" EOM, val.i ? "ON" : "OFF");
         break;
 
     case RIG_LEVEL_SQL:
         /* dBuV */
-        len = sprintf(buf, BOM "OUTP:SQU:THR %d" EOM, (int)(20 + val.f * 20));
+        SNPRINTF(buf, sizeof(buf), BOM "OUTP:SQU:THR %d" EOM, (int)(20 + val.f * 20));
         break;
 
     case RIG_LEVEL_AF:
-        len = num_sprintf(buf, BOM "SYST:AUD:VOL %.1f" EOM, val.f);
+        num_snprintf(buf, sizeof(buf), BOM "SYST:AUD:VOL %.1f" EOM, val.f);
         break;
 
     case RIG_LEVEL_AGC:
@@ -295,7 +295,7 @@ int rs_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    retval = rs_transaction(rig, buf, len, NULL, NULL);
+    retval = rs_transaction(rig, buf, strlen(buf), NULL, NULL);
 
     return retval;
 }
