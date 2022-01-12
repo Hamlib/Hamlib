@@ -390,7 +390,6 @@ int dx77_transaction(RIG *rig,
 int dx77_set_vfo(RIG *rig, vfo_t vfo)
 {
     char cmdbuf[BUFSZ];
-    int cmd_len;
     char vfo_num;
 
     switch (vfo)
@@ -414,9 +413,9 @@ int dx77_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;
     }
 
-    cmd_len = sprintf(cmdbuf, AL CMD_VFO "%c" EOM, vfo_num);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_VFO "%c" EOM, vfo_num);
 
-    return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 }
 
 
@@ -485,7 +484,6 @@ int dx77_get_vfo(RIG *rig, vfo_t *vfo)
 int dx77_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[BUFSZ];
-    int freq_len;
 
     /* max 10 digits */
     if (freq >= GHz(10))
@@ -495,9 +493,9 @@ int dx77_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     /* at least 6 digits */
     // cppcheck-suppress *
-    freq_len = sprintf(freqbuf, AL CMD_RXFREQ "%06"PRIll EOM, (int64_t)freq);
+    SNPRINTF(freqbuf, sizeof(freqbuf), AL CMD_RXFREQ "%06"PRIll EOM, (int64_t)freq);
 
-    return dx77_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    return dx77_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 }
 
 
@@ -564,7 +562,7 @@ int dx77_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int dx77_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char mdbuf[BUFSZ];
-    int mdbuf_len, wide_filter, retval;
+    int wide_filter, retval;
     char amode;
 
     switch (mode)
@@ -587,8 +585,8 @@ int dx77_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    mdbuf_len = sprintf(mdbuf, AL CMD_MODE "%c" EOM, amode);
-    retval = dx77_transaction(rig, mdbuf, mdbuf_len, NULL, NULL);
+    SNPRINTF(mdbuf, sizeof(mdbuf), AL CMD_MODE "%c" EOM, amode);
+    retval = dx77_transaction(rig, mdbuf, strlen(mdbuf), NULL, NULL);
 
     if (retval != RIG_OK)
     {
@@ -611,8 +609,8 @@ int dx77_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         wide_filter = 1;
     }
 
-    mdbuf_len = sprintf(mdbuf, AL CMD_FLTER "%02d" EOM, wide_filter);
-    retval = dx77_transaction(rig, mdbuf, mdbuf_len, NULL, NULL);
+    SNPRINTF(mdbuf, sizeof(mdbuf), AL CMD_FLTER "%02d" EOM, wide_filter);
+    retval = dx77_transaction(rig, mdbuf, strlen(mdbuf), NULL, NULL);
 
     return retval;
 }
@@ -684,14 +682,13 @@ int dx77_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int dx77_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    int cmd_len;
     char cmdbuf[BUFSZ];
 
-    cmd_len = sprintf(cmdbuf,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf),
                       AL CMD_SPLT "%d" EOM,
                       split == RIG_SPLIT_ON ? 1 : 0);
 
-    return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 }
 
 
@@ -755,7 +752,6 @@ int dx77_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int dx77_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     char freqbuf[BUFSZ];
-    int freq_len;
     int retval;
 
     /* max 10 digits */
@@ -765,9 +761,9 @@ int dx77_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
 
     /* at least 6 digits */
-    freq_len = sprintf(freqbuf, AL CMD_TXFREQ "%06"PRIll EOM, (int64_t)tx_freq);
+    SNPRINTF(freqbuf, sizeof(freqbuf), AL CMD_TXFREQ "%06"PRIll EOM, (int64_t)tx_freq);
 
-    retval = dx77_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    retval = dx77_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 
     return retval;
 }
@@ -845,7 +841,6 @@ int dx77_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  */
 int dx77_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-    int cmd_len;
     char cmdbuf[BUFSZ];
 
     /* Optimize:
@@ -854,28 +849,28 @@ int dx77_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     switch (func)
     {
     case RIG_FUNC_TONE:
-        cmd_len = sprintf(cmdbuf, AL CMD_CTCSS "%02d" EOM, status ? 51 : 0);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_CTCSS "%02d" EOM, status ? 51 : 0);
 
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_FUNC_FAGC:
-        cmd_len = sprintf(cmdbuf, AL CMD_AGC "%02d" EOM, status ? 1 : 2);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_AGC "%02d" EOM, status ? 1 : 2);
 
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_FUNC_NB:
-        cmd_len = sprintf(cmdbuf, AL CMD_NB "%d" EOM, status ? 1 : 0);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_NB "%d" EOM, status ? 1 : 0);
 
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_FUNC_COMP:
-        cmd_len = sprintf(cmdbuf, AL CMD_SDATA "C%d" EOM, status ? 1 : 0);
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_SDATA "C%d" EOM, status ? 1 : 0);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_FUNC_MON:
-        cmd_len = sprintf(cmdbuf, AL CMD_MON "%d" EOM, status ? 1 : 0);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_MON "%d" EOM, status ? 1 : 0);
 
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %d\n", (int)func);
@@ -956,7 +951,7 @@ int dx77_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int dx77_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    int cmd_len, lvl;
+    int lvl;
     char cmdbuf[BUFSZ];
 
     /* Optimize:
@@ -978,9 +973,9 @@ int dx77_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
         }
 
-        cmd_len = sprintf(cmdbuf, AL CMD_RFGAIN "%02d" EOM, lvl);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_RFGAIN "%02d" EOM, lvl);
 
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_LEVEL_ATT:
         switch (val.i)
@@ -998,14 +993,14 @@ int dx77_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
         }
 
-        cmd_len = sprintf(cmdbuf, AL CMD_RFGAIN "%02d" EOM, lvl);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_RFGAIN "%02d" EOM, lvl);
 
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_LEVEL_RFPOWER:
-        cmd_len = sprintf(cmdbuf, AL CMD_PWR "%1d" EOM, val.f < 0.5 ? 1 : 0);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_PWR "%1d" EOM, val.f < 0.5 ? 1 : 0);
 
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_LEVEL_KEYSPD:
         if (val.i < 6)
@@ -1025,9 +1020,9 @@ int dx77_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             lvl = 30;
         }
 
-        cmd_len = sprintf(cmdbuf, AL CMD_SDATA "P%02d" EOM, lvl);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_SDATA "P%02d" EOM, lvl);
 
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_LEVEL_CWPITCH:
         lvl = 4;
@@ -1085,9 +1080,9 @@ int dx77_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             lvl = 4;
         }
 
-        cmd_len = sprintf(cmdbuf, AL CMD_SDATA "M%02d" EOM, lvl);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_SDATA "M%02d" EOM, lvl);
 
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported set_level %s\n", rig_strlevel(level));
@@ -1228,7 +1223,6 @@ int dx77_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int dx77_set_parm(RIG *rig, setting_t parm, value_t val)
 {
-    int cmd_len;
     char cmdbuf[BUFSZ];
 
     /* Optimize:
@@ -1238,13 +1232,13 @@ int dx77_set_parm(RIG *rig, setting_t parm, value_t val)
     {
     case RIG_PARM_BEEP:
         rig_debug(RIG_DEBUG_ERR, "val is %d\n", val.i);
-        cmd_len = sprintf(cmdbuf, AL CMD_SDATA "A%d" EOM, val.i ? 1 : 0);
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_SDATA "A%d" EOM, val.i ? 1 : 0);
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_PARM_BACKLIGHT:
         rig_debug(RIG_DEBUG_ERR, "val is %0f\n", val.f);
-        cmd_len = sprintf(cmdbuf, AL CMD_SDATA "O%d" EOM, (int)(val.f * 5));
-        return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_SDATA "O%d" EOM, (int)(val.f * 5));
+        return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     default:
         rig_debug(RIG_DEBUG_ERR, "Unsupported set_parm %d\n", (int)parm);
@@ -1263,7 +1257,6 @@ int dx77_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
     const struct rig_caps *caps;
     unsigned char tonebuf[BUFSZ];
-    int tone_len;
     int i;
 
     caps = rig->caps;
@@ -1281,9 +1274,9 @@ int dx77_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
         return -RIG_EINVAL;
     }
 
-    tone_len = sprintf((char *) tonebuf, AL CMD_CTCSS "%02d" EOM, i + 1);
+    SNPRINTF((char *) tonebuf, sizeof(tonebuf), AL CMD_CTCSS "%02d" EOM, i + 1);
 
-    return dx77_transaction(rig, (char *) tonebuf, tone_len, NULL, NULL);
+    return dx77_transaction(rig, (char *) tonebuf, strlen((char*)tonebuf), NULL, NULL);
 }
 
 
@@ -1401,16 +1394,15 @@ int dx77_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int dx77_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     char cmdbuf[BUFSZ];
-    int cmd_len;
 
     if (ch < 0 || ch > 99)
     {
         return -RIG_EINVAL;
     }
 
-    cmd_len = sprintf(cmdbuf, AL CMD_MCALL "%02d" EOM, ch);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), AL CMD_MCALL "%02d" EOM, ch);
 
-    return dx77_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 }
 
 
