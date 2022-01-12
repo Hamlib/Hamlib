@@ -167,7 +167,7 @@ static int nrd525_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[12];
 
-    sprintf(freqbuf, "F%08u", (unsigned)(freq / 10));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "F%08u", (unsigned)(freq / 10));
 
     return write_block(&rig->state.rigport, (unsigned char *) freqbuf, strlen(freqbuf));
 }
@@ -237,7 +237,7 @@ static int nrd525_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     char membuf[12];
 
-    sprintf(membuf, "C%03d", ch);
+    SNPRINTF(membuf, sizeof(membuf), "C%03d", ch);
 
     return write_block(&rig->state.rigport, (unsigned char *) membuf, strlen(membuf));
 }

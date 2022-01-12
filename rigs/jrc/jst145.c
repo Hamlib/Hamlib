@@ -551,7 +551,7 @@ static int jst145_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     char membuf[MAX_LEN];
 
-    sprintf(membuf, "C%03d\r", ch);
+    SNPRINTF(membuf, sizeof(membuf), "C%03d\r", ch);
 
     return write_block(&rig->state.rigport, (unsigned char *) membuf, strlen(membuf));
 }
