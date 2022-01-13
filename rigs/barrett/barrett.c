@@ -289,7 +289,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo != RIG_VFO_B)
     {
         char *response = NULL;
-        sprintf((char *) cmd_buf, "TR%08.0f", freq);
+        SNPRINTF((char *) cmd_buf, sizeof(cmd_buf), "TR%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
@@ -311,7 +311,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
 
         char *response = NULL;
-        sprintf((char *) cmd_buf, "TC9999T%08.0f", freq);
+        SNPRINTF((char *) cmd_buf, sizeof(cmd_buf), "TC9999T%08.0f", freq);
         retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
         if (retval < 0)
@@ -346,7 +346,7 @@ int barrett_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     // testing with rigctld worked, but from WSJT-X did not
     // WSJT-X is just a little faster without the network timing
     hl_usleep(100 * 1000);
-    sprintf(cmd_buf, "XP%d", ptt);
+    SNPRINTF(cmd_buf, sizeof(cmd_buf), "XP%d", ptt);
     response = NULL;
     retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
@@ -461,7 +461,7 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    sprintf((char *) cmd_buf, "TB%c" EOM, ttmode);
+    SNPRINTF((char *) cmd_buf, sizeof(cmd_buf), "TB%c" EOM, ttmode);
 
     retval = barrett_transaction(rig, cmd_buf, 0, NULL);
 
@@ -562,7 +562,7 @@ int barrett_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%g\n", __func__,
               rig_strvfo(vfo), tx_freq);
 
-    sprintf((char *) cmd_buf, "TT%08.0f" EOM, tx_freq);
+    SNPRINTF((char *) cmd_buf, sizeof(cmd_buf), "TT%08.0f" EOM, tx_freq);
 
     retval = barrett_transaction(rig, cmd_buf, 0, NULL);
 

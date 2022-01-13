@@ -185,7 +185,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               chan, freq);
 
     // Set the channel
-    sprintf((char *) cmd_buf, "XC%04d", chan);
+    SNPRINTF((char *) cmd_buf, sizeof(cmd_buf), "XC%04d", chan);
     retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
     if (retval < 0)
@@ -194,7 +194,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     // Read the current channel for the requested freq to see if it needs changing
-    sprintf((char *) cmd_buf, "IDC%04d", chan);
+    SNPRINTF((char *) cmd_buf, sizeof(cmd_buf), "IDC%04d", chan);
     retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
     if (retval < 0)
@@ -226,7 +226,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // New freq so let's update the channel
     // We do not support split mode -- too many writes to EEPROM to support it
-    sprintf((char *) cmd_buf, "PC%04dR%08.0lfT%08.0lf", chan, freq, freq);
+    SNPRINTF((char *) cmd_buf, sizeof(cmd_buf), "PC%04dR%08.0lfT%08.0lf", chan, freq, freq);
     retval = barrett_transaction(rig, cmd_buf, 0, &response);
 
     if (retval != RIG_OK || strncmp(response, "OK", 2) != 0)
