@@ -93,6 +93,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
         if (retval < 0)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): error in read_string\n", __func__, __LINE__);
             return retval;
         }
     }
@@ -102,11 +103,11 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
         if (retval < 0)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): error in read_block\n", __func__, __LINE__);
             return retval;
         }
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: retval=%d\n", __func__, retval);
     p = priv->ret_data;
     xon = p[0];
     xoff = p[strlen(p) - 1];
