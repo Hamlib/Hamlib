@@ -101,14 +101,14 @@ static int barrett4050_open(RIG *rig)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __func__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): result=%s\n", __func__, __LINE__, response);
     }
 
     retval = barrett_transaction(rig, "IC", 0, &response);
 
-    if (retval == RIG_OK)
+    if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __func__, response);
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): result=%s\n", __func__, __LINE__, response);
     }
 
     RETURNFUNC(RIG_OK);
@@ -119,7 +119,7 @@ const struct rig_caps barrett4050_caps =
     RIG_MODEL(RIG_MODEL_BARRETT_4050),
     .model_name =       "4050",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER ".0e",
+    .version =          BACKEND_VER ".0f",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
