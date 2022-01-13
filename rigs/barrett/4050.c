@@ -72,7 +72,7 @@ static const char *barrett4050_get_info(RIG *rig)
 
     if (retval == RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: result=%s\n", __func__, response);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: result=%s\n", __func__, response);
     }
     else
     {
@@ -119,9 +119,9 @@ const struct rig_caps barrett4050_caps =
     RIG_MODEL(RIG_MODEL_BARRETT_4050),
     .model_name =       "4050",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER ".0d",
+    .version =          BACKEND_VER ".0e",
     .copyright =        "LGPL",
-    .status =           RIG_STATUS_BETA,
+    .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
     .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .ptt_type =         RIG_PTT_RIG,
