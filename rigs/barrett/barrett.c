@@ -107,7 +107,6 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: retval=%d\n", __func__, retval);
-    dump_hex((const unsigned char *)priv->ret_data, strlen(priv->ret_data));
     p = priv->ret_data;
     xon = p[0];
     xoff = p[strlen(p) - 1];
@@ -165,7 +164,6 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
             strtok_r(*result, "\r", &dummy);
         }
 
-        dump_hex((const unsigned char *)*result, strlen(*result));
         rig_debug(RIG_DEBUG_VERBOSE, "%s: returning result=%s\n", __func__,
                   *result);
     }
