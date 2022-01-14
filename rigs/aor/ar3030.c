@@ -377,11 +377,11 @@ int ar3030_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
     char freqbuf[BUFSZ];
-    int freq_len, retval;
+    int retval;
 
-    freq_len = sprintf(freqbuf, "%03.6f" CR, ((double)freq) / MHz(1));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "%03.6f" CR, ((double)freq) / MHz(1));
 
-    retval = ar3030_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    retval = ar3030_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 
     if (retval != RIG_OK)
     {
@@ -439,7 +439,7 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ar3030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char mdbuf[BUFSZ];
-    int mdbuf_len, aormode, retval;
+    int aormode, retval;
 
     switch (mode)
     {
@@ -479,16 +479,16 @@ int ar3030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
-        mdbuf_len = sprintf(mdbuf, "%c" CR, aormode);
+        SNPRINTF(mdbuf, sizeof(mdbuf), "%c" CR, aormode);
     }
     else
     {
-        mdbuf_len = sprintf(mdbuf, "%dB%c" CR,
+        SNPRINTF(mdbuf, sizeof(mdbuf), "%dB%c" CR,
                             width < rig_passband_normal(rig, mode) ? 1 : 0,
                             aormode);
     }
 
-    retval = ar3030_transaction(rig, mdbuf, mdbuf_len, NULL, NULL);
+    retval = ar3030_transaction(rig, mdbuf, strlen(mdbuf), NULL, NULL);
 
     return retval;
 }
@@ -567,8 +567,8 @@ int ar3030_set_mem(RIG *rig, vfo_t vfo, int ch)
     if (priv->curr_vfo == RIG_VFO_MEM)
     {
         char cmdbuf[BUFSZ];
-        int cmd_len = sprintf(cmdbuf, "%02dM" CR, ch);
-        retval = ar3030_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "%02dM" CR, ch);
+        retval = ar3030_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
     }
 
     if (retval == RIG_OK)
@@ -727,11 +727,11 @@ int ar3030_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
     char cmdbuf[BUFSZ], infobuf[BUFSZ];
-    int info_len, cmd_len, retval;
+    int info_len, retval;
 
 
-    cmd_len = sprintf(cmdbuf, "%02dM" CR, chan->channel_num);
-    retval = ar3030_transaction(rig, cmdbuf, cmd_len, infobuf, &info_len);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "%02dM" CR, chan->channel_num);
+    retval = ar3030_transaction(rig, cmdbuf, strlen(cmdbuf), infobuf, &info_len);
 
     if (retval != RIG_OK)
     {
@@ -825,16 +825,16 @@ int ar3030_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
     char buf[16];
-    int len, retval;
+    int retval;
 
     switch (op)
     {
     case RIG_OP_MCL:
-        len = sprintf(buf, "%02d%%" CR, priv->curr_ch);
+        SNPRINTF(buf, sizeof(buf), "%02d%%" CR, priv->curr_ch);
         break;
 
     case RIG_OP_FROM_VFO:
-        len = sprintf(buf, "%02dW" CR, priv->curr_ch);
+        SNPRINTF(buf, sizeof(buf), "%02dW" CR, priv->curr_ch);
         priv->curr_vfo = RIG_VFO_MEM;
         break;
 
@@ -842,7 +842,7 @@ int ar3030_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         return -RIG_EINVAL;
     }
 
-    retval = ar3030_transaction(rig, buf, len, NULL, NULL);
+    retval = ar3030_transaction(rig, buf, strlen(buf), NULL, NULL);
 
     return retval;
 }

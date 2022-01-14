@@ -60,7 +60,7 @@
     .funcs = RIG_FUNC_ABM,  \
 }
 
-static int format2700_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width);
+static int format2700_mode(RIG *rig, char *buf, int buf_len, rmode_t mode, pbwidth_t width);
 static int parse2700_aor_mode(RIG *rig, char aormode, char aorwidth,
                               rmode_t *mode, pbwidth_t *width);
 
@@ -212,7 +212,7 @@ const struct rig_caps ar2700_caps =
 #define AR2700_NFM  '1'
 #define AR2700_AM   '2'
 
-int format2700_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
+int format2700_mode(RIG *rig, char *buf, int buf_len, rmode_t mode, pbwidth_t width)
 {
     int aormode;
 
@@ -230,7 +230,8 @@ int format2700_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    return sprintf(buf, "MD%c", aormode);
+    SNPRINTF(buf, buf_len, "MD%c", aormode);
+    return strlen(buf);
 }
 
 

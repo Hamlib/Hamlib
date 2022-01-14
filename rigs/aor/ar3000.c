@@ -236,7 +236,7 @@ static int ar3k_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int ar3k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[BUFSZ];
-    int freq_len, retval;
+    int retval;
     unsigned lowhz;
 
     /*
@@ -261,9 +261,9 @@ int ar3k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     freq = freq * 100 + lowhz;
 
-    freq_len = sprintf(freqbuf, "%04.5f" EOM, ((double)freq) / MHz(1));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "%04.5f" EOM, ((double)freq) / MHz(1));
 
-    retval = ar3k_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    retval = ar3k_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 
     if (retval != RIG_OK)
     {
@@ -314,7 +314,7 @@ int ar3k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ar3k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char mdbuf[BUFSZ];
-    int mdbuf_len, aormode, retval;
+    int aormode, retval;
 
     switch (mode)
     {
@@ -336,8 +336,8 @@ int ar3k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    mdbuf_len = sprintf(mdbuf, "%c" EOM, aormode);
-    retval = ar3k_transaction(rig, mdbuf, mdbuf_len, NULL, NULL);
+    SNPRINTF(mdbuf, sizeof(mdbuf), "%c" EOM, aormode);
+    retval = ar3k_transaction(rig, mdbuf, strlen(mdbuf), NULL, NULL);
 
     return retval;
 }
@@ -404,7 +404,7 @@ int ar3k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int ar3k_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
     char freqbuf[BUFSZ];
-    int freq_len, retval;
+    int retval;
     int lowhz;
 
     /*
@@ -429,9 +429,9 @@ int ar3k_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
     ts = ts * 100 + lowhz;
 
-    freq_len = sprintf(freqbuf, "%03.2fS" EOM, ((double)ts) / kHz(1));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "%03.2fS" EOM, ((double)ts) / kHz(1));
 
-    retval = ar3k_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    retval = ar3k_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 
     if (retval != RIG_OK)
     {
@@ -479,10 +479,10 @@ int ar3k_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 int ar3k_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     char cmdbuf[BUFSZ];
-    int cmd_len, retval;
+    int retval;
 
-    cmd_len = sprintf(cmdbuf, "%02dM" EOM, ch);
-    retval = ar3k_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "%02dM" EOM, ch);
+    retval = ar3k_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     return retval;
 }
@@ -490,10 +490,10 @@ int ar3k_set_mem(RIG *rig, vfo_t vfo, int ch)
 int ar3k_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
     char cmdbuf[BUFSZ];
-    int cmd_len, retval;
+    int retval;
 
-    cmd_len = sprintf(cmdbuf, "%dX" EOM, bank);
-    retval = ar3k_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "%dX" EOM, bank);
+    retval = ar3k_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     return retval;
 }
