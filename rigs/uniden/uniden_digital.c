@@ -389,7 +389,7 @@ int uniden_digital_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     freq /= 100;
 
     /* exactly 8 digits */
-    sprintf(freqbuf, sizeof(freqbuf), "RF%08u" EOM, (unsigned)freq);
+    SNPRINTF(freqbuf, sizeof(freqbuf), "RF%08u" EOM, (unsigned)freq);
 
     return uniden_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL, NULL);
 #else
