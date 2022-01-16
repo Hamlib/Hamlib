@@ -1655,7 +1655,7 @@ const struct rig_caps thd74_caps =
     RIG_MODEL(RIG_MODEL_THD74),
     .model_name = "TH-D74",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,
