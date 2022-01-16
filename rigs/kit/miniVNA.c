@@ -48,7 +48,7 @@ static int miniVNA_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_flush(&rig->state.rigport);
 
-    sprintf(cmdstr, "0\r%lu\r1\r0\r", (unsigned long int)(freq * DDS_RATIO));
+    SNPRINTF(cmdstr, sizeof(cmdstr), "0\r%lu\r1\r0\r", (unsigned long int)(freq * DDS_RATIO));
 
     retval = write_block(&rig->state.rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 

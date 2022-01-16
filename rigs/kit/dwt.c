@@ -678,7 +678,7 @@ const char *dwt_get_info(RIG *rig)
     /* always succeeds since libusb-1.0.16 */
     libusb_get_device_descriptor(libusb_get_device(udh), &desc);
 
-    sprintf(buf, "Dev %04d", desc.bcdDevice);
+    SNPRINTF(buf, sizeof(buf), "Dev %04d", desc.bcdDevice);
 
     return buf;
 }

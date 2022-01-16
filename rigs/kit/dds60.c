@@ -250,7 +250,7 @@ int dds60_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int dds60_get_conf(RIG *rig, token_t token, char *val)
+int dds60_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct dds60_priv_data *priv;
 
@@ -259,19 +259,19 @@ int dds60_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_OSCFREQ:
-        sprintf(val, "%"PRIfreq, priv->osc_freq);
+        SNPRINTF(val, val_len, "%"PRIfreq, priv->osc_freq);
         break;
 
     case TOK_IFMIXFREQ:
-        sprintf(val, "%"PRIfreq, priv->if_mix_freq);
+        SNPRINTF(val, val_len, "%"PRIfreq, priv->if_mix_freq);
         break;
 
     case TOK_MULTIPLIER:
-        sprintf(val, "%d", priv->multiplier);
+        SNPRINTF(val, val_len, "%d", priv->multiplier);
         break;
 
     case TOK_PHASE_MOD:
-        sprintf(val, "%f", priv->phase_step * PHASE_INCR);
+        SNPRINTF(val, val_len, "%f", priv->phase_step * PHASE_INCR);
         break;
 
     default:
@@ -279,6 +279,11 @@ int dds60_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int dds60_get_conf(RIG *rig, token_t token, char *val)
+{
+    return dds60_get_conf2(rig, token, val, 128);
 }
 
 

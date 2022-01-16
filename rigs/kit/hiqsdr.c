@@ -260,7 +260,7 @@ int hiqsdr_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int hiqsdr_get_conf(RIG *rig, token_t token, char *val)
+int hiqsdr_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct hiqsdr_priv_data *priv;
     struct rig_state *rs;
@@ -271,11 +271,11 @@ int hiqsdr_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_OSCFREQ:
-        sprintf(val, "%f", priv->ref_clock);
+        SNPRINTF(val, val_len, "%f", priv->ref_clock);
         break;
 
     case TOK_SAMPLE_RATE:
-        sprintf(val, "%d", priv->sample_rate);
+        SNPRINTF(val, val_len, "%d", priv->sample_rate);
         break;
 
     default:
@@ -283,6 +283,11 @@ int hiqsdr_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int hiqsdr_get_conf(RIG *rig, token_t token, char *val)
+{
+    return hiqsdr_get_conf2(rig, token, val, 128);
 }
 
 int hiqsdr_init(RIG *rig)
