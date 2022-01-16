@@ -670,7 +670,7 @@ int elektor507_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int elektor507_get_conf2(RIG *rig, token_t token, char *val, val_len)
+int elektor507_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct elektor507_priv_data *priv;
 
