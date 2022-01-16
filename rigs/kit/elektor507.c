@@ -361,7 +361,7 @@ const char *elektor507_get_info(RIG *rig)
 {
     static char buf[64];
 
-    sprintf(buf, "Elektor SDR USB w/ FTDI DLL");
+    SNPRINTF(buf, sizeof(buf), "Elektor SDR USB w/ FTDI DLL");
 
     return buf;
 }
@@ -436,7 +436,7 @@ const char *elektor507_get_info(RIG *rig)
     /* always succeeds since libusb-1.0.16 */
     libusb_get_device_descriptor(libusb_get_device(udh), &desc);
 
-    sprintf(buf, "USB dev %04d", desc.bcdDevice);
+    SNPRINTF(buf, sizeof(buf), "USB dev %04d", desc.bcdDevice);
 
     return buf;
 }
@@ -670,7 +670,7 @@ int elektor507_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int elektor507_get_conf(RIG *rig, token_t token, char *val)
+int elektor507_get_conf2(RIG *rig, token_t token, char *val, val_len)
 {
     struct elektor507_priv_data *priv;
 
@@ -679,11 +679,11 @@ int elektor507_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_OSCFREQ:
-        sprintf(val, "%"PRIfreq, priv->osc_freq * kHz(1));
+        SNPRINTF(val, val_len, "%"PRIfreq, priv->osc_freq * kHz(1));
         break;
 
     case TOK_XTALCAL:
-        sprintf(val, "%u", priv->xtal_cal);
+        SNPRINTF(val, val_len, "%u", priv->xtal_cal);
         break;
 
     default:
@@ -691,6 +691,11 @@ int elektor507_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int elektor507_get_conf(RIG *rig, token_t token, char *val)
+{
+    return elektor507_get_conf2(rig, token, val, 128);
 }
 
 

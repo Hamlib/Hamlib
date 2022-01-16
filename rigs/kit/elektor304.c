@@ -230,7 +230,7 @@ int elektor304_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int elektor304_get_conf(RIG *rig, token_t token, char *val)
+int elektor304_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct elektor304_priv_data *priv;
 
@@ -239,11 +239,11 @@ int elektor304_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_OSCFREQ:
-        sprintf(val, "%"PRIfreq, priv->osc_freq);
+        SNPRINTF(val, val_len, "%"PRIfreq, priv->osc_freq);
         break;
 
     case TOK_IFMIXFREQ:
-        sprintf(val, "%"PRIfreq, priv->if_mix_freq);
+        SNPRINTF(val, val_len, "%"PRIfreq, priv->if_mix_freq);
         break;
 
     default:
@@ -251,6 +251,11 @@ int elektor304_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int elektor304_get_conf(RIG *rig, token_t token, char *val)
+{
+    return elektor304_get_conf2(rig, token, val, 128);
 }
 
 

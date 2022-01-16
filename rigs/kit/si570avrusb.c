@@ -929,7 +929,7 @@ int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int si570xxxusb_get_conf(RIG *rig, token_t token, char *val)
+int si570xxxusb_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct si570xxxusb_priv_data *priv;
 
@@ -938,19 +938,19 @@ int si570xxxusb_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_OSCFREQ:
-        sprintf(val, "%"PRIfreq, (freq_t)(priv->osc_freq * 1e6));
+        SNPRINTF(val, val_len, "%"PRIfreq, (freq_t)(priv->osc_freq * 1e6));
         break;
 
     case TOK_MULTIPLIER:
-        sprintf(val, "%f", priv->multiplier);
+        SNPRINTF(val, val_len, "%f", priv->multiplier);
         break;
 
     case TOK_I2C_ADDR:
-        sprintf(val, "%x", priv->i2c_addr);
+        SNPRINTF(val, val_len, "%x", priv->i2c_addr);
         break;
 
     case TOK_BPF:
-        sprintf(val, "%d", priv->bpf);
+        SNPRINTF(val, val_len, "%d", priv->bpf);
         break;
 
     default:
@@ -958,6 +958,11 @@ int si570xxxusb_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int si570xxxusb_get_conf(RIG *rig, token_t token, char *val)
+{
+    return si570xxusb_get_conf2(rig, token val, 128);
 }
 
 
@@ -1100,7 +1105,7 @@ const char *si570xxxusb_get_info(RIG *rig)
     /* always succeeds since libusb-1.0.16 */
     libusb_get_device_descriptor(libusb_get_device(udh), &desc);
 
-    sprintf(buf, "USB dev %04d, version: %d.%d", desc.bcdDevice, buffer[1],
+    SNPRINTF(buf, sizeof(buf), "USB dev %04d, version: %d.%d", desc.bcdDevice, buffer[1],
             buffer[0]);
 
     return buf;

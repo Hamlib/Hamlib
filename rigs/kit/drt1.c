@@ -248,7 +248,7 @@ int drt1_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int drt1_get_conf(RIG *rig, token_t token, char *val)
+int drt1_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct drt1_priv_data *priv;
 
@@ -257,19 +257,19 @@ int drt1_get_conf(RIG *rig, token_t token, char *val)
     switch (token)
     {
     case TOK_OSCFREQ:
-        sprintf(val, "%"PRIfreq, priv->osc_freq);
+        SNPRINTF(val, val_len, "%"PRIfreq, priv->osc_freq);
         break;
 
     case TOK_REFMULT:
-        sprintf(val, "%u", priv->ref_mult);
+        SNPRINTF(val, val_len, "%u", priv->ref_mult);
         break;
 
     case TOK_IFMIXFREQ:
-        sprintf(val, "%"PRIfreq, priv->if_mix_freq);
+        SNPRINTF(val, val_len, "%"PRIfreq, priv->if_mix_freq);
         break;
 
     case TOK_PUMPCRNT:
-        sprintf(val, "%u", priv->pump_crrnt);
+        SNPRINTF(val, val_len, "%u", priv->pump_crrnt);
         break;
 
     default:
@@ -277,6 +277,11 @@ int drt1_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int drt1_get_conf(RIG *rig, token_t token, char *val)
+{
+    return drt1_get_conf2(rig, token, val, 128);
 }
 
 
