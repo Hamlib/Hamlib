@@ -932,7 +932,6 @@ int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val)
 int si570xxxusb_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct si570xxxusb_priv_data *priv;
-
     priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 
     switch (token)
@@ -962,7 +961,7 @@ int si570xxxusb_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 
 int si570xxxusb_get_conf(RIG *rig, token_t token, char *val)
 {
-    return si570xxusb_get_conf2(rig, token, val, 128);
+    return si570xxxusb_get_conf2(rig, token, val, 128);
 }
 
 
