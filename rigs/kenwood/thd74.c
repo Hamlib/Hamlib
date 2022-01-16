@@ -638,11 +638,23 @@ static int thd74_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
+    for (tsinx = 0; tsinx < 4; tsinx++)
+    {
+        if (thd74tuningstep_fine[tsinx] >= ts)
+        {
+            thd74_set_freq_item(rig, vfo, 33, 1); // Turn fine mode on
+            thd74_set_freq_item(rig, vfo, 35, tsinx);
+            return RIG_OK;
+        }
+    }
+    
     for (tsinx = 0; tsinx < 10; tsinx++)
     {
+
         if (thd74tuningstep[tsinx] >= ts)
         {
-            thd74_set_freq_item(rig, vfo, 16, tsinx);
+            thd74_set_freq_item(rig, vfo, 33, 0); //Turn fine mode off
+            thd74_set_freq_item(rig, vfo, 27, tsinx);
             return RIG_OK;
         }
     }
@@ -1643,7 +1655,7 @@ const struct rig_caps thd74_caps =
     RIG_MODEL(RIG_MODEL_THD74),
     .model_name = "TH-D74",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,
