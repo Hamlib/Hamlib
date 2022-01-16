@@ -696,14 +696,14 @@ int g313_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int g313_get_conf(RIG *rig, token_t token, char *val)
+int g313_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
     struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 
     switch (token)
     {
     case WAVEOUT_SOUNDCARDID:
-        sprintf(val, "%d", priv->WaveOutDeviceID);
+        SNPRINTF(val, val_len, "%d", priv->WaveOutDeviceID);
         break;
 
     default:
@@ -711,6 +711,11 @@ int g313_get_conf(RIG *rig, token_t token, char *val)
     }
 
     return RIG_OK;
+}
+
+int g313_get_conf(RIG *rig, token_t token, char *val)
+{
+    return g313_get_conf(rig, token, val, 128);
 }
 
 #endif /* _WIN32 */
