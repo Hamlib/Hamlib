@@ -105,22 +105,22 @@ elad_fdm_duo_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_RFPOWER:
         elad_val = val.f * 100;   /* level for FDM_DUOSAT is from 0.. 100W in SSB */
-        sprintf(levelbuf, "PC%03d", elad_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "PC%03d", elad_val);
         break;
 
     case RIG_LEVEL_AF:
         elad_val = val.f * 255;   /* possible values for FDM_DUO are 000.. 255 */
-        sprintf(levelbuf, "AG0%03d", elad_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "AG0%03d", elad_val);
         break;
 
     case RIG_LEVEL_RF:
         elad_val = val.f * 100;   /* possible values for FDM_DUO are 000.. 100 */
-        sprintf(levelbuf, "RG%03d", elad_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "RG%03d", elad_val);
         break;
 
     case RIG_LEVEL_SQL:
         elad_val = val.f * 255;   /* possible values for FDM_DUO are 000.. 255 */
-        sprintf(levelbuf, "SQ0%03d", elad_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "SQ0%03d", elad_val);
         break;
 
     case RIG_LEVEL_AGC: /* possible values for FDM_DUO 000(=off), 001(=fast), 002(=slow) */
@@ -145,7 +145,7 @@ elad_fdm_duo_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
         };
 
-        sprintf(levelbuf, "GT%03d", elad_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "GT%03d", elad_val);
         break;
 
     default:
