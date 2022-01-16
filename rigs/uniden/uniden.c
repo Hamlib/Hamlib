@@ -428,7 +428,6 @@ int uniden_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int uniden_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
-    size_t level_len = 16;
     int retval;
 
     switch (level)
@@ -439,7 +438,7 @@ int uniden_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
         }
 
-        level_len = sprintf(levelbuf, "AT%c"EOM,
+        SNPRINTF(levelbuf, sizeof(levelbuf), "AT%c"EOM,
                             val.i != 0 ? 'N' : 'F');
         break;
 
@@ -449,7 +448,7 @@ int uniden_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    retval = uniden_transaction(rig, levelbuf, level_len, NULL, NULL, NULL);
+    retval = uniden_transaction(rig, levelbuf, strlen(levelbuf), NULL, NULL, NULL);
 
     if (retval != RIG_OK)
     {
@@ -551,11 +550,10 @@ int uniden_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int uniden_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     char cmdbuf[BUFSZ];
-    size_t cmd_len = BUFSZ;
 
-    cmd_len = sprintf(cmdbuf, "MA%03d" EOM, ch);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "MA%03d" EOM, ch);
 
-    return uniden_transaction(rig, cmdbuf, cmd_len, NULL, NULL, NULL);
+    return uniden_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL, NULL);
 }
 
 /*
@@ -592,20 +590,20 @@ int uniden_get_mem(RIG *rig, vfo_t vfo, int *ch)
 int uniden_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
     char cmdbuf[BUFSZ], membuf[BUFSZ];
-    size_t cmd_len = BUFSZ, mem_len = BUFSZ;
+    size_t mem_len = BUFSZ;
     int ret;
     int tone;
 
     if (chan->vfo == RIG_VFO_MEM)
     {
-        cmd_len = sprintf(cmdbuf, "PM%03d" EOM, chan->channel_num);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "PM%03d" EOM, chan->channel_num);
     }
     else
     {
-        cmd_len = sprintf(cmdbuf, "MA" EOM);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "MA" EOM);
     }
 
-    ret = uniden_transaction(rig, cmdbuf, cmd_len, "C", membuf, &mem_len);
+    ret = uniden_transaction(rig, cmdbuf, strlen(cmdbuf), "C", membuf, &mem_len);
 
     if (ret != RIG_OK)
     {
@@ -652,9 +650,9 @@ int uniden_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     if (chan->vfo == RIG_VFO_MEM && rig->caps->chan_desc_sz != 0)
     {
         /* only BC780 BC250 BC785 */
-        cmd_len = sprintf(cmdbuf, "TA C %03d" EOM, chan->channel_num);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "TA C %03d" EOM, chan->channel_num);
 
-        ret = uniden_transaction(rig, cmdbuf, cmd_len, NULL, membuf, &mem_len);
+        ret = uniden_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, membuf, &mem_len);
 
         if (ret != RIG_OK)
         {
@@ -691,7 +689,7 @@ int uniden_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 int uniden_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char cmdbuf[BUFSZ], membuf[BUFSZ];
-    size_t cmd_len = BUFSZ, mem_len = BUFSZ;
+    size_t mem_len = BUFSZ;
     int ret;
 #if 0 // deprecated
     int trunked = 0;
@@ -703,7 +701,7 @@ int uniden_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     }
 
     /* PM089T08511625 */
-    cmd_len = sprintf(cmdbuf, "PM%03d%c%08u" EOM, chan->channel_num,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "PM%03d%c%08u" EOM, chan->channel_num,
 #if 0
                       trunked ? 'T' : ' ',
 #else
@@ -711,7 +709,7 @@ int uniden_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 #endif
                       (unsigned)(chan->freq / 100));
 
-    ret = uniden_transaction(rig, cmdbuf, cmd_len, NULL, membuf, &mem_len);
+    ret = uniden_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, membuf, &mem_len);
 
     if (ret != RIG_OK)
     {
@@ -721,10 +719,10 @@ int uniden_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     if (rig->caps->chan_desc_sz != 0)
     {
         /* only BC780 BC250 BC785 */
-        cmd_len = sprintf(cmdbuf, "TA C %03d %s" EOM,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "TA C %03d %s" EOM,
                           chan->channel_num, chan->channel_desc);
 
-        ret = uniden_transaction(rig, cmdbuf, cmd_len, NULL, NULL, NULL);
+        ret = uniden_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL, NULL);
 
         if (ret != RIG_OK)
         {
