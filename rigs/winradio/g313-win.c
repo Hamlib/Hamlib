@@ -715,7 +715,7 @@ int g313_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 
 int g313_get_conf(RIG *rig, token_t token, char *val)
 {
-    return g313_get_conf(rig, token, val, 128);
+    return g313_get_conf2(rig, token, val, 128);
 }
 
 #endif /* _WIN32 */
