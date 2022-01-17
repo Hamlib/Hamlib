@@ -1906,11 +1906,11 @@ static int netrigctl_set_level(RIG *rig, vfo_t vfo, setting_t level,
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        SNPRINTF(lstr, sizeof(cmd), "%f", val.f);
+        SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
     }
     else
     {
-        SNPRINTF(lstr, sizeof(cmd), "%d", val.i);
+        SNPRINTF(lstr, sizeof(lstr), "%d", val.i);
     }
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), vfo);
