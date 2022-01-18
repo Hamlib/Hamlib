@@ -10286,7 +10286,7 @@ int newcat_set_cmd(RIG *rig)
         if (strncmp(priv->cmd_str, "BS", 2) == 0)
         {
             // the BS command needs time to do it's thing
-            hl_usleep(200 * 1000);
+            hl_usleep(500 * 1000);
             priv->cache_start.tv_sec = 0; // invalidate the cache
         }
 
