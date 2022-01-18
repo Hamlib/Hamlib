@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <hamlib/rig.h>
 
 #define BUFSIZE 256
 
@@ -190,12 +191,12 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            sprintf(buf, "FA%011d;", freqa);
+            SNPRINTF(buf, sizeof(buf), "FA%011d;", freqa);
             write(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            sprintf(buf, "FA%011d;", freqa);
+            SNPRINTF(buf, sizeof(buf), "FA%011d;", freqa);
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FA", 2) == 0)
@@ -208,17 +209,17 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "AI;", 3) == 0)
         {
-            sprintf(buf, "AI0;");
+            SNPRINTF(buf, sizeof(buf), "AI0;");
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "SA;", 3) == 0)
         {
-            sprintf(buf, "SA0;");
+            SNPRINTF(buf, sizeof(buf), "SA0;");
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "MD;", 3) == 0)
         {
-            sprintf(buf, "MD%d;", modeA); // not worried about modeB yet for simulator
+            SNPRINTF(buf, sizeof(buf), "MD%d;", modeA); // not worried about modeB yet for simulator
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "MD", 2) == 0)
@@ -227,7 +228,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "FL;", 3) == 0)
         {
-            sprintf(buf, "FL%03d;", filternum);
+            SNPRINTF(buf, sizeof(buf), "FL%03d;", filternum);
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FL", 2) == 0)
@@ -236,7 +237,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "DA;", 3) == 0)
         {
-            sprintf(buf, "DA%d;", datamode);
+            SNPRINTF(buf, sizeof(buf), "DA%d;", datamode);
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "DA", 2) == 0)
