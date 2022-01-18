@@ -232,7 +232,7 @@ static int dummy_set_conf(ROT *rot, token_t token, const char *val)
 }
 
 
-static int dummy_get_conf(ROT *rot, token_t token, char *val)
+static int dummy_get_conf2(ROT *rot, token_t token, char *val, int val_len)
 {
     struct dummy_rot_priv_data *priv;
 
@@ -241,7 +241,7 @@ static int dummy_get_conf(ROT *rot, token_t token, char *val)
     switch (token)
     {
     case TOK_CFG_ROT_MAGICCONF:
-        strcpy(val, priv->magic_conf);
+        SNPRINTF(val, val_len, "%s", priv->magic_conf);
         break;
 
     default:
@@ -250,6 +250,12 @@ static int dummy_get_conf(ROT *rot, token_t token, char *val)
 
     return RIG_OK;
 }
+
+static int dummy_get_conf(ROT *rot, token_t token, char *val)
+{
+    return dummy_get_conf2(rot, token, val, 128);
+}
+
 
 
 static int dummy_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
@@ -925,7 +931,7 @@ const struct rot_caps dummy_rot_caps =
     ROT_MODEL(ROT_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20211120.0",
+    .version =        "20220118.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
