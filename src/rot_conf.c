@@ -779,12 +779,16 @@ int HAMLIB_API rot_get_conf2(ROT *rot, token_t token, char *val, int val_len)
         return frontrot_get_conf(rot, token, val, val_len);
     }
 
+    if (rot->caps->get_conf2)
+    {
+        return rot->caps->get_conf2(rot, token, val, val_len);
+    }
     if (rot->caps->get_conf == NULL)
     {
         return -RIG_ENAVAIL;
     }
 
-    return rot->caps->get_conf2(rot, token, val, val_len);
+    return rot->caps->get_conf(rot, token, val);
 }
 
 /** @} */
