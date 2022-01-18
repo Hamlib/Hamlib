@@ -254,7 +254,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 
         if (strlen(portstr) == 0)
         {
-            sprintf(portstr, "%d", default_port);
+            snprintf(portstr, sizeof(portstr), "%d", default_port);
         }
     }
 
