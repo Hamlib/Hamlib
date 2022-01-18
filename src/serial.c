@@ -696,9 +696,10 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 
             if (binary)
             {
-                char *hbuf = calloc(len * 3 + 1, 1);
+                int bytes = len * 3 + 1;
+                char *hbuf = calloc(bytes, 1);
 
-                for (i = 0; i < len; ++i) { sprintf(&hbuf[i * 3], "%02X ", buf[i]); }
+                for (i = 0; i < len; ++i) { SNPRINTF(&hbuf[i * 3], bytes - (i*3),  "%02X ", buf[i]); }
 
                 rig_debug(RIG_DEBUG_WARN, "%s: flush hex:%s\n", __func__, hbuf);
                 free(hbuf);
