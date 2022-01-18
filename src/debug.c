@@ -110,7 +110,7 @@ void dump_hex(const unsigned char ptr[], size_t size)
         if (i % DUMP_HEX_WIDTH == 0)
         {
             /* new line */
-            sprintf(line + 0, "%04x", i);
+            SNPRINTF(line + 0, sizeof(line), "%04x", i);
             memset(line + 4, ' ', sizeof(line) - 4 - 1);
         }
 
