@@ -943,8 +943,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             }
 
             // we need to change vfos, BS, and change back
-            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%d;BS%02d",
-                     vfo1, newcat_band_index(freq));
+            snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%d;BS%02d%c",
+                     vfo1, newcat_band_index(freq), cat_term);
 
             if (RIG_OK != (err = newcat_set_cmd(rig)))
             {
@@ -952,7 +952,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                           __func__, rigerror(err));
             }
 
-            hl_usleep(50 * 1000); // wait for BS to do it's thing and swap back
+            hl_usleep(500 * 1000); // wait for BS to do it's thing and swap back
             snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%d;", vfo2);
         }
         else
