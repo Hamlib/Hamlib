@@ -702,29 +702,29 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     switch (token)
     {
     case TOK_PATHNAME:
-        strcpy(val, rs->rigport.pathname);
+        SNPRINTF(val, val_len, "%s", rs->rigport.pathname);
         break;
 
     case TOK_WRITE_DELAY:
-        sprintf(val, "%d", rs->rigport.write_delay);
+        SNPRINTF(val, val_len, "%d", rs->rigport.write_delay);
         break;
 
     case TOK_POST_WRITE_DELAY:
-        sprintf(val, "%d", rs->rigport.post_write_delay);
+        SNPRINTF(val, val_len, "%d", rs->rigport.post_write_delay);
         break;
 
     case TOK_TIMEOUT:
-        sprintf(val, "%d", rs->rigport.timeout);
+        SNPRINTF(val, val_len, "%d", rs->rigport.timeout);
         break;
 
     case TOK_RETRY:
-        sprintf(val, "%d", rs->rigport.retry);
+        SNPRINTF(val, val_len, "%d", rs->rigport.retry);
         break;
 
 #if 0 // needs to be replace?
 
     case TOK_ITU_REGION:
-        sprintf(val, "%d",
+        SNPRINTF(val, val_len, "%d",
                 rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);
         break;
 #endif
@@ -735,7 +735,7 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        sprintf(val, "%d", rs->rigport.parm.serial.rate);
+        SNPRINTF(val, val_len, "%d", rs->rigport.parm.serial.rate);
         break;
 
     case TOK_DATA_BITS:
@@ -744,7 +744,7 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        sprintf(val, "%d", rs->rigport.parm.serial.data_bits);
+        SNPRINTF(val, val_len, "%d", rs->rigport.parm.serial.data_bits);
         break;
 
     case TOK_STOP_BITS:
@@ -753,7 +753,7 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        sprintf(val, "%d", rs->rigport.parm.serial.stop_bits);
+        SNPRINTF(val, val_len, "%d", rs->rigport.parm.serial.stop_bits);
         break;
 
     case TOK_PARITY:
@@ -873,11 +873,11 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
         break;
 
     case TOK_VFO_COMP:
-        sprintf(val, "%f", rs->vfo_comp);
+        SNPRINTF(val, val_len, "%f", rs->vfo_comp);
         break;
 
     case TOK_POLL_INTERVAL:
-        sprintf(val, "%d", rs->poll_interval);
+        SNPRINTF(val, val_len, "%d", rs->poll_interval);
         break;
 
     case TOK_PTT_TYPE:
@@ -931,7 +931,7 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
         break;
 
     case TOK_PTT_BITNUM:
-        sprintf(val, "%d", rs->pttport.parm.cm108.ptt_bitnum);
+        SNPRINTF(val, val_len, "%d", rs->pttport.parm.cm108.ptt_bitnum);
         break;
 
     case TOK_DCD_TYPE:
@@ -985,47 +985,47 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
         break;
 
     case TOK_LO_FREQ:
-        sprintf(val, "%g", rs->lo_freq);
+        SNPRINTF(val, val_len, "%g", rs->lo_freq);
         break;
 
     case TOK_CACHE_TIMEOUT:
-        sprintf(val, "%d", rig_get_cache_timeout_ms(rig, HAMLIB_CACHE_ALL));
+        SNPRINTF(val, val_len, "%d", rig_get_cache_timeout_ms(rig, HAMLIB_CACHE_ALL));
         break;
 
     case TOK_AUTO_POWER_ON:
-        sprintf(val, "%d", rs->auto_power_on);
+        SNPRINTF(val, val_len, "%d", rs->auto_power_on);
         break;
 
     case TOK_AUTO_POWER_OFF:
-        sprintf(val, "%d", rs->auto_power_off);
+        SNPRINTF(val, val_len, "%d", rs->auto_power_off);
         break;
 
     case TOK_AUTO_DISABLE_SCREENSAVER:
-        sprintf(val, "%d", rs->auto_disable_screensaver);
+        SNPRINTF(val, val_len, "%d", rs->auto_disable_screensaver);
         break;
 
     case TOK_PTT_SHARE:
-        sprintf(val, "%d", rs->ptt_share);
+        SNPRINTF(val, val_len, "%d", rs->ptt_share);
         break;
 
     case TOK_FLUSHX:
-        sprintf(val, "%d", rs->rigport.flushx);
+        SNPRINTF(val, val_len, "%d", rs->rigport.flushx);
         break;
 
     case TOK_DISABLE_YAESU_BANDSELECT:
-        sprintf(val, "%d", rs->disable_yaesu_bandselect);
+        SNPRINTF(val, val_len, "%d", rs->disable_yaesu_bandselect);
         break;
 
     case TOK_TWIDDLE_TIMEOUT:
-        sprintf(val, "%d", rs->twiddle_timeout);
+        SNPRINTF(val, val_len, "%d", rs->twiddle_timeout);
         break;
 
     case TOK_TWIDDLE_RIT:
-        sprintf(val, "%d", rs->twiddle_rit);
+        SNPRINTF(val, val_len, "%d", rs->twiddle_rit);
         break;
 
     case TOK_ASYNC:
-        sprintf(val, "%d", rs->async_data_enabled);
+        SNPRINTF(val, val_len, "%d", rs->async_data_enabled);
         break;
 
     default:
@@ -1204,7 +1204,7 @@ int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
     {
         const struct confparams *cfp;
         char tokenstr[12];
-        sprintf(tokenstr, "%ld", token);
+        SNPRINTF(tokenstr, sizeof(tokenstr), "%ld", token);
         cfp = rig_confparam_lookup(rig, tokenstr);
 
         if (!cfp)
