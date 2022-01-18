@@ -363,6 +363,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD3(send_dtmf, const_char_string)
 	METHOD3(send_morse, const_char_string)
 	METHOD3(vfo_op, vfo_op_t)
+    METHOD3(set_vfo_opt, int)
 	METHOD2(scan, scan_t, int)
 	METHODSIMPLESET(level, int, i, RIG_LEVEL_IS_FLOAT(stg))
 	METHODSIMPLESET(level, float, f, !RIG_LEVEL_IS_FLOAT(stg))
