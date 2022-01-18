@@ -724,7 +724,7 @@ int HAMLIB_API rig_open(RIG *rig)
     if (strlen(rs->rigport.pathname) > 0)
     {
         char hoststr[256], portstr[6];
-        status = parse_hoststr(rs->rigport.pathname, hoststr, portstr);
+        status = parse_hoststr(rs->rigport.pathname, sizeof(rs->rigport.pathname), hoststr, portstr);
 
         if (status == RIG_OK) { is_network = 1; }
     }
