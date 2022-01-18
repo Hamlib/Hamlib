@@ -14,6 +14,7 @@ float freqA = 14074000;
 float freqB = 14074500;
 char tx_vfo = 0;
 char rx_vfo = 0;
+vfo_t curr_vfo = RIG_VFO_A;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -96,6 +97,7 @@ int openPort(char *comport) // doesn't matter for using pts devices
 int main(int argc, char *argv[])
 {
     char buf[256];
+    char resp[256];
     char *pbuf;
     int n;
     int fd = openPort(argv[1]);
@@ -131,9 +133,8 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            pbuf = strdup("FA3456789012;");
-            SNPRINTF(pbuf, strlen(pbuf), "FA%010.0f", freqA);
-            free(pbuf);
+            SNPRINTF(resp, sizeof(resp), "FA%010.0f;", freqA);
+            n = write(fd, resp, strlen(resp));
         }
         else if (strncmp(buf, "FA", 2) == 0)
         {
@@ -141,9 +142,8 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            pbuf = strdup("FB3456789012;");
-            SNPRINTF(pbuf, strlen(pbuf), "FB%010.0f", freqB);
-            free(pbuf);
+            SNPRINTF(resp, sizeof(resp), "FB%010.0f;", freqB);
+            n = write(fd, resp, strlen(resp));
         }
         else if (strncmp(buf, "FB", 2) == 0)
         {
@@ -196,11 +196,17 @@ int main(int argc, char *argv[])
         }
 
 #endif
+        else if (strcmp(buf, "VS") == 0 && strlen(buf)>3)
+        {
+            curr_vfo = buf[3] == '1'?RIG_VFO_B:RIG_VFO_A;
+            usleep(50 * 1000);
+        }
         else if (strcmp(buf, "VS;") == 0)
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
             pbuf = "VS0;";
+            if (curr_vfo == RIG_VFO_B || curr_vfo == RIG_VFO_SUB) pbuf[2] = '1';
             n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
 
@@ -209,10 +215,8 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FT;") == 0)
         {
             usleep(50 * 1000);
-            pbuf = strdup("FTx;");
-            pbuf[2] = tx_vfo;
-            n = write(fd, pbuf, strlen(pbuf));
-            free(pbuf);
+            SNPRINTF(resp, sizeof(resp), "FT%c;", tx_vfo);
+            n = write(fd, resp, strlen(resp));
 
             if (n < 0) { perror("FT"); }
         }
