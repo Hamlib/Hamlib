@@ -243,7 +243,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     {
         if (strlen(rp->pathname))
         {
-            status = parse_hoststr(rp->pathname, hoststr, portstr);
+            status = parse_hoststr(rp->pathname, sizeof(rp->pathname), hoststr, portstr);
 
             if (status != RIG_OK) { RETURNFUNC(status); }
 
