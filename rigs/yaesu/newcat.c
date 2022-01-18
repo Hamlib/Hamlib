@@ -2296,6 +2296,29 @@ int newcat_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                           pbwidth_t tx_width)
 {
     ENTERFUNC;
+    rmode_t tmp_mode;
+    pbwidth_t tmp_width;
+    int err;
+
+    err = newcat_get_mode(rig, RIG_VFO_B, &tmp_mode, &tmp_width);
+
+    if (err < 0)
+    {
+        RETURNFUNC(err);
+    }
+    
+    if (tmp_mode == tx_mode && (tmp_width == tx_width || tmp_width == RIG_PASSBAND_NOCHANGE))
+    {
+        RETURNFUNC(RIG_OK);
+    }
+
+    err = rig_set_mode(rig, vfo, tx_mode, tx_width);
+
+    if (err < 0)
+    {
+        RETURNFUNC(err);
+    }
+
 
     RETURNFUNC(-RIG_ENAVAIL);
 }
@@ -2304,9 +2327,19 @@ int newcat_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 int newcat_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                           pbwidth_t *tx_width)
 {
+    int err;
+
     ENTERFUNC;
 
-    RETURNFUNC(-RIG_ENAVAIL);
+    err = newcat_get_mode(rig, RIG_VFO_B, tx_mode, tx_width);
+
+    if (err < 0)
+    {
+        RETURNFUNC(err);
+    }
+    
+
+    RETURNFUNC(RIG_OK);
 }
 
 
@@ -2358,7 +2391,7 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
         if (rx_vfo != vfo && newcat_valid_command(rig, "VS"))
         {
-            err = newcat_set_vfo(rig, vfo);
+            err = rig_set_vfo(rig, vfo);
 
             if (err != RIG_OK)
             {
@@ -2378,7 +2411,7 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
         if (rx_vfo != vfo)
         {
-            err = newcat_set_vfo(rig, vfo);
+            err = rig_set_vfo(rig, vfo);
 
             if (err != RIG_OK && err != -RIG_ENAVAIL)
             {
@@ -10114,6 +10147,10 @@ int newcat_set_cmd_validate(RIG *rig)
         strcpy(valcmd, ""); // nothing to validate
     }
     else if (strncmp(priv->cmd_str, "AB", 2) == 0)
+    {
+        strcpy(valcmd, ""); // nothing to validate
+    }
+    else if (strncmp(priv->cmd_str, "BS", 2) == 0)
     {
         strcpy(valcmd, ""); // nothing to validate
     }
