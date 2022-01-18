@@ -315,7 +315,7 @@ size_t HAMLIB_API to_hex(size_t source_length, const unsigned char *source_data,
 
     for (i = 0; i < length; i++)
     {
-        sprintf(dest, "%02X", source[0]);
+        SNPRINTF(dest, dest_length - 2*i, "%02X", source[0]);
         source++;
         dest += 2;
     }
@@ -382,11 +382,12 @@ int millis_to_dot10ths(int millis, int wpm)
  * pretty print frequencies
  * str must be long enough. max can be as long as 17 chars
  */
-int HAMLIB_API sprintf_freq(char *str, int nlen, freq_t freq)
+int HAMLIB_API sprintf_freq(char *str, int str_len, freq_t freq)
 {
     double f;
     char *hz;
     int decplaces = 10;
+    int retval;
 
     // too verbose
     //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -415,7 +416,9 @@ int HAMLIB_API sprintf_freq(char *str, int nlen, freq_t freq)
         decplaces = 1;
     }
 
-    return sprintf(str, "%.*f %s", decplaces, f, hz);
+    SNPRINTF(str, str_len, "%.*f %s", decplaces, f, hz);
+    retval = strlen(str);
+    return retval;
 }
 
 
@@ -2061,7 +2064,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, char host[256], char port[6])
     if (sscanf(hoststr, ":%5[0-9]%1s", port,
                dummy) == 1) // just a port if you please
     {
-        sprintf(hoststr, "%s:%s\n", "localhost", port);
+        snprintf(hoststr, sizeof(hoststr), "%s:%s\n", "localhost", port);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: hoststr=%s\n", __func__, hoststr);
         return RIG_OK;
     }
