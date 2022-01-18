@@ -275,7 +275,7 @@ struct mod_lst
     char model_name[32];    /* caps->model_name */
     char version[32];       /* caps->version */
     char status[32];        /* caps->status */
-    char macro_name[32];    /* caps->macro_name */
+    char macro_name[64];    /* caps->macro_name */
     UT_hash_handle hh;      /* makes this structure hashable */
 };
 
