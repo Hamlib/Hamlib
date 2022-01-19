@@ -175,7 +175,7 @@ int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
@@ -196,7 +196,7 @@ int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     option->i = 0;  // default to no options
 
     // find out what ANT3 setting
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", "AN0;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", "AN0;");
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {

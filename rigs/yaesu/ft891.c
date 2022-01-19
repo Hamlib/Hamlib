@@ -386,7 +386,7 @@ static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return -RIG_EINVAL;
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ST%c;", ci);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ST%c;", ci);
 
     if (RIG_OK != (err = write_block(&state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str))))
     {
@@ -430,7 +430,7 @@ static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
     priv = (struct newcat_priv_data *)rig->state.priv;
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ST;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ST;");
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
@@ -487,7 +487,7 @@ static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
     priv = (struct newcat_priv_data *)rig->state.priv;
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
@@ -557,7 +557,7 @@ static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     }
 
     // Copy A to B
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
 
     if (RIG_OK != (err = write_block(&state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str))))
     {
@@ -596,7 +596,7 @@ static int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     priv = (struct newcat_priv_data *)rig->state.priv;
 
     // Copy A to B
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
 
     if (RIG_OK != (err = newcat_set_cmd(rig)))
     {
