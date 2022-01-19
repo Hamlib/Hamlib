@@ -735,7 +735,7 @@ int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_AGC:
         if (val.i < 10)
         {
-            snprintf(cmdbuf, sizeof(cmdbuf), "G%d" EOM,
+            SNPRINTF(cmdbuf, sizeof(cmdbuf), "G%d" EOM,
                               val.i == RIG_AGC_SLOW ? 0 :
                               val.i == RIG_AGC_FAST ? 1 : 2);
         }

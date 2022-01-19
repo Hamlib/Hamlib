@@ -326,7 +326,7 @@ static int jst145_close(RIG *rig)
 static int jst145_set_vfo(RIG *rig, vfo_t vfo)
 {
     char cmd[MAX_LEN];
-    snprintf(cmd, sizeof(cmd), "F%c\r", vfo == RIG_VFO_A ? 'A' : 'B');
+    SNPRINTF(cmd, sizeof(cmd), "F%c\r", vfo == RIG_VFO_A ? 'A' : 'B');
 
     return write_block(&rig->state.rigport, (unsigned char *) cmd, strlen(cmd));
 }
@@ -352,7 +352,7 @@ ptt_retry:
         return RIG_OK;
     }
 
-    snprintf(cmd, sizeof(cmd), "L\r");
+    SNPRINTF(cmd, sizeof(cmd), "L\r");
 
     retval = jrc_transaction(rig, cmd, strlen(cmd), channel, &channel_size);
 
@@ -377,7 +377,7 @@ static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct jst145_priv_data *priv = rig->state.priv;
     vfo_t save_vfo = rig->state.current_vfo;
 
-    snprintf(freqbuf, sizeof(freqbuf), "F%08u%c\r", (unsigned)(freq),
+    SNPRINTF(freqbuf, sizeof(freqbuf), "F%08u%c\r", (unsigned)(freq),
              vfo == RIG_VFO_A ? 'A' : 'B');
 
     if (vfo == RIG_VFO_B)
@@ -426,7 +426,7 @@ static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_set_vfo(rig, vfo);
     }
 
-    snprintf(cmd, sizeof(cmd), "I\r");
+    SNPRINTF(cmd, sizeof(cmd), "I\r");
     retval = jrc_transaction(rig, cmd, strlen(cmd), freqbuf, &freqbuf_size);
 
     if (retval != RIG_OK)
@@ -497,7 +497,7 @@ static int jst145_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int modebuf_len = sizeof(modebuf);
     int retval;
 
-    snprintf(cmd, sizeof(cmd), "I\r");
+    SNPRINTF(cmd, sizeof(cmd), "I\r");
 
     retval = jrc_transaction(rig, cmd, strlen(cmd), modebuf, &modebuf_len);
 
@@ -575,7 +575,7 @@ static int jst145_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     char cmd[MAX_LEN];
     struct jst145_priv_data *priv = rig->state.priv;
     rig_debug(RIG_DEBUG_TRACE, "%s: entered\n", __func__);
-    snprintf(cmd, sizeof(cmd), "X%c\r", ptt ? '1' : '0');
+    SNPRINTF(cmd, sizeof(cmd), "X%c\r", ptt ? '1' : '0');
     priv->ptt = ptt;
     return write_block(&rig->state.rigport, (unsigned char *) cmd, strlen(cmd));
 }
@@ -590,7 +590,7 @@ static int jst145_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: entered\n", __func__);
 
-    snprintf(cmd, sizeof(cmd), "X\r");
+    SNPRINTF(cmd, sizeof(cmd), "X\r");
     retval = jrc_transaction(rig, cmd, strlen(cmd), pttstatus, &pttstatus_size);
 
     if (retval != RIG_OK)
