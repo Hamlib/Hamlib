@@ -576,7 +576,7 @@ int dttsp_open(RIG *rig)
     if (!p)
     {
         meterpath = priv->meter_port.pathname;
-        snprintf(meterpath, HAMLIB_FILPATHLEN, "%s", rig->state.rigport.pathname);
+        SNPRINTF(meterpath, HAMLIB_FILPATHLEN, "%s", rig->state.rigport.pathname);
 
         if (rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK)
         {
