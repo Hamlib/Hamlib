@@ -10116,10 +10116,18 @@ int newcat_set_cmd_validate(RIG *rig)
     if ((strncmp(priv->cmd_str, "FA", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
         strcpy(valcmd, "FA;"); 
+        if (priv->rig_id == NC_RIGID_FTDX3000)
+        {
+            strcpy(valcmd, ""); 
+        }
     }
     else if ((strncmp(priv->cmd_str, "FB", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
         strcpy(valcmd, "FB;"); 
+        if (priv->rig_id == NC_RIGID_FTDX3000)
+        {
+            strcpy(valcmd, ""); 
+        }
     }
     else if ((strncmp(priv->cmd_str, "MD", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
