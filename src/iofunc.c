@@ -1046,6 +1046,9 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
         }
     }
 
+    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes, method=%d\n", __func__, (int)count, method);
+    dump_hex((unsigned char *) txbuffer, count);
+
     if (p->post_write_delay > 0)
     {
         method |= 4;
@@ -1066,9 +1069,6 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
         /* otherwise some yaesu rigs get confused */
         /* with sequential fast writes*/
     }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes, method=%d\n", __func__, (int)count, method);
-    dump_hex((unsigned char *) txbuffer, count);
 
     return RIG_OK;
 }
