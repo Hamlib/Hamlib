@@ -276,7 +276,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return retval;
     }
 
-    snprintf(fmt, sizeof(fmt) - 1, "%%i%%%ds", BUFSZ);
+    SNPRINTF(fmt, sizeof(fmt)-1, "%%i%%%ds", BUFSZ);
     sscanf(data + 1, fmt, &rig_id, data);
 
     if (rig_id != priv->receiver_id)
