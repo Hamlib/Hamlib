@@ -470,7 +470,7 @@ static int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     priv = (struct newcat_priv_data *)rig->state.priv;
     rdata = (ft991info *)priv->ret_data;
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
     {
@@ -586,7 +586,7 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 
     /* append VFO A mode restore command first as we want to minimize
        any Rx glitches */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MD0;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MD0;");
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
@@ -594,11 +594,11 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         return err;
     }
 
-    snprintf(restore_commands, sizeof(restore_commands), "AB;%.*s",
+    SNPRINTF(restore_commands, sizeof(restore_commands), "AB;%.*s",
              (int)sizeof(restore_commands) - 4, priv->ret_data);
 
     /* append VFO B frequency restore command */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "FB;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FB;");
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
     if (RIG_OK != (err = newcat_get_cmd(rig)))
@@ -617,7 +617,7 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     }
 
     /* Send the copy VFO A to VFO B and restore commands */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s", restore_commands);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", restore_commands);
     return newcat_set_cmd(rig);
 }
 
@@ -645,7 +645,7 @@ static int ft991_find_current_vfo(RIG *rig, vfo_t *vfo, tone_t *enc_dec_mode,
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IF;");
 
     /* Get info */
     if (RIG_OK != (err = newcat_get_cmd(rig)))
@@ -694,7 +694,7 @@ static int ft991_get_enabled_ctcss_dcs_mode(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT0;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT0;");
 
     /* Get enabled mode */
     if (RIG_OK != (err = newcat_get_cmd(rig)))
@@ -732,11 +732,11 @@ static int ft991_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (tone == 0)     /* turn off ctcss */
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
     }
     else
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN00%3.3d;CT02;", i);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00%3.3d;CT02;", i);
     }
 
     return newcat_set_cmd(rig);
@@ -780,7 +780,7 @@ static int ft991_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     }
 
     /* Get CTCSS TONE */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
 
     if (RIG_OK != (ret = newcat_get_cmd(rig)))
     {
@@ -830,7 +830,7 @@ static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
     if (tone == 0)
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
     }
     else
     {
@@ -851,7 +851,7 @@ static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
             return -RIG_EINVAL;   // Tone not on the list
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN0%3.3d;CT01;", i);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN0%3.3d;CT01;", i);
     }
 
     return newcat_set_cmd(rig);
@@ -882,7 +882,7 @@ static int ft991_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     }
 
     /* Get CTCSS TONE */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN00;");
 
     if (RIG_OK != (ret = newcat_get_cmd(rig)))
     {
@@ -946,7 +946,7 @@ static int ft991_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
         return RIG_OK;               // Any of the above not DCS return 0
     }
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN01;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01;");
 
     /* Get DCS code */
     if (RIG_OK != (err = newcat_get_cmd(rig)))
@@ -1002,11 +1002,11 @@ static int ft991_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
     if (code == 0)     /* turn off dcs */
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
     }
     else
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN01%3.3d;CT04;", i);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01%3.3d;CT04;", i);
     }
 
     return newcat_set_cmd(rig);
@@ -1039,11 +1039,11 @@ static int ft991_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
     if (code == 0)     /* turn off dcs */
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT00;");
     }
     else
     {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN01%3.3d;CT03;", i);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01%3.3d;CT03;", i);
     }
 
     return newcat_set_cmd(rig);
@@ -1074,7 +1074,7 @@ static int ft991_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
     }
 
     /* Get DCS CODE */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN01;");
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CN01;");
 
     if (RIG_OK != (ret = newcat_get_cmd(rig)))
     {
