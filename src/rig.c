@@ -2379,6 +2379,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     const struct rig_caps *caps;
     int retcode;
     freq_t curr_freq;
+    vfo_t curr_vfo;
 
     ELAPSED1;
     ENTERFUNC;
@@ -2403,6 +2404,13 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
 
     if (vfo == RIG_VFO_CURR) { RETURNFUNC(RIG_OK); }
+
+    retcode = rig_get_vfo(rig, &curr_vfo);
+    if (retcode != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: rig_get_vfo error=%s\n", __func__, rigerror(retcode));
+    }
+    if (curr_vfo == vfo) { RETURNFUNC(RIG_OK); }
 
 #if 0 // removing this check 20210801 -- should be mapped already
 
@@ -2436,8 +2444,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Ignoring set_vfo due to VFO twiddling\n",
                   __func__);
-        RETURNFUNC(
-            RIG_OK); // would be better as error but other software won't handle errors
+        RETURNFUNC(RIG_OK); // would be better as error but other software won't handle errors
     }
 
     TRACE;
