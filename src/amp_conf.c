@@ -343,19 +343,19 @@ int frontamp_get_conf2(AMP *amp, token_t token, char *val, int val_len)
         break;
 
     case TOK_WRITE_DELAY:
-        snprintf(val, val_len, "%d", rs->ampport.write_delay);
+        SNPRINTF(val, val_len, "%d", rs->ampport.write_delay);
         break;
 
     case TOK_POST_WRITE_DELAY:
-        snprintf(val, val_len, "%d", rs->ampport.post_write_delay);
+        SNPRINTF(val, val_len, "%d", rs->ampport.post_write_delay);
         break;
 
     case TOK_TIMEOUT:
-        snprintf(val, val_len, "%d", rs->ampport.timeout);
+        SNPRINTF(val, val_len, "%d", rs->ampport.timeout);
         break;
 
     case TOK_RETRY:
-        snprintf(val, val_len, "%d", rs->ampport.retry);
+        SNPRINTF(val, val_len, "%d", rs->ampport.retry);
         break;
 
     case TOK_SERIAL_SPEED:
@@ -364,7 +364,7 @@ int frontamp_get_conf2(AMP *amp, token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        snprintf(val, val_len, "%d", rs->ampport.parm.serial.rate);
+        SNPRINTF(val, val_len, "%d", rs->ampport.parm.serial.rate);
         break;
 
     case TOK_DATA_BITS:
@@ -373,7 +373,7 @@ int frontamp_get_conf2(AMP *amp, token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        snprintf(val, val_len, "%d", rs->ampport.parm.serial.data_bits);
+        SNPRINTF(val, val_len, "%d", rs->ampport.parm.serial.data_bits);
         break;
 
     case TOK_STOP_BITS:
@@ -382,7 +382,7 @@ int frontamp_get_conf2(AMP *amp, token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        snprintf(val, val_len, "%d", rs->ampport.parm.serial.stop_bits);
+        SNPRINTF(val, val_len, "%d", rs->ampport.parm.serial.stop_bits);
         break;
 
     case TOK_PARITY:
@@ -654,7 +654,7 @@ int HAMLIB_API amp_set_conf(AMP *amp, token_t token, const char *val)
     {
         const struct confparams *cfp;
         char tokenstr[12];
-        snprintf(tokenstr, sizeof(tokenstr), "%ld", token);
+        SNPRINTF(tokenstr, sizeof(tokenstr), "%ld", token);
         cfp = amp_confparam_lookup(amp, tokenstr);
 
         if (!cfp)

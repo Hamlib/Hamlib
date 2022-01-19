@@ -109,7 +109,7 @@ int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
 }
 
 
-int rig_sprintf_ant(char *str, int nlen, ant_t ant)
+int rig_sprintf_ant(char *str, int str_len, ant_t ant)
 {
     int i, len = 0;
     char *ant_name;
@@ -118,7 +118,7 @@ int rig_sprintf_ant(char *str, int nlen, ant_t ant)
 
     if (ant == RIG_ANT_NONE)
     {
-        sprintf(str, "ANT_NONE");
+        SNPRINTF(str, str_len, "ANT_NONE");
         return 0;
     }
 
@@ -149,7 +149,7 @@ int rig_sprintf_ant(char *str, int nlen, ant_t ant)
             }
 
             len += sprintf(str + len, "%s ", ant_name);
-            check_buffer_overflow(str, len, nlen);
+            check_buffer_overflow(str, len, str_len);
         }
     }
 

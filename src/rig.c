@@ -340,7 +340,7 @@ const char *HAMLIB_API rigerror(int errnum)
 
     if (*p == '\n') { *p = 0; }
 
-    snprintf(msg, sizeof(msg), "%.80s\n%.15000s%.15000s%.15000s",
+    SNPRINTF(msg, sizeof(msg), "%.80s\n%.15000s%.15000s%.15000s",
              rigerror_table[errnum],
              debugmsgsave3, debugmsgsave2, debugmsgsave);
     return msg;
@@ -6827,7 +6827,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
             size_t len = strlen(cookie);
             // add on our random number to ensure uniqueness
             // The cookie should never be longer then HAMLIB_COOKIE_SIZE
-            snprintf(cookie + len, HAMLIB_COOKIE_SIZE - len, " %d\n", rand());
+            SNPRINTF(cookie + len, HAMLIB_COOKIE_SIZE - len, " %d\n", rand());
             strcpy(cookie_save, cookie);
             time_last_used = time_curr;
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %s new cookie request granted\n",
