@@ -218,7 +218,7 @@ int icmarine_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     switch (token)
     {
     case TOK_REMOTEID:
-        snprintf(val, val_len, "%u", priv->remote_id);
+        SNPRINTF(val, val_len, "%u", priv->remote_id);
         break;
 
     default:
@@ -252,7 +252,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     char respbuf[BUFSZ + 1];
     char *p;
     char *strip;
-    int cmd_len = 0;
+    int cmd_len;
     unsigned csum = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd='%s', param=%s\n", __func__, cmd,
@@ -264,10 +264,11 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     rig_flush(&rs->rigport);
 
     /* command formatting */
-    cmd_len = snprintf(cmdbuf, BUFSZ, "$PICOA,%02d,%02u,%s",
+    SNPRINTF(cmdbuf, BUFSZ, "$PICOA,%02d,%02u,%s",
                        CONTROLLER_ID,
                        priv->remote_id,
                        cmd);
+    cmd_len = strlen(cmdbuf);
 
     if (param)
     {
@@ -368,7 +369,7 @@ int icmarine_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     priv = (struct icmarine_priv_data *)rig->state.priv;
 
-    snprintf(freqbuf, sizeof(freqbuf), "%.6f", freq / MHz(1));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "%.6f", freq / MHz(1));
 
     /* no error reporting upon TXFREQ failure */
     if (RIG_SPLIT_OFF == priv->split)
@@ -422,7 +423,7 @@ int icmarine_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
-    snprintf(freqbuf, sizeof(freqbuf), "%.6f", freq / MHz(1));
+    SNPRINTF(freqbuf, sizeof(freqbuf), "%.6f", freq / MHz(1));
 
     return icmarine_transaction(rig, CMD_TXFREQ, freqbuf, NULL);
 }
@@ -723,17 +724,17 @@ int icmarine_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_AF:
-        snprintf(lvlbuf, sizeof(lvlbuf), "%u", (unsigned)(val.f * 255));
+        SNPRINTF(lvlbuf, sizeof(lvlbuf), "%u", (unsigned)(val.f * 255));
         retval = icmarine_transaction(rig, CMD_AFGAIN, lvlbuf, NULL);
         break;
 
     case RIG_LEVEL_RF:
-        snprintf(lvlbuf, sizeof(lvlbuf), "%u", (unsigned)(val.f * 9));
+        SNPRINTF(lvlbuf, sizeof(lvlbuf), "%u", (unsigned)(val.f * 9));
         retval = icmarine_transaction(rig, CMD_RFGAIN, lvlbuf, NULL);
         break;
 
     case RIG_LEVEL_RFPOWER:
-        snprintf(lvlbuf, sizeof(lvlbuf), "%u", 1 + (unsigned)(val.f * 2));
+        SNPRINTF(lvlbuf, sizeof(lvlbuf), "%u", 1 + (unsigned)(val.f * 2));
         retval = icmarine_transaction(rig, CMD_RFPWR, lvlbuf, NULL);
         break;
 
