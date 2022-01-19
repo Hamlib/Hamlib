@@ -366,7 +366,7 @@ int icm710_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     switch (token)
     {
     case TOK_REMOTEID:
-        snprintf(val, val_len, "%u", priv->remote_id);
+        SNPRINTF(val, val_len, "%u", priv->remote_id);
         break;
 
     default:
