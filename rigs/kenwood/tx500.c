@@ -761,7 +761,7 @@ int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     }
 
     /* P-number       2-3    4 5 6 7   8   9  101112  13 141516  */
-    snprintf(buf, sizeof(buf), "MW0%03d%011u%c%c%c%02d%02d%03d%c%c%09d0%c%c%s;",
+    SNPRINTF(buf, sizeof(buf), "MW0%03d%011u%c%c%c%02d%02d%03d%c%c%09d0%c%c%s;",
              chan->channel_num,
              (unsigned) chan->freq,      /*  4 - frequency */
              '0' + mode,                 /*  5 - mode */

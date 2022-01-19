@@ -508,43 +508,43 @@ int tmv7_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     if (chan->channel_num < 100)
     {
-        snprintf(req, sizeof(req), "MR 0,0,%03d", chan->channel_num);
+        SNPRINTF(req, sizeof(req), "MR 0,0,%03d", chan->channel_num);
     }
     else if (chan->channel_num < 200)
     {
-        snprintf(req, sizeof(req), "MR 1,0,%03d", chan->channel_num - 100);
+        SNPRINTF(req, sizeof(req), "MR 1,0,%03d", chan->channel_num - 100);
     }
     else if (chan->channel_num < 204)
     {
-        snprintf(req, sizeof(req), "MR 0,0,L%01d", chan->channel_num - 200);
+        SNPRINTF(req, sizeof(req), "MR 0,0,L%01d", chan->channel_num - 200);
         SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "L%01d/V", chan->channel_num - 200);
     }
     else if (chan->channel_num < 211)
     {
-        snprintf(req, sizeof(req), "MR 1,0,L%01d", chan->channel_num - 203);
+        SNPRINTF(req, sizeof(req), "MR 1,0,L%01d", chan->channel_num - 203);
         SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "L%01d/U", chan->channel_num - 203);
     }
     else if (chan->channel_num < 214)
     {
-        snprintf(req, sizeof(req), "MR 0,0,U%01d", chan->channel_num - 210);
+        SNPRINTF(req, sizeof(req), "MR 0,0,U%01d", chan->channel_num - 210);
         SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "U%01d/V", chan->channel_num - 210);
     }
     else if (chan->channel_num < 220)
     {
-        snprintf(req, sizeof(req), "MR 1,0,U%01d", chan->channel_num - 213);
+        SNPRINTF(req, sizeof(req), "MR 1,0,U%01d", chan->channel_num - 213);
         SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "U%01d/U", chan->channel_num - 213);
     }
     else if (chan->channel_num < 223)
     {
         if (chan->channel_num == 221)
         {
-            snprintf(req, sizeof(req), "CR 0,0");
+            SNPRINTF(req, sizeof(req), "CR 0,0");
             SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "Call V");
         }
 
         if (chan->channel_num == 222)
         {
-            snprintf(req, sizeof(req), "CR 1,0");
+            SNPRINTF(req, sizeof(req), "CR 1,0");
             SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "Call U");
         }
     }
@@ -553,7 +553,7 @@ int tmv7_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
         return -RIG_EINVAL;
     }
 
-    snprintf(membuf, sizeof(membuf), "%s", req);
+    SNPRINTF(membuf, sizeof(membuf), "%s", req);
     retval = kenwood_transaction(rig, membuf, ackbuf, sizeof(ackbuf));
 
     if (retval != RIG_OK)

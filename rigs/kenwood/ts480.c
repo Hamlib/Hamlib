@@ -205,7 +205,7 @@ static int ts480_set_ex_menu(RIG *rig, int number, int value_len, int value)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    snprintf(buf, 20, "EX%03d0000%0*d", number, value_len, value);
+    SNPRINTF(buf, sizeof(buf), "EX%03d0000%0*d", number, value_len, value);
 
     RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 }
@@ -218,7 +218,7 @@ static int ts480_get_ex_menu(RIG *rig, int number, int value_len, int *value)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    snprintf(buf, 20, "EX%03d0000", number);
+    SNPRINTF(buf, sizeof(buf), "EX%03d0000", number);
 
     retval = kenwood_safe_transaction(rig, buf, ackbuf, sizeof(ackbuf),
                                       9 + value_len);
@@ -242,11 +242,11 @@ static int ts480_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     switch (func)
     {
     case RIG_FUNC_MON:
-        snprintf(buf, sizeof(buf), "ML00%c", (status == 0) ? '0' : '1');
+        SNPRINTF(buf, sizeof(buf), "ML00%c", (status == 0) ? '0' : '1');
         RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 
     case RIG_FUNC_LOCK:
-        snprintf(buf, sizeof(buf), "LK%c%c", (status == 0) ? '0' : '1',
+        SNPRINTF(buf, sizeof(buf), "LK%c%c", (status == 0) ? '0' : '1',
                  (status == 0) ? '0' : '1');
         RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 
@@ -844,7 +844,7 @@ static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
         RETURNFUNC(RIG_OK);
     }
 
-    snprintf(buf, sizeof(buf), "R%c%05d", (rit > 0) ? 'U' : 'D', abs((int) rit));
+    SNPRINTF(buf, sizeof(buf), "R%c%05d", (rit > 0) ? 'U' : 'D', abs((int) rit));
     retval = kenwood_transaction(rig, buf, NULL, 0);
 
     RETURNFUNC(retval);
@@ -893,7 +893,7 @@ static int ts480_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        snprintf(cmdbuf, sizeof(cmdbuf), "NR%d", status ? 2 : 0);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "NR%d", status ? 2 : 0);
         retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
         break;
 
@@ -991,7 +991,7 @@ static int ts480_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        snprintf(cmdbuf, sizeof(cmdbuf), "DL%d%02d", val.i != 0 ? 1 : 0,
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "DL%d%02d", val.i != 0 ? 1 : 0,
                  val.i > 0 ? val.i - 1 : 0);
         retval = kenwood_transaction(rig, cmdbuf, NULL, 0);
         break;
