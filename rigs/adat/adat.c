@@ -2135,7 +2135,7 @@ int adat_cmd_fn_set_mode(RIG *pRig)
 
             memset(acBuf, 0, ADAT_BUFSZ + 1);
 
-            snprintf(acBuf, ADAT_BUFSZ, "%s%02d%s",
+            SNPRINTF(acBuf, sizeof(acBuf), "%s%02d%s",
                      ADAT_CMD_DEF_STRING_SET_MODE,
                      (int) pPriv->nADATMode,
                      ADAT_EOM);
@@ -2251,7 +2251,7 @@ int adat_cmd_fn_set_freq(RIG *pRig)
 
         memset(acBuf, 0, ADAT_BUFSZ + 1);
 
-        snprintf(acBuf, ADAT_BUFSZ, "%s%d%s",
+        SNPRINTF(acBuf, sizeof(acBuf), "%s%d%s",
                  ADAT_CMD_DEF_STRING_SET_FREQ,
                  (int) pPriv->nFreq,
                  ADAT_EOM);
@@ -2306,7 +2306,7 @@ int adat_cmd_fn_set_vfo(RIG *pRig)
 
         memset(acBuf, 0, ADAT_BUFSZ + 1);
 
-        snprintf(acBuf, ADAT_BUFSZ, ADAT_CMD_DEF_STRING_SWITCH_ON_VFO,
+        SNPRINTF(acBuf, ADAT_BUFSZ, ADAT_CMD_DEF_STRING_SWITCH_ON_VFO,
                  (int) pPriv->nCurrentVFO,
                  ADAT_EOM);
 
@@ -2319,7 +2319,7 @@ int adat_cmd_fn_set_vfo(RIG *pRig)
             if (nRC == RIG_OK)
             {
                 memset(acBuf, 0, ADAT_BUFSZ + 1);
-                snprintf(acBuf, ADAT_BUFSZ,
+                SNPRINTF(acBuf, ADAT_BUFSZ,
                          ADAT_CMD_DEF_STRING_SET_VFO_AS_MAIN_VFO,
                          (int) pPriv->nCurrentVFO,
                          ADAT_EOM);
@@ -2453,7 +2453,7 @@ int adat_cmd_fn_set_ptt(RIG *pRig)
 
         if (nRC == RIG_OK)
         {
-            snprintf(acBuf, ADAT_BUFSZ, ADAT_CMD_DEF_STRING_SET_PTT,
+            SNPRINTF(acBuf, ADAT_BUFSZ, ADAT_CMD_DEF_STRING_SET_PTT,
                      pcPTTStr,
                      ADAT_EOM);
 
@@ -2931,7 +2931,7 @@ const char *adat_get_info(RIG *pRig)
         {
             adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
-            snprintf(acBuf, 512,
+            SNPRINTF(acBuf, sizeof(acBuf),
                      "ADAT ADT-200A, Callsign: %s, S/N: %s, ID Code: %s, Options: %s, FW: %s, GUI FW: %s, HW: %s",
                      pPriv->pcCallsign,
                      pPriv->pcSerialNr,
