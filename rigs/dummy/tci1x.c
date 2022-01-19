@@ -515,7 +515,7 @@ static rmode_t modeMapGetHamlib(const char *modeTCI)
 
     ENTERFUNC;
 
-    snprintf(modeTCICheck, sizeof(modeTCICheck), "|%s|", modeTCI);
+    SNPRINTF(modeTCICheck, sizeof(modeTCICheck), "|%s|", modeTCI);
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {

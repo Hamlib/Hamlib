@@ -441,7 +441,7 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     vfoab = vfo == RIG_VFO_A ? 'R' : 'T';
-    snprintf(cmd, sizeof(cmd), "X%c;", vfoab);
+    SNPRINTF(cmd, sizeof(cmd), "X%c;", vfoab);
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -511,7 +511,7 @@ static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     vfoab = vfo == RIG_VFO_A ? 'A' : 'B';
-    snprintf(cmd, sizeof(cmd), "F%c%011lu;", vfoab, (unsigned long)freq);
+    SNPRINTF(cmd, sizeof(cmd), "F%c%011lu;", vfoab, (unsigned long)freq);
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -550,7 +550,7 @@ static int trxmanager_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         return -RIG_EINVAL;
     }
 
-    snprintf(cmd, sizeof(cmd), "%s;", ptt == 1 ? "TX" : "RX");
+    SNPRINTF(cmd, sizeof(cmd), "%s;", ptt == 1 ? "TX" : "RX");
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -589,7 +589,7 @@ static int trxmanager_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
-    snprintf(cmd, sizeof(cmd), "IF;");
+    SNPRINTF(cmd, sizeof(cmd), "IF;");
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -714,7 +714,7 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 
     }
 
-    snprintf(cmd, sizeof(cmd), "MD%c;", ttmode);
+    SNPRINTF(cmd, sizeof(cmd), "MD%c;", ttmode);
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -777,7 +777,7 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
     rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
-    snprintf(cmd, sizeof(cmd), "MD;");
+    SNPRINTF(cmd, sizeof(cmd), "MD;");
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -850,7 +850,7 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
     rig_debug(RIG_DEBUG_VERBOSE, "%s: mode='%s'\n", __func__, rig_strrmode(*mode));
 
     // now get the bandwidth
-    snprintf(cmd, sizeof(cmd), "BW;");
+    SNPRINTF(cmd, sizeof(cmd), "BW;");
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -917,7 +917,7 @@ static int trxmanager_set_vfo(RIG *rig, vfo_t vfo)
         vfo = priv->vfo_curr;
     }
 
-    snprintf(cmd, sizeof(cmd), "FN%d;", vfo == RIG_VFO_A ? 0 : 1);
+    SNPRINTF(cmd, sizeof(cmd), "FN%d;", vfo == RIG_VFO_A ? 0 : 1);
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -1002,7 +1002,7 @@ static int trxmanager_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         return -RIG_EINVAL;
     }
 
-    snprintf(cmd, sizeof(cmd), "XT%011lu;", (unsigned long) tx_freq);
+    SNPRINTF(cmd, sizeof(cmd), "XT%011lu;", (unsigned long) tx_freq);
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -1070,7 +1070,7 @@ static int trxmanager_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
 
     if (tsplit == split) { return RIG_OK; } // don't need to change it
 
-    snprintf(cmd, sizeof(cmd), "SP%c;", split ? '1' : '0');
+    SNPRINTF(cmd, sizeof(cmd), "SP%c;", split ? '1' : '0');
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -1112,7 +1112,7 @@ static int trxmanager_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                         rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
-    snprintf(cmd, sizeof(cmd), "SP;");
+    SNPRINTF(cmd, sizeof(cmd), "SP;");
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
@@ -1165,7 +1165,7 @@ static int trxmanager_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     // assume split is on B
     //
-    snprintf(cmd, sizeof(cmd), "XT%011lu;", (unsigned long)freq);
+    SNPRINTF(cmd, sizeof(cmd), "XT%011lu;", (unsigned long)freq);
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval < 0)
