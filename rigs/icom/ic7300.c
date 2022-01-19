@@ -1084,7 +1084,7 @@ const struct rig_caps ic705_caps =
     RIG_MODEL(RIG_MODEL_IC705),
     .model_name = "IC-705",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1223,6 +1223,7 @@ const struct rig_caps ic705_caps =
     .alc_cal = IC7300_ALC_CAL,
     .rfpower_meter_cal = IC7300_RFPOWER_METER_CAL,
     .comp_meter_cal = IC7300_COMP_METER_CAL,
+    .rfpower_meter_cal = IC7300_RFPOWER_METER_CAL,
     .vd_meter_cal = IC7300_VD_METER_CAL,
     .id_meter_cal = IC7300_ID_METER_CAL,
 
