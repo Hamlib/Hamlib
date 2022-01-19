@@ -2464,6 +2464,11 @@ static int kenwood_get_filter_width(RIG *rig, rmode_t mode, pbwidth_t *width)
             }
         }
     }
+    if (filter_value >=50) // then it's probably a custom filter width
+    {
+        *width = filter_value;
+        return (RIG_OK);
+    }
 
     RETURNFUNC(-RIG_EINVAL);
 }
