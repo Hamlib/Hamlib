@@ -38,7 +38,7 @@ int gpio_open(hamlib_port_t *port, int output, int on_value)
 
     port->parm.gpio.on_value = on_value;
 
-    snprintf(pathname, HAMLIB_FILPATHLEN, "/sys/class/gpio/export");
+    SNPRINTF(pathname, HAMLIB_FILPATHLEN, "/sys/class/gpio/export");
     fexp = fopen(pathname, "w");
 
     if (!fexp)
@@ -54,7 +54,7 @@ int gpio_open(hamlib_port_t *port, int output, int on_value)
     fprintf(fexp, "%s\n", port->pathname);
     fclose(fexp);
 
-    snprintf(pathname,
+    SNPRINTF(pathname,
              sizeof(pathname),
              "/sys/class/gpio/gpio%s/direction",
              port->pathname);
@@ -76,7 +76,7 @@ int gpio_open(hamlib_port_t *port, int output, int on_value)
     fprintf(fdir, "%s\n", dir);
     fclose(fdir);
 
-    snprintf(pathname,
+    SNPRINTF(pathname,
              sizeof(pathname),
              "/sys/class/gpio/gpio%s/value",
              port->pathname);

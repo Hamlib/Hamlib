@@ -237,7 +237,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 
     if (rp->pathname[0] == ':' && rp->pathname[1] != ':')
     {
-        snprintf(portstr, sizeof(portstr) - 1, "%s", rp->pathname + 1);
+        SNPRINTF(portstr, sizeof(portstr) - 1, "%s", rp->pathname + 1);
     }
     else
     {
@@ -254,7 +254,7 @@ int network_open(hamlib_port_t *rp, int default_port)
 
         if (strlen(portstr) == 0)
         {
-            snprintf(portstr, sizeof(portstr), "%d", default_port);
+            SNPRINTF(portstr, sizeof(portstr), "%d", default_port);
         }
     }
 
@@ -318,7 +318,7 @@ int network_open(hamlib_port_t *rp, int default_port)
             break;
         }
 
-        snprintf(msg, sizeof(msg), "connect to %s failed, (trying next interface)",
+        SNPRINTF(msg, sizeof(msg), "connect to %s failed, (trying next interface)",
                  rp->pathname);
         handle_error(RIG_DEBUG_WARN, msg);
 

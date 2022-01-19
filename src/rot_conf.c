@@ -380,19 +380,19 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val, int val_len)
         break;
 
     case TOK_WRITE_DELAY:
-        snprintf(val, val_len, "%d", rs->rotport.write_delay);
+        SNPRINTF(val, val_len, "%d", rs->rotport.write_delay);
         break;
 
     case TOK_POST_WRITE_DELAY:
-        snprintf(val, val_len, "%d", rs->rotport.post_write_delay);
+        SNPRINTF(val, val_len, "%d", rs->rotport.post_write_delay);
         break;
 
     case TOK_TIMEOUT:
-        snprintf(val, val_len, "%d", rs->rotport.timeout);
+        SNPRINTF(val, val_len, "%d", rs->rotport.timeout);
         break;
 
     case TOK_RETRY:
-        snprintf(val, val_len, "%d", rs->rotport.retry);
+        SNPRINTF(val, val_len, "%d", rs->rotport.retry);
         break;
 
     case TOK_SERIAL_SPEED:
@@ -401,7 +401,7 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        snprintf(val, val_len, "%d", rs->rotport.parm.serial.rate);
+        SNPRINTF(val, val_len, "%d", rs->rotport.parm.serial.rate);
         break;
 
     case TOK_DATA_BITS:
@@ -410,7 +410,7 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        snprintf(val, val_len, "%d", rs->rotport.parm.serial.data_bits);
+        SNPRINTF(val, val_len, "%d", rs->rotport.parm.serial.data_bits);
         break;
 
     case TOK_STOP_BITS:
@@ -419,7 +419,7 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val, int val_len)
             return -RIG_EINVAL;
         }
 
-        snprintf(val, val_len, "%d", rs->rotport.parm.serial.stop_bits);
+        SNPRINTF(val, val_len, "%d", rs->rotport.parm.serial.stop_bits);
         break;
 
     case TOK_PARITY:
@@ -485,23 +485,23 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val, int val_len)
         break;
 
     case TOK_MIN_AZ:
-        snprintf(val, val_len, "%f", rs->min_az);
+        SNPRINTF(val, val_len, "%f", rs->min_az);
         break;
 
     case TOK_MAX_AZ:
-        snprintf(val, val_len, "%f", rs->max_az);
+        SNPRINTF(val, val_len, "%f", rs->max_az);
         break;
 
     case TOK_MIN_EL:
-        snprintf(val, val_len, "%f", rs->min_el);
+        SNPRINTF(val, val_len, "%f", rs->min_el);
         break;
 
     case TOK_MAX_EL:
-        snprintf(val, val_len, "%f", rs->max_el);
+        SNPRINTF(val, val_len, "%f", rs->max_el);
         break;
 
     case TOK_SOUTH_ZERO:
-        snprintf(val, val_len, "%d", rs->south_zero);
+        SNPRINTF(val, val_len, "%d", rs->south_zero);
         break;
 
     default:
@@ -713,7 +713,7 @@ int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
     {
         const struct confparams *cfp;
         char tokenstr[32];
-        snprintf(tokenstr, sizeof(tokenstr), "%ld", token);
+        SNPRINTF(tokenstr, sizeof(tokenstr), "%ld", token);
         cfp = rot_confparam_lookup(rot, tokenstr);
 
         if (!cfp)

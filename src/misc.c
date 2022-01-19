@@ -577,7 +577,7 @@ int HAMLIB_API rig_strrmodes(rmode_t modes, char *buf, int buflen)
 
     if (modes == RIG_MODE_NONE)
     {
-        snprintf(buf, buflen, "NONE");
+        SNPRINTF(buf, buflen, "NONE");
         return RIG_OK;
     }
 
@@ -587,8 +587,8 @@ int HAMLIB_API rig_strrmodes(rmode_t modes, char *buf, int buflen)
         {
             char modebuf[16];
 
-            if (strlen(buf) == 0) { snprintf(modebuf, sizeof(modebuf), "%s", mode_str[i].str); }
-            else { snprintf(modebuf, sizeof(modebuf), " %s", mode_str[i].str); }
+            if (strlen(buf) == 0) { SNPRINTF(modebuf, sizeof(modebuf), "%s", mode_str[i].str); }
+            else { SNPRINTF(modebuf, sizeof(modebuf), " %s", mode_str[i].str); }
 
             strncat(buf, modebuf, buflen - strlen(buf) - 1);
 
@@ -2064,7 +2064,7 @@ int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256], cha
     if (sscanf(hoststr, ":%5[0-9]%1s", port,
                dummy) == 1) // just a port if you please
     {
-        snprintf(hoststr, hoststr_len, "%s:%s\n", "localhost", port);
+        SNPRINTF(hoststr, hoststr_len, "%s:%s\n", "localhost", port);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: hoststr=%s\n", __func__, hoststr);
         return RIG_OK;
     }
@@ -2573,9 +2573,9 @@ char *date_strget(char *buf, int buflen, int localtime)
 
     strftime(buf, buflen, "%Y-%m-%dT%H:%M:%S.", mytm);
     gettimeofday(&tv, NULL);
-    snprintf(tmpbuf, sizeof(tmpbuf), "%06ld", (long)tv.tv_usec);
+    SNPRINTF(tmpbuf, sizeof(tmpbuf), "%06ld", (long)tv.tv_usec);
     strcat(buf, tmpbuf);
-    snprintf(tmpbuf, sizeof(tmpbuf), "%s%04d", mytimezone >= 0 ? "-" : "+",
+    SNPRINTF(tmpbuf, sizeof(tmpbuf), "%s%04d", mytimezone >= 0 ? "-" : "+",
              ((int)abs(mytimezone) / 3600) * 100);
     strcat(buf, tmpbuf);
     return buf;
