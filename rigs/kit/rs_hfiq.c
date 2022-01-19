@@ -93,7 +93,7 @@ static int rshfiq_open(RIG *rig)
             && (retval == -RIG_ETIMEOUT); init_retry_count++)
     {
         rig_flush(&rig->state.rigport);
-        snprintf(versionstr, sizeof(versionstr), "*w\r");
+        SNPRINTF(versionstr, sizeof(versionstr), "*w\r");
         rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, versionstr);
         retval = write_block(&rig->state.rigport, (unsigned char *) versionstr, strlen(versionstr));
 
@@ -154,13 +154,13 @@ static int rshfiq_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char cmdstr[15];
     int retval;
 
-    snprintf(fstr, sizeof(fstr), "%lu", (unsigned long int)(freq));
+    SNPRINTF(fstr, sizeof(fstr), "%lu", (unsigned long int)(freq));
     rig_debug(RIG_DEBUG_TRACE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
 
     rig_flush(&rig->state.rigport);
 
-    snprintf(cmdstr, sizeof(cmdstr), "*f%lu\r", (unsigned long int)(freq));
+    SNPRINTF(cmdstr, sizeof(cmdstr), "*f%lu\r", (unsigned long int)(freq));
 
     retval = write_block(&rig->state.rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 
@@ -181,7 +181,7 @@ static int rshfiq_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     stopset[0] = '\r';
     stopset[1] = '\n';
 
-    snprintf(cmdstr, sizeof(cmdstr), "*f?\r");
+    SNPRINTF(cmdstr, sizeof(cmdstr), "*f?\r");
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s\n", __func__, cmdstr);
 
@@ -264,7 +264,7 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         rig_flush(&rig->state.rigport);
 
-        snprintf(cmdstr, sizeof(cmdstr), "*L\r");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "*L\r");
 
         rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_RFPOWER_METER command=%s\n", cmdstr);
 
@@ -303,7 +303,7 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         rig_flush(&rig->state.rigport);
 
-        snprintf(cmdstr, sizeof(cmdstr), "*T\r");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "*T\r");
 
         rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER command=%s\n", cmdstr);
 
