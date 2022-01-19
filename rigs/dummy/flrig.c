@@ -279,7 +279,6 @@ static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf,
     char xml[4096]; // we shouldn't need more the 4096 bytes for this
     char tmp[32];
     char *header;
-    int n;
 
     // We want at least a 4K buf to play with
     if (xmlbuflen < 4096)
@@ -291,23 +290,11 @@ static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf,
     header =
         "POST /RPC2 HTTP/1.1\r\n" "User-Agent: XMLRPC++ 0.8\r\n"
         "Host: 127.0.0.1:12345\r\n" "Content-type: text/xml\r\n";
-    n = snprintf(xmlbuf, xmlbuflen, "%s", header);
+    SNPRINTF(xmlbuf, xmlbuflen, "%s", header);
 
-    if (n != strlen(header))
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: snprintf of header failed, len=%d, got=%d\n",
-                  __func__, (int)strlen(header), n);
-    }
-
-    n = snprintf(xml, sizeof(xml),
+    SNPRINTF(xml, sizeof(xml),
                  "<?xml version=\"1.0\"?>\r\n<?clientid=\"hamlib(%d)\"?>\r\n",
                  rig->state.rigport.client_port);
-
-    if (n != strlen(xml))
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: snprintf of xml failed, len=%d, got=%d\n",
-                  __func__, (int)strlen(header), n);
-    }
 
     strncat(xml, "<methodCall><methodName>", sizeof(xml) - 1);
     strncat(xml, cmd, sizeof(xml) - strlen(xml) - 1);
@@ -320,7 +307,7 @@ static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf,
 
     strncat(xml, "</methodCall>\r\n", sizeof(xml) - 1);
     strncat(xmlbuf, "Content-length: ", xmlbuflen - 1);
-    snprintf(tmp, sizeof(tmp), "%d\r\n\r\n", (int)strlen(xml));
+    SNPRINTF(tmp, sizeof(tmp), "%d\r\n\r\n", (int)strlen(xml));
     strncat(xmlbuf, tmp, xmlbuflen - 1);
     strncat(xmlbuf, xml, xmlbuflen - 1);
     return xmlbuf;
@@ -711,7 +698,7 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
 
     ENTERFUNC;
 
-    snprintf(modeFLRigCheck, sizeof(modeFLRigCheck), "|%s|", modeFLRig);
+    SNPRINTF(modeFLRigCheck, sizeof(modeFLRigCheck), "|%s|", modeFLRig);
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
     {

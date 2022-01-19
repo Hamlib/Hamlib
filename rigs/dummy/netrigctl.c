@@ -155,7 +155,7 @@ static int netrigctl_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
         default: myvfo = "VFOA";
         }
 
-        snprintf(vfostr, len, " %s", myvfo);
+        SNPRINTF(vfostr, len, " %s", myvfo);
     }
 
     return RIG_OK;
@@ -1917,7 +1917,7 @@ static int netrigctl_set_level(RIG *rig, vfo_t vfo, setting_t level,
 
     if (ret != RIG_OK) { return ret; }
 
-    snprintf(cmd, sizeof(cmd), "L%s %s %s\n", vfostr, rig_strlevel(level),
+    SNPRINTF(cmd, sizeof(cmd), "L%s %s %s\n", vfostr, rig_strlevel(level),
                    lstr);
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
@@ -2034,7 +2034,7 @@ static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
         SNPRINTF(pstr, sizeof(pstr), "%d", val.i);
     }
 
-    snprintf(cmd, sizeof(cmd), "P %s %s\n", rig_strparm(parm), pstr);
+    SNPRINTF(cmd, sizeof(cmd), "P %s %s\n", rig_strparm(parm), pstr);
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
@@ -2595,7 +2595,7 @@ static int netrigctl_power2mW(RIG *rig, unsigned int *mwpower, float power,
     ENTERFUNC;
 
     // we shouldn't need any precision than microwatts
-    snprintf(cmdbuf, sizeof(cmdbuf), "\\power2mW %.3f %.0f %s\n", power, freq,
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\power2mW %.3f %.0f %s\n", power, freq,
              rig_strrmode(mode));
     ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
 
