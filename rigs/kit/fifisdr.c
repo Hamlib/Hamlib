@@ -418,7 +418,7 @@ const char *fifisdr_get_info(RIG *rig)
         return NULL;
     }
 
-    snprintf(buf, sizeof(buf), "Firmware version: %u", svn_version);
+    SNPRINTF(buf, sizeof(buf), "Firmware version: %u", svn_version);
 
     return buf;
 }
