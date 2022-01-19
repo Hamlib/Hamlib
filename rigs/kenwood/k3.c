@@ -1144,31 +1144,31 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
     case RIG_MODE_PKTLSB:
         mode = RIG_MODE_RTTYR; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "%s0", dtcmd); /* DATA A mode - DATA (REV) on LSB optimized for HF Packet, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_PKTUSB:
         mode = RIG_MODE_RTTY; // in "DT0" Subband RIG_MODE_RTTYR = USB and RIG_MODE_RTTY = LSB
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "%s0", dtcmd); /* DATA A mode - DATA on USB general, VFO dial is suppressed carrier QRG */
         break;
 
     case RIG_MODE_RTTY:
         mode = RIG_MODE_RTTY; // in "DT1" Subband RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "%s2", dtcmd); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
         break;
 
     case RIG_MODE_RTTYR:
         mode = RIG_MODE_RTTYR; // in "DT2" Subband RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "%s1", dtcmd); /* FSK D mode - direct FSK keying, LSB is "normal", VFO dial is MARK */
         break;
 
     case RIG_MODE_PSK:
         mode = RIG_MODE_PSK; // in "DT3" subband RIG_MODE_PSK = USB # kenwood.c mode but may need kenwwod.c mode table review.
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "%s3", dtcmd); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
         break;
 
@@ -1200,17 +1200,17 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_B)
     {
-        snprintf(buf, sizeof(buf), "MD$%c", c);
+        SNPRINTF(buf, sizeof(buf), "MD$%c", c);
     }
     else
     {
-        snprintf(buf, sizeof(buf), "MD%c", c);
+        SNPRINTF(buf, sizeof(buf), "MD%c", c);
     }
 
     if (priv->split)
     {
         // then we keep both VFOS in the same mode
-        snprintf(buf, sizeof(buf), "MD%c;MD$%c", c, c);
+        SNPRINTF(buf, sizeof(buf), "MD%c;MD$%c", c, c);
     }
 
     err = kenwood_transaction(rig, buf, NULL, 0);
@@ -1271,11 +1271,11 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         if (vfo == RIG_VFO_B)
         {
-            snprintf(cmd_s, sizeof(cmd_s), "BW$%04ld", width / 10);
+            SNPRINTF(cmd_s, sizeof(cmd_s), "BW$%04ld", width / 10);
         }
         else
         {
-            snprintf(cmd_s, sizeof(cmd_s), "BW%04ld", width / 10);
+            SNPRINTF(cmd_s, sizeof(cmd_s), "BW%04ld", width / 10);
         }
 
         err = kenwood_transaction(rig, cmd_s, NULL, 0);
@@ -1350,19 +1350,19 @@ int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         return kenwood_transaction(rig, "RC", NULL, 0);
 
     case TOK_ESSB:
-        snprintf(buf, sizeof(buf), "ES%c", (val.i == 0) ? '0' : '1');
+        SNPRINTF(buf, sizeof(buf), "ES%c", (val.i == 0) ? '0' : '1');
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case TOK_RX_ANT:
-        snprintf(buf, sizeof(buf), "AR%c", (val.i == 0) ? '0' : '1');
+        SNPRINTF(buf, sizeof(buf), "AR%c", (val.i == 0) ? '0' : '1');
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case TOK_LINK_VFOS:
-        snprintf(buf, sizeof(buf), "LN%c", (val.i == 0) ? '0' : '1');
+        SNPRINTF(buf, sizeof(buf), "LN%c", (val.i == 0) ? '0' : '1');
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case TOK_TX_METER:
-        snprintf(buf, sizeof(buf), "TM%c", val.i + '0');
+        SNPRINTF(buf, sizeof(buf), "TM%c", val.i + '0');
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case TOK_IF_NB:
@@ -1511,7 +1511,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     {
     case RIG_MODE_PKTLSB:
         tx_mode = RIG_MODE_RTTYR; // "DT0" RIG_MODE_RTTY = LSB
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "DT0;"); /* DATA A mode - DATA-R LSB, suppressed carrier */
 
         if (priv->is_k4d || priv->is_k4hd)
@@ -1523,7 +1523,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
     case RIG_MODE_PKTUSB:
         tx_mode = RIG_MODE_RTTY; // "DT0" RIG_MODE_RTTYR = USB
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "DT0;"); /* DATA A mode - DATA on USB, suppressed carrier */
 
         if (priv->is_k4d || priv->is_k4hd)
@@ -1535,7 +1535,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
     case RIG_MODE_RTTY:
         tx_mode = RIG_MODE_RTTY; // DT1" RIG_MODE_RTTY = LSB and RIG_MODE_RTTYR = USB
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "DT2;"); /* FSK D mode - direct FSK on LSB optimized for RTTY, VFO dial is MARK */
 
         if (priv->is_k4d || priv->is_k4hd)
@@ -1547,7 +1547,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
     case RIG_MODE_RTTYR:
         tx_mode = RIG_MODE_RTTYR; // "DT2" RIG_MODE_RTTY = USB and RIG_MODE_RTTYR = USB
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "DT1;"); /* FSK D mode - direct FSK on USB optimized for RTTY, VFO dial is MARK */
 
         if (priv->is_k4d || priv->is_k4hd)
@@ -1559,7 +1559,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
     case RIG_MODE_PSK:
         tx_mode = RIG_MODE_PSK;
-        snprintf(cmd_m, sizeof(cmd_m),
+        SNPRINTF(cmd_m, sizeof(cmd_m),
                  "DT3;FT1;"); /* PSK D Mode - direct PSK keying, USB is "normal", VFO dial is MARK */
 
         if (priv->is_k4d || priv->is_k4hd)
@@ -1609,7 +1609,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
         return -RIG_EINVAL;
     }
 
-    snprintf(buf, sizeof(buf), "MD$%c", '0' + kmode);
+    SNPRINTF(buf, sizeof(buf), "MD$%c", '0' + kmode);
     err = kenwood_transaction(rig, buf, NULL, 0);
 
     if (err != RIG_OK)
@@ -1656,7 +1656,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
 #endif
 
-        snprintf(cmd_s, sizeof(cmd_s), "BW$%04ld", tx_width / 10);
+        SNPRINTF(cmd_s, sizeof(cmd_s), "BW$%04ld", tx_width / 10);
         err = kenwood_transaction(rig, cmd_s, NULL, 0);
 
         if (err != RIG_OK)
@@ -1866,17 +1866,17 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EINVAL;
         }
 
-        snprintf(levelbuf, sizeof(levelbuf), "GT%03d", kenwood_val);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "GT%03d", kenwood_val);
         break;
 
     case RIG_LEVEL_ATT:
         if (val.i == 0)
         {
-            snprintf(levelbuf, sizeof(levelbuf), "RA00");
+            SNPRINTF(levelbuf, sizeof(levelbuf), "RA00");
         }
         else if (val.i == 10)
         {
-            snprintf(levelbuf, sizeof(levelbuf), "RA01");
+            SNPRINTF(levelbuf, sizeof(levelbuf), "RA01");
         }
         else
         {
@@ -1887,7 +1887,7 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             {
                 if (val.i == rig->state.attenuator[i])
                 {
-                    snprintf(levelbuf, sizeof(levelbuf), "RA%02d", i + 1);
+                    SNPRINTF(levelbuf, sizeof(levelbuf), "RA%02d", i + 1);
                     foundit = 1;
                     break;
                 }
@@ -1902,34 +1902,34 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_MICGAIN:
-        snprintf(levelbuf, sizeof(levelbuf), "MG%03d", (int)(val.f * 60.0f));
+        SNPRINTF(levelbuf, sizeof(levelbuf), "MG%03d", (int)(val.f * 60.0f));
         break;
 
     case RIG_LEVEL_COMP:
-        snprintf(levelbuf, sizeof(levelbuf), "CP%03d", (int)(val.f * 40.0f));
+        SNPRINTF(levelbuf, sizeof(levelbuf), "CP%03d", (int)(val.f * 40.0f));
         break;
 
     case RIG_LEVEL_SQL:
-        snprintf(levelbuf, sizeof(levelbuf), "SQ%03d", (int)(val.f * 29.0f));
+        SNPRINTF(levelbuf, sizeof(levelbuf), "SQ%03d", (int)(val.f * 29.0f));
         break;
 
     case RIG_LEVEL_AF:
-        snprintf(levelbuf, sizeof(levelbuf), "AG%03d", (int)(val.f * 250.0f));
+        SNPRINTF(levelbuf, sizeof(levelbuf), "AG%03d", (int)(val.f * 250.0f));
         break;
 
     case RIG_LEVEL_RF:
-        snprintf(levelbuf, sizeof(levelbuf), "RG%03d", (int)(val.f * 250.0f));
+        SNPRINTF(levelbuf, sizeof(levelbuf), "RG%03d", (int)(val.f * 250.0f));
         break;
 
     case RIG_LEVEL_NR:
         return k3_set_nb_level(rig, val.f, -1);
 
     case RIG_LEVEL_MONITOR_GAIN:
-        snprintf(levelbuf, sizeof(levelbuf), "ML%03d", (int)(val.f * 60.0f));
+        SNPRINTF(levelbuf, sizeof(levelbuf), "ML%03d", (int)(val.f * 60.0f));
         break;
 
     case RIG_LEVEL_RFPOWER:
-        snprintf(levelbuf, sizeof(levelbuf), "PC%03d",
+        SNPRINTF(levelbuf, sizeof(levelbuf), "PC%03d",
                  (int)(val.f * k3_get_maxpower(rig)));
         break;
 
@@ -2244,17 +2244,17 @@ int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_RF:
         ival = val.f * (250.0 - 190.0) + 190.0;
-        snprintf(cmdbuf, sizeof(cmdbuf) - 1, "RG%03d", ival);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf) - 1, "RG%03d", ival);
         return kenwood_transaction(rig, cmdbuf, NULL, 0);
 
     case RIG_LEVEL_AF:
         // manual says 0-255 as of Rev G5 but experiment says 0-60
-        snprintf(cmdbuf, sizeof(cmdbuf), "AG%03d", (int)(val.f * 60.0f));
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "AG%03d", (int)(val.f * 60.0f));
         return kenwood_transaction(rig, cmdbuf, NULL, 0);
 
     case RIG_LEVEL_MICGAIN:
         // manual says 0-255 as of Rev G5 but experiment says 0-80
-        snprintf(cmdbuf, sizeof(cmdbuf), "MG%03d", (int)(val.f * 80.0f));
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "MG%03d", (int)(val.f * 80.0f));
         return kenwood_transaction(rig, cmdbuf, NULL, 0);
     }
 
@@ -2356,15 +2356,15 @@ int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     switch (func)
     {
     case RIG_FUNC_APF:
-        snprintf(buf, sizeof(buf), "AP%c", (status == 0) ? '0' : '1');
+        SNPRINTF(buf, sizeof(buf), "AP%c", (status == 0) ? '0' : '1');
         break;
 
     case RIG_FUNC_DUAL_WATCH:
-        snprintf(buf, sizeof(buf), "SB%c", (status == 0) ? '0' : '1');
+        SNPRINTF(buf, sizeof(buf), "SB%c", (status == 0) ? '0' : '1');
         break;
 
     case RIG_FUNC_DIVERSITY:
-        snprintf(buf, sizeof(buf), "DV%c", (status == 0) ? '0' : '1');
+        SNPRINTF(buf, sizeof(buf), "DV%c", (status == 0) ? '0' : '1');
         break;
 
     default:
@@ -2442,7 +2442,7 @@ int set_rit_xit(RIG *rig, shortfreq_t rit)
         char cmd[16];
         char offs;
         offs = (rit < 0) ? '-' : '+';
-        snprintf(cmd, 8, "RO%c%04d", offs, abs((int)rit));
+        SNPRINTF(cmd, 8, "RO%c%04d", offs, abs((int)rit));
 
         err = kenwood_transaction(rig, cmd, NULL, 0);
 
@@ -2503,7 +2503,7 @@ int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb)
         }
     }
 
-    snprintf(levelbuf, sizeof(levelbuf), "NL%02d%02d", dsp_nb_raw, if_nb_raw);
+    SNPRINTF(levelbuf, sizeof(levelbuf), "NL%02d%02d", dsp_nb_raw, if_nb_raw);
 
     return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
@@ -2712,7 +2712,7 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    snprintf(cmd, sizeof(cmd), "RX");
+    SNPRINTF(cmd, sizeof(cmd), "RX");
 
     if (ptt) { cmd[0] = 'T'; }
 

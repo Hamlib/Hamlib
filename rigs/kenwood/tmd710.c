@@ -714,7 +714,7 @@ static int tmd710_get_vfo_and_mode(RIG *rig, vfo_t *vfo, int *vfomode)
 
     /* Get mode of the VFO band */
 
-    snprintf(cmdbuf, sizeof(cmdbuf), "VM %d", vfonum);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "VM %d", vfonum);
 
     retval = kenwood_safe_transaction(rig, cmdbuf, buf, 10, 6);
 
@@ -819,7 +819,7 @@ int tmd710_pull_me(RIG *rig, int ch, tmd710_me *me_struct)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    snprintf(cmdbuf, sizeof(cmdbuf), "ME %03d", ch);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "ME %03d", ch);
     retval = kenwood_transaction(rig, cmdbuf, buf, sizeof(buf));
 
     if (retval != RIG_OK)
@@ -844,7 +844,7 @@ int tmd710_push_me(RIG *rig, tmd710_me *me_struct)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    snprintf(cmdbuf, sizeof(cmdbuf),
+    SNPRINTF(cmdbuf, sizeof(cmdbuf),
              "ME %03u,%010.0f,%1u,%1u,%1u,%1u,%1u,%1u,%02u,%02u,%03u,%08u,%1u,%010.0f,%1u,%1u",
              me_struct->channel, me_struct->freq,
              me_struct->step, me_struct->shift,
@@ -866,7 +866,7 @@ int tmd710_get_memory_name(RIG *rig, int ch, char *name)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called on channel %d\n", __func__, ch);
 
-    snprintf(cmdbuf, sizeof(cmdbuf), "MN %03d", ch);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "MN %03d", ch);
     retval = kenwood_transaction(rig, cmdbuf, buf, sizeof(buf));
 
     if (retval != RIG_OK)
@@ -894,7 +894,7 @@ int tmd710_set_memory_name(RIG *rig, int ch, char *name)
     rig_debug(RIG_DEBUG_TRACE, "%s: called on channel %d with name %s\n", __func__,
               ch, name);
 
-    snprintf(cmdbuf, sizeof(cmdbuf), "MN %03d,%s", ch, name);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "MN %03d,%s", ch, name);
     retval = kenwood_transaction(rig, cmdbuf, buf, sizeof(buf));
 
     if (retval != RIG_OK)
@@ -926,7 +926,7 @@ int tmd710_pull_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
         return retval;
     }
 
-    snprintf(cmdbuf, sizeof(cmdbuf), "FO %1d", vfonum);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "FO %1d", vfonum);
     retval = kenwood_safe_transaction(rig, cmdbuf, buf, sizeof(buf), 48);
 
     if (retval != RIG_OK)
@@ -960,7 +960,7 @@ int tmd710_push_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    snprintf(cmdbuf, sizeof(cmdbuf),
+    SNPRINTF(cmdbuf, sizeof(cmdbuf),
              "FO %1u,%010.0f,%1u,%1u,%1u,%1u,%1u,%1u,%02d,%02d,%03d,%08d,%1d",
              fo_struct->vfo, fo_struct->freq,
              fo_struct->step, fo_struct->shift,
@@ -1091,7 +1091,7 @@ int tmd710_push_mu(RIG *rig, tmd710_mu *mu_struct)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     // we re-use fo_struct->vfo for the channel#
-    snprintf(cmdbuf, sizeof(cmdbuf),
+    SNPRINTF(cmdbuf, sizeof(cmdbuf),
              "MU %1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d,%02d,%1d,"
              "%1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d,"
              "%1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d,%02X,%02X,"
@@ -1891,7 +1891,7 @@ int tmd710_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EVFO;
     }
 
-    snprintf(vfobuf, sizeof(vfobuf), "VM %1d,%1d", vfonum, vfomode);
+    SNPRINTF(vfobuf, sizeof(vfobuf), "VM %1d,%1d", vfonum, vfomode);
     retval = kenwood_transaction(rig, vfobuf, ackbuf, sizeof(ackbuf));
 
     if (retval != RIG_OK)
@@ -1904,7 +1904,7 @@ int tmd710_set_vfo(RIG *rig, vfo_t vfo)
         return RIG_OK;
     }
 
-    snprintf(vfobuf, sizeof(vfobuf), "BC %1d,%1d", vfonum, vfonum);
+    SNPRINTF(vfobuf, sizeof(vfobuf), "BC %1d,%1d", vfonum, vfonum);
     retval = kenwood_transaction(rig, vfobuf, ackbuf, sizeof(ackbuf));
 
     if (retval != RIG_OK)
@@ -1944,7 +1944,7 @@ int tmd710_get_mem(RIG *rig, vfo_t vfo, int *ch)
         }
     }
 
-    snprintf(cmd, sizeof(cmd), "MR %d", vfonum);
+    SNPRINTF(cmd, sizeof(cmd), "MR %d", vfonum);
     retval = kenwood_safe_transaction(rig, cmd, membuf, sizeof(membuf), 8);
 
     if (retval != RIG_OK)
@@ -1990,7 +1990,7 @@ int tmd710_set_mem(RIG *rig, vfo_t vfo, int ch)
         }
     }
 
-    snprintf(cmd, sizeof(cmd), "MR %d,%03d", vfonum, ch);
+    SNPRINTF(cmd, sizeof(cmd), "MR %d,%03d", vfonum, ch);
 
     return kenwood_safe_transaction(rig, cmd, membuf, sizeof(membuf), 8);
 }
@@ -2235,7 +2235,7 @@ int tmd710_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
         return retval;
     }
 
-    snprintf(cmd, sizeof(cmd), "BY %d", vfonum);
+    SNPRINTF(cmd, sizeof(cmd), "BY %d", vfonum);
 
     retval = kenwood_safe_transaction(rig, cmd, buf, sizeof(buf), 6);
 
@@ -2311,7 +2311,7 @@ int tmd710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_RFPOWER:
-        snprintf(buf, sizeof(buf), "PC %d", vfonum);
+        SNPRINTF(buf, sizeof(buf), "PC %d", vfonum);
         retval = kenwood_transaction(rig, buf, ackbuf, sizeof(ackbuf));
 
         if (retval != RIG_OK)
@@ -2336,7 +2336,7 @@ int tmd710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SQL:
-        snprintf(buf, sizeof(buf), "SQ %d", vfonum);
+        SNPRINTF(buf, sizeof(buf), "SQ %d", vfonum);
         retval = kenwood_transaction(rig, buf, ackbuf, sizeof(ackbuf));
 
         if (retval != RIG_OK)
@@ -2384,14 +2384,14 @@ int tmd710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_RFPOWER:
         // RF power needs to be inverted
-        snprintf(buf, sizeof(buf), "PC %d,%d", vfonum,
+        SNPRINTF(buf, sizeof(buf), "PC %d,%d", vfonum,
                  (int)((1.0f - val.f) * (TMD710_RF_POWER_MAX - TMD710_RF_POWER_MIN) +
                        TMD710_RF_POWER_MIN));
 
         return kenwood_transaction(rig, buf, ackbuf, sizeof(ackbuf));
 
     case RIG_LEVEL_SQL:
-        snprintf(buf, sizeof(buf), "SQ %d,%02X", vfonum,
+        SNPRINTF(buf, sizeof(buf), "SQ %d,%02X", vfonum,
                  (int)(val.f * (TMD710_SQL_MAX - TMD710_SQL_MIN) + TMD710_SQL_MIN));
         return kenwood_transaction(rig, buf, ackbuf, sizeof(ackbuf));
 

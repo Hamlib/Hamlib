@@ -483,7 +483,7 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
     char splitbuf[12];
 
     memset(splitbuf, 0, sizeof(splitbuf));
-    snprintf(cmdbuf, sizeof(cmdbuf), "FR;");
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "FR;");
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)
@@ -496,7 +496,7 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FR '%s'\n", __func__, splitbuf);
     }
 
-    snprintf(cmdbuf, sizeof(cmdbuf), "FT;");
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "FT;");
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)
@@ -509,7 +509,7 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FT '%s'\n", __func__, splitbuf);
     }
 
-    snprintf(cmdbuf, sizeof(cmdbuf), "TQ;");
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "TQ;");
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)

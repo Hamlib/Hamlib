@@ -658,25 +658,25 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (val.f > 1.0) { return -RIG_EINVAL; }
 
         ival = val.f * 100;
-        snprintf(cmd, sizeof(cmd) - 1, "ZZAG%03d", ival);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZAG%03d", ival);
         break;
 
     case RIG_LEVEL_IF:
-        snprintf(cmd, sizeof(cmd) - 1, "ZZIT%+05d", val.i);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZIT%+05d", val.i);
         break;
 
     case RIG_LEVEL_RF:
         if (val.f > 1.0) { return -RIG_EINVAL; }
 
         ival = val.f * (120 - -20) - 20;
-        snprintf(cmd, sizeof(cmd) - 1, "ZZAR%+04d", ival);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZAR%+04d", ival);
         break;
 
     case RIG_LEVEL_MICGAIN:
         if (val.f > 1.0) { return -RIG_EINVAL; }
 
         ival = val.f * (10 - -40) - 40;
-        snprintf(cmd, sizeof(cmd) - 1, "ZZMG%03d", ival);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZMG%03d", ival);
         break;
 
     case RIG_LEVEL_AGC:
@@ -685,14 +685,14 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             val.i = 5;    /* 0.. 255 */
         }
 
-        snprintf(cmd, sizeof(cmd), "GT%03d", (int)val.i);
+        SNPRINTF(cmd, sizeof(cmd), "GT%03d", (int)val.i);
         break;
 
     case RIG_LEVEL_VOXGAIN:
         if (val.f > 1.0) { return -RIG_EINVAL; }
 
         ival = val.f * 1000;
-        snprintf(cmd, sizeof(cmd) - 1, "ZZVG%04d", ival);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZVG%04d", ival);
         break;
 
     case RIG_LEVEL_SQL:
@@ -709,7 +709,7 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             ival = 160 - (val.f * 160); // all other modes  0 to 160
         }
 
-        snprintf(cmd, sizeof(cmd) - 1, "ZZSQ%03d", ival);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZSQ%03d", ival);
         break;
 
     default:
@@ -994,19 +994,19 @@ int powersdr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     switch (func)
     {
     case RIG_FUNC_MUTE:
-        snprintf(cmd, sizeof(cmd) - 1, "ZZMA%01d", status);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZMA%01d", status);
         break;
 
     case RIG_FUNC_VOX:
-        snprintf(cmd, sizeof(cmd) - 1, "ZZVE%01d", status);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZVE%01d", status);
         break;
 
     case RIG_FUNC_SQL:
-        snprintf(cmd, sizeof(cmd) - 1, "ZZSO%01d", status);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZSO%01d", status);
         break;
 
     case RIG_FUNC_TUNER:
-        snprintf(cmd, sizeof(cmd) - 1, "ZZTU%01d", status);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZTU%01d", status);
         break;
 
     default:
