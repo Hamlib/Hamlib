@@ -110,18 +110,15 @@ int
 gp2000_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[32];
-    int freq_len, retval;
+    int retval;
     // cppcheck-suppress *
     char *fmt = BOM "F%" PRIll ",%" PRIll EOM;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s,freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 
-    freq_len =
-        snprintf(freqbuf, sizeof(freqbuf), fmt,
-                 (int64_t) freq,
-                 (int64_t) freq);
-    retval = gp2000_transaction(rig, freqbuf, freq_len, NULL, NULL);
+    SNPRINTF(freqbuf, sizeof(freqbuf), fmt, (int64_t) freq, (int64_t) freq);
+    retval = gp2000_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 
     return retval;
 }
@@ -161,7 +158,7 @@ int
 gp2000_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char buf[32], *smode;
-    int len, retval;
+    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, mode=%s, width=%d\n", __func__,
               rig_strvfo(vfo), rig_strvfo(mode), (int)width);
@@ -200,8 +197,8 @@ gp2000_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    len = snprintf(buf, sizeof(buf), BOM "I%s" EOM, smode);
-    retval = gp2000_transaction(rig, buf, len, NULL, NULL);
+    SNPRINTF(buf, sizeof(buf), BOM "I%s" EOM, smode);
+    retval = gp2000_transaction(rig, buf, strlen(buf), NULL, NULL);
 
     if (retval < 0)
     {
@@ -220,8 +217,8 @@ gp2000_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (width > 0)
     {
-        len = snprintf(buf, sizeof(buf), BOM "W%d" EOM, (int) width);
-        retval = gp2000_transaction(rig, buf, len, NULL, NULL);
+        SNPRINTF(buf, sizeof(buf), BOM "W%d" EOM, (int) width);
+        retval = gp2000_transaction(rig, buf, strlen(buf), NULL, NULL);
     }
 
     return retval;
@@ -315,8 +312,8 @@ gp2000_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return -RIG_EINVAL;
     }
 
-    len = snprintf(buf, sizeof(buf), BOM "%s %s" EOM, sfunc, status ? "1" : "0");
-    retval = gp2000_transaction(rig, buf, len, NULL, NULL);
+    SNPRINTF(buf, sizeof(buf), BOM "%s %s" EOM, sfunc, status ? "1" : "0");
+    retval = gp2000_transaction(rig, buf, strlen(buf), NULL, NULL);
 
     return retval;
 }
@@ -360,18 +357,18 @@ int
 gp2000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char buf[64];
-    int len, retval;
+    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
     switch (level)
     {
     case RIG_LEVEL_AF:
-        len = snprintf(buf, sizeof(buf), BOM "SR%02d" EOM, (int)val.f);
+        SNPRINTF(buf, sizeof(buf), BOM "SR%02d" EOM, (int)val.f);
         break;
 
     case RIG_LEVEL_SQL:
-        len = snprintf(buf, sizeof(buf), BOM "SQ%1d" EOM, (int)val.f);
+        SNPRINTF(buf, sizeof(buf), BOM "SQ%1d" EOM, (int)val.f);
         break;
 
     case RIG_LEVEL_AGC:
@@ -382,7 +379,7 @@ gp2000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    retval = gp2000_transaction(rig, buf, len, NULL, NULL);
+    retval = gp2000_transaction(rig, buf, strlen(buf), NULL, NULL);
 
     return retval;
 }
@@ -501,7 +498,7 @@ gp2000_get_info(RIG *rig)
         p = strtok(NULL, ",");
     }
 
-    snprintf(infobuf, sizeof(infobuf), "ADDR=%02d\nTYPE=%s\nSER#=%s\nID  =%s\n",
+    SNPRINTF(infobuf, sizeof(infobuf), "ADDR=%02d\nTYPE=%s\nSER#=%s\nID  =%s\n",
              addr, type, sernum, rigid);
 
     return infobuf;
@@ -515,7 +512,7 @@ gp2000_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    snprintf(cmd, sizeof(cmd), "X%1d", ptt);
+    SNPRINTF(cmd, sizeof(cmd), "X%1d", ptt);
     retval = gp2000_transaction(rig, cmd, strlen(cmd), NULL, NULL);
     return retval;
 }
