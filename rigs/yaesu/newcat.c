@@ -585,6 +585,10 @@ int newcat_open(RIG *rig)
 
 #endif
 
+    if (priv->rig_id == NC_RIGID_FTDX3000)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: disabling FTDX3000 band select\n", __func__);
+    }
     RETURNFUNC(RIG_OK);
 }
 
