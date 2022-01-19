@@ -363,7 +363,8 @@ int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EPROTO;
     }
 
-    freq_len = snprintf(freqbuf, sizeof(freqbuf), "RF%010.0f"EOM, freq);
+    SNPRINTF(freqbuf, sizeof(freqbuf), "RF%010.0f"EOM, freq);
+    freq_len = strlen(freqbuf);
 
     strcpy(freqbuf + freq_len, EOM);
     freq_len += strlen(EOM);

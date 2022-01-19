@@ -459,7 +459,7 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
     case RIG_MODEL_AR5000:
     case RIG_MODEL_AR5000A:
-        snprintf(mdbuf2, sizeof(mdbuf2), "%.3s",
+        SNPRINTF(mdbuf2, sizeof(mdbuf2), "%.3s",
                  mdbuf);      /* Extract first 'MD' part */
         mdbuf2_len = strlen(mdbuf2);
         strcpy(mdbuf2 + mdbuf2_len, EOM); /* Add delimiter */
@@ -1035,8 +1035,9 @@ int aor_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     char aorcmd[BUFSZ];
     int cmd_len;
 
-    cmd_len = snprintf(aorcmd, sizeof(aorcmd), "MX%c%02d ",
+    SNPRINTF(aorcmd, sizeof(aorcmd), "MX%c%02d ",
                       chan->bank_num, chan->channel_num % 100);
+    cmd_len = strlen(aorcmd);
 
     cmd_len += format_freq(aorcmd + cmd_len, sizeof(aorcmd) - cmd_len, chan->freq);
 
@@ -1470,7 +1471,7 @@ const char *aor_get_info(RIG *rig)
     }
 
     frmbuf[frm_len] = '\0';
-    snprintf(infobuf, sizeof(infobuf), "Remote ID %c%c, Firmware version %s",
+    SNPRINTF(infobuf, sizeof(infobuf), "Remote ID %c%c, Firmware version %s",
              idbuf[0], idbuf[1], frmbuf);
 
     return infobuf;
