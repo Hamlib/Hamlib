@@ -1258,7 +1258,8 @@ static int read_string_generic(hamlib_port_t *p,
 
         if (result == -RIG_ETIMEOUT)
         {
-            if (0 == total_count)
+            // a timeout is a timeout no matter how many bytes
+            //if (0 == total_count)
             {
                 /* Record timeout time and calculate elapsed time */
                 gettimeofday(&end_time, NULL);
