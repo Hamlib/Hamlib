@@ -135,6 +135,7 @@ static unsigned client_count;
 #endif
 
 static RIG *my_rig;             /* handle to rig (instance) */
+static volatile int rig_opened = 0;
 static int verbose;
 
 #ifdef HAVE_SIG_ATOMIC_T
@@ -687,14 +688,15 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    /* open and close rig connection to check early for issues */
+    /* attempt to open rig to check early for issues */
     retcode = rig_open(my_rig);
+    rig_opened = retcode == RIG_OK ? 1 : 0;
 
     if (retcode != RIG_OK)
     {
         fprintf(stderr, "rig_open: error = %s %s %s \n", rigerror(retcode), rig_file,
                 strerror(errno));
-        exit(2);
+        // continue even if opening the rig fails, because it may be powered off
     }
 
     if (verbose > RIG_DEBUG_ERR)
@@ -1010,8 +1012,6 @@ int main(int argc, char *argv[])
     }
     while (retcode == 0 && !ctrl_c);
 
-    network_multicast_publisher_stop(my_rig);
-
 #ifdef HAVE_PTHREAD
     /* allow threads to finish current action */
     mutex_rigctld(1);
@@ -1026,6 +1026,9 @@ int main(int argc, char *argv[])
 #else
     rig_close(my_rig); /* close port */
 #endif
+
+    network_multicast_publisher_stop(my_rig);
+
     rig_cleanup(my_rig); /* if you care about memory */
 
 #ifdef __MINGW32__
@@ -1132,10 +1135,9 @@ void *handle_socket(void *arg)
 
 #endif
 
-    int rig_opened = 1;  // our rig is already open
-
     do
     {
+        mutex_rigctld(1);
         if (!rig_opened)
         {
             retcode = rig_open(my_rig);
@@ -1143,6 +1145,7 @@ void *handle_socket(void *arg)
             rig_debug(RIG_DEBUG_ERR, "%s: rig_open reopened retcode=%d\n", __func__,
                       retcode);
         }
+        mutex_rigctld(0);
 
         if (rig_opened) // only do this if rig is open
         {
@@ -1168,15 +1171,24 @@ void *handle_socket(void *arg)
 
             do
             {
+                mutex_rigctld(1);
                 retcode = rig_close(my_rig);
-                hl_usleep(1000 * 1000);
+                rig_opened = 0;
+                mutex_rigctld(0);
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_close retcode=%d\n", __func__, retcode);
-                retcode = rig_open(my_rig);
-                rig_opened = retcode == RIG_OK ? 1 : 0;
-                rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d, opened=%d\n", __func__,
-                          retcode, rig_opened);
+
+                hl_usleep(1000 * 1000);
+
+                mutex_rigctld(1);
+                if (!rig_opened) {
+                    retcode = rig_open(my_rig);
+                    rig_opened = retcode == RIG_OK ? 1 : 0;
+                    rig_debug(RIG_DEBUG_ERR, "%s: rig_open retcode=%d, opened=%d\n", __func__,
+                            retcode, rig_opened);
+                }
+                mutex_rigctld(0);
             }
-            while (retry-- > 0 && retcode != RIG_OK);
+            while (!rig_opened && retry-- > 0 && retcode != RIG_OK);
         }
     }
     while (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode));
