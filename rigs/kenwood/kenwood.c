@@ -935,6 +935,9 @@ int kenwood_open(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: found match %s\n",
                   __func__, kenwood_id_string_list[i].id);
 
+        // current vfo is rx_vfo
+        rig_get_vfo(rig, &rig->state.rx_vfo);
+
         if (kenwood_id_string_list[i].model == rig->caps->rig_model)
         {
             int retval;
@@ -1663,7 +1666,7 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
     switch (priv->info[30])
     {
     case '0':
-        *vfo = priv->tx_vfo = split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
+        *vfo = rig->state.rx_vfo = rig->state.tx_vfo = priv->tx_vfo = split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
 
         if (priv->info[32] == '1') { priv->tx_vfo = RIG_VFO_B; }
 
