@@ -1070,10 +1070,12 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (status != RIG_OK)
         {
+            remove_opened_rig(rig);
 #ifdef ASYNC_BUG
             async_data_handler_stop(rig);
 #endif
             port_close(&rs->rigport, rs->rigport.type.rig);
+            rs->comm_state = 0;
             RETURNFUNC(status);
         }
     }
@@ -6992,15 +6994,16 @@ void *async_data_handler(void *arg)
 
         if (result < 0)
         {
-            // TODO: it may be necessary to have mutex locking on transaction_active flag
-            if (rs->transaction_active)
-            {
-                unsigned char data = (unsigned char) result;
-                write_block_sync_error(&rs->rigport, &data, 1);
-            }
-
+            // Timeouts occur always if there is nothing to receive, so they are not really errors in this case
             if (result != -RIG_ETIMEOUT)
             {
+                // TODO: it may be necessary to have mutex locking on transaction_active flag
+                if (rs->transaction_active)
+                {
+                    unsigned char data = (unsigned char) result;
+                    write_block_sync_error(&rs->rigport, &data, 1);
+                }
+
                 // TODO: error handling -> store errors in rig state -> to be exposed in async snapshot packets
                 rig_debug(RIG_DEBUG_ERR, "%s: read_frame_direct() failed, result=%d\n",
                           __func__, result);
