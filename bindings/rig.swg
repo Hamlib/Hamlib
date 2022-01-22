@@ -365,7 +365,6 @@ typedef channel_t * const_channel_t_p;
 	METHOD3(send_dtmf, const_char_string)
 	METHOD3(send_morse, const_char_string)
 	METHOD3(vfo_op, vfo_op_t)
-    METHOD1SET(set_vfo_opt, int)
 	METHOD2(scan, scan_t, int)
 	METHODSIMPLESET(level, int, i, RIG_LEVEL_IS_FLOAT(stg))
 	METHODSIMPLESET(level, float, f, !RIG_LEVEL_IS_FLOAT(stg))
@@ -399,6 +398,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1(passband_normal, rmode_t)
 	METHOD1(passband_narrow, rmode_t)
 	METHOD1(passband_wide, rmode_t)
+	METHOD1(set_vfo_opt, int)
 
 	METHOD1(ext_token_lookup, const_char_string)	/* level & parm */
 	METHOD1(token_lookup, const_char_string)	/* conf */
