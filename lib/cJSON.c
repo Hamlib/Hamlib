@@ -57,6 +57,7 @@
 #endif
 
 #include "cJSON.h"
+#include <hamlib/rig.h>
 
 /* define our own boolean type */
 #ifdef true
@@ -124,7 +125,7 @@ CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item)
 CJSON_PUBLIC(const char*) cJSON_Version(void)
 {
     static char version[15];
-    snprintf(version, sizeof(version), "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
+    SNPRINTF(version, sizeof(version), "%i.%i.%i", CJSON_VERSION_MAJOR, CJSON_VERSION_MINOR, CJSON_VERSION_PATCH);
 
     return version;
 }
@@ -560,18 +561,21 @@ static cJSON_bool print_number(const cJSON * const item, printbuffer * const out
     /* This checks for NaN and Infinity */
     if (isnan(d) || isinf(d))
     {
-        length = snprintf((char*)number_buffer, sizeof(number_buffer), "null");
+        SNPRINTF((char*)number_buffer, sizeof(number_buffer), "null");
+        length = strlen((char*)number_buffer);
     }
     else
     {
         /* Try 15 decimal places of precision to avoid nonsignificant nonzero digits */
-        length = snprintf((char*)number_buffer, sizeof(number_buffer), "%1.15g", d);
+        SNPRINTF((char*)number_buffer, sizeof(number_buffer), "%1.15g", d);
+        length = strlen((char*)number_buffer);
 
         /* Check whether the original double can be recovered */
         if ((sscanf((char*)number_buffer, "%lg", &test) != 1) || !compare_double((double)test, d))
         {
             /* If not, print with 17 decimal places of precision */
-            length = snprintf((char*)number_buffer, sizeof(number_buffer), "%1.17g", d);
+            SNPRINTF((char*)number_buffer, sizeof(number_buffer), "%1.17g", d);
+            length = strlen((char*)number_buffer);
         }
     }
 
