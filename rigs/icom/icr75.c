@@ -296,7 +296,7 @@ int icr75_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
     to_bcd_be(chanbuf + chan_len++, chan->ant, 2);
     memset(chanbuf + chan_len, 0, 8);
-    snprintf((char *)(chanbuf + chan_len), 9, "%.8s", chan->channel_desc);
+    SNPRINTF((char *)(chanbuf + chan_len), 9, "%.8s", chan->channel_desc);
     chan_len += 8;
 
     retval = icom_transaction(rig, C_CTL_MEM, S_MEM_CNTNT,

@@ -365,9 +365,8 @@ int tt585_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
 #define FREQBUFSZ 16
     char buf[FREQBUFSZ], *p;
-    int ret;
 
-    ret = num_snprintf(buf, FREQBUFSZ - 1, "%.5f@", (double)freq / MHz(1));
+    num_snprintf(buf, FREQBUFSZ - 1, "%.5f@", (double)freq / MHz(1));
     buf[FREQBUFSZ - 1] = '\0';
 
     /* replace decimal point with W */
@@ -376,7 +375,7 @@ int tt585_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_force_cache_timeout(&priv->status_tv);
 
-    return write_block(&rig->state.rigport, (unsigned char *) buf, ret);
+    return write_block(&rig->state.rigport, (unsigned char *) buf, strlen(buf));
 }
 
 /*

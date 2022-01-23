@@ -63,7 +63,7 @@ DECLARE_INITRIG_BACKEND(barrett)
 int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 {
     char cmd_buf[MAXCMDLEN];
-    int retval, cmd_len;
+    int retval;
     char *p;
     char xon;
     char xoff;
@@ -72,10 +72,10 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
 
-    cmd_len = snprintf(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
+    SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
 
     rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));
 
     if (retval < 0)
     {
