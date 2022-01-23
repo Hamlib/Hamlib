@@ -2364,9 +2364,9 @@ struct rig_state {
     // this should allow changes to hamlib_port_t without breaking shared libraries
     // these will maintain a copy of the new port_t for backwards compatiblity
     // to these offsets -- note these must stay until a major version update is done
-    hamlib_port_t rigport_deprecated;  /*!< Rig port (internal use). */
-    hamlib_port_t pttport_deprecated;  /*!< PTT port (internal use). */
-    hamlib_port_t dcdport_deprecated;  /*!< DCD port (internal use). */
+    hamlib_port_t rigport;  /*!< Rig port (internal use). */
+    hamlib_port_t pttport;  /*!< PTT port (internal use). */
+    hamlib_port_t dcdport;  /*!< DCD port (internal use). */
 
     double vfo_comp;        /*!< VFO compensation in PPM, 0.0 to disable */
 
@@ -2460,9 +2460,6 @@ struct rig_state {
 #ifdef HAVE_PTHREAD
     pthread_mutex_t mutex_set_transaction;
 #endif
-    hamlib_port_t *rigport;  /*!< Rig port (internal use). */
-    hamlib_port_t *pttport;  /*!< PTT port (internal use). */
-    hamlib_port_t *dcdport;  /*!< DCD port (internal use). */
 };
 
 //! @cond Doxygen_Suppress
