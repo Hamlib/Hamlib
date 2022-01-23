@@ -25,7 +25,7 @@ int async_pipe_create(hamlib_async_pipe_t **pipe_out, unsigned long pipe_buffer_
         pipe_buffer_size = PIPE_BUFFER_SIZE_DEFAULT;
     }
 
-    snprintf(pipe_name, sizeof(pipe_name),
+    SNPRINTF(pipe_name, sizeof(pipe_name),
             "\\\\.\\Pipe\\Hamlib.%08lx.%08lx",
             GetCurrentProcessId(),
             InterlockedIncrement(&pipe_serial_nunber)
