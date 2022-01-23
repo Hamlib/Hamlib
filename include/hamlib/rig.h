@@ -33,6 +33,10 @@
 #include <inttypes.h>
 #include <time.h>
 #include <sys/time.h>
+#include "config.h"
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
@@ -2447,6 +2451,9 @@ struct rig_state {
     void *async_data_handler_priv_data;
     volatile int poll_routine_thread_run;
     void *poll_routine_priv_data;
+#ifdef HAVE_PTHREAD
+    pthread_mutex_t mutex_set_transaction;
+#endif
 };
 
 //! @cond Doxygen_Suppress
