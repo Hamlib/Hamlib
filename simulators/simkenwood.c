@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             usleep(50 * 1000);
             int id = 24;
-            snprintf(buf, sizeof(buf), "ID%03d;", id);
+            SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
             ant = (ant + 1) % 3;
             printf("%s\n", buf);
             usleep(50 * 1000);
-            snprintf(buf, sizeof(buf), "EX032%1d;", ant);
+            SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
