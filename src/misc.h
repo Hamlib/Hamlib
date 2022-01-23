@@ -26,13 +26,15 @@
 
 
 /*
- * Careful!! These macros are NOT reentrant!
- * ie. they may not be executed atomically,
- * thus not ensure mutual exclusion.
- * Fix it when making Hamlib reentrant!  --SF
  */
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#define set_transaction_active(rig) {pthread_mutex_lock(&rig->state.mutex_set_transaction);(rig)->state.transaction_active = 1;}
+#define set_transaction_inactive(rig) {(rig)->state.transaction_active = 0;pthread_mutex_unlock(&rig->state.mutex_set_transaction);}
+#else
 #define set_transaction_active(rig) {(rig)->state.transaction_active = 1;}
 #define set_transaction_inactive(rig) {(rig)->state.transaction_active = 0;}
+#endif
 
 __BEGIN_DECLS
 
