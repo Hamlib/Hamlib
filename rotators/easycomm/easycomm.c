@@ -109,11 +109,11 @@ easycomm_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     if (rot->caps->rot_model == ROT_MODEL_EASYCOMM1)
     {
-        snprintf(cmdstr, sizeof(cmdstr), "AZ%.1f EL%.1f UP000 XXX DN000 XXX\n", az, el);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "AZ%.1f EL%.1f UP000 XXX DN000 XXX\n", az, el);
     }
     else   // for easycomm 2 & 3 and upwards
     {
-        snprintf(cmdstr, sizeof(cmdstr), "AZ%.1f EL%.1f\n", az, el);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "AZ%.1f EL%.1f\n", az, el);
     }
 
     retval = easycomm_transaction(rot, cmdstr, NULL, 0);
@@ -135,7 +135,7 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    snprintf(cmdstr, sizeof(cmdstr), "AZ EL \n");
+    SNPRINTF(cmdstr, sizeof(cmdstr), "AZ EL \n");
 
     retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
 
@@ -220,19 +220,19 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
     switch (direction)
     {
     case ROT_MOVE_UP:       /* Elevation increase */
-        snprintf(cmdstr, sizeof(cmdstr), "MU\n");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "MU\n");
         break;
 
     case ROT_MOVE_DOWN:     /* Elevation decrease */
-        snprintf(cmdstr, sizeof(cmdstr), "MD\n");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "MD\n");
         break;
 
     case ROT_MOVE_LEFT:     /* Azimuth decrease */
-        snprintf(cmdstr, sizeof(cmdstr), "ML\n");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "ML\n");
         break;
 
     case ROT_MOVE_RIGHT:    /* Azimuth increase */
-        snprintf(cmdstr, sizeof(cmdstr), "MR\n");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "MR\n");
         break;
 
     default:
@@ -281,19 +281,19 @@ static int easycomm_rot_move_velocity(ROT *rot, int direction, int speed)
     switch (direction)
     {
     case ROT_MOVE_UP:       /* Elevation increase */
-        snprintf(cmdstr, sizeof(cmdstr), "VU%04d\n", easycomm_speed);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "VU%04d\n", easycomm_speed);
         break;
 
     case ROT_MOVE_DOWN:     /* Elevation decrease */
-        snprintf(cmdstr, sizeof(cmdstr), "VD%04d\n", easycomm_speed);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "VD%04d\n", easycomm_speed);
         break;
 
     case ROT_MOVE_LEFT:     /* Azimuth decrease */
-        snprintf(cmdstr, sizeof(cmdstr), "VL%04d\n", easycomm_speed);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "VL%04d\n", easycomm_speed);
         break;
 
     case ROT_MOVE_RIGHT:    /* Azimuth increase */
-        snprintf(cmdstr, sizeof(cmdstr), "VR%04d\n", easycomm_speed);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "VR%04d\n", easycomm_speed);
         break;
 
     default:
@@ -406,27 +406,27 @@ static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val)
     switch (token)
     {
     case TOK_GET_STATUS:
-        snprintf(cmdstr, sizeof(cmdstr), "GS\n;");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "GS\n;");
         break;
 
     case TOK_GET_ERRORS:
-        snprintf(cmdstr, sizeof(cmdstr), "GE\n;");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "GE\n;");
         break;
 
     case TOK_GET_INPUT:
-        snprintf(cmdstr, sizeof(cmdstr), "IP\n;");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "IP\n;");
         break;
 
     case TOK_GET_ANALOG_INPUT:
-        snprintf(cmdstr, sizeof(cmdstr), "AN\n;");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "AN\n;");
         break;
 
     case TOK_GET_VERSION:
-        snprintf(cmdstr, sizeof(cmdstr), "VE\n;");
+        SNPRINTF(cmdstr, sizeof(cmdstr), "VE\n;");
         break;
 
     case TOK_GET_CONFIG:
-        snprintf(cmdstr, sizeof(cmdstr), "CR %c\n;", *val);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "CR %c\n;", *val);
         break;
 
     default:
@@ -478,7 +478,7 @@ static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val)
     switch (token)
     {
     case TOK_SET_CONFIG:
-        snprintf(cmdstr, sizeof(cmdstr), "CW%s\n;", val);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "CW%s\n;", val);
         break;
 
     default:

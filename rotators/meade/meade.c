@@ -446,7 +446,7 @@ static const char *meade_get_info(ROT *rot)
     struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    snprintf(buf, sizeof(buf), "Meade telescope rotator with LX200 protocol.\nModel: %s",
+    SNPRINTF(buf, sizeof(buf), "Meade telescope rotator with LX200 protocol.\nModel: %s",
             priv->product_name);
     return buf;
 }

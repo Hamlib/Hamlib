@@ -436,7 +436,7 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth,
         azimuth = 0;
     }
 
-    snprintf(cmdstr, sizeof(cmdstr), "AP1%03.0f;", azimuth);     /* Target bearing */
+    SNPRINTF(cmdstr, sizeof(cmdstr), "AP1%03.0f;", azimuth);     /* Target bearing */
     err = rotorez_send_priv_cmd(rot, cmdstr);
 
     if (err != RIG_OK)
@@ -481,7 +481,7 @@ static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth,
         return -RIG_EINVAL;
     }
 
-    snprintf(cmdstr, sizeof(cmdstr), "AP1%05.1f\r;", azimuth);   /* Total field width of 5 chars */
+    SNPRINTF(cmdstr, sizeof(cmdstr), "AP1%05.1f\r;", azimuth);   /* Total field width of 5 chars */
     err = rotorez_send_priv_cmd(rot, cmdstr);
 
     if (err != RIG_OK)
@@ -491,7 +491,7 @@ static int rt21_rot_set_position(ROT *rot, azimuth_t azimuth,
 
     if (rot->state.rotport2.pathname[0] != 0)
     {
-        snprintf(cmdstr, sizeof(cmdstr), "AP1%05.1f\r;",
+        SNPRINTF(cmdstr, sizeof(cmdstr), "AP1%05.1f\r;",
                 elevation);    /* Total field width of 5 chars */
 
         err = rotorez_send_priv_cmd2(rot, cmdstr);
@@ -952,7 +952,7 @@ static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: c = %c, *val = %c\n", __func__, c, *val);
-    snprintf(cmdstr, sizeof(cmdstr), "%c", c);
+    SNPRINTF(cmdstr, sizeof(cmdstr), "%c", c);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n",
               __func__, cmdstr, *val);

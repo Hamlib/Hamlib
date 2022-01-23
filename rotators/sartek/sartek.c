@@ -104,7 +104,7 @@ static int sartek_rot_set_position(ROT *rot, azimuth_t azimuth,
                                    elevation_t elevation)
 {
     char cmdstr[8];
-    int len, err;
+    int err;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
@@ -127,9 +127,9 @@ static int sartek_rot_set_position(ROT *rot, azimuth_t azimuth,
         azimuth = 358;
     }
 
-    len = snprintf(cmdstr, sizeof(cmdstr), "P%c", (int)((azimuth * 255) / 360));
+    SNPRINTF(cmdstr, sizeof(cmdstr), "P%c", (int)((azimuth * 255) / 360));
 
-    err = write_block(&rot->state.rotport, (unsigned char *) cmdstr, len);
+    err = write_block(&rot->state.rotport, (unsigned char *) cmdstr, strlen(cmdstr));
 
     if (err != RIG_OK)
     {

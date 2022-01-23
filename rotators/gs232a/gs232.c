@@ -169,7 +169,7 @@ gs232_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     u_az = (unsigned)rint(az);
     u_el = (unsigned)rint(el);
 
-    snprintf(cmdstr, sizeof(cmdstr), "W%03u %03u" EOM, u_az, u_el);
+    SNPRINTF(cmdstr, sizeof(cmdstr), "W%03u %03u" EOM, u_az, u_el);
     retval = gs232_wo_transaction(rot, cmdstr, NULL, 0);
 
     if (retval != RIG_OK)

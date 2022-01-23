@@ -112,11 +112,11 @@ static int spid_get_conf2(ROT *rot, token_t token, char *val, int val_len)
     switch (token)
     {
     case TOK_AZRES:
-        snprintf(val, val_len, "%d", priv->az_resolution);
+        SNPRINTF(val, val_len, "%d", priv->az_resolution);
         break;
 
     case TOK_ELRES:
-        snprintf(val, val_len, "%d", priv->el_resolution);
+        SNPRINTF(val, val_len, "%d", priv->el_resolution);
         break;
 
     default:

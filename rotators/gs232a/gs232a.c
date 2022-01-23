@@ -177,7 +177,7 @@ gs232a_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     u_az = (unsigned)rint(az);
     u_el = (unsigned)rint(el);
 
-    snprintf(cmdstr, sizeof(cmdstr), "W%03u %03u" EOM, u_az, u_el);
+    SNPRINTF(cmdstr, sizeof(cmdstr), "W%03u %03u" EOM, u_az, u_el);
     retval = gs232a_transaction(rot, cmdstr, NULL, 0, 0);
 
     if (retval != RIG_OK)
@@ -283,7 +283,7 @@ static int gs232a_rot_set_level(ROT *rot, setting_t level, value_t val)
         }
 
         /* between 1 (slowest) and 4 (fastest) */
-        snprintf(cmdstr, sizeof(cmdstr), "X%u" EOM, speed);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "X%u" EOM, speed);
         retval = gs232a_transaction(rot, cmdstr, NULL, 0, 1);
 
         if (retval != RIG_OK)
@@ -335,19 +335,19 @@ static int gs232a_rot_move(ROT *rot, int direction, int speed)
     switch (direction)
     {
     case ROT_MOVE_UP:       /* Elevation increase */
-        snprintf(cmdstr, sizeof(cmdstr), "U" EOM);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "U" EOM);
         break;
 
     case ROT_MOVE_DOWN:     /* Elevation decrease */
-        snprintf(cmdstr, sizeof(cmdstr), "D" EOM);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "D" EOM);
         break;
 
     case ROT_MOVE_LEFT:     /* Azimuth decrease */
-        snprintf(cmdstr, sizeof(cmdstr), "L" EOM);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "L" EOM);
         break;
 
     case ROT_MOVE_RIGHT:    /* Azimuth increase */
-        snprintf(cmdstr, sizeof(cmdstr), "R" EOM);
+        SNPRINTF(cmdstr, sizeof(cmdstr), "R" EOM);
         break;
 
     default:

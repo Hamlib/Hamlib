@@ -190,7 +190,7 @@ static int hd1780_rot_set_position(ROT *rot, azimuth_t azimuth,
 
     if (azimuth < 0) { azimuth = azimuth + 360; }
 
-    snprintf(cmdstr, sizeof(cmdstr), "%03.0f", azimuth);    /* Target bearing */
+    SNPRINTF(cmdstr, sizeof(cmdstr), "%03.0f", azimuth);    /* Target bearing */
     err = hd1780_send_priv_cmd(rot, cmdstr);
 
     if (err != RIG_OK)
