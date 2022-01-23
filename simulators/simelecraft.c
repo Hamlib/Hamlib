@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             usleep(50 * 1000);
             int id = 24;
-            snprintf(buf, sizeof(buf), "ID%03d;", id);
+            SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
             ant = (ant + 1) % 3;
             printf("%s\n", buf);
             usleep(50 * 1000);
-            snprintf(buf, sizeof(buf), "EX032%1d;", ant);
+            SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
@@ -189,9 +189,9 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "OM;") == 0)
         {
-            // KPA3 snprintf(buf, sizeof(buf), "OM AP----L-----;");
+            // KPA3 SNPRINTF(buf, sizeof(buf), "OM AP----L-----;");
             // K4+KPA3
-            snprintf(buf, sizeof(buf), "OM AP-S----4---;");
+            SNPRINTF(buf, sizeof(buf), "OM AP-S----4---;");
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
 
@@ -215,12 +215,12 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "MD;") == 0)
         {
-            snprintf(buf, sizeof(buf), "MD%d;", modea);
+            SNPRINTF(buf, sizeof(buf), "MD%d;", modea);
             write(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "MD$;") == 0)
         {
-            snprintf(buf, sizeof(buf), "MD$%d;", modeb);
+            SNPRINTF(buf, sizeof(buf), "MD$%d;", modeb);
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "MD", 2) == 0)
