@@ -52,17 +52,17 @@ int codan_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
 {
     char cmd_buf[MAXCMDLEN];
-    int retval, cmd_len;
+    int retval;
     struct rig_state *rs = &rig->state;
     struct codan_priv_data *priv = rig->state.priv;
     //int retry = 3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
 
-    cmd_len = snprintf(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
+    SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
 
     rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));
     hl_usleep(rig->caps->post_write_delay);
 
     if (retval < 0)
