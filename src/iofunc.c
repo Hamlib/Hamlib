@@ -1364,15 +1364,15 @@ static int read_string_generic(hamlib_port_t *p,
      */
     rxbuffer[total_count] = '\000';
 
-//    if (direct)
-//    {
+    if (direct)
+    {
         rig_debug(RIG_DEBUG_TRACE,
                 "%s(): RX %d characters, direct=%d\n",
                 __func__,
                 total_count,
                 direct);
         dump_hex((unsigned char *) rxbuffer, total_count);
-//    }
+    }
 
     return total_count;           /* return bytes count read */
 }
