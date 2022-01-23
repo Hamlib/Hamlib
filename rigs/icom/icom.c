@@ -929,7 +929,7 @@ icom_rig_open(RIG *rig)
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
     int retry_flag = 1;
-    int retry_save = rs->rigport.retry;
+    short retry_save = rs->rigport.retry;
 
     ENTERFUNC;
 
@@ -942,20 +942,31 @@ icom_rig_open(RIG *rig)
 retry_open:
     retval_echo = icom_get_usb_echo_off(rig);
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: retval_echo=%d\n",  __func__, retval_echo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: echo status result=%d\n",  __func__, retval_echo);
 
-    if (retval_echo == 0 || retval_echo == 1) { retval = RIG_OK; }
-    else { retval = retval_echo; }
+    if (retval_echo == 0 || retval_echo == 1)
+    {
+        retval = RIG_OK;
+    }
+    else
+    {
+        retval = retval_echo;
+    }
 
     if (retval == RIG_OK) // then we know our echo status
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting freq\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting frequency\n", __func__);
         rs->rigport.retry = 0;
         rig->state.current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
         // so asking for freq now should timeout if such a rig
         freq_t tfreq;
         retval = rig_get_freq(rig, RIG_VFO_CURR, &tfreq);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: rig error getting frequency retry=%d, err=%s\n",
+                    __func__, retry_flag, rigerror(retval));
+        }
     }
     else
     {
@@ -969,15 +980,20 @@ retry_open:
         retval = abs(rig_set_powerstat(rig, 1));
 
         // this is only a fatal error if powerstat is implemented
-        // if not iplemented than we're at an error here
-        if (retval != RIG_OK && retval != RIG_ENIMPL && retval != RIG_ENAVAIL)
+        // if not implemented than we're at an error here
+        if (retval != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here: %s\n",
-                      __func__, rigerror(retval));
-
-            rig_debug(RIG_DEBUG_WARN, "%s: rig_set_powerstat failed: =%s\n", __func__,
-                      rigerror(retval));
             rs->rigport.retry = retry_save;
+
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_set_powerstat failed: %s\n", __func__,
+                    rigerror(retval));
+
+            if (retval == RIG_ENIMPL || retval == RIG_ENAVAIL)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_set_powerstat not implemented for rig\n", __func__);
+                RETURNFUNC(-RIG_ECONF);
+            }
+
             RETURNFUNC(retval);
         }
 
@@ -988,14 +1004,12 @@ retry_open:
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
             rs->rigport.retry = retry_save;
-            RETURNFUNC(retval);
+            RETURNFUNC(retval_echo);
         }
     }
     else if (retval != RIG_OK)
     {
         // didnt' ask for power on so let's retry one more time
-        rig_debug(RIG_DEBUG_ERR, "%s: rig error getting frequency retry=%d, err=%s\n",
-                  __func__, retry_flag, rigerror(retval));
 
         if (retry_flag)
         {
@@ -1005,11 +1019,14 @@ retry_open:
         }
 
         rs->rigport.retry = retry_save;
-        RETURNFUNC(retval);
     }
 
-    rig->state.current_vfo = icom_current_vfo(rig);
-    priv->poweron = 1;
+    priv->poweron = (retval == RIG_OK) ? 1 : 0;
+
+    if (priv->poweron)
+    {
+        rig->state.current_vfo = icom_current_vfo(rig);
+    }
 
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
     {
@@ -7834,6 +7851,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
             if (retval == RIG_OK)
             {
+                rig->state.current_vfo = icom_current_vfo(rig);
                 RETURNFUNC(retval);
             }
             else

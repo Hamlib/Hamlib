@@ -437,7 +437,7 @@ extern int is_uh_radio_fd(int fd);
 static int port_read_sync_data_error_code(hamlib_port_t *p)
 {
     ssize_t total_bytes_read = 0;
-    unsigned char data;
+    signed char data;
     int result;
 
     do {
@@ -810,13 +810,14 @@ static ssize_t port_read_generic(hamlib_port_t *p, void *buf, size_t count, int 
 #define port_select(p,n,r,w,e,t,d) select((n),(r),(w),(e),(t))
 //! @endcond
 
-static int flush_and_read_last_byte(hamlib_port_t *p, int fd, int direct)
+static int port_read_sync_data_error_code(hamlib_port_t *p, int fd, int direct)
 {
     fd_set rfds, efds;
+    ssize_t total_bytes_read = 0;
     ssize_t bytes_read;
     struct timeval tv_timeout;
     int result;
-    char data;
+    signed char data;
 
     do {
         tv_timeout.tv_sec = 0;
@@ -829,20 +830,31 @@ static int flush_and_read_last_byte(hamlib_port_t *p, int fd, int direct)
         result = port_select(p, fd + 1, &rfds, NULL, &efds, &tv_timeout, direct);
         if (result < 0)
         {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(): select() timeout, direct=%d\n", __func__, direct);
             return -RIG_ETIMEOUT;
         }
         if (result == 0)
         {
+            if (total_bytes_read > 0) {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s(): returning error code %d, direct=%d\n", __func__, (int) data, direct);
+                return data;
+            }
+
+            rig_debug(RIG_DEBUG_ERR, "%s(): no error code available\n", __func__);
             return -RIG_EIO;
         }
 
         if (FD_ISSET(fd, &efds))
         {
+            rig_debug(RIG_DEBUG_ERR, "%s(): select() indicated error\n", __func__);
             return -RIG_EIO;
         }
 
         bytes_read = read(fd, &data, 1);
+        total_bytes_read += bytes_read;
     } while (bytes_read > 0);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(): returning error code %d\n", __func__, data);
 
     return data;
 }
@@ -886,28 +898,30 @@ static int port_wait_for_data(hamlib_port_t *p, int direct)
     else if (result < 0)
     {
         rig_debug(RIG_DEBUG_ERR,
-                    "%s(): select() error: %s\n",
+                    "%s(): select() error, direct=%d: %s\n",
                     __func__,
+                    direct,
                     strerror(errno));
         return -RIG_EIO;
     }
 
     if (FD_ISSET(fd, &efds))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s(): fd error\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s(): fd error, direct=%d\n", __func__, direct);
         return -RIG_EIO;
     }
     if (!direct)
     {
         if (FD_ISSET(errorfd, &efds))
         {
-            rig_debug(RIG_DEBUG_ERR, "%s(): fd error from sync error pipe\n", __func__);
+            rig_debug(RIG_DEBUG_ERR, "%s(): fd error from sync error pipe, direct=%d\n", __func__, direct);
             return -RIG_EIO;
         }
 
         if (FD_ISSET(errorfd, &rfds))
         {
-            return flush_and_read_last_byte(p, errorfd, 0);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(): attempting to read error code, direct=%d\n", __func__, direct);
+            return port_read_sync_data_error_code(p, errorfd, 0);
         }
     }
 
@@ -1078,7 +1092,7 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
     struct timeval start_time, end_time, elapsed_time;
     int total_count = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, direct=%d\n", __func__, direct);
 
 #ifdef ASYNC_BUG
     if (!p->async && !direct)
@@ -1111,11 +1125,12 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
             }
 
             rig_debug(RIG_DEBUG_WARN,
-                      "%s(): Timed out %d.%d seconds after %d chars\n",
+                      "%s(): Timed out %d.%d seconds after %d chars, direct=%d\n",
                       __func__,
                       (int)elapsed_time.tv_sec,
                       (int)elapsed_time.tv_usec,
-                      total_count);
+                      total_count,
+                      direct);
 
             return -RIG_ETIMEOUT;
         }
@@ -1126,7 +1141,7 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
             {
                 dump_hex((unsigned char *) rxbuffer, total_count);
             }
-            rig_debug(RIG_DEBUG_ERR, "%s(): I/O error after %d chars: %d\n", __func__, total_count, result);
+            rig_debug(RIG_DEBUG_ERR, "%s(): I/O error after %d chars, direct=%d: %d\n", __func__, total_count, direct, result);
             return result;
         }
 
@@ -1138,7 +1153,7 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
 
         if (rd_count < 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s(): read failed - %s\n", __func__, strerror(errno));
+            rig_debug(RIG_DEBUG_ERR, "%s(): read failed, direct=%d - %s\n", __func__, direct, strerror(errno));
             return -RIG_EIO;
         }
 
@@ -1148,7 +1163,7 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
 
     if (direct)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s(): RX %d bytes\n", __func__, total_count);
+        rig_debug(RIG_DEBUG_TRACE, "%s(): RX %d bytes, direct=%d\n", __func__, total_count, direct);
         dump_hex((unsigned char *) rxbuffer, total_count);
     }
 
@@ -1229,7 +1244,7 @@ static int read_string_generic(hamlib_port_t *p,
         return -RIG_EINTERNAL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d\n", __func__, (int)rxmax);
+    rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d direct=%d\n", __func__, (int)rxmax, direct);
 
     if (!p || !rxbuffer)
     {
@@ -1272,11 +1287,12 @@ static int read_string_generic(hamlib_port_t *p,
                 if (!flush_flag)
                 {
                     rig_debug(RIG_DEBUG_WARN,
-                            "%s(): Timed out %d.%03d seconds after %d chars\n",
+                            "%s(): Timed out %d.%03d seconds after %d chars, direct=%d\n",
                             __func__,
                             (int)elapsed_time.tv_sec,
                             (int)elapsed_time.tv_usec / 1000,
-                            total_count);
+                            total_count,
+                            direct);
                 }
 
                 return -RIG_ETIMEOUT;
@@ -1291,7 +1307,7 @@ static int read_string_generic(hamlib_port_t *p,
             {
                 dump_hex(rxbuffer, total_count);
             }
-            rig_debug(RIG_DEBUG_ERR, "%s(): I/O error after %d chars: %d\n", __func__, total_count, result);
+            rig_debug(RIG_DEBUG_ERR, "%s(): I/O error after %d chars, direct=%d: %d\n", __func__, total_count, direct, result);
             return result;
         }
 
@@ -1306,7 +1322,7 @@ static int read_string_generic(hamlib_port_t *p,
             if (errno == EAGAIN)
             {
                 hl_usleep(5 * 1000);
-                rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy?\n", __func__);
+                rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy? direct=%d\n", __func__, direct);
             }
         }
         while (++i < 10 && errno == EBUSY);   // 50ms should be enough
@@ -1318,7 +1334,7 @@ static int read_string_generic(hamlib_port_t *p,
             {
                 dump_hex((unsigned char *) rxbuffer, total_count);
             }
-            rig_debug(RIG_DEBUG_ERR, "%s(): read failed - %s\n", __func__, strerror(errno));
+            rig_debug(RIG_DEBUG_ERR, "%s(): read failed, direct=%d - %s\n", __func__, direct, strerror(errno));
 
             return -RIG_EIO;
         }
@@ -1351,9 +1367,10 @@ static int read_string_generic(hamlib_port_t *p,
     if (direct)
     {
         rig_debug(RIG_DEBUG_TRACE,
-                "%s(): RX %d characters\n",
+                "%s(): RX %d characters, direct=%d\n",
                 __func__,
-                total_count);
+                total_count,
+                direct);
         dump_hex((unsigned char *) rxbuffer, total_count);
     }
 
