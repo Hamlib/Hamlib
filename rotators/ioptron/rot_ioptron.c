@@ -164,7 +164,7 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
     faz = az * 360000;
     fel = el * 360000;
     /* set azmiuth, returns '1" if OK */
-    snprintf(cmdstr, sizeof(cmdstr), ":Sz%09.0f#", faz);
+    SNPRINTF(cmdstr, sizeof(cmdstr), ":Sz%09.0f#", faz);
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -173,7 +173,7 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
     }
 
     /* set altitude, returns '1" if OK */
-    snprintf(cmdstr, sizeof(cmdstr), ":Sa+%08.0f#", fel);
+    SNPRINTF(cmdstr, sizeof(cmdstr), ":Sa+%08.0f#", fel);
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -182,7 +182,7 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
     }
 
     /* move to set target, V2 command, returns '1" if OK */
-    snprintf(cmdstr, sizeof(cmdstr), ":MS#"); //
+    SNPRINTF(cmdstr, sizeof(cmdstr), ":MS#"); //
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -191,7 +191,7 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
     }
 
     /* stop tracking, V2 command, returns '1" if OK */
-    snprintf(cmdstr, sizeof(cmdstr), ":ST0#");
+    SNPRINTF(cmdstr, sizeof(cmdstr), ":ST0#");
     retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
@@ -284,7 +284,7 @@ ioptron_get_info(ROT *rot)
     rig_debug(RIG_DEBUG_TRACE, "retval, RIG_OK str %d  %d  %str\n", retval, RIG_OK,
               str);
 
-    snprintf(info, sizeof(info), "MountInfo %s", str);
+    SNPRINTF(info, sizeof(info), "MountInfo %s", str);
 
     return info;
 }

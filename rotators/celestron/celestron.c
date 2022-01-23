@@ -136,7 +136,7 @@ celestron_set_position(ROT *rot, azimuth_t az, elevation_t el)
           tube is perpendicular to the azimuth axis.
      */
 
-    snprintf(cmdstr, sizeof(cmdstr), "B%04X,%04X",
+    SNPRINTF(cmdstr, sizeof(cmdstr), "B%04X,%04X",
             (unsigned)((az / 360.) * 65535),
             (unsigned)((el / 360.) * 65535));
 
@@ -208,7 +208,7 @@ celestron_get_info(ROT *rot)
         return NULL;
     }
 
-    snprintf(info, sizeof(info), "V%c.%c", str[0], str[1]);
+    SNPRINTF(info, sizeof(info), "V%c.%c", str[0], str[1]);
 
     return info;
 }

@@ -107,7 +107,7 @@ radant_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
 
-    snprintf(cmdstr, sizeof(cmdstr), "Q%.1f %1.f\r", az, el);
+    SNPRINTF(cmdstr, sizeof(cmdstr), "Q%.1f %1.f\r", az, el);
 
     retval = radant_transaction(rot, cmdstr, NULL, 0);
 
@@ -128,7 +128,7 @@ radant_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    snprintf(cmdstr, sizeof(cmdstr), "Y\r");
+    SNPRINTF(cmdstr, sizeof(cmdstr), "Y\r");
 
     retval = radant_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
 

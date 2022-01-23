@@ -315,7 +315,7 @@ static int satel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
         }
     }
 
-    snprintf(cmdbuf, BUF_SIZE, "p%d %d\r\n", (int)az, (int)el);
+    SNPRINTF(cmdbuf, BUF_SIZE, "p%d %d\r\n", (int)az, (int)el);
     ret = satel_cmd(rot, cmdbuf, strlen(cmdbuf), NULL, 0);
 
     if (ret != RIG_OK)

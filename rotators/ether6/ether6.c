@@ -89,7 +89,7 @@ static int ether_transaction(ROT *rot, char *cmd, int len, char *buf)
 
 static int ether_rot_open(ROT *rot)
 {
-    int ret, len;
+    int ret;
     int sval;
     float min_az, max_az, min_el, max_el;
     struct rot_state *rs = &rot->state;
@@ -100,10 +100,10 @@ static int ether_rot_open(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     /* elevation not need */
 
-    len = snprintf(cmd, sizeof(cmd), "rotor state\n");
+    SNPRINTF(cmd, sizeof(cmd), "rotor state\n");
     /*-180/180 0/90*/
 
-    ret = ether_transaction(rot, cmd, len, buf);
+    ret = ether_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret <= 0)
     {
@@ -133,16 +133,16 @@ static int ether_rot_close(ROT *rot)
 
 static int ether_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %f %f\n", __func__,
               az, el);
 
-    len = snprintf(cmd, sizeof(cmd), "rotor move %d %d\n", (int)az, (int)el);
+    SNPRINTF(cmd, sizeof(cmd), "rotor move %d %d\n", (int)az, (int)el);
 
-    ret = ether_transaction(rot, cmd, len, buf);
+    ret = ether_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
@@ -156,16 +156,16 @@ static int ether_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
 static int ether_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    int ret, len, sval, speed, adv;
+    int ret, sval, speed, adv;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
     char mv[5];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = snprintf(cmd, sizeof(cmd), "rotor status\n");
+    SNPRINTF(cmd, sizeof(cmd), "rotor status\n");
 
-    ret = ether_transaction(rot, cmd, len, buf);
+    ret = ether_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret <= 0)
     {
@@ -192,15 +192,15 @@ static int ether_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 */
 static int ether_rot_stop(ROT *rot)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = snprintf(cmd, sizeof(cmd), "rotor stop\n");
+    SNPRINTF(cmd, sizeof(cmd), "rotor stop\n");
 
-    ret = ether_transaction(rot, cmd, len, buf);
+    ret = ether_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
@@ -218,15 +218,15 @@ static int ether_rot_stop(ROT *rot)
 */
 static int ether_rot_park(ROT *rot)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    len = snprintf(cmd, sizeof(cmd), "rotor park\n");
+    SNPRINTF(cmd, sizeof(cmd), "rotor park\n");
 
-    ret = ether_transaction(rot, cmd, len, buf);
+    ret = ether_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
@@ -240,16 +240,15 @@ static int ether_rot_park(ROT *rot)
 
 static int ether_rot_reset(ROT *rot, rot_reset_t reset)
 {
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    // orig len = snprintf(cmd, sizeof(cmd), "R %d\n", reset);
-    len = snprintf(cmd, sizeof(cmd), "reset\n");
+    SNPRINTF(cmd, sizeof(cmd), "reset\n");
 
-    ret = ether_transaction(rot, cmd, len, buf);
+    ret = ether_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
@@ -268,7 +267,7 @@ static int ether_rot_reset(ROT *rot, rot_reset_t reset)
 static int ether_rot_move(ROT *rot, int direction, int speed)
 {
     struct rot_state *rs = &rot->state;
-    int ret, len;
+    int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
     int ether_speed;
@@ -294,14 +293,14 @@ static int ether_rot_move(ROT *rot, int direction, int speed)
 
     if (direction == 0)
     {
-        len = snprintf(cmd, sizeof(cmd), "rotor cw %d\n", ether_speed);
+        SNPRINTF(cmd, sizeof(cmd), "rotor cw %d\n", ether_speed);
     }
     else
     {
-        len = snprintf(cmd, sizeof(cmd), "rotor ccw %d\n", ether_speed);
+        SNPRINTF(cmd, sizeof(cmd), "rotor ccw %d\n", ether_speed);
     }
 
-    ret = ether_transaction(rot, cmd, len, buf);
+    ret = ether_transaction(rot, cmd, strlen(cmd), buf);
 
     if (ret > 0)
     {
