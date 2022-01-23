@@ -1188,10 +1188,10 @@ void *handle_socket(void *arg)
                 }
                 mutex_rigctld(0);
             }
-            while (!rig_opened && retry-- > 0 && retcode != RIG_OK);
+            while (!ctrl_c && !rig_opened && retry-- > 0 && retcode != RIG_OK);
         }
     }
-    while (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode));
+    while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode)));
 
 #ifdef HAVE_PTHREAD
 #if 0
