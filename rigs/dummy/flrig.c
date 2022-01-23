@@ -144,7 +144,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20211206.0",
+    .version = "20220123.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -548,6 +548,7 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
     ENTERFUNC;
     ELAPSED1;
 
+    set_transaction_active(rig);
     if (value)
     {
         value[0] = 0;
@@ -572,7 +573,7 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
 
             // if we get RIG_EIO the socket has probably disappeared
             // so bubble up the error so port can re re-opened
-            if (retval == -RIG_EIO) { RETURNFUNC(retval); }
+            if (retval == -RIG_EIO) { set_transaction_inactive(rig);RETURNFUNC(retval); }
 
             hl_usleep(50 * 1000); // 50ms sleep if error
         }
@@ -580,7 +581,7 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
         read_transaction(rig, xml, sizeof(xml)); // this might time out -- that's OK
 
         // we get an uknown response if function does not exist
-        if (strstr(xml, "unknown")) { RETURNFUNC(RIG_ENAVAIL); }
+        if (strstr(xml, "unknown")) { set_transaction_inactive(rig);RETURNFUNC(RIG_ENAVAIL); }
 
         if (value)
         {
@@ -593,11 +594,11 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
     if (value && strlen(value) == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: no value returned\n", __func__);
-        RETURNFUNC(RIG_EPROTO);
+        set_transaction_inactive(rig);RETURNFUNC(RIG_EPROTO);
     }
 
     ELAPSED2;
-    RETURNFUNC(RIG_OK);
+    set_transaction_inactive(rig);RETURNFUNC(RIG_OK);
 }
 
 /*
