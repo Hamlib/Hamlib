@@ -463,7 +463,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
               rs->comm_state);
     rs->rigport.type.rig = caps->port_type; /* default from caps */
 #if defined(ASYNC_BUG) && defined(HAVE_PTHREAD)
-    rs->rigport.async = 0;
+    rs->rigport.asyncio = 0;
 #endif
 
     switch (caps->port_type)
@@ -721,7 +721,7 @@ int HAMLIB_API rig_open(RIG *rig)
 #if defined(ASYNC_BUG) && defined(HAVE_PTHREAD)
     // Enable async data only if it's enabled through conf settings *and* supported by the backend
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
-    rs->rigport.async = rs->async_data_enabled;
+    rs->rigport.asyncio = rs->async_data_enabled;
 #endif
 
     if (strlen(rs->rigport.pathname) > 0)
