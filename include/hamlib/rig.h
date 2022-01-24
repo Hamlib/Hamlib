@@ -2301,18 +2301,6 @@ typedef struct hamlib_port_deprecated {
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
 
-#ifdef ASYNC_BUG
-    int _async;                  /*!< enable asynchronous data handling if true -- async collides with python keyword so _async is used */
-#if defined(_WIN32)
-    hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
-    hamlib_async_pipe_t *sync_data_error_pipe;   /*!< pipe data structure for synchronous data error codes */
-#else
-    int fd_sync_write;          /*!< file descriptor for writing synchronous data */
-    int fd_sync_read;           /*!< file descriptor for reading synchronous data */
-    int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
-    int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
-#endif
-#endif
 } hamlib_port_t_deprecated;
 //! @endcond
 
