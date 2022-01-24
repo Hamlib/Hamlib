@@ -2225,9 +2225,9 @@ typedef struct hamlib_port {
     } parm;                 /*!< Port parameter union */
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
-
+#define ASYNC_BUG 1
 #ifdef ASYNC_BUG
-    int async;                  /*!< enable asynchronous data handling if true */
+    int asyncio;            /*!< enable asynchronous data handling if true -- async collides with python keyword so _async is used */
 #if defined(_WIN32)
     hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
     hamlib_async_pipe_t *sync_data_error_pipe;   /*!< pipe data structure for synchronous data error codes */
@@ -2239,9 +2239,85 @@ typedef struct hamlib_port {
 #endif
 #endif
 } hamlib_port_t;
+
+ 
+typedef struct hamlib_port_deprecated {
+    union {
+        rig_port_t rig;     /*!< Communication port type */
+        ptt_type_t ptt;     /*!< PTT port type */
+        dcd_type_t dcd;     /*!< DCD port type */
+    } type;
+
+    int fd;                 /*!< File descriptor */
+    void *handle;           /*!< handle for USB */
+
+    int write_delay;        /*!< Delay between each byte sent out, in mS */
+    int post_write_delay;   /*!< Delay between each commands send out, in mS */
+
+    struct {
+        int tv_sec, tv_usec;
+    } post_write_date;      /*!< hamlib internal use */
+
+    int timeout;            /*!< Timeout, in mS */
+    short retry;            /*!< Maximum number of retries, 0 to disable */
+    short flushx;           /*!< If true flush is done with read instead of TCFLUSH - MicroHam */
+
+    char pathname[HAMLIB_FILPATHLEN];      /*!< Port pathname */
+
+    union {
+        struct {
+            int rate;       /*!< Serial baud rate */
+            int data_bits;  /*!< Number of data bits */
+            int stop_bits;  /*!< Number of stop bits */
+            enum serial_parity_e parity;        /*!< Serial parity */
+            enum serial_handshake_e handshake;  /*!< Serial handshake */
+            enum serial_control_state_e rts_state;    /*!< RTS set state */
+            enum serial_control_state_e dtr_state;    /*!< DTR set state */
+        } serial;           /*!< serial attributes */
+
+        struct {
+            int pin;        /*!< Parallel port pin number */
+        } parallel;         /*!< parallel attributes */
+
+        struct {
+            int ptt_bitnum; /*!< Bit number for CM108 GPIO PTT */
+        } cm108;            /*!< CM108 attributes */
+
+        struct {
+            int vid;        /*!< Vendor ID */
+            int pid;        /*!< Product ID */
+            int conf;       /*!< Configuration */
+            int iface;      /*!< interface */
+            int alt;        /*!< alternate */
+            char *vendor_name;  /*!< Vendor name (opt.) */
+            char *product;      /*!< Product (opt.) */
+        } usb;              /*!< USB attributes */
+
+        struct {
+            int on_value;   /*!< GPIO: 1 == normal, GPION: 0 == inverted */
+            int value;      /*!< Toggle PTT ON or OFF */
+        } gpio;             /*!< GPIO attributes */
+    } parm;                 /*!< Port parameter union */
+    int client_port;      /*!< client socket port for tcp connection */
+    RIG *rig;             /*!< our parent RIG device */
+
+#ifdef ASYNC_BUG
+    int _async;                  /*!< enable asynchronous data handling if true -- async collides with python keyword so _async is used */
+#if defined(_WIN32)
+    hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
+    hamlib_async_pipe_t *sync_data_error_pipe;   /*!< pipe data structure for synchronous data error codes */
+#else
+    int fd_sync_write;          /*!< file descriptor for writing synchronous data */
+    int fd_sync_read;           /*!< file descriptor for reading synchronous data */
+    int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
+    int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
+#endif
+#endif
+} hamlib_port_t_deprecated;
 //! @endcond
 
 #if !defined(__APPLE__) || !defined(__cplusplus)
+typedef hamlib_port_t_deprecated port_t_deprecated;
 typedef hamlib_port_t port_t;
 #endif
 
@@ -2364,9 +2440,9 @@ struct rig_state {
     // this should allow changes to hamlib_port_t without breaking shared libraries
     // these will maintain a copy of the new port_t for backwards compatiblity
     // to these offsets -- note these must stay until a major version update is done
-    hamlib_port_t rigport;  /*!< Rig port (internal use). */
-    hamlib_port_t pttport;  /*!< PTT port (internal use). */
-    hamlib_port_t dcdport;  /*!< DCD port (internal use). */
+    hamlib_port_t_deprecated rigport_deprecated;  /*!< Rig port (internal use). */
+    hamlib_port_t_deprecated pttport_deprecated;  /*!< PTT port (internal use). */
+    hamlib_port_t_deprecated dcdport_deprecated;  /*!< DCD port (internal use). */
 
     double vfo_comp;        /*!< VFO compensation in PPM, 0.0 to disable */
 
@@ -2460,6 +2536,9 @@ struct rig_state {
 #ifdef HAVE_PTHREAD
     pthread_mutex_t mutex_set_transaction;
 #endif
+    hamlib_port_t rigport;  /*!< Rig port (internal use). */
+    hamlib_port_t pttport;  /*!< PTT port (internal use). */
+    hamlib_port_t dcdport;  /*!< DCD port (internal use). */
 };
 
 //! @cond Doxygen_Suppress
