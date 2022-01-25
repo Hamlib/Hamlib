@@ -570,7 +570,7 @@ static uint32_t getLongWord(unsigned char const *bytes)
  */
 int si570avrusb_init(RIG *rig)
 {
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
@@ -611,7 +611,7 @@ int si570avrusb_init(RIG *rig)
  */
 int si570peaberry1_init(RIG *rig)
 {
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
@@ -652,7 +652,7 @@ int si570peaberry1_init(RIG *rig)
  */
 int si570peaberry2_init(RIG *rig)
 {
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
@@ -693,7 +693,7 @@ int si570peaberry2_init(RIG *rig)
  */
 int si570picusb_init(RIG *rig)
 {
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
@@ -734,7 +734,7 @@ int si570picusb_init(RIG *rig)
 
 int fasdr_init(RIG *rig)
 {
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = rig->state.rigport;
     struct si570xxxusb_priv_data *priv;
 
     rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
