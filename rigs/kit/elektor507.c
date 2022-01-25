@@ -377,7 +377,7 @@ const char *elektor507_get_info(RIG *rig)
  */
 int elektor507_init(RIG *rig)
 {
-    hamlib_port_t *rp = rig->state.rigport;
+    hamlib_port_t *rp = &rig->state.rigport;
     struct elektor507_priv_data *priv;
 
     rig->state.priv = (struct elektor507_priv_data *)calloc(sizeof(struct
@@ -430,7 +430,7 @@ int elektor507_cleanup(RIG *rig)
 const char *elektor507_get_info(RIG *rig)
 {
     static char buf[64];
-    libusb_device_handle *udh = rig->state.rigport->handle;
+    libusb_device_handle *udh = rig->state.rigport.handle;
     struct libusb_device_descriptor desc;
 
     /* always succeeds since libusb-1.0.16 */
@@ -443,7 +443,7 @@ const char *elektor507_get_info(RIG *rig)
 
 int elektor507_libusb_setup(RIG *rig)
 {
-    libusb_device_handle *udh = rig->state.rigport->handle;
+    libusb_device_handle *udh = rig->state.rigport.handle;
     int ret;
     unsigned short index = 0, usb_val;
 
@@ -504,7 +504,7 @@ int elektor507_libusb_setup(RIG *rig)
 int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf,
                                unsigned long BufferSize)
 {
-    libusb_device_handle *udh = rig->state.rigport->handle;
+    libusb_device_handle *udh = rig->state.rigport.handle;
     int ret, actual_length;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, %lu bytes\n", __func__, BufferSize);

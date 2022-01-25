@@ -388,7 +388,7 @@ static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ST%c;", ci);
 
-    if (RIG_OK != (err = write_block(state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str))))
+    if (RIG_OK != (err = write_block(&state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str))))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: write_block err = %d\n", __func__, err);
         return err;
@@ -559,7 +559,7 @@ static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     // Copy A to B
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
 
-    if (RIG_OK != (err = write_block(state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str))))
+    if (RIG_OK != (err = write_block(&state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str))))
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__,
                   err);

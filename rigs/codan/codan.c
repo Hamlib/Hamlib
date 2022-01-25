@@ -61,8 +61,8 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
 
-    rig_flush(rs->rigport);
-    retval = write_block(rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));
+    rig_flush(&rs->rigport);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));
     hl_usleep(rig->caps->post_write_delay);
 
     if (retval < 0)
@@ -73,7 +73,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
     if (expected == 0)
     {
         // response format is reponse...0x0d0x0a
-        retval = read_string(rs->rigport, (unsigned char *) priv->ret_data,
+        retval = read_string(&rs->rigport, (unsigned char *) priv->ret_data,
                              sizeof(priv->ret_data),
                              "\x0a", 1, 0, 1);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: result=%s, resultlen=%d\n", __func__,
@@ -86,7 +86,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
     }
     else
     {
-        retval = read_string(rs->rigport, (unsigned char *) priv->ret_data,
+        retval = read_string(&rs->rigport, (unsigned char *) priv->ret_data,
                              sizeof(priv->ret_data),
                              "\x0a", 1, 0, 1);
 
@@ -98,7 +98,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
         if (strncmp(priv->ret_data, "LEVELS:", 7) == 0)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, priv->ret_data);
-            retval = read_string(rs->rigport, (unsigned char *) priv->ret_data,
+            retval = read_string(&rs->rigport, (unsigned char *) priv->ret_data,
                                  sizeof(priv->ret_data),
                                  "\x0a", 1, 0, 1);
             rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, priv->ret_data);
@@ -112,7 +112,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
             && sscanf(priv->ret_data, "%d:%d:%d", &hr, &min, &sec) != 3)
     {
         char tmpbuf[256];
-        retval = read_string(rs->rigport, (unsigned char *) tmpbuf,
+        retval = read_string(&rs->rigport, (unsigned char *) tmpbuf,
                              sizeof(priv->ret_data),
                              "\x0a", 1, 0, 1);
 

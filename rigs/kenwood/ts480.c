@@ -431,7 +431,7 @@ static int ts480_read_meters(RIG *rig, int *swr, int *comp, int *alc)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    retval = write_block(rs->rigport, (unsigned char *) cmd, strlen(cmd));
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_block retval=%d\n", __func__, retval);
 
@@ -442,7 +442,7 @@ static int ts480_read_meters(RIG *rig, int *swr, int *comp, int *alc)
 
     // TS-480 returns values for all meters at the same time, for example: RM10000;RM20000;RM30000;
 
-    retval = read_string(rs->rigport, (unsigned char *) ackbuf, expected_len + 1, NULL, 0, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) ackbuf, expected_len + 1, NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string retval=%d\n", __func__, retval);
 

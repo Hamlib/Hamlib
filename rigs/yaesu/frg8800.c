@@ -164,7 +164,7 @@ int frg8800_open(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     /* send Ext Cntl ON: Activate CAT */
-    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
 }
 
@@ -175,7 +175,7 @@ int frg8800_close(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     /* send Ext Cntl OFF: Deactivate CAT */
-    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
 }
 
@@ -193,7 +193,7 @@ int frg8800_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     cmd[0] = (cmd[0] & 0xf0) | (1 << ((((long long)freq) % 100) / 25));
 
     /* Frequency set */
-    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -236,7 +236,7 @@ int frg8800_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     cmd[3] = md;
 
     /* Mode set */
-    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -250,6 +250,6 @@ int frg8800_set_powerstat(RIG *rig, powerstat_t status)
     cmd[3] = status == RIG_POWER_OFF ? 0xff : 0xfe;
 
     /* Frequency set */
-    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 

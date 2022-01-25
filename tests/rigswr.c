@@ -263,23 +263,23 @@ int main(int argc, char *argv[])
 
     if (ptt_type != RIG_PTT_NONE)
     {
-        rig->state.pttport->type.ptt = ptt_type;
+        rig->state.pttport.type.ptt = ptt_type;
     }
 
     if (ptt_file)
     {
-        strncpy(rig->state.pttport->pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(rig->state.pttport.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (rig_file)
     {
-        strncpy(rig->state.rigport->pathname, rig_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
     if (serial_rate != 0)
     {
-        rig->state.rigport->parm.serial.rate = serial_rate;
+        rig->state.rigport.parm.serial.rate = serial_rate;
     }
 
     if (civaddr)
@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
 
 
     if (!rig_has_get_level(rig, RIG_LEVEL_SWR)
-            || rig->state.pttport->type.ptt == RIG_PTT_NONE)
+            || rig->state.pttport.type.ptt == RIG_PTT_NONE)
     {
 
         fprintf(stderr,

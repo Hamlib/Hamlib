@@ -495,9 +495,9 @@ static int  ft1000d_open(RIG *rig)
     rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
-              __func__, rig_s->rigport->write_delay);
+              __func__, rig_s->rigport.write_delay);
     rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay = %i msec\n",
-              __func__, rig_s->rigport->post_write_delay);
+              __func__, rig_s->rigport.post_write_delay);
     rig_debug(RIG_DEBUG_TRACE,
               "%s: read pacing = %i\n", __func__, priv->pacing);
 
@@ -2492,7 +2492,7 @@ static int ft1000d_get_level(RIG *rig, vfo_t vfo, setting_t level,
         return err;
     }
 
-    err = read_block(rig->state.rigport, mdata,FT1000D_READ_METER_LENGTH);
+    err = read_block(&rig->state.rigport, mdata,FT1000D_READ_METER_LENGTH);
 
     if (err < 0)
     {
@@ -3316,7 +3316,7 @@ static int ft1000d_get_update_data(RIG *rig, unsigned char ci,
     priv = (struct ft1000d_priv_data *)rig->state.priv;
     rig_s = &rig->state;
 
-    retry = rig_s->rigport->retry;
+    retry = rig_s->rigport.retry;
 
     do
     {
@@ -3385,7 +3385,7 @@ static int ft1000d_get_update_data(RIG *rig, unsigned char ci,
             return -RIG_EINVAL;
         }
 
-        n = read_block(rig->state.rigport, p, rl);
+        n = read_block(&rig->state.rigport, p, rl);
 
     }
     while (n < 0 && retry-- >= 0);
@@ -3435,7 +3435,7 @@ static int ft1000d_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    err = write_block(rig->state.rigport, ncmd[ci].nseq,
+    err = write_block(&rig->state.rigport, ncmd[ci].nseq,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -3443,7 +3443,7 @@ static int ft1000d_send_static_cmd(RIG *rig, unsigned char ci)
         return err;
     }
 
-    hl_usleep(rig->state.rigport->write_delay * 1000);
+    hl_usleep(rig->state.rigport.write_delay * 1000);
     return RIG_OK;
 }
 
@@ -3496,14 +3496,14 @@ static int ft1000d_send_dynamic_cmd(RIG *rig, unsigned char ci,
     priv->p_cmd[1] = p3;
     priv->p_cmd[0] = p4;
 
-    err = write_block(rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
         return err;
     }
 
-    hl_usleep(rig->state.rigport->write_delay * 1000);
+    hl_usleep(rig->state.rigport.write_delay * 1000);
     return RIG_OK;
 }
 
@@ -3554,14 +3554,14 @@ static int ft1000d_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(priv->p_cmd,
               FT1000D_BCD_DIAL) * 10);
 
-    err = write_block(rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
         return err;
     }
 
-    hl_usleep(rig->state.rigport->write_delay * 1000);
+    hl_usleep(rig->state.rigport.write_delay * 1000);
     return RIG_OK;
 }
 
@@ -3619,14 +3619,14 @@ static int ft1000d_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     // Store bcd format into privat command storage area
     to_bcd(priv->p_cmd, labs(rit) / 10, FT1000D_BCD_RIT);
 
-    err = write_block(rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
+    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
         return err;
     }
 
-    hl_usleep(rig->state.rigport->write_delay * 1000);
+    hl_usleep(rig->state.rigport.write_delay * 1000);
     return RIG_OK;
 }
 

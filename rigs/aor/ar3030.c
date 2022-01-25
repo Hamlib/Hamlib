@@ -232,11 +232,11 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
         data = tmpdata;
     }
 
-    rig_flush(rs->rigport);
+    rig_flush(&rs->rigport);
 
     do
     {
-        retval = write_block(rs->rigport, (unsigned char *) cmd, cmd_len);
+        retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
         if (retval != RIG_OK)
         {
@@ -247,7 +247,7 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
         if (data)
         {
             /* expecting 0x0d0x0a on all commands so wait for the 0x0a */
-            retval = read_string(rs->rigport, (unsigned char *) data, BUFSZ,
+            retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ,
                     "\x0a", 1, 0, 1);
 
             if (retval == -RIG_ETIMEOUT)
@@ -317,7 +317,7 @@ int ar3030_close(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
     rs = &rig->state;
-    rig_flush(rs->rigport);
+    rig_flush(&rs->rigport);
 
     retval = ar3030_transaction(rig, "Q" CR, strlen("Q" CR), NULL, NULL);
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);

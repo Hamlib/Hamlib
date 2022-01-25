@@ -154,11 +154,11 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
      */
     set_transaction_active(rig);
 
-    rig_flush(rs->rigport);
+    rig_flush(&rs->rigport);
 
     if (data_len) { *data_len = 0; }
 
-    retval = write_block(rs->rigport, sendbuf, frm_len);
+    retval = write_block(&rs->rigport, sendbuf, frm_len);
 
     if (retval != RIG_OK)
     {
@@ -178,7 +178,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
          *          up to rs->retry times.
          */
 
-        retval = read_icom_frame(rs->rigport, buf, sizeof(buf));
+        retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
 
         if (retval == -RIG_ETIMEOUT || retval == 0)
         {
@@ -266,7 +266,7 @@ read_another_frame:
      * ACKFRMLEN is the smallest frame we can expect from the rig
      */
     buf[0] = 0;
-    frm_len = read_icom_frame(rs->rigport, buf, sizeof(buf));
+    frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
 
 #if 0
 
@@ -277,7 +277,7 @@ read_another_frame:
         // Hmmm -- got an echo back when not expected so let's change
         priv->serial_USB_echo_off = 0;
         // And try again
-        frm_len = read_icom_frame(rs->rigport, buf, sizeof(buf));
+        frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
     }
 
 #endif
@@ -377,7 +377,7 @@ read_another_frame:
 
         elapsed_ms = (int)(elapsed_time.tv_sec * 1000 + elapsed_time.tv_usec / 1000);
 
-        if (elapsed_ms > rs->rigport->timeout)
+        if (elapsed_ms > rs->rigport.timeout)
         {
             set_transaction_inactive(rig);
             RETURNFUNC(-RIG_ETIMEOUT);
@@ -402,7 +402,7 @@ read_another_frame:
 /*
  * icom_transaction
  *
- * This function honors rigport->retry count.
+ * This function honors rigport.retry count.
  *
  * We assume that rig!=NULL, rig->state!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
@@ -423,7 +423,7 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
               "%s: cmd=0x%02x, subcmd=0x%02x, payload_len=%d\n", __func__,
               cmd, subcmd, payload_len);
 
-    retry = rig->state.rigport->retry;
+    retry = rig->state.rigport.retry;
 
     do
     {

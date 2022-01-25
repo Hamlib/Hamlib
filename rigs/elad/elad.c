@@ -192,7 +192,7 @@ int elad_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
     rs->transaction_active = 1;
 
     /* Emulators don't need any post_write_delay */
-    if (priv->is_emulation) { rs->rigport->post_write_delay = 0; }
+    if (priv->is_emulation) { rs->rigport.post_write_delay = 0; }
 
     cmdtrm[0] = caps->cmdtrm;
     cmdtrm[1] = '\0';
@@ -223,9 +223,9 @@ transaction_write:
         }
 
         /* flush anything in the read buffer before command is sent */
-        rig_flush(rs->rigport);
+        rig_flush(&rs->rigport);
 
-        retval = write_block(rs->rigport, (unsigned char *) cmd, len);
+        retval = write_block(&rs->rigport, (unsigned char *) cmd, len);
 
         free(cmd);
 
@@ -242,7 +242,7 @@ transaction_write:
         /* no reply expected so we need to write a command that always
            gives a reply so we can read any error replies from the actual
            command being sent without blocking */
-        if (RIG_OK != (retval = write_block(rs->rigport,
+        if (RIG_OK != (retval = write_block(&rs->rigport,
                 (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
         {
             goto transaction_quit;
@@ -253,12 +253,12 @@ transaction_read:
     /* allow one extra byte for terminator we don't return */
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 13,
               ELAD_MAX_BUF_LEN);
-    retval = read_string(rs->rigport, (unsigned char *) buffer, len,
+    retval = read_string(&rs->rigport, (unsigned char *) buffer, len,
             cmdtrm, strlen(cmdtrm), 0, 1);
 
     if (retval < 0)
     {
-        if (retry_read++ < rs->rigport->retry)
+        if (retry_read++ < rs->rigport.retry)
         {
             goto transaction_write;
         }
@@ -272,7 +272,7 @@ transaction_read:
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
                   __func__, buffer);
 
-        if (retry_read++ < rs->rigport->retry)
+        if (retry_read++ < rs->rigport.retry)
         {
             goto transaction_write;
         }
@@ -304,7 +304,7 @@ transaction_read:
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __func__, cmdstr);
             }
 
-            if (retry_read++ < rs->rigport->retry)
+            if (retry_read++ < rs->rigport.retry)
             {
                 goto transaction_write;
             }
@@ -321,7 +321,7 @@ transaction_read:
                           cmdstr);
             }
 
-            if (retry_read++ < rs->rigport->retry)
+            if (retry_read++ < rs->rigport.retry)
             {
                 goto transaction_write;
             }
@@ -338,7 +338,7 @@ transaction_read:
                           cmdstr);
             }
 
-            if (retry_read++ < rs->rigport->retry)
+            if (retry_read++ < rs->rigport.retry)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly\n", __func__);
                 hl_usleep(rig->caps->timeout * 1000);
@@ -368,7 +368,7 @@ transaction_read:
             rig_debug(RIG_DEBUG_ERR, "%s: Wrong reply %c%c for command %c%c\n",
                       __func__, buffer[0], buffer[1], cmdstr[0], cmdstr[1]);
 
-            if (retry_read++ < rs->rigport->retry)
+            if (retry_read++ < rs->rigport.retry)
             {
                 goto transaction_write;
             }
@@ -401,7 +401,7 @@ transaction_read:
                       __func__, buffer[0], buffer[1]
                       , priv->verify_cmd[0], priv->verify_cmd[1], (int)datasize);
 
-            if (retry_read++ < rs->rigport->retry)
+            if (retry_read++ < rs->rigport.retry)
             {
                 goto transaction_write;
             }
@@ -473,7 +473,7 @@ int elad_safe_transaction(RIG *rig, const char *cmd, char *buf,
             hl_usleep(rig->caps->timeout * 1000);
         }
     }
-    while (err != RIG_OK && ++retry < rig->state.rigport->retry);
+    while (err != RIG_OK && ++retry < rig->state.rigport.retry);
 
     return err;
 }

@@ -571,16 +571,16 @@ int ft980_transaction(RIG *rig, const unsigned char *cmd, unsigned char *data,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig_flush(rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
-    retval = write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
     if (retval < 0)
     {
         return retval;
     }
 
-    retval = read_block(rig->state.rigport, echo_back, YAESU_CMD_LENGTH);
+    retval = read_block(&rig->state.rigport, echo_back, YAESU_CMD_LENGTH);
 
     if (retval < 0)
     {
@@ -592,14 +592,14 @@ int ft980_transaction(RIG *rig, const unsigned char *cmd, unsigned char *data,
         return -RIG_EPROTO;
     }
 
-    retval = write_block(rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
+    retval = write_block(&rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
 
     if (retval < 0)
     {
         return retval;
     }
 
-    retval = read_block(rig->state.rigport, data, expected_len);
+    retval = read_block(&rig->state.rigport, data, expected_len);
 
     if (retval < 0)
     {
@@ -753,18 +753,18 @@ int ft980_open(RIG *rig)
 
         do
         {
-            write_block(rig->state.rigport, cmd_ON_OFF,
+            write_block(&rig->state.rigport, cmd_ON_OFF,
                         YAESU_CMD_LENGTH);
-            retval = read_block(rig->state.rigport, echo_back, YAESU_CMD_LENGTH);
+            retval = read_block(&rig->state.rigport, echo_back, YAESU_CMD_LENGTH);
         }
-        while (retval != 5 && retry_count2++ < rig->state.rigport->retry);
+        while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
-        write_block(rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
-        retval = read_block(rig->state.rigport, (unsigned char *) &priv->update_data,
+        write_block(&rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
+        retval = read_block(&rig->state.rigport, (unsigned char *) &priv->update_data,
                             FT980_ALL_STATUS_LENGTH);
     }
     while (!priv->update_data.ext_ctl_flag
-            && retry_count1++ < rig->state.rigport->retry);
+            && retry_count1++ < rig->state.rigport.retry);
 
     return RIG_OK;
 }
@@ -799,18 +799,18 @@ int ft980_close(RIG *rig)
 
         do
         {
-            write_block(rig->state.rigport, cmd_ON_OFF,
+            write_block(&rig->state.rigport, cmd_ON_OFF,
                         YAESU_CMD_LENGTH);
-            retval = read_block(rig->state.rigport, echo_back, YAESU_CMD_LENGTH);
+            retval = read_block(&rig->state.rigport, echo_back, YAESU_CMD_LENGTH);
         }
-        while (retval != 5 && retry_count2++ < rig->state.rigport->retry);
+        while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
-        write_block(rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
-        retval = read_block(rig->state.rigport, (unsigned char *) &priv->update_data,
+        write_block(&rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
+        retval = read_block(&rig->state.rigport, (unsigned char *) &priv->update_data,
                             FT980_ALL_STATUS_LENGTH);
     }
     while (priv->update_data.ext_ctl_flag
-            && retry_count1++ < rig->state.rigport->retry);
+            && retry_count1++ < rig->state.rigport.retry);
 
     return RIG_OK;
 }
@@ -1223,7 +1223,7 @@ int ft980_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
      */
     cmd[4] = split == RIG_SPLIT_ON ? 0x0e : 0x8e;
 
-    return write_block(rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 #endif
 }
 
