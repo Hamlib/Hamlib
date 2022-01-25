@@ -89,9 +89,9 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     rs = &rig->state;
 
 transaction:
-    rig_flush(rs->rigport);
+    rig_flush(&rs->rigport);
 
-    retval = write_block(rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -103,16 +103,16 @@ transaction:
         char buffer[50];
         struct kenwood_priv_data *priv = rig->state.priv;
 
-        if (RIG_OK != (retval = write_block(rs->rigport, (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
+        if (RIG_OK != (retval = write_block(&rs->rigport, (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
         {
             return retval;
         }
 
         // this should be the ID response
-        retval = read_string(rs->rigport, (unsigned char *) buffer, sizeof(buffer), ";", 1, 0, 1);
+        retval = read_string(&rs->rigport, (unsigned char *) buffer, sizeof(buffer), ";", 1, 0, 1);
 
         // might be ?; too
-        if (buffer[0] == '?' && retry_cmd++ < rs->rigport->retry)
+        if (buffer[0] == '?' && retry_cmd++ < rs->rigport.retry)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: retrying cmd #%d\n", __func__, retry_cmd);
             goto transaction;
@@ -128,7 +128,7 @@ transaction:
         return RIG_OK;
     }
 
-    retval = read_string(rs->rigport, (unsigned char *) data, 50, ";", 1, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, 50, ";", 1, 0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {

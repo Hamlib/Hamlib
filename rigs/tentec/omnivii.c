@@ -268,12 +268,12 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     for (i = 0; i < 3; ++i) // We'll try 3 times
     {
         char xxbuf[32];
-        rig_flush(rs->rigport);
+        rig_flush(&rs->rigport);
 
         // We add 1 to data_len here for the null byte inserted by read_string eventually
         // That way all the callers can use the expected response length for the cmd_len parameter here
         // Callers all need to ensure they have enough room in data for this
-        retval = write_block(rs->rigport, (unsigned char *) cmd, cmd_len);
+        retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
         if (retval == RIG_OK)
         {
@@ -288,7 +288,7 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
             if (data)
             {
-                retval = read_string(rs->rigport, (unsigned char *) data, (*data_len) + 1, term, strlen(term), 0,
+                retval = read_string(&rs->rigport, (unsigned char *) data, (*data_len) + 1, term, strlen(term), 0,
                                      1);
 
                 if (retval != -RIG_ETIMEOUT)
@@ -308,9 +308,9 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
             rig_debug(RIG_DEBUG_ERR, "%s: write_block failed, try#%d\n", __func__, i + 1);
         }
 
-        write_block(rs->rigport, (unsigned char *) "XX" EOM,
+        write_block(&rs->rigport, (unsigned char *) "XX" EOM,
                     3); // we wont' worry about the response here
-        retval = read_string(rs->rigport, (unsigned char *) xxbuf, sizeof(xxbuf), "",
+        retval = read_string(&rs->rigport, (unsigned char *) xxbuf, sizeof(xxbuf), "",
                              0, 0, 1); // this should timeout
 
         if (retval != RIG_OK)

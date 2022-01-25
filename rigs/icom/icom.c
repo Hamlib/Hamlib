@@ -755,7 +755,7 @@ int icom_get_usb_echo_off(RIG *rig)
         priv->serial_USB_echo_off = 0;
         // we should have a freq response so we'll read it and don't really care
         // flushing doesn't always work as it depends on timing
-        retval = read_icom_frame(rs->rigport, buf, sizeof(buf));
+        retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
         rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected, get freq retval=%d\n", __func__, retval);
         if (retval <= 0) RETURNFUNC(-RIG_ETIMEOUT);
     }
@@ -929,11 +929,11 @@ icom_rig_open(RIG *rig)
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
     int retry_flag = 1;
-    short retry_save = rs->rigport->retry;
+    short retry_save = rs->rigport.retry;
 
     ENTERFUNC;
 
-    rs->rigport->retry = 0;
+    rs->rigport.retry = 0;
 
     priv->no_1a_03_cmd = ENUM_1A_03_UNK;
 
@@ -956,7 +956,7 @@ retry_open:
     if (retval == RIG_OK) // then we know our echo status
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting frequency\n", __func__);
-        rs->rigport->retry = 0;
+        rs->rigport.retry = 0;
         rig->state.current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
         // so asking for freq now should timeout if such a rig
@@ -983,7 +983,7 @@ retry_open:
         // if not implemented than we're at an error here
         if (retval != RIG_OK)
         {
-            rs->rigport->retry = retry_save;
+            rs->rigport.retry = retry_save;
 
             rig_debug(RIG_DEBUG_ERR, "%s: rig_set_powerstat failed: %s\n", __func__,
                     rigerror(retval));
@@ -1003,7 +1003,7 @@ retry_open:
         if (retval_echo != 0 && retval_echo != 1)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine USB echo status\n", __func__);
-            rs->rigport->retry = retry_save;
+            rs->rigport.retry = retry_save;
             RETURNFUNC(retval_echo);
         }
     }
@@ -1018,7 +1018,7 @@ retry_open:
             goto retry_open;
         }
 
-        rs->rigport->retry = retry_save;
+        rs->rigport.retry = retry_save;
     }
 
     priv->poweron = (retval == RIG_OK) ? 1 : 0;
@@ -1053,7 +1053,7 @@ retry_open:
     icom_get_freq_range(rig); // try get to get rig range capability dyamically
 #endif
 
-    rs->rigport->retry = retry_save;
+    rs->rigport.retry = retry_save;
     RETURNFUNC(RIG_OK);
 }
 
@@ -5575,14 +5575,14 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         {
             if (priv->x25cmdfails == 0)
             {
-                int retry_save = rs->rigport->retry;
-                rs->rigport->retry = 0;
+                int retry_save = rs->rigport.retry;
+                rs->rigport.retry = 0;
                 cmd = C_SEND_SEL_FREQ;
                 subcmd = 0x01; // get the unselected vfo
                 retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
                                           &ack_len);
 
-                rs->rigport->retry = retry_save;
+                rs->rigport.retry = retry_save;
 
                 if (retval == RIG_OK) // then we're done!!
                 {
@@ -7795,8 +7795,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     // elimininate retries to speed this up
     // especially important when rig is not turned on
-    retry_save = rs->rigport->retry;
-    rs->rigport->retry = 0;
+    retry_save = rs->rigport.retry;
+    rs->rigport.retry = 0;
 
     switch (status)
     {
@@ -7809,7 +7809,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // we'll just send a few more to be sure for all speeds
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
-        write_block(rs->rigport, fe_buf, fe_max);
+        write_block(&rs->rigport, fe_buf, fe_max);
 
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
@@ -7865,7 +7865,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         }
     }
 
-    rs->rigport->retry = retry_save;
+    rs->rigport.retry = retry_save;
 
     if (i == retry)
     {
@@ -8817,7 +8817,7 @@ int icom_decode_event(RIG *rig)
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
-    frm_len = read_icom_frame(rs->rigport, buf, sizeof(buf));
+    frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
 
     if (frm_len == -RIG_ETIMEOUT)
     {
@@ -8875,7 +8875,7 @@ int icom_decode_event(RIG *rig)
 
 int icom_read_frame_direct(RIG *rig, size_t buffer_length, const unsigned char *buffer)
 {
-    return read_icom_frame_direct(rig->state.rigport, buffer, buffer_length);
+    return read_icom_frame_direct(&rig->state.rigport, buffer, buffer_length);
 }
 
 int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen,

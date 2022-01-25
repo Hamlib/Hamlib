@@ -346,7 +346,7 @@ int elektor304_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned fhl, fhh, fll, flh;
 
     struct elektor304_priv_data *priv;
-    hamlib_port_t *port = rig->state.rigport;
+    hamlib_port_t *port = &rig->state.rigport;
 
     priv = (struct elektor304_priv_data *)rig->state.priv;
 

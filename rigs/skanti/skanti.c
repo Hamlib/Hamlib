@@ -71,9 +71,9 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
 
     rs = &rig->state;
 
-    rig_flush(rs->rigport);
+    rig_flush(&rs->rigport);
 
-    retval = write_block(rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -88,7 +88,7 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
         * Transceiver sends back ">"
         */
         char retbuf[BUFSZ + 1];
-        retval = read_string(rs->rigport, (unsigned char *) retbuf, BUFSZ, PROMPT, strlen(PROMPT), 0, 1);
+        retval = read_string(&rs->rigport, (unsigned char *) retbuf, BUFSZ, PROMPT, strlen(PROMPT), 0, 1);
 
         if (retval < 0)
         {
@@ -107,7 +107,7 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
         }
     }
 
-    retval = read_string(rs->rigport, (unsigned char *) data, BUFSZ, LF, strlen(LF), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, LF, strlen(LF), 0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {

@@ -187,7 +187,7 @@ int xg3_init(RIG *rig)
     }
 
     rig->state.priv = (void *)priv;
-    rig->state.rigport->type.rig = RIG_PORT_SERIAL;
+    rig->state.rigport.type.rig = RIG_PORT_SERIAL;
 // Tried set_trn to turn transceiver on/off but turning it on isn't enabled in hamlib for some reason
 // So we use PTT instead
 //  rig->state.transceive = RIG_TRN_RIG; // this allows xg3_set_trn to be called
@@ -276,7 +276,7 @@ int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
     case RIG_LEVEL_RFPOWER:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "L;");
-        retval = write_block(rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval != RIG_OK)
         {
@@ -285,7 +285,7 @@ int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = read_string(rs->rigport, (unsigned char *) replybuf, replysize,
+        retval = read_string(&rs->rigport, (unsigned char *) replybuf, replysize,
                 ";", 1, 0, 1);
 
         if (retval < 0)
@@ -455,7 +455,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "F;");
     }
 
-    retval = write_block(rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
     if (retval != RIG_OK)
     {
@@ -463,7 +463,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    retval = read_string(rs->rigport, (unsigned char *) freqbuf, freqsize,
+    retval = read_string(&rs->rigport, (unsigned char *) freqbuf, freqsize,
             ";", 1, 0, 1);
 
     if (retval < 0)
@@ -516,7 +516,7 @@ int xg3_get_powerstat(RIG *rig, powerstat_t *status)
     if (retval == RIG_OK)
     {
         char reply[32];
-        retval = read_string(rs->rigport, (unsigned char *) reply, sizeof(reply),
+        retval = read_string(&rs->rigport, (unsigned char *) reply, sizeof(reply),
                 ";", 1, 0, 1);
         *status = RIG_POWER_ON;
         priv->powerstat = RIG_POWER_ON;
@@ -581,7 +581,7 @@ int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
         return retval;
     }
 
-    retval = read_string(rs->rigport, (unsigned char *) reply, sizeof(reply),
+    retval = read_string(&rs->rigport, (unsigned char *) reply, sizeof(reply),
             ";", 1, 0, 1);
 
     if (retval < 0)

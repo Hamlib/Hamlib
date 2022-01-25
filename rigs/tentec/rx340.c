@@ -204,9 +204,9 @@ static int rx340_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rs = &rig->state;
 
-    rig_flush(rs->rigport);
+    rig_flush(&rs->rigport);
 
-    retval = write_block(rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -219,7 +219,7 @@ static int rx340_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return RIG_OK;
     }
 
-    retval = read_string(rs->rigport, (unsigned char *) data, BUFSZ, EOM, 1, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM, 1, 0, 1);
 
     if (retval < 0)
     {
@@ -282,7 +282,7 @@ int rx340_open(RIG *rig)
     struct rig_state *rs = &rig->state;
 
 #define REMOTE_CMD "*R1"EOM
-    return write_block(rs->rigport, (unsigned char *) REMOTE_CMD, strlen(REMOTE_CMD));
+    return write_block(&rs->rigport, (unsigned char *) REMOTE_CMD, strlen(REMOTE_CMD));
 }
 
 int rx340_close(RIG *rig)
@@ -290,7 +290,7 @@ int rx340_close(RIG *rig)
     struct rig_state *rs = &rig->state;
 
 #define LOCAL_CMD "*R0"EOM
-    return write_block(rs->rigport, (unsigned char *) LOCAL_CMD, strlen(LOCAL_CMD));
+    return write_block(&rs->rigport, (unsigned char *) LOCAL_CMD, strlen(LOCAL_CMD));
 }
 
 /*
@@ -304,7 +304,7 @@ int rx340_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     SNPRINTF(freqbuf, sizeof(freqbuf), "F%.6f" EOM, freq / 1e6);
 
-    retval = write_block(rs->rigport, (unsigned char *) freqbuf, strlen(freqbuf));
+    retval = write_block(&rs->rigport, (unsigned char *) freqbuf, strlen(freqbuf));
 
     return retval;
 }
@@ -394,7 +394,7 @@ int rx340_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         SNPRINTF(mdbuf, sizeof(mdbuf),  "D%c" EOM, dmode);
     }
 
-    retval = write_block(rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
+    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
 
     return retval;
 }
@@ -514,7 +514,7 @@ int rx340_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_EINVAL;
     }
 
-    retval = write_block(rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
     return retval;
 }
 

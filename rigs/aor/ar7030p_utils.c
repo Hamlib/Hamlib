@@ -57,7 +57,7 @@ int NOP(RIG *rig, unsigned char x)
 
     assert(NULL != rig);
 
-    rc = write_block(rig->state.rigport, (char *) &op, 1);
+    rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
     if (0 != rc)
     {
@@ -79,7 +79,7 @@ int SRH(RIG *rig, unsigned char x)
 
     assert(NULL != rig);
 
-    rc = write_block(rig->state.rigport, (char *) &op, 1);
+    rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
     if (0 != rc)
     {
@@ -109,7 +109,7 @@ int PGE(RIG *rig, enum PAGE_e page)
     case EEPROM2:
     case EEPROM3:
     case ROM:
-        rc = write_block(rig->state.rigport, (char *) &op, 1);
+        rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
         if (0 != rc)
         {
@@ -142,7 +142,7 @@ int ADR(RIG *rig, unsigned char x)
 
     assert(NULL != rig);
 
-    rc = write_block(rig->state.rigport, (char *) &op, 1);
+    rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
     if (0 != rc)
     {
@@ -164,7 +164,7 @@ int ADH(RIG *rig, unsigned char x)
 
     assert(NULL != rig);
 
-    rc = write_block(rig->state.rigport, (char *) &op, 1);
+    rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
     if (0 != rc)
     {
@@ -188,7 +188,7 @@ int WRD(RIG *rig, unsigned char out)
 
     assert(NULL != rig);
 
-    rc = write_block(rig->state.rigport, (char *) &op, 1);
+    rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
     if (0 != rc)
     {
@@ -211,7 +211,7 @@ int MSK(RIG *rig, unsigned char mask)
 
     assert(NULL != rig);
 
-    rc = write_block(rig->state.rigport, (char *) &op, 1);
+    rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
     if (0 != rc)
     {
@@ -249,7 +249,7 @@ int EXE(RIG *rig, enum ROUTINE_e routine)
     case DISP_BUFF:
     case READ_SIGNAL:
     case READ_BTNS:
-        rc = write_block(rig->state.rigport, (char *) &op, 1);
+        rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
         if (0 != rc)
         {
@@ -281,7 +281,7 @@ int RDD(RIG *rig, unsigned char len)
 
     assert(NULL != rig);
 
-    rc = write_block(rig->state.rigport, (char *) &op, 1);
+    rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
     if (0 != rc)
     {
@@ -289,7 +289,7 @@ int RDD(RIG *rig, unsigned char len)
     }
     else
     {
-        rc = read_block(rig->state.rigport, (char *) &inChr, len);
+        rc = read_block(&rig->state.rigport, (char *) &inChr, len);
 
         if (1 != rc)
         {
@@ -322,7 +322,7 @@ int LOC(RIG *rig, enum LOCK_LVL_e level)
     case LOCK_1:
     case LOCK_2:
     case LOCK_3:
-        rc = write_block(rig->state.rigport, (char *) &op, 1);
+        rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
         if (0 != rc)
         {
@@ -367,7 +367,7 @@ int BUT(RIG *rig, enum BUTTON_e button)
     case BTN_STAR:
     case BTN_MENU:
     case BTN_POWER:
-        rc = write_block(rig->state.rigport, (char *) &op, 1);
+        rc = write_block(&rig->state.rigport, (char *) &op, 1);
 
         if (0 != rc)
         {
@@ -404,7 +404,7 @@ int execRoutine(RIG *rig, enum ROUTINE_e rtn)
 
     assert(NULL != rig);
 
-    if (0 == write_block(rig->state.rigport, &v, 1))
+    if (0 == write_block(&rig->state.rigport, &v, 1))
     {
         rc = RIG_OK;
 
@@ -441,7 +441,7 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
             {
                 v = PGE(page);
 
-                if (0 == write_block(rig->state.rigport, &v, 1))
+                if (0 == write_block(&rig->state.rigport, &v, 1))
                 {
                     curPage = page;
                     rc = RIG_OK;
@@ -458,7 +458,7 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
             {
                 v = SRH((0x0f0 & addr) >> 4);
 
-                rc = write_block(rig->state.rigport, &v, 1);
+                rc = write_block(&rig->state.rigport, &v, 1);
 
                 if (rc != RIG_OK)
                 {
@@ -467,13 +467,13 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
 
                 v = ADR((0x00f & addr));
 
-                if (0 == write_block(rig->state.rigport, &v, 1))
+                if (0 == write_block(&rig->state.rigport, &v, 1))
                 {
                     if (0xff < addr)
                     {
                         v = ADH((0xf00 & addr) >> 8);
 
-                        if (0 == write_block(rig->state.rigport, &v, 1))
+                        if (0 == write_block(&rig->state.rigport, &v, 1))
                         {
                             curAddr = addr;
                             rc = RIG_OK;
@@ -537,9 +537,9 @@ int writeByte(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char x)
     {
         rc = -RIG_EIO;
 
-        if (0 == write_block(rig->state.rigport, &hi, 1))
+        if (0 == write_block(&rig->state.rigport, &hi, 1))
         {
-            if (0 == write_block(rig->state.rigport, &lo, 1))
+            if (0 == write_block(&rig->state.rigport, &lo, 1))
             {
                 rc = RIG_OK;
                 curAddr++;
@@ -679,9 +679,9 @@ int readByte(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char *x)
     {
         rc = -RIG_EIO;
 
-        if (0 == write_block(rig->state.rigport, &v, 1))
+        if (0 == write_block(&rig->state.rigport, &v, 1))
         {
-            if (1 == read_block(rig->state.rigport, x, 1))
+            if (1 == read_block(&rig->state.rigport, x, 1))
             {
                 curAddr++;
                 rc = RIG_OK;
@@ -842,7 +842,7 @@ int readSignal(RIG *rig, unsigned char *x)
 
     if (RIG_OK == rc)
     {
-        if (1 == read_block(rig->state.rigport, x, 1))
+        if (1 == read_block(&rig->state.rigport, x, 1))
         {
             rc = RIG_OK;
 
@@ -868,7 +868,7 @@ int flushBuffer(RIG *rig)
 
     assert(NULL != rig);
 
-    if (0 == write_block(rig->state.rigport, &v, 1))
+    if (0 == write_block(&rig->state.rigport, &v, 1))
     {
         rc = RIG_OK;
     }
@@ -897,7 +897,7 @@ int lockRx(RIG *rig, enum LOCK_LVL_e level)
         {
             v = LOC(level);
 
-            if (0 == write_block(rig->state.rigport, &v, 1))
+            if (0 == write_block(&rig->state.rigport, &v, 1))
             {
                 rc = RIG_OK;
 

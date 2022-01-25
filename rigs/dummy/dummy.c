@@ -238,7 +238,7 @@ static int dummy_init(RIG *rig)
     rig->state.priv = (void *)priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    rig->state.rigport->type.rig = RIG_PORT_NONE;
+    rig->state.rigport.type.rig = RIG_PORT_NONE;
 
     priv->ptt = RIG_PTT_OFF;
     priv->powerstat = RIG_POWER_ON;
@@ -683,12 +683,12 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     // sneak a look at the hardware PTT and OR that in with our result
     // as if it had keyed us
-    switch (rig->state.pttport->type.ptt)
+    switch (rig->state.pttport.type.ptt)
     {
     case RIG_PTT_SERIAL_DTR:
-        if (rig->state.pttport->fd >= 0)
+        if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = ser_get_dtr(rig->state.pttport, &status))) { RETURNFUNC(rc); }
+            if (RIG_OK != (rc = ser_get_dtr(&rig->state.pttport, &status))) { RETURNFUNC(rc); }
 
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
@@ -700,9 +700,9 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         break;
 
     case RIG_PTT_SERIAL_RTS:
-        if (rig->state.pttport->fd >= 0)
+        if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = ser_get_rts(rig->state.pttport, &status))) { RETURNFUNC(rc); }
+            if (RIG_OK != (rc = ser_get_rts(&rig->state.pttport, &status))) { RETURNFUNC(rc); }
 
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
@@ -714,26 +714,26 @@ static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         break;
 
     case RIG_PTT_PARALLEL:
-        if (rig->state.pttport->fd >= 0)
+        if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = par_ptt_get(rig->state.pttport, ptt))) { RETURNFUNC(rc); }
+            if (RIG_OK != (rc = par_ptt_get(&rig->state.pttport, ptt))) { RETURNFUNC(rc); }
         }
 
         break;
 
     case RIG_PTT_CM108:
-        if (rig->state.pttport->fd >= 0)
+        if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = cm108_ptt_get(rig->state.pttport, ptt))) { RETURNFUNC(rc); }
+            if (RIG_OK != (rc = cm108_ptt_get(&rig->state.pttport, ptt))) { RETURNFUNC(rc); }
         }
 
         break;
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
-        if (rig->state.pttport->fd >= 0)
+        if (rig->state.pttport.fd >= 0)
         {
-            if (RIG_OK != (rc = gpio_ptt_get(rig->state.pttport, ptt))) { RETURNFUNC(rc); }
+            if (RIG_OK != (rc = gpio_ptt_get(&rig->state.pttport, ptt))) { RETURNFUNC(rc); }
         }
 
         break;

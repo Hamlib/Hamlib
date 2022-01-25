@@ -416,7 +416,7 @@ int drt1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned cfr2;
 
     struct drt1_priv_data *priv;
-    hamlib_port_t *port = rig->state.rigport;
+    hamlib_port_t *port = &rig->state.rigport;
 
     priv = (struct drt1_priv_data *)rig->state.priv;
 

@@ -631,7 +631,7 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
     {
         /* time for CIV command to be sent. this is subtracted from */
         /* rcvr settle time */
-        state->usleep_time = (1000000 / (rig->state.rigport->parm.serial.rate))
+        state->usleep_time = (1000000 / (rig->state.rigport.parm.serial.rate))
                              * 13 * 9;
 
         rc = cb(rig, vfo, &(state->next_freq), &(state->next_mode),
@@ -667,7 +667,7 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
         optoscan_wait_timer(rig, state); /*Step 5*/
 
-        ser_get_car(rs->rigport, &pin_state);
+        ser_get_car(&rs->rigport, &pin_state);
 
         if (pin_state)   /*Step 6*/
         {
@@ -800,8 +800,8 @@ static int optoscan_RTS_toggle(RIG *rig)
     int state = 0;
 
     rs = &rig->state;
-    ser_get_rts(rs->rigport, &state);
-    ser_set_rts(rs->rigport, !state);
+    ser_get_rts(&rs->rigport, &state);
+    ser_set_rts(&rs->rigport, !state);
 
     return RIG_OK;
 }

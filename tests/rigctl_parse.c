@@ -2436,7 +2436,7 @@ declare_proto_rig(set_ptt)
     case RIG_PTT_ON_DATA:
 
         // map to a legal value
-        if (rig->state.pttport->type.ptt != RIG_PTT_RIG_MICDATA)
+        if (rig->state.pttport.type.ptt != RIG_PTT_RIG_MICDATA)
         {
             ptt = RIG_PTT_ON;
         }
@@ -4346,7 +4346,7 @@ declare_proto_rig(dump_state)
     {
         fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
         fprintf(fout, "ptt_type=0x%x\n",
-                rig->state.pttport->type.ptt == RIG_PTT_NONE ? RIG_PTT_NONE : RIG_PTT_RIG);
+                rig->state.pttport.type.ptt == RIG_PTT_NONE ? RIG_PTT_NONE : RIG_PTT_RIG);
         fprintf(fout, "targetable_vfo=0x%x\n", rig->caps->targetable_vfo);
         fprintf(fout, "has_set_vfo=%d\n", rig->caps->set_vfo != NULL);
         fprintf(fout, "has_get_vfo=%d\n", rig->caps->get_vfo != NULL);
@@ -4747,11 +4747,11 @@ declare_proto_rig(send_cmd)
 
     rs = &rig->state;
 
-    rig_flush(rs->rigport);
+    rig_flush(&rs->rigport);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
-              rs->rigport->fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
-    retval = write_block(rs->rigport, (unsigned char *) bufcmd, cmd_len);
+              rs->rigport.fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
+    retval = write_block(&rs->rigport, (unsigned char *) bufcmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -4776,7 +4776,7 @@ declare_proto_rig(send_cmd)
         }
 
         /* Assumes CR or LF is end of line char for all ASCII protocols. */
-        retval = read_string(rs->rigport, buf, rxbytes, eom_buf,
+        retval = read_string(&rs->rigport, buf, rxbytes, eom_buf,
                              strlen(eom_buf), 0, 1);
 
         if (retval < 0)

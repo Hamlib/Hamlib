@@ -1264,9 +1264,9 @@ int adat_send(RIG  *pRig,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = %p, pcData = %s\n",
               gFnLevel, __func__, __FILE__, __LINE__, pRig, pcData);
 
-    rig_flush(pRigState->rigport);
+    rig_flush(&pRigState->rigport);
 
-    nRC = write_block(pRigState->rigport, (unsigned char *) pcData, strlen(pcData));
+    nRC = write_block(&pRigState->rigport, (unsigned char *) pcData, strlen(pcData));
 
     rig_debug(RIG_DEBUG_TRACE,
               "*** ADAT: %d %s (%s:%d): EXIT. Return Code = %d\n",
@@ -1294,7 +1294,7 @@ int adat_receive(RIG  *pRig,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = %p\n",
               gFnLevel, __func__, __FILE__, __LINE__, pRig);
 
-    nRC = read_string(pRigState->rigport, (unsigned char *) pcData, ADAT_RESPSZ,
+    nRC = read_string(&pRigState->rigport, (unsigned char *) pcData, ADAT_RESPSZ,
             ADAT_EOL, 1, 0, 1);
 
     if (nRC > 0)
@@ -1563,7 +1563,7 @@ int adat_get_single_cmd_result(RIG *pRig)
             }
         }
 
-        rig_flush(pRigState->rigport);
+        rig_flush(&pRigState->rigport);
 
         pPriv->nRC = nRC;
     }

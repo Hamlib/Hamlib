@@ -84,16 +84,16 @@ static int kachina_transaction(RIG *rig, unsigned char cmd1, unsigned char cmd2)
     buf4[2] = cmd2;
     buf4[3] = ETX;
 
-    rig_flush(rs->rigport);
+    rig_flush(&rs->rigport);
 
-    retval = write_block(rs->rigport, buf4, 4);
+    retval = write_block(&rs->rigport, buf4, 4);
 
     if (retval != RIG_OK)
     {
         return retval;
     }
 
-    count = read_string(rs->rigport, buf4, 1, "", 0, 0, 1);
+    count = read_string(&rs->rigport, buf4, 1, "", 0, 0, 1);
 
     if (count != 1)
     {
@@ -119,16 +119,16 @@ static int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data,
 
     cmd_len = data_len + 3;
 
-    rig_flush(rs->rigport);
+    rig_flush(&rs->rigport);
 
-    retval = write_block(rs->rigport, buf, cmd_len);
+    retval = write_block(&rs->rigport, buf, cmd_len);
 
     if (retval != RIG_OK)
     {
         return retval;
     }
 
-    count = read_string(rs->rigport, buf, 1, "", 0, 0, 1);
+    count = read_string(&rs->rigport, buf, 1, "", 0, 0, 1);
 
     if (count != 1)
     {
@@ -270,9 +270,9 @@ int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     /* telemetry sent to the PC automatically at a 50msec rate */
 
-    rig_flush(rig->state.rigport);
+    rig_flush(&rig->state.rigport);
 
-    count = read_string(rig->state.rigport, buf, 31, rcv_signal_range,
+    count = read_string(&rig->state.rigport, buf, 31, rcv_signal_range,
                         128, 0, 1);
 
     if (count < 1)
