@@ -132,11 +132,11 @@ uniden_transaction(RIG *rig, const char *cmdstr, int cmd_len,
 
 transaction_write:
 
-    rig_flush(&rs->rigport);
+    rig_flush(rs->rigport);
 
     if (cmdstr)
     {
-        retval = write_block(&rs->rigport, (unsigned char *) cmdstr, strlen(cmdstr));
+        retval = write_block(rs->rigport, (unsigned char *) cmdstr, strlen(cmdstr));
 
         if (retval != RIG_OK)
         {
@@ -156,11 +156,11 @@ transaction_write:
     }
 
     memset(data, 0, *datasize);
-    retval = read_string(&rs->rigport, (unsigned char *) data, *datasize, EOM, strlen(EOM), 0, 1);
+    retval = read_string(rs->rigport, (unsigned char *) data, *datasize, EOM, strlen(EOM), 0, 1);
 
     if (retval < 0)
     {
-        if (retry_read++ < rig->state.rigport.retry)
+        if (retry_read++ < rig->state.rigport->retry)
         {
             goto transaction_write;
         }
@@ -178,7 +178,7 @@ transaction_write:
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
                   __func__, data);
 
-        if (retry_read++ < rig->state.rigport.retry)
+        if (retry_read++ < rig->state.rigport->retry)
         {
             goto transaction_write;
         }
@@ -256,7 +256,7 @@ transaction_write:
          */
         rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, data);
 
-        if (retry_read++ < rig->state.rigport.retry)
+        if (retry_read++ < rig->state.rigport->retry)
         {
             goto transaction_write;
         }

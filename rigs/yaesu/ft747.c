@@ -496,9 +496,9 @@ int ft747_open(RIG *rig)
     p = (struct ft747_priv_data *)rig_s->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft747:rig_open: write_delay = %i msec \n",
-              rig_s->rigport.write_delay);
+              rig_s->rigport->write_delay);
     rig_debug(RIG_DEBUG_VERBOSE, "ft747:rig_open: post_write_delay = %i msec \n",
-              rig_s->rigport.post_write_delay);
+              rig_s->rigport->post_write_delay);
 
     /*
     * Copy native cmd PACING  to private cmd storage area
@@ -512,7 +512,7 @@ int ft747_open(RIG *rig)
 
     /* send PACING cmd to rig, once for all */
 
-    ret = write_block(&rig->state.rigport, p->p_cmd, YAESU_CMD_LENGTH);
+    ret = write_block(rig->state.rigport, p->p_cmd, YAESU_CMD_LENGTH);
 
     if (ret < 0)
     {
@@ -572,7 +572,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_force_cache_timeout(&p->status_tv);
 
     cmd = p->p_cmd; /* get native sequence */
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -950,7 +950,7 @@ int ft747_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     rig_force_cache_timeout(&p->status_tv);
 
-    return write_block(&rig->state.rigport, p->p_cmd, YAESU_CMD_LENGTH);
+    return write_block(rig->state.rigport, p->p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft747_get_mem(RIG *rig, vfo_t vfo, int *ch)
@@ -995,7 +995,7 @@ static int ft747_get_update_data(RIG *rig)
     unsigned char last_byte;
 
     p = (struct ft747_priv_data *)rig->state.priv;
-    rigport = &rig->state.rigport;
+    rigport = rig->state.rigport;
 
     if (!rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
     {
@@ -1053,7 +1053,7 @@ static int ft747_send_priv_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    return write_block(&rig->state.rigport, ft747_ncmd[ci].nseq, YAESU_CMD_LENGTH);
+    return write_block(rig->state.rigport, ft747_ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
 }
 

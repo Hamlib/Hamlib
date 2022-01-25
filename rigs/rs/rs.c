@@ -64,9 +64,9 @@ int rs_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rs = &rig->state;
 
-    rig_flush(&rs->rigport);
+    rig_flush(rs->rigport);
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -80,7 +80,7 @@ int rs_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return RIG_OK;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, CR, 1, 0, 1);
+    retval = read_string(rs->rigport, (unsigned char *) data, BUFSZ, CR, 1, 0, 1);
 
     if (retval < 0)
     {

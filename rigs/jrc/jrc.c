@@ -74,11 +74,11 @@ int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 
     rs = &rig->state;
 
-    rig_flush(&rs->rigport);
+    rig_flush(rs->rigport);
 
     set_transaction_active(rig);
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(rs->rigport, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -92,7 +92,7 @@ int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
         return 0;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM, strlen(EOM), 0, 1);
+    retval = read_string(rs->rigport, (unsigned char *) data, BUFSZ, EOM, strlen(EOM), 0, 1);
 
     set_transaction_inactive(rig);
 
@@ -1626,8 +1626,8 @@ int jrc_decode_event(RIG *rig)
     /* "Iabdfg"CR */
     //#define SETUP_STATUS_LEN 17
 
-    //count = read_string(&rs->rigport, buf, SETUP_STATUS_LEN, "", 0);
-    count = read_string(&rs->rigport, (unsigned char *) buf, priv->info_len, "", 0, 0, 1);
+    //count = read_string(rs->rigport, buf, SETUP_STATUS_LEN, "", 0);
+    count = read_string(rs->rigport, (unsigned char *) buf, priv->info_len, "", 0, 0, 1);
 
     if (count < 0)
     {

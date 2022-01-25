@@ -83,9 +83,9 @@ static int racal_transaction(RIG *rig, const char *cmd, char *data,
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), SOM "%u%s" EOM, priv->receiver_id, cmd);
 
-    rig_flush(&rs->rigport);
+    rig_flush(rs->rigport);
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+    retval = write_block(rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
     if (retval != RIG_OK)
     {
@@ -99,7 +99,7 @@ static int racal_transaction(RIG *rig, const char *cmd, char *data,
         return retval;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM, strlen(EOM), 0, 1);
+    retval = read_string(rs->rigport, (unsigned char *) data, BUFSZ, EOM, strlen(EOM), 0, 1);
 
     if (retval <= 0)
     {
