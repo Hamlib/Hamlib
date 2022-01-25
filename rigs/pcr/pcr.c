@@ -177,7 +177,7 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
     /* already in sync? */
     if (priv->sync && !caps->always_sync)
     {
-        return read_block(&rs->rigport, (unsigned char *) rxbuffer, count);
+        return read_block(rs->rigport, (unsigned char *) rxbuffer, count);
     }
 
     /* read first char */
@@ -186,7 +186,7 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
         char *p = &rxbuffer[0];
 
         /* read first char */
-        int err = read_block(&rs->rigport, (unsigned char *) p, 1);
+        int err = read_block(rs->rigport, (unsigned char *) p, 1);
 
         if (err < 0)
         {
@@ -209,7 +209,7 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
         count--;
         p++;
 
-        err = read_block(&rs->rigport, (unsigned char *) p, count);
+        err = read_block(rs->rigport, (unsigned char *) p, count);
 
         if (err < 0)
         {
@@ -363,7 +363,7 @@ pcr_send(RIG *rig, const char *cmd)
 
     rs->transaction_active = 1;
 
-    err = write_block(&rs->rigport, (unsigned char *) priv->cmd_buf, len + 1);
+    err = write_block(rs->rigport, (unsigned char *) priv->cmd_buf, len + 1);
 
     rs->transaction_active = 0;
 
@@ -384,7 +384,7 @@ pcr_transaction(RIG *rig, const char *cmd)
 
     if (!priv->auto_update)
     {
-        rig_flush(&rs->rigport);
+        rig_flush(rs->rigport);
     }
 
     pcr_send(rig, cmd);
@@ -466,8 +466,8 @@ pcr_set_comm_speed(RIG *rig, int rate)
         return err;
     }
 
-    rig->state.rigport.parm.serial.rate = rate;
-    serial_setup(&rig->state.rigport);
+    rig->state.rigport->parm.serial.rate = rate;
+    serial_setup(rig->state.rigport);
 
     /* check if the pcr is still alive */
     return pcr_check_ok(rig);
@@ -573,14 +573,14 @@ pcr_open(RIG *rig)
         startup_serial_rate = 9600;
     }
 
-    wanted_serial_rate = rs->rigport.parm.serial.rate;
-    rs->rigport.parm.serial.rate = startup_serial_rate;
+    wanted_serial_rate = rs->rigport->parm.serial.rate;
+    rs->rigport->parm.serial.rate = startup_serial_rate;
 
-    serial_setup(&rs->rigport);
+    serial_setup(rs->rigport);
 
     /* let the pcr settle and flush any remaining data*/
     hl_usleep(100 * 1000);
-    rig_flush(&rs->rigport);
+    rig_flush(rs->rigport);
 
     /* try powering on twice, sometimes the pcr answers H100 (off) */
     pcr_send(rig, "H101");
@@ -589,7 +589,7 @@ pcr_open(RIG *rig)
     pcr_send(rig, "H101");
     hl_usleep(100 * 250);
 
-    rig_flush(&rs->rigport);
+    rig_flush(rs->rigport);
 
     /* return RIG_ERJCTED if power is off */
     err = pcr_transaction(rig, "H1?");

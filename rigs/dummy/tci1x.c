@@ -291,7 +291,7 @@ static int read_transaction(RIG *rig, unsigned char *buf, int buf_len)
             rig_debug(RIG_DEBUG_WARN, "%s: retry needed? retry=%d\n", __func__, retry);
         }
 
-        int len = read_string(&rs->rigport, buf, buf_len, delims,
+        int len = read_string(rs->rigport, buf, buf_len, delims,
                               strlen(delims), 0, 1);
         rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, buf);
 
@@ -338,11 +338,11 @@ static int write_transaction(RIG *rig, unsigned char *buf, int buf_len)
 
     // appears we can lose sync if we don't clear things out
     // shouldn't be anything for us now anyways
-    rig_flush(&rig->state.rigport);
+    rig_flush(rig->state.rigport);
 
     while (try-- >= 0 && retval != RIG_OK)
         {
-            retval = write_block(&rs->rigport, buf, buf_len);
+            retval = write_block(rs->rigport, buf, buf_len);
 
             if (retval  < 0)
             {
@@ -457,8 +457,8 @@ static int tci1x_init(RIG *rig)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    strncpy(rig->state.rigport.pathname, DEFAULTPATH,
-            sizeof(rig->state.rigport.pathname));
+    strncpy(rig->state.rigport->pathname, DEFAULTPATH,
+            sizeof(rig->state.rigport->pathname));
 
     priv->ext_parms = alloc_init_ext(tci1x_ext_parms);
 

@@ -257,7 +257,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     rs->transaction_active = 1;
 
     /* Emulators don't need any post_write_delay */
-    if (priv->is_emulation) { rs->rigport.post_write_delay = 0; }
+    if (priv->is_emulation) { rs->rigport->post_write_delay = 0; }
 
     // if this is an IF cmdstr and not the first time through check cache
     if (strcmp(cmdstr, "IF") == 0 && priv->cache_start.tv_sec != 0)
@@ -316,9 +316,9 @@ transaction_write:
         }
 
         /* flush anything in the read buffer before command is sent */
-        rig_flush(&rs->rigport);
+        rig_flush(rs->rigport);
 
-        retval = write_block(&rs->rigport, (unsigned char *) cmd, len);
+        retval = write_block(rs->rigport, (unsigned char *) cmd, len);
 
         free(cmd);
 
@@ -359,7 +359,7 @@ transaction_write:
         /* no reply expected so we need to write a command that always
            gives a reply so we can read any error replies from the actual
            command being sent without blocking */
-        if (RIG_OK != (retval = write_block(&rs->rigport, (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
+        if (RIG_OK != (retval = write_block(rs->rigport, (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
         {
             goto transaction_quit;
         }
@@ -369,7 +369,7 @@ transaction_read:
     /* allow room for most any response */
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 48,
               KENWOOD_MAX_BUF_LEN);
-    retval = read_string(&rs->rigport, (unsigned char *) buffer, len,
+    retval = read_string(rs->rigport, (unsigned char *) buffer, len,
             cmdtrm_str, strlen(cmdtrm_str), 0, 1);
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string(len=%d)='%s'\n", __func__,
               (int)strlen(buffer), buffer);
@@ -377,12 +377,12 @@ transaction_read:
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_WARN,
-                  "%s: read_string retval < 0, retval = %d, retry_read=%d, rs->rigport.retry=%d\n",
+                  "%s: read_string retval < 0, retval = %d, retry_read=%d, rs->rigport->retry=%d\n",
                   __func__,
-                  retval, retry_read, rs->rigport.retry);
+                  retval, retry_read, rs->rigport->retry);
 
         // only retry if we expect a response from the command
-        if (retry_read++ < rs->rigport.retry)
+        if (retry_read++ < rs->rigport->retry)
         {
             if (datasize)
             {
@@ -403,7 +403,7 @@ transaction_read:
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
                   __func__, buffer);
 
-        if (retry_read++ < rs->rigport.retry)
+        if (retry_read++ < rs->rigport->retry)
         {
             goto transaction_write;
         }
@@ -435,7 +435,7 @@ transaction_read:
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __func__, cmdstr);
             }
 
-            if (retry_read++ < rs->rigport.retry)
+            if (retry_read++ < rs->rigport->retry)
             {
                 goto transaction_write;
             }
@@ -452,7 +452,7 @@ transaction_read:
                           cmdstr);
             }
 
-            if (retry_read++ < rs->rigport.retry)
+            if (retry_read++ < rs->rigport->retry)
             {
                 goto transaction_write;
             }
@@ -476,7 +476,7 @@ transaction_read:
                 }
             }
 
-            if (retry_read++ < rs->rigport.retry)
+            if (retry_read++ < rs->rigport->retry)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly\n", __func__);
                 hl_usleep(rig->caps->timeout * 1000);
@@ -506,10 +506,10 @@ transaction_read:
             rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command %c%c\n",
                       __func__, buffer[0], buffer[1], cmdstr[0], cmdstr[1]);
 
-            rig_debug(RIG_DEBUG_ERR, "%s: retry_read=%d, rs->rigport.retry=%d\n", __func__,
-                      retry_read, rs->rigport.retry);
+            rig_debug(RIG_DEBUG_ERR, "%s: retry_read=%d, rs->rigport->retry=%d\n", __func__,
+                      retry_read, rs->rigport->retry);
 
-            if (retry_read++ < rs->rigport.retry)
+            if (retry_read++ < rs->rigport->retry)
             {
                 goto transaction_write;
             }
@@ -558,7 +558,7 @@ transaction_read:
                       __func__, buffer[0], buffer[1]
                       , priv->verify_cmd[0], priv->verify_cmd[1]);
 
-            if (retry_read++ < rs->rigport.retry)
+            if (retry_read++ < rs->rigport->retry)
             {
                 goto transaction_write;
             }
@@ -650,7 +650,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
             hl_usleep(50 * 1000); // let's do a short wait
         }
     }
-    while (err != RIG_OK && ++retry < rig->state.rigport.retry);
+    while (err != RIG_OK && ++retry < rig->state.rigport->retry);
 
     RETURNFUNC(err);
 }
@@ -763,12 +763,12 @@ int kenwood_open(RIG *rig)
     int err, i;
     char *idptr;
     char id[KENWOOD_MAX_BUF_LEN];
-    int retry_save = rig->state.rigport.retry;
+    int retry_save = rig->state.rigport->retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     id[0] = 0;
-    rig->state.rigport.retry = 0;
+    rig->state.rigport->retry = 0;
     err = kenwood_get_id(rig, id);
 
     if (err != RIG_OK)
@@ -833,7 +833,7 @@ int kenwood_open(RIG *rig)
         if (RIG_OK != err)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
-            rig->state.rigport.retry = retry_save;
+            rig->state.rigport->retry = retry_save;
             RETURNFUNC(err);
         }
 
@@ -849,7 +849,7 @@ int kenwood_open(RIG *rig)
         else
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
-            rig->state.rigport.retry = retry_save;
+            rig->state.rigport->retry = retry_save;
             RETURNFUNC(-RIG_EPROTO);
         }
 
@@ -867,7 +867,7 @@ int kenwood_open(RIG *rig)
         if (RIG_OK != err)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: no response from rig\n", __func__);
-            rig->state.rigport.retry = retry_save;
+            rig->state.rigport->retry = retry_save;
             RETURNFUNC(err);
         }
 
@@ -884,7 +884,7 @@ int kenwood_open(RIG *rig)
         if (err != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cannot get identification\n", __func__);
-            rig->state.rigport.retry = retry_save;
+            rig->state.rigport->retry = retry_save;
             RETURNFUNC(err);
         }
     }
@@ -971,7 +971,7 @@ int kenwood_open(RIG *rig)
                           rig_strvfo(priv->tx_vfo));
             }
 
-            rig->state.rigport.retry = retry_save;
+            rig->state.rigport->retry = retry_save;
 
             RETURNFUNC(RIG_OK);
         }
@@ -992,7 +992,7 @@ int kenwood_open(RIG *rig)
 
     // we're making this non fatal
     // mismatched IDs can still be tested
-    rig->state.rigport.retry = retry_save;
+    rig->state.rigport->retry = retry_save;
 
     RETURNFUNC(RIG_OK);
 }
@@ -2695,11 +2695,11 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
     struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
+    retval = write_block(rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
+    retval = read_string(rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
@@ -2794,11 +2794,11 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         RETURNFUNC(RIG_OK);
     }
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
+    retval = write_block(rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
+    retval = read_string(rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
@@ -3455,8 +3455,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         // This could be done by rig but easy enough to make it automagic
         if (priv->ag_format < 0)
         {
-            int retry_save = rig->state.rigport.retry;
-            rig->state.rigport.retry = 0;  // speed up this check so no retries
+            int retry_save = rig->state.rigport->retry;
+            rig->state.rigport->retry = 0;  // speed up this check so no retries
             rig_debug(RIG_DEBUG_TRACE, "%s: AF format check determination...\n", __func__);
             // Determine AG format
             // =-1 == Undetermine
@@ -3494,7 +3494,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 }
             }
 
-            rig->state.rigport.retry = retry_save;
+            rig->state.rigport->retry = retry_save;
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: ag_format=%d\n", __func__, priv->ag_format);
@@ -4704,11 +4704,11 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
                                      (status == RIG_POWER_ON) ? ";;;;PS1;" : "PS0",
                                      NULL, 0);
     int i = 0;
-    int retry_save = rig->state.rigport.retry;
+    int retry_save = rig->state.rigport->retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
 
-    rig->state.rigport.retry = 0;
+    rig->state.rigport->retry = 0;
 
     if (status == RIG_POWER_ON) // wait for wakeup only
     {
@@ -4720,7 +4720,7 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 
             if (retval == RIG_OK)
             {
-                rig->state.rigport.retry = retry_save;
+                rig->state.rigport->retry = retry_save;
                 RETURNFUNC(retval);
             }
 
@@ -4728,7 +4728,7 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
         }
     }
 
-    rig->state.rigport.retry = retry_save;
+    rig->state.rigport->retry = retry_save;
 
     if (i == 9)
     {

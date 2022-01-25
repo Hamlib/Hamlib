@@ -89,9 +89,9 @@ int ts450_open(RIG *rig)
         return err;
     }
 
-    maxtries = rig->state.rigport.retry;
+    maxtries = rig->state.rigport->retry;
     /* no retry for this command that may be missing */
-    rig->state.rigport.retry = 0;
+    rig->state.rigport->retry = 0;
 
     err = kenwood_simple_transaction(rig, "TO", 3);
 
@@ -102,7 +102,7 @@ int ts450_open(RIG *rig)
         rig->state.has_get_func &= ~RIG_FUNC_TONE;
     }
 
-    rig->state.rigport.retry = maxtries;
+    rig->state.rigport->retry = maxtries;
 
     return RIG_OK;
 }
