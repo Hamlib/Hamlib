@@ -272,7 +272,7 @@ static int ar7030p_init(RIG *rig)
 
         rig->state.priv = (void *) priv;
 
-        rig->state.rigport.type.rig = RIG_PORT_SERIAL;
+        rig->state.rigport->type.rig = RIG_PORT_SERIAL;
 
         priv->powerstat = RIG_POWER_ON;
         priv->bank = 0;

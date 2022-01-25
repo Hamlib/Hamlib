@@ -450,7 +450,7 @@ static int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd(cmd, freq / 10, BCD_LEN);
 
     priv->curfreq = freq;
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -476,7 +476,7 @@ static int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     /* fill in p1 */
     cmd[3] = mode2rig(rig, mode, width);
 
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -604,7 +604,7 @@ static int ft757_set_vfo(RIG *rig, vfo_t vfo)
 
     priv->current_vfo = vfo;
 
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -675,10 +675,10 @@ static int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_EINVAL;
     }
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rig->state.rigport);
 
     /* send READ STATUS(Meter only) cmd to rig  */
-    retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    retval = write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
     if (retval < 0)
     {
@@ -686,7 +686,7 @@ static int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     /* read back the 1 byte */
-    retval = read_block(&rig->state.rigport, cmd, 1);
+    retval = read_block(rig->state.rigport, cmd, 1);
 
     if (retval != 1)
     {
@@ -716,19 +716,19 @@ static int ft757_get_update_data(RIG *rig)
     int retval = 0;
     long nbtries;
     /* Maximum number of attempts to ask/read the data. */
-    int maxtries = rig->state.rigport.retry ;
+    int maxtries = rig->state.rigport->retry ;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called Timeout=%d ms, Retry=%d\n",
-              __func__, rig->state.rigport.timeout, maxtries);
+              __func__, rig->state.rigport->timeout, maxtries);
 
     /* At least on one model, returns erraticaly a timeout. Increasing the timeout
     does not fix things. So we restart the read from scratch, it works most of times. */
     for (nbtries = 0 ; nbtries < maxtries ; nbtries++)
     {
-        rig_flush(&rig->state.rigport);
+        rig_flush(rig->state.rigport);
 
         /* send READ STATUS cmd to rig  */
-        retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+        retval = write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
         if (retval < 0)
         {
@@ -736,7 +736,7 @@ static int ft757_get_update_data(RIG *rig)
         }
 
         /* read back the 75 status bytes */
-        retval = read_block(&rig->state.rigport,
+        retval = read_block(rig->state.rigport,
                             priv->update_data,
                             FT757GX_STATUS_UPDATE_DATA_LENGTH);
 

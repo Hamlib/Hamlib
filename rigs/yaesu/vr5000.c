@@ -289,7 +289,7 @@ int vr5000_open(RIG *rig)
     int retval;
 
     /* CAT write command on */
-    retval =  write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    retval =  write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
     if (retval != RIG_OK)
     {
@@ -297,7 +297,7 @@ int vr5000_open(RIG *rig)
     }
 
     /* disable RIG_VFO_B  (only on display) */
-    retval =  write_block(&rig->state.rigport, b_off, YAESU_CMD_LENGTH);
+    retval =  write_block(rig->state.rigport, b_off, YAESU_CMD_LENGTH);
 
     if (retval != RIG_OK)
     {
@@ -328,7 +328,7 @@ int vr5000_close(RIG *rig)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x80};
 
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -412,10 +412,10 @@ int vr5000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_EINVAL;
     }
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rig->state.rigport);
 
     /* send READ STATUS(Meter only) cmd to rig  */
-    retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    retval = write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
     if (retval < 0)
     {
@@ -423,7 +423,7 @@ int vr5000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     /* read back the 1 byte */
-    retval = read_block(&rig->state.rigport, cmd, 1);
+    retval = read_block(rig->state.rigport, cmd, 1);
 
     if (retval < 1)
     {
@@ -446,10 +446,10 @@ int vr5000_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xe7};
     int retval;
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rig->state.rigport);
 
     /* send READ STATUS(Meter only) cmd to rig  */
-    retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    retval = write_block(rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 
     if (retval < 0)
     {
@@ -457,7 +457,7 @@ int vr5000_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     }
 
     /* read back the 1 byte */
-    retval = read_block(&rig->state.rigport, cmd, 1);
+    retval = read_block(rig->state.rigport, cmd, 1);
 
     if (retval < 1)
     {
@@ -617,7 +617,7 @@ int set_vr5000(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width,
     /* fill in m2 */
     cmd_mode_ts[1] = steps[i];
 
-    retval =  write_block(&rig->state.rigport, cmd_mode_ts,
+    retval =  write_block(rig->state.rigport, cmd_mode_ts,
                           YAESU_CMD_LENGTH);
 
     if (retval != RIG_OK)
@@ -637,7 +637,7 @@ int set_vr5000(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width,
     cmd_freq[3] = frq & 0xff;
 
     /* frequency set */
-    return write_block(&rig->state.rigport, cmd_freq, YAESU_CMD_LENGTH);
+    return write_block(rig->state.rigport, cmd_freq, YAESU_CMD_LENGTH);
 }
 
 

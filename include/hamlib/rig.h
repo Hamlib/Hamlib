@@ -2225,8 +2225,6 @@ typedef struct hamlib_port {
     } parm;                 /*!< Port parameter union */
     int client_port;      /*!< client socket port for tcp connection */
     RIG *rig;             /*!< our parent RIG device */
-#define ASYNC_BUG 1
-#ifdef ASYNC_BUG
     int asyncio;            /*!< enable asynchronous data handling if true -- async collides with python keyword so _async is used */
 #if defined(_WIN32)
     hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
@@ -2236,7 +2234,6 @@ typedef struct hamlib_port {
     int fd_sync_read;           /*!< file descriptor for reading synchronous data */
     int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
-#endif
 #endif
 } hamlib_port_t;
 
@@ -2418,16 +2415,17 @@ struct rig_cache {
  *
  * It is NOT fine to move fields around as it can break share library offset
  * As of 2021-03-03  vfo_list is the last known item being reference externally
- * So any additions or changes to this structure must be after vfo_list.
+ * So any additions or changes to this structure must be at the end of the structure
  */
 struct rig_state {
+    /********* ENSURE ANY NEW ITEMS ARE ADDED AT BOTTOM OF THIS STRUCTURE *********/
     /*
      * overridable fields
      */
     // moving the hamlib_port_t to the end of rig_state and making it a pointer
     // this should allow changes to hamlib_port_t without breaking shared libraries
     // these will maintain a copy of the new port_t for backwards compatiblity
-    // to these offsets -- note these must stay until a major version update is done
+    // to these offsets -- note these must stay until a major version update is done like 5.0
     hamlib_port_t_deprecated rigport_deprecated;  /*!< Rig port (internal use). */
     hamlib_port_t_deprecated pttport_deprecated;  /*!< PTT port (internal use). */
     hamlib_port_t_deprecated dcdport_deprecated;  /*!< DCD port (internal use). */
@@ -2524,9 +2522,11 @@ struct rig_state {
 #ifdef HAVE_PTHREAD
     pthread_mutex_t mutex_set_transaction;
 #endif
-    hamlib_port_t rigport;  /*!< Rig port (internal use). */
-    hamlib_port_t pttport;  /*!< PTT port (internal use). */
-    hamlib_port_t dcdport;  /*!< DCD port (internal use). */
+    hamlib_port_t *rigport;  /*!< Rig port (internal use). */
+    hamlib_port_t *pttport;  /*!< PTT port (internal use). */
+    hamlib_port_t *dcdport;  /*!< DCD port (internal use). */
+    /********* DO NOT ADD or CHANGE anything (or than to rename) ABOVE THIS LINE *********/
+    /********* ENSURE ANY NEW ITEMS ARE ADDED AFTER HERE *********/
 };
 
 //! @cond Doxygen_Suppress

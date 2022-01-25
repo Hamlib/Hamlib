@@ -521,10 +521,10 @@ int newcat_open(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: Rig=%s, version=%s\n", __func__,
               rig->caps->model_name, rig->caps->version);
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
-              __func__, rig_s->rigport.write_delay);
+              __func__, rig_s->rigport->write_delay);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay = %i msec\n",
-              __func__, rig_s->rigport.post_write_delay);
+              __func__, rig_s->rigport->post_write_delay);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: serial_handshake = %s \n",
               __func__, handshake[rig->caps->serial_handshake]);
@@ -542,8 +542,8 @@ int newcat_open(RIG *rig)
     priv->trn_state = -1;
 
     // for this sequence we will shorten the timeout so we can detect rig is powered off faster
-    int timeout = rig->state.rigport.timeout;
-    rig->state.rigport.timeout = 100;
+    int timeout = rig->state.rigport->timeout;
+    rig->state.rigport->timeout = 100;
     newcat_get_trn(rig, &priv->trn_state);  /* ignore errors */
 
     /* Currently we cannot cope with AI mode so turn it off in case
@@ -556,7 +556,7 @@ int newcat_open(RIG *rig)
     /* Initialize rig_id in case any subsequent commands need it */
     (void)newcat_get_rigid(rig);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_id=%d\n", __func__, priv->rig_id);
-    rig->state.rigport.timeout = timeout;
+    rig->state.rigport->timeout = timeout;
 
 #if 0 // possible future enhancement?
 
@@ -837,7 +837,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             if (ptt == RIG_PTT_ON)
             {
-                rig_debug(RIG_DEBUG_WARN, "%s: ptt still on...retry#%d\n", __func__, retry);
+                rig_debug(RIG_DEBUG_WARN, "%s: ptt still on..->retry#%d\n", __func__, retry);
                 hl_usleep(100 * 1000); // 100ms pause if ptt still on
             }
         }
@@ -3247,7 +3247,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
         ps = '1';
         // when powering on need a dummy byte to wake it up
         // then sleep  from 1 to 2 seconds so we'll do 1.5 secs
-        write_block(&state->rigport, (unsigned char *) "\n", 1);
+        write_block(state->rigport, (unsigned char *) "\n", 1);
         hl_usleep(1500000);
         break;
 
@@ -3262,10 +3262,10 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PS%c%c", ps, cat_term);
 
-    retval = write_block(&state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str));
+    retval = write_block(state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str));
 
-    retry_save = rig->state.rigport.retry;
-    rig->state.rigport.retry = 0;
+    retry_save = rig->state.rigport->retry;
+    rig->state.rigport->retry = 0;
 
     if (status == RIG_POWER_ON) // wait for wakeup only
     {
@@ -3277,18 +3277,18 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 
             if (retval == RIG_OK)
             {
-                rig->state.rigport.retry = retry_save;
+                rig->state.rigport->retry = retry_save;
                 RETURNFUNC(retval);
             }
 
             rig_debug(RIG_DEBUG_TRACE, "%s: Wait #%d for power up\n", __func__, i + 1);
-            retval = write_block(&state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str));
+            retval = write_block(state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str));
 
             if (retval != RIG_OK) { RETURNFUNC(retval); }
         }
     }
 
-    rig->state.rigport.retry = retry_save;
+    rig->state.rigport->retry = retry_save;
 
     if (i == 9)
     {
@@ -9956,16 +9956,16 @@ int newcat_get_cmd(RIG *rig)
     }
 
 
-    while (rc != RIG_OK && retry_count++ <= state->rigport.retry)
+    while (rc != RIG_OK && retry_count++ <= state->rigport->retry)
     {
-        rig_flush(&state->rigport);  /* discard any unsolicited data */
+        rig_flush(state->rigport);  /* discard any unsolicited data */
 
         if (rc != -RIG_BUSBUSY)
         {
             /* send the command */
             rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
-            if (RIG_OK != (rc = write_block(&state->rigport, (unsigned char *) priv->cmd_str,
+            if (RIG_OK != (rc = write_block(state->rigport, (unsigned char *) priv->cmd_str,
                                             strlen(priv->cmd_str))))
             {
                 RETURNFUNC(rc);
@@ -9973,7 +9973,7 @@ int newcat_get_cmd(RIG *rig)
         }
 
         /* read the reply */
-        if ((rc = read_string(&state->rigport, (unsigned char *) priv->ret_data, sizeof(priv->ret_data),
+        if ((rc = read_string(state->rigport, (unsigned char *) priv->ret_data, sizeof(priv->ret_data),
                               &cat_term, sizeof(cat_term), 0, 1)) <= 0)
         {
             continue;             /* usually a timeout - retry */
@@ -10055,7 +10055,7 @@ int newcat_get_cmd(RIG *rig)
                 }
 
                 rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying %d of %d: '%s'\n", __func__,
-                          retry_count, state->rigport.retry, priv->cmd_str);
+                          retry_count, state->rigport->retry, priv->cmd_str);
 
                 rc = -RIG_ERJCTED; /* retry */
                 break;
@@ -10182,15 +10182,15 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         int bytes;
         char cmd[256]; // big enough
-        rig_flush(&state->rigport);  /* discard any unsolicited data */
+        rig_flush(state->rigport);  /* discard any unsolicited data */
         SNPRINTF(cmd, sizeof(cmd), "%s%s", priv->cmd_str, valcmd);
-        rc = write_block(&state->rigport, (unsigned char *) cmd, strlen(cmd));
+        rc = write_block(state->rigport, (unsigned char *) cmd, strlen(cmd));
 
         if (rc != RIG_OK) { RETURNFUNC(-RIG_EIO); }
 
         if (strlen(valcmd) == 0) { RETURNFUNC(RIG_OK); }
 
-        bytes = read_string(&state->rigport, (unsigned char *) priv->ret_data, sizeof(priv->ret_data),
+        bytes = read_string(state->rigport, (unsigned char *) priv->ret_data, sizeof(priv->ret_data),
                             &cat_term, sizeof(cat_term), 0, 1);
 
         // FA and FB success is now verified in rig.c with a followup query
@@ -10257,9 +10257,9 @@ int newcat_set_cmd(RIG *rig)
     char const *const verify_cmd = RIG_MODEL_FT9000 == rig->caps->rig_model ?
                                    "AI;" : "ID;";
 
-    while (rc != RIG_OK && retry_count++ <= state->rigport.retry)
+    while (rc != RIG_OK && retry_count++ <= state->rigport->retry)
     {
-        rig_flush(&state->rigport);  /* discard any unsolicited data */
+        rig_flush(state->rigport);  /* discard any unsolicited data */
         /* send the command */
         rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
@@ -10280,7 +10280,7 @@ int newcat_set_cmd(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: newcat_set_cmd_validate not implemented...continuing\n", __func__);
 
-        if (RIG_OK != (rc = write_block(&state->rigport, (unsigned char *) priv->cmd_str,
+        if (RIG_OK != (rc = write_block(state->rigport, (unsigned char *) priv->cmd_str,
                                         strlen(priv->cmd_str))))
         {
             RETURNFUNC(rc);
@@ -10311,14 +10311,14 @@ int newcat_set_cmd(RIG *rig)
         /* send the verification command */
         rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", verify_cmd);
 
-        if (RIG_OK != (rc = write_block(&state->rigport, (unsigned char *) verify_cmd,
+        if (RIG_OK != (rc = write_block(state->rigport, (unsigned char *) verify_cmd,
                                         strlen(verify_cmd))))
         {
             RETURNFUNC(rc);
         }
 
         /* read the reply */
-        if ((rc = read_string(&state->rigport, (unsigned char *) priv->ret_data, sizeof(priv->ret_data),
+        if ((rc = read_string(state->rigport, (unsigned char *) priv->ret_data, sizeof(priv->ret_data),
                               &cat_term, sizeof(cat_term), 0, 1)) <= 0)
         {
             continue;             /* usually a timeout - retry */
@@ -10388,7 +10388,7 @@ int newcat_set_cmd(RIG *rig)
                           priv->cmd_str);
 
                 /* read/flush the verify command reply which should still be there */
-                if ((rc = read_string(&state->rigport, (unsigned char *) priv->ret_data, sizeof(priv->ret_data),
+                if ((rc = read_string(state->rigport, (unsigned char *) priv->ret_data, sizeof(priv->ret_data),
                                       &cat_term, sizeof(cat_term), 0, 1)) > 0)
                 {
                     rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
