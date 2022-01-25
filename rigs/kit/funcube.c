@@ -234,7 +234,7 @@ const struct rig_caps funcubeplus_caps =
 
 int funcube_init(RIG *rig)
 {
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = rig->state.rigport;
     struct funcube_priv_data *priv;
 
     rig->state.priv = (struct funcube_priv_data *)calloc(sizeof(
@@ -264,7 +264,7 @@ int funcube_init(RIG *rig)
 
 int funcubeplus_init(RIG *rig)
 {
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = rig->state.rigport;
     struct funcube_priv_data *priv;
 
     rig->state.priv = (struct funcube_priv_data *)calloc(sizeof(
