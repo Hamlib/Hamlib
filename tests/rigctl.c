@@ -486,7 +486,7 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(my_rig->state.rigport->pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /*
@@ -494,28 +494,28 @@ int main(int argc, char *argv[])
      */
     if (ptt_type != RIG_PTT_NONE)
     {
-        my_rig->state.pttport.type.ptt = ptt_type;
+        my_rig->state.pttport->type.ptt = ptt_type;
     }
 
     if (dcd_type != RIG_DCD_NONE)
     {
-        my_rig->state.dcdport.type.dcd = dcd_type;
+        my_rig->state.dcdport->type.dcd = dcd_type;
     }
 
     if (ptt_file)
     {
-        strncpy(my_rig->state.pttport.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(my_rig->state.pttport->pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
-        strncpy(my_rig->state.dcdport.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(my_rig->state.dcdport->pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
     if (serial_rate != 0)
     {
-        my_rig->state.rigport.parm.serial.rate = serial_rate;
+        my_rig->state.rigport->parm.serial.rate = serial_rate;
     }
 
     if (civaddr)

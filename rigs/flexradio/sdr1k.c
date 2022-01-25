@@ -220,7 +220,7 @@ int sdr1k_init(RIG *rig)
 static void pdelay(RIG *rig)
 {
     unsigned char r;
-    par_read_data(&rig->state.rigport, &r); /* ~1us */
+    par_read_data(rig->state.rigport, &r); /* ~1us */
 }
 
 int sdr1k_open(RIG *rig)
@@ -457,7 +457,7 @@ int
 write_latch(RIG *rig, latch_t which, unsigned value, unsigned mask)
 {
     struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
-    hamlib_port_t *pport = &rig->state.rigport;
+    hamlib_port_t *pport = rig->state.rigport;
 
     if (!(L_EXT <= which && which <= L_DDS1))
     {

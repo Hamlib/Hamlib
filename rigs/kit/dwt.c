@@ -625,7 +625,7 @@ const struct rig_caps dwt_caps =
 
 int dwt_init(RIG *rig)
 {
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = rig->state.rigport;
 
     rp->parm.usb.vid = USB_VID_CT;
     rp->parm.usb.pid = USB_PID_CT_DWT;
@@ -639,7 +639,7 @@ int dwt_init(RIG *rig)
 #define MSG_LEN 16
 int dwt_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     int request, value, index;
     unsigned char buf[MSG_LEN] = { 0x4a, 0x00, 0x03, 0x00, 0xff, 0xff, 0x32 };
     int requesttype, r;
@@ -672,7 +672,7 @@ int dwt_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 const char *dwt_get_info(RIG *rig)
 {
     static char buf[64];
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     struct libusb_device_descriptor desc;
 
     /* always succeeds since libusb-1.0.16 */
