@@ -775,7 +775,7 @@ int fasdr_open(RIG *rig)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     int ret, i;
     double f;
     unsigned char buffer[4];
@@ -967,7 +967,7 @@ int si570xxxusb_get_conf(RIG *rig, token_t token, char *val)
 
 static int setBPF(RIG *rig, int enable)
 {
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     /* allocate enough space for up to 16 filters */
     unsigned short FilterCrossOver[16];
     int nBytes;
@@ -1019,7 +1019,7 @@ int si570xxxusb_open(RIG *rig)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     int ret;
     unsigned char buffer[4];
 
@@ -1084,7 +1084,7 @@ int si570xxxusb_open(RIG *rig)
 const char *si570xxxusb_get_info(RIG *rig)
 {
     static char buf[64];
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     struct libusb_device_descriptor desc;
     int ret;
     unsigned char buffer[2];
@@ -1198,7 +1198,7 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     int ret;
     unsigned char buffer[6];
     int request = REQUEST_SET_FREQ;
@@ -1264,7 +1264,7 @@ int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     int ret;
 
     unsigned char buffer[4];
@@ -1334,7 +1334,7 @@ int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     unsigned char buffer[6];
     int ret;
 
@@ -1366,7 +1366,7 @@ int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     int ret;
     unsigned char buffer[4];
     uint32_t iFreq;
@@ -1395,7 +1395,7 @@ int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int si570xxxusb_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    libusb_device_handle *udh = rig->state.rigport.handle;
+    libusb_device_handle *udh = rig->state.rigport->handle;
     int ret;
     unsigned char buffer[3];
 
