@@ -691,7 +691,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     // Now we have to copy our new rig state hamlib_port structure to the deprecated one
     // Clients built on older 4.X versions will use the old structure
     // Clients built on newer 4.5 versions will use the new structure
-    memcpy(&rig->state.rigport_deprecated, rig->state.rigport, sizeof(rig->state.rigport_deprecated));
+    memcpy(&rig->state.rigport_deprecated, &rig->state.rigport, sizeof(rig->state.rigport_deprecated));
 
     return (rig);
 }
