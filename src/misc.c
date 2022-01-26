@@ -1868,7 +1868,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
               __func__, funcname, linenum,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), split);
 
-    if (vfo == RIG_VFO_CURR)
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_VFO)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Leaving currVFO alone\n", __func__);
         return vfo;  // don't modify vfo for RIG_VFO_CURR
