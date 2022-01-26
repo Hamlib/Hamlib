@@ -277,6 +277,10 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
             return NULL;
         }
     }
+    // Now we have to copy our new rig state hamlib_port structure to the deprecated one
+    // Clients built on older 4.X versions will use the old structure
+    // Clients built on newer 4.5 versions will use the new structure
+    memcpy(&amp->state.ampport_deprecated, &amp->state.ampport, sizeof(amp->state.ampport_deprecated));
 
     return amp;
 }
@@ -394,6 +398,7 @@ int HAMLIB_API amp_open(AMP *amp)
         return -RIG_EINVAL;
     }
 
+    memcpy(&rs->ampport_deprecated, &rs->ampport, sizeof(hamlib_port_t_deprecated));
 
     add_opened_amp(amp);
 
@@ -491,6 +496,7 @@ int HAMLIB_API amp_close(AMP *amp)
 
         rs->ampport.fd = -1;
     }
+    memcpy(&amp->state.ampport_deprecated, &amp->state.ampport, sizeof(amp->state.ampport_deprecated));
 
     remove_opened_amp(amp);
 
