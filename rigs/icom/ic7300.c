@@ -1223,7 +1223,6 @@ const struct rig_caps ic705_caps =
     .alc_cal = IC7300_ALC_CAL,
     .rfpower_meter_cal = IC7300_RFPOWER_METER_CAL,
     .comp_meter_cal = IC7300_COMP_METER_CAL,
-    .rfpower_meter_cal = IC7300_RFPOWER_METER_CAL,
     .vd_meter_cal = IC7300_VD_METER_CAL,
     .id_meter_cal = IC7300_ID_METER_CAL,
 
