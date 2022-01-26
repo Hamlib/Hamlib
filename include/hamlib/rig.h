@@ -2240,9 +2240,9 @@ typedef struct hamlib_port {
  
 typedef struct hamlib_port_deprecated {
     union {
-        rig_port_t rig;     /*!< Communication port type */
-        ptt_type_t ptt;     /*!< PTT port type */
-        dcd_type_t dcd;     /*!< DCD port type */
+        rig_port_t_deprecated rig;     /*!< Communication port type */
+        ptt_type_t_deprecated ptt;     /*!< PTT port type */
+        dcd_type_t_deprecated dcd;     /*!< DCD port type */
     } type;
 
     int fd;                 /*!< File descriptor */
