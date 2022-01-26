@@ -1682,7 +1682,7 @@ readline_repeat:
 
     if (my_rig->state.comm_state == 0)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: rig not open...trying to reopen\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: %p rig not open...trying to reopen\n", __func__, &my_rig->state.comm_state);
         rig_open(my_rig);
     }
 

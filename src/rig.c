@@ -459,7 +459,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->rigport.fd = -1;
     rs->pttport.fd = -1;
     rs->comm_state = 0;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==0?=%d\n", __func__, __LINE__, &rs->comm_state,
               rs->comm_state);
     rs->rigport.type.rig = caps->port_type; /* default from caps */
 #if defined(ASYNC_BUG) && defined(HAVE_PTHREAD)
@@ -681,6 +681,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     // Clients built on older 4.X versions will use the old structure
     // Clients built on newer 4.5 versions will use the new structure
     memcpy(&rig->state.rigport_deprecated, &rig->state.rigport, sizeof(rig->state.rigport_deprecated));
+    memcpy(&rig->state.pttport_deprecated, &rig->state.pttport, sizeof(rig->state.pttport_deprecated));
+    memcpy(&rig->state.dcdport_deprecated, &rig->state.dcdport, sizeof(rig->state.dcdport_deprecated));
 
     return (rig);
 }
@@ -779,7 +781,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (rs->comm_state)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==1?=%d\n", __func__,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==1?=%d\n", __func__, __LINE__, &rs->comm_state,
                   rs->comm_state);
         port_close(&rs->rigport, rs->rigport.type.rig);
         rs->comm_state = 0;
@@ -827,7 +829,6 @@ int HAMLIB_API rig_open(RIG *rig)
     }
 
     status = port_open(&rs->rigport);
-    memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
 
     if (status < 0)
     {
@@ -1048,7 +1049,6 @@ int HAMLIB_API rig_open(RIG *rig)
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
-        memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
         RETURNFUNC(status);
     }
 
@@ -1058,16 +1058,14 @@ int HAMLIB_API rig_open(RIG *rig)
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
-        memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
         RETURNFUNC(status);
     }
 
 #endif
-
     add_opened_rig(rig);
 
     rs->comm_state = 1;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==1?=%d\n", __func__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: %p rs->comm_state==1?=%d\n", __func__, &rs->comm_state,
               rs->comm_state);
 
     /*
@@ -1150,6 +1148,8 @@ int HAMLIB_API rig_open(RIG *rig)
 //    freq_t freq;
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_A, &freq);
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_B, &freq);
+    memcpy(&(rs->rigport_deprecated),&(rs->rigport),sizeof(hamlib_port_t_deprecated));
+
 
     RETURNFUNC(RIG_OK);
 }
@@ -1303,13 +1303,16 @@ int HAMLIB_API rig_close(RIG *rig)
     rs->dcdport.fd = rs->pttport.fd = -1;
 
     port_close(&rs->rigport, rs->rigport.type.rig);
-    memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
 
     remove_opened_rig(rig);
 
     rs->comm_state = 0;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==0?=%d\n", __func__, __LINE__, &rs->comm_state,
               rs->comm_state);
+
+    memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
+    memcpy(&rs->pttport_deprecated,&rs->pttport,sizeof(hamlib_port_t_deprecated));
+    memcpy(&rs->dcdport_deprecated,&rs->dcdport,sizeof(hamlib_port_t_deprecated));
 
     RETURNFUNC(RIG_OK);
 }
@@ -2891,6 +2894,8 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
 
     if (retcode != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: return code=%d\n", __func__, retcode); }
+
+    memcpy(&rs->pttport_deprecated,&rs->pttport,sizeof(hamlib_port_t_deprecated));
 
     ELAPSED2;
 
