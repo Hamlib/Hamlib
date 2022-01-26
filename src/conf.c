@@ -1032,8 +1032,6 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
         return -RIG_EINVAL;
     }
 
-    memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
-
     return RIG_OK;
 }
 
