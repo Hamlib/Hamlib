@@ -280,7 +280,7 @@ struct amp_state
   /*
    * non overridable fields, internal use
    */
-  hamlib_port_t ampport;  /*!< Amplifier port (internal use). */
+  hamlib_port_t_deprecated ampport_deprecated;  /*!< Amplifier port (internal use). Deprecated */
 
   int comm_state;         /*!< Comm port state, opened/closed. */
   rig_ptr_t priv;         /*!< Pointer to private amplifier state data. */
@@ -290,6 +290,7 @@ struct amp_state
 
   gran_t level_gran[RIG_SETTING_MAX]; /*!< Level granularity. */
   gran_t parm_gran[RIG_SETTING_MAX];  /*!< Parameter granularity. */
+  hamlib_port_t ampport;  /*!< Amplifier port (internal use). */
 };
 
 
