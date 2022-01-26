@@ -222,7 +222,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 #endif
 
 #ifdef ASYNC_BUG
-    if (p->asyncio)
+    if (p->async)
     {
         status = create_sync_data_pipe(p);
         if (status < 0)
@@ -932,7 +932,7 @@ static int port_wait_for_data(hamlib_port_t *p, int direct)
 int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
 {
 
-    if (!p->asyncio)
+    if (!p->async)
     {
         return -RIG_EINTERNAL;
     }
@@ -942,7 +942,7 @@ int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer,
 
 int HAMLIB_API write_block_sync_error(hamlib_port_t *p, const unsigned char *txbuffer, size_t count)
 {
-    if (!p->asyncio)
+    if (!p->async)
     {
         return -RIG_EINTERNAL;
     }
@@ -1095,7 +1095,7 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, direct=%d\n", __func__, direct);
 
 #ifdef ASYNC_BUG
-    if (!p->asyncio && !direct)
+    if (!p->async && !direct)
 #else
     if (!direct)
 #endif
@@ -1192,7 +1192,7 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer, size_t 
 int HAMLIB_API read_block(hamlib_port_t *p, unsigned char *rxbuffer, size_t count)
 {
 #ifdef ASYNC_BUG
-    return read_block_generic(p, rxbuffer, count, !p->asyncio);
+    return read_block_generic(p, rxbuffer, count, !p->async);
 #else
     return read_block_generic(p, rxbuffer, count, 1);
 #endif
@@ -1236,7 +1236,7 @@ static int read_string_generic(hamlib_port_t *p,
     static int minlen = 1; // dynamic minimum length of rig response data
 
 #ifdef ASYNC_BUG
-    if (!p->asyncio && !direct)
+    if (!p->async && !direct)
 #else
     if (!direct)
 #endif
@@ -1412,7 +1412,7 @@ int HAMLIB_API read_string(hamlib_port_t *p,
         int expected_len)
 {
 #ifdef ASYNC_BUG
-    return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, expected_len, !p->asyncio);
+    return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, expected_len, !p->async);
 #else
     return read_string_generic(p, rxbuffer, rxmax, stopset, stopset_len, flush_flag, expected_len, 1);
 #endif

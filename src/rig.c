@@ -463,7 +463,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
               rs->comm_state);
     rs->rigport.type.rig = caps->port_type; /* default from caps */
 #if defined(ASYNC_BUG) && defined(HAVE_PTHREAD)
-    rs->rigport.asyncio = 0;
+    rs->rigport.async = 0;
 #endif
 
     switch (caps->port_type)
@@ -677,12 +677,6 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
             return (NULL);
         }
     }
-    // Now we have to copy our new rig state hamlib_port structure to the deprecated one
-    // Clients built on older 4.X versions will use the old structure
-    // Clients built on newer 4.5 versions will use the new structure
-    memcpy(&rig->state.rigport_deprecated, &rig->state.rigport, sizeof(rig->state.rigport_deprecated));
-    memcpy(&rig->state.pttport_deprecated, &rig->state.pttport, sizeof(rig->state.pttport_deprecated));
-    memcpy(&rig->state.dcdport_deprecated, &rig->state.dcdport, sizeof(rig->state.dcdport_deprecated));
 
     return (rig);
 }
@@ -727,7 +721,7 @@ int HAMLIB_API rig_open(RIG *rig)
 #if defined(ASYNC_BUG) && defined(HAVE_PTHREAD)
     // Enable async data only if it's enabled through conf settings *and* supported by the backend
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
-    rs->rigport.asyncio = rs->async_data_enabled;
+    rs->rigport.async = rs->async_data_enabled;
 #endif
 
     if (strlen(rs->rigport.pathname) > 0)
@@ -1083,7 +1077,6 @@ int HAMLIB_API rig_open(RIG *rig)
             async_data_handler_stop(rig);
 #endif
             port_close(&rs->rigport, rs->rigport.type.rig);
-            memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
             RETURNFUNC(status);
         }
@@ -1222,7 +1215,6 @@ int HAMLIB_API rig_close(RIG *rig)
             if (rs->pttport.fd != rs->rigport.fd)
             {
                 port_close(&rs->pttport, RIG_PORT_SERIAL);
-                memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
             }
         }
 
@@ -1238,7 +1230,6 @@ int HAMLIB_API rig_close(RIG *rig)
             if (rs->pttport.fd != rs->rigport.fd)
             {
                 port_close(&rs->pttport, RIG_PORT_SERIAL);
-                memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
             }
         }
 
@@ -1279,7 +1270,6 @@ int HAMLIB_API rig_close(RIG *rig)
         if (rs->dcdport.fd != rs->rigport.fd)
         {
             port_close(&rs->dcdport, RIG_PORT_SERIAL);
-            memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
         }
 
         break;
