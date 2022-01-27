@@ -1141,8 +1141,6 @@ int HAMLIB_API rig_open(RIG *rig)
 //    freq_t freq;
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_A, &freq);
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_B, &freq);
-    memcpy(&(rs->rigport_deprecated),&(rs->rigport),sizeof(hamlib_port_t_deprecated));
-
 
     RETURNFUNC(RIG_OK);
 }
@@ -1299,10 +1297,6 @@ int HAMLIB_API rig_close(RIG *rig)
     rs->comm_state = 0;
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==0?=%d\n", __func__, __LINE__, &rs->comm_state,
               rs->comm_state);
-
-    memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
-    memcpy(&rs->pttport_deprecated,&rs->pttport,sizeof(hamlib_port_t_deprecated));
-    memcpy(&rs->dcdport_deprecated,&rs->dcdport,sizeof(hamlib_port_t_deprecated));
 
     RETURNFUNC(RIG_OK);
 }
@@ -2884,8 +2878,6 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
 
     if (retcode != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: return code=%d\n", __func__, retcode); }
-
-    memcpy(&rs->pttport_deprecated,&rs->pttport,sizeof(hamlib_port_t_deprecated));
 
     ELAPSED2;
 

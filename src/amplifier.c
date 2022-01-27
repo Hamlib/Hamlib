@@ -412,7 +412,6 @@ int HAMLIB_API amp_open(AMP *amp)
         }
     }
 
-    memcpy(&rs->ampport_deprecated, &rs->ampport, sizeof(hamlib_port_t_deprecated));
 
     return RIG_OK;
 }
@@ -496,8 +495,6 @@ int HAMLIB_API amp_close(AMP *amp)
     remove_opened_amp(amp);
 
     rs->comm_state = 0;
-
-    memcpy(&amp->state.ampport_deprecated, &amp->state.ampport, sizeof(amp->state.ampport_deprecated));
 
     return RIG_OK;
 }
