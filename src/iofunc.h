@@ -41,7 +41,6 @@ extern HAMLIB_EXPORT(int) write_block(hamlib_port_t *p,
                                       const unsigned char *txbuffer,
                                       size_t count);
 
-#ifdef ASYNC_BUG
 extern HAMLIB_EXPORT(int) write_block_sync(hamlib_port_t *p,
                                            const unsigned char *txbuffer,
                                            size_t count);
@@ -49,7 +48,6 @@ extern HAMLIB_EXPORT(int) write_block_sync(hamlib_port_t *p,
 extern HAMLIB_EXPORT(int) write_block_sync_error(hamlib_port_t *p,
                                                  const unsigned char *txbuffer,
                                                  size_t count);
-#endif
 
 extern HAMLIB_EXPORT(int) read_string(hamlib_port_t *p,
                                       unsigned char *rxbuffer,

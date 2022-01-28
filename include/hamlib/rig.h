@@ -2518,7 +2518,6 @@ struct rig_state {
 
     volatile unsigned int snapshot_packet_sequence_number;
 
-#define ASYNC_BUG 1
     volatile int multicast_publisher_run;
     void *multicast_publisher_priv_data;
     volatile int async_data_handler_thread_run;
