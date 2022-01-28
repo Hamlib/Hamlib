@@ -214,11 +214,9 @@ typedef struct async_data_handler_priv_data_s
     async_data_handler_args args;
 } async_data_handler_priv_data;
 
-#ifdef ASYNC_BUG
 static int async_data_handler_start(RIG *rig);
 static int async_data_handler_stop(RIG *rig);
 void *async_data_handler(void *arg);
-#endif
 #endif
 
 /*
@@ -462,7 +460,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==0?=%d\n", __func__, __LINE__, &rs->comm_state,
               rs->comm_state);
     rs->rigport.type.rig = caps->port_type; /* default from caps */
-#if defined(ASYNC_BUG) && defined(HAVE_PTHREAD)
+#if defined(HAVE_PTHREAD)
     rs->rigport.asyncio = 0;
 #endif
 
@@ -724,11 +722,9 @@ int HAMLIB_API rig_open(RIG *rig)
     rs = &rig->state;
     rs->rigport.rig = rig;
 
-#if defined(ASYNC_BUG) && defined(HAVE_PTHREAD)
     // Enable async data only if it's enabled through conf settings *and* supported by the backend
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
     rs->rigport.asyncio = rs->async_data_enabled;
-#endif
 
     if (strlen(rs->rigport.pathname) > 0)
     {
@@ -1052,7 +1048,6 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC(status);
     }
 
-#ifdef ASYNC_BUG
     status = async_data_handler_start(rig);
 
     if (status < 0)
@@ -1061,7 +1056,6 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC(status);
     }
 
-#endif
     add_opened_rig(rig);
 
     rs->comm_state = 1;
@@ -1079,9 +1073,7 @@ int HAMLIB_API rig_open(RIG *rig)
         if (status != RIG_OK)
         {
             remove_opened_rig(rig);
-#ifdef ASYNC_BUG
             async_data_handler_stop(rig);
-#endif
             port_close(&rs->rigport, rs->rigport.type.rig);
             memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
@@ -1195,9 +1187,7 @@ int HAMLIB_API rig_close(RIG *rig)
         caps->rig_close(rig);
     }
 
-#ifdef ASYNC_BUG
     async_data_handler_stop(rig);
-#endif
 
     /*
      * FIXME: what happens if PTT and rig ports are the same?
@@ -6894,7 +6884,6 @@ HAMLIB_EXPORT(void) sync_callback(int lock)
 
 #define MAX_FRAME_LENGTH 1024
 
-#ifdef ASYNC_BUG
 static int async_data_handler_start(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -6908,7 +6897,6 @@ static int async_data_handler_start(RIG *rig)
         RETURNFUNC(RIG_OK);
     }
 
-#ifdef ASYNC_BUG
 #ifdef HAVE_PTHREAD
 
     rs->async_data_handler_thread_run = 1;
@@ -6932,13 +6920,11 @@ static int async_data_handler_start(RIG *rig)
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
-#endif
-#endif
+#endif // HAVE_PTHREAD
 
     RETURNFUNC(RIG_OK);
 }
 
-#ifdef ASYNC_BUG
 static int async_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -6975,27 +6961,21 @@ static int async_data_handler_stop(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
-#endif
-#endif
 
 void *async_data_handler(void *arg)
 {
-#ifdef ASYNC_BUG
     struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)
             arg;
     RIG *rig = args->rig;
     unsigned char frame[MAX_FRAME_LENGTH];
     struct rig_state *rs = &rig->state;
     int result;
-#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting async data handler thread\n", __func__);
 
     // TODO: check how to enable "transceive" on recent Kenwood/Yaesu rigs
     // TODO: add initial support for async in Kenwood kenwood_transaction (+one) functions -> add transaction_active flag usage
     // TODO: add initial support for async in Yaesu newcat_get_cmd/set_cmd (+validate) functions -> add transaction_active flag usage
-
-#ifdef ASYNC_BUG
 
     while (rs->async_data_handler_thread_run)
     {
@@ -7058,7 +7038,6 @@ void *async_data_handler(void *arg)
         }
     }
 
-#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Stopping async data handler thread\n", __func__);
 
