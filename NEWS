@@ -15,6 +15,8 @@ Version 5.x
         * Rig state poll routine to serve commonly used data like frequency and mode from cache. Mikael, OH3BHX
 
 Version 4.5
+        * deprecated hamlib_port_t at front of rig_state structure -- new one at end of structure
+        * New RIG_LEVEL_BAND_SELECT for Yaesu rigs
         * 202?-??-??
         * New rig_get_conf2 to replace rig_get_conf buffer overflow potential
         * New rot_get_conf2 to reaplce rot_get_conf buffer overflow potential

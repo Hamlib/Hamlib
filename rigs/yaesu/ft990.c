@@ -262,7 +262,7 @@ const struct rig_caps ft990_caps =
     .has_set_func =       RIG_FUNC_LOCK | RIG_FUNC_TUNER,
     .has_get_level =      RIG_LEVEL_STRENGTH | RIG_LEVEL_SWR | RIG_LEVEL_ALC | \
     RIG_LEVEL_RFPOWER | RIG_LEVEL_COMP,
-    .has_set_level =      RIG_LEVEL_NONE,
+    .has_set_level =      RIG_LEVEL_BAND_SELECT,
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_BACKLIGHT,
     .ctcss_list =         NULL,
