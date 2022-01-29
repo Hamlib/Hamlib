@@ -547,6 +547,7 @@ typedef unsigned int vfo_t;
 #define RIG_TARGETABLE_ANT (1<<10)
 #define RIG_TARGETABLE_ROOFING (1<<11) // roofing filter targetable by VFO
 #define RIG_TARGETABLE_SPECTRUM (1<<12) // spectrum scope targetable by VFO
+#define RIG_TARGETABLE_BAND (1<<13) // Band select -- e.g. Yaeus BS command
 #define RIG_TARGETABLE_COMMON (RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_PTT | RIG_TARGETABLE_MEM | RIG_TARGETABLE_BANK)
 #define RIG_TARGETABLE_ALL  0x7fffffff
 //! @endcond
@@ -694,6 +695,32 @@ typedef enum {
     RIG_OP_TUNE =       (1 << 11),  /*!< \c TUNE -- Start tune */
     RIG_OP_TOGGLE =     (1 << 12)   /*!< \c TOGGLE -- Toggle VFOA and VFOB */
 } vfo_op_t;
+
+/**
+ * \brief Band enumeration
+ *
+ * Some rig commands like Yaesu band select know about bands
+ *
+ * \sa rig_set_level()
+ */
+typedef enum {
+    RIG_BAND_160M = 0,              /*!< \c 160M */
+    RIG_BAND_80M  = (1 << 1),       /*!< \c 80M */
+    RIG_BAND_60M  = (1 << 2),       /*!< \c 60M */
+    RIG_BAND_40M  = (1 << 3),       /*!< \c 40M */
+    RIG_BAND_30M  = (1 << 4),       /*!< \c 30M */
+    RIG_BAND_20M  = (1 << 5),       /*!< \c 20M */
+    RIG_BAND_17M  = (1 << 6),       /*!< \c 17M */
+    RIG_BAND_15M  = (1 << 7),       /*!< \c 15M */
+    RIG_BAND_12M  = (1 << 8),       /*!< \c 12M */
+    RIG_BAND_10M  = (1 << 9),       /*!< \c 10M */
+    RIG_BAND_6M   = (1 << 10),      /*!< \c 6M */
+    RIG_BAND_144MHZ = (1 << 11),    /*!< \c 144MHz */
+    RIG_BAND_430MHZ = (1 << 12),    /*!< \c 430MHz */
+    RIG_BAND_GEN = (1 << 13),       /*!< \c 60M */
+    RIG_BAND_MW  = (1 << 14),       /*!< \c Medium Wave */
+    RIG_BAND_AIR = (1 << 15),       /*!< \c Air band */
+} band_t;
 
 
 /**
@@ -958,8 +985,7 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_SPECTRUM_AVG         CONSTANT_64BIT_FLAG(46)      /*!< \c SPECTRUM_AVG -- Spectrum scope averaging mode, arg int (see struct rig_spectrum_avg_mode). Supported averaging modes defined in rig caps. */
 #define RIG_LEVEL_SPECTRUM_ATT         CONSTANT_64BIT_FLAG(47)      /*!< \c SPECTRUM_ATT -- Spectrum scope attenuator, arg int (dB). Supported attenuator values defined in rig caps. */
 #define RIG_LEVEL_TEMP_METER           CONSTANT_64BIT_FLAG(48)      /*!< \c TEMP_METER -- arg int (C, centigrade) */
-#define RIG_LEVEL_48           CONSTANT_64BIT_FLAG(48)      /*!< \c Future use */
-#define RIG_LEVEL_49           CONSTANT_64BIT_FLAG(49)      /*!< \c Future use */
+#define RIG_LEVEL_BAND_SELECT          CONSTANT_64BIT_FLAG(49)      /*!< \c BAND_SELECT -- arg enum BAND_ENUM */
 #define RIG_LEVEL_50           CONSTANT_64BIT_FLAG(50)      /*!< \c Future use */
 #define RIG_LEVEL_51           CONSTANT_64BIT_FLAG(51)      /*!< \c Future use */
 #define RIG_LEVEL_52           CONSTANT_64BIT_FLAG(52)      /*!< \c Future use */
