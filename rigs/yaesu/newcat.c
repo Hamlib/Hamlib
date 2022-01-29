@@ -7151,6 +7151,10 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
             {
                 RETURNFUNC(TRUE);
             }
+            else if (is_ftdx3000dm && valid_commands[search_index].ft3000)
+            {
+                RETURNFUNC(TRUE);
+            }
             else if (is_ftdx101d && valid_commands[search_index].ft101d)
             {
                 RETURNFUNC(TRUE);
@@ -7360,6 +7364,16 @@ int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo)
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: alias vfo = %s\n", __func__, rig_strvfo(*vfo));
 
+    if (vfo == RIG_VFO_NONE) 
+    {
+        int rc = rig_get_vfo(rig, vfo);
+        if (rc != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_get_vfo failed: %s\n", __func__, rig_strvfo(*vfo));
+            RETURNFUNC(rc);
+        }
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo==None so get vfo=%s\n", __func__, rig_strvfo(*vfo));
+    }
     switch (*vfo)
     {
     case RIG_VFO_A:
