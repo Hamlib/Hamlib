@@ -2532,6 +2532,10 @@ struct rig_state {
     hamlib_port_t dcdport;  /*!< DCD port (internal use). */
     /********* DO NOT ADD or CHANGE anything (or than to rename) ABOVE THIS LINE *********/
     /********* ENSURE ANY NEW ITEMS ARE ADDED AFTER HERE *********/
+    /* flags instructing the rig_get routines to use cached values when asyncio is in use */
+    int use_cached_freq; /*<! flag instructing rig_get_freq to use cached values when asyncio is in use */
+    int use_cached_mode; /*<! flag instructing rig_get_mode to use cached values when asyncio is in use */
+    int use_cached_ptt;  /*<! flag instructing rig_get_ptt to use cached values when asyncio is in use */
 };
 
 //! @cond Doxygen_Suppress
