@@ -322,7 +322,7 @@ const struct rig_caps ft817_caps =
     .has_get_level =
     RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
     RIG_LEVEL_ALC | RIG_LEVEL_SWR,
-    .has_set_level =       RIG_LEVEL_NONE,
+    .has_set_level =       RIG_LEVEL_BAND_SELECT,
     .has_get_parm =        RIG_PARM_NONE,
     .has_set_parm =        RIG_PARM_NONE,
     .level_gran =          {},                     /* granularity */
@@ -468,7 +468,7 @@ const struct rig_caps ft818_caps =
     .has_get_level =
     RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
     RIG_LEVEL_ALC | RIG_LEVEL_SWR,
-    .has_set_level =       RIG_LEVEL_NONE,
+    .has_set_level =       RIG_LEVEL_BAND_SELECT,
     .has_get_parm =        RIG_PARM_NONE,
     .has_set_parm =        RIG_PARM_NONE,
     .level_gran =          {},                     /* granularity */
