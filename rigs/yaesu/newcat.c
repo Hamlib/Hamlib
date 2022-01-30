@@ -9799,10 +9799,13 @@ int newcat_get_rigid(RIG *rig)
             s += 2;     /* ID0310, jump past ID */
             priv->rig_id = atoi(s);
         }
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, *s = %s\n", priv->rig_id,
+        rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, idstr = %s\n", priv->rig_id,
               s == NULL ? "NULL" : s);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "rig_id = %d\n", priv->rig_id)
+    }
 
     RETURNFUNC(priv->rig_id);
 }
