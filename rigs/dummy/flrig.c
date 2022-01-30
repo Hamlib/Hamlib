@@ -144,7 +144,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20220123.0",
+    .version = "20220129.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -336,7 +336,7 @@ static char *xml_parse2(char *xml, char *value, int valueLen)
 
             if (streq(p, "/value")) { continue; } // empty value
 
-            if (streq(p, "i4") || streq(p, "double"))
+            if (streq(p, "i4") || streq(p, "double") || streq(p, "int") || streq(p, " string"))
             {
                 p = strtok_r(NULL, delims, &pr);
             }
