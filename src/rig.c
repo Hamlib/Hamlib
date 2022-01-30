@@ -3975,7 +3975,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
 
     // some rigs exhibit undesirable flashing when swapping vfos in split
     // so we turn it off, do our thing, and turn split back on
-    rx_vfo = RIG_VFO_A;
+    rx_vfo = vfo;
 
     if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_B) { rx_vfo = RIG_VFO_A; }
     else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_A) { rx_vfo = RIG_VFO_B; }
