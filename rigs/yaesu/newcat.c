@@ -7364,7 +7364,7 @@ int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo)
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: alias vfo = %s\n", __func__, rig_strvfo(*vfo));
 
-    if (vfo == RIG_VFO_NONE) 
+    if (*vfo == RIG_VFO_NONE) 
     {
         int rc = rig_get_vfo(rig, vfo);
         if (rc != RIG_OK)
