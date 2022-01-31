@@ -85,25 +85,23 @@ static int create_sync_data_pipe(hamlib_port_t *p)
 {
     int status;
 
-    ENTERFUNC;
-
     status = async_pipe_create(&p->sync_data_pipe, PIPE_BUFFER_SIZE_DEFAULT, p->timeout);
     if (status < 0)
     {
         close_sync_data_pipe(p);
-        RETURNFUNC(-RIG_EINTERNAL);
+        return(-RIG_EINTERNAL);
     }
 
     status = async_pipe_create(&p->sync_data_error_pipe, PIPE_BUFFER_SIZE_DEFAULT, p->timeout);
     if (status < 0)
     {
         close_sync_data_pipe(p);
-        RETURNFUNC(-RIG_EINTERNAL);
+        return(-RIG_EINTERNAL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: created data pipe for synchronous transactions\n", __func__);
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 #else
