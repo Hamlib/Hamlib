@@ -487,17 +487,17 @@ static int multicast_publisher_write_data(multicast_publisher_args *mcast_publis
     if (result < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error writing to multicast publisher data pipe, result=%d\n", __func__, (int)result);
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 
     if (result != length)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: could not write to multicast publisher data pipe, expected %d bytes, wrote %d bytes\n",
                 __func__, (int)length, (int)result);
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 static int multicast_publisher_read_data(multicast_publisher_args *mcast_publisher_args, size_t length, unsigned char *data)
@@ -512,24 +512,24 @@ static int multicast_publisher_read_data(multicast_publisher_args *mcast_publish
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error waiting for multicast publisher data, result=%ld\n", __func__, (long) result);
         }
-        RETURNFUNC(result);
+        return(result);
     }
 
     result = async_pipe_read(mcast_publisher_args->data_pipe, data, length, MULTICAST_DATA_PIPE_TIMEOUT_MILLIS);
     if (result < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error reading multicast publisher data, result=%ld\n", __func__, (long) result);
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 
     if (result != length)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: could not read from multicast publisher data pipe, expected %ld bytes, read %ld bytes\n",
                 __func__, (long) length, (long) result);
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 #else
