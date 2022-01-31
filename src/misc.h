@@ -159,12 +159,19 @@ void errmsg(int err, char *s, const char *func, const char *file, int line);
 #define ENTERFUNC {     ++rig->state.depth; \
                         rig_debug(RIG_DEBUG_VERBOSE, "%.*s%d:%s(%d):%s entered\n", rig->state.depth, spaces(), rig->state.depth, __FILENAME__, __LINE__, __func__); \
                   }
+#define ENTERFUNC2 {    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s entered\n", __FILENAME__, __LINE__, __func__); \
+                   }
 // we need to refer to rc just once as it 
 // could be a function call 
 #define RETURNFUNC(rc) {do { \
 			            int rctmp = rc; \
                         rig_debug(RIG_DEBUG_VERBOSE, "%.*s%d:%s(%d):%s return(%ld) %s\n", rig->state.depth, spaces(), rig->state.depth, __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror(rctmp):""); \
                         --rig->state.depth; \
+                        return (rctmp); \
+                       } while(0);}
+#define RETURNFUNC2(rc) {do { \
+			            int rctmp = rc; \
+                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return(%ld) %s\n",  __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror(rctmp):""); \
                         return (rctmp); \
                        } while(0);}
 
