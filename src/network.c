@@ -456,23 +456,19 @@ static int multicast_publisher_create_data_pipe(multicast_publisher_priv_data *m
 {
     int status;
 
-    ENTERFUNC;
-
     status = async_pipe_create(&mcast_publisher_priv->args.data_pipe, PIPE_BUFFER_SIZE_DEFAULT, MULTICAST_DATA_PIPE_TIMEOUT_MILLIS);
     if (status != 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: multicast publisher data pipe creation failed with status=%d, err=%s\n", __func__,
                 status, strerror(errno));
-        RETURNFUNC(-RIG_EINTERNAL);
+        return(-RIG_EINTERNAL);
     }
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 static void multicast_publisher_close_data_pipe(multicast_publisher_priv_data *mcast_publisher_priv)
 {
-    ENTERFUNC;
-
     if (mcast_publisher_priv->args.data_pipe != NULL) {
         async_pipe_close(mcast_publisher_priv->args.data_pipe);
         mcast_publisher_priv->args.data_pipe = NULL;
