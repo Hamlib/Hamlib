@@ -68,8 +68,6 @@ static void init_sync_data_pipe(hamlib_port_t *p)
 
 static void close_sync_data_pipe(hamlib_port_t *p)
 {
-    ENTERFUNC;
-
     if (p->sync_data_pipe != NULL)
     {
         async_pipe_close(p->sync_data_pipe);
