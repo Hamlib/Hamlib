@@ -401,12 +401,12 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         if (!strcmp(val, "Unset"))
         {
             rs->rigport.parm.serial.rts_state = RIG_SIGNAL_UNSET;
-            rs->rigport_deprecated.parm.serial.rts_state = RIG_SIGNAL_OFF;
+            rs->rigport_deprecated.parm.serial.rts_state = RIG_SIGNAL_UNSET;
         }
         else if (!strcmp(val, "ON"))
         {
             rs->rigport.parm.serial.rts_state = RIG_SIGNAL_ON;
-            rs->rigport_deprecated.parm.serial.rts_state = RIG_SIGNAL_OFF;
+            rs->rigport_deprecated.parm.serial.rts_state = RIG_SIGNAL_ON;
         }
         else if (!strcmp(val, "OFF"))
         {
@@ -511,37 +511,37 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         else if (!strcmp(val, "DTR"))
         {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_DTR;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_RIG_MICDATA;
+            rs->pttport_deprecated.type.ptt = RIG_PTT_SERIAL_DTR;
         }
         else if (!strcmp(val, "RTS"))
         {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_RTS;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_RIG_MICDATA;
+            rs->pttport_deprecated.type.ptt = RIG_PTT_SERIAL_RTS;
         }
         else if (!strcmp(val, "Parallel"))
         {
             rs->pttport.type.ptt = RIG_PTT_PARALLEL;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_RIG_MICDATA;
+            rs->pttport_deprecated.type.ptt = RIG_PTT_PARALLEL;
         }
         else if (!strcmp(val, "CM108"))
         {
             rs->pttport.type.ptt = RIG_PTT_CM108;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_RIG_MICDATA;
+            rs->pttport_deprecated.type.ptt = RIG_PTT_CM108;
         }
         else if (!strcmp(val, "GPIO"))
         {
             rs->pttport.type.ptt = RIG_PTT_GPIO;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_RIG_MICDATA;
+            rs->pttport_deprecated.type.ptt = RIG_PTT_GPIO;
         }
         else if (!strcmp(val, "GPION"))
         {
             rs->pttport.type.ptt = RIG_PTT_GPION;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_RIG_MICDATA;
+            rs->pttport_deprecated.type.ptt = RIG_PTT_GPION;
         }
         else if (!strcmp(val, "None"))
         {
             rs->pttport.type.ptt = RIG_PTT_NONE;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_RIG_MICDATA;
+            rs->pttport_deprecated.type.ptt = RIG_PTT_NONE;
         }
         else
         {
@@ -574,42 +574,42 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         else if (!strcmp(val, "DSR"))
         {
             rs->dcdport.type.dcd = RIG_DCD_SERIAL_DSR;
-            rs->dcdport_deprecated.type.dcd = RIG_DCD_RIG;
+            rs->dcdport_deprecated.type.dcd = RIG_DCD_SERIAL_DSR;
         }
         else if (!strcmp(val, "CTS"))
         {
             rs->dcdport.type.dcd = RIG_DCD_SERIAL_CTS;
-            rs->dcdport_deprecated.type.dcd = RIG_DCD_RIG;
+            rs->dcdport_deprecated.type.dcd = RIG_DCD_SERIAL_CTS;
         }
         else if (!strcmp(val, "CD"))
         {
             rs->dcdport.type.dcd = RIG_DCD_SERIAL_CAR;
-            rs->dcdport_deprecated.type.dcd = RIG_DCD_RIG;
+            rs->dcdport_deprecated.type.dcd = RIG_DCD_SERIAL_CAR;
         }
         else if (!strcmp(val, "Parallel"))
         {
             rs->dcdport.type.dcd = RIG_DCD_PARALLEL;
-            rs->dcdport_deprecated.type.dcd = RIG_DCD_RIG;
+            rs->dcdport_deprecated.type.dcd = RIG_DCD_PARALLEL;
         }
         else if (!strcmp(val, "CM108"))
         {
             rs->dcdport.type.dcd = RIG_DCD_CM108;
-            rs->dcdport_deprecated.type.dcd = RIG_DCD_RIG;
+            rs->dcdport_deprecated.type.dcd = RIG_DCD_CM108;
         }
         else if (!strcmp(val, "GPIO"))
         {
             rs->dcdport.type.dcd = RIG_DCD_GPIO;
-            rs->dcdport_deprecated.type.dcd = RIG_DCD_RIG;
+            rs->dcdport_deprecated.type.dcd = RIG_DCD_GPIO;
         }
         else if (!strcmp(val, "GPION"))
         {
             rs->dcdport.type.dcd = RIG_DCD_GPION;
-            rs->dcdport_deprecated.type.dcd = RIG_DCD_RIG;
+            rs->dcdport_deprecated.type.dcd = RIG_DCD_GPION;
         }
         else if (!strcmp(val, "None"))
         {
             rs->dcdport.type.dcd = RIG_DCD_NONE;
-            rs->dcdport_deprecated.type.dcd = RIG_DCD_RIG;
+            rs->dcdport_deprecated.type.dcd = RIG_DCD_NONE;
         }
         else
         {
