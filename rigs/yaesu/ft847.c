@@ -913,7 +913,7 @@ static int ft847_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     retval = ft847_send_priv_cmd(rig, FT_847_NATIVE_CAT_ON);
-    RETURNFUNC(retval);
+    RETURNFUNC2(retval);
 }
 
 /*
@@ -1360,7 +1360,7 @@ static int ft847_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    if (retval != RIG_OK) { RETURNFUNC2(retval); }
 
     return ft847_set_freq(rig, RIG_VFO_TX, freq);
 }
