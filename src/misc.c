@@ -2584,7 +2584,7 @@ char *date_strget(char *buf, int buflen, int localtime)
 
 const char *spaces()
 {
-    static char *s = "                    ";
+    static char *s = "                     ";
     return s;
 }
 
