@@ -1080,8 +1080,6 @@ void *handle_socket(void *arg)
     int ext_resp = 0;
     char resp_sep = '\n';
 
-    ENTERFUNC;
-
     fsockin = get_fsockin(handle_data_arg);
 
     if (!fsockin)

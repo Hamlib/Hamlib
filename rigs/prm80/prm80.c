@@ -646,7 +646,7 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
 
     if (ret < 0)
     {
-        RETURNFUNC(ret);
+        return(ret);
     }
 
     // The response length is fixed
@@ -666,7 +666,7 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: len=%d < %d, statebuf='%s'\n", __func__,
                   ret, CMD_E_RSP_LEN, statebuf);
-        RETURNFUNC(-RIG_EPROTO);
+        return(-RIG_EPROTO);
     }
 
     p = strchr(statebuf, '>');

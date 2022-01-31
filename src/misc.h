@@ -38,6 +38,8 @@
 
 __BEGIN_DECLS
 
+// a function to return just a string of spaces for indenting rig debug lines
+const char *spaces();
 /*
  * Do a hex dump of the unsigned char array.
  */
@@ -154,14 +156,17 @@ extern HAMLIB_EXPORT(char *)date_strget(char *buf, int buflen, int localtime);
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 void errmsg(int err, char *s, const char *func, const char *file, int line);
 #define ERRMSG(err, s) errmsg(err,  s, __func__, __FILENAME__, __LINE__)
-#define ENTERFUNC rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s entered\n", __FILENAME__, __LINE__, __func__)
+#define ENTERFUNC {     ++rig->state.depth; \
+                        rig_debug(RIG_DEBUG_VERBOSE, "%.*s%d:%s(%d):%s entered\n", rig->state.depth, spaces(), rig->state.depth, __FILENAME__, __LINE__, __func__); \
+                  }
 // we need to refer to rc just once as it 
 // could be a function call 
-#define RETURNFUNC(rc) do { \
+#define RETURNFUNC(rc) {do { \
 			            int rctmp = rc; \
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s return(%ld) %s\n", __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror(rctmp):""); \
+                        rig_debug(RIG_DEBUG_VERBOSE, "%.*s%d:%s(%d):%s return(%ld) %s\n", rig->state.depth, spaces(), rig->state.depth, __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror(rctmp):""); \
+                        --rig->state.depth; \
                         return (rctmp); \
-                       } while(0)
+                       } while(0);}
 
 #define CACHE_RESET {\
     elapsed_ms(&rig->state.cache.time_freqMainA, HAMLIB_ELAPSED_INVALIDATE);\

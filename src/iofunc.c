@@ -164,7 +164,7 @@ static int create_sync_data_pipe(hamlib_port_t *p)
         rig_debug(RIG_DEBUG_ERR, "%s: synchronous data pipe open status=%d, err=%s\n", __func__,
                 status, strerror(errno));
         close_sync_data_pipe(p);
-        RETURNFUNC(-RIG_EINTERNAL);
+        return(-RIG_EINTERNAL);
     }
 
     p->fd_sync_read = sync_pipe_fds[0];
@@ -188,7 +188,7 @@ static int create_sync_data_pipe(hamlib_port_t *p)
         rig_debug(RIG_DEBUG_ERR, "%s: synchronous data error code pipe open status=%d, err=%s\n", __func__,
                 status, strerror(errno));
         close_sync_data_pipe(p);
-        RETURNFUNC(-RIG_EINTERNAL);
+        return(-RIG_EINTERNAL);
     }
 
     p->fd_sync_error_read = sync_pipe_fds[0];
@@ -196,7 +196,7 @@ static int create_sync_data_pipe(hamlib_port_t *p)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: created data pipe for synchronous transactions\n", __func__);
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 #endif
@@ -211,8 +211,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
     int status;
     int want_state_delay = 0;
 
-    ENTERFUNC;
-
     p->fd = -1;
     init_sync_data_pipe(p);
 
@@ -221,7 +219,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         status = create_sync_data_pipe(p);
         if (status < 0)
         {
-            RETURNFUNC(status);
+            return(status);
         }
     }
 
@@ -235,7 +233,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
             rig_debug(RIG_DEBUG_ERR, "%s: serial_open(%s) status=%d, err=%s\n", __func__,
                       p->pathname, status, strerror(errno));
             close_sync_data_pipe(p);
-            RETURNFUNC(status);
+            return(status);
         }
 
         if (p->parm.serial.rts_state != RIG_SIGNAL_UNSET
@@ -249,7 +247,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status != 0)
         {
             close_sync_data_pipe(p);
-            RETURNFUNC(status);
+            return(status);
         }
 
         if (p->parm.serial.dtr_state != RIG_SIGNAL_UNSET)
@@ -263,7 +261,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: set_dtr status=%d\n", __func__, status);
             close_sync_data_pipe(p);
-            RETURNFUNC(status);
+            return(status);
         }
 
         /*
@@ -283,7 +281,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status < 0)
         {
             close_sync_data_pipe(p);
-            RETURNFUNC(status);
+            return(status);
         }
 
         break;
@@ -294,7 +292,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status < 0)
         {
             close_sync_data_pipe(p);
-            RETURNFUNC(status);
+            return(status);
         }
 
         break;
@@ -305,7 +303,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status < 0)
         {
             close_sync_data_pipe(p);
-            RETURNFUNC(-RIG_EIO);
+            return(-RIG_EIO);
         }
 
         p->fd = status;
@@ -319,7 +317,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status < 0)
         {
             close_sync_data_pipe(p);
-            RETURNFUNC(status);
+            return(status);
         }
 
         break;
@@ -337,17 +335,17 @@ int HAMLIB_API port_open(hamlib_port_t *p)
         if (status < 0)
         {
             close_sync_data_pipe(p);
-            RETURNFUNC(status);
+            return(status);
         }
 
         break;
 
     default:
         close_sync_data_pipe(p);
-        RETURNFUNC(-RIG_EINVAL);
+        return(-RIG_EINVAL);
     }
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 
@@ -360,8 +358,6 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 {
     int ret = RIG_OK;
-
-    ENTERFUNC;
 
     if (p->fd != -1)
     {
@@ -397,7 +393,7 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 
     close_sync_data_pipe(p);
 
-    RETURNFUNC(ret);
+    return(ret);
 }
 
 
@@ -941,7 +937,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer, size
     if (p->fd < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: port not open\n", __func__);
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 

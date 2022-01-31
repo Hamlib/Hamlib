@@ -439,7 +439,7 @@ static int newcat_band_index(freq_t freq)
     else if (freq >= MHz(0.5) && freq < MHz(1.705)) { band = 12; } // MW Medium Wave
 
     rig_debug(RIG_DEBUG_TRACE, "%s: freq=%g, band=%d\n", __func__, freq, band);
-    RETURNFUNC(band);
+    return(band);
 }
 
 /*
@@ -10506,26 +10506,22 @@ rmode_t newcat_rmode(char mode)
 {
     int i;
 
-    ENTERFUNC;
-
     for (i = 0; i < sizeof(newcat_mode_conv) / sizeof(newcat_mode_conv[0]); i++)
     {
         if (newcat_mode_conv[i].modechar == mode)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: %s for %c\n", __func__,
                       rig_strrmode(newcat_mode_conv[i].mode), mode);
-            RETURNFUNC(newcat_mode_conv[i].mode);
+            return(newcat_mode_conv[i].mode);
         }
     }
 
-    RETURNFUNC(RIG_MODE_NONE);
+    return(RIG_MODE_NONE);
 }
 
 char newcat_modechar(rmode_t rmode)
 {
     int i;
-
-    ENTERFUNC;
 
     for (i = 0; i < sizeof(newcat_mode_conv) / sizeof(newcat_mode_conv[0]); i++)
     {
@@ -10533,11 +10529,11 @@ char newcat_modechar(rmode_t rmode)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: return %c for %s\n", __func__,
                       newcat_mode_conv[i].modechar, rig_strrmode(rmode));
-            RETURNFUNC(newcat_mode_conv[i].modechar);
+            return(newcat_mode_conv[i].modechar);
         }
     }
 
-    RETURNFUNC('0');
+    return('0');
 }
 
 rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)

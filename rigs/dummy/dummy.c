@@ -150,7 +150,6 @@ static const struct confparams dummy_cfg_params[] =
 
 static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
 {
-    ENTERFUNC;
     chan->channel_num = 0;
     chan->vfo = vfo;
     strcpy(chan->channel_desc, rig_strvfo(vfo));
@@ -208,7 +207,6 @@ static void copy_chan(channel_t *dest, const channel_t *src)
     struct ext_list *saved_ext_levels;
     int i;
 
-    ENTERFUNC;
     /* TODO: ext_levels[] of different sizes */
 
     for (i = 0; !RIG_IS_EXT_END(src->ext_levels[i]) &&
@@ -1776,7 +1774,6 @@ static int dummy_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
 static void chan_vfo(channel_t *chan, vfo_t vfo)
 {
-    ENTERFUNC;
     chan->vfo = vfo;
     strcpy(chan->channel_desc, rig_strvfo(vfo));
 }
@@ -2648,7 +2645,6 @@ struct rig_caps dummy_no_vfo_caps =
 
 DECLARE_INITRIG_BACKEND(dummy)
 {
-    ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
     rig_register(&dummy_caps);
@@ -2657,6 +2653,5 @@ DECLARE_INITRIG_BACKEND(dummy)
     rig_register(&trxmanager_caps);
     rig_register(&dummy_no_vfo_caps);
 //    rig_register(&tci1x_caps);
-
-    RETURNFUNC(RIG_OK);
+    return RIG_OK;
 }
