@@ -4382,6 +4382,28 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         break;
 
+    case RIG_LEVEL_NB:
+        if (!newcat_valid_command(rig, "NL"))
+        {
+            RETURNFUNC(-RIG_ENAVAIL);
+        }
+
+        fpf = newcat_scale_float(10, val.f);
+
+        if (fpf < 0)
+        {
+            fpf = 0;
+        }
+
+        if (fpf > 10)
+        {
+            fpf = 10;
+        }
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL00%02d%c", fpf, cat_term);
+
+        break;
+
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -4646,6 +4668,15 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VG%c", cat_term);
+        break;
+
+    case RIG_LEVEL_NB:
+        if (!newcat_valid_command(rig, "NL"))
+        {
+            RETURNFUNC(-RIG_ENAVAIL);
+        }
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL0%c", cat_term);
         break;
 
     /*
@@ -5407,6 +5438,10 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         val->f = (float)atoi(retlvl) / scale;
+        break;
+
+    case RIG_LEVEL_NB:
+        val->f = (float)(atoi(retlvl) / 10.);
         break;
 
     default:
