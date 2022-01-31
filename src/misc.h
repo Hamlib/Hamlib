@@ -39,7 +39,7 @@
 __BEGIN_DECLS
 
 // a function to return just a string of spaces for indenting rig debug lines
-const char *spaces();
+HAMLIB_EXPORT (const char *) spaces();
 /*
  * Do a hex dump of the unsigned char array.
  */
