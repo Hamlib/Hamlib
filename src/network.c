@@ -181,7 +181,7 @@ int network_init()
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error creating socket, WSAStartup ret=%d\n",
                       __func__, ret);
-            RETURNFUNC(-RIG_EIO);
+            return(-RIG_EIO);
         }
     }
 
