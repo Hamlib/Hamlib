@@ -263,10 +263,10 @@ static int check_vfo(vfo_t vfo)
         break;                  // will default to A in which_vfo
 
     default:
-        RETURNFUNC(FALSE);
+        return(FALSE);
     }
 
-    RETURNFUNC(TRUE);
+    return(TRUE);
 }
 
 /*
@@ -513,8 +513,6 @@ static rmode_t modeMapGetHamlib(const char *modeTCI)
     int i;
     char modeTCICheck[MAXBUFLEN+2];
 
-    ENTERFUNC;
-
     SNPRINTF(modeTCICheck, sizeof(modeTCICheck), "|%s|", modeTCI);
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
@@ -525,13 +523,13 @@ static rmode_t modeMapGetHamlib(const char *modeTCI)
         if (modeMap[i].mode_tci1x
                 && strcmp(modeMap[i].mode_tci1x, modeTCICheck) == 0)
         {
-            RETURNFUNC(modeMap[i].mode_hamlib);
+            return(modeMap[i].mode_hamlib);
         }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: mode requested: %s, not in modeMap\n", __func__,
               modeTCI);
-    RETURNFUNC(RIG_MODE_NONE);
+    return(RIG_MODE_NONE);
 }
 
 

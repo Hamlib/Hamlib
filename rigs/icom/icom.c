@@ -9304,12 +9304,12 @@ DECLARE_PROBERIG_BACKEND(icom)
 
     if (!port)
     {
-        RETURNFUNC(RIG_MODEL_NONE);
+        return(RIG_MODEL_NONE);
     }
 
     if (port->type.rig != RIG_PORT_SERIAL)
     {
-        RETURNFUNC(RIG_MODEL_NONE);
+        return(RIG_MODEL_NONE);
     }
 
     port->write_delay = port->post_write_delay = 0;
@@ -9328,7 +9328,7 @@ DECLARE_PROBERIG_BACKEND(icom)
 
         if (retval != RIG_OK)
         {
-            RETURNFUNC(RIG_MODEL_NONE);
+            return(RIG_MODEL_NONE);
         }
 
         /*
@@ -9367,7 +9367,7 @@ DECLARE_PROBERIG_BACKEND(icom)
                  * is this a CI-V device?
                  */
                 close(port->fd);
-                RETURNFUNC(RIG_MODEL_NONE);
+                return(RIG_MODEL_NONE);
             }
             else if (buf[4] == NAK)
             {
@@ -9478,11 +9478,11 @@ DECLARE_PROBERIG_BACKEND(icom)
          */
         if (model != RIG_MODEL_NONE)
         {
-            RETURNFUNC(model);
+            return(model);
         }
     }
 
-    RETURNFUNC(model);
+    return(model);
 }
 
 /*
@@ -9580,5 +9580,5 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&x6100_caps);
     rig_register(&g90_caps);
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }

@@ -263,10 +263,10 @@ static int check_vfo(vfo_t vfo)
         break;                  // will default to A in which_vfo
 
     default:
-        RETURNFUNC(FALSE);
+        return(FALSE);
     }
 
-    RETURNFUNC(TRUE);
+    return(TRUE);
 }
 
 /*Rather than use some huge XML library we only need a few things
@@ -697,8 +697,6 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
     int i;
     char modeFLRigCheck[64];
 
-    ENTERFUNC;
-
     SNPRINTF(modeFLRigCheck, sizeof(modeFLRigCheck), "|%s|", modeFLRig);
 
     for (i = 0; modeMap[i].mode_hamlib != 0; ++i)
@@ -709,13 +707,13 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
         if (modeMap[i].mode_flrig
                 && strcmp(modeMap[i].mode_flrig, modeFLRigCheck) == 0)
         {
-            RETURNFUNC(modeMap[i].mode_hamlib);
+            return(modeMap[i].mode_hamlib);
         }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: mode requested: %s, not in modeMap\n", __func__,
               modeFLRig);
-    RETURNFUNC(RIG_MODE_NONE);
+    return(RIG_MODE_NONE);
 }
 
 

@@ -208,7 +208,6 @@ int parse_array_int(const char *s, const char *delim, int *array, int array_len)
     char *dup = strdup(s);
     char *rest = dup;
     int n = 0;
-    ENTERFUNC;
 
     while ((p = strtok_r(rest, delim, &rest)))
     {
@@ -233,7 +232,6 @@ int parse_array_double(const char *s, const char *delim, double *array,
     char *dup = strdup(s);
     char *rest = dup;
     int n = 0;
-    ENTERFUNC;
 
     while ((p = strtok_r(rest, delim, &rest)))
     {

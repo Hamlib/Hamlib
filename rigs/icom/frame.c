@@ -52,7 +52,6 @@ int make_cmd_frame(unsigned char frame[], unsigned char re_id, unsigned char ctr
 {
     int i = 0;
 
-    ENTERFUNC;
 #if 0
     frame[i++] = PAD;   /* give old rigs a chance to flush their rx buffers */
 #endif
@@ -86,7 +85,7 @@ int make_cmd_frame(unsigned char frame[], unsigned char re_id, unsigned char ctr
 
     frame[i++] = FI;        /* EOM code */
 
-    RETURNFUNC(i);
+    return(i);
 }
 
 int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
@@ -104,7 +103,7 @@ int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: invalid Icom CI-V frame, no preamble found\n",
                   __func__);
-        RETURNFUNC(-RIG_EPROTO);
+        return(-RIG_EPROTO);
     }
 
     return frame_len;
@@ -468,7 +467,6 @@ static int read_icom_frame_generic(hamlib_port_t *p, const unsigned char rxbuffe
     int retries = 10;
     unsigned char *rx_ptr = (unsigned char *) rxbuffer;
 
-    ENTERFUNC;
     // zeroize the buffer so we can still check contents after timeouts
     memset(rx_ptr, 0, rxbuffer_len);
 
@@ -493,14 +491,14 @@ static int read_icom_frame_generic(hamlib_port_t *p, const unsigned char rxbuffe
 
         if (i < 0 && i != RIG_BUSBUSY) /* die on errors */
         {
-            RETURNFUNC(i);
+            return(i);
         }
 
         if (i == 0) /* nothing read?*/
         {
             if (--retries <= 0) /* Tried enough times? */
             {
-                RETURNFUNC(read);
+                return(read);
             }
         }
 
@@ -514,7 +512,7 @@ static int read_icom_frame_generic(hamlib_port_t *p, const unsigned char rxbuffe
     while ((read < rxbuffer_len) && (rxbuffer[read - 1] != FI)
             && (rxbuffer[read - 1] != COL));
 
-    RETURNFUNC(read);
+    return(read);
 }
 
 int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],

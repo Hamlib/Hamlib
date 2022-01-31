@@ -33,6 +33,7 @@ typedef enum nc_rigid_e
     NC_RIGID_FTDX9000MP      = 103,
     NC_RIGID_FTDX5000        = 362,
     NC_RIGID_FTDX3000        = 460,
+    NC_RIGID_FTDX3000DM      = 462,
     NC_RIGID_FTDX101D        = 681,
     NC_RIGID_FTDX101MP       = 682
 } nc_rigid_t;
@@ -153,7 +154,7 @@ int main(int argc, char *argv[])
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            pbuf = "IF059014200000+000000700000;";
+            pbuf = "IF00107041000+000000200000;";
             n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
 
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            int id = NC_RIGID_FTDX3000;
+            int id = NC_RIGID_FTDX3000DM;
             SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);

@@ -2468,7 +2468,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
 
     default:
         //rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%lld\n", __func__, rig_caps);
-        RETURNFUNC(-RIG_EINVAL);
+        return(-RIG_EINVAL);
     }
 }
 
@@ -2581,6 +2581,13 @@ char *date_strget(char *buf, int buflen, int localtime)
     strcat(buf, tmpbuf);
     return buf;
 }
+
+const char *spaces()
+{
+    static char *s = "                    ";
+    return s;
+}
+
 
 
 //! @endcond

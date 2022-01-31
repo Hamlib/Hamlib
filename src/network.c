@@ -208,18 +208,16 @@ int network_open(hamlib_port_t *rp, int default_port)
     struct sockaddr_in client;
     char hoststr[256], portstr[6] = "";
 
-    ENTERFUNC;
-
 #ifdef __MINGW32__
     status = network_init();
 
-    if (status != RIG_OK) { RETURNFUNC(status); }
+    if (status != RIG_OK) { return(status); }
 
 #endif
 
     if (!rp)
     {
-        RETURNFUNC(-RIG_EINVAL);
+        return(-RIG_EINVAL);
     }
 
     memset(&hints, 0, sizeof(hints));
@@ -245,7 +243,7 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             status = parse_hoststr(rp->pathname, sizeof(rp->pathname), hoststr, portstr);
 
-            if (status != RIG_OK) { RETURNFUNC(status); }
+            if (status != RIG_OK) { return(status); }
 
             rig_debug(RIG_DEBUG_TRACE, "%s: hoststr=%s, portstr=%s\n", __func__, hoststr,
                       portstr);
@@ -291,7 +289,7 @@ int network_open(hamlib_port_t *rp, int default_port)
                   __func__,
                   rp->pathname,
                   gai_strerror(status));
-        RETURNFUNC(-RIG_ECONF);
+        return(-RIG_ECONF);
     }
 
     saved_res = res;
@@ -310,7 +308,7 @@ int network_open(hamlib_port_t *rp, int default_port)
         {
             handle_error(RIG_DEBUG_ERR, "socket");
             freeaddrinfo(saved_res);
-            RETURNFUNC(-RIG_EIO);
+            return(-RIG_EIO);
         }
 
         if (connect(fd, res->ai_addr, res->ai_addrlen) == 0)
@@ -338,7 +336,7 @@ int network_open(hamlib_port_t *rp, int default_port)
                   "%s: failed to connect to %s\n",
                   __func__,
                   rp->pathname);
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 
     rp->fd = fd;
@@ -348,7 +346,7 @@ int network_open(hamlib_port_t *rp, int default_port)
     rig_debug(RIG_DEBUG_TRACE, "%s: client port=%d\n", __func__, client.sin_port);
     rp->client_port = client.sin_port;
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 
@@ -420,8 +418,6 @@ int network_close(hamlib_port_t *rp)
 {
     int ret = 0;
 
-    ENTERFUNC;
-
     if (rp->fd > 0)
     {
 #ifdef __MINGW32__
@@ -443,7 +439,7 @@ int network_close(hamlib_port_t *rp)
     }
 
 #endif
-    RETURNFUNC(ret);
+    return(ret);
 }
 //! @endcond
 
@@ -543,14 +539,12 @@ static int multicast_publisher_create_data_pipe(multicast_publisher_priv_data *m
     int data_pipe_fds[2];
     int status;
 
-    ENTERFUNC;
-
     status = pipe(data_pipe_fds);
     if (status != 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: multicast publisher data pipe creation failed with status=%d, err=%s\n", __func__,
                 status, strerror(errno));
-        RETURNFUNC(-RIG_EINTERNAL);
+        return(-RIG_EINTERNAL);
     }
 
     int flags = fcntl(data_pipe_fds[0], F_GETFD);
@@ -563,13 +557,11 @@ static int multicast_publisher_create_data_pipe(multicast_publisher_priv_data *m
     mcast_publisher_priv->args.data_read_fd = data_pipe_fds[0];
     mcast_publisher_priv->args.data_write_fd = data_pipe_fds[1];
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 static void multicast_publisher_close_data_pipe(multicast_publisher_priv_data *mcast_publisher_priv)
 {
-    ENTERFUNC;
-
     if (mcast_publisher_priv->args.data_read_fd != -1) {
         close(mcast_publisher_priv->args.data_read_fd);
         mcast_publisher_priv->args.data_read_fd = -1;
@@ -590,17 +582,17 @@ static int multicast_publisher_write_data(multicast_publisher_args *mcast_publis
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error writing to multicast publisher data pipe, result=%d, err=%s\n", __func__,
                 (int)result, strerror(errno));
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 
     if (result != length)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: could not write to multicast publisher data pipe, expected %ld bytes, wrote %ld bytes\n",
                 __func__, (long) length, (long) result);
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 static int multicast_publisher_read_data(multicast_publisher_args *mcast_publisher_args, size_t length, unsigned char *data)
@@ -621,7 +613,7 @@ static int multicast_publisher_read_data(multicast_publisher_args *mcast_publish
     retval = select(fd + 1, &rfds, NULL, &efds, &timeout);
     if (retval == 0)
     {
-        RETURNFUNC(-RIG_ETIMEOUT);
+        return(-RIG_ETIMEOUT);
     }
 
     if (retval < 0)
@@ -645,21 +637,21 @@ static int multicast_publisher_read_data(multicast_publisher_args *mcast_publish
     {
         if (errno == EAGAIN)
         {
-            RETURNFUNC(-RIG_ETIMEOUT);
+            return(-RIG_ETIMEOUT);
         }
 
         rig_debug(RIG_DEBUG_ERR, "%s: error reading multicast publisher data: %s\n", __func__, strerror(errno));
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 
     if (result != length)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: could not read from multicast publisher data pipe, expected %ld bytes, read %ld bytes\n",
                 __func__, (long) length, (long) result);
-        RETURNFUNC(-RIG_EIO);
+        return(-RIG_EIO);
     }
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 #endif
@@ -779,7 +771,7 @@ static int multicast_publisher_read_packet(multicast_publisher_args *mcast_publi
     result = multicast_publisher_read_data(mcast_publisher_args, sizeof(packet), (unsigned char *) &packet);
     if (result < 0)
     {
-        RETURNFUNC(result);
+        return(result);
     }
 
     switch (packet.type)
@@ -792,14 +784,14 @@ static int multicast_publisher_read_packet(multicast_publisher_args *mcast_publi
                     mcast_publisher_args, sizeof(struct rig_spectrum_line), (unsigned char *) spectrum_line);
             if (result < 0)
             {
-                RETURNFUNC(result);
+                return(result);
             }
 
             if (packet.data_length - sizeof(struct rig_spectrum_line) != spectrum_line->spectrum_data_length)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: multicast publisher data error, expected %d bytes of spectrum data, got %d bytes\n",
                         __func__, (int)spectrum_line->spectrum_data_length, (int)(packet.data_length - sizeof(struct rig_spectrum_line)));
-                RETURNFUNC(-RIG_EPROTO);
+                return(-RIG_EPROTO);
             }
 
             spectrum_line->spectrum_data = spectrum_data;
@@ -807,17 +799,17 @@ static int multicast_publisher_read_packet(multicast_publisher_args *mcast_publi
             result = multicast_publisher_read_data(mcast_publisher_args, spectrum_line->spectrum_data_length, spectrum_data);
             if (result < 0)
             {
-                RETURNFUNC(result);
+                return(result);
             }
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: unexpected multicast publisher data packet type: %d\n", __func__, packet.type);
-            RETURNFUNC(-RIG_EPROTO);
+            return(-RIG_EPROTO);
     }
 
     *type = packet.type;
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 void *multicast_publisher(void *arg)

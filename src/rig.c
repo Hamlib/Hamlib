@@ -261,13 +261,13 @@ static int remove_opened_rig(RIG *rig)
             }
 
             free(p);
-            RETURNFUNC(RIG_OK);
+            return(RIG_OK);
         }
 
         q = p;
     }
 
-    RETURNFUNC(-RIG_EINVAL); /* Not found in list ! */
+    return(-RIG_EINVAL); /* Not found in list ! */
 }
 
 
@@ -297,11 +297,11 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
     {
         if ((*cfunc)(p->rig, data) == 0)
         {
-            RETURNFUNC(RIG_OK);
+            return(RIG_OK);
         }
     }
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 #endif /* !DOC_HIDDEN */
@@ -373,7 +373,7 @@ static int rig_check_rig_caps()
                   &caps_test.macro_name);
     }
 
-    RETURNFUNC(rc);
+    return(rc);
 }
 
 /**
@@ -1488,7 +1488,12 @@ static int twiddling(RIG *rig)
  *
  * \sa rig_get_freq()
  */
+#if BUILTINFUNC
+#undef rig_set_freq
+int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq, const char *func)
+#else
 int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+#endif
 {
     const struct rig_caps *caps;
     int retcode;
@@ -1496,8 +1501,13 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     vfo_t vfo_save;
 
     ELAPSED1;
+#if BUILTINFUNC
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f, called from %s\n", __func__,
+              rig_strvfo(vfo), freq, func);
+#else
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
+#endif
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -1716,7 +1726,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (CHECK_RIG_ARG(rig))
     {
-        RETURNFUNC(-RIG_EINVAL);
+        return(-RIG_EINVAL);
     }
 
     ELAPSED1;
@@ -1724,7 +1734,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (!freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: freq ptr invalid\n", __func__);
-        RETURNFUNC(-RIG_EINVAL);
+        return(-RIG_EINVAL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) called vfo=%s\n", __func__, __LINE__,
@@ -1755,7 +1765,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_get_cache(rig, vfo, freq, &cache_ms_freq, &mode, &cache_ms_mode, &width,
                       &cache_ms_width);
         ELAPSED2;
-        RETURNFUNC(RIG_OK);
+        return(RIG_OK);
     }
 
     rig_cache_show(rig, __func__, __LINE__);
@@ -1774,7 +1784,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (retcode != RIG_OK)
         {
-            RETURNFUNC(retcode);
+            return(retcode);
         }
 
         if (ptt)
@@ -1783,7 +1793,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                       "%s: split is on so returning VFOA last known freq\n",
                       __func__);
             *freq = rig->state.cache.freqMainA;
-            RETURNFUNC(RIG_OK);
+            return(RIG_OK);
         }
     }
 
@@ -1800,7 +1810,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%.0f\n", __func__,
                   rig_strvfo(vfo), cache_ms_freq, *freq);
         ELAPSED2;
-        RETURNFUNC(RIG_OK);
+        return(RIG_OK);
     }
     else
     {
@@ -1814,7 +1824,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (caps->get_freq == NULL)
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        return(-RIG_ENAVAIL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): vfo_opt=%d, model=%d\n", __func__,
@@ -1857,7 +1867,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (!caps->set_vfo)
         {
-            RETURNFUNC(-RIG_ENAVAIL);
+            return(-RIG_ENAVAIL);
         }
 
         TRACE;
@@ -1865,7 +1875,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (retcode != RIG_OK)
         {
-            RETURNFUNC(retcode);
+            return(retcode);
         }
 
         rig_cache_show(rig, __func__, __LINE__);
@@ -1912,7 +1922,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_cache_show(rig, __func__, __LINE__);
 
     ELAPSED2;
-    RETURNFUNC(retcode);
+    return(retcode);
 }
 
 /**
@@ -1935,7 +1945,7 @@ int HAMLIB_API rig_get_freqs(RIG *rig, freq_t *freqA, freq_t freqB)
 {
     // we will attempt to avoid vfo swapping in this routine
 
-    RETURNFUNC(-RIG_ENIMPL);
+    return(-RIG_ENIMPL);
 
 }
 
@@ -2241,7 +2251,7 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
     {
         if (rs->filters[i].modes & mode)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: return filter#%d, width=%d\n", __func__, i,
+            rig_debug(RIG_DEBUG_VERBOSE, "%.*s%d:%s: return filter#%d, width=%d\n", rig->state.depth, spaces(), rig->state.depth, __func__, i,
                       (int)rs->filters[i].width);
             RETURNFUNC(rs->filters[i].width);
         }
@@ -5598,11 +5608,9 @@ extern int rig_probe_all_backends(hamlib_port_t *p,
  */
 rig_model_t HAMLIB_API rig_probe(hamlib_port_t *port)
 {
-    ENTERFUNC;
-
     if (!port)
     {
-        RETURNFUNC(RIG_MODEL_NONE);
+        return(RIG_MODEL_NONE);
     }
 
     return rig_probe_first(port);
@@ -5630,11 +5638,9 @@ int HAMLIB_API rig_probe_all(hamlib_port_t *port,
                              rig_probe_func_t cfunc,
                              rig_ptr_t data)
 {
-    ENTERFUNC;
-
     if (!port)
     {
-        RETURNFUNC(-RIG_EINVAL);
+        return(-RIG_EINVAL);
     }
 
     return rig_probe_all_backends(port, cfunc, data);

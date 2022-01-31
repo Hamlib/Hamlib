@@ -24,6 +24,8 @@
 #ifndef _RIG_H
 #define _RIG_H 1
 
+#define BUILTINFUNC 0
+
 #define TRACE rig_debug(RIG_DEBUG_TRACE,"%s(%d) trace\n", __FILE__, __LINE__)
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
@@ -2562,6 +2564,7 @@ struct rig_state {
     int use_cached_freq; /*<! flag instructing rig_get_freq to use cached values when asyncio is in use */
     int use_cached_mode; /*<! flag instructing rig_get_mode to use cached values when asyncio is in use */
     int use_cached_ptt;  /*<! flag instructing rig_get_ptt to use cached values when asyncio is in use */
+    int depth; /*<! a depth counter to use for debug indentation and such */
 };
 
 //! @cond Doxygen_Suppress
@@ -2654,10 +2657,14 @@ extern HAMLIB_EXPORT(int) rig_open HAMLIB_PARAMS((RIG *rig));
 extern HAMLIB_EXPORT(int)
 rig_flush(hamlib_port_t *port);
 
+#if BUILTINFUNC
+#define rig_set_freq(r,v, f) rig_set_vfo(r,v,f,__builtin_FUNCTION())
+#else
 extern HAMLIB_EXPORT(int)
 rig_set_freq HAMLIB_PARAMS((RIG *rig,
                             vfo_t vfo,
                             freq_t freq));
+#endif
 extern HAMLIB_EXPORT(int)
 rig_get_freq HAMLIB_PARAMS((RIG *rig,
                             vfo_t vfo,
@@ -2674,7 +2681,7 @@ rig_get_mode HAMLIB_PARAMS((RIG *rig,
                             rmode_t *mode,
                             pbwidth_t *width));
 
-#if 0
+#if BUILTINFUNC
 #define rig_set_vfo(r,v) rig_set_vfo(r,v,__builtin_FUNCTION())
 extern HAMLIB_EXPORT(int)
 rig_set_vfo HAMLIB_PARAMS((RIG *rig,
@@ -3272,7 +3279,7 @@ extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debu
 
 // Measuring elapsed time -- local variable inside function when macro is used
 #define ELAPSED1 struct timespec __begin; elapsed_ms(&__begin, HAMLIB_ELAPSED_SET);
-#define ELAPSED2 rig_debug(RIG_DEBUG_TRACE, "%s: elapsed=%.0lfms\n", __func__, elapsed_ms(&__begin, HAMLIB_ELAPSED_GET));
+#define ELAPSED2 rig_debug(RIG_DEBUG_TRACE, "%.*s%d:%s: elapsed=%.0lfms\n", rig->state.depth, spaces(), rig->state.depth, __func__, elapsed_ms(&__begin, HAMLIB_ELAPSED_GET));
 
 // use this instead of snprintf for automatic detection of buffer limit
 #define SNPRINTF(s,n,...) { snprintf(s,n,##__VA_ARGS__);if (strlen(s) > n-1) fprintf(stderr,"****** %s(%d): buffer overflow ******\n", __func__, __LINE__); }
