@@ -4887,12 +4887,10 @@ declare_proto_rig(set_vfo_opt)
 /* '0xf1'--halt rigctld daemon */
 declare_proto_rig(halt)
 {
-    ENTERFUNC;
-
     /* a bit rough, TODO: clean daemon shutdown */
     exit(0);
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 
@@ -4900,12 +4898,11 @@ declare_proto_rig(halt)
 declare_proto_rig(pause)
 {
     unsigned seconds;
-    ENTERFUNC;
 
     CHKSCN1ARG(sscanf(arg1, "%u", &seconds));
     sleep(seconds);
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 char rig_passwd[256];
@@ -4935,7 +4932,7 @@ declare_proto_rig(set_password)
     strncpy(rig_passwd, passwd, sizeof(passwd) - 1);
     rig_debug(RIG_DEBUG_ERR, "%s: set_password %s\n", __func__, rig_passwd);
     fprintf(fout, "set_password %s\n", rig_passwd);
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 /* '0x8d' */
