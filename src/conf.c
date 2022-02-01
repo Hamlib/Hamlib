@@ -620,6 +620,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 
     case TOK_DCD_PATHNAME:
         strncpy(rs->dcdport.pathname, val, HAMLIB_FILPATHLEN - 1);
+        strncpy(rs->dcdport_deprecated.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
 
