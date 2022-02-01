@@ -722,7 +722,7 @@ typedef enum {
     RIG_BAND_GEN = (1 << 13),       /*!< \c 60M */
     RIG_BAND_MW  = (1 << 14),       /*!< \c Medium Wave */
     RIG_BAND_AIR = (1 << 15),       /*!< \c Air band */
-} band_t;
+} hamlib_band_t;
 
 
 /**
