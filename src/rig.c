@@ -1141,6 +1141,7 @@ int HAMLIB_API rig_open(RIG *rig)
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_A, &freq);
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_B, &freq);
 
+    memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
     RETURNFUNC(RIG_OK);
 }
 
