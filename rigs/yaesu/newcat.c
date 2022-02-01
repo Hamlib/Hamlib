@@ -3544,6 +3544,7 @@ static int band2rig (hamlib_band_t band)
         case RIG_BAND_AIR:    retval = 14;break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: unknown band index=%d\n", __func__, band);
+            retval = -RIG_EINVAL;
             break;
     }
     return retval;
@@ -4378,6 +4379,10 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (newcat_valid_command(rig, "BS"))
         {
             int band = band2rig((hamlib_band_t)val.i);
+            if (band < 0)
+            {
+                RETURNFUNC(-RIG_EINVAL);
+            }
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c", band, cat_term);
         }
         break;
