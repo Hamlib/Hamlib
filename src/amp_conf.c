@@ -146,6 +146,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
     {
     case TOK_PATHNAME:
         strncpy(rs->ampport.pathname, val, HAMLIB_FILPATHLEN - 1);
+        strncpy(rs->ampport_deprecated.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
     case TOK_WRITE_DELAY:
@@ -155,6 +156,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         }
 
         rs->ampport.write_delay = val_i;
+        rs->ampport_deprecated.write_delay = val_i;
         break;
 
     case TOK_POST_WRITE_DELAY:
@@ -164,6 +166,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         }
 
         rs->ampport.post_write_delay = val_i;
+        rs->ampport_deprecated.post_write_delay = val_i;
         break;
 
     case TOK_TIMEOUT:
@@ -173,6 +176,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         }
 
         rs->ampport.timeout = val_i;
+        rs->ampport_deprecated.timeout = val_i;
         break;
 
     case TOK_RETRY:
@@ -182,6 +186,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         }
 
         rs->ampport.retry = val_i;
+        rs->ampport_deprecated.retry = val_i;
         break;
 
     case TOK_SERIAL_SPEED:
@@ -196,6 +201,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         }
 
         rs->ampport.parm.serial.rate = val_i;
+        rs->ampport_deprecated.parm.serial.rate = val_i;
         break;
 
     case TOK_DATA_BITS:
@@ -210,6 +216,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         }
 
         rs->ampport.parm.serial.data_bits = val_i;
+        rs->ampport_deprecated.parm.serial.data_bits = val_i;
         break;
 
     case TOK_STOP_BITS:
@@ -224,6 +231,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         }
 
         rs->ampport.parm.serial.stop_bits = val_i;
+        rs->ampport_deprecated.parm.serial.stop_bits = val_i;
         break;
 
     case TOK_PARITY:
@@ -235,22 +243,27 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         if (!strcmp(val, "None"))
         {
             rs->ampport.parm.serial.parity = RIG_PARITY_NONE;
+            rs->ampport_deprecated.parm.serial.parity = RIG_PARITY_NONE;
         }
         else if (!strcmp(val, "Odd"))
         {
             rs->ampport.parm.serial.parity = RIG_PARITY_ODD;
+            rs->ampport_deprecated.parm.serial.parity = RIG_PARITY_ODD;
         }
         else if (!strcmp(val, "Even"))
         {
             rs->ampport.parm.serial.parity = RIG_PARITY_EVEN;
+            rs->ampport_deprecated.parm.serial.parity = RIG_PARITY_EVEN;
         }
         else if (!strcmp(val, "Mark"))
         {
             rs->ampport.parm.serial.parity = RIG_PARITY_MARK;
+            rs->ampport_deprecated.parm.serial.parity = RIG_PARITY_MARK;
         }
         else if (!strcmp(val, "Space"))
         {
             rs->ampport.parm.serial.parity = RIG_PARITY_SPACE;
+            rs->ampport_deprecated.parm.serial.parity = RIG_PARITY_SPACE;
         }
         else
         {
