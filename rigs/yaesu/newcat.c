@@ -3521,7 +3521,7 @@ int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     RETURNFUNC(RIG_OK);
 }
 
-static int band2rig (band_t band)
+static int band2rig (hamlib_band_t band)
 {
     int retval = 0;
     switch(band)
@@ -4377,7 +4377,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_BAND_SELECT:
         if (newcat_valid_command(rig, "BS"))
         {
-            int band = band2rig((band_t)val.i);
+            int band = band2rig((hamlib_band_t)val.i);
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c", band, cat_term);
         }
         break;
