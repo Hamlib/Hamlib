@@ -3834,12 +3834,16 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
             if (vfo == RIG_VFO_SUB)
             {
-                format = "MS1%d";
+                format = "MS1%d;";
             }
+        }
+        else if (is_ftdx10)
+        {
+            format = "MS%d0;";
         }
         else
         {
-            format = "MS%d";
+            format = "MS%d;";
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: format=%s\n", __func__, format);
@@ -10268,6 +10272,10 @@ int newcat_set_cmd_validate(RIG *rig)
         strcpy(valcmd, ""); // nothing to validate
     }
     else if (strncmp(priv->cmd_str, "BS", 2) == 0)
+    {
+        strcpy(valcmd, ""); // nothing to validate
+    }
+    else if (strncmp(priv->cmd_str, "MS", 2) == 0)
     {
         strcpy(valcmd, ""); // nothing to validate
     }
