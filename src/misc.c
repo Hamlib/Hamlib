@@ -1869,6 +1869,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
               __func__, funcname, linenum,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), split);
 
+    if (vfo == RIG_VFO_NONE) vfo = RIG_VFO_A;
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_VFO)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Leaving currVFO alone\n", __func__);
@@ -1935,7 +1936,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split=%d, vfo==%s tx_vfo=%s\n", __func__,
                   __LINE__, split, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));
 
-        if (vfo == RIG_VFO_TX) { vfo = rig->state.tx_vfo; RETURNFUNC(RIG_OK); }
+        //if (vfo == RIG_VFO_TX) { vfo = rig->state.tx_vfo; RETURNFUNC(RIG_OK); }
 
         if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode && vfo != RIG_VFO_B) { vfo = RIG_VFO_MAIN; }
 
