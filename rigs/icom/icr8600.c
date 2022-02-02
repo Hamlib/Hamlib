@@ -285,6 +285,11 @@ const struct rig_caps icr8600_caps =
         },
     },
 
+    .async_data_supported = 1,
+    .read_frame_direct = icom_read_frame_direct,
+    .is_async_frame = icom_is_async_frame,
+    .process_async_frame = icom_process_async_frame,
+
     .cfgparams = icom_cfg_params,
 
     .set_conf = icom_set_conf,
