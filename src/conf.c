@@ -501,52 +501,46 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         if (!strcmp(val, "RIG"))
         {
             rs->pttport.type.ptt = RIG_PTT_RIG;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_RIG;
         }
         else if (!strcmp(val, "RIGMICDATA"))
         {
             rs->pttport.type.ptt = RIG_PTT_RIG_MICDATA;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_RIG_MICDATA;
         }
         else if (!strcmp(val, "DTR"))
         {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_DTR;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_SERIAL_DTR;
         }
         else if (!strcmp(val, "RTS"))
         {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_RTS;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_SERIAL_RTS;
         }
         else if (!strcmp(val, "Parallel"))
         {
             rs->pttport.type.ptt = RIG_PTT_PARALLEL;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_PARALLEL;
         }
         else if (!strcmp(val, "CM108"))
         {
             rs->pttport.type.ptt = RIG_PTT_CM108;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_CM108;
         }
         else if (!strcmp(val, "GPIO"))
         {
             rs->pttport.type.ptt = RIG_PTT_GPIO;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_GPIO;
         }
         else if (!strcmp(val, "GPION"))
         {
             rs->pttport.type.ptt = RIG_PTT_GPION;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_GPION;
         }
         else if (!strcmp(val, "None"))
         {
             rs->pttport.type.ptt = RIG_PTT_NONE;
-            rs->pttport_deprecated.type.ptt = RIG_PTT_NONE;
         }
         else
         {
             return -RIG_EINVAL;
         }
+        // JTDX and WSJTX currently use state.pttport to check for PTT_NONE
+        rig->state.pttport.type.ptt = rs->pttport.type.ptt;
+        rs->pttport_deprecated.type.ptt = rs->pttport.type.ptt;
 
         break;
 
