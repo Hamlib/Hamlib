@@ -7091,7 +7091,6 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     int search_high;
     int search_low;
 
-    //ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s %s\n", __func__, command);
 
     caps = rig->caps;
@@ -7099,7 +7098,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
     if (!caps)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Rig capabilities not valid\n", __func__);
-        RETURNFUNC(FALSE);
+        RETURNFUNC2(FALSE);
     }
 
     /*
@@ -7127,7 +7126,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
             && !is_ftdx101mp && !is_ftdx10)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n", __func__, caps->model_name);
-        RETURNFUNC(FALSE);
+        RETURNFUNC2(FALSE);
     }
 
     /*
@@ -7161,68 +7160,68 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
              */
             if (is_ft450 && valid_commands[search_index].ft450)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ft891 && valid_commands[search_index].ft891)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ft950 && valid_commands[search_index].ft950)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ft991 && valid_commands[search_index].ft991)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ft2000 && valid_commands[search_index].ft2000)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ftdx5000 && valid_commands[search_index].ft5000)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ftdx9000 && valid_commands[search_index].ft9000)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ftdx1200 && valid_commands[search_index].ft1200)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ftdx3000 && valid_commands[search_index].ft3000)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ftdx3000dm && valid_commands[search_index].ft3000)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ftdx101d && valid_commands[search_index].ft101d)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ftdx101mp && valid_commands[search_index].ft101mp)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else if (is_ftdx10 && valid_commands[search_index].ft10)
             {
-                RETURNFUNC(TRUE);
+                RETURNFUNC2(TRUE);
             }
             else
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: '%s' command '%s' not supported\n",
                           __func__, caps->model_name, command);
-                RETURNFUNC(FALSE);
+                RETURNFUNC2(FALSE);
             }
         }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: '%s' command '%s' not valid\n",
               __func__, caps->model_name, command);
-    RETURNFUNC(FALSE);
+    RETURNFUNC2(FALSE);
 }
 
 
