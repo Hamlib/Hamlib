@@ -1733,7 +1733,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     ELAPSED1;
-    rig_debug(RIG_DEBUG_BUG, "%s: rig->state.pttport.type.ptt=%d\n", __func__, rig->state.pttport.type.ptt);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig->state.pttport.type.ptt=%d\n", __func__, rig->state.pttport.type.ptt);
     if (!freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: freq ptr invalid\n", __func__);
