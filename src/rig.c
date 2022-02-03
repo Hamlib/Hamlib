@@ -1320,11 +1320,9 @@ int HAMLIB_API rig_close(RIG *rig)
  */
 int HAMLIB_API rig_cleanup(RIG *rig)
 {
-    ENTERFUNC;
-
     if (!rig || !rig->caps)
     {
-        RETURNFUNC(-RIG_EINVAL);
+        return(-RIG_EINVAL);
     }
 
     /*
@@ -1345,7 +1343,7 @@ int HAMLIB_API rig_cleanup(RIG *rig)
 
     free(rig);
 
-    RETURNFUNC(RIG_OK);
+    return(RIG_OK);
 }
 
 /**
