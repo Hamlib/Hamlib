@@ -2394,7 +2394,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     const struct rig_caps *caps;
     int retcode;
     freq_t curr_freq;
-    vfo_t curr_vfo;
+    vfo_t curr_vfo = RIG_VFO_CURR;
 
     ELAPSED1;
     ENTERFUNC;
