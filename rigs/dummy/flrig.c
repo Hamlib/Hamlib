@@ -1059,7 +1059,7 @@ static int flrig_cleanup(RIG *rig)
 
     if (!rig)
     {
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     priv = (struct flrig_priv_data *)rig->state.priv;
@@ -1089,7 +1089,7 @@ static int flrig_cleanup(RIG *rig)
 
 #endif
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 /*
@@ -1176,7 +1176,7 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
                   __func__, rig_strvfo(vfo));
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     if (vfo == RIG_VFO_CURR)
@@ -1218,10 +1218,10 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (retval != RIG_OK)
     {
-        RETURNFUNC(retval);
+        RETURNFUNC2(retval);
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 /*
