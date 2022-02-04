@@ -11,7 +11,7 @@ LOCAL_SRC_FILES := ts850.c ts870s.c ts570.c ts450s.c ts950.c ts50s.c \
 		xg3.c thd74.c flex.c pihpsdr.c ts890s.c
 LOCAL_MODULE := kenwood
 
-LOCAL_CFLAGS := -DHAVE_CONFIG_H
+LOCAL_CFLAGS := 
 LOCAL_C_INCLUDES := android include src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/$(TARGET_ARCH_ABI)
 

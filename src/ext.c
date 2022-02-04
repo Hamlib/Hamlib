@@ -34,9 +34,7 @@
  * basic "virtual rig" of Hamlib.  See icom/ic746.c for an example.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdlib.h>
 #include <stdarg.h>

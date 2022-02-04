@@ -22,9 +22,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #define BACKEND_VER "20200112"
 

@@ -65,9 +65,7 @@
  * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
  * \n This backend tested mostly with firmware versions 1.372 and 2.062a
  */
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>

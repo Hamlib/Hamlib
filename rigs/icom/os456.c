@@ -24,9 +24,7 @@
  * Email: james (dot) m (dot) smith (at) earthlink (dot) net
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdlib.h>
 

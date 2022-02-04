@@ -4,9 +4,7 @@
  * This is mainly to test freq2bcd and bcd2freq functions.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>

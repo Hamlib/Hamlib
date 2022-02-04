@@ -26,9 +26,7 @@
 
 // TODO: Add "symmetric" set_conf + get_conf to rigctl+rotctl
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
