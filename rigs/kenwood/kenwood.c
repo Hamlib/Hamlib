@@ -1319,7 +1319,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
-    if (vfo == RIG_VFO_TX) vfo = split ? RIG_VFO_B: RIG_VFO_A;
+    if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) vfo = vfo_fixup(vfo);
 
     switch (vfo)
     {
