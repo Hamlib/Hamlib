@@ -35,9 +35,7 @@
 #include <inttypes.h>
 #include <time.h>
 #include <sys/time.h>
-#ifdef HAVE_CONFIG_H
-#include "hamlib/config.h"
-#endif
+#include <hamlib/config.h>
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
