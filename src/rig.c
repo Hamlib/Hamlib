@@ -50,9 +50,7 @@
  */
 
 #include "hamlib/rig.h"
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include "hamlib/config.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -2626,7 +2624,6 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     ELAPSED1;
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_ERR, "%s: rig->state.pttport.type.ptt=%d, %p\n", __func__, rig->state.pttport.type.ptt, &rig->state.pttport.type.ptt);
 
     if (CHECK_RIG_ARG(rig))
     {

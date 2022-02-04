@@ -18,7 +18,7 @@ AC_INIT([Hamlib],[4.5~git],[hamlib-developer@lists.sourceforge.net],[hamlib],[ht
 
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
-AC_CONFIG_HEADERS([include/config.h])
+AC_CONFIG_HEADERS([include/hamlib/config.h])
 
 dnl Place build system provided programs in this directory.
 AC_CONFIG_AUX_DIR([build-aux])
