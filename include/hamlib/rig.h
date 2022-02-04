@@ -36,7 +36,7 @@
 #include <time.h>
 #include <sys/time.h>
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include "hamlib/config.h"
 #endif
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
@@ -2555,7 +2555,7 @@ struct rig_state {
     hamlib_port_t rigport;  /*!< Rig port (internal use). */
     hamlib_port_t pttport;  /*!< PTT port (internal use). */
     hamlib_port_t dcdport;  /*!< DCD port (internal use). */
-#ifdef _PTHREAD_H
+#ifdef HAVE_PTHREAD
     pthread_mutex_t mutex_set_transaction;
 #endif
     /********* DO NOT ADD or CHANGE anything (or than to rename) ABOVE THIS LINE *********/

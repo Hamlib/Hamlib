@@ -22,9 +22,7 @@
 #ifndef _WINRADIO_H
 #define _WINRADIO_H 1
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "hamlib/config.h"
 
 #define BACKEND_VER "20110822"
 /*

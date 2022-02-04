@@ -1,7 +1,5 @@
-#ifdef HAVE_CONFIG_H
-#include "hamlib/rig.h"
-#include <config.h>
-#endif
+#include <hamlib/rig.h>
+#include <hamlib/config.h>
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 
