@@ -20,9 +20,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1319,7 +1317,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
-    if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) vfo = vfo_fixup(vfo);
+    if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) vfo = vfo_fixup(rig, vfo, split);
 
     switch (vfo)
     {
