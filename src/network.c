@@ -32,9 +32,7 @@
 /* Forcing WINVER in MinGW yanks in getaddrinfo(), but locks out Win95/Win98 */
 /* #define WINVER 0x0501 */
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */

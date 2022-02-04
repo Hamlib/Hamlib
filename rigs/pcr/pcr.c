@@ -28,9 +28,7 @@
  * (403) PCR1500 fw 2.0, proto 2.0 (usb) by KM3T
  *
  */
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>

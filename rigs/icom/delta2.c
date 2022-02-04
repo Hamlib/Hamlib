@@ -31,9 +31,7 @@
  * To Do: get the datasheet, and testing on real hardware!!
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdlib.h>
 

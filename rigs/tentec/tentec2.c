@@ -51,9 +51,7 @@
  *  For the above command, rcv_len should be 6.
 */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>

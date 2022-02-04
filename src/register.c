@@ -26,9 +26,7 @@
  * doc todo: Let's explain what's going on here!
  */
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <errno.h>
 #include <stdlib.h>

@@ -53,9 +53,7 @@
  * doesn't work from front panel either.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <math.h>
 #include <stdlib.h>

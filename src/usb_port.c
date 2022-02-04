@@ -31,9 +31,7 @@
  * doc todo: deal with defined(HAVE_LIBUSB)... quashing the doc process.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include <hamlib/config.h>
 
 
 

@@ -7,7 +7,7 @@ LOCAL_SRC_FILES := elektor304.c drt1.c dwt.c usrp.c elektor507.c \
     pcrotor.c kit.c rs_hfiq.c
 LOCAL_MODULE := kit
 
-LOCAL_CFLAGS := -DHAVE_CONFIG_H
+LOCAL_CFLAGS := 
 LOCAL_C_INCLUDES := android include src
 LOCAL_LDLIBS := -lhamlib -Lobj/local/$(TARGET_ARCH_ABI)
 

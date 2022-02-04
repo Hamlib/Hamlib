@@ -24,9 +24,7 @@
  * Version 2009.11.21 Larry Gadallah (VE6VQ)
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <string.h>

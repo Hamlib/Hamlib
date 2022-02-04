@@ -54,9 +54,7 @@
  */
 
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <hamlib/config.h>
 
 // cppcheck-suppress *
 #include <stdlib.h>

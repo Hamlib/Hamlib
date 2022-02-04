@@ -4,9 +4,7 @@
  * This is mainly to test kHz, MHz, GHz macros and int64_t support.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
