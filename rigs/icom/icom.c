@@ -754,8 +754,10 @@ int icom_get_usb_echo_off(RIG *rig)
         // we should have a freq response so we'll read it and don't really care
         // flushing doesn't always work as it depends on timing
         retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected, get freq retval=%d\n", __func__, retval);
-        if (retval <= 0) RETURNFUNC(-RIG_ETIMEOUT);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: USB echo on detected, get freq retval=%d\n",
+                  __func__, retval);
+
+        if (retval <= 0) { RETURNFUNC(-RIG_ETIMEOUT); }
     }
     else
     {
@@ -940,7 +942,8 @@ icom_rig_open(RIG *rig)
 retry_open:
     retval_echo = icom_get_usb_echo_off(rig);
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: echo status result=%d\n",  __func__, retval_echo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: echo status result=%d\n",  __func__,
+              retval_echo);
 
     if (retval_echo == 0 || retval_echo == 1)
     {
@@ -953,17 +956,19 @@ retry_open:
 
     if (retval == RIG_OK) // then we know our echo status
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting frequency\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting frequency\n",
+                  __func__);
         rs->rigport.retry = 0;
         rig->state.current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
         // so asking for freq now should timeout if such a rig
         freq_t tfreq;
         retval = rig_get_freq(rig, RIG_VFO_CURR, &tfreq);
+
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: rig error getting frequency retry=%d, err=%s\n",
-                    __func__, retry_flag, rigerror(retval));
+                      __func__, retry_flag, rigerror(retval));
         }
     }
     else
@@ -984,11 +989,12 @@ retry_open:
             rs->rigport.retry = retry_save;
 
             rig_debug(RIG_DEBUG_ERR, "%s: rig_set_powerstat failed: %s\n", __func__,
-                    rigerror(retval));
+                      rigerror(retval));
 
             if (retval == RIG_ENIMPL || retval == RIG_ENAVAIL)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: rig_set_powerstat not implemented for rig\n", __func__);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig_set_powerstat not implemented for rig\n",
+                          __func__);
                 RETURNFUNC(-RIG_ECONF);
             }
 
@@ -2527,7 +2533,9 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     else
     {
         priv_data->filter = 0;
-        if (mode_len == 2) priv_data->filter = modebuf[2];
+
+        if (mode_len == 2) { priv_data->filter = modebuf[2]; }
+
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__, modebuf[0],
                   modebuf[1], mode_len);
@@ -6932,7 +6940,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     case RIG_FUNC_DUAL_WATCH:
         if ((rig->caps->rig_model == RIG_MODEL_IC9100) ||
-            (rig->caps->rig_model == RIG_MODEL_IC9700))
+                (rig->caps->rig_model == RIG_MODEL_IC9700))
         {
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_DUALMODE;
@@ -7171,7 +7179,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     case RIG_FUNC_DUAL_WATCH:
         if ((rig->caps->rig_model == RIG_MODEL_IC9100) ||
-            (rig->caps->rig_model == RIG_MODEL_IC9700))
+                (rig->caps->rig_model == RIG_MODEL_IC9700))
         {
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_DUALMODE;
@@ -7181,6 +7189,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             fct_cn = C_SET_VFO;
             fct_sc = S_DUAL;
         }
+
         break;
 
     case RIG_FUNC_SATMODE:
@@ -8735,7 +8744,8 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
     RETURNFUNC(RIG_OK);
 }
 
-int icom_is_async_frame(RIG *rig, size_t frame_length, const unsigned char *frame)
+int icom_is_async_frame(RIG *rig, size_t frame_length,
+                        const unsigned char *frame)
 {
     if (frame_length < ACKFRMLEN)
     {
@@ -8767,7 +8777,8 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
      */
     switch (frame[4])
     {
-    case C_SND_FREQ: {
+    case C_SND_FREQ:
+    {
         // TODO: The freq length might be less than 4 or 5 bytes on older rigs!
         // TODO: Disable cache timeout for frequency after first transceive packet once we figure out how to get active VFO reliably with transceive updates
         // TODO: rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_FREQ, HAMLIB_CACHE_ALWAYS);
@@ -8790,6 +8801,7 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         {
             icom_parse_spectrum_frame(rig, frame_length - (6 + 1), frame + 6);
         }
+
         break;
 
     default:
@@ -8873,7 +8885,8 @@ int icom_decode_event(RIG *rig)
     RETURNFUNC(icom_process_async_frame(rig, frm_len, buf));
 }
 
-int icom_read_frame_direct(RIG *rig, size_t buffer_length, const unsigned char *buffer)
+int icom_read_frame_direct(RIG *rig, size_t buffer_length,
+                           const unsigned char *buffer)
 {
     return read_icom_frame_direct(&rig->state.rigport, buffer, buffer_length);
 }
@@ -9302,12 +9315,12 @@ DECLARE_PROBERIG_BACKEND(icom)
 
     if (!port)
     {
-        return(RIG_MODEL_NONE);
+        return (RIG_MODEL_NONE);
     }
 
     if (port->type.rig != RIG_PORT_SERIAL)
     {
-        return(RIG_MODEL_NONE);
+        return (RIG_MODEL_NONE);
     }
 
     port->write_delay = port->post_write_delay = 0;
@@ -9326,7 +9339,7 @@ DECLARE_PROBERIG_BACKEND(icom)
 
         if (retval != RIG_OK)
         {
-            return(RIG_MODEL_NONE);
+            return (RIG_MODEL_NONE);
         }
 
         /*
@@ -9365,7 +9378,7 @@ DECLARE_PROBERIG_BACKEND(icom)
                  * is this a CI-V device?
                  */
                 close(port->fd);
-                return(RIG_MODEL_NONE);
+                return (RIG_MODEL_NONE);
             }
             else if (buf[4] == NAK)
             {
@@ -9476,11 +9489,11 @@ DECLARE_PROBERIG_BACKEND(icom)
          */
         if (model != RIG_MODEL_NONE)
         {
-            return(model);
+            return (model);
         }
     }
 
-    return(model);
+    return (model);
 }
 
 /*
@@ -9578,5 +9591,5 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&x6100_caps);
     rig_register(&g90_caps);
 
-    return(RIG_OK);
+    return (RIG_OK);
 }

@@ -202,13 +202,15 @@ transaction_write:
 
     /* then comes the answer */
     memset(data, 0, data_len);
-    retval = read_string(&rs->rotport, (unsigned char *) data, data_len, CR, strlen(CR), 0, 1);
+    retval = read_string(&rs->rotport, (unsigned char *) data, data_len, CR,
+                         strlen(CR), 0, 1);
 
     // some models seem to echo -- so we'll check and read again if echoed
     if (cmdstr && strcmp(data, cmdstr) == 0)
     {
         memset(data, 0, data_len);
-        retval = read_string(&rs->rotport, (unsigned char *) data, data_len, CR, strlen(CR), 0, 1);
+        retval = read_string(&rs->rotport, (unsigned char *) data, data_len, CR,
+                             strlen(CR), 0, 1);
     }
 
     if (retval < 0)

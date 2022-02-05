@@ -589,7 +589,7 @@ int tt585_get_status_data(RIG *rig)
         return ret;
     }
 
-    ret = read_block(rigport, (unsigned char *) (char *) priv->status_data,
+    ret = read_block(rigport, (unsigned char *)(char *) priv->status_data,
                      sizeof(priv->status_data));
 
     if (ret < 0)

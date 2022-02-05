@@ -185,33 +185,41 @@ void frameParse(int fd, unsigned char *frame, int len)
         break;
 
     case 0x14:
-        switch(frame[5])
+        switch (frame[5])
         {
             static int power_level = 0;
-            case 0x0a:
-                printf("Using power level %d\n", power_level);
-                power_level += 10;
-                if (power_level > 250) power_level = 0;
-                to_bcd(&frame[6], (long long)power_level, 2);
-                frame[8] = 0xfd;
-                write(fd, frame, 9);
-                break;
+
+        case 0x0a:
+            printf("Using power level %d\n", power_level);
+            power_level += 10;
+
+            if (power_level > 250) { power_level = 0; }
+
+            to_bcd(&frame[6], (long long)power_level, 2);
+            frame[8] = 0xfd;
+            write(fd, frame, 9);
+            break;
         }
+
         break;
 
     case 0x15:
-        switch(frame[5])
+        switch (frame[5])
         {
             static int meter_level = 0;
-            case 0x11:
-                printf("Using meter level %d\n", meter_level);
-                meter_level += 10;
-                if (meter_level > 250) meter_level = 0;
-                to_bcd(&frame[6], (long long)meter_level, 2);
-                frame[8] = 0xfd;
-                write(fd, frame, 9);
-                break;
+
+        case 0x11:
+            printf("Using meter level %d\n", meter_level);
+            meter_level += 10;
+
+            if (meter_level > 250) { meter_level = 0; }
+
+            to_bcd(&frame[6], (long long)meter_level, 2);
+            frame[8] = 0xfd;
+            write(fd, frame, 9);
+            break;
         }
+
         break;
 
     case 0x1a: // miscellaneous things

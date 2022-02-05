@@ -113,7 +113,8 @@ transaction:
 
         if (cmdstr)
         {
-            return_value = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
+            return_value = write_block(&rs->rotport, (unsigned char *) cmdstr,
+                                       strlen(cmdstr));
 
             if (return_value != RIG_OK)
             {
@@ -126,7 +127,8 @@ transaction:
            return value is expected, Strings end with '#' */
         if (data != NULL)
         {
-            return_value = read_string(&rs->rotport, (unsigned char *) data, expected_return_length + 1,
+            return_value = read_string(&rs->rotport, (unsigned char *) data,
+                                       expected_return_length + 1,
                                        "\r\n", strlen("\r\n"), 0, 1);
 
             if (return_value > 0)
@@ -444,8 +446,9 @@ static const char *meade_get_info(ROT *rot)
     struct meade_priv_data *priv = (struct meade_priv_data *)rot->state.priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    SNPRINTF(buf, sizeof(buf), "Meade telescope rotator with LX200 protocol.\nModel: %s",
-            priv->product_name);
+    SNPRINTF(buf, sizeof(buf),
+             "Meade telescope rotator with LX200 protocol.\nModel: %s",
+             priv->product_name);
     return buf;
 }
 

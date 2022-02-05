@@ -127,7 +127,8 @@ static int sartek_rot_set_position(ROT *rot, azimuth_t azimuth,
 
     SNPRINTF(cmdstr, sizeof(cmdstr), "P%c", (int)((azimuth * 255) / 360));
 
-    err = write_block(&rot->state.rotport, (unsigned char *) cmdstr, strlen(cmdstr));
+    err = write_block(&rot->state.rotport, (unsigned char *) cmdstr,
+                      strlen(cmdstr));
 
     if (err != RIG_OK)
     {

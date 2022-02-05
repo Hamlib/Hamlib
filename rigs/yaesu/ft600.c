@@ -396,7 +396,8 @@ static int ft600_send_priv_cmd(RIG *rig, unsigned char cmd_index)
 
     if (!rig) { return -RIG_EINVAL; }
 
-    return write_block(&rig->state.rigport, (unsigned char *) &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
+    return write_block(&rig->state.rigport, (unsigned char *) &ncmd[cmd_index].nseq,
+                       YAESU_CMD_LENGTH);
 }
 
 static int ft600_read_status(RIG *rig)
@@ -419,7 +420,7 @@ static int ft600_read_status(RIG *rig)
 
 
     ret = read_block(&rig->state.rigport,
-            (unsigned char *) &priv->status, FT600_STATUS_UPDATE_DATA_LENGTH);
+                     (unsigned char *) &priv->status, FT600_STATUS_UPDATE_DATA_LENGTH);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read status=%i \n", __func__, ret);
 

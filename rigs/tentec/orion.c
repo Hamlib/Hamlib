@@ -401,8 +401,8 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /*  Use ASCII mode to set frequencies */
     // cppcheck-suppress *
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "*%cF%"PRIll EOM,
-                      which_vfo(rig, vfo),
-                      (int64_t)freq);
+             which_vfo(rig, vfo),
+             (int64_t)freq);
 #else
     /* Use binary mode */
     /* Set frequency using Orion's binary mode (short) sequence.
@@ -442,11 +442,11 @@ int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #ifdef TT565_ASCII_FREQ
     /*  use ASCII mode */
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "?%cF" EOM,
-                      which_vfo(rig, vfo));
+             which_vfo(rig, vfo));
 #else
     /* Get freq with Orion binary mode short sequence. */
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "?%c" EOM,
-                      which_vfo(rig, vfo));
+             which_vfo(rig, vfo));
 #endif
     resp_len = sizeof(respbuf);
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
@@ -500,7 +500,7 @@ int tt565_set_vfo(RIG *rig, vfo_t vfo)
         char vfobuf[TT565_BUFSIZE];
         /* Select Sub or Main RX */
         SNPRINTF(vfobuf, sizeof(vfobuf), "*K%c" EOM,
-                              vfo == RIG_VFO_SUB ? 'S' : 'M');
+                 vfo == RIG_VFO_SUB ? 'S' : 'M');
 
         return tt565_transaction(rig, vfobuf, strlen(vfobuf), NULL, NULL);
     }
@@ -541,9 +541,9 @@ int tt565_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     char cmdbuf[TT565_BUFSIZE];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "*KV%c%c%c" EOM,
-                      which_vfo(rig, vfo),
-                      'N',           /* FIXME */
-                      which_vfo(rig, RIG_SPLIT_ON == split ? tx_vfo : vfo));
+             which_vfo(rig, vfo),
+             'N',           /* FIXME */
+             which_vfo(rig, RIG_SPLIT_ON == split ? tx_vfo : vfo));
 
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
@@ -659,11 +659,11 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     ttreceiver = which_receiver(rig, vfo);
 
     SNPRINTF(mdbuf, sizeof(mdbuf), "*R%cM%c" EOM "*R%cF%d" EOM,
-                        ttreceiver,
-                        ttmode,
-                        ttreceiver,
-                        (int)width
-                       );
+             ttreceiver,
+             ttmode,
+             ttreceiver,
+             (int)width
+            );
 
     retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
 
@@ -766,8 +766,8 @@ int tt565_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
     char cmdbuf[TT565_BUFSIZE];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cI%d" EOM,
-                      which_receiver(rig, vfo),
-                      (int)ts);
+             which_receiver(rig, vfo),
+             (int)ts);
 
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
@@ -787,7 +787,7 @@ int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cI" EOM,
-                      which_receiver(rig, vfo));
+             which_receiver(rig, vfo));
 
     resp_len = sizeof(respbuf);
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
@@ -823,8 +823,8 @@ int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     char cmdbuf[TT565_BUFSIZE];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cR%d" EOM,
-                      which_receiver(rig, vfo),
-                      (int)rit);
+             which_receiver(rig, vfo),
+             (int)rit);
 
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
@@ -844,7 +844,7 @@ int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cR" EOM,
-                      which_receiver(rig, vfo));
+             which_receiver(rig, vfo));
 
     resp_len = sizeof(respbuf);
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
@@ -882,8 +882,8 @@ int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
     /* Sub receiver does not contain an XIT setting */
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cX%d" EOM,
-                      'M',
-                      (int)xit);
+             'M',
+             (int)xit);
 
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
@@ -903,7 +903,7 @@ int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cX" EOM,
-                      'M');
+             'M');
 
     resp_len = sizeof(respbuf);
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
@@ -937,7 +937,7 @@ int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     struct rig_state *rs = &rig->state;
 
     return write_block(&rs->rigport,
-            (unsigned char *) (ptt == RIG_PTT_ON ? "*TK" EOM : "*TU" EOM), 4);
+                       (unsigned char *)(ptt == RIG_PTT_ON ? "*TK" EOM : "*TU" EOM), 4);
 }
 
 /**
@@ -1076,7 +1076,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_RFPOWER:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*TP%d" EOM,
-                          (int)(val.f * 100));
+                 (int)(val.f * 100));
         break;
 
     case RIG_LEVEL_AGC:
@@ -1096,29 +1096,29 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cA%c" EOM,
-                          which_receiver(rig, vfo),
-                          cc);
+                 which_receiver(rig, vfo),
+                 cc);
         break;
 
     case RIG_LEVEL_AF:
         /* AF Gain, float 0.0 - 1.0 */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*U%c%d" EOM,
-                          which_receiver(rig, vfo),
-                          (int)(val.f * 255));
+                 which_receiver(rig, vfo),
+                 (int)(val.f * 255));
         break;
 
     case RIG_LEVEL_IF:
         /* This is passband tuning int Hz */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cP%d" EOM,
-                          which_receiver(rig, vfo),
-                          val.i);
+                 which_receiver(rig, vfo),
+                 val.i);
         break;
 
     case RIG_LEVEL_RF:
         /* This is IF Gain, float 0.0 - 1.0 */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cG%d" EOM,
-                          which_receiver(rig, vfo),
-                          (int)(val.f * 100));
+                 which_receiver(rig, vfo),
+                 (int)(val.f * 100));
         break;
 
     case RIG_LEVEL_ATT:
@@ -1131,8 +1131,8 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cT%d" EOM,
-                          which_receiver(rig, vfo),
-                          ii);
+                 which_receiver(rig, vfo),
+                 ii);
         break;
 
     case RIG_LEVEL_PREAMP:
@@ -1145,26 +1145,26 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         /* RF Preamp (main Rx), int 0 or 1 */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*RME%d" EOM,
-                          val.i == 0 ? 0 : 1);
+                 val.i == 0 ? 0 : 1);
         break;
 
     case RIG_LEVEL_SQL:
         /* Squelch level, float 0.0 - 1.0 */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cS%d" EOM,
-                          which_receiver(rig, vfo),
-                          (int)((val.f * 127) - 127));
+                 which_receiver(rig, vfo),
+                 (int)((val.f * 127) - 127));
         break;
 
     case RIG_LEVEL_MICGAIN:
         /* Mic gain, float 0.0 - 1.0 */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*TM%d" EOM,
-                          (int)(val.f * 100));
+                 (int)(val.f * 100));
         break;
 
     case RIG_LEVEL_COMP:
         /* Speech Processor, float 0.0 - 1.0 */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*TS%d" EOM,
-                          (int)(val.f * 9));
+                 (int)(val.f * 9));
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -1177,7 +1177,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else if (val.i < TT565_TONE_MIN) { val.i = TT565_TONE_MIN; }
 
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*CT%d" EOM,
-                          val.i);
+                 val.i);
         break;
 
     case RIG_LEVEL_KEYSPD:
@@ -1190,7 +1190,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else if (val.i < TT565_CW_MIN) { val.i = TT565_CW_MIN; }
 
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*CS%d" EOM,
-                          val.i);
+                 val.i);
         break;
 
     case RIG_LEVEL_NR:
@@ -1200,8 +1200,8 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
            FOR NOW -- RIG_LEVEL_NR controls the Orion NB setting
         */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cNB%d" EOM,
-                          which_receiver(rig, vfo),
-                          (int)(val.f * 9));
+                 which_receiver(rig, vfo),
+                 (int)(val.f * 9));
         break;
 
     case RIG_LEVEL_VOXDELAY:
@@ -1367,7 +1367,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_AGC:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cA" EOM,
-                          which_receiver(rig, vfo));
+                 which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
         retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
@@ -1404,7 +1404,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_AF:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "?U%c" EOM,
-                          which_receiver(rig, vfo));
+                 which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
         retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
@@ -1426,7 +1426,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_IF:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cP" EOM,  /* passband tuning */
-                          which_receiver(rig, vfo));
+                 which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
         retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
@@ -1448,7 +1448,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RF:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cG" EOM,
-                          which_receiver(rig, vfo));
+                 which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
         retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
@@ -1470,7 +1470,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_ATT:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cT" EOM,
-                          which_receiver(rig, vfo));
+                 which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
         retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
@@ -1527,7 +1527,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_SQL:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cS" EOM,
-                          which_receiver(rig, vfo));
+                 which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
         retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
@@ -1626,7 +1626,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_NR:
         /* RIG_LEVEL_NR controls Orion NB setting - TEMP */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cNB" EOM,
-                          which_receiver(rig, vfo));
+                 which_receiver(rig, vfo));
 
         lvl_len = sizeof(lvlbuf);
         retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
@@ -1770,9 +1770,9 @@ int tt565_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     case RIG_OP_TO_VFO:
     case RIG_OP_FROM_VFO:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*K%c%c%d" EOM,
-                          op == RIG_OP_TO_VFO ? 'R' : 'W',
-                          which_vfo(rig, vfo),
-                          priv->ch);
+                 op == RIG_OP_TO_VFO ? 'R' : 'W',
+                 which_vfo(rig, vfo),
+                 priv->ch);
         break;
 
     case RIG_OP_TUNE:
@@ -1782,8 +1782,8 @@ int tt565_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     case RIG_OP_UP:
     case RIG_OP_DOWN:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*%cS%c1" EOM,
-                          which_vfo(rig, vfo),
-                          op == RIG_OP_UP ? '+' : '-');
+                 which_vfo(rig, vfo),
+                 op == RIG_OP_UP ? '+' : '-');
         break;
 
     default:
@@ -1891,8 +1891,8 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     case RIG_FUNC_LOCK:
         SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "*%c%c" EOM,
-                          which_vfo(rig, vfo),
-                          !status ? 'U' : 'L');
+                 which_vfo(rig, vfo),
+                 !status ? 'U' : 'L');
         break;
 
     case RIG_FUNC_NB:
@@ -1901,8 +1901,8 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         limitation.
         */
         SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "*R%cNB%c" EOM,
-                          which_receiver(rig, vfo),
-                          !status ? '0' : '4');
+                 which_receiver(rig, vfo),
+                 !status ? '0' : '4');
         break;
 
     default:
@@ -1952,7 +1952,7 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     case RIG_FUNC_LOCK:
         SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "?%cU" EOM,
-                          which_vfo(rig, vfo));
+                 which_vfo(rig, vfo));
         /* needs special treatment */
         fresplen = sizeof(frespbuf);
         retval = tt565_transaction(rig, fcmdbuf, strlen(fcmdbuf),
@@ -1972,7 +1972,7 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
            available through LEVEL_NR
         */
         SNPRINTF(fcmdbuf, sizeof(fcmdbuf), "?R%cNB" EOM,
-                          which_receiver(rig, vfo));
+                 which_receiver(rig, vfo));
         /* needs special treatment */
         fresplen = sizeof(frespbuf);
         retval = tt565_transaction(rig, fcmdbuf, strlen(fcmdbuf),

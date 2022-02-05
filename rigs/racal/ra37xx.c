@@ -119,7 +119,8 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
 
     do
     {
-        retval = read_string(&rs->rigport, (unsigned char *) respbuf, BUFSZ, EOM, strlen(EOM), 0, 1);
+        retval = read_string(&rs->rigport, (unsigned char *) respbuf, BUFSZ, EOM,
+                             strlen(EOM), 0, 1);
 
         if (retval < 0)
         {
@@ -578,7 +579,8 @@ int ra37xx_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         default: return -RIG_EINVAL;
         }
 
-        SNPRINTF(cmdbuf, sizeof(cmdbuf), "AGC%d,%d", val.i == RIG_AGC_USER ? 1 : 0, agc);
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "AGC%d,%d", val.i == RIG_AGC_USER ? 1 : 0,
+                 agc);
         break;
 
     default:

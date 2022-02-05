@@ -168,7 +168,8 @@ static int read_prompt_and_send(hamlib_port_t *rigport,
 
     buflen = (data_len == NULL) ? sizeof(buf) : *data_len;
 
-    retval = read_string(rigport, (unsigned char *) data, buflen, delimiter, 1, 0, 1);
+    retval = read_string(rigport, (unsigned char *) data, buflen, delimiter, 1, 0,
+                         1);
 
     if (retval < 0)
     {
@@ -384,9 +385,9 @@ int prm80_set_rx_tx_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
 
     // for RX, compute the PLL word without the IF
     SNPRINTF(rx_freq_buf, sizeof(rx_freq_buf), "%04X",
-            rx_freq_to_pll_value(rx_freq));
+             rx_freq_to_pll_value(rx_freq));
     SNPRINTF(tx_freq_buf, sizeof(tx_freq_buf), "%04X",
-            (unsigned)(tx_freq / FREQ_DIV));
+             (unsigned)(tx_freq / FREQ_DIV));
 
     // The protocol is like this :
     // "RX frequency : " XXXX
@@ -644,7 +645,7 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
 
     if (ret < 0)
     {
-        return(ret);
+        return (ret);
     }
 
     // The response length is fixed
@@ -664,7 +665,7 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: len=%d < %d, statebuf='%s'\n", __func__,
                   ret, CMD_E_RSP_LEN, statebuf);
-        return(-RIG_EPROTO);
+        return (-RIG_EPROTO);
     }
 
     p = strchr(statebuf, '>');
@@ -673,7 +674,8 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
     {
         int left_to_read = (p - statebuf) + 1;
         memmove(statebuf, p + 1, CMD_E_RSP_LEN - left_to_read);
-        ret = read_block(rigport, (unsigned char *) statebuf + CMD_E_RSP_LEN - left_to_read,
+        ret = read_block(rigport,
+                         (unsigned char *) statebuf + CMD_E_RSP_LEN - left_to_read,
                          left_to_read);
 
         if (ret < 0)
@@ -908,7 +910,8 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         if (ret == 3 && buf[2] == 'T')
         {
             // Read the question
-            ret = read_string(&rs->rigport, (unsigned char *) buf, sizeof(buf), "?", 1, 0, 1);
+            ret = read_string(&rs->rigport, (unsigned char *) buf, sizeof(buf), "?", 1, 0,
+                              1);
 
             if (ret < 0)
             {

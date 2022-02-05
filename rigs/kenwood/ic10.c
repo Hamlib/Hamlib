@@ -101,13 +101,15 @@ transaction:
         char buffer[50];
         struct kenwood_priv_data *priv = rig->state.priv;
 
-        if (RIG_OK != (retval = write_block(&rs->rigport, (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
+        if (RIG_OK != (retval = write_block(&rs->rigport,
+                                            (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
         {
             return retval;
         }
 
         // this should be the ID response
-        retval = read_string(&rs->rigport, (unsigned char *) buffer, sizeof(buffer), ";", 1, 0, 1);
+        retval = read_string(&rs->rigport, (unsigned char *) buffer, sizeof(buffer),
+                             ";", 1, 0, 1);
 
         // might be ?; too
         if (buffer[0] == '?' && retry_cmd++ < rs->rigport.retry)
@@ -468,7 +470,8 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     // cppcheck-suppress *
-    SNPRINTF(freqbuf, sizeof(freqbuf), "F%c%011"PRIll";", vfo_letter, (int64_t)freq);
+    SNPRINTF(freqbuf, sizeof(freqbuf), "F%c%011"PRIll";", vfo_letter,
+             (int64_t)freq);
     retval = ic10_transaction(rig, freqbuf, strlen(freqbuf), NULL, 0);
 
     return retval;
@@ -766,10 +769,10 @@ int ic10_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
     /* MWnxrrggmmmkkkhhhdzxxxx; */
     SNPRINTF(membuf, sizeof(membuf), "MW0 %02d%011"PRIll"%c0    ;",
-                  chan->channel_num,
-                  freq,
-                  md
-                 );
+             chan->channel_num,
+             freq,
+             md
+            );
     retval = ic10_transaction(rig, membuf, strlen(membuf), NULL, 0);
 
     if (retval != RIG_OK)
@@ -806,10 +809,10 @@ int ic10_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     {
         /* MWnxrrggmmmkkkhhhdzxxxx; */
         SNPRINTF(membuf, sizeof(membuf), "MW1 %02d%011"PRIll"%c0    ;",
-                      chan->channel_num,
-                      freq,
-                      md
-                     );
+                 chan->channel_num,
+                 freq,
+                 md
+                );
         retval = ic10_transaction(rig, membuf, strlen(membuf), NULL, 0);
 
         // I assume we need to check the retval here -- W9MDB

@@ -78,7 +78,7 @@ easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
     }
 
     retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
-            "\n", 1, 0, 1);
+                         "\n", 1, 0, 1);
 
     if (retval < 0)
     {

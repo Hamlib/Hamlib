@@ -888,7 +888,7 @@ static int handle_ts2000(void *arg)
         if (strcmp(arg, "SA;") == 0)
         {
             // should we silently fail with RIG_OK instead? TBD
-            return(-RIG_ENIMPL);
+            return (-RIG_ENIMPL);
         }
 
         if (strlen(arg) > 3 && ((char *)arg)[2] == '1')
@@ -901,7 +901,7 @@ static int handle_ts2000(void *arg)
             }
             else
             {
-                return(-RIG_ENAVAIL);
+                return (-RIG_ENAVAIL);
             }
         }
 

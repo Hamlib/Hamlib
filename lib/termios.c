@@ -1335,21 +1335,21 @@ static int check_port_capabilities(struct termios_list *index)
     if (!(cp.dwProvCapabilities & PCF_DTRDSR))
     {
         SNPRINTF(message, sizeof(message),
-                "%s: no DTR & DSR support\n", __func__);
+                 "%s: no DTR & DSR support\n", __func__);
         report(message);
     }
 
     if (!(cp.dwProvCapabilities & PCF_RLSD))
     {
         SNPRINTF(message, sizeof(message), "%s: no carrier detect (RLSD) support\n",
-                __func__);
+                 __func__);
         report(message);
     }
 
     if (!(cp.dwProvCapabilities & PCF_RTSCTS))
     {
         SNPRINTF(message, sizeof(message),
-                "%s: no RTS & CTS support\n", __func__);
+                 "%s: no RTS & CTS support\n", __func__);
         report(message);
     }
 
@@ -1422,8 +1422,9 @@ int win32_serial_open(const char *filename, int flags, ...)
 
     if (open_port(index))
     {
-        SNPRINTF(message, sizeof(message), "serial_open():  Invalid Port Reference for %s\n",
-                fullfilename);
+        SNPRINTF(message, sizeof(message),
+                 "serial_open():  Invalid Port Reference for %s\n",
+                 fullfilename);
         report(message);
         win32_serial_close(index->fd);
         return -1;
@@ -1456,7 +1457,7 @@ int win32_serial_open(const char *filename, int flags, ...)
     if (!first_tl->hComm)
     {
         SNPRINTF(message, sizeof(message), "open():  Invalid Port Reference for %s\n",
-                index->filename);
+                 index->filename);
         report(message);
     }
 
@@ -1678,7 +1679,7 @@ int win32_serial_read(int fd, void *vb, int size)
 #ifdef DEBUG_VERBOSE
         /* warning Roy Rogers! */
         SNPRINTF(message, sizeof(message), " ========== ReadFile = %i 0x%x\n",
-                (int) nBytes, *((char *) dest + total));
+                 (int) nBytes, *((char *) dest + total));
         report(message);
 #endif /* DEBUG_VERBOSE */
 
@@ -1725,7 +1726,7 @@ int win32_serial_read(int fd, void *vb, int size)
                 {
                     now = GetTickCount();
                     SNPRINTF(message, sizeof(message), "size > 0: spent=%ld have=%d\n", now - start,
-                            index->ttyset->c_cc[VTIME] * 100);
+                             index->ttyset->c_cc[VTIME] * 100);
                     report(message);
 
                     /* we should use -1 for disabled
@@ -1880,7 +1881,7 @@ int win32_serial_read(int fd, void *vb, int size)
 #ifdef DEBUG_VERBOSE
         /* warning Roy Rogers! */
         SNPRINTF(message, sizeof(message), " ========== ReadFile = %i %s\n",
-                (int) nBytes, (char *) dest + total);
+                 (int) nBytes, (char *) dest + total);
         report(message);
 #endif /* DEBUG_VERBOSE */
 
@@ -1927,7 +1928,7 @@ int win32_serial_read(int fd, void *vb, int size)
                 {
                     now = GetTickCount();
                     SNPRINTF(message, sizeof(message), "size > 0: spent=%ld have=%d\n", now - start,
-                            index->ttyset->c_cc[VTIME] * 100);
+                             index->ttyset->c_cc[VTIME] * 100);
                     report(message);
 
                     /* we should use -1 for disabled
@@ -2350,7 +2351,7 @@ static void show_DCB(DCB myDCB)
 
     default:
         SNPRINTF(message, sizeof(message),
-                "unknown Parity (%#x ):", myDCB.Parity);
+                 "unknown Parity (%#x ):", myDCB.Parity);
         report(message);
         break;
     }
@@ -2597,8 +2598,8 @@ int tcgetattr(int fd, struct termios *s_termios)
 
 #ifdef DEBUG_VERBOSE
     SNPRINTF(message, sizeof(message),
-            "tcgetattr: VTIME:%d, VMIN:%d\n", s_termios->c_cc[VTIME],
-            s_termios->c_cc[VMIN]);
+             "tcgetattr: VTIME:%d, VMIN:%d\n", s_termios->c_cc[VTIME],
+             s_termios->c_cc[VMIN]);
     report(message);
 #endif /* DEBUG_VERBOSE */
 
@@ -2788,8 +2789,9 @@ int tcsetattr(int fd, int when, struct termios *s_termios)
 #ifdef DEBUG_VERBOSE
     {
         char message[32];
-        SNPRINTF(message, sizeof(message), "VTIME:%d, VMIN:%d\n", s_termios->c_cc[VTIME],
-                s_termios->c_cc[VMIN]);
+        SNPRINTF(message, sizeof(message), "VTIME:%d, VMIN:%d\n",
+                 s_termios->c_cc[VTIME],
+                 s_termios->c_cc[VMIN]);
         report(message);
     }
 #endif /* DEBUG_VERBOSE */
@@ -2818,19 +2820,19 @@ int tcsetattr(int fd, int when, struct termios *s_termios)
     {
         char message[64];
         SNPRINTF(message, sizeof(message), "ReadIntervalTimeout=%ld\n",
-                timeouts.ReadIntervalTimeout);
+                 timeouts.ReadIntervalTimeout);
         report(message);
         SNPRINTF(message, sizeof(message), "c_cc[VTIME] = %d, c_cc[VMIN] = %d\n",
-                s_termios->c_cc[VTIME], s_termios->c_cc[VMIN]);
+                 s_termios->c_cc[VTIME], s_termios->c_cc[VMIN]);
         report(message);
         SNPRINTF(message, sizeof(message), "ReadTotalTimeoutConstant: %ld\n",
-                timeouts.ReadTotalTimeoutConstant);
+                 timeouts.ReadTotalTimeoutConstant);
         report(message);
         SNPRINTF(message, sizeof(message), "ReadIntervalTimeout : %ld\n",
-                timeouts.ReadIntervalTimeout);
+                 timeouts.ReadIntervalTimeout);
         report(message);
         SNPRINTF(message, sizeof(message), "ReadTotalTimeoutMultiplier: %ld\n",
-                timeouts.ReadTotalTimeoutMultiplier);
+                 timeouts.ReadTotalTimeoutMultiplier);
         report(message);
     }
 #endif /* DEBUG_VERBOSE */
@@ -2938,7 +2940,7 @@ int tcdrain(int fd)
               0.
         */
         SNPRINTF(message, sizeof(message),  "FlushFileBuffers() %i\n",
-                (int) GetLastError());
+                 (int) GetLastError());
         report(message);
 
         if (GetLastError() == 0)
@@ -3352,7 +3354,8 @@ int win32_serial_ioctl(int fd, int request, ...)
             report("DTR is unchanged\n");
         }
 
-        SNPRINTF(message, sizeof(message), "DTR %i %i\n", *arg & TIOCM_DTR, index->MSR & TIOCM_DTR);
+        SNPRINTF(message, sizeof(message), "DTR %i %i\n", *arg & TIOCM_DTR,
+                 index->MSR & TIOCM_DTR);
         report(message);
 
         if (*arg & TIOCM_DTR)
@@ -3380,7 +3383,8 @@ int win32_serial_ioctl(int fd, int request, ...)
             report("RTS is unchanged\n");
         }
 
-        SNPRINTF(message, sizeof(message), "RTS %i %i\n", *arg & TIOCM_RTS, index->MSR & TIOCM_RTS);
+        SNPRINTF(message, sizeof(message), "RTS %i %i\n", *arg & TIOCM_RTS,
+                 index->MSR & TIOCM_RTS);
         report(message);
 
         if (*arg & TIOCM_RTS)
@@ -3579,7 +3583,7 @@ int win32_serial_ioctl(int fd, int request, ...)
         *arg = (int) Stat.cbInQue;
 #ifdef DEBUG_VERBOSE
         SNPRINTF(message, sizeof(message), "FIONREAD:  %i bytes available\n",
-                (int) Stat.cbInQue);
+                 (int) Stat.cbInQue);
         report(message);
 
         if (*arg)
@@ -3600,8 +3604,8 @@ int win32_serial_ioctl(int fd, int request, ...)
 
     default:
         SNPRINTF(message, sizeof(message),
-                "FIXME:  ioctl: unknown request: %#x\n",
-                request);
+                 "FIXME:  ioctl: unknown request: %#x\n",
+                 request);
         report(message);
         va_end(ap);
         return -ENOIOCTLCMD;
@@ -3791,7 +3795,8 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
 
         while (timeout_usec > 0)
         {
-            SNPRINTF(message, sizeof(message), "wait for data in read buffer%d\n", (int)Stat.cbInQue);
+            SNPRINTF(message, sizeof(message), "wait for data in read buffer%d\n",
+                     (int)Stat.cbInQue);
             report(message);
 
             if (Stat.cbInQue != 0)
@@ -3938,7 +3943,8 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
 
             if (GetLastError() != ERROR_IO_PENDING)
             {
-                SNPRINTF(message, sizeof(message), "WaitCommEvent filename = %s\n", index->filename);
+                SNPRINTF(message, sizeof(message), "WaitCommEvent filename = %s\n",
+                         index->filename);
                 report(message);
                 return (1);
                 /*

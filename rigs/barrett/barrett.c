@@ -273,16 +273,20 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               rig_strvfo(vfo), freq);
 
     retval = rig_get_freq(rig, vfo, &tfreq);
+
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_freq failed: %s\n", __func__, strerror(retval));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_freq failed: %s\n", __func__,
+                  strerror(retval));
         return retval;
     }
+
     if (tfreq == freq)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: freq not changing\n", __func__);
         return RIG_OK;
     }
+
     // If we are not explicitly asking for VFO_B then we'll set the receive side also
     if (vfo != RIG_VFO_B)
     {
@@ -423,11 +427,14 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: get_mode failed %s\n", __func__, strerror(retval));
+        rig_debug(RIG_DEBUG_ERR, "%s: get_mode failed %s\n", __func__,
+                  strerror(retval));
     }
+
     if (tmode == mode)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: already mode %s so not changing\n", __func__, rig_strrmode(mode));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: already mode %s so not changing\n", __func__,
+                  rig_strrmode(mode));
         return RIG_OK;
     }
 

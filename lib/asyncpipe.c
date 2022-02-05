@@ -6,13 +6,15 @@
 
 static volatile long pipe_serial_nunber;
 
-int async_pipe_create(hamlib_async_pipe_t **pipe_out, unsigned long pipe_buffer_size, unsigned long pipe_connect_timeout_millis)
+int async_pipe_create(hamlib_async_pipe_t **pipe_out,
+                      unsigned long pipe_buffer_size, unsigned long pipe_connect_timeout_millis)
 {
     DWORD error_code;
     CHAR pipe_name[MAX_PATH];
     hamlib_async_pipe_t *pipe;
 
     pipe = calloc(1, sizeof(hamlib_async_pipe_t));
+
     if (pipe == NULL)
     {
         return -RIG_ENOMEM;
@@ -24,20 +26,20 @@ int async_pipe_create(hamlib_async_pipe_t **pipe_out, unsigned long pipe_buffer_
     }
 
     SNPRINTF(pipe_name, sizeof(pipe_name),
-            "\\\\.\\Pipe\\Hamlib.%08lx.%08lx",
-            GetCurrentProcessId(),
-            InterlockedIncrement(&pipe_serial_nunber)
+             "\\\\.\\Pipe\\Hamlib.%08lx.%08lx",
+             GetCurrentProcessId(),
+             InterlockedIncrement(&pipe_serial_nunber)
             );
 
     pipe->read = CreateNamedPipe(
-                        pipe_name,
-                        PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
-                        PIPE_TYPE_BYTE | PIPE_WAIT,
-                        1,                           // Number of pipes
-                        pipe_buffer_size,            // Out buffer size
-                        pipe_buffer_size,            // In buffer size
-                        pipe_connect_timeout_millis, // Timeout in ms
-                        NULL);
+                     pipe_name,
+                     PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
+                     PIPE_TYPE_BYTE | PIPE_WAIT,
+                     1,                           // Number of pipes
+                     pipe_buffer_size,            // Out buffer size
+                     pipe_buffer_size,            // In buffer size
+                     pipe_connect_timeout_millis, // Timeout in ms
+                     NULL);
 
     if (!pipe->read)
     {
@@ -45,14 +47,14 @@ int async_pipe_create(hamlib_async_pipe_t **pipe_out, unsigned long pipe_buffer_
     }
 
     pipe->write = CreateFile(
-                        pipe_name,
-                        GENERIC_WRITE,
-                        0, // No sharing
-                        NULL,
-                        OPEN_EXISTING,
-                        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
-                        NULL // Template file
-                    );
+                      pipe_name,
+                      GENERIC_WRITE,
+                      0, // No sharing
+                      NULL,
+                      OPEN_EXISTING,
+                      FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+                      NULL // Template file
+                  );
 
     if (pipe->write == INVALID_HANDLE_VALUE)
     {
@@ -64,10 +66,10 @@ int async_pipe_create(hamlib_async_pipe_t **pipe_out, unsigned long pipe_buffer_
     }
 
     pipe->read_overlapped.hEvent = CreateEvent(
-            NULL,    // default security attribute
-            TRUE,    // manual-reset event
-            FALSE,   // initial state = not signaled
-            NULL);   // unnamed event object
+                                       NULL,    // default security attribute
+                                       TRUE,    // manual-reset event
+                                       FALSE,   // initial state = not signaled
+                                       NULL);   // unnamed event object
 
     if (pipe->read_overlapped.hEvent == NULL)
     {
@@ -80,10 +82,10 @@ int async_pipe_create(hamlib_async_pipe_t **pipe_out, unsigned long pipe_buffer_
     }
 
     pipe->write_overlapped.hEvent = CreateEvent(
-            NULL,    // default security attribute
-            TRUE,    // manual-reset event
-            FALSE,   // initial state = not signaled
-            NULL);   // unnamed event object
+                                        NULL,    // default security attribute
+                                        TRUE,    // manual-reset event
+                                        FALSE,   // initial state = not signaled
+                                        NULL);   // unnamed event object
 
     if (pipe->write_overlapped.hEvent == NULL)
     {
@@ -108,6 +110,7 @@ void async_pipe_close(hamlib_async_pipe_t *pipe)
         CloseHandle(pipe->read);
         pipe->read = NULL;
     }
+
     if (pipe->write != NULL)
     {
         CloseHandle(pipe->write);
@@ -119,6 +122,7 @@ void async_pipe_close(hamlib_async_pipe_t *pipe)
         CloseHandle(pipe->read_overlapped.hEvent);
         pipe->read_overlapped.hEvent = NULL;
     }
+
     if (pipe->write_overlapped.hEvent != NULL)
     {
         CloseHandle(pipe->write_overlapped.hEvent);
@@ -128,9 +132,11 @@ void async_pipe_close(hamlib_async_pipe_t *pipe)
     free(pipe);
 }
 
-ssize_t async_pipe_read(hamlib_async_pipe_t *pipe, void *buf, size_t count, int timeout)
+ssize_t async_pipe_read(hamlib_async_pipe_t *pipe, void *buf, size_t count,
+                        int timeout)
 {
-    HANDLE event_handles[1] = {
+    HANDLE event_handles[1] =
+    {
         pipe->read_overlapped.hEvent,
     };
     HANDLE read_handle = pipe->read;
@@ -140,63 +146,75 @@ ssize_t async_pipe_read(hamlib_async_pipe_t *pipe, void *buf, size_t count, int 
     ssize_t bytes_read;
 
     result = ReadFile(read_handle, buf, count, NULL, overlapped);
+
     if (!result)
     {
         result = GetLastError();
+
         switch (result)
         {
-            case ERROR_SUCCESS:
-                // No error?
-                break;
-            case ERROR_IO_PENDING:
-                wait_result = WaitForMultipleObjects(1, event_handles, FALSE, timeout);
+        case ERROR_SUCCESS:
+            // No error?
+            break;
 
-                switch (wait_result)
+        case ERROR_IO_PENDING:
+            wait_result = WaitForMultipleObjects(1, event_handles, FALSE, timeout);
+
+            switch (wait_result)
+            {
+            case WAIT_OBJECT_0 + 0:
+                break;
+
+            case WAIT_TIMEOUT:
+                if (count == 0)
                 {
-                    case WAIT_OBJECT_0 + 0:
-                        break;
-
-                    case WAIT_TIMEOUT:
-                        if (count == 0)
-                        {
-                            // Zero-length reads are used to wait for incoming data,
-                            // so the I/O operation needs to be cancelled in case of a timeout
-                            CancelIo(read_handle);
-                            return -RIG_ETIMEOUT;
-                        }
-                        else
-                        {
-                            // Should not happen, as reads with count > 0 are used only when there is data available in the pipe
-                            return -RIG_EINTERNAL;
-                        }
-
-                    default:
-                        result = GetLastError();
-                        rig_debug(RIG_DEBUG_ERR, "%s: WaitForMultipleObjects() error: %d\n", __func__, result);
-                        return -RIG_EINTERNAL;
+                    // Zero-length reads are used to wait for incoming data,
+                    // so the I/O operation needs to be cancelled in case of a timeout
+                    CancelIo(read_handle);
+                    return -RIG_ETIMEOUT;
                 }
-                break;
+                else
+                {
+                    // Should not happen, as reads with count > 0 are used only when there is data available in the pipe
+                    return -RIG_EINTERNAL;
+                }
+
             default:
-                rig_debug(RIG_DEBUG_ERR, "%s: ReadFile() error: %d\n", __func__, result);
-                return -RIG_EIO;
+                result = GetLastError();
+                rig_debug(RIG_DEBUG_ERR, "%s: WaitForMultipleObjects() error: %d\n", __func__,
+                          result);
+                return -RIG_EINTERNAL;
+            }
+
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: ReadFile() error: %d\n", __func__, result);
+            return -RIG_EIO;
         }
     }
 
-    result = GetOverlappedResult(read_handle, overlapped, (LPDWORD) &bytes_read, FALSE);
+    result = GetOverlappedResult(read_handle, overlapped, (LPDWORD) &bytes_read,
+                                 FALSE);
+
     if (!result)
     {
         result = GetLastError();
+
         switch (result)
         {
-            case ERROR_SUCCESS:
-                // No error?
-                break;
-            case ERROR_IO_PENDING:
-                // Shouldn't happen?
-                return -RIG_ETIMEOUT;
-            default:
-                rig_debug(RIG_DEBUG_ERR, "%s: GetOverlappedResult() error: %d\n", __func__, result);
-                return -RIG_EIO;
+        case ERROR_SUCCESS:
+            // No error?
+            break;
+
+        case ERROR_IO_PENDING:
+            // Shouldn't happen?
+            return -RIG_ETIMEOUT;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: GetOverlappedResult() error: %d\n", __func__,
+                      result);
+            return -RIG_EIO;
         }
     }
 
@@ -219,9 +237,11 @@ int async_pipe_wait_for_data(hamlib_async_pipe_t *pipe, int timeout)
     return result;
 }
 
-ssize_t async_pipe_write(hamlib_async_pipe_t *pipe, const unsigned char *buf, size_t count, int timeout)
+ssize_t async_pipe_write(hamlib_async_pipe_t *pipe, const unsigned char *buf,
+                         size_t count, int timeout)
 {
-    HANDLE event_handles[1] = {
+    HANDLE event_handles[1] =
+    {
         pipe->write_overlapped.hEvent,
     };
     HANDLE write_handle = pipe->write;
@@ -231,53 +251,65 @@ ssize_t async_pipe_write(hamlib_async_pipe_t *pipe, const unsigned char *buf, si
     ssize_t bytes_written;
 
     result = WriteFile(write_handle, buf, count, NULL, overlapped);
+
     if (!result)
     {
         result = GetLastError();
+
         switch (result)
         {
-            case ERROR_SUCCESS:
-                // No error?
+        case ERROR_SUCCESS:
+            // No error?
+            break;
+
+        case ERROR_IO_PENDING:
+            wait_result = WaitForMultipleObjects(1, event_handles, FALSE, timeout);
+
+            switch (wait_result)
+            {
+            case WAIT_OBJECT_0 + 0:
                 break;
-            case ERROR_IO_PENDING:
-                wait_result = WaitForMultipleObjects(1, event_handles, FALSE, timeout);
 
-                switch (wait_result)
-                {
-                    case WAIT_OBJECT_0 + 0:
-                        break;
+            case WAIT_TIMEOUT:
+                CancelIo(write_handle);
+                return -RIG_ETIMEOUT;
 
-                    case WAIT_TIMEOUT:
-                        CancelIo(write_handle);
-                        return -RIG_ETIMEOUT;
-
-                    default:
-                        result = GetLastError();
-                        rig_debug(RIG_DEBUG_ERR, "%s: WaitForMultipleObjects() error: %d\n", __func__, result);
-                        return -RIG_EINTERNAL;
-                }
-                break;
             default:
-                rig_debug(RIG_DEBUG_ERR, "%s: WriteFile() error: %d\n", __func__, result);
-                return -RIG_EIO;
+                result = GetLastError();
+                rig_debug(RIG_DEBUG_ERR, "%s: WaitForMultipleObjects() error: %d\n", __func__,
+                          result);
+                return -RIG_EINTERNAL;
+            }
+
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: WriteFile() error: %d\n", __func__, result);
+            return -RIG_EIO;
         }
     }
 
-    result = GetOverlappedResult(write_handle, overlapped, (LPDWORD) &bytes_written, FALSE);
+    result = GetOverlappedResult(write_handle, overlapped, (LPDWORD) &bytes_written,
+                                 FALSE);
+
     if (!result)
     {
         result = GetLastError();
+
         switch (result)
         {
-            case ERROR_SUCCESS:
-                // No error?
-                break;
-            case ERROR_IO_PENDING:
-                // Shouldn't happen?
-                return -RIG_ETIMEOUT;
-            default:
-                rig_debug(RIG_DEBUG_ERR, "%s: GetOverlappedResult() error: %d\n", __func__, result);
-                return -RIG_EIO;
+        case ERROR_SUCCESS:
+            // No error?
+            break;
+
+        case ERROR_IO_PENDING:
+            // Shouldn't happen?
+            return -RIG_ETIMEOUT;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: GetOverlappedResult() error: %d\n", __func__,
+                      result);
+            return -RIG_EIO;
         }
     }
 

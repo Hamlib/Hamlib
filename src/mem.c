@@ -1179,7 +1179,7 @@ int HAMLIB_API rig_set_chan_all(RIG *rig, vfo_t vfo, const channel_t chans[])
     }
 
     rc = rig->caps;
-    memset(&map_arg,0,sizeof(map_arg));
+    memset(&map_arg, 0, sizeof(map_arg));
     map_arg.chans = (channel_t *) chans;
 
     if (rc->set_chan_all_cb)
@@ -1222,7 +1222,7 @@ int HAMLIB_API rig_get_chan_all(RIG *rig, vfo_t vfo, channel_t chans[])
     }
 
     rc = rig->caps;
-    memset(&map_arg,0,sizeof(map_arg));
+    memset(&map_arg, 0, sizeof(map_arg));
     map_arg.chans = chans;
 
     if (rc->get_chan_all_cb)

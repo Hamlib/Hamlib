@@ -536,6 +536,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             return -RIG_EINVAL;
         }
+
         // JTDX and WSJTX currently use state.pttport to check for PTT_NONE
         rig->state.pttport.type.ptt = rs->pttport.type.ptt;
         rs->pttport_deprecated.type.ptt = rs->pttport.type.ptt;
@@ -760,7 +761,7 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 
     case TOK_ITU_REGION:
         SNPRINTF(val, val_len, "%d",
-                rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);
+                 rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);
         break;
 #endif
 
@@ -1067,7 +1068,7 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
         return -RIG_EINVAL;
     }
 
-    memcpy(&rs->rigport_deprecated,&rs->rigport,sizeof(hamlib_port_t_deprecated));
+    memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
 
     return RIG_OK;
 }
@@ -1299,7 +1300,7 @@ int HAMLIB_API rig_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     {
         return frontend_get_conf2(rig, token, val, val_len);
     }
-    
+
     if (rig->caps->get_conf2)
     {
         return rig->caps->get_conf2(rig, token, val, val_len);

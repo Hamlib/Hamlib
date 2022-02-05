@@ -286,7 +286,8 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
             if (data)
             {
-                retval = read_string(&rs->rigport, (unsigned char *) data, (*data_len) + 1, term, strlen(term), 0,
+                retval = read_string(&rs->rigport, (unsigned char *) data, (*data_len) + 1,
+                                     term, strlen(term), 0,
                                      1);
 
                 if (retval != -RIG_ETIMEOUT)
@@ -475,7 +476,8 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?%c" EOM, which_vfo(rig, vfo));
     resp_len = 6;
-    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) respbuf,
+    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                               (char *) respbuf,
                                &resp_len);
 
     if (retval != RIG_OK)
@@ -544,10 +546,11 @@ int tt588_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     bytes[0] = (int) freq        & 0xff;
 
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*%c%c%c%c%c" EOM,
-                      which_vfo(rig, vfo),
-                      bytes[3], bytes[2], bytes[1], bytes[0]);
+             which_vfo(rig, vfo),
+             bytes[3], bytes[2], bytes[1], bytes[0]);
 
-    return tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), NULL, NULL);
+    return tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+                             NULL);
 }
 
 /*
@@ -619,7 +622,8 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     // Query mode
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?M" EOM);
     resp_len = 4;
-    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) respbuf,
+    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                               (char *) respbuf,
                                &resp_len);
 
     if (resp_len > 4)
@@ -677,7 +681,8 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* Query passband width (filter) */
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?W" EOM);
     resp_len = 3;
-    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) respbuf,
+    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                               (char *) respbuf,
                                &resp_len);
 
     if (retval != RIG_OK)
@@ -819,7 +824,8 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     /* Query mode for both VFOs. */
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?M" EOM);
     resp_len = 4;
-    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) respbuf,
+    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                               (char *) respbuf,
                                &resp_len);
 
     if (retval != RIG_OK)
@@ -874,7 +880,8 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), NULL, NULL);
+    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+                               NULL);
 
     if (retval != RIG_OK)
     {
@@ -891,7 +898,8 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     width = tt588_filter_number((int) width);
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*W%c" EOM, (unsigned char) width);
-    return tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), NULL, NULL);
+    return tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+                             NULL);
 }
 
 /*
@@ -1009,7 +1017,8 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         /* Read rig's AGC level setting. */
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?G" EOM);
         lvl_len = 3;
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) lvlbuf,
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                                   (char *) lvlbuf,
                                    &lvl_len);
 
         if (retval != RIG_OK)
@@ -1043,7 +1052,8 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         /* Volume returned as single byte. */
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?U" EOM);
         lvl_len = 3;
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) lvlbuf,
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                                   (char *) lvlbuf,
                                    &lvl_len);
 
         if (retval != RIG_OK)
@@ -1069,7 +1079,8 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RF:
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?I" EOM);
         lvl_len = 3;
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) lvlbuf,
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                                   (char *) lvlbuf,
                                    &lvl_len);
 
         if (retval != RIG_OK)
@@ -1090,7 +1101,8 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?J" EOM);
         lvl_len = 33;
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) lvlbuf,
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                                   (char *) lvlbuf,
                                    &lvl_len);
 
         if (retval != RIG_OK)
@@ -1119,7 +1131,8 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?H" EOM);
         lvl_len = 3;
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) lvlbuf,
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                                   (char *) lvlbuf,
                                    &lvl_len);
 
         if (retval != RIG_OK)
@@ -1188,7 +1201,8 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         /* Volume */
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*U%c" EOM, (char)(val.f * 127));
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), NULL, NULL);
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+                                   NULL);
 
         if (retval != RIG_OK)
         {
@@ -1200,8 +1214,10 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_RF:
 
         /* RF gain. Omni-VII expects value 0 for full gain, and 127 for lowest gain */
-        SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*I%c" EOM, 127 - (char)(val.f * 127));
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), NULL, NULL);
+        SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*I%c" EOM,
+                 127 - (char)(val.f * 127));
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+                                   NULL);
 
         if (retval != RIG_OK)
         {
@@ -1227,7 +1243,8 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*Gx" EOM);
         cmdbuf[2] = agcmode;
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), NULL, NULL);
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+                                   NULL);
 
         if (retval != RIG_OK)
         {
@@ -1246,7 +1263,8 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*J%c" EOM, ii + '0');
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), NULL, NULL);
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+                                   NULL);
 
         if (retval != RIG_OK)
         {
@@ -1258,7 +1276,8 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_SQL:
         /* Squelch level, float 0.0 - 1.0 */
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*H%c" EOM, (int)(val.f * 127));
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), NULL, NULL);
+        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+                                   NULL);
 
         if (retval != RIG_OK)
         {
@@ -1413,7 +1432,8 @@ int tt588_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         cmdbuf[2] = 0;
     }
 
-    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, 0);  // no response
+    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), NULL,
+                               0);  // no response
 
     if (retval != RIG_OK)
     {
@@ -1436,7 +1456,8 @@ const char *tt588_get_info(RIG *rig)
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "?V" EOM);
     memset(firmware, 0, sizeof(firmware));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: firmware_len=%d\n", __func__, firmware_len);
-    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), firmware, &firmware_len);
+    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), firmware,
+                               &firmware_len);
 
     // Response should be  "VER 1010-588 " plus "RADIO x\r" or "REMOTEx\r"
     // if x=blank ham band transmit only
@@ -1519,7 +1540,8 @@ static int set_rit_xit(RIG *rig, vfo_t vfo, shortfreq_t rit, int which)
     cmdbuf[2] = which;  // set xit bit. 0=off,1=rit, 2=xit, 3=both
     cmdbuf[3] = rit >> 8;
     cmdbuf[4] = rit & 0xff;
-    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, 0);   // no response
+    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), NULL,
+                               0);   // no response
 
     if (retval != RIG_OK)
     {
@@ -1617,7 +1639,8 @@ int tt588_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
     // 3 = RX=RXAUC, TX=ANT2
     cmdbuf[4] = ant;
     // this should be the only line needing change for remote operation
-    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, 0);   // no response
+    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), NULL,
+                               0);   // no response
 
     if (retval != RIG_OK)
     {

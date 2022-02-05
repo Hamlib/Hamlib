@@ -165,10 +165,10 @@ const char *optoscan_get_info(RIG *rig)
     }
 
     SNPRINTF(info, sizeof(info), "OptoScan%c%c%c, software version %d.%d, "
-            "interface version %d.%d\n",
-            ackbuf[2], ackbuf[3], ackbuf[4],
-            ackbuf[5] >> 4, ackbuf[5] & 0xf,
-            ackbuf[6] >> 4, ackbuf[6] & 0xf);
+             "interface version %d.%d\n",
+             ackbuf[2], ackbuf[3], ackbuf[4],
+             ackbuf[5] >> 4, ackbuf[5] & 0xf,
+             ackbuf[6] >> 4, ackbuf[6] & 0xf);
 
     return info;
 }

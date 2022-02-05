@@ -106,7 +106,8 @@ transaction_write:
 
     /** the answer */
     memset(data, 0, data_len);
-    retval = read_string(&rs->rotport, (unsigned char *) data, data_len, ACK, strlen(ACK), 0, 1);
+    retval = read_string(&rs->rotport, (unsigned char *) data, data_len, ACK,
+                         strlen(ACK), 0, 1);
 
     if (retval < 0)
     {

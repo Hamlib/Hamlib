@@ -136,7 +136,7 @@ int elecraft_open(RIG *rig)
         }
 
         err = read_string(&rs->rigport, (unsigned char *) buf, sizeof(buf),
-                ";", 1, 0, 1);
+                          ";", 1, 0, 1);
 
         if (err < 0)
         {

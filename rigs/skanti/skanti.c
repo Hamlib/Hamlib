@@ -86,7 +86,8 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
         * Transceiver sends back ">"
         */
         char retbuf[BUFSZ + 1];
-        retval = read_string(&rs->rigport, (unsigned char *) retbuf, BUFSZ, PROMPT, strlen(PROMPT), 0, 1);
+        retval = read_string(&rs->rigport, (unsigned char *) retbuf, BUFSZ, PROMPT,
+                             strlen(PROMPT), 0, 1);
 
         if (retval < 0)
         {
@@ -105,7 +106,8 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
         }
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, LF, strlen(LF), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, LF,
+                         strlen(LF), 0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {
@@ -274,7 +276,7 @@ int skanti_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_RFPOWER:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "M%cO" EOM,
-                          val.f < 0.33 ? 'L' : (val.f < 0.66 ? 'M' : 'F'));
+                 val.f < 0.33 ? 'L' : (val.f < 0.66 ? 'M' : 'F'));
 
         return skanti_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 

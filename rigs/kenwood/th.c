@@ -1344,17 +1344,17 @@ int th_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_RFPOWER :
         SNPRINTF(buf, sizeof(buf), "PC %c,%01d", vch,
-                (int)(val.f * (rig->caps->level_gran[LVL_RFPOWER].max.i -
-                               rig->caps->level_gran[LVL_RFPOWER].min.i))
-                + rig->caps->level_gran[LVL_RFPOWER].min.i);
+                 (int)(val.f * (rig->caps->level_gran[LVL_RFPOWER].max.i -
+                                rig->caps->level_gran[LVL_RFPOWER].min.i))
+                 + rig->caps->level_gran[LVL_RFPOWER].min.i);
 
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case RIG_LEVEL_SQL :
         SNPRINTF(buf, sizeof(buf), "SQ %c,%02x", vch,
-                (int)(val.f * (rig->caps->level_gran[LVL_SQL].max.i -
-                               rig->caps->level_gran[LVL_SQL].min.i))
-                + rig->caps->level_gran[LVL_SQL].min.i);
+                 (int)(val.f * (rig->caps->level_gran[LVL_SQL].max.i -
+                                rig->caps->level_gran[LVL_SQL].min.i))
+                 + rig->caps->level_gran[LVL_SQL].min.i);
         return kenwood_transaction(rig, buf, NULL, 0);
 
     case RIG_LEVEL_AF :
@@ -1979,7 +1979,8 @@ int th_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
         else
         {
             SNPRINTF(req, sizeof(req), "MR %s0,PR%01d", mr_extra, channel_num + 1);
-            SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "Pr%01d", channel_num + 1);
+            SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "Pr%01d",
+                     channel_num + 1);
         }
 
         break;
@@ -1995,7 +1996,8 @@ int th_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     case RIG_MTYPE_BAND:
         SNPRINTF(req, sizeof(req), "VR %01X", channel_num);
-        SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "BAND %01X", channel_num);
+        SNPRINTF(chan->channel_desc, sizeof(chan->channel_desc), "BAND %01X",
+                 channel_num);
         break;
 
     default:
@@ -2433,11 +2435,12 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     {
 
         /* Without DCS,mode */
-        SNPRINTF(membuf, sizeof(membuf), "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
-                req, (int64_t)chan->freq, step, shift, rev, tone,
-                ctcss, tonefq, ctcssfq,
-                (int64_t)labs((long)(chan->rptr_offs)), lockoutstr
-               );
+        SNPRINTF(membuf, sizeof(membuf),
+                 "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
+                 req, (int64_t)chan->freq, step, shift, rev, tone,
+                 ctcss, tonefq, ctcssfq,
+                 (int64_t)labs((long)(chan->rptr_offs)), lockoutstr
+                );
     }
 
     retval = kenwood_transaction(rig, membuf, membuf, sizeof(membuf));
@@ -2455,7 +2458,8 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
         req[3 + strlen(mr_extra)] = '1';
 
-        SNPRINTF(membuf, sizeof(membuf), "%s,%011"PRIll",%X", req, (int64_t)chan->tx_freq, step);
+        SNPRINTF(membuf, sizeof(membuf), "%s,%011"PRIll",%X", req,
+                 (int64_t)chan->tx_freq, step);
         retval = kenwood_transaction(rig, membuf, membuf, sizeof(membuf));
 
         if (retval != RIG_OK)
@@ -2470,11 +2474,13 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         /* TODO: check strlen(channel_desc) < rig->caps->chan_desc_sz */
         if (chan_caps[1].type == RIG_MTYPE_PRIO)
         {
-            SNPRINTF(membuf, sizeof(membuf), "MNA %sI-%01d,%s", mr_extra, channel_num, channel_desc);
+            SNPRINTF(membuf, sizeof(membuf), "MNA %sI-%01d,%s", mr_extra, channel_num,
+                     channel_desc);
         }
         else
         {
-            SNPRINTF(membuf, sizeof(membuf), "MNA %s%03d,%s", mr_extra, channel_num, channel_desc);
+            SNPRINTF(membuf, sizeof(membuf), "MNA %s%03d,%s", mr_extra, channel_num,
+                     channel_desc);
         }
 
         retval = kenwood_transaction(rig, membuf, membuf, sizeof(membuf));

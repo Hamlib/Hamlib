@@ -261,10 +261,10 @@ static int check_vfo(vfo_t vfo)
         break;                  // will default to A in which_vfo
 
     default:
-        return(FALSE);
+        return (FALSE);
     }
 
-    return(TRUE);
+    return (TRUE);
 }
 
 /*
@@ -509,7 +509,7 @@ static const char *modeMapGetTCI(rmode_t modeHamlib)
 static rmode_t modeMapGetHamlib(const char *modeTCI)
 {
     int i;
-    char modeTCICheck[MAXBUFLEN+2];
+    char modeTCICheck[MAXBUFLEN + 2];
 
     SNPRINTF(modeTCICheck, sizeof(modeTCICheck), "|%s|", modeTCI);
 
@@ -521,13 +521,13 @@ static rmode_t modeMapGetHamlib(const char *modeTCI)
         if (modeMap[i].mode_tci1x
                 && strcmp(modeMap[i].mode_tci1x, modeTCICheck) == 0)
         {
-            return(modeMap[i].mode_hamlib);
+            return (modeMap[i].mode_hamlib);
         }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: mode requested: %s, not in modeMap\n", __func__,
               modeTCI);
-    return(RIG_MODE_NONE);
+    return (RIG_MODE_NONE);
 }
 
 
@@ -940,7 +940,7 @@ static int tci1x_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     SNPRINTF(cmd_arg, sizeof(cmd_arg),
-            "<params><param><value><double>%.0f</double></value></param></params>", freq);
+             "<params><param><value><double>%.0f</double></value></param></params>", freq);
 
     value_t val;
     rig_get_ext_parm(rig, TOK_TCI1X_VERIFY_FREQ, &val);
@@ -997,8 +997,8 @@ static int tci1x_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     SNPRINTF(cmd_arg, sizeof(cmd_arg),
-            "<params><param><value><i4>%d</i4></value></param></params>",
-            ptt);
+             "<params><param><value><i4>%d</i4></value></param></params>",
+             ptt);
 
     value_t val;
     char *cmd = "rig.set_ptt";
@@ -1196,7 +1196,8 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (p) { *p = 0; } // remove any other pipe
 
-    SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value>%s</value></param></params>", pttmode);
+    SNPRINTF(cmd_arg, sizeof(cmd_arg),
+             "<params><param><value>%s</value></param></params>", pttmode);
     free(ttmode);
 
     if (!priv->has_get_modeA)
@@ -1252,8 +1253,9 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // Need to update the bandwidth
     if (width > 0 && needBW)
     {
-        SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value><i4>%ld</i4></value></param></params>",
-                width);
+        SNPRINTF(cmd_arg, sizeof(cmd_arg),
+                 "<params><param><value><i4>%ld</i4></value></param></params>",
+                 width);
 
         retval = tci1x_transaction(rig, "rig.set_bandwidth", cmd_arg, NULL, 0);
 
@@ -1489,8 +1491,9 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
         vfo = rig->state.current_vfo;
     }
 
-    SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value>%s</value></param></params>",
-            vfo == RIG_VFO_A ? "A" : "B");
+    SNPRINTF(cmd_arg, sizeof(cmd_arg),
+             "<params><param><value>%s</value></param></params>",
+             vfo == RIG_VFO_A ? "A" : "B");
     retval = tci1x_transaction(rig, "rig.set_AB", cmd_arg, NULL, 0);
 
     if (retval != RIG_OK)
@@ -1507,8 +1510,9 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
     /* so if we are in split and asked for A we have to turn split back on */
     if (priv->split && vfo == RIG_VFO_A)
     {
-        SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value><i4>%d</i4></value></param></params>",
-                priv->split);
+        SNPRINTF(cmd_arg, sizeof(cmd_arg),
+                 "<params><param><value><i4>%d</i4></value></param></params>",
+                 priv->split);
         retval = tci1x_transaction(rig, "rig.set_split", cmd_arg, NULL, 0);
 
         if (retval < 0)
@@ -1601,8 +1605,8 @@ static int tci1x_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (tx_freq == qtx_freq) { RETURNFUNC(RIG_OK); }
 
     SNPRINTF(cmd_arg, sizeof(cmd_arg),
-            "<params><param><value><double>%.6f</double></value></param></params>",
-            tx_freq);
+             "<params><param><value><double>%.6f</double></value></param></params>",
+             tx_freq);
     retval = tci1x_transaction(rig, "rig.set_vfoB", cmd_arg, NULL, 0);
 
     if (retval < 0)
@@ -1661,8 +1665,9 @@ static int tci1x_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         RETURNFUNC(RIG_OK);  // just return OK and ignore this
     }
 
-    SNPRINTF(cmd_arg, sizeof(cmd_arg), "<params><param><value><i4>%d</i4></value></param></params>",
-            split);
+    SNPRINTF(cmd_arg, sizeof(cmd_arg),
+             "<params><param><value><i4>%d</i4></value></param></params>",
+             split);
     retval = tci1x_transaction(rig, "rig.set_split", cmd_arg, NULL, 0);
 
     if (retval < 0)
@@ -1813,8 +1818,8 @@ static int tci1x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
 
     SNPRINTF(cmd_arg, sizeof(cmd_arg),
-            "<params><param><value><%s>%d</%s></value></param></params>",
-            param_type, (int)val.f, param_type);
+             "<params><param><value><%s>%d</%s></value></param></params>",
+             param_type, (int)val.f, param_type);
 
 
     retval = tci1x_transaction(rig, cmd, cmd_arg, NULL, 0);

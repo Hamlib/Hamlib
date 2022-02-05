@@ -248,7 +248,8 @@ const char *ic92d_get_info(RIG *rig)
         return NULL;
     }
 
-    SNPRINTF(info, sizeof(info), "ID %02x%02x%02x\n", ackbuf[1], ackbuf[2], ackbuf[3]);
+    SNPRINTF(info, sizeof(info), "ID %02x%02x%02x\n", ackbuf[1], ackbuf[2],
+             ackbuf[3]);
 
     return info;
 }

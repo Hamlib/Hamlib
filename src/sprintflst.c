@@ -339,6 +339,7 @@ int sprintf_level_ext(char *str, int nlen, const struct confparams *extlevels)
             /* ignore case RIG_CONF_BUTTON */
             break;
         }
+
         check_buffer_overflow(str, len, nlen);
     }
 
@@ -397,6 +398,7 @@ int rig_sprintf_level_gran(char *str, int nlen, setting_t level,
                            gran[i].max.i,
                            gran[i].step.i);
         }
+
         check_buffer_overflow(str, len, nlen);
     }
 
@@ -455,6 +457,7 @@ int rot_sprintf_level_gran(char *str, int nlen, setting_t level,
                            gran[i].max.i,
                            gran[i].step.i);
         }
+
         check_buffer_overflow(str, len, nlen);
     }
 
@@ -573,6 +576,7 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
                            gran[i].max.i,
                            gran[i].step.i);
         }
+
         check_buffer_overflow(str, len, nlen);
     }
 
@@ -631,6 +635,7 @@ int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm,
                            gran[i].max.i,
                            gran[i].step.i);
         }
+
         check_buffer_overflow(str, len, nlen);
     }
 
@@ -720,6 +725,7 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
         {
             len += sprintf(str + len, "%s ", sv);
         }
+
         check_buffer_overflow(str, len, nlen);
     }
 

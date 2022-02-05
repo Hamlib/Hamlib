@@ -196,14 +196,17 @@ static int send_command(RIG *rig)
     struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
     int ret;
 
-    ret = write_block(&rig->state.rigport, (unsigned char *) priv->control_frame, CTRL_FRAME_LEN);
+    ret = write_block(&rig->state.rigport, (unsigned char *) priv->control_frame,
+                      CTRL_FRAME_LEN);
 #if 0
-    ret = read_block(&rig->state.rigport, (unsigned char *) priv->control_frame, CTRL_FRAME_LEN);
+    ret = read_block(&rig->state.rigport, (unsigned char *) priv->control_frame,
+                     CTRL_FRAME_LEN);
 
     if (ret != CTRL_FRAME_LEN)
     {
         ret = ret < 0 ? ret : -RIG_EPROTO;
     }
+
 #endif
 
     return ret;

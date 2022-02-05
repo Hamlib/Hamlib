@@ -263,9 +263,9 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
 
     /* command formatting */
     SNPRINTF(cmdbuf, BUFSZ, "$PICOA,%02d,%02u,%s",
-                       CONTROLLER_ID,
-                       priv->remote_id,
-                       cmd);
+             CONTROLLER_ID,
+             priv->remote_id,
+             cmd);
     cmd_len = strlen(cmdbuf);
 
     if (param)
@@ -292,7 +292,8 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     /*
      * Transceiver sends an echo of cmd followed by a CR/LF
      */
-    retval = read_string(&rs->rigport, (unsigned char *) respbuf, BUFSZ, LF, strlen(LF), 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) respbuf, BUFSZ, LF,
+                         strlen(LF), 0, 1);
 
     if (retval < 0)
     {

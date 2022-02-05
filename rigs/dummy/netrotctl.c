@@ -55,7 +55,8 @@ static int netrotctl_transaction(ROT *rot, char *cmd, int len, char *buf)
         return ret;
     }
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n", sizeof("\n"), 0, 1);
+    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+                      sizeof("\n"), 0, 1);
 
     if (ret < 0)
     {
@@ -98,14 +99,16 @@ static int netrotctl_open(ROT *rot)
         return -RIG_EPROTO;
     }
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n", sizeof("\n"), 0, 1);
+    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+                      sizeof("\n"), 0, 1);
 
     if (ret <= 0)
     {
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n", sizeof("\n"), 0, 1);
+    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+                      sizeof("\n"), 0, 1);
 
     if (ret <= 0)
     {
@@ -114,7 +117,8 @@ static int netrotctl_open(ROT *rot)
 
     rs->min_az = atof(buf);
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n", sizeof("\n"), 0, 1);
+    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+                      sizeof("\n"), 0, 1);
 
     if (ret <= 0)
     {
@@ -123,7 +127,8 @@ static int netrotctl_open(ROT *rot)
 
     rs->max_az = atof(buf);
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n", sizeof("\n"), 0, 1);
+    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+                      sizeof("\n"), 0, 1);
 
     if (ret <= 0)
     {
@@ -132,7 +137,8 @@ static int netrotctl_open(ROT *rot)
 
     rs->min_el = atof(buf);
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n", sizeof("\n"), 0, 1);
+    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+                      sizeof("\n"), 0, 1);
 
     if (ret <= 0)
     {
@@ -196,7 +202,8 @@ static int netrotctl_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     *az = atof(buf);
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n", sizeof("\n"), 0, 1);
+    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+                      sizeof("\n"), 0, 1);
 
     if (ret <= 0)
     {

@@ -760,9 +760,9 @@ pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // cppcheck-suppress *
     SNPRINTF((char *) buf, sizeof(buf), "K%c%010" PRIll "0%c0%c00",
-                       is_sub_rcvr(rig, vfo) ? '1' : '0',
-                       (int64_t) freq,
-                       rcvr->last_mode, rcvr->last_filter);
+             is_sub_rcvr(rig, vfo) ? '1' : '0',
+             (int64_t) freq,
+             rcvr->last_mode, rcvr->last_filter);
 
     err = pcr_transaction(rig, (char *) buf);
 
@@ -901,8 +901,8 @@ pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                   __func__, (int)width, pcrfilter);
 
         SNPRINTF((char *) buf, sizeof(buf), "K%c%010" PRIll "0%c0%c00",
-                          is_sub_rcvr(rig, vfo) ? '1' : '0',
-                          (int64_t) rcvr->last_freq, pcrmode, pcrfilter);
+                 is_sub_rcvr(rig, vfo) ? '1' : '0',
+                 (int64_t) rcvr->last_freq, pcrmode, pcrfilter);
 
         err = pcr_transaction(rig, (char *) buf);
 
@@ -916,8 +916,8 @@ pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     else
     {
         SNPRINTF((char *) buf, sizeof(buf), "K%c%010" PRIll "0%c0%c00",
-                          is_sub_rcvr(rig, vfo) ? '1' : '0',
-                          (int64_t) rcvr->last_freq, pcrmode, rcvr->last_filter);
+                 is_sub_rcvr(rig, vfo) ? '1' : '0',
+                 (int64_t) rcvr->last_freq, pcrmode, rcvr->last_filter);
 
         err = pcr_transaction(rig, (char *) buf);
 
@@ -1059,13 +1059,13 @@ pcr_get_info(RIG *rig)
     }
 
     SNPRINTF(priv->info, sizeof(priv->info), "Firmware v%d.%d, Protocol v%d.%d, "
-            "Optional devices:%s%s%s, Country: %s",
-            priv->firmware / 10, priv->firmware % 10,
-            priv->protocol / 10, priv->protocol % 10,
-            (priv->options & OPT_UT106) ? " DSP" : "",
-            (priv->options & OPT_UT107) ? " DARC" : "",
-            priv->options ? "" : " none",
-            country);
+             "Optional devices:%s%s%s, Country: %s",
+             priv->firmware / 10, priv->firmware % 10,
+             priv->protocol / 10, priv->protocol % 10,
+             (priv->options & OPT_UT106) ? " DSP" : "",
+             (priv->options & OPT_UT107) ? " DARC" : "",
+             priv->options ? "" : " none",
+             country);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Firmware v%d.%d, Protocol v%d.%d, "
               "Optional devices:%s%s%s, Country: %s\n",

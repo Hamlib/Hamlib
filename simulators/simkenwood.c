@@ -219,7 +219,8 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "MD;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "MD%d;", modeA); // not worried about modeB yet for simulator
+            SNPRINTF(buf, sizeof(buf), "MD%d;",
+                     modeA); // not worried about modeB yet for simulator
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "MD", 2) == 0)

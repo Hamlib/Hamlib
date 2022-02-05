@@ -1102,8 +1102,9 @@ const char *si570xxxusb_get_info(RIG *rig)
     /* always succeeds since libusb-1.0.16 */
     libusb_get_device_descriptor(libusb_get_device(udh), &desc);
 
-    SNPRINTF(buf, sizeof(buf), "USB dev %04d, version: %d.%d", desc.bcdDevice, buffer[1],
-            buffer[0]);
+    SNPRINTF(buf, sizeof(buf), "USB dev %04d, version: %d.%d", desc.bcdDevice,
+             buffer[1],
+             buffer[0]);
 
     return buf;
 }

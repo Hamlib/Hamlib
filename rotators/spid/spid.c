@@ -213,7 +213,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
         do
         {
             retval = write_block(&rs->rotport,
-                    (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
+                                 (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
             if (retval != RIG_OK)
             {
@@ -288,7 +288,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     do
     {
         retval = write_block(&rs->rotport,
-                (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
+                             (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
         if (retval != RIG_OK)
         {
@@ -360,7 +360,7 @@ static int spid_rot_stop(ROT *rot)
     do
     {
         retval = write_block(&rs->rotport,
-                (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
+                             (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
 
         if (retval != RIG_OK)
         {
