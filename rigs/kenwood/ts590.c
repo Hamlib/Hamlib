@@ -613,7 +613,7 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         else
         {
             rig_debug(RIG_DEBUG_ERR, "%s: "
-                      "unexpected preamp char '%c'\n",
+                      "unexpected att char '%c'\n",
                       __func__, lvlbuf[2]);
             RETURNFUNC(-RIG_EPROTO);
         }
