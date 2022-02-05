@@ -142,7 +142,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20220129.0",
+    .version = "20220205.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1949,9 +1949,9 @@ static int flrig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
         RETURNFUNC(retval);
     }
 
-    *tx_vfo = RIG_VFO_B;
     *split = atoi(value);
     priv->split = *split;
+    *txvfo = *split ? RIG_VFO_B : RIG_VFO_A;
     rig_debug(RIG_DEBUG_TRACE, "%s tx_vfo=%s, split=%d\n", __func__,
               rig_strvfo(*tx_vfo), *split);
     RETURNFUNC(RIG_OK);
