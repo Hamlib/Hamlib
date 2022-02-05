@@ -469,6 +469,7 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int retval;
     char lvlbuf[50];
 
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     switch (level)
@@ -566,6 +567,56 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         // returns the raw value in dots
         sscanf(lvlbuf + 3, "%d", &val->i);
+        return retval;
+
+    case RIG_LEVEL_PREAMP:
+        retval = kenwood_transaction(rig, "PA", lvlbuf, sizeof(lvlbuf));
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        if (lvlbuf[2] == '0')
+        {
+            val->i = 0;
+        }
+        else if (lvlbuf[2] == '1')
+        {
+            val->i = rig->state.preamp[0];
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: "
+                      "unexpected preamp char '%c'\n",
+                      __func__, lvlbuf[2]);
+            RETURNFUNC(-RIG_EPROTO);
+        }
+        return retval;
+
+    case RIG_LEVEL_ATT:
+        retval = kenwood_transaction(rig, "RA", lvlbuf, sizeof(lvlbuf));
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        if (lvlbuf[3] == '0')
+        {
+            val->i = 0;
+        }
+        else if (lvlbuf[3] == '1')
+        {
+            val->i = rig->state.attenuator[0];
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: "
+                      "unexpected preamp char '%c'\n",
+                      __func__, lvlbuf[2]);
+            RETURNFUNC(-RIG_EPROTO);
+        }
         return retval;
 
     case RIG_LEVEL_RAWSTR:
