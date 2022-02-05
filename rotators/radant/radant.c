@@ -77,7 +77,8 @@ radant_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
         return RIG_OK;    /* don't want a reply */
     }
 
-    retval = read_string(&rs->rotport, (unsigned char *) data, data_len, "\n", 1, 0, 1);
+    retval = read_string(&rs->rotport, (unsigned char *) data, data_len, "\n", 1, 0,
+                         1);
 
     if (retval < 0)
     {

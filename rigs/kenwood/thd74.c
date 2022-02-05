@@ -645,7 +645,7 @@ static int thd74_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
             return RIG_OK;
         }
     }
-    
+
     for (tsinx = 0; tsinx < 10; tsinx++)
     {
 

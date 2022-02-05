@@ -83,7 +83,8 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return 0;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, *data_len, NULL, 0, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) data, *data_len, NULL, 0,
+                         0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {
@@ -245,9 +246,9 @@ int tentec_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     tentec_tuning_factor_calc(rig);
 
     SNPRINTF(freqbuf, sizeof(freqbuf), "N%c%c%c%c%c%c" EOM,
-                       priv->ctf >> 8, priv->ctf & 0xff,
-                       priv->ftf >> 8, priv->ftf & 0xff,
-                       priv->btf >> 8, priv->btf & 0xff);
+             priv->ctf >> 8, priv->ctf & 0xff,
+             priv->ftf >> 8, priv->ftf & 0xff,
+             priv->btf >> 8, priv->btf & 0xff);
 
     retval = write_block(&rs->rigport, (unsigned char *) freqbuf, strlen(freqbuf));
 
@@ -343,13 +344,13 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (width != RIG_PASSBAND_NOCHANGE)
     {
         SNPRINTF(mdbuf, sizeof(mdbuf),  "W%c" EOM
-                            "N%c%c%c%c%c%c" EOM
-                            "M%c" EOM,
-                            ttfilter,
-                            priv->ctf >> 8, priv->ctf & 0xff,
-                            priv->ftf >> 8, priv->ftf & 0xff,
-                            priv->btf >> 8, priv->btf & 0xff,
-                            ttmode);
+                 "N%c%c%c%c%c%c" EOM
+                 "M%c" EOM,
+                 ttfilter,
+                 priv->ctf >> 8, priv->ctf & 0xff,
+                 priv->ftf >> 8, priv->ftf & 0xff,
+                 priv->btf >> 8, priv->btf & 0xff,
+                 ttmode);
         retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
 
         if (retval != RIG_OK)
@@ -362,12 +363,12 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     else
     {
         SNPRINTF(mdbuf, sizeof(mdbuf),
-                            "N%c%c%c%c%c%c" EOM
-                            "M%c" EOM,
-                            priv->ctf >> 8, priv->ctf & 0xff,
-                            priv->ftf >> 8, priv->ftf & 0xff,
-                            priv->btf >> 8, priv->btf & 0xff,
-                            ttmode);
+                 "N%c%c%c%c%c%c" EOM
+                 "M%c" EOM,
+                 priv->ctf >> 8, priv->ctf & 0xff,
+                 priv->ftf >> 8, priv->ftf & 0xff,
+                 priv->btf >> 8, priv->btf & 0xff,
+                 ttmode);
         retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
 
         if (retval != RIG_OK)
@@ -415,8 +416,8 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_AGC:
         /* default to MEDIUM */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "G%c" EOM,
-                          val.i == RIG_AGC_SLOW ? '1' : (
-                              val.i == RIG_AGC_FAST ? '3' : '2'));
+                 val.i == RIG_AGC_SLOW ? '1' : (
+                     val.i == RIG_AGC_FAST ? '3' : '2'));
         retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)

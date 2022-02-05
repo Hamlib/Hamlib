@@ -101,7 +101,7 @@ static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
      * Do wait for a reply
      */
     retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM,
-            strlen(EOM), 0, 1);
+                         strlen(EOM), 0, 1);
 
     if (retval < 0)
     {
@@ -353,7 +353,8 @@ int aor_get_vfo(RIG *rig, vfo_t *vfo)
     return RIG_OK;
 }
 
-int format8k_mode(RIG *rig, char *buf, int buf_len,  rmode_t mode, pbwidth_t width)
+int format8k_mode(RIG *rig, char *buf, int buf_len,  rmode_t mode,
+                  pbwidth_t width)
 {
     int aormode;
 
@@ -965,7 +966,7 @@ int aor_set_mem(RIG *rig, vfo_t vfo, int ch)
     }
 
     SNPRINTF(membuf, sizeof(membuf), "MR%c%02d" EOM,
-                      bank_base + ch / 100, mem_num);
+             bank_base + ch / 100, mem_num);
 
     return aor_transaction(rig, membuf, strlen(membuf), NULL, NULL);
 }
@@ -1021,7 +1022,7 @@ int aor_set_bank(RIG *rig, vfo_t vfo, int bank)
     char membuf[BUFSZ];
 
     SNPRINTF(membuf, sizeof(membuf), "MR%c" EOM, (bank % 10) + (bank < 10 ?
-                      priv->bank_base1 : priv->bank_base2));
+             priv->bank_base1 : priv->bank_base2));
 
     return aor_transaction(rig, membuf, strlen(membuf), NULL, NULL);
 }
@@ -1034,7 +1035,7 @@ int aor_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     int cmd_len;
 
     SNPRINTF(aorcmd, sizeof(aorcmd), "MX%c%02d ",
-                      chan->bank_num, chan->channel_num % 100);
+             chan->bank_num, chan->channel_num % 100);
     cmd_len = strlen(aorcmd);
 
     cmd_len += format_freq(aorcmd + cmd_len, sizeof(aorcmd) - cmd_len, chan->freq);
@@ -1043,12 +1044,14 @@ int aor_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
      * FIXME: automode
      */
     cmd_len += snprintf(aorcmd + cmd_len, sizeof(aorcmd) - cmd_len, " AU%d ST%06d ",
-                       0, (int)chan->tuning_step);
+                        0, (int)chan->tuning_step);
 
-    cmd_len += priv->format_mode(rig, aorcmd + cmd_len, sizeof(aorcmd) - cmd_len,  chan->mode, chan->width);
+    cmd_len += priv->format_mode(rig, aorcmd + cmd_len, sizeof(aorcmd) - cmd_len,
+                                 chan->mode, chan->width);
 
-    cmd_len += snprintf(aorcmd + cmd_len, sizeof(aorcmd) - cmd_len, " AT%d TM%12s%s",
-                       chan->levels[LVL_ATT].i ? 1 : 0, chan->channel_desc, EOM);
+    cmd_len += snprintf(aorcmd + cmd_len, sizeof(aorcmd) - cmd_len,
+                        " AT%d TM%12s%s",
+                        chan->levels[LVL_ATT].i ? 1 : 0, chan->channel_desc, EOM);
 
     return aor_transaction(rig, aorcmd, cmd_len, NULL, NULL);
 }
@@ -1303,7 +1306,7 @@ int aor_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
         }
 
         SNPRINTF(aorcmd, sizeof(aorcmd), "MR%c%02d" EOM,
-                          bank_base + channel_num / 100, mem_num);
+                 bank_base + channel_num / 100, mem_num);
         retval = aor_transaction(rig, aorcmd, strlen(aorcmd), chanbuf, &chan_len);
 
         /* is the channel empty? */
@@ -1379,7 +1382,7 @@ int aor_get_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
     }
 
     SNPRINTF(aorcmd, sizeof(aorcmd), "MA%c" EOM,
-                      priv->bank_base1);
+             priv->bank_base1);
 
     for (i = 0; i < chan_count / LINES_PER_MA; i++)
     {
@@ -1427,7 +1430,7 @@ int aor_get_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
              * get next line
              */
             retval = read_string(&rig->state.rigport, (unsigned char *) chanbuf, BUFSZ,
-                    EOM, strlen(EOM), 0,1);
+                                 EOM, strlen(EOM), 0, 1);
 
             if (retval < 0)
             {

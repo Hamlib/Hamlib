@@ -141,7 +141,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
     if (!rp)
     {
-        return(-RIG_EINVAL);
+        return (-RIG_EINVAL);
     }
 
 
@@ -157,13 +157,13 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
          */
         if (rp->parm.serial.parity != RIG_PARITY_NONE)
         {
-            return(-RIG_EIO);
+            return (-RIG_EIO);
         }
 
         if ((rp->parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) &&
                 (rp->parm.serial.handshake != RIG_HANDSHAKE_NONE))
         {
-            return(-RIG_EIO);
+            return (-RIG_EIO);
         }
 
         /*
@@ -178,7 +178,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
         if (fd == -1)
         {
-            return(-RIG_EIO);
+            return (-RIG_EIO);
         }
 
         rp->fd = fd;
@@ -214,7 +214,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
          *    from the transceiver will be returned to both applications.
          */
         uh_radio_fd = fd;
-        return(RIG_OK);
+        return (RIG_OK);
     }
 
     /*
@@ -243,7 +243,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
                   __func__,
                   rp->pathname,
                   strerror(errno));
-        return(-RIG_EIO);
+        return (-RIG_EIO);
     }
 
     rp->fd = fd;
@@ -253,13 +253,13 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
     if (err != RIG_OK)
     {
         CLOSE(fd);
-        return(err);
+        return (err);
     }
 
     serial_flush(rp); // ensure nothing is there when we open
     hl_usleep(50 * 1000); // give a little time for MicroKeyer to finish
 
-    return(RIG_OK);
+    return (RIG_OK);
 }
 
 
@@ -286,7 +286,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 
     if (!rp)
     {
-        return(-RIG_EINVAL);
+        return (-RIG_EINVAL);
     }
 
     fd = rp->fd;
@@ -377,7 +377,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   rp->parm.serial.rate);
         CLOSE(fd);
 
-        return(-RIG_ECONF);
+        return (-RIG_ECONF);
     }
 
     /* TODO */
@@ -424,7 +424,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   rp->parm.serial.data_bits);
         CLOSE(fd);
 
-        return(-RIG_ECONF);
+        return (-RIG_ECONF);
         break;
     }
 
@@ -449,7 +449,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   rp->parm.serial.stop_bits);
         CLOSE(fd);
 
-        return(-RIG_ECONF);
+        return (-RIG_ECONF);
         break;
     }
 
@@ -495,7 +495,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   rp->parm.serial.parity);
         CLOSE(fd);
 
-        return(-RIG_ECONF);
+        return (-RIG_ECONF);
         break;
     }
 
@@ -531,7 +531,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   rp->parm.serial.handshake);
         CLOSE(fd);
 
-        return(-RIG_ECONF);
+        return (-RIG_ECONF);
         break;
     }
 
@@ -576,7 +576,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   strerror(errno));
         CLOSE(fd);
 
-        return(-RIG_ECONF);       /* arg, so close! */
+        return (-RIG_ECONF);      /* arg, so close! */
     }
 
 #elif defined(HAVE_TERMIO_H)
@@ -591,7 +591,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   strerror(errno));
         CLOSE(fd);
 
-        return(-RIG_ECONF);       /* arg, so close! */
+        return (-RIG_ECONF);      /* arg, so close! */
     }
 
 #else
@@ -607,7 +607,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
                   strerror(errno));
         CLOSE(fd);
 
-        return(-RIG_ECONF);       /* arg, so close! */
+        return (-RIG_ECONF);      /* arg, so close! */
     }
 
 #endif
@@ -625,7 +625,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     term_backup->next = term_options_backup_head;
     term_options_backup_head = term_backup;
 
-    return(RIG_OK);
+    return (RIG_OK);
 }
 
 
@@ -664,7 +664,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
         rig_debug(RIG_DEBUG_TRACE, "read flushed %d bytes\n", nbytes);
 
 
-        return(RIG_OK);
+        return (RIG_OK);
     }
 
     timeout_save = p->timeout;
@@ -691,7 +691,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
                 int bytes = len * 3 + 1;
                 char *hbuf = calloc(bytes, 1);
 
-                for (i = 0; i < len; ++i) { SNPRINTF(&hbuf[i * 3], bytes - (i*3),  "%02X ", buf[i]); }
+                for (i = 0; i < len; ++i) { SNPRINTF(&hbuf[i * 3], bytes - (i * 3),  "%02X ", buf[i]); }
 
                 rig_debug(RIG_DEBUG_WARN, "%s: flush hex:%s\n", __func__, hbuf);
                 free(hbuf);
@@ -707,7 +707,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
     p->timeout = timeout_save;
     //rig_debug(RIG_DEBUG_VERBOSE, "tcflush%s\n", "");
     //tcflush(p->fd, TCIFLUSH);
-    return(RIG_OK);
+    return (RIG_OK);
 }
 
 
@@ -768,7 +768,7 @@ int ser_open(hamlib_port_t *p)
     }
 
     p->fd = ret;
-    return(ret);
+    return (ret);
 }
 
 
@@ -795,7 +795,7 @@ int ser_close(hamlib_port_t *p)
         uh_close_ptt();
         uh_ptt_fd = -1;
         p->fd = -1;
-        return(0);
+        return (0);
     }
 
     if (p->fd == uh_radio_fd)
@@ -803,7 +803,7 @@ int ser_close(hamlib_port_t *p)
         uh_close_radio();
         uh_radio_fd = -1;
         p->fd = -1;
-        return(0);
+        return (0);
     }
 
     // Find backup termios options to restore before closing
@@ -877,7 +877,7 @@ int ser_close(hamlib_port_t *p)
 
     rc = CLOSE(p->fd);
     p->fd = -1;
-    return(rc);
+    return (rc);
 }
 
 
@@ -897,7 +897,7 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
     // ignore this for microHam ports
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)
     {
-        return(RIG_OK);
+        return (RIG_OK);
     }
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
@@ -927,10 +927,10 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
                   "%s: Cannot change RTS - %s\n",
                   __func__,
                   strerror(errno));
-        return(-RIG_EIO);
+        return (-RIG_EIO);
     }
 
-    return(RIG_OK);
+    return (RIG_OK);
 }
 
 
@@ -974,13 +974,13 @@ int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
     // but (un)set ptt on microHam PTT channel.
     if (p->fd == uh_radio_fd)
     {
-        return(RIG_OK);
+        return (RIG_OK);
     }
 
     if (p->fd == uh_ptt_fd)
     {
         uh_set_ptt(state);
-        return(RIG_OK);
+        return (RIG_OK);
     }
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
@@ -1010,10 +1010,10 @@ int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
                   "%s: Cannot change DTR - %s\n",
                   __func__,
                   strerror(errno));
-        return(-RIG_EIO);
+        return (-RIG_EIO);
     }
 
-    return(RIG_OK);
+    return (RIG_OK);
 }
 
 

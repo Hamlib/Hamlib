@@ -88,7 +88,7 @@ gp2000_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     }
 
     retval = read_string(&rs->rigport, (unsigned char *) data, RESPSZ,
-            CR, 1, 0, 1);
+                         CR, 1, 0, 1);
 
     if (retval < 0)
     {

@@ -92,7 +92,7 @@ transaction_write:
 
     memset(data, 0, data_len);
     retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
-            REPLY_EOM, strlen(REPLY_EOM), 0, 1);
+                         REPLY_EOM, strlen(REPLY_EOM), 0, 1);
 
     if (retval < 0)
     {
@@ -146,7 +146,8 @@ static int
 gs232_wo_transaction(ROT *rot, const char *cmdstr,
                      char *data, size_t data_len)
 {
-    return write_block(&rot->state.rotport, (unsigned char *) cmdstr, strlen(cmdstr));
+    return write_block(&rot->state.rotport, (unsigned char *) cmdstr,
+                       strlen(cmdstr));
 }
 
 

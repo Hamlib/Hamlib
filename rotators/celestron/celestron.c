@@ -91,7 +91,7 @@ transaction_write:
     /* the answer */
     memset(data, 0, data_len);
     retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
-            ACK, strlen(ACK), 0, 1);
+                         ACK, strlen(ACK), 0, 1);
 
     if (retval < 0)
     {
@@ -135,8 +135,8 @@ celestron_set_position(ROT *rot, azimuth_t az, elevation_t el)
      */
 
     SNPRINTF(cmdstr, sizeof(cmdstr), "B%04X,%04X",
-            (unsigned)((az / 360.) * 65535),
-            (unsigned)((el / 360.) * 65535));
+             (unsigned)((az / 360.) * 65535),
+             (unsigned)((el / 360.) * 65535));
 
     retval = celestron_transaction(rot, cmdstr, NULL, 0);
 

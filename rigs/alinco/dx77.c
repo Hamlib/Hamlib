@@ -320,7 +320,7 @@ int dx77_transaction(RIG *rig,
      * TODO: check whether cmd and echobuf match (optional)
      */
     retval = read_string(&rs->rigport, (unsigned char *) echobuf, BUFSZ,
-            LF, strlen(LF), 0, 1);
+                         LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {
@@ -337,7 +337,7 @@ int dx77_transaction(RIG *rig,
     if (data == NULL)
     {
         retval = read_string(&rs->rigport, (unsigned char *) echobuf, BUFSZ,
-                LF, strlen(LF), 0, 1);
+                             LF, strlen(LF), 0, 1);
 
         if (retval < 0)
         {
@@ -359,7 +359,7 @@ int dx77_transaction(RIG *rig,
     }
 
     retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ,
-            LF, strlen(LF), 0, 1);
+                         LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {
@@ -683,8 +683,8 @@ int dx77_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     char cmdbuf[BUFSZ];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf),
-                      AL CMD_SPLT "%d" EOM,
-                      split == RIG_SPLIT_ON ? 1 : 0);
+             AL CMD_SPLT "%d" EOM,
+             split == RIG_SPLIT_ON ? 1 : 0);
 
     return dx77_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 }
@@ -759,7 +759,8 @@ int dx77_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
 
     /* at least 6 digits */
-    SNPRINTF(freqbuf, sizeof(freqbuf), AL CMD_TXFREQ "%06"PRIll EOM, (int64_t)tx_freq);
+    SNPRINTF(freqbuf, sizeof(freqbuf), AL CMD_TXFREQ "%06"PRIll EOM,
+             (int64_t)tx_freq);
 
     retval = dx77_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 
@@ -1274,7 +1275,8 @@ int dx77_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     SNPRINTF((char *) tonebuf, sizeof(tonebuf), AL CMD_CTCSS "%02d" EOM, i + 1);
 
-    return dx77_transaction(rig, (char *) tonebuf, strlen((char*)tonebuf), NULL, NULL);
+    return dx77_transaction(rig, (char *) tonebuf, strlen((char *)tonebuf), NULL,
+                            NULL);
 }
 
 

@@ -44,7 +44,8 @@
  * NB: the frame array must be big enough to hold the frame.
  *      The smallest frame is 6 bytes, the biggest is at least 13 bytes.
  */
-int make_cmd_frame(unsigned char frame[], unsigned char re_id, unsigned char ctrl_id,
+int make_cmd_frame(unsigned char frame[], unsigned char re_id,
+                   unsigned char ctrl_id,
                    unsigned char cmd, int subcmd,
                    const unsigned char *data, int data_len)
 {
@@ -83,7 +84,7 @@ int make_cmd_frame(unsigned char frame[], unsigned char re_id, unsigned char ctr
 
     frame[i++] = FI;        /* EOM code */
 
-    return(i);
+    return (i);
 }
 
 int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
@@ -101,7 +102,7 @@ int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: invalid Icom CI-V frame, no preamble found\n",
                   __func__);
-        return(-RIG_EPROTO);
+        return (-RIG_EPROTO);
     }
 
     return frame_len;
@@ -196,16 +197,22 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
             set_transaction_inactive(rig);
             RETURNFUNC(-RIG_EPROTO);
         }
+
         // we might have 0xfe string during rig wakeup
-        rig_debug(RIG_DEBUG_TRACE, "%s: DEBUG retval=%d, frm_len=%d, cmd=0x%02x\n", __func__, retval, frm_len, cmd);
+        rig_debug(RIG_DEBUG_TRACE, "%s: DEBUG retval=%d, frm_len=%d, cmd=0x%02x\n",
+                  __func__, retval, frm_len, cmd);
+
         if (retval != frm_len && cmd == C_SET_PWR)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: removing 0xfe power up echo, len=%d", __func__, frm_len);
-            while(buf[2] == 0xfe)
+            rig_debug(RIG_DEBUG_TRACE, "%s: removing 0xfe power up echo, len=%d", __func__,
+                      frm_len);
+
+            while (buf[2] == 0xfe)
             {
-                memmove(buf,&buf[1],frm_len--);
+                memmove(buf, &buf[1], frm_len--);
             }
-            dump_hex(buf,frm_len);
+
+            dump_hex(buf, frm_len);
         }
 
         switch (buf[retval - 1])
@@ -458,7 +465,8 @@ static const char icom_block_end[2] = { FI, COL};
  * TODO: strips padding/collisions
  * FIXME: check return codes/bytes read
  */
-static int read_icom_frame_generic(hamlib_port_t *p, const unsigned char rxbuffer[],
+static int read_icom_frame_generic(hamlib_port_t *p,
+                                   const unsigned char rxbuffer[],
                                    size_t rxbuffer_len, int direct)
 {
     int read = 0;
@@ -476,27 +484,28 @@ static int read_icom_frame_generic(hamlib_port_t *p, const unsigned char rxbuffe
     do
     {
         int i;
+
         if (direct)
         {
             i = read_string_direct(p, rx_ptr, MAXFRAMELEN - read,
-                    icom_block_end, icom_block_end_length, 0, 1);
+                                   icom_block_end, icom_block_end_length, 0, 1);
         }
         else
         {
             i = read_string(p, rx_ptr, MAXFRAMELEN - read,
-                    icom_block_end, icom_block_end_length, 0, 1);
+                            icom_block_end, icom_block_end_length, 0, 1);
         }
 
         if (i < 0 && i != RIG_BUSBUSY) /* die on errors */
         {
-            return(i);
+            return (i);
         }
 
         if (i == 0) /* nothing read?*/
         {
             if (--retries <= 0) /* Tried enough times? */
             {
-                return(read);
+                return (read);
             }
         }
 
@@ -510,7 +519,7 @@ static int read_icom_frame_generic(hamlib_port_t *p, const unsigned char rxbuffe
     while ((read < rxbuffer_len) && (rxbuffer[read - 1] != FI)
             && (rxbuffer[read - 1] != COL));
 
-    return(read);
+    return (read);
 }
 
 int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],

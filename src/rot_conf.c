@@ -391,7 +391,7 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val, int val_len)
     switch (token)
     {
     case TOK_PATHNAME:
-        strncpy(val, rs->rotport.pathname, val_len-1);
+        strncpy(val, rs->rotport.pathname, val_len - 1);
         break;
 
     case TOK_WRITE_DELAY:
@@ -798,6 +798,7 @@ int HAMLIB_API rot_get_conf2(ROT *rot, token_t token, char *val, int val_len)
     {
         return rot->caps->get_conf2(rot, token, val, val_len);
     }
+
     if (rot->caps->get_conf == NULL)
     {
         return -RIG_ENAVAIL;

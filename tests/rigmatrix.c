@@ -631,7 +631,7 @@ int main(int argc, char *argv[])
 {
     time_t gentime;
     int set_or_get;
-    int i,nbytes,nbytes_total=0;
+    int i, nbytes, nbytes_total = 0;
     char *pbuf, prntbuf[4096];
 
     rig_load_all_backends();
@@ -709,7 +709,8 @@ int main(int argc, char *argv[])
         bitmap_func |= func;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf)-nbytes_total, "<TD>%s</TD>", s);
+        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
+
         if (strlen(pbuf) > sizeof(pbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
@@ -751,7 +752,8 @@ int main(int argc, char *argv[])
         bitmap_level |= level;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf)-nbytes_total, "<TD>%s</TD>", s);
+        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
+
         if (strlen(pbuf) > sizeof(pbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);
@@ -793,7 +795,8 @@ int main(int argc, char *argv[])
         bitmap_parm |= parm;
         nbytes = strlen("<TD></TD>") + strlen(s) + 1;
         nbytes_total += nbytes;
-        pbuf += snprintf(pbuf, sizeof(pbuf)-nbytes_total, "<TD>%s</TD>", s);
+        pbuf += snprintf(pbuf, sizeof(pbuf) - nbytes_total, "<TD>%s</TD>", s);
+
         if (strlen(pbuf) > sizeof(pbuf) + nbytes)
         {
             printf("Buffer overflow in %s\n", __func__);

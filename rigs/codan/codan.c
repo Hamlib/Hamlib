@@ -302,7 +302,8 @@ int codan_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               rig_strvfo(vfo), freq);
 
     // Purportedly can't do split so we just set VFOB=VFOA
-    SNPRINTF(cmd_buf, sizeof(cmd_buf), "connect tcvr rf %.0f %.0f\rfreq", freq, freq);
+    SNPRINTF(cmd_buf, sizeof(cmd_buf), "connect tcvr rf %.0f %.0f\rfreq", freq,
+             freq);
 
     char *response = NULL;
     retval = codan_transaction(rig, cmd_buf, 0, &response);
@@ -395,7 +396,8 @@ int codan_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d\n", __func__, ptt);
 
-    SNPRINTF(cmd_buf, sizeof(cmd_buf), "connect tcvr rf ptt %s\rptt", ptt == 0 ? "off" : "on");
+    SNPRINTF(cmd_buf, sizeof(cmd_buf), "connect tcvr rf ptt %s\rptt",
+             ptt == 0 ? "off" : "on");
     response = NULL;
     retval = codan_transaction(rig, cmd_buf, 0, &response);
 

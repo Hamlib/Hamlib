@@ -263,7 +263,7 @@ int dxsr8_transaction(RIG *rig,
      * TODO: check whether cmd and echobuf match (optional)
      */
     retval = read_string(&rs->rigport, (unsigned char *) replybuf, BUFSZ,
-            LF, strlen(LF), 0, 1);
+                         LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {
@@ -272,7 +272,7 @@ int dxsr8_transaction(RIG *rig,
 
 
     retval = read_string(&rs->rigport, (unsigned char *) replybuf, BUFSZ,
-            LF, strlen(LF), 0, 1);
+                         LF, strlen(LF), 0, 1);
 
     if (retval < 0)
     {

@@ -10,7 +10,9 @@ int main()
     RIG *rig;
     rig_set_debug_level(RIG_DEBUG_ERR);
     rig = rig_init(1);
-    if (rig == NULL) return 1;
+
+    if (rig == NULL) { return 1; }
+
     printf("Offsets are OK (i.e. have not changed)\n");
     return 0;
 }

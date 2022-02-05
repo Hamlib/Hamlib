@@ -127,7 +127,8 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
 
         if (err != RIG_OK) { return err; }
 
-        len = read_string(&rs->ampport, (unsigned char *) response, response_len, ";", 1, 0, 1);
+        len = read_string(&rs->ampport, (unsigned char *) response, response_len, ";",
+                          1, 0, 1);
 
         if (len < 0) { return len; }
     }
@@ -141,7 +142,8 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
     if (response) // if response expected get it
     {
         response[0] = 0;
-        len = read_string(&rs->ampport, (unsigned char *) response, response_len, ";", 1, 0, 1);
+        len = read_string(&rs->ampport, (unsigned char *) response, response_len, ";",
+                          1, 0, 1);
 
         if (len < 0)
         {
@@ -167,7 +169,8 @@ int kpa_transaction(AMP *amp, const char *cmd, char *response, int response_len)
 
             if (err != RIG_OK) { return err; }
 
-            len = read_string(&rs->ampport, (unsigned char *) responsebuf, KPABUFSZ, ";", 1, 0, 1);
+            len = read_string(&rs->ampport, (unsigned char *) responsebuf, KPABUFSZ, ";", 1,
+                              0, 1);
 
             if (len < 0) { return len; }
         }
@@ -370,7 +373,8 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
         //
         do
         {
-            retval = read_string(&rs->ampport, (unsigned char *) responsebuf, sizeof(responsebuf), ";", 1, 0,
+            retval = read_string(&rs->ampport, (unsigned char *) responsebuf,
+                                 sizeof(responsebuf), ";", 1, 0,
                                  1);
 
             if (retval != RIG_OK) { return retval; }
@@ -487,7 +491,8 @@ int kpa_get_level(AMP *amp, setting_t level, value_t *val)
         }
 
         rig_debug(RIG_DEBUG_ERR, "%s unknown fault from %s\n", __func__, responsebuf);
-        SNPRINTF(priv->tmpbuf, sizeof(priv->tmpbuf), "Unknown fault code=0x%02x", fault);
+        SNPRINTF(priv->tmpbuf, sizeof(priv->tmpbuf), "Unknown fault code=0x%02x",
+                 fault);
         val->s = priv->tmpbuf;
         return RIG_OK;
 

@@ -241,7 +241,7 @@ transaction_write:
            gives a reply so we can read any error replies from the actual
            command being sent without blocking */
         if (RIG_OK != (retval = write_block(&rs->rigport,
-                (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
+                                            (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
         {
             goto transaction_quit;
         }
@@ -252,7 +252,7 @@ transaction_read:
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 13,
               ELAD_MAX_BUF_LEN);
     retval = read_string(&rs->rigport, (unsigned char *) buffer, len,
-            cmdtrm, strlen(cmdtrm), 0, 1);
+                         cmdtrm, strlen(cmdtrm), 0, 1);
 
     if (retval < 0)
     {

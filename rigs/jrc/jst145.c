@@ -387,7 +387,8 @@ static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         priv->freqA = freq;
     }
 
-    retval = write_block(&rig->state.rigport,  (unsigned char *) freqbuf, strlen(freqbuf));
+    retval = write_block(&rig->state.rigport, (unsigned char *) freqbuf,
+                         strlen(freqbuf));
 
     if (retval != RIG_OK)
     {
@@ -471,7 +472,8 @@ static int jst145_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    retval = write_block(&rig->state.rigport, (unsigned char *) modestr, strlen(modestr));
+    retval = write_block(&rig->state.rigport, (unsigned char *) modestr,
+                         strlen(modestr));
 
     if (retval != RIG_OK)
     {
@@ -533,8 +535,10 @@ static int jst145_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
 
-    case RIG_LEVEL_AGC: {
-        char *cmd = val.i == RIG_AGC_SLOW ? "G0\r" : (val.i == RIG_AGC_FAST ? "G1\r" : "G2\r");
+    case RIG_LEVEL_AGC:
+    {
+        char *cmd = val.i == RIG_AGC_SLOW ? "G0\r" : (val.i == RIG_AGC_FAST ? "G1\r" :
+                    "G2\r");
         return write_block(&rig->state.rigport, (unsigned char *) cmd, 3);
     }
 
@@ -551,7 +555,8 @@ static int jst145_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     SNPRINTF(membuf, sizeof(membuf), "C%03d\r", ch);
 
-    return write_block(&rig->state.rigport, (unsigned char *) membuf, strlen(membuf));
+    return write_block(&rig->state.rigport, (unsigned char *) membuf,
+                       strlen(membuf));
 }
 
 static int jst145_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)

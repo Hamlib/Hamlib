@@ -79,7 +79,8 @@
 }
 
 
-static int format5k_mode(RIG *rig, char *buf, int buf_len, rmode_t mode, pbwidth_t width);
+static int format5k_mode(RIG *rig, char *buf, int buf_len, rmode_t mode,
+                         pbwidth_t width);
 static int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth,
                             rmode_t *mode, pbwidth_t *width);
 
@@ -398,7 +399,8 @@ const struct rig_caps ar5000a_caps =
 #define AR5K_SAL '6'
 #define AR5K_SAH '7'
 
-int format5k_mode(RIG *rig, char *buf, int buf_len, rmode_t mode, pbwidth_t width)
+int format5k_mode(RIG *rig, char *buf, int buf_len, rmode_t mode,
+                  pbwidth_t width)
 {
     int aormode;
 

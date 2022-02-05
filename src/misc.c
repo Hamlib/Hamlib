@@ -313,7 +313,7 @@ size_t HAMLIB_API to_hex(size_t source_length, const unsigned char *source_data,
 
     for (i = 0; i < length; i++)
     {
-        SNPRINTF(dest, dest_length - 2*i, "%02X", source[0]);
+        SNPRINTF(dest, dest_length - 2 * i, "%02X", source[0]);
         source++;
         dest += 2;
     }
@@ -1867,7 +1867,8 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
               __func__, funcname, linenum,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), split);
 
-    if (vfo == RIG_VFO_NONE) vfo = RIG_VFO_A;
+    if (vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
+
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_VFO)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Leaving currVFO alone\n", __func__);
@@ -1962,7 +1963,8 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
     return vfo;
 }
 
-int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256], char port[6])
+int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256],
+                             char port[6])
 {
     unsigned int net1, net2, net3, net4, net5, net6, net7, net8;
     char dummy[6], link[32], *p;
@@ -2467,7 +2469,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
 
     default:
         //rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%lld\n", __func__, rig_caps);
-        return(-RIG_EINVAL);
+        return (-RIG_EINVAL);
     }
 }
 

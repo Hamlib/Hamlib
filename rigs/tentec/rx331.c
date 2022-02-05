@@ -274,7 +274,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return retval;
     }
 
-    SNPRINTF(fmt, sizeof(fmt)-1, "%%i%%%ds", BUFSZ);
+    SNPRINTF(fmt, sizeof(fmt) - 1, "%%i%%%ds", BUFSZ);
     sscanf(data + 1, fmt, &rig_id, data);
 
     if (rig_id != priv->receiver_id)
@@ -402,7 +402,7 @@ int rx331_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char freqbuf[16];
 
     freq_len = num_snprintf(freqbuf, sizeof(freqbuf), "$%uF%.6f" EOM,
-                           priv->receiver_id, freq / 1e6);
+                            priv->receiver_id, freq / 1e6);
 
     retval = write_block(&rs->rigport, (unsigned char *) freqbuf, freq_len);
 
@@ -483,15 +483,17 @@ int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         /*
          * Set DETECTION MODE and IF FILTER
          */
-        mdbuf_len = num_snprintf(mdbuf, sizeof(mdbuf),  "$%uD%cI%.02f" EOM, priv->receiver_id,
-                                dmode, (float)width / 1e3);
+        mdbuf_len = num_snprintf(mdbuf, sizeof(mdbuf),  "$%uD%cI%.02f" EOM,
+                                 priv->receiver_id,
+                                 dmode, (float)width / 1e3);
     }
     else
     {
         /*
          * Set DETECTION MODE
          */
-        mdbuf_len = num_snprintf(mdbuf, sizeof(mdbuf),  "$%uD%c" EOM, priv->receiver_id, dmode);
+        mdbuf_len = num_snprintf(mdbuf, sizeof(mdbuf),  "$%uD%c" EOM, priv->receiver_id,
+                                 dmode);
     }
 
     retval = write_block(&rs->rigport, (unsigned char *) mdbuf, mdbuf_len);
@@ -573,14 +575,14 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_ATT:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uK%i" EOM,
-                          priv->receiver_id,
-                          val.i ? RX331_ATT_ON : RX331_ATT_OFF);
+                 priv->receiver_id,
+                 val.i ? RX331_ATT_ON : RX331_ATT_OFF);
         break;
 
     case RIG_LEVEL_PREAMP:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uK%i" EOM,
-                          priv->receiver_id,
-                          val.i ? RX331_PREAMP_ON : RX331_PREAMP_OFF);
+                 priv->receiver_id,
+                 val.i ? RX331_PREAMP_ON : RX331_PREAMP_OFF);
         break;
 
     case RIG_LEVEL_AGC:
@@ -602,33 +604,33 @@ int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uM%i" EOM,
-                          priv->receiver_id, val.i);
+                 priv->receiver_id, val.i);
         break;
 
     case RIG_LEVEL_RF:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uA%d" EOM, priv->receiver_id,
-                          120 - (int)(val.f * 120));
+                 120 - (int)(val.f * 120));
         break;
 
     case RIG_LEVEL_SQL:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "$%uQ%d" EOM, priv->receiver_id,
-                          120 - (int)(val.f * 120));
+                 120 - (int)(val.f * 120));
         break;
 
     case RIG_LEVEL_NOTCHF:
         num_snprintf(cmdbuf, sizeof(cmdbuf), "$%uN%f" EOM, priv->receiver_id,
-                              ((float)val.i) / 1e3);
+                     ((float)val.i) / 1e3);
         break;
 
     case RIG_LEVEL_IF:
         num_snprintf(cmdbuf, sizeof(cmdbuf), "$%uP%f" EOM, priv->receiver_id,
-                              ((float)val.i) / 1e3);
+                     ((float)val.i) / 1e3);
         break;
 
     case RIG_LEVEL_CWPITCH:
         /* only in CW mode */
         num_snprintf(cmdbuf, sizeof(cmdbuf), "$%uB%f" EOM, priv->receiver_id,
-                              ((float)val.i) / 1e3);
+                     ((float)val.i) / 1e3);
         break;
 
     default:

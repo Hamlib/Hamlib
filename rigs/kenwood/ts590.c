@@ -592,6 +592,7 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                       __func__, lvlbuf[2]);
             RETURNFUNC(-RIG_EPROTO);
         }
+
         return retval;
 
     case RIG_LEVEL_ATT:
@@ -617,6 +618,7 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                       __func__, lvlbuf[2]);
             RETURNFUNC(-RIG_EPROTO);
         }
+
         return retval;
 
     case RIG_LEVEL_RAWSTR:

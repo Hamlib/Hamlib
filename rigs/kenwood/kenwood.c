@@ -357,7 +357,8 @@ transaction_write:
         /* no reply expected so we need to write a command that always
            gives a reply so we can read any error replies from the actual
            command being sent without blocking */
-        if (RIG_OK != (retval = write_block(&rs->rigport, (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
+        if (RIG_OK != (retval = write_block(&rs->rigport,
+                                            (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
         {
             goto transaction_quit;
         }
@@ -368,7 +369,7 @@ transaction_read:
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 48,
               KENWOOD_MAX_BUF_LEN);
     retval = read_string(&rs->rigport, (unsigned char *) buffer, len,
-            cmdtrm_str, strlen(cmdtrm_str), 0, 1);
+                         cmdtrm_str, strlen(cmdtrm_str), 0, 1);
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string(len=%d)='%s'\n", __func__,
               (int)strlen(buffer), buffer);
 
@@ -659,10 +660,10 @@ rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[])
 
     if (mode >= KENWOOD_MODE_TABLE_MAX)
     {
-        return(RIG_MODE_NONE);
+        return (RIG_MODE_NONE);
     }
 
-    return(mode_table[mode]);
+    return (mode_table[mode]);
 }
 
 char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
@@ -679,12 +680,12 @@ char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
             if (mode_table[i] == mode)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: returning %d\n", __func__, i);
-                return(i);
+                return (i);
             }
         }
     }
 
-    return(-1);
+    return (-1);
 }
 
 int kenwood_init(RIG *rig)
@@ -1317,7 +1318,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
-    if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) vfo = vfo_fixup(rig, vfo, split);
+    if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) { vfo = vfo_fixup(rig, vfo, split); }
 
     switch (vfo)
     {
@@ -1666,7 +1667,8 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
     switch (priv->info[30])
     {
     case '0':
-        *vfo = rig->state.rx_vfo = rig->state.tx_vfo = priv->tx_vfo = split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
+        *vfo = rig->state.rx_vfo = rig->state.tx_vfo = priv->tx_vfo =
+                                       split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
 
         if (priv->info[32] == '1') { priv->tx_vfo = RIG_VFO_B; }
 
@@ -2467,7 +2469,8 @@ static int kenwood_get_filter_width(RIG *rig, rmode_t mode, pbwidth_t *width)
             }
         }
     }
-    if (filter_value >=50) // then it's probably a custom filter width
+
+    if (filter_value >= 50) // then it's probably a custom filter width
     {
         *width = filter_value;
         return (RIG_OK);
@@ -2699,7 +2702,8 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf),
+                         NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
@@ -2798,7 +2802,8 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf), NULL, 0, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf),
+                         NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
@@ -5432,12 +5437,12 @@ DECLARE_PROBERIG_BACKEND(kenwood)
 
     if (!port)
     {
-        return(RIG_MODEL_NONE);
+        return (RIG_MODEL_NONE);
     }
 
     if (port->type.rig != RIG_PORT_SERIAL)
     {
-        return(RIG_MODEL_NONE);
+        return (RIG_MODEL_NONE);
     }
 
     port->write_delay = port->post_write_delay = 0;
@@ -5458,7 +5463,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
         {
             port->write_delay = write_delay;
             port->retry = retry;
-            return(RIG_MODEL_NONE);
+            return (RIG_MODEL_NONE);
         }
 
         retval = write_block(port, (unsigned char *) "ID;", 3);
@@ -5475,7 +5480,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
     {
         port->write_delay = write_delay;
         port->retry = retry;
-        return(RIG_MODEL_NONE);
+        return (RIG_MODEL_NONE);
     }
 
     /*
@@ -5489,7 +5494,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
                   6, id_len, idbuf);
         port->write_delay = write_delay;
         port->retry = retry;
-        return(RIG_MODEL_NONE);
+        return (RIG_MODEL_NONE);
     }
 
 
@@ -5508,7 +5513,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
 
             port->write_delay = write_delay;
             port->retry = retry;
-            return(kenwood_id_string_list[i].model);
+            return (kenwood_id_string_list[i].model);
         }
     }
 
@@ -5525,7 +5530,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
 
         if (retval != RIG_OK)
         {
-            return(RIG_MODEL_NONE);
+            return (RIG_MODEL_NONE);
         }
 
         retval = write_block(port, (unsigned char *) "K2;", 3);
@@ -5534,7 +5539,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
 
         if (retval != RIG_OK)
         {
-            return(RIG_MODEL_NONE);
+            return (RIG_MODEL_NONE);
         }
 
         /*
@@ -5549,7 +5554,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
                 (*cfunc)(port, RIG_MODEL_K2, data);
             }
 
-            return(RIG_MODEL_K2);
+            return (RIG_MODEL_K2);
         }
     }
 
@@ -5565,7 +5570,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
                 (*cfunc)(port, kenwood_id_list[i].model, data);
             }
 
-            return(kenwood_id_list[i].model);
+            return (kenwood_id_list[i].model);
         }
     }
 
@@ -5579,7 +5584,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay=%d\n", __func__,
               port->post_write_delay);
-    return(RIG_MODEL_NONE);
+    return (RIG_MODEL_NONE);
 }
 
 
@@ -5645,5 +5650,5 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&malachite_caps);
     rig_register(&tx500_caps);
 
-    return(RIG_OK);
+    return (RIG_OK);
 }

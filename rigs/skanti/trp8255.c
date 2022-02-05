@@ -438,8 +438,8 @@ int cu_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
     char cmdbuf[16];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "w%c"CR,
-                      ts >= s_kHz(1) ? '2' :
-                      ts >= s_Hz(100) ? '1' : '0');
+             ts >= s_kHz(1) ? '2' :
+             ts >= s_Hz(100) ? '1' : '0');
 
     return cu_transaction(rig, cmdbuf, strlen(cmdbuf));
 }
@@ -447,13 +447,14 @@ int cu_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 int cu_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     char cmdbuf[16];
+
     switch (parm)
     {
     case RIG_PARM_TIME:
         /* zap seconds */
         val.i /= 60;
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "f%02d%02d"CR,
-                          val.i / 60, val.i % 60);
+                 val.i / 60, val.i % 60);
         break;
 
     case RIG_PARM_BACKLIGHT:

@@ -123,9 +123,11 @@ static int x108g_rig_open(RIG *rig)
     int retval;
 
     retval = icom_rig_open(rig);
+
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig_open failed with %s\n", __func__, rigerror(retval));
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_open failed with %s\n", __func__,
+                  rigerror(retval));
         RETURNFUNC(retval);
     }
 

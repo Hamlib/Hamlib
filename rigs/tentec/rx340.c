@@ -280,7 +280,8 @@ int rx340_open(RIG *rig)
     struct rig_state *rs = &rig->state;
 
 #define REMOTE_CMD "*R1"EOM
-    return write_block(&rs->rigport, (unsigned char *) REMOTE_CMD, strlen(REMOTE_CMD));
+    return write_block(&rs->rigport, (unsigned char *) REMOTE_CMD,
+                       strlen(REMOTE_CMD));
 }
 
 int rx340_close(RIG *rig)
@@ -288,7 +289,8 @@ int rx340_close(RIG *rig)
     struct rig_state *rs = &rig->state;
 
 #define LOCAL_CMD "*R0"EOM
-    return write_block(&rs->rigport, (unsigned char *) LOCAL_CMD, strlen(LOCAL_CMD));
+    return write_block(&rs->rigport, (unsigned char *) LOCAL_CMD,
+                       strlen(LOCAL_CMD));
 }
 
 /*
@@ -382,7 +384,7 @@ int rx340_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
          * Set DETECTION MODE and IF FILTER
          */
         SNPRINTF(mdbuf, sizeof(mdbuf), "D%cI%.02f" EOM,
-                                dmode, (float)width / 1e3);
+                 dmode, (float)width / 1e3);
     }
     else
     {
@@ -481,8 +483,8 @@ int rx340_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_AGC:
         /* default to MEDIUM */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "M%c" EOM,
-                          val.i == RIG_AGC_SLOW ? '3' : (
-                              val.i == RIG_AGC_FAST ? '1' : '2'));
+                 val.i == RIG_AGC_SLOW ? '3' : (
+                     val.i == RIG_AGC_FAST ? '1' : '2'));
         break;
 
     case RIG_LEVEL_RF:

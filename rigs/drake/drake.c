@@ -83,7 +83,7 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     }
 
     retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ,
-            LF, 1, 0, 1);
+                         LF, 1, 0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {
@@ -139,8 +139,10 @@ int drake_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      * 10Hz resolution
      * TODO: round nearest?
      */
-    SNPRINTF((char *) freqbuf, sizeof(freqbuf), "F%07u" EOM, (unsigned int)freq / 10);
-    retval = drake_transaction(rig, (char *) freqbuf, strlen((char*)freqbuf), (char *) ackbuf,
+    SNPRINTF((char *) freqbuf, sizeof(freqbuf), "F%07u" EOM,
+             (unsigned int)freq / 10);
+    retval = drake_transaction(rig, (char *) freqbuf, strlen((char *)freqbuf),
+                               (char *) ackbuf,
                                &ack_len);
 
     return retval;
@@ -226,7 +228,8 @@ int drake_set_vfo(RIG *rig, vfo_t vfo)
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "%c" EOM, vfo_function);
     }
 
-    retval = drake_transaction(rig, (char *) cmdbuf, strlen((char*)cmdbuf), (char *) ackbuf,
+    retval = drake_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf),
+                               (char *) ackbuf,
                                &ack_len);
     return retval;
 }
@@ -313,7 +316,8 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     SNPRINTF((char *) mdbuf, sizeof(mdbuf), "M%c" EOM, mode_sel);
-    retval = drake_transaction(rig, (char *) mdbuf, strlen((char*)mdbuf), (char *) ackbuf,
+    retval = drake_transaction(rig, (char *) mdbuf, strlen((char *)mdbuf),
+                               (char *) ackbuf,
                                &ack_len);
 
     if (retval != RIG_OK)
@@ -354,7 +358,8 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             }
 
             SNPRINTF((char *) mdbuf, sizeof(mdbuf), "W%c" EOM, width_sel);
-            retval = drake_transaction(rig, (char *) mdbuf, strlen((char*)mdbuf), (char *) ackbuf,
+            retval = drake_transaction(rig, (char *) mdbuf, strlen((char *)mdbuf),
+                                       (char *) ackbuf,
                                        &ack_len);
         }
     }
@@ -364,10 +369,11 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             (mode == RIG_MODE_AM) || (mode == RIG_MODE_USB) || (mode == RIG_MODE_LSB))
     {
         SNPRINTF((char *) mdbuf, sizeof(mdbuf), "S%c" EOM,
-                            ((mode == RIG_MODE_AMS) || (mode == RIG_MODE_ECSSUSB)
-                             || (mode == RIG_MODE_ECSSLSB))
-                            ? 'O' : 'F');
-        retval = drake_transaction(rig, (char *) mdbuf, strlen((char*)mdbuf), (char *) ackbuf,
+                 ((mode == RIG_MODE_AMS) || (mode == RIG_MODE_ECSSUSB)
+                  || (mode == RIG_MODE_ECSSLSB))
+                 ? 'O' : 'F');
+        retval = drake_transaction(rig, (char *) mdbuf, strlen((char *)mdbuf),
+                                   (char *) ackbuf,
                                    &ack_len);
     }
 
@@ -491,9 +497,10 @@ int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     int ack_len, retval;
 
     SNPRINTF((char *) buf, sizeof(buf), "A%c" EOM,
-                  ant == RIG_ANT_1 ? '1' : (ant == RIG_ANT_2 ? '2' : 'C'));
+             ant == RIG_ANT_1 ? '1' : (ant == RIG_ANT_2 ? '2' : 'C'));
 
-    retval = drake_transaction(rig, (char *) buf, strlen((char*)buf), (char *) ackbuf, &ack_len);
+    retval = drake_transaction(rig, (char *) buf, strlen((char *)buf),
+                               (char *) ackbuf, &ack_len);
 
     return retval;
 }
@@ -913,6 +920,7 @@ int drake_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     default:
         return -RIG_EINVAL;
     }
+
     len = strlen(buf);
     retval = drake_transaction(rig, buf, len, buf[len - 1] == 0x0d ? ackbuf : NULL,
                                &ack_len);
@@ -1019,8 +1027,8 @@ int drake_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_AGC:
         SNPRINTF(buf, sizeof(buf), "A%c" EOM,
-                      val.i == RIG_AGC_OFF ? 'O' :
-                      (val.i == RIG_AGC_FAST ? 'F' : 'S'));
+                 val.i == RIG_AGC_OFF ? 'O' :
+                 (val.i == RIG_AGC_FAST ? 'F' : 'S'));
         break;
 
     default:

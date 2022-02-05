@@ -548,7 +548,8 @@ static int ft100_read_status(RIG *rig)
         return ret;
     }
 
-    ret = read_block(&rig->state.rigport, (unsigned char *) &priv->status, sizeof(FT100_STATUS_INFO));
+    ret = read_block(&rig->state.rigport, (unsigned char *) &priv->status,
+                     sizeof(FT100_STATUS_INFO));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read status=%i \n", __func__, ret);
 
     if (ret < 0)
@@ -575,7 +576,8 @@ static int ft100_read_flags(RIG *rig)
         return ret;
     }
 
-    ret = read_block(&rig->state.rigport, (unsigned char *) &priv->flags, sizeof(FT100_FLAG_INFO));
+    ret = read_block(&rig->state.rigport, (unsigned char *) &priv->flags,
+                     sizeof(FT100_FLAG_INFO));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read flags=%i \n", __func__, ret);
 
     if (ret < 0)
@@ -635,10 +637,10 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     /* now convert it .... */
 
     SNPRINTF(freq_str, sizeof(freq_str), "%02X%02X%02X%02X",
-            priv->status.freq[0],
-            priv->status.freq[1],
-            priv->status.freq[2],
-            priv->status.freq[3]);
+             priv->status.freq[0],
+             priv->status.freq[1],
+             priv->status.freq[2],
+             priv->status.freq[3]);
 
     d1 = strtol(freq_str, NULL, 16);
     d2 = (d1 * 1.25);    /* fixed 10Hz bug by OH2MMY */
@@ -989,7 +991,8 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return ret;
     }
 
-    ret = read_block(&rig->state.rigport, (unsigned char *) &ft100_meter, sizeof(FT100_METER_INFO));
+    ret = read_block(&rig->state.rigport, (unsigned char *) &ft100_meter,
+                     sizeof(FT100_METER_INFO));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read meters=%d\n", __func__, ret);
 
     if (ret < 0)

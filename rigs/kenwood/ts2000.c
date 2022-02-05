@@ -788,21 +788,21 @@ int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     if (chan->split == RIG_SPLIT_ON)
     {
         SNPRINTF(buf, sizeof(buf), "MW1%03d%011u%c%c%c%02d%02d%03d%c%c%09d0%c%c%s;\n",
-                chan->channel_num,
-                (unsigned) chan->tx_freq,       /*  4 - frequency */
-                '0' + tx_mode,                  /*  5 - mode */
-                (chan->flags & RIG_CHFLAG_SKIP) ? '1' : '0',    /*  6 - lockout status */
-                sqltype,                    /*  7 - squelch and tone type */
-                tone + 1,                   /*  8 - tone code */
-                code + 1,                   /*  9 - CTCSS code */
-                dcscode + 1,                /* 10 - DCS code */
-                (chan->funcs & RIG_FUNC_REV) ? '1' : '0', /* 11 - Reverse status */
-                shift,                      /* 12 - shift type */
-                (int) chan->rptr_offs,              /* 13 - offset frequency */
-                tstep + '0',                        /* 14 - Step size */
-                chan->scan_group + '0',         /* Memory group no */
-                chan->channel_desc              /* 16 - description */
-               );
+                 chan->channel_num,
+                 (unsigned) chan->tx_freq,       /*  4 - frequency */
+                 '0' + tx_mode,                  /*  5 - mode */
+                 (chan->flags & RIG_CHFLAG_SKIP) ? '1' : '0',    /*  6 - lockout status */
+                 sqltype,                    /*  7 - squelch and tone type */
+                 tone + 1,                   /*  8 - tone code */
+                 code + 1,                   /*  9 - CTCSS code */
+                 dcscode + 1,                /* 10 - DCS code */
+                 (chan->funcs & RIG_FUNC_REV) ? '1' : '0', /* 11 - Reverse status */
+                 shift,                      /* 12 - shift type */
+                 (int) chan->rptr_offs,              /* 13 - offset frequency */
+                 tstep + '0',                        /* 14 - Step size */
+                 chan->scan_group + '0',         /* Memory group no */
+                 chan->channel_desc              /* 16 - description */
+                );
         rig_debug(RIG_DEBUG_VERBOSE, "Split, the command will be: %s\n", buf);
 
         err = kenwood_transaction(rig, buf, NULL, 0);

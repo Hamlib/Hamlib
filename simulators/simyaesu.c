@@ -197,9 +197,9 @@ int main(int argc, char *argv[])
         }
 
 #endif
-        else if (strcmp(buf, "VS") == 0 && strlen(buf)>3)
+        else if (strcmp(buf, "VS") == 0 && strlen(buf) > 3)
         {
-            curr_vfo = buf[3] == '1'?RIG_VFO_B:RIG_VFO_A;
+            curr_vfo = buf[3] == '1' ? RIG_VFO_B : RIG_VFO_A;
             usleep(50 * 1000);
         }
         else if (strcmp(buf, "VS;") == 0)
@@ -207,7 +207,9 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             usleep(50 * 1000);
             pbuf = "VS0;";
-            if (curr_vfo == RIG_VFO_B || curr_vfo == RIG_VFO_SUB) pbuf[2] = '1';
+
+            if (curr_vfo == RIG_VFO_B || curr_vfo == RIG_VFO_SUB) { pbuf[2] = '1'; }
+
             n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
 
