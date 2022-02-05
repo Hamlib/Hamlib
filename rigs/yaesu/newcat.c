@@ -3535,11 +3535,11 @@ static int band2rig (hamlib_band_t band)
         case RIG_BAND_12M:    retval = 8;break;
         case RIG_BAND_10M:    retval = 9;break;
         case RIG_BAND_6M:     retval = 10;break;
-        case RIG_BAND_144MHZ: retval = 15;break;
-        case RIG_BAND_430MHZ: retval = 16;break;
         case RIG_BAND_GEN:    retval = 11;break;
         case RIG_BAND_MW:     retval = 12;break;
         case RIG_BAND_AIR:    retval = 14;break;
+        case RIG_BAND_144MHZ: retval = 15;break;
+        case RIG_BAND_430MHZ: retval = 16;break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: unknown band index=%d\n", __func__, band);
             retval = -RIG_EINVAL;
