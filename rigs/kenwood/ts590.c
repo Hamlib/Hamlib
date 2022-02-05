@@ -42,7 +42,7 @@ int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 #define TS590_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|\
         RIG_LEVEL_CWPITCH|RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_ALC|\
         RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|\
-        RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD)
+        RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_PREAMP)
 #define TS590_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_AIP|RIG_FUNC_TONE|\
         RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC)
 
@@ -90,7 +90,7 @@ const struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".0",
+    .version = BACKEND_VER ".1",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -260,7 +260,7 @@ const struct rig_caps ts590sg_caps =
     RIG_MODEL(RIG_MODEL_TS590SG),
     .model_name = "TS-590SG",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".0",
+    .version = BACKEND_VER ".1",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
