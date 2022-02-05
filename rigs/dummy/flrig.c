@@ -1951,7 +1951,7 @@ static int flrig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
     *split = atoi(value);
     priv->split = *split;
-    *txvfo = *split ? RIG_VFO_B : RIG_VFO_A;
+    *tx_vfo = *split ? RIG_VFO_B : RIG_VFO_A;
     rig_debug(RIG_DEBUG_TRACE, "%s tx_vfo=%s, split=%d\n", __func__,
               rig_strvfo(*tx_vfo), *split);
     RETURNFUNC(RIG_OK);
