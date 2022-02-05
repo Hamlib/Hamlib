@@ -703,23 +703,24 @@ typedef enum {
  *
  * \sa rig_set_level()
  */
-typedef enum {
-    RIG_BAND_160M = 0,              /*!< \c 160M */
-    RIG_BAND_80M  = (1 << 1),       /*!< \c 80M */
-    RIG_BAND_60M  = (1 << 2),       /*!< \c 60M */
-    RIG_BAND_40M  = (1 << 3),       /*!< \c 40M */
-    RIG_BAND_30M  = (1 << 4),       /*!< \c 30M */
-    RIG_BAND_20M  = (1 << 5),       /*!< \c 20M */
-    RIG_BAND_17M  = (1 << 6),       /*!< \c 17M */
-    RIG_BAND_15M  = (1 << 7),       /*!< \c 15M */
-    RIG_BAND_12M  = (1 << 8),       /*!< \c 12M */
-    RIG_BAND_10M  = (1 << 9),       /*!< \c 10M */
-    RIG_BAND_6M   = (1 << 10),      /*!< \c 6M */
-    RIG_BAND_144MHZ = (1 << 11),    /*!< \c 144MHz */
-    RIG_BAND_430MHZ = (1 << 12),    /*!< \c 430MHz */
-    RIG_BAND_GEN = (1 << 13),       /*!< \c 60M */
-    RIG_BAND_MW  = (1 << 14),       /*!< \c Medium Wave */
-    RIG_BAND_AIR = (1 << 15),       /*!< \c Air band */
+typedef enum { // numbers here reflect the Yaesu values
+    RIG_BAND_160M = 0,      /*!< \c 160M */
+    RIG_BAND_80M  = 1,      /*!< \c 80M */
+    RIG_BAND_60M  = 2,      /*!< \c 60M */
+    RIG_BAND_40M  = 3,      /*!< \c 40M */
+    RIG_BAND_30M  = 4,      /*!< \c 30M */
+    RIG_BAND_20M  = 5,      /*!< \c 20M */
+    RIG_BAND_17M  = 6,      /*!< \c 17M */
+    RIG_BAND_15M  = 7,      /*!< \c 15M */
+    RIG_BAND_12M  = 8,      /*!< \c 12M */
+    RIG_BAND_10M  = 9,      /*!< \c 10M */
+    RIG_BAND_6M   = 10,     /*!< \c 6M */
+    RIG_BAND_GEN = 11,      /*!< \c 60M */
+    RIG_BAND_MW  = 12,      /*!< \c Medium Wave */
+    RIG_BAND_UNUSED  = 13,  /*!< \c Medium Wave */
+    RIG_BAND_AIR = 14,      /*!< \c Air band */
+    RIG_BAND_144MHZ = 15,   /*!< \c 144MHz */
+    RIG_BAND_430MHZ = 16,   /*!< \c 430MHz */
 } hamlib_band_t;
 
 
