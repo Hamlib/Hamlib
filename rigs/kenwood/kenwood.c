@@ -1417,11 +1417,15 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         }
     }
 
+    txvfo = vfo_fixup(rig, txvfo, RIG_SPLIT_ON);
+
     switch (txvfo)
     {
     case RIG_VFO_VFO:
+    case RIG_VFO_MAIN:
     case RIG_VFO_A: vfo_function = '0'; break;
 
+    case RIG_VFO_SUB:
     case RIG_VFO_B: vfo_function = '1'; break;
 
     case RIG_VFO_MEM: vfo_function = '2'; break;
