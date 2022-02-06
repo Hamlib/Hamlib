@@ -1097,6 +1097,16 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         vfo_function = '2';
         break;
 
+    case RIG_VFO_TX:
+        vfo_function = rig->state.tx_vfo == RIG_VFO_B ? '1' : '0';
+        break;
+
+#if 0 // VFO_RX really should NOT be VFO_CURR as VFO_CURR could be either VFO
+    case RIG_VFO_RX:
+        vfo_function = rig->state.rx_vfo == RIG_VFO_B ? '1' : '0';
+        break;
+#endif
+
     case RIG_VFO_CURR:
         TRACE;
         rig->state.current_vfo = RIG_VFO_CURR;
