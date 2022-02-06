@@ -675,16 +675,6 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         }
     }
 
-    // Now we have to copy our new rig state hamlib_port structure to the deprecated one
-    // Clients built on older 4.X versions will use the old structure
-    // Clients built on newer 4.5 versions will use the new structure
-    memcpy(&rig->state.rigport_deprecated, &rig->state.rigport,
-           sizeof(rig->state.rigport_deprecated));
-    memcpy(&rig->state.pttport_deprecated, &rig->state.pttport,
-           sizeof(rig->state.pttport_deprecated));
-    memcpy(&rig->state.dcdport_deprecated, &rig->state.dcdport,
-           sizeof(rig->state.dcdport_deprecated));
-
     return (rig);
 }
 
@@ -724,6 +714,28 @@ int HAMLIB_API rig_open(RIG *rig)
     caps = rig->caps;
     rs = &rig->state;
     rs->rigport.rig = rig;
+    rs->rigport_deprecated.rig = rig;
+    // rigctl/rigctld may have deprecated values -- backwards compatility
+    if (rs->rigport_deprecated.pathname[0] != 0)
+    {
+        strcpy(rs->rigport.pathname,rs->rigport_deprecated.pathname);
+    }
+    if (rs->pttport_deprecated.type.ptt != RIG_PTT_NONE)
+    {
+        rs->pttport.type.ptt = rs->pttport_deprecated.type.ptt;
+    }
+    if (rs->dcdport_deprecated.type.dcd != RIG_DCD_NONE)
+    {
+        rs->dcdport.type.dcd = rs->dcdport_deprecated.type.dcd;
+    }
+    if (rs->pttport_deprecated.pathname[0] != 0)
+    {
+        strcpy(rs->pttport.pathname, rs->pttport_deprecated.pathname);
+    }
+    if (rs->dcdport_deprecated.pathname[0] != 0)
+    {
+        strcpy(rs->dcdport.pathname, rs->dcdport_deprecated.pathname);
+    }
 
     // Enable async data only if it's enabled through conf settings *and* supported by the backend
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
