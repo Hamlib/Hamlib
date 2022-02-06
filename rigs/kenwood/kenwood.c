@@ -612,7 +612,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
 
     if (!cmd)
     {
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     memset(buf, 0, buf_size);
@@ -632,7 +632,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         if (err != RIG_OK)        /* return immediately on error as any
                                    retries handled at lower level */
         {
-            RETURNFUNC(err);
+            RETURNFUNC2(err);
         }
 
         length = strlen(buf);
@@ -651,7 +651,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
     }
     while (err != RIG_OK && ++retry < rig->state.rigport.retry);
 
-    RETURNFUNC(err);
+    RETURNFUNC2(err);
 }
 
 rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[])
