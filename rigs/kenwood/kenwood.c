@@ -764,7 +764,7 @@ int kenwood_open(RIG *rig)
     char id[KENWOOD_MAX_BUF_LEN];
     int retry_save = rig->state.rigport.retry;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     id[0] = 0;
     rig->state.rigport.retry = 0;
@@ -1506,8 +1506,7 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
     int retval;
     struct kenwood_priv_data *priv = rig->state.priv;
 
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (!split || !txvfo)
     {
