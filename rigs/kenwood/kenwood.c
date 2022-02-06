@@ -247,7 +247,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
 
     if ((!cmdstr && !datasize) || (datasize && !data))
     {
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     rs = &rig->state;
@@ -271,7 +271,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
 
             if (data) { strncpy(data, priv->last_if_response, datasize); }
 
-            RETURNFUNC(RIG_OK);
+            RETURNFUNC2(RIG_OK);
         }
 
         // else we drop through and do the real IF command
@@ -581,7 +581,7 @@ transaction_quit:
     }
 
     rs->transaction_active = 0;
-    RETURNFUNC(retval);
+    RETURNFUNC2(retval);
 }
 
 
