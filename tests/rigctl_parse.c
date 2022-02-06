@@ -2936,6 +2936,7 @@ declare_proto_rig(set_split_vfo)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): rx_vfo = %s, tx_vfo = %s\n", __func__, __LINE__, rig_strvfo(vfo), rig_strvfo(tx_vfo));
 
     RETURNFUNC(rig_set_split_vfo(rig, vfo, (split_t) split, tx_vfo));
 }
@@ -4747,7 +4748,11 @@ declare_proto_rig(send_cmd)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
               rs->rigport.fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
+    // we dont' want the 'w' command to wait too long
+    int save_retry = rs->rigport.retry;
+    rs->rigport.retry = 0;
     retval = write_block(&rs->rigport, (unsigned char *) bufcmd, cmd_len);
+    rs->rigport.retry = save_retry;
 
     if (retval != RIG_OK)
     {
