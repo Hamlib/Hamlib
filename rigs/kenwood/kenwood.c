@@ -1816,7 +1816,7 @@ int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
     char freqbuf[50];
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (!freq)
     {
