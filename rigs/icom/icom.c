@@ -1574,7 +1574,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         {
             priv->x25cmdfails = 1;
             rig_debug(RIG_DEBUG_WARN,
-                      "%s: rig does not support 0x25 CI-V cmd\n", __func__);
+                      "%s: rig probe shows 0x25 CI-V cmd not available\n", __func__);
         }
 
         freq_len--; // 0x25 cmd is 1 byte longer than 0x03 cmd
@@ -2055,7 +2055,7 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     {
         priv->x26cmdfails = 1;
         rig_debug(RIG_DEBUG_WARN,
-                  "%s: rig does not support 0x26 CI-V cmd\n", __func__);
+                  "%s: rig probe shows 0x26 CI-V cmd not available\n", __func__);
         return -RIG_ENAVAIL;
     }
 
