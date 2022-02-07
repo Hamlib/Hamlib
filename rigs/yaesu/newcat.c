@@ -8515,6 +8515,10 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH0%02d;", w);
     }
+    else if (is_ftdx10)
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH00%02d;", w);
+    }
     else
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH%c%02d;", main_sub_vfo, w);
