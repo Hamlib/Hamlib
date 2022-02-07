@@ -4054,8 +4054,11 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         RETURNFUNC(RIG_OK);
     }
 
-    rig_debug(RIG_DEBUG_WARN, "%s(%d): Unhandled TXVFO=%s, tx_mode=%s\n", __func__,
+    if (tx_vfo & (RIG_VFO_CURR || RIG_VFO_TX))
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s(%d): Unhandled TXVFO=%s, tx_mode=%s\n", __func__,
               __LINE__, rig_strvfo(tx_vfo), rig_strrmode(tx_mode));
+    }
 
     // code below here should be dead code now -- but maybe we have  VFO situatiuon we need to handle
     if (caps->rig_model == RIG_MODEL_NETRIGCTL)
