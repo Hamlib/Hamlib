@@ -416,6 +416,8 @@ int HAMLIB_API amp_open(AMP *amp)
         }
     }
 
+    memcpy(&amp->state.ampport_deprecated, &amp->state.ampport,
+           sizeof(amp->state.ampport_deprecated));
 
     return RIG_OK;
 }
