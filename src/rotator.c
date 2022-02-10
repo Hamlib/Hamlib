@@ -470,9 +470,6 @@ int HAMLIB_API rot_open(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    memcpy(&rot->state.rotport_deprecated, &rot->state.rotport,
-           sizeof(rot->state.rotport_deprecated));
-
     add_opened_rot(rot);
 
     rs->comm_state = 1;
@@ -490,6 +487,9 @@ int HAMLIB_API rot_open(ROT *rot)
             return status;
         }
     }
+
+    memcpy(&rot->state.rotport_deprecated, &rot->state.rotport,
+           sizeof(rot->state.rotport_deprecated));
 
     return RIG_OK;
 }
