@@ -451,6 +451,8 @@ int HAMLIB_API amp_close(AMP *amp)
 
     if (!amp || !amp->caps)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: NULL ptr? amp=%p, amp->caps=%p\n", __func__, amp,
+                  amp->caps);
         return -RIG_EINVAL;
     }
 
@@ -459,6 +461,8 @@ int HAMLIB_API amp_close(AMP *amp)
 
     if (!rs->comm_state)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: comm_state=0? rs=%p, rs->comm_state=%d\n",
+                  __func__, rs, rs->comm_state);
         return -RIG_EINVAL;
     }
 
