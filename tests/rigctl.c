@@ -203,7 +203,6 @@ int main(int argc, char *argv[])
             }
 
             rig_file = optarg;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_file=%s\n", __func__, rig_file);
             break;
 
         case 'p':
