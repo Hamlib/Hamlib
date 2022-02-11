@@ -167,7 +167,7 @@ const struct rig_caps trp8255_caps =
     .set_func  =  cu_set_func,
     .set_parm  =  cu_set_parm,
     .set_ts    =  cu_set_ts,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
