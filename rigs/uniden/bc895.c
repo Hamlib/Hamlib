@@ -144,7 +144,7 @@ const struct rig_caps bc895_caps =
     .get_channel = uniden_get_channel,
     .set_channel = uniden_set_channel,
 
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

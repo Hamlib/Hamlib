@@ -123,7 +123,7 @@ const struct rig_caps bcd396t_caps =
     .get_info =  uniden_digital_get_info,
     .set_freq =  uniden_digital_set_freq,
     .get_freq =  uniden_digital_get_freq,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
