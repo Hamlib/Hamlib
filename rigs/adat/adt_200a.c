@@ -204,7 +204,8 @@ const struct rig_caps adt_200a_caps =
     .power2mW           =  adat_power2mW,
     .mW2power           =  adat_mW2power,
 
-    .get_powerstat      =  adat_get_powerstat
+    .get_powerstat      =  adat_get_powerstat, 
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 // ---------------------------------------------------------------------------
