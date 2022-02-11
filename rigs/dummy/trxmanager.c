@@ -177,7 +177,7 @@ struct rig_caps trxmanager_caps =
     .get_split_vfo = trxmanager_get_split_vfo,
     .set_split_freq_mode = trxmanager_set_split_freq_mode,
     .get_split_freq_mode = trxmanager_get_split_freq_mode,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
