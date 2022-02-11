@@ -228,6 +228,7 @@ const struct rig_caps tt538_caps =
     .reset =  tt538_reset,
     .get_info =  tentec2_get_info,
     .str_cal = TT538_STR_CAL,   // This signals front-end support of level STRENGTH
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /* Filter table for 538 reciver support. */

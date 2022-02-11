@@ -190,7 +190,7 @@ const struct rig_caps rx331_caps =
     .get_level =  rx331_get_level,
     .vfo_op =     rx331_vfo_op,
     .get_info =   rx331_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

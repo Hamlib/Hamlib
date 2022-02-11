@@ -197,7 +197,7 @@ const struct rig_caps tt585_caps =
     .set_parm =  tt585_set_parm,
     .set_mem =   tt585_set_mem,
     .get_mem =   tt585_get_mem,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

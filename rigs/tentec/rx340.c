@@ -167,7 +167,7 @@ const struct rig_caps rx340_caps =
     .set_level =  rx340_set_level,
     .get_level =  rx340_get_level,
     .get_info =  rx340_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

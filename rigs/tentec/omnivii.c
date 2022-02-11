@@ -237,6 +237,7 @@ const struct rig_caps tt588_caps =
 // Antenna functions only in remote mode -- prototypes provided
 //.get_ant = tt588_get_ant,
 //.set_ant = tt588_set_ant
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /* Filter table for 588 reciver support. */
