@@ -123,7 +123,7 @@ const struct rig_caps trp8000_caps =
     .vfo_op =  skanti_vfo_op,
     .set_level =  skanti_set_level,
     .reset =  skanti_reset,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
