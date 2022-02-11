@@ -283,5 +283,5 @@ const struct rig_caps ic9100_caps =
     .set_split_mode = icom_set_split_mode,
     .get_split_mode = icom_get_split_mode,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

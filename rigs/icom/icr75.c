@@ -242,7 +242,7 @@ const struct rig_caps icr75_caps =
     .set_channel = icr75_set_channel,
     .get_channel = icr75_get_channel,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

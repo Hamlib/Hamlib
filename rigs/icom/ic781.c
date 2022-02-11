@@ -189,6 +189,6 @@ const struct rig_caps ic781_caps =
 
     /* TODO: more capabilities */
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

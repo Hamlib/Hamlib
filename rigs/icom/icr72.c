@@ -155,6 +155,6 @@ const struct rig_caps icr72_caps =
     .get_ts =  icom_get_ts,
     .scan =  icom_scan,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

@@ -479,7 +479,7 @@ const struct rig_caps ic785x_caps =
     .wait_morse = rig_wait_morse,
     .set_clock = ic7300_set_clock,
     .get_clock = ic7300_get_clock,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 int ic785x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)

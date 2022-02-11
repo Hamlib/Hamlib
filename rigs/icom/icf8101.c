@@ -408,5 +408,5 @@ const struct rig_caps icf8101_caps =
     .set_split_freq_mode = icf8101_set_split_freq_mode,
     .get_split_freq_mode = icf8101_get_split_freq_mode,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
