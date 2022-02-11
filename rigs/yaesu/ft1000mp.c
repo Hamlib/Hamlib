@@ -440,7 +440,7 @@ const struct rig_caps ft1000mp_caps =
     .get_func =           ft1000mp_get_func,
 
     /* TODO: the remaining ... */
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 const struct rig_caps ft1000mpmkv_caps =
@@ -575,6 +575,7 @@ const struct rig_caps ft1000mpmkv_caps =
     .set_func =           ft1000mp_set_func,
     .get_func =           ft1000mp_get_func,
 
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
     /* TODO: the remaining ... */
 };
 
@@ -710,6 +711,7 @@ const struct rig_caps ft1000mpmkvfld_caps =
     .set_func =           ft1000mp_set_func,
     .get_func =           ft1000mp_get_func,
 
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
     /* TODO: the remaining ... */
 };
 

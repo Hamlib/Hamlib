@@ -200,5 +200,5 @@ const struct rig_caps ft450_caps =
     .set_channel =        newcat_set_channel,
     .get_channel =        newcat_get_channel,
     .send_morse =         newcat_send_morse,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

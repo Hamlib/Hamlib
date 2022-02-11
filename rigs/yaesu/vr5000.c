@@ -227,7 +227,7 @@ const struct rig_caps vr5000_caps =
     .get_mode =       vr5000_get_mode,
     .set_ts =         vr5000_set_ts,
     .get_ts =         vr5000_get_ts,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

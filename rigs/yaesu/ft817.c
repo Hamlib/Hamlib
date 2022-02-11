@@ -437,6 +437,7 @@ const struct rig_caps ft817_caps =
     .get_level =        ft817_get_level,
     .set_func =         ft817_set_func,
     .vfo_op =           ft817_vfo_op,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 const struct rig_caps ft818_caps =
@@ -590,6 +591,7 @@ const struct rig_caps ft818_caps =
     .get_level =        ft817_get_level,
     .set_func =         ft817_set_func,
     .vfo_op =           ft817_vfo_op,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /* ---------------------------------------------------------------------- */

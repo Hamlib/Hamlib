@@ -320,5 +320,5 @@ const struct rig_caps ftdx1200_caps =
     .send_morse =         newcat_send_morse,
     .set_clock =          newcat_set_clock,
     .get_clock =          newcat_get_clock,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

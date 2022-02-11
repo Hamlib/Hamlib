@@ -215,7 +215,7 @@ const struct rig_caps ft757gx_caps =
     .cfgparams =        ft757gx_cfg_params,
     .set_conf =     ft757gx_set_conf,
     .get_conf =     ft757gx_get_conf,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
@@ -338,7 +338,7 @@ const struct rig_caps ft757gx2_caps =
     .get_vfo =      ft757_get_vfo,  /* get vfo */
     .get_level =        ft757_get_level,
     .get_ptt =      ft757_get_ptt,  /* get ptt */
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

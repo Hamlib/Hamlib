@@ -317,6 +317,7 @@ const struct rig_caps vx1700_caps =
     .set_mem        = vx1700_set_mem,
     .get_mem        = vx1700_get_mem,
     .vfo_op         = vx1700_vfo_op,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

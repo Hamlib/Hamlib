@@ -367,6 +367,7 @@ const struct rig_caps ft990_caps =
     .vfo_op =             ft990_vfo_op,
     .set_channel =        ft990_set_channel,
     .get_channel =        ft990_get_channel,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
