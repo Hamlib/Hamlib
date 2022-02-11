@@ -185,7 +185,7 @@ const struct rig_caps r8a_caps =
     .set_powerstat = drake_set_powerstat,
     .get_powerstat = drake_get_powerstat,
     .get_info =  drake_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
