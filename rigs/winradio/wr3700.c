@@ -124,6 +124,7 @@ const struct rig_caps wr3700_caps =
     .get_func =      wr_get_func,
 
     .get_info =      wr_get_info,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 #endif  /* WINRADIO_IOCTL */
