@@ -119,6 +119,7 @@ const struct rig_caps ekd500_caps =
     .priv =  NULL,
 
     .set_freq =  rft_set_freq,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
