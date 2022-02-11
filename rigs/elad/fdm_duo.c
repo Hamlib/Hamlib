@@ -477,6 +477,7 @@ const struct rig_caps fdm_duo_caps =
     .has_set_func = FDM_DUO_FUNC_ALL,
     .set_func = elad_set_func,
     .get_func = elad_get_func,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
