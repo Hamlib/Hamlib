@@ -170,7 +170,7 @@ const struct rig_caps perseus_caps =
     .set_level =  icom_set_level,
     .get_level =  icom_get_level,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

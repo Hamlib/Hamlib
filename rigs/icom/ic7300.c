@@ -1079,7 +1079,7 @@ const struct rig_caps ic9700_caps =
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,
     .send_voice_mem = icom_send_voice_mem,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 const struct rig_caps ic705_caps =
@@ -1344,7 +1344,7 @@ const struct rig_caps ic705_caps =
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,
     .send_voice_mem = icom_send_voice_mem,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)

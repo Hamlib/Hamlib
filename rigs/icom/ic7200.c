@@ -279,7 +279,7 @@ const struct rig_caps ic7200_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  NULL,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 int ic7200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)

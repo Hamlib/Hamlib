@@ -215,5 +215,5 @@ const struct rig_caps id5100_caps =
     .get_ctcss_sql =  icom_get_ctcss_sql,
     .set_dcs_sql =  icom_set_dcs_sql,
     .get_dcs_sql =  icom_get_dcs_sql,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

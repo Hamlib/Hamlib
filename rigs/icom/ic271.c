@@ -149,6 +149,6 @@ const struct rig_caps ic271_caps =
     .set_mem =  icom_set_mem,
     .vfo_op =  icom_vfo_op,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

@@ -156,7 +156,7 @@ const struct rig_caps icr20_caps =
     .get_level =  icom_get_level,
     .get_dcd =  icom_get_dcd,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

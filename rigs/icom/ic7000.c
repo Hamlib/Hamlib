@@ -372,5 +372,5 @@ const struct rig_caps ic7000_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  NULL,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
