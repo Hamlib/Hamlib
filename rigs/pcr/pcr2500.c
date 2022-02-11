@@ -193,5 +193,6 @@ const struct rig_caps pcr2500_caps =
 
     .set_powerstat  = pcr_set_powerstat,
     .get_powerstat  = pcr_get_powerstat,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
