@@ -132,7 +132,7 @@ const struct rig_caps ra6790_caps =
 
     .reset = racal_reset,
     .get_info = racal_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
