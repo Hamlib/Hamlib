@@ -240,7 +240,7 @@ const struct rig_caps frg100_caps =
     .get_level =      frg100_get_level,
 
     .set_powerstat =  frg100_set_powerstat,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 static inline int frg100_channel_is_ok(unsigned char channel)

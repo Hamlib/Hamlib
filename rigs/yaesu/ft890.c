@@ -508,6 +508,7 @@ const struct rig_caps ft890_caps =
     .set_func =           ft890_set_func,
     .get_level =          ft890_get_level,
     .vfo_op =             ft890_vfo_op,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

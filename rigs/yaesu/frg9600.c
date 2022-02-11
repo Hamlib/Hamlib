@@ -130,7 +130,7 @@ const struct rig_caps frg9600_caps =
     .set_freq =           frg9600_set_freq,
     .set_mode =           frg9600_set_mode,
 
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

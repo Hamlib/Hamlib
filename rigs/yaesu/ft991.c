@@ -328,7 +328,8 @@ const struct rig_caps ft991_caps =
     .send_morse =         newcat_send_morse,
     .send_voice_mem =     newcat_send_voice_mem,
     .set_clock =          newcat_set_clock,
-    .get_clock =          newcat_get_clock
+    .get_clock =          newcat_get_clock,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

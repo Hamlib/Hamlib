@@ -604,6 +604,7 @@ const struct rig_caps ft920_caps =
     .get_mem_all_cb =   NULL,
     .clone_combo_set =  NULL,
     .clone_combo_get =  NULL,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
