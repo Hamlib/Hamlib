@@ -155,7 +155,7 @@ const struct rig_caps k505dsp_caps =
     .set_mode =  kachina_set_mode,
 
     .get_level =  kachina_get_level,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
