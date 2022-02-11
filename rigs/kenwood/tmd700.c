@@ -238,7 +238,7 @@ const struct rig_caps tmd700_caps =
     .scan   =  th_scan,
 
     .decode_event =  th_decode_event,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

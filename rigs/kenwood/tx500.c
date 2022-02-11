@@ -322,7 +322,7 @@ const struct rig_caps tx500_caps =
     .get_powerstat =  kenwood_get_powerstat,
     .get_info =  kenwood_get_info,
     .reset =  kenwood_reset,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

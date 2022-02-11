@@ -199,7 +199,7 @@ const struct rig_caps ts690s_caps =
     .scan =  kenwood_scan,
     .get_channel = kenwood_get_channel,
     .set_channel = kenwood_set_channel,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
