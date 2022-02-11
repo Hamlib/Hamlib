@@ -272,7 +272,7 @@ const struct rig_caps dx77_caps =
     .get_level =        dx77_get_level,
     .set_mem =          dx77_set_mem,
     .get_mem =          dx77_get_mem,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
