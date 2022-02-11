@@ -831,10 +831,12 @@ int kenwood_open(RIG *rig)
 
         if (RIG_OK != err)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
+            rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version, defaulting to 1.0\n", __func__);
             rig->state.rigport.retry = retry_save;
-            RETURNFUNC(err);
+            priv->fw_rev_uint = 100;
         }
+        else
+        {
 
         /* store the data  after the "FV" which should be  a f/w version
            string of the form n.n e.g. 1.07 */
@@ -851,9 +853,10 @@ int kenwood_open(RIG *rig)
             rig->state.rigport.retry = retry_save;
             RETURNFUNC(-RIG_EPROTO);
         }
+        }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: found f/w version %s\n", __func__,
-                  priv->fw_rev);
+        rig_debug(RIG_DEBUG_TRACE, "%s: found f/w version %.1f\n", __func__,
+                  priv->fw_rev_uint/100.0);
     }
 
     if (!RIG_IS_XG3 && -RIG_ETIMEOUT == err)

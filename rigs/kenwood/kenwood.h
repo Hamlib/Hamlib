@@ -28,7 +28,7 @@
 #include "token.h"
 #include "misc.h"
 
-#define BACKEND_VER "20220206"
+#define BACKEND_VER "20220211"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
