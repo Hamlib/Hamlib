@@ -153,7 +153,7 @@ const struct rig_caps ra3702_caps =
     .scan = ra37xx_scan,
     .vfo_op = ra37xx_vfo_op,
     .get_info = ra37xx_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
