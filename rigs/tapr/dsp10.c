@@ -125,5 +125,6 @@ const struct rig_caps dsp10_caps =
 
     .set_freq =  tapr_set_freq,
     .set_mode =  tapr_set_mode,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
