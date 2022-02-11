@@ -2304,6 +2304,8 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (!(RIG_MODE_CW == mode
                 || RIG_MODE_CWR == mode
                 || RIG_MODE_AM == mode
+                || RIG_MODE_USB == mode
+                || RIG_MODE_LSB == mode
                 || RIG_MODE_RTTY == mode
                 || RIG_MODE_RTTYR == mode))
         {
@@ -2316,8 +2318,8 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, curr_mode=%s, new_mode=%s\n",
-              __func__, rig_strvfo(vfo), rig_strrmode(priv->curr_mode), rig_strrmode(mode));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, curr_mode=%s, new_mode=%s, datamode=%d\n",
+              __func__, rig_strvfo(vfo), rig_strrmode(priv->curr_mode), rig_strrmode(mode), datamode);
 
     // only change mode if needed
     if (priv->curr_mode != mode)
