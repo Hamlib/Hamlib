@@ -183,6 +183,7 @@ const struct rig_caps xk2100_caps =
     .set_channel = gp2000_set_channel,
     .get_channel = gp2000_get_channel,
 #endif
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
