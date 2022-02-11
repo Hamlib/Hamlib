@@ -852,4 +852,5 @@ const struct rig_caps barrett_caps =
 //  .get_trn =    dummy_get_trn,
 //  .power2mW =   dummy_power2mW,
 //  .mW2power =   dummy_mW2power,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

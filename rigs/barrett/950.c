@@ -141,6 +141,7 @@ const struct rig_caps barrett950_caps =
     .set_split_freq =   barrett_set_split_freq,
     .set_split_vfo =    barrett_set_split_vfo,
     .get_split_vfo =    barrett_get_split_vfo,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
