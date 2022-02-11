@@ -1741,5 +1741,5 @@ const struct rig_caps thd72a_caps =
     .get_channel = thd72_get_channel,
 //.get_chan_all_cb = thd72_get_chan_all_cb, this doesn't work yet
     .get_info =  th_get_info,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

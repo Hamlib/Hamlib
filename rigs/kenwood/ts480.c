@@ -1435,7 +1435,7 @@ const struct rig_caps ts480_caps =
     .get_ext_func = ts480_get_ext_func,
     .send_morse = kenwood_send_morse,
     .vfo_op = kenwood_vfo_op,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

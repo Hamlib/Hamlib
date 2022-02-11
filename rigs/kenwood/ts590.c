@@ -253,6 +253,7 @@ const struct rig_caps ts590_caps =
     .get_channel =  kenwood_get_channel,
     .vfo_ops = TS590_VFO_OPS,
     .vfo_op =  kenwood_vfo_op,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 const struct rig_caps ts590sg_caps =
@@ -423,6 +424,7 @@ const struct rig_caps ts590sg_caps =
     .get_channel =  kenwood_get_channel,
     .vfo_ops = TS590_VFO_OPS,
     .vfo_op =  kenwood_vfo_op,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

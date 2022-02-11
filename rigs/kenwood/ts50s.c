@@ -206,8 +206,7 @@ const struct rig_caps ts50s_caps =
     .set_powerstat =  kenwood_set_powerstat,
     .get_powerstat =  kenwood_get_powerstat,
     .reset =  kenwood_reset,
-
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

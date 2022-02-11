@@ -244,7 +244,8 @@ const struct rig_caps ts850_caps =
     .get_mem =  kenwood_get_mem_if,
     .get_channel = kenwood_get_channel,
     .set_channel = ts850_set_channel,
-    .set_trn =  kenwood_set_trn
+    .set_trn =  kenwood_set_trn,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

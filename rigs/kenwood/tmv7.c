@@ -217,7 +217,7 @@ const struct rig_caps tmv7_caps =
     .set_ptt = th_set_ptt,
     .get_dcd = th_get_dcd,
     .decode_event =  tmv7_decode_event,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

@@ -211,7 +211,7 @@ const struct rig_caps ts790_caps =
     .set_trn =  kenwood_set_trn,
     .get_trn =  kenwood_get_trn,
     .get_info =  kenwood_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

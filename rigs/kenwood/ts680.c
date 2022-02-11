@@ -194,7 +194,7 @@ const struct rig_caps ts680s_caps =
     .set_mem =  kenwood_set_mem,
     .get_mem = kenwood_get_mem_if,
     .reset =  kenwood_reset,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

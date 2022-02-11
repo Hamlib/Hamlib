@@ -396,7 +396,7 @@ const struct rig_caps tmd710_caps =
     .get_rptr_offs = tmd710_get_rptr_offs,
 
     .decode_event =  th_decode_event,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /* appears to be tmd710 compatible */
@@ -552,7 +552,7 @@ const struct rig_caps tmv71_caps =
     .get_rptr_offs = tmd710_get_rptr_offs,
 
     .decode_event =  th_decode_event,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /* structure for handling FO radio command */

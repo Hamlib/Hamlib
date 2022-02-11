@@ -1196,7 +1196,7 @@ const struct rig_caps f6k_caps =
     .get_level =        kenwood_get_level,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
-    .hamlib_check_rig_caps = "HAMLIB_CHECK_RIG_CAPS"
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
@@ -1330,5 +1330,6 @@ const struct rig_caps powersdr_caps =
     .set_func =         powersdr_set_func,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
