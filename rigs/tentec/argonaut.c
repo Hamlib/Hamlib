@@ -151,7 +151,7 @@ const struct rig_caps tt516_caps =
     .get_ptt =  tentec2_get_ptt,
     .reset =  tentec2_reset,
     .get_info =  tentec2_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

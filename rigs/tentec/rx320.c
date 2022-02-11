@@ -169,7 +169,7 @@ const struct rig_caps rx320_caps =
     .set_level =  tentec_set_level,
     .get_level =  tentec_get_level,
     .get_info =  tentec_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

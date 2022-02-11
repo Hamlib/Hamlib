@@ -141,7 +141,7 @@ const struct rig_caps rx350_caps =
     .get_mode =  tentec2_get_mode,
     .reset =  tentec2_reset,
     .get_info =  tentec2_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
