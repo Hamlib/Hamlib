@@ -160,7 +160,7 @@ const struct rig_caps ar3000a_caps =
 
     .set_level = ar3k_set_level,
     .get_level = ar3k_get_level,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

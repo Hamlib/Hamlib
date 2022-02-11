@@ -176,7 +176,7 @@ const struct rig_caps ar8000_caps =
     .get_info =  aor_get_info,
 
     .get_chan_all_cb = aor_get_chan_all_cb,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

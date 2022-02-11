@@ -942,6 +942,7 @@ const struct rig_caps ar7030_caps =
 //  .get_channel =  ar7030_get_channel,
 //  .set_trn =  ar7030_set_trn,
 //  .get_trn =  ar7030_get_trn,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
