@@ -477,6 +477,7 @@ const struct rig_caps envoy_caps =
 
     .set_ptt =      codan_set_ptt,
     .get_ptt =      codan_get_ptt,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 const struct rig_caps ngs_caps =
@@ -539,6 +540,7 @@ const struct rig_caps ngs_caps =
 
     .set_ptt =      codan_set_ptt,
     .get_ptt =      codan_get_ptt,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
