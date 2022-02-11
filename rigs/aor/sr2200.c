@@ -250,6 +250,7 @@ const struct rig_caps sr2200_caps =
     .get_channel = aor_get_channel,
 
     .get_chan_all_cb = aor_get_chan_all_cb,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

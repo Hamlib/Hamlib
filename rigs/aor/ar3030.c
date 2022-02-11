@@ -193,7 +193,7 @@ const struct rig_caps ar3030_caps =
     .get_channel = ar3030_get_channel,
 
     .vfo_op = ar3030_vfo_op,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
