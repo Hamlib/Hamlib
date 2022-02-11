@@ -207,7 +207,7 @@ const struct rig_caps nrd535_caps =
     .set_powerstat =  jrc_set_powerstat,
     .get_powerstat =  jrc_get_powerstat,
     .decode_event =  jrc_decode_event,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
