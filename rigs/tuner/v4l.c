@@ -143,7 +143,7 @@ const struct rig_caps v4l_caps =
     .get_level =  v4l_get_level,
 
     .get_info =  v4l_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
