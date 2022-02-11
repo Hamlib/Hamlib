@@ -125,7 +125,7 @@ const struct rig_caps hf235_caps =
     .get_level = lowe_get_level,
     .reset =  lowe_reset,
     .get_info =  lowe_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
