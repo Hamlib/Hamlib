@@ -106,6 +106,7 @@ static struct option long_options[] =
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
     {"twiddle_timeout", 1, 0, 'W'},
+    {"twiddle_rit",     1, 0, 'w'},
     {"uplink",          1, 0, 'x'},
     {"debug-time-stamps", 0, 0, 'Z'},
     {"multicast-addr",  1, 0, 'M'},
@@ -253,6 +254,7 @@ int main(int argc, char *argv[])
     int sock_listen;
     int reuseaddr = 1;
     int twiddle_timeout = 0;
+    int twiddle_rit = 0;
     int uplink = 0;
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
@@ -534,6 +536,19 @@ int main(int argc, char *argv[])
                     "twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
             break;
 
+        case 'w':
+            if (!optarg)
+            {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+
+            twiddle_rit = atoi(optarg);
+            fprintf(stderr,
+                    "twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
+            break;
+
+
         case 'x':
             if (!optarg)
             {
@@ -630,6 +645,7 @@ int main(int argc, char *argv[])
     }
 
     my_rig->state.twiddle_timeout = twiddle_timeout;
+    my_rig->state.twiddle_rit = twiddle_rit;
     my_rig->state.uplink = uplink;
     rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d, twiddle_rit=%d\n",
               __func__,
@@ -1307,7 +1323,7 @@ void usage(void)
         "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -W, --twiddle_timeout         timeout after detecting vfo manual change\n"
-        "  -W, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
+        "  -w, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -M, --multicast-addr=addr     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
