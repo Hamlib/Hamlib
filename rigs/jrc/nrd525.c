@@ -144,7 +144,7 @@ const struct rig_caps nrd525_caps =
     .set_level =  nrd525_set_level,
     .set_mem =  nrd525_set_mem,
     .vfo_op =  nrd525_vfo_op,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

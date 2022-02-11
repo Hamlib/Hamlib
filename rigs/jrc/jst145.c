@@ -168,7 +168,8 @@ const struct rig_caps jst145_caps =
     .set_mem =  jst145_set_mem,
     .vfo_op =  jst145_vfo_op,
     .set_ptt = jst145_set_ptt,
-    .get_ptt = jst145_get_ptt
+    .get_ptt = jst145_get_ptt,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
