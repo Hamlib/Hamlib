@@ -188,7 +188,7 @@ const struct rig_caps icm710_caps =
     .get_level = icm710_get_level,
     .set_func = icm710_set_func,
     .get_func = icm710_get_func,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
