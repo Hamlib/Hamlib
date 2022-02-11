@@ -223,7 +223,7 @@ const struct rig_caps si570avrusb_caps =
     .get_freq =     si570xxxusb_get_freq,
     .set_ptt =      si570xxxusb_set_ptt,
     .get_info =     si570xxxusb_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
@@ -300,7 +300,7 @@ const struct rig_caps si570peaberry1_caps =
     .get_freq =     si570xxxusb_get_freq,
     .set_ptt =      si570xxxusb_set_ptt,
     .get_info =     si570xxxusb_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
@@ -377,7 +377,7 @@ const struct rig_caps si570peaberry2_caps =
     .get_freq =     si570xxxusb_get_freq,
     .set_ptt =      si570xxxusb_set_ptt,
     .get_info =     si570xxxusb_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
@@ -457,7 +457,7 @@ const struct rig_caps si570picusb_caps =
     .set_freq =     si570xxxusb_set_freq,
     .get_freq =     si570xxxusb_get_freq,
     .get_info =     si570xxxusb_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*

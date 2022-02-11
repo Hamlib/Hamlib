@@ -163,6 +163,7 @@ const struct rig_caps funcube_caps =
     .set_level =        funcube_set_level,
     .get_info =     funcube_get_info,
     .get_mode =     funcube_get_mode,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

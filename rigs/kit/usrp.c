@@ -141,7 +141,7 @@ const struct rig_caps usrp_caps =
     .set_freq =  usrp_set_freq,
     .get_freq =  usrp_get_freq,
     .get_info =  usrp_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 #endif  /* HAVE_USRP */
