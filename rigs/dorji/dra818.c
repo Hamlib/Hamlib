@@ -626,6 +626,7 @@ const struct rig_caps dra818u_caps =
     .get_ctcss_tone =       dra818_get_ctcss_tone,
     .get_dcs_sql =          dra818_get_dcs_sql,
     .get_ctcss_sql =        dra818_get_ctcss_sql,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 const struct rig_caps dra818v_caps =
@@ -729,5 +730,6 @@ const struct rig_caps dra818v_caps =
     .get_ctcss_tone =       dra818_get_ctcss_tone,
     .get_dcs_sql =          dra818_get_dcs_sql,
     .get_ctcss_sql =        dra818_get_ctcss_sql,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
