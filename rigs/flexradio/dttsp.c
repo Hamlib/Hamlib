@@ -241,6 +241,7 @@ const struct rig_caps dttsp_rig_caps =
     .get_rit =      dttsp_get_rit,
 
     .set_ant =      dttsp_set_ant,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 /*
@@ -325,6 +326,7 @@ const struct rig_caps dttsp_udp_rig_caps =
     .get_rit =      dttsp_get_rit,
 
     .set_ant =      dttsp_set_ant,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

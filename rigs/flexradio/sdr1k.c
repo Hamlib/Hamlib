@@ -187,7 +187,7 @@ const struct rig_caps sdr1k_rig_caps =
     .reset    =     sdr1k_reset,
     .set_level =     sdr1k_set_level,
 //  .set_func =     sdr1k_set_func,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
