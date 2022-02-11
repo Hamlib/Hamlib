@@ -183,6 +183,7 @@ const struct rig_caps g305_caps =
     .get_level =     g3_get_level,
 
     .get_info =      g3_get_info,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
