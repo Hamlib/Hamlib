@@ -155,6 +155,7 @@ const struct rig_caps elektor304_caps =
     .get_conf =  elektor304_get_conf,
 
     .set_freq =  elektor304_set_freq,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

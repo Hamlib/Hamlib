@@ -404,5 +404,6 @@ const struct rig_caps rshfiq_caps =
     .set_ptt  =     rshfiq_set_ptt,
     .get_level =     rshfiq_get_level,
     .get_mode =     rshfiq_get_mode,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

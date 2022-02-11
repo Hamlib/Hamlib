@@ -220,6 +220,7 @@ const struct rig_caps dwt_caps =
     .set_level =        dwtdll_set_level,
     .get_level =        dwtdll_get_level,
     .get_info =     dwtdll_get_info,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

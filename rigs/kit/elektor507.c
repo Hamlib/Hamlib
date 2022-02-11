@@ -639,7 +639,7 @@ const struct rig_caps elektor507_caps =
     .set_ant =      elektor507_set_ant,
     .get_ant =      elektor507_get_ant,
     .get_info =     elektor507_get_info,
-
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

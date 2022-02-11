@@ -90,5 +90,6 @@ const struct rig_caps miniVNA_caps =
     .tuning_steps =  { {RIG_MODE_NONE, 1}, RIG_TS_END, },
 
     .set_freq =     miniVNA_set_freq,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

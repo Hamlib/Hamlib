@@ -242,6 +242,7 @@ const struct rig_caps fifisdr_caps =
     .get_ext_level = fifisdr_get_ext_level,
 
     .get_info = fifisdr_get_info,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

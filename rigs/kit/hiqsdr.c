@@ -188,6 +188,7 @@ const struct rig_caps hiqsdr_caps =
 
     .set_level =    hiqsdr_set_level,
     .get_level =    hiqsdr_get_level,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 

@@ -163,6 +163,7 @@ const struct rig_caps dds60_caps =
     .get_conf =  dds60_get_conf,
 
     .set_freq =  dds60_set_freq,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 
