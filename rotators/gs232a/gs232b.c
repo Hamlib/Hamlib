@@ -35,7 +35,7 @@
 #include "idx_builtin.h"
 
 #define EOM "\r"
-#define REPLY_EOM "\n"
+#define REPLY_EOM "\r\n"
 
 #define BUFSZ 64
 
