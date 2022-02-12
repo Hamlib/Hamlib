@@ -1595,6 +1595,7 @@ const struct rig_caps pt8000a_caps =
     .has_set_func = TS480_FUNC_ALL,
     .set_func = kenwood_set_func,
     .get_func = kenwood_get_func,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
 const struct confparams malachite_cfg_parms[] =
@@ -1690,4 +1691,5 @@ const struct rig_caps malachite_caps =
     .get_vfo = kenwood_get_vfo_if,
     .set_powerstat = kenwood_set_powerstat,
     .get_powerstat = kenwood_get_powerstat,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
