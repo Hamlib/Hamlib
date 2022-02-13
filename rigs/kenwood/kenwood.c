@@ -2258,7 +2258,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         c = 'A' + kmode - 10;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c\n", __func__, kmode, c);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c, datamode=%c\n", __func__, kmode, c, data_mode);
 
     if (RIG_IS_TS990S)
     {
@@ -2299,23 +2299,13 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (err != RIG_OK) { RETURNFUNC(err); }
 
-    if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S || RIG_IS_TS950SDX)
+    if (data_mode == '1' && (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S || RIG_IS_TS950SDX))
     {
-        if (!(RIG_MODE_CW == mode
-                || RIG_MODE_CWR == mode
-                || RIG_MODE_AM == mode
-                || RIG_MODE_USB == mode
-                || RIG_MODE_LSB == mode
-                || RIG_MODE_RTTY == mode
-                || RIG_MODE_RTTYR == mode))
+        if (RIG_IS_TS950S || RIG_IS_TS950SDX)
         {
-            if (RIG_IS_TS950S || RIG_IS_TS950SDX)
-            {
-                data_cmd = "DT";
-            }
-
-            datamode = 1;
+            data_cmd = "DT";
         }
+        datamode = 1;
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, curr_mode=%s, new_mode=%s, datamode=%d\n",
