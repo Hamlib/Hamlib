@@ -1659,7 +1659,6 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
     int split_and_transmitting;
     struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     ENTERFUNC;
 
     if (!vfo)
@@ -4651,7 +4650,7 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int kenwood_set_trn(RIG *rig, int trn)
 {
     char buf[5];
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     switch (rig->caps->rig_model)
     {
