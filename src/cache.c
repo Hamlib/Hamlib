@@ -241,7 +241,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
-        ENTERFUNC;
+        ENTERFUNC2;
     }
 
     rig_debug(RIG_DEBUG_CACHE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
