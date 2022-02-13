@@ -786,7 +786,7 @@ int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line)
 
     if (result != RIG_OK)
     {
-        RETURNFUNC(result);
+        RETURNFUNC2(result);
     }
 
     mcast_publisher_priv = (multicast_publisher_priv_data *)
@@ -798,7 +798,7 @@ int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line)
 
     if (result != RIG_OK)
     {
-        RETURNFUNC(result);
+        RETURNFUNC2(result);
     }
 
     result = multicast_publisher_write_data(
@@ -806,10 +806,10 @@ int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line)
 
     if (result != RIG_OK)
     {
-        RETURNFUNC(result);
+        RETURNFUNC2(result);
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int multicast_publisher_read_packet(multicast_publisher_args
