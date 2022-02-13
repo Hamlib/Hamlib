@@ -706,7 +706,7 @@ static int multicast_publisher_write_packet_header(RIG *rig,
     if (rs->multicast_publisher_priv_data == NULL)
     {
         // Silently ignore if multicast publisher is not enabled
-        RETURNFUNC(RIG_OK);
+        RETURNFUNC2(RIG_OK);
     }
 
     mcast_publisher_priv = (multicast_publisher_priv_data *)
@@ -719,10 +719,10 @@ static int multicast_publisher_write_packet_header(RIG *rig,
 
     if (result != RIG_OK)
     {
-        RETURNFUNC(result);
+        RETURNFUNC2(result);
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 int network_publish_rig_poll_data(RIG *rig)
