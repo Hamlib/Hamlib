@@ -72,10 +72,10 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
         goto error;
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 
 error:
-    RETURNFUNC(-RIG_EINTERNAL);
+    RETURNFUNC2(-RIG_EINTERNAL);
 }
 
 static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
@@ -156,10 +156,10 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
         goto error;
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 
 error:
-    RETURNFUNC(-RIG_EINTERNAL);
+    RETURNFUNC2(-RIG_EINTERNAL);
 }
 
 static int snapshot_serialize_spectrum(cJSON *spectrum_node, RIG *rig,
@@ -283,10 +283,10 @@ static int snapshot_serialize_spectrum(cJSON *spectrum_node, RIG *rig,
         goto error;
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 
 error:
-    RETURNFUNC(-RIG_EINTERNAL);
+    RETURNFUNC2(-RIG_EINTERNAL);
 }
 
 int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
@@ -309,7 +309,7 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
 
     if (root_node == NULL)
     {
-        RETURNFUNC(-RIG_EINTERNAL);
+        RETURNFUNC2(-RIG_EINTERNAL);
     }
 
     node = cJSON_AddStringToObject(root_node, "app", PACKAGE_NAME);
@@ -413,14 +413,14 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
 
     if (!bool_result)
     {
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     rig->state.snapshot_packet_sequence_number++;
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 
 error:
     cJSON_Delete(root_node);
-    RETURNFUNC(-RIG_EINTERNAL);
+    RETURNFUNC2(-RIG_EINTERNAL);
 }
