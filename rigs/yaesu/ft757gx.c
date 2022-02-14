@@ -115,7 +115,7 @@ const struct rig_caps ft757gx_caps =
     RIG_MODEL(RIG_MODEL_FT757),
     .model_name =       "FT-757GX",
     .mfg_name =     "Yaesu",
-    .version =      "20200325.0",
+    .version =      "20220214.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_MOBILE,
@@ -410,6 +410,7 @@ static int ft757_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
+    priv->fakefreq = 1; // turn this on by default
     /* FT757GX has a write-only serial port: don't try to read status data */
     if (rig->caps->rig_model == RIG_MODEL_FT757)
     {
@@ -581,12 +582,12 @@ static int ft757_set_vfo(RIG *rig, vfo_t vfo)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x05};
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
+    ENTERFUNC;
 
     switch (vfo)
     {
     case RIG_VFO_CURR:
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
 
     case RIG_VFO_A:
         cmd[3] = 0x00;          /* VFO A */
@@ -597,12 +598,12 @@ static int ft757_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
     default:
-        return -RIG_EINVAL;     /* sorry, wrong VFO */
+        RETURNFUNC(-RIG_EINVAL);     /* sorry, wrong VFO */
     }
 
     priv->current_vfo = vfo;
 
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    RETURNFUNC(write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH));
 }
 
 
