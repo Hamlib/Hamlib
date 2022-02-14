@@ -5784,6 +5784,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+        priv->question_mark_response_means_rejected = 1;
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC00%d%c",
                  status == 0 ? 0 : status,
                  cat_term);
@@ -10501,8 +10502,8 @@ int newcat_set_cmd(RIG *rig)
             continue;             /* usually a timeout - retry */
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
-                  __func__, rc, priv->ret_data);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): read count = %d, ret_data = %s\n",
+                  __func__, __LINE__, rc, priv->ret_data);
         rc = RIG_OK;              /* received something */
 
         /* check for error codes */
@@ -10569,8 +10570,8 @@ int newcat_set_cmd(RIG *rig)
                                       sizeof(priv->ret_data),
                                       &cat_term, sizeof(cat_term), 0, 1)) > 0)
                 {
-                    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
-                              __func__, rc, priv->ret_data);
+                    rig_debug(RIG_DEBUG_TRACE, "%s(%d): read count = %d, ret_data = %s\n",
+                              __func__, __LINE__, rc, priv->ret_data);
                     rc = -RIG_BUSBUSY; /* retry */
                 }
 
