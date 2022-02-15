@@ -1129,6 +1129,14 @@ int HAMLIB_API rig_token_foreach(RIG *rig,
             return RIG_OK;
         }
     }
+    
+    for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp ++)
+    {
+        if ((*cfunc)(cfp, data) == 0)
+        {
+            return RIG_OK;
+        }
+    }
 
     return RIG_OK;
 }
