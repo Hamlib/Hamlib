@@ -3856,7 +3856,6 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         TRACE;
         retcode = caps->get_freq(rig, tx_vfo, tx_freq);
         RETURNFUNC(retcode);
-        RETURNFUNC(retcode);
     }
 
 
