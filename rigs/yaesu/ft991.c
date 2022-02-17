@@ -185,6 +185,9 @@ const struct rig_caps ft991_caps =
     .chan_desc_sz =       0,
     .rfpower_meter_cal =  FT991_RFPOWER_METER_CAL,
     .str_cal =            FT991_STR_CAL,
+    .id_meter_cal =       FT991_ID_CAL,
+    .vd_meter_cal =       FT991_VD_CAL,
+    .comp_meter_cal =     FT991_COMP_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
