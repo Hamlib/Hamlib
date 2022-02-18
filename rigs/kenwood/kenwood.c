@@ -2246,7 +2246,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
                   __func__, rig_strrmode(mode));
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     if (kmode <= 9)
@@ -2271,13 +2271,13 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         vfo_t curr_vfo;
         err = kenwood_get_vfo_main_sub(rig, &curr_vfo);
 
-        if (err != RIG_OK) { RETURNFUNC(err); }
+        if (err != RIG_OK) { RETURNFUNC2(err); }
 
         if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
             err = kenwood_set_vfo_main_sub(rig, vfo);
 
-            if (err != RIG_OK) { RETURNFUNC(err); }
+            if (err != RIG_OK) { RETURNFUNC2(err); }
         }
 
         SNPRINTF(buf, sizeof(buf), "OM0%c", c);  /* target vfo is ignored */
@@ -2287,7 +2287,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             int err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
 
-            if (err2 != RIG_OK) { RETURNFUNC(err2); }
+            if (err2 != RIG_OK) { RETURNFUNC2(err2); }
         }
     }
     else
@@ -2297,7 +2297,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     }
 
-    if (err != RIG_OK) { RETURNFUNC(err); }
+    if (err != RIG_OK) { RETURNFUNC2(err); }
 
     if (data_mode == '1' && (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S || RIG_IS_TS950SDX))
     {
@@ -2345,7 +2345,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         SNPRINTF(buf, sizeof(buf), "%s%c", data_cmd, data_mode);
         err = kenwood_transaction(rig, buf, NULL, 0);
 
-        if (err != RIG_OK) { RETURNFUNC(err); }
+        if (err != RIG_OK) { RETURNFUNC2(err); }
     }
     else if (datamode)
     {
@@ -2353,7 +2353,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                   __func__, __LINE__, rig_strvfo(vfo));
     }
 
-    if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(RIG_OK); }
+    if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC2(RIG_OK); }
 
     if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS850 || RIG_IS_TS950S
             || RIG_IS_TS950SDX)
