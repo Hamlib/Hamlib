@@ -2229,7 +2229,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
     icom_set_dsp_flt(rig, mode, width);
 
-    RETURNFUNC2(retval);
+    RETURNFUNC(retval);
 }
 
 /*
