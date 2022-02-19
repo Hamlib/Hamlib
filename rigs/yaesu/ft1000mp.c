@@ -951,7 +951,7 @@ static int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char cmd_index = 0;      /* index of sequence to send */
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    ENTERFUNC;
 
 
     /* frontend sets VFO for us */
