@@ -599,7 +599,6 @@ static int tci1x_open(RIG *rig)
     char *pr;
     //struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
 
-    ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: version %s\n", __func__, rig->caps->version);
     char *websocket =
         "GET / HTTP/1.1\r\nHost: localhost:50001\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: TnwnvtFT6akIBYQC7nh3vA==\r\nSec-WebSocket-Version: 13\r\n\r\n";
@@ -621,7 +620,6 @@ static int tci1x_open(RIG *rig)
         rig_debug(RIG_DEBUG_ERR, "%s: DEVICE failed: %s\n", __func__,
                   rigerror(retval));
         // we fall through and assume old version
-        //RETURNFUNC(retval);
     }
 
     sscanf(&value[2], "device:%s", value);
@@ -635,8 +633,6 @@ static int tci1x_open(RIG *rig)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: RECEIVE_ONLY failed: %s\n", __func__,
                   rigerror(retval));
-        // we fall through and assume old version
-        //RETURNFUNC(retval);
     }
 
     sscanf(&value[2], "receive_only:%s", value);
@@ -660,20 +656,19 @@ static int tci1x_open(RIG *rig)
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: tci1x_get_freq not working!!\n", __func__);
-        //RETURNFUNC(RIG_EPROTO);
     }
 
     rig->state.current_vfo = RIG_VFO_A;
     rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __func__,
               rig_strvfo(rig->state.current_vfo), value);
     //tci1x_get_split_vfo(rig, vfo, &priv->split, &vfo_tx);
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 
     /* find out available widths and modes */
     retval = tci1x_transaction(rig, "modulations_list;", NULL, value,
                                sizeof(value));
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    if (retval != RIG_OK) { RETURNFUNC2(retval); }
 
     sscanf(&value[2], "modulations_list:%s", arg);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: modes=%s\n", __func__, arg);
@@ -801,7 +796,7 @@ static int tci1x_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__, value);
 
-    RETURNFUNC(retval);
+    RETURNFUNC2(retval);
 }
 
 /*
@@ -823,7 +818,7 @@ static int tci1x_cleanup(RIG *rig)
 {
     struct tci1x_priv_data *priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+    ENTERFUNC;
 
     if (!rig)
     {
@@ -919,7 +914,7 @@ static int tci1x_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char *cmd;
     struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 
