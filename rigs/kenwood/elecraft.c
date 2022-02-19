@@ -528,6 +528,6 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 
     if (!tq && fr == 1) { *vfo = RIG_VFO_B; }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 

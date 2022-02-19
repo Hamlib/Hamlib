@@ -201,7 +201,7 @@ static int ts480_set_ex_menu(RIG *rig, int number, int value_len, int value)
 {
     char buf[20];
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    ENTERFUNC;
 
     SNPRINTF(buf, sizeof(buf), "EX%03d0000%0*d", number, value_len, value);
 
