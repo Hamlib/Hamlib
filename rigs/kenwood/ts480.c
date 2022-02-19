@@ -258,7 +258,7 @@ static int ts480_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     char buf[20];
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    ENTERFUNC;
 
     switch (func)
     {
@@ -427,7 +427,7 @@ static int ts480_read_meters(RIG *rig, int *swr, int *comp, int *alc)
     char ackbuf[32];
     int expected_len = 24;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    ENTERFUNC;
 
     retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
 
@@ -484,7 +484,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int levelint;
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    ENTERFUNC;
 
     switch (level)
     {
@@ -785,7 +785,7 @@ static int ts480_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     int rit_enabled;
     int xit_enabled;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (rit < -9999 || rit > 9999)
     {
@@ -855,7 +855,7 @@ static int ts480_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     char buf[7];
     struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (!rit)
     {
@@ -882,7 +882,7 @@ static int ts480_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
     char cmdbuf[20];
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     switch (token)
     {
@@ -935,7 +935,7 @@ static int ts480_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
     char ackbuf[20];
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     switch (token)
     {
@@ -980,7 +980,7 @@ static int ts480_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     int retval;
     char cmdbuf[20];
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     switch (token)
     {
@@ -1071,7 +1071,7 @@ static int ts480_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     int retval;
     int value;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     switch (token)
     {
@@ -1228,7 +1228,7 @@ int ts480_init(RIG *rig)
     struct kenwood_priv_data *priv;
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
+    ENTERFUNC;
 
     retval = kenwood_init(rig);
 
@@ -1638,7 +1638,7 @@ int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     retval = kenwood_set_freq(rig, vfo, freq);
 
-    RETURNFUNC(retval);
+    RETURNFUNC2(retval);
 }
 
 /*
