@@ -150,7 +150,7 @@ int codan_init(RIG *rig)
         return -RIG_ENOMEM;
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 int codan_open(RIG *rig)
