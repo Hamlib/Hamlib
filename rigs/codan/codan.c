@@ -169,14 +169,14 @@ int codan_open(RIG *rig)
     codan_transaction(rig, "login", 1, &results);
     codan_set_freq(rig, RIG_VFO_A, 14074000.0);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 int codan_close(RIG *rig)
 {
     char *results = NULL;
     codan_transaction(rig, "logout admin\rfreq", 1, &results);
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 int codan_cleanup(RIG *rig)
