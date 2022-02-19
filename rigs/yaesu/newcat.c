@@ -10728,7 +10728,7 @@ static int newcat_set_apf_frequency(RIG *rig, vfo_t vfo, int freq)
 
     if (!newcat_valid_command(rig, "CO"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     // Range seems to be -250..250 Hz in 10 Hz steps
@@ -10749,10 +10749,10 @@ static int newcat_set_apf_frequency(RIG *rig, vfo_t vfo, int freq)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
-    RETURNFUNC(newcat_set_cmd(rig));
+    RETURNFUNC2(newcat_set_cmd(rig));
 }
 
 static int newcat_get_apf_frequency(RIG *rig, vfo_t vfo, int *freq)
@@ -10804,7 +10804,7 @@ static int newcat_get_apf_frequency(RIG *rig, vfo_t vfo, int *freq)
     // Range seems to be -250..250 Hz in 10 Hz steps
     *freq = raw_value * 10 - 250;
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int newcat_set_apf_width(RIG *rig, vfo_t vfo, int choice)
@@ -10813,7 +10813,7 @@ static int newcat_set_apf_width(RIG *rig, vfo_t vfo, int choice)
 
     if (!newcat_valid_command(rig, "EX"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
@@ -10839,10 +10839,10 @@ static int newcat_set_apf_width(RIG *rig, vfo_t vfo, int choice)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
-    RETURNFUNC(newcat_set_cmd(rig));
+    RETURNFUNC2(newcat_set_cmd(rig));
 }
 
 static int newcat_get_apf_width(RIG *rig, vfo_t vfo, int *choice)
@@ -10854,7 +10854,7 @@ static int newcat_get_apf_width(RIG *rig, vfo_t vfo, int *choice)
 
     if (!newcat_valid_command(rig, "EX"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
@@ -10879,12 +10879,12 @@ static int newcat_get_apf_width(RIG *rig, vfo_t vfo, int *choice)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     ret_data_len = strlen(priv->ret_data);
@@ -10897,7 +10897,7 @@ static int newcat_get_apf_width(RIG *rig, vfo_t vfo, int *choice)
 
     *choice = atoi(ret_data);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int newcat_set_contour(RIG *rig, vfo_t vfo, int status)
@@ -10907,7 +10907,7 @@ static int newcat_set_contour(RIG *rig, vfo_t vfo, int status)
 
     if (!newcat_valid_command(rig, "CO"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp)
@@ -10932,10 +10932,10 @@ static int newcat_set_contour(RIG *rig, vfo_t vfo, int status)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
-    RETURNFUNC(newcat_set_cmd(rig));
+    RETURNFUNC2(newcat_set_cmd(rig));
 }
 
 static int newcat_get_contour(RIG *rig, vfo_t vfo, int *status)
@@ -10949,7 +10949,7 @@ static int newcat_get_contour(RIG *rig, vfo_t vfo, int *status)
 
     if (!newcat_valid_command(rig, "CO"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp)
@@ -10972,12 +10972,12 @@ static int newcat_get_contour(RIG *rig, vfo_t vfo, int *status)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     ret_data_len = strlen(priv->ret_data);
@@ -10992,7 +10992,7 @@ static int newcat_get_contour(RIG *rig, vfo_t vfo, int *status)
 
     *status = (ret_data[last_char_index] == '1') ? 1 : 0;
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int newcat_set_contour_frequency(RIG *rig, vfo_t vfo, int freq)
@@ -11002,7 +11002,7 @@ static int newcat_set_contour_frequency(RIG *rig, vfo_t vfo, int freq)
 
     if (!newcat_valid_command(rig, "CO"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp)
@@ -11030,10 +11030,10 @@ static int newcat_set_contour_frequency(RIG *rig, vfo_t vfo, int freq)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
-    RETURNFUNC(newcat_set_cmd(rig));
+    RETURNFUNC2(newcat_set_cmd(rig));
 }
 
 static int newcat_get_contour_frequency(RIG *rig, vfo_t vfo, int *freq)
@@ -11046,7 +11046,7 @@ static int newcat_get_contour_frequency(RIG *rig, vfo_t vfo, int *freq)
 
     if (!newcat_valid_command(rig, "CO"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp)
@@ -11069,12 +11069,12 @@ static int newcat_get_contour_frequency(RIG *rig, vfo_t vfo, int *freq)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     ret_data_len = strlen(priv->ret_data);
@@ -11097,10 +11097,10 @@ static int newcat_get_contour_frequency(RIG *rig, vfo_t vfo, int *freq)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int newcat_set_contour_level(RIG *rig, vfo_t vfo, int level)
@@ -11109,7 +11109,7 @@ static int newcat_set_contour_level(RIG *rig, vfo_t vfo, int level)
 
     if (!newcat_valid_command(rig, "EX"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
@@ -11136,10 +11136,10 @@ static int newcat_set_contour_level(RIG *rig, vfo_t vfo, int level)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
-    RETURNFUNC(newcat_set_cmd(rig));
+    RETURNFUNC2(newcat_set_cmd(rig));
 }
 
 static int newcat_get_contour_level(RIG *rig, vfo_t vfo, int *level)
@@ -11151,7 +11151,7 @@ static int newcat_get_contour_level(RIG *rig, vfo_t vfo, int *level)
 
     if (!newcat_valid_command(rig, "EX"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
@@ -11176,12 +11176,12 @@ static int newcat_get_contour_level(RIG *rig, vfo_t vfo, int *level)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     ret_data_len = strlen(priv->ret_data);
@@ -11194,7 +11194,7 @@ static int newcat_get_contour_level(RIG *rig, vfo_t vfo, int *level)
 
     *level = atoi(ret_data);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int newcat_set_contour_width(RIG *rig, vfo_t vfo, int width)
@@ -11203,7 +11203,7 @@ static int newcat_set_contour_width(RIG *rig, vfo_t vfo, int width)
 
     if (!newcat_valid_command(rig, "EX"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
@@ -11229,10 +11229,10 @@ static int newcat_set_contour_width(RIG *rig, vfo_t vfo, int width)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
-    RETURNFUNC(newcat_set_cmd(rig));
+    RETURNFUNC2(newcat_set_cmd(rig));
 }
 
 static int newcat_get_contour_width(RIG *rig, vfo_t vfo, int *width)
@@ -11244,7 +11244,7 @@ static int newcat_get_contour_width(RIG *rig, vfo_t vfo, int *width)
 
     if (!newcat_valid_command(rig, "EX"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
@@ -11269,12 +11269,12 @@ static int newcat_get_contour_width(RIG *rig, vfo_t vfo, int *width)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     ret_data_len = strlen(priv->ret_data);
@@ -11287,7 +11287,7 @@ static int newcat_get_contour_width(RIG *rig, vfo_t vfo, int *width)
 
     *width = atoi(ret_data);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
@@ -11299,7 +11299,7 @@ int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
 
     if (!newcat_valid_command(rig, "DT"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT0%04d%02d%02d%c", year, month,
@@ -11309,7 +11309,7 @@ int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
                   err);
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT1%02d%02d%02d%c", hour, min,
@@ -11319,7 +11319,7 @@ int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
                   err);
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT2%c%04d%c",
@@ -11329,10 +11329,10 @@ int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
                   err);
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
-    RETURNFUNC(retval);
+    RETURNFUNC2(retval);
 }
 
 int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
@@ -11345,14 +11345,14 @@ int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
 
     if (!newcat_valid_command(rig, "DT"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT0%c", cat_term);
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     n = sscanf(priv->ret_data, "DT0%04d%02d%02d", year, month, day);
@@ -11361,14 +11361,14 @@ int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     {
         rig_debug(RIG_DEBUG_ERR, "%s: DT0 unable to parse '%s'\n", __func__,
                   priv->ret_data);
-        RETURNFUNC(-RIG_EPROTO);
+        RETURNFUNC2(-RIG_EPROTO);
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT1%c", cat_term);
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     n = sscanf(priv->ret_data, "DT1%02d%02d%02d", hour, min, sec);
@@ -11377,14 +11377,14 @@ int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     {
         rig_debug(RIG_DEBUG_ERR, "%s: DT1 unable to parse '%s'\n", __func__,
                   priv->ret_data);
-        RETURNFUNC(-RIG_EPROTO);
+        RETURNFUNC2(-RIG_EPROTO);
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT2%c", cat_term);
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     // we keep utc_offset in HHMM format rather than converting
@@ -11394,9 +11394,9 @@ int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     {
         rig_debug(RIG_DEBUG_ERR, "%s: DT2 unable to parse '%s'\n", __func__,
                   priv->ret_data);
-        RETURNFUNC(-RIG_EPROTO);
+        RETURNFUNC2(-RIG_EPROTO);
     }
 
-    RETURNFUNC(retval);
+    RETURNFUNC2(retval);
 }
 
