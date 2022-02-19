@@ -1105,11 +1105,11 @@ static int ft991_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 static int ft991_set_vfo(RIG *rig, vfo_t vfo)
 {
     rig->state.current_vfo = vfo;
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int ft991_get_vfo(RIG *rig, vfo_t *vfo)
 {
     *vfo = rig->state.current_vfo;
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }

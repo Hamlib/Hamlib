@@ -901,7 +901,7 @@ static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     freq_t f;
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    ENTERFUNC;
 
     if (vfo == RIG_VFO_CURR)
     {

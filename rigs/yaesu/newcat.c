@@ -10718,7 +10718,7 @@ int newcat_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
     // we don't do any channel checking -- varies by rig -- could do it but not critical
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PB%s%d%c", p1, ch, cat_term);
-    RETURNFUNC(newcat_set_cmd(rig));
+    RETURNFUNC2(newcat_set_cmd(rig));
 }
 
 static int newcat_set_apf_frequency(RIG *rig, vfo_t vfo, int freq)
