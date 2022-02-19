@@ -2056,7 +2056,7 @@ static int dummy_set_trn(RIG *rig, int trn)
 
     priv->trn = trn;
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 
@@ -2066,7 +2066,7 @@ static int dummy_get_trn(RIG *rig, int *trn)
 
     *trn = priv->trn;
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static const char *dummy_get_info(RIG *rig)
