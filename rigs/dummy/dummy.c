@@ -2056,7 +2056,7 @@ static int dummy_set_trn(RIG *rig, int trn)
 
     priv->trn = trn;
 
-    RETURNFUNC2(RIG_OK);
+    RETURNFUNC(RIG_OK);
 }
 
 
