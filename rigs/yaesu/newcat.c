@@ -150,21 +150,26 @@ const cal_table_float_t yaesu_default_swr_cal =
 // TODO: Provide sane defaults
 const cal_table_float_t yaesu_default_alc_cal =
 {
-    3,
-    {
-        {0, 0.0f},
-        {128, 1.0f},
-        {255, 2.0f},
-    }
-};
-
-// TODO: Provide sane defaults
-const cal_table_float_t yaesu_default_comp_meter_cal =
-{
     2,
     {
         {0, 0.0f},
-        {255, 100.0f},
+        {64, 1.0f}
+    }
+};
+
+const cal_table_float_t yaesu_default_comp_meter_cal =
+{
+    9,
+    {
+        { 0,   0.0f  },
+        { 40,  2.5f  },
+        { 60,  5.0f  },
+        { 85,  7.5f  },
+        { 135, 10.0f },
+        { 150, 12.5f },
+        { 175, 15.0f },
+        { 195, 17.5f },
+        { 220, 20.0f }
     }
 };
 
@@ -179,23 +184,21 @@ const cal_table_float_t yaesu_default_rfpower_meter_cal =
     }
 };
 
-// TODO: Provide sane defaults
 const cal_table_float_t yaesu_default_vd_meter_cal =
 {
     2,
     {
         {0, 0.0f},
-        {255, 1.0f},
+        {190, 13.8f},
     }
 };
 
-// TODO: Provide sane defaults
 const cal_table_float_t yaesu_default_id_meter_cal =
 {
     2,
     {
         {0, 0.0f},
-        {255, 1.0f},
+        {100, 10.0f},
     }
 };
 
@@ -5103,11 +5106,11 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (rig->caps->comp_meter_cal.size == 0)
         {
-            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_comp_meter_cal) / 100;
+            val->f = rig_raw2val_float(atoi(retlvl), &yaesu_default_comp_meter_cal);
         }
         else
         {
-            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->comp_meter_cal) / 100;
+            val->f = rig_raw2val_float(atoi(retlvl), &rig->caps->comp_meter_cal);
         }
 
         break;
