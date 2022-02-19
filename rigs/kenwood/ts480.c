@@ -223,12 +223,12 @@ static int ts480_get_ex_menu(RIG *rig, int number, int value_len, int *value)
 
     if (retval != RIG_OK)
     {
-        RETURNFUNC(retval);
+        RETURNFUNC2(retval);
     }
 
     sscanf(ackbuf + 9, "%d", value);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int ts480_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
