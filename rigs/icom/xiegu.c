@@ -122,6 +122,7 @@ static int x108g_rig_open(RIG *rig)
 {
     int retval;
 
+    ENTERFUNC;
     retval = icom_rig_open(rig);
 
     if (retval != RIG_OK)
