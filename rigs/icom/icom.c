@@ -2099,13 +2099,13 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     {
         rig_debug(RIG_DEBUG_ERR, "%s: get_mode failed: %s\n", __func__,
                   rigerror(retval));
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     if (tmode == mode && ((width == RIG_PASSBAND_NOCHANGE) || (width == twidth)))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: mode/width not changing\n", __func__);
-        RETURNFUNC2(RIG_OK);
+        RETURNFUNC(RIG_OK);
     }
 
     // looks like we need to change it
