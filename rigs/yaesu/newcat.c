@@ -8515,7 +8515,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH%c%d%02d;", main_sub_vfo, on,
                  w);
     }
-    else if (is_ft2000 || is_ftdx10 || is_ftdx3000)
+    else if (is_ft2000 || is_ftdx3000)
     {
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SH0%02d;", w);
     }
@@ -10348,6 +10348,16 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if (strncmp(priv->cmd_str, "MS", 2) == 0)
     {
+        strcpy(valcmd, ""); // nothing to validate
+    }
+    else if (strncmp(priv->cmd_str, "SH", 2) == 0)
+    {
+        // could validate with SH but different formats need to be handled
+        strcpy(valcmd, ""); // nothing to validate
+    }
+    else if (strncmp(priv->cmd_str, "RF", 2) == 0)
+    {
+        // could validate with RF but different formats need to be handled
         strcpy(valcmd, ""); // nothing to validate
     }
     else
