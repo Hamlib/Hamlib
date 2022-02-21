@@ -41,7 +41,7 @@
 
 #define K3_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_VOX|RIG_FUNC_APF|\
     RIG_FUNC_DUAL_WATCH|RIG_FUNC_DIVERSITY|\
-    RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT)
+    RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_SEND_MORSE)
 
 #define K3_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
     RIG_LEVEL_STRENGTH|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|\
@@ -2363,6 +2363,11 @@ int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     case RIG_FUNC_DIVERSITY:
         SNPRINTF(buf, sizeof(buf), "DV%c", (status == 0) ? '0' : '1');
+        break;
+
+    case RIG_FUNC_SEND_MORSE:
+        // Transmit a CW character - K3 does not return any response
+        snprintf(buf, sizeof(buf), "KYW%c", status);
         break;
 
     default:
