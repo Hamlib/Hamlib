@@ -337,6 +337,7 @@ transaction_write:
         int skip = strncmp(cmdstr, "RX", 2) == 0;
         skip |= strncmp(cmdstr, "RU", 2) == 0;
         skip |= strncmp(cmdstr, "RD", 2) == 0;
+        skip |= strncmp(cmdstr, "KYW", 3) == 0;
 
         if (skip)
         {
