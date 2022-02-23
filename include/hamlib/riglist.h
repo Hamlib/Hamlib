@@ -643,6 +643,13 @@
 #define RIG_BACKEND_CODAN "codan"
 #define RIG_MODEL_CODAN_ENVOY RIG_MAKE_MODEL(RIG_CODAN, 1)
 #define RIG_MODEL_CODAN_NGT RIG_MAKE_MODEL(RIG_CODAN, 2)
+
+/*
+ * Gomspace
+ */
+#define RIG_GOMSPACE 34
+#define RIG_BACKEND_GOMSPACE "gomspace"
+#define RIG_MODEL_GS100 RIG_MAKE_MODEL(RIG_GOMSPACE, 1)
 //! @endcond
 
 /*
