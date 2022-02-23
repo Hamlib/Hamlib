@@ -63,3 +63,4 @@ src/hamlibdatetime.h
 build/
 libs/
 obj/
+.project
