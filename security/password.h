@@ -20,6 +20,7 @@
 
 #define MAX_PASSWD_LEN  1024
 
+#ifdef NOTWORKING
 /*
  * Function Prototypes
  */
@@ -27,5 +28,6 @@ int passwd_to_utf16(char *in_passwd,
                     int length,
                     int max_length,
                     char *out_passwd);
+#endif
 
 #endif /* __STRINGCRYPT_PASSWORD_H */

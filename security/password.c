@@ -22,10 +22,11 @@
 
 #include <stdio.h>
 #include <iconv.h>
-#include <langinfo.h>
+//#include <langinfo.h>
 #include <errno.h>
 #include "password.h"
 
+#ifdef NOTWORKING
 /*
  *  passwd_to_utf16
  *
@@ -82,4 +83,5 @@ int passwd_to_utf16(char *in_passwd,
     iconv_close(condesc);
     return (max_length - ic_outbytesleft);
 }
+#endif
 
