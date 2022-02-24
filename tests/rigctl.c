@@ -648,7 +648,7 @@ int main(int argc, char *argv[])
 
         retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc, NULL,
                                interactive, prompt, &vfo_opt, send_cmd_term,
-                               &ext_resp, &resp_sep);
+                               &ext_resp, &resp_sep, 0);
 
         // if we get a hard error we try to reopen the rig again
         // this should cover short dropouts that can occur
