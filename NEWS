@@ -7,7 +7,7 @@ Copyright (C) 2000-2021  Michael Black W9MDB, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
-Version 5.x
+Version 5.x -- future
         * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Asynchronous rig data output handling to support transceive and spectrum data. Mikael, OH3BHX
@@ -28,6 +28,7 @@ Version 4.5
         * Added Xiegu X108G, G90, and X6100
         * Added CODAN Envoy and NGS
         * Added Lab599 TX-500
+        * Added GOMSPACE GS100
         * Deprecated: rigctl commands \set_trn (A) and \get_trn (a) as they never worked as intended
         * Deprecated: field rig_caps.transceive and RIG_TRN_* macros
 
