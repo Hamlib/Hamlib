@@ -2630,7 +2630,7 @@ static int netrigctl_power2mW(RIG *rig, unsigned int *mwpower, float power,
     RETURNFUNC(RIG_OK);
 }
 
-int netrigctl_password(RIG *rig, unsigned char *key1, unsigned char *key2)
+int netrigctl_password(RIG *rig, const unsigned char *key1, const unsigned char *key2)
 {
     char cmdbuf[256];
     char buf[256];
