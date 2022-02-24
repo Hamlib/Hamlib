@@ -2041,7 +2041,7 @@ struct rig_caps {
 // this will be used to check rigcaps structure is compatible with client
     char *hamlib_check_rig_caps;   // a constant value we can check for hamlib integrity
     int (*get_conf2)(RIG *rig, token_t token, char *val, int val_len);
-    int (*password)(RIG *rig, unsigned char *key1, unsigned char *key2); /*< Send encrypted password if rigctld is secured with -A/--password */
+    int (*password)(RIG *rig, const unsigned char *key1, const unsigned char *key2); /*< Send encrypted password if rigctld is secured with -A/--password */
 };
 //! @endcond
 
