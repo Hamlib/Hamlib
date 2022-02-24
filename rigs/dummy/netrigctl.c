@@ -2630,7 +2630,18 @@ static int netrigctl_power2mW(RIG *rig, unsigned int *mwpower, float power,
     RETURNFUNC(RIG_OK);
 }
 
+int netrigctl_password(RIG *rig, unsigned char *key1, unsigned char *key2)
+{
+    char cmdbuf[256];
+    char buf[256];
+    int retval;
 
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: key1=%s, key2=%s\n", __func__, key1, key2);
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\password %s\n", key1);
+    retval = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
+    RETURNFUNC(retval);
+}
 
 /*
  * Netrigctl rig capabilities.
@@ -2746,6 +2757,7 @@ struct rig_caps netrigctl_caps =
     //.get_trn =    netrigctl_get_trn,
     .power2mW =   netrigctl_power2mW,
     .mW2power =   netrigctl_mW2power,
+    .password =   netrigctl_password,
 
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

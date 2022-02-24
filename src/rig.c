@@ -7096,4 +7096,16 @@ void *async_data_handler(void *arg)
 
     return NULL;
 }
+
+HAMLIB_EXPORT(int) rig_password(RIG *rig, const unsigned char *key1, const unsigned char *key2)
+{
+    int retval = -RIG_ENIMPL;
+    ENTERFUNC;
+    if (rig->caps->password != NULL)
+    {
+        retval = rig->caps->password(rig,key1,key2);
+    }
+    RETURNFUNC(retval);
+}
+
 #endif

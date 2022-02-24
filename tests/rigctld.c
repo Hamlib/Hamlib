@@ -84,7 +84,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:x:z:lLuovhVZM:n:"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:w:x:z:lLuovhVZMA:n:"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -111,6 +111,7 @@ static struct option long_options[] =
     {"debug-time-stamps", 0, 0, 'Z'},
     {"multicast-addr",  1, 0, 'M'},
     {"multicast-port",  1, 0, 'n'},
+    {"password",        1, 0, 'A'},
     {0, 0, 0, 0}
 };
 
@@ -122,6 +123,7 @@ struct handle_data
     struct sockaddr_storage cli_addr;
     socklen_t clilen;
     int vfo_mode;
+    int use_password;
 };
 
 
@@ -147,6 +149,7 @@ const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
 const char *multicast_addr = "0.0.0.0";
 int multicast_port = 4532;
+extern char rigctld_password[64];
 
 #define MAXCONFLEN 1024
 
@@ -270,6 +273,9 @@ int main(int argc, char *argv[])
     struct handle_data *arg;
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
     int i;
+    extern int is_rigctld;
+
+    is_rigctld = 1;
 
     while (1)
     {
@@ -297,6 +303,10 @@ int main(int argc, char *argv[])
         case 'V':
             printf("rigctl %s\n", hamlib_version2);
             exit(0);
+
+        case 'A':
+            strncpy(rigctld_password, optarg, sizeof(rigctld_password)-1);
+            break;
 
         case 'm':
             if (!optarg)
@@ -947,13 +957,14 @@ int main(int argc, char *argv[])
         fd_set set;
         struct timeval timeout;
 
-        arg = malloc(sizeof(struct handle_data));
+        arg = calloc(1, sizeof(struct handle_data));
 
         if (!arg)
         {
-            rig_debug(RIG_DEBUG_ERR, "malloc: %s\n", strerror(errno));
+            rig_debug(RIG_DEBUG_ERR, "calloc: %s\n", strerror(errno));
             exit(1);
         }
+        if (rigctld_password[0] != 0) arg->use_password = 1;
 
         /* use select to allow for periodic checks for CTRL+C */
         FD_ZERO(&set);
@@ -1172,11 +1183,11 @@ void *handle_socket(void *arg)
 
         if (rig_opened) // only do this if rig is open
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d\n", __func__,
-                      handle_data_arg->vfo_mode);
+            rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d, secure=%d\n", __func__,
+                      handle_data_arg->vfo_mode, handle_data_arg->use_password);
             retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
                                    mutex_rigctld,
-                                   1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep);
+                                   1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep, handle_data_arg->use_password);
 
             if (retcode != 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
         }
@@ -1328,6 +1339,7 @@ void usage(void)
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -M, --multicast-addr=addr     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
         "  -n, --multicast-port=port     set multicast UDP port, default 4532\n"
+        "  -A, --password                set password for rigctld access\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
         portno);
