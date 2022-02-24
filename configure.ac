@@ -814,6 +814,7 @@ macros/Makefile
 include/Makefile
 lib/Makefile
 src/Makefile
+security/Makefile
 c++/Makefile
 bindings/Makefile
 doc/Makefile
