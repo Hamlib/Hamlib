@@ -51,6 +51,6 @@ int set_conf(RIG *my_rig, char *conf_parms);
 typedef void (*sync_cb_t)(int);
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc, sync_cb_t sync_cb,
                  int interactive, int prompt, int * vfo_mode, char send_cmd_term,
-                 int * ext_resp_ptr, char * resp_sep_ptr);
+                 int * ext_resp_ptr, char * resp_sep_ptr, int use_password);
 
 #endif  /* RIGCTL_PARSE_H */
