@@ -1,8 +1,8 @@
 EXTRA_DIST =  sctest.c
 security_test_SOURCES = security_test.c
 security_test_LIBS = libsecurity.la
-security_test_LDADD = -lhamlib
 security_test_LDFLAGS = -L.
+security_test_CFLAGS = -L. -I.
 
 noinst_LTLIBRARIES = libsecurity.la
 
