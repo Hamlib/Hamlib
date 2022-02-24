@@ -4940,7 +4940,7 @@ int rigctld_password_check(RIG *rig, const unsigned char *key1, const unsigned c
 /* 0x98 */
 declare_proto_rig(password)
 {
-    int retval;
+    int retval = -RIG_EPROTO;
     const char *passwd = arg1;
 
     ENTERFUNC;
