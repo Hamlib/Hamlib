@@ -107,7 +107,7 @@ static int gomx_transaction(RIG *rig, char *message, char *response);
 /* GS100 transceiver control init */
 static int gs100_init(RIG *rig)
 {
-  struct gs100_priv_data *priv;
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
 
   ENTERFUNC;
 
@@ -139,7 +139,7 @@ static int gs100_init(RIG *rig)
 /* GS100 transceiver control deinit */
 static int gs100_cleanup(RIG *rig)
 {
-  struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
 
   ENTERFUNC;
 
@@ -185,7 +185,7 @@ static int gs100_close(RIG *rig)
 /* GS100 transceiver set configuration */
 static int gs100_set_conf(RIG *rig, token_t token, const char *val)
 {
-  struct gs100_priv_data *priv;
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
 
   ENTERFUNC;
 
@@ -210,7 +210,7 @@ static int gs100_set_conf(RIG *rig, token_t token, const char *val)
 /* GS100 transceiver get configuration */
 static int gs100_get_conf(RIG *rig, token_t token, char *val)
 {
-  struct gs100_priv_data *priv;
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
 
   ENTERFUNC;
 
@@ -232,7 +232,7 @@ static int gs100_get_conf(RIG *rig, token_t token, char *val)
 /* GS100 transceiver set receiver frequency */
 static int gs100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-  struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
   char fstr[20], value[20];
   int retval;
 
@@ -261,8 +261,8 @@ static int gs100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 /* GS100 transceiver get receiver frequency */
 static int gs100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-  struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
-  char fstr[20], resp[20];
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
+  char resp[20];
   int retval;
   freq_t f;
 
@@ -290,7 +290,7 @@ static int gs100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 /* GS100 transceiver set transmitter frequency */
 static int gs100_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-  struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
   char fstr[20], value[20];
   int retval;
 
@@ -319,8 +319,8 @@ static int gs100_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 /* GS100 transceiver get transmitter frequency */
 static int gs100_get_tx_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-  struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
-  char fstr[20], resp[20];
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
+  char resp[20];
   int retval;
   freq_t f;
 
@@ -420,7 +420,7 @@ struct rig_caps GS100_caps =
 /* Set variable in the GS100 configuration table */
 static int gomx_set(RIG *rig, int table, char *varname, char *varvalue)
 {
-  struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
   int retval;
   char msg[BUFSZ], resp[BUFSZ];
 
@@ -453,7 +453,7 @@ static int gomx_set(RIG *rig, int table, char *varname, char *varvalue)
 /* Get variable from the GS100 configuration table */
 static int gomx_get(RIG *rig, int table, char *varname, char *varvalue)
 {
-  struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
   int retval;
   char msg[BUFSZ], resp[BUFSZ], *c;
 
@@ -487,7 +487,7 @@ static int gomx_get(RIG *rig, int table, char *varname, char *varvalue)
 /* Sends a message to the GS100 and parses response lines */
 static int gomx_transaction(RIG *rig, char *message, char *response)
 {
-  struct gs100_priv_data *priv;
+  __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data *)rig->state.priv;
   struct rig_state *rs;
   int retval, n = 0;
   char buf[BUFSZ];
@@ -504,13 +504,13 @@ static int gomx_transaction(RIG *rig, char *message, char *response)
 
   // send message to the transceiver
   rig_flush(&rs->rigport);
-  retval = write_block(&rs->rigport, message, strlen(message));
+  retval = write_block(&rs->rigport, (uint8_t*)message, strlen(message));
   if (retval != RIG_OK) return(retval);
 
   while (1)
   {
     // read the response line
-    retval = read_string(&rs->rigport, buf, BUFSZ, GOM_STOPSET, strlen(GOM_STOPSET), 0);
+    retval = read_string(&rs->rigport, (unsigned char*)buf, BUFSZ, (const char*)GOM_STOPSET, 0, strlen(GOM_STOPSET), 0);
     if (retval < 0) return(retval);
     if (retval == 0) return(-RIG_ETIMEOUT);
     n++;
@@ -532,10 +532,9 @@ static int gomx_transaction(RIG *rig, char *message, char *response)
 /* Init RIG backend function */
 DECLARE_INITRIG_BACKEND(gomspace)
 {
-  ENTERFUNC;
   rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
   rig_register(&GS100_caps);
-  RETURNFUNC(RIG_OK);
+  return(RIG_OK);
 }
 
 
