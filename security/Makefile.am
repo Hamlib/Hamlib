@@ -1,5 +1,6 @@
 EXTRA_DIST =  sctest.c
-security_test_SOURCES = security_test.c
+security_test_SOURCES = security_test.c aes.h AESStringCrypt.h password.h security.h sha256.h
+
 security_test_LIBS = libsecurity.la
 security_test_LDFLAGS = -L.
 security_test_CFLAGS = -L. -I.
