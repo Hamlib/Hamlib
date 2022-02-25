@@ -156,6 +156,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define DEFAULT_GPIO_PORT "0"
 
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
+#define CHECK_RIG_CAPS(r) (!(r) || !(r)->caps)
 
 #define LOCK \
 
@@ -6673,7 +6674,7 @@ int HAMLIB_API rig_get_vfo_list(RIG *rig, char *buf, int buflen)
 {
     ENTERFUNC;
 
-    if (CHECK_RIG_ARG(rig))
+    if (CHECK_RIG_CAPS(rig))
     {
         RETURNFUNC(-RIG_EINVAL);
     }
