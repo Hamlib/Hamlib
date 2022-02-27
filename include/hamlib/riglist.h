@@ -647,7 +647,7 @@
 /*
  * Gomspace
  */
-#define RIG_GOMSPACE 34
+#define RIG_GOMSPACE 35
 #define RIG_BACKEND_GOMSPACE "gomspace"
 #define RIG_MODEL_GS100 RIG_MAKE_MODEL(RIG_GOMSPACE, 1)
 //! @endcond
