@@ -1690,9 +1690,15 @@ readline_repeat:
 
     // chk_vfo is the one command we'll allow without a password
     // since it's in the initial handshake
-    if (use_password && !is_passwordOK && (cmd_entry->arg1 != NULL) && strcmp(cmd_entry->arg1,"ChkVFO")!=0)
+    int preCmd = 0;  // some command are allowed without passoword to satisfy rigctld initialization from rigctl -m 2
+    if (cmd_entry->arg1 != NULL)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: need password=%s\n", __func__, rigctld_password);
+        if (strcmp(cmd_entry->arg1,"ChkVFO")==0) preCmd = 1;
+        else if (strcmp(cmd_entry->arg1,"VFO")==0) preCmd = 1;
+    }
+    if (use_password && !is_passwordOK && (cmd_entry->arg1 != NULL) && !preCmd)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: need password=%s for cmd=%s\n", __func__, rigctld_password, cmd_entry->arg1);
         return(-RIG_EPROTO);
     }
     retcode = (*cmd_entry->rig_routine)(my_rig,
