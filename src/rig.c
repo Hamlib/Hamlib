@@ -7097,6 +7097,7 @@ void *async_data_handler(void *arg)
 
     return NULL;
 }
+#endif
 
 HAMLIB_EXPORT(int) rig_password(RIG *rig, const unsigned char *key1, const unsigned char *key2)
 {
@@ -7109,4 +7110,3 @@ HAMLIB_EXPORT(int) rig_password(RIG *rig, const unsigned char *key1, const unsig
     RETURNFUNC(retval);
 }
 
-#endif

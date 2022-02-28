@@ -979,6 +979,11 @@ int main(int argc, char *argv[])
             rig_debug(RIG_DEBUG_ERR, "%s: select() failed: %s\n", __func__,
                       strerror(errno_stored));
 
+            if (ctrl_c) 
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: ctrl_c when retcode==-1\n", __func__);
+                break;
+            }
             if (errno == EINTR)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: ignoring interrupted system call\n",
@@ -990,6 +995,7 @@ int main(int argc, char *argv[])
         {
             if (ctrl_c)
             {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: ctrl_c when retcode==0\n", __func__);
                 break;
             }
         }
@@ -1045,6 +1051,7 @@ int main(int argc, char *argv[])
         }
     }
     while (retcode == 0 && !ctrl_c);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: while loop done\n", __func__);
 
 #ifdef HAVE_PTHREAD
     /* allow threads to finish current action */
