@@ -81,7 +81,7 @@ static void dra818_subaudio(RIG *rig, char *subaudio, int subaudio_len,
 {
     if (code)
     {
-        SNPRINTF(subaudio, subaudio_len, "%03uI", code%10000);
+        SNPRINTF(subaudio, subaudio_len, "%03uI", code % 10000);
         return;
     }
     else if (tone)
@@ -92,7 +92,7 @@ static void dra818_subaudio(RIG *rig, char *subaudio, int subaudio_len,
         {
             if (rig->caps->ctcss_list[i] == tone)
             {
-                SNPRINTF(subaudio, subaudio_len, "%04d", (i + 1)%10000);
+                SNPRINTF(subaudio, subaudio_len, "%04d", (i + 1) % 10000);
                 return;
             }
         }

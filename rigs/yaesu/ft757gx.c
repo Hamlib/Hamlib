@@ -411,6 +411,7 @@ static int ft757_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
     priv->fakefreq = 1; // turn this on by default
+
     /* FT757GX has a write-only serial port: don't try to read status data */
     if (rig->caps->rig_model == RIG_MODEL_FT757)
     {

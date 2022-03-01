@@ -716,23 +716,28 @@ int HAMLIB_API rig_open(RIG *rig)
     rs = &rig->state;
     rs->rigport.rig = rig;
     rs->rigport_deprecated.rig = rig;
+
     // rigctl/rigctld may have deprecated values -- backwards compatility
     if (rs->rigport_deprecated.pathname[0] != 0)
     {
-        strcpy(rs->rigport.pathname,rs->rigport_deprecated.pathname);
+        strcpy(rs->rigport.pathname, rs->rigport_deprecated.pathname);
     }
+
     if (rs->pttport_deprecated.type.ptt != RIG_PTT_NONE)
     {
         rs->pttport.type.ptt = rs->pttport_deprecated.type.ptt;
     }
+
     if (rs->dcdport_deprecated.type.dcd != RIG_DCD_NONE)
     {
         rs->dcdport.type.dcd = rs->dcdport_deprecated.type.dcd;
     }
+
     if (rs->pttport_deprecated.pathname[0] != 0)
     {
         strcpy(rs->pttport.pathname, rs->pttport_deprecated.pathname);
     }
+
     if (rs->dcdport_deprecated.pathname[0] != 0)
     {
         strcpy(rs->dcdport.pathname, rs->dcdport_deprecated.pathname);
@@ -1748,7 +1753,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (CHECK_RIG_ARG(rig))
     {
-        RETURNFUNC2 (-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     ELAPSED1;
@@ -1756,7 +1761,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (!freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: freq ptr invalid\n", __func__);
-        RETURNFUNC2 (-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) called vfo=%s\n", __func__, __LINE__,
@@ -1806,7 +1811,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (retcode != RIG_OK)
         {
-            RETURNFUNC2 (retcode);
+            RETURNFUNC2(retcode);
         }
 
         if (ptt)
@@ -1847,7 +1852,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (caps->get_freq == NULL)
     {
-        RETURNFUNC2 (-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): vfo_opt=%d, model=%d\n", __func__,
@@ -1890,7 +1895,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (!caps->set_vfo)
         {
-            RETURNFUNC2 (-RIG_ENAVAIL);
+            RETURNFUNC2(-RIG_ENAVAIL);
         }
 
         TRACE;
@@ -1898,7 +1903,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (retcode != RIG_OK)
         {
-            RETURNFUNC2 (retcode);
+            RETURNFUNC2(retcode);
         }
 
         rig_cache_show(rig, __func__, __LINE__);
@@ -4057,7 +4062,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     if (tx_vfo & (RIG_VFO_CURR | RIG_VFO_TX))
     {
         rig_debug(RIG_DEBUG_WARN, "%s(%d): Unhandled TXVFO=%s, tx_mode=%s\n", __func__,
-              __LINE__, rig_strvfo(tx_vfo), rig_strrmode(tx_mode));
+                  __LINE__, rig_strvfo(tx_vfo), rig_strrmode(tx_mode));
     }
 
     // code below here should be dead code now -- but maybe we have  VFO situatiuon we need to handle
@@ -7099,15 +7104,18 @@ void *async_data_handler(void *arg)
 }
 #endif
 
-HAMLIB_EXPORT(int) rig_password(RIG *rig, const unsigned char *key1, const unsigned char *key2)
+HAMLIB_EXPORT(int) rig_password(RIG *rig, const unsigned char *key1,
+                                const unsigned char *key2)
 {
     int retval = -RIG_ENIMPL;
     ENTERFUNC;
+
     if (rig->caps->password != NULL)
     {
-        retval = rig->caps->password(rig,key1,key2);
+        retval = rig->caps->password(rig, key1, key2);
         //retval = RIG_OK;
     }
+
     RETURNFUNC(retval);
 }
 

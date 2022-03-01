@@ -832,32 +832,33 @@ int kenwood_open(RIG *rig)
 
         if (RIG_OK != err)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version, defaulting to 1.0\n", __func__);
+            rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version, defaulting to 1.0\n",
+                      __func__);
             rig->state.rigport.retry = retry_save;
             priv->fw_rev_uint = 100;
         }
         else
         {
 
-        /* store the data  after the "FV" which should be  a f/w version
-           string of the form n.n e.g. 1.07 */
-        priv->fw_rev = &fw_version[2];
-        dot_pos = strchr(fw_version, '.');
+            /* store the data  after the "FV" which should be  a f/w version
+               string of the form n.n e.g. 1.07 */
+            priv->fw_rev = &fw_version[2];
+            dot_pos = strchr(fw_version, '.');
 
-        if (dot_pos)
-        {
-            priv->fw_rev_uint = atoi(&fw_version[2]) * 100 + atoi(dot_pos + 1);
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
-            rig->state.rigport.retry = retry_save;
-            RETURNFUNC(-RIG_EPROTO);
-        }
+            if (dot_pos)
+            {
+                priv->fw_rev_uint = atoi(&fw_version[2]) * 100 + atoi(dot_pos + 1);
+            }
+            else
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: cannot get f/w version\n", __func__);
+                rig->state.rigport.retry = retry_save;
+                RETURNFUNC(-RIG_EPROTO);
+            }
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: found f/w version %.1f\n", __func__,
-                  priv->fw_rev_uint/100.0);
+                  priv->fw_rev_uint / 100.0);
     }
 
     if (!RIG_IS_XG3 && -RIG_ETIMEOUT == err)
@@ -1049,8 +1050,8 @@ int kenwood_get_if(RIG *rig)
 
     ENTERFUNC;
 
-    RETURNFUNC (kenwood_safe_transaction(rig, "IF", priv->info,
-                                     KENWOOD_MAX_BUF_LEN, caps->if_len));
+    RETURNFUNC(kenwood_safe_transaction(rig, "IF", priv->info,
+                                        KENWOOD_MAX_BUF_LEN, caps->if_len));
 }
 
 
@@ -1106,6 +1107,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
 #if 0 // VFO_RX really should NOT be VFO_CURR as VFO_CURR could be either VFO
+
     case RIG_VFO_RX:
         vfo_function = rig->state.rx_vfo == RIG_VFO_B ? '1' : '0';
         break;
@@ -2259,7 +2261,8 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         c = 'A' + kmode - 10;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c, datamode=%c\n", __func__, kmode, c, data_mode);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c, datamode=%c\n", __func__,
+              kmode, c, data_mode);
 
     if (RIG_IS_TS990S)
     {
@@ -2300,17 +2303,21 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (err != RIG_OK) { RETURNFUNC2(err); }
 
-    if (data_mode == '1' && (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S || RIG_IS_TS950SDX))
+    if (data_mode == '1' && (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS950S
+                             || RIG_IS_TS950SDX))
     {
         if (RIG_IS_TS950S || RIG_IS_TS950SDX)
         {
             data_cmd = "DT";
         }
+
         datamode = 1;
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, curr_mode=%s, new_mode=%s, datamode=%d\n",
-              __func__, rig_strvfo(vfo), rig_strrmode(priv->curr_mode), rig_strrmode(mode), datamode);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: vfo=%s, curr_mode=%s, new_mode=%s, datamode=%d\n",
+              __func__, rig_strvfo(vfo), rig_strrmode(priv->curr_mode), rig_strrmode(mode),
+              datamode);
 
     // only change mode if needed
     if (priv->curr_mode != mode)

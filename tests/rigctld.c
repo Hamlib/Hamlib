@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'A':
-            strncpy(rigctld_password, optarg, sizeof(rigctld_password)-1);
+            strncpy(rigctld_password, optarg, sizeof(rigctld_password) - 1);
             break;
 
         case 'm':
@@ -679,13 +679,15 @@ int main(int argc, char *argv[])
     if (ptt_file)
     {
         strncpy(my_rig->state.pttport.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
-        strncpy(my_rig->state.pttport_deprecated.pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(my_rig->state.pttport_deprecated.pathname, ptt_file,
+                HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
         strncpy(my_rig->state.dcdport.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
-        strncpy(my_rig->state.dcdport_deprecated.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(my_rig->state.dcdport_deprecated.pathname, dcd_file,
+                HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
@@ -964,7 +966,8 @@ int main(int argc, char *argv[])
             rig_debug(RIG_DEBUG_ERR, "calloc: %s\n", strerror(errno));
             exit(1);
         }
-        if (rigctld_password[0] != 0) arg->use_password = 1;
+
+        if (rigctld_password[0] != 0) { arg->use_password = 1; }
 
         /* use select to allow for periodic checks for CTRL+C */
         FD_ZERO(&set);
@@ -979,11 +982,12 @@ int main(int argc, char *argv[])
             rig_debug(RIG_DEBUG_ERR, "%s: select() failed: %s\n", __func__,
                       strerror(errno_stored));
 
-            if (ctrl_c) 
+            if (ctrl_c)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: ctrl_c when retcode==-1\n", __func__);
                 break;
             }
+
             if (errno == EINTR)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: ignoring interrupted system call\n",
@@ -1051,6 +1055,7 @@ int main(int argc, char *argv[])
         }
     }
     while (retcode == 0 && !ctrl_c);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: while loop done\n", __func__);
 
 #ifdef HAVE_PTHREAD
@@ -1190,11 +1195,13 @@ void *handle_socket(void *arg)
 
         if (rig_opened) // only do this if rig is open
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d, secure=%d\n", __func__,
+            rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d, secure=%d\n",
+                      __func__,
                       handle_data_arg->vfo_mode, handle_data_arg->use_password);
             retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
                                    mutex_rigctld,
-                                   1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep, handle_data_arg->use_password);
+                                   1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep,
+                                   handle_data_arg->use_password);
 
             if (retcode != 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
         }

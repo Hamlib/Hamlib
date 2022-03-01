@@ -76,6 +76,7 @@ void rig_make_key(char key[33])
     {
         key[i] = all[my_rand(max)];
     }
+
     key[32] = 0;
 }
 
@@ -87,39 +88,39 @@ int main()
     unsigned char ciphertext[1024];
     int ciphertext_length;
     int plaintext_length;
-    memset(ciphertext,0,sizeof(ciphertext));
+    memset(ciphertext, 0, sizeof(ciphertext));
     rig_make_key(key1);
     rig_make_key(key2);
     printf("key1=%s\n", key1);
     printf("key2=%s\n", key2);
-        ciphertext_length = AESStringCrypt((unsigned char *) key1,
-                                           strlen(key1),
-                                           (unsigned char *) key2,
-                                           strlen(key2),
-                                           (unsigned char *) ciphertext);
+    ciphertext_length = AESStringCrypt((unsigned char *) key1,
+                                       strlen(key1),
+                                       (unsigned char *) key2,
+                                       strlen(key2),
+                                       (unsigned char *) ciphertext);
 
-        for (int i = 0; i < ciphertext_length; ++i) { printf("%02x", ciphertext[i]); }
+    for (int i = 0; i < ciphertext_length; ++i) { printf("%02x", ciphertext[i]); }
 
-        printf("\n");
+    printf("\n");
 
-        if (ciphertext_length == AESSTRINGCRYPT_ERROR)
-        {
-            printf("Error encrypting the string\n");
-        }
+    if (ciphertext_length == AESSTRINGCRYPT_ERROR)
+    {
+        printf("Error encrypting the string\n");
+    }
 
-        printf("Ciphertext length: %d\n", ciphertext_length);
-        memset(plaintext, 0, sizeof(plaintext));
-        printf("Decrypting...\n");
-        plaintext_length = AESStringDecrypt((unsigned char *) key1,
-                                            strlen(key1),
-                                            (unsigned char *) ciphertext,
-                                            ciphertext_length,
-                                            (unsigned char *) plaintext);
+    printf("Ciphertext length: %d\n", ciphertext_length);
+    memset(plaintext, 0, sizeof(plaintext));
+    printf("Decrypting...\n");
+    plaintext_length = AESStringDecrypt((unsigned char *) key1,
+                                        strlen(key1),
+                                        (unsigned char *) ciphertext,
+                                        ciphertext_length,
+                                        (unsigned char *) plaintext);
 
-        if (plaintext_length == AESSTRINGCRYPT_ERROR)
-        {
-            printf("Error decrypting the string\n");
-        }
+    if (plaintext_length == AESSTRINGCRYPT_ERROR)
+    {
+        printf("Error decrypting the string\n");
+    }
 
-        printf("Decrypted plaintext length: %d, %s\n", plaintext_length, plaintext);
+    printf("Decrypted plaintext length: %d, %s\n", plaintext_length, plaintext);
 }
