@@ -1695,6 +1695,7 @@ readline_repeat:
     {
         if (strcmp(cmd_entry->arg1,"ChkVFO")==0) preCmd = 1;
         else if (strcmp(cmd_entry->arg1,"VFO")==0) preCmd = 1;
+        else if (strcmp(cmd_entry->arg1,"Password")==0) preCmd = 1;
     }
     if (use_password && !is_passwordOK && (cmd_entry->arg1 != NULL) && !preCmd)
     {
@@ -4952,7 +4953,13 @@ declare_proto_rig(password)
     ENTERFUNC;
     if (is_rigctld)
     {
-    retval = rigctld_password_check(rig, (unsigned char*)passwd, NULL);
+    retval = rigctld_password_check(rig, (unsigned char*)passwd, "key2");
+    }
+    else
+    {
+    retval = rig_password(rig, (unsigned char*) passwd, (unsigned char*)"key2");
+    //retval = RIG_OK;
+    }
 
     if (retval == RIG_OK)
     {
@@ -4963,11 +4970,6 @@ declare_proto_rig(password)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: password error, '%s'!='%s'\n", __func__,
                   passwd, rigctld_password);
-    }
-    }
-    else
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: not implemente\n", __func__);
     }
 
     RETURNFUNC(retval);
