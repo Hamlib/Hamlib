@@ -2633,14 +2633,17 @@ static int netrigctl_power2mW(RIG *rig, unsigned int *mwpower, float power,
 int netrigctl_password(RIG *rig, const unsigned char *key1, const unsigned char *key2)
 {
     char cmdbuf[256];
-    char buf[256];
+    char buf[BUF_MAX];
     int retval;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: key1=%s, key2=%s\n", __func__, key1, key2);
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\password %s\n", key1);
     retval = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
+    return RIG_OK;
+#if 0
     RETURNFUNC(retval);
+#endif
 }
 
 /*

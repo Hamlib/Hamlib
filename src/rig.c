@@ -7106,6 +7106,7 @@ HAMLIB_EXPORT(int) rig_password(RIG *rig, const unsigned char *key1, const unsig
     if (rig->caps->password != NULL)
     {
         retval = rig->caps->password(rig,key1,key2);
+        //retval = RIG_OK;
     }
     RETURNFUNC(retval);
 }
