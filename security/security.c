@@ -77,6 +77,7 @@ void rig_make_key(char key[33])
     {
         key[i] = all[my_rand(max)];
     }
+
     key[32] = 0;
 }
 

@@ -1690,18 +1690,23 @@ readline_repeat:
 
     // chk_vfo is the one command we'll allow without a password
     // since it's in the initial handshake
-    int preCmd = 0;  // some command are allowed without passoword to satisfy rigctld initialization from rigctl -m 2
+    int preCmd =
+        0;  // some command are allowed without passoword to satisfy rigctld initialization from rigctl -m 2
+
     if (cmd_entry->arg1 != NULL)
     {
-        if (strcmp(cmd_entry->arg1,"ChkVFO")==0) preCmd = 1;
-        else if (strcmp(cmd_entry->arg1,"VFO")==0) preCmd = 1;
-        else if (strcmp(cmd_entry->arg1,"Password")==0) preCmd = 1;
+        if (strcmp(cmd_entry->arg1, "ChkVFO") == 0) { preCmd = 1; }
+        else if (strcmp(cmd_entry->arg1, "VFO") == 0) { preCmd = 1; }
+        else if (strcmp(cmd_entry->arg1, "Password") == 0) { preCmd = 1; }
     }
+
     if (use_password && !is_passwordOK && (cmd_entry->arg1 != NULL) && !preCmd)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: need password=%s for cmd=%s\n", __func__, rigctld_password, cmd_entry->arg1);
-        return(-RIG_EPROTO);
+        rig_debug(RIG_DEBUG_ERR, "%s: need password=%s for cmd=%s\n", __func__,
+                  rigctld_password, cmd_entry->arg1);
+        return (-RIG_EPROTO);
     }
+
     retcode = (*cmd_entry->rig_routine)(my_rig,
                                         fout,
                                         fin,
@@ -4929,19 +4934,21 @@ declare_proto_rig(pause)
     return (RIG_OK);
 }
 
-int rigctld_password_check(RIG *rig, const unsigned char *key1, const unsigned char *key2)
+int rigctld_password_check(RIG *rig, const unsigned char *key1,
+                           const unsigned char *key2)
 {
     int retval = -RIG_EINVAL;
     //fprintf(fout, "password %s\n", password);
     rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, key1, rigctld_password);
     is_passwordOK = 0;
-    if (strcmp((char*)key1, rigctld_password) == 0) 
-    { 
-        retval = RIG_OK; 
+
+    if (strcmp((char *)key1, rigctld_password) == 0)
+    {
+        retval = RIG_OK;
         is_passwordOK = 1;
     }
 
-    return(retval);
+    return (retval);
 }
 
 /* 0x98 */
@@ -4951,14 +4958,15 @@ declare_proto_rig(password)
     const char *passwd = arg1;
 
     ENTERFUNC;
+
     if (is_rigctld)
     {
-    retval = rigctld_password_check(rig, (unsigned char*)passwd, "key2");
+        retval = rigctld_password_check(rig, (unsigned char *)passwd, "key2");
     }
     else
     {
-    retval = rig_password(rig, (unsigned char*) passwd, (unsigned char*)"key2");
-    //retval = RIG_OK;
+        retval = rig_password(rig, (unsigned char *) passwd, (unsigned char *)"key2");
+        //retval = RIG_OK;
     }
 
     if (retval == RIG_OK)
