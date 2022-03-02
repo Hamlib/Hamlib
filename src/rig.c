@@ -2037,9 +2037,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         TRACE;
         retcode = caps->set_mode(rig, vfo, mode, width);
-        rig_debug(RIG_DEBUG_TRACE, "%s: targetable retcode after set_mode=%d\n",
-                  __func__,
-                  retcode);
+        rig_debug(RIG_DEBUG_TRACE, "%s: targetable retcode after set_mode(%s)=%d\n",
+                  __func__, rig_strrmode(mode), retcode);
     }
     else
     {
@@ -2081,7 +2080,12 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
     }
 
-    if (retcode != RIG_OK) { RETURNFUNC(retcode); }
+    if (retcode != RIG_OK) 
+    { 
+        rig_debug(RIG_DEBUG_TRACE, "%s: failed set_mode(%s)=%s\n",
+                  __func__, rig_strrmode(mode), rigerror(retcode));
+        RETURNFUNC(retcode); 
+    }
 
     rig_set_cache_mode(rig, vfo, mode, width);
 
