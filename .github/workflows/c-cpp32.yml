@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: fedora:32
 
     steps:
     - uses: actions/checkout@v2
@@ -18,7 +18,7 @@ jobs:
         sudo apt install libusb-1.0-0-dev
         ./bootstrap
     - name: configure
-      run: ./configure CFLAGS=-m32 --without-cxx-binding
+      run: ./configure --without-cxx-binding
     - name: make
       run: make -j 4
     - name: make check
