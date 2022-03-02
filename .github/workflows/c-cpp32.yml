@@ -1,0 +1,27 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: bootstrap
+      run: |
+        sudo apt install libusb-1.0-0-dev
+        ./bootstrap
+    - name: configure
+      run: ./configure CFLAGS=-m32 --without-cxx-binding
+    - name: make
+      run: make -j 4
+    - name: make check
+      run: make check
+    - name: make distcheck
+      run: make distcheck
