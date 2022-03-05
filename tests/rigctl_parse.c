@@ -4961,7 +4961,7 @@ declare_proto_rig(password)
 
     if (is_rigctld)
     {
-        retval = rigctld_password_check(rig, (unsigned char *)passwd, "key2");
+        retval = rigctld_password_check(rig, (unsigned char *)passwd, (unsigned char*)"key2");
     }
     else
     {
