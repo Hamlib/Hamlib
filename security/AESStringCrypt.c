@@ -33,7 +33,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include <Wincrypt.h>
+#include <wincrypt.h>
 #else
 #include <unistd.h>
 #include <stdlib.h>
