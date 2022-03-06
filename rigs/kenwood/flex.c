@@ -145,6 +145,7 @@ int flexradio_open(RIG *rig)
         return -RIG_EINVAL;
     }
 
+    priv->has_rit2 = 1;
     /* get current AI state so it can be restored */
     priv->trn_state = -1;
     kenwood_get_trn(rig, &priv->trn_state);  /* ignore errors */
