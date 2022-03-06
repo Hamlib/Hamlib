@@ -21,7 +21,7 @@
  */
 
 #include <stdio.h>
-#include <iconv.h>
+//#include <iconv.h>
 //#include <langinfo.h>
 #include <errno.h>
 #include "password.h"
