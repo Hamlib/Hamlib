@@ -80,7 +80,6 @@ AM_CPPFLAGS="${AM_CPPFLAGS} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(t
 
 dnl Checks for programs.
 AC_PROG_CC
-#AC_PROG_CC_STDC
 AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_AWK
