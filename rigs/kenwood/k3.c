@@ -139,6 +139,7 @@ static struct kenwood_priv_caps k3_priv_caps  =
 
 
 /* K3 specific function declarations */
+int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int k3_get_vfo(RIG *rig, vfo_t *vfo);
@@ -184,7 +185,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".19",
+    .version =      BACKEND_VER ".20",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -293,7 +294,7 @@ const struct rig_caps k3_caps =
     .rig_cleanup =      kenwood_cleanup,
     .rig_open =     elecraft_open,
     .rig_close =        kenwood_close,
-    .set_freq =     kenwood_set_freq,
+    .set_freq =     k3_set_freq,
     .get_freq =     kenwood_get_freq,
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
@@ -336,7 +337,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".15",
+    .version =      BACKEND_VER ".16",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -444,7 +445,7 @@ const struct rig_caps k3s_caps =
     .rig_cleanup =      kenwood_cleanup,
     .rig_open =     elecraft_open,
     .rig_close =        kenwood_close,
-    .set_freq =     kenwood_set_freq,
+    .set_freq =     k3_set_freq,
     .get_freq =     kenwood_get_freq,
     .set_mode =     k3_set_mode,
     .get_mode =     k3_get_mode,
@@ -2747,4 +2748,27 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     while (ptt != ptt2);
 
     return RIG_OK;
+}
+
+// K3S band memory needs some time to do it's thing after freq change
+// K3 probably does too
+// But what about the K4?
+int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+    int retval;
+    freq_t tfreq;
+    retval = kenwood_get_freq(rig, vfo, &tfreq);
+
+    if (retval != RIG_OK) { return retval; }
+
+    retval = kenwood_set_freq(rig, vfo, freq);
+
+    // if more than 1MHz probably a band change so give it some time
+    // before continuing
+    if (abs(tfreq - freq) > 1e6)
+    {
+        hl_usleep(200 * 1000);    // give 200ms for rig to do band switch if needed
+    }
+
+    return retval;
 }
