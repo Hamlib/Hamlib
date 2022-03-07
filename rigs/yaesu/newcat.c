@@ -3242,10 +3242,12 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 
     ENTERFUNC;
 
+#if 0 // all Yaeus rigs have PS and calling this here interferes with power on
     if (!newcat_valid_command(rig, "PS"))
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
+#endif
 
     switch (status)
     {
