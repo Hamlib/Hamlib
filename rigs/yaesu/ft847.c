@@ -677,8 +677,22 @@ const struct rig_caps mchfqrp_caps =
  * ft847uni rigs capabilities.
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
- */
+ Yaesu appears to use the following format for serial numbers on their
+amateur products:
 
+Year of manufacture-Month of manufacture-Production Run-Individual Unit
+number, where the month of manufacture is offset by 2, so "C" means January,
+"D" means February, "E" means March, and so forth.
+
+Example: 8G051234 = 1998, May (fifth month, or "G"), Production Run 05, unit
+#1234 in this run.
+
+One key serial number range is 8G05. This seems to be the point at which
+Yaesu had corrected the bi-directional CAT issue and made some other
+improvements. This version was made in May 1998. Later serial numbers (e.g.,
+8L09nnnn) all seem to have incorporated the earlier improvements plus new
+ones...."
+ */
 const struct rig_caps ft847uni_caps =
 {
     RIG_MODEL(RIG_MODEL_FT847UNI),
