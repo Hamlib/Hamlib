@@ -384,6 +384,12 @@ transaction_read:
         // only retry if we expect a response from the command
         if (retry_read++ < rs->rigport.retry)
         {
+            goto transaction_write;
+            // we use to not re-do the write
+            // but now we use ID; to verify commands are working
+            // so in order to retry commands need to re-write them
+            // https://github.com/Hamlib/Hamlib/issues/983
+#if 0
             if (datasize)
             {
                 goto transaction_write;
@@ -392,6 +398,7 @@ transaction_read:
             {
                 goto transaction_read;
             }
+#endif
         }
 
         goto transaction_quit;
