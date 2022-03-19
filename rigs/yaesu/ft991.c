@@ -228,41 +228,63 @@ const struct rig_caps ft991_caps =
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(1700)},    /* Normal CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(500)},     /* Narrow CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(2400)},    /* Wide   CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(2000)},    /*        CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(1400)},    /*        CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(1200)},    /*        CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(800)},     /*        CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(400)},     /*        CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(300)},     /*        CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(200)},     /*        CW, RTTY, PKT */
-        {FT991_CW_RTTY_PKT_RX_MODES,  Hz(100)},     /*        CW, RTTY, PKT */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(500)},     /* Normal RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(300)},     /* Narrow RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(3000)},    /* Wide   RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(2400)},    /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(2000)},    /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(1700)},    /*        RTTY, DATA */
+		{FT991_RTTY_DATA_RX_MODES,    Hz(1400)},    /*        RTTY, DATA */
+		{FT991_RTTY_DATA_RX_MODES,    Hz(1200)},    /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(800)},     /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(450)},     /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(400)},     /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(350)},     /*        RTTY, DATA */
+		{FT991_RTTY_DATA_RX_MODES,    Hz(250)},     /*        RTTY, DATA */
+		{FT991_RTTY_DATA_RX_MODES,    Hz(200)},     /*        RTTY, DATA */
+		{FT991_RTTY_DATA_RX_MODES,    Hz(150)},     /*        RTTY, DATA */
+		{FT991_RTTY_DATA_RX_MODES,    Hz(100)},     /*        RTTY, DATA */
+		{FT991_RTTY_DATA_RX_MODES,    Hz(50)},      /*        RTTY, DATA */
+		{FT991_CW_RX_MODES,           Hz(2400)},    /* Normal CW */
+        {FT991_CW_RX_MODES,           Hz(500)},     /* Narrow CW */
+        {FT991_CW_RX_MODES,           Hz(3000)},    /* Wide   CW */
+        {FT991_CW_RX_MODES,           Hz(2000)},    /*        CW */
+		{FT991_CW_RX_MODES,           Hz(1700)},    /*        CW */
+		{FT991_CW_RX_MODES,           Hz(1400)},    /*        CW */
+		{FT991_CW_RX_MODES,           Hz(1200)},    /*        CW */
+		{FT991_CW_RX_MODES,           Hz(800)},     /*        CW */
+		{FT991_CW_RX_MODES,           Hz(450)},     /*        CW */
+		{FT991_CW_RX_MODES,           Hz(400)},     /*        CW */
+		{FT991_CW_RX_MODES,           Hz(350)},     /*        CW */
+		{FT991_CW_RX_MODES,           Hz(300)},     /*        CW */
+		{FT991_CW_RX_MODES,           Hz(250)},     /*        CW */
+		{FT991_CW_RX_MODES,           Hz(200)},     /*        CW */
+		{FT991_CW_RX_MODES,           Hz(150)},     /*        CW */
+		{FT991_CW_RX_MODES,           Hz(100)},     /*        CW */
+		{FT991_CW_RX_MODES,           Hz(50)},      /*        CW */
         {RIG_MODE_SSB,                Hz(2400)},    /* Normal SSB */
-        {RIG_MODE_SSB,                Hz(1800)},    /* Narrow SSB */
+        {RIG_MODE_SSB,                Hz(1500)},    /* Narrow SSB */
         {RIG_MODE_SSB,                Hz(3200)},    /* Wide   SSB */
-        {RIG_MODE_SSB,                Hz(3000)},    /* Wide   SSB */
+        {RIG_MODE_SSB,                Hz(3000)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2900)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2800)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2700)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2600)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2500)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(2250)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(2300)},    /*        SSB */
+		{RIG_MODE_SSB,                Hz(2200)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2100)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(1950)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(1650)},    /*        SSB */
-        {RIG_MODE_SSB,                Hz(1500)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(1350)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(1100)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(850)},     /*        SSB */
         {RIG_MODE_SSB,                Hz(600)},     /*        SSB */
         {RIG_MODE_SSB,                Hz(400)},     /*        SSB */
         {RIG_MODE_SSB,                Hz(200)},     /*        SSB */
-        {FT991_CW_RTTY_PKT_RX_MODES | RIG_MODE_SSB, RIG_FLT_ANY },
         {RIG_MODE_AM,                 Hz(9000)},    /* Normal AM */
         {RIG_MODE_AMN,                Hz(6000)},    /* Narrow AM */
-        {FT991_FM_WIDE_RX_MODES,      Hz(16000)},   /* Normal FM */
+        {FT991_FM_WIDE_RX_MODES,      Hz(16000)},   /* Normal FM, PKTFM, C4FM */
         {RIG_MODE_FMN,                Hz(9000)},    /* Narrow FM */
 
         RIG_FLT_END,
