@@ -7928,7 +7928,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 150) { w = 3; }
             else if (width <= 200) { w = 4; }
             else if (width <= 250) { w = 5; }
-            else if (width <= 305) { w = 6; }
+            else if (width <= 300) { w = 6; }
             else if (width <= 350) { w = 7; }
             else if (width <= 400) { w = 8; }
             else if (width <= 450) { w = 9; }
