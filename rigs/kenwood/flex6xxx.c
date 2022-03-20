@@ -1230,7 +1230,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20220318.0",
+    .version =      "20220320.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1249,8 +1249,9 @@ const struct rig_caps powersdr_caps =
     // We need at least 3 seconds to do profile switches
     // Hitting the timeout is OK as long as we retry
     // Previous note showed FA/FB may take up to 500ms on band change
+    // Flex 1500 needs about 6 seconds for a band change in PowerSDR
     .timeout =      800, // some band transitions can take 600ms
-    .retry =        3,
+    .retry =        10,
 
     .has_get_func =     POWERSDR_FUNC_ALL,
     .has_set_func =     POWERSDR_FUNC_ALL,
