@@ -304,7 +304,7 @@ const struct rig_caps ft747_caps =
     RIG_MODEL(RIG_MODEL_FT747),
     .model_name =       "FT-747GX",
     .mfg_name =         "Yaesu",
-    .version =           "20200323.0",
+    .version =           "20220322.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_MOBILE,
@@ -595,19 +595,20 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return ret;
     }
 
+    // the leading 2 bytes are zero so we just use 4 bytes for the freq
     switch (vfo)
     {
     case RIG_VFO_CURR:
         /* grab freq and convert */
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]), 10);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]), 8);
         break;
 
     case RIG_VFO_A:
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]), 10);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]), 8);
         break;
 
     case RIG_VFO_B:
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]), 10);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]), 8);
         break;
 
     default:
@@ -1024,7 +1025,7 @@ static int ft747_get_update_data(RIG *rig)
         }
 
         port_timeout = rigport->timeout;
-        rigport->timeout = 100; /* ms */
+        rigport->timeout = 20; /* ms */
         /* read sometimes-missing last byte (345th), but don't fail */
         read_block(rigport, &last_byte, 1);
         rigport->timeout = port_timeout;
