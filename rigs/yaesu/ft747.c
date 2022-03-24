@@ -304,7 +304,7 @@ const struct rig_caps ft747_caps =
     RIG_MODEL(RIG_MODEL_FT747),
     .model_name =       "FT-747GX",
     .mfg_name =         "Yaesu",
-    .version =           "20220322.0",
+    .version =           "20220324.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_MOBILE,
@@ -991,7 +991,7 @@ static int ft747_get_update_data(RIG *rig)
 {
     hamlib_port_t *rigport;
     struct ft747_priv_data *p;
-    unsigned char last_byte;
+    //unsigned char last_byte;
 
     p = (struct ft747_priv_data *)rig->state.priv;
     rigport = &rig->state.rigport;
@@ -1004,7 +1004,7 @@ static int ft747_get_update_data(RIG *rig)
     if (!rig->state.transmit)     /* rig doesn't respond in Tx mode */
     {
         int ret;
-        int port_timeout;
+        //int port_timeout;
         rig_flush(rigport);
 
         /* send UPDATE command to fetch data*/
@@ -1024,11 +1024,13 @@ static int ft747_get_update_data(RIG *rig)
             return ret;
         }
 
+#if 0 // skip this extra byte -- we will flush it before doing a read
         port_timeout = rigport->timeout;
         rigport->timeout = 20; /* ms */
         /* read sometimes-missing last byte (345th), but don't fail */
         read_block(rigport, &last_byte, 1);
         rigport->timeout = port_timeout;
+#endif
     }
 
     /* update cache date */
