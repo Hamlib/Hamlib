@@ -4,7 +4,7 @@
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 
 #undef DEBUG
-#undef TRACE
+//#undef TRACE
 
 #ifdef DEBUG
 #define DEBUG_VERBOSE
@@ -3804,9 +3804,9 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
                 goto end;
             }
 
-            hl_usleep(1000);
+            hl_usleep(10000);
             /* FIXME: not very accurate wrt process time */
-            timeout_usec -= 1000;
+            timeout_usec -= 10000;
 
             report("sleep...\n");
 
