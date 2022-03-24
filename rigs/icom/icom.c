@@ -5353,9 +5353,12 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         rig->state.cache.satmode = satmode;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
-        if (satmode == 0) // only worth trying if not in satmode
+        // we can add rigs we know will never have 0x25 here to skip this check
+        if ((satmode == 0)
+            && !(rig->caps->rig_model == RIG_MODEL_IC751)
+            ) // only worth trying if not in satmode
         {
-            int cmd, subcmd, freq_len;
+            int cmd, subcmd, freq_len, retry_save;
             unsigned char freqbuf[32];
             freq_len = priv->civ_731_mode ? 4 : 5;
             /*
@@ -5372,8 +5375,11 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
                 subcmd = 0x00;
             }
 
+            retry_save = rig->caps->retry;
+            rig->caps->retry = 1;
             retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                                       &ack_len);
+            rig->caps->retry = retry_save;
 
             if (retval == RIG_OK) // then we're done!!
             {
