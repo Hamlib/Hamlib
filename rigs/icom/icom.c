@@ -2579,6 +2579,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             (rig->caps->rig_model == RIG_MODEL_IC706) ||
             (rig->caps->rig_model == RIG_MODEL_IC706MKII) ||
             (rig->caps->rig_model == RIG_MODEL_IC706MKIIG) ||
+            (rig->caps->rig_model == RIG_MODEL_IC756) ||
             (rig->caps->rig_model == RIG_MODEL_ICR30))
     {
         RETURNFUNC2(RIG_OK);
