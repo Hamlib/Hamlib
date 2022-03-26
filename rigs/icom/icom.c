@@ -678,6 +678,16 @@ int icom_init(RIG *rig)
     priv->filter = RIG_PASSBAND_NOCHANGE;
     priv->x25cmdfails = 0;
     priv->x1cx03cmdfails = 0;
+    // we can add rigs here that will never use the 0x25 cmd
+    // some like the 751 don't even reject the command and have to time out
+    if (rig->caps->rig_model == RIG_MODEL_IC706
+       || rig->caps->rig_model == RIG_MODEL_IC706MKII
+       || rig->caps->rig_model == RIG_MODEL_IC706MKIIG
+       || rig->caps->rig_model == RIG_MODEL_IC751
+       )
+    {
+        priv->x25cmdfails = 1;
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __func__);
 
