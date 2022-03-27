@@ -304,7 +304,7 @@ const struct rig_caps ft747_caps =
     RIG_MODEL(RIG_MODEL_FT747),
     .model_name =       "FT-747GX",
     .mfg_name =         "Yaesu",
-    .version =           "20220324.0",
+    .version =           "20220327.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_MOBILE,
@@ -891,10 +891,12 @@ int ft747_get_split(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
             (!(status & SF_VFOAB) && !(status & SF_RXTX)))
     {
         *tx_vfo = RIG_VFO_B;
+        *split = RIG_SPLIT_ON;
     }
     else
     {
         *tx_vfo = RIG_VFO_A;
+        *split = RIG_SPLIT_OFF;
     }
 
     return RIG_OK;
