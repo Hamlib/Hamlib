@@ -15,6 +15,8 @@ float freqB = 14074500;
 char tx_vfo = 0;
 char rx_vfo = 0;
 vfo_t curr_vfo = RIG_VFO_A;
+char mode;
+int ptt;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -134,7 +136,19 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            SNPRINTF(resp, sizeof(resp), "FA%010.0f;", freqA);
+            //SNPRINTF(resp, sizeof(resp), "FA%010.0f;", freqA);
+            SNPRINTF(resp, sizeof(resp), "FA%08.0f;", freqA);
+            freqA += 10;
+            n = write(fd, resp, strlen(resp));
+        }
+        else if (strncmp(buf, "FA", 2) == 0)
+        {
+            sscanf(buf, "FA%f", &freqA);
+        }
+        else if (strcmp(buf, "FB;") == 0)
+        {
+            //SNPRINTF(resp, sizeof(resp), "FB%0010.0f;", freqB);
+            SNPRINTF(resp, sizeof(resp), "FB%08.0f;", freqB);
             n = write(fd, resp, strlen(resp));
         }
         else if (strncmp(buf, "FA", 2) == 0)
@@ -211,7 +225,7 @@ int main(int argc, char *argv[])
             if (curr_vfo == RIG_VFO_B || curr_vfo == RIG_VFO_SUB) { pbuf[2] = '1'; }
 
             n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
+            printf("%s\n", pbuf);
 
             if (n < 0) { perror("VS"); }
         }
@@ -230,6 +244,39 @@ int main(int argc, char *argv[])
             if (tx_vfo == '3') { tx_vfo = '1'; }
             else if (tx_vfo == '2') { tx_vfo = '0'; }
             else { perror("Expected 2 or 3"); }
+        }
+        else if (strcmp(buf, "MD0;") == 0)
+        {
+            usleep(50 * 1000);
+            SNPRINTF(resp, sizeof(resp), "MD%c;", mode);
+            n = write(fd, resp, strlen(resp));
+
+            if (n < 0) { perror("FT"); }
+        }
+        else if (strncmp(buf, "MD0", 3) == 0)
+        {
+            mode = buf[3];
+        }
+        else if (strcmp(buf, "SM0;") == 0)
+        {
+            usleep(50 * 1000);
+            SNPRINTF(resp, sizeof(resp), "SM0111;");
+            n = write(fd, resp, strlen(resp));
+
+            if (n < 0) { perror("SM"); }
+        }
+        else if (strcmp(buf, "TX;") == 0)
+        {
+            usleep(50 * 1000);
+            SNPRINTF(resp, sizeof(resp), "TX%d;", ptt);
+            n = write(fd, resp, strlen(resp));
+
+            if (n < 0) { perror("TX"); }
+        }
+        else if (strncmp(buf, "TX", 2) == 0)
+        {
+            usleep(50 * 1000);
+            ptt = buf[2] == '0'? 0 : 1;
         }
         else if (strcmp(buf, "EX032;") == 0)
         {
