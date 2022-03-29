@@ -472,10 +472,13 @@ static int port_read_sync_data_error_code(hamlib_port_t *p)
 static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
 {
     // Wait for data in both the response data pipe and the error code pipe to detect errors occurred during read
-    HANDLE event_handles[2] =
+    LARGE_INTEGER timeout;
+    HANDLE hLocal = CreateWaitableTimer(NULL, FALSE, NULL);
+    HANDLE event_handles[3] =
     {
         p->sync_data_pipe->read_overlapped.hEvent,
         p->sync_data_error_pipe->read_overlapped.hEvent,
+        hLocal
     };
     HANDLE read_handle = p->sync_data_pipe->read;
     LPOVERLAPPED overlapped = &p->sync_data_pipe->read_overlapped;
@@ -483,6 +486,7 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
     int result;
     ssize_t bytes_read;
 
+    TRACE;
     result = ReadFile(p->sync_data_pipe->read, buf, count, NULL, overlapped);
 
     if (!result)
@@ -492,11 +496,23 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
         switch (result)
         {
         case ERROR_SUCCESS:
+            TRACE;
             // No error?
             break;
 
         case ERROR_IO_PENDING:
-            wait_result = WaitForMultipleObjects(2, event_handles, FALSE, p->timeout);
+            TRACE;
+            timeout.QuadPart =  (p->timeout * -1000000LL);
+            if((result = SetWaitableTimer(hLocal, &timeout, 0, NULL, NULL, 0)) == 0)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: SetWaitableTimer error: %d\n", __func__, result); 
+                wait_result = WaitForMultipleObjects(3, event_handles, FALSE, INFINITE);
+            }
+            else
+            {
+                wait_result = WaitForMultipleObjects(3, event_handles, FALSE, p->timeout);
+            }
+            TRACE;
 
             switch (wait_result)
             {
@@ -506,7 +522,7 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
             case WAIT_OBJECT_0 + 1:
                 return port_read_sync_data_error_code(p);
 
-            case WAIT_TIMEOUT:
+            case WAIT_OBJECT_0 + 2:
                 if (count == 0)
                 {
                     CancelIo(read_handle);
