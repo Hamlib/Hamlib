@@ -1655,7 +1655,10 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         // some rigs like the FT991 need time before doing anything else like set_freq
         // We won't mess with CW mode -- no freq change expected hopefully
-        if (rig->state.current_mode != RIG_MODE_CW)
+        if (rig->state.current_mode != RIG_MODE_CW
+            && rig->state.current_mode != RIG_MODE_CWR
+            && rig->state.current_mode != RIG_MODE_CWN
+            )
         {
             hl_usleep(100 * 1000);
         }
