@@ -31,9 +31,6 @@
 /*
  * Unimplemented features supported by the FT-817:
  *
- *   - RIT ON/OFF without touching the RIT offset. This would
- *     need frontend support (eg. a new RIG_FUNC_xxx)
- *
  *   - RX status command returns info that is not used:
  *      - discriminator centered (yes/no flag)
  *      - received ctcss/dcs matched (yes/no flag)                     TBC
@@ -316,7 +313,7 @@ const struct rig_caps ft817_caps =
     .timeout =             FT817_TIMEOUT,
     .retry =               5,
     .has_get_func =        RIG_FUNC_NONE,
-    .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
+    .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_RIT,
     .has_get_level =
     RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
     RIG_LEVEL_ALC | RIG_LEVEL_SWR,
@@ -463,7 +460,7 @@ const struct rig_caps ft818_caps =
     .timeout =             FT817_TIMEOUT,
     .retry =               5,
     .has_get_func =        RIG_FUNC_NONE,
-    .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
+    .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_RIT,
     .has_get_level =
     RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
     RIG_LEVEL_ALC | RIG_LEVEL_SWR,
@@ -1614,6 +1611,16 @@ static int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_CTCSS_DCS_OFF);
         }
+            
+    case RIG_FUNC_RIT:
+        if (status)
+        {
+            return ft817_send_cmd(rig, FT817_NATIVE_CAT_CLAR_ON);
+        }
+        else
+        {
+            return ft817_send_cmd(rig, FT817_NATIVE_CAT_CLAR_OFF);
+        }
 
     default:
         return -RIG_EINVAL;
@@ -1775,6 +1782,8 @@ static int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     }
 
     /* the rig rejects if these are repeated - don't confuse user with retcode */
+    
+    /* not used anymore, RIG_FUNC_RIT implemented
     if (rit == 0)
     {
         ft817_send_cmd(rig, FT817_NATIVE_CAT_CLAR_OFF);
@@ -1782,7 +1791,7 @@ static int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     else
     {
         ft817_send_cmd(rig, FT817_NATIVE_CAT_CLAR_ON);
-    }
+    } */
 
     return RIG_OK;
 }
