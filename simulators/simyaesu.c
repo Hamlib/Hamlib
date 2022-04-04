@@ -12,10 +12,12 @@
 
 float freqA = 14074000;
 float freqB = 14074500;
-char tx_vfo = 0;
-char rx_vfo = 0;
+char tx_vfo = '0';
+char rx_vfo = '0';
 vfo_t curr_vfo = RIG_VFO_A;
-char mode;
+char modeA='1';
+char modeB='1';
+int width=0;
 int ptt;
 
 // ID 0310 == 310, Must drop leading zero
@@ -195,6 +197,15 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("ID"); }
         }
+        else if (strcmp(buf, "AI0;") == 0)
+        {
+            usleep(50*1000);
+        }
+        else if (strcmp(buf,"AB;") == 0)
+        {
+            freqB = freqA;
+            modeB = modeA;
+        }
 
 #if 0
         else if (strncmp(buf, "AI", 2) == 0)
@@ -233,7 +244,9 @@ int main(int argc, char *argv[])
         {
             usleep(50 * 1000);
             SNPRINTF(resp, sizeof(resp), "FT%c;", tx_vfo);
+            printf(" FT response#1=%s, tx_vfo=%c\n", resp, tx_vfo);
             n = write(fd, resp, strlen(resp));
+            printf(" FT response#2=%s\n", resp);
 
             if (n < 0) { perror("FT"); }
         }
@@ -248,14 +261,26 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "MD0;") == 0)
         {
             usleep(50 * 1000);
-            SNPRINTF(resp, sizeof(resp), "MD%c;", mode);
+            SNPRINTF(resp, sizeof(resp), "MD0%c;", modeA);
             n = write(fd, resp, strlen(resp));
 
-            if (n < 0) { perror("FT"); }
+            if (n < 0) { perror("MD0;"); }
         }
         else if (strncmp(buf, "MD0", 3) == 0)
         {
-            mode = buf[3];
+            modeA = buf[3];
+        }
+        else if (strcmp(buf, "MD1;") == 0)
+        {
+            usleep(50 * 1000);
+            SNPRINTF(resp, sizeof(resp), "MD1%c;", modeB);
+            n = write(fd, resp, strlen(resp));
+
+            if (n < 0) { perror("MD0;"); }
+        }
+        else if (strncmp(buf, "MD1", 3) == 0)
+        {
+            modeB = buf[3];
         }
         else if (strcmp(buf, "SM0;") == 0)
         {
@@ -289,6 +314,20 @@ int main(int argc, char *argv[])
             printf("n=%d\n", n);
 
             if (n < 0) { perror("EX032"); }
+        }
+        else if (strcmp(buf,"SH0;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "SH0%02d;", width);
+            usleep(50*1000);
+            n = write(fd, buf, strlen(buf));
+            printf("%s n=%d\n", buf, n);
+        }
+        else if (strcmp(buf, "NA0;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "NA00;");
+            usleep(50*1000);
+            n = write(fd, buf, strlen(buf));
+            printf("%s n=%d\n", buf, n);
         }
 
         else if (strlen(buf) > 0)
