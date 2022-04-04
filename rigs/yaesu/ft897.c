@@ -31,9 +31,6 @@
 /*
  * Unimplemented features supported by the FT-897:
  *
- *   - RIT ON/OFF without touching the RIT offset. This would
- *     need frontend support (eg. a new RIG_FUNC_xxx)
- *
  *   - DCS encoder/squelch ON/OFF, similar to RIG_FUNC_TONE/TSQL.
  *     Needs frontend support.
  *
@@ -254,7 +251,7 @@ const struct rig_caps ft897_caps =
     RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
     .mfg_name =       "Yaesu",
-    .version =        "20210103.0",
+    .version =        "20220404.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -272,7 +269,7 @@ const struct rig_caps ft897_caps =
     .timeout =        FT897_TIMEOUT,
     .retry =      0,
     .has_get_func =       RIG_FUNC_NONE,
-    .has_set_func =   RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
+    .has_set_func =   RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_RIT,
     .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_SWR | RIG_LEVEL_RAWSTR | RIG_LEVEL_ALC,
     .has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =   RIG_PARM_NONE,
@@ -1318,6 +1315,16 @@ int ft897_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             return ft897_send_cmd(rig, FT897_NATIVE_CAT_SET_CTCSS_DCS_OFF);
         }
+            
+   case RIG_FUNC_RIT:
+        if (status)
+        {
+            return ft897_send_cmd(rig, FT897_NATIVE_CAT_CLAR_ON);
+        }
+        else
+        {
+            return ft897_send_cmd(rig, FT897_NATIVE_CAT_CLAR_OFF);
+        }
 
 #if 0
 
@@ -1507,6 +1514,8 @@ int ft897_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     }
 
     /* the rig rejects if these are repeated - don't confuse user with retcode */
+    
+    /* not used anymore, RIG_FUNC_RIT implemented
     if (rit == 0)
     {
         ft897_send_cmd(rig, FT897_NATIVE_CAT_CLAR_OFF);
@@ -1514,7 +1523,7 @@ int ft897_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     else
     {
         ft897_send_cmd(rig, FT897_NATIVE_CAT_CLAR_ON);
-    }
+    }*/
 
     return RIG_OK;
 }
