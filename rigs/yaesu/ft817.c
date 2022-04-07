@@ -295,7 +295,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20220402.0",
+    .version =             "20220407.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -313,7 +313,7 @@ const struct rig_caps ft817_caps =
     .timeout =             FT817_TIMEOUT,
     .retry =               5,
     .has_get_func =        RIG_FUNC_NONE,
-    .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_RIT,
+    .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_CSQL | RIG_FUNC_RIT,
     .has_get_level =
     RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
     RIG_LEVEL_ALC | RIG_LEVEL_SWR,
@@ -1611,6 +1611,16 @@ static int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_CTCSS_DCS_OFF);
         }
+            
+    case RIG_FUNC_CSQL:
+        if (status)
+        {
+            return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_DCS_ON);
+        }
+        else
+        {
+            return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_CTCSS_DCS_OFF);
+        }            
             
     case RIG_FUNC_RIT:
         if (status)
