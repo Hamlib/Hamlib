@@ -5647,6 +5647,22 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         break;
 
+    case RIG_FUNC_CSQL:
+        if (!newcat_valid_command(rig, "CT"))
+        {
+            RETURNFUNC(-RIG_ENAVAIL);
+        }
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT0%d%c", status ? 3 : 0,
+                 cat_term);
+
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
+        }
+
+        break;       
+            
     case RIG_FUNC_LOCK:
         if (!newcat_valid_command(rig, "LK"))
         {
@@ -5972,6 +5988,21 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         }
 
         break;
+            
+    case RIG_FUNC_CSQL:
+        if (!newcat_valid_command(rig, "CT"))
+        {
+            RETURNFUNC(-RIG_ENAVAIL);
+        }
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CT0%c", cat_term);
+
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_TONE)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
+        }
+
+        break;            
 
     case RIG_FUNC_LOCK:
         if (!newcat_valid_command(rig, "LK"))
@@ -6176,6 +6207,10 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     case RIG_FUNC_TSQL:
         *status = (retfunc[0] == '1') ? 1 : 0;
         break;
+            
+    case RIG_FUNC_CSQL:
+        *status = (retfunc[0] == '3') ? 1 : 0;
+        break;            
 
     case RIG_FUNC_TUNER:
         *status = (retfunc[2] == '1') ? 1 : 0;
