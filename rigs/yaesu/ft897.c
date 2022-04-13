@@ -269,7 +269,7 @@ const struct rig_caps ft897_caps =
     .timeout =        FT897_TIMEOUT,
     .retry =      0,
     .has_get_func =       RIG_FUNC_NONE,
-    .has_set_func =   RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_RIT,
+    .has_set_func =   RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_CSQL | RIG_FUNC_RIT,
     .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_SWR | RIG_LEVEL_RAWSTR | RIG_LEVEL_ALC,
     .has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =   RIG_PARM_NONE,
@@ -395,7 +395,7 @@ const struct rig_caps ft897d_caps =
     RIG_MODEL(RIG_MODEL_FT897D),
     .model_name =     "FT-897D",
     .mfg_name =       "Yaesu",
-    .version =        "20210103.0",
+    .version =        "20220407.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -1315,6 +1315,16 @@ int ft897_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             return ft897_send_cmd(rig, FT897_NATIVE_CAT_SET_CTCSS_DCS_OFF);
         }
+
+    case RIG_FUNC_CSQL:
+        if (status)
+        {
+            return ft897_send_cmd(rig, FT897_NATIVE_CAT_SET_DCS_ON);
+        }
+        else
+        {
+            return ft897_send_cmd(rig, FT897_NATIVE_CAT_SET_CTCSS_DCS_OFF);
+        }
             
    case RIG_FUNC_RIT:
         if (status)
@@ -1327,7 +1337,6 @@ int ft897_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         }
 
 #if 0
-
     case RIG_FUNC_CODE:   /* this doesn't exist */
         if (status)
         {
@@ -1337,17 +1346,6 @@ int ft897_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             return ft897_send_cmd(rig, FT897_NATIVE_CAT_SET_CTCSS_DCS_OFF);
         }
-
-    case RIG_FUNC_DSQL:   /* this doesn't exist */
-        if (status)
-        {
-            return ft897_send_cmd(rig, FT897_NATIVE_CAT_SET_DCS_ON);
-        }
-        else
-        {
-            return ft897_send_cmd(rig, FT897_NATIVE_CAT_SET_CTCSS_DCS_OFF);
-        }
-
 #endif
 
     default:

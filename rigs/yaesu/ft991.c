@@ -207,9 +207,9 @@ const struct rig_caps ft991_caps =
     .tx_range_list1 =     {
         {MHz(1.8), MHz(54), FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS, "Operating"},
         {MHz(1.8), MHz(54), FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS, "Operating"}, /* AM class */
-        {MHz(144), MHz(148), FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS, "Operating"},
+        {MHz(144), MHz(148), FT991_OTHER_TX_MODES, W(5), W(50), FT991_VFO_ALL, FT991_ANTS, "Operating"},
         {MHz(144), MHz(148), FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS, "Operating"}, /* AM class */
-        {MHz(430), MHz(450), FT991_OTHER_TX_MODES, W(5), W(100), FT991_VFO_ALL, FT991_ANTS, "Operating"},
+        {MHz(430), MHz(450), FT991_OTHER_TX_MODES, W(5), W(50), FT991_VFO_ALL, FT991_ANTS, "Operating"},
         {MHz(430), MHz(450), FT991_AM_TX_MODES, W(2), W(25), FT991_VFO_ALL, FT991_ANTS, "Operating"}, /* AM class */
         RIG_FRNG_END,
     },
