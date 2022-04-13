@@ -232,6 +232,7 @@ struct amp_caps
   int (*get_freq)(AMP *amp, freq_t *val); /*!< Pointer to backend implementation of ::amp_get_freq(). */
 
   int (*set_conf)(AMP *amp, token_t token, const char *val); /*!< Pointer to backend implementation of ::amp_set_conf(). */
+  int (*get_conf2)(AMP *amp, token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of ::amp_get_conf(). */
   int (*get_conf)(AMP *amp, token_t token, char *val);       /*!< Pointer to backend implementation of ::amp_get_conf(). */
 
   /*
