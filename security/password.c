@@ -48,9 +48,9 @@ HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
         product *= pass[i];
     }
 
-    srandom(product);
+    srand(product);
 
-    snprintf(newpass, sizeof(newpass) - 1, "%s\t%lu\n", pass, random());
+    snprintf(newpass, sizeof(newpass) - 1, "%s\t%lu\n", pass, (long)random());
     printf("debug=%s\n", newpass);
     char *md5str = make_md5(newpass);
 
