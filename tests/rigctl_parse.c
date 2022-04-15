@@ -96,7 +96,7 @@ extern int read_history();
 
 static int chk_vfo_executed;
 char rigctld_password[64];
-int is_passwordOK;
+int is_passwordOK; 
 int is_rigctld;
 
 
@@ -245,7 +245,7 @@ declare_proto_rig(get_cache);
 declare_proto_rig(halt);
 declare_proto_rig(pause);
 declare_proto_rig(password);
-declare_proto_rig(set_password);
+//declare_proto_rig(set_password);
 declare_proto_rig(set_clock);
 declare_proto_rig(get_clock);
 
@@ -354,7 +354,7 @@ static struct test_table test_list[] =
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN, "Seconds" },
     { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO, "Password" },
-    { 0x99, "set_password",     ACTION(set_password),   ARG_IN | ARG_NOVFO, "Password" },
+//    { 0x99, "set_password",     ACTION(set_password),   ARG_IN | ARG_NOVFO, "Password" },
     { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
     { 0x00, "", NULL },
 };
@@ -1704,10 +1704,13 @@ readline_repeat:
     {
         rig_debug(RIG_DEBUG_ERR, "%s: need password=%s for cmd=%s\n", __func__,
                   rigctld_password, cmd_entry->arg1);
-        return (-RIG_EPROTO);
+        fflush(fin);
+        retcode = -RIG_EPROTO;
     }
 
-    retcode = (*cmd_entry->rig_routine)(my_rig,
+    else
+    {
+        retcode = (*cmd_entry->rig_routine)(my_rig,
                                         fout,
                                         fin,
                                         interactive,
@@ -1721,6 +1724,7 @@ readline_repeat:
                                         p1,
                                         p2 ? p2 : "",
                                         p3 ? p3 : "");
+    }
 
 
     if (retcode == -RIG_EIO)
@@ -4934,15 +4938,18 @@ declare_proto_rig(pause)
     return (RIG_OK);
 }
 
-int rigctld_password_check(RIG *rig, const unsigned char *key1,
-                           const unsigned char *key2)
+extern char *make_md5(char *password);
+
+int rigctld_password_check(RIG *rig, const char *md5)
 {
     int retval = -RIG_EINVAL;
     //fprintf(fout, "password %s\n", password);
-    rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, key1, rigctld_password);
+    rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, md5, rigctld_password);
     is_passwordOK = 0;
 
-    if (strcmp((char *)key1, rigctld_password) == 0)
+    char *mymd5 = make_md5(rigctld_password);
+
+    if (strcmp(md5, mymd5) == 0)
     {
         retval = RIG_OK;
         is_passwordOK = 1;
@@ -4955,34 +4962,35 @@ int rigctld_password_check(RIG *rig, const unsigned char *key1,
 declare_proto_rig(password)
 {
     int retval = -RIG_EPROTO;
-    const char *passwd = arg1;
+    const char *key = arg1;
 
     ENTERFUNC;
 
     if (is_rigctld)
     {
-        retval = rigctld_password_check(rig, (unsigned char *)passwd, (unsigned char*)"key2");
+        retval = rigctld_password_check(rig, key);
     }
     else
     {
-        retval = rig_password(rig, (unsigned char *) passwd, (unsigned char *)"key2");
+        retval = rig_password(rig, key);
         //retval = RIG_OK;
     }
 
     if (retval == RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: #1 password OK\n", __func__);
-        fprintf(fout, "Logged in\n");
+        //fprintf(fout, "Logged in\n");
     }
     else
     {
         rig_debug(RIG_DEBUG_ERR, "%s: password error, '%s'!='%s'\n", __func__,
-                  passwd, rigctld_password);
+                  key, rigctld_password);
     }
 
     RETURNFUNC(retval);
 }
 
+#if 0 // don't think we need this yet
 /* 0x99 */
 declare_proto_rig(set_password)
 {
@@ -4991,6 +4999,7 @@ declare_proto_rig(set_password)
     rig_debug(RIG_DEBUG_ERR, "%s: set_password %s\n", __func__, rigctld_password);
     return (RIG_OK);
 }
+#endif
 
 /* '0x8d' */
 declare_proto_rig(set_twiddle)

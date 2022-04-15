@@ -149,7 +149,7 @@ const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
 const char *multicast_addr = "0.0.0.0";
 int multicast_port = 4532;
-extern char rigctld_password[64];
+extern char rigctld_password[65];
 
 #define MAXCONFLEN 1024
 
@@ -238,6 +238,8 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 }
 
 
+extern char *make_md5(char *password);
+
 int main(int argc, char *argv[])
 {
     rig_model_t my_model = RIG_MODEL_DUMMY;
@@ -306,6 +308,8 @@ int main(int argc, char *argv[])
 
         case 'A':
             strncpy(rigctld_password, optarg, sizeof(rigctld_password) - 1);
+            char *md5 = make_md5(rigctld_password);
+            printf("Secret key: %s\n", md5);
             break;
 
         case 'm':
@@ -1061,20 +1065,24 @@ int main(int argc, char *argv[])
 #ifdef HAVE_PTHREAD
     /* allow threads to finish current action */
     mutex_rigctld(1);
-
+    TRACE;
     if (client_count)
     {
         rig_debug(RIG_DEBUG_WARN, "%u outstanding client(s)\n", client_count);
     }
 
     rig_close(my_rig);
+    TRACE;
     mutex_rigctld(0);
+    TRACE;
 #else
     rig_close(my_rig); /* close port */
 #endif
 
+    TRACE;
     network_multicast_publisher_stop(my_rig);
 
+    TRACE;
     rig_cleanup(my_rig); /* if you care about memory */
 
 #ifdef __MINGW32__
