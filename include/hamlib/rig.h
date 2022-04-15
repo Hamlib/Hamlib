@@ -26,6 +26,9 @@
 
 #define BUILTINFUNC 0
 
+// Our shared secret password 
+#define HAMLIB_SECRET_LENGTH 32
+
 #define TRACE rig_debug(RIG_DEBUG_TRACE,"%s(%d) trace\n", __FILE__, __LINE__)
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
@@ -2041,7 +2044,7 @@ struct rig_caps {
 // this will be used to check rigcaps structure is compatible with client
     char *hamlib_check_rig_caps;   // a constant value we can check for hamlib integrity
     int (*get_conf2)(RIG *rig, token_t token, char *val, int val_len);
-    int (*password)(RIG *rig, const unsigned char *key1, const unsigned char *key2); /*< Send encrypted password if rigctld is secured with -A/--password */
+    int (*password)(RIG *rig, const char *key1); /*< Send encrypted password if rigctld is secured with -A/--password */
 };
 //! @endcond
 
@@ -3379,7 +3382,7 @@ extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);
 
 extern HAMLIB_EXPORT(int) rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie, int cookie_len);
 
-extern HAMLIB_EXPORT(int) rig_password(RIG *rig, const unsigned char *key1, const unsigned char *key2);
+extern HAMLIB_EXPORT(int) rig_password(RIG *rig, const char *key1);
 
 //extern HAMLIB_EXPORT(int)
 int longlat2locator HAMLIB_PARAMS((double longitude,

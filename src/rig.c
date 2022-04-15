@@ -2080,11 +2080,11 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
     }
 
-    if (retcode != RIG_OK) 
-    { 
+    if (retcode != RIG_OK)
+    {
         rig_debug(RIG_DEBUG_TRACE, "%s: failed set_mode(%s)=%s\n",
                   __func__, rig_strrmode(mode), rigerror(retcode));
-        RETURNFUNC(retcode); 
+        RETURNFUNC(retcode);
     }
 
     rig_set_cache_mode(rig, vfo, mode, width);
@@ -7108,15 +7108,14 @@ void *async_data_handler(void *arg)
 }
 #endif
 
-HAMLIB_EXPORT(int) rig_password(RIG *rig, const unsigned char *key1,
-                                const unsigned char *key2)
+HAMLIB_EXPORT(int) rig_password(RIG *rig, const char *key1)
 {
-    int retval = -RIG_ENIMPL;
+    int retval = -RIG_EPROTO;
     ENTERFUNC;
 
     if (rig->caps->password != NULL)
     {
-        retval = rig->caps->password(rig, key1, key2);
+        retval = rig->caps->password(rig, key1);
         //retval = RIG_OK;
     }
 

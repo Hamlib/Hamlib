@@ -21,67 +21,62 @@
  */
 
 #include <stdio.h>
-//#include <iconv.h>
-//#include <langinfo.h>
+#include <stdlib.h>
+#include <string.h>
 #include <errno.h>
+#include "hamlib/rig.h"
 #include "password.h"
 
-#ifdef NOTWORKING
-/*
- *  passwd_to_utf16
- *
- *  Convert String to UTF-16LE for windows compatibility
- */
-int passwd_to_utf16(char *in_passwd,
-                    int length,
-                    int max_length,
-                    char *out_passwd)
+#define HAMLIB_SECRET_LENGTH 32
+
+extern char *make_md5(char *password);
+
+// makes a 32-byte secret key from password using MD5
+// yes -- this is security-by-obscurity
+// but password hacking software doesn't use this type of logic
+// we want a repeatable password that is not subject to "normal" md5 decryption logic
+// could use a MAC address to make it more random but making that portable is TBD
+HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
+        char result[HAMLIB_SECRET_LENGTH + 1])
 {
-    char *ic_outbuf,
-         *ic_inbuf;
-    iconv_t condesc;
-    size_t ic_inbytesleft,
-           ic_outbytesleft;
+    unsigned int product;
+    char newpass[256];
+    product = pass[0];
 
-    ic_inbuf = in_passwd;
-    ic_inbytesleft = length;
-    ic_outbytesleft = max_length;
-    ic_outbuf = out_passwd;
-
-    if ((condesc = iconv_open("UTF-16LE", nl_langinfo(CODESET))) ==
-            (iconv_t)(-1))
+    for (int i = 1; pass[i]; ++i)
     {
-        perror("Error in iconv_open");
-        return -1;
+        product *= pass[i];
     }
 
-    if (iconv(condesc,
-              &ic_inbuf,
-              &ic_inbytesleft,
-              &ic_outbuf,
-              &ic_outbytesleft) == -1)
-    {
-        switch (errno)
-        {
-        case E2BIG:
-            fprintf(stderr, "Error: password too long\n");
-            iconv_close(condesc);
-            return -1;
-            break;
+    srandom(product);
 
-        default:
-#if 0
-            printf("EILSEQ(%d), EINVAL(%d), %d\n", EILSEQ, EINVAL, errno);
-#endif
-            fprintf(stderr,
-                    "Error: Invalid or incomplete multibyte sequence\n");
-            iconv_close(condesc);
-            return -1;
-        }
-    }
+    snprintf(newpass, sizeof(newpass) - 1, "%s\t%lu\n", pass, random());
+    printf("debug=%s\n", newpass);
+    char *md5str = make_md5(newpass);
 
-    iconv_close(condesc);
-    return (max_length - ic_outbytesleft);
+    strncpy(result, md5str, HAMLIB_SECRET_LENGTH);
+
+    // now that we have the md5 we'll do the AES256
+
+    printf("Shared Secret: %s\n", result);
+
+    printf("\nCan be used with rigctl --password [secret]\nOr can be place in ~/.hamlib_settings\n");
+}
+
+#define TESTPASSWORD
+#ifdef TESTPASSWORD
+int main(int argc, char *argv[])
+{
+    char secret[HAMLIB_SECRET_LENGTH + 1];
+    char password[HAMLIB_SECRET_LENGTH +
+                                       1]; // maximum length usable for password too
+
+    // anything longer will not be used to generate the secret
+    if (argc == 1) { strcpy(password, "testpass"); }
+    else { strcpy(password, argv[1]); }
+
+    printf("Using password \"%s\" to generate shared key\n", password);
+    rig_password_generate_secret(password, secret);
+    return 0;
 }
 #endif
-
