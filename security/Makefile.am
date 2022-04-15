@@ -10,5 +10,3 @@ noinst_LTLIBRARIES = libsecurity.la
 libsecurity_la_SOURCES = aes.c AESStringCrypt.c password.c security.c sha256.c md5.c
 LDADD = $(top_builddir)/src/libhamlib.la
 security_test_LDADD = $(LDADD)
-
-check_PROGRAMS = security_test
