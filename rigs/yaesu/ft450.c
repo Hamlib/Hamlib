@@ -204,3 +204,5 @@ const struct rig_caps ft450_caps =
     .send_morse =         newcat_send_morse,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
+
+struct rig_caps ft450d_caps;
