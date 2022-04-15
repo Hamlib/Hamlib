@@ -67,6 +67,7 @@ extern int read_history();
 #include "misc.h"
 #include "iofunc.h"
 #include "sprintflst.h"
+#include "md5.h"
 
 #include "rigctl_parse.h"
 
@@ -4937,8 +4938,6 @@ declare_proto_rig(pause)
 
     return (RIG_OK);
 }
-
-extern char *make_md5(char *password);
 
 int rigctld_password_check(RIG *rig, const char *md5)
 {
