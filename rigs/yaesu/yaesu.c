@@ -73,8 +73,12 @@ DECLARE_INITRIG_BACKEND(yaesu)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "yaesu: %s called\n", __func__);
 
+    ft450d_caps = ft450_caps;
+    ft450d_caps.rig_model = RIG_MODEL_FT450D;
+    ft450d_caps.model_name = "FT-450D";
     rig_register(&ft100_caps);
     rig_register(&ft450_caps);
+    rig_register(&ft450d_caps);
     rig_register(&ft736_caps);
     rig_register(&ft747_caps);
     rig_register(&ft757gx_caps);
