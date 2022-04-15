@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+char *make_md5(char *pass);
+
 typedef unsigned long MD5_u32plus;
 
 typedef struct {
