@@ -18,6 +18,7 @@ SUBDIRS = macros include lib security \
 	$(RIG_BACKEND_LIST) \
 	$(ROT_BACKEND_LIST) \
 	$(AMP_BACKEND_LIST) \
+    security \
 	src \
 	$(BINDINGS) \
 	tests doc
