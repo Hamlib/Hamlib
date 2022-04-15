@@ -46,6 +46,7 @@ typedef struct yaesu_cmd_set yaesu_cmd_set_t;
 
 extern const struct rig_caps ft100_caps;
 extern const struct rig_caps ft450_caps;
+extern struct rig_caps ft450d_caps;
 extern const struct rig_caps ft736_caps;
 extern const struct rig_caps ft747_caps;
 extern const struct rig_caps ft757gx_caps;
