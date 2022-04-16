@@ -54,7 +54,7 @@
 //! Checks leading substring as command
 #define LEADINGSTR(a,b) (strncmp((a), (b), strlen(b)) == 0)
 //! Find the first alphabet character in string
-#define FIRSTALPHA(a) while(*(a) != '\0' && !isalpha(*(a))) { (a)++; }
+#define FIRSTBETA(a) while(*(a) != '\0' && !isalpha(*(a))) { (a)++; }
 //! Find the first alphabet character or number in string
 #define FIRSTALNUM(a) while(*(a) != '\0' && !isalnum(*(a))) { (a)++; }
 //! Find the first space in string
@@ -160,7 +160,7 @@ void loop(void)
   // reading command line from serial
   if ((c = serReadLine()) != NULL)
   {
-    FIRSTALPHA(c);
+    FIRSTBETA(c);
     if (LEADINGSTR(c, "param"))
     {
       cmdParam(c);
@@ -220,7 +220,7 @@ static char *serReadLine(void)
 static int cmdParam(char *cmd)
 {
   FIRSTSPACE(cmd);
-  FIRSTALPHA(cmd);
+  FIRSTBETA(cmd);
   if (strlen(cmd) > 0)
   {
     if (LEADINGSTR(cmd, "mem")) return(cmdMem(cmd));
@@ -261,7 +261,7 @@ static int cmdGet(char *cmd)
   unsigned long f;
 
   FIRSTSPACE(cmd);
-  FIRSTALPHA(cmd);
+  FIRSTBETA(cmd);
   if (strlen(cmd) > 0)
   {
     if (LEADINGSTR(cmd, "freq"))
@@ -293,7 +293,7 @@ static int cmdSet(char *cmd)
   unsigned long f;
 
   FIRSTSPACE(cmd);
-  FIRSTALPHA(cmd);
+  FIRSTBETA(cmd);
   if (strlen(cmd) > 0)
   {
     if (LEADINGSTR(cmd, "freq"))
