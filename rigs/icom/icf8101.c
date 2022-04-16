@@ -289,21 +289,105 @@ int icf8101_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     return retval;
 }
 
+int icf8101_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+    unsigned char ackbuf[MAXFRAMELEN], pttbuf[2];
+    int ack_len = sizeof(ackbuf), retval;
+
+    ENTERFUNC;
+
+    switch (ptt)
+    {
+    case RIG_PTT_ON:      pttbuf[0] = 0; pttbuf[1] = 1; break;
+
+    case RIG_PTT_ON_MIC:  pttbuf[0] = 0; pttbuf[1] = 1; break;
+
+    case RIG_PTT_ON_DATA: pttbuf[0] = 0; pttbuf[1] = 2; break;
+
+    case RIG_PTT_OFF:     pttbuf[0] = 0; pttbuf[1] = 0; break;
+
+    default: RETURNFUNC(-RIG_EINVAL);
+    }
+
+    retval = icom_transaction(rig, C_CTL_MEM, S_MEM_PTT, pttbuf, 2,
+                              ackbuf, &ack_len);
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
+    {
+        //  if we don't get ACK/NAK some serial corruption occurred
+        // so we'll call it a timeout for retry purposes
+        RETURNFUNC(-RIG_ETIMEOUT);
+    }
+
+    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
+                  ackbuf[0], ack_len);
+        RETURNFUNC(-RIG_ERJCTED);
+    }
+
+    RETURNFUNC(RIG_OK);
+
+
+}
+
+/*
+ * icf8101_get_ptt
+ * Assumes rig!=NULL, rig->state.priv!=NULL, ptt!=NULL
+ */
+int icf8101_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+    unsigned char pttbuf[MAXFRAMELEN];
+    int ptt_len, retval;
+
+    ENTERFUNC;
+    retval = icom_transaction(rig, C_CTL_MEM, S_MEM_PTT, NULL, 0,
+                              pttbuf, &ptt_len);
+
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+
+    /*
+     * pttbuf should contain Cn,Sc,Data area
+     */
+    ptt_len -= 2;
+
+    if (ptt_len != 2)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
+                  __func__, ptt_len);
+        RETURNFUNC(-RIG_ERJCTED);
+    }
+
+    if (pttbuf[3] == 0) { *ptt = RIG_PTT_OFF; }
+    else if (pttbuf[3] == 1) { *ptt = RIG_PTT_ON_MIC; }
+    else if (pttbuf[3] == 2) { *ptt = RIG_PTT_ON_DATA; }
+
+    RETURNFUNC(RIG_OK);
+}
+
 
 const struct rig_caps icf8101_caps =
 {
     RIG_MODEL(RIG_MODEL_ICF8101),
     .model_name =   "IC-F8101",
     .mfg_name =   "Icom",
-    .version =    BACKEND_VER ".1c",
+    .version =    BACKEND_VER ".2",
     .copyright =    "LGPL",
-    .status =   RIG_STATUS_BETA,
+    .status =   RIG_STATUS_STABLE,
     .rig_type =   RIG_TYPE_TRANSCEIVER,
-    .ptt_type =   RIG_PTT_RIG,
+    .ptt_type =   RIG_PTT_RIG_MICDATA,
     .dcd_type =   RIG_DCD_RIG,
     .port_type =    RIG_PORT_SERIAL,
     .serial_rate_min =  300,
-    .serial_rate_max =  38400,
+    .serial_rate_max =  19200,
     .serial_data_bits = 8,
     .serial_stop_bits = 1,
     .serial_parity =  RIG_PARITY_NONE,
@@ -382,8 +466,8 @@ const struct rig_caps icf8101_caps =
     .get_mode =   icf8101_get_mode,
     .set_mode =   icf8101_set_mode,
 
-    .set_ptt = icom_set_ptt,
-    .get_ptt = icom_get_ptt,
+    .set_ptt = icf8101_set_ptt,
+    .get_ptt = icf8101_get_ptt,
     .set_vfo = icom_set_vfo,
     .get_vfo = icom_get_vfo,
     .get_ts =  icom_get_ts,
