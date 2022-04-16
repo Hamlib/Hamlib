@@ -12,8 +12,10 @@ Version 5.x -- future
         * rot_get_conf deprecated and replaced by rot_get_conf2
 
 Version 4.5
-        * 2022-03-XX
-        * Add password capability to rigctld via -A switch. rigctl uses \password, hamlib uses rig_set_password
+        * 2022-04-XX
+        * Add password capability to rigctld via -A switch. 
+          rigctld -A will produce a consistent shared key for any specific password that can used in \password and rig_set_password
+          TBD The shared key can also be placed in .hamlib_settings 
         * Asynchronous rig data output handling to support transceive and spectrum data. Mikael, OH3BHX
         * See new set_conf option async for some Icom rigs
         * Multicast UDP packet output for asynchronous data. Mikael, OH3BHX

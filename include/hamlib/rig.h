@@ -3395,6 +3395,8 @@ int locator2longlat HAMLIB_PARAMS((double *longitude,
                                double *latitude,
                                const char *locator));
 
+extern HAMLIB_EXPORT(char*) rig_make_md5(char *pass);
+
 
 //! @endcond
 

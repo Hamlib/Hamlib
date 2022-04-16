@@ -29,8 +29,6 @@
 #include <string.h>
 #include "hamlib/rig.h"
 
-extern HAMLIB_EXPORT(char*) rig_make_md5(char *pass);
-
 typedef unsigned long MD5_u32plus;
 
 typedef struct {
