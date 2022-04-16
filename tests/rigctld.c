@@ -75,7 +75,6 @@
 #include "serial.h"
 #include "sprintflst.h"
 #include "network.h"
-#include "md5.h"
 
 #include "rigctl_parse.h"
 
