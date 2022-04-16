@@ -4946,7 +4946,7 @@ int rigctld_password_check(RIG *rig, const char *md5)
     rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, md5, rigctld_password);
     is_passwordOK = 0;
 
-    char *mymd5 = make_md5(rigctld_password);
+    char *mymd5 = rig_make_md5(rigctld_password);
 
     if (strcmp(md5, mymd5) == 0)
     {

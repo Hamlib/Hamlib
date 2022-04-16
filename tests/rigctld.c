@@ -75,6 +75,7 @@
 #include "serial.h"
 #include "sprintflst.h"
 #include "network.h"
+#include "md5.h"
 
 #include "rigctl_parse.h"
 
@@ -238,8 +239,6 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 }
 
 
-extern char *make_md5(char *password);
-
 int main(int argc, char *argv[])
 {
     rig_model_t my_model = RIG_MODEL_DUMMY;
@@ -308,7 +307,7 @@ int main(int argc, char *argv[])
 
         case 'A':
             strncpy(rigctld_password, optarg, sizeof(rigctld_password) - 1);
-            char *md5 = make_md5(rigctld_password);
+            char *md5 = rig_make_md5(rigctld_password);
             printf("Secret key: %s\n", md5);
             break;
 
