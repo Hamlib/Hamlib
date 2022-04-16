@@ -429,6 +429,9 @@
 #define S_MEM_EAR 0x01		/* Earphone mode Off/On */
 #define S_MEM_REC 0x09		/* Recorder Off/On */
 
+/* IC-F8101 */
+#define S_MEM_PTT 0x37      /* PTT 0,1,2 for front/rear PTT */
+
 /*
  * Tone control (C_SET_TONE) subcommands
  */
