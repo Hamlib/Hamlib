@@ -26,10 +26,9 @@
 #include <errno.h>
 #include "hamlib/rig.h"
 #include "password.h"
+#include "md5.h"
 
 #define HAMLIB_SECRET_LENGTH 32
-
-extern char *make_md5(char *password);
 
 // makes a 32-byte secret key from password using MD5
 // yes -- this is security-by-obscurity
@@ -52,7 +51,7 @@ HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
 
     snprintf(newpass, sizeof(newpass) - 1, "%s\t%lu\n", pass, (long)rand());
     printf("debug=%s\n", newpass);
-    char *md5str = make_md5(newpass);
+    char *md5str = rig_make_md5(newpass);
 
     strncpy(result, md5str, HAMLIB_SECRET_LENGTH);
 
