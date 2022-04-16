@@ -791,9 +791,14 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s(%d): Icom rig UDP network enabled\n", __FILE__,
+            // Xiegu X6100 does TCP and does not support UDP spectrum that I know of
+            if (rig->caps->rig_model != RIG_MODEL_X6100)
+            {
+                rig_debug(RIG_DEBUG_TRACE, "%s(%d): Icom rig UDP network enabled\n", __FILE__,
                       __LINE__);
-            rs->rigport.type.rig = RIG_PORT_UDP_NETWORK;
+                rs->rigport.type.rig = RIG_PORT_UDP_NETWORK;
+            }
+
         }
     }
 
