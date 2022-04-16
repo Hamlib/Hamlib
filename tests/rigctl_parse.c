@@ -67,7 +67,6 @@ extern int read_history();
 #include "misc.h"
 #include "iofunc.h"
 #include "sprintflst.h"
-#include "md5.h"
 
 #include "rigctl_parse.h"
 
