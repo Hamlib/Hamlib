@@ -291,7 +291,7 @@ unsigned char *make_hash(char *arg)
     return digest;
 }
 
-char *make_md5(char *pass)
+char *rig_make_md5(char *pass)
 {
     unsigned char *hash = make_hash("password");
     char *md5str = make_digest(hash, 16);
