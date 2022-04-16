@@ -4938,8 +4938,6 @@ declare_proto_rig(pause)
     return (RIG_OK);
 }
 
-extern char *make_md5(char *password);
-
 int rigctld_password_check(RIG *rig, const char *md5)
 {
     int retval = -RIG_EINVAL;

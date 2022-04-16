@@ -237,9 +237,6 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 #endif
 }
 
-
-extern char *make_md5(char *password);
-
 int main(int argc, char *argv[])
 {
     rig_model_t my_model = RIG_MODEL_DUMMY;
