@@ -3684,7 +3684,6 @@ DECLARE_INITRIG_BACKEND(adat)
 // ---------------------------------------------------------------------------
 // proberig_adat
 // ---------------------------------------------------------------------------
-// Status: UNTESTED
 DECLARE_PROBERIG_BACKEND(adat)
 {
     int nRC = RIG_OK;
