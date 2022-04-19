@@ -295,7 +295,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20220407.0",
+    .version =             "20220419.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -442,7 +442,7 @@ const struct rig_caps ft818_caps =
     RIG_MODEL(RIG_MODEL_FT818),
     .model_name =          "FT-818",
     .mfg_name =            "Yaesu",
-    .version =             "20200710.0",
+    .version =             "20220419.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -821,7 +821,14 @@ static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int retries = rig->state.rigport.retry +
                   1; // +1 because, because 2 steps are needed even in best scenario
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called, vfo=%s, ptt=%d, split=%d\n", __func__, rig_strvfo(vfo), rig->state.cache.ptt, rig->state.cache.split);
+
+    // we can't query VFOB while in transmit and split mode
+    if (rig->state.cache.ptt && vfo==RIG_VFO_B && rig->state.cache.split)
+    {
+        *freq = rig->state.cache.freqMainB;
+        return RIG_OK;
+    }
 
     while ((f1 == 0 || f1 != f2) && retries-- > 0)
     {
