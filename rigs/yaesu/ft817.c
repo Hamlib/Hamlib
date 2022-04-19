@@ -1890,6 +1890,8 @@ static int ft817_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return n;
     }
 
+    rig->state.cache.split = split;
+
     return RIG_OK;
 
 }
