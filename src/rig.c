@@ -4524,6 +4524,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         case RIG_VFO_B: rx_vfo = split == 1 ? RIG_VFO_A : RIG_VFO_B; break;
         }
 
+        rig->state.cache.split = split;
+        rig->state.cache.split_vfo = tx_vfo;
         rx_vfo = vfo_fixup(rig, rx_vfo, split);
         tx_vfo = vfo_fixup(rig, tx_vfo, split);
         rig->state.rx_vfo = rx_vfo;
