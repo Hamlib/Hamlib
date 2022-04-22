@@ -54,50 +54,50 @@
 enum ft1000mp_native_cmd_e
 {
     FT1000MP_NATIVE_SPLIT_OFF = 0,
-    FT1000MP_NATIVE_SPLIT_ON,
-    FT1000MP_NATIVE_RECALL_MEM,
-    FT1000MP_NATIVE_VFO_TO_MEM,
-    FT1000MP_NATIVE_VFO_A,
-    FT1000MP_NATIVE_VFO_B,
-    FT1000MP_NATIVE_M_TO_VFO,
-    FT1000MP_NATIVE_RIT_ON,
-    FT1000MP_NATIVE_RIT_OFF,
-    FT1000MP_NATIVE_XIT_ON,
-    FT1000MP_NATIVE_XIT_OFF,
-    FT1000MP_NATIVE_RXIT_SET,
-    FT1000MP_NATIVE_FREQA_SET,
-    FT1000MP_NATIVE_FREQB_SET,
-    FT1000MP_NATIVE_MODE_SET_LSB,
-    FT1000MP_NATIVE_MODE_SET_USB,
-    FT1000MP_NATIVE_MODE_SET_CW,
-    FT1000MP_NATIVE_MODE_SET_CWR,
-    FT1000MP_NATIVE_MODE_SET_AM,
-    FT1000MP_NATIVE_MODE_SET_AMS,
-    FT1000MP_NATIVE_MODE_SET_FM,
-    FT1000MP_NATIVE_MODE_SET_FMW,
-    FT1000MP_NATIVE_MODE_SET_RTTY_LSB,
-    FT1000MP_NATIVE_MODE_SET_RTTY_USB,
-    FT1000MP_NATIVE_MODE_SET_DATA_LSB,
-    FT1000MP_NATIVE_MODE_SET_DATA_FM,
-    FT1000MP_NATIVE_MODE_SET_LSB_B,
-    FT1000MP_NATIVE_MODE_SET_USB_B,
-    FT1000MP_NATIVE_MODE_SET_CW_B,
-    FT1000MP_NATIVE_MODE_SET_CWR_B,
-    FT1000MP_NATIVE_MODE_SET_AM_B,
-    FT1000MP_NATIVE_MODE_SET_AMS_B,
-    FT1000MP_NATIVE_MODE_SET_FM_B,
-    FT1000MP_NATIVE_MODE_SET_FMW_B,
-    FT1000MP_NATIVE_MODE_SET_RTTY_LSB_B,
-    FT1000MP_NATIVE_MODE_SET_RTTY_USB_B,
-    FT1000MP_NATIVE_MODE_SET_DATA_LSB_B,
-    FT1000MP_NATIVE_MODE_SET_DATA_FM_B,
-    FT1000MP_NATIVE_PACING,
-    FT1000MP_NATIVE_PTT_OFF,
-    FT1000MP_NATIVE_PTT_ON,
-    FT1000MP_NATIVE_VFO_UPDATE,
-    FT1000MP_NATIVE_CURR_VFO_UPDATE,
-    FT1000MP_NATIVE_UPDATE,
-    FT1000MP_NATIVE_AB,
+    FT1000MP_NATIVE_SPLIT_ON,            // 1
+    FT1000MP_NATIVE_RECALL_MEM,          // 2
+    FT1000MP_NATIVE_VFO_TO_MEM,          // 3
+    FT1000MP_NATIVE_VFO_A,               // 4
+    FT1000MP_NATIVE_VFO_B,               // 5
+    FT1000MP_NATIVE_M_TO_VFO,            // 6
+    FT1000MP_NATIVE_RIT_ON,              // 7
+    FT1000MP_NATIVE_RIT_OFF,             // 8
+    FT1000MP_NATIVE_XIT_ON,              // 9
+    FT1000MP_NATIVE_XIT_OFF,             // 10
+    FT1000MP_NATIVE_RXIT_SET,            // 11
+    FT1000MP_NATIVE_FREQA_SET,           // 12
+    FT1000MP_NATIVE_FREQB_SET,           // 13
+    FT1000MP_NATIVE_MODE_SET_LSB,        // 14
+    FT1000MP_NATIVE_MODE_SET_USB,        // 15
+    FT1000MP_NATIVE_MODE_SET_CW,         // 16
+    FT1000MP_NATIVE_MODE_SET_CWR,        // 17
+    FT1000MP_NATIVE_MODE_SET_AM,         // 18
+    FT1000MP_NATIVE_MODE_SET_AMS,        // 19
+    FT1000MP_NATIVE_MODE_SET_FM,         // 20
+    FT1000MP_NATIVE_MODE_SET_FMW,        // 21
+    FT1000MP_NATIVE_MODE_SET_RTTY_LSB,   // 22
+    FT1000MP_NATIVE_MODE_SET_RTTY_USB,   // 23
+    FT1000MP_NATIVE_MODE_SET_DATA_LSB,   // 24
+    FT1000MP_NATIVE_MODE_SET_DATA_FM,    // 25
+    FT1000MP_NATIVE_MODE_SET_LSB_B,      // 26
+    FT1000MP_NATIVE_MODE_SET_USB_B,      // 27
+    FT1000MP_NATIVE_MODE_SET_CW_B,       // 28
+    FT1000MP_NATIVE_MODE_SET_CWR_B,      // 29
+    FT1000MP_NATIVE_MODE_SET_AM_B,       // 30
+    FT1000MP_NATIVE_MODE_SET_AMS_B,      // 31
+    FT1000MP_NATIVE_MODE_SET_FM_B,       // 32
+    FT1000MP_NATIVE_MODE_SET_FMW_B,      // 33
+    FT1000MP_NATIVE_MODE_SET_RTTY_LSB_B, // 34
+    FT1000MP_NATIVE_MODE_SET_RTTY_USB_B, // 35
+    FT1000MP_NATIVE_MODE_SET_DATA_LSB_B, // 36
+    FT1000MP_NATIVE_MODE_SET_DATA_FM_B,  // 37
+    FT1000MP_NATIVE_PACING,              // 38
+    FT1000MP_NATIVE_PTT_OFF,             // 39
+    FT1000MP_NATIVE_PTT_ON,              // 40
+    FT1000MP_NATIVE_VFO_UPDATE,          // 41
+    FT1000MP_NATIVE_CURR_VFO_UPDATE,     // 42
+    FT1000MP_NATIVE_UPDATE,              // 43
+    FT1000MP_NATIVE_AB,                  // 44
     FT1000MP_NATIVE_SIZE            /* end marker, value indicates number of */
     /* native cmd entries */
 
@@ -166,62 +166,62 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci);
 
 static const yaesu_cmd_set_t ncmd[] =
 {
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* split = off */
-    { 1, { 0x00, 0x00, 0x00, 0x01, 0x01 } }, /* split = on */
-    { 0, { 0x00, 0x00, 0x00, 0x00, 0x02 } }, /* recall memory */
-    { 0, { 0x00, 0x00, 0x00, 0x00, 0x03 } }, /* memory operations */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* select vfo A */
-    { 1, { 0x00, 0x00, 0x00, 0x01, 0x05 } }, /* select vfo B */
-    { 0, { 0x00, 0x00, 0x00, 0x00, 0x06 } }, /* copy memory data to vfo A */
-    { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, /* RX clarifier on */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, /* RX clarifier off */
-    { 1, { 0x00, 0x00, 0x00, 0x81, 0x09 } }, /* TX clarifier on */
-    { 1, { 0x00, 0x00, 0x00, 0x80, 0x09 } }, /* TX clarifier off */
-    { 0, { 0x00, 0x00, 0x00, 0xFF, 0x09 } }, /* set clarifier offset */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* 0 split = off */
+    { 1, { 0x00, 0x00, 0x00, 0x01, 0x01 } }, /* 1 split = on */
+    { 0, { 0x00, 0x00, 0x00, 0x00, 0x02 } }, /* 2 recall memory */
+    { 0, { 0x00, 0x00, 0x00, 0x00, 0x03 } }, /* 3 memory operations */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* 4 select vfo A */
+    { 1, { 0x00, 0x00, 0x00, 0x01, 0x05 } }, /* 5 select vfo B */
+    { 0, { 0x00, 0x00, 0x00, 0x00, 0x06 } }, /* 6 copy memory data to vfo A */
+    { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, /* 7 RX clarifier on */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, /* 8 RX clarifier off */
+    { 1, { 0x00, 0x00, 0x00, 0x81, 0x09 } }, /* 9 TX clarifier on */
+    { 1, { 0x00, 0x00, 0x00, 0x80, 0x09 } }, /* 10 TX clarifier off */
+    { 0, { 0x00, 0x00, 0x00, 0xFF, 0x09 } }, /* 11 set clarifier offset */
 
-    { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* set VFOA freq */
-    { 0, { 0x00, 0x00, 0x00, 0x00, 0x8a } }, /* set VFOB freq */
+    { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* 12 set VFOA freq */
+    { 0, { 0x00, 0x00, 0x00, 0x00, 0x8a } }, /* 13 set VFOB freq */
 
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* vfo A mode set LSB */
-    { 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* vfo A mode set USB */
-    { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* vfo A mode set CW-USB */
-    { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* vfo A mode set CW-LSB */
-    { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* vfo A mode set AM */
-    { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* vfo A mode set AM sync */
-    { 1, { 0x00, 0x00, 0x00, 0x06, 0x0c } }, /* vfo A mode set FM */
-    { 1, { 0x00, 0x00, 0x00, 0x07, 0x0c } }, /* vfo A mode set FMW? */
-    { 1, { 0x00, 0x00, 0x00, 0x08, 0x0c } }, /* vfo A mode set RTTY-LSB */
-    { 1, { 0x00, 0x00, 0x00, 0x09, 0x0c } }, /* vfo A mode set RTTY-USB */
-    { 1, { 0x00, 0x00, 0x00, 0x0a, 0x0c } }, /* vfo A mode set DATA-LSB */
-    { 1, { 0x00, 0x00, 0x00, 0x0b, 0x0c } }, /* vfo A mode set DATA-FM */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* 14 vfo A mode set LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* 15 vfo A mode set USB */
+    { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* 16 vfo A mode set CW-USB */
+    { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* 17 vfo A mode set CW-LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* 18 vfo A mode set AM */
+    { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* 19 vfo A mode set AM sync */
+    { 1, { 0x00, 0x00, 0x00, 0x06, 0x0c } }, /* 20 vfo A mode set FM */
+    { 1, { 0x00, 0x00, 0x00, 0x07, 0x0c } }, /* 21 vfo A mode set FMW? */
+    { 1, { 0x00, 0x00, 0x00, 0x08, 0x0c } }, /* 22 vfo A mode set RTTY-LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x09, 0x0c } }, /* 23 vfo A mode set RTTY-USB */
+    { 1, { 0x00, 0x00, 0x00, 0x0a, 0x0c } }, /* 24 vfo A mode set DATA-LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x0b, 0x0c } }, /* 25 vfo A mode set DATA-FM */
 
-    { 1, { 0x00, 0x00, 0x00, 0x80, 0x0c } }, /* vfo B mode set LSB */
-    { 1, { 0x00, 0x00, 0x00, 0x81, 0x0c } }, /* vfo B mode set USB */
-    { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, /* vfo B mode set CW-USB */
-    { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, /* vfo B mode set CW-LSB */
-    { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, /* vfo B mode set AM */
-    { 1, { 0x00, 0x00, 0x00, 0x85, 0x0c } }, /* vfo B mode set AM */
-    { 1, { 0x00, 0x00, 0x00, 0x86, 0x0c } }, /* vfo B mode set FM */
-    { 1, { 0x00, 0x00, 0x00, 0x87, 0x0c } }, /* vfo B mode set FMN */
-    { 1, { 0x00, 0x00, 0x00, 0x88, 0x0c } }, /* vfo B mode set DATA-LSB */
-    { 1, { 0x00, 0x00, 0x00, 0x89, 0x0c } }, /* vfo B mode set DATA-LSB */
-    { 1, { 0x00, 0x00, 0x00, 0x8a, 0x0c } }, /* vfo B mode set DATA-USB */
-    { 1, { 0x00, 0x00, 0x00, 0x8b, 0x0c } }, /* vfo B mode set DATA-FM */
+    { 1, { 0x00, 0x00, 0x00, 0x80, 0x0c } }, /* 26 vfo B mode set LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x81, 0x0c } }, /* 27 vfo B mode set USB */
+    { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, /* 28 vfo B mode set CW-USB */
+    { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, /* 29 vfo B mode set CW-LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, /* 30 vfo B mode set AM */
+    { 1, { 0x00, 0x00, 0x00, 0x85, 0x0c } }, /* 31 vfo B mode set AM */
+    { 1, { 0x00, 0x00, 0x00, 0x86, 0x0c } }, /* 32 vfo B mode set FM */
+    { 1, { 0x00, 0x00, 0x00, 0x87, 0x0c } }, /* 33 vfo B mode set FMN */
+    { 1, { 0x00, 0x00, 0x00, 0x88, 0x0c } }, /* 34 vfo B mode set DATA-LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x89, 0x0c } }, /* 35 vfo B mode set DATA-LSB */
+    { 1, { 0x00, 0x00, 0x00, 0x8a, 0x0c } }, /* 36 vfo B mode set DATA-USB */
+    { 1, { 0x00, 0x00, 0x00, 0x8b, 0x0c } }, /* 37 vfo B mode set DATA-FM */
 
-    { 0, { 0x00, 0x00, 0x00, 0x00, 0x0e } }, /* update interval/pacing */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x0F } }, /* PTT OFF */
-    { 1, { 0x00, 0x00, 0x00, 0x01, 0x0F } }, /* PTT ON */
-    { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* status update VFO A & B update */
-    { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } }, /* status update operating data */
+    { 0, { 0x00, 0x00, 0x00, 0x00, 0x0e } }, /* 38 update interval/pacing */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x0F } }, /* 39 PTT OFF */
+    { 1, { 0x00, 0x00, 0x00, 0x01, 0x0F } }, /* 40 PTT ON */
+    { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* 41 status update VFO A & B update */
+    { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } }, /* 42 status update operating data */
     // We only ask for the 1st 3 status bytes
     // The MARK-V was not recognizing the 6-byte request
     // This should be all we need as we're only getting the VFO
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0xFA } }, /* Read status flags */
-    /*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x70 } }, */ /* keyer commands */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, */ /* tuner off */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, */ /* tuner on */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } }, */ /* tuner start*/
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x85 } }, /* A>B */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0xFA } },        /* 43 Read status flags */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x85 } }, /* 44 A>B */
+    /*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x70 } }, */ /* 45 keyer commands */
+    /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, */ /* 46 tuner off */
+    /*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, */ /* 47 tuner on */
+    /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } }, */ /* 48 tuner start*/
 
 };
 
