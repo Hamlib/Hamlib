@@ -28,6 +28,7 @@ rigctlcom \- COM port passthru as TS-2000 emulator to your rig
 .OP \-S baud
 .OP \-c id
 .OP \-C parm=val
+.OP \-B
 .RB [ \-v [ \-Z ]]
 .YS
 .
@@ -244,13 +245,18 @@ e.g. \(lqrigctl -l | more\(rq.
 .
 .TP
 .BR \-n ", " \-\-no\-restore\-ai
-On exit
 .B rigctl
 restores the state of auto information (AI) on the controlled rig.
 .IP
 If this is not desired, for example if you are using
 .B rigctl
 to turn AI mode on or off, pass this option.
+.
+.TP
+.BR \-B ", " \-\-mapa2b
+Maps set_freq on VFOA to VFOB instead.
+This allows using CW skimmer with the rig in split mode and clicking on a frequency in CW skimmer
+will set VFOB to the transmit frequency.
 .
 .TP
 .BR \-v ", " \-\-verbose
