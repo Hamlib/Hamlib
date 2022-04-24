@@ -90,9 +90,10 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:R:p:d:P:D:s:S:c:C:lLuvhVZ"
+#define SHORT_OPTIONS "B:m:r:R:p:d:P:D:s:S:c:C:lLuvhVZ"
 static struct option long_options[] =
 {
+    {"mapa2b",          1, 0, 'B'},
     {"model",           1, 0, 'm'},
     {"rig-file",        1, 0, 'r'},
     {"rig-file2",       1, 0, 'R'},
@@ -120,6 +121,11 @@ static int handle_ts2000(void *arg);
 static RIG *my_rig;             /* handle to rig */
 static hamlib_port_t my_com;    /* handle to virtual COM port */
 static int verbose;
+/* CW Skimmer can only set VFOA */
+/* IC7300 for example can run VFOA on FM and VFOB on CW */
+/* So -A/--mapa2b changes set_freq on VFOA to VFOB */
+/* This allows working CW Skimmer in split mode and transmit on VFOB */
+static int mapa2b;              /* maps set_freq on VFOA to VFOB instead */
 
 #ifdef HAVE_SIG_ATOMIC_T
 static sig_atomic_t volatile ctrl_c;
@@ -219,7 +225,7 @@ int main(int argc, char *argv[])
     char conf_parms[MAXCONFLEN] = "";
     int status;
 
-    printf("rigctlcom Version 1.2\n");
+    printf("rigctlcom Version 1.3\n");
 
     while (1)
     {
@@ -247,6 +253,10 @@ int main(int argc, char *argv[])
         case 'V':
             version();
             exit(0);
+
+        case 'A':
+            mapa2b = 1;
+            break;
 
         case 'm':
             if (!optarg)
@@ -1512,9 +1522,11 @@ static int handle_ts2000(void *arg)
     else if (strncmp(arg, "FA0", 3) == 0)
     {
         freq_t freq;
+        vfo_t vfo = RIG_VFO_A;
+        if (mapa2b) vfo = RIG_VFO_B;
 
         sscanf((char *)arg + 2, "%"SCNfreq, &freq);
-        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
+        return rig_set_freq(my_rig, vfo_fixup(my_rig, vfo,
                                               my_rig->state.cache.split), freq);
     }
     else if (strncmp(arg, "FB0", 3) == 0)
