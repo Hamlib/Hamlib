@@ -10,9 +10,16 @@ Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 Version 5.x -- future
         * rig_get_conf deprecated and replaced by rig_get_conf2
         * rot_get_conf deprecated and replaced by rot_get_conf2
+        * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.5
         * 2022-04-XX
+        * Add -B/--mapa2b to rigctlcom
+          Allows rigctlcom to map set_freq on VFOA to VFOB instead
+          This will allow CW Skimmer to work with some rigs (e.g. IC7300) using FM
+          mode on VFOA and CW mode on VFOB and split mode transmit on VFOB.
+          Clicking on CW Skimmer will change VFOB instead of VFOA to allow working
+          dxpeditions where the fox is staying on frequency
         * Add password capability to rigctld via -A switch. 
           rigctld -A will produce a consistent shared key for any specific password that can used in \password and rig_set_password
           TBD The shared key can also be placed in .hamlib_settings 
