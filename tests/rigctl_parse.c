@@ -4688,7 +4688,7 @@ declare_proto_rig(send_cmd)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: backend_num=%d\n", __func__, backend_num);
 
-    if (backend_num == RIG_MODEL_FLRIG)
+    if (rig->caps->rig_model == RIG_MODEL_FLRIG)
     {
         // call flrig raw send function cat_string or cat_priority_string
         flrig_cat_string(rig, arg1);
