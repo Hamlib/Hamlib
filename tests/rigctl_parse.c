@@ -4665,6 +4665,8 @@ static int hasbinary(char *s, int len)
  *
  * 'w' and 'W'
  */
+extern int flrig_cat_string(RIG *rig, const char *arg);
+
 declare_proto_rig(send_cmd)
 {
     int retval;
@@ -4685,6 +4687,12 @@ declare_proto_rig(send_cmd)
     backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: backend_num=%d\n", __func__, backend_num);
+
+    if (backend_num == RIG_MODEL_FLRIG)
+    {
+        // call flrig raw send function cat_string or cat_priority_string
+        flrig_cat_string(rig, arg1);
+    }
 
     // need to move the eom_buf to rig-specifc backends
     // we'll let KENWOOD backends use the ; char in the rigctl commands
