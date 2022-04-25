@@ -142,7 +142,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20220205.0",
+    .version = "20220425.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -2319,6 +2319,13 @@ static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
+int flrig_cat_string (RIG *rig, const char *arg)
+{
+    int retval;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, arg);
+    retval = flrig_transaction(rig, "rig.cat_string", (char*)arg, NULL, 0);
+    return retval;
+}
 
 #if 0
 static int flrig_set_ext_parm(RIG *rig, setting_t parm, value_t val)
