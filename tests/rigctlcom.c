@@ -93,7 +93,7 @@
 #define SHORT_OPTIONS "B:m:r:R:p:d:P:D:s:S:c:C:lLuvhVZ"
 static struct option long_options[] =
 {
-    {"mapa2b",          1, 0, 'B'},
+    {"mapa2b",          0, 0, 'B'},
     {"model",           1, 0, 'm'},
     {"rig-file",        1, 0, 'r'},
     {"rig-file2",       1, 0, 'R'},
@@ -1658,6 +1658,7 @@ void usage()
         "  -S, --serial-speed2=BAUD      set serial speed of the virtual com port [default=115200]\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
         "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -B, --mapa2b                  maps set_freq on VFOA to VFOB -- useful for CW Skimmer\n"
         "  -L, --show-conf               list all config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
