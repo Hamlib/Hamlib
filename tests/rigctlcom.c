@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
             version();
             exit(0);
 
-        case 'A':
+        case 'B':
             mapa2b = 1;
             break;
 
