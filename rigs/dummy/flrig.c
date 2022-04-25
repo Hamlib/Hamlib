@@ -2322,8 +2322,11 @@ static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
 HAMLIB_EXPORT(int) flrig_cat_string (RIG *rig, const char *arg)
 {
     int retval;
+    char cmd_arg[MAXARGLEN];
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, arg);
-    retval = flrig_transaction(rig, "rig.cat_string", (char*)arg, NULL, 0);
+    SNPRINTF(cmd_arg, sizeof(cmd_arg),
+             "<params><param><value>%s</value></param></params>", arg);
+    retval = flrig_transaction(rig, "rig.cat_string", cmd_arg, NULL, 0);
     return retval;
 }
 
