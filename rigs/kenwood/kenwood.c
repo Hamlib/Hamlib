@@ -114,6 +114,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] =
     { RIG_MODEL_TS2000, "019" },
     { RIG_MODEL_TS480,  "020" },
     { RIG_MODEL_PT8000A, "020" }, // TS480 ID but behaves differently
+    { RIG_MODEL_SDRUNO, "020" }, // TS480 ID but behaves differently
     { RIG_MODEL_TS590S, "021" },
     { RIG_MODEL_TS990S, "022" },
     { RIG_MODEL_TS590SG,  "023" },
@@ -143,7 +144,7 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] =
     [5] = RIG_MODE_AM,
     [6] = RIG_MODE_RTTY, // FSK Mode
     [7] = RIG_MODE_CWR,
-    [8] = RIG_MODE_NONE,  /* TUNE mode */
+    [8] = RIG_MODE_NONE,  /* TUNE mode or PKTUSB for SDRUNO */
     [9] = RIG_MODE_RTTYR,  // FSKR Mode
     [10] = RIG_MODE_PSK,
     [11] = RIG_MODE_PSKR,
@@ -749,6 +750,12 @@ int kenwood_init(RIG *rig)
     priv->ag_format = -1;  // force determination of AG format
 
     rig_debug(RIG_DEBUG_TRACE, "%s: if_len = %d\n", __func__, caps->if_len);
+
+    // SDRUno uses mode 8 for DIG
+    if (rig->caps->rig_model == RIG_MODEL_SDRUNO)
+    {
+        kenwood_mode_table[8] = RIG_MODE_PKTUSB;
+    }
 
     RETURNFUNC2(RIG_OK);
 }
@@ -5670,6 +5677,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&pt8000a_caps);
     rig_register(&malachite_caps);
     rig_register(&tx500_caps);
+    rig_register(&sdruno_caps);
 
     return (RIG_OK);
 }
