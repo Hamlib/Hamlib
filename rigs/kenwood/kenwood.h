@@ -28,7 +28,7 @@
 #include "token.h"
 #include "misc.h"
 
-#define BACKEND_VER "20220312"
+#define BACKEND_VER "20220427"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -64,6 +64,8 @@ extern struct confparams kenwood_cfg_params[];
 #define MD_AM   '5'
 #define MD_FSK  '6'
 #define MD_CWR  '7'
+// MD_DIG used by SDRPlay
+#define MD_DIG  '8'
 #define MD_FSKR '9'
 
 /* S-meter calibration tables */
@@ -306,6 +308,7 @@ extern const struct rig_caps ts890s_caps;
 extern const struct rig_caps pt8000a_caps;
 extern const struct rig_caps malachite_caps;
 extern const struct rig_caps tx500_caps;
+extern const struct rig_caps sdruno_caps;
 
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd,
