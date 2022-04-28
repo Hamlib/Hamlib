@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             pbuf = "RM5100000;";
             n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
+//            printf("n=%d\n", n);
 
             if (n <= 0) { perror("RM5"); }
         }
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             pbuf = "AN030;";
             n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
+//            printf("n=%d\n", n);
 
             if (n <= 0) { perror("AN"); }
         }
@@ -135,10 +135,17 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             usleep(50 * 1000);
             pbuf = "IF000503130001000+0000000000030000000;";
+            //pbuf = "IF00010138698     +00000000002000000 ;
             n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
+//            printf("n=%d\n", n);
 
             if (n <= 0) { perror("IF"); }
+        }
+        else if (strcmp(buf,"FW;")==0)
+        {
+            usleep(50 * 1000);
+            pbuf = "FW2400;";
+            n = write(fd, pbuf, strlen(pbuf));
         }
         else if (strcmp(buf, "ID;") == 0)
         {
@@ -147,7 +154,7 @@ int main(int argc, char *argv[])
             int id = 24;
             SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
-            printf("n=%d\n", n);
+//            printf("n=%d\n", n);
 
             if (n <= 0) { perror("ID"); }
         }
@@ -173,7 +180,7 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             pbuf = "VS0;";
             n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
+//            printf("n=%d\n", n);
 
             if (n < 0) { perror("VS"); }
         }
@@ -185,7 +192,7 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
             n = write(fd, buf, strlen(buf));
-            printf("n=%d\n", n);
+//            printf("n=%d\n", n);
 
             if (n < 0) { perror("EX032"); }
         }
