@@ -121,7 +121,17 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             pbuf = "RM5100000;";
             n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
+            //printf("n=%d\n", n);
+
+            if (n <= 0) { perror("RM5"); }
+        }
+        if (strcmp(buf, "RM9;") == 0)
+        {
+            printf("%s\n", buf);
+            usleep(50 * 1000);
+            pbuf = "RM5100000;";
+            n = write(fd, pbuf, strlen(pbuf));
+            //printf("n=%d\n", n);
 
             if (n <= 0) { perror("RM5"); }
         }
@@ -132,7 +142,7 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             pbuf = "AN030;";
             n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
+            //printf("n=%d\n", n);
 
             if (n <= 0) { perror("AN"); }
         }
@@ -172,7 +182,7 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             pbuf = "IF00107041000+000000200000;";
             n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
+            //printf("n=%d\n", n);
 
             if (n <= 0) { perror("IF"); }
         }
@@ -183,7 +193,7 @@ int main(int argc, char *argv[])
             int id = NC_RIGID_FTDX3000DM;
             SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
-            printf("n=%d\n", n);
+            //printf("n=%d\n", n);
 
             if (n <= 0) { perror("ID"); }
         }
@@ -193,7 +203,7 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "AI0;");
             n = write(fd, buf, strlen(buf));
-            printf("n=%d\n", n);
+            //printf("n=%d\n", n);
 
             if (n <= 0) { perror("ID"); }
         }
@@ -311,7 +321,7 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
             n = write(fd, buf, strlen(buf));
-            printf("n=%d\n", n);
+            //printf("n=%d\n", n);
 
             if (n < 0) { perror("EX032"); }
         }
@@ -327,7 +337,7 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "NA00;");
             usleep(50*1000);
             n = write(fd, buf, strlen(buf));
-            printf("%s n=%d\n", buf, n);
+            //printf("%s n=%d\n", buf, n);
         }
 
         else if (strlen(buf) > 0)
