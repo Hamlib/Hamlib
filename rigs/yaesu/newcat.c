@@ -5501,10 +5501,11 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_TEMP_METER:
-        // return value in centigrade
-        if (retlvl[2] == '9') retlvl[6] = 0;
-        else retlvl[7] = 0;
-        val->f = (float)(atoi(retlvl) / 255. * 100.);
+        // return value in centigrade -- first 3 digits
+        i = 0;
+        sscanf(retlvl, "%3d", &i);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: retlvl=%s, i=%d\n", __func__, retlvl, i);
+        val->f = (float)(i / 255. * 100.);
         break;
 
     default:
