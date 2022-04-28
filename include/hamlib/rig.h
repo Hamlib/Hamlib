@@ -904,7 +904,7 @@ enum meter_level_e {
     RIG_METER_DB =      (1 << 4),   /*< DB */
     RIG_METER_PO =      (1 << 5),   /*< Power Out */
     RIG_METER_VDD =     (1 << 6),   /*< Final Amp Voltage */
-    RIG_METER_TEMP =    (1 << 7)    /*< Final Amp Voltage */
+    RIG_METER_TEMP =    (1 << 7)    /*< Final Amp Temperature */
 };
 
 
