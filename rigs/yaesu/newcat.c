@@ -5505,7 +5505,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         i = 0;
         sscanf(retlvl, "%3d", &i);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: retlvl=%s, i=%d\n", __func__, retlvl, i);
-        val->f = (float)(i / 255. * 100.);
+        val->i = i / 255. * 100.;
         break;
 
     default:
