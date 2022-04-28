@@ -5502,6 +5502,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_TEMP_METER:
         // return value in centigrade
+        if (retlvl[2] == '9') retlvl[6] = 0;
+        else retlvl[7] = 0;
         val->f = (float)(atoi(retlvl) / 255. * 100.);
         break;
 
