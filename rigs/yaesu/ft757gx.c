@@ -620,7 +620,8 @@ static int ft757gx_get_vfo(RIG *rig, vfo_t *vfo)
 {
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
     // we'll just use the cached vfo for the 757GX since we can't read it
-    return priv->current_vfo;
+    *vfo = priv->current_vfo;
+    return RIG_OK;
 }
 
 static int ft757_get_vfo(RIG *rig, vfo_t *vfo)
