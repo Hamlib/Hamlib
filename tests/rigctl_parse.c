@@ -1702,10 +1702,9 @@ readline_repeat:
 
     if (use_password && !is_passwordOK && (cmd_entry->arg1 != NULL) && !preCmd)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: need password=%s for cmd=%s\n", __func__,
-                  rigctld_password, cmd_entry->arg1);
+        rig_debug(RIG_DEBUG_ERR, "%s: password has not been provided\n", __func__)
         fflush(fin);
-        retcode = -RIG_EPROTO;
+        retcode = -RIG_ESECURITY;
     }
 
     else

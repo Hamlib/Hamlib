@@ -195,7 +195,8 @@ static const char *const rigerror_table[] =
     "NULL RIG handle or invalid pointer parameter",
     "Invalid VFO",
     "Argument out of domain of func",
-    "Function deprecated"
+    "Function deprecated",
+    "Security error password not provided or crypto failure"
 };
 
 
@@ -1950,9 +1951,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         *freq += rig->state.lo_freq;
     }
 
-    rig_cache_show(rig, __func__, __LINE__);
+    if (retcode == RIG_OK)
+        rig_cache_show(rig, __func__, __LINE__);
     rig_set_cache_freq(rig, vfo, *freq);
-    rig_cache_show(rig, __func__, __LINE__);
+    if (retcode == RIG_OK)
+        rig_cache_show(rig, __func__, __LINE__);
 
     ELAPSED2;
     return (retcode);
