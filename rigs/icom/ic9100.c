@@ -32,7 +32,7 @@
 
 
 #define IC9100_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|\
-        RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+        RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
 
 #define IC9100_OTHER_TX_MODES ((IC9100_MODES) & ~RIG_MODE_AM)
 
@@ -113,7 +113,7 @@ const struct rig_caps ic9100_caps =
     RIG_MODEL(RIG_MODEL_IC9100),
     .model_name = "IC-9100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
