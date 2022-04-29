@@ -408,6 +408,7 @@ static int ft757_cleanup(RIG *rig)
 
 static int ft757_open(RIG *rig)
 {
+    int retval;
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
@@ -418,6 +419,11 @@ static int ft757_open(RIG *rig)
     if (rig->caps->rig_model == RIG_MODEL_FT757)
     {
         memset(priv->update_data, 0, FT757GX_STATUS_UPDATE_DATA_LENGTH);
+        retval = rig_set_vfo(rig, RIG_VFO_A);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_set_vfo error: %s\n", __func__, rigerror(retval));
+        }
     }
     else
     {
