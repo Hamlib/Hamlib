@@ -157,7 +157,8 @@ enum rig_errcode_e {
     RIG_EARG,       /*!< 15 NULL RIG handle or any invalid pointer parameter in get arg */
     RIG_EVFO,       /*!< 16 Invalid VFO */
     RIG_EDOM,       /*!< 17 Argument out of domain of func */
-    RIG_EDEPRECATED /*!< 18 Function deprecated */
+    RIG_EDEPRECATED,/*!< 18 Function deprecated */
+    RIG_ESECURITY   /*!< 19 Security error */
 };
 
 /**
@@ -167,7 +168,7 @@ enum rig_errcode_e {
  */
 #define RIG_IS_SOFT_ERRCODE(errcode) (errcode == RIG_EINVAL || errcode == RIG_ENIMPL || errcode == RIG_ERJCTED \
     || errcode == RIG_ETRUNC || errcode == RIG_ENAVAIL || errcode == RIG_ENTARGET \
-    || errcode == RIG_EVFO || errcode == RIG_EDOM)
+    || errcode == RIG_EVFO || errcode == RIG_EDOM || errcode == RIG_ESECURITY)
 
 /**
  * \brief Token in the netrigctl protocol for returning error code
