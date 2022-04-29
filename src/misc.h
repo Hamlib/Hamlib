@@ -197,6 +197,16 @@ void errmsg(int err, char *s, const char *func, const char *file, int line);
     elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_INVALIDATE);\
      }
 
+
+typedef enum settings_value_e
+{
+    e_CHAR, e_INT, e_LONG, e_FLOAT, e_DOUBLE
+} settings_value_t;
+
+
+extern HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value, settings_value_t valuet);
+extern HAMLIB_EXPORT(int) rig_settings_load(char *setting, void *value, settings_value_t valuet);
+
 __END_DECLS
 
 #endif /* _MISC_H */
