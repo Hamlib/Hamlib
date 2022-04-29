@@ -68,6 +68,7 @@ static int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 
 static int ft757_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 static int ft757_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
+static int ft757gx_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
 static int ft757_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
@@ -115,7 +116,7 @@ const struct rig_caps ft757gx_caps =
     RIG_MODEL(RIG_MODEL_FT757),
     .model_name =       "FT-757GX",
     .mfg_name =     "Yaesu",
-    .version =      "20220214.0",
+    .version =      "20220429.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_MOBILE,
@@ -207,6 +208,7 @@ const struct rig_caps ft757gx_caps =
     .get_freq =     ft757gx_get_freq,   /* get freq */
     .set_mode =     NULL,           /* set mode */
     .get_mode =     NULL,           /* get mode */
+    .get_vfo =      ft757gx_get_vfo,    /* set vfo */
     .set_vfo =      ft757_set_vfo,      /* set vfo */
 
     .set_ptt =      NULL,           /* set ptt */
@@ -484,6 +486,7 @@ static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called. fakefreq=%d\n", __func__, priv->fakefreq);
     if (priv->fakefreq)   // only return last freq set when fakeit is turned on
     {
         *freq = priv->curfreq;
@@ -607,6 +610,12 @@ static int ft757_set_vfo(RIG *rig, vfo_t vfo)
     RETURNFUNC(write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH));
 }
 
+static int ft757gx_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    // we'll just use the cached vfo for the 757GX since we can't read it
+    return priv->current_vfo;
+}
 
 static int ft757_get_vfo(RIG *rig, vfo_t *vfo)
 {
