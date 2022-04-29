@@ -14,6 +14,8 @@ Version 5.x -- future
 
 Version 4.5
         * 2022-04-XX
+        * Add SDRPlay SDRUno rig -- can now use Data/Pkt in WSJTX
+        * Add ability to use cat_string to FLRig via the "w" and "W" commands
         * Add -B/--mapa2b to rigctlcom
           Allows rigctlcom to map set_freq on VFOA to VFOB instead
           This will allow CW Skimmer to work with some rigs (e.g. IC7300) using FM

@@ -307,6 +307,7 @@ int main(int argc, char *argv[])
             strncpy(rigctld_password, optarg, sizeof(rigctld_password) - 1);
             char *md5 = rig_make_md5(rigctld_password);
             printf("Secret key: %s\n", md5);
+            rig_settings_save("sharedkey", md5, e_CHAR);
             break;
 
         case 'm':

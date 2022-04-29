@@ -37,9 +37,12 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>   /* Error number definitions */
 
 #include <hamlib/rig.h>
 #include "cal.h"
+#include "misc.h"
 
 
 #ifndef DOC_HIDDEN
@@ -945,5 +948,149 @@ int HAMLIB_API rig_setting2idx(setting_t s)
 
     return 0;
 }
+
+#include <unistd.h>  /* UNIX standard function definitions */
+
+#if 0
+#include <hamlib/config.h>
+
+#include <stdlib.h>
+#include <stdarg.h>
+#include <stdio.h>   /* Standard input/output definitions */
+#include <string.h>  /* String function definitions */
+
+#ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+#endif
+
+#include <math.h>
+
+#include <hamlib/rig.h>
+#endif
+
+
+#define SETTINGS_FILE ".hamlib_settings"
+char *settings_file = SETTINGS_FILE;
+
+/**
+ * \brief Save setting parameter
+ * \param setting
+ * \param value
+ * \return RIG_OK or error
+ *
+ * \sa rig_setting_load()
+ */
+HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
+                                 settings_value_t valuetype)
+{
+    FILE *fp = fopen(settings_file, "r");
+    FILE *fptmp;
+    char buf[4096];
+    char *cvalue = (char*)value;
+    int *ivalue = (int*)value;
+    long *lvalue = (long*) value;
+    float *fvalue = (float*) value;
+    double *dvalue = (double*) value;
+    char *vformat;
+    char template[64];
+
+    strcpy(template,"hamlib_settings_XXXXXX");
+    switch (valuetype)
+    {
+    case e_CHAR: cvalue = (char *)value; vformat = "%s=%s\n"; break;
+
+    case e_INT: ivalue = (int *)value; vformat = "%s=%d\n"; break;
+
+    case e_LONG: lvalue = (long *)value; vformat = "%s=%l\n"; break;
+
+    case e_FLOAT: fvalue = (float *)value; vformat = "%s=%f\n"; break;
+
+    case e_DOUBLE: dvalue = (double *)value; vformat = "%s=%f\n"; break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Uknown valuetype=%d\n", __func__, valuetype);
+    }
+
+    if (fp == NULL)
+    {
+        // first time for this file
+        fp = fopen(settings_file, "w");
+
+        switch (valuetype)
+        {
+        case e_CHAR: fprintf(fp, vformat, setting, cvalue); break;
+
+        case e_INT: fprintf(fp, vformat, setting, *ivalue); break;
+
+        case e_LONG: fprintf(fp, vformat, setting, *lvalue); break;
+
+        case e_FLOAT: fprintf(fp, vformat, setting, *fvalue); break;
+
+        case e_DOUBLE: fprintf(fp, vformat, setting, *dvalue); break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Uknown valuetype=%d\n", __func__, valuetype);
+        }
+
+        fclose(fp);
+        return RIG_OK;
+    }
+
+    mkstemp(template);
+    printf("template=%s\n",template);
+    fptmp = fopen(template, "w");
+
+    if (fptmp == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error opening for write %s: %s\n", __func__,
+                  template, strerror(errno));
+        fclose(fp);
+        return -RIG_EIO;
+    }
+
+    while (fgets(buf, sizeof(buf), fp))
+    {
+        char *tmp = strdup(buf);
+        char *s = strtok(tmp, "=");
+
+        if (s == NULL)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse setting from '%s'\n", __func__,
+                      strtok(buf, "\r\n"));
+            fclose(fp);
+            fclose(fptmp);
+            return -RIG_EINTERNAL;
+        }
+
+        char *v = strtok(NULL, "\r\n");
+
+        if (v == NULL)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse value from '%s'\n", __func__,
+                      strtok(buf, "\r\n"));
+            fclose(fp);
+            fclose(fptmp);
+            return -RIG_EINTERNAL;
+        }
+        fprintf(fptmp, vformat, s, value);
+    }
+
+    fclose(fp);
+    fclose(fptmp);
+    remove(settings_file);
+    rename(template, settings_file);
+    return -RIG_ENIMPL;
+}
+
+HAMLIB_EXPORT(int) rig_settings_load(char *setting, void *value,
+                                 settings_value_t valuetype)
+{
+    return -RIG_ENIMPL;
+}
+
 
 /*! @} */
