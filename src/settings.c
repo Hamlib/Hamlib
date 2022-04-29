@@ -1040,7 +1040,8 @@ HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
         return RIG_OK;
     }
 
-    mkstemp(template);
+    int fd = mkstemp(template);
+    close(fd);
     printf("template=%s\n",template);
     fptmp = fopen(template, "w");
 
