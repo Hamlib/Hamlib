@@ -4944,17 +4944,17 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_TEMP_METER:
+        if (!newcat_valid_command(rig, "RM"))
+        {
+            RETURNFUNC(-RIG_ENAVAIL);
+        }
         if (is_ftdx9000)
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RM14%c", cat_term);
         }
-        else if (is_ftdx101d || is_ftdx101mp)
+        else 
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RM9%c", cat_term);
-        }
-        else
-        {
-            RETURNFUNC(-RIG_ENAVAIL);
         }
 
         break;
