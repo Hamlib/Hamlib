@@ -954,11 +954,15 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             // we need to change vfos, BS, and change back
             if (newcat_valid_command(rig, "VS"))
+            {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VS%d;BS%02d%c",
                      vfo1, newcat_band_index(freq), cat_term);
+            }
             else
+            {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
                      newcat_band_index(freq), cat_term);
+            }
 
 
             if (RIG_OK != (err = newcat_set_cmd(rig)))
