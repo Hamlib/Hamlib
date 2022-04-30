@@ -334,8 +334,9 @@ static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         cmdstr[retval] = 0;
 
         sscanf(cmdstr, "%d.", &val->i);
+        val->f = val->i;
 
-        rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER val=%d\n", val->i);
+        rig_debug(RIG_DEBUG_TRACE, "RIG_LEVEL_TEMP_METER val=%g\n", val->f);
 
         return RIG_OK;
         break;
@@ -361,7 +362,7 @@ const struct rig_caps rshfiq_caps =
     RIG_MODEL(RIG_MODEL_RSHFIQ),
     .model_name =     "RS-HFIQ",
     .mfg_name =       "HobbyPCB",
-    .version =        "20211020.0",
+    .version =        "20220430.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,

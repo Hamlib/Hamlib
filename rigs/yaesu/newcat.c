@@ -5504,8 +5504,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         // return value in centigrade -- first 3 digits
         i = 0;
         sscanf(retlvl, "%3d", &i);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: retlvl=%s, i=%d\n", __func__, retlvl, i);
-        val->i = i / 255. * 100.;
+        val->f = i / 255. * 100.;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: retlvl=%s, i=%d, val=%g\n", __func__, retlvl, i, val->f);
         break;
 
     default:
