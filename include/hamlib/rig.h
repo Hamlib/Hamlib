@@ -893,6 +893,7 @@ typedef unsigned int ant_t;
 #define RIG_AGC_LAST RIG_AGC_AUTO
 //! @endcond
 
+#if 1 // deprecated
 /**
  * \brief Level display meters
  */
@@ -907,6 +908,7 @@ enum meter_level_e {
     RIG_METER_VDD =     (1 << 6),   /*< Final Amp Voltage */
     RIG_METER_TEMP =    (1 << 7)    /*< Final Amp Temperature */
 };
+#endif
 
 
 /**
