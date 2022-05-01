@@ -75,7 +75,7 @@ const struct rig_caps ftdx101mp_caps =
     RIG_MODEL(RIG_MODEL_FTDX101MP),
     .model_name =         "FTDX-101MP",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".5",
+    .version =            NEWCAT_VER ".6",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -117,6 +117,7 @@ const struct rig_caps ftdx101mp_caps =
     .bank_qty =           0,
     .chan_desc_sz =       0,
     .rfpower_meter_cal =  FTDX101MP_RFPOWER_METER_WATTS_CAL,
+    .vd_meter_cal =       YAESU_DEFAULT_VD_METER_200W_CAL,
     .str_cal =            FTDX101D_STR_CAL,
     .swr_cal =            FTDX101D_SWR_CAL,
     .chan_list =          {

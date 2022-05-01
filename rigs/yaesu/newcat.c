@@ -186,19 +186,21 @@ const cal_table_float_t yaesu_default_rfpower_meter_cal =
 
 const cal_table_float_t yaesu_default_vd_meter_cal =
 {
-    2,
+    3,
     {
         {0, 0.0f},
-        {190, 13.8f},
+        {196, 13.8f},
+        {255, 17.95f},
     }
 };
 
 const cal_table_float_t yaesu_default_id_meter_cal =
 {
-    2,
+    3,
     {
         {0, 0.0f},
         {100, 10.0f},
+        {255, 25.5f},
     }
 };
 

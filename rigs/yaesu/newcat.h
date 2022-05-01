@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20220430"
+#define NEWCAT_VER "20220501"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -68,6 +68,18 @@ typedef char ncboolean;
     .ctcss_tone = 1,\
     .ctcss_sql = 1,\
 }
+
+#define YAESU_DEFAULT_VD_METER_200W_CAL \
+{ \
+    3, \
+    { \
+        {0, 0.0f}, \
+        {196, 50.0f}, \
+        {255, 65.0f}, \
+    } \
+}
+
+
 
 extern const struct confparams newcat_cfg_params[];
 
