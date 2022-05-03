@@ -4542,8 +4542,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
     ELAPSED1;
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rx_vfo=%s, split=%d, tx_vfo=%s\n", __func__,
-              rig_strvfo(rx_vfo), split, rig_strvfo(tx_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rx_vfo=%s, split=%d, tx_vfo=%s, cache.split=%d\n", __func__,
+              rig_strvfo(rx_vfo), split, rig_strvfo(tx_vfo), rig->state.cache.split);
 
     if (CHECK_RIG_ARG(rig))
     {
