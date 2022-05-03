@@ -142,7 +142,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20220425.0",
+    .version = "20220503.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -784,6 +784,9 @@ static int flrig_open(RIG *rig)
     rmode_t modes;
     char *p;
     char *pr;
+    split_t split;
+    vfo_t tx_vfo;
+
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     ENTERFUNC;
@@ -1029,7 +1032,7 @@ static int flrig_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__, value);
 
-
+    rig_get_split_vfo(rig, RIG_VFO_A, &split, &tx_vfo);
 
     RETURNFUNC(retval);
 }
