@@ -4585,8 +4585,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         tx_vfo = vfo_fixup(rig, tx_vfo, split);
         rig->state.rx_vfo = rx_vfo;
         rig->state.tx_vfo = tx_vfo;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: final rxvfo=%s, txvfo=%s\n", __func__,
-                  rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: final rxvfo=%s, txvfo=%s, split=%d\n", __func__,
+                  rig_strvfo(rx_vfo), rig_strvfo(tx_vfo), rig->state.cache.split);
     }
 
     // set rig to the the requested RX VFO
@@ -4766,6 +4766,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
             rig->state.cache.split = *split;
             rig->state.cache.split_vfo = *tx_vfo;
             elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
+            rig_debug(RIG_DEBUG_TRACE, "%s: cache.split=%d\n", __func__, rig->state.cache.split);
         }
         ELAPSED2;
         RETURNFUNC(retcode);
