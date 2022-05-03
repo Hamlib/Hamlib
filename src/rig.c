@@ -307,9 +307,31 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
 #endif /* !DOC_HIDDEN */
 
 
-char debugmsgsave[DEBUGMSGSAVE_SIZE] = "No message";
-char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "No message";
-char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "No message";
+char debugmsgsave[DEBUGMSGSAVE_SIZE] = "";
+char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "";
+char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "";
+
+void add2debugmsgsave(const char *s)
+{
+    int l1 = strlen(debugmsgsave);
+    int l2 = strlen(s);
+    int l3 = sizeof(debugmsgsave)-2;
+    while(l1 + l2 > l3)
+    {
+        char *p=strchr(debugmsgsave,'\n');
+        memmove(debugmsgsave,p+1,strlen(p+1)+1); // include null byte
+        l1 = strlen(debugmsgsave);
+        if (l1==0)
+        {
+            //rig_debug(RIG_DEBUG_ERR, "%s: debugmsgsave criticl error...overflow\n");
+            // we'll keep some of whatever this thing is
+            strncat(debugmsgsave, p, sizeof(debugmsgsave)/2);
+            return;
+        }
+    }
+    strcat(debugmsgsave,s);
+}
+
 
 /**
  * \brief get string describing the error code
@@ -338,9 +360,14 @@ const char *HAMLIB_API rigerror(int errnum)
 
     if (*p == '\n') { *p = 0; }
 
+#if 0
     SNPRINTF(msg, sizeof(msg), "%.80s\n%.15000s%.15000s%.15000s",
              rigerror_table[errnum],
              debugmsgsave3, debugmsgsave2, debugmsgsave);
+#else
+    add2debugmsgsave(rigerror_table[errnum]);
+    snprintf(msg, sizeof(msg), "%s", debugmsgsave);
+#endif
     return msg;
 }
 
@@ -743,6 +770,31 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         strcpy(rs->dcdport.pathname, rs->dcdport_deprecated.pathname);
     }
+
+    // Read in our settings
+    char *cwd = malloc(4096);
+    if(getcwd(cwd,4096)==NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: getcwd: %s\n", __func__, strerror(errno));
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: cwd=%s\n", __func__, cwd);
+        char *path = malloc(4096);
+        extern char *settings_file;
+        sprintf(path, "%s/%s", cwd, settings_file);
+        FILE *fp = fopen(path, "r");
+        if (fp == NULL)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: %s does not exist\n", __func__, path);
+        }
+        else {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: reading settings from %s\n", __func__, path);
+        }
+        free(path);
+    }
+
+    free(cwd);
 
     // Enable async data only if it's enabled through conf settings *and* supported by the backend
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
