@@ -789,7 +789,7 @@ int ser_close(hamlib_port_t *p)
     int rc;
     term_options_backup_t *term_backup, *term_backup_prev;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /*
      * For microHam devices, do not close the
