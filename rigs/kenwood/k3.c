@@ -1950,6 +1950,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char levelbuf[16];
     int retval;
     int lvl;
+    size_t len;
     struct kenwood_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2215,7 +2216,6 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-        size_t len;
         retval = kenwood_transaction(rig, "PC", levelbuf, sizeof(levelbuf));
         if (retval != RIG_OK)
         {
