@@ -116,6 +116,7 @@ struct flrig_priv_data
     pbwidth_t curr_widthB;
     int has_get_modeA; /* True if this function is available */
     int has_get_bwA; /* True if this function is available */
+    int has_set_bwA; /* True if this function is available */
     int has_verify_cmds; // has the verify cmd in FLRig 1.3.54.1 or higher
     float powermeter_scale;  /* So we can scale power meter to 0-1 */
     value_t parms[RIG_SETTING_MAX];
@@ -142,7 +143,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20220503.0",
+    .version = "20220504.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -804,17 +805,23 @@ static int flrig_open(RIG *rig)
 
     int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
     sscanf(value, "%d.%d.%d.%d", &v1, &v2, &v3, &v4);
+    char version[32];
+    sprintf(version,"%03d%03d%03d%03d",v1,v2,v3,v4);
+    int iversion = 0;
+    sscanf(version,"%d", &iversion);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: version='%s'=%d\n", __func__, version, iversion);
 
-    if (v1 >= 1 && v2 >= 3 && v3 >= 54)
+    priv->has_verify_cmds = 0;
+    if (iversion >= 1003054000) // 1.3.54 or greater
     {
         priv->has_verify_cmds = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: verify set_vfoA/ptt is available\n",
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA/ptt is available\n",
                   __func__);
     }
-    else
+    if (iversion >= 1004005012) // 1.4.5.12 or greater
     {
-        priv->has_verify_cmds = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: verify set vfoA/ptt is not available\n",
+        priv->has_set_bwA = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwA/bwB is available\n",
                   __func__);
     }
 
@@ -869,17 +876,21 @@ static int flrig_open(RIG *rig)
 
     /* see if get_bwA is available */
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
-
+    priv->has_get_bwA = 1;
     if (retval == RIG_ENAVAIL) // must not have it
     {
         priv->has_get_bwA = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is available=%s\n", __func__,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available=%s\n", __func__,
                   value);
     }
-    else
+    /* see if set_bwA is available */
+    retval = flrig_transaction(rig, "rig.set_bwA", NULL, value, sizeof(value));
+    priv->has_set_bwA = 1;
+    if (retval == RIG_ENAVAIL) // must not have it
     {
-        priv->has_get_bwA = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available\n", __func__);
+        priv->has_set_bwA = 0;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available=%s\n", __func__,
+                  value);
     }
 
     strcpy(arg, value);
@@ -1509,7 +1520,10 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                  "<params><param><value><i4>%ld</i4></value></param></params>",
                  width);
 
-        retval = flrig_transaction(rig, "rig.set_bandwidth", cmd_arg, NULL, 0);
+        if (vfo == RIG_VFO_A)
+        retval = flrig_transaction(rig, "rig.set_bwA", cmd_arg, NULL, 0);
+        else
+        retval = flrig_transaction(rig, "rig.set_bwB", cmd_arg, NULL, 0);
 
         if (retval < 0)
         {
