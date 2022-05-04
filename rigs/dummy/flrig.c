@@ -781,7 +781,7 @@ static int flrig_open(RIG *rig)
 {
     int retval;
     char value[MAXXMLLEN];
-    char arg[MAXXMLLEN];
+    //char arg[MAXXMLLEN];
     rmode_t modes;
     char *p;
     char *pr;
@@ -816,13 +816,6 @@ static int flrig_open(RIG *rig)
     {
         priv->has_verify_cmds = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA/ptt is available\n",
-                  __func__);
-    }
-    priv->has_set_bwA = 0;
-    if (iversion >= 1004005012) // 1.4.5.12 or greater
-    {
-        priv->has_set_bwA = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwA/bwB is available\n",
                   __func__);
     }
 
@@ -876,16 +869,31 @@ static int flrig_open(RIG *rig)
 
     /* see if get_bwA is available */
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
-    priv->has_get_bwA = 1;
     if (retval == RIG_ENAVAIL) // must not have it
     {
         priv->has_get_bwA = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available=%s\n", __func__,
-                  value);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available=%s\n", __func__, value);
+    }
+    else
+    {
+        priv->has_get_bwA = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is available=%s\n", __func__, value);
     }
 
-    strcpy(arg, value);
-    retval = flrig_transaction(rig, "rig.get_AB", arg, value, sizeof(value));
+    /* see if set_bwA is available */
+    retval = flrig_transaction(rig, "rig.set_bwA", NULL, value, sizeof(value));
+    if (retval == RIG_ENAVAIL) // must not have it
+    {
+        priv->has_set_bwA = 0;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwA is not available=%s\n", __func__, value);
+    }
+    else
+    {
+        priv->has_set_bwA = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwA is available=%s\n", __func__, value);
+    }
+
+    retval = flrig_transaction(rig, "rig.get_AB", NULL, value, sizeof(value));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
