@@ -2068,7 +2068,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     ELAPSED1;
 
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s called, vfo=%s, mode=%s, width=%dm, curr_vfo=%s\n", __func__,
+              "%s called, vfo=%s, mode=%s, width=%d, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), (int)width,
               rig_strvfo(rig->state.current_vfo));
 
