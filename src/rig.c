@@ -354,18 +354,21 @@ const char *HAMLIB_API rigerror(int errnum)
         return "ERR_OUT_OF_RANGE";
     }
 
-    static char msg[DEBUGMSGSAVE_SIZE * 3];
+    static char msg[DEBUGMSGSAVE_SIZE];
+#if 0
     // we have to remove LF from debugmsgsave since calling function controls LF
     char *p = &debugmsgsave[strlen(debugmsgsave) - 1];
 
     if (*p == '\n') { *p = 0; }
+#endif
 
 #if 0
     SNPRINTF(msg, sizeof(msg), "%.80s\n%.15000s%.15000s%.15000s",
              rigerror_table[errnum],
              debugmsgsave3, debugmsgsave2, debugmsgsave);
 #else
-    add2debugmsgsave(rigerror_table[errnum]);
+    snprintf(msg, sizeof(msg), "%s\n", rigerror_table[errnum]);
+    add2debugmsgsave(msg);
     snprintf(msg, sizeof(msg), "%s", debugmsgsave);
 #endif
     return msg;
