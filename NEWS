@@ -12,8 +12,11 @@ Version 5.x -- future
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP
 
+Version 4.6
+        
 Version 4.5
         * 2022-04-XX
+        * enum meter_level_e is deprecated and will be removed in 4.6
         * Add SDRPlay SDRUno rig -- can now use Data/Pkt in WSJTX
         * Add ability to use cat_string to FLRig via the "w" and "W" commands
         * Add -B/--mapa2b to rigctlcom
