@@ -818,6 +818,7 @@ static int flrig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: set_vfoA/ptt is available\n",
                   __func__);
     }
+    priv->has_set_bwA = 0;
     if (iversion >= 1004005012) // 1.4.5.12 or greater
     {
         priv->has_set_bwA = 1;
@@ -873,22 +874,12 @@ static int flrig_open(RIG *rig)
         RETURNFUNC(RIG_EPROTO);
     }
 
-
     /* see if get_bwA is available */
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
     priv->has_get_bwA = 1;
     if (retval == RIG_ENAVAIL) // must not have it
     {
         priv->has_get_bwA = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available=%s\n", __func__,
-                  value);
-    }
-    /* see if set_bwA is available */
-    retval = flrig_transaction(rig, "rig.set_bwA", NULL, value, sizeof(value));
-    priv->has_set_bwA = 1;
-    if (retval == RIG_ENAVAIL) // must not have it
-    {
-        priv->has_set_bwA = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available=%s\n", __func__,
                   value);
     }
