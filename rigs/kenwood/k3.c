@@ -185,7 +185,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".20",
+    .version =      BACKEND_VER ".21",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -337,7 +337,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".16",
+    .version =      BACKEND_VER ".17",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -488,7 +488,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".18",
+    .version =      BACKEND_VER ".19",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -638,7 +638,7 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".15",
+    .version =      BACKEND_VER ".16",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -788,7 +788,7 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".14",
+    .version =      BACKEND_VER ".15",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1781,9 +1781,12 @@ static int k3_get_maxpower(RIG *rig)
     struct kenwood_priv_data *priv = rig->state.priv;
 
     // default range is 0-12 if there is no KPA3 installed
-    if (priv->has_kpa3 || priv->has_kpa100) { maxpower = 110; }
+    if (priv->has_kpa3 || priv->has_kpa100) 
+    { 
+        maxpower = 110; 
+    }
 
-    if (RIG_IS_KX2 || RIG_IS_KX3)
+    else if (RIG_IS_KX2 || RIG_IS_KX3)
     {
 
         int bandnum = -1;
@@ -2212,15 +2215,29 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-        retval = kenwood_safe_transaction(rig, "PC", levelbuf, sizeof(levelbuf), 5);
-
+        size_t len;
+        retval = kenwood_transaction(rig, "PC", levelbuf, sizeof(levelbuf));
         if (retval != RIG_OK)
         {
             return retval;
         }
 
-        sscanf(levelbuf + 2, "%d", &lvl);
+        len = strlen(levelbuf);
+        if (len == 5 || len == 6)
+        {
+            sscanf(levelbuf + 2, "%d", &lvl);
+            if (len == 6) {
+                // K2 extended reply
+                lvl /= 10;
+            }
+        }
+        else
+        {
+            return RIG_EPROTO;
+        }
+                            
         val->f = (float) lvl / k3_get_maxpower(rig);
+
         break;
 
     default:
