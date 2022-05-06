@@ -488,7 +488,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".20",
+    .version =      BACKEND_VER ".21",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -2717,8 +2717,9 @@ int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char pttbuf[6];
+    int i;
     int retval;
-    ptt_t ptt2;
+    ptt_t ptt2 = -1;
     char cmd[4];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2734,9 +2735,8 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         return retval;
     }
 
-    do
+    for(i=0; i<5 && ptt2 != ptt; ++i)
     {
-        hl_usleep(10 * 1000);
         retval = kenwood_safe_transaction(rig, "TQ", pttbuf, 6, 3);
 
         if (retval != RIG_OK)
@@ -2748,11 +2748,11 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         if (ptt2 != ptt)
         {
+            hl_usleep(100 * 1000);
             rig_debug(RIG_DEBUG_TRACE, "%s: ptt=%d, expected=%d\n", __func__, ptt2, ptt);
         }
 
     }
-    while (ptt != ptt2);
 
     return RIG_OK;
 }
