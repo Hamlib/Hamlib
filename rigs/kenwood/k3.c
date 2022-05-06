@@ -2753,7 +2753,7 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         }
     }
     // had one report of Fake It not returning to RX freq after TX -- so a little more time for the K4
-    hl_usleep(100 * 1000);
+    if (ptt = RIG_PTT_OFF) hl_usleep(100 * 1000);
 
     return RIG_OK;
 }
