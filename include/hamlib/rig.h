@@ -3274,9 +3274,10 @@ rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 
 extern HAMLIB_EXPORT(void)add2debugmsgsave(const char *s);
 // this need to be fairly big to avoid compiler warnings
-#define DEBUGMSGSAVE_SIZE 16512
+#define DEBUGMSGSAVE_SIZE 24000
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave[DEBUGMSGSAVE_SIZE];  // last debug msg
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave2[DEBUGMSGSAVE_SIZE];  // last-1 debug msg
+// debugmsgsave3 is deprecated
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debug msg
 #ifndef __cplusplus
 #ifdef __GNUC__
