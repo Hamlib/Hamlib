@@ -602,6 +602,10 @@ AS_IF([test x"${build_tcl}" = "xyes"],[
 	[AC_MSG_ERROR([Unable to find Tcl headers])])
     CPPFLAGS=$tcl_save_CPPFLAGS
 
+    PKG_CHECK_MODULES([TCL], [tcl],
+	[],
+	[AC_MSG_ERROR([Unable to find Tcl pkgconfig])])
+
     BINDING_LIST="${BINDING_LIST} tcl"
     BINDING_ALL="${BINDING_ALL} all-tcl"
     BINDING_CHECK="${BINDING_CHECK} check-tcl"
@@ -617,6 +621,9 @@ AC_SUBST([TCL_VERSION])
 AC_SUBST([TCL_LIB_SPEC])
 AC_SUBST([TCL_INCLUDE_SPEC])
 AC_SUBST([TCL_SHLIB_SUFFIX])
+dnl These variables are set once tcl.pc is found.
+AC_SUBST([TCL_LIBS])
+AC_SUBST([TCL_CFLAGS])
 
 
 dnl Check for lua availability, so we can enable HamlibLua
