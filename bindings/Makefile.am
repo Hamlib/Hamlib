@@ -149,9 +149,8 @@ PKG_VER = $(ABI_VERSION).$(ABI_REVISION)
 DLL = hamlibtcl-$(PKG_VER)$(TCL_SHLIB_SUFFIX)
 
 nodist_hamlibtcl_la_SOURCES = hamlibtcl_wrap.c
-hamlibtcl_la_CFLAGS = $(TCL_CFLAGS)
 hamlibtcl_la_LDFLAGS = -no-undefined -module -release $(PKG_VER) -avoid-version
-hamlibtcl_la_LIBADD = $(top_builddir)/src/libhamlib.la $(TCL_LIB_SPEC) $(TCL_LIBS)
+hamlibtcl_la_LIBADD = $(top_builddir)/src/libhamlib.la $(TCL_LIB_SPEC)
 
 hamlibtcl_ladir = $(tcldir)
 hamlibtcl_la_DATA = pkgIndex.tcl
