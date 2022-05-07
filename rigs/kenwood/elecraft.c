@@ -522,11 +522,12 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ '%s'\n", __func__, splitbuf);
     }
 
-    *vfo = RIG_VFO_A;
+    *vfo = rig->state.tx_vfo = RIG_VFO_A;
 
-    if (tq && ft == 1) { *vfo = RIG_VFO_B; }
+    if (tq && ft == 1) { *vfo = rig->state.tx_vfo = RIG_VFO_B; }
+    else if (tq && ft == 0) { *vfo = rig->state.tx_vfo = RIG_VFO_A; }
 
-    if (!tq && fr == 1) { *vfo = RIG_VFO_B; }
+    if (!tq && fr == 1) { *vfo = rig->state.rx_vfo = rig->state.tx_vfo = RIG_VFO_B; }
 
     RETURNFUNC2(RIG_OK);
 }
