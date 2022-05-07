@@ -130,6 +130,7 @@ AC_DEFUN([SC_LOAD_TCLCONFIG], [
 	. $TCL_BIN_DIR/tclConfig.sh
     else
         AC_MSG_RESULT([file not found])
+        AC_MSG_ERROR([failed to load tclConfig.sh])
     fi
 
     #

@@ -589,11 +589,16 @@ AC_ARG_WITH([tcl-binding],
     [build_tcl=no])
 AC_MSG_RESULT([$build_tcl])
 
-dnl SC_PATH_TCLCONFIG and SC_LOAD_TCLCONFIG from macros/tcl.m4
+dnl tcl.pc or SC_PATH_TCLCONFIG and SC_LOAD_TCLCONFIG from macros/tcl.m4
 AS_IF([test x"${build_tcl}" = "xyes"],[
-    dnl Search for and load tclConfig.sh.
-    SC_PATH_TCLCONFIG
-    SC_LOAD_TCLCONFIG
+    dnl Search for and load tcl.pc or tclConfig.sh.
+    PKG_CHECK_MODULES([TCL], [tcl],
+        [],
+        [
+            AC_MSG_WARN([Unable to find Tcl pkgconfig])
+            SC_PATH_TCLCONFIG
+            SC_LOAD_TCLCONFIG
+        ])
 
     tcl_save_CPPFLAGS=$CPPFLAGS
     CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
@@ -617,6 +622,9 @@ AC_SUBST([TCL_VERSION])
 AC_SUBST([TCL_LIB_SPEC])
 AC_SUBST([TCL_INCLUDE_SPEC])
 AC_SUBST([TCL_SHLIB_SUFFIX])
+dnl These variables are set once tcl.pc is found.
+AC_SUBST([TCL_LIBS])
+AC_SUBST([TCL_CFLAGS])
 
 
 dnl Check for lua availability, so we can enable HamlibLua
