@@ -488,7 +488,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".22",
+    .version =      BACKEND_VER ".23",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -2753,7 +2753,7 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         }
     }
     // had one report of Fake It not returning to RX freq after TX -- so a little more time for the K4
-    if (ptt = RIG_PTT_OFF) hl_usleep(100 * 1000);
+    if (ptt == RIG_PTT_OFF) hl_usleep(100 * 1000);
 
     return RIG_OK;
 }

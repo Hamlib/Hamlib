@@ -19,6 +19,7 @@ char modeA='1';
 char modeB='1';
 int width=0;
 int ptt;
+int power=1;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -115,7 +116,21 @@ int main(int argc, char *argv[])
         }
         else { return 0; }
 
-        if (strcmp(buf, "RM5;") == 0)
+        if (buf[0] == 0x0a)
+        {
+            continue;
+        }
+        if (strcmp(buf, "PS;") == 0)
+        {
+            sprintf(resp, "PS%d;", power);
+            n = write(fd, resp, strlen(resp));
+            if (n <= 0) { perror("PS"); }
+        }
+        else if (strncmp(buf, "PS", 2) == 0)
+        {
+            sscanf(buf,"PS%d", &power);
+        }
+        else if (strcmp(buf, "RM5;") == 0)
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
@@ -125,18 +140,28 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("RM5"); }
         }
-        if (strcmp(buf, "RM9;") == 0)
+        else if (strcmp(buf, "RM8;") == 0)
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            pbuf = "RM5100000;";
+            pbuf = "RM8197000;";
             n = write(fd, pbuf, strlen(pbuf));
             //printf("n=%d\n", n);
 
-            if (n <= 0) { perror("RM5"); }
+            if (n <= 0) { perror("RM8"); }
+        }
+        else if (strcmp(buf, "RM9;") == 0)
+        {
+            printf("%s\n", buf);
+            usleep(50 * 1000);
+            pbuf = "RM9089000;";
+            n = write(fd, pbuf, strlen(pbuf));
+            //printf("n=%d\n", n);
+
+            if (n <= 0) { perror("RM9"); }
         }
 
-        if (strcmp(buf, "AN0;") == 0)
+        else if (strcmp(buf, "AN0;") == 0)
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
@@ -342,7 +367,7 @@ int main(int argc, char *argv[])
 
         else if (strlen(buf) > 0)
         {
-            fprintf(stderr, "Unknown command: %s\n", buf);
+            fprintf(stderr, "Unknown command: '%s'\n", buf);
         }
 
     }
