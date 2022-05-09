@@ -5608,7 +5608,7 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 {
     int retcode;
 
-    ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
 
     if (CHECK_RIG_ARG(rig))
     {
