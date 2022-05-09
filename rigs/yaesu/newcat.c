@@ -3298,6 +3298,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
         {
             freq_t freq;
             hl_usleep(1000000);
+            rig_flush(&state->rigport);
             retval = rig_get_freq(rig, RIG_VFO_A, &freq);
 
             if (retval == RIG_OK)
