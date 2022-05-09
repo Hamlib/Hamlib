@@ -3277,6 +3277,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_OFF:
     case RIG_POWER_STANDBY:
         ps = '0';
+        write_block(&state->rigport, (unsigned char *) "PS0;", 4);
         break;
 
     default:
