@@ -4612,12 +4612,15 @@ declare_proto_rig(recv_dtmf)
 declare_proto_rig(set_powerstat)
 {
     int stat;
+    int retval;
 
     ENTERFUNC;
 
     CHKSCN1ARG(sscanf(arg1, "%d", &stat));
 
-    RETURNFUNC(rig_set_powerstat(rig, (powerstat_t) stat));
+    retval = rig_set_powerstat(rig, (powerstat_t) stat);
+    fflush(fin);
+    RETURNFUNC(retval);
 }
 
 
