@@ -5623,7 +5623,7 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 
     TRACE;
     retcode = rig->caps->set_powerstat(rig, status);
-    rig_flush(rig); // if anything is queued up flush it
+    rig_flush(&rig->state.rigport); // if anything is queued up flush it
     RETURNFUNC(retcode);
 }
 
