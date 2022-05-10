@@ -669,6 +669,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         if (interactive)
         {
             static int last_was_ret = 1;
+            static int last_cmd;
 
             if (prompt)
             {
@@ -679,8 +680,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 if ((retcode = scanfc(fin, "%c", &cmd)) < 1)
                 {
-                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d\n", __func__,
-                              retcode);
+                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d, last_cmd=%c\n", __func__,
+                              retcode, last_cmd);
                     return (RIGCTL_PARSE_ERROR);
                 }
 
