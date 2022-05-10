@@ -519,6 +519,19 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
 
+    if (width == RIG_PASSBAND_NOCHANGE) {
+        switch(vfo)
+        {
+        case RIG_VFO_MAIN:
+        case RIG_VFO_A: width = priv->vfo_a.width;break;
+
+        case RIG_VFO_SUB:
+        case RIG_VFO_B: width = priv->vfo_b.width;break;
+
+        case RIG_VFO_C: width = priv->vfo_c.width;break;
+        }
+    }
+
     switch (vfo)
     {
     case RIG_VFO_MAIN:
@@ -2246,7 +2259,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20211213.0",
+    .version =        "20220510.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
@@ -2477,7 +2490,7 @@ struct rig_caps dummy_no_vfo_caps =
     RIG_MODEL(RIG_MODEL_DUMMY_NOVFO),
     .model_name =     "Dummy No VFO",
     .mfg_name =       "Hamlib",
-    .version =        "20210504.0",
+    .version =        "20220510.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
