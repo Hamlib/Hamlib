@@ -687,8 +687,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 if (cmd != 0xa && cmd != 0xd)
                 {
-                    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x)\n", __func__,
-                              isprint(cmd) ? cmd : ' ', cmd);
+                    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x) handle=%df\n", __func__,
+                              isprint(cmd) ? cmd : ' ', cmd, fileno(fin));
                 }
 
                 /* Extended response protocol requested with leading '+' on command
@@ -759,7 +759,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                     *pcmd = '\0';
                     cmd = parse_arg((char *)cmd_name);
-                    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd_name);
+                    rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s handle=%d\n", __func__, cmd_name, fileno(fin));
                     break;
                 }
 
