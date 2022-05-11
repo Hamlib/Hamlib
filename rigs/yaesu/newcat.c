@@ -10422,6 +10422,14 @@ int newcat_set_cmd_validate(RIG *rig)
         // could validate with RF but different formats need to be handled
         strcpy(valcmd, ""); // nothing to validate
     }
+    else if (strncmp(priv->cmd_str, "BU", 2) == 0)
+    {
+        strcpy(valcmd, "FA;"); // nothing to validate
+    }
+    else if (strncmp(priv->cmd_str, "BD", 2) == 0)
+    {
+        strcpy(valcmd, "FA;"); // nothing to validate
+    }
     else
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: %s not implemented\n", __func__, priv->cmd_str);
