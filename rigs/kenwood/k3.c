@@ -43,6 +43,8 @@
     RIG_FUNC_DUAL_WATCH|RIG_FUNC_DIVERSITY|\
     RIG_FUNC_LOCK|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_SEND_MORSE)
 
+#define K4_FUNC_ALL (K3_FUNC_ALL|RIG_FUNC_MUTE)
+
 #define K3_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
     RIG_LEVEL_STRENGTH|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|\
     RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|\
@@ -488,7 +490,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".23",
+    .version =      BACKEND_VER ".24",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -506,8 +508,8 @@ const struct rig_caps k4_caps =
     .timeout =      1000,   /* FA and FB make take up to 500 ms on band change */
     .retry =        5,
 
-    .has_get_func =     K3_FUNC_ALL,
-    .has_set_func =     K3_FUNC_ALL,
+    .has_get_func =     K4_FUNC_ALL,
+    .has_set_func =     K4_FUNC_ALL,
     .has_get_level =    K3_LEVEL_ALL,
     .has_set_level =    RIG_LEVEL_SET(K3_LEVEL_ALL),
     .has_get_parm =     RIG_PARM_NONE,
@@ -2376,6 +2378,10 @@ int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     case RIG_FUNC_SEND_MORSE:
         // Transmit a CW character - K3 does not return any response
         snprintf(buf, sizeof(buf), "KYW%c", status);
+        break;
+
+    case RIG_FUNC_MUTE: // K4 Only that we know of
+        SNPRINTF(buf, sizeof(buf), "AG%c", (status == 0) ? '/' : '0');
         break;
 
     default:
