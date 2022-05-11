@@ -247,6 +247,21 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "FB%d", &freqb);
         }
+        else if (strncmp(buf, "FR;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "FR0;");
+            write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "FT;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "FT0;");
+            write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "TQ;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "TQ0;");
+            write(fd, buf, strlen(buf));
+        }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
