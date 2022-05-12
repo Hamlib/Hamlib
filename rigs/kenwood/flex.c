@@ -99,9 +99,8 @@ int verify_flexradio_id(RIG *rig, char *id)
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig (%.5s) is not a Flex 6000 Series\n",
+        rig_debug(RIG_DEBUG_WARN, "%s: Rig (%.5s) is not a Flex 6000 Series\n",
                   __func__, id);
-        return -RIG_EPROTO;
     }
 
     return RIG_OK;
