@@ -1268,6 +1268,7 @@ const struct rig_caps powersdr_caps =
     .max_rit =      Hz(0),
     .max_xit =      Hz(0),
     .max_ifshift =      Hz(0),
+    .vfo_op =      kenwood_vfo_op,
     .vfo_ops =      POWERSDR_VFO_OP,
     .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive =       RIG_TRN_RIG,
