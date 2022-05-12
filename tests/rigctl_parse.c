@@ -687,7 +687,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                 if (cmd != 0xa && cmd != 0xd)
                 {
-                    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x) handle=%df\n", __func__,
+                    rig_debug(RIG_DEBUG_TRACE, "%s: cmd=%c(%02x) handle=%d\n", __func__,
                               isprint(cmd) ? cmd : ' ', cmd, fileno(fin));
                 }
 
