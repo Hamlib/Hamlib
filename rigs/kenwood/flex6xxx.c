@@ -42,7 +42,7 @@
 #define F6K_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD)
 
 #define F6K_VFO (RIG_VFO_A|RIG_VFO_B)
-#define F6K_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+#define POWERSDR_VFO_OP (RIG_OP_BAND_UP|RIG_OP_BAND_DOWN)
 
 #define F6K_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
@@ -1230,7 +1230,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20220320.0",
+    .version =      "20220512.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1268,7 +1268,7 @@ const struct rig_caps powersdr_caps =
     .max_rit =      Hz(0),
     .max_xit =      Hz(0),
     .max_ifshift =      Hz(0),
-    .vfo_ops =      RIG_OP_NONE,
+    .vfo_ops =      POWERSDR_VFO_OP,
     .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive =       RIG_TRN_RIG,
     .bank_qty =     0,
