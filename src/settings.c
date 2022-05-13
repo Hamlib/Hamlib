@@ -1113,8 +1113,9 @@ HAMLIB_EXPORT(int) rig_settings_load_all(char *settings_file)
 
         if (strcmp(s, "sharedkey") == 0)
         {
-            //sharedkey = strdup(v);
-            //rig_debug(RIG_DEBUG_TRACE, "%s: settings_file=%s, shared_key=%s\n", __func__, settings_file, sharedkey);
+            char *sharedkey = strdup(v);
+            rig_debug(RIG_DEBUG_TRACE, "%s: settings_file=%s, shared_key=%s\n", __func__, settings_file, sharedkey);
+            free(sharedkey);
         }
     }
 
