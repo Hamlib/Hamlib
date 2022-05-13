@@ -9976,7 +9976,7 @@ int newcat_get_rigid(RIG *rig)
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "rig_id = %d\n", priv->rig_id)
+        rig_debug(RIG_DEBUG_TRACE, "rig_id = %d\n", priv->rig_id);
     }
 
     RETURNFUNC(priv->rig_id);
