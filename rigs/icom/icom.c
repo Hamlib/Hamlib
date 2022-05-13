@@ -8686,7 +8686,7 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
 
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: unknown Icom spectrum scope mode: %d\n", __func__,
-                      spectrum_scope_mode)
+                      spectrum_scope_mode);
             RETURNFUNC(-RIG_EPROTO);
         }
 
