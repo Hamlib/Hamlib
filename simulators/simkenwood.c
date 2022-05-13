@@ -252,6 +252,14 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "DA%d", &datamode);
         }
+        else if (strncmp(buf, "BD;", 3) == 0)
+        {
+            continue;
+        }
+        else if (strncmp(buf, "BU;", 3) == 0)
+        {
+            continue;
+        }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
