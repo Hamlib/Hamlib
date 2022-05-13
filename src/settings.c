@@ -1042,7 +1042,6 @@ HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
 
     int fd = mkstemp(template);
     close(fd);
-    printf("template=%s\n",template);
     fptmp = fopen(template, "w");
 
     if (fptmp == NULL)
@@ -1091,6 +1090,28 @@ HAMLIB_EXPORT(int) rig_settings_load(char *setting, void *value,
                                  settings_value_t valuetype)
 {
     return -RIG_ENIMPL;
+}
+
+HAMLIB_EXPORT(int) rig_settings_load_all(char * settings_file)
+{
+    FILE *fp = fopen(settings_file, "r");
+    char buf[4096];
+    if (fp == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: settings_file error(%s): %s\n", __func__, settings_file, strerror(errno));
+        return -RIG_EINVAL;
+    }
+    while(fgets(buf,sizeof(buf),fp))
+    {
+        char *s = strtok(buf,"=");
+        char *v = strtok(NULL, "\r\n");
+        if (strcmp(s,"sharedkey")==0)
+        {
+            //sharedkey = strdup(v);
+            //rig_debug(RIG_DEBUG_TRACE, "%s: settings_file=%s, shared_key=%s\n", __func__, settings_file, sharedkey);
+        }
+    }
+    return RIG_OK;
 }
 
 

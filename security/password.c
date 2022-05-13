@@ -49,8 +49,8 @@ HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
 
     srand(product);
 
-    snprintf(newpass, sizeof(newpass) - 1, "%s\t%lu\n", pass, (long)rand());
-    printf("debug=%s\n", newpass);
+    snprintf(newpass, sizeof(newpass) - 1, "%s\t%lu\t%lu", pass, (long)rand(),time(NULL));
+    //printf("debug=%s\n", newpass);
     char *md5str = rig_make_md5(newpass);
 
     strncpy(result, md5str, HAMLIB_SECRET_LENGTH);
@@ -62,7 +62,7 @@ HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
     printf("\nCan be used with rigctl --password [secret]\nOr can be place in ~/.hamlib_settings\n");
 }
 
-#define TESTPASSWORD
+//#define TESTPASSWORD
 #ifdef TESTPASSWORD
 int main(int argc, char *argv[])
 {
