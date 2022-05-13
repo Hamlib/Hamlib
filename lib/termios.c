@@ -2257,17 +2257,20 @@ static void show_DCB(DCB myDCB)
         report("fOutxDsrFlow\n");
     }
 
-    if (myDCB.fDtrControl & DTR_CONTROL_HANDSHAKE);
+    if (myDCB.fDtrControl & DTR_CONTROL_HANDSHAKE)
+    {
+        report("DTR_CONTROL_HANDSHAKE\n");
+    }
 
-    report("DTR_CONTROL_HANDSHAKE\n");
+    if (myDCB.fDtrControl & DTR_CONTROL_ENABLE)
+    {
+        report("DTR_CONTROL_ENABLE\n");
+    }
 
-    if (myDCB.fDtrControl & DTR_CONTROL_ENABLE);
-
-    report("DTR_CONTROL_ENABLE\n");
-
-    if (myDCB.fDtrControl & DTR_CONTROL_DISABLE);
-
-    report("DTR_CONTROL_DISABLE\n");
+    if (myDCB.fDtrControl & DTR_CONTROL_DISABLE)
+    {
+        report("DTR_CONTROL_DISABLE\n");
+    }
 
     if (myDCB.fDsrSensitivity)
     {
