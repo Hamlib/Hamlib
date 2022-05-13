@@ -120,6 +120,8 @@ int main(int argc, char *argv[])
         {
             continue;
         }
+
+        if (power==0 && strcmp(buf,"PS1;")!=0) continue;
         if (strcmp(buf, "PS;") == 0)
         {
             sprintf(resp, "PS%d;", power);
