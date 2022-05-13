@@ -37,7 +37,6 @@
 #include <string.h>
 #include <inttypes.h>
 #include <time.h>
-#include <sys/time.h>
 #include <hamlib/config.h>
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
@@ -3282,7 +3281,7 @@ extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debu
 #ifndef __cplusplus
 #ifdef __GNUC__
 // doing the debug macro with a dummy sprintf allows gcc to check the format string
-#define rig_debug(debug_level,fmt,...) do { snprintf(debugmsgsave2,sizeof(debugmsgsave2),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); add2debugmsgsave(debugmsgsave2); } while(0);
+#define rig_debug(debug_level,fmt,...) do { snprintf(debugmsgsave2,sizeof(debugmsgsave2),fmt,__VA_ARGS__);rig_debug(debug_level,fmt,##__VA_ARGS__); add2debugmsgsave(debugmsgsave2); } while(0)
 #endif
 #endif
 
@@ -3389,6 +3388,8 @@ extern HAMLIB_EXPORT(int) hl_usleep(rig_useconds_t msec);
 extern HAMLIB_EXPORT(int) rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie, int cookie_len);
 
 extern HAMLIB_EXPORT(int) rig_password(RIG *rig, const char *key1);
+extern HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
+        char result[HAMLIB_SECRET_LENGTH + 1]);
 
 //extern HAMLIB_EXPORT(int)
 int longlat2locator HAMLIB_PARAMS((double longitude,
