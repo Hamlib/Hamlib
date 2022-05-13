@@ -806,12 +806,14 @@ static int flrig_open(RIG *rig)
     int v1 = 0, v2 = 0, v3 = 0, v4 = 0;
     sscanf(value, "%d.%d.%d.%d", &v1, &v2, &v3, &v4);
     char version[32];
-    sprintf(version,"%03d%03d%03d%03d",v1,v2,v3,v4);
+    sprintf(version, "%03d%03d%03d%03d", v1, v2, v3, v4);
     int iversion = 0;
-    sscanf(version,"%d", &iversion);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: version='%s'=%d\n", __func__, version, iversion);
+    sscanf(version, "%d", &iversion);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: version='%s'=%d\n", __func__, version,
+              iversion);
 
     priv->has_verify_cmds = 0;
+
     if (iversion >= 1003054000) // 1.3.54 or greater
     {
         priv->has_verify_cmds = 1;
@@ -869,10 +871,12 @@ static int flrig_open(RIG *rig)
 
     /* see if get_bwA is available */
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
+
     if (retval == RIG_ENAVAIL) // must not have it
     {
         priv->has_get_bwA = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available=%s\n", __func__, value);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available=%s\n", __func__,
+                  value);
     }
     else
     {
@@ -882,10 +886,12 @@ static int flrig_open(RIG *rig)
 
     /* see if set_bwA is available */
     retval = flrig_transaction(rig, "rig.set_bwA", NULL, value, sizeof(value));
+
     if (retval == RIG_ENAVAIL) // must not have it
     {
         priv->has_set_bwA = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwA is not available=%s\n", __func__, value);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwA is not available=%s\n", __func__,
+                  value);
     }
     else
     {
@@ -1520,9 +1526,13 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                  width);
 
         if (vfo == RIG_VFO_A)
-        retval = flrig_transaction(rig, "rig.set_bwA", cmd_arg, NULL, 0);
+        {
+            retval = flrig_transaction(rig, "rig.set_bwA", cmd_arg, NULL, 0);
+        }
         else
-        retval = flrig_transaction(rig, "rig.set_bwB", cmd_arg, NULL, 0);
+        {
+            retval = flrig_transaction(rig, "rig.set_bwB", cmd_arg, NULL, 0);
+        }
 
         if (retval < 0)
         {
@@ -2335,7 +2345,7 @@ static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
-HAMLIB_EXPORT(int) flrig_cat_string (RIG *rig, const char *arg)
+HAMLIB_EXPORT(int) flrig_cat_string(RIG *rig, const char *arg)
 {
     int retval;
     char cmd_arg[MAXARGLEN];

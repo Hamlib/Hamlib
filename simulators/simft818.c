@@ -15,9 +15,9 @@ float freqB = 14074500;
 char tx_vfo = '0';
 char rx_vfo = '0';
 vfo_t curr_vfo = RIG_VFO_A;
-char modeA='1';
-char modeB='1';
-int width=0;
+char modeA = '1';
+char modeB = '1';
+int width = 0;
 int ptt;
 
 // ID 0310 == 310, Must drop leading zero
@@ -200,9 +200,9 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "AI0;") == 0)
         {
-            usleep(50*1000);
+            usleep(50 * 1000);
         }
-        else if (strcmp(buf,"AB;") == 0)
+        else if (strcmp(buf, "AB;") == 0)
         {
             freqB = freqA;
             modeB = modeA;
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "TX", 2) == 0)
         {
             usleep(50 * 1000);
-            ptt = buf[2] == '0'? 0 : 1;
+            ptt = buf[2] == '0' ? 0 : 1;
         }
         else if (strcmp(buf, "EX032;") == 0)
         {
@@ -316,17 +316,17 @@ int main(int argc, char *argv[])
 
             if (n < 0) { perror("EX032"); }
         }
-        else if (strcmp(buf,"SH0;") == 0)
+        else if (strcmp(buf, "SH0;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "SH0%02d;", width);
-            usleep(50*1000);
+            usleep(50 * 1000);
             n = write(fd, buf, strlen(buf));
             printf("%s n=%d\n", buf, n);
         }
         else if (strcmp(buf, "NA0;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "NA00;");
-            usleep(50*1000);
+            usleep(50 * 1000);
             n = write(fd, buf, strlen(buf));
             printf("%s n=%d\n", buf, n);
         }

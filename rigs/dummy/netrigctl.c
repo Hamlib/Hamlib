@@ -2640,7 +2640,9 @@ int netrigctl_password(RIG *rig, const char *key1)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: key1=%s\n", __func__, key1);
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\password %s\n", key1);
     retval = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
-    if (retval != RIG_OK) retval = -RIG_EPROTO;
+
+    if (retval != RIG_OK) { retval = -RIG_EPROTO; }
+
     RETURNFUNC(retval);
 }
 

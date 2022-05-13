@@ -1773,9 +1773,9 @@ static int k3_get_maxpower(RIG *rig)
     struct kenwood_priv_data *priv = rig->state.priv;
 
     // default range is 0-12 if there is no KPA3 installed
-    if (priv->has_kpa3 || priv->has_kpa100) 
-    { 
-        maxpower = 110; 
+    if (priv->has_kpa3 || priv->has_kpa100)
+    {
+        maxpower = 110;
     }
 
     else if (RIG_IS_KX2 || RIG_IS_KX3)
@@ -2209,16 +2209,20 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RFPOWER:
         retval = kenwood_transaction(rig, "PC", levelbuf, sizeof(levelbuf));
+
         if (retval != RIG_OK)
         {
             return retval;
         }
 
         len = strlen(levelbuf);
+
         if (len == 5 || len == 6)
         {
             sscanf(levelbuf + 2, "%d", &lvl);
-            if (len == 6) {
+
+            if (len == 6)
+            {
                 // K2 extended reply
                 lvl /= 10;
             }
@@ -2227,7 +2231,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             return RIG_EPROTO;
         }
-                            
+
         val->f = (float) lvl / k3_get_maxpower(rig);
 
         break;
@@ -2741,7 +2745,7 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         return retval;
     }
 
-    for(i=0; i<5 && ptt2 != ptt; ++i)
+    for (i = 0; i < 5 && ptt2 != ptt; ++i)
     {
         retval = kenwood_safe_transaction(rig, "TQ", pttbuf, 6, 3);
 
@@ -2758,8 +2762,9 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             rig_debug(RIG_DEBUG_TRACE, "%s: ptt=%d, expected=%d\n", __func__, ptt2, ptt);
         }
     }
+
     // had one report of Fake It not returning to RX freq after TX -- so a little more time for the K4
-    if (ptt == RIG_PTT_OFF) hl_usleep(100 * 1000);
+    if (ptt == RIG_PTT_OFF) { hl_usleep(100 * 1000); }
 
     return RIG_OK;
 }

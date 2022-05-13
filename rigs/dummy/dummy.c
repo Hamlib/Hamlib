@@ -519,16 +519,17 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
 
-    if (width == RIG_PASSBAND_NOCHANGE) {
-        switch(vfo)
+    if (width == RIG_PASSBAND_NOCHANGE)
+    {
+        switch (vfo)
         {
         case RIG_VFO_MAIN:
-        case RIG_VFO_A: width = priv->vfo_a.width;break;
+        case RIG_VFO_A: width = priv->vfo_a.width; break;
 
         case RIG_VFO_SUB:
-        case RIG_VFO_B: width = priv->vfo_b.width;break;
+        case RIG_VFO_B: width = priv->vfo_b.width; break;
 
-        case RIG_VFO_C: width = priv->vfo_c.width;break;
+        case RIG_VFO_C: width = priv->vfo_c.width; break;
         }
     }
 

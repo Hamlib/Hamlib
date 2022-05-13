@@ -315,21 +315,24 @@ void add2debugmsgsave(const char *s)
 {
     int l1 = strlen(debugmsgsave);
     int l2 = strlen(s);
-    int l3 = sizeof(debugmsgsave)-2;
-    while(l1 + l2 > l3)
+    int l3 = sizeof(debugmsgsave) - 2;
+
+    while (l1 + l2 > l3)
     {
-        char *p=strchr(debugmsgsave,'\n');
-        memmove(debugmsgsave,p+1,strlen(p+1)+1); // include null byte
+        char *p = strchr(debugmsgsave, '\n');
+        memmove(debugmsgsave, p + 1, strlen(p + 1) + 1); // include null byte
         l1 = strlen(debugmsgsave);
-        if (l1==0)
+
+        if (l1 == 0)
         {
             //rig_debug(RIG_DEBUG_ERR, "%s: debugmsgsave criticl error...overflow\n");
             // we'll keep some of whatever this thing is
-            strncat(debugmsgsave, p, sizeof(debugmsgsave)/2);
+            strncat(debugmsgsave, p, sizeof(debugmsgsave) / 2);
             return;
         }
     }
-    strcat(debugmsgsave,s);
+
+    strcat(debugmsgsave, s);
 }
 
 
@@ -360,6 +363,7 @@ const char *HAMLIB_API rigerror(int errnum)
     char *p = &debugmsgsave[strlen(debugmsgsave) - 1];
 
     if (*p == '\n') { *p = 0; }
+
 #endif
 
 #if 0
@@ -776,7 +780,8 @@ int HAMLIB_API rig_open(RIG *rig)
 
     // Read in our settings
     char *cwd = malloc(4096);
-    if(getcwd(cwd,4096)==NULL)
+
+    if (getcwd(cwd, 4096) == NULL)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: getcwd: %s\n", __func__, strerror(errno));
     }
@@ -787,13 +792,16 @@ int HAMLIB_API rig_open(RIG *rig)
         extern char *settings_file;
         sprintf(path, "%s/%s", cwd, settings_file);
         FILE *fp = fopen(path, "r");
+
         if (fp == NULL)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: %s does not exist\n", __func__, path);
         }
-        else {
+        else
+        {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: reading settings from %s\n", __func__, path);
         }
+
         free(path);
     }
 
@@ -851,7 +859,7 @@ int HAMLIB_API rig_open(RIG *rig)
             if (rig->caps->rig_model != RIG_MODEL_X6100)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s(%d): Icom rig UDP network enabled\n", __FILE__,
-                      __LINE__);
+                          __LINE__);
                 rs->rigport.type.rig = RIG_PORT_UDP_NETWORK;
             }
 
@@ -2007,10 +2015,16 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     if (retcode == RIG_OK)
+    {
         rig_cache_show(rig, __func__, __LINE__);
+    }
+
     rig_set_cache_freq(rig, vfo, *freq);
+
     if (retcode == RIG_OK)
+    {
         rig_cache_show(rig, __func__, __LINE__);
+    }
 
     ELAPSED2;
     return (retcode);
@@ -4545,7 +4559,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
     ELAPSED1;
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rx_vfo=%s, split=%d, tx_vfo=%s, cache.split=%d\n", __func__,
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: rx_vfo=%s, split=%d, tx_vfo=%s, cache.split=%d\n", __func__,
               rig_strvfo(rx_vfo), split, rig_strvfo(tx_vfo), rig->state.cache.split);
 
     if (CHECK_RIG_ARG(rig))
@@ -4588,7 +4603,8 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         tx_vfo = vfo_fixup(rig, tx_vfo, split);
         rig->state.rx_vfo = rx_vfo;
         rig->state.tx_vfo = tx_vfo;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: final rxvfo=%s, txvfo=%s, split=%d\n", __func__,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: final rxvfo=%s, txvfo=%s, split=%d\n",
+                  __func__,
                   rig_strvfo(rx_vfo), rig_strvfo(tx_vfo), rig->state.cache.split);
     }
 
@@ -4769,7 +4785,8 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
             rig->state.cache.split = *split;
             rig->state.cache.split_vfo = *tx_vfo;
             elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
-            rig_debug(RIG_DEBUG_TRACE, "%s: cache.split=%d\n", __func__, rig->state.cache.split);
+            rig_debug(RIG_DEBUG_TRACE, "%s: cache.split=%d\n", __func__,
+                      rig->state.cache.split);
         }
         ELAPSED2;
         RETURNFUNC(retcode);
@@ -4810,7 +4827,8 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
         rig->state.cache.split = *split;
         rig->state.cache.split_vfo = *tx_vfo;
         elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
-        rig_debug(RIG_DEBUG_TRACE, "%s(%d): cache.split=%d\n", __func__, __LINE__, rig->state.cache.split);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): cache.split=%d\n", __func__, __LINE__,
+                  rig->state.cache.split);
     }
 
     ELAPSED2;
@@ -5830,9 +5848,10 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     caps = rig->caps;
 
-    if (caps->vfo_op == NULL || rig_has_vfo_op(rig, op)==0)
+    if (caps->vfo_op == NULL || rig_has_vfo_op(rig, op) == 0)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: vfo_op=%p, has_vfo_op=%d\n", __func__, caps->vfo_op, rig_has_vfo_op(rig, op));
+        rig_debug(RIG_DEBUG_WARN, "%s: vfo_op=%p, has_vfo_op=%d\n", __func__,
+                  caps->vfo_op, rig_has_vfo_op(rig, op));
         RETURNFUNC(-RIG_ENAVAIL);
     }
 

@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
         case 'A':
             strncpy(rigctld_password, optarg, sizeof(rigctld_password) - 1);
             //char *md5 = rig_make_m d5(rigctld_password);
-            char md5[HAMLIB_SECRET_LENGTH+1];
+            char md5[HAMLIB_SECRET_LENGTH + 1];
             rig_password_generate_secret(rigctld_password, md5);
             printf("Secret key: %s\n", md5);
             rig_settings_save("sharedkey", md5, e_CHAR);
@@ -632,7 +632,8 @@ int main(int argc, char *argv[])
     rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
-    rig_debug(RIG_DEBUG_VERBOSE, "Max# of rigctld client services=%d\n", NI_MAXSERV);
+    rig_debug(RIG_DEBUG_VERBOSE, "Max# of rigctld client services=%d\n",
+              NI_MAXSERV);
 
     my_rig = rig_init(my_model);
 
@@ -1067,6 +1068,7 @@ int main(int argc, char *argv[])
     /* allow threads to finish current action */
     mutex_rigctld(1);
     TRACE;
+
     if (client_count)
     {
         rig_debug(RIG_DEBUG_WARN, "%u outstanding client(s)\n", client_count);

@@ -821,10 +821,11 @@ static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int retries = rig->state.rigport.retry +
                   1; // +1 because, because 2 steps are needed even in best scenario
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called, vfo=%s, ptt=%d, split=%d\n", __func__, rig_strvfo(vfo), rig->state.cache.ptt, rig->state.cache.split);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called, vfo=%s, ptt=%d, split=%d\n", __func__,
+              rig_strvfo(vfo), rig->state.cache.ptt, rig->state.cache.split);
 
     // we can't query VFOB while in transmit and split mode
-    if (rig->state.cache.ptt && vfo==RIG_VFO_B && rig->state.cache.split)
+    if (rig->state.cache.ptt && vfo == RIG_VFO_B && rig->state.cache.split)
     {
         *freq = rig->state.cache.freqMainB;
         return RIG_OK;
@@ -1618,7 +1619,7 @@ static int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_CTCSS_DCS_OFF);
         }
-            
+
     case RIG_FUNC_CSQL:
         if (status)
         {
@@ -1627,8 +1628,8 @@ static int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         else
         {
             return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_CTCSS_DCS_OFF);
-        }            
-            
+        }
+
     case RIG_FUNC_RIT:
         if (status)
         {
@@ -1799,7 +1800,7 @@ static int ft817_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     }
 
     /* the rig rejects if these are repeated - don't confuse user with retcode */
-    
+
     /* not used anymore, RIG_FUNC_RIT implemented
     if (rit == 0)
     {

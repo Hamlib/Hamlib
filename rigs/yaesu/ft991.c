@@ -236,34 +236,34 @@ const struct rig_caps ft991_caps =
         {FT991_RTTY_DATA_RX_MODES,    Hz(2400)},    /*        RTTY, DATA */
         {FT991_RTTY_DATA_RX_MODES,    Hz(2000)},    /*        RTTY, DATA */
         {FT991_RTTY_DATA_RX_MODES,    Hz(1700)},    /*        RTTY, DATA */
-		{FT991_RTTY_DATA_RX_MODES,    Hz(1400)},    /*        RTTY, DATA */
-		{FT991_RTTY_DATA_RX_MODES,    Hz(1200)},    /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(1400)},    /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(1200)},    /*        RTTY, DATA */
         {FT991_RTTY_DATA_RX_MODES,    Hz(800)},     /*        RTTY, DATA */
         {FT991_RTTY_DATA_RX_MODES,    Hz(450)},     /*        RTTY, DATA */
         {FT991_RTTY_DATA_RX_MODES,    Hz(400)},     /*        RTTY, DATA */
         {FT991_RTTY_DATA_RX_MODES,    Hz(350)},     /*        RTTY, DATA */
-		{FT991_RTTY_DATA_RX_MODES,    Hz(250)},     /*        RTTY, DATA */
-		{FT991_RTTY_DATA_RX_MODES,    Hz(200)},     /*        RTTY, DATA */
-		{FT991_RTTY_DATA_RX_MODES,    Hz(150)},     /*        RTTY, DATA */
-		{FT991_RTTY_DATA_RX_MODES,    Hz(100)},     /*        RTTY, DATA */
-		{FT991_RTTY_DATA_RX_MODES,    Hz(50)},      /*        RTTY, DATA */
-		{FT991_CW_RX_MODES,           Hz(2400)},    /* Normal CW */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(250)},     /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(200)},     /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(150)},     /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(100)},     /*        RTTY, DATA */
+        {FT991_RTTY_DATA_RX_MODES,    Hz(50)},      /*        RTTY, DATA */
+        {FT991_CW_RX_MODES,           Hz(2400)},    /* Normal CW */
         {FT991_CW_RX_MODES,           Hz(500)},     /* Narrow CW */
         {FT991_CW_RX_MODES,           Hz(3000)},    /* Wide   CW */
         {FT991_CW_RX_MODES,           Hz(2000)},    /*        CW */
-		{FT991_CW_RX_MODES,           Hz(1700)},    /*        CW */
-		{FT991_CW_RX_MODES,           Hz(1400)},    /*        CW */
-		{FT991_CW_RX_MODES,           Hz(1200)},    /*        CW */
-		{FT991_CW_RX_MODES,           Hz(800)},     /*        CW */
-		{FT991_CW_RX_MODES,           Hz(450)},     /*        CW */
-		{FT991_CW_RX_MODES,           Hz(400)},     /*        CW */
-		{FT991_CW_RX_MODES,           Hz(350)},     /*        CW */
-		{FT991_CW_RX_MODES,           Hz(300)},     /*        CW */
-		{FT991_CW_RX_MODES,           Hz(250)},     /*        CW */
-		{FT991_CW_RX_MODES,           Hz(200)},     /*        CW */
-		{FT991_CW_RX_MODES,           Hz(150)},     /*        CW */
-		{FT991_CW_RX_MODES,           Hz(100)},     /*        CW */
-		{FT991_CW_RX_MODES,           Hz(50)},      /*        CW */
+        {FT991_CW_RX_MODES,           Hz(1700)},    /*        CW */
+        {FT991_CW_RX_MODES,           Hz(1400)},    /*        CW */
+        {FT991_CW_RX_MODES,           Hz(1200)},    /*        CW */
+        {FT991_CW_RX_MODES,           Hz(800)},     /*        CW */
+        {FT991_CW_RX_MODES,           Hz(450)},     /*        CW */
+        {FT991_CW_RX_MODES,           Hz(400)},     /*        CW */
+        {FT991_CW_RX_MODES,           Hz(350)},     /*        CW */
+        {FT991_CW_RX_MODES,           Hz(300)},     /*        CW */
+        {FT991_CW_RX_MODES,           Hz(250)},     /*        CW */
+        {FT991_CW_RX_MODES,           Hz(200)},     /*        CW */
+        {FT991_CW_RX_MODES,           Hz(150)},     /*        CW */
+        {FT991_CW_RX_MODES,           Hz(100)},     /*        CW */
+        {FT991_CW_RX_MODES,           Hz(50)},      /*        CW */
         {RIG_MODE_SSB,                Hz(2400)},    /* Normal SSB */
         {RIG_MODE_SSB,                Hz(1500)},    /* Narrow SSB */
         {RIG_MODE_SSB,                Hz(3200)},    /* Wide   SSB */
@@ -274,7 +274,7 @@ const struct rig_caps ft991_caps =
         {RIG_MODE_SSB,                Hz(2600)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2500)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2300)},    /*        SSB */
-		{RIG_MODE_SSB,                Hz(2200)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(2200)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(2100)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(1950)},    /*        SSB */
         {RIG_MODE_SSB,                Hz(1650)},    /*        SSB */
