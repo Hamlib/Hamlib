@@ -655,7 +655,7 @@ int main(int argc, char *argv[])
         if (retcode < 0 && !RIG_IS_SOFT_ERRCODE(-retcode))
         {
             int retry = 3;
-            rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__)
+            rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__);
 
             do
             {
