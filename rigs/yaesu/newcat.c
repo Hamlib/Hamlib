@@ -1331,7 +1331,6 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     RETURNFUNC(err);
 }
 
-
 int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
@@ -10754,9 +10753,13 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
         {
             if (newcat_mode_conv[i].chk_width == TRUE)
             {
-                if (newcat_is_rig(rig, RIG_MODEL_FT991)
-                        && mode == 'E') // crude fix because 991 hangs on NA0; command while in C4FM
+                // crude fix because 991 hangs on NA0; command while in C4FM
+                if (newcat_is_rig(rig, RIG_MODEL_FT991))
                 {
+                    if (mode == 'E')
+                        *width = 16000;
+                    else if (mode == 'F')
+                        *width = 9000;
                     rig_debug(RIG_DEBUG_TRACE, "991A & C4FM Skip newcat_get_narrow in %s\n",
                               __func__);
                 }
@@ -10777,8 +10780,8 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
                     }
                 }
             }
-
-            RETURNFUNC(newcat_mode_conv[i].mode);
+            // don't use RETURNFUNC here as that macros expects an int for the return code
+            return(newcat_mode_conv[i].mode);
         }
     }
 
