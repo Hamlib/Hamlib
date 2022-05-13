@@ -115,8 +115,10 @@ static int ft1000mp_open(RIG *rig);
 static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft1000mp_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
-static int ft1000mp_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
-static int ft1000mp_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
+static int ft1000mp_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                                   pbwidth_t tx_width);
+static int ft1000mp_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                                   pbwidth_t *tx_width);
 static int ft1000mp_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
                                         rmode_t mode, pbwidth_t width);
 static int ft1000mp_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
@@ -1794,14 +1796,16 @@ static int ft1000mp_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     RETURNFUNC(ft1000mp_set_freq(rig, RIG_VFO_B, tx_freq));
 }
 
-static int ft1000mp_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+static int ft1000mp_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
+                                   pbwidth_t tx_width)
 {
     int retval;
     retval = rig_set_mode(rig, RIG_VFO_B, tx_mode, tx_width);
     RETURNFUNC(retval);
 }
 
-static int ft1000mp_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
+static int ft1000mp_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+                                   pbwidth_t *tx_width)
 {
     int retval;
     retval = rig_get_mode(rig, RIG_VFO_B, tx_mode, tx_width);
@@ -1813,18 +1817,23 @@ static int ft1000mp_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 {
     int retval;
     retval = rig_set_mode(rig, RIG_VFO_B, mode, width);
+
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig_set_mode failed: %s\n", __func__, rigerror(retval));
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_set_mode failed: %s\n", __func__,
+                  rigerror(retval));
         RETURNFUNC(retval);
     }
+
     retval = ft1000mp_set_split_freq(rig, vfo, freq);
+
     if (retval == RIG_OK)
     {
         rig->state.cache.freqMainB = freq;
         rig->state.cache.modeMainB = mode;
     }
-    RETURNFUNC(retval); 
+
+    RETURNFUNC(retval);
 }
 
 static int ft1000mp_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
@@ -1832,18 +1841,23 @@ static int ft1000mp_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
 {
     int retval;
     retval = rig_get_mode(rig, RIG_VFO_B, mode, width);
+
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig_set_mode failed: %s\n", __func__, rigerror(retval));
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_set_mode failed: %s\n", __func__,
+                  rigerror(retval));
         RETURNFUNC(retval);
     }
+
     retval = ft1000mp_get_split_freq(rig, vfo, freq);
+
     if (retval == RIG_OK)
     {
         rig->state.cache.freqMainB = *freq;
         rig->state.cache.modeMainB = *mode;
     }
-    RETURNFUNC(retval); 
+
+    RETURNFUNC(retval);
 }
 
 static int ft1000mp_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)

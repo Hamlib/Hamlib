@@ -502,16 +502,18 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
 
         case ERROR_IO_PENDING:
             TRACE;
-            timeout.QuadPart =  (p->timeout * -1000000LL);
-            if((result = SetWaitableTimer(hLocal, &timeout, 0, NULL, NULL, 0)) == 0)
+            timeout.QuadPart = (p->timeout * -1000000LL);
+
+            if ((result = SetWaitableTimer(hLocal, &timeout, 0, NULL, NULL, 0)) == 0)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: SetWaitableTimer error: %d\n", __func__, result); 
+                rig_debug(RIG_DEBUG_ERR, "%s: SetWaitableTimer error: %d\n", __func__, result);
                 wait_result = WaitForMultipleObjects(3, event_handles, FALSE, INFINITE);
             }
             else
             {
                 wait_result = WaitForMultipleObjects(3, event_handles, FALSE, p->timeout);
             }
+
             TRACE;
 
             switch (wait_result)

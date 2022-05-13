@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("IF"); }
         }
-        else if (strcmp(buf,"FW;")==0)
+        else if (strcmp(buf, "FW;") == 0)
         {
             usleep(50 * 1000);
             pbuf = "FW2400;";

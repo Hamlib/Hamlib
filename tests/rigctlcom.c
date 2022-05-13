@@ -1523,7 +1523,8 @@ static int handle_ts2000(void *arg)
     {
         freq_t freq;
         vfo_t vfo = RIG_VFO_A;
-        if (mapa2b) vfo = RIG_VFO_B;
+
+        if (mapa2b) { vfo = RIG_VFO_B; }
 
         sscanf((char *)arg + 2, "%"SCNfreq, &freq);
         return rig_set_freq(my_rig, vfo_fixup(my_rig, vfo,

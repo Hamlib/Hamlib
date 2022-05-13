@@ -420,9 +420,11 @@ static int ft757_open(RIG *rig)
     {
         memset(priv->update_data, 0, FT757GX_STATUS_UPDATE_DATA_LENGTH);
         retval = rig_set_vfo(rig, RIG_VFO_A);
+
         if (retval != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: rig_set_vfo error: %s\n", __func__, rigerror(retval));
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_set_vfo error: %s\n", __func__,
+                      rigerror(retval));
         }
     }
     else
@@ -492,7 +494,9 @@ static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called. fakefreq=%d\n", __func__, priv->fakefreq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called. fakefreq=%d\n", __func__,
+              priv->fakefreq);
+
     if (priv->fakefreq)   // only return last freq set when fakeit is turned on
     {
         *freq = priv->curfreq;

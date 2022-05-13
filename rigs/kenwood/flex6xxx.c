@@ -905,6 +905,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->f = 0;
             return -RIG_EPROTO;
         }
+
         val->f /= 100;
         break;
 

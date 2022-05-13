@@ -391,6 +391,7 @@ transaction_read:
             // so in order to retry commands need to re-write them
             // https://github.com/Hamlib/Hamlib/issues/983
 #if 0
+
             if (datasize)
             {
                 goto transaction_write;
@@ -399,6 +400,7 @@ transaction_read:
             {
                 goto transaction_read;
             }
+
 #endif
         }
 

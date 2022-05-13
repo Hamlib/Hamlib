@@ -1158,7 +1158,7 @@ int ft857_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             return ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_CTCSS_DCS_OFF);
         }
-            
+
     case RIG_FUNC_RIT:
         if (status)
         {
@@ -1167,9 +1167,10 @@ int ft857_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         else
         {
             return ft857_send_cmd(rig, FT857_NATIVE_CAT_CLAR_OFF);
-        }        
-            
+        }
+
 #if 0
+
     case RIG_FUNC_CODE:   /* this doesn't exist */
         if (status)
         {
@@ -1179,6 +1180,7 @@ int ft857_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         {
             return ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_CTCSS_DCS_OFF);
         }
+
 #endif
 
     default:
@@ -1345,7 +1347,7 @@ int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     }
 
     /* the rig rejects if these are repeated - don't confuse user with retcode */
-    
+
     /* not used anymore, RIG_FUNC_RIT implemented
     if (rit == 0)
     {
