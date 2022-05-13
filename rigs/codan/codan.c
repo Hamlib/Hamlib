@@ -236,7 +236,7 @@ int codan_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     else if (strncmp(modeA, "LSB", 3) == 0) { *mode = RIG_MODE_LSB; }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode=%s'\n", __func__,  modeA)
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode=%s'\n", __func__,  modeA);
         return -RIG_EPROTO;
     }
 
