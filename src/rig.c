@@ -5830,7 +5830,7 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     caps = rig->caps;
 
-    if (caps->vfo_op == NULL || !rig_has_vfo_op(rig, op))
+    if (caps->vfo_op == NULL || rig_has_vfo_op(rig, op)==0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: vfo_op=%p, has_vfo_op=%d\n", __func__, caps->vfo_op, rig_has_vfo_op(rig, op));
         RETURNFUNC(-RIG_ENAVAIL);
