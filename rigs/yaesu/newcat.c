@@ -9156,10 +9156,12 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
     } /* end if is_ft891 */
     else if (is_ft991)
     {
-        if ((narrow = get_narrow(rig, vfo)) < 0)
+        // some modes are fixed and can't be queried with "NA0"
+        if (mode != RIG_MODE_C4FM && mode != RIG_MODE_PKTFM && mode != RIG_MODE_PKTFMN && (narrow = get_narrow(rig, vfo)) < 0)
         {
             RETURNFUNC(-RIG_EPROTO);
         }
+        narrow = 0;
 
         switch (mode)
         {
