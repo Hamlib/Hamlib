@@ -88,11 +88,12 @@ extern int read_history();
 #define ARG_OUT3 0x20
 #define ARG_IN4  0x40
 #define ARG_OUT4 0x80
+#define ARG_OUT5 0x100
 #define ARG_IN_LINE 0x4000
 #define ARG_NOVFO 0x8000
 
 #define ARG_IN  (ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4)
-#define ARG_OUT (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4)
+#define ARG_OUT (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4|ARG_OUT5)
 
 static int chk_vfo_executed;
 char rigctld_password[64];
@@ -140,6 +141,7 @@ struct test_table
     const char *arg3;
     const char *arg4;
     const char *arg5;
+    const char *arg6;
 };
 
 
@@ -344,7 +346,7 @@ static struct test_table test_list[] =
     { 0x8f, "dump_state",       ACTION(dump_state),     ARG_OUT | ARG_NOVFO },
     { 0xf0, "chk_vfo",          ACTION(chk_vfo),        ARG_NOVFO, "ChkVFO" },   /* rigctld only--check for VFO mode */
     { 0xf2, "set_vfo_opt",      ACTION(set_vfo_opt),    ARG_NOVFO | ARG_IN, "Status" }, /* turn vfo option on/off */
-    { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_NOVFO | ARG_IN1 | ARG_OUT4, "Freq", "Mode", "Width", "Split", "SatMode" }, /* get several vfo parameters at once */
+    { 0xf3, "get_vfo_info",     ACTION(get_vfo_info),   ARG_IN1 | ARG_OUT5, "VFO", "Freq", "Mode", "Width", "Split", "SatMode" }, /* get several vfo parameters at once */
     { 0xf5, "get_rig_info",     ACTION(get_rig_info),   ARG_NOVFO | ARG_OUT, "RigInfo" }, /* get several vfo parameters at once */
     { 0xf4, "get_vfo_list",    ACTION(get_vfo_list),   ARG_OUT | ARG_NOVFO, "VFOs" },
     { 0xf6, "get_modes",       ACTION(get_modes),   ARG_OUT | ARG_NOVFO, "Modes" },
@@ -1780,6 +1782,7 @@ readline_repeat:
             }
         }
     }
+    fprintf(fout, "\f"); // add a form feed for node-red tcp request to use as end-char
 
     fflush(fout);
 
@@ -2316,11 +2319,11 @@ declare_proto_rig(get_vfo_info)
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "%s: %.0f\n", cmd->arg1, freq);
-        fprintf(fout, "%s: %s\n", cmd->arg2, modestr);
-        fprintf(fout, "%s: %d\n", cmd->arg3, (int)width);
-        fprintf(fout, "%s: %d\n", cmd->arg4, (int)split);
-        fprintf(fout, "%s: %d\n", cmd->arg5, (int)satmode);
+        fprintf(fout, "%s: %.0f\n", cmd->arg2, freq);
+        fprintf(fout, "%s: %s\n", cmd->arg3, modestr);
+        fprintf(fout, "%s: %d\n", cmd->arg4, (int)width);
+        fprintf(fout, "%s: %d\n", cmd->arg5, (int)split);
+        fprintf(fout, "%s: %d\n", cmd->arg6, (int)satmode);
     }
     else
     {
