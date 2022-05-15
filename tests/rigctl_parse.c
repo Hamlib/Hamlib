@@ -1782,7 +1782,6 @@ readline_repeat:
             }
         }
     }
-    fprintf(fout, "\f"); // add a form feed for node-red tcp request to use as end-char
 
     fflush(fout);
 
