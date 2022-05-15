@@ -512,6 +512,13 @@
 //! @endcond
 #define ROT_MODEL_CNCTRK ROT_MAKE_MODEL(ROT_CNCTRK, 1)
 
+#if 0
+#define ROT_GRBLTRK 30
+#define ROT_BACKEND_GRBLTRK "grbltrk"
+//! @endcond
+#define ROT_MODEL_GRBLTRK_SER ROT_MAKE_MODEL(ROT_GRBLTRK, 1)
+#define ROT_MODEL_GRBLTRK_NET ROT_MAKE_MODEL(ROT_GRBLTRK, 2)
+#endif
 
 /**
  * \brief A macro that returns the model number of the PROSISTEL_D_AZ backend.
@@ -614,15 +621,33 @@
  */
 //! @cond Doxygen_Suppress
 #define ROT_RADANT 22
-#define ROT_BACKEND_RADANT "radant"
+#define ROT_BACKEND_RADANT "radant12354"
 //! @endcond
 #define ROT_MODEL_RADANT ROT_MAKE_MODEL(ROT_RADANT, 1)
 
 
+//! @cond Doxygen_Suppress
 #define ROT_ANDROIDSENSOR 23
 #define ROT_BACKEND_ANDROIDSENSOR "androidsensor"
+//! @endcond
 #define ROT_MODEL_ANDROIDSENSOR ROT_MAKE_MODEL(ROT_ANDROIDSENSOR, 1)
 
+#if 1
+/**
+ * \brief A macro that returns the model number of the GRBLTRK backend.
+ *
+ * \def ROT_MODEL_GRBLTRK
+ *
+ * The GRBLTRK backend can be used with rotators that support the GRBL
+ * protocol.
+ */
+//! @cond Doxygen_Suppress
+#define ROT_GRBLTRK 24
+#define ROT_BACKEND_GRBLTRK "grbltrk"
+//! @endcond
+#define ROT_MODEL_GRBLTRK_SER ROT_MAKE_MODEL(ROT_GRBLTRK, 1)
+#define ROT_MODEL_GRBLTRK_NET ROT_MAKE_MODEL(ROT_GRBLTRK, 2)
+#endif
 
 /**
  * \brief Convenience type definition for a rotator model.
