@@ -163,8 +163,8 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
             strtok_r(*result, "\r", &dummy);
         }
 
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: returning result=%s\n", __func__,
-                  *result);
+        //rig_debug(RIG_DEBUG_VERBOSE, "%s: returning result=%s\n", __func__,
+        //          *result);
     }
     else
     {
