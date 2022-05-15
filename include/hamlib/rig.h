@@ -3391,14 +3391,14 @@ extern HAMLIB_EXPORT(int) rig_password(RIG *rig, const char *key1);
 extern HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
         char result[HAMLIB_SECRET_LENGTH + 1]);
 
-//extern HAMLIB_EXPORT(int)
-int longlat2locator HAMLIB_PARAMS((double longitude,
+extern HAMLIB_EXPORT(int)
+longlat2locator HAMLIB_PARAMS((double longitude,
                                double latitude,
                                char *locator_res,
                                int pair_count));
 
-//extern HAMLIB_EXPORT(int)
-int locator2longlat HAMLIB_PARAMS((double *longitude,
+extern HAMLIB_EXPORT(int)
+locator2longlat HAMLIB_PARAMS((double *longitude,
                                double *latitude,
                                const char *locator));
 

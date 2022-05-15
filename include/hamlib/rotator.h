@@ -751,6 +751,7 @@ distance_long_path HAMLIB_PARAMS((double distance));
 extern HAMLIB_EXPORT(double)
 azimuth_long_path HAMLIB_PARAMS((double azimuth));
 
+#if 0
 extern HAMLIB_EXPORT(int)
 longlat2locator HAMLIB_PARAMS((double longitude,
                                double latitude,
@@ -761,6 +762,7 @@ extern HAMLIB_EXPORT(int)
 locator2longlat HAMLIB_PARAMS((double *longitude,
                                double *latitude,
                                const char *locator));
+#endif
 
 extern HAMLIB_EXPORT(double)
 dms2dec HAMLIB_PARAMS((int degrees,
