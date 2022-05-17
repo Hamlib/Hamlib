@@ -34,6 +34,7 @@ include $(TOP_PATH)/rotators/amsat/Android.mk
 include $(TOP_PATH)/rotators/ars/Android.mk
 include $(TOP_PATH)/rotators/celestron/Android.mk
 include $(TOP_PATH)/rotators/cnctrk/Android.mk
+include $(TOP_PATH)/rotators/grbltrk/Android.mk
 include $(TOP_PATH)/rotators/easycomm/Android.mk
 include $(TOP_PATH)/rotators/ether6/Android.mk
 include $(TOP_PATH)/rotators/fodtrack/Android.mk

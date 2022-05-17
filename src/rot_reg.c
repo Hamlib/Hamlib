@@ -90,6 +90,7 @@ DEFINE_INITROT_BACKEND(indi);
 #if defined(ANDROID) || defined(__ANDROID__)
 DEFINE_INITROT_BACKEND(androidsensor);
 #endif
+DEFINE_INITROT_BACKEND(grbltrk);
 //! @endcond
 
 /**
@@ -137,6 +138,7 @@ static struct
 #if defined(ANDROID) || defined(__ANDROID__)
     { ROT_ANDROIDSENSOR, ROT_BACKEND_ANDROIDSENSOR, ROT_FUNCNAMA(androidsensor) },
 #endif
+    { ROT_GRBLTRK, ROT_BACKEND_GRBLTRK, ROT_FUNCNAMA(grbltrk) },
     { 0, NULL }, /* end */
 };
 
