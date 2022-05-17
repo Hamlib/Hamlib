@@ -17,9 +17,12 @@ char rx_vfo = '0';
 vfo_t curr_vfo = RIG_VFO_A;
 char modeA = '1';
 char modeB = '1';
-int width = 0;
 int ptt;
 int power = 1;
+int roofing_filter_main = 1;
+int roofing_filter_sub = 6;
+int width_main = 0;
+int width_sub = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -354,19 +357,54 @@ int main(int argc, char *argv[])
 
             if (n < 0) { perror("EX032"); }
         }
-        else if (strcmp(buf, "SH0;") == 0)
-        {
-            SNPRINTF(buf, sizeof(buf), "SH0%02d;", width);
-            usleep(50 * 1000);
-            n = write(fd, buf, strlen(buf));
-            printf("%s n=%d\n", buf, n);
-        }
         else if (strcmp(buf, "NA0;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "NA00;");
             usleep(50 * 1000);
             n = write(fd, buf, strlen(buf));
             //printf("%s n=%d\n", buf, n);
+        }
+        else if (strcmp(buf, "RF0;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "RF0%d;", roofing_filter_main);
+            usleep(50 * 1000);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strcmp(buf, "RF1;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "RF1%d;", roofing_filter_sub);
+            usleep(50 * 1000);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "RF", 2) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "RF%c%d;", buf[2], buf[2]==0?roofing_filter_main:roofing_filter_sub);
+            usleep(50 * 1000);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strcmp(buf, "SH0;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "SH%c%02d;", buf[2], width_main);
+            usleep(50 * 1000);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strcmp(buf, "SH1;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "SH%c%02d;", buf[2], width_sub);
+            usleep(50 * 1000);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "SH",2) == 0 && strlen(buf) > 4)
+        {
+            int vfo, twidth;
+            sscanf(buf,"SH%1d%d", &vfo, &twidth);
+            if (vfo == 0) width_main = twidth;
+            else width_sub = twidth;
+            printf("width_main=%d, width_sub=%d\n", width_main, width_sub);
+        }
+        else if (strncmp(buf, "SH",2) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "SH%c%02d;", buf[2], buf[2]==0?width_main:width_sub);
         }
 
         else if (strlen(buf) > 0)
