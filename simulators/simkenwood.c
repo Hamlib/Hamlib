@@ -14,6 +14,7 @@ float freqA = 14074000;
 float freqB = 14074500;
 int filternum = 7;
 int datamode = 0;
+int ptt, ptt_data, ptt_mic, ptt_tune;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -258,6 +259,18 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "BU;", 3) == 0)
         {
+            continue;
+        }
+        else if (strncmp(buf, "TX", 2) == 0)
+        {
+            ptt = ptt_mic = ptt_data = ptt_tune = 0;
+            switch(buf[2])
+            {
+                case ';': ptt = 1;
+                case '0': ptt_mic = 1;
+                case '1': ptt_data = 1;
+                case '2': ptt_tune = 1;
+            }
             continue;
         }
         else if (strlen(buf) > 0)
