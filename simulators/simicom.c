@@ -15,6 +15,7 @@
 #include "../src/misc.h"
 
 #define BUFSIZE 256
+#define X25
 
 int civ_731_mode = 0;
 vfo_t current_vfo = RIG_VFO_A;
@@ -25,6 +26,7 @@ float freqA = 14074000;
 float freqB = 14074500;
 mode_t modeA = RIG_MODE_CW;
 mode_t modeB = RIG_MODE_USB;
+int datamode = 0;
 pbwidth_t widthA = 0;
 pbwidth_t widthB = 1;
 ant_t ant_curr = 0;
@@ -250,7 +252,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         break;
 
-#if 1
+#ifdef X25
 
     case 0x25:
         if (frame[6] == 0xfd)
@@ -282,9 +284,25 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         break;
+    case 0x26:
+        for(int i=0;i<6;++i) printf("%02x:",frame[i]);
+        if (frame[6] == 0xfd) // then a query
+        {
+            frame[6] = frame[5] == 0? modeA : modeB;
+            frame[7] = datamode;
+            frame[8] = 0xfb;
+            frame[9] = 0xfd;
+            write(fd, frame, 10);
+        }
+        printf("\n");
+        break;
 #else
 
     case 0x25:
+        frame[4] = 0xfa;
+        frame[5] = 0xfd;
+        break;
+    case 0x26:
         frame[4] = 0xfa;
         frame[5] = 0xfd;
         break;
@@ -353,6 +371,11 @@ int main(int argc, char **argv)
     int fd = openPort(argv[1]);
 
     printf("%s: %s\n", argv[0], rig_version());
+#ifdef X25
+    printf("x25/x26 command recognized\n");
+#else
+    printf("x25/x26 command rejected\n");
+#endif
 #if defined(WIN32) || defined(_WIN32)
 
     if (argc != 2)
