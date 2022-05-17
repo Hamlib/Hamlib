@@ -2105,8 +2105,11 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         RETURNFUNC2(-RIG_ENAVAIL);
     }
 
-    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
-    else if (mode == RIG_MODE_NONE) // the we just use the current mode to set width
+    if (vfo == RIG_VFO_CURR) 
+    { 
+        vfo = rig->state.current_vfo; 
+    }
+    if (mode == RIG_MODE_NONE) // the we just use the current mode to set width
     {
         pbwidth_t twidth;
         rig_get_mode(rig, vfo, &mode, &twidth);
