@@ -2448,6 +2448,7 @@ declare_proto_rig(set_ptt)
 
     CHKSCN1ARG(sscanf(arg1, "%d", &scr));
     ptt = scr;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: set_ptt ptt=%d\n", __func__, ptt);
 
     /*
      * We allow RIG_PTT_ON_MIC and RIG_PTT_ON_DATA arriving from netrigctl.
@@ -2462,11 +2463,16 @@ declare_proto_rig(set_ptt)
     case RIG_PTT_ON_MIC:
     case RIG_PTT_ON_DATA:
 
+        // No longer map this -- is confusing rigctld and MICDATA rigs
+        // https://github.com/Hamlib/Hamlib/issues/998
+#if 0
         // map to a legal value
-        if (rig->state.pttport.type.ptt != RIG_PTT_RIG_MICDATA)
+        if (rig->caps->ptt_type != RIG_PTT_RIG_MICDATA)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s: pttport.type.ptt=%d\n", __func__, rig->state.pttport.type.ptt);
             ptt = RIG_PTT_ON;
         }
+#endif
 
         break;
 
@@ -2482,6 +2488,7 @@ declare_proto_rig(set_ptt)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    rig_debug(RIG_DEBUG_ERR, "%s: ptt=%d\n", __func__, ptt);
     RETURNFUNC(rig_set_ptt(rig, vfo, ptt));
 }
 

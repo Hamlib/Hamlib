@@ -2751,10 +2751,13 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     switch (rig->state.pttport.type.ptt)
     {
     case RIG_PTT_RIG:
+#if 0 // https://github.com/Hamlib/Hamlib/issues/998 -- this is interfering with rigctld and MICDATA rigs
         if (ptt == RIG_PTT_ON_MIC || ptt == RIG_PTT_ON_DATA)
         {
             ptt = RIG_PTT_ON;
         }
+
+#endif
 
     /* fall through */
     case RIG_PTT_RIG_MICDATA:
@@ -5840,6 +5843,7 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     vfo_t curr_vfo;
 
     ENTERFUNC;
+    ELAPSED1;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -5859,12 +5863,14 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
             || vfo == rig->state.current_vfo)
     {
         retcode = caps->vfo_op(rig, vfo, op);
+        ELAPSED2;
         RETURNFUNC(retcode);
     }
 
     if (!caps->set_vfo)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: no set_vfo\n", __func__);
+        ELAPSED2;
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
@@ -5888,6 +5894,7 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         retcode = rc2;
     }
 
+    ELAPSED2;
     RETURNFUNC(retcode);
 }
 
