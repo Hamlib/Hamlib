@@ -84,7 +84,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:W:w:x:z:lLuovhVZMA:n:"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:z:lLuovhVZMA:n:"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -94,6 +94,7 @@ static struct option long_options[] =
     {"ptt-type",        1, 0, 'P'},
     {"dcd-type",        1, 0, 'D'},
     {"serial-speed",    1, 0, 's'},
+    {"separator",       1, 0, 'S'},
     {"civaddr",         1, 0, 'c'},
     {"listen-addr",     1, 0, 'T'},
     {"port",            1, 0, 't'},
@@ -150,6 +151,7 @@ const char *src_addr = NULL; /* INADDR_ANY */
 const char *multicast_addr = "0.0.0.0";
 int multicast_port = 4532;
 extern char rigctld_password[65];
+char resp_sep = '\n';
 
 #define MAXCONFLEN 1024
 
@@ -458,6 +460,16 @@ int main(int argc, char *argv[])
             }
 
             civaddr = optarg;
+            break;
+
+        case 'S':
+            if (!optarg)
+            {
+                usage();    /* wrong arg count */
+                exit(1);
+            }
+            resp_sep = *optarg;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: resp_sep=%c\n", __func__, resp_sep);
             break;
 
         case 's':
@@ -1135,7 +1147,6 @@ void *handle_socket(void *arg)
     char serv[NI_MAXSERV];
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
-    char resp_sep = '\n';
 
     fsockin = get_fsockin(handle_data_arg);
 
@@ -1351,6 +1362,7 @@ void usage(void)
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
         "  -t, --port=NUM                set TCP listening port, default %s\n"
+        "  -S, --separator=CHAR          set char as rigctld response separator, default is \\n\n"
         "  -T, --listen-addr=IPADDR      set listening IP address, default ANY\n"
         "  -C, --set-conf=PARM=VAL       set config parameters\n"
         "  -L, --show-conf               list all config parameters\n"
