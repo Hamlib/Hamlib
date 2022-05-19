@@ -1782,6 +1782,7 @@ readline_repeat:
             }
         }
     }
+    if (*resp_sep_ptr != '\n') fprintf(fout, "\n");
 
     fflush(fout);
 
