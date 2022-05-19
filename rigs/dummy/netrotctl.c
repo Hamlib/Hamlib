@@ -115,7 +115,7 @@ static int netrotctl_open(ROT *rot)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->min_az = atof(buf);
+    rs->min_az = rot->caps->min_az = atof(buf);
 
     ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
@@ -125,7 +125,7 @@ static int netrotctl_open(ROT *rot)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->max_az = atof(buf);
+    rs->max_az = rot->caps->max_az = atof(buf);
 
     ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
@@ -135,7 +135,7 @@ static int netrotctl_open(ROT *rot)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->min_el = atof(buf);
+    rs->min_el = rot->caps->min_el = atof(buf);
 
     ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
@@ -145,7 +145,7 @@ static int netrotctl_open(ROT *rot)
         return (ret < 0) ? ret : -RIG_EPROTO;
     }
 
-    rs->max_el = atof(buf);
+    rs->max_el = rot->caps->max_el = atof(buf);
 
     return RIG_OK;
 }
@@ -333,7 +333,7 @@ static const char *netrotctl_get_info(ROT *rot)
  * NET rotctl capabilities.
  */
 
-const struct rot_caps netrotctl_caps =
+struct rot_caps netrotctl_caps =
 {
     ROT_MODEL(ROT_MODEL_NETROTCTL),
     .model_name =     "NET rotctl",
