@@ -4564,6 +4564,7 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     const char *ptt_cmd;
 
     ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d\n", __func__, ptt);
 
     switch (ptt)
     {
