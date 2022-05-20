@@ -2759,13 +2759,10 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     switch (rig->state.pttport.type.ptt)
     {
     case RIG_PTT_RIG:
-#if 0 // https://github.com/Hamlib/Hamlib/issues/998 -- this is interfering with rigctld and MICDATA rigs
         if (ptt == RIG_PTT_ON_MIC || ptt == RIG_PTT_ON_DATA)
         {
             ptt = RIG_PTT_ON;
         }
-
-#endif
 
     /* fall through */
     case RIG_PTT_RIG_MICDATA:
