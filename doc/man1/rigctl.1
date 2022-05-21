@@ -1183,6 +1183,23 @@ This is the same as using the -o switch for rigctl and ritctld.
 This can be dyamically changed while running.
 .
 .TP
+.BR get_separator 
+Get
+.RI \(aq SeparatorChar \(aq
+.IP
+Shows the current SeparatorChar
+.
+.TP
+.BR set_separator " \(aq" \fISeparatorChar\fP \(aq
+Set
+.RI \(aq SeparatorChar \(aq
+.IP
+Change rigctld response to use a special char intead of newline (recommend #).
+This can be dyamically changed while running.
+Handy for node-red's tcprequest node.
+This can be dyamically changed while running.
+.
+.TP
 .BR pause " \(aq" \fISeconds\fP \(aq
 Pause for the given whole (integer) number of
 .RI \(aq Seconds \(aq
