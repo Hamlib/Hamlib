@@ -112,40 +112,52 @@ char *grbl_init_list[] =
     "G0 X0 Y0\r\n",
 };
 
-static int 
-grbl_request(ROT *rot, char *request, uint32_t req_size, char *response, uint32_t *resp_size)
+static int
+grbl_request(ROT *rot, char *request, uint32_t req_size, char *response,
+             uint32_t *resp_size)
 {
     int retval;
     static int fail_count = 0;
 
     rot_debug(RIG_DEBUG_ERR, "req: [%s][%d]\n", request, fail_count);
 
-    if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER 
-        || rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET) {
+    if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER
+            || rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
+    {
         //fprintf(stderr, "ctrl by serial/network\n");
 
-        if ((retval = write_block(&rot->state.rotport, (unsigned char *)request, req_size)) != RIG_OK) {
+        if ((retval = write_block(&rot->state.rotport, (unsigned char *)request,
+                                  req_size)) != RIG_OK)
+        {
             rot_debug(RIG_DEBUG_ERR, "%s write_block fail!\n", __func__);
             //exit(-1);
             fail_count++;
             //return RIG_EIO;
-        } else {
+        }
+        else
+        {
             fail_count = 0;
         }
 
         rig_flush(&rot->state.rotport);
 
         usleep(300000);
-        if ((retval = read_string(&rot->state.rotport, (unsigned char *)response, 1024, "\n", 1, 0, 1)) < 0) {
+
+        if ((retval = read_string(&rot->state.rotport, (unsigned char *)response, 1024,
+                                  "\n", 1, 0, 1)) < 0)
+        {
             rot_debug(RIG_DEBUG_ERR, "%s read_string fail! (%d) \n", __func__, retval);
             //exit(-1);
             fail_count++;
             //return RIG_EIO;
-        } else {
+        }
+        else
+        {
             fail_count = 0;
         }
 
-        if (fail_count >= 10) {
+        if (fail_count >= 10)
+        {
             rot_debug(RIG_DEBUG_ERR, "%s too much xfer fail! exit\n", __func__);
             exit(-1);
         }
@@ -157,7 +169,7 @@ grbl_request(ROT *rot, char *request, uint32_t req_size, char *response, uint32_
 
         *resp_size = retval;
 
-    } 
+    }
 
     return RIG_OK;
 }
@@ -172,18 +184,24 @@ grbl_init(ROT *rot)
 
     /* get total config */
     grbl_request(rot, grbl_get_config, strlen(grbl_get_config), rsp, &resp_size);
-    if (strstr(rsp, grbl_init_list[0]) != NULL) {
+
+    if (strstr(rsp, grbl_init_list[0]) != NULL)
+    {
         rot_debug(RIG_DEBUG_ERR, "%s: grbl already configured\n", __func__);
         return RIG_OK;
     }
 
     init_count = sizeof(grbl_init_list) / sizeof(grbl_init_list[0]);
 
-    for(i = 0; i < init_count; i++) {
+    for (i = 0; i < init_count; i++)
+    {
         rot_debug(RIG_DEBUG_ERR, "grbl_request [%s] ", grbl_init_list[i]);
-        retval = grbl_request(rot, grbl_init_list[i], strlen(grbl_init_list[i]), rsp, &resp_size);
+        retval = grbl_request(rot, grbl_init_list[i], strlen(grbl_init_list[i]), rsp,
+                              &resp_size);
+
         //fprintf(stderr, "done\n");
-        if (retval != RIG_OK) {
+        if (retval != RIG_OK)
+        {
             rot_debug(RIG_DEBUG_ERR, "grbl_request [%s] fail\n", grbl_init_list[i]);
             return RIG_EIO;
         }
@@ -203,7 +221,7 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
     float x[3], delta[3];
 
     float y;
-    
+
     char req[RSIZE] = {0};
     char rsp[RSIZE] = {0};
     uint32_t rsp_size;
@@ -213,40 +231,56 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
 
     /* az:x: 0 - 360 */
     /* el:y: 0 - 90 */
-    rot_debug(RIG_DEBUG_ERR, 
-            "%s: (prev_x) = (%.3f); (prev_az) = (%.3f); (prev_el) = (%.3f); (curr_az, curr_el) = (%.3f, %.3f)\n", __func__, 
-            prev_x, prev_az, prev_el, curr_az, curr_el);
+    rot_debug(RIG_DEBUG_ERR,
+              "%s: (prev_x) = (%.3f); (prev_az) = (%.3f); (prev_el) = (%.3f); (curr_az, curr_el) = (%.3f, %.3f)\n",
+              __func__,
+              prev_x, prev_az, prev_el, curr_az, curr_el);
 
     /* convert degree to mm, 360 degree = 40mm, 1 degree = 0.111mm */
     //x = az * 0.111;
     //y = el * 0.111;
 
-        /* 360 -> 0 */
+    /* 360 -> 0 */
     if ((prev_az > 270 && prev_az < 360) &&
-        (curr_az > 0   && curr_az < 90 )) {
+            (curr_az > 0   && curr_az < 90))
+    {
 
         rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
-        if (prev_x >= XDEGREE2MM(270)) {
+
+        if (prev_x >= XDEGREE2MM(270))
+        {
             curr_x = XDEGREE2MM(curr_az) + XDEGREE2MM(360);
-        } else {
+        }
+        else
+        {
             curr_x = XDEGREE2MM(curr_az);
         }
+
         /* 0 -> 360 */
-    } else if ((prev_az > 0   && prev_az < 90 ) &&
-               (curr_az > 270 && curr_az < 360)) {
+    }
+    else if ((prev_az > 0   && prev_az < 90) &&
+             (curr_az > 270 && curr_az < 360))
+    {
         rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
 
-        if (prev_x >= XDEGREE2MM(360)) {
+        if (prev_x >= XDEGREE2MM(360))
+        {
             curr_x = XDEGREE2MM(curr_az);
-        } else {
+        }
+        else
+        {
             curr_x = XDEGREE2MM(curr_az) - XDEGREE2MM(360);
         }
 
         /* reset */
-    } else if (curr_az == 0 && curr_el == 0) {
+    }
+    else if (curr_az == 0 && curr_el == 0)
+    {
         rot_debug(RIG_DEBUG_ERR, "%s: reset\n", __func__);
         curr_x = 0;
-    } else {
+    }
+    else
+    {
         rot_debug(RIG_DEBUG_ERR, "%s:%d prev_x: %.3f\n", __func__, __LINE__, prev_x);
 
         x[0] = XDEGREE2MM(curr_az) - XDEGREE2MM(360);
@@ -258,14 +292,18 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
         delta[2] = prev_x - x[2];
 
         if (delta[0] < 0) { delta[0] = -1 * delta[0]; }
+
         if (delta[1] < 0) { delta[1] = -1 * delta[1]; }
+
         if (delta[2] < 0) { delta[2] = -1 * delta[2]; }
 
         min_value = delta[0];
         min_index = 0;
 
-        for(i = 0; i < 3; i++) {
-            if (delta[i] <= min_value) {
+        for (i = 0; i < 3; i++)
+        {
+            if (delta[i] <= min_value)
+            {
                 min_value = delta[i];
                 min_index = i;
             }
@@ -280,9 +318,9 @@ grbltrk_rot_set_position(ROT *rot, azimuth_t curr_az, elevation_t curr_el)
     /**/
 
     snprintf(req, sizeof(req), "G0 X%.3f Y%.3f\n", curr_x, y);
-    
+
     retval = grbl_request(rot, req, strlen(req), rsp, &rsp_size);
-    
+
     if (retval != RIG_OK)
     {
         return retval;
@@ -314,8 +352,9 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     rot_debug(RIG_DEBUG_ERR, "%s called\n", __func__);
 
     //snprintf(req, sizeof(req), "?\r\n");
-    
-    for(i = 0; i < 5; i++) {
+
+    for (i = 0; i < 5; i++)
+    {
         retval = grbl_request(rot, grbl_get_pos, strlen(grbl_get_pos), rsp, &rsp_size);
 
         /*FIXME: X Y safe check */
@@ -325,7 +364,8 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
             return retval;
         }
 
-        if (strstr(rsp, "MPos") == NULL) {
+        if (strstr(rsp, "MPos") == NULL)
+        {
             rot_debug(RIG_DEBUG_ERR, "%s no MPos found, continue\n", __func__);
             continue;
         }
@@ -345,7 +385,8 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         *az = (azimuth_t) mpos[0] * 9;
         *el = (elevation_t) mpos[1] * 9;
 
-        if ((*az) < 0) {
+        if ((*az) < 0)
+        {
             (*az) = (*az) + 360;
         }
 
@@ -362,7 +403,7 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     return RIG_OK;
 }
 
-static int 
+static int
 grbltrk_rot_set_conf(ROT *rot, token_t token, const char *val)
 {
     int i, retval;
@@ -374,13 +415,18 @@ grbltrk_rot_set_conf(ROT *rot, token_t token, const char *val)
 
     len = strlen(val);
 
-    if ((len != 0) && (val[0] == 'G')) {
+    if ((len != 0) && (val[0] == 'G'))
+    {
 
-        for(i = 0; i < len; i++) {
+        for (i = 0; i < len; i++)
+        {
 
-            if (val[i] == '@') {
+            if (val[i] == '@')
+            {
                 req[i] = ' ';
-            } else {
+            }
+            else
+            {
                 req[i] = val[i];
             }
         }
@@ -390,7 +436,9 @@ grbltrk_rot_set_conf(ROT *rot, token_t token, const char *val)
 
         rot_debug(RIG_DEBUG_ERR, "send gcode [%s]\n", req);
         retval = grbl_request(rot, req, len, rsp, &resp_size);
-        if (retval < 0) {
+
+        if (retval < 0)
+        {
             rot_debug(RIG_DEBUG_ERR, "grbl_request [%s] fail\n", val);
             return RIG_EIO;
         }
@@ -399,28 +447,29 @@ grbltrk_rot_set_conf(ROT *rot, token_t token, const char *val)
     return RIG_OK;
 }
 
-static int 
+static int
 grbltrk_rot_init(ROT *rot)
 {
     int r = RIG_OK;
 
-    rot_debug(RIG_DEBUG_ERR, "%s:%d rot->caps->rot_model: %d\n", __func__, __LINE__, rot->caps->rot_model);
+    rot_debug(RIG_DEBUG_ERR, "%s:%d rot->caps->rot_model: %d\n", __func__, __LINE__,
+              rot->caps->rot_model);
 
     return r;
 }
 
-static int 
+static int
 grbl_net_open(ROT *rot, int port)
 {
     //network_open(&rot->state.rotport, port);
 
     //rot_debug(RIG_DEBUG_ERR, "%s:%d network_fd: %d\n", __func__, __LINE__, (&rot->state.rotport)->fd);
     rot_debug(RIG_DEBUG_ERR, "%s:%d \n", __func__, __LINE__);
-    
+
     return 0;
 }
 
-static int 
+static int
 grbltrk_rot_open(ROT *rot)
 {
     int r = RIG_OK;
@@ -429,19 +478,28 @@ grbltrk_rot_open(ROT *rot)
     //int port;
 
     //rot_debug(RIG_DEBUG_ERR, "%s:%d rot->caps->rot_model: %d\n", __func__, __LINE__, rot->caps->rot_model);
-    if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER) {
+    if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER)
+    {
         rot_debug(RIG_DEBUG_ERR, "%s:%d ctrl via serial\n", __func__, __LINE__);
-    } else if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET) {
+    }
+    else if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
+    {
         rot_get_conf(rot, TOK_PATHNAME, host);
-        rot_debug(RIG_DEBUG_ERR, "%s:%d ctrl via net, host [%s]\n", __func__, __LINE__, host);
+        rot_debug(RIG_DEBUG_ERR, "%s:%d ctrl via net, host [%s]\n", __func__, __LINE__,
+                  host);
         grbl_net_open(rot, 23);
 
 #if 0
-        if (sscanf(host, "%[^:]:%d", ip, &port) == 2) {
+
+        if (sscanf(host, "%[^:]:%d", ip, &port) == 2)
+        {
             grbl_net_open(rot, ip, port);
-        } else {
+        }
+        else
+        {
             grbl_net_open(rot, NULL, 0); /* use default ip & port */
         }
+
 #endif
 
     }
@@ -453,20 +511,23 @@ grbltrk_rot_open(ROT *rot)
     return r;
 }
 
-static void 
+static void
 grbl_net_close(ROT *rot)
 {
     port_close(&rot->state.rotport, RIG_PORT_NETWORK);
 }
 
-static int 
+static int
 grbltrk_rot_close(ROT *rot)
 {
     int r = RIG_OK;
 
-    if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER) {
+    if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_SER)
+    {
         rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
-    } else if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET) {
+    }
+    else if (rot->caps->rot_model == ROT_MODEL_GRBLTRK_NET)
+    {
         rot_debug(RIG_DEBUG_ERR, "%s:%d\n", __func__, __LINE__);
         grbl_net_close(rot);
     }
@@ -511,7 +572,7 @@ const struct rot_caps grbltrk_serial_rot_caps =
 
     .set_position =  grbltrk_rot_set_position,
     .get_position =  grbltrk_rot_get_position,
-     .set_conf    =  grbltrk_rot_set_conf,
+    .set_conf    =  grbltrk_rot_set_conf,
 };
 
 const struct rot_caps grbltrk_net_rot_caps =
@@ -544,7 +605,7 @@ const struct rot_caps grbltrk_net_rot_caps =
 
     .set_position =  grbltrk_rot_set_position,
     .get_position =  grbltrk_rot_get_position,
-     .set_conf    =  grbltrk_rot_set_conf,
+    .set_conf    =  grbltrk_rot_set_conf,
 };
 
 

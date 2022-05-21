@@ -378,7 +378,8 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "RF", 2) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "RF%c%d;", buf[2], buf[2]==0?roofing_filter_main:roofing_filter_sub);
+            SNPRINTF(buf, sizeof(buf), "RF%c%d;", buf[2],
+                     buf[2] == 0 ? roofing_filter_main : roofing_filter_sub);
             usleep(50 * 1000);
             n = write(fd, buf, strlen(buf));
         }
@@ -394,17 +395,20 @@ int main(int argc, char *argv[])
             usleep(50 * 1000);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "SH",2) == 0 && strlen(buf) > 4)
+        else if (strncmp(buf, "SH", 2) == 0 && strlen(buf) > 4)
         {
             int vfo, twidth;
-            sscanf(buf,"SH%1d%d", &vfo, &twidth);
-            if (vfo == 0) width_main = twidth;
-            else width_sub = twidth;
+            sscanf(buf, "SH%1d%d", &vfo, &twidth);
+
+            if (vfo == 0) { width_main = twidth; }
+            else { width_sub = twidth; }
+
             printf("width_main=%d, width_sub=%d\n", width_main, width_sub);
         }
-        else if (strncmp(buf, "SH",2) == 0)
+        else if (strncmp(buf, "SH", 2) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "SH%c%02d;", buf[2], buf[2]==0?width_main:width_sub);
+            SNPRINTF(buf, sizeof(buf), "SH%c%02d;", buf[2],
+                     buf[2] == 0 ? width_main : width_sub);
         }
 
         else if (strlen(buf) > 0)

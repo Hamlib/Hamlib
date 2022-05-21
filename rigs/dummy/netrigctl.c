@@ -683,7 +683,8 @@ static int netrigctl_open(RIG *rig)
                 ptt_type_t temp = (ptt_type_t)strtol(value, NULL, 0);
                 rig_debug(RIG_DEBUG_ERR, "%s: ptt_type='%s'(%d)\n", __func__, value, temp);
 
-                if (RIG_PTT_RIG_MICDATA == rig->state.pttport.type.ptt || temp == RIG_PTT_RIG_MICDATA)
+                if (RIG_PTT_RIG_MICDATA == rig->state.pttport.type.ptt
+                        || temp == RIG_PTT_RIG_MICDATA)
                 {
                     /*
                      * remote PTT must always be RIG_PTT_RIG_MICDATA
