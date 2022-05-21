@@ -250,6 +250,8 @@ declare_proto_rig(password);
 //declare_proto_rig(set_password);
 declare_proto_rig(set_clock);
 declare_proto_rig(get_clock);
+declare_proto_rig(set_separator);
+declare_proto_rig(get_separator);
 
 
 /*
@@ -358,6 +360,8 @@ static struct test_table test_list[] =
     { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO, "Password" },
 //    { 0x99, "set_password",     ACTION(set_password),   ARG_IN | ARG_NOVFO, "Password" },
     { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
+    { 0xa0, "set_separator",     ACTION(set_separator), ARG_IN | ARG_NOVFO, "Separator" },
+    { 0xa1, "get_separator",     ACTION(get_separator), ARG_OUT | ARG_NOVFO, "Separator" },
     { 0x00, "", NULL },
 };
 
@@ -5173,4 +5177,24 @@ declare_proto_rig(get_clock)
             aoffset / 100, aoffset % 100);
 
     return retval;
+}
+
+char rig_resp_sep = '\n';
+/* '0xa0' */
+declare_proto_rig(set_separator)
+{
+    CHKSCN1ARG(sscanf(arg1, "%c", &rig_resp_sep));
+    rig_debug(RIG_DEBUG_ERR, "%s: arg1=%s, resp_sep=0x%x, %p\n", __func__, arg1, (unsigned int)rig_resp_sep, &rig_resp_sep);
+    return RIG_OK;
+}
+
+/* '0xa1' */
+declare_proto_rig(get_separator)
+{
+    char buf[32];
+    if (isprint(rig_resp_sep))
+    sprintf(buf,"%c",rig_resp_sep);
+    else sprintf(buf,"0x%x %p",rig_resp_sep, &rig_resp_sep);
+    fprintf(fout,"%s\n", buf);
+    return RIG_OK;
 }
