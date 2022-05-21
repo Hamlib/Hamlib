@@ -16,6 +16,7 @@ Version 4.6
         
 Version 4.5
         * 2022-05-XX
+        * Add get_separator and set_separator and -S option for rigctld -- node-red applicability
         * Add GRBLTRK rotor project -- two axis rotor
         * enum meter_level_e is deprecated and will be removed in 4.6
         * Add SDRPlay SDRUno rig -- can now use Data/Pkt in WSJTX
