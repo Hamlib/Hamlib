@@ -264,13 +264,18 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "TX", 2) == 0)
         {
             ptt = ptt_mic = ptt_data = ptt_tune = 0;
-            switch(buf[2])
+
+            switch (buf[2])
             {
-                case ';': ptt = 1;
-                case '0': ptt_mic = 1;
-                case '1': ptt_data = 1;
-                case '2': ptt_tune = 1;
+            case ';': ptt = 1;
+
+            case '0': ptt_mic = 1;
+
+            case '1': ptt_data = 1;
+
+            case '2': ptt_tune = 1;
             }
+
             continue;
         }
         else if (strlen(buf) > 0)

@@ -284,16 +284,19 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         break;
+
     case 0x26:
-        for(int i=0;i<6;++i) printf("%02x:",frame[i]);
+        for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
+
         if (frame[6] == 0xfd) // then a query
         {
-            frame[6] = frame[5] == 0? modeA : modeB;
+            frame[6] = frame[5] == 0 ? modeA : modeB;
             frame[7] = datamode;
             frame[8] = 0xfb;
             frame[9] = 0xfd;
             write(fd, frame, 10);
         }
+
         printf("\n");
         break;
 #else
@@ -302,6 +305,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[4] = 0xfa;
         frame[5] = 0xfd;
         break;
+
     case 0x26:
         frame[4] = 0xfa;
         frame[5] = 0xfd;

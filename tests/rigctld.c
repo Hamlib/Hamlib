@@ -468,6 +468,7 @@ int main(int argc, char *argv[])
                 usage();    /* wrong arg count */
                 exit(1);
             }
+
             resp_sep = *optarg;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: resp_sep=%c\n", __func__, resp_sep);
             break;

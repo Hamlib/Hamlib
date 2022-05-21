@@ -1786,7 +1786,8 @@ readline_repeat:
             }
         }
     }
-    if (*resp_sep_ptr != '\n') fprintf(fout, "\n");
+
+    if (*resp_sep_ptr != '\n') { fprintf(fout, "\n"); }
 
     fflush(fout);
 
@@ -2471,12 +2472,15 @@ declare_proto_rig(set_ptt)
         // No longer map this -- is confusing rigctld and MICDATA rigs
         // https://github.com/Hamlib/Hamlib/issues/998
 #if 0
+
         // map to a legal value
         if (rig->caps->ptt_type != RIG_PTT_RIG_MICDATA)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: pttport.type.ptt=%d\n", __func__, rig->state.pttport.type.ptt);
+            rig_debug(RIG_DEBUG_ERR, "%s: pttport.type.ptt=%d\n", __func__,
+                      rig->state.pttport.type.ptt);
             ptt = RIG_PTT_ON;
         }
+
 #endif
 
         break;
@@ -5184,7 +5188,8 @@ char rig_resp_sep = '\n';
 declare_proto_rig(set_separator)
 {
     CHKSCN1ARG(sscanf(arg1, "%c", &rig_resp_sep));
-    rig_debug(RIG_DEBUG_ERR, "%s: arg1=%s, resp_sep=0x%x, %p\n", __func__, arg1, (unsigned int)rig_resp_sep, &rig_resp_sep);
+    rig_debug(RIG_DEBUG_ERR, "%s: arg1=%s, resp_sep=0x%x, %p\n", __func__, arg1,
+              (unsigned int)rig_resp_sep, &rig_resp_sep);
     return RIG_OK;
 }
 
@@ -5192,9 +5197,13 @@ declare_proto_rig(set_separator)
 declare_proto_rig(get_separator)
 {
     char buf[32];
+
     if (isprint(rig_resp_sep))
-    sprintf(buf,"%c",rig_resp_sep);
-    else sprintf(buf,"0x%x %p",rig_resp_sep, &rig_resp_sep);
-    fprintf(fout,"%s\n", buf);
+    {
+        sprintf(buf, "%c", rig_resp_sep);
+    }
+    else { sprintf(buf, "0x%x %p", rig_resp_sep, &rig_resp_sep); }
+
+    fprintf(fout, "%s\n", buf);
     return RIG_OK;
 }
