@@ -3365,11 +3365,11 @@ extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);
 extern HAMLIB_EXPORT(rptr_shift_t) rig_parse_rptr_shift(const char *s);
 extern HAMLIB_EXPORT(chan_type_t) rig_parse_mtype(const char *s);
 
-extern HAMLIB_EXPORT(const char *) rig_license HAMLIB_PARAMS(());
-extern HAMLIB_EXPORT(const char *) rig_version HAMLIB_PARAMS(());
-extern HAMLIB_EXPORT(const char *) rig_copyright HAMLIB_PARAMS(());
+extern HAMLIB_EXPORT(const char *) rig_license HAMLIB_PARAMS((void));
+extern HAMLIB_EXPORT(const char *) rig_version HAMLIB_PARAMS((void));
+extern HAMLIB_EXPORT(const char *) rig_copyright HAMLIB_PARAMS((void));
 
-extern HAMLIB_EXPORT(void) rig_no_restore_ai();
+extern HAMLIB_EXPORT(void) rig_no_restore_ai(void);
 
 extern HAMLIB_EXPORT(int) rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t selection);
 extern HAMLIB_EXPORT(int) rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection, int ms);
