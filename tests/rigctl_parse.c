@@ -3312,11 +3312,11 @@ declare_proto_rig(get_level)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        fprintf(fout, "%f\n", val.f);
+        fprintf(fout, "%f%c", val.f, resp_sep);
     }
     else
     {
-        fprintf(fout, "%d\n", val.i);
+        fprintf(fout, "%d%c", val.i, resp_sep);
     }
 
     RETURNFUNC(status);
