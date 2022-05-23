@@ -2324,15 +2324,15 @@ declare_proto_rig(get_vfo_info)
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "%s: %.0f\n", cmd->arg2, freq);
-        fprintf(fout, "%s: %s\n", cmd->arg3, modestr);
-        fprintf(fout, "%s: %d\n", cmd->arg4, (int)width);
-        fprintf(fout, "%s: %d\n", cmd->arg5, (int)split);
-        fprintf(fout, "%s: %d\n", cmd->arg6, (int)satmode);
+        fprintf(fout, "%s: %.0f%c", cmd->arg2, freq, resp_sep);
+        fprintf(fout, "%s: %s%c", cmd->arg3, modestr, resp_sep);
+        fprintf(fout, "%s: %d%c", cmd->arg4, (int)width, resp_sep);
+        fprintf(fout, "%s: %d%c", cmd->arg5, (int)split, resp_sep);
+        fprintf(fout, "%s: %d%c", cmd->arg6, (int)satmode, resp_sep);
     }
     else
     {
-        fprintf(fout, "%.0f\n%s\n%d\n%d\n%d\n", freq, modestr, (int)width, (int)split,
+        fprintf(fout, "%.0f%c%s%c%d%c%d%c%d\n", freq, resp_sep, modestr, resp_sep, (int)width, resp_sep, (int)split, resp_sep,
                 (int)satmode);
     }
 
@@ -3239,7 +3239,7 @@ declare_proto_rig(get_level)
         if (rig->caps->get_ext_level)
         {
             sprintf_level_ext(s, sizeof(s), rig->caps->extlevels);
-            fputs(s, fout);
+            fprintf(fout, "%s%c", s, resp_sep);
         }
 
         fputc('\n', fout);
