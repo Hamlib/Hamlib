@@ -1401,6 +1401,7 @@ struct filter_list {
 #define RIG_FLT_ANY         0
 #define RIG_FLT_END         {RIG_MODE_NONE, 0}
 #define RIG_IS_FLT_END(f)   ((f).modes == RIG_MODE_NONE)
+#define DEBUGMSGSAVE_SIZE 24000
 //! @endcond
 
 
@@ -3272,8 +3273,7 @@ rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 
 
 extern HAMLIB_EXPORT(void)add2debugmsgsave(const char *s);
-// this need to be fairly big to avoid compiler warnings
-#define DEBUGMSGSAVE_SIZE 24000
+// this needs to be fairly big to avoid compiler warnings
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave[DEBUGMSGSAVE_SIZE];  // last debug msg
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave2[DEBUGMSGSAVE_SIZE];  // last-1 debug msg
 // debugmsgsave3 is deprecated
