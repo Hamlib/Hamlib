@@ -3242,7 +3242,7 @@ declare_proto_rig(get_level)
             fprintf(fout, "%s%c", s, resp_sep);
         }
 
-        fputc('\n', fout);
+        //fputc('\n', fout);
         RETURNFUNC(RIG_OK);
     }
 
