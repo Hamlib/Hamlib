@@ -160,6 +160,16 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 
 #define LOCK \
 
+#ifdef PTHREAD
+#define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
+#define MUTEX_LOCK(var) pthread_mutex_lock(var)
+#define MUTEX_UNLOCK(var)  pthread_mutex_unlock(var)
+#else
+#define MUTEX(var)
+#define MUTEX_LOCK(var)
+#define MUTEX_UNLOCK(var)
+#endif
+
 /*
  * Data structure to track the opened rig (by rig_open)
  */
@@ -311,11 +321,14 @@ char debugmsgsave[DEBUGMSGSAVE_SIZE] = "";
 char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "";
 char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "";
 
+MUTEX(debugmsgsave);
+
 void add2debugmsgsave(const char *s)
 {
     char *p;
     char stmp[DEBUGMSGSAVE_SIZE];
     int i, nlines;
+    MUTEX_LOCK(debugmsgsave);
     memset(stmp, 0, sizeof(stmp));
     p = debugmsgsave;
 
@@ -359,6 +372,7 @@ void add2debugmsgsave(const char *s)
                   "%s: debugmsgsave overflow!! len of debugmsgsave=%d, len of add=%d\n", __func__,
                   (int)strlen(debugmsgsave), (int)strlen(s));
     }
+    MUTEX_UNLOCK(debugmsgsave);
 }
 
 /**
@@ -6884,16 +6898,6 @@ const char *HAMLIB_API rig_copyright()
 {
     return hamlib_copyright2;
 }
-
-#ifdef PTHREAD
-#define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
-#define MUTEX_LOCK(var) pthread_mutex_lock(var)
-#define MUTEX_UNLOCK(var)  pthread_mutex_unlock(var)
-#else
-#define MUTEX(var)
-#define MUTEX_LOCK(var)
-#define MUTEX_UNLOCK(var)
-#endif
 
 /**
  * \brief get a cookie to grab rig control
