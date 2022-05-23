@@ -315,22 +315,37 @@ void add2debugmsgsave(const char *s)
 {
     char *p;
     char stmp[DEBUGMSGSAVE_SIZE];
-    int i,nlines;
+    int i, nlines;
     memset(stmp, 0, sizeof(stmp));
     p = debugmsgsave;
 
     // we'll keep 20 lines including this one
     // so count the lines
-    for(i=0,nlines=0;debugmsgsave[i] != 0;++i)
+    for (i = 0, nlines = 0; debugmsgsave[i] != 0; ++i)
     {
-        if (debugmsgsave[i] == '\n') ++nlines;
+        if (debugmsgsave[i] == '\n') { ++nlines; }
     }
+
     // strip the last 19 lines
-    while (nlines > 19)
+    p =  debugmsgsave;
+
+    while ((nlines > 19 || strlen(debugmsgsave) > 2048) && p != NULL)
     {
-        p = strchr(debugmsgsave,'\n');
-        strcpy(stmp,p+1);
-        strcpy(debugmsgsave,stmp);
+        p = strchr(debugmsgsave, '\n');
+
+        if (p && strlen(p + 1) > 0)
+        {
+            if (strlen(p + 1) > 0)
+            {
+                strcpy(stmp, p + 1);
+                strcpy(debugmsgsave, stmp);
+            }
+            else
+            {
+                debugmsgsave[0] = '\0';
+            }
+        }
+
         --nlines;
     }
 
@@ -340,7 +355,9 @@ void add2debugmsgsave(const char *s)
     }
     else
     {
-        rig_debug(RIG_DEBUG_BUG, "%s: debugmsgsave overflow!! len of debugmsgsave=%d, len of add=%d\n", __func__, (int)strlen(debugmsgsave), (int)strlen(s));
+        rig_debug(RIG_DEBUG_BUG,
+                  "%s: debugmsgsave overflow!! len of debugmsgsave=%d, len of add=%d\n", __func__,
+                  (int)strlen(debugmsgsave), (int)strlen(s));
     }
 }
 
