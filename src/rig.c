@@ -313,28 +313,36 @@ char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "";
 
 void add2debugmsgsave(const char *s)
 {
-    int l1 = strlen(debugmsgsave);
-    int l2 = strlen(s);
-    int l3 = sizeof(debugmsgsave) - 2;
+    char *p;
+    char stmp[DEBUGMSGSAVE_SIZE];
+    int i,nlines;
+    memset(stmp, 0, sizeof(stmp));
+    p = debugmsgsave;
 
-    while (l1 + l2 > l3)
+    // we'll keep 20 lines including this one
+    // so count the lines
+    for(i=0,nlines=0;debugmsgsave[i] != 0;++i)
     {
-        char *p = strchr(debugmsgsave, '\n');
-        memmove(debugmsgsave, p + 1, strlen(p + 1) + 1); // include null byte
-        l1 = strlen(debugmsgsave);
-
-        if (l1 == 0)
-        {
-            //rig_debug(RIG_DEBUG_ERR, "%s: debugmsgsave criticl error...overflow\n");
-            // we'll keep some of whatever this thing is
-            strncat(debugmsgsave, p, sizeof(debugmsgsave) / 2);
-            return;
-        }
+        if (debugmsgsave[i] == '\n') ++nlines;
+    }
+    // strip the last 19 lines
+    while (nlines > 19)
+    {
+        p = strchr(debugmsgsave,'\n');
+        strcpy(stmp,p+1);
+        strcpy(debugmsgsave,stmp);
+        --nlines;
     }
 
-    strcat(debugmsgsave, s);
+    if (strlen(stmp) + strlen(s) + 1 < DEBUGMSGSAVE_SIZE)
+    {
+        strcat(debugmsgsave, s);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_BUG, "%s: debugmsgsave overflow!! len of debugmsgsave=%d, len of add=%d\n", __func__, (int)strlen(debugmsgsave), (int)strlen(s));
+    }
 }
-
 
 /**
  * \brief get string describing the error code

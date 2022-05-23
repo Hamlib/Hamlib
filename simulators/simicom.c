@@ -26,11 +26,13 @@ float freqA = 14074000;
 float freqB = 14074500;
 mode_t modeA = RIG_MODE_CW;
 mode_t modeB = RIG_MODE_USB;
-int datamode = 0;
+int datamodeA = 0;
+int datamodeB = 0;
 pbwidth_t widthA = 0;
 pbwidth_t widthB = 1;
 ant_t ant_curr = 0;
 int ant_option = 0;
+int ptt = 0;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -251,6 +253,27 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         break;
+    case 0x1c:
+    switch(frame[5])
+    {
+        case 0:
+            if (frame[6] == 0xfd)
+            {
+                frame[6] = ptt;
+                frame[7] = 0xfd;
+                write(fd, frame, 8);
+            }
+            else {
+                ptt = frame[6];
+                frame[7] = 0xfb;
+                frame[8] = 0xfd;
+                write(fd, frame, 9);
+            }
+            break;
+
+    }
+    break;
+
 
 #ifdef X25
 
@@ -273,7 +296,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
         else
         {
-            freq = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
+            freq = from_bcd(&frame[6], (civ_731_mode ? 4 : 5) * 2);
             printf("set_freq to %.0f\n", freq);
 
             if (frame[5] == 0x00) { freqA = freq; }
@@ -281,6 +304,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             frame[4] = 0xfb;
             frame[5] = 0xfd;
+            write(fd, frame, 6);
         }
 
         break;
@@ -290,11 +314,32 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (frame[6] == 0xfd) // then a query
         {
+            for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
+
             frame[6] = frame[5] == 0 ? modeA : modeB;
-            frame[7] = datamode;
+            frame[7] = frame[5] == 0 ? datamodeA : datamodeB;
             frame[8] = 0xfb;
             frame[9] = 0xfd;
             write(fd, frame, 10);
+        }
+        else
+        {
+            for (int i = 0; i < 12; ++i) { printf("%02x:", frame[i]); }
+
+            if (frame[6] == 0)
+            {
+                modeA = frame[7];
+                datamodeA = frame[8];
+            }
+            else
+            {
+                modeB = frame[7];
+                datamodeB = frame[8];
+            }
+
+            frame[4] = 0xfb;
+            frame[5] = 0xfd;
+            write(fd, frame, 6);
         }
 
         printf("\n");
@@ -361,10 +406,12 @@ void rigStatus()
 {
     char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';
     char vfob = current_vfo == RIG_VFO_B ? '*' : ' ';
-    printf("%cVFOA: mode=%s width=%ld freq=%.0f\n", vfoa, rig_strrmode(modeA),
+    printf("%cVFOA: mode=%d datamode=%d width=%ld freq=%.0f\n", vfoa, modeA,
+           datamodeA,
            widthA,
            freqA);
-    printf("%cVFOB: mode=%s width=%ld freq=%.0f\n", vfob, rig_strrmode(modeB),
+    printf("%cVFOB: mode=%d datamode=%d width=%ld freq=%.0f\n", vfob, modeB,
+           datamodeB,
            widthB,
            freqB);
 }
