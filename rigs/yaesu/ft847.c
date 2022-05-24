@@ -368,9 +368,8 @@ static tone_t ft847_ctcss_list[] =
 
 
 /*
- * ft847 rigs capabilities.
+ * ft847 rig capabilities.
  * Notice that some rigs share the same functions.
- * Also this struct is READONLY!
  */
 
 const struct rig_caps ft847_caps =
@@ -482,6 +481,136 @@ const struct rig_caps ft847_caps =
 
         RIG_TS_END,
     },
+    /* mode/filter list, .remember =  order matters! */
+    .filters =  {
+        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_CWR, kHz(2.2)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(500)},
+        {RIG_MODE_AM, kHz(9)},
+        {RIG_MODE_AM, kHz(2.2)},
+        {RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_FM, kHz(9)},
+        RIG_FLT_END,
+    },
+
+    .priv =   NULL,
+    .rig_init =   ft847_init,
+    .rig_cleanup =  ft847_cleanup,
+    .rig_open =   ft847_open,
+    .rig_close =  ft847_close,
+
+    .set_freq =   ft847_set_freq,       /* set freq */
+    .get_freq =  ft847_get_freq,        /* get freq */
+    .set_mode =  ft847_set_mode,        /* set mode */
+    .get_mode =  ft847_get_mode,        /* get mode */
+    .set_split_vfo  = ft847_set_split_vfo,
+    .get_split_vfo  = ft847_get_split_vfo,
+    .set_split_freq = ft847_set_split_freq,
+    .get_split_freq = ft847_get_split_freq,
+    .set_split_mode = ft847_set_split_mode,
+    .get_split_mode = ft847_get_split_mode,
+    .set_ptt =  ft847_set_ptt,      /* set ptt */
+    .get_ptt =  ft847_get_ptt,      /* get ptt */
+    .get_dcd =  ft847_get_dcd,      /* get dcd */
+    .get_level = ft847_get_level,           /* get level */
+
+    .set_func       = ft847_set_func,
+    .set_ctcss_tone = ft847_set_ctcss_tone,
+    .set_ctcss_sql  = ft847_set_ctcss_sql,
+    .set_dcs_sql    = ft847_set_dcs_sql,
+    .set_rptr_shift = ft847_set_rptr_shift,
+    .set_rptr_offs  = ft847_set_rptr_offs,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
+};
+
+/*
+ * ft600 rigs capabilities.
+ * Notice that some rigs share the same functions.
+ */
+
+const struct rig_caps ft650_caps =
+{
+    RIG_MODEL(RIG_MODEL_FT650),
+    .model_name = "FT-650",
+    .mfg_name =  "Yaesu",
+    .version =  "20220524.0",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_STABLE,
+    .rig_type =  RIG_TYPE_TRANSCEIVER,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  4800,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  2,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  FT847_WRITE_DELAY,
+    .post_write_delay =  FT847_POST_WRITE_DELAY,
+    .timeout =  1000,
+    .retry =  0,
+
+    .has_get_func =  RIG_FUNC_NONE,
+    .has_set_func =  FT847_FUNC_ALL,
+    .has_get_level =  FT847_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_BAND_SELECT,
+    .has_get_parm =  RIG_PARM_NONE,
+    .has_set_parm =  RIG_PARM_NONE,
+    .level_gran =  {},      /* granularity */
+    .parm_gran =  {},
+    .ctcss_list =  ft847_ctcss_list,
+    .preamp =   { RIG_DBLST_END, }, /* no preamp/att in CAT */
+    .attenuator =   { RIG_DBLST_END, },
+    .max_rit =  Hz(0),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_TONE | RIG_TARGETABLE_FUNC,
+    .transceive =  RIG_TRN_OFF,
+    .bank_qty =   0,
+    .chan_desc_sz =  0,
+
+    .chan_list =  { RIG_CHAN_END, }, /* FIXME: memory chan list: 78, but only in clonable mode? */
+
+    .rx_range_list1 =  {
+        {MHz(24.5), MHz(56), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "EUR"},
+        RIG_FRNG_END,
+    }, /* rx range end */
+
+    .tx_range_list1 =  {
+        FRQ_RNG_HF(1, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_HF(1, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_6m(1, FT847_OTHER_TX_MODES, W(5), W(100), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_6m(1, FT847_AM_TX_MODES, W(1), W(25), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_4m(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_4m(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_2m(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_2m(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+
+        FRQ_RNG_70cm(1, FT847_OTHER_TX_MODES, W(1), W(50), FT847_VFOS, FT847_ANTS),
+        FRQ_RNG_70cm(1, FT847_AM_TX_MODES, W(1), W(12.5), FT847_VFOS, FT847_ANTS),
+
+        RIG_FRNG_END,
+    }, /* tx range end */
+
+    .rx_range_list2 =  {
+        {MHz(24.5), MHz(56), FT847_ALL_RX_MODES, -1, -1, FT847_VFOS, FT847_ANTS, "USA"},
+
+        RIG_FRNG_END,
+    }, /* rx range end */
+
+    .tx_range_list2 =  {
+        {kHz(24500),kHz(25000), FT847_OTHER_TX_MODES, W(10), W(100), FT847_VFOS, FT847_ANTS},
+        {kHz(24500),kHz(25000), FT847_AM_TX_MODES, W(10), W(100), FT847_VFOS, FT847_ANTS},
+        {kHz(28000),kHz(29700), FT847_OTHER_TX_MODES, W(10), W(100), FT847_VFOS, FT847_ANTS},
+        {kHz(28000),kHz(29700), FT847_AM_TX_MODES, W(10), W(100), FT847_VFOS, FT847_ANTS},
+        {kHz(50000),kHz(54000), FT847_OTHER_TX_MODES, W(10), W(100), FT847_VFOS, FT847_ANTS},
+        {kHz(50000),kHz(54000), FT847_AM_TX_MODES, W(10), W(100), FT847_VFOS, FT847_ANTS},
+        RIG_FRNG_END,
+    }, /* tx range end */
+
     /* mode/filter list, .remember =  order matters! */
     .filters =  {
         {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_CWR, kHz(2.2)},
@@ -1082,7 +1211,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo =%s \n",
               __func__, rig_strvfo(vfo));
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (rig->caps->rig_model == RIG_MODEL_FT847UNI || rig->caps->rig_model == RIG_MODEL_FT650)
     {
         if (vfo == RIG_VFO_MAIN)
         {
