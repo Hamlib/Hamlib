@@ -552,8 +552,8 @@ const struct rig_caps ft650_caps =
 
     .has_get_func =  RIG_FUNC_NONE,
     .has_set_func =  FT847_FUNC_ALL,
-    .has_get_level =  FT847_LEVEL_ALL,
-    .has_set_level =  RIG_LEVEL_BAND_SELECT,
+    //.has_get_level =  FT847_LEVEL_ALL,
+    //.has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
     .level_gran =  {},      /* granularity */
@@ -564,7 +564,7 @@ const struct rig_caps ft650_caps =
     .max_rit =  Hz(0),
     .max_xit =  Hz(0),
     .max_ifshift =  Hz(0),
-    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_TONE | RIG_TARGETABLE_FUNC,
+    //.targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_TONE | RIG_TARGETABLE_FUNC,
     .transceive =  RIG_TRN_OFF,
     .bank_qty =   0,
     .chan_desc_sz =  0,
@@ -613,8 +613,13 @@ const struct rig_caps ft650_caps =
 
     /* mode/filter list, .remember =  order matters! */
     .filters =  {
-        {RIG_MODE_SSB | RIG_MODE_CW | RIG_MODE_CWR, kHz(2.2)},
-        {RIG_MODE_CW | RIG_MODE_CWR, Hz(500)},
+        {RIG_MODE_SSB | RIG_MODE_CW, kHz(2.4)},
+        {RIG_MODE_SSB, kHz(2.2)},
+        {RIG_MODE_SSB, kHz(2.0)},
+        {RIG_MODE_SSB, kHz(1.8)},
+        {RIG_MODE_CW, Hz(1200)},
+        {RIG_MODE_CW, Hz(600)},
+        {RIG_MODE_CW, Hz(300)},
         {RIG_MODE_AM, kHz(9)},
         {RIG_MODE_AM, kHz(2.2)},
         {RIG_MODE_FM, kHz(15)},
@@ -632,23 +637,23 @@ const struct rig_caps ft650_caps =
     .get_freq =  ft847_get_freq,        /* get freq */
     .set_mode =  ft847_set_mode,        /* set mode */
     .get_mode =  ft847_get_mode,        /* get mode */
-    .set_split_vfo  = ft847_set_split_vfo,
-    .get_split_vfo  = ft847_get_split_vfo,
-    .set_split_freq = ft847_set_split_freq,
-    .get_split_freq = ft847_get_split_freq,
-    .set_split_mode = ft847_set_split_mode,
-    .get_split_mode = ft847_get_split_mode,
+//    .set_split_vfo  = ft847_set_split_vfo,
+//    .get_split_vfo  = ft847_get_split_vfo,
+//    .set_split_freq = ft847_set_split_freq,
+//    .get_split_freq = ft847_get_split_freq,
+//    .set_split_mode = ft847_set_split_mode,
+//    .get_split_mode = ft847_get_split_mode,
     .set_ptt =  ft847_set_ptt,      /* set ptt */
     .get_ptt =  ft847_get_ptt,      /* get ptt */
-    .get_dcd =  ft847_get_dcd,      /* get dcd */
-    .get_level = ft847_get_level,           /* get level */
+//    .get_dcd =  ft847_get_dcd,      /* get dcd */
+//    .get_level = ft847_get_level,           /* get level */
 
     .set_func       = ft847_set_func,
     .set_ctcss_tone = ft847_set_ctcss_tone,
-    .set_ctcss_sql  = ft847_set_ctcss_sql,
-    .set_dcs_sql    = ft847_set_dcs_sql,
-    .set_rptr_shift = ft847_set_rptr_shift,
-    .set_rptr_offs  = ft847_set_rptr_offs,
+//    .set_ctcss_sql  = ft847_set_ctcss_sql,
+//    .set_dcs_sql    = ft847_set_dcs_sql,
+//    .set_rptr_shift = ft847_set_rptr_shift,
+//    .set_rptr_offs  = ft847_set_rptr_offs,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
