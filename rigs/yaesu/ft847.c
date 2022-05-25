@@ -324,7 +324,7 @@ static const yaesu_cmd_set_t ncmd[] =
  * Receiver caps
  */
 
-
+#define UNIDIRECTIONAL (rig->caps->rig_model == RIG_MODEL_FT847UNI || rig->caps->rig_model == RIG_MODEL_FT650)
 #define FT847_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM)
 #define FT847_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB)
 #define FT847_AM_FM_RX_MODES (RIG_MODE_AM|RIG_MODE_FM)
@@ -365,6 +365,16 @@ static tone_t ft847_ctcss_list[] =
     1862, 1928, 2035, 2107, 2181, 2257, 2336, 2418, 2503,
     0
 };
+#if 0
+static tone_t ft650_ctcss_list[] =
+{
+    670,  719,  744,  770,  797,  825,  854,  885,  915,
+    948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,
+    1318, 1365, 1413, 1462, 1514, 1567, 1622, 1679, 1738, 1799,
+    1862, 1928, 2035, 2107, 2181, 2257, 2336, 2418, 2503,
+    0
+};
+#endif
 
 
 /*
@@ -377,7 +387,7 @@ const struct rig_caps ft847_caps =
     RIG_MODEL(RIG_MODEL_FT847),
     .model_name = "FT-847",
     .mfg_name =  "Yaesu",
-    .version =  "20210221.0",
+    .version =  "20220525.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -532,7 +542,7 @@ const struct rig_caps ft650_caps =
     RIG_MODEL(RIG_MODEL_FT650),
     .model_name = "FT-650",
     .mfg_name =  "Yaesu",
-    .version =  "20220524.0",
+    .version =  "20220525.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -558,7 +568,7 @@ const struct rig_caps ft650_caps =
     .has_set_parm =  RIG_PARM_NONE,
     .level_gran =  {},      /* granularity */
     .parm_gran =  {},
-    .ctcss_list =  ft847_ctcss_list,
+    //.ctcss_list =  ft847_ctcss_list,
     .preamp =   { RIG_DBLST_END, }, /* no preamp/att in CAT */
     .attenuator =   { RIG_DBLST_END, },
     .max_rit =  Hz(0),
@@ -662,7 +672,7 @@ const struct rig_caps mchfqrp_caps =
     RIG_MODEL(RIG_MODEL_MCHFQRP),
     .model_name = "mcHF QRP",
     .mfg_name =  "M0NKA",
-    .version =  "20211103.0",
+    .version =  "20220525.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1173,7 +1183,7 @@ static int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, fmt, __func__,
               (int64_t)from_bcd_be(p_cmd, 8) * 10);
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
 
@@ -1216,7 +1226,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo =%s \n",
               __func__, rig_strvfo(vfo));
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI || rig->caps->rig_model == RIG_MODEL_FT650)
+    if (UNIDIRECTIONAL)
     {
         if (vfo == RIG_VFO_MAIN)
         {
@@ -1345,7 +1355,7 @@ static int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s\n", __func__,
               rig_strrmode(mode));
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
         priv->mode = mode;
@@ -1540,7 +1550,7 @@ static int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
         priv->ptt = ptt;
@@ -1575,7 +1585,7 @@ static int ft847_get_status(RIG *rig, int status_ci)
     int len;
     int n;
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         return -RIG_ENIMPL;
     }
@@ -1628,7 +1638,7 @@ static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
     int n;
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
         *ptt = priv->ptt;
@@ -1662,7 +1672,7 @@ static int ft847_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
     int n;
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         return -RIG_ENIMPL;
     }
@@ -1691,7 +1701,7 @@ static int ft847_get_rawstr_level(RIG *rig, value_t *val)
     struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
     int n;
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         return -RIG_ENIMPL;
     }
@@ -1718,7 +1728,7 @@ static int ft847_get_smeter_level(RIG *rig, value_t *val)
 {
     int n;
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         return -RIG_ENIMPL;
     }
@@ -1763,7 +1773,7 @@ static int ft847_get_alc_level(RIG *rig, value_t *val)
     struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
     int n;
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         return -RIG_ENIMPL;
     }
@@ -1791,7 +1801,7 @@ static int ft847_get_alc_level(RIG *rig, value_t *val)
  */
 static int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         return -RIG_ENIMPL;
     }
@@ -1953,7 +1963,7 @@ static int ft847_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
     unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
 
-    if (rig->caps->rig_model == RIG_MODEL_FT847UNI)
+    if (UNIDIRECTIONAL)
     {
         return -RIG_ENIMPL;
     }
