@@ -155,7 +155,7 @@ static int get_ic10_if(RIG *rig, char *data)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    for (i = 0; retval != RIG_OK && i < rig->caps->retry; i++)
+    for (i = 0; retval != RIG_OK && i < rig->state.rigport.retry; i++)
     {
         data_len = 37;
         retval = ic10_transaction(rig, "IF;", 3, data, &data_len);
