@@ -4487,7 +4487,7 @@ declare_proto_rig(get_ant)
     int status;
     ant_t ant, ant_curr, ant_tx, ant_rx;
     value_t option;
-    char antbuf[32];
+    char antbuf[64];
 
     ENTERFUNC;
 
