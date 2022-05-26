@@ -328,6 +328,7 @@ void add2debugmsgsave(const char *s)
     char *p;
     char stmp[DEBUGMSGSAVE_SIZE];
     int i, nlines;
+    int maxmsg = DEBUGMSGSAVE_SIZE/2;
     MUTEX_LOCK(debugmsgsave);
     memset(stmp, 0, sizeof(stmp));
     p = debugmsgsave;
@@ -342,7 +343,7 @@ void add2debugmsgsave(const char *s)
     // strip the last 19 lines
     p =  debugmsgsave;
 
-    while ((nlines > 19 || strlen(debugmsgsave) > 2048) && p != NULL)
+    while ((nlines > 19 || strlen(debugmsgsave) > maxmsg) && p != NULL)
     {
         p = strchr(debugmsgsave, '\n');
 
@@ -360,6 +361,7 @@ void add2debugmsgsave(const char *s)
         }
 
         --nlines;
+        if (nlines == 0 && strlen(debugmsgsave) > maxmsg) strcpy(debugmsgsave,"!!!!debugmsgsave too long\n");
     }
 
     if (strlen(stmp) + strlen(s) + 1 < DEBUGMSGSAVE_SIZE)
