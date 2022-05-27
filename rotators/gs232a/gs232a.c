@@ -422,6 +422,51 @@ const struct rot_caps gs23_rot_caps =
     .set_level =     gs232a_rot_set_level,
 };
 
+
+/* ************************************************************************* */
+/*
+ * Generic GS23 azimuth rotator capabilities.
+ */
+
+const struct rot_caps gs23_az_rot_caps =
+{
+    ROT_MODEL(ROT_MODEL_GS23_AZ),
+    .model_name =     "GS-23 azimuth",
+    .mfg_name =       "Yaesu/Kenpro",
+    .version =        "20220527.0",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_STABLE,
+    .rot_type =       ROT_TYPE_AZIMUTH,
+    .port_type =      RIG_PORT_SERIAL,
+    .serial_rate_min =   150,
+    .serial_rate_max =   9600,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =     RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  50,
+    .timeout =  400,
+    .retry =  3,
+
+    .min_az =     -180.0,
+    .max_az =     450.0,  /* vary according to rotator type */
+    .min_el =     0.0,
+    .max_el =     0.0,
+
+    .has_get_level =  GS232A_LEVELS,
+    .has_set_level =  ROT_LEVEL_SET(GS232A_LEVELS),
+
+    .level_gran =      { [ROT_LVL_SPEED] = { .min = { .i = 1 }, .max = { .i = 4 }, .step = { .i = 1 } } },
+
+    .rot_init     =  gs232a_rot_init,
+    .get_position =  gs232a_rot_get_position,
+    .set_position =  gs232a_rot_set_position,
+    .stop =          gs232a_rot_stop,
+    .get_level =     gs232a_rot_get_level,
+    .set_level =     gs232a_rot_set_level,
+};
+
 /* ************************************************************************* */
 /*
  * Generic GS232 rotator capabilities.
