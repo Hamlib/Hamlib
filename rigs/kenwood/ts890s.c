@@ -241,7 +241,7 @@ const struct rig_caps ts890s_caps =
     RIG_MODEL(RIG_MODEL_TS890S),
     .model_name = "TS-890S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".1",
+    .version = BACKEND_VER ".2",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -375,6 +375,7 @@ const struct rig_caps ts890s_caps =
     .reset = kenwood_reset,
     .set_ant = kenwood_set_ant,
     .get_ant = kenwood_get_ant,
+    .send_morse =  kenwood_send_morse,
     .scan = kenwood_scan,     /* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
     .has_set_level = TS890_LEVEL_ALL,
     .has_get_level = TS890_LEVEL_ALL,
