@@ -41,7 +41,7 @@ int check_buffer_overflow(char *str, int len, int nlen)
 {
     if (len + 32 >= nlen) // make sure at least 32 bytes are available
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s'\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overflow, len=%u, nlen=%d, str='%s', len+32 must be >= nlen\n",
                   __func__, len, nlen, str);
     }
 
