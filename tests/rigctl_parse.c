@@ -252,6 +252,8 @@ declare_proto_rig(set_clock);
 declare_proto_rig(get_clock);
 declare_proto_rig(set_separator);
 declare_proto_rig(get_separator);
+declare_proto_rig(set_lock_mode);
+declare_proto_rig(get_lock_mode);
 
 
 /*
@@ -361,7 +363,9 @@ static struct test_table test_list[] =
 //    { 0x99, "set_password",     ACTION(set_password),   ARG_IN | ARG_NOVFO, "Password" },
     { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
     { 0xa0, "set_separator",     ACTION(set_separator), ARG_IN | ARG_NOVFO, "Separator" },
-    { 0xa1, "get_separator",     ACTION(get_separator), ARG_OUT | ARG_NOVFO, "Separator" },
+    { 0xa1, "get_separator",     ACTION(get_separator), ARG_NOVFO, "Separator" },
+    { 0xa2, "set_lock_mode",     ACTION(set_lock_mode), ARG_IN | ARG_NOVFO, "Locked" }, 
+    { 0xa3, "get_lock_mode",     ACTION(get_lock_mode), ARG_NOVFO, "Locked" }, 
     { 0x00, "", NULL },
 };
 
@@ -2172,6 +2176,7 @@ declare_proto_rig(set_mode)
 
     mode = rig_parse_mode(arg1);
     CHKSCN1ARG(sscanf(arg2, "%ld", &width));
+    if (rig->state.lock_mode) RETURNFUNC(RIG_OK);
     RETURNFUNC(rig_set_mode(rig, vfo, mode, width));
 }
 
@@ -5206,5 +5211,25 @@ declare_proto_rig(get_separator)
     else { sprintf(buf, "0x%x %p", rig_resp_sep, &rig_resp_sep); }
 
     fprintf(fout, "%s\n", buf);
+    return RIG_OK;
+}
+
+/* '0xa2' */
+declare_proto_rig(set_lock_mode)
+{
+    int lock;
+    CHKSCN1ARG(sscanf(arg1, "%d", &lock));
+    rig->state.lock_mode = lock != 0;
+    return RIG_OK;
+}
+/* '0xa3' */
+declare_proto_rig(get_lock_mode)
+{
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);  
+    }
+
+    fprintf(fout, "%d\n", rig->state.lock_mode);
     return RIG_OK;
 }

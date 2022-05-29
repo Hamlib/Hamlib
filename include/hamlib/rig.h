@@ -2572,6 +2572,7 @@ struct rig_state {
     int use_cached_mode; /*<! flag instructing rig_get_mode to use cached values when asyncio is in use */
     int use_cached_ptt;  /*<! flag instructing rig_get_ptt to use cached values when asyncio is in use */
     int depth; /*<! a depth counter to use for debug indentation and such */
+    int lock_mode; /*<! flag that prevents mode changes if ~= 0 -- see set/get_lock_mode */
 };
 
 //! @cond Doxygen_Suppress
