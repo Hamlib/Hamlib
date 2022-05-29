@@ -364,8 +364,8 @@ static struct test_table test_list[] =
     { 0xf7, "get_mode_bandwidths", ACTION(get_mode_bandwidths),   ARG_IN | ARG_NOVFO, "Mode" },
     { 0xa0, "set_separator",     ACTION(set_separator), ARG_IN | ARG_NOVFO, "Separator" },
     { 0xa1, "get_separator",     ACTION(get_separator), ARG_NOVFO, "Separator" },
-    { 0xa2, "set_lock_mode",     ACTION(set_lock_mode), ARG_IN | ARG_NOVFO, "Locked" }, 
-    { 0xa3, "get_lock_mode",     ACTION(get_lock_mode), ARG_NOVFO, "Locked" }, 
+    { 0xa2, "set_lock_mode",     ACTION(set_lock_mode), ARG_IN | ARG_NOVFO, "Locked" },
+    { 0xa3, "get_lock_mode",     ACTION(get_lock_mode), ARG_NOVFO, "Locked" },
     { 0x00, "", NULL },
 };
 
@@ -2176,7 +2176,9 @@ declare_proto_rig(set_mode)
 
     mode = rig_parse_mode(arg1);
     CHKSCN1ARG(sscanf(arg2, "%ld", &width));
-    if (rig->state.lock_mode) RETURNFUNC(RIG_OK);
+
+    if (rig->state.lock_mode) { RETURNFUNC(RIG_OK); }
+
     RETURNFUNC(rig_set_mode(rig, vfo, mode, width));
 }
 
@@ -2337,7 +2339,8 @@ declare_proto_rig(get_vfo_info)
     }
     else
     {
-        fprintf(fout, "%.0f%c%s%c%d%c%d%c%d\n", freq, resp_sep, modestr, resp_sep, (int)width, resp_sep, (int)split, resp_sep,
+        fprintf(fout, "%.0f%c%s%c%d%c%d%c%d\n", freq, resp_sep, modestr, resp_sep,
+                (int)width, resp_sep, (int)split, resp_sep,
                 (int)satmode);
     }
 
@@ -5206,8 +5209,9 @@ declare_proto_rig(get_separator)
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "%s: ", cmd->arg1);  
+        fprintf(fout, "%s: ", cmd->arg1);
     }
+
     sprintf(buf, "0x%x", rig_resp_sep);
 
     fprintf(fout, "%s\n", buf);
@@ -5227,7 +5231,7 @@ declare_proto_rig(get_lock_mode)
 {
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "%s: ", cmd->arg1);  
+        fprintf(fout, "%s: ", cmd->arg1);
     }
 
     fprintf(fout, "%d\n", rig->state.lock_mode);
