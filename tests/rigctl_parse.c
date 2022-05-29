@@ -5204,11 +5204,11 @@ declare_proto_rig(get_separator)
 {
     char buf[32];
 
-    if (isprint(rig_resp_sep))
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        sprintf(buf, "%c", rig_resp_sep);
+        fprintf(fout, "%s: ", cmd->arg1);  
     }
-    else { sprintf(buf, "0x%x %p", rig_resp_sep, &rig_resp_sep); }
+    sprintf(buf, "0x%x", rig_resp_sep);
 
     fprintf(fout, "%s\n", buf);
     return RIG_OK;
