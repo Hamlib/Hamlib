@@ -328,7 +328,7 @@ void add2debugmsgsave(const char *s)
     char *p;
     char stmp[DEBUGMSGSAVE_SIZE];
     int i, nlines;
-    int maxmsg = DEBUGMSGSAVE_SIZE/2;
+    int maxmsg = DEBUGMSGSAVE_SIZE / 2;
     MUTEX_LOCK(debugmsgsave);
     memset(stmp, 0, sizeof(stmp));
     p = debugmsgsave;
@@ -361,7 +361,8 @@ void add2debugmsgsave(const char *s)
         }
 
         --nlines;
-        if (nlines == 0 && strlen(debugmsgsave) > maxmsg) strcpy(debugmsgsave,"!!!!debugmsgsave too long\n");
+
+        if (nlines == 0 && strlen(debugmsgsave) > maxmsg) { strcpy(debugmsgsave, "!!!!debugmsgsave too long\n"); }
     }
 
     if (strlen(stmp) + strlen(s) + 1 < DEBUGMSGSAVE_SIZE)
@@ -374,6 +375,7 @@ void add2debugmsgsave(const char *s)
                   "%s: debugmsgsave overflow!! len of debugmsgsave=%d, len of add=%d\n", __func__,
                   (int)strlen(debugmsgsave), (int)strlen(s));
     }
+
     MUTEX_UNLOCK(debugmsgsave);
 }
 

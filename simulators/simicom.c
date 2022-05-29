@@ -253,9 +253,10 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         break;
+
     case 0x1c:
-    switch(frame[5])
-    {
+        switch (frame[5])
+        {
         case 0:
             if (frame[6] == 0xfd)
             {
@@ -263,16 +264,19 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[7] = 0xfd;
                 write(fd, frame, 8);
             }
-            else {
+            else
+            {
                 ptt = frame[6];
                 frame[7] = 0xfb;
                 frame[8] = 0xfd;
                 write(fd, frame, 9);
             }
+
             break;
 
-    }
-    break;
+        }
+
+        break;
 
 
 #ifdef X25
