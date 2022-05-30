@@ -137,7 +137,7 @@ const struct rig_caps ftdx10_caps =
     RIG_MODEL(RIG_MODEL_FTDX10),
     .model_name =         "FTDX-10",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".2",
+    .version =            NEWCAT_VER ".3",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -308,6 +308,7 @@ const struct rig_caps ftdx10_caps =
     .set_ext_level =      newcat_set_ext_level,
     .get_ext_level =      newcat_get_ext_level,
     .send_morse =         newcat_send_morse,
+    .wait_morse =         rig_wait_morse,
     .set_clock =          newcat_set_clock,
     .get_clock =          newcat_get_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS

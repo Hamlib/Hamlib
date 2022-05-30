@@ -410,7 +410,7 @@ const struct rig_caps ft920_caps =
     RIG_MODEL(RIG_MODEL_FT920),
     .model_name =       "FT-920",
     .mfg_name =         "Yaesu",
-    .version =          "20210221.0",           /* YYYYMMDD */
+    .version =          "20220529.0",           /* YYYYMMDD */
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,

@@ -376,6 +376,7 @@ const struct rig_caps ts890s_caps =
     .set_ant = kenwood_set_ant,
     .get_ant = kenwood_get_ant,
     .send_morse =  kenwood_send_morse,
+    .wait_morse =  rig_wait_morse,
     .scan = kenwood_scan,     /* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
     .has_set_level = TS890_LEVEL_ALL,
     .has_get_level = TS890_LEVEL_ALL,
