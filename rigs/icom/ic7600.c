@@ -270,7 +270,7 @@ const struct rig_caps ic7600_caps =
     RIG_MODEL(RIG_MODEL_IC7600),
     .model_name = "IC-7600",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -446,6 +446,7 @@ const struct rig_caps ic7600_caps =
     .set_powerstat = icom_set_powerstat,
     .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse,
+    .wait_morse =  rig_wait_morse,
     .set_clock = ic7600_set_clock,
     .get_clock = ic7600_get_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
