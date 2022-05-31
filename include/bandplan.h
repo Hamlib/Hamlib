@@ -47,7 +47,7 @@
 /*
  * Generic bands -- eventually we should get rid of all the ITU regions -- not Hamlib's job and subject to change -- nobody in the mainstream uses these ranges anyways that we know of -- Mike W9MDB 20220531
  */
-
+#if 0 // future use
 /* MF: 300 kHz - 3 MHz */
 #define FRQ_RNG_160m(md,lp,hp,v,a) \
             { kHz(1800),MHz(2), (md), (lp), (hp), (v), (a), "Generic" }
@@ -99,6 +99,9 @@
 
 #define FRQ_RNG_13cm(md,lp,hp,v,a) \
             { MHz(2320),MHz(2450), (md), (lp), (hp), (v), (a), "Generic" }
+
+#endif
+
 
 /* SHF: 3 GHz to 30GHz */
 #define FRQ_RNG_9cm(md,lp,hp,v,a) \
