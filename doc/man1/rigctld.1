@@ -1140,6 +1140,17 @@ Set vfo option Status 1=on or 0=off
 This is the same as using the -o switch for rigctl and ritctld.
 This can be dyamically changed while running.
 .
+.TP
+.BR set_lock_mode " \(aq" \fILocked\fP \(aq
+Turns mode lock on(1) or off(0).  Turning on will prevent all clients from changing the rig mode.
+For example this is useful when running CW Skimmer in FM mode on an IC-7300.  Clicking spots
+in a spotting program will not change the VFOA mode when lock is on.  So "set_lock_mode 1" when
+CW Skimmer is started and "set_lock_mode 0" when CW Skimmer is stopped.
+.
+.TP
+.BR get_lock_mode
+Returns current lock mode status 1=On, 2=Off
+.
 .
 .SH PROTOCOL
 .
