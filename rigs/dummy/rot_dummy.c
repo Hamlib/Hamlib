@@ -929,14 +929,14 @@ struct rot_caps dummy_rot_caps =
     ROT_MODEL(ROT_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20220519.0",
+    .version =        "20220531.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
     .port_type =      RIG_PORT_NONE,
 
     .min_az =     -180.,
-    .max_az =     180.,
+    .max_az =     450.,
     .min_el =     0.,
     .max_el =     90.,
 
