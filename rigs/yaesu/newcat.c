@@ -978,19 +978,28 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             if (newcat_valid_command(rig, "VS"))
             {
                 SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VS%d;", vfo2);
+
+                if (RIG_OK != (err = newcat_set_cmd(rig)))
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command#3=%s\n",
+                              __func__, rigerror(err));
+                }
             }
         }
         else
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c",
                      newcat_band_index(freq), cat_term);
+
+            if (RIG_OK != (err = newcat_set_cmd(rig)))
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command#2=%s\n",
+                          __func__, rigerror(err));
+            }
+
+            hl_usleep(500 * 1000); // wait for BS to do it's thing
         }
 
-        if (RIG_OK != (err = newcat_set_cmd(rig)))
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected error with BS command#2=%s\n",
-                      __func__, rigerror(err));
-        }
 
 #if 0 // disable for testing
         else
