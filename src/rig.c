@@ -7235,7 +7235,6 @@ void *async_data_handler(void *arg)
         }
     }
 
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Stopping async data handler thread\n",
               __func__);
 
@@ -7257,3 +7256,52 @@ HAMLIB_EXPORT(int) rig_password(RIG *rig, const char *key1)
     RETURNFUNC(retval);
 }
 
+extern int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
+                           size_t rxbuffer_len);
+
+
+HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
+                                int send_len, unsigned char *reply, int reply_len, unsigned char *term)
+{
+    struct rig_state *rs = &rig->state;
+    unsigned char buf[200];
+    ENTERFUNC;
+    int retval = write_block_sync(&rs->rigport, send, send_len);
+
+    if (retval < 0)
+    {
+        // TODO: error handling? can writing to a pipe really fail in ways we can recover from?
+        rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__,
+                  retval);
+    }
+
+    if (reply)
+    {
+        if (term ==
+                NULL) // we have to have terminating char or else we can't read the response
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: term==NULL, must have terminator to read reply\n",
+                      __func__);
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        if (*term == 0xfd) // then we want an Icom frame
+        {
+            retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+        }
+        else // we'll assume the provided terminator works
+        {
+            retval = read_string_direct(&rs->rigport, buf, sizeof(buf), (const char *)term,
+                                        1, 0, 1);
+        }
+
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__,
+                      retval);
+            RETURNFUNC(retval);
+        }
+    }
+
+    RETURNFUNC(retval);
+}
