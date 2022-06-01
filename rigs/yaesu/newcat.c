@@ -939,6 +939,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             && !(is_ft2000 && newcat_band_index(freq) == 2)
             && !(is_ftdx1200 && newcat_band_index(freq) == 2)
             && !is_ft891 // 891 does not remember bandwidth so don't do this
+            && !is_ft991 // 991 does not behave well with bandstack changes
             && rig->caps->get_vfo != NULL
             && rig->caps->set_vfo != NULL) // gotta' have get_vfo too
     {
