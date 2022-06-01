@@ -589,7 +589,7 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         return (err);
     }
 
-    if (is_split == RIG_SPLIT_OFF)
+    if (is_split == RIG_SPLIT_ON)
     {
         err = newcat_set_tx_vfo(rig, RIG_VFO_B);
 
