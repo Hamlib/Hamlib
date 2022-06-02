@@ -5223,17 +5223,27 @@ declare_proto_rig(set_lock_mode)
 {
     int lock;
     CHKSCN1ARG(sscanf(arg1, "%d", &lock));
-    rig->state.lock_mode = lock != 0;
-    return RIG_OK;
+    return (rig_set_lock_mode(rig, lock));
 }
+
 /* '0xa3' */
 declare_proto_rig(get_lock_mode)
 {
+    int retval;
+    int lock;
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    fprintf(fout, "%d\n", rig->state.lock_mode);
+    retval = rig_get_lock_mode(rig, &lock);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    fprintf(fout, "%d\n", lock);
     return RIG_OK;
 }
