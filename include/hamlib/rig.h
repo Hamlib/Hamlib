@@ -2049,6 +2049,8 @@ struct rig_caps {
     char *hamlib_check_rig_caps;   // a constant value we can check for hamlib integrity
     int (*get_conf2)(RIG *rig, token_t token, char *val, int val_len);
     int (*password)(RIG *rig, const char *key1); /*< Send encrypted password if rigctld is secured with -A/--password */
+    int (*set_lock_mode)(RIG *rig, int mode);
+    int (*get_lock_mode)(RIG *rig, int *mode);
 };
 //! @endcond
 
@@ -3405,6 +3407,9 @@ locator2longlat HAMLIB_PARAMS((double *longitude,
                                const char *locator));
 
 extern HAMLIB_EXPORT(char*) rig_make_md5(char *pass);
+
+extern HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int lock);
+extern HAMLIB_EXPORT(int) rig_get_lock_mode(RIG *rig, int *lock);
 
 
 //! @endcond

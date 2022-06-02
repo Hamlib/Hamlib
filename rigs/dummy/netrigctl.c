@@ -2649,6 +2649,22 @@ int netrigctl_password(RIG *rig, const char *key1)
     RETURNFUNC(retval);
 }
 
+int lock_mode;
+
+int netrigctl_set_lock_mode(RIG *rig, int mode)
+{
+    //rig->state.lock_mode = mode;
+    lock_mode = mode;
+    return (RIG_OK);
+}
+
+int netrigctl_get_lock_mode(RIG *rig, int *mode)
+{
+    //*mode = rig->state.lock_mode;
+    *mode = lock_mode;
+    return (RIG_OK);
+}
+
 /*
  * Netrigctl rig capabilities.
  */
@@ -2764,6 +2780,8 @@ struct rig_caps netrigctl_caps =
     .power2mW =   netrigctl_power2mW,
     .mW2power =   netrigctl_mW2power,
     .password =   netrigctl_password,
+    .set_lock_mode = netrigctl_set_lock_mode,
+    .get_lock_mode = netrigctl_get_lock_mode,
 
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

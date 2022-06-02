@@ -4165,7 +4165,8 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     // some rigs exhibit undesirable flashing when swapping vfos in split
     // so we turn it off, do our thing, and turn split back on
     rx_vfo = vfo;
-    if (tx_vfo == RIG_VFO_B) rx_vfo = RIG_VFO_A;
+
+    if (tx_vfo == RIG_VFO_B) { rx_vfo = RIG_VFO_A; }
 
     if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_B) { rx_vfo = RIG_VFO_A; }
     else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_A) { rx_vfo = RIG_VFO_B; }
@@ -7305,4 +7306,28 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     }
 
     RETURNFUNC(retval);
+}
+
+HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int mode)
+{
+    int retcode = -RIG_ENAVAIL;
+
+    if (rig->caps->set_lock_mode)
+    {
+        retcode = rig->caps->set_lock_mode(rig, mode);
+    }
+
+    return (retcode);
+}
+
+HAMLIB_EXPORT(int) rig_get_lock_mode(RIG *rig, int *mode)
+{
+    int retcode = -RIG_ENAVAIL;
+
+    if (rig->caps->get_lock_mode)
+    {
+        retcode = rig->caps->get_lock_mode(rig, mode);
+    }
+
+    return (retcode);
 }
