@@ -33,6 +33,7 @@
 #include "serial.h"
 #include "register.h"
 #include "cal.h"
+#include "cache.h"
 
 #include "kenwood.h"
 #include "ts990s.h"
@@ -564,6 +565,22 @@ transaction_read:
              * the decoder for callback. That way we don't ignore any
              * commands.
              */
+            // if we got FA or FB unexpectedly then perhaps RIG_TRN is enabled and we just need to handle it
+            if (strncmp(buffer, "FA", 2) == 0)
+            {
+                freq_t freq;
+                sscanf(buffer, "FA%lg", &freq);
+                rig_set_cache_freq(rig, RIG_VFO_A, freq);
+                goto transaction_read;
+            }
+            else if (strncmp(buffer, "FB", 2) == 0)
+            {
+                freq_t freq;
+                sscanf(buffer, "FB%lg", &freq);
+                rig_set_cache_freq(rig, RIG_VFO_B, freq);
+                goto transaction_read;
+            }
+
             rig_debug(RIG_DEBUG_ERR, "%s: wrong reply %c%c for command verification %c%c\n",
                       __func__, buffer[0], buffer[1]
                       , priv->verify_cmd[0], priv->verify_cmd[1]);
