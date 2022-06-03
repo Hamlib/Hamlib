@@ -16,6 +16,7 @@ Version 4.6
         
 Version 4.5
         * 2022-05-XX
+        * Add FT-990UNI for older 990 ROMs 1.2 and earlier
         * Add FT-650
         * Add get_separator and set_separator and -S option for rigctld -- node-red applicability
         * Add GRBLTRK rotor project -- two axis rotor
