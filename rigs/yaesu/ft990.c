@@ -112,6 +112,7 @@ static int ft990_open(RIG *rig);
 static int ft990_close(RIG *rig);
 static int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft990_get_freq_uni(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int ft990_set_vfo(RIG *rig, vfo_t vfo);
@@ -370,6 +371,145 @@ const struct rig_caps ft990_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
+// Old FT990 ROM has to read all 1492 to get frequency 
+// So for this model we just use the cache to read freq
+const struct rig_caps ft990uni_caps =
+{
+    RIG_MODEL(RIG_MODEL_FT990UNI),
+    .model_name =         "FT-990 Old Rom",
+    .mfg_name =           "Yaesu",
+    .version =            "20220603.0",
+    .copyright =          "LGPL",
+    .status =             RIG_STATUS_STABLE,
+    .rig_type =           RIG_TYPE_TRANSCEIVER,
+    .ptt_type =           RIG_PTT_RIG,
+    .dcd_type =           RIG_DCD_NONE,
+    .port_type =          RIG_PORT_SERIAL,
+    .serial_rate_min =    4800,
+    .serial_rate_max =    4800,
+    .serial_data_bits =   8,
+    .serial_stop_bits =   2,
+    .serial_parity =      RIG_PARITY_NONE,
+    .serial_handshake =   RIG_HANDSHAKE_NONE,
+    .write_delay =        FT990_WRITE_DELAY,
+    .post_write_delay =   FT990_POST_WRITE_DELAY,
+    .timeout =            2000,
+    .retry =              0,
+    .has_get_func =       RIG_FUNC_LOCK | RIG_FUNC_TUNER | RIG_FUNC_MON,
+    .has_set_func =       RIG_FUNC_LOCK | RIG_FUNC_TUNER,
+    .has_get_level =      RIG_LEVEL_STRENGTH | RIG_LEVEL_SWR | RIG_LEVEL_ALC | \
+    RIG_LEVEL_RFPOWER | RIG_LEVEL_COMP,
+    .has_set_level =      RIG_LEVEL_BAND_SELECT,
+    .has_get_parm =       RIG_PARM_NONE,
+    .has_set_parm =       RIG_PARM_BACKLIGHT,
+    .ctcss_list =         NULL,
+    .dcs_list =           NULL,
+    .preamp =             { RIG_DBLST_END, },
+    .attenuator =         { RIG_DBLST_END, },
+    .max_rit =            Hz(9999),
+    .max_xit =            Hz(9999),
+    .max_ifshift =        Hz(1200),
+    .vfo_ops =            RIG_OP_CPY | RIG_OP_FROM_VFO | RIG_OP_TO_VFO |
+    RIG_OP_UP | RIG_OP_DOWN | RIG_OP_TUNE | RIG_OP_TOGGLE,
+    .targetable_vfo =     RIG_TARGETABLE_ALL,
+    .transceive =         RIG_TRN_OFF,        /* Yaesus have to be polled, sigh */
+    .bank_qty =           0,
+    .chan_desc_sz =       0,
+    .chan_list =          {
+        {1, 90, RIG_MTYPE_MEM, FT990_MEM_CAP},
+        RIG_CHAN_END,
+    },
+    .rx_range_list1 =     {
+        {kHz(100), MHz(30), FT990_ALL_RX_MODES, -1, -1, FT990_VFO_ALL, FT990_ANTS},   /* General coverage + ham */
+        RIG_FRNG_END,
+    },
+
+    .tx_range_list1 =     {
+        FRQ_RNG_HF(1, FT990_OTHER_TX_MODES, W(5), W(100), FT990_VFO_ALL, FT990_ANTS),
+        FRQ_RNG_HF(1, FT990_AM_TX_MODES, W(2), W(25), FT990_VFO_ALL, FT990_ANTS), /* AM class */
+        RIG_FRNG_END,
+    },
+
+    .rx_range_list2 =     {
+        {kHz(100), MHz(30), FT990_ALL_RX_MODES, -1, -1, FT990_VFO_ALL, FT990_ANTS},
+        RIG_FRNG_END,
+    },
+
+    .tx_range_list2 =     {
+        FRQ_RNG_HF(2, FT990_OTHER_TX_MODES, W(5), W(100), FT990_VFO_ALL, FT990_ANTS),
+        FRQ_RNG_HF(2, FT990_AM_TX_MODES, W(2), W(25), FT990_VFO_ALL, FT990_ANTS), /* AM class */
+
+        RIG_FRNG_END,
+    },
+
+    .tuning_steps =       {
+        {FT990_SSB_CW_RX_MODES, Hz(10)},    /* Normal */
+        {FT990_SSB_CW_RX_MODES, Hz(100)},   /* Fast */
+
+        {FT990_AM_RX_MODES,     Hz(100)},   /* Normal */
+        {FT990_AM_RX_MODES,     kHz(1)},    /* Fast */
+
+        {FT990_FM_RX_MODES,     Hz(100)},   /* Normal */
+        {FT990_FM_RX_MODES,     kHz(1)},    /* Fast */
+
+        {FT990_RTTY_RX_MODES,   Hz(10)},    /* Normal */
+        {FT990_RTTY_RX_MODES,   Hz(100)},   /* Fast */
+
+        RIG_TS_END,
+
+    },
+
+    /* mode/filter list, .remember =  order matters! */
+    .filters =            {
+        {RIG_MODE_SSB,  RIG_FLT_ANY}, /* Enable all filters for SSB */
+        {RIG_MODE_CW,   RIG_FLT_ANY}, /* Enable all filters for CW */
+        {RIG_MODE_RTTY, RIG_FLT_ANY}, /* Enable all filters for RTTY */
+        {RIG_MODE_RTTYR, RIG_FLT_ANY}, /* Enable all filters for Reverse RTTY */
+        {RIG_MODE_PKTLSB, RIG_FLT_ANY}, /* Enable all filters for Packet Radio LSB */
+        {RIG_MODE_AM,   kHz(6)},      /* normal AM filter */
+        {RIG_MODE_AM,   kHz(2.4)},    /* narrow AM filter */
+        {RIG_MODE_FM,   kHz(8)},      /* FM standard filter */
+        {RIG_MODE_PKTFM, kHz(8)},     /* FM standard filter for Packet Radio FM */
+        RIG_FLT_END,
+    },
+
+    .priv =               NULL,           /* private data FIXME: */
+
+    .rig_init =           ft990_init,
+    .rig_cleanup =        ft990_cleanup,
+    .rig_open =           ft990_open,     /* port opened */
+    .rig_close =          ft990_close,    /* port closed */
+
+    .set_freq =           ft990_set_freq,
+    .get_freq =           ft990_get_freq_uni,
+    .set_mode =           ft990_set_mode,
+    .get_mode =           ft990_get_mode,
+    .set_vfo =            ft990_set_vfo,
+    .get_vfo =            ft990_get_vfo,
+    .set_ptt =            ft990_set_ptt,
+    .get_ptt =            ft990_get_ptt,
+    .set_rptr_shift =     ft990_set_rptr_shift,
+    .get_rptr_shift =     ft990_get_rptr_shift,
+    .set_rptr_offs =      ft990_set_rptr_offs,
+    .set_split_vfo =      ft990_set_split_vfo,
+    .get_split_vfo =      ft990_get_split_vfo,
+    .set_rit =            ft990_set_rit,
+    .get_rit =            ft990_get_rit,
+    .set_xit =            ft990_set_xit,
+    .get_xit =            ft990_get_xit,
+    .set_func =           ft990_set_func,
+    .get_func =           ft990_get_func,
+    .set_parm =           ft990_set_parm,
+    .get_level =          ft990_get_level,
+    .set_mem =            ft990_set_mem,
+    .get_mem =            ft990_get_mem,
+    .vfo_op =             ft990_vfo_op,
+    .set_channel =        ft990_set_channel,
+    .get_channel =        ft990_get_channel,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
+};
+
+
 
 /*
  * ************************************
@@ -597,6 +737,12 @@ int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
+int ft990_get_freq_uni(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+    *freq = vfo == RIG_VFO_A ? rig->state.cache.freqMainA : rig->state.cache.freqMainB;
+    return (RIG_OK); 
+}
+
 int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft990_priv_data *priv;
