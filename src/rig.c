@@ -390,6 +390,21 @@ void add2debugmsgsave(const char *s)
  *
  * \todo support gettext/localization
  */
+const char *HAMLIB_API rigerror2(int errnum) // returns single-line message
+{
+    errnum = abs(errnum);
+
+    if (errnum >= ERROR_TBL_SZ)
+    {
+        // This should not happen, but if it happens don't return NULL
+        return "ERR_OUT_OF_RANGE";
+    }
+
+    static char msg[DEBUGMSGSAVE_SIZE];
+    snprintf(msg, sizeof(msg), "%s\n", rigerror_table[errnum]);
+    return msg;
+}
+
 const char *HAMLIB_API rigerror(int errnum)
 {
     errnum = abs(errnum);
@@ -795,7 +810,7 @@ int HAMLIB_API rig_open(RIG *rig)
     rs->rigport.rig = rig;
     rs->rigport_deprecated.rig = rig;
 
-    if (strcmp(rs->rigport.pathname,"USB")==0)
+    if (strcmp(rs->rigport.pathname, "USB") == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: 'USB' is not a valid COM port name\n", __func__);
         errno = 2;
