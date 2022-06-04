@@ -3253,6 +3253,8 @@ rig_passband_wide HAMLIB_PARAMS((RIG *rig,
 
 extern HAMLIB_EXPORT(const char *)
 rigerror HAMLIB_PARAMS((int errnum));
+extern HAMLIB_EXPORT(const char *)
+rigerror2 HAMLIB_PARAMS((int errnum));
 
 extern HAMLIB_EXPORT(int)
 rig_setting2idx HAMLIB_PARAMS((setting_t s));
