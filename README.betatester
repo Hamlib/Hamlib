@@ -185,14 +185,9 @@ For the brave who want to peruse the contents, here are what all the
 subdirectories are for (these are just a sample as more are added from time to
 time):
 
-alinco,aor,icom,
-jrc,kachina,kenwood,
-pcr,tentec,uniden,
-winradio,
-yaesu,etc:          rig backends
-easycomm,rotorez,
-sartek, etc:        rotator backends
-dummy:              virtual dummy rig and rotator, for testing use.
+rigs:               rig backends
+rotors:             rotator backends
+rigs/dummy:         virtual dummy rig and rotator and other non-rig devices, for testing use.
 lib:                library for functions missing on your system
 bindings            Perl, Python, Tcl, and Visual Basic bindings
 c++:                C++ bindings
