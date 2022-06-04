@@ -795,6 +795,13 @@ int HAMLIB_API rig_open(RIG *rig)
     rs->rigport.rig = rig;
     rs->rigport_deprecated.rig = rig;
 
+    if (strcmp(rs->rigport.pathname,"USB")==0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: 'USB' is not a valid COM port name\n", __func__);
+        errno = 2;
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
     // rigctl/rigctld may have deprecated values -- backwards compatility
     if (rs->rigport_deprecated.pathname[0] != 0)
     {
