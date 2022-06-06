@@ -658,12 +658,27 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     ttreceiver = which_receiver(rig, vfo);
 
-    SNPRINTF(mdbuf, sizeof(mdbuf), "*R%cM%c" EOM "*R%cF%d" EOM,
-             ttreceiver,
-             ttmode,
-             ttreceiver,
-             (int)width
-            );
+
+    if (rig->caps->rig_model == RIG_MODEL_TT599)
+    {
+        // Additional R%CF0 puts bandwidth control back to bandwidth knob
+        SNPRINTF(mdbuf, sizeof(mdbuf), "*R%cM%c" EOM "*R%cF%d" EOM "R%cF0" EOM,
+                 ttreceiver,
+                 ttmode,
+                 ttreceiver,
+                 (int)width,
+                 ttreceiver
+                );
+    }
+    else
+    {
+        SNPRINTF(mdbuf, sizeof(mdbuf), "*R%cM%c" EOM "*R%cF%d" EOM,
+                 ttreceiver,
+                 ttmode,
+                 ttreceiver,
+                 (int)width
+                );
+    }
 
     retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
 
