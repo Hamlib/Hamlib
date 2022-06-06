@@ -318,8 +318,8 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
 
 
 char debugmsgsave[DEBUGMSGSAVE_SIZE] = "";
-char debugmsgsave2[DEBUGMSGSAVE_SIZE] = "";
-char debugmsgsave3[DEBUGMSGSAVE_SIZE] = "";
+char debugmsgsave2[DEBUGMSGSAVE_SIZE] = ""; // deprecated
+char debugmsgsave3[DEBUGMSGSAVE_SIZE] = ""; // deprecated
 
 MUTEX(debugmsgsave);
 
@@ -855,7 +855,17 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: cwd=%s\n", __func__, cwd);
         char *path = malloc(4096);
         extern char *settings_file;
-        sprintf(path, "%s/%s", cwd, settings_file);
+        char *xdgpath = getenv("XDG_CONFIG_HOME");
+
+        if (xdgpath)
+        {
+            sprintf(path, "%s/%s/%s", xdgpath, cwd, settings_file);
+        }
+        else
+        {
+            sprintf(path, "%s/%s", cwd, settings_file);
+        }
+
         FILE *fp = fopen(path, "r");
 
         if (fp == NULL)
@@ -2151,6 +2161,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               rig_strvfo(vfo), rig_strrmode(mode), (int)width,
               rig_strvfo(rig->state.current_vfo));
 
+    if (rig->state.lock_mode) { return(RIG_OK); }
     if (CHECK_RIG_ARG(rig))
     {
         RETURNFUNC2(-RIG_EINVAL);
@@ -7338,6 +7349,11 @@ HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int mode)
     {
         retcode = rig->caps->set_lock_mode(rig, mode);
     }
+    else
+    {
+        rig->state.lock_mode = mode;
+        retcode = RIG_OK;
+    }
 
     return (retcode);
 }
@@ -7349,6 +7365,11 @@ HAMLIB_EXPORT(int) rig_get_lock_mode(RIG *rig, int *mode)
     if (rig->caps->get_lock_mode)
     {
         retcode = rig->caps->get_lock_mode(rig, mode);
+    }
+    else
+    {
+        *mode = rig->state.lock_mode;
+        retcode = RIG_OK;
     }
 
     return (retcode);
