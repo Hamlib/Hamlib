@@ -1065,12 +1065,12 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
 
     if (err)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error %s\n", __FILE__, __LINE__,
+                  strerror(errno));
         multicast_publisher_close_data_pipe(mcast_publisher_priv);
         free(mcast_publisher_priv);
         rs->multicast_publisher_priv_data = NULL;
         close(socket_fd);
-        rig_debug(RIG_DEBUG_ERR, "%s(%d) pthread_create error %s\n", __FILE__, __LINE__,
-                  strerror(errno));
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
