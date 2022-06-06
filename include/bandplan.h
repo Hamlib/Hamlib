@@ -153,7 +153,7 @@
             { kHz(5351.5),kHz(5366.5), (md), (lp), (hp), (v), (a), "ITU1" }
 
 #define FRQ_RNG_40m_REGION1(md,lp,hp,v,a) \
-            { MHz(7),kHz(7100), (md), (lp), (hp), (v), (a), "ITU1" }
+            { MHz(7),kHz(7200), (md), (lp), (hp), (v), (a), "ITU1" }
 
 #define FRQ_RNG_30m_REGION1(md,lp,hp,v,a) \
             { kHz(10100),kHz(10150), (md), (lp), (hp), (v), (a), "ITU1" }
