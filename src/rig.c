@@ -4149,6 +4149,14 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    // we check both VFOs are in the same tx mode -- the we can ignore
+    // this could be make more intelligent but this should cover all cases where we can skip this
+    if (tx_mode == rig->state.cache.modeMainA && tx_mode == rig->state.cache.modeMainB)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: mode already %s so no change required\n", __func__, rig_strrmode(tx_mode));
+        return RIG_OK;
+    }
+
     // do not mess with mode while PTT is on
     if (rig->state.cache.ptt)
     {
