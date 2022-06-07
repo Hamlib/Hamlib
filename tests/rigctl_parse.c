@@ -99,6 +99,8 @@ static int chk_vfo_executed;
 char rigctld_password[64];
 int is_passwordOK;
 int is_rigctld;
+extern int lock_mode; // used by rigctld
+
 
 
 /* variables for readline support */
@@ -2165,6 +2167,8 @@ declare_proto_rig(set_mode)
     pbwidth_t width;
 
     ENTERFUNC;
+
+    if (rig->state.lock_mode || lock_mode) { RETURNFUNC(RIG_OK); }
 
     if (!strcmp(arg1, "?"))
     {
@@ -5222,8 +5226,23 @@ declare_proto_rig(get_separator)
 declare_proto_rig(set_lock_mode)
 {
     int lock;
+    int retval;
+    rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
     CHKSCN1ARG(sscanf(arg1, "%d", &lock));
-    return (rig_set_lock_mode(rig, lock));
+
+    if (is_rigctld)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rigctld lock\n", __func__);
+        lock_mode = lock;
+        retval = RIG_OK;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig lock\n", __func__);
+        retval =  rig_set_lock_mode(rig, lock);
+    }
+
+    return retval;
 }
 
 /* '0xa3' */
@@ -5232,12 +5251,24 @@ declare_proto_rig(get_lock_mode)
     int retval;
     int lock;
 
+    rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    retval = rig_get_lock_mode(rig, &lock);
+    if (is_rigctld)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rigctld lock\n", __func__);
+        lock = lock_mode;
+        retval = RIG_OK;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig lock\n", __func__);
+        retval = rig_get_lock_mode(rig, &lock);
+    }
 
     if (retval != RIG_OK)
     {

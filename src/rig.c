@@ -93,6 +93,7 @@ const char *hamlib_license = "LGPL";
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME;
 HAMLIB_EXPORT_VAR(int) cookie_use;
+int lock_mode; // for use by rigctld
 //! @endcond
 
 struct rig_caps caps_test;
@@ -2153,6 +2154,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     const struct rig_caps *caps;
     int retcode;
+    int locked_mode;
 
     ELAPSED1;
 
@@ -2161,11 +2163,13 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               rig_strvfo(vfo), rig_strrmode(mode), (int)width,
               rig_strvfo(rig->state.current_vfo));
 
-    if (rig->state.lock_mode) { return(RIG_OK); }
     if (CHECK_RIG_ARG(rig))
     {
         RETURNFUNC2(-RIG_EINVAL);
     }
+
+    rig_get_lock_mode(rig, &locked_mode);
+    if (locked_mode) { return(RIG_OK); }
 
     // do not mess with mode while PTT is on
     if (rig->state.cache.ptt)
