@@ -1309,6 +1309,16 @@ int HAMLIB_API rig_open(RIG *rig)
 //    freq_t freq;
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_A, &freq);
 //    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_B, &freq);
+    
+    // prime the freq and mode settings
+    // don't care about the return here -- if it doesn't work so be it
+    freq_t freq;
+    rig_get_freq(rig, RIG_VFO_A, &freq);
+    rig_get_freq(rig, RIG_VFO_B, &freq);
+    rmode_t mode;
+    pbwidth_t width;
+    rig_get_mode(rig, RIG_VFO_A, &mode, &width);
+    rig_get_mode(rig, RIG_VFO_B, &mode, &width);
 
     memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->pttport_deprecated, &rs->pttport, sizeof(hamlib_port_t_deprecated));
@@ -4149,12 +4159,16 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    // we check both VFOs are in the same tx mode -- the we can ignore
+    // we check both VFOs are in the same tx mode -- then we can ignore
     // this could be make more intelligent but this should cover all cases where we can skip this
     if (tx_mode == rig->state.cache.modeMainA && tx_mode == rig->state.cache.modeMainB)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: mode already %s so no change required\n", __func__, rig_strrmode(tx_mode));
         return RIG_OK;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: mode %s is different from A=%s and B=%s\n", __func__, rig_strrmode(tx_mode), rig_strrmode(rig->state.cache.modeMainA), rig_strrmode(rig->state.cache.modeMainB));
     }
 
     // do not mess with mode while PTT is on
@@ -4308,6 +4322,12 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     }
 
     rig_set_split_vfo(rig, rx_vfo, RIG_SPLIT_ON, tx_vfo);
+
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    rig->state.cache.modeMainA = tx_mode;
+    else
+    rig->state.cache.modeMainB = tx_mode;
+
 
     ELAPSED2;
     RETURNFUNC(retcode);

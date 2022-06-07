@@ -1314,6 +1314,10 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         RETURNFUNC(err);
     }
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    rig->state.cache.modeMainA = mode;
+    else
+    rig->state.cache.modeMainB = mode;
 
     if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(err); }
 
@@ -2337,6 +2341,7 @@ int newcat_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     pbwidth_t tmp_width;
     int err;
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, tx_mode=%s, tx_width=%d\n", __func__, rig_strvfo(vfo), rig_strrmode(tx_mode), (int)tx_width);
     err = newcat_get_mode(rig, RIG_VFO_B, &tmp_mode, &tmp_width);
 
     if (err < 0)
@@ -2356,6 +2361,10 @@ int newcat_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     {
         RETURNFUNC(err);
     }
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    rig->state.cache.modeMainA = tx_mode;
+    else
+    rig->state.cache.modeMainB = tx_mode;
 
 
     RETURNFUNC(-RIG_ENAVAIL);
