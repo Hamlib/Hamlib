@@ -93,7 +93,7 @@ const char *hamlib_license = "LGPL";
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME;
 HAMLIB_EXPORT_VAR(int) cookie_use;
-int lock_mode; // for use by rigctld
+HAMLIB_EXPORT_VAR(int) lock_mode; // for use by rigctld
 //! @endcond
 
 struct rig_caps caps_test;
