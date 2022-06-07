@@ -240,7 +240,7 @@ const struct rig_caps ft990_caps =
     RIG_MODEL(RIG_MODEL_FT990),
     .model_name =         "FT-990",
     .mfg_name =           "Yaesu",
-    .version =            "20211231.0",
+    .version =            "20220607.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -378,7 +378,7 @@ const struct rig_caps ft990uni_caps =
     RIG_MODEL(RIG_MODEL_FT990UNI),
     .model_name =         "FT-990 Old Rom",
     .mfg_name =           "Yaesu",
-    .version =            "20220603.0",
+    .version =            "20220607.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -739,6 +739,13 @@ int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int ft990_get_freq_uni(RIG *rig, vfo_t vfo, freq_t *freq)
 {
+    // we can prime this frequency once
+    if (rig->state.cache.freqMainA == 0)
+    {
+        // this should read just enough to get VFO_A/B and then for UNI the rest gets flushed
+        return ft990_get_freq(rig, RIG_VFO_A, freq);
+    }
+    // VFOB should be set so we don't need to poll it
     *freq = vfo == RIG_VFO_A ? rig->state.cache.freqMainA : rig->state.cache.freqMainB;
     return (RIG_OK); 
 }
@@ -1257,9 +1264,14 @@ int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return -RIG_EINVAL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed split = 0x%02x\n", __func__, split);
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed tx_vfo = 0x%02x\n", __func__, tx_vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed split = %d\n", __func__, split);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed tx_vfo = %s\n", __func__, rig_strvfo(tx_vfo));
+    if (tx_vfo == RIG_VFO_A) // can't split on VFOA
+    {
+        tx_vfo = RIG_VFO_B;
+        rig_debug(RIG_DEBUG_TRACE, "%s: changin tx_vfo to VFOB\n", __func__);
+    }
 
     priv = (struct ft990_priv_data *) rig->state.priv;
 
