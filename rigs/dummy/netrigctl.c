@@ -2649,19 +2649,35 @@ int netrigctl_password(RIG *rig, const char *key1)
     RETURNFUNC(retval);
 }
 
-int lock_mode;
-
-int netrigctl_set_lock_mode(RIG *rig, int mode)
+int netrigctl_set_lock_mode(RIG *rig, int lock)
 {
-    //rig->state.lock_mode = mode;
-    lock_mode = mode;
+    char cmdbuf[256];
+    char buf[BUF_MAX];
+    int ret;
+
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\set_lock_mode %d\n", lock);
+
+    ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
+
+    if (ret > 0)
+    {
+        return -RIG_EPROTO;
+    }
     return (RIG_OK);
 }
 
-int netrigctl_get_lock_mode(RIG *rig, int *mode)
+int netrigctl_get_lock_mode(RIG *rig, int *lock)
 {
-    //*mode = rig->state.lock_mode;
-    *mode = lock_mode;
+    char cmdbuf[256];
+    char buf[BUF_MAX];
+    int ret;
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\get_lock_mode\n");
+    ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
+    if (ret == 0)
+    {
+        return -RIG_EPROTO;
+    }
+    sscanf(buf,"%d", lock);
     return (RIG_OK);
 }
 
@@ -2674,7 +2690,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20211123.0",
+    .version =        "20220606.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

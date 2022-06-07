@@ -152,6 +152,7 @@ const char *multicast_addr = "0.0.0.0";
 int multicast_port = 4532;
 extern char rigctld_password[65];
 char resp_sep = '\n';
+extern int lock_mode;
 
 #define MAXCONFLEN 1024
 
