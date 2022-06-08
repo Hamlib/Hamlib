@@ -919,7 +919,7 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
             if (retval != RIG_OK) { return retval; }
         }
 
-        SNPRINTF(cmdbuf, sizeof(cmdbuf), "TB%c", RIG_SPLIT_ON == split ? '1' : '0');
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "SP%c", RIG_SPLIT_ON == split ? '1' : '0');
         return elad_transaction(rig, cmdbuf, NULL, 0);
     }
 
@@ -1057,7 +1057,7 @@ int elad_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
     {
         char buf[4];
 
-        if (RIG_OK == (retval = elad_safe_transaction(rig, "TB", buf, sizeof(buf), 3)))
+        if (RIG_OK == (retval = elad_safe_transaction(rig, "SP", buf, sizeof(buf), 3)))
         {
             if ('1' == buf[2])
             {
