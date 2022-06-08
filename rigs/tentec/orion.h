@@ -414,7 +414,7 @@ const struct rig_caps tt599_caps = {
 RIG_MODEL(RIG_MODEL_TT599),
 .model_name = "TT-599 Eagle",
 .mfg_name =  "Ten-Tec",
-.version =  BACKEND_VER ".1",
+.version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
