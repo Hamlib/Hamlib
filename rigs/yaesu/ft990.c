@@ -220,6 +220,8 @@ struct ft990_priv_data
     vfo_t current_vfo;                        /* active VFO from last cmd */
     unsigned char p_cmd[YAESU_CMD_LENGTH];    /* private copy of CAT cmd */
     ft990_update_data_t update_data;          /* returned data */
+    unsigned char last_vfo_response[FT990_ALL_DATA_LENGTH];
+    struct timespec cache_start;
 };
 
 /*
@@ -240,7 +242,7 @@ const struct rig_caps ft990_caps =
     RIG_MODEL(RIG_MODEL_FT990),
     .model_name =         "FT-990",
     .mfg_name =           "Yaesu",
-    .version =            "20220607.0",
+    .version =            "20220608.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -2224,19 +2226,20 @@ int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
     case RIG_VFO_A:
     case RIG_VFO_VFO:
+    case RIG_VFO_MAIN:
         p = &priv->update_data.vfoa.mode;
         ci = FT990_NATIVE_UPDATE_VFO_DATA;
         fl = &priv->update_data.vfoa.filter;
         break;
 
     case RIG_VFO_B:
+    case RIG_VFO_SUB:
         p = &priv->update_data.vfob.mode;
         ci = FT990_NATIVE_UPDATE_VFO_DATA;
         fl = &priv->update_data.vfob.filter;
         break;
 
     case RIG_VFO_MEM:
-    case RIG_VFO_MAIN:
         p = &priv->update_data.current_front.mode;
         ci = FT990_NATIVE_UPDATE_OP_DATA;
         fl = &priv->update_data.current_front.filter;
@@ -3401,6 +3404,30 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
 
     priv = (struct ft990_priv_data *)rig->state.priv;
 
+    if (ci == FT990_NATIVE_UPDATE_VFO_DATA)
+    {
+        p = (unsigned char *) &priv->update_data.vfoa;
+        rl = FT990_VFO_DATA_LENGTH;
+        // try to cache rapid repeats of the UPDATE_VFO command
+        if (priv->cache_start.tv_sec != 0)
+        {
+            int cache_age_ms;
+
+            cache_age_ms = elapsed_ms(&priv->cache_start, 0);
+
+            if (cache_age_ms < 500) // 1000ms cache time
+            {
+                rig_debug(RIG_DEBUG_TRACE, "%s: cache hit, age=%dms\n", __func__, cache_age_ms);
+                memcpy(p, priv->last_vfo_response, rl);
+                return RIG_OK;
+            }
+
+            // else we drop through and do the real IF command
+        }
+    }
+
+
+    rig_flush(&rig->state.rigport);
     if (ci == FT990_NATIVE_UPDATE_MEM_CHNL_DATA)
         // P4 = 0x01 to 0x5a for channel 1 - 90
     {
