@@ -2629,15 +2629,18 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_CURR) { RETURNFUNC(RIG_OK); }
 
-    retcode = rig_get_vfo(rig, &curr_vfo);
-
-    if (retcode != RIG_OK)
+    if (rig->caps->get_vfo)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: rig_get_vfo error=%s\n", __func__,
-                  rigerror(retcode));
-    }
+        retcode = rig_get_vfo(rig, &curr_vfo);
 
-    if (curr_vfo == vfo) { RETURNFUNC(RIG_OK); }
+        if (retcode != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: rig_get_vfo error=%s\n", __func__,
+                  rigerror(retcode));
+        }
+
+        if (curr_vfo == vfo) { RETURNFUNC(RIG_OK); }
+    }
 
 #if 0 // removing this check 20210801 -- should be mapped already
 
