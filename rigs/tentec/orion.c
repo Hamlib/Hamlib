@@ -1210,6 +1210,12 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_NR:
+        if (rig->caps->rig_model == RIG_MODEL_TT599)
+        {
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*RMNN%c" EOM, (int)(val.f * 9));
+        }
+        else
+        {
         /* Noise Reduction (blanking) Float 0.0 - 1.0
             For some reason NB setting is supported in 1.372, but
            NR, NOTCH, and AN are not.
@@ -1218,6 +1224,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cNB%d" EOM,
                  which_receiver(rig, vfo),
                  (int)(val.f * 9));
+        }
         break;
 
     case RIG_LEVEL_VOXDELAY:
@@ -1687,8 +1694,15 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_NR:
         /* RIG_LEVEL_NR controls Orion NB setting - TEMP */
+        if (rig->caps->rig_model == RIG_MODEL_TT599)
+        {
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?RMNN" EOM)
+        }
+        else
+        {
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cNB" EOM,
                  which_receiver(rig, vfo));
+        }
 
         lvl_len = sizeof(lvlbuf);
         retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), lvlbuf, &lvl_len);
@@ -1698,8 +1712,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        if (lvlbuf[1] != 'R' || lvlbuf[3] != 'N' || lvlbuf[4] != 'B' ||
-                lvl_len < 6)
+        if (lvlbuf[1] != 'R' || lvl_len < 6)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
                       __func__, lvlbuf);
