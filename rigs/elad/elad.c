@@ -855,10 +855,12 @@ int elad_set_vfo_main_sub(RIG *rig, vfo_t vfo)
 
     switch (vfo)
     {
+    case RIG_VFO_A:
     case RIG_VFO_MAIN:
         vfo_function = '0';
         break;
 
+    case RIG_VFO_B:
     case RIG_VFO_SUB:
         vfo_function = '1';
         break;
@@ -906,52 +908,34 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     char cmdbuf[6];
     int retval;
     unsigned char vfo_function;
+    split_t tsplit;
+    vfo_t tvfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (RIG_MODEL_TS990S == rig->caps->rig_model)
+    retval = elad_get_split_vfo_if(rig, vfo, &tsplit, &tvfo);
+
+    if (split == tsplit)
     {
-        if (split)
-        {
-            // Rx MAIN/Tx SUB is the only split method
-            retval = elad_set_vfo_main_sub(rig, RIG_VFO_MAIN);
+        rig_debug(RIG_DEBUG_TRACE, "%s: No change detected...ignoring request\n", __func__);
+    }
+    rig_debug(RIG_DEBUG_TRACE, "%s: Change detected requested split %d!=%d\n", __func__, split, tsplit);
 
-            if (retval != RIG_OK) { return retval; }
-        }
+    if (split)
+    {
+        // Rx MAIN/Tx SUB is the only split method
+        retval = elad_set_vfo_main_sub(rig, RIG_VFO_MAIN);
 
-        SNPRINTF(cmdbuf, sizeof(cmdbuf), "SP%c", RIG_SPLIT_ON == split ? '1' : '0');
-        return elad_transaction(rig, cmdbuf, NULL, 0);
+        if (retval != RIG_OK) { return retval; }
     }
 
-    if (vfo != RIG_VFO_CURR)
-    {
-        switch (vfo)
-        {
-        case RIG_VFO_A: vfo_function = '0'; break;
-
-        case RIG_VFO_B: vfo_function = '1'; break;
-
-        case RIG_VFO_MEM: vfo_function = '2'; break;
-
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
-            return -RIG_EINVAL;
-        }
-
-        /* set RX VFO */
-        SNPRINTF(cmdbuf, sizeof(cmdbuf), "FR%c", vfo_function);
-        retval = elad_transaction(rig, cmdbuf, NULL, 0);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-    }
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "SP%c", RIG_SPLIT_ON == split ? '1' : '0');
+    return elad_transaction(rig, cmdbuf, NULL, 0);
 
     /* Split off means Rx and Tx are the same */
     if (split == RIG_SPLIT_OFF)
     {
-        txvfo = vfo;
+        txvfo = RIG_VFO_MAIN;
 
         if (txvfo == RIG_VFO_CURR)
         {
@@ -967,9 +951,11 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     switch (txvfo)
     {
     case RIG_VFO_VFO:
-    case RIG_VFO_A: vfo_function = '0'; break;
+    case RIG_VFO_MAIN:
+    case RIG_VFO_A: vfo_function = '0'; txvfo = RIG_VFO_MAIN; break;
 
-    case RIG_VFO_B: vfo_function = '1'; break;
+    case RIG_VFO_SUB:
+    case RIG_VFO_B: vfo_function = '1'; txvfo = RIG_VFO_SUB; break;
 
     case RIG_VFO_MEM: vfo_function = '2'; break;
 
@@ -977,18 +963,6 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__,
                   rig_strvfo(txvfo));
         return -RIG_EINVAL;
-    }
-
-    if (RIG_MODEL_K2 == rig->caps->rig_model
-            || RIG_MODEL_K3 == rig->caps->rig_model)
-    {
-        /* do not attempt redundant split change commands on Elecraft as
-           they impact output power when transmitting */
-        if (RIG_OK == (retval = elad_safe_transaction(rig, "FT", cmdbuf, sizeof(cmdbuf),
-                                3)))
-        {
-            if (cmdbuf[2] == vfo_function) { return RIG_OK; }
-        }
     }
 
     /* set TX VFO */
@@ -1000,6 +974,7 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         return retval;
     }
 
+    retval = elad_set_split(rig, vfo, split, txvfo);
     /* Remember whether split is on, for elad_set_vfo */
     priv->split = split;
 
@@ -1019,7 +994,8 @@ int elad_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    SNPRINTF(cmdbuf, sizeof(cmdbuf), "SP%c", RIG_SPLIT_ON == split ? '1' : '0');
+    // we want stand-alone split so we can control it
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "SP%c", RIG_SPLIT_ON == split ? '2' : '0');
 
     retval = elad_transaction(rig, cmdbuf, NULL, 0);
 
