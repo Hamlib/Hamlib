@@ -974,6 +974,7 @@ int main(int argc, char *argv[])
     /*
      * main loop accepting connections
      */
+    rig_debug(RIG_DEBUG_TRACE, "%s: rigctld listening on port %s\n", __func__, portno);
     do
     {
         fd_set set;
