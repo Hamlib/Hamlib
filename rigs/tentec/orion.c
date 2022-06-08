@@ -74,6 +74,7 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <time.h>
 #include <sys/time.h>
+#include <math.h>
 
 #include <hamlib/rig.h>
 #include "bandplan.h"
@@ -1293,29 +1294,75 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        /* in Xmit, response is @STFuuuRvvvSwww (or ...Swwww)
-            uuu = 000-100 (apx) fwd watts
-                        vvv = 000-100       rev watts
-                        www = 256-999  256 * VSWR
-           in Rcv,  response is @SRMuuuSvvv
-            uuu = 000-100 (apx) Main S meter
-                        vvv = 000-100 (apx) Sub  S meter
-        */
-
-        if (lvlbuf[1] != 'S' || lvl_len < 5)
+        if (rig->caps->rig_model == RIG_MODEL_TT599)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-                      __func__, lvlbuf);
-            return -RIG_EPROTO;
-        }
+            double fwd, ref;
 
-        if (lvlbuf[2] == 'T')
+            /* in Xmit, response is @STF99R10<cr> 99 watts forward,1.0 watt reflected
+                uu = fwd watts
+                vv = rev watts x 10
+
+               in Rcv,  response is @SRM16<CR> Indicates 16 dbm
+                uuu = 000-100 (apx) Main S meter
+            */
+
+            if (lvlbuf[1] != 'S' || lvl_len < 5)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
+                          __func__, lvlbuf);
+                return -RIG_EPROTO;
+            }
+
+            if (lvlbuf[2] == 'T')
+            {
+                ref = atof(strchr(lvlbuf + 2, 'R') + 1) / 10.0;   /* reflected power */
+                fwd = atof(strchr(lvlbuf + 2, 'F') + 1);          /* forward power */
+
+                if (fwd == 0.0)
+                {
+                    val->f = 0.0;                                 /* no forward power */
+                }
+                else if (fwd == ref)                              /* too high SWR */
+                {
+                    val->f = 9.99;
+                }
+                else
+                {
+                    val->f = (1 + sqrt(ref / fwd)) / (1 - sqrt(ref / fwd)); /* calculate SWR */
+                }
+
+                if (val->f < 1.0) { val->f = 9.99; }              /* high VSWR */
+            }
+            else { val->f = 0.0; }  /* SWR in Receive = 0.0 */
+
+        }
+        else
         {
-            val->f = atof(strchr(lvlbuf + 5, 'S') + 1) / 256.0;
 
-            if (val->f < 1.0) { val->f = 9.99; }    /* high VSWR */
+            /* in Xmit, response is @STFuuuRvvvSwww (or ...Swwww)
+                uuu = 000-100 (apx) fwd watts
+                            vvv = 000-100       rev watts
+                            www = 256-999  256 * VSWR
+               in Rcv,  response is @SRMuuuSvvv
+                uuu = 000-100 (apx) Main S meter
+                            vvv = 000-100 (apx) Sub  S meter
+            */
+
+            if (lvlbuf[1] != 'S' || lvl_len < 5)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
+                          __func__, lvlbuf);
+                return -RIG_EPROTO;
+            }
+
+            if (lvlbuf[2] == 'T')
+            {
+                val->f = atof(strchr(lvlbuf + 5, 'S') + 1) / 256.0;
+
+                if (val->f < 1.0) { val->f = 9.99; }    /* high VSWR */
+            }
+            else { val->f = 0.0; }  /* SWR in Receive = 0.0 */
         }
-        else { val->f = 0.0; }  /* SWR in Receive = 0.0 */
 
         break;
 
