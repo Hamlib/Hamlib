@@ -380,7 +380,7 @@ const struct rig_caps ft990uni_caps =
     RIG_MODEL(RIG_MODEL_FT990UNI),
     .model_name =         "FT-990 Old Rom",
     .mfg_name =           "Yaesu",
-    .version =            "20220607.0",
+    .version =            "20220609.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -3462,6 +3462,7 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
     case FT990_NATIVE_UPDATE_VFO_DATA:
         p = (unsigned char *) &priv->update_data.vfoa;
         rl = FT990_VFO_DATA_LENGTH;
+        if (rig->caps->rig_model == RIG_MODEL_FT990UNI) rl = FT990_ALL_DATA_LENGTH_UNI;
         break;
 
     case FT990_NATIVE_UPDATE_MEM_CHNL_DATA:
