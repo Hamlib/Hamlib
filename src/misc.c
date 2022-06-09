@@ -2462,7 +2462,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->rig_model;
 
     case RIG_CAPS_PTT_TYPE:
-        rig_debug(RIG_DEBUG_TRACE, "%s: return %u\n", __func__, caps->ptt_type);
+        //rig_debug(RIG_DEBUG_TRACE, "%s: return %u\n", __func__, caps->ptt_type);
         return caps->ptt_type;
 
     case RIG_CAPS_PORT_TYPE:
