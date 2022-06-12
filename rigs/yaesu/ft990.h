@@ -297,6 +297,18 @@ typedef struct _ft990_update_data_t {
   ft990_op_data_t channel[90];
 } ft990_update_data_t;
 
+typedef struct _ft990uni_update_data_t {
+  unsigned char flag1;
+  unsigned char flag2;
+  unsigned char flag3;
+  unsigned char channelnumber;
+  ft990_op_data_t current_front;
+//  ft990_op_data_t current_rear;
+  ft990_op_data_t vfoa;
+  ft990_op_data_t vfob;
+  ft990_op_data_t channel[90];
+} ft990uni_update_data_t;
+
 // Command Structure
 typedef struct _ft990_command_t {
   unsigned char data[4];
