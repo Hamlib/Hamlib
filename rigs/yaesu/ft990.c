@@ -380,7 +380,7 @@ const struct rig_caps ft990uni_caps =
     RIG_MODEL(RIG_MODEL_FT990UNI),
     .model_name =         "FT-990 Old Rom",
     .mfg_name =           "Yaesu",
-    .version =            "20220609.0",
+    .version =            "20220612.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -3171,7 +3171,15 @@ int ft990_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     if (chan->split & RIG_SPLIT_ON)
     {
         // Get data for the transmit VFO
+        if (rig->caps->rig_model == RIG_MODEL_FT990UNI)
+        {
+        p = (ft990_op_data_t *) &priv->update_data.current_front;
+
+        }
+        else
+        {
         p = (ft990_op_data_t *) &priv->update_data.current_rear;
+        }
 
 
         /* FT1000D
@@ -3404,10 +3412,11 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
 
     priv = (struct ft990_priv_data *)rig->state.priv;
 
-    if (ci == FT990_NATIVE_UPDATE_VFO_DATA)
+    if (rig->caps->rig_model == RIG_MODEL_FT990UNI)
     {
+        // all we can get is the 1492 byte answer so we'll cache it for repeat calls
         p = (unsigned char *) &priv->update_data.vfoa;
-        rl = FT990_VFO_DATA_LENGTH;
+        rl = FT990_VFO_DATA_LENGTH; // we'll use the 1508 byte size as it fits the smaller size too
         // try to cache rapid repeats of the UPDATE_VFO command
         if (priv->cache_start.tv_sec != 0)
         {
@@ -3462,7 +3471,6 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
     case FT990_NATIVE_UPDATE_VFO_DATA:
         p = (unsigned char *) &priv->update_data.vfoa;
         rl = FT990_VFO_DATA_LENGTH;
-        if (rig->caps->rig_model == RIG_MODEL_FT990UNI) rl = FT990_ALL_DATA_LENGTH_UNI;
         break;
 
     case FT990_NATIVE_UPDATE_MEM_CHNL_DATA:
@@ -3477,6 +3485,11 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
 
     default:
         return -RIG_EINVAL;
+    }
+    if (rig->caps->rig_model == RIG_MODEL_FT990UNI) 
+    {
+        p = (unsigned char *) &priv->update_data;
+        rl = FT990_ALL_DATA_LENGTH_UNI;
     }
 
     n = read_block(&rig->state.rigport, p, rl);
