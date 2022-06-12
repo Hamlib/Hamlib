@@ -222,6 +222,7 @@ struct ft990_priv_data
     ft990_update_data_t update_data;          /* returned data */
     unsigned char last_vfo_response[FT990_ALL_DATA_LENGTH];
     struct timespec cache_start;
+    int update_count;
 };
 
 /*
@@ -380,7 +381,7 @@ const struct rig_caps ft990uni_caps =
     RIG_MODEL(RIG_MODEL_FT990UNI),
     .model_name =         "FT-990 Old Rom",
     .mfg_name =           "Yaesu",
-    .version =            "20220612.0",
+    .version =            "20220612.1",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -3412,28 +3413,18 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
 
     priv = (struct ft990_priv_data *)rig->state.priv;
 
-    if (rig->caps->rig_model == RIG_MODEL_FT990UNI)
+    if (rig->caps->rig_model == RIG_MODEL_FT990UNI && priv->update_count == 0)
     {
-        // all we can get is the 1492 byte answer so we'll cache it for repeat calls
+        priv->update_count = 1;
+        // all we can get is the 1492 byte answer so we'll cache it forever
         p = (unsigned char *) &priv->update_data.vfoa;
         rl = FT990_VFO_DATA_LENGTH; // we'll use the 1508 byte size as it fits the smaller size too
-        // try to cache rapid repeats of the UPDATE_VFO command
-        if (priv->cache_start.tv_sec != 0)
-        {
-            int cache_age_ms;
-
-            cache_age_ms = elapsed_ms(&priv->cache_start, 0);
-
-            if (cache_age_ms < 500) // 1000ms cache time
-            {
-                rig_debug(RIG_DEBUG_TRACE, "%s: cache hit, age=%dms\n", __func__, cache_age_ms);
-                memcpy(p, priv->last_vfo_response, rl);
-                return RIG_OK;
-            }
-
-            // else we drop through and do the real IF command
-        }
+        // cache repeats of the UPDATE_VFO command
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit\n", __func__);
+        memcpy(p, priv->last_vfo_response, rl);
+        return RIG_OK;
     }
+    // else we drop through and do the real IF command
 
 
     rig_flush(&rig->state.rigport);
