@@ -621,6 +621,8 @@ int  ft990_open(RIG *rig)
         return err;
     }
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: rig %s opened\n", __func__, rig->caps->model_name);
+
     return RIG_OK;
 }
 
