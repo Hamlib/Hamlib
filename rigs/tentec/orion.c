@@ -1721,6 +1721,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EPROTO;
         }
         sscanf(lvlbuf + 5, "%f", &val->f);
+        val->f /= 10.0;
         break;
 
     case RIG_LEVEL_VOXDELAY: /* =VOXDELAY, tenths of secs. */
