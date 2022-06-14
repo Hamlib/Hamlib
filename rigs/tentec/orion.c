@@ -1212,7 +1212,9 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_NR:
         if (rig->caps->rig_model == RIG_MODEL_TT599)
         {
-        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*RMNN%c" EOM, (int)(val.f * 9));
+            ii = (int)(val.f * 10);
+            if (ii > 9) ii=9; // cannot set NR level 10 apparently
+            SNPRINTF(cmdbuf, sizeof(cmdbuf), "*RMNN%c" EOM, ii);
         }
         else
         {
@@ -1718,8 +1720,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                       __func__, lvlbuf);
             return -RIG_EPROTO;
         }
-
-        val->f = atof(lvlbuf + 5) / 9.0; /* Note 0-9 -> 0.0 - 1.0 */
+        sscanf(lvlbuf + 5, "%f", &val->f);
         break;
 
     case RIG_LEVEL_VOXDELAY: /* =VOXDELAY, tenths of secs. */

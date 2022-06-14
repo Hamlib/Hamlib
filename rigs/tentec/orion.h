@@ -32,7 +32,7 @@
  */
 
 
-#define BACKEND_VER "20200324"
+#define BACKEND_VER "20220614"
 
 #define TRUE	1
 #define FALSE	0
@@ -196,7 +196,7 @@ const struct rig_caps tt565_caps = {
 RIG_MODEL(RIG_MODEL_TT565),
 .model_name = "TT-565 Orion",
 .mfg_name =  "Ten-Tec",
-.version =  BACKEND_VER ".1",
+.version =  BACKEND_VER ".0",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -414,7 +414,7 @@ const struct rig_caps tt599_caps = {
 RIG_MODEL(RIG_MODEL_TT599),
 .model_name = "TT-599 Eagle",
 .mfg_name =  "Ten-Tec",
-.version =  BACKEND_VER ".2",
+.version =  BACKEND_VER ".0",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
