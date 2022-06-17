@@ -5,7 +5,7 @@ Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
 Take a look at http://sourceforge.net/projects/hamlib/
 Here you will find a mail list, and the latest releases.
 
-See README for frontend/backend outline.
+See README.md for frontend/backend outline.
 See README.betatester for background on testing Hamlib.
 
 
