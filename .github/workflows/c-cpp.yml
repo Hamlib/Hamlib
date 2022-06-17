@@ -17,6 +17,8 @@ jobs:
       run: |
         sudo apt install libusb-1.0-0-dev
         ./bootstrap
+    - name: README Debug
+      run: grep README configure.ac
     - name: configure
       run: ./configure
     - name: make
