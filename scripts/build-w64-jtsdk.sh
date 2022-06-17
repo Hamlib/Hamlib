@@ -251,7 +251,7 @@ do
     rm ${ZIP_DIR}/include/hamlib/${f}
 done
 
-for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester README.w64-bin THANKS
+for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README.md README.betatester README.w64-bin THANKS
 do
     cp -a ${f} ${ZIP_DIR}/${f}.txt
     ${UNIX_TO_DOS_TOOL} ${ZIP_DIR}/${f}.txt

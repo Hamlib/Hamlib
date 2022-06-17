@@ -200,7 +200,7 @@ for f in *class.h ; do \
     rm ${ZIP_DIR}/include/hamlib/${f}
 done
 
-for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester README.VB.NET-bin THANKS ; do \
+for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README.md README.betatester README.VB.NET-bin THANKS ; do \
     cp -a ${f} ${ZIP_DIR}/${f}.txt ; todos ${ZIP_DIR}/${f}.txt ; done
 
 # Copy build files into specific locations for Zip file
