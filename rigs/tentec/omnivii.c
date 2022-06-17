@@ -127,7 +127,7 @@ const struct rig_caps tt588_caps =
     RIG_MODEL(RIG_MODEL_TT588),
     .model_name = "TT-588 Omni VII",
     .mfg_name =  "Ten-Tec",
-    .version =  "20200911.0",
+    .version =  "20220616.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1421,17 +1421,7 @@ int tt588_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         return -RIG_EINVAL;
     }
 
-    SNPRINTF(cmdbuf, sizeof(cmdbuf), "*Txx" EOM);
-    cmdbuf[3] = 0;
-
-    if (ptt)
-    {
-        cmdbuf[2] = 4;
-    }
-    else
-    {
-        cmdbuf[2] = 0;
-    }
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "*T%s" EOM, ptt == 0 ? "0" : "T");
 
     retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), NULL,
                                0);  // no response
