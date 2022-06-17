@@ -114,7 +114,7 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
 
 /*! \page Rdme  README (general)
-\verbinclude README
+\verbinclude README.md
 */
 
 /*! \page Rdmebeta README.betatester
