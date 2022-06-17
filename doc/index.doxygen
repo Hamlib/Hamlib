@@ -113,7 +113,7 @@ useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
 
-/*! \page Rdme  README (general)
+/*! \page Rdme  README.md (general)
 \verbinclude README.md
 */
 
