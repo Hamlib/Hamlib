@@ -19,7 +19,7 @@ jobs:
         sudo apt install grep
         ./bootstrap
     - name: README Debug
-      run: grep README configure.ac
+      run: grep README Makefile.am
     - name: configure
       run: ./configure
     - name: make
