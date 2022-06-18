@@ -127,7 +127,7 @@ const struct rig_caps tt588_caps =
     RIG_MODEL(RIG_MODEL_TT588),
     .model_name = "TT-588 Omni VII",
     .mfg_name =  "Ten-Tec",
-    .version =  "20220617.0",
+    .version =  "20220618.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -550,7 +550,7 @@ int tt588_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
              which_vfo(rig, vfo),
              bytes[3], bytes[2], bytes[1], bytes[0]);
 
-    return tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+    return tt588_transaction(rig, (char *) cmdbuf, 7, NULL,
                              NULL);
 }
 
@@ -881,7 +881,7 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+    retval = tt588_transaction(rig, (char *) cmdbuf, 4, NULL,
                                NULL);
 
     if (retval != RIG_OK)
@@ -899,7 +899,7 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     width = tt588_filter_number((int) width);
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*W%c" EOM, (unsigned char) width);
-    return tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+    return tt588_transaction(rig, (char *) cmdbuf, 4, NULL,
                              NULL);
 }
 
@@ -1202,8 +1202,7 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         /* Volume */
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*U%c" EOM, (char)(val.f * 127));
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
-                                   NULL);
+        retval = tt588_transaction(rig, (char *) cmdbuf, 3, NULL, NULL);
 
         if (retval != RIG_OK)
         {
@@ -1217,8 +1216,7 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         /* RF gain. Omni-VII expects value 0 for full gain, and 127 for lowest gain */
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*I%c" EOM,
                  127 - (char)(val.f * 127));
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
-                                   NULL);
+        retval = tt588_transaction(rig, (char *) cmdbuf, 3, NULL, NULL);
 
         if (retval != RIG_OK)
         {
@@ -1264,7 +1262,7 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*J%c" EOM, ii + '0');
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+        retval = tt588_transaction(rig, (char *) cmdbuf, 4, NULL,
                                    NULL);
 
         if (retval != RIG_OK)
@@ -1277,7 +1275,7 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_SQL:
         /* Squelch level, float 0.0 - 1.0 */
         SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*H%c" EOM, (int)(val.f * 127));
-        retval = tt588_transaction(rig, (char *) cmdbuf, strlen((char *)cmdbuf), NULL,
+        retval = tt588_transaction(rig, (char *) cmdbuf, 3, NULL,
                                    NULL);
 
         if (retval != RIG_OK)
@@ -1332,7 +1330,7 @@ int tt588_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     }
 
     resp_len = 3;
-    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
+    retval = tt588_transaction(rig, cmdbuf, 4, respbuf, &resp_len);
 
     if (retval != RIG_OK)
     {
@@ -1542,7 +1540,7 @@ static int set_rit_xit(RIG *rig, vfo_t vfo, shortfreq_t rit, int which)
     cmdbuf[2] = which;  // set xit bit. 0=off,1=rit, 2=xit, 3=both
     cmdbuf[3] = rit >> 8;
     cmdbuf[4] = rit & 0xff;
-    retval = tt588_transaction(rig, cmdbuf, strlen(cmdbuf), NULL,
+    retval = tt588_transaction(rig, cmdbuf, 6, NULL,
                                0);   // no response
 
     if (retval != RIG_OK)
