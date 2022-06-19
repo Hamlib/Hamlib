@@ -1953,7 +1953,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         RETURNFUNC(-RIG_EINVAL);
     }
-    if (rig->caps->rig_model == RIG_MODEL_MALACHITE)
+    if (rig->caps->rig_model == RIG_MODEL_MALACHITE && vfo == RIG_VFO_B)
     {
         // Malachite does not have VFOB so we'll just return VFOA
         *freq = 0;
