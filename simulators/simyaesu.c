@@ -195,15 +195,6 @@ int main(int argc, char *argv[])
             SNPRINTF(resp, sizeof(resp), "FB%08.0f;", freqB);
             n = write(fd, resp, strlen(resp));
         }
-        else if (strncmp(buf, "FA", 2) == 0)
-        {
-            sscanf(buf, "FA%f", &freqA);
-        }
-        else if (strcmp(buf, "FB;") == 0)
-        {
-            SNPRINTF(resp, sizeof(resp), "FB%010.0f;", freqB);
-            n = write(fd, resp, strlen(resp));
-        }
         else if (strncmp(buf, "FB", 2) == 0)
         {
             sscanf(buf, "FB%f", &freqB);
