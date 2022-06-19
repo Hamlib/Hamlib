@@ -1847,7 +1847,7 @@ const struct rig_caps malachite_caps =
     RIG_MODEL(RIG_MODEL_MALACHITE),
     .model_name = "DSP",
     .mfg_name = "Malachite",
-    .version = BACKEND_VER ".0",
+    .version = BACKEND_VER ".1",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_RECEIVER,
