@@ -398,6 +398,161 @@ const struct rig_caps tmd710_caps = {
     .decode_event =  th_decode_event,
 };
 
+const struct rig_caps tmv71_caps =
+{
+    RIG_MODEL(RIG_MODEL_TMV71),
+    .model_name = "TM-V71(A)",
+    .mfg_name =  "Kenwood",
+    .version =  BACKEND_VER ".0",
+    .copyright =  "LGPL",
+    .status =  RIG_STATUS_STABLE,
+    .rig_type =  RIG_TYPE_MOBILE | RIG_FLAG_APRS | RIG_FLAG_TNC,
+    .ptt_type =  RIG_PTT_RIG,
+    .dcd_type =  RIG_DCD_RIG,
+    .port_type =  RIG_PORT_SERIAL,
+    .serial_rate_min =  9600,
+    .serial_rate_max =  57600,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay =  0,
+    .timeout =  1000,
+    .retry =  3,
+
+    .has_get_func =  TMD710_FUNC_GET,
+    .has_set_func =  TMD710_FUNC_SET,
+    .has_get_level =  TMD710_LEVEL_ALL,
+    .has_set_level =  RIG_LEVEL_SET(TMD710_LEVEL_ALL),
+    .has_get_parm =  TMD710_PARMS,
+    .has_set_parm =  TMD710_PARMS,
+    .level_gran = {},
+    .parm_gran =  {},
+    .ctcss_list =  kenwood42_ctcss_list,
+    .dcs_list =  common_dcs_list,
+    .preamp =   {RIG_DBLST_END,},
+    .attenuator =   {RIG_DBLST_END,},
+    .max_rit =  Hz(0),
+    .max_xit =  Hz(0),
+    .max_ifshift =  Hz(0),
+    .vfo_ops =  TMD710_VFO_OP,
+    .scan_ops = RIG_SCAN_NONE,
+    .targetable_vfo =  RIG_TARGETABLE_NONE,
+    .transceive =  RIG_TRN_OFF,
+    .bank_qty =   0,
+    .chan_desc_sz =  8,
+
+    .chan_list = {
+        {0, 199, RIG_MTYPE_MEM, {TMD710_CHANNEL_CAPS}},  /* normal MEM */
+        {200, 219, RIG_MTYPE_EDGE, {TMD710_CHANNEL_CAPS}}, /* U/L MEM */
+        {221, 222, RIG_MTYPE_CALL, {TMD710_CHANNEL_CAPS_WO_LO}},  /* Call 0/1 */
+        RIG_CHAN_END,
+    },
+    /*
+     * TODO: Japan & TM-D700S, and Taiwan models
+     */
+    .rx_range_list1 =  {
+        {MHz(118), MHz(470), TMD710_MODES, -1, -1, RIG_VFO_A | RIG_VFO_MEM},
+        {MHz(136), MHz(174), TMD710_MODES_FM, -1, -1, RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM},
+        {MHz(300), MHz(524), TMD710_MODES_FM, -1, -1, RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM},
+        {MHz(800), MHz(1300), TMD710_MODES_FM, -1, -1, RIG_VFO_B | RIG_VFO_MEM},
+        RIG_FRNG_END,
+    }, /* rx range */
+    .tx_range_list1 =  {
+        {MHz(144), MHz(146), TMD710_MODES_TX, W(5), W(50), RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM},
+        {MHz(430), MHz(440), TMD710_MODES_TX, W(5), W(35), RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM},
+        RIG_FRNG_END,
+    }, /* tx range */
+
+    .rx_range_list2 =  {
+        {MHz(118), MHz(470), TMD710_MODES, -1, -1, RIG_VFO_A | RIG_VFO_MEM},
+        {MHz(136), MHz(174), TMD710_MODES_FM, -1, -1, RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM},
+        {MHz(300), MHz(524), TMD710_MODES_FM, -1, -1, RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM},
+        {MHz(800), MHz(1300), TMD710_MODES_FM, -1, -1, RIG_VFO_B | RIG_VFO_MEM},  /* TODO: cellular blocked */
+        RIG_FRNG_END,
+    }, /* rx range */
+    .tx_range_list2 =  {
+        {MHz(144), MHz(148), TMD710_MODES_TX, W(5), W(50), RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM},
+        {MHz(430), MHz(450), TMD710_MODES_TX, W(5), W(35), RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM},
+        RIG_FRNG_END,
+    }, /* tx range */
+
+    .tuning_steps =  {
+        {TMD710_MODES, kHz(5)},
+        {TMD710_MODES, kHz(6.25)},
+        {TMD710_MODES, kHz(8.33)},
+        {TMD710_MODES, kHz(10)},
+        {TMD710_MODES, kHz(12.5)},
+        {TMD710_MODES, kHz(15)},
+        {TMD710_MODES, kHz(20)},
+        {TMD710_MODES, kHz(25)},
+        {TMD710_MODES, kHz(30)},
+        {TMD710_MODES, kHz(50)},
+        {TMD710_MODES, kHz(100)},
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_FM, kHz(15)},
+        {RIG_MODE_FMN, kHz(5)},
+        {RIG_MODE_AM, kHz(4)},
+        RIG_FLT_END,
+    },
+    .priv = (void *)& tmd710_priv_caps,
+
+    .rig_init = kenwood_init,
+    .rig_open = kenwood_open,
+    .rig_close = kenwood_close,
+    .rig_cleanup = kenwood_cleanup,
+    .set_freq =  tmd710_set_freq,
+    .get_freq =  tmd710_get_freq,
+    .set_mode =  tmd710_set_mode,
+    .get_mode =  tmd710_get_mode,
+    .set_vfo =  tmd710_set_vfo,
+    .get_vfo =  tmd710_get_vfo,
+    .set_ts = tmd710_set_ts,
+    .get_ts = tmd710_get_ts,
+    .set_ctcss_tone =  tmd710_set_ctcss_tone,
+    .get_ctcss_tone =  tmd710_get_ctcss_tone,
+    .set_ctcss_sql =  tmd710_set_ctcss_sql,
+    .get_ctcss_sql =  tmd710_get_ctcss_sql,
+    //.set_split_vfo =  th_set_split_vfo,
+    //.get_split_vfo =  th_get_split_vfo,
+    .set_dcs_sql =  tmd710_set_dcs_sql,
+    .get_dcs_sql =  tmd710_get_dcs_sql,
+    .set_mem =  tmd710_set_mem,
+    .get_mem =  tmd710_get_mem,
+    .set_channel =  tmd710_set_channel,
+    .get_channel =  tmd710_get_channel,
+    //.set_trn =  th_set_trn,
+    //.get_trn =  th_get_trn,
+
+    .set_func =  tmd710_set_func,
+    .get_func =  tmd710_get_func,
+    .set_level =  tmd710_set_level,
+    .get_level =  tmd710_get_level,
+    .set_parm =  tmd710_set_parm,
+    .get_parm =  tmd710_get_parm,
+    //.get_info =  th_get_info,
+    .get_dcd =  tmd710_get_dcd,
+    .set_ptt =  tmd710_set_ptt,
+    .vfo_op =  tmd710_vfo_op,
+    //.scan   =  th_scan,
+    .set_ext_level = tmd710_set_ext_level,
+    .get_ext_level = tmd710_get_ext_level,
+
+    .extlevels = tmd710_ext_levels,
+
+    .set_rptr_shift = tmd710_set_rptr_shift,
+    .get_rptr_shift = tmd710_get_rptr_shift,
+    .set_rptr_offs = tmd710_set_rptr_offs,
+    .get_rptr_offs = tmd710_get_rptr_offs,
+
+    .decode_event =  th_decode_event,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
+};
+
 /* structure for handling FO radio command */
 typedef struct {
   int vfo;       // P1
