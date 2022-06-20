@@ -1349,8 +1349,9 @@ static int tmd710_find_dcs_index(tone_t code, int *dcs_index) {
   int i = 0;
 
   // we only allow exact matches here
-  while (code != common_dcs_list[i]) {
-    if (common_dcs_list[i] == 0) {
+  tone_t *dcs_list = common_dcs_list;
+  while (code != dcs_list[i]) {
+    if (dcs_list[i] == 0) {
       return -RIG_EINVAL;
     }
     i++;
@@ -1445,7 +1446,7 @@ static int tmd710_get_mode_tmd710_value(rmode_t mode, int *tmd710_mode) {
   } else if (mode == RIG_MODE_AM) {
     *tmd710_mode = 2;
   } else {
-    rig_debug(RIG_DEBUG_ERR, "%s: Illegal value from radio '%ld'\n", __func__, mode);
+    rig_debug(RIG_DEBUG_ERR, "%s: Illegal value from radio '%ld'\n", __func__, (long)mode);
     return -RIG_EINVAL;
   }
 
@@ -1927,7 +1928,8 @@ int tmd710_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
   chan->ctcss_sql = rig->caps->ctcss_list[me_struct.ct_freq];
   chan->dcs_code = 0;
   if (me_struct.dcs) {
-    chan->dcs_sql = common_dcs_list[me_struct.dcs_val];
+    tone_t *dcs_list = common_dcs_list;
+    chan->dcs_sql = dcs_list[me_struct.dcs_val];
   } else {
     chan->dcs_sql = 0;
   }
@@ -2074,7 +2076,7 @@ int tmd710_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
   retval = sscanf(buf, "BY %d,%d", &vfonum, &dcd_val);
   if (retval != 2) {
-    rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%ld\n", __func__, buf, strlen(buf));
+    rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%ld\n", __func__, buf, (long)strlen(buf));
     return -RIG_EPROTO;
   }
 
@@ -2086,7 +2088,7 @@ int tmd710_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
       *dcd = RIG_DCD_ON;
       break;
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%ld\n", __func__, buf, strlen(buf));
+      rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%ld\n", __func__, buf, (long)strlen(buf));
       return -RIG_ERJCTED;
   }
 
