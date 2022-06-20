@@ -1336,7 +1336,8 @@ int tmd710_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
   }
 
   if (fo_struct.dcs) {
-    *code = common_dcs_list[fo_struct.dcs_val];
+    tone_t *dcs_list = common_dcs_list;
+    *code = dcs_list[fo_struct.dcs_val];
   } else {
     *code = 0;
   }
