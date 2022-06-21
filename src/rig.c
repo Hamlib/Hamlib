@@ -844,6 +844,7 @@ int HAMLIB_API rig_open(RIG *rig)
         strcpy(rs->dcdport.pathname, rs->dcdport_deprecated.pathname);
     }
 
+    rig_settings_load_all(NULL); // load default .hamlib_settings
     // Read in our settings
     char *cwd = malloc(4096);
 
