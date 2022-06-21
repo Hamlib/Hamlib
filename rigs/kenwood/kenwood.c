@@ -2742,8 +2742,9 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
                                       int *micgain_max,
                                       int restore)
 {
+    int expected_length = 18;
     int retval;
-    char levelbuf[19];
+    char levelbuf[expected_length + 1];
     // read micgain_now, set 0, read micgain_min, set 255, read_micgain_max; set 0
     // we set back to 0 for safety and if restore is true we restore micgain_min
     // otherwise we expect calling routine to be setting new micgain level
@@ -2801,8 +2802,10 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
                                     int *power_max,
                                     int restore)
 {
-    int retval, expval;
-    char levelbuf[19];
+    int max_length = 18;
+    int expected_length;
+    int retval;
+    char levelbuf[max_length + 1];
     // read power_now, set 0, read power_min, set 255, read_power_max; set 0
     // we set back to 0 for safety and if restore is true we restore power_min
     // otherwise we expect calling routine to be setting new power level
@@ -2858,23 +2861,23 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf),
-                         NULL, 0, 0, 1);
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
-
     if (RIG_IS_TS890S || RIG_IS_TS480)
     {
-        expval = 6;
+        expected_length = 6;
     }
     else
     {
-        expval = 18;
+        expected_length = 18;
     }
 
-    if (retval != expval)
+    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, expected_length + 1,
+            NULL, 0, 0, 1);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
+
+    if (retval != expected_length)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected %d, got %d in '%s'\n", __func__, expval,
+        rig_debug(RIG_DEBUG_ERR, "%s: expected %d, got %d in '%s'\n", __func__, expected_length,
                   retval,
                   levelbuf);
         RETURNFUNC(-RIG_EPROTO);
