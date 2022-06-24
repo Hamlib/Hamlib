@@ -91,9 +91,13 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_SET);
         break;
 
+    case RIG_VFO_MEM:
+        rig->state.cache.modeMem = mode;
+        elapsed_ms(&rig->state.cache.time_modeMem, HAMLIB_ELAPSED_SET);
+        break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo=%s\n", __func__, rig_strvfo(vfo));
-        if (vfo == RIG_VFO_MEM) rig_debug(RIG_DEBUG_ERR, "%s: rig is in Memory mode...please turn off memory mode\n", __func__);
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
