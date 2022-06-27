@@ -1167,6 +1167,7 @@ void *handle_socket(void *arg)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: fdopen out: %s\n", __func__, strerror(errno));
         fclose(fsockin);
+        fsockin = NULL;
 
         goto handle_exit;
     }
