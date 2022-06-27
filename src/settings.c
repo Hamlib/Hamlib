@@ -1027,7 +1027,7 @@ HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
     long *lvalue = (long *) value;
     float *fvalue = (float *) value;
     double *dvalue = (double *) value;
-    char *vformat;
+    char *vformat = "Unknown format??";
     char template[64];
 
     rig_settings_get_path(path,sizeof(path));
