@@ -31,8 +31,8 @@
  *   Collaboration between M0EZP David Brewerton and K1MMI Edmund Hajjar
  */
 
-#ifndef _FT990_H
-#define _FT990_H 1
+#ifndef _FT990UNI_H
+#define _FT990UNI_H 1
 
 // Global Definitions
 #define TRUE    1
@@ -208,7 +208,7 @@
 #define FT990_AMFILTER2400            0x80
 
 // Flags Byte 1
-typedef struct _ft990_flags1_t {
+typedef struct _ft990v12_flags1_t {
   unsigned split:       1;
   unsigned vfob:        1;
   unsigned fast:        1;
@@ -217,10 +217,10 @@ typedef struct _ft990_flags1_t {
   unsigned keyentry:    1;
   unsigned memempty:    1;
   unsigned xmit:        1;
-} ft990_flags1_t;
+} ft990v12_flags1_t;
 
 // Flags Byte 2
-typedef struct _ft990_flags2_t {
+typedef struct _ft990v12_flags2_t {
   unsigned memscanpause:1;
   unsigned memcheck:    1;
   unsigned memscan:     1;
@@ -229,10 +229,10 @@ typedef struct _ft990_flags2_t {
   unsigned vfo:         1;
   unsigned mem:         1;
   unsigned gen:         1;
-} ft990_flags2_t;
+} ft990v12_flags2_t;
 
 // Flags Byte 3
-typedef struct _ft990_status3_t {
+typedef struct _ft990v12_status3_t {
   unsigned ptt:         1;
   unsigned txinhibit:   1;
   unsigned keytimer:    1;
@@ -241,40 +241,40 @@ typedef struct _ft990_status3_t {
   unsigned xmitmon:     1;
   unsigned tuneron:     1;
   unsigned sidetone:    1;
-} ft990_flags3_t;
+} ft990v12_flags3_t;
 
-typedef union _ft990_flags1_u {
-  ft990_flags1_t bits;
+typedef union _ft990v12_flags1_u {
+  ft990v12_flags1_t bits;
   unsigned char byte;
-} ft990_flags1_u;
+} ft990v12_flags1_u;
 
-typedef union _ft990_flags2_u {
-  ft990_flags2_t bits;
+typedef union _ft990v12_flags2_u {
+  ft990v12_flags2_t bits;
   unsigned char byte;
-} ft990_flags2_u;
+} ft990v12_flags2_u;
 
-typedef union _ft990_flags3_u {
-  ft990_flags3_t bits;
+typedef union _ft990v12_flags3_u {
+  ft990v12_flags3_t bits;
   unsigned char byte;
-} ft990_flags3_u;
+} ft990v12_flags3_u;
 
-typedef struct _ft990_status_data_t {
-  ft990_flags1_u flags1;
-  ft990_flags2_u flags2;
-  ft990_flags3_u flags3;
+typedef struct _ft990v12_status_data_t {
+  ft990v12_flags1_u flags1;
+  ft990v12_flags2_u flags2;
+  ft990v12_flags3_u flags3;
   unsigned char id1;
   unsigned char id2;
-} ft990_status_data_t;
+} ft990v12_status_data_t;
 
-typedef struct _ft990_meter_data_t {
+typedef struct _ft990v12_meter_data_t {
   unsigned char mdata1;
   unsigned char mdata2;
   unsigned char mdata3;
   unsigned char mdata4;
   unsigned char id1;
-} ft990_meter_data_t;
+} ft990v12_meter_data_t;
 
-typedef struct _ft990_op_data_t {
+typedef struct _ft990v12_op_data_t {
   unsigned char bpf;
   unsigned char basefreq[3];
   unsigned char status;
@@ -288,25 +288,25 @@ typedef struct _ft990_op_data_t {
   unsigned char lastclariferstate;
   unsigned char skipscanamfilter;
   unsigned char amfm100;
-} ft990_op_data_t;
+} ft990v12_op_data_t;
 
 // Update Data Structure
-typedef struct _ft990_update_data_t {
+typedef struct _ft990v12_update_data_t {
   unsigned char flag1;
   unsigned char flag2;
   unsigned char flag3;
   unsigned char channelnumber;
-  ft990_op_data_t current_front;
+  ft990v12_op_data_t current_front;
   /* ft990_op_data_t current_rear; M0EZP: field not valid for FT990 ROM v1.2 */
-  ft990_op_data_t vfoa;
-  ft990_op_data_t vfob;
-  ft990_op_data_t channel[90];
-} ft990_update_data_t;
+  ft990v12_op_data_t vfoa;
+  ft990v12_op_data_t vfob;
+  ft990v12_op_data_t channel[90];
+} ft990v12_update_data_t;
 
 // Command Structure
-typedef struct _ft990_command_t {
+typedef struct _ft990v12_command_t {
   unsigned char data[4];
   unsigned char opcode;
-} ft990_command_t;
+} ft990v12_command_t;
 
-#endif /* _FT990_H */
+#endif /* _FT990UNI_H */
