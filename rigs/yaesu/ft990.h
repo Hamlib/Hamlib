@@ -22,7 +22,14 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
+/* MODIFIED VERSION for FT-990 with ROM v1.2 : June 2022
+ *   The standard version was written for FT-990 with ROM v1.3 and as the CAT spec was different to ROM v1.2 CAT 
+ *   would not work with the older ROM. This version enables ROM v1.2 to work although it is necessary to accept
+ *   that frequent polling functionality is not feasible with this older ROM. With ROM v1.2 polling fetches 1492
+ *   bytes which at 4800 Baud takes about 3.8 seconds during which the FT-990 has a CAT blackout. The longest poll
+ *   interval available in WSJT-X is 99 seconds. 
+ *   Collaboration between M0EZP David Brewerton and K1MMI Edmund Hajjar
+ */
 
 #ifndef _FT990_H
 #define _FT990_H 1
@@ -57,8 +64,7 @@
 
 /* Returned data length in bytes */
 
-#define FT990_ALL_DATA_LENGTH           1508    /* 0x10 P1 = 00 return size */
-#define FT990_ALL_DATA_LENGTH_UNI       1492    /* 0x10 P1 = 00 return size for 1.2 and earlier ROM */
+#define FT990_ALL_DATA_LENGTH           1492    /* 0x10 P1 = 00 return size */
 #define FT990_MEM_CHNL_LENGTH           1       /* 0x10 P1 = 01 return size */
 #define FT990_OP_DATA_LENGTH            32      /* 0x10 P1 = 02 return size */
 #define FT990_VFO_DATA_LENGTH           32      /* 0x10 P1 = 03 return size -- A & B returned */
@@ -291,23 +297,11 @@ typedef struct _ft990_update_data_t {
   unsigned char flag3;
   unsigned char channelnumber;
   ft990_op_data_t current_front;
-  ft990_op_data_t current_rear;
+  /* ft990_op_data_t current_rear; M0EZP: field not valid for FT990 ROM v1.2 */
   ft990_op_data_t vfoa;
   ft990_op_data_t vfob;
   ft990_op_data_t channel[90];
 } ft990_update_data_t;
-
-typedef struct _ft990uni_update_data_t {
-  unsigned char flag1;
-  unsigned char flag2;
-  unsigned char flag3;
-  unsigned char channelnumber;
-  ft990_op_data_t current_front;
-//  ft990_op_data_t current_rear;
-  ft990_op_data_t vfoa;
-  ft990_op_data_t vfob;
-  ft990_op_data_t channel[90];
-} ft990uni_update_data_t;
 
 // Command Structure
 typedef struct _ft990_command_t {
