@@ -30,7 +30,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20220601"
+#define BACKEND_VER "20220629"
 
 #define ICOM_IS_SECONDARY_VFO(vfo) ((vfo) & (RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B))
 #define ICOM_GET_VFO_NUMBER(vfo) (ICOM_IS_SECONDARY_VFO(vfo) ? 0x01 : 0x00)
@@ -465,6 +465,7 @@ extern const struct rig_caps icr9000_caps;
 extern const struct rig_caps icr9500_caps;
 extern const struct rig_caps ic271_caps;
 extern const struct rig_caps ic275_caps;
+extern const struct rig_caps ic375_caps;
 extern const struct rig_caps ic471_caps;
 extern const struct rig_caps ic475_caps;
 extern const struct rig_caps ic575_caps;
