@@ -1233,6 +1233,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int freq_len, ack_len = sizeof(ackbuf), retval;
     int cmd, subcmd;
     freq_t curr_freq;
+    int is_9700_exception = (rig->caps->rig_model == RIG_MODEL_IC9700) && rig->state.cache.satmode != 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%" PRIfreq "\n", __func__,
               rig_strvfo(vfo), freq);
@@ -1260,7 +1261,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 #endif
 
-    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ))
+
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) || is_9700_exception)
     {
         TRACE;
         rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo_curr=%s\n", __func__,
@@ -1287,7 +1289,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd(freqbuf, freq, freq_len * 2);
 
     // mike
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ && !is_9700_exception)
     {
         vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B
                                | RIG_VFO_OTHER;
@@ -2031,10 +2033,14 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     unsigned char buf[3];
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
+    int is_9700_exception = (rig->caps->rig_model == RIG_MODEL_IC9700) && rig->state.cache.satmode != 0;
 
     ENTERFUNC;
 
+    if (is_9700_exception) { RETURNFUNC(icom_set_mode(rig,vfo,mode, RIG_PASSBAND_NOCHANGE)); }
+
     if (priv->x26cmdfails) { RETURNFUNC(-RIG_ENAVAIL); }
+
 
     int cmd2 = 0x26;
     int subcmd2 = 0x00;
@@ -2660,7 +2666,6 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                       rig_strvfo(vfo), rig_strvfo(vfosave));
         }
     }
-
 
     RETURNFUNC2(RIG_OK);
 }
@@ -9582,6 +9587,7 @@ DECLARE_INITRIG_BACKEND(icom)
 
     rig_register(&ic271_caps);
     rig_register(&ic275_caps);
+    rig_register(&ic375_caps);
     rig_register(&ic471_caps);
     rig_register(&ic475_caps);
     rig_register(&ic575_caps);
