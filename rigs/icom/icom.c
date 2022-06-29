@@ -2667,6 +2667,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         }
     }
 
+    if (*mode == RIG_MODE_FM) *width = 12000;
+
     RETURNFUNC2(RIG_OK);
 }
 
