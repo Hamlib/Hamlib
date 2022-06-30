@@ -24,7 +24,7 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "20200404"
+#define BACKEND_VER "20220630"
 
 
 int format8k_mode(RIG *rig, char *buf, int buf_len, rmode_t mode, pbwidth_t width);

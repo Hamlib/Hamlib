@@ -545,8 +545,8 @@ int parse8k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode,
 int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
-    char ackbuf[BUFSZ], *mdp;
-    char *mdp2;
+    char ackbuf[BUFSZ], ackbuf2[BUFSZ];
+    char *mdp, *mdp2;
     int ack_len, ack2_len, retval;
 
 
@@ -573,7 +573,6 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (rig->caps->rig_model == RIG_MODEL_AR5000 ||
             rig->caps->rig_model == RIG_MODEL_AR5000A)
     {
-        char ackbuf2[BUFSZ];
         retval = aor_transaction(rig, "BW" EOM, 3, ackbuf2, &ack2_len);
 
         if (retval != RIG_OK)
