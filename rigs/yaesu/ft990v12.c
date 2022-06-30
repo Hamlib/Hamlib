@@ -3249,7 +3249,7 @@ int ft990v12_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
 {
     struct ft990v12_priv_data *priv;
     int n;
-    int err;
+    int err = -RIG_EINTERNAL;
     int rl;
     unsigned char temp[5];
     unsigned char *p;
