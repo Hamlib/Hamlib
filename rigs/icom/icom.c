@@ -927,6 +927,17 @@ static vfo_t icom_current_vfo(RIG *rig)
     return currVFO;
 }
 
+// some rigs like IC9700 cannot do 0x25 0x26 command in satmode
+static void icom_satmode_fix(RIG *rig, int satmode)
+{
+    if (rig->caps->rig_model == RIG_MODEL_IC9700)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: toggling IC9700 targetable for satmode=%d\n", __func__, satmode);
+        if (satmode) rig->caps->targetable_vfo = 0;
+        else rig->caps->targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE;
+    }
+}
+
 /*
  * ICOM rig open routine
  * Detect echo state of USB serial port
@@ -1046,6 +1057,7 @@ retry_open:
     {
         // retval is important here -- used below
         retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+        icom_satmode_fix(rig, satmode);
         rig->state.cache.satmode = satmode;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
@@ -1233,7 +1245,6 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int freq_len, ack_len = sizeof(ackbuf), retval;
     int cmd, subcmd;
     freq_t curr_freq;
-    int is_9700_exception = (rig->caps->rig_model == RIG_MODEL_IC9700) && rig->state.cache.satmode != 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%" PRIfreq "\n", __func__,
               rig_strvfo(vfo), freq);
@@ -1262,7 +1273,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #endif
 
 
-    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) || is_9700_exception)
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ))
     {
         TRACE;
         rig_debug(RIG_DEBUG_TRACE, "%s: set_vfo_curr=%s\n", __func__,
@@ -1289,7 +1300,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd(freqbuf, freq, freq_len * 2);
 
     // mike
-    if (rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ && !is_9700_exception)
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
     {
         vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B
                                | RIG_VFO_OTHER;
@@ -2033,11 +2044,8 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     unsigned char buf[3];
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
-    int is_9700_exception = (rig->caps->rig_model == RIG_MODEL_IC9700) && rig->state.cache.satmode != 0;
 
     ENTERFUNC;
-
-    if (is_9700_exception) { RETURNFUNC(icom_set_mode(rig,vfo,mode, RIG_PASSBAND_NOCHANGE)); }
 
     if (priv->x26cmdfails) { RETURNFUNC(-RIG_ENAVAIL); }
 
@@ -5262,6 +5270,7 @@ int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         {
             // satmode defaults to 0 -- only call if we need to
             rig_get_func((RIG *)rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+            icom_satmode_fix(rig,satmode);
         }
 
         rig->state.cache.satmode = satmode;
@@ -5367,6 +5376,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
         {
             rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+            icom_satmode_fix(rig,satmode);
         }
 
         rig->state.cache.satmode = satmode;
@@ -5596,6 +5606,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
         {
             rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+            icom_satmode_fix(rig,satmode);
         }
 
         rig->state.cache.satmode = satmode;
@@ -6309,6 +6320,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                       "%s: VFO_SUB and satmode is off so turning satmode on\n",
                       __func__);
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 1);
+            icom_satmode_fix(rig,1);
             rig->state.cache.satmode = 1;
             priv->tx_vfo = RIG_VFO_SUB;
         }
@@ -6319,6 +6331,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                       "%s: VFO_B and satmode is on so turning satmode off\n",
                       __func__);
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 0);
+            icom_satmode_fix(rig,0);
             rig->state.cache.satmode = 0;
             priv->tx_vfo = RIG_VFO_B;
         }
@@ -6584,6 +6597,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
     {
         rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
+        icom_satmode_fix(rig,satmode);
 
         if (satmode != rig->state.cache.satmode)
         {
@@ -6994,6 +7008,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             status; // we reset this to current status -- fails in SATMODE
         priv->x1cx03cmdfails = 0; // we reset this to try it again
         rig->state.cache.satmode = status;
+        icom_satmode_fix(rig,status);
 
         break;
 
@@ -7262,6 +7277,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         struct icom_priv_data *priv = rs->priv;
 
         *status = ackbuf[2 + fct_len];
+        icom_satmode_fix(rig, *status);
 
         // we'll reset this based on current status
         priv->x25cmdfails = *status;
