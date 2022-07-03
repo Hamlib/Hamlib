@@ -734,6 +734,16 @@ int newcat_get_conf2(RIG *rig, token_t token, char *val, int val_len)
  *
  */
 
+int newcat_60m_exception(RIG *rig, freq_t freq)
+{
+    // can we improve this to set memory mode and pick the memory slot?
+    if (is_ftdx10 && freq > 5.2 && freq < 5.5)
+    {
+        return 1;
+    }
+    return 0;
+}
+
 int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char c;
@@ -744,6 +754,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int special_60m = 0;
 
     ENTERFUNC;
+
+    if (newcat_60m_exception(rig,freq)) RETURNFUNC(RIG_OK); // we don't set freq in this case
 
     if (!newcat_valid_command(rig, "FA"))
     {
@@ -1261,6 +1273,8 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     priv = (struct newcat_priv_data *)rig->state.priv;
 
     ENTERFUNC;
+
+    if (newcat_60m_exception(rig,rig->state.cache.freqMainA)) RETURNFUNC(RIG_OK); // we don't set mode in this case
 
     if (!newcat_valid_command(rig, "MD"))
     {
