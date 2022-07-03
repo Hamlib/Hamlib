@@ -3919,7 +3919,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
     else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op)
     {
-        retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+        retcode = caps->vfo_op(rig, tx_vfo, RIG_OP_TOGGLE);
     }
     else
     {
