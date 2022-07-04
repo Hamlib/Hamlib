@@ -192,6 +192,15 @@ void frameParse(int fd, unsigned char *frame, int len)
         switch (frame[5])
         {
             static int power_level = 0;
+            static int level = 0;
+
+        case 0x01:
+            level = 255;
+            printf("Using AF level %d\n", level);
+            to_bcd(&frame[6], (long long) level, 2);
+            frame[8] = 0xfd;
+            write(fd, frame, 9);
+            break;
 
         case 0x0a:
             printf("Using power level %d\n", power_level);
@@ -330,15 +339,15 @@ void frameParse(int fd, unsigned char *frame, int len)
         {
             for (int i = 0; i < 12; ++i) { printf("%02x:", frame[i]); }
 
-            if (frame[6] == 0)
+            if (frame[5] == 0)
             {
-                modeA = frame[7];
-                datamodeA = frame[8];
+                modeA = frame[6];
+                datamodeA = frame[7];
             }
             else
             {
-                modeB = frame[7];
-                datamodeB = frame[8];
+                modeB = frame[6];
+                datamodeB = frame[7];
             }
 
             frame[4] = 0xfb;
