@@ -1110,7 +1110,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
      */
     if (priv->is_emulation && priv->curr_mode > 0)
     {
-        TRACE;
+        HAMLIB_TRACE;
         RETURNFUNC2(RIG_OK);
     }
 
@@ -1147,7 +1147,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 #endif
 
     case RIG_VFO_CURR:
-        TRACE;
+        HAMLIB_TRACE;
         rig->state.current_vfo = RIG_VFO_CURR;
         RETURNFUNC2(RIG_OK);
 
@@ -1182,7 +1182,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         }
     }
 
-    TRACE;
+    HAMLIB_TRACE;
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "FR%c", vfo_function);
 
     // as we change VFO we will change split to the other VFO
@@ -1212,7 +1212,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC2(retval);
     }
 
-    TRACE;
+    HAMLIB_TRACE;
     rig->state.current_vfo = vfo;
 
     /* if FN command then there's no FT or FR */
@@ -1222,13 +1222,13 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC2(RIG_OK);
     }
 
-    TRACE;
+    HAMLIB_TRACE;
 
     // some rigs need split turned on after VFOA is set
     if (priv->split == RIG_SPLIT_ON)
     {
         // so let's figure out who the rx_vfo is based on the tx_vfo
-        TRACE;
+        HAMLIB_TRACE;
         vfo_t rx_vfo = RIG_VFO_A;
 
         switch (priv->tx_vfo)
@@ -1397,18 +1397,18 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     // FR can turn off split on some Kenwood rigs
     // So we'll turn it back on just in case
-    TRACE;
+    HAMLIB_TRACE;
 
     if (split)
     {
         if (vfo_function == '0')
         {
-            TRACE;
+            HAMLIB_TRACE;
             strcat(cmdbuf, ";FT1");
         }
         else
         {
-            TRACE;
+            HAMLIB_TRACE;
             strcat(cmdbuf, ";FT0");
         }
     }
@@ -1625,12 +1625,12 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
     case '0':
         if (rig->state.rx_vfo == RIG_VFO_A)
         {
-            TRACE;
+            HAMLIB_TRACE;
             *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else if (rig->state.rx_vfo == RIG_VFO_B)
         {
-            TRACE;
+            HAMLIB_TRACE;
             *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else
@@ -1646,12 +1646,12 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
     case '1':
         if (rig->state.rx_vfo == RIG_VFO_A)
         {
-            TRACE;
+            HAMLIB_TRACE;
             *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_A : RIG_VFO_B;
         }
         else if (rig->state.rx_vfo == RIG_VFO_B)
         {
-            TRACE;
+            HAMLIB_TRACE;
             *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else
@@ -2370,7 +2370,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_CURR)
     {
-        TRACE;
+        HAMLIB_TRACE;
         vfo = rig->state.current_vfo;
     }
 
