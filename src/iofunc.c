@@ -486,7 +486,7 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
     int result;
     ssize_t bytes_read;
 
-    TRACE;
+    HAMLIB_TRACE;
     result = ReadFile(p->sync_data_pipe->read, buf, count, NULL, overlapped);
 
     if (!result)
@@ -496,12 +496,12 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
         switch (result)
         {
         case ERROR_SUCCESS:
-            TRACE;
+            HAMLIB_TRACE;
             // No error?
             break;
 
         case ERROR_IO_PENDING:
-            TRACE;
+            HAMLIB_TRACE;
             timeout.QuadPart = (p->timeout * -1000000LL);
 
             if ((result = SetWaitableTimer(hLocal, &timeout, 0, NULL, NULL, 0)) == 0)
@@ -514,7 +514,7 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
                 wait_result = WaitForMultipleObjects(3, event_handles, FALSE, p->timeout);
             }
 
-            TRACE;
+            HAMLIB_TRACE;
 
             switch (wait_result)
             {

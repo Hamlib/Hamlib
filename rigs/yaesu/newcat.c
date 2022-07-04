@@ -885,7 +885,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (priv->ret_data[2] != target_vfo)
         {
-            TRACE;
+            HAMLIB_TRACE;
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VS%c%c", target_vfo, cat_term);
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -956,7 +956,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             && rig->caps->get_vfo != NULL
             && rig->caps->set_vfo != NULL) // gotta' have get_vfo too
     {
-        TRACE;
+        HAMLIB_TRACE;
 
         if (rig->state.current_vfo != vfo)
         {
@@ -7462,7 +7462,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
             newcat_is_rig(rig, RIG_MODEL_FTDX10) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX3000))
     {
-        TRACE;
+        HAMLIB_TRACE;
         p1 = p1 + 2;    /* use non-Toggle commands */
     }
 
