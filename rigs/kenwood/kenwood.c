@@ -1722,7 +1722,7 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
         *vfo = rig->state.rx_vfo = rig->state.tx_vfo = priv->tx_vfo =
                                        split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
 
-        if (priv->info[32] == '1') { priv->tx_vfo = RIG_VFO_B; }
+        if (priv->info[32] == '1') { priv->tx_vfo = rig->state.tx_vfo = RIG_VFO_B; }
 
         break;
 

@@ -3857,7 +3857,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     }
     else
     {
-        tx_vfo = vfo;
+        tx_vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
     }
 
     rig_get_freq(rig, tx_vfo, &tfreq);
