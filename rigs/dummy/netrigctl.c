@@ -704,10 +704,6 @@ static int netrigctl_open(RIG *rig)
                 }
             }
 
-            // setting targetable_vfo this way breaks WSJTX in rig split with rigctld
-            // Ends up putting VFOB freq on VFOA
-            // Have to figure out why but disabling this fixes it for now
-#if 0
             else if (strcmp(setting, "targetable_vfo") == 0)
             {
                 rig->caps->targetable_vfo = strtol(value, NULL, 0);
@@ -715,7 +711,6 @@ static int netrigctl_open(RIG *rig)
                           rig->caps->targetable_vfo);
             }
 
-#endif
             else if (strcmp(setting, "has_set_vfo") == 0)
             {
                 int has = strtol(value, NULL, 0);
@@ -2690,7 +2685,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20220612.0",
+    .version =        "20220706.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
