@@ -186,12 +186,15 @@ c:\Program Files\Microsoft Visual C++ Toolkit 2003\bin\link.exe /lib /machine:i3
 To do the same for Visual Studio 2017:
 
 cd lib\msvc
-c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Tools\MSVC\14.16.27023\bin\Hostx64\x86\bin\link.exe /lib /machine:i386 /def:libhamlib-4.def
+"c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Tools\MSVC\14.16.27023\bin\Hostx64\x86\bin\link.exe" /lib /machine:i386 /def:libhamlib-4.def
 
 and for VS 2019:
 
 cd lib\msvc
-c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.25.28610\bin\Hostx64\x86\bin\link.exe /lib /machine:i386 /def:libhamlib-4.def
+"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.25.28610\bin\Hostx64\x86\bin\link.exe" /lib /machine:i386 /def:libhamlib-4.def
+
+cd lib/msvc
+"c:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.32.31326\bin\Hostx64\x86\link.exe" /lib /machine:i386 /def:libhamlib-4.def
 
 NOTE: feedback is requested on the previous two command examples!
 
