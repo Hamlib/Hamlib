@@ -20,7 +20,7 @@ This is a WIP.
 Handles 5% of all opcodes.
 All primitives are written from spec. In other words,
 they are totally untested because I don't own an AOR scanner myself.
-Patchs and contributions are welcome! I'm also looking for
+Patches and contributions are welcome! I'm also looking for
 a real maintainer :)  --SF
 
 

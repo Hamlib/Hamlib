@@ -43,9 +43,9 @@ Rig command: \get_powerstat
 
 Rig command: \reset          Reset: 1 > Software reset
 
-Rig command:                 Quitt Q q
+Rig command:                 Quit Q q
 
-Rig command:                 Quitt Q Q
+Rig command:                 Quit Q Q
 
 Rig command: 1               Caps dump for model 503
 

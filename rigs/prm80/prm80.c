@@ -81,7 +81,7 @@ MessageAide:  DB   "H",0Dh,0Ah
               DB   " [I] = Erase and init RAM and EEPROM.",0Dh,0Ah
               DB   " [K] = Set lock byte.",0Dh,0Ah
               DB   " [L] = Print latch state.",0Dh,0Ah
-              DB   " [M] = Edit external RAM manualy.",0Dh,0Ah
+              DB   " [M] = Edit external RAM manually.",0Dh,0Ah
               DB   " [N] = Set current channel.",0Dh,0Ah
               DB   " [O] = Set volume.",0Dh,0Ah
               DB   " [P] = Edit/Add channel.",0Dh,0Ah
@@ -123,7 +123,7 @@ MessageAide:  DB   "H",0Dh,0Ah
     b4: PLL locked (Read only)
     b5: Long key push (Internal)
     b6: Key bounce (Internal)
-    b7: Force LCD refresh when set. Automaticaly cleared.
+    b7: Force LCD refresh when set. Automatically cleared.
 
    Channel state byte:
     b0: Shift enable when true

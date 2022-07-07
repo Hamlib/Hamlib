@@ -1474,7 +1474,7 @@ pcr_set_volume(RIG *rig, vfo_t vfo, float level)
  *  80-ff   Noise squelch + S meter squelch ...
  *       Comparative S level = (squelch setting - 128) X 2
  *
- *  Could do with some constatnts to add together to allow better (and more accurate)
+ *  Could do with some constants to add together to allow better (and more accurate)
  *  use of Hamlib API. Otherwise may get unexpected squelch settings if have to do by hand.
  */
 

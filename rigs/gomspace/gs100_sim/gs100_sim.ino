@@ -5,7 +5,7 @@
  *  Created in 2022 by Richard Linhart OK1CTR OK1CTR@gmail.com
  *  and used during VZLUSAT-2 satellite mission.
  *
- *   This sorce code is free software; you can redistribute it and/or
+ *   This source code is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Lesser General Public
  *   License as published by the Free Software Foundation; either
  *   version 2.1 of the License, or (at your option) any later version.
@@ -40,7 +40,7 @@
 #define STATUS_ERROR                                             -1
 //! Serial baud rate - cannot use 500000 as the GS100 have
 #define BAUD_RATE                                            115200
-//! Incomming serial buffer length
+//! Incoming serial buffer length
 #define BUF_LENGTH                                               32
 //! New line character on receive
 #define NLRX                                                    '\n'
@@ -91,7 +91,7 @@ static unsigned long tx_freq;
 /* Private function prototypes -----------------------------------------------*/
 
 /**
- * @brief Store incomming serial characters unitl line end
+ * @brief Store incoming serial characters until line end
  * @return The line if received successfully or NULL
  */
 static char *serReadLine(void);
@@ -132,7 +132,7 @@ static void prnPrompt(void);
 /**
  * @brief Displays hint output for commands
  * @param hint_type Type or command
- * @oaram cmd Part of commend to comment
+ * @oaram cmd Part of command to comment
  */
 static void prnHint(hint_t hint_type, char *cmd);
 
@@ -181,7 +181,7 @@ void loop(void)
 
 /* Private functions ---------------------------------------------------------*/
 
-/* Store incomming serial characters unitl line end */
+/* Store incoming serial characters until line end */
 static char *serReadLine(void)
 {
   int inchar;
@@ -354,7 +354,7 @@ static void prnHint(hint_t hint_type, char *cmd)
       return;
 
     case hint_param2:
-      // reduced on simulated commads only!
+      // reduced on simulated commands only!
       Serial.print("'param' contains sub-commands:");
       Serial.print(NLTX);
       Serial.print("  mem                 Set cmds working mem");

@@ -1,4 +1,4 @@
-Standart protocol for both El and Az axes. Working with russian Radant version 1.0 - 1.4: Радант AZV-1
+Standard protocol for both El and Az axes. Working with russian Radant version 1.0 - 1.4: Радант AZV-1
 
 Serial port mode 9600 8N1.
 

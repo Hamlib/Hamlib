@@ -87,7 +87,7 @@ Version 4.3.1
             - Fix segfault in kenwood_set_vfo
             - scripts: Update example in readme, since 4.0 817 is 1020
             - Make testlibusb.c compatible with libusb < 1.0.23
-              Note: On systems with libusb < 1.0.23 a warning will be emmitted
+              Note: On systems with libusb < 1.0.23 a warning will be emitted
               but compliation should proceed without error.
             - Update testlibusb.c warning to "may be" instead of "will be"
             - Change kenwood to only set VFOA default on 1st rig_open call

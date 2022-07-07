@@ -506,7 +506,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
                            strlen(caps->hamlib_check_rig_caps)) != 0)
         {
             rig_debug(RIG_DEBUG_ERR,
-                      "%s: Error validating integrity of rig_caps\nPossible hamlib DLL incompatiblity\n",
+                      "%s: Error validating integrity of rig_caps\nPossible hamlib DLL incompatibility\n",
                       __func__);
             return (NULL);
         }
@@ -7002,7 +7002,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
                           int cookie_len)
 {
     // only 1 client can have the cookie so these can be static
-    // this should also prevent problems with DLLs & shared libraies
+    // this should also prevent problems with DLLs & shared libraries
     // the debug_msg is another non-thread-safe which this will help fix
     static char
     cookie_save[HAMLIB_COOKIE_SIZE];  // only one client can have the cookie
@@ -7026,7 +7026,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
         return -RIG_EINVAL; // nothing to do
     }
 
-    /* Accesing cookie_save and time_last_used must be done with lock held.
+    /* Accessing cookie_save and time_last_used must be done with lock held.
      * So keep code simple and lock it during the whole operation. */
     MUTEX_LOCK(mutex_rig_cookie);
 

@@ -1055,7 +1055,7 @@ HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
     case e_DOUBLE: dvalue = (double *)value; vformat = "%s=%f\n"; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Uknown valuetype=%d\n", __func__, valuetype);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown valuetype=%d\n", __func__, valuetype);
     }
 
     if (fp == NULL)
@@ -1076,7 +1076,7 @@ HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
         case e_DOUBLE: fprintf(fp, vformat, setting, *dvalue); break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Uknown valuetype=%d\n", __func__, valuetype);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unknown valuetype=%d\n", __func__, valuetype);
         }
 
         fclose(fp);

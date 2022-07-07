@@ -1116,7 +1116,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     err = k3_get_mode(rig, RIG_VFO_A, &tmodeA, &twidth);
     err2 = k3_get_mode(rig, RIG_VFO_B, &tmodeB, &twidth);
 
-    // we keep both vfos in the same mode -- any reason they should ever be differnet?  If so, fix this
+    // we keep both vfos in the same mode -- any reason they should ever be different?  If so, fix this
     // if we change mode on one VFO we'll also change the other
     if (err == RIG_OK && err2 == RIG_OK && tmodeA == mode && tmodeB == mode
             && width == RIG_PASSBAND_NOCHANGE)
@@ -1570,7 +1570,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     if (priv->is_k4d || priv->is_k4hd)
     {
         // split can get turned off when modes are changing
-        // so if the rig did this independtly of us we turn it back on
+        // so if the rig did this independently of us we turn it back on
         // even if the rig changes the split status should be the last thing we did
         if (priv->split) { strcat(cmd_m, "FT1;"); }
 
