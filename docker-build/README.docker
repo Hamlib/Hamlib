@@ -1,4 +1,4 @@
-This is all about building hamlib inside docker contariner - so that you do not need to install dependencied on your local machine.
+This is all about building hamlib inside docker container - so that you do not need to install dependencies on your local machine.
 
 1. Build docker container
 

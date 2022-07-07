@@ -932,7 +932,7 @@ int kenwood_open(RIG *rig)
         rig_debug(RIG_DEBUG_ERR, "%s: unknown id type (%s)...continuing\n", __func__,
                   id);
 
-        // Malachite SDR gives no reponse to ID and is supposed to be TS480 compatible
+        // Malachite SDR gives no response to ID and is supposed to be TS480 compatible
         if (RIG_IS_MALACHITE) { strcpy(id, "ID020"); }
 
     }

@@ -193,7 +193,7 @@
 #define S_SCAN_FDFON	0xAA    	/* Fix dF ON */
 #define S_SCAN_NSLCT	0xB0    	/* Set as non select channel */
 #define S_SCAN_SLCT	0xB1		/* Set as select channel */
-#define S_SCAN_SL_NUM	0xB2		/* select programed mem scan 7800 only */
+#define S_SCAN_SL_NUM	0xB2		/* select programmed mem scan 7800 only */
 #define S_SCAN_RSMOFF   0xD0		/* Set scan resume OFF */
 #define S_SCAN_RSMONP   0xD1		/* Set scan resume ON + pause time */
 #define S_SCAN_RSMON    0xD3		/* Set scan resume ON */

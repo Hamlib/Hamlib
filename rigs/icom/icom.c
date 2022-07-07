@@ -2315,7 +2315,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         icmode_ext = -1;
     }
 
-    // some Icom rigs have seperate modes for VFOB/Sub
+    // some Icom rigs have separate modes for VFOB/Sub
     // switching to VFOB should not matter for the other rigs
     // This needs to be improved for RIG_TARGETABLE_MODE rigs
     if ((vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
@@ -8810,7 +8810,7 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
     /*
      * the first 2 bytes must be 0xfe
      * the 3rd one 0x00 since this is transceive mode
-     * the 4rd one the emitter
+     * the 4th one the emitter
      * then the command number
      * the rest is data
      * and don't forget one byte at the end for the EOM

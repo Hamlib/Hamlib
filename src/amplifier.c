@@ -297,7 +297,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
  * \return RIG_OK if the operation has been successful, otherwise a **negative
  * value** if an error occurred (in which case, cause is set appropriately).
  *
- * \retval RIG_OK Communication channel succesfully opened.
+ * \retval RIG_OK Communication channel successfully opened.
  * \retval RIG_EINVAL \a amp is NULL or inconsistent.
  *
  * \sa amp_init(), amp_close()

@@ -188,7 +188,7 @@ static const struct confparams elektor507_cfg_params[] =
         "10000000", RIG_CONF_NUMERIC, { .n = { 0, MHz(30), 1 } }
     },
     {
-        TOK_XTALCAL, "xtal_cal", "Xtal Cal", "Cristal calibration",
+        TOK_XTALCAL, "xtal_cal", "Xtal Cal", "Crystal calibration",
         "132", RIG_CONF_NUMERIC, { .n = { 0, 255, 1 } }
     },
     { RIG_CONF_END, NULL, }
