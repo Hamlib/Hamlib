@@ -777,7 +777,7 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "timeout") == 0)
             {
-                // use the rig's timeout value pluse 500ms for potential network delays
+                // use the rig's timeout value plus 500ms for potential network delays
                 rig->caps->timeout = strtol(value, NULL, 0) + 500;
                 rig_debug(RIG_DEBUG_TRACE, "%s: timeout value = '%s', final timeout=%d\n",
                           __func__, value, rig->caps->timeout);

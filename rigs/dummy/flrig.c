@@ -582,7 +582,7 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
 
         read_transaction(rig, xml, sizeof(xml)); // this might time out -- that's OK
 
-        // we get an uknown response if function does not exist
+        // we get an unknown response if function does not exist
         if (strstr(xml, "unknown")) { set_transaction_inactive(rig); RETURNFUNC(RIG_ENAVAIL); }
 
         if (value)
@@ -1997,7 +1997,7 @@ static int flrig_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     ENTERFUNC;
 
-    // we alway do split on VFOB
+    // we always do split on VFOB
     retval = flrig_set_freq(rig, RIG_VFO_B, freq);
 
     if (retval != RIG_OK)

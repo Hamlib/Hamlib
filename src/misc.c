@@ -1858,7 +1858,7 @@ vfo_t HAMLIB_API vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split,
     return vfo_fixup(rig, vfo, split);
 }
 
-// we're mappping our VFO here to work with either VFO A/B rigs or Main/Sub
+// we're mapping our VFO here to work with either VFO A/B rigs or Main/Sub
 // Hamlib uses VFO_A  and VFO_B as TX/RX as of 2021-04-13
 // So we map these to Main/Sub as required
 vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)

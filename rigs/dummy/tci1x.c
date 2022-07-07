@@ -1717,7 +1717,7 @@ static int tci1x_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     ENTERFUNC;
 
-    // we alway do split on VFOB
+    // we always do split on VFOB
     retval = tci1x_set_freq(rig, RIG_VFO_B, freq);
 
     if (retval != RIG_OK)

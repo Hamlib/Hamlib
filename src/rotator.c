@@ -350,7 +350,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
  * \return RIG_OK if the operation has been successful, otherwise a **negative
  * value** if an error occurred (in which case, cause is set appropriately).
  *
- * \retval RIG_OK Communication channel succesfully opened.
+ * \retval RIG_OK Communication channel successfully opened.
  * \retval RIG_EINVAL \a rot is NULL or inconsistent.
  * \retval RIG_ENIMPL Communication port type is not implemented yet.
  *
@@ -635,7 +635,7 @@ int HAMLIB_API rot_cleanup(ROT *rot)
  * \brief Set the azimuth and elevation of the rotator.
  *
  * \param rot The #ROT handle.
- * \param azimuth The azimuth to set in decimal degress.
+ * \param azimuth The azimuth to set in decimal degrees.
  * \param elevation The elevation to set in decimal degrees.
  *
  * Sets the azimuth and elevation of the rotator.
@@ -933,7 +933,7 @@ int HAMLIB_API rot_move(ROT *rot, int direction, int speed)
  *
  * \return A pointer to static memory containing an ASCII nul terminated
  * string (C string) if the operation has been successful, otherwise NULL if
- * \a rot is NULL or inconsisten or the rot_caps#get_info() capability is not
+ * \a rot is NULL or inconsistent or the rot_caps#get_info() capability is not
  * available.
  */
 const char *HAMLIB_API rot_get_info(ROT *rot)

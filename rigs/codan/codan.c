@@ -70,7 +70,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     if (expected == 0)
     {
-        // response format is reponse...0x0d0x0a
+        // response format is response...0x0d0x0a
         retval = read_string(&rs->rigport, (unsigned char *) priv->ret_data,
                              sizeof(priv->ret_data),
                              "\x0a", 1, 0, 1);

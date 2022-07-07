@@ -931,7 +931,7 @@ int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         if (split) { rig_set_vfo(rig, RIG_VFO_A); }
 
         hl_usleep(100 *
-                  1000); // give ptt some time to do it's thing -- fake it was not reseting freq after tx
+                  1000); // give ptt some time to do its thing -- fake it was not resetting freq after tx
         break;
 
     default:

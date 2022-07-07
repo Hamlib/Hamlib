@@ -353,7 +353,7 @@ typedef struct _ft980_memory_t
 #define FT_980_STATUSFLAG_UPDN_MASK    0X30
 #define FT_980_STATUSFLAG_CLAR_MASK    0x40
 
-/* op_vfo: VFO decode: Main, Gen, and 3 unsused AUX */
+/* op_vfo: VFO decode: Main, Gen, and 3 unused AUX */
 #define FT980_VFO_HAM_SEL  0x80
 #define FT980_VFO_GEN_SEL  0x00
 #define FT980_VFO_AUX1_SEL 0x81

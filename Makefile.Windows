@@ -1447,7 +1447,7 @@ $(OBJ_DIR)/Hamlib.def: $(Hamlib_STAT_LIB) $(THIS_FILE)
 #
 # GNU-make macros.
 #
-# This asumes you have a Cygwin/Msys 'echo' with colour support.
+# This assumes you have a Cygwin/Msys 'echo' with colour support.
 #
 green_message = @echo -e "\e[1;32m$(strip $(1))\e[0m"
 white_message = @echo -e "\e[1;37m$(strip $(1))\e[0m"

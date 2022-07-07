@@ -2206,7 +2206,7 @@ typedef struct hamlib_async_pipe hamlib_async_pipe_t;
 // DO NOT CHANGE THIS STRUCTURE ALL UNTIL 5.0
 // Right now it is static inside rig structure
 // 5.0 will change it to a pointer which can then be added to
-// At that point only add to the end of the stucture
+// At that point only add to the end of the structure
 typedef struct hamlib_port {
     union {
         rig_port_t rig;     /*!< Communication port type */
@@ -2466,7 +2466,7 @@ struct rig_state {
      */
     // moving the hamlib_port_t to the end of rig_state and making it a pointer
     // this should allow changes to hamlib_port_t without breaking shared libraries
-    // these will maintain a copy of the new port_t for backwards compatiblity
+    // these will maintain a copy of the new port_t for backwards compatibility
     // to these offsets -- note these must stay until a major version update is done like 5.0
     hamlib_port_t_deprecated rigport_deprecated;  /*!< Rig port (internal use). */
     hamlib_port_t_deprecated pttport_deprecated;  /*!< PTT port (internal use). */
