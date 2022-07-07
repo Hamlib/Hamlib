@@ -127,7 +127,7 @@ struct ft817_priv_data
     /* freq & mode status */
     struct timeval fm_status_tv;
     unsigned char fm_status[5]; /* 5 bytes, NOT related to YAESU_CMD_LENGTH */
-    /* Digi mode is not part of regular fm_status reponse.
+    /* Digi mode is not part of regular fm_status response.
      * So keep track of it in a separate variable. */
     unsigned char dig_mode;
 };

@@ -464,7 +464,7 @@ const struct rig_caps si570picusb_caps =
  * Funkamateur Sdr with Si570
  *
  * Same USB interface as AVR-USB, except different product string
- * and Oscilator correction may be stored on the device
+ * and Oscillator correction may be stored on the device
  *
  *   http://www.funkamateur.de
  *   ( BX- 200 )
