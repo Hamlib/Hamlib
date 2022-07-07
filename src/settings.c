@@ -997,10 +997,14 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
     {
         snprintf(path, pathlen-1, "%s/.config/%s", home, SETTINGS_FILE);
     }
-    else
+    else if (home)
     {
         // we add a leading period to hide the file
         snprintf(path, pathlen-1, "%s/.%s", home, SETTINGS_FILE);
+    }
+    else
+    {
+        snprintf(path, pathlen-1, ".%s", SETTINGS_FILE);
     }
     rig_debug(RIG_DEBUG_TRACE, "%s: path=%s\n", __func__, path);
     return RIG_OK;
