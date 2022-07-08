@@ -2237,6 +2237,12 @@ declare_proto_rig(set_vfo)
     }
 
     vfo = rig_parse_vfo(arg1);
+    if (vfo == RIG_VFO_NONE) 
+    {
+        int c;
+        while((c = fgetc(fin)) != '\n' && c != '\r' && c > 0);
+        return -RIG_EINVAL;
+    }
     retval = rig_set_vfo(rig, vfo);
 
 #if 0 // see if we can make this dynamic
