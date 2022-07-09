@@ -596,6 +596,17 @@ int newcat_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: disabling FTDX3000 band select\n", __func__);
     }
 
+    if (priv->rig_id == NC_RIGID_FTDX5000)
+    {
+        int err;
+        // set the CAT TIME OUT TIMER to 100ms
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0331");
+        if (RIG_OK != (err = newcat_set_cmd(rig)))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__, rigerror(err));
+        }
+    }
+
     RETURNFUNC(RIG_OK);
 }
 
