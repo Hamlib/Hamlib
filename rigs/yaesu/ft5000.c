@@ -140,7 +140,7 @@ const struct rig_caps ftdx5000_caps =
     RIG_MODEL(RIG_MODEL_FTDX5000),
     .model_name =         "FTDX-5000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".3",
+    .version =            NEWCAT_VER ".4",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
