@@ -16,6 +16,7 @@ Version 4.6
         
 Version 4.5
         * 2022-05-XX
+        * Add Gemini DX-1200 HF-1K Amplifiers
         * Kenwood rigs should now support AI command packets
         * Add FT-990UNI for older 990 ROMs 1.2 and earlier
         * Add FT-650
