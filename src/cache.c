@@ -97,7 +97,7 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo=%s\n", __func__, rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_WARN, "%s: unknown vfo=%s\n", __func__, rig_strvfo(vfo));
         RETURNFUNC(-RIG_EINTERNAL);
     }
 

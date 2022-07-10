@@ -65,6 +65,7 @@
 
 DEFINE_INITAMP_BACKEND(dummy);
 DEFINE_INITAMP_BACKEND(kpa1500);
+DEFINE_INITAMP_BACKEND(gemini);
 //! @endcond
 
 /**
@@ -87,6 +88,7 @@ static struct
 {
     { AMP_DUMMY, AMP_BACKEND_DUMMY, AMP_FUNCNAMA(dummy) },
     { AMP_ELECRAFT, AMP_BACKEND_ELECRAFT, AMP_FUNCNAMA(kpa1500) },
+    { AMP_GEMINI, AMP_BACKEND_GEMINI, AMP_FUNCNAMA(gemini) },
     { 0, NULL }, /* end */
 };
 
