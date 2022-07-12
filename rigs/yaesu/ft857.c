@@ -248,7 +248,7 @@ const struct rig_caps ft857_caps =
     RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
     .mfg_name =       "Yaesu",
-    .version =        "20220603.0",
+    .version =        "20220712.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -947,7 +947,7 @@ int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // cannot set freq while PTT is on
     for (i = 0; i < 10 && ptt == RIG_PTT_ON; ++i)
     {
-        retval = rig_get_ptt(rig, vfo, &ptt);
+        retval = ft857_get_ptt(rig, vfo, &ptt);
 
         if (retval != RIG_OK) { return retval; }
 
