@@ -1884,6 +1884,10 @@ int tmd710_set_mem(RIG *rig, vfo_t vfo, int ch)
       return retval;
     }
   }
+  else
+  {
+      vfonum = rig->state.current_vfo == RIG_VFO_A ? 0: 1;
+  }
 
   snprintf(cmd, sizeof(cmd), "MR %d,%03d", vfonum, ch);
 
