@@ -248,7 +248,7 @@ const struct rig_caps tmd710_caps = {
     .rig_model =  RIG_MODEL_TMD710,
     .model_name = "TM-D710(G)",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".4",
+    .version =  BACKEND_VER ".5",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_MOBILE | RIG_FLAG_APRS | RIG_FLAG_TNC,
@@ -1845,6 +1845,10 @@ int tmd710_get_mem(RIG *rig, vfo_t vfo, int *ch)
     if (retval != RIG_OK) {
       return retval;
     }
+  }
+  else
+  {
+      vfonum = rig->state.current_vfo == RIG_VFO_A ? 0: 1;
   }
 
   snprintf(cmd, sizeof(cmd), "MR %d", vfonum);
