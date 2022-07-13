@@ -187,7 +187,7 @@ const struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".22",
+    .version =      BACKEND_VER ".23",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -2784,7 +2784,7 @@ int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // if more than 1MHz probably a band change so give it some time
     // before continuing
-    if (abs(tfreq - freq) > 1e6)
+    if (abs((unsigned long)(tfreq - freq)) > 1e6)
     {
         hl_usleep(200 * 1000);    // give 200ms for rig to do band switch if needed
     }
