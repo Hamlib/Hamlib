@@ -1638,7 +1638,7 @@ void usage()
 {
     char *name = "rigctlcom";
     printf("Usage: %s -m rignumber -r comport -s baud -R comport [OPTIONS]...\n\n"
-           "A TS-2000 emulator for rig sharing with programs that don't support Hamlib to be able\n"
+           "A TS-2000 emulator for rig sharing with programs that don't support Hamlib or FLRig to be able\n"
            "to use a connected radio transceiver or receiver with FLRig or rigctld via Hamlib.\n\n",
            name);
 
