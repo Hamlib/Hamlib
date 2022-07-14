@@ -2784,7 +2784,7 @@ int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // if more than 1MHz probably a band change so give it some time
     // before continuing
-    if (abs((unsigned long)(tfreq - freq)) > 1e6)
+    if (abs((long)(tfreq - freq)) > 1e6)
     {
         hl_usleep(200 * 1000);    // give 200ms for rig to do band switch if needed
     }
