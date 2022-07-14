@@ -155,6 +155,7 @@ declare_proto_amp(dump_state);
 declare_proto_amp(dump_caps);
 declare_proto_amp(get_info);
 declare_proto_amp(reset);
+declare_proto_amp(set_level);
 declare_proto_amp(get_level);
 declare_proto_amp(set_powerstat);
 declare_proto_amp(get_powerstat);
@@ -170,6 +171,7 @@ struct test_table test_list[] =
     { 'F', "set_freq",      ACTION(set_freq),       ARG_IN, "Frequency(Hz)" },
     { 'f', "get_freq",      ACTION(get_freq),       ARG_OUT, "Frequency(Hz)" },
     { 'l', "get_level",     ACTION(get_level),      ARG_IN1 | ARG_OUT2, "Level", "Level Value" },
+    { 'L', "set_level",     ACTION(set_level),      ARG_IN, "Level", "Level Value" },
     { 'w', "send_cmd",      ACTION(send_cmd),       ARG_IN1 | ARG_IN_LINE | ARG_OUT2, "Cmd", "Reply" },
     { 0x8f, "dump_state",   ACTION(dump_state),     ARG_OUT },
     { '1', "dump_caps",     ACTION(dump_caps), },
@@ -1660,6 +1662,94 @@ declare_proto_amp(set_freq)
 
     CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &freq));
     return amp_set_freq(amp, freq);
+}
+
+
+/*
+ * RIG_CONF_ extparm's type:
+ *   NUMERIC: val.f
+ *   COMBO: val.i, starting from 0
+ *   STRING: val.s
+ *   CHECKBUTTON: val.i 0/1
+ *
+ * 'L'
+ */
+declare_proto_amp(set_level)
+{
+    setting_t level;
+    value_t val;
+
+    if (!strcmp(arg1, "?"))
+    {
+        char s[SPRINTF_MAX_SIZE];
+        rig_sprintf_level(s, sizeof(s), amp->state.has_set_level);
+        fputs(s, fout);
+
+        if (amp->caps->set_ext_level)
+        {
+            sprintf_level_ext(s, sizeof(s), amp->caps->extlevels);
+            fputs(s, fout);
+        }
+
+        fputc('\n', fout);
+        return(RIG_OK);
+    }
+
+    level = rig_parse_level(arg1);
+
+    // some Java apps send comma in international setups so substitute period
+    char *p = strchr(arg2, ',');
+
+    if (p) { *p = '.'; }
+
+    if (!amp_has_set_level(amp, level))
+    {
+        const struct confparams *cfp;
+
+        cfp = amp_ext_lookup(amp, arg1);
+
+        if (!cfp)
+        {
+            return(-RIG_ENAVAIL);    /* no such parameter */
+        }
+
+        switch (cfp->type)
+        {
+        case RIG_CONF_BUTTON:
+            /* arg is ignored */
+            val.i = 0; // avoid passing uninitialized data
+            break;
+
+        case RIG_CONF_CHECKBUTTON:
+        case RIG_CONF_COMBO:
+            CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
+            break;
+
+        case RIG_CONF_NUMERIC:
+            CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+            break;
+
+        case RIG_CONF_STRING:
+            val.cs = arg2;
+            break;
+
+        default:
+            return(-RIG_ECONF);
+        }
+
+        return(amp_set_ext_level(amp, cfp->token, val));
+    }
+
+    if (RIG_LEVEL_IS_FLOAT(level))
+    {
+        CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+    }
+    else
+    {
+        CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
+    }
+
+    return(amp_set_level(amp, level, val));
 }
 
 /* 'l' */

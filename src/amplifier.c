@@ -707,6 +707,43 @@ const char *HAMLIB_API amp_get_info(AMP *amp)
 
 
 /**
+ * \brief Set the value of a requested level.
+ *
+ * \param amp The #AMP handle.
+ * \param level The requested level.
+ * \param val The variable to store the \a level value.
+ *
+ * Set the \a val corresponding to the \a level.
+ *
+ * \note \a val can be any type defined by #value_t.
+ *
+ * \return RIG_OK if the operation was successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The query was successful.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval RIG_ENAVAIL amp_caps#get_level() capability is not available.
+ *
+ * \sa amp_set_ext_level()
+ */
+int HAMLIB_API amp_set_level(AMP *amp, setting_t level, value_t val)
+{
+    amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (CHECK_AMP_ARG(amp))
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (amp->caps->set_level == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    return amp->caps->set_level(amp, level, val);
+}
+
+/**
  * \brief Query the value of a requested level.
  *
  * \param amp The #AMP handle.
@@ -743,6 +780,41 @@ int HAMLIB_API amp_get_level(AMP *amp, setting_t level, value_t *val)
     return amp->caps->get_level(amp, level, val);
 }
 
+
+/**
+ * \brief Set the value of a requested extension levels token.
+ *
+ * \param amp The #AMP handle.
+ * \param level The requested extension levels token.
+ * \param val The variable to set the extension \a level token value.
+ *
+ * Query the \a val corresponding to the extension \a level token.
+ *
+ * \return RIG_OK if the operation was successful, otherwise a **negative
+ * value** if an error occurred (in which case, cause is set appropriately).
+ *
+ * \retval RIG_OK The query was successful.
+ * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval RIG_ENAVAIL amp_caps#set_ext_level() capability is not available.
+ *
+ * \sa amp_set_level()
+ */
+int HAMLIB_API amp_set_ext_level(AMP *amp, token_t level, value_t val)
+{
+    amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (CHECK_AMP_ARG(amp))
+    {
+        return -RIG_EINVAL;
+    }
+
+    if (amp->caps->set_ext_level == NULL)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    return amp->caps->set_ext_level(amp, level, val);
+}
 
 /**
  * \brief Query the value of a requested extension levels token.
