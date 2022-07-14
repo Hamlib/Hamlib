@@ -48,6 +48,39 @@
 
 
 /**
+ * \brief Check which level settings can be set.
+ *
+ * \param amp   The #AMP handle.
+ * \param level The level settings bitmap.
+ *
+ * Checks if an amplifier is capable of *setting* a level setting.  Since the
+ * \a level is an OR'ed bitwise argument, more than one level can be checked
+ * at the same time.
+ *
+ * EXAMPLE:
+ * \code
+ * if (amp_has_set_level(my_amp, AMP_LVL_PWR))
+ *     my_disp_PWR();
+ * \endcode
+ *
+ * \return A bit map of supported level settings that can be retrieved,
+ * otherwise 0 if none supported or \a amp is NULL or inconsistent.
+ *
+ * \sa amp_has_set_level(), amp_set_level()
+ */
+setting_t HAMLIB_API amp_has_set_level(AMP *amp, setting_t level)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!amp || !amp->caps)
+    {
+        return 0;
+    }
+
+    return (amp->state.has_set_level & level);
+}
+
+/**
  * \brief Check which level settings can be queried.
  *
  * \param amp   The #AMP handle.
