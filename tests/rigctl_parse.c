@@ -1727,7 +1727,7 @@ readline_repeat:
         if ((my_rig->state.powerstat == RIG_POWER_OFF || my_rig->state.powerstat == RIG_POWER_STANDBY))
         {
             // Update power status
-            powerstat_t stat;
+            powerstat_t stat = RIG_POWER_ON;
             rig_get_powerstat(my_rig, &stat);
         }
         // only command allows when powered off is 135=set_powerstat
