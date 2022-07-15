@@ -986,6 +986,19 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
         return -RIG_EINTERNAL;
     }
 
+#ifdef APPLE
+//#include "TargetConditionals.h"
+#ifdef TARGET_OS_IPHONE
+// iOS
+#elif TARGET_IPHONE_SIMULATOR
+// iOS Simulator
+#elif TARGET_OS_MAC
+// Other kinds of Mac OS
+#else
+// Unsupported platform
+#endif
+#endif
+
     char *xdgpath = getenv("XDG_CONFIG_HOME");
     char *home = getenv("HOME");
     snprintf(path, pathlen, "%s/.config", home);
