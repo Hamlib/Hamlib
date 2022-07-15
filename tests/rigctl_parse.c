@@ -1728,10 +1728,10 @@ readline_repeat:
         {
             // Update power status
             powerstat_t stat = RIG_POWER_ON;
-            rig_get_powerstat(my_rig, &stat);
+            retcode = rig_get_powerstat(my_rig, &stat);
         }
         // only command allows when powered off is 135=set_powerstat
-        if ((my_rig->state.powerstat == RIG_POWER_OFF || my_rig->state.powerstat == RIG_POWER_STANDBY) && cmd_entry->cmd != 135)
+        if (retcode == RIG_OK && (my_rig->state.powerstat == RIG_POWER_OFF || my_rig->state.powerstat == RIG_POWER_STANDBY) && cmd_entry->cmd != 135)
         {
             //rig_debug(RIG_DEBUG_WARN, "%s: %s - only \\set_powerstat can be run \n", __func__, rigerror(-RIG_EPOWER));
             rig_debug(RIG_DEBUG_WARN, "%s: only \\set_powerstat can be run when rig powered off\n", __func__);
