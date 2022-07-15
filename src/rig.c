@@ -5792,6 +5792,7 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
 
     if (CHECK_RIG_ARG(rig))
     {
+        *status = RIG_POWER_ON; // default to power on if not available
         RETURNFUNC(-RIG_EINVAL);
     }
 
