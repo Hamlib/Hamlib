@@ -2091,6 +2091,10 @@ int HAMLIB_API rig_flush(hamlib_port_t *port)
     rig_debug(RIG_DEBUG_TRACE, "%s: called for %s device\n", __func__,
               port->type.rig == RIG_PORT_SERIAL ? "serial" : "network");
 
+    if (port->type.rig == RIG_PORT_NONE)
+    {
+        return RIG_OK;
+    }
     if (port->type.rig == RIG_PORT_NETWORK
             || port->type.rig == RIG_PORT_UDP_NETWORK)
     {

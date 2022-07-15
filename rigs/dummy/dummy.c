@@ -238,6 +238,7 @@ static int dummy_init(RIG *rig)
 
     priv->ptt = RIG_PTT_OFF;
     priv->powerstat = RIG_POWER_ON;
+    rig->state.powerstat = priv->powerstat;
     priv->bank = 0;
     memset(priv->parms, 0, RIG_SETTING_MAX * sizeof(value_t));
 
@@ -2260,7 +2261,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20220510.0",
+    .version =        "20220715.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

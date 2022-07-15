@@ -1723,7 +1723,21 @@ readline_repeat:
     }
 
     else
-    {
+    { 
+        if ((my_rig->state.powerstat == RIG_POWER_OFF || my_rig->state.powerstat == RIG_POWER_STANDBY))
+        {
+            // Update power status
+            powerstat_t stat;
+            rig_get_powerstat(my_rig, &stat);
+        }
+        // only command allows when powered off is 135=set_powerstat
+        if ((my_rig->state.powerstat == RIG_POWER_OFF || my_rig->state.powerstat == RIG_POWER_STANDBY) && cmd_entry->cmd != 135)
+        {
+            //rig_debug(RIG_DEBUG_WARN, "%s: %s - only \\set_powerstat can be run \n", __func__, rigerror(-RIG_EPOWER));
+            rig_debug(RIG_DEBUG_WARN, "%s: only \\set_powerstat can be run when rig powered off\n", __func__);
+            retcode = -RIG_EPOWER;
+        }
+        else {
         retcode = (*cmd_entry->rig_routine)(my_rig,
                                             fout,
                                             fin,
@@ -1738,6 +1752,7 @@ readline_repeat:
                                             p1,
                                             p2 ? p2 : "",
                                             p3 ? p3 : "");
+        }
     }
 
 
@@ -4659,6 +4674,7 @@ declare_proto_rig(set_powerstat)
     CHKSCN1ARG(sscanf(arg1, "%d", &stat));
 
     retval = rig_set_powerstat(rig, (powerstat_t) stat);
+    rig->state.powerstat = stat;
     fflush(fin);
     RETURNFUNC(retval);
 }
@@ -4685,6 +4701,7 @@ declare_proto_rig(get_powerstat)
     }
 
     fprintf(fout, "%d\n", stat);
+    rig->state.powerstat = stat;
 
     RETURNFUNC(status);
 }

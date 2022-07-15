@@ -207,7 +207,8 @@ static const char *const rigerror_table[] =
     "Invalid VFO",
     "Argument out of domain of func",
     "Function deprecated",
-    "Security error password not provided or crypto failure"
+    "Security error password not provided or crypto failure",
+    "Rig is not powered on"
 };
 
 

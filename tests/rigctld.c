@@ -1150,6 +1150,7 @@ void *handle_socket(void *arg)
     char serv[NI_MAXSERV];
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
+    powerstat_t powerstat = RIG_POWER_ON; // defaults to power on
 
     fsockin = get_fsockin(handle_data_arg);
 
@@ -1204,6 +1205,9 @@ void *handle_socket(void *arg)
     }
 
 #endif
+
+    rig_get_powerstat(my_rig, &powerstat);
+    my_rig->state.powerstat = powerstat;
 
     do
     {

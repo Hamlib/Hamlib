@@ -157,7 +157,8 @@ enum rig_errcode_e {
     RIG_EVFO,       /*!< 16 Invalid VFO */
     RIG_EDOM,       /*!< 17 Argument out of domain of func */
     RIG_EDEPRECATED,/*!< 18 Function deprecated */
-    RIG_ESECURITY   /*!< 19 Security error */
+    RIG_ESECURITY,  /*!< 19 Security error */
+    RIG_EPOWER      /*!< 20 Rig not powered on */
 };
 
 /**
@@ -2575,6 +2576,7 @@ struct rig_state {
     int use_cached_ptt;  /*<! flag instructing rig_get_ptt to use cached values when asyncio is in use */
     int depth; /*<! a depth counter to use for debug indentation and such */
     int lock_mode; /*<! flag that prevents mode changes if ~= 0 -- see set/get_lock_mode */
+    powerstat_t powerstat; /*<! power status */
 };
 
 //! @cond Doxygen_Suppress
