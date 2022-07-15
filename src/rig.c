@@ -750,6 +750,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->announces = caps->announces;
 
     rs->rigport.fd = rs->pttport.fd = rs->dcdport.fd = -1;
+    rs->powerstat = RIG_POWER_ON; // default to power on
 
     /*
      * let the backend a chance to setup his private data
