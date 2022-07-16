@@ -100,6 +100,8 @@ char rigctld_password[64];
 int is_passwordOK;
 int is_rigctld;
 extern int lock_mode; // used by rigctld
+extern int rig_powerstat;
+
 
 
 
@@ -1724,14 +1726,15 @@ readline_repeat:
 
     else
     { 
-        if ((my_rig->state.powerstat == RIG_POWER_OFF || my_rig->state.powerstat == RIG_POWER_STANDBY))
+        if ((rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY))
         {
             // Update power status
             powerstat_t stat = RIG_POWER_ON;
             retcode = rig_get_powerstat(my_rig, &stat);
+            if (retcode == RIG_OK) rig_powerstat = stat;
         }
         // only command allows when powered off is 135=set_powerstat
-        if (retcode == RIG_OK && (my_rig->state.powerstat == RIG_POWER_OFF || my_rig->state.powerstat == RIG_POWER_STANDBY) && cmd_entry->cmd != 135)
+        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY) && cmd_entry->cmd != 135)
         {
             //rig_debug(RIG_DEBUG_WARN, "%s: %s - only \\set_powerstat can be run \n", __func__, rigerror(-RIG_EPOWER));
             rig_debug(RIG_DEBUG_WARN, "%s: only \\set_powerstat can be run when rig powered off\n", __func__);
@@ -4675,6 +4678,7 @@ declare_proto_rig(set_powerstat)
 
     retval = rig_set_powerstat(rig, (powerstat_t) stat);
     rig->state.powerstat = stat;
+    rig_powerstat = stat; // update our global so others can see powerstat 
     fflush(fin);
     RETURNFUNC(retval);
 }

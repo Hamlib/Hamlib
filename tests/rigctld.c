@@ -153,6 +153,7 @@ int multicast_port = 4532;
 extern char rigctld_password[65];
 char resp_sep = '\n';
 extern int lock_mode;
+extern powerstat_t rig_powerstat;
 
 #define MAXCONFLEN 1024
 
@@ -1150,7 +1151,7 @@ void *handle_socket(void *arg)
     char serv[NI_MAXSERV];
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
-    powerstat_t powerstat = RIG_POWER_ON; // defaults to power on
+    rig_powerstat = RIG_POWER_ON; // defaults to power on
 
     fsockin = get_fsockin(handle_data_arg);
 
@@ -1206,8 +1207,8 @@ void *handle_socket(void *arg)
 
 #endif
 
-    rig_get_powerstat(my_rig, &powerstat);
-    my_rig->state.powerstat = powerstat;
+    rig_get_powerstat(my_rig, &rig_powerstat);
+    my_rig->state.powerstat = rig_powerstat;
 
     do
     {
@@ -1237,6 +1238,7 @@ void *handle_socket(void *arg)
             if (retcode != 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
             // update our power stat in case power gets turned off
             rig_get_powerstat(my_rig, &powerstat);
+            rig_powerstat = powerstat;
         }
         else
         {
