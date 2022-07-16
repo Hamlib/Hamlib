@@ -1225,6 +1225,7 @@ void *handle_socket(void *arg)
 
         if (rig_opened) // only do this if rig is open
         {
+            powerstat_t powerstat;
             rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d, secure=%d\n",
                       __func__,
                       handle_data_arg->vfo_mode, handle_data_arg->use_password);
@@ -1234,6 +1235,8 @@ void *handle_socket(void *arg)
                                    handle_data_arg->use_password);
 
             if (retcode != 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
+            // update our power stat in case power gets turned off
+            rig_get_powerstat(my_rig, &powerstat);
         }
         else
         {
