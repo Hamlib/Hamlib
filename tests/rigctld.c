@@ -1245,6 +1245,7 @@ void *handle_socket(void *arg)
             {
                 rig_get_powerstat(my_rig, &powerstat);
                 rig_powerstat = powerstat;
+                if (powerstat == RIG_POWER_OFF) retcode = -RIG_EPOWER;
             }
         }
         else

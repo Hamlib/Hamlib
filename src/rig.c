@@ -1316,13 +1316,22 @@ int HAMLIB_API rig_open(RIG *rig)
     
     // prime the freq and mode settings
     // don't care about the return here -- if it doesn't work so be it
+    int retry_save = rs->rigport.retry;
+    rs->rigport.retry = rs->rigport.retry;
     freq_t freq;
-    rig_get_freq(rig, RIG_VFO_A, &freq);
-    rig_get_freq(rig, RIG_VFO_B, &freq);
-    rmode_t mode;
-    pbwidth_t width;
-    rig_get_mode(rig, RIG_VFO_A, &mode, &width);
-    rig_get_mode(rig, RIG_VFO_B, &mode, &width);
+    if (rig->caps->get_freq)
+    {
+        int retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+        if (retval == RIG_OK)
+        {
+            rig_get_freq(rig, RIG_VFO_B, &freq);
+            rmode_t mode;
+            pbwidth_t width;
+            rig_get_mode(rig, RIG_VFO_A, &mode, &width);
+            rig_get_mode(rig, RIG_VFO_B, &mode, &width);
+        }
+    }
+    rs->rigport.retry = retry_save;
 
     memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->pttport_deprecated, &rs->pttport, sizeof(hamlib_port_t_deprecated));
