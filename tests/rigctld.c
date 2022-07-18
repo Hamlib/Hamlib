@@ -1196,7 +1196,9 @@ void *handle_socket(void *arg)
 
     mutex_rigctld(0);
 #else
+    mutext_rigctld(1);
     retcode = rig_open(my_rig);
+    mutext_rigctld(1);
 
     if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
     {
@@ -1207,7 +1209,9 @@ void *handle_socket(void *arg)
 
 #endif
 
+    mutex_rigctld(1);
     rig_get_powerstat(my_rig, &rig_powerstat);
+    mutex_rigctld(0);
     my_rig->state.powerstat = rig_powerstat;
 
     do

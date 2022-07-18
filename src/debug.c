@@ -200,6 +200,7 @@ void HAMLIB_API rig_set_debug_time_stamp(int flag)
 void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
                           const char *fmt, ...)
 {
+    static pthread_mutex_t client_debug_lock = PTHREAD_MUTEX_INITIALIZER;
     va_list ap;
 
     if (!rig_need_debug(debug_level))
@@ -207,7 +208,8 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
         return;
     }
 
-
+    pthread_mutex_lock(&client_debug_lock);
+    printf("lock1\n");
     va_start(ap, fmt);
 
     if (rig_vprintf_cb)
@@ -268,6 +270,8 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level,
 
     va_end(ap);
 #endif
+    pthread_mutex_unlock(&client_debug_lock);
+    printf("lock2\n");
 }
 
 
