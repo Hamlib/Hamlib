@@ -127,7 +127,7 @@ const struct rig_caps tt588_caps =
     RIG_MODEL(RIG_MODEL_TT588),
     .model_name = "TT-588 Omni VII",
     .mfg_name =  "Ten-Tec",
-    .version =  "20220620.0",
+    .version =  "20220718.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -295,6 +295,7 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                 {
                     return RIG_OK;
                 }
+                if (retval == -RIG_ETIMEOUT) return retval;
 
                 rig_debug(RIG_DEBUG_ERR, "%s: read_string failed, try#%d\n", __func__, i + 1);
             }
