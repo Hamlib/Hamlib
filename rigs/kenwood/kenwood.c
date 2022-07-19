@@ -1577,13 +1577,13 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
             {
                 *split = RIG_SPLIT_ON;
                 *txvfo = RIG_VFO_SUB;
-                priv->tx_vfo = *txvfo;
+                priv->tx_vfo = rig->state.tx_vfo = *txvfo;
             }
             else
             {
                 *split = RIG_SPLIT_OFF;
                 *txvfo = RIG_VFO_MAIN;
-                priv->tx_vfo = *txvfo;
+                priv->tx_vfo = rig->state.tx_vfo = *txvfo;
             }
         }
 
@@ -1626,19 +1626,19 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
         if (rig->state.rx_vfo == RIG_VFO_A)
         {
             HAMLIB_TRACE;
-            *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
+            *txvfo = rig->state.tx_vfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else if (rig->state.rx_vfo == RIG_VFO_B)
         {
             HAMLIB_TRACE;
-            *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
+            *txvfo = rig->state.tx_vfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else
         {
             rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown rxVFO=%s\n", __func__, __LINE__,
                       rig_strvfo(rig->state.rx_vfo));
             *txvfo = RIG_VFO_A; // pick a default
-            rig->state.rx_vfo = RIG_VFO_A;
+            rig->state.rx_vfo = priv->tx_vfo = RIG_VFO_A;
         }
 
         break;
