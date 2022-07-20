@@ -1695,6 +1695,17 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     switch (ptt)
     {
+    // the FTDX5000 uses menu 103 for front/rear audio in USB mode
+    case RIG_PTT_ON_MIC:
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1030;");
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+        err = newcat_set_cmd(rig);
+        break;
+    case RIG_PTT_ON_DATA:
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1031;");
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+        err = newcat_set_cmd(rig);
+        break;
     case RIG_PTT_ON:
         /* Build the command string */
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
