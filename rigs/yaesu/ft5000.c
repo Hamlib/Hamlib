@@ -140,11 +140,11 @@ const struct rig_caps ftdx5000_caps =
     RIG_MODEL(RIG_MODEL_FTDX5000),
     .model_name =         "FTDX-5000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".4",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
-    .ptt_type =           RIG_PTT_RIG,
+    .ptt_type =           RIG_PTT_RIG_MICDATA,
     .dcd_type =           RIG_DCD_NONE,
     .port_type =          RIG_PORT_SERIAL,
     .serial_rate_min =    4800,         /* Default rate per manual */
