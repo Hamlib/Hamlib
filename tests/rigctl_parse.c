@@ -1728,13 +1728,17 @@ readline_repeat:
     { 
         if ((rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY))
         {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_powerstat is not on = %d\n", __func__, rig_powerstat);
             // Update power status
             powerstat_t stat = RIG_POWER_ON;
             retcode = rig_get_powerstat(my_rig, &stat);
             if (retcode == RIG_OK) rig_powerstat = stat;
         }
-        // only command allows when powered off is 135=set_powerstat
-        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY) && cmd_entry->cmd != 135)
+        // only command allows when powered off is 0x87=set_powerstat
+        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY) 
+            && cmd_entry->cmd != 0x01 // dump_caps
+            && cmd_entry->cmd != 0xf0 // chk_vfo 
+            && cmd_entry->cmd != 0x87) // set_powerstat
         {
             //rig_debug(RIG_DEBUG_WARN, "%s: %s - only \\set_powerstat can be run \n", __func__, rigerror(-RIG_EPOWER));
             rig_debug(RIG_DEBUG_WARN, "%s: only \\set_powerstat can be run when rig powered off\n", __func__);
