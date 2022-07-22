@@ -2680,6 +2680,11 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     RETURNFUNC2(RIG_OK);
 }
 
+int icom_get_vfo(RIG *rig, vfo_t *vfo)
+{
+    rig_debug(RIG_DEBUG_WARN, "%s: Icom rigs cannot determine active vfo\n", __func__);
+    return -RIG_ENAVAIL;
+}
 #if 0
 // this seems to work but not for cqrlog and user twiddling VFO knob.
 // may be able to use twiddle but will disable for now
