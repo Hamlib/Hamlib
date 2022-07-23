@@ -862,6 +862,7 @@ int HAMLIB_API rig_open(RIG *rig)
         extern char *settings_file;
         char *xdgpath = getenv("XDG_CONFIG_HOME");
 
+        settings_file = "hamlib_settings";
         if (xdgpath)
         {
             sprintf(path, "%s/%s/%s", xdgpath, cwd, settings_file);
@@ -1239,6 +1240,8 @@ int HAMLIB_API rig_open(RIG *rig)
      * Maybe the backend has something to initialize
      * In case of failure, just close down and report error code.
      */
+    int retry_save = rs->rigport.retry;
+    rs->rigport.retry = 1;
     if (caps->rig_open != NULL)
     {
         status = caps->rig_open(rig);
@@ -1316,13 +1319,11 @@ int HAMLIB_API rig_open(RIG *rig)
     
     // prime the freq and mode settings
     // don't care about the return here -- if it doesn't work so be it
-    int retry_save = rs->rigport.retry;
-    rs->rigport.retry = rs->rigport.retry;
     freq_t freq;
     if (rig->caps->get_freq)
     {
         int retval = rig_get_freq(rig, RIG_VFO_A, &freq);
-        if (retval == RIG_OK)
+        if (retval == RIG_OK && rig->caps->rig_model != RIG_MODEL_F6K)
         {
             rig_get_freq(rig, RIG_VFO_B, &freq);
             rmode_t mode;
@@ -2250,6 +2251,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
 
         curr_vfo = rig->state.current_vfo;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): curr_vfo=%s, vfo=%s\n", __func__, __LINE__, rig_strvfo(curr_vfo), rig_strvfo(vfo));
         HAMLIB_TRACE;
         retcode = caps->set_vfo(rig, vfo);
 
