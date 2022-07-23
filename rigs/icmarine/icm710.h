@@ -26,10 +26,6 @@
 #include "cal.h"
 #include "tones.h"
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
 struct icm710_priv_caps {
     unsigned char default_remote_id;  /* the remote default equipment's ID */
 };
