@@ -138,7 +138,7 @@ const char *gemini_get_info(AMP *amp)
 
 int gemini_status_parse(AMP *amp)
 {
-    int retval, n;
+    int retval, n = 0;
     char *p;
     char responsebuf[GEMINIBUFSZ];
     struct gemini_priv_data *priv = amp->state.priv;
@@ -157,7 +157,6 @@ int gemini_status_parse(AMP *amp)
     {
         char tmp[8];
         double freq;
-        n = 0;
         n += sscanf(p, "BAND=%lf%s", &freq, tmp);
 
         if (tmp[0] == 'K') { priv->band = freq * 1000; }
