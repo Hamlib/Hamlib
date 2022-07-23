@@ -1253,12 +1253,6 @@ static struct termios_list *add_port(const char *filename)
 
     strncpy(port->filename, filename, sizeof(port->filename) - 1);
 
-    /* didn't free well? strdup( filename ); */
-    if (! port->filename)
-    {
-        goto fail;
-    }
-
     port->fd = get_free_fd();
 
 
@@ -1303,12 +1297,9 @@ fail:
 
     if (port->sis) { free(port->sis); }
 
-    /* had problems with strdup
-    if ( port->filename ) free( port->filename );
-    */
     if (port) { free(port); }
 
-    return port;
+    return NULL;
 }
 
 /*----------------------------------------------------------
