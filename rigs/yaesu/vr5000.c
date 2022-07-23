@@ -58,10 +58,6 @@
 
 // cppcheck-suppress *
 #include <stdlib.h>
-// cppcheck-suppress *
-#include <string.h>  /* String function definitions */
-// cppcheck-suppress *
-#include <unistd.h>  /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"
 #include "serial.h"

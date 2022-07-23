@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"
 #include "kenwood.h"

@@ -54,7 +54,6 @@
 
 #include <stdlib.h>
 #include <string.h>     /* String function definitions */
-#include <unistd.h>     /* UNIX standard function definitions */
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
