@@ -3261,6 +3261,8 @@ rigerror2 HAMLIB_PARAMS((int errnum));
 extern HAMLIB_EXPORT(int)
 rig_setting2idx HAMLIB_PARAMS((setting_t s));
 
+#define HAMLIB_SETTINGS_FILE "hamlib_settings"
+
 extern HAMLIB_EXPORT(setting_t)
 rig_idx2setting(int i);
 /*

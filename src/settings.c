@@ -1004,20 +1004,20 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
     snprintf(path, pathlen, "%s/.config", home);
     if (xdgpath)
     {
-        snprintf(path, pathlen-1, "%s/%s/%s", xdgpath, cwd, SETTINGS_FILE);
+        snprintf(path, pathlen-1, "%s/%s/%s", xdgpath, cwd, HAMLIB_SETTINGS_FILE);
     }
     else if (home && access(path, F_OK) != -1)
     {
-        snprintf(path, pathlen-1, "%s/.config/%s", home, SETTINGS_FILE);
+        snprintf(path, pathlen-1, "%s/.config/%s", home, HAMLIB_SETTINGS_FILE);
     }
     else if (home)
     {
         // we add a leading period to hide the file
-        snprintf(path, pathlen-1, "%s/.%s", home, SETTINGS_FILE);
+        snprintf(path, pathlen-1, "%s/.%s", home, HAMLIB_SETTINGS_FILE);
     }
     else
     {
-        snprintf(path, pathlen-1, ".%s", SETTINGS_FILE);
+        snprintf(path, pathlen-1, ".%s", HAMLIB_SETTINGS_FILE);
     }
     rig_debug(RIG_DEBUG_TRACE, "%s: path=%s\n", __func__, path);
     return RIG_OK;
