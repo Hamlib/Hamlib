@@ -27,7 +27,6 @@
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
-#include <math.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"

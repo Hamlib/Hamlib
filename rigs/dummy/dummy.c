@@ -30,8 +30,6 @@
 // cppcheck-suppress *
 #include <unistd.h>  /* UNIX standard function definitions */
 // cppcheck-suppress *
-#include <math.h>
-// cppcheck-suppress *
 #include <time.h>
 
 #include "hamlib/rig.h"
