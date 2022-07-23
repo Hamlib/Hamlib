@@ -41,7 +41,6 @@
 #include <errno.h>  /* Error number definitions */
 #include <sys/types.h>
 #include <unistd.h>
-#include <time.h>
 
 #ifdef ANDROID
 #  include <android/log.h>
