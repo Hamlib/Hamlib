@@ -25,8 +25,6 @@
 #include <hamlib/config.h>
 
 #include <stdio.h>
-#include <stdlib.h>      /* Standard library definitions */
-#include <string.h>      /* String function definitions */
 
 #include "register.h"
 

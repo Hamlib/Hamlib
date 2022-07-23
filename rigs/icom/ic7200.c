@@ -27,7 +27,6 @@
 #include <hamlib/config.h>
 
 #include <stdlib.h>
-#include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
 #include "token.h"

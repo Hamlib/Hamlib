@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <stdlib.h>          /* Standard library definitions */
 #include <string.h>          /* String function definitions */
-#include <unistd.h>          /* UNIX standard function definitions */
 #include <ctype.h>            /* for isdigit function */
 
 #include "hamlib/rotator.h"

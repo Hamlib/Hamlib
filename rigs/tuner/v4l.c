@@ -18,10 +18,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
-#include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
 #include <errno.h>
 
@@ -36,7 +33,6 @@
 
 #ifdef V4L_IOCTL
 
-#include <stdlib.h>
 #include "idx_builtin.h"
 
 
