@@ -26,7 +26,6 @@
  */
 
 #include <stdlib.h>
-#include <string.h>
 #include "hamlib/rig.h"
 
 typedef unsigned long MD5_u32plus;

@@ -25,7 +25,6 @@
  */
 
 #include <string.h>
-#include <stdlib.h>
 
 #include "flex.h"
 #include "kenwood.h"

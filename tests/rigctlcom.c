@@ -42,7 +42,6 @@
 // cppcheck-suppress *
 #include <string.h>
 // cppcheck-suppress *
-#include <unistd.h>
 // cppcheck-suppress *
 #include <ctype.h>
 // cppcheck-suppress *

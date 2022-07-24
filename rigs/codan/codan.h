@@ -24,10 +24,6 @@
 
 #include "hamlib/rig.h"
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
 #define BACKEND_VER "20211228"
 
 #define EOM "\x0d"

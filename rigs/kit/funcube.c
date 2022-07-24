@@ -31,7 +31,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 #include "hamlib/rig.h"
 #include "token.h"
 #include "misc.h"

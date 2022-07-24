@@ -23,10 +23,8 @@
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
 #include <sys/time.h>
-#include <time.h>
 
 #include <hamlib/rotator.h>
 #include <num_stdio.h>

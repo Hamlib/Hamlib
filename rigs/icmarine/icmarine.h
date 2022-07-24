@@ -26,10 +26,6 @@
 #include "cal.h"
 #include "tones.h"
 
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-
 #define BACKEND_VER "20181007"
 
 struct icmarine_priv_caps {
