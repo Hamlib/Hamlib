@@ -1,4 +1,3 @@
-
 /*
  * rigsmtr.c - (C) Stephane Fillod 2007
  *
