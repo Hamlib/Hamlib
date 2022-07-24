@@ -71,9 +71,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <time.h>
-#include <sys/time.h>
 #include <math.h>
 
 #include <hamlib/rig.h>

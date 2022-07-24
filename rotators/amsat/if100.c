@@ -21,9 +21,6 @@
 
 #include <hamlib/config.h>
 
-#include <stdlib.h>
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
 
 #ifdef HAVE_SYS_IOCTL_H

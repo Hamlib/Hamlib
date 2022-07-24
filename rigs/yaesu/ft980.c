@@ -88,7 +88,6 @@
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
 #include <sys/time.h> /* for timeofday call */
 
 #include "hamlib/rig.h"

@@ -69,7 +69,6 @@
 #endif
 
 #include <hamlib/rig.h>
-#include <hamlibdatetime.h>
 #include "misc.h"
 #include "iofunc.h"
 #include "serial.h"

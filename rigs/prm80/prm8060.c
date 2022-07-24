@@ -21,9 +21,6 @@
 
 #include <hamlib/config.h>
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "hamlib/rig.h"
 #include "idx_builtin.h"
 #include "prm80.h"

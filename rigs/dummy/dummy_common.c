@@ -23,8 +23,6 @@
 
 // cppcheck-suppress *
 #include <stdlib.h>
-// cppcheck-suppress *
-#include <string.h>  /* String function definitions */
 
 #include "hamlib/rig.h"
 
