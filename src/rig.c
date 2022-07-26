@@ -1325,7 +1325,11 @@ int HAMLIB_API rig_open(RIG *rig)
         int retval = rig_get_freq(rig, RIG_VFO_A, &freq);
         if (retval == RIG_OK && rig->caps->rig_model != RIG_MODEL_F6K)
         {
+            vfo_t tx_vfo;
+            split_t split;
             rig_get_freq(rig, RIG_VFO_B, &freq);
+            rig_get_split_vfo(rig, RIG_VFO_RX, &tx_vfo, &split);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Current split=%d, tx_vfo=%s\n", __func__, __LINE__, split, rig_strvfo(tx_vfo));
             rmode_t mode;
             pbwidth_t width;
             rig_get_mode(rig, RIG_VFO_A, &mode, &width);
