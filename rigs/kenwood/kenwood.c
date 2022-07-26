@@ -489,7 +489,7 @@ transaction_read:
 
             if (retry_read++ < rs->rigport.retry)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly\n", __func__);
+                rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly %d of %d\n", __func__, retry_read, rs->rigport.retry);
                 hl_usleep(rig->caps->timeout * 1000);
                 goto transaction_write;
             }
@@ -1100,7 +1100,8 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     char vfo_function;
     struct kenwood_priv_data *priv = rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, is_emulation=%d, curr_mode=%s\n", __func__, rig_strvfo(vfo), priv->is_emulation,  rig_strrmode(priv->curr_mode));
 
 
     /* Emulations do not need to set VFO since VFOB is a copy of VFOA
@@ -1108,18 +1109,20 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
      * This prevents a 1.8 second delay in PowerSDR when switching VFOs
      * We'll do this once if curr_mode has not been set yet
      */
-    if (priv->is_emulation && priv->curr_mode > 0)
+    if (vfo == RIG_VFO_B &&  priv->is_emulation && priv->curr_mode > 0)
     {
         HAMLIB_TRACE;
         RETURNFUNC2(RIG_OK);
     }
 
+#if 0
     if (rig->state.current_vfo == vfo)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo already is %s...skipping\n", __func__,
                   rig_strvfo(vfo));
         RETURNFUNC2(RIG_OK);
     }
+#endif
 
     switch (vfo)
     {
@@ -1414,6 +1417,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
     else
     {
+        HAMLIB_TRACE;
         strcat(cmdbuf, ";FT0");
     }
 
@@ -1423,10 +1427,6 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     {
         RETURNFUNC2(retval);
     }
-
-    rig->state.cache.split = split;
-    rig->state.cache.split_vfo = txvfo;
-    elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
 
     /* Split off means Rx and Tx are the same */
     if (split == RIG_SPLIT_OFF)
@@ -1484,6 +1484,10 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     tsplit = RIG_SPLIT_OFF; // default in case rig does not set split status
     retval = rig_get_split(rig, vfo, &tsplit);
 
+    priv->split = rig->state.cache.split = split;
+    rig->state.cache.split_vfo = txvfo;
+    elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
+
     // and it should be OK to do a SPLIT_OFF at any time so we won's skip that
     if (retval == RIG_OK && split == RIG_SPLIT_ON && tsplit == RIG_SPLIT_ON)
     {
@@ -1511,7 +1515,8 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
 
     /* Remember whether split is on, for kenwood_set_vfo */
-    priv->split = split;
+    priv->split = rig->state.cache.split = split;
+    elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
 
     RETURNFUNC2(RIG_OK);
 }
