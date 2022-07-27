@@ -171,7 +171,7 @@ int drt1_init(RIG *rig)
 {
     struct drt1_priv_data *priv;
 
-    rig->state.priv = (struct drt1_priv_data *)malloc(sizeof(
+    rig->state.priv = (struct drt1_priv_data *)calloc(1,sizeof(
                           struct drt1_priv_data));
 
     if (!rig->state.priv)

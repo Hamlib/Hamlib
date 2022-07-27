@@ -253,7 +253,7 @@ static int generic_retr_extl(RIG *rig,
 
     if (chan->ext_levels == NULL)
     {
-        p = chan->ext_levels = malloc(2 * sizeof(struct ext_list));
+        p = chan->ext_levels = calloc(1,2 * sizeof(struct ext_list));
     }
     else
     {
@@ -816,7 +816,7 @@ int HAMLIB_API rig_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
  *  and memory number selected. Depending on backend and rig capabilities,
  *  the chan struct may not be filled in completely.
  *
- *  Note: chan->ext_levels is a pointer to a newly mallocated memory.
+ *  Note: chan->ext_levels is a pointer to a newly allocated memory.
  *  This is the responsibility of the caller to manage and eventually
  *  free it.
  *

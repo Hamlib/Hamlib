@@ -1208,7 +1208,7 @@ static struct termios_list *add_port(const char *filename)
 
     ENTER("add_port");
 
-    port = malloc(sizeof(struct termios_list));
+    port = calloc(1,sizeof(struct termios_list));
 
     if (!port)
     {
@@ -1217,7 +1217,7 @@ static struct termios_list *add_port(const char *filename)
 
     memset(port, 0, sizeof(struct termios_list));
 
-    port->ttyset = malloc(sizeof(struct termios));
+    port->ttyset = calloc(1,sizeof(struct termios));
 
     if (! port->ttyset)
     {
@@ -1226,7 +1226,7 @@ static struct termios_list *add_port(const char *filename)
 
     memset(port->ttyset, 0, sizeof(struct termios));
 
-    port->sstruct = malloc(sizeof(struct serial_struct));
+    port->sstruct = calloc(1,sizeof(struct serial_struct));
 
     if (! port->sstruct)
     {
@@ -1234,7 +1234,7 @@ static struct termios_list *add_port(const char *filename)
     }
 
     memset(port->sstruct, 0, sizeof(struct serial_struct));
-    port->sis = malloc(sizeof(struct serial_icounter_struct));
+    port->sis = calloc(1,sizeof(struct serial_icounter_struct));
 
     if (! port->sis)
     {
@@ -1244,7 +1244,7 @@ static struct termios_list *add_port(const char *filename)
     memset(port->sis, 0, sizeof(struct serial_icounter_struct));
 
     /*  FIXME  the async_struct is being defined by mingw32 headers?
-        port->astruct = malloc( sizeof( struct async_struct ) );
+        port->astruct = calloc(1, sizeof( struct async_struct ) );
         if( ! port->astruct )
             goto fail;
         memset( port->astruct, 0, sizeof( struct async_struct ) );
@@ -3407,7 +3407,7 @@ int win32_serial_ioctl(int fd, int request, ...)
     case TIOCGSERIAL:
         report("TIOCGSERIAL\n");
 
-        dcb = malloc(sizeof(DCB));
+        dcb = calloc(1,sizeof(DCB));
 
         if (!dcb)
         {
@@ -3438,7 +3438,7 @@ int win32_serial_ioctl(int fd, int request, ...)
     case TIOCSSERIAL:
         report("TIOCSSERIAL\n");
 
-        dcb = malloc(sizeof(DCB));
+        dcb = calloc(1,sizeof(DCB));
 
         if (!dcb)
         {

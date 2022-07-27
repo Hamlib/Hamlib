@@ -108,7 +108,7 @@ static struct opened_rot_l *opened_rot_list = { NULL };
 static int add_opened_rot(ROT *rot)
 {
     struct opened_rot_l *p;
-    p = (struct opened_rot_l *)malloc(sizeof(struct opened_rot_l));
+    p = (struct opened_rot_l *)calloc(1,sizeof(struct opened_rot_l));
 
     if (!p)
     {

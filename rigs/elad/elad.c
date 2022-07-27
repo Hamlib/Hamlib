@@ -203,7 +203,7 @@ transaction_write:
 
         len = strlen(cmdstr);
 
-        cmd = malloc(len + 2);
+        cmd = calloc(1,len + 2);
 
         if (cmd == NULL)
         {
@@ -515,7 +515,7 @@ int elad_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = malloc(sizeof(struct elad_priv_data));
+    rig->state.priv = calloc(1,sizeof(struct elad_priv_data));
 
     if (rig->state.priv == NULL)
     {

@@ -332,7 +332,7 @@ int tt588_init(RIG *rig)
     struct tt588_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s:\n", __func__);
-    rig->state.priv = (struct tt588_priv_data *) malloc(sizeof(
+    rig->state.priv = (struct tt588_priv_data *) calloc(1,sizeof(
                           struct tt588_priv_data));
 
     if (!rig->state.priv)

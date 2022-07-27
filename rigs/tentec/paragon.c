@@ -212,7 +212,7 @@ int tt585_init(RIG *rig)
 {
     struct tt585_priv_data *priv;
 
-    rig->state.priv = (struct tt585_priv_data *) malloc(sizeof(
+    rig->state.priv = (struct tt585_priv_data *) calloc(1,sizeof(
                           struct tt585_priv_data));
 
     if (!rig->state.priv)

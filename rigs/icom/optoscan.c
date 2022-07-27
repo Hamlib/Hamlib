@@ -70,7 +70,7 @@ int optoscan_open(RIG *rig)
     rs = &rig->state;
     priv = (struct icom_priv_data *)rs->priv;
 
-    pltstate = malloc(sizeof(pltstate_t));
+    pltstate = calloc(1,sizeof(pltstate_t));
 
     if (!pltstate)
     {

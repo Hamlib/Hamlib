@@ -298,7 +298,7 @@ transaction_write:
 
         len = strlen(cmdstr);
 
-        cmd = malloc(len + 2);
+        cmd = calloc(1,len + 2);
 
         if (cmd == NULL)
         {
@@ -724,7 +724,7 @@ int kenwood_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s/%s\n", __func__,
               BACKEND_VER, rig->caps->version);
 
-    rig->state.priv = malloc(sizeof(struct kenwood_priv_data));
+    rig->state.priv = calloc(1,sizeof(struct kenwood_priv_data));
 
     if (rig->state.priv == NULL)
     {

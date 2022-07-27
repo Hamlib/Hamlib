@@ -44,7 +44,7 @@ int gemini_init(AMP *amp)
     }
 
     amp->state.priv = (struct gemini_priv_data *)
-                      malloc(sizeof(struct gemini_priv_data));
+                      calloc(1,sizeof(struct gemini_priv_data));
 
     if (!amp->state.priv)
     {
