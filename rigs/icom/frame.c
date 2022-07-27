@@ -588,22 +588,26 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
 
     case RIG_MODE_USB:  icmode = S_USB; break;
 
-    case RIG_MODE_PKTUSB:  
-        icmode = S_USB; 
+    case RIG_MODE_PKTUSB:
+        icmode = S_USB;
+
         if (rig->caps->rig_model == RIG_MODEL_IC7800)
         {
             icmode = S_PSK;
         }
+
         break;
 
     case RIG_MODE_LSB:  icmode = S_LSB; break;
 
-    case RIG_MODE_PKTLSB:  
+    case RIG_MODE_PKTLSB:
         icmode = S_LSB;
+
         if (rig->caps->rig_model == RIG_MODEL_IC7800)
         {
             icmode = S_PSKR;
         }
+
         break;
 
     case RIG_MODE_RTTY: icmode = S_RTTY; break;
@@ -746,20 +750,24 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
     case S_RTTYR:   *mode = RIG_MODE_RTTYR; break;
 
     case S_PSK:
-    *mode = RIG_MODE_PSK; 
-    if (rig->caps->rig_model == RIG_MODEL_IC7800)
-    {
-        *mode = RIG_MODE_PKTUSB;
-    }
-    break;
+        *mode = RIG_MODE_PSK;
+
+        if (rig->caps->rig_model == RIG_MODEL_IC7800)
+        {
+            *mode = RIG_MODE_PKTUSB;
+        }
+
+        break;
 
     case S_PSKR:
-    *mode = RIG_MODE_PSKR; 
-    if (rig->caps->rig_model == RIG_MODEL_IC7800)
-    {
-        *mode = RIG_MODE_PKTLSB;
-    }
-    break;
+        *mode = RIG_MODE_PSKR;
+
+        if (rig->caps->rig_model == RIG_MODEL_IC7800)
+        {
+            *mode = RIG_MODE_PKTLSB;
+        }
+
+        break;
 
     case S_DSTAR:   *mode = RIG_MODE_DSTAR; break;
 

@@ -2094,6 +2094,7 @@ int HAMLIB_API rig_flush(hamlib_port_t *port)
     {
         return RIG_OK;
     }
+
     if (port->type.rig == RIG_PORT_NETWORK
             || port->type.rig == RIG_PORT_UDP_NETWORK)
     {

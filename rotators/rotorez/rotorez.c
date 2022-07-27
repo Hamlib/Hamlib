@@ -364,7 +364,7 @@ static int rotorez_rot_init(ROT *rot)
     }
 
     rot->state.priv = (struct rotorez_rot_priv_data *)
-                      calloc(1,sizeof(struct rotorez_rot_priv_data));
+                      calloc(1, sizeof(struct rotorez_rot_priv_data));
 
     if (!rot->state.priv)
     {

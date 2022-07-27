@@ -601,9 +601,11 @@ int newcat_open(RIG *rig)
         int err;
         // set the CAT TIME OUT TIMER to 100ms
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0331");
+
         if (RIG_OK != (err = newcat_set_cmd(rig)))
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__, rigerror(err));
+            rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__,
+                      rigerror(err));
         }
     }
 
@@ -750,9 +752,11 @@ int newcat_60m_exception(RIG *rig, freq_t freq)
     // can we improve this to set memory mode and pick the memory slot?
     if (is_ftdx10 && freq > 5.2 && freq < 5.5)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
+                  __func__);
         return 1;
     }
+
     return 0;
 }
 
@@ -767,7 +771,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     ENTERFUNC;
 
-    if (newcat_60m_exception(rig,freq)) RETURNFUNC(RIG_OK); // we don't set freq in this case
+    if (newcat_60m_exception(rig, freq)) { RETURNFUNC(RIG_OK); } // we don't set freq in this case
 
     if (!newcat_valid_command(rig, "FA"))
     {
@@ -1286,7 +1290,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     ENTERFUNC;
 
-    if (newcat_60m_exception(rig,rig->state.cache.freqMainA)) RETURNFUNC(RIG_OK); // we don't set mode in this case
+    if (newcat_60m_exception(rig, rig->state.cache.freqMainA)) { RETURNFUNC(RIG_OK); } // we don't set mode in this case
 
     if (!newcat_valid_command(rig, "MD"))
     {
@@ -1340,10 +1344,15 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         RETURNFUNC(err);
     }
+
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
-    rig->state.cache.modeMainA = mode;
+    {
+        rig->state.cache.modeMainA = mode;
+    }
     else
-    rig->state.cache.modeMainB = mode;
+    {
+        rig->state.cache.modeMainB = mode;
+    }
 
     if (RIG_PASSBAND_NOCHANGE == width) { RETURNFUNC(err); }
 
@@ -1701,11 +1710,13 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         err = newcat_set_cmd(rig);
         break;
+
     case RIG_PTT_ON_DATA:
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1031;");
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         err = newcat_set_cmd(rig);
         break;
+
     case RIG_PTT_ON:
         /* Build the command string */
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
@@ -2378,7 +2389,8 @@ int newcat_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     pbwidth_t tmp_width;
     int err;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, tx_mode=%s, tx_width=%d\n", __func__, rig_strvfo(vfo), rig_strrmode(tx_mode), (int)tx_width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, tx_mode=%s, tx_width=%d\n", __func__,
+              rig_strvfo(vfo), rig_strrmode(tx_mode), (int)tx_width);
     err = newcat_get_mode(rig, RIG_VFO_B, &tmp_mode, &tmp_width);
 
     if (err < 0)
@@ -2398,10 +2410,15 @@ int newcat_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     {
         RETURNFUNC(err);
     }
+
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
-    rig->state.cache.modeMainA = tx_mode;
+    {
+        rig->state.cache.modeMainA = tx_mode;
+    }
     else
-    rig->state.cache.modeMainB = tx_mode;
+    {
+        rig->state.cache.modeMainB = tx_mode;
+    }
 
 
     RETURNFUNC(-RIG_ENAVAIL);

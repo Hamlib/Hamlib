@@ -414,7 +414,8 @@ ft991_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (rig->state.cache.freqMainB == tx_freq)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: freq %.0f already set on VFOB\n", __func__, tx_freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: freq %.0f already set on VFOB\n", __func__,
+                  tx_freq);
         return RIG_OK;
     }
 
@@ -590,7 +591,8 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 
     if (rig->state.cache.modeMainB == tx_mode)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: mode %s already set on VFOB\n", __func__, rig_strrmode(tx_mode));
+        rig_debug(RIG_DEBUG_TRACE, "%s: mode %s already set on VFOB\n", __func__,
+                  rig_strrmode(tx_mode));
         return RIG_OK;
     }
 

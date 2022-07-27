@@ -217,7 +217,7 @@ static int cu_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    rig->state.priv = calloc(1,sizeof(struct cu_priv_data));
+    rig->state.priv = calloc(1, sizeof(struct cu_priv_data));
 
     if (!rig->state.priv)
     {

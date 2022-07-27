@@ -232,7 +232,7 @@ void hash_add_model(int id,
 {
     struct mod_lst *s;
 
-    s = (struct mod_lst *)calloc(1,sizeof(struct mod_lst));
+    s = (struct mod_lst *)calloc(1, sizeof(struct mod_lst));
 
     s->id = id;
     SNPRINTF(s->mfg_name, sizeof(s->mfg_name), "%s", mfg_name);
@@ -1692,7 +1692,7 @@ declare_proto_amp(set_level)
         }
 
         fputc('\n', fout);
-        return(RIG_OK);
+        return (RIG_OK);
     }
 
     level = rig_parse_level(arg1);
@@ -1710,7 +1710,7 @@ declare_proto_amp(set_level)
 
         if (!cfp)
         {
-            return(-RIG_ENAVAIL);    /* no such parameter */
+            return (-RIG_ENAVAIL);   /* no such parameter */
         }
 
         switch (cfp->type)
@@ -1734,10 +1734,10 @@ declare_proto_amp(set_level)
             break;
 
         default:
-            return(-RIG_ECONF);
+            return (-RIG_ECONF);
         }
 
-        return(amp_set_ext_level(amp, cfp->token, val));
+        return (amp_set_ext_level(amp, cfp->token, val));
     }
 
     if (RIG_LEVEL_IS_FLOAT(level))
@@ -1749,7 +1749,7 @@ declare_proto_amp(set_level)
         CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
     }
 
-    return(amp_set_level(amp, level, val));
+    return (amp_set_level(amp, level, val));
 }
 
 /* 'l' */

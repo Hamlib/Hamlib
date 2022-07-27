@@ -281,7 +281,7 @@ const struct rig_caps jst245_caps =
 static int jst145_init(RIG *rig)
 {
     struct jst145_priv_data *priv;
-    priv = (struct jst145_priv_data *)calloc(1,sizeof(struct jst145_priv_data));
+    priv = (struct jst145_priv_data *)calloc(1, sizeof(struct jst145_priv_data));
 
     if (!priv)
     {

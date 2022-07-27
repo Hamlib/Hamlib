@@ -203,7 +203,7 @@ transaction_write:
 
         len = strlen(cmdstr);
 
-        cmd = calloc(1,len + 2);
+        cmd = calloc(1, len + 2);
 
         if (cmd == NULL)
         {
@@ -515,7 +515,7 @@ int elad_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = calloc(1,sizeof(struct elad_priv_data));
+    rig->state.priv = calloc(1, sizeof(struct elad_priv_data));
 
     if (rig->state.priv == NULL)
     {
@@ -917,9 +917,12 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
     if (split == tsplit)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: No change detected...ignoring request\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: No change detected...ignoring request\n",
+                  __func__);
     }
-    rig_debug(RIG_DEBUG_TRACE, "%s: Change detected requested split %d!=%d\n", __func__, split, tsplit);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: Change detected requested split %d!=%d\n",
+              __func__, split, tsplit);
 
     if (split)
     {

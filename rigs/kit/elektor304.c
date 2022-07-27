@@ -163,7 +163,7 @@ int elektor304_init(RIG *rig)
 {
     struct elektor304_priv_data *priv;
 
-    rig->state.priv = (struct elektor304_priv_data *)calloc(1,sizeof(struct
+    rig->state.priv = (struct elektor304_priv_data *)calloc(1, sizeof(struct
                       elektor304_priv_data));
 
     if (!rig->state.priv)

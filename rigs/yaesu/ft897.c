@@ -730,7 +730,9 @@ int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     int factor = 10;
-    if (p->fm_status[3]==1) factor = 100;
+
+    if (p->fm_status[3] == 1) { factor = 100; }
+
     *freq = from_bcd_be(p->fm_status, 8) * factor;
 
     return RIG_OK;

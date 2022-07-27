@@ -298,7 +298,7 @@ transaction_write:
 
         len = strlen(cmdstr);
 
-        cmd = calloc(1,len + 2);
+        cmd = calloc(1, len + 2);
 
         if (cmd == NULL)
         {
@@ -489,7 +489,8 @@ transaction_read:
 
             if (retry_read++ < rs->rigport.retry)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly %d of %d\n", __func__, retry_read, rs->rigport.retry);
+                rig_debug(RIG_DEBUG_ERR, "%s: Retrying shortly %d of %d\n", __func__,
+                          retry_read, rs->rigport.retry);
                 hl_usleep(rig->caps->timeout * 1000);
                 goto transaction_write;
             }
@@ -724,7 +725,7 @@ int kenwood_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s/%s\n", __func__,
               BACKEND_VER, rig->caps->version);
 
-    rig->state.priv = calloc(1,sizeof(struct kenwood_priv_data));
+    rig->state.priv = calloc(1, sizeof(struct kenwood_priv_data));
 
     if (rig->state.priv == NULL)
     {
@@ -1101,7 +1102,9 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     struct kenwood_priv_data *priv = rig->state.priv;
 
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, is_emulation=%d, curr_mode=%s\n", __func__, rig_strvfo(vfo), priv->is_emulation,  rig_strrmode(priv->curr_mode));
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s called vfo=%s, is_emulation=%d, curr_mode=%s\n", __func__, rig_strvfo(vfo),
+              priv->is_emulation,  rig_strrmode(priv->curr_mode));
 
 
     /* Emulations do not need to set VFO since VFOB is a copy of VFOA
@@ -1116,12 +1119,14 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     }
 
 #if 0
+
     if (rig->state.current_vfo == vfo)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo already is %s...skipping\n", __func__,
                   rig_strvfo(vfo));
         RETURNFUNC2(RIG_OK);
     }
+
 #endif
 
     switch (vfo)
@@ -1631,12 +1636,14 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
         if (rig->state.rx_vfo == RIG_VFO_A)
         {
             HAMLIB_TRACE;
-            *txvfo = rig->state.tx_vfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
+            *txvfo = rig->state.tx_vfo = priv->tx_vfo = (*split
+                                         && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else if (rig->state.rx_vfo == RIG_VFO_B)
         {
             HAMLIB_TRACE;
-            *txvfo = rig->state.tx_vfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
+            *txvfo = rig->state.tx_vfo = priv->tx_vfo = (*split
+                                         && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else
         {
@@ -1958,6 +1965,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
         RETURNFUNC(-RIG_EINVAL);
     }
+
     if (rig->caps->rig_model == RIG_MODEL_MALACHITE && vfo == RIG_VFO_B)
     {
         // Malachite does not have VFOB so we'll just return VFOA
@@ -2875,14 +2883,16 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         expected_length = 18;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) levelbuf, expected_length + 1,
-            NULL, 0, 0, 1);
+    retval = read_string(&rs->rigport, (unsigned char *) levelbuf,
+                         expected_length + 1,
+                         NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
     if (retval != expected_length)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: expected %d, got %d in '%s'\n", __func__, expected_length,
+        rig_debug(RIG_DEBUG_ERR, "%s: expected %d, got %d in '%s'\n", __func__,
+                  expected_length,
                   retval,
                   levelbuf);
         RETURNFUNC(-RIG_EPROTO);

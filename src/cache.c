@@ -46,7 +46,8 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (vfo == RIG_VFO_NONE || vfo == RIG_VFO_CURR) { vfo = RIG_VFO_A; }
 
     if (vfo == RIG_VFO_SUB && rig->state.cache.satmode) { vfo = RIG_VFO_SUB_A; };
-    if (vfo == RIG_VFO_OTHER) vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
+
+    if (vfo == RIG_VFO_OTHER) { vfo = vfo_fixup(rig, vfo, rig->state.cache.split); }
 
     switch (vfo)
     {

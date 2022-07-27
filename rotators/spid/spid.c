@@ -55,7 +55,7 @@ static int spid_rot_init(ROT *rot)
     {
         struct spid_rot2prog_priv_data *priv;
 
-        priv = (struct spid_rot2prog_priv_data *)calloc(1,sizeof(struct
+        priv = (struct spid_rot2prog_priv_data *)calloc(1, sizeof(struct
                 spid_rot2prog_priv_data));
 
         if (!priv)

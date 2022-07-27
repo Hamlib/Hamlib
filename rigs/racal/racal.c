@@ -124,7 +124,7 @@ int racal_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct racal_priv_data *)calloc(1,sizeof(
+    rig->state.priv = (struct racal_priv_data *)calloc(1, sizeof(
                           struct racal_priv_data));
 
     if (!rig->state.priv)

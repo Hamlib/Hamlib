@@ -540,7 +540,7 @@ int main(int argc, char *argv[])
      */
     do
     {
-        arg = calloc(1,sizeof(struct handle_data));
+        arg = calloc(1, sizeof(struct handle_data));
 
         if (!arg)
         {

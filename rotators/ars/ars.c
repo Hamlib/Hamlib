@@ -147,7 +147,8 @@ ars_init(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    rot->state.priv = (struct ars_priv_data *)calloc(1,sizeof(struct ars_priv_data));
+    rot->state.priv = (struct ars_priv_data *)calloc(1,
+                      sizeof(struct ars_priv_data));
 
     if (!rot->state.priv)
     {

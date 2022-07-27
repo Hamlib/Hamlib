@@ -976,7 +976,8 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
 
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):multicast address=%s, port=%d\n", __FILE__, __LINE__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):multicast address=%s, port=%d\n", __FILE__,
+              __LINE__,
               multicast_addr, multicast_port);
 
     if (strcmp(multicast_addr, "0.0.0.0") == 0)

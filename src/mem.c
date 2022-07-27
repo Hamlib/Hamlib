@@ -253,7 +253,7 @@ static int generic_retr_extl(RIG *rig,
 
     if (chan->ext_levels == NULL)
     {
-        p = chan->ext_levels = calloc(1,2 * sizeof(struct ext_list));
+        p = chan->ext_levels = calloc(1, 2 * sizeof(struct ext_list));
     }
     else
     {

@@ -974,7 +974,9 @@ int main(int argc, char *argv[])
     /*
      * main loop accepting connections
      */
-    rig_debug(RIG_DEBUG_TRACE, "%s: rigctld listening on port %s\n", __func__, portno);
+    rig_debug(RIG_DEBUG_TRACE, "%s: rigctld listening on port %s\n", __func__,
+              portno);
+
     do
     {
         fd_set set;
@@ -1239,12 +1241,15 @@ void *handle_socket(void *arg)
                                    handle_data_arg->use_password);
 
             if (retcode != 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
+
             // update our power stat in case power gets turned off
-            if (retcode == -RIG_ETIMEOUT && my_rig->caps->get_powerstat) // if we get a timeout we might be powered off
+            if (retcode == -RIG_ETIMEOUT
+                    && my_rig->caps->get_powerstat) // if we get a timeout we might be powered off
             {
                 rig_get_powerstat(my_rig, &powerstat);
                 rig_powerstat = powerstat;
-                if (powerstat == RIG_POWER_OFF) retcode = -RIG_EPOWER;
+
+                if (powerstat == RIG_POWER_OFF) { retcode = -RIG_EPOWER; }
             }
         }
         else

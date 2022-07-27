@@ -426,7 +426,7 @@ void hash_add_model(int id,
 {
     struct mod_lst *s;
 
-    s = (struct mod_lst *)calloc(1,sizeof(struct mod_lst));
+    s = (struct mod_lst *)calloc(1, sizeof(struct mod_lst));
 
     s->id = id;
     SNPRINTF(s->mfg_name, sizeof(s->mfg_name), "%s", mfg_name);
@@ -1725,40 +1725,46 @@ readline_repeat:
     }
 
     else
-    { 
+    {
         if ((rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY))
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_powerstat is not on = %d\n", __func__, rig_powerstat);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_powerstat is not on = %d\n", __func__,
+                      rig_powerstat);
             // Update power status
             powerstat_t stat = RIG_POWER_ON;
             retcode = rig_get_powerstat(my_rig, &stat);
-            if (retcode == RIG_OK) rig_powerstat = stat;
+
+            if (retcode == RIG_OK) { rig_powerstat = stat; }
         }
+
         // only command allows when powered off is 0x87=set_powerstat
-        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY) 
-            && cmd_entry->cmd != 0x01 // dump_caps
-            && cmd_entry->cmd != 0xf0 // chk_vfo 
-            && cmd_entry->cmd != 0x87) // set_powerstat
+        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF
+                                  || rig_powerstat == RIG_POWER_STANDBY)
+                && cmd_entry->cmd != 0x01 // dump_caps
+                && cmd_entry->cmd != 0xf0 // chk_vfo
+                && cmd_entry->cmd != 0x87) // set_powerstat
         {
             //rig_debug(RIG_DEBUG_WARN, "%s: %s - only \\set_powerstat can be run \n", __func__, rigerror(-RIG_EPOWER));
-            rig_debug(RIG_DEBUG_WARN, "%s: only \\set_powerstat can be run when rig powered off\n", __func__);
+            rig_debug(RIG_DEBUG_WARN,
+                      "%s: only \\set_powerstat can be run when rig powered off\n", __func__);
             retcode = -RIG_EPOWER;
         }
-        else {
-        retcode = (*cmd_entry->rig_routine)(my_rig,
-                                            fout,
-                                            fin,
-                                            interactive,
-                                            prompt,
-                                            vfo_opt,
-                                            send_cmd_term,
-                                            *ext_resp_ptr,
-                                            *resp_sep_ptr,
-                                            cmd_entry,
-                                            vfo,
-                                            p1,
-                                            p2 ? p2 : "",
-                                            p3 ? p3 : "");
+        else
+        {
+            retcode = (*cmd_entry->rig_routine)(my_rig,
+                                                fout,
+                                                fin,
+                                                interactive,
+                                                prompt,
+                                                vfo_opt,
+                                                send_cmd_term,
+                                                *ext_resp_ptr,
+                                                *resp_sep_ptr,
+                                                cmd_entry,
+                                                vfo,
+                                                p1,
+                                                p2 ? p2 : "",
+                                                p3 ? p3 : "");
         }
     }
 
@@ -2259,12 +2265,16 @@ declare_proto_rig(set_vfo)
     }
 
     vfo = rig_parse_vfo(arg1);
-    if (vfo == RIG_VFO_NONE) 
+
+    if (vfo == RIG_VFO_NONE)
     {
         int c;
-        while((c = fgetc(fin)) != '\n' && c != '\r' && c > 0);
+
+        while ((c = fgetc(fin)) != '\n' && c != '\r' && c > 0);
+
         return -RIG_EINVAL;
     }
+
     retval = rig_set_vfo(rig, vfo);
 
 #if 0 // see if we can make this dynamic
@@ -4682,7 +4692,7 @@ declare_proto_rig(set_powerstat)
 
     retval = rig_set_powerstat(rig, (powerstat_t) stat);
     rig->state.powerstat = stat;
-    rig_powerstat = stat; // update our global so others can see powerstat 
+    rig_powerstat = stat; // update our global so others can see powerstat
     fflush(fin);
     RETURNFUNC(retval);
 }
