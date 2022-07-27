@@ -447,7 +447,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     case RIG_VFO_C: priv->vfo_c.freq = freq; break;
     }
 
-    if (!priv->split)
+    if (priv && !priv->split)
     {
         priv->curr->tx_freq = freq;
     }
@@ -2259,7 +2259,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20220715.0",
+    .version =        "20220727.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
