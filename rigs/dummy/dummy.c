@@ -222,7 +222,7 @@ static int dummy_init(RIG *rig)
     int i;
 
     ENTERFUNC;
-    priv = (struct dummy_priv_data *)malloc(sizeof(struct dummy_priv_data));
+    priv = (struct dummy_priv_data *)calloc(1,sizeof(struct dummy_priv_data));
 
     if (!priv)
     {
@@ -234,6 +234,7 @@ static int dummy_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig->state.rigport.type.rig = RIG_PORT_NONE;
 
+    priv->split = RIG_SPLIT_OFF;
     priv->ptt = RIG_PTT_OFF;
     priv->powerstat = RIG_POWER_ON;
     rig->state.powerstat = priv->powerstat;
@@ -415,6 +416,12 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char fstr[20];
 
     ENTERFUNC;
+
+    if (rig == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig is NULL!!!\n", __func__);
+        return -RIG_EINVAL;
+    }
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
