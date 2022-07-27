@@ -4186,7 +4186,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     if (tx_mode == rig->state.cache.modeMainA && tx_mode == rig->state.cache.modeMainB)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: mode already %s so no change required\n", __func__, rig_strrmode(tx_mode));
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
     else
     {
@@ -4198,7 +4198,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s PTT on so set_split_mode ignored\n", __func__);
         ELAPSED2;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
 
     caps = rig->caps;
