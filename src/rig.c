@@ -240,7 +240,7 @@ static int add_opened_rig(RIG *rig)
 {
     struct opened_rig_l *p;
 
-    p = (struct opened_rig_l *)malloc(sizeof(struct opened_rig_l));
+    p = (struct opened_rig_l *)calloc(1,sizeof(struct opened_rig_l));
 
     if (!p)
     {
@@ -850,7 +850,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     rig_settings_load_all(NULL); // load default .hamlib_settings
     // Read in our settings
-    char *cwd = malloc(4096);
+    char *cwd = calloc(1,4096);
 
     if (getcwd(cwd, 4096) == NULL)
     {
@@ -859,7 +859,7 @@ int HAMLIB_API rig_open(RIG *rig)
     else
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: cwd=%s\n", __func__, cwd);
-        char *path = malloc(4096);
+        char *path = calloc(1,4096);
         extern char *settings_file;
         char *xdgpath = getenv("XDG_CONFIG_HOME");
 

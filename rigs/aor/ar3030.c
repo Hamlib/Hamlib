@@ -282,7 +282,7 @@ int ar3030_init(RIG *rig)
 {
     struct ar3030_priv_data *priv;
 
-    rig->state.priv = malloc(sizeof(struct ar3030_priv_data));
+    rig->state.priv = calloc(1,sizeof(struct ar3030_priv_data));
 
     if (!rig->state.priv)
     {

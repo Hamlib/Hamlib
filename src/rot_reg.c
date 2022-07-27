@@ -204,7 +204,7 @@ int HAMLIB_API rot_register(const struct rot_caps *caps)
 
 #endif
 
-    p = (struct rot_list *)malloc(sizeof(struct rot_list));
+    p = (struct rot_list *)calloc(1,sizeof(struct rot_list));
 
     if (!p)
     {

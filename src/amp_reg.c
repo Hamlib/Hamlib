@@ -152,7 +152,7 @@ int HAMLIB_API amp_register(const struct amp_caps *caps)
 
 #endif
 
-    p = (struct amp_list *)malloc(sizeof(struct amp_list));
+    p = (struct amp_list *)calloc(1,sizeof(struct amp_list));
 
     if (!p)
     {

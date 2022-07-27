@@ -239,7 +239,7 @@ int rx340_init(RIG *rig)
 {
     struct rx340_priv_data *priv;
 
-    priv = (struct rx340_priv_data *)malloc(sizeof(struct rx340_priv_data));
+    priv = (struct rx340_priv_data *)calloc(1,sizeof(struct rx340_priv_data));
 
     if (!priv)
     {

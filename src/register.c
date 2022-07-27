@@ -205,7 +205,7 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
               caps->rig_model);
 #endif
 
-    p = (struct rig_list *)malloc(sizeof(struct rig_list));
+    p = (struct rig_list *)calloc(1,sizeof(struct rig_list));
 
     if (!p)
     {

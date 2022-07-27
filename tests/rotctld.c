@@ -570,11 +570,11 @@ int main(int argc, char *argv[])
      */
     do
     {
-        arg = malloc(sizeof(struct handle_data));
+        arg = calloc(1,sizeof(struct handle_data));
 
         if (!arg)
         {
-            rig_debug(RIG_DEBUG_ERR, "malloc: %s\n", strerror(errno));
+            rig_debug(RIG_DEBUG_ERR, "calloc: %s\n", strerror(errno));
             exit(1);
         }
 

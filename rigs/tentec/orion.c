@@ -225,7 +225,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int tt565_init(RIG *rig)
 {
     struct tt565_priv_data *priv;
-    rig->state.priv = (struct tt565_priv_data *)malloc(sizeof(
+    rig->state.priv = (struct tt565_priv_data *)calloc(1,sizeof(
                           struct tt565_priv_data));
 
     if (!rig->state.priv) { return -RIG_ENOMEM; } /* no memory available */
