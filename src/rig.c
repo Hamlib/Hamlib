@@ -548,6 +548,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
 #endif
 
+    rs->priv = NULL;
     rs->async_data_enabled = 0;
     rs->rigport.fd = -1;
     rs->pttport.fd = -1;
