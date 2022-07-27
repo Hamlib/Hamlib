@@ -613,7 +613,7 @@ static int flrig_init(RIG *rig)
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
-    rig->state.priv  = (struct flrig_priv_data *)malloc(sizeof(
+    rig->state.priv  = (struct flrig_priv_data *)calloc(1,sizeof(
                            struct flrig_priv_data));
 
     if (!rig->state.priv)

@@ -56,7 +56,7 @@ static int dummy_amp_init(AMP *amp)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     amp->state.priv = (struct dummy_amp_priv_data *)
-                      malloc(sizeof(struct dummy_amp_priv_data));
+                      calloc(1,sizeof(struct dummy_amp_priv_data));
 
     if (!amp->state.priv)
     {

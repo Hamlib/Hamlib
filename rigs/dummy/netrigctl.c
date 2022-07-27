@@ -168,7 +168,7 @@ static int netrigctl_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct netrigctl_priv_data *)malloc(sizeof(
+    rig->state.priv = (struct netrigctl_priv_data *)calloc(1,sizeof(
                           struct netrigctl_priv_data));
 
     if (!rig->state.priv)
@@ -2387,7 +2387,7 @@ static int netrigctl_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 
     // allocate memory for size of (cmd + digits + \n + \0)
     len = strlen(cmd) + strlen(digits) + 2;
-    cmdp = malloc(len);
+    cmdp = calloc(1,len);
 
     if (cmdp == NULL)
     {
@@ -2470,7 +2470,7 @@ static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     // allocate memory for size of (cmd + msg + \n + \0)
     len = strlen(cmd) + strlen(msg) + 2;
-    cmdp = malloc(len);
+    cmdp = calloc(1,len);
 
     if (cmdp == NULL)
     {
