@@ -250,7 +250,7 @@ const struct rig_caps ft897_caps =
     RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
     .mfg_name =       "Yaesu",
-    .version =        "20220404.0",
+    .version =        "20220727.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -394,7 +394,7 @@ const struct rig_caps ft897d_caps =
     RIG_MODEL(RIG_MODEL_FT897D),
     .model_name =     "FT-897D",
     .mfg_name =       "Yaesu",
-    .version =        "20220407.0",
+    .version =        "20220727.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -729,7 +729,9 @@ int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         }
     }
 
-    *freq = from_bcd_be(p->fm_status, 8) * 10;
+    int factor = 10;
+    if (p->fm_status[3]==1) factor = 100;
+    *freq = from_bcd_be(p->fm_status, 8) * factor;
 
     return RIG_OK;
 }
@@ -1082,8 +1084,9 @@ int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: requested freq = %"PRIfreq" Hz\n", __func__,
               freq);
 
+    int factor = freq > 100000000 ? 100 : 10;
     /* fill in the frequency */
-    to_bcd_be(data, (freq + 5) / 10, 8);
+    to_bcd_be(data, (freq + 5) / factor, 8);
 
     /*invalidate frequency cache*/
     rig_force_cache_timeout(&((struct ft897_priv_data *)
