@@ -108,6 +108,7 @@ int main(int argc, char *argv[])
         buf[0] = 0;
 
         if (getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
+
 //        else { return 0; }
 
         if (strcmp(buf, "RM5;") == 0)
@@ -137,7 +138,7 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             usleep(50 * 1000);
             pbuf = "IF000503130001000+0000000000030000000;";
-            sprintf(ifbuf,"IF%011d0001000+0000000000030000000;",freqa);
+            sprintf(ifbuf, "IF%011d0001000+0000000000030000000;", freqa);
             //pbuf = "IF00010138698     +00000000002000000 ;
             n = write(fd, ifbuf, strlen(pbuf));
 //            printf("n=%d\n", n);

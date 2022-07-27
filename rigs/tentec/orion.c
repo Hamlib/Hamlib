@@ -225,7 +225,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int tt565_init(RIG *rig)
 {
     struct tt565_priv_data *priv;
-    rig->state.priv = (struct tt565_priv_data *)calloc(1,sizeof(
+    rig->state.priv = (struct tt565_priv_data *)calloc(1, sizeof(
                           struct tt565_priv_data));
 
     if (!rig->state.priv) { return -RIG_ENOMEM; } /* no memory available */
@@ -1210,20 +1210,23 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (rig->caps->rig_model == RIG_MODEL_TT599)
         {
             ii = (int)(val.f * 10);
-            if (ii > 9) ii=9; // cannot set NR level 10 apparently
+
+            if (ii > 9) { ii = 9; } // cannot set NR level 10 apparently
+
             SNPRINTF(cmdbuf, sizeof(cmdbuf), "*RMNN%c" EOM, ii);
         }
         else
         {
-        /* Noise Reduction (blanking) Float 0.0 - 1.0
-            For some reason NB setting is supported in 1.372, but
-           NR, NOTCH, and AN are not.
-           FOR NOW -- RIG_LEVEL_NR controls the Orion NB setting
-        */
-        SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cNB%d" EOM,
-                 which_receiver(rig, vfo),
-                 (int)(val.f * 9));
+            /* Noise Reduction (blanking) Float 0.0 - 1.0
+                For some reason NB setting is supported in 1.372, but
+               NR, NOTCH, and AN are not.
+               FOR NOW -- RIG_LEVEL_NR controls the Orion NB setting
+            */
+            SNPRINTF(cmdbuf, sizeof(cmdbuf), "*R%cNB%d" EOM,
+                     which_receiver(rig, vfo),
+                     (int)(val.f * 9));
         }
+
         break;
 
     case RIG_LEVEL_VOXDELAY:
@@ -1692,15 +1695,16 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_NR:
+
         /* RIG_LEVEL_NR controls Orion NB setting - TEMP */
         if (rig->caps->rig_model == RIG_MODEL_TT599)
         {
-        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?RMNN" EOM)
+            SNPRINTF(cmdbuf, sizeof(cmdbuf), "?RMNN" EOM)
         }
         else
         {
-        SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cNB" EOM,
-                 which_receiver(rig, vfo));
+            SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cNB" EOM,
+                     which_receiver(rig, vfo));
         }
 
         lvl_len = sizeof(lvlbuf);
@@ -1717,6 +1721,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                       __func__, lvlbuf);
             return -RIG_EPROTO;
         }
+
         sscanf(lvlbuf + 5, "%f", &val->f);
         val->f /= 10.0;
         break;

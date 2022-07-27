@@ -257,7 +257,7 @@ static int ar7030p_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     priv = (struct ar7030p_priv_data *)
-           calloc(1,sizeof(struct ar7030p_priv_data));
+           calloc(1, sizeof(struct ar7030p_priv_data));
 
     if (!priv)
     {

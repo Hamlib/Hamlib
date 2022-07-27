@@ -223,7 +223,7 @@ exchange(argv)
 char **argv;
 {
     int nonopts_size = (last_nonopt - first_nonopt) * sizeof(char *);
-    char **temp = (char **) calloc(1,nonopts_size);
+    char **temp = (char **) calloc(1, nonopts_size);
 
     /* Interchange the two blocks of data in ARGV.  */
 

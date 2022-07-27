@@ -295,7 +295,7 @@ int rx331_init(RIG *rig)
 {
     struct rx331_priv_data *priv;
 
-    rig->state.priv = (struct rx331_priv_data *)calloc(1,sizeof(
+    rig->state.priv = (struct rx331_priv_data *)calloc(1, sizeof(
                           struct rx331_priv_data));
 
     if (!rig->state.priv)

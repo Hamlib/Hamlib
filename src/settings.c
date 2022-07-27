@@ -1002,23 +1002,25 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
     char *xdgpath = getenv("XDG_CONFIG_HOME");
     char *home = getenv("HOME");
     snprintf(path, pathlen, "%s/.config", home);
+
     if (xdgpath)
     {
-        snprintf(path, pathlen-1, "%s/%s/%s", xdgpath, cwd, HAMLIB_SETTINGS_FILE);
+        snprintf(path, pathlen - 1, "%s/%s/%s", xdgpath, cwd, HAMLIB_SETTINGS_FILE);
     }
     else if (home && access(path, F_OK) != -1)
     {
-        snprintf(path, pathlen-1, "%s/.config/%s", home, HAMLIB_SETTINGS_FILE);
+        snprintf(path, pathlen - 1, "%s/.config/%s", home, HAMLIB_SETTINGS_FILE);
     }
     else if (home)
     {
         // we add a leading period to hide the file
-        snprintf(path, pathlen-1, "%s/.%s", home, HAMLIB_SETTINGS_FILE);
+        snprintf(path, pathlen - 1, "%s/.%s", home, HAMLIB_SETTINGS_FILE);
     }
     else
     {
-        snprintf(path, pathlen-1, ".%s", HAMLIB_SETTINGS_FILE);
+        snprintf(path, pathlen - 1, ".%s", HAMLIB_SETTINGS_FILE);
     }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: path=%s\n", __func__, path);
     return RIG_OK;
 }
@@ -1040,19 +1042,22 @@ HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
     char buf[4096];
     char *cvalue = (char *)value;
     int *ivalue = (int *)value;
-    int n=0;
+    int n = 0;
     long *lvalue = (long *) value;
     float *fvalue = (float *) value;
     double *dvalue = (double *) value;
     char *vformat = "Unknown format??";
     char template[64];
 
-    rig_settings_get_path(path,sizeof(path));
+    rig_settings_get_path(path, sizeof(path));
     fp = fopen(path, "r");
-    if (fp == NULL) {
+
+    if (fp == NULL)
+    {
         rig_debug(RIG_DEBUG_WARN, "%s: %s not found\n", __func__,  path);
         return -RIG_EIO;
     }
+
     strcpy(template, "hamlib_settings_XXXXXX");
 
     switch (valuetype)
@@ -1112,7 +1117,9 @@ HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
     {
         char *tmp = strdup(buf);
         char *s = strtok(tmp, "=");
-        if (buf[0] == '#') {
+
+        if (buf[0] == '#')
+        {
             fprintf(fptmp, "%s\n", buf);
             continue;
         }
@@ -1125,6 +1132,7 @@ HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
             fclose(fptmp);
             return -RIG_EINTERNAL;
         }
+
         ++n;
 
         char *v = strtok(NULL, "\r\n");
@@ -1137,6 +1145,7 @@ HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
             fclose(fptmp);
             return -RIG_EINTERNAL;
         }
+
         rig_debug(RIG_DEBUG_TRACE, "%s: parsing setting %s=%s\n", __func__, s, v);
         fprintf(fptmp, vformat, s, value);
     }
@@ -1161,18 +1170,21 @@ HAMLIB_EXPORT(int) rig_settings_load_all(char *settings_file)
     char buf[4096];
     char settingstmp[4096];
 
-    if (settings_file == NULL) {
+    if (settings_file == NULL)
+    {
         rig_settings_get_path(settingstmp, sizeof(settingstmp));
         settings_file = settingstmp;
     }
 
     fp = fopen(settings_file, "r");
+
     if (fp == NULL)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: settings_file (%s): %s\n", __func__,
                   settings_file, strerror(errno));
         return -RIG_EINVAL;
     }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: opened %s\n", __func__, settings_file);
 
     while (fgets(buf, sizeof(buf), fp))

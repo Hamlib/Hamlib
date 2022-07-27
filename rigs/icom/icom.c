@@ -932,9 +932,11 @@ static void icom_satmode_fix(RIG *rig, int satmode)
 {
     if (rig->caps->rig_model == RIG_MODEL_IC9700)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: toggling IC9700 targetable for satmode=%d\n", __func__, satmode);
-        if (satmode) rig->caps->targetable_vfo = 0;
-        else rig->caps->targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: toggling IC9700 targetable for satmode=%d\n",
+                  __func__, satmode);
+
+        if (satmode) { rig->caps->targetable_vfo = 0; }
+        else { rig->caps->targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE; }
     }
 }
 
@@ -2675,7 +2677,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         }
     }
 
-    if (*mode == RIG_MODE_FM) *width = 12000;
+    if (*mode == RIG_MODE_FM) { *width = 12000; }
 
     RETURNFUNC2(RIG_OK);
 }
@@ -5270,7 +5272,7 @@ int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         {
             // satmode defaults to 0 -- only call if we need to
             rig_get_func((RIG *)rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-            icom_satmode_fix(rig,satmode);
+            icom_satmode_fix(rig, satmode);
         }
 
         rig->state.cache.satmode = satmode;
@@ -5376,7 +5378,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
         {
             rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-            icom_satmode_fix(rig,satmode);
+            icom_satmode_fix(rig, satmode);
         }
 
         rig->state.cache.satmode = satmode;
@@ -5606,7 +5608,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
         {
             rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-            icom_satmode_fix(rig,satmode);
+            icom_satmode_fix(rig, satmode);
         }
 
         rig->state.cache.satmode = satmode;
@@ -5619,8 +5621,9 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
                 int retry_save = rs->rigport.retry;
                 rs->rigport.retry = 0;
                 cmd = C_SEND_SEL_FREQ;
-                // when transmitting in split mode the split VFO is active 
-                subcmd = (rig->state.cache.split && rig->state.cache.ptt)? 0x00 : 0x01; // get the unselected vfo
+                // when transmitting in split mode the split VFO is active
+                subcmd = (rig->state.cache.split
+                          && rig->state.cache.ptt) ? 0x00 : 0x01; // get the unselected vfo
                 retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
                                           &ack_len);
 
@@ -6320,7 +6323,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                       "%s: VFO_SUB and satmode is off so turning satmode on\n",
                       __func__);
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 1);
-            icom_satmode_fix(rig,1);
+            icom_satmode_fix(rig, 1);
             rig->state.cache.satmode = 1;
             priv->tx_vfo = RIG_VFO_SUB;
         }
@@ -6331,7 +6334,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                       "%s: VFO_B and satmode is on so turning satmode off\n",
                       __func__);
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 0);
-            icom_satmode_fix(rig,0);
+            icom_satmode_fix(rig, 0);
             rig->state.cache.satmode = 0;
             priv->tx_vfo = RIG_VFO_B;
         }
@@ -6597,7 +6600,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
     {
         rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-        icom_satmode_fix(rig,satmode);
+        icom_satmode_fix(rig, satmode);
 
         if (satmode != rig->state.cache.satmode)
         {
@@ -7008,7 +7011,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             status; // we reset this to current status -- fails in SATMODE
         priv->x1cx03cmdfails = 0; // we reset this to try it again
         rig->state.cache.satmode = status;
-        icom_satmode_fix(rig,status);
+        icom_satmode_fix(rig, status);
 
         break;
 

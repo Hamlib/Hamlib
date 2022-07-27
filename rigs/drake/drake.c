@@ -102,7 +102,7 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int drake_init(RIG *rig)
 {
     struct drake_priv_data *priv;
-    rig->state.priv = calloc(1,sizeof(struct drake_priv_data));
+    rig->state.priv = calloc(1, sizeof(struct drake_priv_data));
 
     if (!rig->state.priv)
     {

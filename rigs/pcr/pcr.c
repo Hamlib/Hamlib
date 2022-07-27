@@ -481,7 +481,8 @@ pcr_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct pcr_priv_data *) calloc(1,sizeof(struct pcr_priv_data));
+    rig->state.priv = (struct pcr_priv_data *) calloc(1,
+                      sizeof(struct pcr_priv_data));
 
     if (!rig->state.priv)
     {

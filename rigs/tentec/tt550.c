@@ -360,7 +360,7 @@ tt550_init(RIG *rig)
 {
     struct tt550_priv_data *priv;
 
-    rig->state.priv = (struct tt550_priv_data *) calloc(1,sizeof(
+    rig->state.priv = (struct tt550_priv_data *) calloc(1, sizeof(
                           struct tt550_priv_data));
 
     if (!rig->state.priv)

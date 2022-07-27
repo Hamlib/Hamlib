@@ -291,7 +291,7 @@ void hash_add_model(int id,
 {
     struct mod_lst *s;
 
-    s = (struct mod_lst *)calloc(1,sizeof(struct mod_lst));
+    s = (struct mod_lst *)calloc(1, sizeof(struct mod_lst));
 
     s->id = id;
     SNPRINTF(s->mfg_name, sizeof(s->mfg_name), "%s", mfg_name);

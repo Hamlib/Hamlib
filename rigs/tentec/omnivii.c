@@ -295,7 +295,8 @@ static int tt588_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                 {
                     return RIG_OK;
                 }
-                if (retval == -RIG_ETIMEOUT) return retval;
+
+                if (retval == -RIG_ETIMEOUT) { return retval; }
 
                 rig_debug(RIG_DEBUG_ERR, "%s: read_string failed, try#%d\n", __func__, i + 1);
             }
@@ -332,7 +333,7 @@ int tt588_init(RIG *rig)
     struct tt588_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s:\n", __func__);
-    rig->state.priv = (struct tt588_priv_data *) calloc(1,sizeof(
+    rig->state.priv = (struct tt588_priv_data *) calloc(1, sizeof(
                           struct tt588_priv_data));
 
     if (!rig->state.priv)

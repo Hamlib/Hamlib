@@ -222,7 +222,7 @@ static int dummy_init(RIG *rig)
     int i;
 
     ENTERFUNC;
-    priv = (struct dummy_priv_data *)calloc(1,sizeof(struct dummy_priv_data));
+    priv = (struct dummy_priv_data *)calloc(1, sizeof(struct dummy_priv_data));
 
     if (!priv)
     {

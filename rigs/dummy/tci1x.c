@@ -424,7 +424,7 @@ static int tci1x_init(RIG *rig)
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
-    rig->state.priv  = (struct tci1x_priv_data *)calloc(1,sizeof(
+    rig->state.priv  = (struct tci1x_priv_data *)calloc(1, sizeof(
                            struct tci1x_priv_data));
 
     if (!rig->state.priv)

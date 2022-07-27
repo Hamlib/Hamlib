@@ -87,7 +87,7 @@ static struct opened_amp_l *opened_amp_list = { NULL };
 static int add_opened_amp(AMP *amp)
 {
     struct opened_amp_l *p;
-    p = (struct opened_amp_l *)calloc(1,sizeof(struct opened_amp_l));
+    p = (struct opened_amp_l *)calloc(1, sizeof(struct opened_amp_l));
 
     if (!p)
     {

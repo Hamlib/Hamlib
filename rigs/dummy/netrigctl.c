@@ -168,7 +168,7 @@ static int netrigctl_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct netrigctl_priv_data *)calloc(1,sizeof(
+    rig->state.priv = (struct netrigctl_priv_data *)calloc(1, sizeof(
                           struct netrigctl_priv_data));
 
     if (!rig->state.priv)
@@ -296,7 +296,7 @@ static int netrigctl_open(RIG *rig)
 
     if (ret <= 0)
     {
-        RETURNFUNC( (ret < 0) ? ret : -RIG_EPROTO);
+        RETURNFUNC((ret < 0) ? ret : -RIG_EPROTO);
     }
 
     prot_ver = atoi(buf);
@@ -304,7 +304,7 @@ static int netrigctl_open(RIG *rig)
 
     if (prot_ver < RIGCTLD_PROT_VER)
     {
-        RETURNFUNC( -RIG_EPROTO);
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
@@ -2387,7 +2387,7 @@ static int netrigctl_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 
     // allocate memory for size of (cmd + digits + \n + \0)
     len = strlen(cmd) + strlen(digits) + 2;
-    cmdp = calloc(1,len);
+    cmdp = calloc(1, len);
 
     if (cmdp == NULL)
     {
@@ -2470,7 +2470,7 @@ static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     // allocate memory for size of (cmd + msg + \n + \0)
     len = strlen(cmd) + strlen(msg) + 2;
-    cmdp = calloc(1,len);
+    cmdp = calloc(1, len);
 
     if (cmdp == NULL)
     {
@@ -2656,6 +2656,7 @@ int netrigctl_set_lock_mode(RIG *rig, int lock)
     {
         return -RIG_EPROTO;
     }
+
     return (RIG_OK);
 }
 
@@ -2666,11 +2667,13 @@ int netrigctl_get_lock_mode(RIG *rig, int *lock)
     int ret;
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\get_lock_mode\n");
     ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
+
     if (ret == 0)
     {
         return -RIG_EPROTO;
     }
-    sscanf(buf,"%d", lock);
+
+    sscanf(buf, "%d", lock);
     return (RIG_OK);
 }
 

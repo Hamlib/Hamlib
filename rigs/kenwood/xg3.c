@@ -178,7 +178,7 @@ int xg3_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct xg3_priv_data *)calloc(1,sizeof(struct xg3_priv_data));
+    priv = (struct xg3_priv_data *)calloc(1, sizeof(struct xg3_priv_data));
 
     if (!priv)
     {

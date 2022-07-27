@@ -44,7 +44,7 @@ int gemini_init(AMP *amp)
     }
 
     amp->state.priv = (struct gemini_priv_data *)
-                      calloc(1,sizeof(struct gemini_priv_data));
+                      calloc(1, sizeof(struct gemini_priv_data));
 
     if (!amp->state.priv)
     {
@@ -207,20 +207,23 @@ int gemini_set_freq(AMP *amp, freq_t freq)
     char *cmd;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    if (freq < 1.0) cmd = "B472KHZ\n";
-    else if (freq < 2.0) cmd = "B1.8MHZ\n";
-    else if (freq < 4.0) cmd = "B3.5MHZ\n";
-    else if (freq < 6.0) cmd = "B50MHZ\n";
-    else if (freq < 9.0) cmd = "B70MHZ\n";
-    else if (freq < 12.0) cmd = "B10MHZ\n";
-    else if (freq < 16.0) cmd = "B14MHZ\n";
-    else if (freq < 19.0) cmd = "B18MHZ\n";
-    else if (freq < 22.0) cmd = "B21MHZ\n";
-    else if (freq < 26.0) cmd = "B24MHZ\n";
-    else cmd = "B50MHZ\n";
+
+    if (freq < 1.0) { cmd = "B472KHZ\n"; }
+    else if (freq < 2.0) { cmd = "B1.8MHZ\n"; }
+    else if (freq < 4.0) { cmd = "B3.5MHZ\n"; }
+    else if (freq < 6.0) { cmd = "B50MHZ\n"; }
+    else if (freq < 9.0) { cmd = "B70MHZ\n"; }
+    else if (freq < 12.0) { cmd = "B10MHZ\n"; }
+    else if (freq < 16.0) { cmd = "B14MHZ\n"; }
+    else if (freq < 19.0) { cmd = "B18MHZ\n"; }
+    else if (freq < 22.0) { cmd = "B21MHZ\n"; }
+    else if (freq < 26.0) { cmd = "B24MHZ\n"; }
+    else { cmd = "B50MHZ\n"; }
+
     retval = gemini_transaction(amp, cmd, NULL, 0);
 
     if (retval != RIG_OK) { return retval; }
+
     return RIG_OK;
 }
 
