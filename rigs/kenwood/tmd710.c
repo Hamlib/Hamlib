@@ -663,7 +663,8 @@ static int tmd710_open(RIG *rig)
     tmd710_get_vfo(rig, &vfo);
     tmd710_get_split_vfo(rig, RIG_VFO_CURR, &split, &vfo);
 
-    rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %s\n", rig_strvfo(rig->state.tx_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %s\n",
+              rig_strvfo(rig->state.tx_vfo));
 
     return 0;
 }
@@ -2010,6 +2011,7 @@ int tmd710_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
               rig_strvfo(vfo), rig_strvfo(txvfo));
 
     retval = tmd710_get_vfo_num(rig, &ctrl_vfo_index, NULL);
+
     if (retval != RIG_OK)
     {
         return retval;
@@ -2061,7 +2063,8 @@ int tmd710_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
     rig->state.tx_vfo = *txvfo;
 
     // Rig is always in "split mode" and VFOs are targetable, so simply check current and TX VFOs
-    *split = rig->state.current_vfo == rig->state.tx_vfo ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
+    *split = rig->state.current_vfo == rig->state.tx_vfo ? RIG_SPLIT_OFF :
+             RIG_SPLIT_ON;
 
     return RIG_OK;
 }
