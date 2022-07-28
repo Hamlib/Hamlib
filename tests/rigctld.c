@@ -684,7 +684,7 @@ int main(int argc, char *argv[])
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
      */
-    if (ptt_type != RIG_PTT_NONE)
+    //if (ptt_type != RIG_PTT_NONE)
     {
         my_rig->state.pttport.type.ptt = ptt_type;
         my_rig->state.pttport_deprecated.type.ptt = ptt_type;
