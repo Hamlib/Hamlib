@@ -652,13 +652,18 @@ typedef struct
 
 static int tmd710_open(RIG *rig)
 {
+    split_t split;
+    vfo_t vfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     rig->state.tx_vfo = RIG_VFO_A;
-    rig_debug(RIG_DEBUG_TRACE, "RIG_VFO_A: %d\trig->state.tx_vfo: %d\n", RIG_VFO_A,
-              rig->state.tx_vfo);
 
+    // Get current RX and TX VFO state, do not care if we succeed or not
+    tmd710_get_vfo(rig, &vfo);
+    tmd710_get_split_vfo(rig, RIG_VFO_CURR, &split, &vfo);
+
+    rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %s\n", rig_strvfo(rig->state.tx_vfo));
 
     return 0;
 }
@@ -765,6 +770,7 @@ static int tmd710_resolve_vfo(RIG *rig, vfo_t vfo, vfo_t *resolved_vfo,
     switch (vfo)
     {
     case RIG_VFO_CURR:
+    case RIG_VFO_MEM:
         return tmd710_get_vfo_num(rig, resolved_vfonum, resolved_vfo);
 
     case RIG_VFO_A:
@@ -1254,8 +1260,6 @@ int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: called for vfo: %s(%d)\n", __func__,
               rig_strvfo(vfo), vfo);
 
-    vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
-
     return tmd710_do_set_freq(rig, vfo, freq);
 }
 
@@ -1267,8 +1271,6 @@ int tmd710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-
-    vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_B : RIG_VFO_A;
 
     return tmd710_do_get_freq(rig, vfo, freq);
 }
@@ -1282,9 +1284,8 @@ int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_A : RIG_VFO_B;
-
-    return tmd710_do_set_freq(rig, vfo, freq);
+    // Use the TX VFO for split
+    return tmd710_do_set_freq(rig, rig->state.tx_vfo, freq);
 }
 
 /*
@@ -1296,9 +1297,8 @@ int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    vfo = rig->state.tx_vfo == RIG_VFO_A ? RIG_VFO_A : RIG_VFO_B;
-
-    return tmd710_do_get_freq(rig, vfo, freq);
+    // Use the TX VFO for split
+    return tmd710_do_get_freq(rig, rig->state.tx_vfo, freq);
 }
 
 static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, int *ctcss_index)
@@ -1993,9 +1993,10 @@ int tmd710_set_vfo(RIG *rig, vfo_t vfo)
 /*
 *   tmd710_set_split_vfo
 *
-*   This radio has two VFOs, and either one can be the TX/RX.  As such, this function does two things:
+*   This radio has two VFOs, and either one can be the TX/RX.  As such, this function does the following:
+*   - Keeps VFO control (CTRL) on the currently active VFO.
 *   - Sets PTT control on the specified VFO.
-*   - Sets the TX_VFO and RX_VFO for use in Set_Freq and Set_Split_Freq
+*   - Sets the tx_vfo for use in set_split_freq().
 *   - The value of split is ignored, as the radio is always in "split" mode.
 *
 */
@@ -2003,15 +2004,21 @@ int tmd710_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
     char vfobuf[16], ackbuf[16];
     int retval;
+    int ctrl_vfo_index;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called vfo: %s\ttxvfo: %s\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: called vfo: %s, txvfo: %s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(txvfo));
 
-    rig->state.tx_vfo = txvfo;
+    retval = tmd710_get_vfo_num(rig, &ctrl_vfo_index, NULL);
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
-    int txVfoIndex = txvfo == RIG_VFO_A ? 0 : 1;
+    int ptt_vfo_index = txvfo == RIG_VFO_A ? 0 : 1;
 
-    sprintf(vfobuf, "BC %d,%d", txVfoIndex, txVfoIndex);
+    // Keep CTRL VFO as it is and only set the PTT VFO as TX VFO
+    sprintf(vfobuf, "BC %d,%d", ctrl_vfo_index, ptt_vfo_index);
     retval = kenwood_transaction(rig, vfobuf, ackbuf, sizeof(ackbuf));
 
     if (retval != RIG_OK)
@@ -2019,6 +2026,7 @@ int tmd710_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         return retval;
     }
 
+    rig->state.tx_vfo = txvfo;
 
     return RIG_OK;
 }
@@ -2051,6 +2059,9 @@ int tmd710_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
     }
 
     rig->state.tx_vfo = *txvfo;
+
+    // Rig is always in "split mode" and VFOs are targetable, so simply check current and TX VFOs
+    *split = rig->state.current_vfo == rig->state.tx_vfo ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
 
     return RIG_OK;
 }
