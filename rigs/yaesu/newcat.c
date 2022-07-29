@@ -600,7 +600,7 @@ int newcat_open(RIG *rig)
     {
         int err;
         // set the CAT TIME OUT TIMER to 100ms
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0331");
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0331;");
 
         if (RIG_OK != (err = newcat_set_cmd(rig)))
         {
