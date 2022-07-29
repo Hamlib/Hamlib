@@ -44,7 +44,7 @@
 #include "bandplan.h"
 #include "serial.h"
 
-#define X108G_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM)
+#define X108G_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM|RIG_MODE_FMN)
 #define X108G_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define X108G_NOT_TS_MODES (X108G_ALL_RX_MODES &~X108G_1HZ_TS_MODES)
 
@@ -153,7 +153,7 @@ const struct rig_caps x108g_caps =
     RIG_MODEL(RIG_MODEL_X108G),
     .model_name = "X108G",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -319,6 +319,8 @@ const struct rig_caps x108g_caps =
     .get_split_mode =  icom_get_split_mode,
     .set_split_vfo =  x108g_set_split_vfo,
     .get_split_vfo =  NULL,
+    .set_powerstat = icom_set_powerstat,
+    .get_powerstat = icom_get_powerstat,
 
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
@@ -328,7 +330,7 @@ const struct rig_caps x6100_caps =
     RIG_MODEL(RIG_MODEL_X6100),
     .model_name = "X6100",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -495,6 +497,8 @@ const struct rig_caps x6100_caps =
     //.get_split_mode =  icom_get_split_mode,
     //.set_split_vfo =  x108g_set_split_vfo,
     //.get_split_vfo =  NULL,
+    .set_powerstat = icom_set_powerstat,
+    .get_powerstat = icom_get_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -503,7 +507,7 @@ const struct rig_caps g90_caps =
     RIG_MODEL(RIG_MODEL_G90),
     .model_name = "G90",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -669,6 +673,8 @@ const struct rig_caps g90_caps =
     .get_split_mode =  icom_get_split_mode,
     .set_split_vfo =  x108g_set_split_vfo,
     .get_split_vfo =  NULL,
+    .set_powerstat = icom_set_powerstat,
+    .get_powerstat = icom_get_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -677,7 +683,7 @@ const struct rig_caps x5105_caps =
     RIG_MODEL(RIG_MODEL_X5105),
     .model_name = "X5105",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -843,6 +849,8 @@ const struct rig_caps x5105_caps =
     .get_split_mode =  icom_get_split_mode,
     .set_split_vfo =  x108g_set_split_vfo,
     .get_split_vfo =  NULL,
+    .set_powerstat = icom_set_powerstat,
+    .get_powerstat = icom_get_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
