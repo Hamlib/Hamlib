@@ -1408,6 +1408,13 @@ void usage(void)
 
     usage_rig(stdout);
 
+    printf("\nError codes and messages\n");
+    for(enum rig_errcode_e e = 0; e<RIG_EEND; ++e)
+    {
+        printf("-%d - %s", e, rigerror2(e));
+    }
+
+
     printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 
 }
