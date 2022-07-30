@@ -10433,7 +10433,7 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "FA;");
 
-        if (priv->rig_id == NC_RIGID_FTDX3000)
+        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000)
         {
             strcpy(valcmd, "");
         }
@@ -10442,7 +10442,7 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "FB;");
 
-        if (priv->rig_id == NC_RIGID_FTDX3000)
+        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000)
         {
             strcpy(valcmd, "");
         }
