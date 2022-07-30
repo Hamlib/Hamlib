@@ -137,6 +137,10 @@ extern HAMLIB_EXPORT_VAR(const char *) hamlib_copyright2;
  * Unless stated otherwise, Hamlib functions return the negative value
  * of rig_errcode_e definitions in case of error, or 0 when successful.
  */
+ /**
+  * @{ \name Hamlib error codes
+  */
+
 enum rig_errcode_e {
     RIG_OK = 0,     /*!< 0 No error, operation completed successfully */
     RIG_EINVAL,     /*!< 1 invalid parameter */
@@ -158,8 +162,12 @@ enum rig_errcode_e {
     RIG_EDOM,       /*!< 17 Argument out of domain of func */
     RIG_EDEPRECATED,/*!< 18 Function deprecated */
     RIG_ESECURITY,  /*!< 19 Security error */
-    RIG_EPOWER      /*!< 20 Rig not powered on */
+    RIG_EPOWER,     /*!, 20 Rig not powered on */
+    RIG_EEND        // MUST BE LAST ITEM IN LAST
 };
+/**
+ * @}
+ */
 
 /**
  * \brief Determines if the given error code indicates a "soft" error
