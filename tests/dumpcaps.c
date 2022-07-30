@@ -29,6 +29,7 @@
 
 #include "sprintflst.h"
 #include "rigctl_parse.h"
+#include "../rigs/icom/icom.h"
 
 void range_print(FILE *fout, const struct freq_range_list range_list[], int rx);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
@@ -292,10 +293,25 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "AGC levels:");
 
-    for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && i < caps->agc_level_count; i++)
+    const struct icom_priv_caps *priv_caps =
+        (const struct icom_priv_caps *) rig->caps->priv;
+
+    if (priv_caps->agc_levels_present)
     {
-        fprintf(fout, " %d=%s", caps->agc_levels[i],
-                rig_stragclevel(caps->agc_levels[i]));
+        for (i = 0; i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level != RIG_AGC_LAST
+                && priv_caps->agc_levels[i].icom_level >= 0; i++)
+        {
+            fprintf(fout, " %d=%s", priv_caps->agc_levels[i].level,
+                    rig_stragclevel(priv_caps->agc_levels[i].level));
+        }
+    }
+    else
+    {
+        for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && i < caps->agc_level_count; i++)
+        {
+            fprintf(fout, " %d=%s", caps->agc_levels[i],
+                    rig_stragclevel(caps->agc_levels[i]));
+        }
     }
 
     if (i == 0)

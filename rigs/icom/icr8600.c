@@ -106,7 +106,7 @@ static struct icom_priv_caps icr8600_priv_caps =
         { .level = RIG_AGC_FAST, .icom_level = 1 },
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
-        { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
     .spectrum_scope_caps = {
         .spectrum_line_length = 475,
@@ -131,7 +131,7 @@ const struct rig_caps icr8600_caps =
     RIG_MODEL(RIG_MODEL_ICR8600),
     .model_name = "IC-R8600",
     .mfg_name = "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_RECEIVER,

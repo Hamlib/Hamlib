@@ -131,7 +131,7 @@ static const struct icom_priv_caps ic756_priv_caps =
         { .level = RIG_AGC_FAST, .icom_level = 1 },
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
-        { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
 };
 
@@ -140,7 +140,7 @@ const struct rig_caps ic756_caps =
     RIG_MODEL(RIG_MODEL_IC756),
     .model_name = "IC-756",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -295,7 +295,7 @@ static const struct icom_priv_caps ic756pro_priv_caps =
         { .level = RIG_AGC_FAST, .icom_level = 1 },
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
-        { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_LAST, .icom_level = -2 },
     },
 };
 
@@ -304,7 +304,7 @@ const struct rig_caps ic756pro_caps =
     RIG_MODEL(RIG_MODEL_IC756PRO),
     .model_name = "IC-756PRO",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -467,7 +467,7 @@ static const struct icom_priv_caps ic756pro2_priv_caps =
         { .level = RIG_AGC_FAST, .icom_level = 1 },
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
-        { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
     .extcmds = ic756pro_cmdparms,   /* Custom op parameters */
 };
@@ -543,7 +543,7 @@ const struct rig_caps ic756pro2_caps =
     RIG_MODEL(RIG_MODEL_IC756PROII),
     .model_name = "IC-756PROII",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -898,7 +898,7 @@ static const struct icom_priv_caps ic756pro3_priv_caps =
         { .level = RIG_AGC_FAST, .icom_level = 1 },
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
-        { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
     .extcmds = ic756pro_cmdparms,   /* Custom op parameters */
 };
@@ -977,7 +977,7 @@ const struct rig_caps ic756pro3_caps =
     RIG_MODEL(RIG_MODEL_IC756PROIII),
     .model_name = "IC-756PROIII",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

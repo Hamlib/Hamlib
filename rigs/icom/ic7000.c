@@ -184,7 +184,7 @@ static const struct icom_priv_caps IC7000_priv_caps =
         { .level = RIG_AGC_FAST, .icom_level = 1 },
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
-        { .level = -1, .icom_level = 0 },
+        { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
     .extcmds = ic7000_extcmds,
     .r2i_mode = ic7000_r2i_mode
@@ -195,7 +195,7 @@ const struct rig_caps ic7000_caps =
     RIG_MODEL(RIG_MODEL_IC7000),
     .model_name = "IC-7000",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
