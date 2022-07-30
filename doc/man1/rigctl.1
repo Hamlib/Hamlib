@@ -858,7 +858,7 @@ Level is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOX\(cq, \(oqAF\(cq,
 The Level Value can be a float or an integer value.  For the AGC token the
 value is one of \(oq0\(cq = OFF, \(oq1\(cq = SUPERFAST, \(oq2\(cq = FAST,
 \(oq3\(cq = SLOW, \(oq4\(cq = USER, \(oq5\(cq = MEDIUM, \(oq6\(cq = AUTO.
-Note that not all values work on all rigs.
+Note that not all values work on all rigs.  To list usable values do "rigctl -m [modelnum] -u | grep AGC levels" or for Windows "rigctl -m [modelnum] -u | find "AGC levels"".
 .IP
 .BR Note :
 Passing a \(oq?\(cq (query) as the first argument instead of a Level token
