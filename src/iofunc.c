@@ -1379,7 +1379,7 @@ static int read_string_generic(hamlib_port_t *p,
             if (minlen < total_count)
             {
                 minlen = total_count;
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: minlen now %d\n", __func__, minlen);
+                //rig_debug(RIG_DEBUG_VERBOSE, "%s: minlen now %d\n", __func__, minlen);
             }
 
             break;
