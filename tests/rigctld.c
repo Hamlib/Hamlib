@@ -1210,10 +1210,13 @@ void *handle_socket(void *arg)
 
 #endif
 
-    mutex_rigctld(1);
-    rig_get_powerstat(my_rig, &rig_powerstat);
-    mutex_rigctld(0);
-    my_rig->state.powerstat = rig_powerstat;
+    if (my_rig->caps->get_powerstat)
+    {
+        mutex_rigctld(1);
+        rig_get_powerstat(my_rig, &rig_powerstat);
+        mutex_rigctld(0);
+        my_rig->state.powerstat = rig_powerstat;
+    }
 
     do
     {
@@ -1409,7 +1412,8 @@ void usage(void)
     usage_rig(stdout);
 
     printf("\nError codes and messages\n");
-    for(enum rig_errcode_e e = 0; e<RIG_EEND; ++e)
+
+    for (enum rig_errcode_e e = 0; e < RIG_EEND; ++e)
     {
         printf("-%d - %s", e, rigerror2(e));
     }
