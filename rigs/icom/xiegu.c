@@ -878,6 +878,9 @@ int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         return retval;
     }
 
+    // No 0xfb sent back by X5105
+    if (rig->caps->rig_model == RIG_MODEL_X5105) return RIG_OK;
+
     /* X108G doesn't quite follow ICOM protocol -- returns 0x1c instead of 0xfb */
     if (ackbuf[0] != 0xfb && (ack_len != 3 || ackbuf[0] != 0x1c))
     {
