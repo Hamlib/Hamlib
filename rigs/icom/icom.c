@@ -681,10 +681,27 @@ int icom_init(RIG *rig)
 
     // we can add rigs here that will never use the 0x25 cmd
     // some like the 751 don't even reject the command and have to time out
-    if (rig->caps->rig_model == RIG_MODEL_IC706
+    if (
+               rig->caps->rig_model == RIG_MODEL_IC375
+            || rig->caps->rig_model == RIG_MODEL_IC706
             || rig->caps->rig_model == RIG_MODEL_IC706MKII
             || rig->caps->rig_model == RIG_MODEL_IC706MKIIG
             || rig->caps->rig_model == RIG_MODEL_IC751
+            || rig->caps->rig_model == RIG_MODEL_X5105
+            || rig->caps->rig_model == RIG_MODEL_IC1275
+            || rig->caps->rig_model == RIG_MODEL_IC746
+            || rig->caps->rig_model == RIG_MODEL_IC756
+            || rig->caps->rig_model == RIG_MODEL_IC756PRO
+            || rig->caps->rig_model == RIG_MODEL_IC756PROII
+            || rig->caps->rig_model == RIG_MODEL_IC756PROIII
+            || rig->caps->rig_model == RIG_MODEL_IC746PRO
+            || rig->caps->rig_model == RIG_MODEL_IC756
+            || rig->caps->rig_model == RIG_MODEL_IC7000
+            || rig->caps->rig_model == RIG_MODEL_IC7100
+            || rig->caps->rig_model == RIG_MODEL_IC7200
+            || rig->caps->rig_model == RIG_MODEL_IC821H
+            || rig->caps->rig_model == RIG_MODEL_IC910
+            || rig->caps->rig_model == RIG_MODEL_IC2730
        )
     {
         priv->x25cmdfails = 1;
