@@ -1864,7 +1864,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
         }
     }
 
-    if (RIG_MODEL_X108G == rig->caps->rig_model)
+    if (RIG_MODEL_X108G == rig->caps->rig_model || RIG_MODEL_X5105)
     {
         priv->no_1a_03_cmd = ENUM_1A_03_NO;
     }
