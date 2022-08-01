@@ -796,7 +796,7 @@ static vfo_t icom_current_vfo_x25(RIG *rig)
         {
             // we can't change freqs unless rig is idle and we don't know that
             // so we only check vfo once when freqs are equal
-            rig_debug(RIG_DEBUG_TRACE, "%s: vfo already determined...returning current_vfo",
+            rig_debug(RIG_DEBUG_TRACE, "%s: vfo already determined...returning current_vfo\n",
                       __func__);
             return rig->state.current_vfo;
         }
