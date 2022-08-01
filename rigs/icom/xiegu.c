@@ -849,8 +849,8 @@ const struct rig_caps x5105_caps =
     .get_split_mode =  NULL,
     .set_split_vfo =  NULL,
     .get_split_vfo =  NULL,
-    .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
+    .set_powerstat = NULL,
+    .get_powerstat = NULL,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
