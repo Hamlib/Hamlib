@@ -4937,9 +4937,11 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
             /*
              * If answer is "KY0;", there is space in buffer and we can proceed.
              * If answer is "KY1;", we have to wait a while
+             * If answer is "KY2;", there is space in buffer and we aren't sending so we can proceed.
              * If answer is something else, return with error to prevent infinite loops
              */
             if (!strncmp(m2, "KY0", 3)) { break; }
+            if (!strncmp(m2, "KY2", 3)) { break; }
 
             if (!strncmp(m2, "KY1", 3)) { hl_usleep(500000); }
             else { RETURNFUNC(-RIG_EINVAL); }
