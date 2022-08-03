@@ -319,8 +319,8 @@ const struct rig_caps x108g_caps =
     .get_split_mode =  icom_get_split_mode,
     .set_split_vfo =  x108g_set_split_vfo,
     .get_split_vfo =  NULL,
-    .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
+    //.set_powerstat = icom_set_powerstat,
+    //.get_powerstat = icom_get_powerstat,
 
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
@@ -497,8 +497,8 @@ const struct rig_caps x6100_caps =
     //.get_split_mode =  icom_get_split_mode,
     //.set_split_vfo =  x108g_set_split_vfo,
     //.get_split_vfo =  NULL,
-    .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
+    //.set_powerstat = icom_set_powerstat,
+    //.get_powerstat = icom_get_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -673,8 +673,8 @@ const struct rig_caps g90_caps =
     //.get_split_mode =  icom_get_split_mode,
     //.set_split_vfo =  x108g_set_split_vfo,
     //.get_split_vfo =  NULL,
-    .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
+    //.set_powerstat = icom_set_powerstat,
+    //.get_powerstat = icom_get_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
