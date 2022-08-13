@@ -25,9 +25,6 @@
 #ifndef _EK89X_H
 #define _EK89X_H 1
 
-#undef BACKEND_VER
-#define BACKEND_VER "20220728"
-
 #include <hamlib/rig.h>
 
 

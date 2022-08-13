@@ -496,6 +496,8 @@ static const struct
     { RIG_MODE_SPEC, "SPEC"},
     { RIG_MODE_CWN, "CWN"},
     { RIG_MODE_IQ, "IQ"},
+    { RIG_MODE_ISBUSB, "ISBUSB"},
+    { RIG_MODE_ISBLSB, "ISBLSB"},
     { RIG_MODE_NONE, "" },
 };
 

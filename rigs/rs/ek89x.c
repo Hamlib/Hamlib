@@ -104,7 +104,7 @@ ek89x_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char freqbuf[32];
     int retval;
     // cppcheck-suppress *
-    char *fmt = BOM "F%" PRIll ",%" PRIll EOM;
+    char *fmt = BOM "F%" PRIll EOM;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s,freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
@@ -163,6 +163,14 @@ ek89x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     case RIG_MODE_LSB:
         smode = "16";
+        break;
+
+    case RIG_MODE_ISBUSB:
+        smode = "17";
+        break;
+
+    case RIG_MODE_ISBLSB:
+        smode = "18";
         break;
 
     default:
@@ -512,9 +520,9 @@ const struct rig_caps ek89x_caps =
     RIG_MODEL(RIG_MODEL_EK89X),
     .model_name = "EK895/6",
     .mfg_name = "Rohde&Schwarz",
-    .version = BACKEND_VER ".1",
+    .version = "20220813.0",
     .copyright = "LGPL",
-    .status = RIG_STATUS_ALPHA,
+    .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_RECEIVER,
     .ptt_type = RIG_PTT_NONE,
     // Need to set RTS on for some reason
@@ -522,7 +530,7 @@ const struct rig_caps ek89x_caps =
     .dcd_type = RIG_DCD_NONE,
     .port_type = RIG_PORT_SERIAL,
     .serial_rate_min = 9600,
-    .serial_rate_max = 38400, 
+    .serial_rate_max = 38400,
     .serial_data_bits = 7,
     .serial_stop_bits = 1,
     .serial_parity = RIG_PARITY_ODD,
