@@ -38,6 +38,7 @@ extern const struct rot_caps rotorcard_rot_caps;
 extern const struct rot_caps dcu_rot_caps;
 extern const struct rot_caps erc_rot_caps;
 extern const struct rot_caps rt21_rot_caps;
+extern const struct rot_caps yrc1_rot_caps;
 
 /*
  * Tokens used by rotorez_rot_set_conf and the 'C' command in rotctl

@@ -301,6 +301,53 @@ const struct rot_caps erc_rot_caps =
 
 };
 
+/*
+ * Rotor capabilities for Hy-Gain YRC-1 compatible with DF9GR ERC
+ *
+ * TODO: Learn of additional capabilities of the ERC
+ */
+
+const struct rot_caps yrc1_rot_caps =
+{
+    ROT_MODEL(ROT_MODEL_YRC1),
+    .model_name =       "DCU2/DCU3/YRC-1",
+    .mfg_name =         "Hy-Gain",
+    .version =          "20100823.2",      
+    .copyright =        "LGPL",
+    .status =           RIG_STATUS_STABLE,
+    .rot_type =         ROT_TYPE_OTHER,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  4800,
+    .serial_rate_max =  4800,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity =    RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay =      0,
+    .post_write_delay = 500,
+    .timeout =          1500,
+    .retry =            2,
+
+    .min_az =           0,
+    .max_az =           360,
+    .min_el =           0,
+    .max_el =           0,
+
+    .priv =             NULL,   /* priv */
+//  .cfgparams =        rotorez_cfg_params,
+
+    .rot_init =         rotorez_rot_init,
+    .rot_cleanup =      rotorez_rot_cleanup,
+    .set_position =     rotorez_rot_set_position,
+    .get_position =     erc_rot_get_position,
+    .stop =             dcu1_rot_stop,
+    .reset =            rotorez_rot_reset,
+//  .stop =             rotorez_rot_stop,
+//  .set_conf =         rotorez_rot_set_conf,
+    .get_info =         rotorez_rot_get_info,
+
+};
+
 
 const struct rot_caps rt21_rot_caps =
 {
@@ -1098,6 +1145,7 @@ DECLARE_INITROT_BACKEND(rotorez)
     rot_register(&dcu_rot_caps);
     rot_register(&erc_rot_caps);
     rot_register(&rt21_rot_caps);
+    rot_register(&yrc1_rot_caps);
 
     return RIG_OK;
 }
