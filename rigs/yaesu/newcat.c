@@ -771,7 +771,16 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     ENTERFUNC;
 
-    if (newcat_60m_exception(rig, freq)) { RETURNFUNC(RIG_OK); } // we don't set freq in this case
+    if (newcat_60m_exception(rig, freq)) 
+    { 
+        // we don't try to set freq on 60m for some rigs since we must be in memory mode
+        // and we can't run split mode on 60M memory mode either
+        if (rig->state.cache.split == RIG_SPLIT_ON)
+        {
+            rig_set_split_vfo(rig, RIG_VFO_A, RIG_VFO_A, RIG_SPLIT_OFF);
+        }
+        RETURNFUNC(RIG_OK);
+    } // we don't set freq in this case
 
     if (!newcat_valid_command(rig, "FA"))
     {
