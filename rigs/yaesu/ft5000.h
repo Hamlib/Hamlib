@@ -141,7 +141,7 @@
 /* Delay between bytes sent to FT-5000
  * Should not exceed value set in CAT TOT menu (rig default is 10 mSec)
  */
-#define FTDX5000_WRITE_DELAY                    0
+#define FTDX5000_WRITE_DELAY                    1
 
 
 /* Delay sequential fast writes */
