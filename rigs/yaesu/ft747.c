@@ -303,7 +303,7 @@ const struct rig_caps ft747_caps =
     RIG_MODEL(RIG_MODEL_FT747),
     .model_name =       "FT-747GX",
     .mfg_name =         "Yaesu",
-    .version =           "20220327.0",
+    .version =           "20220817.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_MOBILE,
@@ -551,7 +551,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     p = (struct ft747_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "ft747: requested freq = %"PRIfreq" Hz \n", freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "ft747: requested freq = %"PRIfreq" Hz vfo = %s \n", freq, rig_strvfo(vfo));
 
     /*
      * Copy native cmd freq_set to private cmd storage area
@@ -569,6 +569,11 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_force_cache_timeout(&p->status_tv);
 
     cmd = p->p_cmd; /* get native sequence */
+    cmd[0] = 0x01;
+    cmd[1] = 0x02;
+    cmd[2] = 0x03;
+    cmd[3] = 0x04;
+    cmd[4] = 0x05;
     return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
@@ -583,7 +588,7 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     freq_t f;
     int ret;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     p = (struct ft747_priv_data *)rig->state.priv;
 
@@ -599,15 +604,15 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
     case RIG_VFO_CURR:
         /* grab freq and convert */
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]), 8);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]), 7);
         break;
 
     case RIG_VFO_A:
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]), 8);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]), 7);
         break;
 
     case RIG_VFO_B:
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]), 8);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]), 7);
         break;
 
     default:
@@ -617,7 +622,7 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "ft747:  freq = %"PRIfreq" Hz  for VFO = %s\n",
               f, rig_strvfo(vfo));
 
-    (*freq) = f;          /* return displayed frequency */
+    (*freq) = f * 10;          /* return displayed frequency */
 
     return RIG_OK;
 }
