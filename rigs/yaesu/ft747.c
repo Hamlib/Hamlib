@@ -150,8 +150,8 @@ typedef enum ft747_native_cmd_e ft747_native_cmd_t;
 #define FT747_SUMO_DISPLAYED_MODE             0x18
 #define FT747_SUMO_DISPLAYED_STATUS           0x00
 #define FT747_SUMO_DISPLAYED_FREQ             0x01
-#define FT747_SUMO_VFO_A_FREQ                 0x08
-#define FT747_SUMO_VFO_B_FREQ                 0x10
+#define FT747_SUMO_VFO_A_FREQ                 0x09
+#define FT747_SUMO_VFO_B_FREQ                 0x11
 
 
 
@@ -622,7 +622,7 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "ft747:  freq = %"PRIfreq" Hz  for VFO = %s\n",
               f, rig_strvfo(vfo));
 
-    (*freq) = f * 10;          /* return displayed frequency */
+    (*freq) = f;          /* return displayed frequency */
 
     return RIG_OK;
 }
