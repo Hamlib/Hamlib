@@ -303,7 +303,7 @@ const struct rig_caps ft747_caps =
     RIG_MODEL(RIG_MODEL_FT747),
     .model_name =       "FT-747GX",
     .mfg_name =         "Yaesu",
-    .version =           "20220817.0",
+    .version =           "20220818.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_MOBILE,
@@ -604,15 +604,15 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
     case RIG_VFO_CURR:
         /* grab freq and convert */
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]), 7);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]), 9);
         break;
 
     case RIG_VFO_A:
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]), 7);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]), 9);
         break;
 
     case RIG_VFO_B:
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]), 7);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]), 9);
         break;
 
     default:
