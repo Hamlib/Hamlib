@@ -150,8 +150,8 @@ typedef enum ft747_native_cmd_e ft747_native_cmd_t;
 #define FT747_SUMO_DISPLAYED_MODE             0x18
 #define FT747_SUMO_DISPLAYED_STATUS           0x00
 #define FT747_SUMO_DISPLAYED_FREQ             0x01
-#define FT747_SUMO_VFO_A_FREQ                 0x09
-#define FT747_SUMO_VFO_B_FREQ                 0x11
+#define FT747_SUMO_VFO_A_FREQ                 0x08
+#define FT747_SUMO_VFO_B_FREQ                 0x10
 
 
 
@@ -604,15 +604,15 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
     case RIG_VFO_CURR:
         /* grab freq and convert */
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]), 9);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]), 8);
         break;
 
     case RIG_VFO_A:
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]), 9);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]), 8);
         break;
 
     case RIG_VFO_B:
-        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]), 9);
+        f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]), 8);
         break;
 
     default:
