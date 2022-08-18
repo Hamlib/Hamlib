@@ -590,8 +590,10 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    p = (struct ft747_priv_data *)rig->state.priv;
+    if (vfo == RIG_VFO_CURR) vfo = rig->state.cache.vfo;
+    if (rig->state.cache.ptt == RIG_PTT_ON) return vfo == RIG_VFO_B? rig->state.cache.freqMainB : rig->state.cache.freqMainA;
 
+    p = (struct ft747_priv_data *)rig->state.priv;
     ret = ft747_get_update_data(rig); /* get whole shebang from rig */
 
     if (ret < 0)
