@@ -588,7 +588,7 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     freq_t f;
     int ret;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called vfo=%s\n", __func__, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called vfo=%s, freqMainA=%.0f, freqMainB=%.0f\n", __func__, rig_strvfo(vfo), rig->state.cache.freqMainA, rig->state.cache.freqMainB);
 
     if (vfo == RIG_VFO_CURR) vfo = rig->state.cache.vfo;
     if (rig->state.cache.ptt == RIG_PTT_ON) 
