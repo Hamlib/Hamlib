@@ -1008,7 +1008,7 @@ static int ft747_get_update_data(RIG *rig)
     p = (struct ft747_priv_data *)rig->state.priv;
     rigport = &rig->state.rigport;
 
-    if (!rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
+    if (rig->state.cache.ptt == RIG_PTT_ON || !rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
     {
         return RIG_OK;
     }
