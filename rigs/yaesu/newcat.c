@@ -10381,6 +10381,8 @@ int newcat_get_cmd(RIG *rig)
 
                 rig_debug(RIG_DEBUG_WARN, "%s: Rig busy - retrying %d of %d: '%s'\n", __func__,
                           retry_count, state->rigport.retry, priv->cmd_str);
+                // DX3000 was taking 1.6 seconds in certain command sequences
+                hl_usleep(600*1000); // 600ms wait should cover most cases hopefully
 
                 rc = -RIG_ERJCTED; /* retry */
                 break;
