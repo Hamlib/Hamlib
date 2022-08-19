@@ -303,7 +303,7 @@ const struct rig_caps ft747_caps =
     RIG_MODEL(RIG_MODEL_FT747),
     .model_name =       "FT-747GX",
     .mfg_name =         "Yaesu",
-    .version =           "20220818.0",
+    .version =           "20220819.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_MOBILE,
@@ -591,7 +591,11 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     if (vfo == RIG_VFO_CURR) vfo = rig->state.cache.vfo;
-    if (rig->state.cache.ptt == RIG_PTT_ON) return vfo == RIG_VFO_B? rig->state.cache.freqMainB : rig->state.cache.freqMainA;
+    if (rig->state.cache.ptt == RIG_PTT_ON) 
+    {
+        *freq = RIG_VFO_B? rig->state.cache.freqMainB : rig->state.cache.freqMainA;
+        return RIG_OK;
+    }
 
     p = (struct ft747_priv_data *)rig->state.priv;
     ret = ft747_get_update_data(rig); /* get whole shebang from rig */
