@@ -682,7 +682,8 @@ int icom_init(RIG *rig)
     // we can add rigs here that will never use the 0x25 cmd
     // some like the 751 don't even reject the command and have to time out
     if (
-               rig->caps->rig_model == RIG_MODEL_IC375
+               rig->caps->rig_model == RIG_MODEL_IC275
+            || rig->caps->rig_model == RIG_MODEL_IC375
             || rig->caps->rig_model == RIG_MODEL_IC706
             || rig->caps->rig_model == RIG_MODEL_IC706MKII
             || rig->caps->rig_model == RIG_MODEL_IC706MKIIG
