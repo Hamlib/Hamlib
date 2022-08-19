@@ -333,7 +333,7 @@ const struct rig_caps ft747_caps =
     .max_rit =           Hz(0), /* 9999 */
     .max_xit =           Hz(0),
     .max_ifshift =       Hz(0),
-    .targetable_vfo =    0,
+    .targetable_vfo =    RIG_TARGETABLE_FREQ,
     .transceive =        RIG_TRN_OFF,
     .bank_qty =          0,
     .chan_desc_sz =      0,
@@ -343,18 +343,14 @@ const struct rig_caps ft747_caps =
         RIG_CHAN_END,
     },
 
-    .rx_range_list1 =    { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-
-    .tx_range_list1 =    { RIG_FRNG_END, },
-
-    .rx_range_list2 =    { {
+    .rx_range_list1 =    { {
             .startf = kHz(100), .endf = 29999900,
             .modes = FT747_ALL_RX_MODES, .low_power = -1, .high_power = -1, .vfo = FT747_VFOS
         },
         RIG_FRNG_END,
     }, /* rx range */
 
-    .tx_range_list2 =    { {kHz(1500), 1999900, FT747_OTHER_TX_MODES, .low_power = 5000, .high_power = 100000, .vfo = FT747_VFOS}, /* 100W class */
+    .tx_range_list1 =    { {kHz(1500), 1999900, FT747_OTHER_TX_MODES, .low_power = 5000, .high_power = 100000, .vfo = FT747_VFOS}, /* 100W class */
 
         {.startf = kHz(1500), .endf = 1999900, FT747_AM_TX_MODES, .low_power = 2000, .high_power = 25000, .vfo = FT747_VFOS}, /* 25W class */
 
