@@ -569,11 +569,6 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_force_cache_timeout(&p->status_tv);
 
     cmd = p->p_cmd; /* get native sequence */
-    cmd[0] = 0x01;
-    cmd[1] = 0x02;
-    cmd[2] = 0x03;
-    cmd[3] = 0x04;
-    cmd[4] = 0x05;
     return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
 
