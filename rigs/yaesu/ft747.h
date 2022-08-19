@@ -67,10 +67,9 @@
  * rig_get_mode() in a row.
  *
  * The timeout is set to at least the time to transfer the block (790ms)
- * plus post write delay, plus some margin, but less than 1 second,
- * which may be typical polling period.
+ * plus post write delay, plus some margin as get_freq was taking > 1000ms
  */
-#define FT747_CACHE_TIMEOUT     900
+#define FT747_CACHE_TIMEOUT    1500 
 
 
 #endif /* _FT747_H */
