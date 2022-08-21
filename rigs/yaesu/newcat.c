@@ -608,6 +608,18 @@ int newcat_open(RIG *rig)
                       rigerror(err));
         }
     }
+    if (priv->rig_id == NC_RIGID_FTDX3000)
+    {
+        int err;
+        // set the CAT TIME OUT TIMER to 100ms
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0391;");
+
+        if (RIG_OK != (err = newcat_set_cmd(rig)))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__,
+                      rigerror(err));
+        }
+    }
 
     RETURNFUNC(RIG_OK);
 }
@@ -2561,7 +2573,9 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     }
 
     // we assume split is always on VFO_B
-    if (*tx_vfo == RIG_VFO_B || *tx_vfo == RIG_VFO_SUB)
+    //if (*tx_vfo == RIG_VFO_B || *tx_vfo == RIG_VFO_SUB)
+    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s, curr_vfo=%s\n", __func__, rig_strvfo(*tx_vfo), rig_strvfo(rig->state.current_vfo));
+    if (*tx_vfo != rig->state.current_vfo)
     {
         *split = RIG_SPLIT_ON;
     }
