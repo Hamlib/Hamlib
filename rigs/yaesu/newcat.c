@@ -7531,6 +7531,8 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
     {
         HAMLIB_TRACE;
         p1 = p1 + 2;    /* use non-Toggle commands */
+        // If VFOB is active then we change VFOB with FT3 instead of VFOA
+        if (rig->state.current_vfo == RIG_VFO_B) p1++; 
     }
 
     if (is_ftdx101d || is_ftdx101mp)
