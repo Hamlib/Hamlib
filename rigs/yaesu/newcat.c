@@ -590,7 +590,7 @@ int newcat_open(RIG *rig)
 
 #endif
 
-    if (priv->rig_id == NC_RIGID_FTDX3000)
+    if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
         rig->state.disable_yaesu_bandselect = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: disabling FTDX3000 band select\n", __func__);
@@ -608,7 +608,7 @@ int newcat_open(RIG *rig)
                       rigerror(err));
         }
     }
-    if (priv->rig_id == NC_RIGID_FTDX3000)
+    if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
         int err;
         // set the CAT TIME OUT TIMER to 100ms
@@ -10459,7 +10459,7 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "FA;");
 
-        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000)
+        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000 || priv->rig_id == NC_RIGID_FTDX3000DM)
         {
             strcpy(valcmd, "");
         }
@@ -10468,7 +10468,7 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "FB;");
 
-        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000)
+        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000 || priv->rig_id == NC_RIGID_FTDX3000DM)
         {
             strcpy(valcmd, "");
         }
