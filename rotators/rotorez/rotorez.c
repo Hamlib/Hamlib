@@ -312,7 +312,7 @@ const struct rot_caps yrc1_rot_caps =
     ROT_MODEL(ROT_MODEL_YRC1),
     .model_name =       "DCU2/DCU3/YRC-1",
     .mfg_name =         "Hy-Gain",
-    .version =          "20100823.2",      
+    .version =          "20100823.2",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_OTHER,
