@@ -296,13 +296,13 @@ int main(int argc, char *argv[])
         {
             SNPRINTF(buf, sizeof(buf), "DA%d;", datamode);
             n = write(fd, buf, strlen(buf));
-            printf("%s\n",buf);
+            printf("%s\n", buf);
             continue;
         }
         else if (strncmp(buf, "DA", 2) == 0)
         {
             sscanf(buf, "DA%d", &datamode);
-            printf("%s\n",buf);
+            printf("%s\n", buf);
             continue;
         }
         else if (strncmp(buf, "BD;", 3) == 0)

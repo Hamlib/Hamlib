@@ -547,7 +547,8 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     p = (struct ft747_priv_data *)rig->state.priv;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "ft747: requested freq = %"PRIfreq" Hz vfo = %s \n", freq, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "ft747: requested freq = %"PRIfreq" Hz vfo = %s \n", freq, rig_strvfo(vfo));
 
     /*
      * Copy native cmd freq_set to private cmd storage area
@@ -579,12 +580,15 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     freq_t f;
     int ret;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called vfo=%s, freqMainA=%.0f, freqMainB=%.0f\n", __func__, rig_strvfo(vfo), rig->state.cache.freqMainA, rig->state.cache.freqMainB);
+    rig_debug(RIG_DEBUG_VERBOSE,
+              "%s: called vfo=%s, freqMainA=%.0f, freqMainB=%.0f\n", __func__,
+              rig_strvfo(vfo), rig->state.cache.freqMainA, rig->state.cache.freqMainB);
 
-    if (vfo == RIG_VFO_CURR) vfo = rig->state.cache.vfo;
-    if (rig->state.cache.ptt == RIG_PTT_ON) 
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.cache.vfo; }
+
+    if (rig->state.cache.ptt == RIG_PTT_ON)
     {
-        *freq = RIG_VFO_B? rig->state.cache.freqMainB : rig->state.cache.freqMainA;
+        *freq = RIG_VFO_B ? rig->state.cache.freqMainB : rig->state.cache.freqMainA;
         return RIG_OK;
     }
 
@@ -999,7 +1003,8 @@ static int ft747_get_update_data(RIG *rig)
     p = (struct ft747_priv_data *)rig->state.priv;
     rigport = &rig->state.rigport;
 
-    if (rig->state.cache.ptt == RIG_PTT_ON || !rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
+    if (rig->state.cache.ptt == RIG_PTT_ON
+            || !rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
     {
         return RIG_OK;
     }

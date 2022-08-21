@@ -682,28 +682,28 @@ int icom_init(RIG *rig)
     // we can add rigs here that will never use the 0x25 cmd
     // some like the 751 don't even reject the command and have to time out
     if (
-               rig->caps->rig_model == RIG_MODEL_IC275
-            || rig->caps->rig_model == RIG_MODEL_IC375
-            || rig->caps->rig_model == RIG_MODEL_IC706
-            || rig->caps->rig_model == RIG_MODEL_IC706MKII
-            || rig->caps->rig_model == RIG_MODEL_IC706MKIIG
-            || rig->caps->rig_model == RIG_MODEL_IC751
-            || rig->caps->rig_model == RIG_MODEL_X5105
-            || rig->caps->rig_model == RIG_MODEL_IC1275
-            || rig->caps->rig_model == RIG_MODEL_IC746
-            || rig->caps->rig_model == RIG_MODEL_IC756
-            || rig->caps->rig_model == RIG_MODEL_IC756PRO
-            || rig->caps->rig_model == RIG_MODEL_IC756PROII
-            || rig->caps->rig_model == RIG_MODEL_IC756PROIII
-            || rig->caps->rig_model == RIG_MODEL_IC746PRO
-            || rig->caps->rig_model == RIG_MODEL_IC756
-            || rig->caps->rig_model == RIG_MODEL_IC7000
-            || rig->caps->rig_model == RIG_MODEL_IC7100
-            || rig->caps->rig_model == RIG_MODEL_IC7200
-            || rig->caps->rig_model == RIG_MODEL_IC821H
-            || rig->caps->rig_model == RIG_MODEL_IC910
-            || rig->caps->rig_model == RIG_MODEL_IC2730
-       )
+        rig->caps->rig_model == RIG_MODEL_IC275
+        || rig->caps->rig_model == RIG_MODEL_IC375
+        || rig->caps->rig_model == RIG_MODEL_IC706
+        || rig->caps->rig_model == RIG_MODEL_IC706MKII
+        || rig->caps->rig_model == RIG_MODEL_IC706MKIIG
+        || rig->caps->rig_model == RIG_MODEL_IC751
+        || rig->caps->rig_model == RIG_MODEL_X5105
+        || rig->caps->rig_model == RIG_MODEL_IC1275
+        || rig->caps->rig_model == RIG_MODEL_IC746
+        || rig->caps->rig_model == RIG_MODEL_IC756
+        || rig->caps->rig_model == RIG_MODEL_IC756PRO
+        || rig->caps->rig_model == RIG_MODEL_IC756PROII
+        || rig->caps->rig_model == RIG_MODEL_IC756PROIII
+        || rig->caps->rig_model == RIG_MODEL_IC746PRO
+        || rig->caps->rig_model == RIG_MODEL_IC756
+        || rig->caps->rig_model == RIG_MODEL_IC7000
+        || rig->caps->rig_model == RIG_MODEL_IC7100
+        || rig->caps->rig_model == RIG_MODEL_IC7200
+        || rig->caps->rig_model == RIG_MODEL_IC821H
+        || rig->caps->rig_model == RIG_MODEL_IC910
+        || rig->caps->rig_model == RIG_MODEL_IC2730
+    )
     {
         priv->x25cmdfails = 1;
     }
@@ -814,7 +814,8 @@ static vfo_t icom_current_vfo_x25(RIG *rig)
         {
             // we can't change freqs unless rig is idle and we don't know that
             // so we only check vfo once when freqs are equal
-            rig_debug(RIG_DEBUG_TRACE, "%s: vfo already determined...returning current_vfo\n",
+            rig_debug(RIG_DEBUG_TRACE,
+                      "%s: vfo already determined...returning current_vfo\n",
                       __func__);
             return rig->state.current_vfo;
         }
@@ -1882,7 +1883,8 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
         }
     }
 
-    if (RIG_MODEL_X108G == rig->caps->rig_model || RIG_MODEL_X5105 == rig->caps->rig_model)
+    if (RIG_MODEL_X108G == rig->caps->rig_model
+            || RIG_MODEL_X5105 == rig->caps->rig_model)
     {
         priv->no_1a_03_cmd = ENUM_1A_03_NO;
     }
@@ -3455,7 +3457,8 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             int found = 0;
 
             for (i = 0;
-                    i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level != RIG_AGC_LAST && priv_caps->agc_levels[i].icom_level >= 0; i++)
+                    i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level != RIG_AGC_LAST
+                    && priv_caps->agc_levels[i].icom_level >= 0; i++)
             {
                 if (priv_caps->agc_levels[i].level == val.i)
                 {

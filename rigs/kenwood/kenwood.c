@@ -4941,6 +4941,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
              * If answer is something else, return with error to prevent infinite loops
              */
             if (!strncmp(m2, "KY0", 3)) { break; }
+
             if (!strncmp(m2, "KY2", 3)) { break; }
 
             if (!strncmp(m2, "KY1", 3)) { hl_usleep(500000); }

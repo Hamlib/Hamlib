@@ -142,13 +142,14 @@ again:
 
         case 0xF7: printf("READ TX STATUS\n"); break;
 
-        case 0x03: 
-            printf("READ RX STATUS\n"); 
+        case 0x03:
+            printf("READ RX STATUS\n");
             buf[0] = buf[1] = buf[2] = buf[3] = 0;
-            buf[4] = 0x03; n = write(fd, buf, 5); 
+            buf[4] = 0x03; n = write(fd, buf, 5);
             break;
 
-        case 0xbb: buf[0] = buf[1] = 0;printf("READ EPROM\n"); n = write(fd, buf, 2);break;
+        case 0xbb: buf[0] = buf[1] = 0; printf("READ EPROM\n"); n = write(fd, buf, 2);
+            break;
 
         default: printf("Unknown cmd=%02x\n", buf[4]);
         }

@@ -296,7 +296,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     const struct icom_priv_caps *priv_caps =
         (const struct icom_priv_caps *) rig->caps->priv;
 
-    if (priv_caps && RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM && priv_caps->agc_levels_present)
+    if (priv_caps && RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM
+            && priv_caps->agc_levels_present)
     {
         for (i = 0; i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level != RIG_AGC_LAST
                 && priv_caps->agc_levels[i].icom_level >= 0; i++)
