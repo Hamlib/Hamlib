@@ -607,6 +607,8 @@ int newcat_open(RIG *rig)
             rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__,
                       rigerror(err));
         }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX033;");
+        newcat_get_cmd(rig);
     }
     if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
@@ -619,6 +621,8 @@ int newcat_open(RIG *rig)
             rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__,
                       rigerror(err));
         }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX039;");
+        newcat_get_cmd(rig);
     }
 
     RETURNFUNC(RIG_OK);
