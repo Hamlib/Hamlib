@@ -244,7 +244,7 @@ const struct rig_caps ftdx3000_caps =
     RIG_MODEL(RIG_MODEL_FTDX3000),
     .model_name =         "FTDX-3000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".7",
+    .version =            NEWCAT_VER ".8",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -259,7 +259,7 @@ const struct rig_caps ftdx3000_caps =
     .serial_handshake =   RIG_HANDSHAKE_HARDWARE,
     // write_delay 5ms or less was causing VS1;VS; to answer with VS0 instead of VS1 even though change did occur
     // see https://github.com/Hamlib/Hamlib/issues/906
-    .write_delay =        1,
+    .write_delay =        0, // delay of 1 broke rigctl -- all ? responses
     .post_write_delay =   FTDX5000_POST_WRITE_DELAY,
     .timeout =            2000,
     .retry =              3,
