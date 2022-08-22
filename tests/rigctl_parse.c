@@ -1745,9 +1745,8 @@ readline_repeat:
                 && cmd_entry->cmd != 0xf0 // chk_vfo
                 && cmd_entry->cmd != 0x87) // set_powerstat
         {
-            //rig_debug(RIG_DEBUG_WARN, "%s: %s - only \\set_powerstat can be run \n", __func__, rigerror(-RIG_EPOWER));
             rig_debug(RIG_DEBUG_WARN,
-                      "%s: only \\set_powerstat can be run when rig powered off\n", __func__);
+                      "%s: command %s not allowed when rig is powered off\n", __func__, cmd_entry->name);
             retcode = -RIG_EPOWER;
         }
         else
