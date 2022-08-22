@@ -1737,10 +1737,11 @@ readline_repeat:
             if (retcode == RIG_OK) { rig_powerstat = stat; }
         }
 
-        // only command allows when powered off is 0x87=set_powerstat
-        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF
-                                  || rig_powerstat == RIG_POWER_STANDBY)
-                && cmd_entry->cmd != 0x01 // dump_caps
+        // Allow only certain commands when the rig is powered off
+        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY)
+                && cmd_entry->cmd != '1' // dump_caps
+                && cmd_entry->cmd != '3' // dump_conf
+                && cmd_entry->cmd != 0x8f // dump_state
                 && cmd_entry->cmd != 0xf0 // chk_vfo
                 && cmd_entry->cmd != 0x87) // set_powerstat
         {

@@ -176,7 +176,8 @@ enum rig_errcode_e {
  */
 #define RIG_IS_SOFT_ERRCODE(errcode) (errcode == RIG_EINVAL || errcode == RIG_ENIMPL || errcode == RIG_ERJCTED \
     || errcode == RIG_ETRUNC || errcode == RIG_ENAVAIL || errcode == RIG_ENTARGET \
-    || errcode == RIG_EVFO || errcode == RIG_EDOM || errcode == RIG_ESECURITY)
+    || errcode == RIG_EVFO || errcode == RIG_EDOM || errcode == RIG_EDEPRECATED \
+    || errcode == RIG_ESECURITY || errcode == RIG_EPOWER)
 
 /**
  * \brief Token in the netrigctl protocol for returning error code
