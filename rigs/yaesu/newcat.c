@@ -607,9 +607,8 @@ int newcat_open(RIG *rig)
             rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__,
                       rigerror(err));
         }
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX033;");
-        newcat_get_cmd(rig);
     }
+
     if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
         int err;
@@ -621,8 +620,6 @@ int newcat_open(RIG *rig)
             rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__,
                       rigerror(err));
         }
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX039;");
-        newcat_get_cmd(rig);
     }
 
     RETURNFUNC(RIG_OK);
@@ -2578,7 +2575,9 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     // we assume split is always on VFO_B
     //if (*tx_vfo == RIG_VFO_B || *tx_vfo == RIG_VFO_SUB)
-    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s, curr_vfo=%s\n", __func__, rig_strvfo(*tx_vfo), rig_strvfo(rig->state.current_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s, curr_vfo=%s\n", __func__,
+              rig_strvfo(*tx_vfo), rig_strvfo(rig->state.current_vfo));
+
     if (*tx_vfo != rig->state.current_vfo)
     {
         *split = RIG_SPLIT_ON;
@@ -7531,8 +7530,9 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
     {
         HAMLIB_TRACE;
         p1 = p1 + 2;    /* use non-Toggle commands */
+
         // If VFOB is active then we change VFOB with FT3 instead of VFOA
-        if (rig->state.current_vfo == RIG_VFO_B) p1++; 
+        if (rig->state.current_vfo == RIG_VFO_B) { p1++; }
     }
 
     if (is_ftdx101d || is_ftdx101mp)
@@ -10465,7 +10465,8 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "FA;");
 
-        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000 || priv->rig_id == NC_RIGID_FTDX3000DM)
+        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000
+                || priv->rig_id == NC_RIGID_FTDX3000DM)
         {
             strcpy(valcmd, "");
         }
@@ -10474,7 +10475,8 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "FB;");
 
-        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000 || priv->rig_id == NC_RIGID_FTDX3000DM)
+        if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX5000
+                || priv->rig_id == NC_RIGID_FTDX3000DM)
         {
             strcpy(valcmd, "");
         }
@@ -10544,6 +10546,17 @@ int newcat_set_cmd_validate(RIG *rig)
     else if (strncmp(priv->cmd_str, "BD", 2) == 0)
     {
         strcpy(valcmd, "FA;"); // nothing to validate
+    }
+    else if (strncmp(priv->cmd_str, "EX", 2) == 0)
+    {
+        char *p = strchr(priv->cmd_str, ';');
+
+        if (p)
+        {
+            strcpy(valcmd, priv->cmd_str); // we query the same number
+            *p = '\0';
+            *(p - 1) = ';';
+        }
     }
     else
     {
