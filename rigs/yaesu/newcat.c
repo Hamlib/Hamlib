@@ -481,6 +481,26 @@ int newcat_init(RIG *rig)
     priv->current_mem = NC_MEM_CHANNEL_NONE;
     priv->fast_set_commands = FALSE;
 
+    /*
+     * Determine the type of rig from the model number.  Note it is
+     * possible for several model variants to exist; i.e., all the
+     * FT-9000 variants.
+     */
+
+    is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
+    is_ft891 = newcat_is_rig(rig, RIG_MODEL_FT891);
+    is_ft950 = newcat_is_rig(rig, RIG_MODEL_FT950);
+    is_ft991 = newcat_is_rig(rig, RIG_MODEL_FT991);
+    is_ft2000 = newcat_is_rig(rig, RIG_MODEL_FT2000);
+    is_ftdx9000 = newcat_is_rig(rig, RIG_MODEL_FT9000);
+    is_ftdx5000 = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
+    is_ftdx1200 = newcat_is_rig(rig, RIG_MODEL_FTDX1200);
+    is_ftdx3000 = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
+    is_ftdx3000dm = FALSE; // Detected dynamically
+    is_ftdx101d = newcat_is_rig(rig, RIG_MODEL_FTDX101D);
+    is_ftdx101mp = newcat_is_rig(rig, RIG_MODEL_FTDX101MP);
+    is_ftdx10 = newcat_is_rig(rig, RIG_MODEL_FTDX10);
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -7326,26 +7346,6 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
         RETURNFUNC2(FALSE);
     }
 
-    /*
-     * Determine the type of rig from the model number.  Note it is
-     * possible for several model variants to exist; i.e., all the
-     * FT-9000 variants.
-     */
-
-    is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
-    is_ft891 = newcat_is_rig(rig, RIG_MODEL_FT891);
-    is_ft950 = newcat_is_rig(rig, RIG_MODEL_FT950);
-    is_ft991 = newcat_is_rig(rig, RIG_MODEL_FT991);
-    is_ft2000 = newcat_is_rig(rig, RIG_MODEL_FT2000);
-    is_ftdx9000 = newcat_is_rig(rig, RIG_MODEL_FT9000);
-    is_ftdx5000 = newcat_is_rig(rig, RIG_MODEL_FTDX5000);
-    is_ftdx1200 = newcat_is_rig(rig, RIG_MODEL_FTDX1200);
-    is_ftdx3000 = newcat_is_rig(rig, RIG_MODEL_FTDX3000);
-    is_ftdx3000dm = newcat_get_rigid(rig) == 462;
-    is_ftdx101d = newcat_is_rig(rig, RIG_MODEL_FTDX101D);
-    is_ftdx101mp = newcat_is_rig(rig, RIG_MODEL_FTDX101MP);
-    is_ftdx10 = newcat_is_rig(rig, RIG_MODEL_FTDX10);
-
     if (!is_ft450 && !is_ft950 && !is_ft891 && !is_ft991 && !is_ft2000
             && !is_ftdx5000 && !is_ftdx9000 && !is_ftdx1200 && !is_ftdx3000 && !is_ftdx101d
             && !is_ftdx101mp && !is_ftdx10)
@@ -10082,6 +10082,8 @@ int newcat_get_rigid(RIG *rig)
         {
             s += 2;     /* ID0310, jump past ID */
             priv->rig_id = atoi(s);
+
+            is_ftdx3000dm = priv->rig_id == NC_RIGID_FTDX3000DM;
         }
 
         rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, idstr = %s\n", priv->rig_id,
