@@ -37,10 +37,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <time.h>
-#include <hamlib/config.h>
-#ifdef HAVE_PTHREAD
 #include <pthread.h>
-#endif
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
@@ -2571,9 +2568,7 @@ struct rig_state {
     void *async_data_handler_priv_data;
     volatile int poll_routine_thread_run;
     void *poll_routine_priv_data;
-#ifdef HAVE_PTHREAD
     pthread_mutex_t mutex_set_transaction;
-#endif
     hamlib_port_t rigport;  /*!< Rig port (internal use). */
     hamlib_port_t pttport;  /*!< PTT port (internal use). */
     hamlib_port_t dcdport;  /*!< DCD port (internal use). */
