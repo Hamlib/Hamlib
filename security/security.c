@@ -27,6 +27,7 @@
 #include "AESStringCrypt.h"
 #include "password.h"
 #include "../src/misc.h"
+#include "hamlib/config.h"
 
 #if defined(_WIN32)
 // gmtime_r can be defined by mingw
