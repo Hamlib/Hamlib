@@ -37,7 +37,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <time.h>
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 #include <winpthreads.h>
 #else
 #include <pthread.h>
