@@ -37,7 +37,11 @@
 #include <string.h>
 #include <inttypes.h>
 #include <time.h>
+#if defined(_WIN32)
+#include <winpthreads.h>
+#else
 #include <pthread.h>
+#endif
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
