@@ -1330,16 +1330,21 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (retval == RIG_OK && rig->caps->rig_model != RIG_MODEL_F6K)
         {
-            vfo_t tx_vfo;
-            split_t split;
+            split_t split = RIG_SPLIT_OFF;
+            vfo_t tx_vfo = RIG_VFO_NONE;
             rig_get_freq(rig, RIG_VFO_B, &freq);
-            rig_get_split_vfo(rig, RIG_VFO_RX, &tx_vfo, &split);
+            rig_get_split_vfo(rig, RIG_VFO_RX, &split, &tx_vfo);
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Current split=%d, tx_vfo=%s\n", __func__,
                       __LINE__, split, rig_strvfo(tx_vfo));
             rmode_t mode;
             pbwidth_t width;
             rig_get_mode(rig, RIG_VFO_A, &mode, &width);
-            rig_get_mode(rig, RIG_VFO_B, &mode, &width);
+            if (split) 
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "xxxsplit=%d\n", split);
+                HAMLIB_TRACE;
+                rig_get_mode(rig, RIG_VFO_B, &mode, &width);
+            }
         }
     }
 
@@ -2338,7 +2343,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     if (!mode || !width)
     {
-        RETURNFUNC(-RIG_EINVAL);
+                                                        RETURNFUNC(-RIG_EINVAL);
     }
 
     caps = rig->caps;
@@ -4931,8 +4936,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     /* overridden by backend at will */
     *tx_vfo = rig->state.tx_vfo;
 
-    if (vfo == RIG_VFO_CURR
-            || vfo == rig->state.current_vfo)
+    if ((vfo == RIG_VFO_CURR) || (vfo == rig->state.current_vfo))
     {
         HAMLIB_TRACE;
         retcode = RIG_OK;
