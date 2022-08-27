@@ -1,5 +1,6 @@
 Hamlib - Ham Radio Control Libraries
 
+(C) 2010 Lockless Inc. for winpthreads.h
 Copyright (C) 2000,2001  Frank Singleton
 Copyright (C) 2000,2001  Stephane Fillod
 Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,
