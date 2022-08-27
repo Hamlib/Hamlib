@@ -6916,7 +6916,8 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
     *satmode = rig->state.cache.satmode;
     // we should only need to ask for VFO_CURR to minimize display swapping
     HAMLIB_TRACE;
-    retval = rig_get_split(rig, RIG_VFO_CURR, split);
+    vfo_t tx_vfo;
+    retval = rig_get_split_vfo(rig, RIG_VFO_CURR, split, &tx_vfo);
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 

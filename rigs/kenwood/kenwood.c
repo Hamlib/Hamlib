@@ -1390,7 +1390,8 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         RETURNFUNC2(-RIG_EINVAL);
     }
 
-    rig_get_split(rig, vfo, &tsplit);
+    vfo_t tx_vfo;
+    rig_get_split_vfo(rig, vfo, &tsplit, &tx_vfo);
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): tsplit=%d, split=%d\n", __func__,
               __LINE__, tsplit, split);
 
@@ -1487,7 +1488,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
        and all other rigs don't need to set it if it's already set correctly
     */
     tsplit = RIG_SPLIT_OFF; // default in case rig does not set split status
-    retval = rig_get_split(rig, vfo, &tsplit);
+    retval = rig_get_split_vfo(rig, vfo, &tsplit, &tx_vfo);
 
     priv->split = rig->state.cache.split = split;
     rig->state.cache.split_vfo = txvfo;
