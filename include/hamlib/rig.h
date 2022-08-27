@@ -2842,9 +2842,6 @@ rig_get_split_vfo HAMLIB_PARAMS((RIG *,
                                  split_t *split,
                                  vfo_t *tx_vfo));
 
-#define rig_set_split(r,v,s) rig_set_split_vfo((r),(v),(s),RIG_VFO_CURR)
-#define rig_get_split(r,v,s) ({ vfo_t _tx_vfo; rig_get_split_vfo((r),(v),(s),&_tx_vfo); })
-
 extern HAMLIB_EXPORT(int)
 rig_set_rit HAMLIB_PARAMS((RIG *rig,
                            vfo_t vfo,
