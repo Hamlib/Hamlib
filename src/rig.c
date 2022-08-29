@@ -2739,9 +2739,9 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     {
         HAMLIB_TRACE;
         retcode = caps->get_freq(rig, vfo, &curr_freq);
-        rig_debug(RIG_DEBUG_TRACE, "%s: retcode from rig_get_freq = %.10000s\n",
+        rig_debug(RIG_DEBUG_TRACE, "%s: retcode from rig_get_freq = %d\n",
                   __func__,
-                  rigerror(retcode));
+                  retcode);
         rig_set_cache_freq(rig, vfo, curr_freq);
     }
     else
