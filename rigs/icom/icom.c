@@ -7108,7 +7108,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     for (i = 0; extcmds && extcmds[i].id.s != 0; i++)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: i=%d\n", __func__, i);
+        //rig_debug(RIG_DEBUG_TRACE, "%s: i=%d\n", __func__, i);
 
         if (extcmds[i].cmdparamtype == CMD_PARAM_TYPE_FUNC && extcmds[i].id.s == func)
         {
