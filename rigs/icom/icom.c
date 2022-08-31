@@ -1854,7 +1854,7 @@ int filtericom[] = { 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 
 pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 {
 
-    int retval, res_len, rfstatus;
+    int retval, res_len=0, rfstatus;
     unsigned char resbuf[MAXFRAMELEN];
     value_t rfwidth;
     unsigned char fw_sub_cmd = RIG_MODEL_IC7200 == rig->caps->rig_model ? 0x02 :
@@ -1863,6 +1863,8 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=%s\n", __func__,
               rig_strrmode(mode));
+
+    memset(resbuf, 0, sizeof(resbuf));
 
     if (rig_has_get_func(rig, RIG_FUNC_RF)
             && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR)))
