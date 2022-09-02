@@ -2636,7 +2636,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
     const struct rig_caps *caps;
     int retcode;
     freq_t curr_freq;
-    vfo_t curr_vfo = RIG_VFO_CURR;
+    vfo_t curr_vfo = RIG_VFO_CURR, tmp_vfo;
 
     ELAPSED1;
     ENTERFUNC;
@@ -2750,16 +2750,11 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         rig_set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
     }
 
-#if 0 // with new cache should not have to expire here anymore
-    // expire several cached items when we switch VFOs
-    elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_INVALIDATE);
-    elapsed_ms(&rig->state.cache.time_modeMainA, HAMLIB_ELAPSED_INVALIDATE);
-    elapsed_ms(&rig->state.cache.time_modeMainB, HAMLIB_ELAPSED_INVALIDATE);
-    elapsed_ms(&rig->state.cache.time_modeMainC, HAMLIB_ELAPSED_INVALIDATE);
-    elapsed_ms(&rig->state.cache.time_widthMainA, HAMLIB_ELAPSED_INVALIDATE);
-    elapsed_ms(&rig->state.cache.time_widthMainB, HAMLIB_ELAPSED_INVALIDATE);
-    elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_INVALIDATE);
-#endif
+    if (rig_get_vfo(rig, &tmp_vfo) == -RIG_ENAVAIL)
+    {
+        // expire all cached items when we switch VFOs and get_vfo does not work
+        rig_set_cache_freq(rig, RIG_VFO_ALL, 0);
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: return %d, vfo=%s, curr_vfo=%s\n", __func__,
               retcode,
