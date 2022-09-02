@@ -99,7 +99,7 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_WARN, "%s: unknown vfo=%s\n", __func__, rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown vfo=%s\n", __func__, __LINE__, rig_strvfo(vfo));
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
@@ -116,7 +116,7 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_cache_show(rig, __func__, __LINE__);
     }
 
-    rig_debug(RIG_DEBUG_CACHE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
+    rig_debug(RIG_DEBUG_CACHE, "%s(%d):  vfo=%s, current_vfo=%s\n", __func__, __LINE__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR)
@@ -135,7 +135,7 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
-        rig_debug(RIG_DEBUG_CACHE, "%s: set vfo=%s to freq=%.0f\n", __func__,
+        rig_debug(RIG_DEBUG_CACHE, "%s(%d): set vfo=%s to freq=%.0f\n", __func__, __LINE__,
                   rig_strvfo(vfo), freq);
     }
 
@@ -202,7 +202,7 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo?, vfo=%s\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown vfo?, vfo=%s\n", __func__, __LINE__,
                   rig_strvfo(vfo));
         return (-RIG_EINVAL);
     }
@@ -251,7 +251,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
         ENTERFUNC2;
     }
 
-    rig_debug(RIG_DEBUG_CACHE, "%s:  vfo=%s, current_vfo=%s\n", __func__,
+    rig_debug(RIG_DEBUG_CACHE, "%s(%d):  vfo=%s, current_vfo=%s\n", __func__, __LINE__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
 
     if (vfo == RIG_VFO_CURR)
@@ -295,7 +295,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
             break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo=%s\n", __func__, rig_strvfo(vfo));
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown vfo=%s\n", __func__, __LINE__, rig_strvfo(vfo));
         }
     }
 
@@ -420,13 +420,13 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo?, vfo=%s\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown vfo?, vfo=%s\n", __func__, __LINE__,
                   rig_strvfo(vfo));
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    rig_debug(RIG_DEBUG_CACHE, "%s: vfo=%s, freq=%.0f, mode=%s, width=%d\n",
-              __func__, rig_strvfo(vfo),
+    rig_debug(RIG_DEBUG_CACHE, "%s(%d): vfo=%s, freq=%.0f, mode=%s, width=%d\n", 
+              __func__, __LINE__, rig_strvfo(vfo),
               (double)*freq, rig_strrmode(*mode), (int)*width);
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
