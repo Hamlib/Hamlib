@@ -341,6 +341,17 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[4] = 0xfb;
             frame[5] = 0xfd;
             n = write(fd, frame, 6);
+            // send async frame
+            frame[2] = 0x00; // async freq
+            frame[3] = 0xa2;
+            frame[4] = 0x00;
+            frame[5] = 0x00;
+            frame[6] = 0x10;
+            frame[7] = 0x01;
+            frame[8] = 0x96;
+            frame[9] = 0x12;
+            frame[10] = 0xfd;
+            n = write(fd, frame, 11);
         }
 
         break;
