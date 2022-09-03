@@ -1,0 +1,1 @@
+lib /DEF:libhamlib-4.def /MACHINE:X86
