@@ -1,0 +1,660 @@
+EXPORTS
+    CRC32_function @1
+    add2debugmsgsave @2
+    amp_check_backend @3
+    amp_cleanup @4
+    amp_close @5
+    amp_confparam_lookup @6
+    amp_ext_lookup @7
+    amp_get_caps @8
+    amp_get_conf @9
+    amp_get_ext_level @10
+    amp_get_freq @11
+    amp_get_info @12
+    amp_get_level @13
+    amp_get_powerstat @14
+    amp_has_get_level @15
+    amp_has_set_level @16
+    amp_init @17
+    amp_list_foreach @18
+    amp_load_all_backends @19
+    amp_load_backend @20
+    amp_open @21
+    amp_parse_level @22
+    amp_probe_all @23
+    amp_register @24
+    amp_reset @25
+    amp_set_conf @26
+    amp_set_ext_level @27
+    amp_set_freq @28
+    amp_set_level @29
+    amp_set_powerstat @30
+    amp_sprintf_level @31
+    amp_strlevel @32
+    amp_token_lookup @33
+    amp_unregister @34
+    azimuth_long_path @35
+    cJSON_AddArrayToObject @36
+    cJSON_AddBoolToObject @37
+    cJSON_AddFalseToObject @38
+    cJSON_AddItemReferenceToArray @39
+    cJSON_AddItemReferenceToObject @40
+    cJSON_AddItemToArray @41
+    cJSON_AddItemToObject @42
+    cJSON_AddItemToObjectCS @43
+    cJSON_AddNullToObject @44
+    cJSON_AddNumberToObject @45
+    cJSON_AddObjectToObject @46
+    cJSON_AddRawToObject @47
+    cJSON_AddStringToObject @48
+    cJSON_AddTrueToObject @49
+    cJSON_Compare @50
+    cJSON_CreateArray @51
+    cJSON_CreateArrayReference @52
+    cJSON_CreateBool @53
+    cJSON_CreateDoubleArray @54
+    cJSON_CreateFalse @55
+    cJSON_CreateFloatArray @56
+    cJSON_CreateIntArray @57
+    cJSON_CreateNull @58
+    cJSON_CreateNumber @59
+    cJSON_CreateObject @60
+    cJSON_CreateObjectReference @61
+    cJSON_CreateRaw @62
+    cJSON_CreateString @63
+    cJSON_CreateStringArray @64
+    cJSON_CreateStringReference @65
+    cJSON_CreateTrue @66
+    cJSON_Delete @67
+    cJSON_DeleteItemFromArray @68
+    cJSON_DeleteItemFromObject @69
+    cJSON_DeleteItemFromObjectCaseSensitive @70
+    cJSON_DetachItemFromArray @71
+    cJSON_DetachItemFromObject @72
+    cJSON_DetachItemFromObjectCaseSensitive @73
+    cJSON_DetachItemViaPointer @74
+    cJSON_Duplicate @75
+    cJSON_GetArrayItem @76
+    cJSON_GetArraySize @77
+    cJSON_GetErrorPtr @78
+    cJSON_GetNumberValue @79
+    cJSON_GetObjectItem @80
+    cJSON_GetObjectItemCaseSensitive @81
+    cJSON_GetStringValue @82
+    cJSON_HasObjectItem @83
+    cJSON_InitHooks @84
+    cJSON_InsertItemInArray @85
+    cJSON_IsArray @86
+    cJSON_IsBool @87
+    cJSON_IsFalse @88
+    cJSON_IsInvalid @89
+    cJSON_IsNull @90
+    cJSON_IsNumber @91
+    cJSON_IsObject @92
+    cJSON_IsRaw @93
+    cJSON_IsString @94
+    cJSON_IsTrue @95
+    cJSON_Minify @96
+    cJSON_Parse @97
+    cJSON_ParseWithLength @98
+    cJSON_ParseWithLengthOpts @99
+    cJSON_ParseWithOpts @100
+    cJSON_Print @101
+    cJSON_PrintBuffered @102
+    cJSON_PrintPreallocated @103
+    cJSON_PrintUnformatted @104
+    cJSON_ReplaceItemInArray @105
+    cJSON_ReplaceItemInObject @106
+    cJSON_ReplaceItemInObjectCaseSensitive @107
+    cJSON_ReplaceItemViaPointer @108
+    cJSON_SetNumberHelper @109
+    cJSON_SetValuestring @110
+    cJSON_Version @111
+    cJSON_free @112
+    cJSON_malloc @113
+    cookie_use @114 DATA
+    date_strget @115
+    debugmsgsave @116 DATA
+    debugmsgsave2 @117 DATA
+    debugmsgsave3 @118 DATA
+    dec2dmmm @119
+    dec2dms @120
+    distance_long_path @121
+    dmmm2dec @122
+    dms2dec @123
+    dot10ths_to_millis @124
+    dump_hex @125
+    elapsed_ms @126
+    flrig_cat_string @127
+    from_bcd @128
+    from_bcd_be @129
+    get_rig_conf_type @130
+    hamlib_copyright @131 DATA
+    hamlib_copyright2 @132 DATA
+    hamlib_version @133 DATA
+    hamlib_version2 @134 DATA
+    hl_usleep @135
+    initamps4_dummy @136
+    initamps4_gemini @137
+    initamps4_kpa1500 @138
+    initrigs4_adat @139
+    initrigs4_alinco @140
+    initrigs4_aor @141
+    initrigs4_barrett @142
+    initrigs4_codan @143
+    initrigs4_dorji @144
+    initrigs4_drake @145
+    initrigs4_dummy @146
+    initrigs4_elad @147
+    initrigs4_flexradio @148
+    initrigs4_gomspace @149
+    initrigs4_icm710 @150
+    initrigs4_icmarine @151
+    initrigs4_icom @152
+    initrigs4_jrc @153
+    initrigs4_kachina @154
+    initrigs4_kenwood @155
+    initrigs4_kit @156
+    initrigs4_lowe @157
+    initrigs4_pcr @158
+    initrigs4_prm80 @159
+    initrigs4_racal @160
+    initrigs4_rft @161
+    initrigs4_rs @162
+    initrigs4_skanti @163
+    initrigs4_tapr @164
+    initrigs4_tentec @165
+    initrigs4_tuner @166
+    initrigs4_uniden @167
+    initrigs4_winradio @168
+    initrigs4_wj @169
+    initrigs4_yaesu @170
+    initrots4_amsat @171
+    initrots4_ars @172
+    initrots4_celestron @173
+    initrots4_cnctrk @174
+    initrots4_dummy @175
+    initrots4_easycomm @176
+    initrots4_ether6 @177
+    initrots4_fodtrack @178
+    initrots4_grbltrk @179
+    initrots4_gs232a @180
+    initrots4_heathkit @181
+    initrots4_ioptron @182
+    initrots4_kit @183
+    initrots4_m2 @184
+    initrots4_meade @185
+    initrots4_prosistel @186
+    initrots4_radant @187
+    initrots4_rotorez @188
+    initrots4_sartek @189
+    initrots4_satel @190
+    initrots4_spid @191
+    initrots4_ts7400 @192
+    locator2longlat @193
+    lock_mode @194 DATA
+    longlat2locator @195
+    millis_to_dot10ths @196
+    morse_code_dot_to_millis @197
+    netrigctl_get_vfo_mode @198
+    network_multicast_publisher_start @199
+    network_multicast_publisher_stop @200
+    par_lock @201
+    par_read_control @202
+    par_read_data @203
+    par_read_status @204
+    par_unlock @205
+    par_write_control @206
+    par_write_data @207
+    parse_hoststr @208
+    port_close @209
+    port_open @210
+    print_ext_param @211
+    probeallrigs4_adat @212
+    probeallrigs4_drake @213
+    probeallrigs4_elad @214
+    probeallrigs4_gomspace @215
+    probeallrigs4_icom @216
+    probeallrigs4_kenwood @217
+    probeallrigs4_lowe @218
+    probeallrigs4_uniden @219
+    probeallrigs4_yaesu @220
+    qrb @221
+    read_block @222
+    read_block_direct @223
+    read_string @224
+    read_string_direct @225
+    rig_check_backend @226
+    rig_check_cache_timeout @227
+    rig_cleanup @228
+    rig_close @229
+    rig_confparam_lookup @230
+    rig_cookie @231
+    rig_copyright @232
+    rig_debug @233
+    rig_ext_func_foreach @234
+    rig_ext_level_foreach @235
+    rig_ext_lookup @236
+    rig_ext_lookup_tok @237
+    rig_ext_parm_foreach @238
+    rig_ext_token_lookup @239
+    rig_flush @240
+    rig_force_cache_timeout @241
+    rig_get_ant @242
+    rig_get_cache @243
+    rig_get_cache_timeout_ms @244
+    rig_get_caps @245
+    rig_get_caps_cptr @246
+    rig_get_caps_int @247
+    rig_get_chan_all @248
+    rig_get_chan_all_cb @249
+    rig_get_channel @250
+    rig_get_clock @251
+    rig_get_conf @252
+    rig_get_conf2 @253
+    rig_get_ctcss_sql @254
+    rig_get_ctcss_tone @255
+    rig_get_dcd @256
+    rig_get_dcs_code @257
+    rig_get_dcs_sql @258
+    rig_get_ext_func @259
+    rig_get_ext_level @260
+    rig_get_ext_parm @261
+    rig_get_freq @262
+    rig_get_func @263
+    rig_get_function_ptr @264
+    rig_get_info @265
+    rig_get_level @266
+    rig_get_lock_mode @267
+    rig_get_mem @268
+    rig_get_mem_all @269
+    rig_get_mem_all_cb @270
+    rig_get_mode @271
+    rig_get_parm @272
+    rig_get_powerstat @273
+    rig_get_ptt @274
+    rig_get_range @275
+    rig_get_resolution @276
+    rig_get_rig_info @277
+    rig_get_rit @278
+    rig_get_rptr_offs @279
+    rig_get_rptr_shift @280
+    rig_get_split_freq @281
+    rig_get_split_freq_mode @282
+    rig_get_split_mode @283
+    rig_get_split_vfo @284
+    rig_get_trn @285
+    rig_get_ts @286
+    rig_get_twiddle @287
+    rig_get_vfo @288
+    rig_get_vfo_info @289
+    rig_get_vfo_list @290
+    rig_get_xit @291
+    rig_has_get_func @292
+    rig_has_get_level @293
+    rig_has_get_parm @294
+    rig_has_scan @295
+    rig_has_set_func @296
+    rig_has_set_level @297
+    rig_has_set_parm @298
+    rig_has_vfo_op @299
+    rig_idx2setting @300
+    rig_init @301
+    rig_levelagcstr @302
+    rig_levelagcvalue @303
+    rig_license @304
+    rig_list_foreach @305
+    rig_list_foreach_model @306
+    rig_load_all_backends @307
+    rig_load_backend @308
+    rig_lookup_mem_caps @309
+    rig_mW2power @310
+    rig_make_md5 @311
+    rig_mem_count @312
+    rig_need_debug @313
+    rig_no_restore_ai @314
+    rig_open @315
+    rig_parse_func @316
+    rig_parse_level @317
+    rig_parse_mode @318
+    rig_parse_mtype @319
+    rig_parse_parm @320
+    rig_parse_rptr_shift @321
+    rig_parse_scan @322
+    rig_parse_vfo @323
+    rig_parse_vfo_op @324
+    rig_passband_narrow @325
+    rig_passband_normal @326
+    rig_passband_wide @327
+    rig_password @328
+    rig_password_generate_secret @329
+    rig_power2mW @330
+    rig_powerstat @331 DATA
+    rig_probe @332
+    rig_probe_all @333
+    rig_raw2val @334
+    rig_raw2val_float @335
+    rig_recv_dtmf @336
+    rig_register @337
+    rig_reset @338
+    rig_scan @339
+    rig_send_dtmf @340
+    rig_send_morse @341
+    rig_send_raw @342
+    rig_send_voice_mem @343
+    rig_set_ant @344
+    rig_set_bank @345
+    rig_set_cache_timeout_ms @346
+    rig_set_chan_all @347
+    rig_set_chan_all_cb @348
+    rig_set_channel @349
+    rig_set_clock @350
+    rig_set_conf @351
+    rig_set_ctcss_sql @352
+    rig_set_ctcss_tone @353
+    rig_set_dcd_callback @354
+    rig_set_dcs_code @355
+    rig_set_dcs_sql @356
+    rig_set_debug @357
+    rig_set_debug_callback @358
+    rig_set_debug_file @359
+    rig_set_debug_time_stamp @360
+    rig_set_ext_func @361
+    rig_set_ext_level @362
+    rig_set_ext_parm @363
+    rig_set_freq @364
+    rig_set_freq_callback @365
+    rig_set_func @366
+    rig_set_level @367
+    rig_set_lock_mode @368
+    rig_set_mem @369
+    rig_set_mem_all @370
+    rig_set_mem_all_cb @371
+    rig_set_mode @372
+    rig_set_mode_callback @373
+    rig_set_parm @374
+    rig_set_pltune_callback @375
+    rig_set_powerstat @376
+    rig_set_ptt @377
+    rig_set_ptt_callback @378
+    rig_set_rit @379
+    rig_set_rptr_offs @380
+    rig_set_rptr_shift @381
+    rig_set_spectrum_callback @382
+    rig_set_split_freq @383
+    rig_set_split_freq_mode @384
+    rig_set_split_mode @385
+    rig_set_split_vfo @386
+    rig_set_trn @387
+    rig_set_ts @388
+    rig_set_twiddle @389
+    rig_set_uplink @390
+    rig_set_vfo @391
+    rig_set_vfo_callback @392
+    rig_set_vfo_opt @393
+    rig_set_xit @394
+    rig_setting2idx @395
+    rig_settings_get_path @396
+    rig_settings_load @397
+    rig_settings_load_all @398
+    rig_settings_save @399
+    rig_sprintf_ant @400
+    rig_sprintf_func @401
+    rig_sprintf_level @402
+    rig_sprintf_level_gran @403
+    rig_sprintf_mode @404
+    rig_sprintf_parm @405
+    rig_sprintf_parm_gran @406
+    rig_sprintf_scan @407
+    rig_sprintf_spectrum_avg_modes @408
+    rig_sprintf_spectrum_modes @409
+    rig_sprintf_spectrum_spans @410
+    rig_sprintf_vfo @411
+    rig_sprintf_vfop @412
+    rig_stop_morse @413
+    rig_stragclevel @414
+    rig_strfunc @415
+    rig_strlevel @416
+    rig_strmtype @417
+    rig_strparm @418
+    rig_strptrshift @419
+    rig_strrmode @420
+    rig_strrmodes @421
+    rig_strscan @422
+    rig_strspectrummode @423
+    rig_strstatus @424
+    rig_strvfo @425
+    rig_strvfop @426
+    rig_token_foreach @427
+    rig_token_lookup @428
+    rig_unregister @429
+    rig_valueagclevel @430
+    rig_version @431
+    rig_vfo_op @432
+    rig_wait_morse @433
+    rigerror @434
+    rigerror2 @435
+    rot_check_backend @436
+    rot_cleanup @437
+    rot_close @438
+    rot_confparam_lookup @439
+    rot_ext_func_foreach @440
+    rot_ext_level_foreach @441
+    rot_ext_lookup @442
+    rot_ext_lookup_tok @443
+    rot_ext_parm_foreach @444
+    rot_ext_token_lookup @445
+    rot_get_caps @446
+    rot_get_conf @447
+    rot_get_conf2 @448
+    rot_get_ext_func @449
+    rot_get_ext_level @450
+    rot_get_ext_parm @451
+    rot_get_func @452
+    rot_get_info @453
+    rot_get_level @454
+    rot_get_parm @455
+    rot_get_position @456
+    rot_get_status @457
+    rot_has_get_func @458
+    rot_has_get_level @459
+    rot_has_get_parm @460
+    rot_has_set_func @461
+    rot_has_set_level @462
+    rot_has_set_parm @463
+    rot_init @464
+    rot_list_foreach @465
+    rot_load_all_backends @466
+    rot_load_backend @467
+    rot_move @468
+    rot_open @469
+    rot_park @470
+    rot_parse_func @471
+    rot_parse_level @472
+    rot_parse_parm @473
+    rot_probe_all @474
+    rot_register @475
+    rot_reset @476
+    rot_set_conf @477
+    rot_set_ext_func @478
+    rot_set_ext_level @479
+    rot_set_ext_parm @480
+    rot_set_func @481
+    rot_set_level @482
+    rot_set_parm @483
+    rot_set_position @484
+    rot_sprintf_func @485
+    rot_sprintf_level @486
+    rot_sprintf_level_gran @487
+    rot_sprintf_parm @488
+    rot_sprintf_parm_gran @489
+    rot_sprintf_status @490
+    rot_stop @491
+    rot_strfunc @492
+    rot_strlevel @493
+    rot_strparm @494
+    rot_strstatus @495
+    rot_token_foreach @496
+    rot_token_lookup @497
+    rot_unregister @498
+    ser_get_car @499
+    ser_get_cts @500
+    ser_get_dsr @501
+    ser_get_dtr @502
+    ser_get_rts @503
+    ser_set_brk @504
+    ser_set_dtr @505
+    ser_set_rts @506
+    serial_flush @507
+    serial_open @508
+    serial_setup @509
+    spaces @510
+    sprintf_freq @511
+    sprintf_level_ext @512
+    sync_callback @513
+    to_bcd @514
+    to_bcd_be @515
+    to_hex @516
+    vfo_fixup @517
+    vfo_fixup2a @518
+    write_block @519
+    write_block_sync @520
+    write_block_sync_error @521
+
+IMPORTS
+
+    libusb-1.0.dll.active_contexts_list
+    libusb-1.0.dll.active_contexts_lock
+    libusb-1.0.dll.discovered_devs_append
+    libusb-1.0.dll.htab_hash
+    libusb-1.0.dll.libusb_alloc_streams
+    libusb-1.0.dll.libusb_alloc_transfer
+    libusb-1.0.dll.libusb_attach_kernel_driver
+    libusb-1.0.dll.libusb_bulk_transfer
+    libusb-1.0.dll.libusb_cancel_transfer
+    libusb-1.0.dll.libusb_claim_interface
+    libusb-1.0.dll.libusb_clear_halt
+    libusb-1.0.dll.libusb_close
+    libusb-1.0.dll.libusb_control_transfer
+    libusb-1.0.dll.libusb_detach_kernel_driver
+    libusb-1.0.dll.libusb_dev_mem_alloc
+    libusb-1.0.dll.libusb_dev_mem_free
+    libusb-1.0.dll.libusb_error_name
+    libusb-1.0.dll.libusb_event_handler_active
+    libusb-1.0.dll.libusb_event_handling_ok
+    libusb-1.0.dll.libusb_exit
+    libusb-1.0.dll.libusb_free_bos_descriptor
+    libusb-1.0.dll.libusb_free_config_descriptor
+    libusb-1.0.dll.libusb_free_container_id_descriptor
+    libusb-1.0.dll.libusb_free_device_list
+    libusb-1.0.dll.libusb_free_pollfds
+    libusb-1.0.dll.libusb_free_ss_endpoint_companion_descriptor
+    libusb-1.0.dll.libusb_free_ss_usb_device_capability_descriptor
+    libusb-1.0.dll.libusb_free_streams
+    libusb-1.0.dll.libusb_free_transfer
+    libusb-1.0.dll.libusb_free_usb_2_0_extension_descriptor
+    libusb-1.0.dll.libusb_get_active_config_descriptor
+    libusb-1.0.dll.libusb_get_bos_descriptor
+    libusb-1.0.dll.libusb_get_bus_number
+    libusb-1.0.dll.libusb_get_config_descriptor
+    libusb-1.0.dll.libusb_get_config_descriptor_by_value
+    libusb-1.0.dll.libusb_get_configuration
+    libusb-1.0.dll.libusb_get_container_id_descriptor
+    libusb-1.0.dll.libusb_get_device
+    libusb-1.0.dll.libusb_get_device_address
+    libusb-1.0.dll.libusb_get_device_descriptor
+    libusb-1.0.dll.libusb_get_device_list
+    libusb-1.0.dll.libusb_get_device_speed
+    libusb-1.0.dll.libusb_get_max_iso_packet_size
+    libusb-1.0.dll.libusb_get_max_packet_size
+    libusb-1.0.dll.libusb_get_next_timeout
+    libusb-1.0.dll.libusb_get_parent
+    libusb-1.0.dll.libusb_get_pollfds
+    libusb-1.0.dll.libusb_get_port_number
+    libusb-1.0.dll.libusb_get_port_numbers
+    libusb-1.0.dll.libusb_get_port_path
+    libusb-1.0.dll.libusb_get_ss_endpoint_companion_descriptor
+    libusb-1.0.dll.libusb_get_ss_usb_device_capability_descriptor
+    libusb-1.0.dll.libusb_get_string_descriptor_ascii
+    libusb-1.0.dll.libusb_get_usb_2_0_extension_descriptor
+    libusb-1.0.dll.libusb_get_version
+    libusb-1.0.dll.libusb_handle_events
+    libusb-1.0.dll.libusb_handle_events_completed
+    libusb-1.0.dll.libusb_handle_events_locked
+    libusb-1.0.dll.libusb_handle_events_timeout
+    libusb-1.0.dll.libusb_handle_events_timeout_completed
+    libusb-1.0.dll.libusb_has_capability
+    libusb-1.0.dll.libusb_hotplug_deregister_callback
+    libusb-1.0.dll.libusb_hotplug_get_user_data
+    libusb-1.0.dll.libusb_hotplug_register_callback
+    libusb-1.0.dll.libusb_init
+    libusb-1.0.dll.libusb_interrupt_event_handler
+    libusb-1.0.dll.libusb_interrupt_transfer
+    libusb-1.0.dll.libusb_kernel_driver_active
+    libusb-1.0.dll.libusb_lock_event_waiters
+    libusb-1.0.dll.libusb_lock_events
+    libusb-1.0.dll.libusb_open
+    libusb-1.0.dll.libusb_open_device_with_vid_pid
+    libusb-1.0.dll.libusb_pollfds_handle_timeouts
+    libusb-1.0.dll.libusb_ref_device
+    libusb-1.0.dll.libusb_release_interface
+    libusb-1.0.dll.libusb_reset_device
+    libusb-1.0.dll.libusb_set_auto_detach_kernel_driver
+    libusb-1.0.dll.libusb_set_configuration
+    libusb-1.0.dll.libusb_set_debug
+    libusb-1.0.dll.libusb_set_interface_alt_setting
+    libusb-1.0.dll.libusb_set_log_cb
+    libusb-1.0.dll.libusb_set_option
+    libusb-1.0.dll.libusb_set_pollfd_notifiers
+    libusb-1.0.dll.libusb_setlocale
+    libusb-1.0.dll.libusb_strerror
+    libusb-1.0.dll.libusb_submit_transfer
+    libusb-1.0.dll.libusb_transfer_get_stream_id
+    libusb-1.0.dll.libusb_transfer_set_stream_id
+    libusb-1.0.dll.libusb_try_lock_events
+    libusb-1.0.dll.libusb_unlock_event_waiters
+    libusb-1.0.dll.libusb_unlock_events
+    libusb-1.0.dll.libusb_unref_device
+    libusb-1.0.dll.libusb_wait_for_event
+    libusb-1.0.dll.libusb_wrap_sys_device
+    libusb-1.0.dll.load_system_library
+    libusb-1.0.dll.usb_api_backend
+    libusb-1.0.dll.usbd_status_to_libusb_transfer_status
+    libusb-1.0.dll.usbdk_backend
+    libusb-1.0.dll.usbi_add_event_source
+    libusb-1.0.dll.usbi_alloc_device
+    libusb-1.0.dll.usbi_alloc_event_data
+    libusb-1.0.dll.usbi_arm_timer
+    libusb-1.0.dll.usbi_backend
+    libusb-1.0.dll.usbi_clear_event
+    libusb-1.0.dll.usbi_cond_timedwait
+    libusb-1.0.dll.usbi_connect_device
+    libusb-1.0.dll.usbi_create_event
+    libusb-1.0.dll.usbi_create_timer
+    libusb-1.0.dll.usbi_default_context
+    libusb-1.0.dll.usbi_destroy_event
+    libusb-1.0.dll.usbi_destroy_timer
+    libusb-1.0.dll.usbi_disarm_timer
+    libusb-1.0.dll.usbi_disconnect_device
+    libusb-1.0.dll.usbi_fallback_context
+    libusb-1.0.dll.usbi_get_device_by_session_id
+    libusb-1.0.dll.usbi_get_monotonic_time
+    libusb-1.0.dll.usbi_handle_disconnect
+    libusb-1.0.dll.usbi_handle_transfer_cancellation
+    libusb-1.0.dll.usbi_handle_transfer_completion
+    libusb-1.0.dll.usbi_hotplug_exit
+    libusb-1.0.dll.usbi_hotplug_init
+    libusb-1.0.dll.usbi_hotplug_notification
+    libusb-1.0.dll.usbi_hotplug_process
+    libusb-1.0.dll.usbi_io_exit
+    libusb-1.0.dll.usbi_io_init
+    libusb-1.0.dll.usbi_log
+    libusb-1.0.dll.usbi_remove_event_source
+    libusb-1.0.dll.usbi_sanitize_device
+    libusb-1.0.dll.usbi_signal_event
+    libusb-1.0.dll.usbi_signal_transfer_completion
+    libusb-1.0.dll.usbi_wait_for_events
+    libusb-1.0.dll.windows_error_str
+    libusb-1.0.dll.windows_force_sync_completion
+    libusb-1.0.dll.windows_version
+    libusb-1.0.dll.winusb_backend

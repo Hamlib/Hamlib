@@ -91,4 +91,7 @@ MSVC 2022
 =========
 MSVC C/C++ projects must use the NuGet pthread package in order to compile as of Sep 2022
 An example C++ project is in bindings/MSVC
+If you want to do a dotnet build you will need this done from an administrative PowerShell
+npm install -g --production windows-build-tools
+
 
