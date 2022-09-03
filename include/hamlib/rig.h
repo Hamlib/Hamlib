@@ -37,11 +37,12 @@
 #include <string.h>
 #include <inttypes.h>
 #include <time.h>
+
+// For MSVC install the NUGet pthread package
 #if defined(_MSC_VER)
-#include <winpthreads.h>
-#else
-#include <pthread.h>
+#define HAVE_STRUCT_TIMESPEC
 #endif
+#include <pthread.h>
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>

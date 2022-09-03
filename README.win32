@@ -85,3 +85,10 @@ same directory or in PATH as the resulting .exe otherwise it won't find it.
 
 Mark J. Fine
 Remington, Virginia, USA
+
+
+MSVC 2022
+=========
+MSVC C/C++ projects must use the NuGet pthread package in order to compile as of Sep 2022
+An example C++ project is in bindings/MSVC
+
