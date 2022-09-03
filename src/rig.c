@@ -2750,8 +2750,9 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         rig_set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
     }
 
-    if (rig_get_vfo(rig, &tmp_vfo) == -RIG_ENAVAIL)
+    if (vfo != rig->state.current_vfo && rig_get_vfo(rig, &tmp_vfo) == -RIG_ENAVAIL)
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: Expiring all cache due to VFO change and no get_vfo\n", __func__);
         // expire all cached items when we switch VFOs and get_vfo does not work
         rig_set_cache_freq(rig, RIG_VFO_ALL, 0);
     }
