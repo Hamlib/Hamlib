@@ -1162,8 +1162,8 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer,
                 dump_hex((unsigned char *) rxbuffer, total_count);
             }
 
-            rig_debug(RIG_DEBUG_ERR, "%s(): I/O error after %d chars, direct=%d: %d\n",
-                      __func__, total_count, direct, result);
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): I/O error after %d chars, direct=%d: %d\n",
+                      __func__, __LINE__, total_count, direct, result);
             return result;
         }
 
@@ -1328,8 +1328,8 @@ static int read_string_generic(hamlib_port_t *p,
                 dump_hex(rxbuffer, total_count);
             }
 
-            rig_debug(RIG_DEBUG_ERR, "%s(): I/O error after %d chars, direct=%d: %d\n",
-                      __func__, total_count, direct, result);
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): I/O error after %d chars, direct=%d: %d\n",
+                      __func__, __LINE__, total_count, direct, result);
             return result;
         }
 
