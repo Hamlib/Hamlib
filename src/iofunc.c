@@ -484,7 +484,6 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
     int result;
     ssize_t bytes_read;
 
-    HAMLIB_TRACE;
     result = ReadFile(p->sync_data_pipe->read, buf, count, NULL, overlapped);
 
     if (!result)
