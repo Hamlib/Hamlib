@@ -891,6 +891,7 @@ int HAMLIB_API rig_open(RIG *rig)
     free(cwd);
 
     // Enable async data only if it's enabled through conf settings *and* supported by the backend
+    rig_debug(RIG_DEBUG_TRACE, "%s: async_data_enable=%d, async_data_supported=%d\n", __func__, rs->async_data_enabled, caps->async_data_supported);
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
     rs->rigport.asyncio = rs->async_data_enabled;
 
@@ -7195,7 +7196,7 @@ static int async_data_handler_start(RIG *rig)
 
     if (!rs->async_data_enabled)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: async data support disabled\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: async data support disabled since asynd_data_enabled=%d\n", __func__, rs->async_data_enabled);
         RETURNFUNC(RIG_OK);
     }
 
