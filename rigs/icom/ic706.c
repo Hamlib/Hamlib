@@ -245,6 +245,12 @@ const struct rig_caps ic706_caps =
         RIG_FLT_END,
     },
     .str_cal = IC706IIG_STR_CAL,
+
+    .async_data_supported = 1,
+    .read_frame_direct = icom_read_frame_direct,
+    .is_async_frame = icom_is_async_frame,
+    .process_async_frame = icom_process_async_frame,
+
     .priv = (void *)& ic706_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
@@ -388,6 +394,11 @@ const struct rig_caps ic706mkii_caps =
     },
     .str_cal = IC706IIG_STR_CAL,
 
+    .async_data_supported = 1,
+    .read_frame_direct = icom_read_frame_direct,
+    .is_async_frame = icom_is_async_frame,
+    .process_async_frame = icom_process_async_frame,
+
     .priv = (void *)& ic706mkii_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
@@ -453,7 +464,7 @@ const struct rig_caps ic706mkiig_caps =
     RIG_MODEL(RIG_MODEL_IC706MKIIG),
     .model_name = "IC-706MkIIG",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_MOBILE,
@@ -575,6 +586,11 @@ const struct rig_caps ic706mkiig_caps =
         RIG_FLT_END,
     },
     .str_cal = IC706IIG_STR_CAL,
+
+    .async_data_supported = 1,
+    .read_frame_direct = icom_read_frame_direct,
+    .is_async_frame = icom_is_async_frame,
+    .process_async_frame = icom_process_async_frame,
 
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
