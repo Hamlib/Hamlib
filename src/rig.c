@@ -2021,17 +2021,17 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                        || (rig->state.cache.timeout_ms == HAMLIB_CACHE_ALWAYS
                            || rig->state.use_cached_freq)))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%.0f\n", __func__,
-                  rig_strvfo(vfo), cache_ms_freq, *freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%.0f, use_cached_freq=%d\n", __func__,
+                  rig_strvfo(vfo), cache_ms_freq, *freq, rig->state.use_cached_freq);
         ELAPSED2;
         return (RIG_OK);
     }
     else
     {
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: cache miss age=%dms, cached_vfo=%s, asked_vfo=%s\n", __func__,
+                  "%s: cache miss age=%dms, cached_vfo=%s, asked_vfo=%s, use_cached_freq=%d\n", __func__,
                   cache_ms_freq,
-                  rig_strvfo(vfo), rig_strvfo(vfo));
+                  rig_strvfo(vfo), rig_strvfo(vfo), rig->state.use_cached_freq);
     }
 
     caps = rig->caps;
