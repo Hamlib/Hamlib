@@ -2327,10 +2327,11 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: icmode=%d, icmode_ext=%d\n", __func__, icmode,
               icmode_ext);
 
-    /* IC-731, IC-726,  IC-735, IC-910, IC-7000 don't support passband data */
+    /* IC-375, IC-731, IC-726,  IC-735, IC-910, IC-7000 don't support passband data */
     /* IC-726 & IC-475A/E also limited support - only on CW */
     /* TODO: G4WJS CW wide/narrow are possible with above two radios */
     if (priv->civ_731_mode || rig->caps->rig_model == RIG_MODEL_OS456
+            || rig->caps->rig_model == RIG_MODEL_IC375
             || rig->caps->rig_model == RIG_MODEL_IC726
             || rig->caps->rig_model == RIG_MODEL_IC475
             || rig->caps->rig_model == RIG_MODEL_IC910
