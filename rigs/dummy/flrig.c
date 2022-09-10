@@ -141,7 +141,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20220504.0",
+    .version = "20220910.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1294,6 +1294,8 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     ENTERFUNC;
+    xml[0] = 0;
+    value[0] = 0;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
@@ -1306,11 +1308,14 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         RETURNFUNC(retval);
     }
 
-    xml_parse(xml, value, sizeof(value));
-    *ptt = atoi(value);
-    rig_debug(RIG_DEBUG_TRACE, "%s: '%s'\n", __func__, value);
+    if (strlen(xml) > 0)
+    {
+        xml_parse(xml, value, sizeof(value));
+        *ptt = atoi(value);
+        rig_debug(RIG_DEBUG_TRACE, "%s: '%s'\n", __func__, value);
 
-    priv->ptt = *ptt;
+        priv->ptt = *ptt;
+    }
 
     RETURNFUNC(RIG_OK);
 }
