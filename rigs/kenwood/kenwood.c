@@ -754,6 +754,7 @@ int kenwood_init(RIG *rig)
     priv->curr_mode = 0;
     priv->micgain_min = -1;
     priv->micgain_max = -1;
+    priv->has_ps = 1;  // until proven otherwise 
 
     /* default mode_table */
     if (caps->mode_table == NULL)
@@ -812,7 +813,7 @@ int kenwood_open(RIG *rig)
         err = kenwood_get_id(rig, id);
     }
 
-    if (err == RIG_OK)   // some rigs give ID while in standby
+    if (err == RIG_OK && priv->has_ps)   // some rigs give ID while in standby
     {
         powerstat_t powerstat = 0;
         rig_debug(RIG_DEBUG_TRACE, "%s: got ID so try PS\n", __func__);
@@ -821,8 +822,13 @@ int kenwood_open(RIG *rig)
         if (err == RIG_OK && powerstat == 0 && priv->poweron == 0
                 && rig->state.auto_power_on)
         {
+            priv->has_ps = 1;
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
             rig_set_powerstat(rig, 1);
+        }
+        else if (err == -RIG_ETIMEOUT) // Some rigs like TS-450 dont' have PS cmd
+        {
+            priv->has_ps = 0;
         }
 
         priv->poweron = 1;
