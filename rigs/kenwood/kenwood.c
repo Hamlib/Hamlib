@@ -755,6 +755,10 @@ int kenwood_init(RIG *rig)
     priv->micgain_min = -1;
     priv->micgain_max = -1;
     priv->has_ps = 1;  // until proven otherwise 
+    if (rig->caps->rig_model == RIG_MODEL_TS450S)
+    {
+        priv->has_ps = 0;
+    }
 
     /* default mode_table */
     if (caps->mode_table == NULL)
