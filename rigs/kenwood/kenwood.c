@@ -4843,8 +4843,14 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
 {
     char pwrbuf[6];
     int retval;
+    struct kenwood_priv_data *priv = rig->state.priv;
 
     ENTERFUNC;
+
+    if (!priv->has_ps)
+    {
+        RETURNFUNC(RIG_OK); // fake the OK return for these rigs
+    }
 
     if (!status)
     {
