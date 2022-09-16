@@ -372,6 +372,10 @@ option as it generates no output on its own.
 Sets password on rigctld which requires hamlib to use rig_set_password and rigctl to use \\password to access rigctld.  A 32-char shared secret will be displayed to be used on the client side.
 .
 .TP
+.BR \-R ", " \-\-rigctld_idle
+Will make rigctld close the rig when no clients are connected.  Normally remains connected to speed up connects.
+.
+.TP
 .BR \-h ", " \-\-help
 Show a summary of these options and exit.
 .
