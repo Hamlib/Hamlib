@@ -140,11 +140,18 @@ int main(int argc, char *argv[])
             pbuf = "IF000503130001000+0000000000030000000;";
             sprintf(ifbuf, "IF%011d0001000+0000000000030000000;", freqa);
             //pbuf = "IF00010138698     +00000000002000000 ;
-            n = write(fd, ifbuf, strlen(pbuf));
+            n = write(fd, ifbuf, strlen(ifbuf));
 //            printf("n=%d\n", n);
 
             if (n <= 0) { perror("IF"); }
 
+            continue;
+        }
+        else if (strcmp(buf, "FV;") == 0)
+        {
+            usleep(50 * 1000);
+            pbuf = "FV1.2;";
+            n = write(fd, pbuf, strlen(pbuf));
             continue;
         }
         else if (strcmp(buf, "FW;") == 0)
