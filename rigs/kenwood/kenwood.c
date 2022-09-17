@@ -1661,7 +1661,7 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
         }
         else
         {
-            rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown rxVFO=%s\n", __func__, __LINE__,
+            rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown rx_vfo=%s\n", __func__, __LINE__,
                       rig_strvfo(rig->state.rx_vfo));
             *txvfo = RIG_VFO_A; // pick a default
             rig->state.rx_vfo = priv->tx_vfo = RIG_VFO_A;
@@ -1682,7 +1682,7 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
         }
         else
         {
-            rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown rxVFO=%s\n", __func__, __LINE__,
+            rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown rx_vfo=%s\n", __func__, __LINE__,
                       rig_strvfo(rig->state.rx_vfo));
             *txvfo = RIG_VFO_A; // pick a default
             rig->state.rx_vfo = RIG_VFO_A;
