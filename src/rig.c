@@ -891,7 +891,9 @@ int HAMLIB_API rig_open(RIG *rig)
     free(cwd);
 
     // Enable async data only if it's enabled through conf settings *and* supported by the backend
-    rig_debug(RIG_DEBUG_TRACE, "%s: async_data_enable=%d, async_data_supported=%d\n", __func__, rs->async_data_enabled, caps->async_data_supported);
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: async_data_enable=%d, async_data_supported=%d\n", __func__,
+              rs->async_data_enabled, caps->async_data_supported);
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
     rs->rigport.asyncio = rs->async_data_enabled;
 
@@ -1340,7 +1342,8 @@ int HAMLIB_API rig_open(RIG *rig)
             rmode_t mode;
             pbwidth_t width;
             rig_get_mode(rig, RIG_VFO_A, &mode, &width);
-            if (split) 
+
+            if (split)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "xxxsplit=%d\n", split);
                 HAMLIB_TRACE;
@@ -2021,7 +2024,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                        || (rig->state.cache.timeout_ms == HAMLIB_CACHE_ALWAYS
                            || rig->state.use_cached_freq)))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: %s cache hit age=%dms, freq=%.0f, use_cached_freq=%d\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: %s cache hit age=%dms, freq=%.0f, use_cached_freq=%d\n", __func__,
                   rig_strvfo(vfo), cache_ms_freq, *freq, rig->state.use_cached_freq);
         ELAPSED2;
         return (RIG_OK);
@@ -2029,7 +2033,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else
     {
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: cache miss age=%dms, cached_vfo=%s, asked_vfo=%s, use_cached_freq=%d\n", __func__,
+                  "%s: cache miss age=%dms, cached_vfo=%s, asked_vfo=%s, use_cached_freq=%d\n",
+                  __func__,
                   cache_ms_freq,
                   rig_strvfo(vfo), rig_strvfo(vfo), rig->state.use_cached_freq);
     }
@@ -2344,7 +2349,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     if (!mode || !width)
     {
-                                                        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     caps = rig->caps;
@@ -2753,7 +2758,8 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo != rig->state.current_vfo && rig_get_vfo(rig, &tmp_vfo) == -RIG_ENAVAIL)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: Expiring all cache due to VFO change and no get_vfo\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: Expiring all cache due to VFO change and no get_vfo\n", __func__);
         // expire all cached items when we switch VFOs and get_vfo does not work
         rig_set_cache_freq(rig, RIG_VFO_ALL, 0);
     }
@@ -7196,7 +7202,9 @@ static int async_data_handler_start(RIG *rig)
 
     if (!rs->async_data_enabled)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: async data support disabled since asynd_data_enabled=%d\n", __func__, rs->async_data_enabled);
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: async data support disabled since asynd_data_enabled=%d\n", __func__,
+                  rs->async_data_enabled);
         RETURNFUNC(RIG_OK);
     }
 

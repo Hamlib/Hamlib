@@ -262,7 +262,8 @@ int main(int argc, char *argv[])
     int twiddle_timeout = 0;
     int twiddle_rit = 0;
     int uplink = 0;
-    int rigctld_idle = 0; // if true then rig will close when no clients are connected
+    int rigctld_idle =
+        0; // if true then rig will close when no clients are connected
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
     char rigstartup[1024];
@@ -778,8 +779,8 @@ int main(int argc, char *argv[])
         if (verbose > RIG_DEBUG_ERR)
         {
             printf("Closed rig model %d, '%s - will reopen for clients'\n",
-               my_rig->caps->rig_model,
-               my_rig->caps->model_name);
+                   my_rig->caps->rig_model,
+                   my_rig->caps->model_name);
         }
     }
 

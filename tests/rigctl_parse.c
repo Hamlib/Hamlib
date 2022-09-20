@@ -1738,7 +1738,8 @@ readline_repeat:
         }
 
         // Allow only certain commands when the rig is powered off
-        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY)
+        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF
+                                  || rig_powerstat == RIG_POWER_STANDBY)
                 && cmd_entry->cmd != '1' // dump_caps
                 && cmd_entry->cmd != '3' // dump_conf
                 && cmd_entry->cmd != 0x8f // dump_state
@@ -1746,7 +1747,8 @@ readline_repeat:
                 && cmd_entry->cmd != 0x87) // set_powerstat
         {
             rig_debug(RIG_DEBUG_WARN,
-                      "%s: command %s not allowed when rig is powered off\n", __func__, cmd_entry->name);
+                      "%s: command %s not allowed when rig is powered off\n", __func__,
+                      cmd_entry->name);
             retcode = -RIG_EPOWER;
         }
         else

@@ -754,11 +754,12 @@ int kenwood_init(RIG *rig)
     priv->curr_mode = 0;
     priv->micgain_min = -1;
     priv->micgain_max = -1;
-    priv->has_ps = 1;  // until proven otherwise 
+    priv->has_ps = 1;  // until proven otherwise
+
     if (rig->caps->rig_model == RIG_MODEL_TS450S
-        || rig->caps->rig_model == RIG_MODEL_TS50
-        || rig->caps->rig_model == RIG_MODEL_TS140S
-        || rig->caps->rig_model == RIG_MODEL_TS440)
+            || rig->caps->rig_model == RIG_MODEL_TS50
+            || rig->caps->rig_model == RIG_MODEL_TS140S
+            || rig->caps->rig_model == RIG_MODEL_TS440)
     {
         priv->has_ps = 0;
     }
