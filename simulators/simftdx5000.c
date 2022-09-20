@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "FA", 2) == 0)
         {
-            sscanf(buf,"FA%f", &freqA);
+            sscanf(buf, "FA%f", &freqA);
         }
         else if (strcmp(buf, "FB;") == 0)
         {
@@ -223,11 +223,11 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "FB", 2) == 0)
         {
-            sscanf(buf,"FB%f", &freqB);
+            sscanf(buf, "FB%f", &freqB);
         }
         else if (strcmp(buf, "VS;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "VS%c;", vfo == 0? '0':'1');
+            SNPRINTF(buf, sizeof(buf), "VS%c;", vfo == 0 ? '0' : '1');
             n = write(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "FT;") == 0)
@@ -238,10 +238,11 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "FT", 2) == 0)
         {
             int tmp;
-            sscanf(buf,"FT%d", &tmp);
-            if (tmp == 2) ft=0;
-            else if (tmp == 3) ft=1;
-            else printf("%s expected FT2; or FT3;\n", buf);
+            sscanf(buf, "FT%d", &tmp);
+
+            if (tmp == 2) { ft = 0; }
+            else if (tmp == 3) { ft = 1; }
+            else { printf("%s expected FT2; or FT3;\n", buf); }
         }
         else if (strcmp(buf, "MD0;") == 0)
         {
@@ -250,7 +251,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "MD0", 2) == 0)
         {
-            sscanf(buf,"MD0%d", &md0);
+            sscanf(buf, "MD0%d", &md0);
         }
         else if (strcmp(buf, "MD1;") == 0)
         {
@@ -259,7 +260,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "MD1", 2) == 0)
         {
-            sscanf(buf,"MD1%d", &md1);
+            sscanf(buf, "MD1%d", &md1);
         }
         else if (strcmp(buf, "VS;") == 0)
         {
@@ -268,7 +269,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "VS", 2) == 0)
         {
-            sscanf(buf,"VS%d", &vs);
+            sscanf(buf, "VS%d", &vs);
         }
         else if (strcmp(buf, "TX;") == 0)
         {
@@ -277,7 +278,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "TX", 2) == 0)
         {
-            sscanf(buf,"TX%d", &tx);
+            sscanf(buf, "TX%d", &tx);
         }
         else if (strcmp(buf, "AI;") == 0)
         {
@@ -286,7 +287,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "AI", 2) == 0)
         {
-            sscanf(buf,"AI%d", &ai);
+            sscanf(buf, "AI%d", &ai);
         }
         else if (strcmp(buf, "SH0;") == 0)
         {
@@ -295,7 +296,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "SH0", 3) == 0)
         {
-            sscanf(buf,"SH0%d", &sh);
+            sscanf(buf, "SH0%d", &sh);
         }
         else if (strcmp(buf, "NA0;") == 0)
         {
@@ -304,7 +305,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "NA0", 3) == 0)
         {
-            sscanf(buf,"NA0%d", &na);
+            sscanf(buf, "NA0%d", &na);
         }
         else if (strcmp(buf, "EX039;") == 0)
         {
@@ -313,7 +314,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "EX039", 3) == 0)
         {
-            sscanf(buf,"EX039%d", &ex039);
+            sscanf(buf, "EX039%d", &ex039);
         }
         else if (strlen(buf) > 0)
         {
