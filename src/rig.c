@@ -611,6 +611,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->poll_interval = 0; // disable polling by default
     rs->lo_freq = 0;
     rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
+    rs->cache.ptt = 0;
 
     // We are using range_list1 as the default
     // Eventually we will have separate model number for different rig variations
