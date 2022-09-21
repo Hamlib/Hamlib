@@ -39,15 +39,14 @@ Version 4.5
           TBD The shared key can also be placed in .hamlib_settings 
         * Asynchronous rig data output handling to support transceive and spectrum data. Mikael, OH3BHX
           Example for the IC-7300 to multicast on port 20001 and provide async rig information
-          rigctld --port=20001 --model=3073 --serial-speed=115200 --rig-file=/dev/serial/... --set-conf=rts_state=OFF --set-conf=dtr_state=OFF --multicast-addr=224.0.0.1 --multicast-port=20001 --set-conf=async=1
-
-Also, spectrum data output needs to be enabled with: \set_func SPECTRUM 1
+          rigctld --port=20001 --model=3073 --serial-speed=115200 --rig-file=/dev/serial/... --set-conf=rts_state=OFF --set-conf=dtr_state=OFF --multicast-             addr=224.0.0.1 --multicast-port=20001 --set-conf=async=1
+          Also, spectrum data output needs to be enabled with: \set_func SPECTRUM 1
         * See new set_conf option async for some Icom rigs
         * Multicast UDP packet output for asynchronous data. Mikael, OH3BHX
         * Rig state poll routine to serve commonly used data like frequency and mode from cache. Mikael, OH3BHX
         * deprecated hamlib_port_t at front of rig_state structure -- new one at end of structure
+        * New rig_send_raw to send/read raw command to rig
         * New RIG_LEVEL_BAND_SELECT for Yaesu rigs
-        * 202?-??-??
         * New rig_get_conf2 to replace rig_get_conf buffer overflow potential
         * New rot_get_conf2 to reaplce rot_get_conf buffer overflow potential
         * Added Barrett 4050 -- not functional yet
