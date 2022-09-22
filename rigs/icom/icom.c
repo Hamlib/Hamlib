@@ -7877,8 +7877,6 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_ON:
 
         sleep(1);         // let serial bus idle for a while
-        rig_debug(RIG_DEBUG_TRACE, "%s: PWR_ON failed, trying 0xfe's\n",
-                  __func__);
         // ic7300 manual says ~150 for 115,200
         // we'll just send a few more to be sure for all speeds
         memset(fe_buf, 0xfe, fe_max);
