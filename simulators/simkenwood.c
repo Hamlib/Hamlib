@@ -147,6 +147,41 @@ int main(int argc, char *argv[])
 
             continue;
         }
+        else if (strcmp(buf, "NB;") == 0)
+        {
+            usleep(50 * 1000);
+            pbuf = "NB0;";
+            n = write(fd, pbuf, strlen(pbuf));
+            continue;
+        }
+        else if (strcmp(buf, "RA;") == 0)
+        {
+            usleep(50 * 1000);
+            pbuf = "RA0;";
+            n = write(fd, pbuf, strlen(pbuf));
+            continue;
+        }
+        else if (strcmp(buf, "RG;") == 0)
+        {
+            usleep(50 * 1000);
+            pbuf = "RG055;";
+            n = write(fd, pbuf, strlen(pbuf));
+            continue;
+        }
+        else if (strcmp(buf, "MG;") == 0)
+        {
+            usleep(50 * 1000);
+            pbuf = "MG050;";
+            n = write(fd, pbuf, strlen(pbuf));
+            continue;
+        }
+        else if (strcmp(buf, "AG;") == 0)
+        {
+            usleep(50 * 1000);
+            pbuf = "AG100;";
+            n = write(fd, pbuf, strlen(pbuf));
+            continue;
+        }
         else if (strcmp(buf, "FV;") == 0)
         {
             usleep(50 * 1000);
@@ -154,11 +189,43 @@ int main(int argc, char *argv[])
             n = write(fd, pbuf, strlen(pbuf));
             continue;
         }
+        else if (strncmp(buf, "IS;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "IS+0000;");
+            n = write(fd, buf, strlen(buf));
+            printf("%s\n", buf);
+            continue;
+        }
+        else if (strncmp(buf, "IS", 2) == 0)
+        {
+            continue;
+        }
+        else if (strncmp(buf, "SM;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "SM0035;");
+            n = write(fd, buf, strlen(buf));
+            printf("%s\n", buf);
+            continue;
+        }
+        else if (strncmp(buf, "PC;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PC100;");
+            n = write(fd, buf, strlen(buf));
+            printf("%s\n", buf);
+            continue;
+        }
         else if (strcmp(buf, "FW;") == 0)
         {
-            usleep(50 * 1000);
-            pbuf = "FW2400;";
+            //usleep(50 * 1000);
+            pbuf = "FW240";
             n = write(fd, pbuf, strlen(pbuf));
+            usleep(30*1000);
+            pbuf = "0;";
+            n = write(fd, pbuf, strlen(pbuf));
+            continue;
+        }
+        else if (strncmp(buf, "FW", 2) == 0)
+        {
             continue;
         }
         else if (strcmp(buf, "ID;") == 0)
@@ -214,6 +281,10 @@ int main(int argc, char *argv[])
 
             if (n < 0) { perror("EX032"); }
 
+            continue;
+        }
+        else if (strncmp(buf, "EX", 2) == 0)
+        {
             continue;
         }
         else if (strcmp(buf, "FA;") == 0)
