@@ -109,11 +109,12 @@ int main(int argc, char *argv[])
 
     while (1)
     {
+        buf[0] = 0;
         if (getmyline(fd, buf))
         {
             printf("Cmd:%s\n", buf);
         }
-        else { return 0; }
+        //else { return 0; }
 
         if (strcmp(buf, "RM5;") == 0)
         {
