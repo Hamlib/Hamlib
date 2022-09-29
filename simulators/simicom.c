@@ -68,6 +68,7 @@ frameGet(int fd, unsigned char *buf)
 void frameParse(int fd, unsigned char *frame, int len)
 {
     double freq;
+    int n;
 
     dumphex(frame, len);
 
@@ -95,7 +96,10 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         frame[10] = 0xfd;
-        write(fd, frame, 11);
+        n = write(fd, frame, 11);
+
+        if (n != 11) {printf("Error!\n"); exit(1);}
+
         break;
 
     case 0x04:
@@ -113,7 +117,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         frame[7] = 0xfd;
-        write(fd, frame, 8);
+        n = write(fd, frame, 8);
         break;
 
     case 0x05:
@@ -125,7 +129,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         frame[4] = 0xfb;
         frame[5] = 0xfd;
-        write(fd, frame, 6);
+        n = write(fd, frame, 6);
         break;
 
     case 0x06:
@@ -134,7 +138,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         frame[4] = 0xfb;
         frame[5] = 0xfd;
-        write(fd, frame, 6);
+        n = write(fd, frame, 6);
         break;
 
     case 0x07:
@@ -154,7 +158,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         frame[4] = 0xfb;
         frame[5] = 0xfd;
-        write(fd, frame, 6);
+        n = write(fd, frame, 6);
         break;
 
     case 0x0f:
@@ -164,7 +168,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         printf("set split %d\n", 1);
         frame[4] = 0xfb;
         frame[5] = 0xfd;
-        write(fd, frame, 6);
+        n = write(fd, frame, 6);
         break;
 
     case 0x12: // we're simulating the 3-byte version -- not the 2-byte
@@ -183,9 +187,9 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[5] = ant_curr;
         frame[6] = ant_option;
         frame[7] = 0xfd;
-        printf("write 8 bytes\n");
+        printf("n=write 8 bytes\n");
         dump_hex(frame, 8);
-        write(fd, frame, 8);
+        n = write(fd, frame, 8);
         break;
 
     case 0x14:
@@ -199,7 +203,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             printf("Using AF level %d\n", level);
             to_bcd(&frame[6], (long long) level, 2);
             frame[8] = 0xfd;
-            write(fd, frame, 9);
+            n = write(fd, frame, 9);
             break;
 
         case 0x0a:
@@ -210,7 +214,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             to_bcd(&frame[6], (long long)power_level, 2);
             frame[8] = 0xfd;
-            write(fd, frame, 9);
+            n = write(fd, frame, 9);
             break;
         }
 
@@ -229,7 +233,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             to_bcd(&frame[6], (long long)meter_level, 2);
             frame[8] = 0xfd;
-            write(fd, frame, 9);
+            n = write(fd, frame, 9);
             break;
         }
 
@@ -243,20 +247,20 @@ void frameParse(int fd, unsigned char *frame, int len)
             else { frame[6] = widthB; }
 
             frame[7] = 0xfd;
-            write(fd, frame, 8);
+            n = write(fd, frame, 8);
             break;
 
         case 0x04: // IC7200 data mode
             frame[6] = 0;
             frame[7] = 0;
             frame[8] = 0xfd;
-            write(fd, frame, 9);
+            n = write(fd, frame, 9);
             break;
 
         case 0x07: // satmode
             frame[6] = 0;
             frame[7] = 0xfd;
-            write(fd, frame, 8);
+            n = write(fd, frame, 8);
             break;
 
         }
@@ -271,14 +275,14 @@ void frameParse(int fd, unsigned char *frame, int len)
             {
                 frame[6] = ptt;
                 frame[7] = 0xfd;
-                write(fd, frame, 8);
+                n = write(fd, frame, 8);
             }
             else
             {
                 ptt = frame[6];
                 frame[7] = 0xfb;
                 frame[8] = 0xfd;
-                write(fd, frame, 9);
+                n = write(fd, frame, 9);
             }
 
             break;
@@ -305,7 +309,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             }
 
             frame[11] = 0xfd;
-            write(fd, frame, 12);
+            n = write(fd, frame, 12);
         }
         else
         {
@@ -317,7 +321,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             frame[4] = 0xfb;
             frame[5] = 0xfd;
-            write(fd, frame, 6);
+            n = write(fd, frame, 6);
         }
 
         break;
@@ -333,7 +337,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[7] = frame[5] == 0 ? datamodeA : datamodeB;
             frame[8] = 0xfb;
             frame[9] = 0xfd;
-            write(fd, frame, 10);
+            n = write(fd, frame, 10);
         }
         else
         {
@@ -352,7 +356,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             frame[4] = 0xfb;
             frame[5] = 0xfd;
-            write(fd, frame, 6);
+            n = write(fd, frame, 6);
         }
 
         printf("\n");
