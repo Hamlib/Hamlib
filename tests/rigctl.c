@@ -151,6 +151,10 @@ int main(int argc, char *argv[])
     int ext_resp = 0;
     int i;
     char rigstartup[1024];
+    char vbuf[1024];
+
+    int err = setvbuf(stderr, vbuf, _IOFBF, sizeof(vbuf));
+    if (err) rig_debug(RIG_DEBUG_ERR, "%s: setvbuf err=%s\n", __func__, strerror(err));
 
     while (1)
     {
