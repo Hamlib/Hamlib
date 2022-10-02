@@ -267,6 +267,7 @@ int main(int argc, char *argv[])
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
     char rigstartup[1024];
+    char vbuf[1024];
 #if HAVE_SIGACTION
     struct sigaction act;
 #endif
@@ -281,6 +282,10 @@ int main(int argc, char *argv[])
     extern int is_rigctld;
 
     is_rigctld = 1;
+
+    int err = setvbuf(stderr, vbuf, _IOFBF, sizeof(vbuf));
+    if (err) rig_debug(RIG_DEBUG_ERR, "%s: setvbuf err=%s\n", __func__, strerror(err));
+
 
     while (1)
     {
