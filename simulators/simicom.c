@@ -15,7 +15,7 @@
 #include "../src/misc.h"
 
 #define BUFSIZE 256
-#define X25
+//#define X25
 
 int civ_731_mode = 0;
 vfo_t current_vfo = RIG_VFO_A;
@@ -239,6 +239,11 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         break;
 
+    case 0x18: // miscellaneous things
+        frame[5] = 1;
+        frame[6] = 0xfd;
+        n = write(fd, frame, 7);
+        break;
     case 0x1a: // miscellaneous things
         switch (frame[5])
         {
