@@ -16,8 +16,9 @@ Version 4.6
         * 2023-XX-XX
         
 Version 4.5
-        * 2022-09-30
+        * 2022-10-12
         * New rotator utility https://www.pianetaradio.it/blog/catrotator/
+        * Add FT-710
         * Add Rohde&Schwartz EK89X receiver
         * Add Xeigu X5105
         * Add Gemini DX-1200 HF-1K Amplifiers
