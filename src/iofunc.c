@@ -1262,8 +1262,8 @@ static int read_string_generic(hamlib_port_t *p,
         return -RIG_EINTERNAL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d direct=%d\n", __func__,
-              (int)rxmax, direct);
+    rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d direct=%d, expected_len=%d\n", __func__,
+              (int)rxmax, direct, expected_len);
 
     if (!p || !rxbuffer)
     {
@@ -1339,8 +1339,13 @@ static int read_string_generic(hamlib_port_t *p,
          */
         do
         {
+            // The ioctl works on Linux but not mingw -- enable in 4.6 for non-mingw builds and see if it breaks anything
+            //int avail=0;
+            //ioctl(p->fd, FIONREAD, &avail);
+            //rig_debug(RIG_DEBUG_ERR, "xs: avail=%d expected_len=%d, minlen=%d, direct=%d\n", __func__, avail, expected_len, minlen, direct);
             rd_count = port_read_generic(p, &rxbuffer[total_count],
                                          expected_len == 1 ? 1 : minlen, direct);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes\n", __func__, (int)rd_count);
             minlen -= rd_count;
 
             if (errno == EAGAIN)
