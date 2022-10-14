@@ -7351,7 +7351,7 @@ ncboolean newcat_valid_command(RIG *rig, char const *const command)
 
     if (!is_ft450 && !is_ft950 && !is_ft891 && !is_ft991 && !is_ft2000
             && !is_ftdx5000 && !is_ftdx9000 && !is_ftdx1200 && !is_ftdx3000 && !is_ftdx101d
-            && !is_ftdx101mp && !is_ftdx10)
+            && !is_ftdx101mp && !is_ftdx10 && !is_ft710)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n", __func__, caps->model_name);
         RETURNFUNC2(FALSE);
