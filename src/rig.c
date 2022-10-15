@@ -2246,6 +2246,21 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
 
+    // if we're not asking for bandwidth and the mode is already set we don't need to do it
+    // this will prevent flashing on some rigs like the TS-870
+    if (caps->get_mode && width == RIG_PASSBAND_NOCHANGE)
+    {
+        rmode_t mode_curr;
+        pbwidth_t width_curr;
+        retcode = caps->get_mode(rig, vfo, &mode_curr, &width_curr);
+        if (retcode == RIG_OK && mode==mode_curr)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: mode already %s and bw change not requested\n", __func__, rig_strrmode(mode));
+            ELAPSED2;
+            RETURNFUNC2(RIG_OK);
+        }
+    }
+
     if ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
             || vfo == rig->state.current_vfo)
     {
