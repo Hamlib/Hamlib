@@ -4862,7 +4862,7 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    retval = kenwood_safe_transaction(rig, "PS", pwrbuf, 6, 4);
+    retval = kenwood_safe_transaction(rig, "PS", pwrbuf, 6, 3);
 
     if (retval != RIG_OK)
     {
