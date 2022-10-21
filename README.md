@@ -76,8 +76,10 @@ Recompiling
 -----------
 
 Hamlib is entirely developed using GNU tools, under various Linux systems.
-The library may be recompiled by the familiar "three step":
+The library may be recompiled as follows:
 
+        ./bootstrap
+        autoconf
         ./configure
         make
         sudo make install
