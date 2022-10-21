@@ -10,11 +10,16 @@ on. These are generic instructions for people who are not familiar with
 installing autoconfiguring software (along with some Hamlib-specific
 information).
 
+
 The simplest way to compile this package is to enter the source code
 main directory and do the following:
 
   1. Configure the source code by typing:
 
+        If you check out the source code from github you need this step first
+        $ ./bootstrap
+
+        With the tar file or after the step above from a git clone
         $ ./configure
 
      If configure does not exist you can create it with ./bootstrap
