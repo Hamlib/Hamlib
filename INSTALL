@@ -15,6 +15,8 @@ main directory and do the following:
 
   1. Configure the source code by typing:
 
+        $ ./bootstrap
+        $ autoconf
         $ ./configure
 
      If configure does not exist you can create it with ./bootstrap
