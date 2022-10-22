@@ -6895,7 +6895,8 @@ int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
     int retval;
 
     ENTERFUNC;
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC%d%c", scan, cat_term);
+    if (scan != RIG_SCAN_VFO) RETURNFUNC2(-RIG_EINVAL);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC%d%c", ch, cat_term);
 
     if (RIG_OK != (retval = newcat_set_cmd(rig)))
     {
