@@ -112,6 +112,7 @@ const struct rig_caps ftdx101mp_caps =
     .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1200),
     .vfo_ops =            FTDX101_VFO_OPS,
+    .scan_ops =           RIG_SCAN_VFO,
     .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_COMMON | RIG_TARGETABLE_ANT,
     .transceive =         RIG_TRN_OFF, /* May enable later as the FTDX101 has an Auto Info command */
     .bank_qty =           0,
@@ -249,5 +250,6 @@ const struct rig_caps ftdx101mp_caps =
     .wait_morse =         rig_wait_morse,
     .set_clock =          newcat_set_clock,
     .get_clock =          newcat_get_clock,
+    .scan =               newcat_scan,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

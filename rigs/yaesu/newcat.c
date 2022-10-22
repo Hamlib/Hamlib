@@ -6891,9 +6891,20 @@ int newcat_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
-    ENTERFUNC;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int retval;
 
-    RETURNFUNC(-RIG_ENAVAIL);
+    ENTERFUNC;
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC%d%c", scan, cat_term);
+
+    if (RIG_OK != (retval = newcat_set_cmd(rig)))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
+                  retval);
+        RETURNFUNC2(retval);
+    }
+
+    RETURNFUNC2(retval);
 }
 
 
@@ -11629,4 +11640,3 @@ int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
 
     RETURNFUNC2(retval);
 }
-
