@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20221013"
+#define NEWCAT_VER "20221021"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -236,7 +236,7 @@ int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
                      int sec, double msec, int utc_offset);
 int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
                      int *min, int *sec, double *msec, int *utc_offset);
-
+int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 
 #define TOKEN_BACKEND(t) (t)
 

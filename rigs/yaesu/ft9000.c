@@ -89,6 +89,7 @@ const struct rig_caps ft9000_caps =
     .agc_level_count =    5,
     .agc_levels =         { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW, RIG_AGC_AUTO },
     .vfo_ops =            FT9000_VFO_OPS,
+    .scan_ops =           RIG_SCAN_VFO,
     .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_ANT,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 9000 has an Auto Info command */
     .bank_qty =           0,
@@ -213,5 +214,6 @@ const struct rig_caps ft9000_caps =
     .get_channel =        newcat_get_channel,
     .send_morse =         newcat_send_morse,
     .wait_morse =         rig_wait_morse,
+    .scan =               newcat_scan,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

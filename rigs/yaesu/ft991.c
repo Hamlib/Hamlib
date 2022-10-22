@@ -141,7 +141,7 @@ const struct rig_caps ft991_caps =
     RIG_MODEL(RIG_MODEL_FT991),
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".12",
+    .version =            NEWCAT_VER ".13",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -181,6 +181,7 @@ const struct rig_caps ft991_caps =
     .agc_level_count = 5,
     .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW, RIG_AGC_AUTO },
     .vfo_ops =            FT991_VFO_OPS,
+    .scan_ops =           RIG_SCAN_VFO,
     .targetable_vfo =     RIG_TARGETABLE_FREQ,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 950 has an Auto Info command */
     .bank_qty =           0,
@@ -354,9 +355,11 @@ const struct rig_caps ft991_caps =
     .get_ext_level =      newcat_get_ext_level,
     .send_morse =         newcat_send_morse,
     .wait_morse =         rig_wait_morse,
+    .scan =               newcat_scan,
     .send_voice_mem =     newcat_send_voice_mem,
     .set_clock =          newcat_set_clock,
     .get_clock =          newcat_get_clock,
+    .scan =               newcat_scan,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
