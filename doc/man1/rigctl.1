@@ -947,13 +947,18 @@ radio backend.
 Perform a
 .RI \(aq "Scan Fct" \(aq
 on a
-.RI \(aq "Scan Channel" \(aq.
+.RI \(aq "Scan Option" \(aq.
 .IP
 Scan Function is a token: \(oqSTOP\(cq, \(oqMEM\(cq, \(oqSLCT\(cq,
 \(oqPRIO\(cq, \(oqPROG\(cq, \(oqDELTA\(cq, \(oqVFO\(cq, \(oqPLT\(cq.
 .IP
-.\" FIXME: What is a scan channel value?
-Scan Channel is an integer (maybe?).
+Scan Option is an integer.  
+.IP
+Scan Option for Yaesu rigs 0=STOP, 1=UP, 2=DOWN.
+.IP
+Scan Option for Icom rigs is a channel number to program with G otherwise not used.
+.IP
+Scan Option for Kenwood rigs is not used.
 .IP
 .BR Note :
 Passing a \(oq?\(cq (query) as the first argument instead of a Scan Fct token

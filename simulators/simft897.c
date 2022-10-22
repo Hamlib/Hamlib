@@ -144,7 +144,10 @@ again:
 
         case 0x03:
             printf("READ RX STATUS\n");
-            buf[0] = buf[1] = buf[2] = buf[3] = 0;
+            buf[0] = 0x01;
+            buf[1] = 0x40;
+            buf[2] = 0x74;
+            buf[3] = 0x00;
             buf[4] = 0x03; n = write(fd, buf, 5);
             break;
 
