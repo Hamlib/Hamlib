@@ -23,6 +23,8 @@ int roofing_filter_main = 1;
 int roofing_filter_sub = 6;
 int width_main = 0;
 int width_sub = 0;
+int ex039 = 0;
+int lk = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -401,6 +403,40 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "SH%c%02d;", buf[2],
                      buf[2] == 0 ? width_main : width_sub);
         }
+        else if (strcmp(buf, "EX039;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "EX039%d;", ex039);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "EX039", 3) == 0)
+        {
+            sscanf(buf, "EX039%d", &ex039);
+        }
+        else if (strcmp(buf, "LK;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "LK%d;", lk);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "LK", 3) == 0)
+        {
+            sscanf(buf, "LK%d", &lk);
+        }
+        else if (strncmp(buf, "DT0;", 4) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "DT020221022;");
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "DT1;", 4) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "DT1222100;");
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "DT2;", 4) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "DT2+0500;");
+            n = write(fd, buf, strlen(buf));
+        }
+
 
         else if (strlen(buf) > 0)
         {
