@@ -5172,9 +5172,9 @@ declare_proto_rig(get_cache)
 /* '0xf8' */
 declare_proto_rig(set_clock)
 {
-    int year, mon, day, hour = -1, min = -1, sec = -1;
-    double msec;
-    int utc_offset = 0;
+    int year, mon, day, hour = -1, min = -1, sec = 0;
+    double msec=-1;
+    int utc_offset = 0; 
     int n;
     char timebuf[64];
 
@@ -5196,10 +5196,25 @@ declare_proto_rig(set_clock)
                    &hour,
                    &min, &sec, &msec, &utc_offset);
     }
-    else
-    {
+    else if (arg1[16] == '+' || arg1[16] == '-')
+    { // YYYY-MM-DDTHH:MM+ZZ
+        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d%d", &year, &mon, &day, &hour,
+                   &min, &utc_offset);
+    }
+    else if (arg1[19] == '+' || arg1[19] == '-')
+    { // YYYY-MM-DDTHH:MM:SS+ZZ
+        n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%d", &year, &mon, &day, &hour,
+                   &min, &sec, &utc_offset);
+    }
+    else if (arg1[23] == '+' || arg1[23] == '-')
+    { // YYYY-MM-DDTHH:MM:SS.SSS+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
                    &min, &sec, &msec, &utc_offset);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: '%s' not valid time format\n", __func__, arg1);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
@@ -5207,11 +5222,9 @@ declare_proto_rig(set_clock)
               __func__, n, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
               (unsigned)abs(utc_offset));
 
-    rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
-
     if (utc_offset < 24) { utc_offset *= 100; } // allow for minutes offset too
 
-    rig_debug(RIG_DEBUG_ERR, "%s: utc_offset=%d\n", __func__, utc_offset);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: utc_offset=%d\n", __func__, utc_offset);
 
     RETURNFUNC(rig_set_clock(rig, year, mon, day, hour, min, sec, msec,
                              utc_offset));
