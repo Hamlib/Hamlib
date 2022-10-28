@@ -1349,7 +1349,7 @@ static int read_string_generic(hamlib_port_t *p,
 #endif
             rd_count = port_read_generic(p, &rxbuffer[total_count],
                                          expected_len == 1 ? 1 : minlen, direct);
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes\n", __func__, (int)rd_count);
+//            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes\n", __func__, (int)rd_count);
             minlen -= rd_count;
 
             if (errno == EAGAIN)
