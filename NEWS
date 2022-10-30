@@ -14,6 +14,8 @@ Version 5.x -- future
 
 Version 4.6
         * 2023-XX-XX
+        * rigctl 'W' command can now use a singled char terminator like ; that allows for variable length responses with no timeout -- e.g.  W FA; ;
+
         
 Version 4.5
         * 2022-10-30
