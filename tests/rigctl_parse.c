@@ -4891,6 +4891,7 @@ declare_proto_rig(send_cmd)
             ++rxbytes;  // need length + 1 for end of string
             eom_buf[0] = 0;
         }
+        if (arg2[0] == ';') eom_buf[0] = ';';
 
         /* Assumes CR or LF is end of line char for all ASCII protocols. */
         retval = read_string(&rs->rigport, buf, rxbytes, eom_buf,
