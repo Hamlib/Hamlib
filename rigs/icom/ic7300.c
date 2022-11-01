@@ -284,6 +284,7 @@ static const struct icom_priv_caps IC7300_priv_caps =
     ic7300_ts_sc_list,
     .agc_levels_present = 1,
     .agc_levels = {
+        { .level = RIG_AGC_OFF, .icom_level = 0 },
         { .level = RIG_AGC_FAST, .icom_level = 1 },
         { .level = RIG_AGC_MEDIUM, .icom_level = 2 },
         { .level = RIG_AGC_SLOW, .icom_level = 3 },
