@@ -925,6 +925,7 @@ static const struct
     { RIG_LEVEL_SPECTRUM_ATT, "SPECTRUM_ATT" },
     { RIG_LEVEL_TEMP_METER, "TEMP_METER" },
     { RIG_LEVEL_BAND_SELECT, "BAND_SELECT" },
+    { RIG_LEVEL_USB_AF, "USB_AF" },
     { RIG_LEVEL_NONE, "" },
 };
 

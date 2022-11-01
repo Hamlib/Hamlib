@@ -15,6 +15,7 @@ Version 5.x -- future
 Version 4.6
         * 2023-XX-XX
         * rigctl 'W' command can now use a singled char terminator like ; that allows for variable length responses with no timeout -- e.g.  W FA; ;
+        * New RIG_LEVEL_USB_AF to control audio gain from rig to computer -- to allow AGC function in software using RF and USB_AF
 
         
 Version 4.5
