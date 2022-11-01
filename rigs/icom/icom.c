@@ -8001,6 +8001,12 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
         *status = ((ack_len == 6) && (ackbuf[0] == C_CTL_MEM)) ?
                   RIG_POWER_ON : RIG_POWER_OFF;
     }
+    if (rig->caps->rig_model == RIG_MODEL_IC7300)
+    {
+        freq_t freq;
+        int retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+        return retval;
+    }
     else
     {
         retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0,
