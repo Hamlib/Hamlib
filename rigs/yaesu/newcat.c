@@ -8487,7 +8487,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 1700) { w = 15; }
             else if (width <= 2000) { w = 16; }
             else if (width <= 2400) { w = 17; }
-            else { w = 18; }
+            else { w = 18; } // 3000Hz
 
             break;
 
