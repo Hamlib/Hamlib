@@ -25,7 +25,7 @@
 #include <hamlib/rig.h>
 #include <hamlib/rotator.h>
 
-#define SPRINTF_MAX_SIZE 512
+#define SPRINTF_MAX_SIZE 1024
 
 __BEGIN_DECLS
 

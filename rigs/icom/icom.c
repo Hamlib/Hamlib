@@ -4051,6 +4051,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
         break;
 
+    case RIG_LEVEL_USB_AF:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_ATT;
+        cmd_len = 1;
+
+        break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s\n", __func__,
                   rig_strlevel(level));
