@@ -1051,7 +1051,7 @@ const char *HAMLIB_API rig_strlevel(setting_t level)
 {
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called level=%lx\n", __func__, level);
 
     if (level == RIG_LEVEL_NONE)
     {
