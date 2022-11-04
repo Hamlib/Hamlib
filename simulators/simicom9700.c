@@ -24,8 +24,8 @@ int split = 0;
 // we make B different from A to ensure we see a difference at startup
 float freqA = 14074000;
 float freqB = 14074500;
-mode_t modeA = RIG_MODE_CW;
-mode_t modeB = RIG_MODE_USB;
+mode_t modeA = RIG_MODE_PKTUSB;
+mode_t modeB = RIG_MODE_PKTUSB;
 int datamodeA = 0;
 int datamodeB = 0;
 pbwidth_t widthA = 0;
@@ -34,6 +34,7 @@ ant_t ant_curr = 0;
 int ant_option = 0;
 int ptt = 0;
 int satmode = 0;
+int agc_time = 1;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -274,15 +275,28 @@ void frameParse(int fd, unsigned char *frame, int len)
             n = write(fd, frame, 8);
             break;
 
-        case 0x04: // IC7200 data mode
-            frame[6] = 0;
-            frame[7] = 0;
-            frame[8] = 0xfd;
-            n = write(fd, frame, 9);
+        case 0x04: // AGC TIME
+            printf("frame[6]==x%02x, frame[7]=0%02x\n", frame[6], frame[7]);
+
+            if (frame[6] == 0xfd)   // the we are reading
+            {
+                frame[6] = agc_time;
+                frame[7] = 0xfd;
+                n = write(fd, frame, 8);
+            }
+            else
+            {
+                printf("AGC_TIME RESPONSE******************************");
+                agc_time = frame[6];
+                frame[4] = 0xfb;
+                frame[5] = 0xfd;
+                n = write(fd, frame, 6);
+            }
+
             break;
 
         case 0x07: // satmode
-            frame[6] = 0;
+            frame[4] = 0;
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
             break;
@@ -411,6 +425,8 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     default: printf("cmd 0x%02x unknown\n", frame[4]);
     }
+
+    if (n == 0) { printf("Write failed?\n"); }
 
 // don't care about the rig type yet
 
