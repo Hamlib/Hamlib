@@ -141,7 +141,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20221030.0",
+    .version = "20221104.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1308,7 +1308,7 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         RETURNFUNC(retval);
     }
 
-    if (strlen(xml) > 0)
+    if (strlen(value) > 0)
     {
         xml_parse(xml, value, sizeof(value));
         *ptt = atoi(value);
