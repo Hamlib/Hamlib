@@ -144,6 +144,16 @@ static int netrotctl_open(ROT *rot)
     }
 
     rs->max_el = rot->caps->max_el = atof(buf);
+    
+    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+                      sizeof("\n"), 0, 1);
+
+    if (ret <= 0)
+    {
+        return (ret < 0) ? ret : -RIG_EPROTO;
+    }
+
+    rs->south_zero = atoi(buf);
 
     return RIG_OK;
 }
