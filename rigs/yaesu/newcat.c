@@ -68,7 +68,8 @@ typedef enum nc_rigid_e
     NC_RIGID_FTDX3000        = 460,
     NC_RIGID_FTDX3000DM      = 462, // an undocumented FT-DX3000DM 50W rig
     NC_RIGID_FTDX101D        = 681,
-    NC_RIGID_FTDX101MP       = 682
+    NC_RIGID_FTDX101MP       = 682,
+    NC_RIGID_FT710           = 800,
 } nc_rigid_t;
 
 
@@ -10484,7 +10485,7 @@ int newcat_set_cmd_validate(RIG *rig)
     // For FA and FB rig.c now tries to verify the set_freq actually works
     // For example the FT-2000 can't do a FA set followed by an immediate read
     // We were using "ID" to verify the command but rig.c now does
-    // a verifcation of frequency and retries if it doesn't match
+    // a verification of frequency and retries if it doesn't match
     if ((strncmp(priv->cmd_str, "FA", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
         strcpy(valcmd, "FA;");
