@@ -35,6 +35,7 @@ int ant_option = 0;
 int ptt = 0;
 int satmode = 0;
 int agc_time = 1;
+int ovf_status = 0;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -225,6 +226,13 @@ void frameParse(int fd, unsigned char *frame, int len)
         switch (frame[5])
         {
             static int meter_level = 0;
+
+        case 0x07:
+            frame[6] = ovf_status;
+            frame[7] = 0xfd;
+            n = write(fd, frame, 8);
+            ovf_status = ovf_status==0?1:0;
+            break;
 
         case 0x11:
             printf("Using meter level %d\n", meter_level);
