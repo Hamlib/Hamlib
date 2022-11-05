@@ -7338,6 +7338,13 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         break;
 
+    case RIG_FUNC_OVF_STATUS:
+    {
+        fct_cn = C_RD_SQSM;
+        fct_sc = S_OVF;
+        break;
+    }
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_func %s\n", __func__,
                   rig_strfunc(func));
