@@ -88,14 +88,14 @@ static struct kenwood_priv_caps f6k_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
     .mode_table = flex_mode_table,
-    .if_len = 38
+    .if_len = 37
 };
 
 static struct kenwood_priv_caps powersdr_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
     .mode_table = powersdr_mode_table,
-    .if_len = 38
+    .if_len = 37
 };
 
 #define DSP_BW_NUM 8
