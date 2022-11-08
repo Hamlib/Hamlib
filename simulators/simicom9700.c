@@ -39,7 +39,7 @@ int ptt = 0;
 int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
-int powerstat = 1;
+int powerstat = 0;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -55,6 +55,7 @@ frameGet(int fd, unsigned char *buf)
     memset(buf, 0, BUFSIZE);
     unsigned char c;
 
+again:
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
@@ -64,6 +65,19 @@ frameGet(int fd, unsigned char *buf)
         {
             dumphex(buf, i);
             return i;
+        }
+
+        if (i > 2 && c==0xfe)
+        {
+            printf("Turning power on due to 0xfe string\n");
+            powerstat = 1;
+            int j;
+            for(j=i;j<175;++j)
+            {
+                if (read(fd, &c, 1) < 0) break;
+            }
+            i=0;
+            goto again;
         }
     }
 
@@ -88,12 +102,6 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     switch (frame[4])
     {
-    case 0xfe:
-        usleep(500 * 1000);
-        tcflush(fd, TCIFLUSH);
-        powerstat = 1;
-        break;
-
     case 0x03:
 
         //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
