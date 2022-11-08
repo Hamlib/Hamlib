@@ -8073,9 +8073,9 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
     {
         freq_t freq;
         int retrysave = rig->caps->retry;
-        rig->caps->retry = 0;
+        rig->state.rigport.retry = 0;
         int retval = rig_get_freq(rig, RIG_VFO_A, &freq);
-        rig->caps->retry = retrysave;
+        rig->state.rigport.retry = retrysave;
         *status = retval==RIG_OK ? RIG_POWER_ON : RIG_POWER_OFF;
         return retval;
     }
