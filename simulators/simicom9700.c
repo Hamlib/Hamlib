@@ -13,6 +13,9 @@
 #include <sys/time.h>
 #include <hamlib/rig.h>
 #include "../src/misc.h"
+#include <termios.h>
+#include <unistd.h>
+
 
 #define BUFSIZE 256
 #define X25
@@ -36,7 +39,7 @@ int ptt = 0;
 int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
-int powerstat = 0;
+int powerstat = 1;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -85,6 +88,12 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     switch (frame[4])
     {
+    case 0xfe:
+        usleep(500 * 1000);
+        tcflush(fd, TCIFLUSH);
+        powerstat = 1;
+        break;
+
     case 0x03:
 
         //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
@@ -100,8 +109,12 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         frame[10] = 0xfd;
+
         if (powerstat)
+        {
             n = write(fd, frame, 11);
+        }
+
         break;
 
     case 0x04:
@@ -233,7 +246,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[6] = ovf_status;
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
-            ovf_status = ovf_status==0?1:0;
+            ovf_status = ovf_status == 0 ? 1 : 0;
             break;
 
         case 0x11:
@@ -527,11 +540,14 @@ int main(int argc, char **argv)
         }
 
         if (powerstat)
-        frameParse(fd, buf, len);
+        {
+            frameParse(fd, buf, len);
+        }
         else
         {
-            usleep(1000*1000);
+            usleep(1000 * 1000);
         }
+
         rigStatus();
     }
 
