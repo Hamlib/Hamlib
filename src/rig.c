@@ -5860,9 +5860,11 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
 
     if (rig->caps->get_powerstat == NULL)
     {
+        *status = RIG_POWER_ON; // default to power if not available
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
+    *status = RIG_POWER_OFF; // default now to power off until proven otherwise in get_powerstat
     HAMLIB_TRACE;
     retcode = rig->caps->get_powerstat(rig, status);
     RETURNFUNC(retcode);
