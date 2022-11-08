@@ -36,6 +36,7 @@ int ptt = 0;
 int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
+int powerstat = 0;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -99,7 +100,8 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         frame[10] = 0xfd;
-        n = write(fd, frame, 11);
+        if (powerstat)
+            n = write(fd, frame, 11);
         break;
 
     case 0x04:
@@ -524,7 +526,12 @@ int main(int argc, char **argv)
             fd = openPort(argv[1]);
         }
 
+        if (powerstat)
         frameParse(fd, buf, len);
+        else
+        {
+            usleep(1000*1000);
+        }
         rigStatus();
     }
 

@@ -8047,6 +8047,8 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
 
     ENTERFUNC;
 
+    *status = RIG_POWER_OFF; // default return until proven otherwise
+
     /* r75 has no way to get power status, so fake it */
     if (rig->caps->rig_model == RIG_MODEL_ICR75)
     {
@@ -8070,7 +8072,11 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
     if (rig->caps->rig_model == RIG_MODEL_IC7300)
     {
         freq_t freq;
+        int retrysave = rig->caps->retry;
+        rig->caps->retry = 0;
         int retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+        rig->caps->retry = retrysave;
+        *status = retval==RIG_OK ? RIG_POWER_ON : RIG_POWER_OFF;
         return retval;
     }
     else
