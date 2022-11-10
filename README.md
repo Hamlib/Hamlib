@@ -1,10 +1,15 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) Stephane Fillod 2000-2011
-         (C) The Hamlib Group 2000-2012
+         (C) The Hamlib Group 2000-2022
+
 
 The purpose of this project is to provide stable, flexible, shared libraries
 that enable quicker development of Amateur Radio Equipment Control
 Applications.
+The master repository is https://github.com/Hamlib/Hamlib
+Daily snapshots are available at https://n0nb.users.sourceforge.net/
+Development happens on the github master (often by
+merging feature branches) and each release has a release branch.
 
 Many Amateur Radio Transceivers come with serial interfaces that allows
 software to control the radio. This project will endeavour to provide shared
