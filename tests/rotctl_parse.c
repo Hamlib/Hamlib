@@ -2363,7 +2363,7 @@ declare_proto_rot(dump_state)
     /*
      * - Protocol version
      */
-#define ROTCTLD_PROT_VER 0
+#define ROTCTLD_PROT_VER 1
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
@@ -2413,6 +2413,21 @@ declare_proto_rot(dump_state)
     }
 
     fprintf(fout, "%d%c", rs->south_zero, resp_sep);
+
+    char *rtype = "Unknown";
+
+    switch (rot->caps->rot_type)
+    {
+    case ROT_TYPE_OTHER: rtype = "Other"; break;
+
+    case ROT_TYPE_AZIMUTH   : rtype = "Az"; break;
+
+    case ROT_TYPE_ELEVATION   : rtype = "El"; break;
+
+    case ROT_TYPE_AZEL   : rtype = "AzEl"; break;
+    }
+
+    fprintf(fout, "rot_type=%s%c", rtype, resp_sep);
 
     return RIG_OK;
 }
