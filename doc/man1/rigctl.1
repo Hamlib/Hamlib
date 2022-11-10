@@ -864,6 +864,53 @@ value is one of \(oq0\(cq = OFF, \(oq1\(cq = SUPERFAST, \(oq2\(cq = FAST,
 \(oq3\(cq = SLOW, \(oq4\(cq = USER, \(oq5\(cq = MEDIUM, \(oq6\(cq = AUTO.
 Note that not all values work on all rigs.  To list usable values do "rigctl -m [modelnum] -u | grep AGC levels" or for Windows "rigctl -m [modelnum] -u | find "AGC levels"".
 .IP
+Level units
+.in +4n
+.EX
+0.0-1.0 where 0=0% and 1.0=100% (except for BAL where 50% is center)
+    AF, ALC, ANTIVOX, BAL, COMP, MICGAIN, MONITOR_GAIN, NOTCHF_RAW, NR, RF, RFPOWER, RFPOWER_METER, USB_AF, VOXGAIN
+
+Amps
+    ID_METER(A)
+
+dB
+    NL, COMP_METER, PREAMP, ATT, SLOPE_LOW, SLOPE_HIGH, SPECTRUM_REF, SPECTRUM_ATT, STRENGTH
+
+Degrees(temperature)
+    TEMP_METER(C)
+
+Hz
+    CWPITCH, IF, NOTCHF, PBT_IN, PBT_OUT, SPECTRUM_EDGE_LOW, SPECTRUM_EDGE_HIGH, SPECTRUM_SPAN
+
+Seconds 
+    VOXDELAY(ds), BKINDL(ms), BKIN_DLYMS(ms)
+
+Raw info from rig
+    RAWSTR, BAND_SELECT (subject to change -- index right now but may convert to band name)
+
+SWR
+    SWR
+
+Volts
+    VD_METER
+
+Lookup - if level shows 0/0/0 then it's probably a lookup value
+    METER RIG_METER_XXXX 1=SWR, 2=COMP, 4=ALC, 8=IC, 16=DB, 32=PO, 64=VDD, 128=Temp
+    AGC 0=None, 1=SuperFast, 2=Fast, 3=Slow, 4=User, 5=Medium, 6=Auto
+        Note: Not all AGC values may be available -- see AGC Level in dumpcaps (e.g. rigctl -m 1035 -u | grep AGC)
+    SPECTRUM_MODE 0=None, 1=Center, 2=Fixed, 3=Center Scroll, 4=Fixed Scroll
+    SPECTRUM_AVG rig specific
+
+Watts
+    RFPOWER_METER_WATTS
+
+WPM
+    KEYSPD
+.in
+.EE
+.IP
+ 
+.IP
 .BR Note :
 Passing a \(oq?\(cq (query) as the first argument instead of a Level token
 will return a space separated list of radio backend supported set level

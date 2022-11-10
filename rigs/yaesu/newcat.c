@@ -4187,16 +4187,20 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
         else
         {
-            fpf = newcat_scale_float(15, val.f);
-
-            if (fpf < 1)
+            if (is_ft991)
             {
-                fpf = 1;
+                fpf = newcat_scale_float(10, val.f);
+                if (fpf > 10) fpf=10;
+            }
+            else
+            {
+                fpf = newcat_scale_float(15, val.f);
+                if (fpf > 15) fpf=10;
             }
 
-            if (fpf > 15)
+            if (fpf < 0)
             {
-                fpf = 15;
+                fpf = 0;
             }
 
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL0%02d%c", fpf, cat_term);
@@ -4443,7 +4447,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else if (is_ft991)
         {
             fpf = newcat_scale_float(100, val.f);
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX147%03d%c", fpf, cat_term);
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX145%03d%c", fpf, cat_term);
         }
         else if (is_ft891)
         {

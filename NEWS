@@ -17,6 +17,9 @@ Version 4.6
 
 Version 4.5.1
         * 2022-XX-XX
+        * Add RIG_FUNC_TUNER to flrig.c
+        * Fix FT-991 level_gran (needs to be done for lots of rigs)
+        * Fix man page rigctl to show units for LEVEL items
         * Fix Flex6xxx if_len
         * Fix FLRig set_ptt
         * Add KEYSPD to TS890
