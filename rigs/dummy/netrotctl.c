@@ -144,7 +144,7 @@ static int netrotctl_open(ROT *rot)
     }
 
     rs->max_el = rot->caps->max_el = atof(buf);
-    
+
     ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
 
@@ -154,6 +154,23 @@ static int netrotctl_open(ROT *rot)
     }
 
     rs->south_zero = atoi(buf);
+
+    // Prot 1 is tag=value format
+    if (prot_ver >= 1)
+    {
+        ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+                          sizeof("\n"), 0, 1);
+
+        if (ret <= 0)
+        {
+            return (ret < 0) ? ret : -RIG_EPROTO;
+        }
+
+        if (strstr(buf, "AzEl")) { rot->caps->rot_type = ROT_TYPE_AZEL; }
+        else if (strstr(buf, "Az")) { rot->caps->rot_type = ROT_TYPE_AZIMUTH; }
+        else if (strstr(buf, "El")) { rot->caps->rot_type = ROT_TYPE_ELEVATION; }
+    }
+
 
     return RIG_OK;
 }
