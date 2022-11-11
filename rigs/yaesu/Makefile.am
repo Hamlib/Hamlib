@@ -14,6 +14,6 @@ NEWCATSRC = newcat.c newcat.h ft450.c ft450.h ft950.c ft950.h ft991.c ft991.h \
 	ft891.c ft891.h ftdx101.c ftdx101.h ftdx101mp.c ft3000.c ftdx10.c
 
 noinst_LTLIBRARIES = libhamlib-yaesu.la
-libhamlib_yaesu_la_SOURCES = yaesu.c yaesu.h $(YAESUSRC) $(NEWCATSRC)
+libhamlib_yaesu_la_SOURCES = yaesu.c yaesu.h level_gran_yaesu.h $(YAESUSRC) $(NEWCATSRC)
 
 EXTRA_DIST = README.ft890 README.ft920 Android.mk
