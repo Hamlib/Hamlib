@@ -30,9 +30,9 @@
 
 #include "hamlib/rig.h"
 #include "bandplan.h"
-#include "idx_builtin.h"
 #include "tones.h"
 #include "newcat.h"
+#include "yaesu.h"
 #include "ftdx101.h"
 
 const struct newcat_priv_caps ftdx101d_priv_caps =
@@ -160,7 +160,9 @@ const struct rig_caps ftdx101d_caps =
     .has_set_level =      RIG_LEVEL_SET(FTDX101_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
         [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },

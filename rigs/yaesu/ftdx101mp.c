@@ -31,9 +31,9 @@
 
 #include "hamlib/rig.h"
 #include "bandplan.h"
-#include "idx_builtin.h"
 #include "tones.h"
 #include "newcat.h"
+#include "yaesu.h"
 #include "ftdx101.h"
 
 const struct newcat_priv_caps ftdx101mp_priv_caps =

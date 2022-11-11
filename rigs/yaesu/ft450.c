@@ -31,8 +31,8 @@
 #include "hamlib/rig.h"
 #include "bandplan.h"
 #include "newcat.h"
+#include "yaesu.h"
 #include "ft450.h"
-#include "idx_builtin.h"
 
 /*
  * FT-450 rig capabilities
@@ -65,7 +65,9 @@ const struct rig_caps ft450_caps =
     .has_set_level =      RIG_LEVEL_SET(FT450_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 400 }, .max = { .i = 800 }, .step = { .i = 100 } },

@@ -316,7 +316,7 @@ const struct rig_caps ft100_caps =
     RIG_MODEL(RIG_MODEL_FT100),
     .model_name =     "FT-100",
     .mfg_name =       "Yaesu",
-    .version =        "20210929.0",
+    .version =        "20211111.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -339,7 +339,10 @@ const struct rig_caps ft100_caps =
     .has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =   RIG_PARM_NONE,
     .has_set_parm =   RIG_PARM_NONE,  /* FIXME: parms */
-    .level_gran =     {},     /* granularity */
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .parm_gran =      {},
     .ctcss_list =     ft100_ctcss_list,
     .dcs_list =       ft100_dcs_list,

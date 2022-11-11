@@ -34,7 +34,6 @@
 #include "yaesu.h"
 #include "newcat.h"
 #include "ft2000.h"
-#include "idx_builtin.h"
 #include "tones.h"
 
 const struct newcat_priv_caps ft2000_priv_caps =
@@ -134,7 +133,7 @@ const struct rig_caps ft2000_caps =
     RIG_MODEL(RIG_MODEL_FT2000),
     .model_name =         "FT-2000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".1",
+    .version =            NEWCAT_VER ".2",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -158,6 +157,7 @@ const struct rig_caps ft2000_caps =
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
+#include "level_gran_yaesu.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },

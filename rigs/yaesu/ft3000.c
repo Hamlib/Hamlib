@@ -32,8 +32,8 @@
 #include "newcat.h"
 #include "bandplan.h"
 #include "newcat.h"
+#include "yaesu.h"
 #include "ft5000.h"
-#include "idx_builtin.h"
 #include "tones.h"
 
 const struct newcat_priv_caps ftdx3000_priv_caps =
@@ -244,7 +244,7 @@ const struct rig_caps ftdx3000_caps =
     RIG_MODEL(RIG_MODEL_FTDX3000),
     .model_name =         "FTDX-3000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".8",
+    .version =            NEWCAT_VER ".9",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -270,6 +270,7 @@ const struct rig_caps ftdx3000_caps =
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
+#include "level_gran_yaesu.h"
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
         [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },

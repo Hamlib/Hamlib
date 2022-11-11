@@ -32,8 +32,8 @@
 #include "hamlib/rig.h"
 #include "bandplan.h"
 #include "newcat.h"
+#include "yaesu.h"
 #include "ft1200.h"
-#include "idx_builtin.h"
 #include "tones.h"
 
 const struct newcat_priv_caps ftdx1200_priv_caps =
@@ -150,7 +150,7 @@ const struct rig_caps ftdx1200_caps =
     RIG_MODEL(RIG_MODEL_FTDX1200),
     .model_name =         "FTDX-1200",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".3",
+    .version =            NEWCAT_VER ".4",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -173,7 +173,9 @@ const struct rig_caps ftdx1200_caps =
     .has_set_level =      RIG_LEVEL_SET(FTDX1200_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },

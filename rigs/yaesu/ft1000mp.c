@@ -340,6 +340,10 @@ const struct rig_caps ft1000mp_caps =
     .has_set_level =      RIG_LEVEL_BAND_SELECT, /* as strange as it could be */
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .ctcss_list =         ft1000mp_ctcss_list,
     .dcs_list =           NULL,
     .vfo_ops =        FT1000MP_VFO_OPS,
@@ -479,6 +483,10 @@ const struct rig_caps ft1000mpmkv_caps =
     .has_set_level =      RIG_LEVEL_BAND_SELECT, /* as strange as it could be */
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .ctcss_list =         ft1000mp_ctcss_list,
     .dcs_list =           NULL,
     .vfo_ops =        FT1000MP_VFO_OPS,
@@ -618,6 +626,10 @@ const struct rig_caps ft1000mpmkvfld_caps =
     .has_set_level =      RIG_LEVEL_BAND_SELECT, /* as strange as it could be */
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .ctcss_list =         ft1000mp_ctcss_list,
     .dcs_list =           NULL,
     .vfo_ops =        FT1000MP_VFO_OPS,

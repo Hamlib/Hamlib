@@ -270,7 +270,7 @@ const struct rig_caps ft1000d_caps =
     RIG_MODEL(RIG_MODEL_FT1000D),
     .model_name =         "FT-1000D",
     .mfg_name =           "Yaesu",
-    .version =            "20210121.0",
+    .version =            "20211111.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -294,6 +294,10 @@ const struct rig_caps ft1000d_caps =
     .has_set_level =      RIG_LEVEL_BAND_SELECT,
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_BACKLIGHT,
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .ctcss_list =         NULL,
     .dcs_list =           NULL,
     .preamp =             { RIG_DBLST_END, },
