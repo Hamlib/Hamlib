@@ -35,7 +35,6 @@
 #include "yaesu.h"
 #include "newcat.h"
 #include "ft9000.h"
-#include "idx_builtin.h"
 #include "tones.h"
 
 /*
@@ -72,7 +71,9 @@ const struct rig_caps ft9000_caps =
     .has_set_level =      RIG_LEVEL_SET(FT9000_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },

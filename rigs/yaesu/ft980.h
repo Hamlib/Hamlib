@@ -169,6 +169,10 @@ const struct rig_caps ft980_caps =
     .has_set_level =      RIG_LEVEL_NONE,
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .vfo_ops =            FT980_VFO_OPS,
     .preamp =             { RIG_DBLST_END, },
     .attenuator =         { RIG_DBLST_END, },

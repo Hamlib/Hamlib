@@ -410,7 +410,10 @@ const struct rig_caps ft847_caps =
     .has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-    .level_gran =  {},      /* granularity */
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  ft847_ctcss_list,
     .dcs_list =  common_dcs_list,
@@ -565,7 +568,10 @@ const struct rig_caps ft650_caps =
     //.has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-    .level_gran =  {},      /* granularity */
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .parm_gran =  {},
     //.ctcss_list =  ft847_ctcss_list,
     .preamp =   { RIG_DBLST_END, }, /* no preamp/att in CAT */
@@ -695,7 +701,10 @@ const struct rig_caps mchfqrp_caps =
     .has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-    .level_gran =  {},      /* granularity */
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  ft847_ctcss_list,
     .dcs_list =  common_dcs_list,
@@ -865,7 +874,10 @@ const struct rig_caps ft847uni_caps =
     .has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-    .level_gran =  {},      /* granularity */
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  ft847_ctcss_list,
     .dcs_list =  common_dcs_list,

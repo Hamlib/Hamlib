@@ -26,6 +26,7 @@
 #ifndef _YAESU_H
 #define _YAESU_H 1
 
+#include "idx_builtin.h"
 
 /*
  * Length (in bytes) of yaesu command sequences
