@@ -145,16 +145,6 @@ static int netrotctl_open(ROT *rot)
 
     rs->max_el = rot->caps->max_el = atof(buf);
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
-                      sizeof("\n"), 0, 1);
-
-    if (ret <= 0)
-    {
-        return (ret < 0) ? ret : -RIG_EPROTO;
-    }
-
-    rs->south_zero = atoi(buf);
-
     if (prot_ver == 0) { return (RIG_OK); }
 
     // Prot 1 is tag=value format and should cover any needed additions
@@ -175,7 +165,11 @@ static int netrotctl_open(ROT *rot)
 
         if (sscanf(buf, "%31[^=]=%1023[^\t\n]", setting, value) == 2)
         {
-            if (strstr(buf, "rot_type="))
+            if (strcmp(setting,"south_zero")==0)
+            {
+                rs->south_zero = atoi(value);
+            }
+            else if (strcmp(setting, "rot_type")==0)
             {
                 if (strstr(buf, "AzEl")) { rot->caps->rot_type = ROT_TYPE_AZEL; }
                 else if (strstr(buf, "Az")) { rot->caps->rot_type = ROT_TYPE_AZIMUTH; }
