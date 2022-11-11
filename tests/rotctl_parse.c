@@ -2429,6 +2429,8 @@ declare_proto_rot(dump_state)
 
     fprintf(fout, "rot_type=%s%c", rtype, resp_sep);
 
+    fprintf(fout, "done%c", resp_sep);
+
     return RIG_OK;
 }
 

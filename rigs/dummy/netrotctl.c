@@ -155,9 +155,14 @@ static int netrotctl_open(ROT *rot)
 
     rs->south_zero = atoi(buf);
 
-    // Prot 1 is tag=value format
-    if (prot_ver >= 1)
+    if (prot_ver == 0) { return (RIG_OK); }
+
+    // Prot 1 is tag=value format and should cover any needed additions
+    // Automically parses
+    do
     {
+        char setting[32], value[1024];
+
         ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
                           sizeof("\n"), 0, 1);
 
@@ -166,10 +171,24 @@ static int netrotctl_open(ROT *rot)
             return (ret < 0) ? ret : -RIG_EPROTO;
         }
 
-        if (strstr(buf, "AzEl")) { rot->caps->rot_type = ROT_TYPE_AZEL; }
-        else if (strstr(buf, "Az")) { rot->caps->rot_type = ROT_TYPE_AZIMUTH; }
-        else if (strstr(buf, "El")) { rot->caps->rot_type = ROT_TYPE_ELEVATION; }
+        if (strncmp(buf, "done", 4) == 0) { return (RIG_OK); }
+
+        if (sscanf(buf, "%31[^=]=%1023[^\t\n]", setting, value) == 2)
+        {
+            if (strstr(buf, "rot_type="))
+            {
+                if (strstr(buf, "AzEl")) { rot->caps->rot_type = ROT_TYPE_AZEL; }
+                else if (strstr(buf, "Az")) { rot->caps->rot_type = ROT_TYPE_AZIMUTH; }
+                else if (strstr(buf, "El")) { rot->caps->rot_type = ROT_TYPE_ELEVATION; }
+            }
+            else
+            {
+                // not an error -- just a warning for backward compatibility
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown setting='%s'\n", __func__, buf);
+            }
+        }
     }
+    while (1);
 
 
     return RIG_OK;
@@ -363,7 +382,7 @@ struct rot_caps netrotctl_caps =
     ROT_MODEL(ROT_MODEL_NETROTCTL),
     .model_name =     "NET rotctl",
     .mfg_name =       "Hamlib",
-    .version =        "20200528.0",
+    .version =        "20221110.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_OTHER,
