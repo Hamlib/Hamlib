@@ -163,7 +163,9 @@ const struct rig_caps ic756_caps =
     .has_set_level =  RIG_LEVEL_NONE,
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE, /* FIXME: parms */
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_icom.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
@@ -327,7 +329,9 @@ const struct rig_caps ic756pro_caps =
     .has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE, /* FIXME: parms */
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_icom.h"
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
@@ -566,7 +570,9 @@ const struct rig_caps ic756pro2_caps =
     .has_set_level =  RIG_LEVEL_SET(IC756PROII_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE, /* FIXME: parms */
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_icom.h"
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
@@ -1000,7 +1006,9 @@ const struct rig_caps ic756pro3_caps =
     .has_set_level =  RIG_LEVEL_SET(IC756PROIII_LEVEL_ALL),
     .has_get_parm =  IC756PROII_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC756PROII_PARMS),
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_icom.h"
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },

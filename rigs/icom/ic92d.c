@@ -122,7 +122,9 @@ const struct rig_caps ic92d_caps =
     .has_set_level =  RIG_LEVEL_SET(IC92D_LEVEL_ALL),
     .has_get_parm =  IC92D_PARM_ALL,
     .has_set_parm =  IC92D_PARM_ALL,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_icom.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },

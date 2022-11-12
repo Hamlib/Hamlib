@@ -65,7 +65,6 @@
 #define IC9100_LEVEL_ALL    (RIG_LEVEL_AF| \
                             RIG_LEVEL_RF| \
                             RIG_LEVEL_SQL| \
-                            RIG_LEVEL_IF| \
                             RIG_LEVEL_NR| \
                             RIG_LEVEL_CWPITCH| \
                             RIG_LEVEL_RFPOWER| \
@@ -112,7 +111,7 @@ const struct rig_caps ic9100_caps =
     RIG_MODEL(RIG_MODEL_IC9100),
     .model_name = "IC-9100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -135,7 +134,9 @@ const struct rig_caps ic9100_caps =
     .has_set_level =  IC9100_LEVEL_ALL,
     .has_get_parm =  IC9100_PARM_ALL,
     .has_set_parm =  IC9100_PARM_ALL,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_icom.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
