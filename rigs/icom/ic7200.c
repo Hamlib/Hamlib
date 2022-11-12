@@ -150,7 +150,9 @@ const struct rig_caps ic7200_caps =
     .has_set_level =  RIG_LEVEL_SET(IC7200_LEVELS),
     .has_get_parm =  IC7200_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC7200_PARMS),
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_icom.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
