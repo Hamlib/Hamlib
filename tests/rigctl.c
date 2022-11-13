@@ -554,7 +554,6 @@ int main(int argc, char *argv[])
 
             rig_close(my_rig);
         }
-        my_rig->caps->ptt_type = ptt_type;
 
         dumpcaps(my_rig, stdout);
         rig_cleanup(my_rig);    /* if you care about memory */
@@ -577,7 +576,6 @@ int main(int argc, char *argv[])
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
     }
-    my_rig->caps->ptt_type = ptt_type;
 
     if (my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
     {
