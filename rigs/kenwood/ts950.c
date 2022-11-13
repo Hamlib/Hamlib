@@ -84,7 +84,10 @@ const struct rig_caps ts950s_caps =
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
 
-    .level_gran =  {},
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
     .dcs_list =  NULL,
@@ -226,7 +229,10 @@ const struct rig_caps ts950sdx_caps =
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
 
-    .level_gran =  {},
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
     .dcs_list =  NULL,

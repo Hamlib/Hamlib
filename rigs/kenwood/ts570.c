@@ -927,7 +927,10 @@ const struct rig_caps ts570s_caps =
     .has_set_level =  RIG_LEVEL_SET(TS570_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-    .level_gran =  {},                 /* FIXME: granularity */
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
     .dcs_list =  NULL,
@@ -1109,7 +1112,10 @@ const struct rig_caps ts570d_caps =
     .has_set_level =  RIG_LEVEL_SET(TS570_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-    .level_gran =  {},                 /* FIXME: granularity */
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
     .dcs_list =  NULL,

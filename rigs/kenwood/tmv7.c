@@ -116,11 +116,9 @@ const struct rig_caps tmv7_caps =
     .has_set_func =  TMV7_FUNC_ALL,
     .has_get_level =  TMV7_LEVEL_ALL,
     .has_set_level =  RIG_LEVEL_SET(TMV7_LEVEL_ALL),
-    .level_gran = {
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 7 } },
-        [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 32 } },
-        [LVL_AF] = { .min = { .i = 0 }, .max = { .i = 32 } },
-        [LVL_RFPOWER] = { .min = { .i = 0 }, .max = { .i = 2 } },
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
     },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
