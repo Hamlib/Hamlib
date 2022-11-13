@@ -283,7 +283,10 @@ const struct rig_caps tmd710_caps =
     .has_set_level =  RIG_LEVEL_SET(TMD710_LEVEL_ALL),
     .has_get_parm =  TMD710_PARMS,
     .has_set_parm =  TMD710_PARMS,
-    .level_gran = {},
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood42_ctcss_list,
     .dcs_list =  common_dcs_list,
@@ -438,7 +441,10 @@ const struct rig_caps tmv71_caps =
     .has_set_level =  RIG_LEVEL_SET(TMD710_LEVEL_ALL),
     .has_get_parm =  TMD710_PARMS,
     .has_set_parm =  TMD710_PARMS,
-    .level_gran = {},
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood42_ctcss_list,
     .dcs_list =  common_dcs_list,

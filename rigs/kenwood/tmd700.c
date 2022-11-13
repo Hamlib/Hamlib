@@ -120,12 +120,9 @@ const struct rig_caps tmd700_caps =
     .has_set_level =  RIG_LEVEL_SET(TMD700_LEVEL_ALL),
     .has_get_parm =  TMD700_PARMS,
     .has_set_parm =  TMD700_PARMS,    /* FIXME: parms */
-    .level_gran = {
-        // cppcheck-suppress *
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 7 } },
-        [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 0x1f }, .step = { .f = 1. / 0x1f } },
-        [LVL_RFPOWER] = { .min = { .i = 2 }, .max = { .i = 0 }, .step = { .f = 1. / 3. }  },
-        [LVL_AF] = { .min = { .i = 0 }, .max = { .i = 0x3f }, .step = { .f = 1. / 0x3f } },
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
     },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,

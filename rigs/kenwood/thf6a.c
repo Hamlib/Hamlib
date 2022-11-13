@@ -143,10 +143,9 @@ const struct rig_caps thf6a_caps =
     .has_set_level =  RIG_LEVEL_SET(THF6_LEVEL_ALL),
     .has_get_parm =  THF6_PARMS,
     .has_set_parm =  THF6_PARMS,
-    .level_gran = {
-        // cppcheck-suppress *
-        [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
-        [LVL_RFPOWER] = { .min = { .i = 2 }, .max = { .i = 0 } },
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
     },
     .parm_gran =  {},
     .ctcss_list =  thf6_ctcss_list,

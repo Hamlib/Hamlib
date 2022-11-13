@@ -108,11 +108,9 @@ const struct rig_caps thd7a_caps =
     .has_set_level =  RIG_LEVEL_SET(THD7_LEVEL_ALL),
     .has_get_parm =  THD7_PARMS,
     .has_set_parm =  THD7_PARMS,    /* FIXME: parms */
-    .level_gran = {
-        // cppcheck-suppress *
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 5 } },
-        [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
-        [LVL_RFPOWER] = { .min = { .i = 3 }, .max = { .i = 0 } },
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
     },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,

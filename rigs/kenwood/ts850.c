@@ -127,7 +127,10 @@ const struct rig_caps ts850_caps =
     .has_set_level =  TS850_LEVEL_SET,
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-    .level_gran =  {},
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .extparms = ts850_ext_parms,
     .ctcss_list =  kenwood38_ctcss_list,

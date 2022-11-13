@@ -17,6 +17,7 @@ Version 4.6
 
 Version 4.5.1
         * 2022-XX-XX
+        * Fix level_gran in all rigs
         * Add RIG_FUNC_TUNER to flrig.c
         * Fix FT-991 level_gran (needs to be done for lots of rigs)
         * Fix man page rigctl to show units for LEVEL items

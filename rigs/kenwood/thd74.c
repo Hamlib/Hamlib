@@ -1676,10 +1676,9 @@ const struct rig_caps thd74_caps =
     .has_set_level =  RIG_LEVEL_SET(THD74_LEVEL_ALL),
     .has_get_parm =  THD74_PARMS,
     .has_set_parm =  THD74_PARMS,
-    .level_gran = {
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 5 } },
-        [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
-        [LVL_RFPOWER] = { .min = { .i = 2 }, .max = { .i = 0 } },
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
     },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
