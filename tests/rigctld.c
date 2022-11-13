@@ -700,6 +700,7 @@ int main(int argc, char *argv[])
     {
         my_rig->state.pttport.type.ptt = ptt_type;
         my_rig->state.pttport_deprecated.type.ptt = ptt_type;
+        my_rig->caps->ptt_type = ptt_type;
     }
 
     if (dcd_type != RIG_DCD_NONE)
@@ -748,7 +749,6 @@ int main(int argc, char *argv[])
      */
     if (dump_caps_opt)
     {
-        my_rig->caps->ptt_type = ptt_type; 
         dumpcaps(my_rig, stdout);
         rig_cleanup(my_rig); /* if you care about memory */
         exit(0);
@@ -771,7 +771,6 @@ int main(int argc, char *argv[])
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
     }
-    my_rig->caps->ptt_type = ptt_type; 
 
     rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
               my_rig->caps->version, rig_strstatus(my_rig->caps->status));
