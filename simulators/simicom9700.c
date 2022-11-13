@@ -39,7 +39,7 @@ int ptt = 0;
 int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
-int powerstat = 0;
+int powerstat = 1;
 
 void dumphex(unsigned char *buf, int n)
 {
