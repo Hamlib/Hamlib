@@ -23,6 +23,7 @@
 #define _TENTEC2_H 1
 
 #include <hamlib/rig.h>
+#include <idx_builtin.h>
 
 // The include order will determine which BACKEND_VER is used
 // tentec.h may also be included and the last include is the BACKEND_VER used

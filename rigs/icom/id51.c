@@ -164,8 +164,10 @@ const struct rig_caps id51_caps =
 
     .tuning_steps =     {
         // Rem: no support for changing tuning step
+        {RIG_MODE_ALL, 1},
         RIG_TS_END,
     },
+
     /* mode/filter list, remember: order matters! */
     .filters =  {
         {RIG_MODE_FM | RIG_MODE_AM, kHz(12)},

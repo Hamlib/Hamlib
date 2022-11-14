@@ -100,8 +100,8 @@ const struct rig_caps trp8000_caps =
         RIG_FRNG_END,
     },
     .tuning_steps =  {
-        {TRP8000_ALL_MODES, 100},
         {TRP8000_ALL_MODES, 10},
+        {TRP8000_ALL_MODES, 100},
         {TRP8000_ALL_MODES, kHz(1)},
         RIG_TS_END,
     },

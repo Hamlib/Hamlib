@@ -343,6 +343,7 @@ const struct rig_caps ft857_caps =
     * per testing by Rich Newsom, WA4SXZ
     */
     .filters =  {
+        {RIG_MODE_ALL, RIG_FLT_ANY},
 //        {RIG_MODE_SSB, kHz(2.2)},
 //        {RIG_MODE_CW, kHz(2.2)},
 //        {RIG_MODE_CWR, kHz(2.2)},

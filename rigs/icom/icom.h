@@ -25,6 +25,7 @@
 #include "hamlib/rig.h"
 #include "cal.h"
 #include "tones.h"
+#include "idx_builtin.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>

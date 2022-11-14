@@ -315,17 +315,17 @@ enum serial_control_state_e {
  * \brief Rig type flags
  */
 typedef enum {
-    RIG_FLAG_RECEIVER = (1 << 1),       /*!< Receiver */
-    RIG_FLAG_TRANSMITTER = (1 << 2),    /*!< Transmitter */
-    RIG_FLAG_SCANNER = (1 << 3),        /*!< Scanner */
-    RIG_FLAG_MOBILE = (1 << 4),         /*!< mobile sized */
-    RIG_FLAG_HANDHELD = (1 << 5),       /*!< handheld sized */
-    RIG_FLAG_COMPUTER = (1 << 6),       /*!< "Computer" rig */
-    RIG_FLAG_TRUNKING = (1 << 7),       /*!< has trunking */
-    RIG_FLAG_APRS = (1 << 8),           /*!< has APRS */
-    RIG_FLAG_TNC = (1 << 9),            /*!< has TNC */
-    RIG_FLAG_DXCLUSTER = (1 << 10),     /*!< has DXCluster */
-    RIG_FLAG_TUNER = (1 << 11)          /*!< dumb tuner */
+    RIG_FLAG_RECEIVER = (1 << 1),       /*!< Receiver 2 */
+    RIG_FLAG_TRANSMITTER = (1 << 2),    /*!< Transmitter 4 */
+    RIG_FLAG_SCANNER = (1 << 3),        /*!< Scanner 8 */
+    RIG_FLAG_MOBILE = (1 << 4),         /*!< mobile sized 16 */
+    RIG_FLAG_HANDHELD = (1 << 5),       /*!< handheld sized 32 */
+    RIG_FLAG_COMPUTER = (1 << 6),       /*!< "Computer" rig 64 */
+    RIG_FLAG_TRUNKING = (1 << 7),       /*!< has trunking 128 */
+    RIG_FLAG_APRS = (1 << 8),           /*!< has APRS 256 */
+    RIG_FLAG_TNC = (1 << 9),            /*!< has TNC 512 */
+    RIG_FLAG_DXCLUSTER = (1 << 10),     /*!< has DXCluster 1024 */
+    RIG_FLAG_TUNER = (1 << 11)          /*!< dumb tuner 2048 */
 } rig_type_t;
 
 /**
@@ -1312,6 +1312,7 @@ typedef uint64_t rmode_t;
 #define    RIG_MODE_BIT61     CONSTANT_64BIT_FLAG (61)  /*!< \c reserved for future expansion */
 #define    RIG_MODE_BIT62     CONSTANT_64BIT_FLAG (62)  /*!< \c reserved for future expansion */
 #define    RIG_MODE_TESTS_MAX CONSTANT_64BIT_FLAG (63)  /*!< \c last bit available for 64-bit enum MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
+#define    RIG_MODE_ALL       (0xffffffff) /*!< any mode constant */
 #endif
 
 /**
