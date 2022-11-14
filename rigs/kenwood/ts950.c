@@ -40,6 +40,16 @@
 
 #define TS950_GET_LEVEL (RIG_LEVEL_RAWSTR)
 
+// STR_CAL borrowed from TS850 
+#define TS950_STR_CAL { 4, \
+    { \
+        {   0, -54 }, \
+        {  15, 0 }, \
+        {  22,30 }, \
+        {  30, 66}, \
+    } }
+
+
 #define cmd_trm(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)->cmdtrm
 static struct kenwood_priv_caps  ts950_priv_caps  =
 {
@@ -159,6 +169,7 @@ const struct rig_caps ts950s_caps =
         {RIG_MODE_FM, kHz(14)},
         RIG_FLT_END,
     },
+    .str_cal = TS950_STR_CAL,
     .priv = (void *)& ts950_priv_caps,
 
     .rig_init = kenwood_init,
@@ -304,6 +315,7 @@ const struct rig_caps ts950sdx_caps =
         {RIG_MODE_FM, kHz(14)},
         RIG_FLT_END,
     },
+    .str_cal = TS950_STR_CAL,
     .priv = (void *)& ts950_priv_caps,
 
     .rig_init = kenwood_init,

@@ -85,7 +85,10 @@ const struct rig_caps ic781_caps =
     .has_set_level =  RIG_LEVEL_NONE,
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-    .level_gran =  {},
+    .level_gran =
+    {
+#include "level_gran_icom.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  NULL,
     .dcs_list =  NULL,
@@ -132,8 +135,8 @@ const struct rig_caps ic781_caps =
         {MHz(6.9), kHz(7499.99), IC781_AM_TX_MODES, 2000, 75000, IC781_VFO_ALL},
         {MHz(9.9), MHz(1049999), IC781_OTHER_TX_MODES, 5000, 150000, IC781_VFO_ALL},
         {MHz(9.9), MHz(1049999), IC781_AM_TX_MODES, 2000, 75000, IC781_VFO_ALL},
-        {MHz(13.9), kHz(14.49999), IC781_OTHER_TX_MODES, 5000, 150000, IC781_VFO_ALL},
-        {MHz(13.9), kHz(14.49999), IC781_AM_TX_MODES, 2000, 75000, IC781_VFO_ALL},
+        {MHz(13.9), MHz(14.49999), IC781_OTHER_TX_MODES, 5000, 150000, IC781_VFO_ALL},
+        {MHz(13.9), MHz(14.49999), IC781_AM_TX_MODES, 2000, 75000, IC781_VFO_ALL},
         {kHz(17900), kHz(18499.99), IC781_OTHER_TX_MODES, 5000, 150000, IC781_VFO_ALL},
         {kHz(17900), kHz(18499.99), IC781_AM_TX_MODES, 2000, 75000, IC781_VFO_ALL},
         {MHz(20.9), kHz(21499.99), IC781_OTHER_TX_MODES, 5000, 150000, IC781_VFO_ALL},

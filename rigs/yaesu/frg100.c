@@ -197,22 +197,22 @@ const struct rig_caps frg100_caps =
         {   0x33,  0x34, RIG_MTYPE_EDGE },
     },
     .rx_range_list1 =     {
-        {kHz(50), MHz(30), FRG100_MODES, -1, -1, FRG100_VFOS, FRG100_ANTS },
+        {kHz(50), MHz(30), FRG100_MODES, 0, 0, FRG100_VFOS, FRG100_ANTS },
         RIG_FRNG_END,
     }, /* Region 1 rx ranges */
 
     .tx_range_list1 =     {
-        {kHz(50), MHz(30), FRG100_MODES, -1, -1, FRG100_VFOS, FRG100_ANTS },
+        {kHz(50), MHz(30), FRG100_MODES, 0, 0, FRG100_VFOS, FRG100_ANTS },
         RIG_FRNG_END,
     },    /* region 1 TX ranges */
 
     .rx_range_list2 =     {
-        {kHz(50), MHz(30), FRG100_MODES, -1, -1, FRG100_VFOS, FRG100_ANTS },
+        {kHz(50), MHz(30), FRG100_MODES, 0, 0, FRG100_VFOS, FRG100_ANTS },
         RIG_FRNG_END,
     }, /* Region 2 rx ranges */
 
     .tx_range_list2 =     {
-        {kHz(50), MHz(30), FRG100_MODES, -1, -1, FRG100_VFOS, FRG100_ANTS },
+        {kHz(50), MHz(30), FRG100_MODES, 0, 0, FRG100_VFOS, FRG100_ANTS },
         RIG_FRNG_END,
     },    /* region 2 TX ranges */
 

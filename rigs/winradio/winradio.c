@@ -41,6 +41,8 @@
 
 #define DEFAULT_WINRADIO_PATH "/dev/winradio0"
 
+#define WINRADIO_MODES RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_LSB | RIG_MODE_USB | RIG_MODE_WFM | RIG_MODE_FM
+
 int wr_rig_init(RIG *rig)
 {
     rig->state.rigport.type.rig = RIG_PORT_DEVICE;

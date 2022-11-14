@@ -145,13 +145,13 @@ const struct rig_caps id1_caps =
 
     .tuning_steps =     {
         {ID1_MODES, kHz(5)},
+        {ID1_MODES, kHz(6.25)},
         {ID1_MODES, kHz(10)},
-        {ID1_MODES, 12500},
+        {ID1_MODES, kHz(12.5)},
         {ID1_MODES, kHz(20)},
         {ID1_MODES, kHz(25)},
         {ID1_MODES, kHz(25)},
         {ID1_MODES, kHz(100)},
-        {ID1_MODES, kHz(6.25)},
         RIG_TS_END,
     },
     /* mode/filter list, remember: order matters! */

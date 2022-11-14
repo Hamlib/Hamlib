@@ -195,10 +195,10 @@ const struct rig_caps ft757gx_caps =
     },
 
     /* mode/filter list, .remember =  order matters! */
-    .filters = {
-        RIG_FLT_END,
+    .filters =  {
+        {RIG_MODE_ALL, RIG_FLT_ANY},
+        RIG_FLT_END
     },
-
 
     .priv =         NULL,           /* private data */
 

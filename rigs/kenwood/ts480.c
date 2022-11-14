@@ -40,12 +40,14 @@
 #define TS480_AM_TX_MODES RIG_MODE_AM
 #define TS480_VFO (RIG_VFO_A|RIG_VFO_B)
 
-#define TS480_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
+#define TS480_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
     RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
+
 #define TS480_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
-    RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
+    RIG_LEVEL_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
+
 #define TS480_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT| \
     RIG_FUNC_TUNER|RIG_FUNC_MON|RIG_FUNC_FBKIN|RIG_FUNC_LOCK)
 
@@ -1427,7 +1429,7 @@ const struct rig_caps ts480_caps =
     .get_ant = kenwood_get_ant,
     .scan = kenwood_scan,     /* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
     .has_set_level = TS480_LEVEL_SET,
-    .has_get_level = TS480_LEVEL_ALL,
+    .has_get_level = TS480_LEVEL_GET,
     .set_level = kenwood_ts480_set_level,
     .get_level = kenwood_ts480_get_level,
     .set_ext_level = ts480_set_ext_level,
@@ -1593,8 +1595,8 @@ const struct rig_caps pt8000a_caps =
     .set_ant = kenwood_set_ant,
     .get_ant = kenwood_get_ant,
     .scan = kenwood_scan,     /* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
-    .has_set_level = TS480_LEVEL_ALL,
-    .has_get_level = TS480_LEVEL_ALL,
+    .has_set_level = TS480_LEVEL_SET,
+    .has_get_level = TS480_LEVEL_GET,
     .set_level = kenwood_ts480_set_level,
     .get_level = kenwood_ts480_get_level,
     .has_get_func = TS480_FUNC_ALL,
@@ -1780,8 +1782,8 @@ const struct rig_caps sdruno_caps =
     .set_ant = kenwood_set_ant,
     .get_ant = kenwood_get_ant,
     .scan = kenwood_scan,     /* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
-    .has_set_level = TS480_LEVEL_ALL,
-    .has_get_level = TS480_LEVEL_ALL,
+    .has_set_level = TS480_LEVEL_SET,
+    .has_get_level = TS480_LEVEL_GET,
     .set_level = kenwood_ts480_set_level,
     .get_level = kenwood_ts480_get_level,
     .set_ext_level = ts480_set_ext_level,
@@ -1879,6 +1881,15 @@ const struct rig_caps malachite_caps =
         {MHz(400),   GHz(2), TS480_ALL_MODES, -1, -1, RIG_VFO_A, RIG_ANT_CURR,  "Generic" },
         RIG_FRNG_END,
     },
+    .tuning_steps =  {
+        {RIG_MODE_ALL, Hz(1)},
+        RIG_TS_END
+    },
+    .filters =  {
+        {RIG_MODE_ALL, RIG_FLT_ANY},
+        RIG_FLT_END
+    },
+
     .priv = (void *)& ts480_priv_caps,
     .rig_init = malachite_init,
     .rig_open = kenwood_open,

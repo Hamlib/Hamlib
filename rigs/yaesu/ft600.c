@@ -290,7 +290,11 @@ const struct rig_caps ft600_caps =
         {FT600_ALL_RX_MODES, 1000},
         RIG_TS_END,
     },
-    .filters =  {},
+    .filters =  {
+        {RIG_MODE_ALL, RIG_FLT_ANY},
+        RIG_FLT_END
+    },
+
     .str_cal = FT600_STR_CAL,
     .priv =       NULL,
     .rig_init =       ft600_init,

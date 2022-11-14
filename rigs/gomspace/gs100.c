@@ -410,17 +410,21 @@ struct rig_caps GS100_caps =
     .vfo_ops = GS100_VFO_OPS,
     .rx_range_list1 =  { {
             .startf = MHz(430), .endf = MHz(440), .modes = GS100_MODES,
-            .low_power = -1, .high_power = -1, GS100_VFOS,
+            .low_power = 0, .high_power = 0, GS100_VFOS,
             .label = "GS100#1"
         }, RIG_FRNG_END,
     },
     .tx_range_list1 =  { {
             .startf = MHz(430), .endf = MHz(440), .modes = GS100_MODES,
-            .low_power = -1, .high_power = -1, GS100_VFOS,
+            .low_power = 0, .high_power = 0, GS100_VFOS,
             .label = "GS100#1"
         }, RIG_FRNG_END,
     },
     .tuning_steps = { {GS100_MODES, Hz(10)}, RIG_TS_END, },
+    .filters =  {
+        {RIG_MODE_ALL, RIG_FLT_ANY},
+        RIG_FLT_END
+    },
     .priv = NULL,
     .rig_init = gs100_init,
     .rig_cleanup = gs100_cleanup,

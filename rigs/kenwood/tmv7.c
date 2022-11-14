@@ -180,7 +180,8 @@ const struct rig_caps tmv7_caps =
     },
     /* mode/filter list, remember: order matters! */
     .filters =  {
-        RIG_FLT_END,
+        {RIG_MODE_ALL, RIG_FLT_ANY},
+        RIG_FLT_END
     },
 
     .str_cal = { 4, { {0, -60 }, {1, -30,}, {5, 0}, {7, 20}}}, /* rought guess */

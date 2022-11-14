@@ -143,6 +143,15 @@ const struct rig_caps xg3_caps =
         {kHz(1500), MHz(200), RIG_MODE_CW, 0,  2, RIG_VFO_A, RIG_ANT_1},
         RIG_FRNG_END,
     },
+    .tuning_steps =  {
+        {RIG_MODE_ALL, 0},
+        RIG_TS_END
+    },
+    .filters =  {
+        {RIG_MODE_ALL, RIG_FLT_ANY},
+        RIG_FLT_END
+    },
+
 
 
     .priv = (void *)& xg3_priv_caps,
