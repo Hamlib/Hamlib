@@ -1675,7 +1675,7 @@ typedef struct cal_table_float cal_table_float_t;
 //! @cond Doxygen_Suppress
 #define EMPTY_FLOAT_CAL { 0, { { 0, 0f }, } }
 
-typedef int (* chan_cb_t)(RIG *, channel_t **, int, const chan_t *, rig_ptr_t);
+typedef int (* chan_cb_t)(RIG *, vfo_t vfo, channel_t **, int, const chan_t *, rig_ptr_t);
 typedef int (* confval_cb_t)(RIG *,
                              const struct confparams *,
                              value_t *,
@@ -2024,10 +2024,12 @@ struct rig_caps {
     int (*get_chan_all_cb)(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t);
 
     int (*set_mem_all_cb)(RIG *rig,
+                          vfo_t vfo,
                           chan_cb_t chan_cb,
                           confval_cb_t parm_cb,
                           rig_ptr_t);
     int (*get_mem_all_cb)(RIG *rig,
+                          vfo_t vfo,
                           chan_cb_t chan_cb,
                           confval_cb_t parm_cb,
                           rig_ptr_t);

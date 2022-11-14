@@ -954,7 +954,7 @@ int get_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb,
          * future data for channel channel_num
          */
         chan = NULL;
-        retval = chan_cb(rig, &chan, chan_list[i].startc, chan_list, arg);
+        retval = chan_cb(rig, vfo, &chan, chan_list[i].startc, chan_list, arg);
 
         if (retval != RIG_OK)
         {
@@ -995,7 +995,7 @@ int get_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb,
 
             chan_next = j < chan_list[i].endc ? j + 1 : j;
 
-            chan_cb(rig, &chan, chan_next, chan_list, arg);
+            chan_cb(rig, vfo, &chan, chan_next, chan_list, arg);
         }
     }
 
@@ -1016,7 +1016,7 @@ int set_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb,
         for (j = chan_list[i].startc; j <= chan_list[i].endc; j++)
         {
 
-            chan_cb(rig, &chan, j, chan_list, arg);
+            chan_cb(rig, vfo, &chan, j, chan_list, arg);
             chan->vfo = RIG_VFO_MEM;
 
             retval = rig_set_channel(rig, vfo, chan);
@@ -1044,6 +1044,7 @@ struct map_all_s
  * chan_cb_t to be used for non cb get/set_all
  */
 static int map_chan(RIG *rig,
+                    vfo_t vfo,
                     channel_t **chan,
                     int channel_num,
                     const chan_t *chan_list,
@@ -1343,7 +1344,7 @@ int HAMLIB_API rig_set_mem_all_cb(RIG *rig,
 
     if (rc->set_mem_all_cb)
     {
-        return rc->set_mem_all_cb(rig, chan_cb, parm_cb, arg);
+        return rc->set_mem_all_cb(rig, vfo, chan_cb, parm_cb, arg);
     }
 
 
@@ -1411,7 +1412,7 @@ int HAMLIB_API rig_get_mem_all_cb(RIG *rig,
 
     if (rc->get_mem_all_cb)
     {
-        return rc->get_mem_all_cb(rig, chan_cb, parm_cb, arg);
+        return rc->get_mem_all_cb(rig, vfo, chan_cb, parm_cb, arg);
     }
 
     /* if not available, emulate it */
@@ -1480,7 +1481,7 @@ int HAMLIB_API rig_set_mem_all(RIG *rig,
     mem_all_arg.vals = (value_t *) vals;
 
     if (rc->set_mem_all_cb)
-        return rc->set_mem_all_cb(rig, map_chan, map_parm,
+        return rc->set_mem_all_cb(rig, vfo, map_chan, map_parm,
                                   (rig_ptr_t)&mem_all_arg);
 
     /* if not available, emulate it */
@@ -1548,7 +1549,7 @@ int HAMLIB_API rig_get_mem_all(RIG *rig,
     mem_all_arg.vals = vals;
 
     if (rc->get_mem_all_cb)
-        return rc->get_mem_all_cb(rig, map_chan, map_parm,
+        return rc->get_mem_all_cb(rig, vfo, map_chan, map_parm,
                                   (rig_ptr_t)&mem_all_arg);
 
     /*
