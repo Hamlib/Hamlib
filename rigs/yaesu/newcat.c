@@ -4189,7 +4189,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             if (is_ft991)
             {
-                fpf = newcat_scale_float(10, val.f);
+                fpf = newcat_scale_float(15, val.f);
                 if (fpf > 15) fpf=15;
                 if (fpf < 1) fpf=1;
             }
