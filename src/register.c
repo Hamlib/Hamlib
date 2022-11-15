@@ -44,7 +44,7 @@
 #  define PATH_MAX       1024
 #endif
 
-#define RIG_BACKEND_MAX 32
+#define RIG_BACKEND_MAX 50
 
 #define DEFINE_INITRIG_BACKEND(backend) \
     int MAKE_VERSIONED_FN(PREFIX_INITRIG, ABI_VERSION, backend(void *be_handle)); \
@@ -89,6 +89,7 @@ DEFINE_INITRIG_BACKEND(barrett);
 DEFINE_INITRIG_BACKEND(elad);
 DEFINE_INITRIG_BACKEND(codan);
 DEFINE_INITRIG_BACKEND(gomspace);
+DEFINE_INITRIG_BACKEND(mds);
 //! @endcond
 
 #ifdef HAVE_WINRADIO
@@ -147,6 +148,7 @@ static struct
     { RIG_ELAD, RIG_BACKEND_ELAD, RIG_FUNCNAMA(elad) },
     { RIG_CODAN, RIG_BACKEND_CODAN, RIG_FUNCNAMA(codan) },
     { RIG_GOMSPACE, RIG_BACKEND_GOMSPACE, RIG_FUNCNAM(gomspace) },
+    { RIG_MDS, RIG_BACKEND_MDS, RIG_FUNCNAMA(mds) },
     { 0, NULL }, /* end */
 };
 

@@ -660,6 +660,12 @@
 //! @endcond
 
 /*
+ * MDS Microwave Data Systems https://en.wikipedia.org/wiki/Microwave_Data_Systems
+ */
+#define RIG_MDS 36
+#define RIG_BACKEND_MDS "MDS"
+#define RIG_MODEL_MDS4710 RIG_MAKE_MODEL(RIG_MDS, 1)
+/*
  * TODO:
     RIG_MODEL_KWZ30,    KNEISNER +DOERING
     RIG_MODEL_E1800,    DASA-Telefunken
