@@ -88,6 +88,7 @@ Note: if ./configure does not exist run ./bootstrap first
         ./configure
         make
         sudo make install
+        ln -s /usr/local/lib/libhamlib.so.4.0.0 /usr/lib/libhamlib.so.4
 
 For debugging use this configure
         ./configure CFLAGS=-g -O0 -fPIC --no-create --no-recursio
