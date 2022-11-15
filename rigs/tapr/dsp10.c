@@ -104,11 +104,11 @@ const struct rig_caps dsp10_caps =
     .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
     .tx_range_list1 =  { RIG_FRNG_END, },
     .rx_range_list2 =  {
-        {MHz(144), kHz(148), DSP10_MODES, -1, -1, DSP10_VFO},
+        {MHz(144), MHz(148), DSP10_MODES, -1, -1, DSP10_VFO},
         RIG_FRNG_END,
     },
     .tx_range_list2 =  {
-        {MHz(144), kHz(148), DSP10_MODES, mW(20), mW(20), DSP10_VFO},
+        {MHz(144), MHz(148), DSP10_MODES, mW(20), mW(20), DSP10_VFO},
         RIG_FRNG_END,
     },
     .tuning_steps =  {

@@ -43,7 +43,7 @@
 
 #define DXSR8_PARM_ALL RIG_PARM_NONE
 
-#define DXSR8_VFO RIG_VFO_NONE
+#define DXSR8_VFO RIG_VFO_A
 
 /* Line Feed */
 #define EOM "\r\n"

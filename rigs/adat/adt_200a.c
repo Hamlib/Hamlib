@@ -170,6 +170,7 @@ const struct rig_caps adt_200a_caps =
         { RIG_MODE_FM, Hz(12000) },
         RIG_FLT_END,
     },
+    .str_cal = ADT_200A_STR_CAL,
 
     // .cfgparams          =  adt_200a_cfg_params,
 
