@@ -584,6 +584,12 @@ const struct rig_caps ek89x_caps =
     },
     .tx_range_list2 = {RIG_FRNG_END,},
 
+    .tuning_steps =     {
+        // Rem: no support for changing tuning step
+        {RIG_MODE_ALL, 1},
+        RIG_TS_END,
+    },
+
     /*
     .tuning_steps =  {
          {EK89X_MODES,1},

@@ -136,6 +136,12 @@ const struct rig_caps xk2100_caps =
     },
     .tx_range_list2 = {RIG_FRNG_END,},
 
+    .tuning_steps =     {
+        // Rem: no support for changing tuning step
+        {RIG_MODE_ALL, 1},
+        RIG_TS_END,
+    },
+
     /*
     .tuning_steps =  {
          {XK2100_MODES,1},
