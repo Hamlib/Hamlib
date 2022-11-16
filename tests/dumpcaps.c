@@ -720,7 +720,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
         if (pbnorm == 0)
         {
-//            continue;
+            continue;
         }
 
         sprintf_freq(freqbuf, sizeof(freqbuf), pbnorm);
