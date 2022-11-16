@@ -4891,7 +4891,8 @@ declare_proto_rig(send_cmd)
             ++rxbytes;  // need length + 1 for end of string
             eom_buf[0] = 0;
         }
-        if (arg2[0] == ';') eom_buf[0] = ';';
+
+        if (arg2[0] == ';') { eom_buf[0] = ';'; }
 
         /* Assumes CR or LF is end of line char for all ASCII protocols. */
         retval = read_string(&rs->rigport, buf, rxbytes, eom_buf,
@@ -5174,8 +5175,8 @@ declare_proto_rig(get_cache)
 declare_proto_rig(set_clock)
 {
     int year, mon, day, hour = -1, min = -1, sec = 0;
-    double msec=-1;
-    int utc_offset = 0; 
+    double msec = -1;
+    int utc_offset = 0;
     int n;
     char timebuf[64];
 
@@ -5198,17 +5199,20 @@ declare_proto_rig(set_clock)
                    &min, &sec, &msec, &utc_offset);
     }
     else if (arg1[16] == '+' || arg1[16] == '-')
-    { // YYYY-MM-DDTHH:MM+ZZ
+    {
+        // YYYY-MM-DDTHH:MM+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d%d", &year, &mon, &day, &hour,
                    &min, &utc_offset);
     }
     else if (arg1[19] == '+' || arg1[19] == '-')
-    { // YYYY-MM-DDTHH:MM:SS+ZZ
+    {
+        // YYYY-MM-DDTHH:MM:SS+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%d", &year, &mon, &day, &hour,
                    &min, &sec, &utc_offset);
     }
     else if (arg1[23] == '+' || arg1[23] == '-')
-    { // YYYY-MM-DDTHH:MM:SS.SSS+ZZ
+    {
+        // YYYY-MM-DDTHH:MM:SS.SSS+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
                    &min, &sec, &msec, &utc_offset);
     }

@@ -40,7 +40,7 @@
 
 #define TS950_GET_LEVEL (RIG_LEVEL_RAWSTR)
 
-// STR_CAL borrowed from TS850 
+// STR_CAL borrowed from TS850
 #define TS950_STR_CAL { 4, \
     { \
         {   0, -54 }, \

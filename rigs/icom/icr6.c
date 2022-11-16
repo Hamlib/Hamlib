@@ -119,7 +119,7 @@ const struct rig_caps icr6_caps =
     .tuning_steps =     {
         {ICR6_MODES, Hz(5000)},
         {ICR6_MODES, Hz(6250)},
-        {ICR6_MODES, Hz(8330)}, // Air band only 
+        {ICR6_MODES, Hz(8330)}, // Air band only
         {ICR6_MODES, Hz(9000)}, // AM broadcast band only
         {ICR6_MODES, Hz(10000)},
         {ICR6_MODES, Hz(12500)},

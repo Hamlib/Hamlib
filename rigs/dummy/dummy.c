@@ -424,7 +424,8 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
-    if (vfo == RIG_VFO_CURR || RIG_VFO_TX) { vfo = vfo_fixup(rig,vfo,rig->state.cache.split); }
+
+    if (vfo == RIG_VFO_CURR || RIG_VFO_TX) { vfo = vfo_fixup(rig, vfo, rig->state.cache.split); }
 
 // if needed for testing enable this to emulate a rig with 100hz resolution
 #if 0
@@ -934,7 +935,7 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     int retval;
 
     ENTERFUNC;
-    
+
     retval = dummy_set_freq(rig, vfo, tx_freq);
     priv->curr->tx_freq = tx_freq;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->curr->tx_freq = %.0f\n", __func__,

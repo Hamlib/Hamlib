@@ -108,7 +108,7 @@ const struct rig_caps rx350_caps =
     .has_set_parm =  RX350_PARMS,
     .level_gran =
     {
-    [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } }
+        [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } }
     },
     .parm_gran =  {},
     .ctcss_list =  NULL,

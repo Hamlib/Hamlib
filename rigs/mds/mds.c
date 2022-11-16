@@ -613,15 +613,16 @@ const struct rig_caps mds_caps =
 // .vfo_ops =     DUMMY_VFO_OP,
     .transceive =       RIG_TRN_RIG,
     .rx_range_list1 = {
-        {.startf = MHz(380), .endf = MHz(530), .modes = RIG_MODE_ALL,
+        {
+            .startf = MHz(380), .endf = MHz(530), .modes = RIG_MODE_ALL,
             .low_power = 0, .high_power = 0, MDS_VFOS, RIG_ANT_1
         },
         RIG_FRNG_END,
     },
     .rx_range_list2 = {RIG_FRNG_END,},
-    .tx_range_list1 = { 
-    {MHz(380), MHz(530), RIG_MODE_ALL, W(.1), W(5), RIG_VFO_A, RIG_ANT_NONE},
-    RIG_FRNG_END,
+    .tx_range_list1 = {
+        {MHz(380), MHz(530), RIG_MODE_ALL, W(.1), W(5), RIG_VFO_A, RIG_ANT_NONE},
+        RIG_FRNG_END,
     },
 //    .tx_range_list2 = {RIG_FRNG_END,}
     .tuning_steps =     {

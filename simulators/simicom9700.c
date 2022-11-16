@@ -56,6 +56,7 @@ frameGet(int fd, unsigned char *buf)
     unsigned char c;
 
 again:
+
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
@@ -67,16 +68,18 @@ again:
             return i;
         }
 
-        if (i > 2 && c==0xfe)
+        if (i > 2 && c == 0xfe)
         {
             printf("Turning power on due to 0xfe string\n");
             powerstat = 1;
             int j;
-            for(j=i;j<175;++j)
+
+            for (j = i; j < 175; ++j)
             {
-                if (read(fd, &c, 1) < 0) break;
+                if (read(fd, &c, 1) < 0) { break; }
             }
-            i=0;
+
+            i = 0;
             goto again;
         }
     }

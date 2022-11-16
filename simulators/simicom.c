@@ -244,6 +244,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[6] = 0xfd;
         n = write(fd, frame, 7);
         break;
+
     case 0x1a: // miscellaneous things
         switch (frame[5])
         {

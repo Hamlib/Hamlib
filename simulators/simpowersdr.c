@@ -322,7 +322,8 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "ZZMN", 4) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "ZZMN01 5.0k 5100  100 4.4k 4500  100 3.8k 3900  100 3.3k 3400  100 2.9k 3000  100 2.7k 2800  100 2.4k 2500  100 2.1k 2200  100 1.8k 1900  100 1.0k 1100  100Var 1 3150  100Var 2 2800  100;");
+            SNPRINTF(buf, sizeof(buf),
+                     "ZZMN01 5.0k 5100  100 4.4k 4500  100 3.8k 3900  100 3.3k 3400  100 2.9k 3000  100 2.7k 2800  100 2.4k 2500  100 2.1k 2200  100 1.8k 1900  100 1.0k 1100  100Var 1 3150  100Var 2 2800  100;");
             n = write(fd, buf, strlen(buf));
             printf("%s\n", buf);
             continue;

@@ -4190,13 +4190,16 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             if (is_ft991)
             {
                 fpf = newcat_scale_float(15, val.f);
-                if (fpf > 15) fpf=15;
-                if (fpf < 1) fpf=1;
+
+                if (fpf > 15) { fpf = 15; }
+
+                if (fpf < 1) { fpf = 1; }
             }
             else
             {
                 fpf = newcat_scale_float(15, val.f);
-                if (fpf > 15) fpf=10;
+
+                if (fpf > 15) { fpf = 10; }
             }
 
             if (fpf < 0)
@@ -11563,7 +11566,7 @@ int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
         RETURNFUNC2(err);
     }
 
-    if (hour < 0) RETURNFUNC2(RIG_OK);
+    if (hour < 0) { RETURNFUNC2(RIG_OK); }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "DT1%02d%02d%02d%c", hour, min,
              sec, cat_term);
