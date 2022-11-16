@@ -2362,20 +2362,25 @@ HAMLIB_EXPORT(int) flrig_cat_string(RIG *rig, const char *arg)
     return retval;
 }
 
-HAMLIB_EXPORT(int) flrig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+HAMLIB_EXPORT(int) flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
+                                  int status)
 {
     int retval;
     char cmd_arg[MAXARGLEN];
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: level=%s, status=%d\n", __func__, rig_strfunc(func), status);
-    switch(func)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: level=%s, status=%d\n", __func__,
+              rig_strfunc(func), status);
+
+    switch (func)
     {
-        case RIG_FUNC_TUNER:
-    SNPRINTF(cmd_arg, sizeof(cmd_arg),
-             "<params><param><value>%d</value></param></params>", status);
-    retval = flrig_transaction(rig, "rig.tune", cmd_arg, NULL, 0);
-        default:
+    case RIG_FUNC_TUNER:
+        SNPRINTF(cmd_arg, sizeof(cmd_arg),
+                 "<params><param><value>%d</value></param></params>", status);
+        retval = flrig_transaction(rig, "rig.tune", cmd_arg, NULL, 0);
+
+    default:
         retval = -RIG_ENIMPL;
     }
+
     return retval;
 }
 

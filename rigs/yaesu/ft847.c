@@ -626,8 +626,8 @@ const struct rig_caps ft650_caps =
         RIG_FRNG_END,
     }, /* tx range end */
 
-    .tuning_steps =  { 
-        {RIG_MODE_ALL, 1}, 
+    .tuning_steps =  {
+        {RIG_MODE_ALL, 1},
         RIG_TS_END,
     },
 

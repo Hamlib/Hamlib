@@ -2381,6 +2381,7 @@ declare_proto_rot(dump_state)
     fprintf(fout, "%d%c", rot->caps->rot_model, resp_sep);
 
     tag = "min_az=";
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         tag = "Minimum Azimuth: ";
@@ -2389,33 +2390,37 @@ declare_proto_rot(dump_state)
     fprintf(fout, "%s%lf%c", tag, rs->min_az + rot->state.az_offset, resp_sep);
 
     tag = "max_az=";
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        tag= "Maximum Azimuth: ";
+        tag = "Maximum Azimuth: ";
     }
 
     fprintf(fout, "%s%lf%c", tag, rs->max_az + rot->state.az_offset, resp_sep);
 
     tag = "min_el=";
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        tag= "Minimum Elevation: ";
+        tag = "Minimum Elevation: ";
     }
 
     fprintf(fout, "%s%lf%c", tag, rs->min_el + rot->state.el_offset, resp_sep);
 
     tag = "max_el=";
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        tag= "Maximum Elevation: ";
+        tag = "Maximum Elevation: ";
     }
 
     fprintf(fout, "%s%lf%c", tag, rs->max_el + rot->state.el_offset, resp_sep);
 
     tag = "south_zero=";
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        tag= "South Zero: ";
+        tag = "South Zero: ";
     }
 
     fprintf(fout, "%s%d%c", tag, rs->south_zero, resp_sep);

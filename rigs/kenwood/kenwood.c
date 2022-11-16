@@ -245,7 +245,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct rig_state *rs;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called cmd=%s datasize=%d\n", __func__, cmdstr, (int)datasize);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called cmd=%s datasize=%d\n", __func__, cmdstr,
+              (int)datasize);
 
     if ((!cmdstr && !datasize) || (datasize && !data))
     {
@@ -373,8 +374,9 @@ transaction_read:
               KENWOOD_MAX_BUF_LEN);
     retval = read_string(&rs->rigport, (unsigned char *) buffer, len,
                          cmdtrm_str, strlen(cmdtrm_str), 0, 1);
-    rig_debug(RIG_DEBUG_TRACE, "%s: read_string(expected=%d, len=%d)='%s'\n", __func__,
-              len,(int)strlen(buffer), buffer);
+    rig_debug(RIG_DEBUG_TRACE, "%s: read_string(expected=%d, len=%d)='%s'\n",
+              __func__,
+              len, (int)strlen(buffer), buffer);
 
     if (retval < 0)
     {
@@ -637,7 +639,8 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
     int err;
     int retry = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s, expected=%d\n", __func__, cmd, (int)expected);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s, expected=%d\n", __func__, cmd,
+              (int)expected);
 
     if (!cmd)
     {
@@ -1844,12 +1847,14 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // cppcheck-suppress *
     SNPRINTF(freqbuf, sizeof(freqbuf), "F%c%011"PRIll, vfo_letter, (int64_t)freq);
+
     // we need to modify priv->verify_cmd if ID is not being used
     // if FB command than we change to FB and back again to avoid VFO blinking
-    if (priv->verify_cmd[1]=='A' && vfo_letter == 'B') priv->verify_cmd[1]='A';  
+    if (priv->verify_cmd[1] == 'A' && vfo_letter == 'B') { priv->verify_cmd[1] = 'A'; }
+
     err = kenwood_transaction(rig, freqbuf, NULL, 0);
 
-    if (priv->verify_cmd[1]=='B' && vfo_letter == 'B') priv->verify_cmd[1]='A';  
+    if (priv->verify_cmd[1] == 'B' && vfo_letter == 'B') { priv->verify_cmd[1] = 'A'; }
 
     if (RIG_OK == err && RIG_IS_TS590S
             && priv->fw_rev_uint <= 107 && ('A' == vfo_letter || 'B' == vfo_letter))

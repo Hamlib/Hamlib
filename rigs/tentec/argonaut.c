@@ -101,7 +101,7 @@ const struct rig_caps tt516_caps =
     .has_set_level =  RIG_LEVEL_SET(TT516_LEVELS),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-    .level_gran =  { 
+    .level_gran =  {
         [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } },
     },
     .parm_gran =  {},

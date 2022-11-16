@@ -210,7 +210,7 @@ const struct rig_caps dx77_caps =
         },
         {
             .startf = kHz(500), .endf = MHz(30), .modes = DX77_AM_TX_MODES,
-            .low_power = -1, .high_power = -1 , RIG_VFO_A, RIG_ANT_NONE
+            .low_power = -1, .high_power = -1, RIG_VFO_A, RIG_ANT_NONE
         },
         RIG_FRNG_END,
     },

@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
         {
             printf("Cmd:%s\n", buf);
         }
+
         //else { return 0; }
 
         if (buf[0] == 0x0a)
