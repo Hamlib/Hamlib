@@ -17,7 +17,9 @@ Version 4.6
 
 Version 4.5.1
         * 2022-XX-XX
-        * Add MDS 4710 rig
+        * Fix dumpcaps filter printout to only show declared filters
+        * Fix triggering PTT on XGComms device on Linux
+        * Add MDS 4710/9710 rigs
         * Fix level_gran in all rigs
         * Add RIG_FUNC_TUNER to flrig.c
         * Fix FT-991 level_gran (needs to be done for lots of rigs)
