@@ -222,7 +222,8 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
     do   // some serial ports fail to open 1st time for some unknown reason
     {
-        fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
+        //fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
+        fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY);
 
         if (fd == -1) // some serial ports fail to open 1st time for some unknown reason
         {
@@ -629,6 +630,9 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     // insert at head of list
     term_backup->next = term_options_backup_head;
     term_options_backup_head = term_backup;
+
+    ser_set_rts(rp, 0);
+    ser_set_dtr(rp, 0);
 
     return (RIG_OK);
 }
