@@ -2526,9 +2526,9 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: filter not found...return RIG_PASSBAND_NORMAL=%d\n", __func__,
-              (int)RIG_PASSBAND_NORMAL);
-    RETURNFUNC(RIG_PASSBAND_NORMAL);
+              "%s: filter not found...return %d\n", __func__,
+              0);
+    RETURNFUNC(0);
 }
 
 
