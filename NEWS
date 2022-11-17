@@ -17,7 +17,7 @@ Version 4.6
 
 Version 4.5.1
         * 2022-XX-XX
-        * Change all Yaesu rigs to 500ms serial timeout
+        * Change all Kenwood rigs to 500ms serial timeout
         * Fix dumpcaps filter printout to only show declared filters
         * Fix triggering PTT on XGComms device on Linux
         * Add MDS 4710/9710 rigs
