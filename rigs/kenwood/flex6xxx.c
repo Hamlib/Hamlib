@@ -1116,7 +1116,7 @@ const struct rig_caps f6k_caps =
     // We need at least 3 seconds to do profile switches
     // Hitting the timeout is OK as long as we retry
     // Previous note showed FA/FB may take up to 500ms on band change
-    .timeout =      300,
+    .timeout =      700,
     .retry =        13,
 
     .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
@@ -1234,7 +1234,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20220715.0",
+    .version =      "20221117.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,

@@ -60,7 +60,7 @@ const struct rig_caps ts440_caps =
     RIG_MODEL(RIG_MODEL_TS440),
     .model_name = "TS-440S",
     .mfg_name =  "Kenwood",
-    .version =  IC10_VER ".2",
+    .version =  IC10_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -75,7 +75,7 @@ const struct rig_caps ts440_caps =
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  20,
-    .timeout =  200,
+    .timeout =  500,
     .retry =  10,
 
     .has_get_func =  RIG_FUNC_NONE,

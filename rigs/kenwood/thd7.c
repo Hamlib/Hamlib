@@ -84,7 +84,7 @@ const struct rig_caps thd7a_caps =
     RIG_MODEL(RIG_MODEL_THD7A),
     .model_name = "TH-D7A",
     .mfg_name =  "Kenwood",
-    .version =  TH_VER ".0",
+    .version =  TH_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_HANDHELD | RIG_FLAG_APRS | RIG_FLAG_TNC | RIG_FLAG_DXCLUSTER,
@@ -99,7 +99,7 @@ const struct rig_caps thd7a_caps =
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  0,
-    .timeout =  200,
+    .timeout =  500,
     .retry =  3,
 
     .has_get_func =  THD7_FUNC_ALL,
