@@ -53,7 +53,7 @@ const struct rig_caps ts50s_caps =
     RIG_MODEL(RIG_MODEL_TS50),
     .model_name = "TS-50S",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_MOBILE,
@@ -68,7 +68,7 @@ const struct rig_caps ts50s_caps =
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  0,
-    .timeout =  200,
+    .timeout =  500,
     .retry =  10,
 
     .has_get_func =  TS50_FUNC_ALL,

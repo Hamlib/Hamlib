@@ -539,7 +539,7 @@ const struct rig_caps ts870s_caps =
     RIG_MODEL(RIG_MODEL_TS870S),
     .model_name = "TS-870S",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -554,7 +554,7 @@ const struct rig_caps ts870s_caps =
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  0,
-    .timeout =  200,
+    .timeout =  500,
     .retry =  10,
 
     .has_get_func =  TS870S_FUNC_ALL,
