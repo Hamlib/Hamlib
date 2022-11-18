@@ -525,7 +525,15 @@ transaction_read:
 
             if (retry_read++ < rs->rigport.retry)
             {
-                goto transaction_write;
+                if (strlen(buffer) == 0)
+                {
+                    goto transaction_write;    // didn't get an answer so send again
+                }
+                else
+                {
+                    // should be able to handle transceive mode here
+                    goto transaction_read;    // might be an async or corrupt reply so we'll read until timeout
+                }
             }
 
             retval =  -RIG_EPROTO;
