@@ -501,6 +501,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         return (NULL);
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_model=%s %s\n", __func__, caps->mfg_name,
+              caps->model_name);
+
     if (caps->hamlib_check_rig_caps != NULL)
     {
         if (caps->hamlib_check_rig_caps[0] != 'H'
@@ -553,9 +556,11 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->rigport.fd = -1;
     rs->pttport.fd = -1;
     rs->comm_state = 0;
+#if 0 // extra debug if needed
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==0?=%d\n", __func__,
               __LINE__, &rs->comm_state,
               rs->comm_state);
+#endif
     rs->rigport.type.rig = caps->port_type; /* default from caps */
 #if defined(HAVE_PTHREAD)
     rs->rigport.asyncio = 0;
