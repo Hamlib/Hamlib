@@ -2146,7 +2146,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
                       || rig->caps->rig_model == RIG_MODEL_IC785x
                       || rig->caps->rig_model == RIG_MODEL_IC9100
                       || rig->caps->rig_model == RIG_MODEL_IC9700
-                      || rig->caps->rig_model == RIG_MODEL_IC705;
+                      || rig->caps->rig_model == RIG_MODEL_IC705
+                      || rig->caps->rig_model == RIG_MODEL_X6100;
 
     ENTERFUNC;
 
