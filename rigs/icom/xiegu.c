@@ -44,11 +44,11 @@
 #include "bandplan.h"
 #include "serial.h"
 
-#define X108G_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM|RIG_MODE_FMN)
-#define X108G_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+#define X108G_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM|RIG_MODE_FMN|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+#define X108G_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
 #define X108G_NOT_TS_MODES (X108G_ALL_RX_MODES &~X108G_1HZ_TS_MODES)
 
-#define X108G_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define X108G_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
 #define X108G_AM_TX_MODES (RIG_MODE_AM)
 
 #define X108G_FUNCS (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_ANF|RIG_FUNC_VSC|RIG_FUNC_LOCK|RIG_FUNC_ARO)
@@ -367,6 +367,7 @@ const struct rig_caps x6100_caps =
     .max_ifshift =  Hz(0), /* TODO */
     .targetable_vfo =  0,
     .vfo_ops =  X108G_VFO_OPS,
+    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .scan_ops =  X108G_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   5,
@@ -458,8 +459,8 @@ const struct rig_caps x6100_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode,
-    .get_mode =  icom_get_mode,
+    .set_mode =  icom_set_mode_with_data,
+    .get_mode =  icom_get_mode_with_data,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,  /*automatically set by rig depending band */
     .get_ant =  NULL,
