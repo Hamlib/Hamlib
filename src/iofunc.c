@@ -952,12 +952,12 @@ int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer,
                                 size_t count)
 {
 
-    if (!p->asyncio)
+    if (p->asyncio)
     {
-        return -RIG_EINTERNAL;
+    return (int) write(p->fd_sync_write, txbuffer, count);
     }
 
-    return (int) write(p->fd_sync_write, txbuffer, count);
+    return (int) write(p->fd, txbuffer, count);
 }
 
 int HAMLIB_API write_block_sync_error(hamlib_port_t *p,
