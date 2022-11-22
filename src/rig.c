@@ -7403,11 +7403,15 @@ extern int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
                            size_t rxbuffer_len);
 
 
+// Returns # of bytes read
+// reply_len should be max bytes expected + 1
+// if term is null then will read reply_len bytes exactly and reply will not be null terminated
 HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                                 int send_len, unsigned char *reply, int reply_len, unsigned char *term)
 {
     struct rig_state *rs = &rig->state;
     unsigned char buf[200];
+    int nbytes;
     ENTERFUNC;
     int retval = write_block_sync(&rs->rigport, send, send_len);
 
@@ -7431,22 +7435,36 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
         if (*term == 0xfd) // then we want an Icom frame
         {
             retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+            nbytes = retval;
+        }
+        else if (term == NULL)
+        {
+            nbytes = read_string_direct(&rs->rigport, buf, reply_len, (const char *)term,
+                                        1, 0, 1);
         }
         else // we'll assume the provided terminator works
         {
-            retval = read_string_direct(&rs->rigport, buf, sizeof(buf), (const char *)term,
+            nbytes = read_string_direct(&rs->rigport, buf, sizeof(buf), (const char *)term,
                                         1, 0, 1);
         }
 
-        if (retval != RIG_OK)
+        if (retval < RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__,
                       retval);
             RETURNFUNC(retval);
         }
+        if (nbytes >= reply_len)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: reply_len(%d) less than reply from rig(%d)\n", __func__, reply_len, nbytes);
+            return -RIG_EINVAL;
+        }
+        memcpy(reply,buf,reply_len-1);
     }
+    else 
+        RETURNFUNC(retval);
 
-    RETURNFUNC(retval);
+    RETURNFUNC(nbytes > 0? nbytes:-RIG_EPROTO);
 }
 
 HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int mode)
