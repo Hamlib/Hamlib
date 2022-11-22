@@ -14,20 +14,21 @@ Version 5.x -- future
 
 Version 4.6
         * 2023-11-XX -- Planned for Nov 2023
+        * Add MDS 4710/9710 rigs
 
 Version 4.5.1
         * 2022-XX-XX
+        * Fix rig_send_raw to return bytes read, fill buffer, and also work with fixed length response/null terminator
         * Change all Kenwood rigs to 500ms serial timeout
         * Fix dumpcaps filter printout to only show declared filters
         * Fix triggering PTT on XGComms device on Linux
-        * Add MDS 4710/9710 rigs
         * Fix level_gran in all rigs
         * Add RIG_FUNC_TUNER to flrig.c
         * Fix FT-991 level_gran (needs to be done for lots of rigs)
         * Fix man page rigctl to show units for LEVEL items
         * Fix Flex6xxx if_len
         * Fix FLRig set_ptt
-        * Add KEYSPD to TS890
+        * Fix missing KEYSPD to TS890
         * rigctl 'W' command can now use a singled char terminator like ; that allows for variable length responses with no timeout -- e.g.  W FA; ;
         * New RIG_LEVEL_USB_AF to control audio gain from rig to computer -- to allow AGC function in software using RF and USB_AF
         * Add RIG_LEVEL_AGC_TIME to allow AGC/OFF to be set for IC-7300, IC-9700, IC-705
