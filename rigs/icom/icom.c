@@ -3498,7 +3498,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             int found = 0;
 
             for (i = 0;
-                    i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level != RIG_AGC_LAST
+                    i <= HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level != RIG_AGC_LAST
                     && priv_caps->agc_levels[i].icom_level >= 0; i++)
             {
                 if (priv_caps->agc_levels[i].level == val.i)
@@ -4154,7 +4154,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             int found = 0;
 
             for (i = 0;
-                    i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level >= 0; i++)
+                    i <= HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level >= 0; i++)
             {
                 if (priv_caps->agc_levels[i].icom_level == icom_val)
                 {

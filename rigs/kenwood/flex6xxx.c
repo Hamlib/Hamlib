@@ -1234,7 +1234,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20221117.0",
+    .version =      "20221123.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1276,6 +1276,8 @@ const struct rig_caps powersdr_caps =
     .vfo_ops =      POWERSDR_VFO_OP,
     .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive =       RIG_TRN_RIG,
+    .agc_level_count = 6,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_LONG, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_USER },
     .bank_qty =     0,
     .chan_desc_sz =     0,
 

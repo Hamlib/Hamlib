@@ -295,8 +295,9 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "\n");
 
-    fprintf(fout, "AGC levels:");
 
+#if 0
+    fprintf(fout, "AGC levels:");
     const struct icom_priv_caps *priv_caps =
         (const struct icom_priv_caps *) rig->caps->priv;
 
@@ -318,6 +319,13 @@ int dumpcaps(RIG *rig, FILE *fout)
                     rig_stragclevel(caps->agc_levels[i]));
         }
     }
+#else
+    //fprintf(fout, "\n");
+    fprintf(fout, "AGC levels: ");
+    char buf[1024];
+    rig_sprintf_agc_levels(rig, buf, (int)sizeof(buf));
+    fprintf(fout,"%s", buf);
+#endif
 
     if (i == 0)
     {

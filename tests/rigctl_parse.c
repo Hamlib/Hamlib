@@ -1749,7 +1749,8 @@ readline_repeat:
             rig_debug(RIG_DEBUG_WARN,
                       "%s: command %s not allowed when rig is powered off\n", __func__,
                       cmd_entry->name);
-            retcode = -RIG_EPOWER;
+//            retcode = -RIG_EPOWER;
+            retcode = RIG_OK;
         }
         else
         {
@@ -4340,6 +4341,7 @@ declare_proto_rig(dump_state)
 {
     int i;
     struct rig_state *rs = &rig->state;
+    char buf[1024];
 
     ENTERFUNC;
 
@@ -4466,6 +4468,8 @@ declare_proto_rig(dump_state)
         fprintf(fout, "timeout=%d\n", rig->caps->timeout);
         fprintf(fout, "rig_model=%d\n", rig->caps->rig_model);
         fprintf(fout, "rigctld_version=%s\n", hamlib_version2);
+        rig_sprintf_agc_levels(rig, buf, sizeof(buf));
+        fprintf(fout, "agc_levels=%s\n", buf);
 
         if (rig->caps->ctcss_list)
         {
