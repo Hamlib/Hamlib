@@ -812,26 +812,31 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "agc_levels") == 0)
             {
-                int i=1;
-                char *p = strtok(value," ");
+                int i = 1;
+                char *p = strtok(value, " ");
                 rig->caps->agc_levels[0] = RIG_AGC_OFF;
-                while(p)
+
+                while (p)
                 {
                     int agc_code;
                     char agc_string[32];
                     int n = sscanf(p, "%d=%s\n", &agc_code, agc_string);
+
                     if (n == 2)
                     {
                         rig->caps->agc_levels[i++] = agc_code;
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has agc code=%d, level=%s\n", __func__, agc_code, agc_string);
+                        rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has agc code=%d, level=%s\n", __func__,
+                                  agc_code, agc_string);
                     }
                     else
                     {
                         rig_debug(RIG_DEBUG_ERR, "%s did not parse code=agc from '%s'\n", __func__, p);
                     }
+
                     rig_debug(RIG_DEBUG_VERBOSE, "%d=%s\n", agc_code, agc_string);
                     p = strtok(NULL, " ");
                 }
+
                 rig->caps->agc_level_count = i;
             }
             else

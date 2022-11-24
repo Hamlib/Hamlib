@@ -319,12 +319,13 @@ int dumpcaps(RIG *rig, FILE *fout)
                     rig_stragclevel(caps->agc_levels[i]));
         }
     }
+
 #else
     //fprintf(fout, "\n");
     fprintf(fout, "AGC levels: ");
     char buf[1024];
     rig_sprintf_agc_levels(rig, buf, (int)sizeof(buf));
-    fprintf(fout,"%s", buf);
+    fprintf(fout, "%s", buf);
 #endif
 
     if (i == 0)

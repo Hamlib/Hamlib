@@ -7454,17 +7454,22 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                       retval);
             RETURNFUNC(retval);
         }
+
         if (nbytes >= reply_len)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: reply_len(%d) less than reply from rig(%d)\n", __func__, reply_len, nbytes);
+            rig_debug(RIG_DEBUG_ERR, "%s: reply_len(%d) less than reply from rig(%d)\n",
+                      __func__, reply_len, nbytes);
             return -RIG_EINVAL;
         }
-        memcpy(reply,buf,reply_len-1);
-    }
-    else 
-        RETURNFUNC(retval);
 
-    RETURNFUNC(nbytes > 0? nbytes:-RIG_EPROTO);
+        memcpy(reply, buf, reply_len - 1);
+    }
+    else
+    {
+        RETURNFUNC(retval);
+    }
+
+    RETURNFUNC(nbytes > 0 ? nbytes : -RIG_EPROTO);
 }
 
 HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int mode)

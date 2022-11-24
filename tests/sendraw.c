@@ -24,11 +24,15 @@ main()
         printf("rig_open: error = %s\n", rigerror(retcode));
         exit(2);
     }
+
     freq_t f;
     rig_get_freq(my_rig, RIG_VFO_A, &f);
 
-    int nbytes = rig_send_raw(my_rig, sendCmd, sendCmdLen, rcvdCmd, rcvdCmdLen, term);
-    if (nbytes >= 0) printf("Response(%d bytes): %s\n", nbytes, rcvdCmd);
-    else printf("Error occurred = %s\n", rigerror(retcode));
+    int nbytes = rig_send_raw(my_rig, sendCmd, sendCmdLen, rcvdCmd, rcvdCmdLen,
+                              term);
+
+    if (nbytes >= 0) { printf("Response(%d bytes): %s\n", nbytes, rcvdCmd); }
+    else { printf("Error occurred = %s\n", rigerror(retcode)); }
+
     return retcode;
 }
