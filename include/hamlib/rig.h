@@ -341,6 +341,7 @@ enum agc_level_e {
     RIG_AGC_MEDIUM,
     RIG_AGC_AUTO,
     RIG_AGC_LONG,
+    RIG_AGC_ON              /*< Turns AGC ON -- Kenwood -- restores last level set */
 };
 
 

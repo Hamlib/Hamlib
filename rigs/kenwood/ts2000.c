@@ -167,6 +167,8 @@ const struct rig_caps ts2000_caps =
     .max_ifshift =  kHz(1),
     .targetable_vfo =  RIG_TARGETABLE_FREQ,
     .transceive =  RIG_TRN_RIG,
+    .agc_level_count = 5,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_ON },
     .bank_qty =   0,
     .chan_desc_sz =  7,
 
