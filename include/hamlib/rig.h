@@ -337,9 +337,10 @@ enum agc_level_e {
     RIG_AGC_SUPERFAST,
     RIG_AGC_FAST,
     RIG_AGC_SLOW,
-    RIG_AGC_USER,           /*!< user selectable */
+    RIG_AGC_USER,           /*!< user selectable -- RIG_LEVEL_AGC to set USER level  */
     RIG_AGC_MEDIUM,
-    RIG_AGC_AUTO
+    RIG_AGC_AUTO,
+    RIG_AGC_LONG,
 };
 
 
@@ -899,7 +900,7 @@ typedef unsigned int ant_t;
 
 
 //! @cond Doxygen_Suppress
-#define RIG_AGC_LAST RIG_AGC_AUTO
+#define RIG_AGC_LAST -1
 //! @endcond
 
 #if 1 // deprecated
