@@ -110,6 +110,7 @@ const struct rig_caps ts790_caps =
     .max_ifshift =  0,
     .targetable_vfo =  RIG_TARGETABLE_FREQ,
     .transceive =  RIG_TRN_RIG,
+    // No AGC levels
     .bank_qty =   0,
     .chan_desc_sz =  0,
 

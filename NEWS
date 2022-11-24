@@ -18,6 +18,7 @@ Version 4.6
 
 Version 4.5.1
         * 2022-XX-XX
+        * Fix AGC Level dumpcaps on most rigs
         * Fix rig_send_raw to return bytes read, fill buffer, and also work with fixed length response/null terminator
         * Change all Kenwood rigs to 500ms serial timeout
         * Fix dumpcaps filter printout to only show declared filters

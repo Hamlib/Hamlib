@@ -241,7 +241,7 @@ const struct rig_caps ts890s_caps =
     RIG_MODEL(RIG_MODEL_TS890S),
     .model_name = "TS-890S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".5",
+    .version = BACKEND_VER ".6",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -265,6 +265,8 @@ const struct rig_caps ts890s_caps =
     .max_ifshift = Hz(0),
     .targetable_vfo = RIG_TARGETABLE_FREQ,
     .transceive = RIG_TRN_RIG,
+    .agc_level_count = 5,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_ON },
 
     .rx_range_list1 = {
         {kHz(100),   Hz(59999999), TS890_ALL_MODES, -1, -1, TS890_VFO},

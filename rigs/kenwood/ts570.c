@@ -903,7 +903,7 @@ const struct rig_caps ts570s_caps =
     RIG_MODEL(RIG_MODEL_TS570S),
     .model_name = "TS-570S",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -943,6 +943,8 @@ const struct rig_caps ts570s_caps =
     .scan_ops =  TS570_SCAN_OPS,
     .targetable_vfo =  RIG_TARGETABLE_FREQ,
     .transceive =  RIG_TRN_RIG,
+    .agc_level_count = 2,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_SLOW },
     .bank_qty =   0,
     .chan_desc_sz =  0,
 

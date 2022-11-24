@@ -3191,11 +3191,6 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_AGC:
-        if (kenwood_val > 3)
-        {
-            kenwood_val = 3;    /* 0.. 255 */
-        }
-
         SNPRINTF(levelbuf, sizeof(levelbuf), "GT%03d", 84 * kenwood_val);
         break;
 
