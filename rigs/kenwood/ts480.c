@@ -1284,6 +1284,8 @@ const struct rig_caps ts480_caps =
     .max_ifshift = Hz(0),
     .targetable_vfo = RIG_TARGETABLE_FREQ,
     .transceive = RIG_TRN_RIG,
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_SLOW },
 
     .rx_range_list1 = {
         {kHz(100),   Hz(59999999), TS480_ALL_MODES, -1, -1, TS480_VFO},

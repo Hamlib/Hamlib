@@ -92,6 +92,7 @@ const struct rig_caps ts930_caps =
     .max_ifshift =  Hz(0),
     .targetable_vfo =  RIG_TARGETABLE_FREQ,
     .transceive =  RIG_TRN_RIG,
+    // AGC levels unknown
     .bank_qty =   0,
     .chan_desc_sz =  0,
 

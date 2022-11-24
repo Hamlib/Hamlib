@@ -577,6 +577,8 @@ const struct rig_caps ts870s_caps =
     .max_ifshift =  Hz(0),
     .targetable_vfo =  RIG_TARGETABLE_FREQ,
     .transceive =  RIG_TRN_RIG,
+    // Has GT command but ranges from 000-005(Off) to 255 max
+    // Would take special processing
     .bank_qty =   0,
     .chan_desc_sz =  0,
 
