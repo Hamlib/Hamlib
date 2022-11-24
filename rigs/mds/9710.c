@@ -46,7 +46,7 @@ const struct rig_caps mds_9710_caps =
         {
             .startf = MHz(800), .endf = MHz(880), .modes = MDS_ALL_MODES,
             .startf = MHz(880), .endf = MHz(960), .modes = MDS_ALL_MODES,
-            .low_power = 0, .high_power = 0, MDS_ALL_MODES, RIG_ANT_1, 
+            .low_power = 0, .high_power = 0, MDS_ALL_MODES, RIG_ANT_1,
         },
         RIG_FRNG_END,
     },

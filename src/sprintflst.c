@@ -913,7 +913,8 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
     if (priv_caps && RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM
             && priv_caps->agc_levels_present)
     {
-        for (i = 0; i <= HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level != RIG_AGC_LAST
+        for (i = 0; i <= HAMLIB_MAX_AGC_LEVELS
+                && priv_caps->agc_levels[i].level != RIG_AGC_LAST
                 && priv_caps->agc_levels[i].icom_level >= 0; i++)
         {
             if (strlen(str) > 0) { strcat(str, " "); }
@@ -936,7 +937,7 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
     {
         for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && i < rig->caps->agc_level_count; i++)
         {
-            if (strlen(str)>0) { strcat(str, " "); }
+            if (strlen(str) > 0) { strcat(str, " "); }
 
             sprintf(tmpbuf, "%d=%s", rig->caps->agc_levels[i],
                     rig_stragclevel(rig->caps->agc_levels[i]));
