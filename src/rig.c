@@ -7413,6 +7413,12 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     unsigned char buf[200];
     int nbytes;
     ENTERFUNC;
+
+    if (rig->caps->rig_model == RIG_MODEL_DUMMY || rig->caps->rig_model == RIG_MODEL_NONE)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: not implemented for model %s\n", __func__, rig->caps->model_name);
+        return -RIG_ENAVAIL;
+    }
     int retval = write_block_sync(&rs->rigport, send, send_len);
 
     if (retval < 0)
