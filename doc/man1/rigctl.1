@@ -1288,6 +1288,14 @@ CW Skimmer is started and "set_lock_mode 0" when CW Skimmer is stopped.
 .BR get_lock_mode
 Returns current lock mode status 1=On, 2=Off (only useful when using rigctld)
 .
+.TP
+.BR send_raw " \(aq" \fIString\fp \(aq
+.EX
+Can send ASCII string or 0xnn values -- there can be no spaces in the command string.
+Examples:
+  send_raw FA;MD;
+  send_raw 0x40;0x32;0x32;0x00
+.
 .SH READLINE
 .
 If
