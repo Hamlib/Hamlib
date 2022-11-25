@@ -7414,11 +7414,15 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     int nbytes;
     ENTERFUNC;
 
-    if (rig->caps->rig_model == RIG_MODEL_DUMMY || rig->caps->rig_model == RIG_MODEL_NONE)
+    if (rig->caps->rig_model == RIG_MODEL_DUMMY
+            || rig->caps->rig_model == RIG_MODEL_NONE)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: not implemented for model %s\n", __func__, rig->caps->model_name);
+        rig_debug(RIG_DEBUG_ERR, "%s: not implemented for model %s\n", __func__,
+                  rig->caps->model_name);
         return -RIG_ENAVAIL;
     }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: writing %d bytes\n", __func__, send_len);
     int retval = write_block_sync(&rs->rigport, send, send_len);
 
     if (retval < 0)
@@ -7440,16 +7444,20 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
         if (*term == 0xfd) // then we want an Icom frame
         {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: reading icom frame\n", __func__);
             retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
             nbytes = retval;
         }
         else if (term == NULL)
         {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: reading binary frame\n", __func__);
             nbytes = read_string_direct(&rs->rigport, buf, reply_len, (const char *)term,
                                         1, 0, 1);
         }
         else // we'll assume the provided terminator works
         {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: reading frame terminated by '%s'\n", __func__,
+                      term);
             nbytes = read_string_direct(&rs->rigport, buf, sizeof(buf), (const char *)term,
                                         1, 0, 1);
         }

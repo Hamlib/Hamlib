@@ -371,7 +371,7 @@ static struct test_table test_list[] =
     { 0xa1, "get_separator",     ACTION(get_separator), ARG_NOVFO, "Separator" },
     { 0xa2, "set_lock_mode",     ACTION(set_lock_mode), ARG_IN | ARG_NOVFO, "Locked" },
     { 0xa3, "get_lock_mode",     ACTION(get_lock_mode), ARG_NOVFO, "Locked" },
-    { 0xa4, "send_raw",          ACTION(send_raw), ARG_NOVFO | ARG_IN | ARG_OUT, "Send raw command" },
+    { 0xa4, "send_raw",          ACTION(send_raw), ARG_NOVFO | ARG_IN | ARG_OUT, "Send raw answer" },
     { 0x00, "", NULL },
 };
 
@@ -5352,36 +5352,65 @@ static int parse_hex(const char *s, unsigned char *buf, int len)
     int i;
     buf[0] = 0;
     char *s2 = strdup(s);
-    char *p = strtok(s2,";");
-    while(p)
+    char *p = strtok(s2, ";");
+
+    while (p)
     {
         unsigned int val;
-        sscanf(p,"0x%x", &val);
+        sscanf(p, "0x%x", &val);
         buf[i++] = val;
         p = strtok(NULL, ";");
     }
+
     free(s2);
     return i;
 }
 /* 0xa4 */
 declare_proto_rig(send_raw)
 {
-    int retval;
+    int reply_len;
     unsigned char term[] = ";";
     unsigned char buf[100];
     unsigned char send[100];
-    unsigned char *sendp = (unsigned char*)arg1;
+    unsigned char *sendp = (unsigned char *)arg1;
     int arg1_len = strlen(arg1);
+    int hex_flag = 0;
 
-    if (strncmp(arg1, "0x", 2)==0) {
-        arg1_len = parse_hex(arg1,send,sizeof(send));
+    if (strncmp(arg1, "0x", 2) == 0)
+    {
+        arg1_len = parse_hex(arg1, send, sizeof(send));
         sendp = send;
+        hex_flag = 1;
     }
+
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
-    retval = rig_send_raw(rig, (unsigned char*)sendp, arg1_len, buf, sizeof(buf),term);
+    reply_len = rig_send_raw(rig, (unsigned char *)sendp, arg1_len, buf,
+                             sizeof(buf), term);
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);
     }
-    return retval;
+
+    if (reply_len == 0)
+    {
+        fprintf(fout, "No answer\n");
+    }
+    else if (hex_flag)
+    {
+        int i;
+
+        for (i = 0; i < reply_len; ++i)
+        {
+            fprintf(fout, "0x%02x ", buf[i]);
+        }
+
+        fprintf(fout, "\n");
+    }
+    else
+    {
+        fprintf(fout, "%s\n", buf);
+    }
+
+    return RIG_OK;
 }
