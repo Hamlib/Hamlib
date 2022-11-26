@@ -649,6 +649,21 @@
 #define ROT_MODEL_GRBLTRK_NET ROT_MAKE_MODEL(ROT_GRBLTRK, 2)
 
 /**
+ * \brief A macro that returns the model number of the FLIR backend.
+ *
+ * \def ROT_MODEL_FLIR
+ *
+ * The FLIR backend can be used with FLIR and DirectedPercepition 
+ * rotators using the PTU protocol (e.g. PTU-D48). Currently only 
+ * the serial interaface is supported and no ethernet.
+ */
+//! @cond Doxygen_Suppress
+#define ROT_FLIR 25
+#define ROT_BACKEND_FLIR "flir"
+//! @endcond
+#define ROT_MODEL_FLIR ROT_MAKE_MODEL(ROT_FLIR, 1)
+
+/**
  * \brief Convenience type definition for a rotator model.
  *
  * \typedef typedef int rot_model_t
