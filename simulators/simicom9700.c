@@ -381,6 +381,20 @@ void frameParse(int fd, unsigned char *frame, int len)
             }
 
             frame[11] = 0xfd;
+            unsigned char frame2[11];
+            
+            frame2[0] = 0xfe;
+            frame2[1] = 0xfe;
+            frame2[2] = 0x00; // send transceive frame
+            frame2[3] = frame[3]; // send transceive frame
+            frame2[4] = 0x00;
+            frame2[5] = 0x70;
+            frame2[6] = 0x28;
+            frame2[7] = 0x57;
+            frame2[8] = 0x03;
+            frame2[9] = 0x00;
+            frame2[10] = 0xfd;
+            n = write(fd, frame2, 11);
             n = write(fd, frame, 12);
         }
         else

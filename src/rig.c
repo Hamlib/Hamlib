@@ -7421,6 +7421,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                   rig->caps->model_name);
         return -RIG_ENAVAIL;
     }
+    ELAPSED1;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: writing %d bytes\n", __func__, send_len);
     int retval = write_block_sync(&rs->rigport, send, send_len);
@@ -7482,6 +7483,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     {
         RETURNFUNC(retval);
     }
+    ELAPSED2;
 
     RETURNFUNC(nbytes > 0 ? nbytes : -RIG_EPROTO);
 }
