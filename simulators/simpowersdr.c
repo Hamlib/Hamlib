@@ -274,6 +274,18 @@ int main(int argc, char *argv[])
             n = write(fd, buf, strlen(buf));
             continue;
         }
+        else if (strncmp(buf,"ZZFL;", 5)==0)
+        {
+            SNPRINTF(buf, sizeof(buf), "ZZFL+%04d;", 100);
+            n = write(fd, buf, strlen(buf));
+            continue;
+        }
+        else if (strncmp(buf,"ZZFH;", 5)==0)
+        {
+            SNPRINTF(buf, sizeof(buf), "ZZFH+%04d;", 3500);
+            n = write(fd, buf, strlen(buf));
+            continue;
+        }
         else if (strncmp(buf, "FL", 2) == 0)
         {
             sscanf(buf, "FL%d", &filternum);

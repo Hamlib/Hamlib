@@ -371,7 +371,7 @@ static struct test_table test_list[] =
     { 0xa1, "get_separator",     ACTION(get_separator), ARG_NOVFO, "Separator" },
     { 0xa2, "set_lock_mode",     ACTION(set_lock_mode), ARG_IN | ARG_NOVFO, "Locked" },
     { 0xa3, "get_lock_mode",     ACTION(get_lock_mode), ARG_NOVFO, "Locked" },
-    { 0xa4, "send_raw",          ACTION(send_raw), ARG_NOVFO | ARG_IN | ARG_OUT, "Send raw answer" },
+    { 0xa4, "send_raw",          ACTION(send_raw), ARG_NOVFO | ARG_IN1 | ARG_IN2 | ARG_OUT3, "Terminator", "Command","Send raw answer" },
     { 0x00, "", NULL },
 };
 
@@ -1728,7 +1728,7 @@ readline_repeat:
 
     else
     {
-        if ((rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY))
+        if (my_rig->caps->set_powerstat && (rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY))
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_powerstat is not on = %d\n", __func__,
                       rig_powerstat);
@@ -5369,27 +5369,39 @@ static int parse_hex(const char *s, unsigned char *buf, int len)
 declare_proto_rig(send_raw)
 {
     int reply_len;
-    unsigned char term[] = ";";
+    unsigned char term[1];
     unsigned char buf[100];
     unsigned char send[100];
-    unsigned char *sendp = (unsigned char *)arg1;
-    int arg1_len = strlen(arg1);
+    unsigned char *sendp = (unsigned char *)arg2;
+    int arg2_len = strlen(arg2);
     int hex_flag = 0;
+    int buf_len = sizeof(buf);
+    int val = 0;
 
-    if (strncmp(arg1, "0x", 2) == 0)
+    if (strcmp(arg1, ";")==0) term[0] = ';';
+    else if (strcasecmp(arg1, "CR")) term[0] = 0x0d;
+    else if (strcasecmp(arg1, "LF")) term[0] = 0x0a;
+    else if (strcasecmp(arg1, "ICOM")) term[0] = 0xfd;
+    else if (sscanf(arg1,"%d",&val)==1) { term[0]=0; buf_len = val;}
+    else {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown arg1 val=%s, expected ';' 'CR' 'LF' 'ICOM' or # of bytes where 0 means no reply and -1 means unknown", __func__, arg1);
+        return -RIG_EINVAL;
+    }
+    if (strncmp(arg2, "0x", 2) == 0)
     {
-        arg1_len = parse_hex(arg1, send, sizeof(send));
+        arg2_len = parse_hex(arg2, send, sizeof(send));
         sendp = send;
         hex_flag = 1;
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
-    reply_len = rig_send_raw(rig, (unsigned char *)sendp, arg1_len, buf,
-                             sizeof(buf), term);
+    reply_len = rig_send_raw(rig, (unsigned char *)sendp, arg2_len, buf,
+                             buf_len, term);
+    buf[buf_len+1] = 0; // null terminate in case it's a string
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "%s: ", cmd->arg1);
+        fprintf(fout, "%s: ", cmd->arg3);
     }
 
     if (reply_len == 0)
