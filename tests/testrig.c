@@ -9,8 +9,6 @@
 
 #include <hamlib/rig.h>
 
-#include "misc.h"
-
 #include <hamlib/config.h>
 
 #define SERIAL_PORT "/dev/pts/2"
@@ -438,7 +436,7 @@ int main(int argc, char *argv[])
     if (retcode == RIG_OK)
     {
         // cppcheck-suppress *
-        printf("rig_get_mode: mode = %"PRIll"\n", rmode);
+        printf("rig_get_mode: mode = %s\n", rig_strrmode(rmode));
     }
     else
     {
