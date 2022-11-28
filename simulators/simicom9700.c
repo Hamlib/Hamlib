@@ -382,7 +382,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             frame[11] = 0xfd;
             unsigned char frame2[11];
-            
+
             frame2[0] = 0xfe;
             frame2[1] = 0xfe;
             frame2[2] = 0x00; // send transceive frame
