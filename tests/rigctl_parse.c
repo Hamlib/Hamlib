@@ -1737,9 +1737,12 @@ readline_repeat:
 
             if (retcode == RIG_OK) { rig_powerstat = stat; }
 
-            if (rig_powerstat != RIG_POWER_ON) { rig_debug(RIG_DEBUG_ERR,
-                        "%s: rig_powerstat is not on = %d\n", __func__,
-                        rig_powerstat); }
+            if (rig_powerstat != RIG_POWER_ON)
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: rig_powerstat is not on = %d\n", __func__,
+                          rig_powerstat);
+            }
         }
 
         // Allow only certain commands when the rig is powered off

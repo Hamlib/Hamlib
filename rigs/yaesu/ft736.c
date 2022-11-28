@@ -132,7 +132,7 @@ const struct rig_caps ft736_caps =
     .max_rit =            Hz(0),
     .max_xit =            Hz(0),
     .max_ifshift =        Hz(0),
-    .targetable_vfo =     RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive =         RIG_TRN_OFF,
     .bank_qty =           0,
     .chan_desc_sz =       0,
@@ -305,7 +305,7 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     unsigned char md;
     struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
 
-    if (vfo == RIG_VFO_B) return ft736_set_split_mode(rig, vfo, mode, width);
+    if (vfo == RIG_VFO_B) { return ft736_set_split_mode(rig, vfo, mode, width); }
 
     if (priv->split == RIG_SPLIT_ON)
     {
