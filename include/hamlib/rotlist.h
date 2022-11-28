@@ -325,7 +325,9 @@
 #define ROT_MODEL_GS232B_EL ROT_MAKE_MODEL(ROT_GS232A, 12)
 #define ROT_MODEL_GS23_AZ ROT_MAKE_MODEL(ROT_GS232A, 13)
 
-
+#define ROT_ARRAYSOLUTIONS 7
+#define ROT_BACKEND ARRAYSOLUTIONS "arraysolutions"
+#define ROT_MODEL_ARRAYSOLUTIONS_SAL_12_20_30 ROT_MAKE_MODEL(ROT_ARRAYSOLUTIONS, 1)
 /**
  * \brief A macro that returns the model number of the PCROTOR backend.
  *
