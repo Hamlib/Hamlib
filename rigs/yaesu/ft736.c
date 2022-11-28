@@ -98,7 +98,7 @@ const struct rig_caps ft736_caps =
     RIG_MODEL(RIG_MODEL_FT736R),
     .model_name =         "FT-736R",
     .mfg_name =           "Yaesu",
-    .version =            "20210221.0",
+    .version =            "20211271.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -268,6 +268,9 @@ int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
     struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+
+    // we will assume requesting to set VFOB is split mode
+    if (vfo == RIG_VFO_B) { return rig_set_split_freq(rig, vfo, freq); }
 
     if (priv->split == RIG_SPLIT_ON)
     {
