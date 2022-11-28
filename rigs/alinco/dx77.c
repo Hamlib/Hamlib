@@ -156,7 +156,7 @@ const struct rig_caps dx77_caps =
     RIG_MODEL(RIG_MODEL_DX77),
     .model_name =       "DX-77",
     .mfg_name =         "Alinco",
-    .version =          BACKEND_VER ".0",
+    .version =          BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -214,7 +214,6 @@ const struct rig_caps dx77_caps =
         },
         RIG_FRNG_END,
     },
-    .rx_range_list2 = {RIG_FRNG_END,},
     .tx_range_list1 = {RIG_FRNG_END,},
     .tx_range_list2 = {RIG_FRNG_END,},
 
