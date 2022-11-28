@@ -7424,7 +7424,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     ELAPSED1;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: writing %d bytes\n", __func__, send_len);
-    int retval = write_block_sync(&rs->rigport, send, send_len);
+    int retval = write_block(&rs->rigport, send, send_len);
 
     if (retval < 0)
     {
@@ -7465,7 +7465,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
         if (retval < RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__,
+            rig_debug(RIG_DEBUG_ERR, "%s: read_string_direct, result=%d\n", __func__,
                       retval);
             RETURNFUNC(retval);
         }
