@@ -665,7 +665,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                  int interactive, int prompt, int *vfo_opt, char send_cmd_term,
                  int *ext_resp_ptr, char *resp_sep_ptr, int use_password)
 {
-    int retcode;        /* generic return code from functions */
+    int retcode = -RIG_EINTERNAL;        /* generic return code from functions */
     unsigned char cmd;
     struct test_table *cmd_entry = NULL;
 
@@ -5352,7 +5352,7 @@ declare_proto_rig(get_lock_mode)
 
 static int parse_hex(const char *s, unsigned char *buf, int len)
 {
-    int i;
+    int i = 0;
     buf[0] = 0;
     char *s2 = strdup(s);
     char *p = strtok(s2, ";");
