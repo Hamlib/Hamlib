@@ -18,6 +18,7 @@ Version 4.6
 
 Version 4.5.1
         * 2022-XX-XX
+        * Add missing meter reading to TS-890S -- thanks to Geore Baltz N3GB
         * Fix FT736 VFOB freq and mode set
         * Added send_raw to rigctl -- see rigctl man page
         * Fix AGC Level dumpcaps on most rigs
