@@ -5869,16 +5869,16 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         }
 
         break;
-            
+
     case RIG_FUNC_NB2:
         if (!newcat_valid_command(rig, "NB"))
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
-            
+
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NB0%d%c", status ? 2 : 0,
                  cat_term);
-        
+
         if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
         {
             priv->cmd_str[2] = main_sub_vfo;
@@ -6375,11 +6375,11 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     case RIG_FUNC_VOX:
         *status = (retfunc[0] == '0') ? 0 : 1;
         break;
-            
+
     case RIG_FUNC_NB:
         *status = (retfunc[0] == '1') ? 1 : 0;
-        break; 
-            
+        break;
+
     case RIG_FUNC_NB2:
         *status = (retfunc[0] == '2') ? 1 : 0;
         break;
