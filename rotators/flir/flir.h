@@ -1,6 +1,6 @@
 /*
- *  Hamlib Dummy backend - main header
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Hamlib FLIR PTU rotor backend - main header
+ *  Copyright (c) 2022 by Andreas Mueller (DC1MIL)
  *
  *
  *   This library is free software; you can redistribute it and/or
