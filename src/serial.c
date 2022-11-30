@@ -222,8 +222,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
     do   // some serial ports fail to open 1st time for some unknown reason
     {
-        //fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
-        fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY);
+        fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
 
         if (fd == -1) // some serial ports fail to open 1st time for some unknown reason
         {
