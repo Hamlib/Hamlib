@@ -36,6 +36,10 @@
 #define TOK_EL_ROT_MAGICCOMBO    TOKEN_BACKEND(5)
 #define TOK_EL_ROT_MAGICEXTFUNC  TOKEN_BACKEND(6)
 
+#define MAXBUF 64
+
+
+
 extern struct rot_caps flir_caps;
 extern struct rot_caps netrotctl_caps;
 
