@@ -377,21 +377,26 @@ static int flir_move(ROT *rot, int direction, int speed)
 
 static const char *flir_get_info(ROT *rot)
 {
-    char firmware_str[120];
-    char info_str[120];
+    char firmware_str[121];
+    char info_str[101];
+
     struct flir_priv_data *priv = (struct flir_priv_data *)
                                        rot->state.priv;
 
     sprintf(priv->info, "No Info");
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if(flir_request(rot, "V\n", firmware_str, 120) == RIG_OK && 
-        flir_request(rot, "O\n", info_str, 120) == RIG_OK)
+    if(flir_request(rot, "V\n", firmware_str, 120) != RIG_OK)
     {
-        sprintf(priv->info, "Firmware: %s Info: %s", firmware_str, info_str);
+        return "No Info available";
     }
-    //rig_debug(RIG_DEBUG_VERBOSE, "Return String: %s", return_str);
+    hl_usleep(500000);
+        if(flir_request(rot, "O\n", info_str, 100) != RIG_OK)
+    {
+        return "No Info available";
+    }
+    sprintf(priv->info, "Firmware: %s\nPower: %s", firmware_str, info_str);
+
     return priv->info;
 }
 
