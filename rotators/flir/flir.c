@@ -29,6 +29,7 @@
 #include "hamlib/rotator.h"
 #include "register.h"
 #include "idx_builtin.h"
+#include "serial.h"
 
 #include "flir.h"
 
@@ -39,8 +40,6 @@
 #define FLIR_STATUS (ROT_STATUS_MOVING | ROT_STATUS_MOVING_AZ | ROT_STATUS_MOVING_LEFT | ROT_STATUS_MOVING_RIGHT | \
         ROT_STATUS_MOVING_EL | ROT_STATUS_MOVING_UP | ROT_STATUS_MOVING_DOWN | \
         ROT_STATUS_LIMIT_UP | ROT_STATUS_LIMIT_DOWN | ROT_STATUS_LIMIT_LEFT | ROT_STATUS_LIMIT_RIGHT)
-
-//static int simulating = 0;  // do we need rotator emulation for debug?
 
 struct flir_priv_data
 {
@@ -56,6 +55,8 @@ struct flir_priv_data
     value_t levels[RIG_SETTING_MAX];
     value_t parms[RIG_SETTING_MAX];
 
+    char info[256];
+
     struct ext_list *ext_funcs;
     struct ext_list *ext_levels;
     struct ext_list *ext_parms;
@@ -66,61 +67,11 @@ struct flir_priv_data
     float_t resolution_tp; 
 };
 
-// static const struct confparams flir_ext_levels[] =
-// {
-//     {
-//         TOK_EL_ROT_MAGICLEVEL, "MGL", "Magic level", "Magic level, as an example",
-//         NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
-//     },
-//     {
-//         TOK_EL_ROT_MAGICFUNC, "MGF", "Magic func", "Magic function, as an example",
-//         NULL, RIG_CONF_CHECKBUTTON
-//     },
-//     {
-//         TOK_EL_ROT_MAGICOP, "MGO", "Magic Op", "Magic Op, as an example",
-//         NULL, RIG_CONF_BUTTON
-//     },
-//     {
-//         TOK_EL_ROT_MAGICCOMBO, "MGC", "Magic combo", "Magic combo, as an example",
-//         "VALUE1", RIG_CONF_COMBO, { .c = { .combostr = { "VALUE1", "VALUE2", "NONE", NULL } } }
-//     },
-//     { RIG_CONF_END, NULL, }
-// };
-
-// static const struct confparams flir_ext_funcs[] =
-// {
-//     {
-//         TOK_EL_ROT_MAGICEXTFUNC, "MGEF", "Magic ext func", "Magic ext function, as an example",
-//         NULL, RIG_CONF_CHECKBUTTON
-//     },
-//     { RIG_CONF_END, NULL, }
-// };
-
-// static const struct confparams flir_ext_parms[] =
-// {
-//     {
-//         TOK_EP_ROT_MAGICPARM, "MGP", "Magic parm", "Magic parameter, as an example",
-//         NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
-//     },
-//     { RIG_CONF_END, NULL, }
-// };
-
-/* cfgparams are configuration item generally used by the backend's open() method */
-// static const struct confparams flir_cfg_params[] =
-// {
-//     {
-//         TOK_CFG_ROT_MAGICCONF, "mcfg", "Magic conf", "Magic parameter, as an example",
-//         "ROTATOR", RIG_CONF_STRING, { }
-//     },
-//     { RIG_CONF_END, NULL, }
-// };
-
 static int flir_request(ROT *rot, char *request, char *response,
-             uint32_t *resp_size)
+             int resp_size)
 {
     int return_value = -RIG_EINVAL;
     int retry_read = 0;
-    unsigned char cmd_ok;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -128,20 +79,20 @@ static int flir_request(ROT *rot, char *request, char *response,
 
         if (request)
         {
-            return_value = write_block(&rot->state.rotport, (unsigned char *) request,
+            return_value = write_block(&rot->state.rotport, (unsigned char *)request,
                                        strlen(request));
             if (return_value != RIG_OK)
             {
                 return return_value;
             }
         }
-        //Is a direct request expected?
+        //Is a direct response expected?
         if (response != NULL)
         {
             while(retry_read < rot->state.rotport.retry)
             {
-                memset(response, 0, resp_size);
-                resp_size = read_string(&rot->state.rotport, response, resp_size,
+                memset(response, 0, (size_t)resp_size);
+                resp_size = read_string(&rot->state.rotport, (unsigned char *)response, resp_size,
                         "\r\n", sizeof("\r\n"), 0, 1);
                 if(resp_size > 0)
                 {
@@ -181,30 +132,6 @@ static int flir_init(ROT *rot)
     }
 
     priv = rot->state.priv;
-
-    // priv->ext_funcs = alloc_init_ext(flir_ext_funcs);
-
-    // if (!priv->ext_funcs)
-    // {
-    //     return -RIG_ENOMEM;
-    // }
-
-    // priv->ext_levels = alloc_init_ext(flir_ext_levels);
-
-    // if (!priv->ext_levels)
-    // {
-    //     return -RIG_ENOMEM;
-    // }
-
-    // priv->ext_parms = alloc_init_ext(flir_ext_parms);
-
-    // if (!priv->ext_parms)
-    // {
-    //     return -RIG_ENOMEM;
-    // }
-
-    //rot->state.rotport.type.rig = RIG_PORT_SERIAL;
-    //flir_request(rot, "r\n", sizeof("r\n"), NULL, NULL);
 
     priv->az = priv->el = 0;
 
@@ -290,56 +217,15 @@ static int flir_close(ROT *rot)
     return RIG_OK;
 }
 
-// static int flir_set_conf(ROT *rot, token_t token, const char *val)
-// {
-//     struct flir_priv_data *priv;
+static int flir_set_conf(ROT *rot, token_t token, const char *val)
+{
+    return -RIG_ENIMPL;
+}
 
-//     priv = (struct flir_priv_data *)rot->state.priv;
-
-//     switch (token)
-//     {
-//     case TOK_CFG_ROT_MAGICCONF:
-//         if (val)
-//         {
-//             free(priv->magic_conf);
-//             priv->magic_conf = strdup(val);
-//         }
-
-//         break;
-
-//     default:
-//         return -RIG_EINVAL;
-//     }
-
-//     return RIG_OK;
-// }
-
-
-// static int flir_get_conf2(ROT *rot, token_t token, char *val, int val_len)
-// {
-//     struct flir_priv_data *priv;
-
-//     priv = (struct flir_priv_data *)rot->state.priv;
-
-//     switch (token)
-//     {
-//     case TOK_CFG_ROT_MAGICCONF:
-//         SNPRINTF(val, val_len, "%s", priv->magic_conf);
-//         break;
-
-//     default:
-//         return -RIG_EINVAL;
-//     }
-
-//     return RIG_OK;
-// }
-
-// static int flir_get_conf(ROT *rot, token_t token, char *val)
-// {
-//     return flir_get_conf2(rot, token, val, 128);
-// }
-
-
+static int flir_get_conf(ROT *rot, token_t token, char *val)
+{
+    return -RIG_ENIMPL;
+}
 
 static int flir_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
@@ -383,6 +269,7 @@ static int flir_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         rig_debug(RIG_DEBUG_VERBOSE, "PP Return String: %s\n", return_str);
         sscanf(return_str, "* %d", &pan_positions);
         priv->az = (pan_positions * priv->resolution_pp) / 3600;
+        *az = priv->az;
     }
     else
     {
@@ -394,23 +281,19 @@ static int flir_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         rig_debug(RIG_DEBUG_VERBOSE, "TP Return String: %s\n", return_str);
         sscanf(return_str, "* %d", &tilt_positions);
         priv->el = 90.0 + ((tilt_positions * priv->resolution_tp) / 3600);
+        *el = priv->el;
     }
     else
     {
         return_value = -RIG_EPROTO;
     }
 
-    *az = priv->az;
-    *el = priv->el;
-
     return return_value;
 }
-
 
 static int flir_stop(ROT *rot)
 {
     int return_value = RIG_OK;
-    char return_str[MAXBUF];
 
     struct flir_priv_data *priv = (struct flir_priv_data *)
                                        rot->state.priv;
@@ -431,7 +314,6 @@ static int flir_stop(ROT *rot)
     return return_value;
 }
 
-
 static int flir_park(ROT *rot)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -448,7 +330,7 @@ static int flir_reset(ROT *rot, rot_reset_t reset)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     if (reset != 0)
     {
-        return_value = flir_request(rot, "r\n", NULL, NULL);
+        return_value = flir_request(rot, "r\n", NULL, 0);
         // After Reset: Disable Hard Limits
         if(return_value == RIG_OK)
         {
@@ -490,489 +372,92 @@ static int flir_move(ROT *rot, int direction, int speed)
 
 static const char *flir_get_info(ROT *rot)
 {
-    const char* firmware_str[120];
-    const char* info_str[120];
-    const char* return_str[256];
+    char firmware_str[120];
+    char info_str[120];
+    struct flir_priv_data *priv = (struct flir_priv_data *)
+                                       rot->state.priv;
 
-    sprintf(return_str, "No Info");
+    sprintf(priv->info, "No Info");
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if(flir_request(rot, "V\n", firmware_str, 120) == RIG_OK && 
         flir_request(rot, "O\n", info_str, 120) == RIG_OK)
     {
-        sprintf(return_str, "Firmware: %s Info: %s", firmware_str, info_str);
+        sprintf(priv->info, "Firmware: %s Info: %s", firmware_str, info_str);
     }
     //rig_debug(RIG_DEBUG_VERBOSE, "Return String: %s", return_str);
-    return *return_str;
+    return priv->info;
 }
 
-// static int flir_set_func(ROT *rot, setting_t func, int status)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %d\n", __func__,
-//               rot_strfunc(func), status);
-
-//     if (status)
-//     {
-//         priv->funcs |=  func;
-//     }
-//     else
-//     {
-//         priv->funcs &= ~func;
-//     }
-
-//     return RIG_OK;
-// }
-
-
-// static int flir_get_func(ROT *rot, setting_t func, int *status)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-
-//     *status = (priv->funcs & func) ? 1 : 0;
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
-//               rot_strfunc(func));
-
-//     return RIG_OK;
-// }
-
-
-// static int flir_set_level(ROT *rot, setting_t level, value_t val)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     int idx;
-//     char lstr[32];
-
-//     idx = rig_setting2idx(level);
-
-//     if (idx >= RIG_SETTING_MAX)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     priv->levels[idx] = val;
-
-//     if (ROT_LEVEL_IS_FLOAT(level))
-//     {
-//         SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
-//     }
-//     else
-//     {
-//         SNPRINTF(lstr, sizeof(lstr), "%d", val.i);
-//     }
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
-//               rot_strlevel(level), lstr);
-
-//     return RIG_OK;
-// }
-
-
-// static int flir_get_level(ROT *rot, setting_t level, value_t *val)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     int idx;
-
-//     idx = rig_setting2idx(level);
-
-//     if (idx >= RIG_SETTING_MAX)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     *val = priv->levels[idx];
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
-//               rot_strlevel(level));
-
-//     return RIG_OK;
-// }
-
-// static int flir_set_ext_level(ROT *rot, token_t token, value_t val)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     char lstr[64];
-//     const struct confparams *cfp;
-//     struct ext_list *elp;
-
-//     cfp = rot_ext_lookup_tok(rot, token);
-
-//     if (!cfp)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     switch (token)
-//     {
-//     case TOK_EL_ROT_MAGICLEVEL:
-//     case TOK_EL_ROT_MAGICFUNC:
-//     case TOK_EL_ROT_MAGICOP:
-//     case TOK_EL_ROT_MAGICCOMBO:
-//         break;
-
-//     default:
-//         return -RIG_EINVAL;
-//     }
-
-//     switch (cfp->type)
-//     {
-//     case RIG_CONF_STRING:
-//         strcpy(lstr, val.s);
-//         break;
-
-//     case RIG_CONF_COMBO:
-//         SNPRINTF(lstr, sizeof(lstr), "%d", val.i);
-//         break;
-
-//     case RIG_CONF_NUMERIC:
-//         SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
-//         break;
-
-//     case RIG_CONF_CHECKBUTTON:
-//         SNPRINTF(lstr, sizeof(lstr), "%s", val.i ? "ON" : "OFF");
-//         break;
-
-//     case RIG_CONF_BUTTON:
-//         lstr[0] = '\0';
-//         break;
-
-//     default:
-//         return -RIG_EINTERNAL;
-//     }
-
-//     elp = find_ext(priv->ext_levels, token);
-
-//     if (!elp)
-//     {
-//         return -RIG_EINTERNAL;
-//     }
-
-//     /* store value */
-//     elp->val = val;
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
-//               cfp->name, lstr);
-
-//     return RIG_OK;
-// }
-
-// static int flir_get_ext_level(ROT *rot, token_t token, value_t *val)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     const struct confparams *cfp;
-//     struct ext_list *elp;
-
-//     cfp = rot_ext_lookup_tok(rot, token);
-
-//     if (!cfp)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     switch (token)
-//     {
-//     case TOK_EL_ROT_MAGICLEVEL:
-//     case TOK_EL_ROT_MAGICFUNC:
-//     case TOK_EL_ROT_MAGICOP:
-//     case TOK_EL_ROT_MAGICCOMBO:
-//         break;
-
-//     default:
-//         return -RIG_EINVAL;
-//     }
-
-//     elp = find_ext(priv->ext_levels, token);
-
-//     if (!elp)
-//     {
-//         return -RIG_EINTERNAL;
-//     }
-
-//     /* load value */
-//     *val = elp->val;
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
-//               cfp->name);
-
-//     return RIG_OK;
-// }
-
-
-// static int flir_set_ext_func(ROT *rot, token_t token, int status)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     const struct confparams *cfp;
-//     struct ext_list *elp;
-
-//     cfp = rot_ext_lookup_tok(rot, token);
-
-//     if (!cfp)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     switch (token)
-//     {
-//     case TOK_EL_ROT_MAGICEXTFUNC:
-//         break;
-
-//     default:
-//         return -RIG_EINVAL;
-//     }
-
-//     switch (cfp->type)
-//     {
-//     case RIG_CONF_CHECKBUTTON:
-//         break;
-
-//     case RIG_CONF_BUTTON:
-//         break;
-
-//     default:
-//         return -RIG_EINTERNAL;
-//     }
-
-//     elp = find_ext(priv->ext_funcs, token);
-
-//     if (!elp)
-//     {
-//         return -RIG_EINTERNAL;
-//     }
-
-//     /* store value */
-//     elp->val.i = status;
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %d\n", __func__,
-//               cfp->name, status);
-
-//     return RIG_OK;
-// }
-
-
-// static int flir_get_ext_func(ROT *rot, token_t token, int *status)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     const struct confparams *cfp;
-//     struct ext_list *elp;
-
-//     cfp = rot_ext_lookup_tok(rot, token);
-
-//     if (!cfp)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     switch (token)
-//     {
-//     case TOK_EL_ROT_MAGICEXTFUNC:
-//         break;
-
-//     default:
-//         return -RIG_EINVAL;
-//     }
-
-//     elp = find_ext(priv->ext_funcs, token);
-
-//     if (!elp)
-//     {
-//         return -RIG_EINTERNAL;
-//     }
-
-//     /* load value */
-//     *status = elp->val.i;
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
-//               cfp->name);
-
-//     return RIG_OK;
-// }
-
-
-// static int flir_set_parm(ROT *rot, setting_t parm, value_t val)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     int idx;
-//     char pstr[32];
-
-//     idx = rig_setting2idx(parm);
-
-//     if (idx >= RIG_SETTING_MAX)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     if (ROT_PARM_IS_FLOAT(parm))
-//     {
-//         SNPRINTF(pstr, sizeof(pstr), "%f", val.f);
-//     }
-//     else
-//     {
-//         SNPRINTF(pstr, sizeof(pstr), "%d", val.i);
-//     }
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
-//               rig_strparm(parm), pstr);
-
-//     priv->parms[idx] = val;
-
-//     return RIG_OK;
-// }
-
-
-// static int flir_get_parm(ROT *rot, setting_t parm, value_t *val)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     int idx;
-
-//     idx = rig_setting2idx(parm);
-
-//     if (idx >= RIG_SETTING_MAX)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     *val = priv->parms[idx];
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s\n", __func__,
-//               rig_strparm(parm));
-
-//     return RIG_OK;
-// }
-
-// static int flir_set_ext_parm(ROT *rot, token_t token, value_t val)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     char lstr[64];
-//     const struct confparams *cfp;
-//     struct ext_list *epp;
-
-//     cfp = rot_ext_lookup_tok(rot, token);
-
-//     if (!cfp)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     switch (token)
-//     {
-//     case TOK_EP_ROT_MAGICPARM:
-//         break;
-
-//     default:
-//         return -RIG_EINVAL;
-//     }
-
-//     switch (cfp->type)
-//     {
-//     case RIG_CONF_STRING:
-//         strcpy(lstr, val.s);
-//         break;
-
-//     case RIG_CONF_COMBO:
-//         SNPRINTF(lstr, sizeof(lstr), "%d", val.i);
-//         break;
-
-//     case RIG_CONF_NUMERIC:
-//         SNPRINTF(lstr, sizeof(lstr), "%f", val.f);
-//         break;
-
-//     case RIG_CONF_CHECKBUTTON:
-//         SNPRINTF(lstr, sizeof(lstr), "%s", val.i ? "ON" : "OFF");
-//         break;
-
-//     case RIG_CONF_BUTTON:
-//         lstr[0] = '\0';
-//         break;
-
-//     default:
-//         return -RIG_EINTERNAL;
-//     }
-
-//     epp = find_ext(priv->ext_parms, token);
-
-//     if (!epp)
-//     {
-//         return -RIG_EINTERNAL;
-//     }
-
-//     /* store value */
-//     epp->val = val;
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %s\n", __func__,
-//               cfp->name, lstr);
-
-//     return RIG_OK;
-// }
-
-// static int flir_get_ext_parm(ROT *rot, token_t token, value_t *val)
-// {
-//     struct flir_priv_data *priv = (struct flir_priv_data *)
-//                                        rot->state.priv;
-//     const struct confparams *cfp;
-//     struct ext_list *epp;
-
-//     cfp = rot_ext_lookup_tok(rot, token);
-
-//     if (!cfp)
-//     {
-//         return -RIG_EINVAL;
-//     }
-
-//     switch (token)
-//     {
-//     case TOK_EP_ROT_MAGICPARM:
-//         break;
-
-//     default:
-//         return -RIG_EINVAL;
-//     }
-
-//     epp = find_ext(priv->ext_parms, token);
-
-//     if (!epp)
-//     {
-//         return -RIG_EINTERNAL;
-//     }
-
-//     /* load value */
-//     *val = epp->val;
-
-//     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__,
-//               cfp->name);
-
-//     return RIG_OK;
-// }
-
+static int flir_set_func(ROT *rot, setting_t func, int status)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_get_func(ROT *rot, setting_t func, int *status)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_set_level(ROT *rot, setting_t level, value_t val)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_get_level(ROT *rot, setting_t level, value_t *val)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_set_ext_level(ROT *rot, token_t token, value_t val)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_get_ext_level(ROT *rot, token_t token, value_t *val)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_set_ext_func(ROT *rot, token_t token, int status)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_get_ext_func(ROT *rot, token_t token, int *status)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_set_parm(ROT *rot, setting_t parm, value_t val)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_get_parm(ROT *rot, setting_t parm, value_t *val)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_set_ext_parm(ROT *rot, token_t token, value_t val)
+{
+    return -RIG_ENIMPL;
+}
+
+static int flir_get_ext_parm(ROT *rot, token_t token, value_t *val)
+{
+    return -RIG_ENIMPL;
+}
 
 static int flir_get_status(ROT *rot, rot_status_t *status)
 {
     struct flir_priv_data *priv = (struct flir_priv_data *)
                                        rot->state.priv;
-
-    // if (simulating)
-    // {
-    //     flir_simulate_rotation(rot);
-    // }
-
     *status = priv->status;
 
     return RIG_OK;
 }
-
 
 /*
  * flir rotator capabilities.
@@ -1003,23 +488,16 @@ struct rot_caps flir_caps =
     .min_el =     0.,
     .max_el =     90.,
 
-
-
     .priv =  NULL,    /* priv */
 
-    // .has_get_func =   FLIR_FUNC,
-    // .has_set_func =   FLIR_FUNC,
-    // .has_get_level =  FLIR_LEVEL,
-    // .has_set_level =  ROT_LEVEL_SET(FLIR_LEVEL),
-    // .has_get_parm =   FLIR_PARM,
-    // .has_set_parm =   ROT_PARM_SET(FLIR_PARM),
+    .has_get_func =   FLIR_FUNC,
+    .has_set_func =   FLIR_FUNC,
+    .has_get_level =  FLIR_LEVEL,
+    .has_set_level =  ROT_LEVEL_SET(FLIR_LEVEL),
+    .has_get_parm =   FLIR_PARM,
+    .has_set_parm =   ROT_PARM_SET(FLIR_PARM),
 
-    // .level_gran =      { [ROT_LVL_SPEED] = { .min = { .i = 1 }, .max = { .i = 4 }, .step = { .i = 1 } } },
-
-    // .extlevels =    flir_ext_levels,
-    // .extfuncs =     flir_ext_funcs,
-    // .extparms =     flir_ext_parms,
-    // .cfgparams =    flir_cfg_params,
+    .level_gran =      { [ROT_LVL_SPEED] = { .min = { .i = 1 }, .max = { .i = 4 }, .step = { .i = 1 } } },
 
     .has_status = FLIR_STATUS,
 
@@ -1028,8 +506,8 @@ struct rot_caps flir_caps =
     .rot_open =     flir_open,
     .rot_close =    flir_close,
 
-    // .set_conf =     flir_set_conf,
-    // .get_conf =     flir_get_conf,
+    .set_conf =     flir_set_conf,
+    .get_conf =     flir_get_conf,
 
     .set_position =     flir_set_position,
     .get_position =     flir_get_position,
@@ -1038,19 +516,19 @@ struct rot_caps flir_caps =
     .reset =    flir_reset,
     .move =     flir_move,
 
-    // .set_func = flir_set_func,
-    // .get_func = flir_get_func,
-    // .set_level = flir_set_level,
-    // .get_level = flir_get_level,
-    // .set_parm = flir_set_parm,
-    // .get_parm = flir_get_parm,
+    .set_func = flir_set_func,
+    .get_func = flir_get_func,
+    .set_level = flir_set_level,
+    .get_level = flir_get_level,
+    .set_parm = flir_set_parm,
+    .get_parm = flir_get_parm,
 
-    // .set_ext_func = flir_set_ext_func,
-    // .get_ext_func = flir_get_ext_func,
-    // .set_ext_level = flir_set_ext_level,
-    // .get_ext_level = flir_get_ext_level,
-    // .set_ext_parm = flir_set_ext_parm,
-    // .get_ext_parm = flir_get_ext_parm,
+    .set_ext_func = flir_set_ext_func,
+    .get_ext_func = flir_get_ext_func,
+    .set_ext_level = flir_set_ext_level,
+    .get_ext_level = flir_get_ext_level,
+    .set_ext_parm = flir_set_ext_parm,
+    .get_ext_parm = flir_get_ext_parm,
 
     .get_info = flir_get_info,
     .get_status = flir_get_status,
