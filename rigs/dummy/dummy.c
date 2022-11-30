@@ -425,7 +425,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
-    if (vfo == RIG_VFO_CURR || RIG_VFO_TX) { vfo = vfo_fixup(rig, vfo, rig->state.cache.split); }
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX) { vfo = vfo_fixup(rig, vfo, rig->state.cache.split); }
 
 // if needed for testing enable this to emulate a rig with 100hz resolution
 #if 0
@@ -2271,7 +2271,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20221106.0",
+    .version =        "20221128.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
