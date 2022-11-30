@@ -72,6 +72,7 @@ static int flir_request(ROT *rot, char *request, char *response,
 {
     int return_value = -RIG_EINVAL;
     int retry_read = 0;
+    int read_char = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -83,6 +84,7 @@ static int flir_request(ROT *rot, char *request, char *response,
                                        strlen(request));
             if (return_value != RIG_OK)
             {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s request not OK\n", __func__);
                 return return_value;
             }
         }
@@ -92,9 +94,9 @@ static int flir_request(ROT *rot, char *request, char *response,
             while(retry_read < rot->state.rotport.retry)
             {
                 memset(response, 0, (size_t)resp_size);
-                resp_size = read_string(&rot->state.rotport, (unsigned char *)response, resp_size,
+                read_char = read_string(&rot->state.rotport, (unsigned char *)response, resp_size,
                         "\r\n", sizeof("\r\n"), 0, 1);
-                if(resp_size > 0)
+                if(read_char > 0)
                 {
                     if(response[0] == '*')
                     {
@@ -110,6 +112,7 @@ static int flir_request(ROT *rot, char *request, char *response,
                 }
                 retry_read++;
             }
+            response = "";
             rig_debug(RIG_DEBUG_VERBOSE, "timeout for command %s\n", request);
             return -RIG_ETIMEOUT;        
         }
@@ -273,6 +276,7 @@ static int flir_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     }
     else
     {
+        rig_debug(RIG_DEBUG_VERBOSE, "PP Wrong Return String: %s\n", return_str);
         return_value = -RIG_EPROTO;
     }
     
@@ -285,6 +289,7 @@ static int flir_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     }
     else
     {
+        rig_debug(RIG_DEBUG_VERBOSE, "PP Wrong Return String: %s\n", return_str);
         return_value = -RIG_EPROTO;
     }
 
