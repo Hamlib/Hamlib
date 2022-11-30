@@ -919,7 +919,8 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
         {
             if (strlen(str) > 0) { strcat(str, " "); }
 
-            sprintf(tmpbuf, "%d=%s", priv_caps->agc_levels[i].icom_level, rig_stragclevel(priv_caps->agc_levels[i].level));
+            sprintf(tmpbuf, "%d=%s", priv_caps->agc_levels[i].icom_level,
+                    rig_stragclevel(priv_caps->agc_levels[i].level));
 
             if (strlen(str) + strlen(tmpbuf) < lenstr - 1)
             {
@@ -927,8 +928,8 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
             }
             else
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: buffer overrun!!  len=%ld > maxlen=%d\n",
-                          __func__, strlen(str) + strlen(tmpbuf), lenstr - 1);
+                rig_debug(RIG_DEBUG_ERR, "%s: buffer overrun!!  len=%d > maxlen=%d\n",
+                          __func__, (int)(strlen(str) + strlen(tmpbuf)), lenstr - 1);
             }
         }
     }
@@ -947,8 +948,8 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
             }
             else
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: buffer overrun!!  len=%ld > maxlen=%d\n",
-                          __func__, strlen(str) + strlen(tmpbuf), lenstr - 1);
+                rig_debug(RIG_DEBUG_ERR, "%s: buffer overrun!!  len=%d > maxlen=%d\n",
+                          __func__, (int)(strlen(str) + strlen(tmpbuf)), lenstr - 1);
             }
         }
     }
