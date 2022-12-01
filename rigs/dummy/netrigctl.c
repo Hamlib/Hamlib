@@ -2709,6 +2709,14 @@ int netrigctl_get_lock_mode(RIG *rig, int *lock)
     return (RIG_OK);
 }
 
+int netrigctl_send_raw(RIG *rig, char *s)
+{
+    int ret;
+    char buf[BUF_MAX];
+    ret = netrigctl_transaction(rig, s, strlen(s), buf);
+    return ret;
+}
+
 /*
  * Netrigctl rig capabilities.
  */
@@ -2718,7 +2726,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20221123.0",
+    .version =        "20221201.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

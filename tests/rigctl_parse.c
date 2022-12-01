@@ -5371,6 +5371,9 @@ static int parse_hex(const char *s, unsigned char *buf, int len)
     free(s2);
     return i;
 }
+
+// sends whatever is in s -- no addtions or changes done
+extern int netrigctl_send_raw(RIG *rig, char *s);
 /* 0xa4 */
 declare_proto_rig(send_raw)
 {
@@ -5383,6 +5386,16 @@ declare_proto_rig(send_raw)
     int hex_flag = 0;
     int buf_len = sizeof(buf);
     int val = 0;
+
+    if (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
+    {
+        char netbuf[1024];
+        int retval;
+        snprintf(netbuf, sizeof(netbuf) - 1, "\\sendraw %s %s\n", arg2, arg3);
+        rig_debug(RIG_DEBUG_ERR, "%s: calling netrigctl\n", __func__);
+        retval = RIG_OK;
+        return retval;
+    }
 
     if (strcmp(arg1, ";") == 0) { term[0] = ';'; }
     else if (strcasecmp(arg1, "CR")) { term[0] = 0x0d; }
