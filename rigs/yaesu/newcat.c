@@ -1358,9 +1358,21 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         rig_get_mode(rig, vfo, &tmode, &twidth);
 
-        if (mode == tmode && (twidth == width || twidth == RIG_PASSBAND_NOCHANGE))
+        if (mode == tmode && (twidth == width || width == RIG_PASSBAND_NOCHANGE))
         {
             RETURNFUNC(RIG_OK);
+        }
+
+        if (mode != tmode)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: mode changing from %s to %s\n", __func__,
+                      rig_strrmode(mode), rig_strrmode(tmode));
+        }
+
+        if (width != twidth)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: width changing from %d to %d\n", __func__,
+                      (int)width, (int)twidth);
         }
     }
 
