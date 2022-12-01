@@ -48,7 +48,7 @@ const struct rig_caps ft9000_caps =
     RIG_MODEL(RIG_MODEL_FT9000),
     .model_name =         "FTDX-9000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".2",
+    .version =            NEWCAT_VER ".3",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
