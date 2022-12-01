@@ -3639,7 +3639,7 @@ int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
         RETURNFUNC(err);
     }
 
-    if ((rig->caps->targetable_vfo & RIG_TARGETABLE_ANT)
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_ANT)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
@@ -4177,6 +4177,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             scale = 255;
         }
+            
+        if (is_ftdx10 || is_ft710) main_sub_vfo = 0;
 
         fpf = newcat_scale_float(scale, val.f);
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RG%c%03d%c", main_sub_vfo, fpf,
@@ -4229,7 +4231,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL0%02d%c", fpf, cat_term);
 
-            if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE && !is_ft2000)
+            if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ft2000 && !is_ftdx10 && !is_ft710)
             {
                 priv->cmd_str[2] = main_sub_vfo;
             }
@@ -4371,6 +4373,12 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         fpf = newcat_scale_float(scale, val.f);
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SQ%c%03d%c", main_sub_vfo, fpf,
                  cat_term);
+            
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ftdx10 && !is_ft710)
+            {
+                priv->cmd_str[2] = main_sub_vfo;
+            }
+            
         break;
 
     case RIG_LEVEL_VOXDELAY:
@@ -4547,7 +4555,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%03d%c", val.i, cat_term);
         }
-        else if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        else if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ft2000 && !is_ftdx10 && !is_ft710)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -4619,6 +4627,11 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL00%02d%c", fpf, cat_term);
+            
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ftdx10 && !is_ft710 && !is_ftdx101mp)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
+        }
 
         break;
 
@@ -4681,7 +4694,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PA0%c", cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ft2000 && !is_ftdx10 && !is_ft710)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -4696,6 +4709,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AG%c%c", main_sub_vfo,
                  cat_term);
+            
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ftdx10 && !is_ft710)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
+        }
+        
         break;
 
     case RIG_LEVEL_AGC:
@@ -4706,6 +4725,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "GT%c%c", main_sub_vfo,
                  cat_term);
+        
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ftdx10 && !is_ft710)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
+        }
+            
         break;
 
     case RIG_LEVEL_IF:
@@ -4727,7 +4752,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS%c%c", main_sub_vfo,
                  cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ft2000 && !is_ftdx10 && !is_ft710)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -4812,7 +4837,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RA0%c", cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ft2000 && !is_ftdx10 && !is_ft710)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -4846,7 +4871,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL0%c", cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ft2000 && !is_ftdx10 && !is_ft710)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -4870,6 +4895,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SQ%c%c", main_sub_vfo,
                  cat_term);
+        
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ftdx10 && !is_ft710)
+            {
+                priv->cmd_str[2] = main_sub_vfo;
+            }
+        
         break;
 
     case RIG_LEVEL_VOXDELAY:
@@ -4899,6 +4930,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NL0%c", cat_term);
+            
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ftdx10 && !is_ft710 && !is_ftdx101mp)
+        {
+            priv->cmd_str[2] = main_sub_vfo;
+        }        
+            
         break;
 
     /*
@@ -5089,7 +5126,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP%c", cat_term);
         }
-        else if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        else if (rig->caps->targetable_vfo & RIG_TARGETABLE_LEVEL && !is_ft2000 && !is_ftdx10 && !is_ft710)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -5704,7 +5741,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         RETURNFUNC(err);
     }
 
-    if (rig->caps->targetable_vfo & (RIG_TARGETABLE_MODE | RIG_TARGETABLE_TONE))
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_FUNC)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
@@ -5730,7 +5767,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BC0%d%c", status ? 1 : 0,
                  cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE && !is_ft2000)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_FUNC && !is_ft2000 && !is_ftdx10)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -5767,7 +5804,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP00%03d%c", status ? 1 : 0,
                  cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE && !is_ft2000)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_FUNC && !is_ft2000 && !is_ftdx10)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -6088,7 +6125,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     ENTERFUNC;
 
-    if (rig->caps->targetable_vfo & (RIG_TARGETABLE_MODE | RIG_TARGETABLE_TONE))
+    if (rig->caps->targetable_vfo & RIG_TARGETABLE_FUNC)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
@@ -6227,7 +6264,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NB0%c", cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_FUNC)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
@@ -6242,7 +6279,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NR0%c", cat_term);
 
-        if (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+        if (rig->caps->targetable_vfo & RIG_TARGETABLE_FUNC)
         {
             priv->cmd_str[2] = main_sub_vfo;
         }
