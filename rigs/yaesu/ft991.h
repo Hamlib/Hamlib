@@ -165,7 +165,7 @@
 /* Delay between bytes sent to FT-991
  * Should not exceed value set in CAT TOT menu (rig default is 10 mSec)
  */
-#define FT991_WRITE_DELAY                    0
+#define FT991_WRITE_DELAY                    5
 
 
 /* Delay sequential fast writes */
