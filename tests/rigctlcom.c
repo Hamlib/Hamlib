@@ -125,6 +125,7 @@ static int verbose;
 /* So -A/--mapa2b changes set_freq on VFOA to VFOB */
 /* This allows working CW Skimmer in split mode and transmit on VFOB */
 static int mapa2b;              /* maps set_freq on VFOA to VFOB instead */
+static int kwidth;
 
 #ifdef HAVE_SIG_ATOMIC_T
 static sig_atomic_t volatile ctrl_c;
@@ -224,7 +225,7 @@ int main(int argc, char *argv[])
     char conf_parms[MAXCONFLEN] = "";
     int status;
 
-    printf("rigctlcom Version 1.3\n");
+    printf("rigctlcom Version 1.4\n");
 
     while (1)
     {
@@ -666,29 +667,38 @@ static rmode_t ts2000_get_mode()
                  &mode, &width);
 
     // Perhaps we should emulate a rig that has PKT modes instead??
+    int kwidth_ssb[] = { 10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+    int kwidth_am[] = { 10, 100, 200, 500 };
+
+    // still need to cover packet filter 00=wide, 01=nar
     switch (mode)
     {
-    case RIG_MODE_LSB:   mode = 1; break;
+    case RIG_MODE_LSB:   mode = 1; kwidth = kwidth_ssb[width]; break;
 
-    case RIG_MODE_USB:   mode = 2; break;
+    case RIG_MODE_USB:   mode = 2; kwidth = kwidth_ssb[width]; break;
 
-    case RIG_MODE_CW:    mode = 3; break;
+    case RIG_MODE_CW:    mode = 3; kwidth = kwidth_am[width];
+        break; // is this correct?
 
-    case RIG_MODE_FM:    mode = 4; break;
+    case RIG_MODE_FM:    mode = 4; kwidth = kwidth_ssb[width]; break;
 
-    case RIG_MODE_AM:    mode = 5; break;
+    case RIG_MODE_AM:    mode = 5; kwidth = kwidth_am[width]; break;
 
-    case RIG_MODE_RTTY:  mode = 6; break;
+    case RIG_MODE_RTTY:  mode = 6; kwidth = kwidth_ssb[width]; break;
 
-    case RIG_MODE_CWR:   mode = 7; break;
+    case RIG_MODE_CWR:   mode = 7; kwidth = kwidth_am[width];
+        break; // is this correct?
 
-    case RIG_MODE_NONE:  mode = 8; break;
+    case RIG_MODE_NONE:  mode = 8; kwidth = kwidth_am[width];
+        break; // is this correct?
 
-    case RIG_MODE_RTTYR: mode = 9; break;
+    case RIG_MODE_RTTYR: mode = 9; kwidth = kwidth_ssb[width]; break;
 
-    case RIG_MODE_PKTUSB: mode = 2; break; // need to change to a TS_2000 mode
+    case RIG_MODE_PKTUSB: mode = 2; kwidth = kwidth_ssb[width];
+        break; // need to change to a TS_2000 mode
 
-    case RIG_MODE_PKTLSB: mode = 1; break; // need to change to a TS_2000 mode
+    case RIG_MODE_PKTLSB: mode = 1; kwidth = kwidth_ssb[width];
+        break; // need to change to a TS_2000 mode
 
     default: mode = 0; break;
     }
@@ -1586,6 +1596,68 @@ static int handle_ts2000(void *arg)
         SNPRINTF(response, sizeof(response), "PS1;");
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
+    else if (strcmp(arg, "SM0;") == 0)
+    {
+        int retval;
+        value_t value;
+        char response[32];
+        retval = rig_get_level(my_rig, RIG_VFO_A, RIG_LEVEL_STRENGTH, &value);
+
+        if (retval != RIG_OK)
+        {
+            SNPRINTF(response, sizeof(response), "SM00000;");
+        }
+        else
+        {
+            SNPRINTF(response, sizeof(response), "SM0%04d;", value.i * 3);
+            rig_debug(RIG_DEBUG_ERR, "SM response=%d\n", value.i);
+        }
+
+        return write_block2((void *)__func__, &my_com, response, strlen(response));
+    }
+    else if (strcmp(arg, "SM1;") == 0)
+    {
+        int retval;
+        value_t value;
+        char response[32];
+        retval = rig_get_level(my_rig, RIG_VFO_B, RIG_LEVEL_STRENGTH, &value);
+
+        if (retval != RIG_OK)
+        {
+            SNPRINTF(response, sizeof(response), "SM10000;");
+        }
+        else
+        {
+            SNPRINTF(response, sizeof(response), "SM1%04d;", value.i * 3);
+            rig_debug(RIG_DEBUG_ERR, "SM response=%d\n", value.i);
+        }
+
+        return write_block2((void *)__func__, &my_com, response, strlen(response));
+    }
+    else if (strcmp(arg, "KS;") == 0)
+    {
+        int retval;
+        value_t value;
+        char response[32];
+        retval = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD, &value);
+
+        if (retval != RIG_OK)
+        {
+            SNPRINTF(response, sizeof(response), "KS010;");
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "KS response=%d\n", value.i);
+        }
+
+        return write_block2((void *)__func__, &my_com, response, strlen(response));
+    }
+    else if (strcmp(arg, "SL;") == 0)
+    {
+        char response[32];
+        SNPRINTF(response, sizeof(response), "SL%02d;", kwidth);
+        return write_block2((void *)__func__, &my_com, response, strlen(response));
+    }
     else if (strncmp(arg, "SB", 2) == 0
              || strncmp(arg, "AC", 2) == 0
              || strncmp(arg, "AM", 2) == 0
@@ -1606,7 +1678,6 @@ static int handle_ts2000(void *arg)
              || strncmp(arg, "RG", 2) == 0
              || strncmp(arg, "RL", 2) == 0
              || strncmp(arg, "SC", 2) == 0
-             || strncmp(arg, "SL", 2) == 0
              || strncmp(arg, "SH", 2) == 0
              || strncmp(arg, "TN", 2) == 0
              || strncmp(arg, "TO", 2) == 0
