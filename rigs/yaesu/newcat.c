@@ -587,24 +587,28 @@ int newcat_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_id=%d\n", __func__, priv->rig_id);
     rig->state.rigport.timeout = timeout;
 
-#if 0 // possible future enhancement?
-
     // some rigs have a CAT TOT timeout that defaults to 10ms
     // so we'll increase CAT timeout to 100ms
+    // 10ms seemed problematic on some rigs/computers
     if (priv->rig_id == NC_RIGID_FT2000
             || priv->rig_id == NC_RIGID_FT2000D
             || priv->rig_id == NC_RIGID_FT891
             || priv->rig_id == NC_RIGID_FT991
-            || priv->rig_id == NC_RIGID_FT950)
+            || priv->rig_id == NC_RIGID_FT950
+            || priv->rig_id == NC_RIGID_FTDX3000
+            || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
         int err;
-        char *cmd = "EX0291%c";
+        char *cmd = "EX0291;EX029;"; // FT2000/D
 
-        if (priv->rig_id == NC_RIGID_FT950) { cmd = "EX0271%c"; }
-        else if (priv->rig_id == NC_RIGID_FT891) { cmd = "EX05071c"; }
-        else if (priv->rig_id == NC_RIGID_FT991) { cmd = "EX0321c"; }
+        if (priv->rig_id == NC_RIGID_FT950) { cmd = "EX0271;EX027;"; }
+        else if (priv->rig_id == NC_RIGID_FT891) { cmd = "EX05071;EX0507;"; }
+        else if (priv->rig_id == NC_RIGID_FT991) { cmd = "EX0321;EX032;"; }
+        else if (priv->rig_id == NC_RIGID_FTDX3000) { cmd = "EX0391;EX039;"; }
+        else if (priv->rig_id == NC_RIGID_FTDX3000DM) { cmd = "EX0391;EX039;"; }
+        else if (priv->rig_id == NC_RIGID_FTDX5000) { cmd = "EX0331;EX033"; }
 
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), cmd, cat_term);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
 
         if (RIG_OK != (err = newcat_set_cmd(rig)))
         {
@@ -612,38 +616,10 @@ int newcat_open(RIG *rig)
         }
     }
 
-#endif
-
     if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
         rig->state.disable_yaesu_bandselect = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: disabling FTDX3000 band select\n", __func__);
-    }
-
-    if (priv->rig_id == NC_RIGID_FTDX5000)
-    {
-        int err;
-        // set the CAT TIME OUT TIMER to 100ms
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0331;");
-
-        if (RIG_OK != (err = newcat_set_cmd(rig)))
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__,
-                      rigerror(err));
-        }
-    }
-
-    if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX3000DM)
-    {
-        int err;
-        // set the CAT TIME OUT TIMER to 100ms
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0391;");
-
-        if (RIG_OK != (err = newcat_set_cmd(rig)))
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: FTDX5000 CAT RATE error: %s\n", __func__,
-                      rigerror(err));
-        }
     }
 
     RETURNFUNC(RIG_OK);
@@ -10677,14 +10653,7 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if (strncmp(priv->cmd_str, "EX", 2) == 0)
     {
-        char *p = strchr(priv->cmd_str, ';');
-
-        if (p)
-        {
-            strcpy(valcmd, priv->cmd_str); // we query the same number
-            *p = '\0';
-            *(p - 1) = ';';
-        }
+        strcpy(valcmd, "");
     }
     else
     {
