@@ -2433,7 +2433,9 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     if (vfo == RIG_VFO_B && !(caps->targetable_vfo & RIG_TARGETABLE_MODE))
     {
-        vfo = RIG_VFO_A; // we'll just return VFO_A mode which is probably cached
+        *mode = rig->state.cache.modeMainA;
+        *width = rig->state.cache.widthMainA;
+        return RIG_OK;
     }
 
     if ((*mode != RIG_MODE_NONE && cache_ms_mode < rig->state.cache.timeout_ms)
