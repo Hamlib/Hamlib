@@ -613,7 +613,7 @@ int newcat_open(RIG *rig)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
 
-        if (RIG_OK != (err = newcat_set_cmd(rig)))
+        if (RIG_OK != (err = newcat_get_cmd(rig)))
         {
             RETURNFUNC(err);
         }
