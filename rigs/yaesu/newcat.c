@@ -57,7 +57,8 @@ typedef enum nc_rigid_e
     NC_RIGID_FT450D          = 244,
     NC_RIGID_FT950           = 310,
     NC_RIGID_FT891           = 135,
-    NC_RIGID_FT991           = 135,
+    NC_RIGID_FT991           = 570,
+    NC_RIGID_FT991A          = 670,
     NC_RIGID_FT2000          = 251,
     NC_RIGID_FT2000D         = 252,
     NC_RIGID_FTDX1200        = 583,
@@ -594,6 +595,7 @@ int newcat_open(RIG *rig)
             || priv->rig_id == NC_RIGID_FT2000D
             || priv->rig_id == NC_RIGID_FT891
             || priv->rig_id == NC_RIGID_FT991
+            || priv->rig_id == NC_RIGID_FT991A
             || priv->rig_id == NC_RIGID_FT950
             || priv->rig_id == NC_RIGID_FTDX3000
             || priv->rig_id == NC_RIGID_FTDX3000DM)
@@ -604,6 +606,7 @@ int newcat_open(RIG *rig)
         if (priv->rig_id == NC_RIGID_FT950) { cmd = "EX0271;EX027;"; }
         else if (priv->rig_id == NC_RIGID_FT891) { cmd = "EX05071;EX0507;"; }
         else if (priv->rig_id == NC_RIGID_FT991) { cmd = "EX0321;EX032;"; }
+        else if (priv->rig_id == NC_RIGID_FT991A) { cmd = "EX0321;EX032;"; }
         else if (priv->rig_id == NC_RIGID_FTDX3000) { cmd = "EX0391;EX039;"; }
         else if (priv->rig_id == NC_RIGID_FTDX3000DM) { cmd = "EX0391;EX039;"; }
         else if (priv->rig_id == NC_RIGID_FTDX5000) { cmd = "EX0331;EX033"; }
