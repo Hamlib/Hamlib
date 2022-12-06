@@ -7403,7 +7403,7 @@ static int async_data_handler_start(RIG *rig)
     if (!rs->async_data_enabled)
     {
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: async data support disabled since asynd_data_enabled=%d\n", __func__,
+                  "%s: async data support disabled since async_data_enabled=%d\n", __func__,
                   rs->async_data_enabled);
         RETURNFUNC(RIG_OK);
     }
