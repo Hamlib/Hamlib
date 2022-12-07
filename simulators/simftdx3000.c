@@ -231,13 +231,26 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FT;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FT%d;", ft);
+            int val = ft;
+
+            if (ft == 2) { val == 0; }
+            else if (ft == 3) { val == 1; }
+
+            SNPRINTF(buf, sizeof(buf), "FT%d;", val);
             n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "FT", 2) == 0)
+        {
+            sscanf(buf, "FT%d", &ft);
         }
         else if (strcmp(buf, "MD0;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "MD0%d;", md);
             n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "MD0", 3) == 0)
+        {
+            sscanf(buf, "MD0%d", &md);
         }
         else if (strcmp(buf, "VS;") == 0)
         {
