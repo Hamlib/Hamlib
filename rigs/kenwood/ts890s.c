@@ -24,6 +24,7 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
+#include "cal.h"
 
 // TODO: Copied from TS-480, to be verified
 #define TS890_VFO (RIG_VFO_A|RIG_VFO_B)
@@ -37,7 +38,7 @@
 
 // TODO: Copied from TS-480, to be verified
 #define TS890_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH)
-#define TS890_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_KEYSPD|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_TEMP_METER|RIG_LEVEL_CWPITCH)
+#define TS890_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_KEYSPD|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_TEMP_METER|RIG_LEVEL_CWPITCH|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 #define TS890_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_NB2|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_SEND_MORSE)
 
 #define TS890_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_CPY|RIG_OP_TUNE)
@@ -302,23 +303,17 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        if (levelint < 0 || levelint >= 70)
+        if (rig->caps->swr_cal.size)
         {
-            val->f = 99.0;  /* 99 == infinty */
+            val->f = rig_raw2val_float(val->i, &rig->caps->swr_cal);
         }
         else
         {
-#if 0
-            val->f = 70.0 / (70 - levelint);
-#else
-
             /* Linear approximations of a very non-linear function */
             if (levelint < 12) { val->f = 1.0 + (float)levelint / 22.0; }
             else if (levelint < 24) { val->f = 1.5 + (float)(levelint - 11) / 24.0; }
             else if (levelint < 36) { val->f = 2.0 + (float)(levelint - 23) / 12.0; }
             else { val->f = 3.0 + (float)(levelint - 35) / 6.0; }
-
-#endif
         }
 
         return RIG_OK;
@@ -383,6 +378,50 @@ static struct kenwood_priv_caps ts890s_priv_caps =
     .cmdtrm = EOM_KEN,
 };
 
+/* S-meter calibration table
+ * The TS-890S has two distinct S-meter curves, selectable
+ * by menu option.  Define both, but since Hamlib has only
+ * one slot, use the the IARU one.
+ * Values taken from TS-890S In-Depth Manual, p. 8
+ */
+/* Meter Type 1 - Kenwood specific (default) */
+#define TS890_SM_CAL2 { 9, \
+  { \
+    { 0, -28 }, \
+    { 3, -26 }, \
+    { 11, -20 }, \
+    { 19, -13 }, \
+    { 27, -7 }, \
+    { 35, 0 }, \
+    { 48, 20 }, \
+    { 59, 40 }, \
+    { 70, 60 }, \
+  } }
+/* Meter Type 2 - IARU Standard */
+#define TS890_SM_CAL1 { 9, \
+  { \
+    { 0, -54 }, \
+    { 3, -48 }, \
+    { 11, -36 }, \
+    { 19, -24 }, \
+    { 27, -12 }, \
+    { 35, 0 }, \
+    { 48, 20 }, \
+    { 59, 40 }, \
+    { 70, 60 }, \
+  } }
+
+/* SWR meter calibration table */
+/* The full scale value reads infinity, so arbitrary */
+#define TS890_SWR_CAL { 5, \
+      { \
+    { 0, 1.0 }, \
+    { 11, 1.5 }, \
+    { 23, 2.0 }, \
+    { 35, 3.0 }, \
+    { 70, 15.0 } \
+      } }
+
 /*
  * TS-890S rig capabilities
  * Copied from ts480_caps, many of the values have not been verified.
@@ -393,7 +432,7 @@ const struct rig_caps ts890s_caps =
     RIG_MODEL(RIG_MODEL_TS890S),
     .model_name = "TS-890S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".8",
+    .version = BACKEND_VER ".9",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -415,7 +454,7 @@ const struct rig_caps ts890s_caps =
     .max_rit = kHz(9.99),
     .max_xit = kHz(9.99),
     .max_ifshift = Hz(0),
-    .targetable_vfo = RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE,
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive = RIG_TRN_RIG,
     .agc_level_count = 5,
     .agc_levels = { RIG_AGC_OFF, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_ON },
@@ -503,6 +542,9 @@ const struct rig_caps ts890s_caps =
         RIG_FLT_END,
     },
     .vfo_ops = TS890_VFO_OPS,
+
+    .str_cal = TS890_SM_CAL1,
+    .swr_cal = TS890_SWR_CAL,
 
     .priv = (void *)& ts890s_priv_caps,
     .rig_init = kenwood_init,
