@@ -19,7 +19,7 @@ Version 4.6
 Version 4.5.1
         * 2022-XX-XX
         * FT2000, FTDX3000/D, FT891, FT991, FT950, FTDX5000 now set CAT TOT to 100ms
-        * Add missing NB2 setting to FT-950, FTDX-1200, FTDX-3000, FTDX-5000, FTDX-9000
+        * Add missing NB2 setting to FT-950, FTDX-1200, FT-2000, FTDX-3000, FTDX-5000, FTDX-9000
         * Add missing meter reading to TS-890S -- thanks to Geore Baltz N3GB
         * Fix FT736 VFOB freq and mode set
         * Added send_raw to rigctl -- see rigctl man page
