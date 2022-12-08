@@ -1,4 +1,4 @@
-MDSSRC = mds.c mds.h 4710.c 9710.c
+MDSSRC = mds.c mds.h
 
 noinst_LTLIBRARIES = libhamlib-mds.la
 libhamlib_mds_la_SOURCES = $(MDSSRC)
