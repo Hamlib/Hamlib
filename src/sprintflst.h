@@ -25,7 +25,7 @@
 #include <hamlib/rig.h>
 #include <hamlib/rotator.h>
 
-#define SPRINTF_MAX_SIZE 512
+#define SPRINTF_MAX_SIZE 1024
 
 __BEGIN_DECLS
 
@@ -33,6 +33,7 @@ extern HAMLIB_EXPORT( int ) rig_sprintf_mode(char *str, int len, rmode_t mode);
 extern HAMLIB_EXPORT( int ) rig_sprintf_vfo(char *str, int len, vfo_t vfo);
 extern HAMLIB_EXPORT( int ) rig_sprintf_ant(char *str, int len, ant_t ant);
 extern HAMLIB_EXPORT( int ) rig_sprintf_func(char *str, int len, setting_t func);
+extern HAMLIB_EXPORT( int ) rig_sprintf_agc_levels(RIG *rig, char *str, int len);
 extern HAMLIB_EXPORT( int ) rot_sprintf_func(char *str, int len, setting_t func);
 extern HAMLIB_EXPORT( int ) rig_sprintf_level(char *str, int len, setting_t level);
 extern HAMLIB_EXPORT( int ) rot_sprintf_level(char *str, int len, setting_t level);

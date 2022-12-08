@@ -163,9 +163,9 @@
 #define LVL_SPECTRUM_AVG       setting2idx_builtin(RIG_LEVEL_SPECTRUM_AVG)
 #define LVL_SPECTRUM_ATT       setting2idx_builtin(RIG_LEVEL_SPECTRUM_ATT)
 
-#define LVL_48            setting2idx_builtin(RIG_LEVEL_48)
-#define LVL_49            setting2idx_builtin(RIG_LEVEL_49)
-#define LVL_50            setting2idx_builtin(RIG_LEVEL_50)
+#define LVL_USB_AF             setting2idx_builtin(RIG_LEVEL_USB_AF)
+#define LVL_AGC_TIME           setting2idx_builtin(RIG_LEVEL_AGC_TIME)
+#define LVL_BAND_SELECT        setting2idx_builtin(RIG_LEVEL_BAND_SELECT)
 #define LVL_51            setting2idx_builtin(RIG_LEVEL_51)
 #define LVL_52            setting2idx_builtin(RIG_LEVEL_52)
 #define LVL_53            setting2idx_builtin(RIG_LEVEL_53)

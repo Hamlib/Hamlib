@@ -952,12 +952,12 @@ int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer,
                                 size_t count)
 {
 
-    if (!p->asyncio)
+    if (p->asyncio)
     {
-        return -RIG_EINTERNAL;
+        return (int) write(p->fd_sync_write, txbuffer, count);
     }
 
-    return (int) write(p->fd_sync_write, txbuffer, count);
+    return (int) write(p->fd, txbuffer, count);
 }
 
 int HAMLIB_API write_block_sync_error(hamlib_port_t *p,
@@ -1262,7 +1262,8 @@ static int read_string_generic(hamlib_port_t *p,
         return -RIG_EINTERNAL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d direct=%d, expected_len=%d\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d direct=%d, expected_len=%d\n",
+              __func__,
               (int)rxmax, direct, expected_len);
 
     if (!p || !rxbuffer)
@@ -1341,8 +1342,8 @@ static int read_string_generic(hamlib_port_t *p,
         {
 #if 0
 #ifndef __MINGW32__
-            // The ioctl works on Linux but not mingw 
-            int avail=0;
+            // The ioctl works on Linux but not mingw
+            int avail = 0;
             ioctl(p->fd, FIONREAD, &avail);
             //rig_debug(RIG_DEBUG_ERR, "xs: avail=%d expected_len=%d, minlen=%d, direct=%d\n", __func__, avail, expected_len, minlen, direct);
 #endif

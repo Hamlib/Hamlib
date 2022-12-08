@@ -418,6 +418,16 @@ const pbwidth_t rtty_fil[] =
     0,
 };
 
+/* AGC Time value lookups */
+const agc_time_t agc_level[] = // default
+{
+    0, 0.1, 0.2, 0.3, 0.5, 0.8, 1.2, 1.6, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0
+};
+const agc_time_t agc_level2[] = // AM Mode for 7300/9700/705
+{
+    0, 0.3, 0.5, 0.8, 1.2, 1.6, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0
+};
+
 struct icom_addr
 {
     rig_model_t model;
@@ -2136,7 +2146,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
                       || rig->caps->rig_model == RIG_MODEL_IC785x
                       || rig->caps->rig_model == RIG_MODEL_IC9100
                       || rig->caps->rig_model == RIG_MODEL_IC9700
-                      || rig->caps->rig_model == RIG_MODEL_IC705;
+                      || rig->caps->rig_model == RIG_MODEL_IC705
+                      || rig->caps->rig_model == RIG_MODEL_X6100;
 
     ENTERFUNC;
 
@@ -3450,6 +3461,33 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         lvl_sc = S_LVL_COMP;
         break;
 
+    case RIG_LEVEL_AGC_TIME:
+        lvl_cn = C_CTL_MEM;
+        lvl_sc = 0x04;
+        cmd_len = 1;
+        {
+            int i;
+            icom_val = 0;
+            const float *agcp = agc_level;
+
+            if (rig->state.current_mode == RIG_MODE_AM) { agcp = agc_level2; }
+
+            rig_debug(RIG_DEBUG_ERR, "%s: val.f=%g\n", __func__, val.f);
+
+            for (i = 0; i <= 13; ++i)
+            {
+                if (agcp[i] <= val.f)
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: agcp=%g <= val.f=%g at %d\n", __func__, agcp[i],
+                              val.f, i);
+                    icom_val = i;
+                }
+            }
+
+            cmdbuf[0] = icom_val;
+        }
+        break;
+
     case RIG_LEVEL_AGC:
         lvl_cn = C_CTL_FUNC;
         lvl_sc = S_FUNC_AGC;
@@ -3460,7 +3498,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             int found = 0;
 
             for (i = 0;
-                    i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level != RIG_AGC_LAST
+                    i <= HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level != RIG_AGC_LAST
                     && priv_caps->agc_levels[i].icom_level >= 0; i++)
             {
                 if (priv_caps->agc_levels[i].level == val.i)
@@ -4051,6 +4089,20 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         cmdbuf[0] = icom_get_spectrum_vfo(rig, vfo);
         break;
 
+    case RIG_LEVEL_USB_AF:
+        lvl_cn = C_CTL_SCP;
+        lvl_sc = S_SCP_ATT;
+        cmd_len = 1;
+
+        break;
+
+    case RIG_LEVEL_AGC_TIME:
+        lvl_cn = C_CTL_MEM;
+        lvl_sc = 0x04; // IC-9700, 7300, 705 so far
+        cmd_len = 0;
+
+        break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s\n", __func__,
                   rig_strlevel(level));
@@ -4102,7 +4154,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             int found = 0;
 
             for (i = 0;
-                    i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level >= 0; i++)
+                    i <= HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level >= 0; i++)
             {
                 if (priv_caps->agc_levels[i].icom_level == icom_val)
                 {
@@ -4349,6 +4401,20 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_SPECTRUM_EDGE_HIGH:
         val->i = (int) from_bcd(respbuf + cmdhead + 5, 5 * 2);
+        break;
+
+    case RIG_LEVEL_AGC_TIME:
+
+        // some rigs have different level interpretaions for different modes
+        if (rig->state.current_mode == RIG_MODE_AM)
+        {
+            val->f = agc_level2[icom_val];
+        }
+        else
+        {
+            val->f = agc_level[icom_val];
+        }
+
         break;
 
     /* RIG_LEVEL_ATT/RIG_LEVEL_SPECTRUM_ATT: returned value is already an integer in dB (coded in BCD) */
@@ -7273,6 +7339,13 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         break;
 
+    case RIG_FUNC_OVF_STATUS:
+    {
+        fct_cn = C_RD_SQSM;
+        fct_sc = S_OVF;
+        break;
+    }
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_func %s\n", __func__,
                   rig_strfunc(func));
@@ -7975,6 +8048,8 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
 
     ENTERFUNC;
 
+    *status = RIG_POWER_OFF; // default return until proven otherwise
+
     /* r75 has no way to get power status, so fake it */
     if (rig->caps->rig_model == RIG_MODEL_ICR75)
     {
@@ -7993,6 +8068,17 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
 
         *status = ((ack_len == 6) && (ackbuf[0] == C_CTL_MEM)) ?
                   RIG_POWER_ON : RIG_POWER_OFF;
+    }
+
+    if (rig->caps->rig_model == RIG_MODEL_IC7300)
+    {
+        freq_t freq;
+        int retrysave = rig->caps->retry;
+        rig->state.rigport.retry = 0;
+        int retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+        rig->state.rigport.retry = retrysave;
+        *status = retval == RIG_OK ? RIG_POWER_ON : RIG_POWER_OFF;
+        return retval;
     }
     else
     {

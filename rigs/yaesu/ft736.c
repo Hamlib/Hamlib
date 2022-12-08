@@ -98,7 +98,7 @@ const struct rig_caps ft736_caps =
     RIG_MODEL(RIG_MODEL_FT736R),
     .model_name =         "FT-736R",
     .mfg_name =           "Yaesu",
-    .version =            "20210221.0",
+    .version =            "20211271.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -121,6 +121,10 @@ const struct rig_caps ft736_caps =
     .has_set_level =      RIG_LEVEL_BAND_SELECT,
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .vfo_ops =            RIG_OP_NONE,
     .ctcss_list =         ft736_ctcss_list,
     .preamp =             { RIG_DBLST_END, },
@@ -128,7 +132,7 @@ const struct rig_caps ft736_caps =
     .max_rit =            Hz(0),
     .max_xit =            Hz(0),
     .max_ifshift =        Hz(0),
-    .targetable_vfo =     RIG_TARGETABLE_FREQ,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive =         RIG_TRN_OFF,
     .bank_qty =           0,
     .chan_desc_sz =       0,
@@ -265,6 +269,9 @@ int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
     struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
 
+    // we will assume requesting to set VFOB is split mode
+    if (vfo == RIG_VFO_B) { return rig_set_split_freq(rig, vfo, freq); }
+
     if (priv->split == RIG_SPLIT_ON)
     {
         cmd[4] = 0x1e;
@@ -297,6 +304,8 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x07};
     unsigned char md;
     struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+
+    if (vfo == RIG_VFO_B) { return ft736_set_split_mode(rig, vfo, mode, width); }
 
     if (priv->split == RIG_SPLIT_ON)
     {

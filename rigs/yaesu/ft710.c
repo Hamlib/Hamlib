@@ -30,9 +30,9 @@
 
 #include "hamlib/rig.h"
 #include "bandplan.h"
-#include "idx_builtin.h"
 #include "tones.h"
 #include "newcat.h"
+#include "yaesu.h"
 #include "ftdx10.h" // reuse this until we know different
 
 const struct newcat_priv_caps ft710_priv_caps =
@@ -137,7 +137,7 @@ const struct rig_caps ft710_caps =
     RIG_MODEL(RIG_MODEL_FT710),
     .model_name =         "FT-710",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".1",
+    .version =            NEWCAT_VER ".2",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -160,7 +160,9 @@ const struct rig_caps ft710_caps =
     .has_set_level =      RIG_LEVEL_SET(FTDX10_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 10 } },
         [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
@@ -177,7 +179,7 @@ const struct rig_caps ft710_caps =
     .agc_levels =         { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW, RIG_AGC_AUTO },
     .vfo_ops =            FTDX10_VFO_OPS,
     .scan_ops =           RIG_SCAN_VFO,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_COMMON,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_COMMON | RIG_TARGETABLE_TONE | RIG_TARGETABLE_MODE,
     .transceive =         RIG_TRN_OFF, /* May enable later as the FTDX10 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,

@@ -127,7 +127,7 @@ const struct rig_caps tx500_caps =
     RIG_MODEL(RIG_MODEL_LAB599_TX500),
     .model_name = "TX-500",
     .mfg_name =  "Lab599",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -142,7 +142,7 @@ const struct rig_caps tx500_caps =
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  0, /* ms */
-    .timeout =  200,
+    .timeout =  500,
     .retry =  10,
 
     .has_get_func =  TX500_FUNC_ALL,

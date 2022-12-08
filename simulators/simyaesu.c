@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
         {
             printf("Cmd:%s\n", buf);
         }
+
         //else { return 0; }
 
         if (buf[0] == 0x0a)
@@ -215,7 +216,7 @@ int main(int argc, char *argv[])
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            int id = NC_RIGID_FTDX3000DM;
+            int id = NC_RIGID_FT991;
             SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
             //printf("n=%d\n", n);

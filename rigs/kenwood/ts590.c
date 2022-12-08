@@ -113,6 +113,8 @@ const struct rig_caps ts590_caps =
     .max_ifshift = Hz(0),
     .targetable_vfo = RIG_TARGETABLE_FREQ,
     .transceive = RIG_TRN_RIG,
+    .agc_level_count = 4,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_SLOW, RIG_AGC_FAST, RIG_AGC_ON },
 
 
     .chan_list =  { /* TBC */
@@ -235,6 +237,10 @@ const struct rig_caps ts590_caps =
     .has_get_level = TS590_LEVEL_ALL,
     .set_level = kenwood_set_level,
     .get_level = ts590_get_level,
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .has_get_func = TS590_FUNC_ALL,
     .has_set_func = TS590_FUNC_ALL,
     .set_func = kenwood_set_func,

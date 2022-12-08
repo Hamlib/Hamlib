@@ -74,7 +74,7 @@ const struct rig_caps ts690s_caps =
     RIG_MODEL(RIG_MODEL_TS690S),
     .model_name = "TS-690S",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -98,7 +98,10 @@ const struct rig_caps ts690s_caps =
     .has_set_level =  RIG_LEVEL_SET(TS690_LEVEL_ALL),
     .has_get_parm =  TS690_PARMS,
     .has_set_parm =  RIG_LEVEL_SET(TS690_PARMS),    /* FIXME: parms */
-    .level_gran =  {},                 /* FIXME: granularity */
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .preamp =   { RIG_DBLST_END, },
     .attenuator =   { RIG_DBLST_END, },
@@ -107,6 +110,8 @@ const struct rig_caps ts690s_caps =
     .max_ifshift =  Hz(0),
     .targetable_vfo =  RIG_TARGETABLE_FREQ,
     .transceive =  RIG_TRN_RIG,
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_SLOW },
     .bank_qty =   0,
     .chan_desc_sz =  0,
     .vfo_ops = TS690_VFO_OPS,

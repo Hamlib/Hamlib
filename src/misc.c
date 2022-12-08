@@ -736,6 +736,7 @@ static const struct
     { RIG_FUNC_SPECTRUM_HOLD, "SPECTRUM_HOLD" },
     { RIG_FUNC_SEND_MORSE, "SEND_MORSE" },
     { RIG_FUNC_SEND_VOICE_MEM, "SEND_VOICE_MEM" },
+    { RIG_FUNC_OVF_STATUS, "OVF_STATUS" },
     { RIG_FUNC_NONE, "" },
 };
 
@@ -925,6 +926,8 @@ static const struct
     { RIG_LEVEL_SPECTRUM_ATT, "SPECTRUM_ATT" },
     { RIG_LEVEL_TEMP_METER, "TEMP_METER" },
     { RIG_LEVEL_BAND_SELECT, "BAND_SELECT" },
+    { RIG_LEVEL_USB_AF, "USB_AF" },
+    { RIG_LEVEL_AGC_TIME, "AGC_TIME" },
     { RIG_LEVEL_NONE, "" },
 };
 
@@ -1279,6 +1282,8 @@ static const struct
     { RIG_AGC_USER, "USER" },
     { RIG_AGC_MEDIUM, "MEDIUM" },
     { RIG_AGC_AUTO, "AUTO" },
+    { RIG_AGC_LONG, "LONG" },
+    { RIG_AGC_ON, "ON" },
     { -1, "" },
 };
 

@@ -82,7 +82,7 @@ struct sdr1k_priv_data
 #define SDR1K_LEVEL RIG_LEVEL_PREAMP
 #define SDR1K_PARM  RIG_PARM_NONE
 
-#define SDR1K_MODES (RIG_MODE_NONE)
+#define SDR1K_MODES (RIG_MODE_USB|RIG_MODE_CW)
 
 #define SDR1K_VFO RIG_VFO_A
 
@@ -171,6 +171,10 @@ const struct rig_caps sdr1k_rig_caps =
 
     .tuning_steps =  { {SDR1K_MODES, 1},
         RIG_TS_END,
+    },
+    .filters =  {
+        {RIG_MODE_ALL, RIG_FLT_ANY},
+        RIG_FLT_END
     },
     .priv =  NULL,    /* priv */
 

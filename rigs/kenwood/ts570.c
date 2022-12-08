@@ -903,7 +903,7 @@ const struct rig_caps ts570s_caps =
     RIG_MODEL(RIG_MODEL_TS570S),
     .model_name = "TS-570S",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -918,7 +918,7 @@ const struct rig_caps ts570s_caps =
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  30,
-    .timeout = 400,
+    .timeout = 500,
     .retry =  10,
 
     .has_get_func =  TS570_FUNC_ALL,
@@ -927,7 +927,10 @@ const struct rig_caps ts570s_caps =
     .has_set_level =  RIG_LEVEL_SET(TS570_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-    .level_gran =  {},                 /* FIXME: granularity */
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
     .dcs_list =  NULL,
@@ -940,6 +943,8 @@ const struct rig_caps ts570s_caps =
     .scan_ops =  TS570_SCAN_OPS,
     .targetable_vfo =  RIG_TARGETABLE_FREQ,
     .transceive =  RIG_TRN_RIG,
+    .agc_level_count = 2,
+    .agc_levels = { RIG_AGC_FAST, RIG_AGC_SLOW },
     .bank_qty =   0,
     .chan_desc_sz =  0,
 
@@ -1085,7 +1090,7 @@ const struct rig_caps ts570d_caps =
     RIG_MODEL(RIG_MODEL_TS570D),
     .model_name = "TS-570D",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1100,7 +1105,7 @@ const struct rig_caps ts570d_caps =
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  30,
-    .timeout = 400,
+    .timeout = 500,
     .retry =  10,
 
     .has_get_func =  TS570_FUNC_ALL,
@@ -1109,7 +1114,10 @@ const struct rig_caps ts570d_caps =
     .has_set_level =  RIG_LEVEL_SET(TS570_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-    .level_gran =  {},                 /* FIXME: granularity */
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
     .dcs_list =  NULL,

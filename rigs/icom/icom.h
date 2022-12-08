@@ -25,12 +25,13 @@
 #include "hamlib/rig.h"
 #include "cal.h"
 #include "tones.h"
+#include "idx_builtin.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20220909"
+#define BACKEND_VER "20221120"
 
 #define ICOM_IS_SECONDARY_VFO(vfo) ((vfo) & (RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B))
 #define ICOM_GET_VFO_NUMBER(vfo) (ICOM_IS_SECONDARY_VFO(vfo) ? 0x01 : 0x00)
@@ -229,7 +230,7 @@ struct icom_priv_caps
     int offs_len;               /*!< Number of bytes in offset frequency field. 0 defaults to 3 */
     int serial_USB_echo_check;  /*!< Flag to test USB echo state */
     int agc_levels_present;     /*!< Flag to indicate that agc_levels array is populated */
-    struct icom_agc_level agc_levels[RIG_AGC_LAST + 1]; /*!< Icom rig-specific AGC levels, the last entry should have level -1 */
+    struct icom_agc_level agc_levels[HAMLIB_MAX_AGC_LEVELS + 1]; /*!< Icom rig-specific AGC levels, the last entry should have level -1 */
     struct icom_spectrum_scope_caps spectrum_scope_caps; /*!< Icom spectrum scope capabilities, if supported by the rig. Main/Sub scopes in Icom rigs have the same caps. */
     struct icom_spectrum_edge_frequency_range spectrum_edge_frequency_ranges[ICOM_MAX_SPECTRUM_FREQ_RANGES]; /*!< Icom spectrum scope edge frequencies, if supported by the rig. Last entry should have zeros in all fields. */
     struct cmdparams *extcmds;  /*!< Pointer to extended operations array */

@@ -109,7 +109,9 @@ const struct rig_caps id5100_caps =
     .has_set_level =  RIG_LEVEL_SET(ID5100_LEVEL_ALL),
     .has_get_parm =  ID5100_PARM_ALL,
     .has_set_parm =  ID5100_PARM_ALL,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_icom.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
@@ -159,6 +161,7 @@ const struct rig_caps id5100_caps =
 
     .tuning_steps =     {
         // Rem: no support for changing tuning step
+        {RIG_MODE_ALL, 1},
         RIG_TS_END,
     },
     /* mode/filter list, remember: order matters! */

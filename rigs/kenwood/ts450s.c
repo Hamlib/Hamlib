@@ -149,7 +149,10 @@ const struct rig_caps ts450s_caps =
     .has_set_level      = RIG_LEVEL_SET(TS450S_LEVEL_ALL),
     .has_get_parm       = 0,
     .has_set_parm       = 0,
-    .level_gran     = {},     /* FIXME: granularity */
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran      = {},
     .extparms       = ts450_ext_parms,
     .ctcss_list     = NULL, /* hw dip-switch */

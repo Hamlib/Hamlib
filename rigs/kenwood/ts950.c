@@ -40,6 +40,16 @@
 
 #define TS950_GET_LEVEL (RIG_LEVEL_RAWSTR)
 
+// STR_CAL borrowed from TS850
+#define TS950_STR_CAL { 4, \
+    { \
+        {   0, -54 }, \
+        {  15, 0 }, \
+        {  22,30 }, \
+        {  30, 66}, \
+    } }
+
+
 #define cmd_trm(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)->cmdtrm
 static struct kenwood_priv_caps  ts950_priv_caps  =
 {
@@ -84,7 +94,10 @@ const struct rig_caps ts950s_caps =
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
 
-    .level_gran =  {},
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
     .dcs_list =  NULL,
@@ -96,6 +109,7 @@ const struct rig_caps ts950s_caps =
     .max_ifshift =  Hz(0),
     .targetable_vfo =  RIG_TARGETABLE_FREQ,
     .transceive =  RIG_TRN_RIG,
+    // No AGC levels
     .bank_qty =   0,
     .chan_desc_sz =  0,
 
@@ -156,6 +170,7 @@ const struct rig_caps ts950s_caps =
         {RIG_MODE_FM, kHz(14)},
         RIG_FLT_END,
     },
+    .str_cal = TS950_STR_CAL,
     .priv = (void *)& ts950_priv_caps,
 
     .rig_init = kenwood_init,
@@ -226,7 +241,10 @@ const struct rig_caps ts950sdx_caps =
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
 
-    .level_gran =  {},
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
     .dcs_list =  NULL,
@@ -298,6 +316,7 @@ const struct rig_caps ts950sdx_caps =
         {RIG_MODE_FM, kHz(14)},
         RIG_FLT_END,
     },
+    .str_cal = TS950_STR_CAL,
     .priv = (void *)& ts950_priv_caps,
 
     .rig_init = kenwood_init,

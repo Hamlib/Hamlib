@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
             //usleep(mysleep * 1000);
             pbuf = "FW240";
             n = write(fd, pbuf, strlen(pbuf));
-            usleep(20*1000);
+            usleep(20 * 1000);
             pbuf = "0;";
             n = write(fd, pbuf, strlen(pbuf));
             continue;

@@ -28,6 +28,8 @@
 #include <hamlib/rig.h>
 #include <hamlib/rotator.h>
 #include <hamlib/amplifier.h>
+#include "../rigs/icom/icom.h"
+
 
 #include "sprintflst.h"
 #include "misc.h"
@@ -895,4 +897,62 @@ int print_ext_param(const struct confparams *cfp, rig_ptr_t ptr)
     }
 
     return 1;       /* process them all */
+}
+
+int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
+{
+    const struct icom_priv_caps *priv_caps =
+        (const struct icom_priv_caps *) rig->caps->priv;
+
+    int len = 0;
+    int i;
+    char tmpbuf[256];
+
+    str[len] = 0;
+
+    if (priv_caps && RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM
+            && priv_caps->agc_levels_present)
+    {
+        for (i = 0; i <= HAMLIB_MAX_AGC_LEVELS
+                && priv_caps->agc_levels[i].level != RIG_AGC_LAST
+                && priv_caps->agc_levels[i].icom_level >= 0; i++)
+        {
+            if (strlen(str) > 0) { strcat(str, " "); }
+
+            sprintf(tmpbuf, "%d=%s", priv_caps->agc_levels[i].icom_level,
+                    rig_stragclevel(priv_caps->agc_levels[i].level));
+
+            if (strlen(str) + strlen(tmpbuf) < lenstr - 1)
+            {
+                strncat(str, tmpbuf, lenstr - 1);
+            }
+            else
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: buffer overrun!!  len=%d > maxlen=%d\n",
+                          __func__, (int)(strlen(str) + strlen(tmpbuf)), lenstr - 1);
+            }
+        }
+    }
+    else
+    {
+        for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && i < rig->caps->agc_level_count; i++)
+        {
+            if (strlen(str) > 0) { strcat(str, " "); }
+
+            sprintf(tmpbuf, "%d=%s", i,
+                    rig_stragclevel(rig->caps->agc_levels[i]));
+
+            if (strlen(str) + strlen(tmpbuf) < lenstr - 1)
+            {
+                strncat(str, tmpbuf, lenstr - 1);
+            }
+            else
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: buffer overrun!!  len=%d > maxlen=%d\n",
+                          __func__, (int)(strlen(str) + strlen(tmpbuf)), lenstr - 1);
+            }
+        }
+    }
+
+    return strlen(str);
 }

@@ -178,6 +178,10 @@ const struct rig_caps frg100_caps =
     .has_set_level =      RIG_LEVEL_BAND_SELECT,
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_BACKLIGHT,
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
+    },
     .vfo_ops =        RIG_OP_FROM_VFO | RIG_OP_TO_VFO | RIG_OP_UP | RIG_OP_DOWN,
     .preamp =             { RIG_DBLST_END, },
     .attenuator =         { RIG_DBLST_END, },
@@ -193,22 +197,22 @@ const struct rig_caps frg100_caps =
         {   0x33,  0x34, RIG_MTYPE_EDGE },
     },
     .rx_range_list1 =     {
-        {kHz(50), MHz(30), FRG100_MODES, -1, -1, FRG100_VFOS, FRG100_ANTS },
+        {kHz(50), MHz(30), FRG100_MODES, 0, 0, FRG100_VFOS, FRG100_ANTS },
         RIG_FRNG_END,
     }, /* Region 1 rx ranges */
 
     .tx_range_list1 =     {
-        {kHz(50), MHz(30), FRG100_MODES, -1, -1, FRG100_VFOS, FRG100_ANTS },
+        {kHz(50), MHz(30), FRG100_MODES, 0, 0, FRG100_VFOS, FRG100_ANTS },
         RIG_FRNG_END,
     },    /* region 1 TX ranges */
 
     .rx_range_list2 =     {
-        {kHz(50), MHz(30), FRG100_MODES, -1, -1, FRG100_VFOS, FRG100_ANTS },
+        {kHz(50), MHz(30), FRG100_MODES, 0, 0, FRG100_VFOS, FRG100_ANTS },
         RIG_FRNG_END,
     }, /* Region 2 rx ranges */
 
     .tx_range_list2 =     {
-        {kHz(50), MHz(30), FRG100_MODES, -1, -1, FRG100_VFOS, FRG100_ANTS },
+        {kHz(50), MHz(30), FRG100_MODES, 0, 0, FRG100_VFOS, FRG100_ANTS },
         RIG_FRNG_END,
     },    /* region 2 TX ranges */
 

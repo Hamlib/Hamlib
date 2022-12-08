@@ -110,7 +110,10 @@ const struct rig_caps ts811_caps =
     .has_set_level =  RIG_LEVEL_SET(TS811_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-    .level_gran =  {},                 /* FIXME: granularity */
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
     .preamp =   { RIG_DBLST_END, },

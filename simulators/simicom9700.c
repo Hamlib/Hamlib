@@ -13,6 +13,9 @@
 #include <sys/time.h>
 #include <hamlib/rig.h>
 #include "../src/misc.h"
+#include <termios.h>
+#include <unistd.h>
+
 
 #define BUFSIZE 256
 #define X25
@@ -24,8 +27,8 @@ int split = 0;
 // we make B different from A to ensure we see a difference at startup
 float freqA = 14074000;
 float freqB = 14074500;
-mode_t modeA = RIG_MODE_CW;
-mode_t modeB = RIG_MODE_USB;
+mode_t modeA = RIG_MODE_PKTUSB;
+mode_t modeB = RIG_MODE_PKTUSB;
 int datamodeA = 0;
 int datamodeB = 0;
 pbwidth_t widthA = 0;
@@ -34,6 +37,9 @@ ant_t ant_curr = 0;
 int ant_option = 0;
 int ptt = 0;
 int satmode = 0;
+int agc_time = 1;
+int ovf_status = 0;
+int powerstat = 1;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -49,6 +55,8 @@ frameGet(int fd, unsigned char *buf)
     memset(buf, 0, BUFSIZE);
     unsigned char c;
 
+again:
+
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
@@ -58,6 +66,21 @@ frameGet(int fd, unsigned char *buf)
         {
             dumphex(buf, i);
             return i;
+        }
+
+        if (i > 2 && c == 0xfe)
+        {
+            printf("Turning power on due to 0xfe string\n");
+            powerstat = 1;
+            int j;
+
+            for (j = i; j < 175; ++j)
+            {
+                if (read(fd, &c, 1) < 0) { break; }
+            }
+
+            i = 0;
+            goto again;
         }
     }
 
@@ -97,7 +120,12 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         frame[10] = 0xfd;
-        n = write(fd, frame, 11);
+
+        if (powerstat)
+        {
+            n = write(fd, frame, 11);
+        }
+
         break;
 
     case 0x04:
@@ -225,6 +253,13 @@ void frameParse(int fd, unsigned char *frame, int len)
         {
             static int meter_level = 0;
 
+        case 0x07:
+            frame[6] = ovf_status;
+            frame[7] = 0xfd;
+            n = write(fd, frame, 8);
+            ovf_status = ovf_status == 0 ? 1 : 0;
+            break;
+
         case 0x11:
             printf("Using meter level %d\n", meter_level);
             meter_level += 10;
@@ -257,6 +292,11 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         break;
 
+    case 0x18: // miscellaneous things
+        frame[5] = 1;
+        frame[6] = 0xfd;
+        n = write(fd, frame, 7);
+        break;
 
     case 0x1a: // miscellaneous things
         switch (frame[5])
@@ -269,15 +309,28 @@ void frameParse(int fd, unsigned char *frame, int len)
             n = write(fd, frame, 8);
             break;
 
-        case 0x04: // IC7200 data mode
-            frame[6] = 0;
-            frame[7] = 0;
-            frame[8] = 0xfd;
-            n = write(fd, frame, 9);
+        case 0x04: // AGC TIME
+            printf("frame[6]==x%02x, frame[7]=0%02x\n", frame[6], frame[7]);
+
+            if (frame[6] == 0xfd)   // the we are reading
+            {
+                frame[6] = agc_time;
+                frame[7] = 0xfd;
+                n = write(fd, frame, 8);
+            }
+            else
+            {
+                printf("AGC_TIME RESPONSE******************************");
+                agc_time = frame[6];
+                frame[4] = 0xfb;
+                frame[5] = 0xfd;
+                n = write(fd, frame, 6);
+            }
+
             break;
 
         case 0x07: // satmode
-            frame[6] = 0;
+            frame[4] = 0;
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
             break;
@@ -328,6 +381,20 @@ void frameParse(int fd, unsigned char *frame, int len)
             }
 
             frame[11] = 0xfd;
+            unsigned char frame2[11];
+
+            frame2[0] = 0xfe;
+            frame2[1] = 0xfe;
+            frame2[2] = 0x00; // send transceive frame
+            frame2[3] = frame[3]; // send transceive frame
+            frame2[4] = 0x00;
+            frame2[5] = 0x70;
+            frame2[6] = 0x28;
+            frame2[7] = 0x57;
+            frame2[8] = 0x03;
+            frame2[9] = 0x00;
+            frame2[10] = 0xfd;
+            n = write(fd, frame2, 11);
             n = write(fd, frame, 12);
         }
         else
@@ -406,6 +473,8 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     default: printf("cmd 0x%02x unknown\n", frame[4]);
     }
+
+    if (n == 0) { printf("Write failed?\n"); }
 
 // don't care about the rig type yet
 
@@ -495,7 +564,15 @@ int main(int argc, char **argv)
             fd = openPort(argv[1]);
         }
 
-        frameParse(fd, buf, len);
+        if (powerstat)
+        {
+            frameParse(fd, buf, len);
+        }
+        else
+        {
+            usleep(1000 * 1000);
+        }
+
         rigStatus();
     }
 

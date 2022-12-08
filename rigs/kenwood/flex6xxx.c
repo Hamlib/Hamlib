@@ -52,6 +52,7 @@
 #define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER)
 
 #define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF|RIG_LEVEL_STRENGTH)
+#define POWERSDR_LEVEL_SET (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF)
 
 
 static rmode_t flex_mode_table[KENWOOD_MODE_TABLE_MAX] =
@@ -88,14 +89,14 @@ static struct kenwood_priv_caps f6k_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
     .mode_table = flex_mode_table,
-    .if_len = 38
+    .if_len = 37
 };
 
 static struct kenwood_priv_caps powersdr_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
     .mode_table = powersdr_mode_table,
-    .if_len = 38
+    .if_len = 37
 };
 
 #define DSP_BW_NUM 8
@@ -1115,7 +1116,7 @@ const struct rig_caps f6k_caps =
     // We need at least 3 seconds to do profile switches
     // Hitting the timeout is OK as long as we retry
     // Previous note showed FA/FB may take up to 500ms on band change
-    .timeout =      300,
+    .timeout =      700,
     .retry =        13,
 
     .has_get_func =     RIG_FUNC_NONE, /* has VOX but not implemented here */
@@ -1233,7 +1234,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20220715.0",
+    .version =      "20221123.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1259,7 +1260,7 @@ const struct rig_caps powersdr_caps =
     .has_get_func =     POWERSDR_FUNC_ALL,
     .has_set_func =     POWERSDR_FUNC_ALL,
     .has_get_level =    POWERSDR_LEVEL_ALL,
-    .has_set_level =    POWERSDR_LEVEL_ALL,
+    .has_set_level =    POWERSDR_LEVEL_SET,
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran =       {},     /* FIXME: granularity */
@@ -1275,6 +1276,8 @@ const struct rig_caps powersdr_caps =
     .vfo_ops =      POWERSDR_VFO_OP,
     .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive =       RIG_TRN_RIG,
+    .agc_level_count = 6,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_LONG, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_USER },
     .bank_qty =     0,
     .chan_desc_sz =     0,
 

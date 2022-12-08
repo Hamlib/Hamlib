@@ -107,6 +107,20 @@
 #define ADT_200A_RIT 9999
 #define ADT_200A_XIT 9999
 
+// This is more-than-likely not accurate
+#define ADT_200A_STR_CAL {9, {\
+                       { 0, -60},\
+                       { 3, -48},\
+                       { 6, -36},\
+                       { 9, -24},\
+                       {12, -12},\
+                       {15,   0},\
+                       {20,  20},\
+                       {25,  40},\
+                       {30,  60}}\
+                       }
+
+
 // ADT-200A FUNCs
 
 #define ADT_200A_FUNCS (RIG_FUNC_VOX|RIG_FUNC_NB|RIG_FUNC_NR)

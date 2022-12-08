@@ -35,7 +35,6 @@
 #include "yaesu.h"
 #include "newcat.h"
 #include "ft9000.h"
-#include "idx_builtin.h"
 #include "tones.h"
 
 /*
@@ -49,7 +48,7 @@ const struct rig_caps ft9000_caps =
     RIG_MODEL(RIG_MODEL_FT9000),
     .model_name =         "FTDX-9000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".2",
+    .version =            NEWCAT_VER ".3",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -72,7 +71,9 @@ const struct rig_caps ft9000_caps =
     .has_set_level =      RIG_LEVEL_SET(FT9000_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
@@ -90,7 +91,7 @@ const struct rig_caps ft9000_caps =
     .agc_levels =         { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW, RIG_AGC_AUTO },
     .vfo_ops =            FT9000_VFO_OPS,
     .scan_ops =           RIG_SCAN_VFO,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_ANT,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_ANT | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_TONE,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 9000 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,

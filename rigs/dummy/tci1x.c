@@ -158,6 +158,7 @@ const struct rig_caps tci1x_caps =
     .has_set_parm =    RIG_PARM_SET(TCI1X_PARM),
 
     .filters =  {
+        {RIG_MODE_ALL, RIG_FLT_ANY},
         RIG_FLT_END
     },
 

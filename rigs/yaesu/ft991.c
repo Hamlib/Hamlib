@@ -37,8 +37,8 @@
 #include "hamlib/rig.h"
 #include "misc.h"
 #include "newcat.h"
+#include "yaesu.h"
 #include "ft991.h"
-#include "idx_builtin.h"
 
 /* Prototypes */
 static int ft991_init(RIG *rig);
@@ -141,7 +141,7 @@ const struct rig_caps ft991_caps =
     RIG_MODEL(RIG_MODEL_FT991),
     .model_name =         "FT-991",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".13",
+    .version =            NEWCAT_VER ".15",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -165,11 +165,8 @@ const struct rig_caps ft991_caps =
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
-        // cppcheck-suppress *
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
-        [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
-        [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 3200 }, .step = { .i = 10 } },
+#include "level_gran_yaesu.h"
+        [LVL_NR] = { .min = { .f = 0 }, .max = { .f = 1 }, .step = { .f = 1.0f / 15.0f } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           common_dcs_list,

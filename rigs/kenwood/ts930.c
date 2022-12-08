@@ -56,7 +56,7 @@ const struct rig_caps ts930_caps =
     RIG_MODEL(RIG_MODEL_TS930),
     .model_name = "TS-930",
     .mfg_name =  "Kenwood",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -71,7 +71,7 @@ const struct rig_caps ts930_caps =
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  0,
-    .timeout =  200,
+    .timeout =  500,
     .retry =  10,
 
     .has_get_func =  TS930_FUNC_ALL,
@@ -80,7 +80,10 @@ const struct rig_caps ts930_caps =
     .has_set_level =  RIG_LEVEL_SET(TS930_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-    .level_gran =  {},                 /* FIXME: granularity */
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .parm_gran =  {},
     .preamp =   { RIG_DBLST_END, }, /* FIXME: preamp list */
     .attenuator =   { 6, 12, 18, RIG_DBLST_END, },  /* TBC */
@@ -89,6 +92,7 @@ const struct rig_caps ts930_caps =
     .max_ifshift =  Hz(0),
     .targetable_vfo =  RIG_TARGETABLE_FREQ,
     .transceive =  RIG_TRN_RIG,
+    // AGC levels unknown
     .bank_qty =   0,
     .chan_desc_sz =  0,
 

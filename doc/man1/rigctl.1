@@ -847,18 +847,69 @@ Set
 and
 .RI \(aq "Level Value" \(aq.
 .IP
-Level is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOX\(cq, \(oqAF\(cq,
+Level is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOXDELAY\(cq, \(oqAF\(cq,
 \(oqRF\(cq, \(oqSQL\(cq, \(oqIF\(cq, \(oqAPF\(cq, \(oqNR\(cq, \(oqPBT_IN\(cq,
-\(oqPBT_OUT\(cq, \(oqCWPITCH\(cq, \(oqRFPOWER\(cq, \(oqRFPOWER_METER\(cq, \(oqRFPOWER_METER_WATTS\(cq,  \(oqMICGAIN\(cq,
+\(oqPBT_OUT\(cq, \(oqCWPITCH\(cq, \(oqRFPOWER\(cq, \(oqMICGAIN\(cq, 
 \(oqKEYSPD\(cq, \(oqNOTCHF\(cq, \(oqCOMP\(cq, \(oqAGC\(cq, \(oqBKINDL\(cq,
 \(oqBAL\(cq, \(oqMETER\(cq, \(oqVOXGAIN\(cq, \(oqANTIVOX\(cq,
-\(oqSLOPE_LOW\(cq, \(oqSLOPE_HIGH\(cq, \(oqRAWSTR\(cq, \(oqSWR\(cq,
-\(oqALC\(cq, \(oqSTRENGTH\(cq.
+\(oqSLOPE_LOW\(cq, \(oqSLOPE_HIGH\(cq, \(oqBKIN_DLYMS\(cq, \(oqRAWSTR\(cq, \(oqSWR\(cq,
+\(oqALC\(cq, \(oqSTRENGTH\(cq, \(oqRFPOWER_METER\(cq, \(oqCOMPMETER\(cq, \(oqVD_METER\(cq, \(oqID_METER\(cq,
+\(oqNOTCHF_RAW\(cq, \(oqMONITOR_GAIN\(cq, \(oqNQ\(cq, \(oqRFPOWER_METER_WATTS\cq, \(oqSPECTRUM_MODE\(cq,
+\(oqSPECTRUM_SPAN\(cq, \(oqSPECTRUM_EDGE_LOW\(cq, \(oqSPECTRUM_EDGE_HIGH\(cq, \(oqSPECTRUM_SPEED\cq,
+\(oqSPECTRUM_REF\(cq, (oqSPECTRUM_AVG\(cq, \(oqSPECTRUM_ATT\cq, \(oqTEMP_METER\cq, \(oqBAND_SELECT\(cq,
+\(oqUSB_AF\(cq.
 .IP
 The Level Value can be a float or an integer value.  For the AGC token the
 value is one of \(oq0\(cq = OFF, \(oq1\(cq = SUPERFAST, \(oq2\(cq = FAST,
 \(oq3\(cq = SLOW, \(oq4\(cq = USER, \(oq5\(cq = MEDIUM, \(oq6\(cq = AUTO.
 Note that not all values work on all rigs.  To list usable values do "rigctl -m [modelnum] -u | grep AGC levels" or for Windows "rigctl -m [modelnum] -u | find "AGC levels"".
+.IP
+Level units
+.in +4n
+.EX
+0.0-1.0 where 0=0% and 1.0=100% (except for BAL where 50% is center)
+    AF, ALC, ANTIVOX, BAL, COMP, MICGAIN, MONITOR_GAIN, NOTCHF_RAW, NR, RF, RFPOWER, RFPOWER_METER, USB_AF, VOXGAIN
+
+Amps
+    ID_METER(A)
+
+dB
+    NL, COMP_METER, PREAMP, ATT, SLOPE_LOW, SLOPE_HIGH, SPECTRUM_REF, SPECTRUM_ATT, STRENGTH
+
+Degrees(temperature)
+    TEMP_METER(C)
+
+Hz
+    CWPITCH, IF, NOTCHF, PBT_IN, PBT_OUT, SPECTRUM_EDGE_LOW, SPECTRUM_EDGE_HIGH, SPECTRUM_SPAN
+
+Seconds 
+    VOXDELAY(ds), BKINDL(ms), BKIN_DLYMS(ms)
+
+Raw info from rig
+    RAWSTR, BAND_SELECT (subject to change -- index right now but may convert to band name)
+
+SWR
+    SWR
+
+Volts
+    VD_METER
+
+Lookup - if level shows 0/0/0 then it's probably a lookup value
+    METER RIG_METER_XXXX 1=SWR, 2=COMP, 4=ALC, 8=IC, 16=DB, 32=PO, 64=VDD, 128=Temp
+    AGC 0=None, 1=SuperFast, 2=Fast, 3=Slow, 4=User, 5=Medium, 6=Auto
+        Note: Not all AGC values may be available -- see AGC Level in dumpcaps (e.g. rigctl -m 1035 -u | grep AGC)
+    SPECTRUM_MODE 0=None, 1=Center, 2=Fixed, 3=Center Scroll, 4=Fixed Scroll
+    SPECTRUM_AVG rig specific
+
+Watts
+    RFPOWER_METER_WATTS
+
+WPM
+    KEYSPD
+.in
+.EE
+.IP
+ 
 .IP
 .BR Note :
 Passing a \(oq?\(cq (query) as the first argument instead of a Level token
@@ -1131,8 +1182,8 @@ option above, will terminate each command string sent to the radio.  This
 character should not be a part of the input string.
 .
 .TP
-.BR W ", " send_cmd_rx " \(aq" \fICmd\fP\(aq " " \fInbytes\FP
-Send a raw command string to the radio and expect nbytes returned.
+.BR W ", " send_cmd_rx " \(aq" \fICmd\fP\(aq " " \fI[nbytes or terminator char\FP
+Send a raw command string to the radio and expect nbytes returned or the terminator char (e.g. ;).
 .IP
 This is useful for testing and troubleshooting radio commands and responses when
 developing a backend.  If the # of bytes requested is <= the number actually returned no timeout will occur.
@@ -1236,6 +1287,17 @@ CW Skimmer is started and "set_lock_mode 0" when CW Skimmer is stopped.
 .TP
 .BR get_lock_mode
 Returns current lock mode status 1=On, 2=Off (only useful when using rigctld)
+.
+.TP
+.BR send_raw " \(aq" \fITerminator\fP "\(aq \(aq" \fIString\fp \(aq
+.EX
+Can send ASCII string or 0xnn values -- there can be no spaces in the command string.
+Possible terminator values are CR, LF, ;, ICOM, 0-100 (bytes to read), or -1 meaning unknown (will timeout on read)
+Examples:
+  send_raw ; FA;MD;
+  send_raw icom 0xFE;0xFE;0x94;0x03;0xFD
+  send_raw -1 0xFE;0xFE;0x94;0x03;0xFD
+  send_raw 14 0xFE;0xFE;0x94;0x03;0xFD
 .
 .SH READLINE
 .

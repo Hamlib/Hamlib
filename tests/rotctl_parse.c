@@ -2359,11 +2359,12 @@ declare_proto_rot(dump_caps)
 declare_proto_rot(dump_state)
 {
     struct rot_state *rs = &rot->state;
+    char *tag;
 
     /*
      * - Protocol version
      */
-#define ROTCTLD_PROT_VER 0
+#define ROTCTLD_PROT_VER 1
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
@@ -2379,40 +2380,67 @@ declare_proto_rot(dump_state)
 
     fprintf(fout, "%d%c", rot->caps->rot_model, resp_sep);
 
-    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-    {
-        fprintf(fout, "Minimum Azimuth: ");
-    }
-
-    fprintf(fout, "%lf%c", rs->min_az + rot->state.az_offset, resp_sep);
+    tag = "min_az=";
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "Maximum Azimuth: ");
+        tag = "Minimum Azimuth: ";
     }
 
-    fprintf(fout, "%lf%c", rs->max_az + rot->state.az_offset, resp_sep);
+    fprintf(fout, "%s%lf%c", tag, rs->min_az + rot->state.az_offset, resp_sep);
+
+    tag = "max_az=";
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "Minimum Elevation: ");
+        tag = "Maximum Azimuth: ";
     }
 
-    fprintf(fout, "%lf%c", rs->min_el + rot->state.el_offset, resp_sep);
+    fprintf(fout, "%s%lf%c", tag, rs->max_az + rot->state.az_offset, resp_sep);
+
+    tag = "min_el=";
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "Maximum Elevation: ");
+        tag = "Minimum Elevation: ";
     }
 
-    fprintf(fout, "%lf%c", rs->max_el + rot->state.el_offset, resp_sep);
+    fprintf(fout, "%s%lf%c", tag, rs->min_el + rot->state.el_offset, resp_sep);
+
+    tag = "max_el=";
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
-        fprintf(fout, "South Zero: ");
+        tag = "Maximum Elevation: ";
     }
 
-    fprintf(fout, "%d%c", rs->south_zero, resp_sep);
+    fprintf(fout, "%s%lf%c", tag, rs->max_el + rot->state.el_offset, resp_sep);
+
+    tag = "south_zero=";
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        tag = "South Zero: ";
+    }
+
+    fprintf(fout, "%s%d%c", tag, rs->south_zero, resp_sep);
+
+    char *rtype = "Unknown";
+
+    switch (rot->caps->rot_type)
+    {
+    case ROT_TYPE_OTHER: rtype = "Other"; break;
+
+    case ROT_TYPE_AZIMUTH   : rtype = "Az"; break;
+
+    case ROT_TYPE_ELEVATION   : rtype = "El"; break;
+
+    case ROT_TYPE_AZEL   : rtype = "AzEl"; break;
+    }
+
+    fprintf(fout, "rot_type=%s%c", rtype, resp_sep);
+
+    fprintf(fout, "done%c", resp_sep);
 
     return RIG_OK;
 }

@@ -42,6 +42,28 @@
 
 #define TT516_VFO (RIG_VFO_A|RIG_VFO_B)
 
+// Taken from RX320_STR_CAL -- unknown if accurate for TT516
+#define TT516_STR_CAL { 17, { \
+                {      0, -60 }, \
+                {     10, -50 }, \
+                {     20, -40 }, \
+                {     30, -30 }, \
+                {     40, -20 }, \
+                {     50, -15 }, \
+                {    100, -10 }, \
+                {    200, -5 }, \
+                {    225, -3 }, \
+                {    256,  0 }, \
+                {    512,  1 }, \
+                {    768,  3}, \
+                {   1024,  4 }, \
+                {   1280,  5 }, \
+                {   2560,  10 }, \
+                {   5120,  20 }, \
+                {  10000,  30 }, \
+        } }
+
+
 
 /*
  * tt516 receiver capabilities.
@@ -79,7 +101,9 @@ const struct rig_caps tt516_caps =
     .has_set_level =  RIG_LEVEL_SET(TT516_LEVELS),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-    .level_gran =  {},                 /* FIXME: granularity */
+    .level_gran =  {
+        [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } },
+    },
     .parm_gran =  {},
     .ctcss_list =  NULL,
     .dcs_list =  NULL,
@@ -137,6 +161,7 @@ const struct rig_caps tt516_caps =
         {RIG_MODE_FM, kHz(15)},
         RIG_FLT_END,
     },
+    .str_cal = TT516_STR_CAL,
     .priv = (void *)NULL,
 
     .set_freq =  tentec2_set_freq,

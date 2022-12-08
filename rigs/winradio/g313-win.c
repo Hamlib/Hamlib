@@ -25,7 +25,7 @@
 #define G313_FUNC  RIG_FUNC_NONE
 #define G313_LEVEL (RIG_LEVEL_ATT | RIG_LEVEL_AGC | RIG_LEVEL_RF | RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR)
 
-#define G313_MODES (RIG_MODE_NONE)
+#define G313_MODES (RIG_MODE_USB)
 
 #if defined (_WIN32) || !defined(OTHER_POSIX)
 
@@ -58,8 +58,6 @@ const struct confparams g313_cfg_params[] =
 
 #define G313_FUNC  RIG_FUNC_NONE
 #define G313_LEVEL (RIG_LEVEL_ATT | RIG_LEVEL_AGC | RIG_LEVEL_RF | RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR)
-
-#define G313_MODES (RIG_MODE_NONE)
 
 static int g313_init(RIG *rig);
 static int g313_cleanup(RIG *rig);

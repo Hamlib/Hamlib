@@ -245,7 +245,9 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct rig_state *rs;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called cmd=%s datasize=%d\n", __func__, cmdstr, (int)datasize);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called cmd=%s datasize=%d\n", __func__,
+              cmdstr ? cmdstr : "(NULL)",
+              (int)datasize);
 
     if ((!cmdstr && !datasize) || (datasize && !data))
     {
@@ -260,7 +262,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     if (priv->is_emulation) { rs->rigport.post_write_delay = 0; }
 
     // if this is an IF cmdstr and not the first time through check cache
-    if (strcmp(cmdstr, "IF") == 0 && priv->cache_start.tv_sec != 0)
+    if (cmdstr && strcmp(cmdstr, "IF") == 0 && priv->cache_start.tv_sec != 0)
     {
         int cache_age_ms;
 
@@ -279,8 +281,8 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
         // else we drop through and do the real IF command
     }
 
-    if (strlen(cmdstr) > 2 || strcmp(cmdstr, "RX") == 0
-            || strncmp(cmdstr, "TX", 2) == 0 || strncmp(cmdstr, "ZZTX", 4) == 0)
+    if (cmdstr && (strlen(cmdstr) > 2 || strcmp(cmdstr, "RX") == 0
+                   || strncmp(cmdstr, "TX", 2) == 0 || strncmp(cmdstr, "ZZTX", 4)) == 0)
     {
         // then we must be setting something so we'll invalidate the cache
         rig_debug(RIG_DEBUG_TRACE, "%s: cache invalidated\n", __func__);
@@ -373,8 +375,9 @@ transaction_read:
               KENWOOD_MAX_BUF_LEN);
     retval = read_string(&rs->rigport, (unsigned char *) buffer, len,
                          cmdtrm_str, strlen(cmdtrm_str), 0, 1);
-    rig_debug(RIG_DEBUG_TRACE, "%s: read_string(expected=%d, len=%d)='%s'\n", __func__,
-              len,(int)strlen(buffer), buffer);
+    rig_debug(RIG_DEBUG_TRACE, "%s: read_string(expected=%d, len=%d)='%s'\n",
+              __func__,
+              len, (int)strlen(buffer), buffer);
 
     if (retval < 0)
     {
@@ -523,7 +526,15 @@ transaction_read:
 
             if (retry_read++ < rs->rigport.retry)
             {
-                goto transaction_write;
+                if (strlen(buffer) == 0)
+                {
+                    goto transaction_write;    // didn't get an answer so send again
+                }
+                else
+                {
+                    // should be able to handle transceive mode here
+                    goto transaction_read;    // might be an async or corrupt reply so we'll read until timeout
+                }
             }
 
             retval =  -RIG_EPROTO;
@@ -603,7 +614,7 @@ transaction_read:
 transaction_quit:
 
     // update the cache
-    if (retval == RIG_OK && strcmp(cmdstr, "IF") == 0)
+    if (retval == RIG_OK && cmdstr && strcmp(cmdstr, "IF") == 0)
     {
         elapsed_ms(&priv->cache_start, HAMLIB_ELAPSED_SET);
         strncpy(priv->last_if_response, buffer, caps->if_len);
@@ -637,7 +648,8 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
     int err;
     int retry = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s, expected=%d\n", __func__, cmd, (int)expected);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s, expected=%d\n", __func__, cmd,
+              (int)expected);
 
     if (!cmd)
     {
@@ -1844,12 +1856,14 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     // cppcheck-suppress *
     SNPRINTF(freqbuf, sizeof(freqbuf), "F%c%011"PRIll, vfo_letter, (int64_t)freq);
+
     // we need to modify priv->verify_cmd if ID is not being used
     // if FB command than we change to FB and back again to avoid VFO blinking
-    if (priv->verify_cmd[1]=='A' && vfo_letter == 'B') priv->verify_cmd[1]='A';  
+    if (priv->verify_cmd[1] == 'A' && vfo_letter == 'B') { priv->verify_cmd[1] = 'A'; }
+
     err = kenwood_transaction(rig, freqbuf, NULL, 0);
 
-    if (priv->verify_cmd[1]=='B' && vfo_letter == 'B') priv->verify_cmd[1]='A';  
+    if (priv->verify_cmd[1] == 'B' && vfo_letter == 'B') { priv->verify_cmd[1] = 'A'; }
 
     if (RIG_OK == err && RIG_IS_TS590S
             && priv->fw_rev_uint <= 107 && ('A' == vfo_letter || 'B' == vfo_letter))
@@ -3178,11 +3192,6 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_AGC:
-        if (kenwood_val > 3)
-        {
-            kenwood_val = 3;    /* 0.. 255 */
-        }
-
         SNPRINTF(levelbuf, sizeof(levelbuf), "GT%03d", 84 * kenwood_val);
         break;
 
@@ -3399,6 +3408,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
         int power_now, power_min, power_max;
+        int min_pitch, step_pitch;  /* Hz */
 
     case RIG_LEVEL_RAWSTR:
         if (RIG_IS_TS590S || RIG_IS_TS590SG)
@@ -3731,15 +3741,29 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_CWPITCH:
-        retval = kenwood_safe_transaction(rig, "PT", lvlbuf, 50, 4);
+        if (RIG_IS_TS890S)
+        {
+            len = 5;
+            min_pitch = 300;
+            step_pitch = 5;
+        }
+        else
+        {
+            len = 4;
+            min_pitch = 400;
+            step_pitch = 50;
+        }
+
+        retval = kenwood_safe_transaction(rig, "PT", lvlbuf, 50, len);
 
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
 
-        sscanf(lvlbuf + 2, "%d", &val->i);
-        val->i = (val->i * 1000) + 1000; /* 00 - 08 */
+        sscanf(lvlbuf + 2, "%d", &val->i); /* 00 - 12 or 000 - 160 */
+        val->i = (val->i * step_pitch) + min_pitch; /* 400 - 1000 or 300 - 1100
+                             */
         break;
 
     case RIG_LEVEL_KEYSPD:

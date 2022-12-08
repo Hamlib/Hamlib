@@ -34,7 +34,6 @@
 #include "yaesu.h"
 #include "newcat.h"
 #include "ft950.h"
-#include "idx_builtin.h"
 
 const struct newcat_priv_caps ft950_priv_caps =
 {
@@ -87,7 +86,7 @@ const struct rig_caps ft950_caps =
     RIG_MODEL(RIG_MODEL_FT950),
     .model_name =         "FT-950",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".3",
+    .version =            NEWCAT_VER ".4",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -110,7 +109,9 @@ const struct rig_caps ft950_caps =
     .has_set_level =      RIG_LEVEL_SET(FT950_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
-    .level_gran = {
+    .level_gran =
+    {
+#include "level_gran_yaesu.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },

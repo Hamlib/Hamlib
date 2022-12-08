@@ -76,6 +76,7 @@ static int flrig_get_vfo(RIG *rig, vfo_t *vfo);
 static int flrig_set_vfo(RIG *rig, vfo_t vfo);
 static int flrig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int flrig_set_func(RIG *rig, vfo_t vfo, setting_t setting, int status);
 static int flrig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int flrig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 static int flrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
@@ -141,7 +142,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20220910.0",
+    .version = "20221109.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -154,13 +155,15 @@ const struct rig_caps flrig_caps =
     .retry = 2,
 
     .has_get_func = RIG_FUNC_NONE,
-    .has_set_func = RIG_FUNC_NONE,
+    .has_set_func = RIG_FUNC_TUNER,
+    .set_func = flrig_set_func,
     .has_get_level = FLRIG_LEVELS,
     .has_set_level = RIG_LEVEL_SET(FLRIG_LEVELS),
     .has_get_parm =    FLRIG_PARM,
     .has_set_parm =    RIG_PARM_SET(FLRIG_PARM),
 
     .filters =  {
+        {RIG_MODE_ALL, RIG_FLT_ANY},
         RIG_FLT_END
     },
 
@@ -334,7 +337,7 @@ static char *xml_parse2(char *xml, char *value, int valueLen)
             if (streq(p, "/value")) { continue; } // empty value
 
             if (streq(p, "i4") || streq(p, "double") || streq(p, "int")
-                    || streq(p, " string"))
+                    || streq(p, "string"))
             {
                 p = strtok_r(NULL, delims, &pr);
             }
@@ -1308,7 +1311,7 @@ static int flrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         RETURNFUNC(retval);
     }
 
-    if (strlen(xml) > 0)
+    if (strlen(value) > 0)
     {
         xml_parse(xml, value, sizeof(value));
         *ptt = atoi(value);
@@ -2356,6 +2359,28 @@ HAMLIB_EXPORT(int) flrig_cat_string(RIG *rig, const char *arg)
     SNPRINTF(cmd_arg, sizeof(cmd_arg),
              "<params><param><value>%s</value></param></params>", arg);
     retval = flrig_transaction(rig, "rig.cat_string", cmd_arg, NULL, 0);
+    return retval;
+}
+
+HAMLIB_EXPORT(int) flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
+                                  int status)
+{
+    int retval;
+    char cmd_arg[MAXARGLEN];
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: level=%s, status=%d\n", __func__,
+              rig_strfunc(func), status);
+
+    switch (func)
+    {
+    case RIG_FUNC_TUNER:
+        SNPRINTF(cmd_arg, sizeof(cmd_arg),
+                 "<params><param><value>%d</value></param></params>", status);
+        retval = flrig_transaction(rig, "rig.tune", cmd_arg, NULL, 0);
+
+    default:
+        retval = -RIG_ENIMPL;
+    }
+
     return retval;
 }
 

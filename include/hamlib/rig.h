@@ -315,17 +315,17 @@ enum serial_control_state_e {
  * \brief Rig type flags
  */
 typedef enum {
-    RIG_FLAG_RECEIVER = (1 << 1),       /*!< Receiver */
-    RIG_FLAG_TRANSMITTER = (1 << 2),    /*!< Transmitter */
-    RIG_FLAG_SCANNER = (1 << 3),        /*!< Scanner */
-    RIG_FLAG_MOBILE = (1 << 4),         /*!< mobile sized */
-    RIG_FLAG_HANDHELD = (1 << 5),       /*!< handheld sized */
-    RIG_FLAG_COMPUTER = (1 << 6),       /*!< "Computer" rig */
-    RIG_FLAG_TRUNKING = (1 << 7),       /*!< has trunking */
-    RIG_FLAG_APRS = (1 << 8),           /*!< has APRS */
-    RIG_FLAG_TNC = (1 << 9),            /*!< has TNC */
-    RIG_FLAG_DXCLUSTER = (1 << 10),     /*!< has DXCluster */
-    RIG_FLAG_TUNER = (1 << 11)          /*!< dumb tuner */
+    RIG_FLAG_RECEIVER = (1 << 1),       /*!< Receiver 2 */
+    RIG_FLAG_TRANSMITTER = (1 << 2),    /*!< Transmitter 4 */
+    RIG_FLAG_SCANNER = (1 << 3),        /*!< Scanner 8 */
+    RIG_FLAG_MOBILE = (1 << 4),         /*!< mobile sized 16 */
+    RIG_FLAG_HANDHELD = (1 << 5),       /*!< handheld sized 32 */
+    RIG_FLAG_COMPUTER = (1 << 6),       /*!< "Computer" rig 64 */
+    RIG_FLAG_TRUNKING = (1 << 7),       /*!< has trunking 128 */
+    RIG_FLAG_APRS = (1 << 8),           /*!< has APRS 256 */
+    RIG_FLAG_TNC = (1 << 9),            /*!< has TNC 512 */
+    RIG_FLAG_DXCLUSTER = (1 << 10),     /*!< has DXCluster 1024 */
+    RIG_FLAG_TUNER = (1 << 11)          /*!< dumb tuner 2048 */
 } rig_type_t;
 
 /**
@@ -337,9 +337,11 @@ enum agc_level_e {
     RIG_AGC_SUPERFAST,
     RIG_AGC_FAST,
     RIG_AGC_SLOW,
-    RIG_AGC_USER,           /*!< user selectable */
+    RIG_AGC_USER,           /*!< user selectable -- RIG_LEVEL_AGC to set USER level  */
     RIG_AGC_MEDIUM,
-    RIG_AGC_AUTO
+    RIG_AGC_AUTO,
+    RIG_AGC_LONG,
+    RIG_AGC_ON              /*< Turns AGC ON -- Kenwood -- restores last level set */
 };
 
 
@@ -598,10 +600,8 @@ typedef unsigned int vfo_t;
  */
 typedef shortfreq_t pbwidth_t;
 
+typedef float agc_time_t;
 
-/**
- * \brief DCD status
- */
 typedef enum dcd_e {
     RIG_DCD_OFF = 0,    /*!< Squelch closed */
     RIG_DCD_ON          /*!< Squelch open */
@@ -901,7 +901,7 @@ typedef unsigned int ant_t;
 
 
 //! @cond Doxygen_Suppress
-#define RIG_AGC_LAST RIG_AGC_AUTO
+#define RIG_AGC_LAST -1
 //! @endcond
 
 #if 1 // deprecated
@@ -978,7 +978,7 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_SLOPE_HIGH CONSTANT_64BIT_FLAG(24)      /*!< \c SLOPE_HIGH -- Slope tune, high frequency cut, arg int (Hz) */
 #define RIG_LEVEL_BKIN_DLYMS CONSTANT_64BIT_FLAG(25)      /*!< \c BKIN_DLYMS -- BKin Delay, arg int Milliseconds */
 
-    /*!< These are not settable */
+    /*!< Some of these are not settable after this point */
 #define RIG_LEVEL_RAWSTR     CONSTANT_64BIT_FLAG(26)      /*!< \c RAWSTR -- Raw (A/D) value for signal strength, specific to each rig, arg int */
 //#define RIG_LEVEL_SQLSTAT    CONSTANT_64BIT_FLAG(27)      /*!< \c SQLSTAT -- SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 #define RIG_LEVEL_SWR        CONSTANT_64BIT_FLAG(28)      /*!< \c SWR -- SWR, arg float [0.0 ... infinite] */
@@ -1004,8 +1004,8 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_SPECTRUM_ATT         CONSTANT_64BIT_FLAG(47)      /*!< \c SPECTRUM_ATT -- Spectrum scope attenuator, arg int (dB). Supported attenuator values defined in rig caps. */
 #define RIG_LEVEL_TEMP_METER           CONSTANT_64BIT_FLAG(48)      /*!< \c TEMP_METER -- arg float (C, centigrade) */
 #define RIG_LEVEL_BAND_SELECT          CONSTANT_64BIT_FLAG(49)      /*!< \c BAND_SELECT -- arg enum BAND_ENUM */
-#define RIG_LEVEL_50           CONSTANT_64BIT_FLAG(50)      /*!< \c Future use */
-#define RIG_LEVEL_51           CONSTANT_64BIT_FLAG(51)      /*!< \c Future use */
+#define RIG_LEVEL_USB_AF               CONSTANT_64BIT_FLAG(50)      /*!< \c ACC/USB AF output level */
+#define RIG_LEVEL_AGC_TIME             CONSTANT_64BIT_FLAG(51)      /*!< \c AGC_TIME -- in seconds, rig dependent */
 #define RIG_LEVEL_52           CONSTANT_64BIT_FLAG(52)      /*!< \c Future use */
 #define RIG_LEVEL_53           CONSTANT_64BIT_FLAG(53)      /*!< \c Future use */
 #define RIG_LEVEL_54           CONSTANT_64BIT_FLAG(54)      /*!< \c Future use */
@@ -1020,9 +1020,9 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_63           CONSTANT_64BIT_FLAG(63)      /*!< \c Future use */
 
 //! @cond Doxygen_Suppress
-#define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_TEMP_METER)
+#define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_TEMP_METER|RIG_LEVEL_USB_AF|RIG_LEVEL_AGC_TIME)
 
-#define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER)
+#define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
 
 #define RIG_LEVEL_IS_FLOAT(l) ((l)&RIG_LEVEL_FLOAT_LIST)
 #define RIG_LEVEL_SET(l) ((l)&~RIG_LEVEL_READONLY_LIST)
@@ -1182,9 +1182,9 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_TRANSCEIVE CONSTANT_64BIT_FLAG (42)   /*!< \c TRANSCEIVE -- Send radio state changes automatically ON/OFF */
 #define RIG_FUNC_SPECTRUM   CONSTANT_64BIT_FLAG (43)   /*!< \c SPECTRUM -- Spectrum scope data output ON/OFF */
 #define RIG_FUNC_SPECTRUM_HOLD CONSTANT_64BIT_FLAG (44)   /*!< \c SPECTRUM_HOLD -- Pause spectrum scope updates ON/OFF */
-#define RIG_FUNC_SEND_MORSE      CONSTANT_64BIT_FLAG (45)   /*!< \c SEND_MORSE -- Send specified characters using CW */
-#define RIG_FUNC_SEND_VOICE_MEM      CONSTANT_64BIT_FLAG (46)   /*!< \c SEND_VOICE_MEM -- Transmit in SSB message stored in memory */
-#define RIG_FUNC_BIT47      CONSTANT_64BIT_FLAG (47)   /*!< \c available for future RIG_FUNC items */
+#define RIG_FUNC_SEND_MORSE CONSTANT_64BIT_FLAG (45)   /*!< \c SEND_MORSE -- Send specified characters using CW */
+#define RIG_FUNC_SEND_VOICE_MEM CONSTANT_64BIT_FLAG (46)   /*!< \c SEND_VOICE_MEM -- Transmit in SSB message stored in memory */
+#define RIG_FUNC_OVF_STATUS CONSTANT_64BIT_FLAG (47)   /*!< \c OVF -- Read overflow status 0=Off, 1=On */
 #define RIG_FUNC_BIT48      CONSTANT_64BIT_FLAG (48)   /*!< \c available for future RIG_FUNC items */
 #define RIG_FUNC_BIT49      CONSTANT_64BIT_FLAG (49)   /*!< \c available for future RIG_FUNC items */
 #define RIG_FUNC_BIT50      CONSTANT_64BIT_FLAG (50)   /*!< \c available for future RIG_FUNC items */
@@ -1314,6 +1314,7 @@ typedef uint64_t rmode_t;
 #define    RIG_MODE_BIT61     CONSTANT_64BIT_FLAG (61)  /*!< \c reserved for future expansion */
 #define    RIG_MODE_BIT62     CONSTANT_64BIT_FLAG (62)  /*!< \c reserved for future expansion */
 #define    RIG_MODE_TESTS_MAX CONSTANT_64BIT_FLAG (63)  /*!< \c last bit available for 64-bit enum MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
+#define    RIG_MODE_ALL       (0xffffffff) /*!< any mode constant */
 #endif
 
 /**
@@ -1676,7 +1677,7 @@ typedef struct cal_table_float cal_table_float_t;
 //! @cond Doxygen_Suppress
 #define EMPTY_FLOAT_CAL { 0, { { 0, 0f }, } }
 
-typedef int (* chan_cb_t)(RIG *, channel_t **, int, const chan_t *, rig_ptr_t);
+typedef int (* chan_cb_t)(RIG *, vfo_t vfo, channel_t **, int, const chan_t *, rig_ptr_t);
 typedef int (* confval_cb_t)(RIG *,
                              const struct confparams *,
                              value_t *,
@@ -2025,10 +2026,12 @@ struct rig_caps {
     int (*get_chan_all_cb)(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t);
 
     int (*set_mem_all_cb)(RIG *rig,
+                          vfo_t vfo,
                           chan_cb_t chan_cb,
                           confval_cb_t parm_cb,
                           rig_ptr_t);
     int (*get_mem_all_cb)(RIG *rig,
+                          vfo_t vfo,
                           chan_cb_t chan_cb,
                           confval_cb_t parm_cb,
                           rig_ptr_t);

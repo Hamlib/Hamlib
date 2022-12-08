@@ -13,7 +13,33 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
-        * 2023-XX-XX
+        * 2023-11-XX -- Planned for Nov 2023
+        * Add MDS 4710/9710 rigs
+
+Version 4.5.1
+        * 2022-12-08
+        * FT2000, FTDX3000/D, FT891, FT991, FT950, FTDX5000 now set CAT TOT to 100ms
+        * Add missing NB2 setting to FT-950, FTDX-1200, FTDX-3000, FTDX-5000, FTDX-9000
+        * Add missing meter reading to TS-890S -- thanks to Geore Baltz N3GB
+        * Fix FT736 VFOB freq and mode set
+        * Added send_raw to rigctl -- see rigctl man page
+        * Fix AGC Level dumpcaps on most rigs
+        * Fix rig_send_raw to return bytes read, fill buffer, and also work with fixed length response/null terminator
+        * Change all Kenwood rigs to 500ms serial timeout
+        * Fix dumpcaps filter printout to only show declared filters
+        * Fix triggering PTT on XGComms device on Linux
+        * Fix level_gran in all rigs
+        * Add RIG_FUNC_TUNER to flrig.c
+        * Fix FT-991 level_gran (needs to be done for lots of rigs)
+        * Fix man page rigctl to show units for LEVEL items
+        * Fix Flex6xxx if_len
+        * Fix FLRig set_ptt
+        * Fix missing KEYSPD to TS890
+        * rigctl 'W' command can now use a singled char terminator like ; that allows for variable length responses with no timeout -- e.g.  W FA; ;
+        * New RIG_LEVEL_USB_AF to control audio gain from rig to computer -- to allow AGC function in software using RF and USB_AF
+        * Add RIG_LEVEL_AGC_TIME to allow AGC/OFF to be set for IC-7300, IC-9700, IC-705
+        * Add RIG_FUNC_OVF_STATUS to get overflow status for IC-7300, IC-9700, IC-705, and IC-R8600
+
         
 Version 4.5
         * 2022-10-30
@@ -27,7 +53,6 @@ Version 4.5
         * Add FT-650
         * Add get_separator and set_separator and -S option for rigctld -- node-red applicability
         * Add GRBLTRK rotor project -- two axis rotor
-        * enum meter_level_e is deprecated and will be removed in 4.6
         * Add SDRPlay SDRUno rig -- can now use Data/Pkt in WSJTX
         * Add ability to use cat_string to FLRig via the "w" and "W" commands
         * Add -B/--mapa2b to rigctlcom

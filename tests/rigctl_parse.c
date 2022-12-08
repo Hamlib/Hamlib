@@ -258,6 +258,7 @@ declare_proto_rig(set_separator);
 declare_proto_rig(get_separator);
 declare_proto_rig(set_lock_mode);
 declare_proto_rig(get_lock_mode);
+declare_proto_rig(send_raw);
 
 
 /*
@@ -370,6 +371,7 @@ static struct test_table test_list[] =
     { 0xa1, "get_separator",     ACTION(get_separator), ARG_NOVFO, "Separator" },
     { 0xa2, "set_lock_mode",     ACTION(set_lock_mode), ARG_IN | ARG_NOVFO, "Locked" },
     { 0xa3, "get_lock_mode",     ACTION(get_lock_mode), ARG_NOVFO, "Locked" },
+    { 0xa4, "send_raw",          ACTION(send_raw), ARG_NOVFO | ARG_IN1 | ARG_IN2 | ARG_OUT3, "Terminator", "Command", "Send raw answer" },
     { 0x00, "", NULL },
 };
 
@@ -663,7 +665,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                  int interactive, int prompt, int *vfo_opt, char send_cmd_term,
                  int *ext_resp_ptr, char *resp_sep_ptr, int use_password)
 {
-    int retcode;        /* generic return code from functions */
+    int retcode = -RIG_EINTERNAL;        /* generic return code from functions */
     unsigned char cmd;
     struct test_table *cmd_entry = NULL;
 
@@ -1726,15 +1728,21 @@ readline_repeat:
 
     else
     {
-        if ((rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY))
+        if (my_rig->caps->set_powerstat && (rig_powerstat == RIG_POWER_OFF
+                                            || rig_powerstat == RIG_POWER_STANDBY))
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_powerstat is not on = %d\n", __func__,
-                      rig_powerstat);
             // Update power status
             powerstat_t stat = RIG_POWER_ON;
             retcode = rig_get_powerstat(my_rig, &stat);
 
             if (retcode == RIG_OK) { rig_powerstat = stat; }
+
+            if (rig_powerstat != RIG_POWER_ON)
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: rig_powerstat is not on = %d\n", __func__,
+                          rig_powerstat);
+            }
         }
 
         // Allow only certain commands when the rig is powered off
@@ -1749,7 +1757,8 @@ readline_repeat:
             rig_debug(RIG_DEBUG_WARN,
                       "%s: command %s not allowed when rig is powered off\n", __func__,
                       cmd_entry->name);
-            retcode = -RIG_EPOWER;
+//            retcode = -RIG_EPOWER;
+            retcode = RIG_OK;
         }
         else
         {
@@ -4340,6 +4349,7 @@ declare_proto_rig(dump_state)
 {
     int i;
     struct rig_state *rs = &rig->state;
+    char buf[1024];
 
     ENTERFUNC;
 
@@ -4466,6 +4476,8 @@ declare_proto_rig(dump_state)
         fprintf(fout, "timeout=%d\n", rig->caps->timeout);
         fprintf(fout, "rig_model=%d\n", rig->caps->rig_model);
         fprintf(fout, "rigctld_version=%s\n", hamlib_version2);
+        rig_sprintf_agc_levels(rig, buf, sizeof(buf));
+        fprintf(fout, "agc_levels=%s\n", buf);
 
         if (rig->caps->ctcss_list)
         {
@@ -4892,6 +4904,8 @@ declare_proto_rig(send_cmd)
             eom_buf[0] = 0;
         }
 
+        if (arg2[0] == ';') { eom_buf[0] = ';'; }
+
         /* Assumes CR or LF is end of line char for all ASCII protocols. */
         retval = read_string(&rs->rigport, buf, rxbytes, eom_buf,
                              strlen(eom_buf), 0, 1);
@@ -5173,8 +5187,8 @@ declare_proto_rig(get_cache)
 declare_proto_rig(set_clock)
 {
     int year, mon, day, hour = -1, min = -1, sec = 0;
-    double msec=-1;
-    int utc_offset = 0; 
+    double msec = -1;
+    int utc_offset = 0;
     int n;
     char timebuf[64];
 
@@ -5197,17 +5211,20 @@ declare_proto_rig(set_clock)
                    &min, &sec, &msec, &utc_offset);
     }
     else if (arg1[16] == '+' || arg1[16] == '-')
-    { // YYYY-MM-DDTHH:MM+ZZ
+    {
+        // YYYY-MM-DDTHH:MM+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d%d", &year, &mon, &day, &hour,
                    &min, &utc_offset);
     }
     else if (arg1[19] == '+' || arg1[19] == '-')
-    { // YYYY-MM-DDTHH:MM:SS+ZZ
+    {
+        // YYYY-MM-DDTHH:MM:SS+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%d", &year, &mon, &day, &hour,
                    &min, &sec, &utc_offset);
     }
     else if (arg1[23] == '+' || arg1[23] == '-')
-    { // YYYY-MM-DDTHH:MM:SS.SSS+ZZ
+    {
+        // YYYY-MM-DDTHH:MM:SS.SSS+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
                    &min, &sec, &msec, &utc_offset);
     }
@@ -5332,5 +5349,103 @@ declare_proto_rig(get_lock_mode)
     }
 
     fprintf(fout, "%d\n", lock);
+    return RIG_OK;
+}
+
+
+static int parse_hex(const char *s, unsigned char *buf, int len)
+{
+    int i = 0;
+    buf[0] = 0;
+    char *s2 = strdup(s);
+    char *p = strtok(s2, ";");
+
+    while (p)
+    {
+        unsigned int val;
+        sscanf(p, "0x%x", &val);
+        buf[i++] = val;
+        p = strtok(NULL, ";");
+    }
+
+    free(s2);
+    return i;
+}
+
+// sends whatever is in s -- no addtions or changes done
+extern int netrigctl_send_raw(RIG *rig, char *s);
+/* 0xa4 */
+declare_proto_rig(send_raw)
+{
+    int reply_len;
+    unsigned char term[1];
+    unsigned char buf[100];
+    unsigned char send[100];
+    unsigned char *sendp = (unsigned char *)arg2;
+    int arg2_len = strlen(arg2);
+    int hex_flag = 0;
+    int buf_len = sizeof(buf);
+    int val = 0;
+
+    if (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
+    {
+        char netbuf[1024];
+        int retval;
+        snprintf(netbuf, sizeof(netbuf) - 1, "\\sendraw %s %s\n", arg2, arg3);
+        rig_debug(RIG_DEBUG_ERR, "%s: calling netrigctl\n", __func__);
+        retval = RIG_OK;
+        return retval;
+    }
+
+    if (strcmp(arg1, ";") == 0) { term[0] = ';'; }
+    else if (strcasecmp(arg1, "CR")) { term[0] = 0x0d; }
+    else if (strcasecmp(arg1, "LF")) { term[0] = 0x0a; }
+    else if (strcasecmp(arg1, "ICOM")) { term[0] = 0xfd; }
+    else if (sscanf(arg1, "%d", &val) == 1) { term[0] = 0; buf_len = val;}
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: unknown arg1 val=%s, expected ';' 'CR' 'LF' 'ICOM' or # of bytes where 0 means no reply and -1 means unknown",
+                  __func__, arg1);
+        return -RIG_EINVAL;
+    }
+
+    if (strncmp(arg2, "0x", 2) == 0)
+    {
+        arg2_len = parse_hex(arg2, send, sizeof(send));
+        sendp = send;
+        hex_flag = 1;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
+    reply_len = rig_send_raw(rig, (unsigned char *)sendp, arg2_len, buf,
+                             buf_len, term);
+    buf[buf_len + 1] = 0; // null terminate in case it's a string
+
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg3);
+    }
+
+    if (reply_len == 0)
+    {
+        fprintf(fout, "No answer\n");
+    }
+    else if (hex_flag)
+    {
+        int i;
+
+        for (i = 0; i < reply_len; ++i)
+        {
+            fprintf(fout, "0x%02x ", buf[i]);
+        }
+
+        fprintf(fout, "\n");
+    }
+    else
+    {
+        fprintf(fout, "%s\n", buf);
+    }
+
     return RIG_OK;
 }

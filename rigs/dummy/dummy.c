@@ -425,6 +425,8 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
 
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX) { vfo = vfo_fixup(rig, vfo, rig->state.cache.split); }
+
 // if needed for testing enable this to emulate a rig with 100hz resolution
 #if 0
     // we emulate a rig with 100Hz set freq interval limits -- truncation
@@ -930,13 +932,16 @@ static int dummy_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    int retval;
 
     ENTERFUNC;
+
+    retval = dummy_set_freq(rig, vfo, tx_freq);
     priv->curr->tx_freq = tx_freq;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->curr->tx_freq = %.0f\n", __func__,
               priv->curr->tx_freq);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(retval);
 }
 
 
@@ -2266,7 +2271,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20220727.0",
+    .version =        "20221128.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
