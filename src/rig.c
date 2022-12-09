@@ -67,7 +67,6 @@
 #include <hamlib/rig.h>
 #include "serial.h"
 #include "parallel.h"
-#include "usb_port.h"
 #include "network.h"
 #include "event.h"
 #include "cm108.h"
