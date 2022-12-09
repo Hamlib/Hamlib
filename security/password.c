@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include "hamlib/rig.h"
 #include "password.h"
 #include "md5.h"
