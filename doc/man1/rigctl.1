@@ -1289,7 +1289,7 @@ CW Skimmer is started and "set_lock_mode 0" when CW Skimmer is stopped.
 Returns current lock mode status 1=On, 2=Off (only useful when using rigctld)
 .
 .TP
-.BR send_raw " \(aq" \fITerminator\fP "\(aq \(aq" \fIString\fp \(aq
+.BR send_raw " \(aq" \fITerminator\fP "\(aq \(aq" \fIString\fP \(aq
 .EX
 Can send ASCII string or 0xnn values -- there can be no spaces in the command string.
 Possible terminator values are CR, LF, ;, ICOM, 0-100 (bytes to read), or -1 meaning unknown (will timeout on read)
