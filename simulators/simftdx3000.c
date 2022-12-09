@@ -252,6 +252,11 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "MD0%d", &md);
         }
+        else if (strcmp(buf, "PS;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PS1;");
+            n = write(fd, buf, strlen(buf));
+        }
         else if (strcmp(buf, "VS;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "VS%d;", vs);
