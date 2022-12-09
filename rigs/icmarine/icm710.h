@@ -23,7 +23,6 @@
 #define _ICM710_H 1
 
 #include "hamlib/rig.h"
-#include "cal.h"
 #include "tones.h"
 
 struct icm710_priv_caps {

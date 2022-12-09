@@ -29,7 +29,6 @@
 
 #include "icom.h"
 #include "icom_defs.h"
-#include "frame.h"
 #include "misc.h"
 #include "bandplan.h"
 

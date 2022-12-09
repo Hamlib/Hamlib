@@ -23,7 +23,6 @@
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <errno.h>
 
 #include "hamlib/rotator.h"
 #include "iofunc.h"

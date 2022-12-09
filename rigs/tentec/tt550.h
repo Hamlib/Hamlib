@@ -23,7 +23,6 @@
 #define _TT550_H 1
 
 #include <hamlib/rig.h>
-#include <cal.h>
 
 
 #define EOM "\015"		/* CR */

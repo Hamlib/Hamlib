@@ -41,7 +41,6 @@
 #include "bandplan.h"
 #include "serial.h"
 #include "misc.h"
-#include "cal.h"
 #include "yaesu.h"
 #include "ft1000mp.h"
 
