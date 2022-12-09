@@ -29,7 +29,6 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
 #include <math.h>
 
 #include "hamlib/rig.h"
