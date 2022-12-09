@@ -37,7 +37,6 @@
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <errno.h>
 #include <sys/types.h>
 
 #include <hamlib/rig.h>

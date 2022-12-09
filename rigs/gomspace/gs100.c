@@ -34,8 +34,6 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "parallel.h"
-#include "cm108.h"
-#include "gpio.h"
 #include "misc.h"
 #include "tones.h"
 #include "idx_builtin.h"
