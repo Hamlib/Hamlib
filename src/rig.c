@@ -2888,12 +2888,12 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     }
 
     cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_GET);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
     if (cache_ms < rig->state.cache.timeout_ms)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
         *vfo = rig->state.cache.vfo;
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms, vfo=%s\n", __func__, cache_ms, rig_strvfo(*vfo));
         ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
@@ -4424,12 +4424,12 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     // so we turn it off, do our thing, and turn split back on
     rx_vfo = vfo;
 
-    if (tx_vfo == RIG_VFO_B) { rx_vfo = RIG_VFO_A; }
+    if (tx_vfo == RIG_VFO_B || tx_vfo == RIG_VFO_SUB) { rx_vfo = RIG_VFO_A; }
 
-    if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_B) { rx_vfo = RIG_VFO_A; }
-    else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_A) { rx_vfo = RIG_VFO_B; }
+    if      (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_B)    { rx_vfo = RIG_VFO_A; }
+    else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_A)    { rx_vfo = RIG_VFO_B; }
     else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_MAIN) { rx_vfo = RIG_VFO_SUB; }
-    else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_SUB) { rx_vfo = RIG_VFO_MAIN; }
+    else if (vfo == RIG_VFO_CURR && tx_vfo == RIG_VFO_SUB)  { rx_vfo = RIG_VFO_MAIN; }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): rx_vfo=%s, tx_vfo=%s\n", __func__,
               __LINE__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
@@ -4927,8 +4927,10 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {
         switch (tx_vfo)
         {
+        case RIG_VFO_MAIN:
         case RIG_VFO_A: rx_vfo = split == 1 ? RIG_VFO_B : RIG_VFO_A; break;
 
+        case RIG_VFO_SUB:
         case RIG_VFO_B: rx_vfo = split == 1 ? RIG_VFO_A : RIG_VFO_B; break;
         }
 
