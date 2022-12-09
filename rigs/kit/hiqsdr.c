@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
-#include <fcntl.h>   /* File control definitions */
 
 #include "hamlib/rig.h"
 #include "iofunc.h"
