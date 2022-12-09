@@ -50,7 +50,6 @@
 #include "usb_port.h"
 #include "network.h"
 #include "cm108.h"
-#include "gpio.h"
 #include "asyncpipe.h"
 
 #if defined(WIN32) && defined(HAVE_WINDOWS_H)

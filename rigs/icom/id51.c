@@ -28,7 +28,6 @@
 #include "icom.h"
 #include "idx_builtin.h"
 #include "icom_defs.h"
-#include "frame.h"
 
 /*
  * Specs and protocol details comes from the chapter 17 of ID-51A_E_PLUS2_CD_0.pdf

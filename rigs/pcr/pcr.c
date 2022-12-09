@@ -34,7 +34,6 @@
 #include <stdlib.h>
 #include <string.h>     /* String function definitions */
 #include <errno.h>
-#include <ctype.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"

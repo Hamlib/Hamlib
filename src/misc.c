@@ -34,8 +34,6 @@
 #include <stdarg.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
 
 #ifdef HAVE_SYS_TYPES_H
 #  include <sys/types.h>

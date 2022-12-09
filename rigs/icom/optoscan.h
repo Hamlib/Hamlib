@@ -23,7 +23,6 @@
 #define _OPTOSCAN_H 1
 
 #include <hamlib/rig.h>
-#include <cal.h>
 #include <tones.h>
 
 #define TOK_TAPECNTL  TOKEN_BACKEND(1)

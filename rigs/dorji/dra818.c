@@ -23,7 +23,6 @@
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <stdbool.h>
 
 #include "hamlib/rig.h"
 #include "bandplan.h"

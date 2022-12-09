@@ -30,7 +30,6 @@
 #include "alinco.h"
 #include <serial.h>
 #include <misc.h>
-#include <cal.h>
 
 /*
  * modes in use by the "2G" command
