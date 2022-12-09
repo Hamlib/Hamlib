@@ -22,7 +22,6 @@
 #include <hamlib/config.h>
 
 #include <stdio.h>
-#include <ctype.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"

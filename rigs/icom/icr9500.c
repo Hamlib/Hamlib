@@ -29,7 +29,6 @@
 
 #include "icom.h"
 #include "icom_defs.h"
-#include "frame.h"
 
 
 #define ICR9500_MODES (RIG_MODE_AM|RIG_MODE_AMS|\

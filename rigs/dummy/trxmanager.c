@@ -28,7 +28,6 @@
 #include <hamlib/rig.h>
 #include <serial.h>
 #include <misc.h>
-#include <cal.h>
 #include <token.h>
 #include <register.h>
 #include <network.h>
