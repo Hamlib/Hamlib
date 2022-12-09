@@ -28,8 +28,6 @@
 #include "iofunc.h"
 #include "misc.h"
 
-#include "amp_dummy.h"
-
 #define CMD_MAX 32
 #define BUF_MAX 64
 
