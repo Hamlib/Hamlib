@@ -701,7 +701,9 @@ int main(int argc, char *argv[])
     {
         my_rig->state.pttport.type.ptt = ptt_type;
         my_rig->state.pttport_deprecated.type.ptt = ptt_type;
-        my_rig->caps->ptt_type = ptt_type;
+        // This causes segfault since backend rig_caps are const
+        // rigctld will use the rig->state version of this for clients
+        //my_rig->caps->ptt_type = ptt_type;
     }
 
     if (dcd_type != RIG_DCD_NONE)
