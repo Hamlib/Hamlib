@@ -7,6 +7,8 @@ A developer cannot apply for HSHR for segfaults on his/her own code.
 
 Here is the list of the brave fellows:
 
+* Saku Nyland OH1KH v4.5.1, 10/2022, rigctld.c using ptt_type=RTS
+
 * David Kjellquist WB5NHL, v1.1.3, 09/2002, kenwood/ts570.c
 	caught on TS570D backend startup.
 
