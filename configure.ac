@@ -694,6 +694,15 @@ AC_ARG_ENABLE([winradio],
 	      [cf_with_winradio="yes" AC_DEFINE([HAVE_WINRADIO],[1],[Define if winradio backend is built])])
 AC_MSG_RESULT([$cf_with_winradio])
 
+dnl Parallel port device disable
+AC_MSG_CHECKING([whether to build parallel port devices])
+AC_ARG_ENABLE([parallel],
+	      [AS_HELP_STRING([--disable-parallel],
+			      [do not build parallel devices @<:@default=yes@:>@])],
+	      [cf_with_parallel="no"],
+	      [cf_with_parallel="yes" AC_DEFINE([HAVE_PARALLEL],[1],[Define if parallel devices are to be built])])
+AC_MSG_RESULT([$cf_with_parallel])
+
 DL_LIBS=""
 
 AS_IF([test x"${cf_with_winradio}" = "xyes"],
@@ -912,6 +921,7 @@ echo \
 
     Enable HTML rig feature matrix  ${cf_enable_html_matrix}
     Enable WinRadio		    ${cf_with_winradio}
+    Enable Parallel		    ${cf_with_parallel}
     Enable USRP 		    ${cf_with_usrp}
     Enable USB backends 	    ${cf_with_libusb}
     Enable shared libs		    ${enable_shared}
