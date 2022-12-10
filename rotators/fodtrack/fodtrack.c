@@ -26,8 +26,10 @@
 #include <sys/ioctl.h>
 #endif
 
+#ifdef HAVE_PARALLEL
 #ifdef HAVE_LINUX_PARPORT_H
 #include <linux/parport.h>
+#endif
 #endif
 
 #include "hamlib/rotator.h"
