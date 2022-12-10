@@ -26,8 +26,10 @@
 #include <hamlib/rig.h>
 #include "iofunc.h"
 
+#ifdef HAVE_PARALLEL
 #ifdef HAVE_LINUX_PARPORT_H
 #  include <linux/parport.h>
+#endif
 #endif
 
 #ifndef PARPORT_CONTROL_STROBE
