@@ -293,6 +293,11 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "EX039%d", &ex039);
         }
+        else if (strcmp(buf,"PS;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PS1;");
+            n = write(fd, buf, strlen(buf));
+        }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
