@@ -886,7 +886,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (vfo != rig->state.tx_vfo) { return -RIG_ENTARGET; }
     }
 
-    if (is_ftdx3000 || is_ftdx3000dm || is_ftdx5000)
+    if (is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx1200)
     {
         // we have a few rigs that can't set freq while PTT_ON
         // so we'll try a few times to see if we just need to wait a bit
