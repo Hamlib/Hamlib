@@ -2052,6 +2052,15 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
+    if (ret == 1)
+    {
+        // was causing problems with sdr++ since it does not have PS command
+        // a return of 1 should indicate there is no powerstat command available
+        // so we fake the ON status
+        *status = RIG_POWER_ON;
+        return  RIG_OK;
+    }
+
     if (ret <= 0)
     {
         return (ret < 0) ? ret : -RIG_EPROTO;
@@ -2726,7 +2735,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20221201.0",
+    .version =        "20221212.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
