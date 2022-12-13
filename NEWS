@@ -18,8 +18,15 @@ Version 4.6
         * Add FLIR PTU-D48, E46, D100, D300 rotors
         * Fix FTDX3000 rig split
 
+Version 4.5.2
+        * 2022-12-XX -- Planned for Dec 2022
+        * Fix -R option to not need argument
+        * Fix -R option to close rig on last rigctld client disconnect
+        * Add FTDX1200 to rigs that need to ensure PTT is off before changing frequency
+        * Add --disable-parallel configure option for mingw builds
+
 Version 4.5.1
-        * 2022-XX-XX
+        * 2022-12-08
         * FT2000, FTDX3000/D, FT891, FT991, FT950, FTDX5000 now set CAT TOT to 100ms
         * Add missing NB2 setting to FT-950, FTDX-1200, FT-2000, FTDX-3000, FTDX-5000, FTDX-9000
         * Add missing meter reading to TS-890S -- thanks to Geore Baltz N3GB
