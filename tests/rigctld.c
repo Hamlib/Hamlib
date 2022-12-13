@@ -83,7 +83,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:R:p:d:P:D:s:S:c:T:t:C:W:w:x:z:lLuovhVZMA:n:"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:z:lLuovhVZMRA:n:"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -154,6 +154,8 @@ extern char rigctld_password[65];
 char resp_sep = '\n';
 extern int lock_mode;
 extern powerstat_t rig_powerstat;
+static int rigctld_idle =
+    0; // if true then rig will close when no clients are connected
 
 #define MAXCONFLEN 1024
 
@@ -262,8 +264,6 @@ int main(int argc, char *argv[])
     int twiddle_timeout = 0;
     int twiddle_rit = 0;
     int uplink = 0;
-    int rigctld_idle =
-        0; // if true then rig will close when no clients are connected
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
     char rigstartup[1024];
@@ -1312,6 +1312,13 @@ void *handle_socket(void *arg)
         }
     }
     while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode)));
+
+    if (rigctld_idle)
+    {
+        rig_close(my_rig);
+
+        if (verbose > RIG_DEBUG_ERR) { printf("Closed rig model %s.  Will reopen for new clients\n", my_rig->caps->model_name); }
+    }
 
 #ifdef HAVE_PTHREAD
 #if 0
