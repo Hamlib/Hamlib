@@ -1197,7 +1197,7 @@ void *handle_socket(void *arg)
 #ifdef HAVE_PTHREAD
     mutex_rigctld(1);
 
-//    ++client_count;
+    ++client_count;
 #if 0
 
     if (!client_count++)
@@ -1313,14 +1313,19 @@ void *handle_socket(void *arg)
     }
     while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode)));
 
-    if (rigctld_idle)
+    if (rigctld_idle && client_count == 1)
     {
         rig_close(my_rig);
 
         if (verbose > RIG_DEBUG_ERR) { printf("Closed rig model %s.  Will reopen for new clients\n", my_rig->caps->model_name); }
     }
 
+
 #ifdef HAVE_PTHREAD
+    --client_count;
+
+    if (rigctld_idle && client_count > 0) { printf("%d client%s still connected so rig remains open\n", client_count, client_count > 1 ? "s" : ""); }
+
 #if 0
     mutex_rigctld(1);
 
