@@ -23,7 +23,7 @@ Version 4.5.2
         * Fix -R option to not need argument
         * Fix -R option to close rig on last rigctld client disconnect
         * Add FTDX1200 to rigs that need to ensure PTT is off before changing frequency
-        * Add --disable-parallel configure option for mingw builds
+        * Add --disable-parallel configure option for mingw builds on Linux
 
 Version 4.5.1
         * 2022-12-08
