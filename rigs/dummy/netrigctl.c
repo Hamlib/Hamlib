@@ -2051,23 +2051,22 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
-    if (ret == 1)
+    if (ret == 0)
+    {
+        *status = atoi(buf);
+    }
+    else
     {
         // was causing problems with sdr++ since it does not have PS command
         // a return of 1 should indicate there is no powerstat command available
         // so we fake the ON status
+        // also a problem with Flex 6xxx and Log4OM not working due to lack of PS command
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: PS command failed (ret=%d) so returning RIG_POWER_ON\n", __func__, ret);
         *status = RIG_POWER_ON;
-        return  RIG_OK;
     }
 
-    if (ret <= 0)
-    {
-        return (ret < 0) ? ret : -RIG_EPROTO;
-    }
-
-    *status = atoi(buf);
-
-    return RIG_OK;
+    return RIG_OK; // always return RIG_OK
 }
 
 
@@ -2734,7 +2733,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20221212.0",
+    .version =        "20221214.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
