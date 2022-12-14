@@ -18,6 +18,7 @@ Version 4.6
 
 Version 4.5.2
         * 2022-12-XX -- Planned for Dec 2022
+        * Fix get_powerstat problem with Log4OM/Flex and others
         * Fix -R option to not need argument
         * Fix -R option to close rig on last rigctld client disconnect
         * Add FTDX1200 to rigs that need to ensure PTT is off before changing frequency
