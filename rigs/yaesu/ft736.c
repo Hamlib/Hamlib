@@ -58,6 +58,7 @@ static int ft736_open(RIG *rig);
 static int ft736_close(RIG *rig);
 
 static int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft736_get_freq(RIG *rig, vfo_t vfo, freq_t *freq); // cached answer
 static int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                vfo_t tx_vfo);
@@ -98,7 +99,7 @@ const struct rig_caps ft736_caps =
     RIG_MODEL(RIG_MODEL_FT736R),
     .model_name =         "FT-736R",
     .mfg_name =           "Yaesu",
-    .version =            "20211271.0",
+    .version =            "20221214.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -195,6 +196,7 @@ const struct rig_caps ft736_caps =
     .rig_close =      ft736_close,
 
     .set_freq =           ft736_set_freq,
+    .get_freq =           ft736_get_freq,
     .set_mode =           ft736_set_mode,
     .set_ptt =            ft736_set_ptt,
     .get_dcd =            ft736_get_dcd,
@@ -289,6 +291,17 @@ int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* Frequency set */
     return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
 }
+
+int ft736_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) { *freq = rig->state.cache.freqMainA; }
+    else { *freq = rig->state.cache.freqMainB; }
+
+    return RIG_OK;
+}
+
 
 
 
