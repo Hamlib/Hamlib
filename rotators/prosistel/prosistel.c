@@ -379,6 +379,15 @@ static const struct prosistel_rot_priv_caps prosistel_rot_combitrack_priv_caps =
 };
 
 
+// Elevation rotator with Control box D using azimuth logic
+static const struct prosistel_rot_priv_caps prosistel_rot_el_cboxaz =
+{
+    .angle_multiplier = 1.0f,
+    .stop_angle = 997,
+    .elevation_id = 'A',
+};
+
+
 /*
  * Prosistel rotator capabilities
  */
@@ -486,6 +495,43 @@ const struct rot_caps prosistel_combi_track_azel_rot_caps =
     .get_position = prosistel_rot_get_position,
 };
 
+
+// Elevation rotator with Control box D using azimuth logic
+const struct rot_caps prosistel_d_el_cboxaz_rot_caps =
+{
+    ROT_MODEL(ROT_MODEL_PROSISTEL_D_EL_CBOXAZ),
+    .model_name =     "D elevation CBOX az",
+    .mfg_name =       "Prosistel",
+    .version =        "20221215.0",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_STABLE,
+    .rot_type =       ROT_TYPE_ELEVATION,
+    .port_type =      RIG_PORT_SERIAL,
+    .serial_rate_min  = 9600,
+    .serial_rate_max  = 9600,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity    = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay      = 0,
+    .post_write_delay = 0,
+    .timeout          = 3000,
+    .retry            = 3,
+
+    .min_az =     0.0,
+    .max_az =     0.0,
+    .min_el =     0.0,
+    .max_el =     90.0,
+
+    .priv = &prosistel_rot_el_cboxaz,
+
+    .rot_open = prosistel_rot_open,
+    .stop = prosistel_rot_stop,
+    .set_position = prosistel_rot_set_position,
+    .get_position = prosistel_rot_get_position,
+};
+
+
 DECLARE_INITROT_BACKEND(prosistel)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
@@ -493,6 +539,7 @@ DECLARE_INITROT_BACKEND(prosistel)
     rot_register(&prosistel_d_az_rot_caps);
     rot_register(&prosistel_d_el_rot_caps);
     rot_register(&prosistel_combi_track_azel_rot_caps);
+    rot_register(&prosistel_d_el_cboxaz_rot_caps);
 
     return RIG_OK;
 }
