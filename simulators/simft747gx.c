@@ -28,7 +28,7 @@ getmyline(int fd, unsigned char *buf)
     int n = 0;
     memset(buf, 0, BUFSIZE);
 
-    while (read(fd, &c, 1) > 0 && i < 5)
+    while (i < 5 && read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
         n++;
