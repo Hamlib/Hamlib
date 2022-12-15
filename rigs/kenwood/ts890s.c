@@ -305,7 +305,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (rig->caps->swr_cal.size)
         {
-            val->f = rig_raw2val_float(val->i, &rig->caps->swr_cal);
+            val->f = rig_raw2val_float(levelint, &rig->caps->swr_cal);
         }
         else
         {
@@ -432,7 +432,7 @@ const struct rig_caps ts890s_caps =
     RIG_MODEL(RIG_MODEL_TS890S),
     .model_name = "TS-890S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".9",
+    .version = BACKEND_VER ".10",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
