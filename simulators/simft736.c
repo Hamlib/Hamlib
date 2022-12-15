@@ -102,15 +102,63 @@ again:
         if (bytes != 5)
         {
             printf("Not 5 bytes?  bytes=%d\n", bytes);
+            continue;
         }
 
-        switch (buf[0])
+        switch (buf[4])
         {
-        case '?': printf("Query %c\n", buf[1]);break;
-        case '*': printf("Set %c\n", buf[1]);break;
+        case 0x00:
+            printf("CAT On\n");
+            break;
+
+        case 0x80:
+            printf("CAT Off\n");
+            break;
+
+        case 0x01:
+            printf("FREQ_SET\n");
+            break;
+
+        case 0x07:
+            printf("MODE_SET\n");
+            break;
+
+        case 0x0e:
+            printf("Full Duplex On\n");
+            break;
+
+        case 0x8e:
+            printf("Full Duplex Off\n");
+            break;
+
+        case 0x08:
+            printf("Tx\n");
+            break;
+
+        case 0x88:
+            printf("Rx\n");
+            break;
+
+        case 0x17:
+            printf("Full Duplex Rx Mode\n");
+            break;
+
+        case 0x27:
+            printf("Full Duplex Tx Mode\n");
+            break;
+
+        case 0x1e:
+            printf("Full Duplex Rx Freq\n");
+            break;
+
+        case 0x2e:
+            printf("Full Duplex Tx Freq\n");
+            break;
 
         default: printf("Unknown cmd=%02x\n", buf[4]);
         }
+
+        fflush(stdout);
     }
 
     return 0;

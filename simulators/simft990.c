@@ -82,7 +82,7 @@ getmyline(int fd, char *buf)
 
 #if 1
 
-    while (read(fd, &c, 1) > 0 && i < 5)
+    while (i < 5 && read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
         n++;
