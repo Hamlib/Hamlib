@@ -379,6 +379,15 @@ static const struct prosistel_rot_priv_caps prosistel_rot_combitrack_priv_caps =
 };
 
 
+// Elevation rotator with Control box D using azimuth logic
+static const struct prosistel_rot_priv_caps prosistel_rot_el_cboxaz =
+{
+    .angle_multiplier = 1.0f,
+    .stop_angle = 997,
+    .elevation_id = 'A',
+};
+
+
 /*
  * Prosistel rotator capabilities
  */
@@ -487,7 +496,7 @@ const struct rot_caps prosistel_combi_track_azel_rot_caps =
 };
 
 
-//Elevation rotator with ControlBox using azimuth logic
+// Elevation rotator with Control box D using azimuth logic
 const struct rot_caps prosistel_d_el_cboxaz_rot_caps =
 {
     ROT_MODEL(ROT_MODEL_PROSISTEL_D_EL_CBOXAZ),
