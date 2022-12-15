@@ -19,6 +19,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.2
+        * Fix kenwood_ts890_get_level
         * Add Prosistel D elevation CBOX az to fix problem with azimuth control
         * 2022-12-XX -- Planned for Dec 2022
         * Fix FT736R gpredict usage by adding cached get_freq
