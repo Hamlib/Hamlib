@@ -1518,6 +1518,8 @@ int HAMLIB_API rig_close(RIG *rig)
 
     remove_opened_rig(rig);
 
+    // zero split so it will allow it to be set again on open for rigctld
+    rig->state.cache.split = 0;
     rs->comm_state = 0;
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==0?=%d\n", __func__,
               __LINE__, &rs->comm_state,
