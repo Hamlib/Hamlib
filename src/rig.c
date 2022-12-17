@@ -1346,14 +1346,18 @@ int HAMLIB_API rig_open(RIG *rig)
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Current split=%d, tx_vfo=%s\n", __func__,
                       __LINE__, split, rig_strvfo(tx_vfo));
             rmode_t mode;
-            pbwidth_t width;
-            rig_get_mode(rig, RIG_VFO_A, &mode, &width);
+            pbwidth_t width = 2400; // we'll use 2400Hz as default width
 
-            if (split)
+            if (rig->caps->get_mode)
             {
-                rig_debug(RIG_DEBUG_VERBOSE, "xxxsplit=%d\n", split);
-                HAMLIB_TRACE;
-                rig_get_mode(rig, RIG_VFO_B, &mode, &width);
+                rig_get_mode(rig, RIG_VFO_A, &mode, &width);
+
+                if (split)
+                {
+                    rig_debug(RIG_DEBUG_VERBOSE, "xxxsplit=%d\n", split);
+                    HAMLIB_TRACE;
+                    rig_get_mode(rig, RIG_VFO_B, &mode, &width);
+                }
             }
         }
     }
@@ -2892,8 +2896,9 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (cache_ms < rig->state.cache.timeout_ms)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms\n", __func__, cache_ms);
         *vfo = rig->state.cache.vfo;
+        rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms, vfo=%s\n", __func__,
+                  cache_ms, rig_strvfo(*vfo));
         ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
