@@ -6032,7 +6032,7 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
     if (rig->caps->get_powerstat == NULL)
     {
         *status = RIG_POWER_ON; // default to power if not available
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC(RIG_OK);
     }
 
     *status = RIG_POWER_OFF; // default now to power off until proven otherwise in get_powerstat
