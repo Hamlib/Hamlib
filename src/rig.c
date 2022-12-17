@@ -1897,7 +1897,12 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #endif
            )
         {
-            rig_set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
+            // Unidirectional rigs do not reset cache
+            if (rig->caps->rig_model != RIG_MODEL_FT736R)
+            {
+                rig_set_cache_freq(rig, RIG_VFO_ALL, (freq_t)0);
+            }
+
             HAMLIB_TRACE;
             retcode = rig_get_freq(rig, vfo, &freq_new);
 
