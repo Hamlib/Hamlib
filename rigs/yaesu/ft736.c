@@ -31,6 +31,7 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "tones.h"
+#include "cache.h"
 
 
 
@@ -99,7 +100,7 @@ const struct rig_caps ft736_caps =
     RIG_MODEL(RIG_MODEL_FT736R),
     .model_name =         "FT-736R",
     .mfg_name =           "Yaesu",
-    .version =            "20221214.0",
+    .version =            "20221218.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -270,6 +271,7 @@ int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
     struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+    int retval;
 
     // we will assume requesting to set VFOB is split mode
     if (vfo == RIG_VFO_B) { return rig_set_split_freq(rig, vfo, freq); }
@@ -288,8 +290,11 @@ int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         cmd[0] = (cmd[0] & 0x0f) | 0xc0;
     }
 
-    /* Frequency set */
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+
+    if (retval == RIG_OK) { rig_set_cache_freq(rig, vfo, freq); }
+
+    return retval;
 }
 
 int ft736_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -297,7 +302,7 @@ int ft736_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) { *freq = rig->state.cache.freqMainA; }
-    else { *freq = rig->state.cache.freqMainB; }
+    else { rig_get_cache_freq(rig, vfo, freq, NULL); }
 
     return RIG_OK;
 }
