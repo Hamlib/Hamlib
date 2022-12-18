@@ -1808,7 +1808,11 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             if (retcode != RIG_OK) { RETURNFUNC(retcode); }
 
-            rig_set_cache_freq(rig, vfo, (freq_t)0);
+            // Unidirectional rigs do not reset cache
+            if (rig->caps->rig_model != RIG_MODEL_FT736R)
+            {
+                rig_set_cache_freq(rig, vfo, (freq_t)0);
+            }
 
 #if 0 // this verification seems to be causing bad behavior on some rigs
 
