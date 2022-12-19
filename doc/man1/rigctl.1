@@ -187,8 +187,30 @@ above. Note the dummy device has no serial parameters.
 .
 .TP
 .BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
-Set radio configuration parameter(s), e.g.
-.IR stop_bits=2 .
+Set configuration parameter(s). Some common ones are:
+.in +4n
+.EX
+.RB   write_delay: "Delay in ms between each byte sent out"
+.RB   post_write_delay: "Delay in ms between each command sent out"
+.RB   timeout: "Timeout in ms"
+.RB   retry: "Max number of retry"
+.RB   ptt_type: "Push-To-Talk interface type override"
+.RB   ptt_pathname: "Path name to the device file of the Push-To-Talk"
+.RB   ptt_bitnum: "Push-To-Talk GPIO bit number"
+.RB   dcd_type: "Data Carrier Detect (or squelch) interface type override"
+.RB   dcd_pathname: "Path name to the device file of the Data Carrier Detect (or squelch)"
+.RB   lo_freq: "Frequency to add to the VFO frequency for use with a transverter"
+.RB   auto_power_on: "True enables compatible rigs to be powered up on open"
+.RB   auto_power_off: "True enables compatible rigs to be powered down on close"
+.RB   auto_disable_screensaver: "True enables compatible rigs to have their screen saver disabled on open"
+.RB   disable_yaesu_bandselect: "True disables the automatic band select on band change for Yaesu rigs"
+.RB   ptt_share: "True enables ptt port to be shared with other apps"
+.RB   twiddle_timeout: "For satellite ops when VFOB is twiddled will pause VFOB commands until timeout"
+.RB   twiddle_rit: "Suppress get_freq on VFOB for RIT tuning satellites"
+.RB   async: "True enables asynchronous data transfer for backends that support it. This allows use of transceive and spectrum data."
+.RB   tuner_control_pathname: "Path name to a script/program to control a tuner with 1 argument of 0/1 for Tuner Off/On"
+.EE
+.in
 .IP
 Use the
 .B -L

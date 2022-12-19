@@ -93,6 +93,8 @@
 #define TOK_FLUSHX        TOKEN_FRONTEND(36)
 /** \brief  Asynchronous data transfer support */
 #define TOK_ASYNC        TOKEN_FRONTEND(37)
+/** \brief  Tuner external control pathname */
+#define TOK_TUNER_CONTROL_PATHNAME TOKEN_FRONTEND(38)
 
 /*
  * rig specific tokens

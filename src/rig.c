@@ -143,6 +143,8 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #  define DEFAULT_CM108_PORT "/dev/hidraw0"
 #endif
 
+#define DEFAULT_TUNER_CONTROL_PATHNAME "hamlib_tuner_control"
+
 #if defined(WIN32) && !defined(__CYGWIN__)
 /* FIXME: Determine correct GPIO bit number for W32 using MinGW. */
 #  define DEFAULT_CM108_PTT_BITNUM 2
@@ -563,6 +565,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 #if defined(HAVE_PTHREAD)
     rs->rigport.asyncio = 0;
 #endif
+
+    rs->tuner_control_pathname = DEFAULT_TUNER_CONTROL_PATHNAME;
 
     switch (caps->port_type)
     {

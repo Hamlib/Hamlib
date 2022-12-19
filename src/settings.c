@@ -39,6 +39,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>   /* Error number definitions */
+#include <unistd.h>
 
 #include <hamlib/rig.h>
 #include "cal.h"
@@ -488,9 +489,32 @@ int HAMLIB_API rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     caps = rig->caps;
 
-    if (caps->set_func == NULL || !rig_has_set_func(rig, func))
+    if ((caps->set_func == NULL || !rig_has_set_func(rig, func))
+            && access(rig->state.tuner_control_pathname, X_OK) == -1)
     {
         return -RIG_ENAVAIL;
+    }
+
+    if (access(rig->state.tuner_control_pathname, X_OK) != -1)
+    {
+        char cmd[1024];
+        snprintf(cmd, sizeof(cmd), "%s %d", rig->state.tuner_control_pathname, status);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Calling external script '%s'\n", __func__,
+                  rig->state.tuner_control_pathname);
+        retcode = system(cmd);
+
+        if (retcode != 0) { rig_debug(RIG_DEBUG_ERR, "%s: executing %s failed\n", __func__, rig->state.tuner_control_pathname); }
+
+        return (retcode == 0 ? RIG_OK : -RIG_ERJCTED);
+    }
+    else
+    {
+        if (strcmp(rig->state.tuner_control_pathname, "hamlib_tuner_control"))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to find '%s'\n", __func__,
+                      rig->state.tuner_control_pathname);
+            return -RIG_EINVAL;
+        }
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_FUNC)

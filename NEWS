@@ -14,6 +14,10 @@ Version 5.x -- future
 
 Version 4.6
         * 2023-11-XX -- Planned for Nov 2023
+        * Add --set-conf=tuner_control_pathname=hamlib_tuner_control (default)
+          If file exists then it will be called with 0/1 (Off/On) argument
+          with 'U TUNER 0' or 'U TUNER 1"
+          Default path is for current directory
         * Add MDS 4710/9710 rigs
         * Add FLIR PTU-D48, E46, D100, D300 rotors
         * Fix FTDX3000 rig split
