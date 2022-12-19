@@ -170,6 +170,11 @@ static const struct confparams frontend_cfg_params[] =
         "True enables asynchronous data transfer for backends that support it. This allows use of transceive and spectrum data.",
         "0", RIG_CONF_CHECKBUTTON, { }
     },
+    {
+        TOK_TUNER_CONTROL_PATHNAME, "tuner_control_pathname", "Tuner script/program path name",
+        "Path name to a script/program to control a tuner with 1 argument of 0/1 for Tuner Off/On",
+        "hamlib_tuner_control", RIG_CONF_STRING,
+    },
 
     { RIG_CONF_END, NULL, }
 };
@@ -714,6 +719,11 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 
         rs->async_data_enabled = val_i ? 1 : 0;
         break;
+
+    case TOK_TUNER_CONTROL_PATHNAME:
+        rs->tuner_control_pathname = strdup(val); // yeah -- need to free it
+        break;
+
 
     default:
         return -RIG_EINVAL;

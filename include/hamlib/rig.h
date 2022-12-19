@@ -2588,6 +2588,7 @@ struct rig_state {
     int depth; /*<! a depth counter to use for debug indentation and such */
     int lock_mode; /*<! flag that prevents mode changes if ~= 0 -- see set/get_lock_mode */
     powerstat_t powerstat; /*<! power status */
+    char *tuner_control_pathname;  /*<! Path to external tuner control program that get 0/1 (Off/On) argument */
 };
 
 //! @cond Doxygen_Suppress

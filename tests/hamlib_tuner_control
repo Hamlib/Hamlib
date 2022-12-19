@@ -1,0 +1,8 @@
+#!/bin/sh
+if [ "$#" -eq 0 ]
+then
+echo "Expected arg 0 or 1...got nothing"
+exit 1
+fi
+echo Tuner Control $1
+echo `date` " " Tuner Control $1 >>tuner_control.log
