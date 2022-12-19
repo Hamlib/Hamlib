@@ -1,4 +1,9 @@
 #!/bin/sh
+# Put this script in /usr/local/bin
+# --set-conf=tuner_contrl_pathname=/usr/local/bin/hamlib_tuner_control
+# Or use a batch file in Windows for example in C:\Util\tuner.bat
+# echo Tuner %1
+# --set-conf=C:/Util/tuner.bat
 if [ "$#" -eq 0 ]
 then
 echo "Expected arg 0 or 1...got nothing"
