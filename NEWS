@@ -17,6 +17,8 @@ Version 4.6
         * Add MDS 4710/9710 rigs
 
 Version 4.5.2
+        * Fix PowerSDR ability to do commands while powered off
+        * Fix TX-500 operations
         * Fix rig.c calling rig_get_mode when backend does not have get_mode
         * Fix kenwood_ts890_get_level
         * Add Prosistel D elevation CBOX az to fix problem with azimuth control
