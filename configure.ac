@@ -15,6 +15,8 @@ dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
 AC_INIT([Hamlib],[4.6~git],[hamlib-developer@lists.sourceforge.net],[hamlib],[http://www.hamlib.org])
+#AC_INIT([PRODUCT_NAME], [Hamlib])
+#AC_DEFINE([Hamlib], [PRODUCT_VERSION_RESOURCE])
 
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
@@ -260,6 +262,7 @@ LT_PREREQ([2.2.6b])
 dnl N.B. LT_INIT([win32-dll]) does not work for older libtool
 dnl so require new enough version above.
 LT_INIT([win32-dll])
+LT_LANG([Windows Resource])
 
 
 ## -------------------------- ##
@@ -282,6 +285,7 @@ AS_CASE(["$host_os"],
 
     [mingw* | pw32* | cygwin*], [
 	WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
+    VERSIONDLL="version_dll.rc"
 	AC_SUBST([WINLDFLAGS])
 
 	# Enable ld's "auto import" for executables
