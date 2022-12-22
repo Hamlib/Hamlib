@@ -18,7 +18,7 @@ RIGSRC +=	\
 endif
 
 lib_LTLIBRARIES = libhamlib.la
-libhamlib_la_SOURCES = $(RIGSRC)
+libhamlib_la_SOURCES = $(RIGSRC) $(VERSIONDLL)
 libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info $(ABI_VERSION):$(ABI_REVISION):$(ABI_AGE)
 
 libhamlib_la_LIBADD = $(top_builddir)/lib/libmisc.la $(top_builddir)/security/libsecurity.la \

@@ -287,6 +287,7 @@ AS_CASE(["$host_os"],
     [mingw* | pw32* | cygwin*], [
 	AM_CONDITIONAL([VERSIONDLL], true)
 	WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
+    VERSIONDLL="version_dll.rc"
 	AC_SUBST([WINLDFLAGS])
 
 	# Enable ld's "auto import" for executables
