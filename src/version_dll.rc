@@ -1,0 +1,28 @@
+#include <windows.h>
+#include <hamlibdatetime.h>
+
+#define VERSIONINFO_1 1
+
+VERSIONINFO_1 VERSIONINFO
+{
+  BLOCK "StringFileInfo"
+  {
+   BLOCK "040904E4"
+   {
+    VALUE "FileDescription", "Hamlib DLL"
+    VALUE "FileVersion", "4.6.0.0"
+    VALUE "ProductName", "Hamlib"
+    VALUE "ProductVersion", HAMLIBDATETIME
+    VALUE "InternalName", "sha256"
+    VALUE "LegalCopyright", "Copyright Hamlib Team 2022"
+    VALUE "OriginalFilename", "libhamlib-4.dll"
+   }
+
+  }
+
+  BLOCK "VarFileInfo"
+  {
+   VALUE "Translation", 0x409, 1200
+  }
+
+}

@@ -15,6 +15,8 @@ dnl however, the use of '~' should be fine as apt (others?) will treat
 dnl it as an earlier version than the actual release.  TNX KA6MAL
 dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
 AC_INIT([Hamlib],[4.6~git],[hamlib-developer@lists.sourceforge.net],[hamlib],[http://www.hamlib.org])
+#AC_INIT([PRODUCT_NAME], [Hamlib])
+#AC_DEFINE([Hamlib], [PRODUCT_VERSION_RESOURCE])
 
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
@@ -260,6 +262,7 @@ LT_PREREQ([2.2.6b])
 dnl N.B. LT_INIT([win32-dll]) does not work for older libtool
 dnl so require new enough version above.
 LT_INIT([win32-dll])
+LT_LANG([Windows Resource])
 
 
 ## -------------------------- ##
@@ -267,6 +270,7 @@ LT_INIT([win32-dll])
 ## -------------------------- ##
 
 dnl The host_os variable is set by the AC_CANONICAL_HOST macro above.
+AM_CONDITIONAL([VERSIONDLL], false)
 AS_CASE(["$host_os"],
     [freebsd*], [
 	AM_CPPFLAGS="-I/usr/local/include ${AM_CPPFLAGS}"
@@ -281,6 +285,7 @@ AS_CASE(["$host_os"],
 	AC_SUBST([OSXLDFLAGS])],
 
     [mingw* | pw32* | cygwin*], [
+	AM_CONDITIONAL([VERSIONDLL], true)
 	WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
 	AC_SUBST([WINLDFLAGS])
 
