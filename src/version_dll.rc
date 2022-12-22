@@ -9,7 +9,6 @@ VERSIONINFO_1 VERSIONINFO
   {
    BLOCK "040904E4"
    {
-<<<<<<< HEAD
     VALUE "FileDescription", "Hamlib DLL"
     VALUE "FileVersion", "4.6.0.0"
     VALUE "ProductName", "Hamlib"
@@ -17,27 +16,13 @@ VERSIONINFO_1 VERSIONINFO
     VALUE "InternalName", "sha256"
     VALUE "LegalCopyright", "Copyright Hamlib Team 2022"
     VALUE "OriginalFilename", "libhamlib-4.dll"
-=======
-    VALUE "CompanyName", "Hamlib Team\000"
-    VALUE "FileDescription", "Hamlib DLL\000"
-    VALUE "ProductName", "Hamlib\000"
-    VALUE "FileVersion", 4,6,0,0
-    VALUE "ProductVersion", HAMLIBDATETIME
-    VALUE "InternalName", "sha256"
-    VALUE "LegalCopyright", "Copyright Hamlib Team 2022\000"
-    VALUE "OriginalFilename", "libhamlib-4.dll\000"
->>>>>>> cafc094788fcdd65e5fb936e5451a08b780c8ecd
    }
 
   }
 
   BLOCK "VarFileInfo"
   {
-<<<<<<< HEAD
    VALUE "Translation", 0x409, 1200
-=======
-   VALUE "Translation", 0x409, 1252
->>>>>>> cafc094788fcdd65e5fb936e5451a08b780c8ecd
   }
 
 }
