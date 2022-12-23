@@ -1,20 +1,22 @@
 #include <windows.h>
 #include <hamlibdatetime.h>
+#include <config.h>
 
-#define VERSIONINFO_1 1
+//#define HAMLIB_RC_FILEVERSION 4,6,0,0
 
-VERSIONINFO_1 VERSIONINFO
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION ABI_VERSION,ABI_REVISION,ABI_AGE,0
+FILETYPE	VFT_DLL
+FILESUBTYPE VFT2_UNKNOWN
 {
   BLOCK "StringFileInfo"
   {
    BLOCK "040904E4"
    {
     VALUE "FileDescription", "Hamlib DLL"
-    VALUE "FileVersion", "4.6.0.0"
-    VALUE "ProductName", "Hamlib"
+    VALUE "ProductName",  PACKAGE_STRING
     VALUE "ProductVersion", HAMLIBDATETIME
-    VALUE "InternalName", "sha256"
-    VALUE "LegalCopyright", "Copyright Hamlib Team 2022"
+    VALUE "LegalCopyright", "Copyright Hamlib Team 1991-2023"
     VALUE "OriginalFilename", "libhamlib-4.dll"
    }
 
@@ -22,7 +24,6 @@ VERSIONINFO_1 VERSIONINFO
 
   BLOCK "VarFileInfo"
   {
-   VALUE "Translation", 0x409, 1200
+   VALUE "Translation", 0x409, 20127
   }
-
 }
