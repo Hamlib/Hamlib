@@ -80,7 +80,8 @@
                             RIG_LEVEL_NOTCHF_RAW| \
                             RIG_LEVEL_ATT| \
                             RIG_LEVEL_PREAMP| \
-                            RIG_LEVEL_MONITOR_GAIN)
+                            RIG_LEVEL_MONITOR_GAIN| \
+                            RIG_LEVEL_AGC_TIME)
 
 #define IC9100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
@@ -110,7 +111,7 @@ const struct rig_caps ic9100_caps =
     RIG_MODEL(RIG_MODEL_IC9100),
     .model_name = "IC-9100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".4",
+    .version =  BACKEND_VER ".5",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

@@ -96,7 +96,8 @@
                             RIG_LEVEL_VD_METER| \
                             RIG_LEVEL_ID_METER| \
                             RIG_LEVEL_MONITOR_GAIN| \
-                            RIG_LEVEL_NB)
+                            RIG_LEVEL_NB | \
+                            RIG_LEVEL_AGC_TIME)
 
 #define IC7100_PARM_ALL (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_KEYLIGHT|RIG_PARM_BEEP|RIG_PARM_TIME)
 
@@ -306,7 +307,7 @@ const struct rig_caps ic7100_caps =
     RIG_MODEL(RIG_MODEL_IC7100),
     .model_name = "IC-7100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
