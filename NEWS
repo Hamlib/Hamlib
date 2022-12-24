@@ -23,6 +23,9 @@ Version 4.6
         * Add FLIR PTU-D48, E46, D100, D300 rotors
         * Fix FTDX3000 rig split
 
+Version 4.5.3
+        * Fix grep error on MingW build
+
 Version 4.5.2
         * 2022-12-23
         * Fix PowerSDR ability to do commands while powered off
