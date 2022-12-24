@@ -51,7 +51,7 @@ LTRCCOMPILE = $(LIBTOOL) --mode=compile --tag=RC $(RCCOMPILE)
 	$(LTRCCOMPILE) -i "$<" -o "$@"
 
 .rc.o:
-	$(RCCOMPILE) -i "$<" -o "$@"
+	$(RCCOMPILE) -O coff -i "$<" -o "$@"
 
 .mc.rc:
 	$(WINDMC) "$<"
