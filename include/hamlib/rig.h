@@ -2589,6 +2589,7 @@ struct rig_state {
     int lock_mode; /*<! flag that prevents mode changes if ~= 0 -- see set/get_lock_mode */
     powerstat_t powerstat; /*<! power status */
     char *tuner_control_pathname;  /*<! Path to external tuner control program that get 0/1 (Off/On) argument */
+    char client_version[32];  /*<! Allow client to report version for compatility checks/capability */
 };
 
 //! @cond Doxygen_Suppress
