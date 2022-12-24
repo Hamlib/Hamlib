@@ -14,6 +14,7 @@ Version 5.x -- future
 
 Version 4.6
         * 2023-11-XX -- Planned for Nov 2023
+        * Add client_version to rigctld so client can report it's version for future use/compatility/alternatives
         * Add --set-conf=tuner_control_pathname=hamlib_tuner_control (default)
           If file exists then it will be called with 0/1 (Off/On) argument
           with 'U TUNER 0' or 'U TUNER 1"
@@ -23,11 +24,13 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.2
+        * 2022-12-23
+        * Fix PowerSDR ability to do commands while powered off
+        * Fix TX-500 operations
         * Fix FTDX5000 to return to MIC input on closing
         * Fix rig.c calling rig_get_mode when backend does not have get_mode
         * Fix kenwood_ts890_get_level
         * Add Prosistel D elevation CBOX az to fix problem with azimuth control
-        * 2022-12-XX -- Planned for Dec 2022
         * Fix FT736R gpredict usage by adding cached get_freq
         * Fix get_powerstat problem with Log4OM/Flex and others
         * Fix -R option to not need argument

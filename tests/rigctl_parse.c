@@ -259,6 +259,7 @@ declare_proto_rig(get_separator);
 declare_proto_rig(set_lock_mode);
 declare_proto_rig(get_lock_mode);
 declare_proto_rig(send_raw);
+declare_proto_rig(client_version);
 
 
 /*
@@ -372,6 +373,7 @@ static struct test_table test_list[] =
     { 0xa2, "set_lock_mode",     ACTION(set_lock_mode), ARG_IN | ARG_NOVFO, "Locked" },
     { 0xa3, "get_lock_mode",     ACTION(get_lock_mode), ARG_NOVFO, "Locked" },
     { 0xa4, "send_raw",          ACTION(send_raw), ARG_NOVFO | ARG_IN1 | ARG_IN2 | ARG_OUT3, "Terminator", "Command", "Send raw answer" },
+    { 0xa5, "client_version",    ACTION(client_version), ARG_NOVFO | ARG_IN1, "Version", "Client version" },
     { 0x00, "", NULL },
 };
 
@@ -674,6 +676,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     char arg2[MAXARGSZ + 1], *p2 = NULL;
     char arg3[MAXARGSZ + 1], *p3 = NULL;
     vfo_t vfo = RIG_VFO_CURR;
+    char client_version[32];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, interactive=%d\n", __func__,
               interactive);
@@ -1753,7 +1756,9 @@ readline_repeat:
                 && cmd_entry->cmd != 0x8f // dump_state
                 && cmd_entry->cmd != 0xf0 // chk_vfo
                 && cmd_entry->cmd != 0x87 // set_powerstat
-                && my_rig->caps->rig_model != RIG_MODEL_POWERSDR) // some rigs can do stuff when powered off
+                && cmd_entry->cmd != 0xa5 // client_version
+                && my_rig->caps->rig_model !=
+                RIG_MODEL_POWERSDR) // some rigs can do stuff when powered off
         {
             rig_debug(RIG_DEBUG_WARN,
                       "%s: command %s not allowed when rig is powered off\n", __func__,
@@ -1778,6 +1783,10 @@ readline_repeat:
                                                 p2 ? p2 : "",
                                                 p3 ? p3 : "");
         }
+
+        // we need to copy client_version to our thread in case there are multiple client versions
+        // client_version is used to determine any backward compatiblity requirements or problems
+        strncpy(client_version, my_rig->state.client_version, sizeof(client_version));
     }
 
 
@@ -1853,6 +1862,20 @@ void version()
 {
     printf("rigctl(d), %s\n\n", hamlib_version2);
     printf("%s\n", hamlib_copyright);
+}
+
+declare_proto_rig(client_version)
+{
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg1);
+    }
+
+    fprintf(fout, "%s%c", arg1, resp_sep);
+    strncpy(rig->state.client_version, arg1, sizeof(rig->state.client_version) - 1);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: client_version=%s\n", __func__,
+              rig->state.client_version);
+    return RIG_OK;
 }
 
 
