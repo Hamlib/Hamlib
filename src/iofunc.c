@@ -1337,7 +1337,6 @@ static int read_string_generic(hamlib_port_t *p,
          * read 1 character from the rig, (check if in stop set)
          * The file descriptor must have been set up non blocking.
          */
-        do
         {
 #if 0
 #ifndef __MINGW32__
@@ -1349,7 +1348,7 @@ static int read_string_generic(hamlib_port_t *p,
 #endif
             rd_count = port_read_generic(p, &rxbuffer[total_count],
                                          expected_len == 1 ? 1 : minlen, direct);
-//            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes\n", __func__, (int)rd_count);
+//            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes tot=%d\n", __func__, (int)rd_count, total_count);
             minlen -= rd_count;
 
             if (errno == EAGAIN)
@@ -1379,6 +1378,8 @@ static int read_string_generic(hamlib_port_t *p,
         if (total_count == 0 && rxbuffer[total_count] == '\\') { rxmax = (rxmax - 1) * 5; }
 
         total_count += (int) rd_count;
+
+        if (total_count == rxmax) break;
 
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {

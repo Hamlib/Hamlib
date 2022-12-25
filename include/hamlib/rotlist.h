@@ -667,6 +667,20 @@
 #define ROT_MODEL_FLIR ROT_MAKE_MODEL(ROT_FLIR, 1)
 
 /**
+ * \brief A macro that returns the model number of the APEX backend.
+ *
+ * \def ROT_MODEL_APEX
+ *
+ * The APEX backend can be used with APEX * rotators. 
+ */
+//! @cond Doxygen_Suppress
+#define ROT_APEX 26
+#define ROT_BACKEND_APEX "apex"
+//! @endcond
+#define ROT_MODEL_APEX_SHARED_LOOP ROT_MAKE_MODEL(ROT_APEX, 1)
+
+
+/**
  * \brief Convenience type definition for a rotator model.
  *
  * \typedef typedef int rot_model_t
