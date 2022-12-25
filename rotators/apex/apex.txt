@@ -1,0 +1,42 @@
+[T4BRFA99H00M0107] -- 0 degrees
+[T4BRFA99H00M0100] -- 45 degrees
+[T4BRFA99H00M0101] -- 90 degrees
+[T4BRFA99H00M0102] -- 135 degrees
+[T4BRFA99H00M0103] -- 180 degrees
+[T4BRFA99H00M0104] -- 225 degrees
+[T4BRFA99H00M0105] -- 270 degrees
+[T4BRFA99H00M0106] -- 315 degrees
+
+These are the bidirectional answers
+[T4BRFA99H00M0200] -- 45
+[T4BRFA99H00M0201] -- 90
+[T4BRFA99H00M0202] -- 135
+[T4BRFA99H00M0203] -- 180 Bidirectional N/S
+[T4BRFA99H00M0204] -- 225
+[T4BRFA99H00M0205] -- 270
+[T4BRFA99H00M0206] -- 315
+[T4BRFA99H00M0207] -- 0
+
+All commands need CR added
+The 98 should be replaced by whatever the rig returns -- in this case it was 99.
+Startup: [LINK] returns [LINKOK]
+LEFT:[R98T4AH01] [R99T4AH01] counter
+RIGHT:[R98T4AH02]
+UNI:[R98T4AH03] [R99T4AH03]
+BI: [R98T4AH04] [R99T4AH04]
+FLIP: [R98T4AH05] [R99T4AH05]
+
+Direct switching
+Seems the "98" model does not recognized the direct commands
+[R99T4AM10] 0
+[R99T4AM11] 45
+[R99T4AM12] 90
+[R99T4AM13] 135
+[R99T4AM14] 180
+[R99T4AM15] 225
+[R99T4AM16] 270
+[R99T4AM17] 315
+
+Misc Commands
+[GETVER]
+<VER> response with string
