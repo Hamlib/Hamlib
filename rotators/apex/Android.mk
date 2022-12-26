@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := apex.c sharedloop.c
+LOCAL_SRC_FILES := apex.c apex.h sharedloop.c
 LOCAL_MODULE := apex
 
 LOCAL_CFLAGS := 
