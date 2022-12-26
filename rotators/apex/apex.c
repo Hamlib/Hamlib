@@ -6,7 +6,7 @@
 
 float apex_azimuth;
 
-char apex_info[64];
+char apex_info[65];
 
 static pthread_t apex_read_thread;
 
@@ -27,7 +27,7 @@ static int apex_get_string(ROT *rot, char *s, int maxlen)
     retval = read_string(&rs->rotport, (unsigned char *)buf,
                          sizeof(buf),
                          "\n", strlen("\n"), sizeof(buf), 1);
-    strncpy(s, buf, maxlen);
+    strncpy(s, buf, 64);
     strtok(s, "\r\n"); // truncate any CR/LF
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %d bytes '%s'\n", __func__, retval, s);
 
