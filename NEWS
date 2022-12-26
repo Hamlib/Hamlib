@@ -23,6 +23,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.3
+        * Fix FTDX5000 write_delay with microham
         * Fix grep error on MingW build
 
 Version 4.5.2
