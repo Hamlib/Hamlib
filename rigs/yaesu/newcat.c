@@ -1769,17 +1769,13 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         if (is_ftdx5000)
         {
             // Ensure FT5000 is back to MIC input
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1031;%s", txon);
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1031;");
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
             newcat_set_cmd(rig); // don't care about the return
         }
-        else
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
-            rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-            err = newcat_set_cmd(rig);
-        }
-
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+        err = newcat_set_cmd(rig);
 
         break;
 
