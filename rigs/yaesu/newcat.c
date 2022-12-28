@@ -1741,7 +1741,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
 int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct newcat_priv_data *priv  = (struct newcat_priv_data *)rig->state.priv;
-    int err;
+    int err = -RIG_EPROTO;
     char txon[] = "TX1;";
     char txoff[] = "TX0;";
 
@@ -1756,24 +1756,31 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     switch (ptt)
     {
-    // the FTDX5000 uses menu 103 for front/rear audio in USB mode
     case RIG_PTT_ON_MIC:
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1030;");
-        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-        err = newcat_set_cmd(rig);
         break;
 
     case RIG_PTT_ON_DATA:
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1031;");
-        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-        err = newcat_set_cmd(rig);
         break;
 
     case RIG_PTT_ON:
+
         /* Build the command string */
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
-        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-        err = newcat_set_cmd(rig);
+        // the FTDX5000 uses menu 103 for front/rear audio in USB mode
+        if (is_ftdx5000)
+        {
+            // Ensure FT5000 is back to MIC input
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1031;%s", txon);
+            rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+            newcat_set_cmd(rig); // don't care about the return
+        }
+        else
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
+            rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+            err = newcat_set_cmd(rig);
+        }
+
+
         break;
 
     case RIG_PTT_OFF:
