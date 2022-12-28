@@ -51,7 +51,7 @@ const struct newcat_priv_caps ftdx5000_priv_caps =
         { .index = 8, .set_value = 0, .get_value = '6', .width = 3000, .optional = 0 },
         { .index = 9, .set_value = 0, .get_value = '9', .width = 600, .optional = 0 },
         { .index = 10, .set_value = 0, .get_value = 'A', .width = 300, .optional = 0 },
-    }
+    },
 };
 
 const struct confparams ftdx5000_ext_levels[] =
@@ -140,11 +140,11 @@ const struct rig_caps ftdx5000_caps =
     RIG_MODEL(RIG_MODEL_FTDX5000),
     .model_name =         "FTDX-5000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".8",
+    .version =            NEWCAT_VER ".9",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
-    .ptt_type =           RIG_PTT_RIG,
+    .ptt_type =           RIG_PTT_RIG_MICDATA,
     .dcd_type =           RIG_DCD_NONE,
     .port_type =          RIG_PORT_SERIAL,
     .serial_rate_min =    4800,         /* Default rate per manual */
