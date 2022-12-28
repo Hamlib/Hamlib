@@ -637,11 +637,13 @@ int newcat_open(RIG *rig)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX103;");
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         err = newcat_get_cmd(rig);
+
         if (RIG_OK != (err = newcat_get_cmd(rig)))
         {
             RETURNFUNC(err);
         }
-        if (priv->ret_data[6] == ';') priv->front_rear_status = priv->ret_data[5];
+
+        if (priv->ret_data[6] == ';') { priv->front_rear_status = priv->ret_data[5]; }
     }
 
     RETURNFUNC(RIG_OK);
@@ -678,7 +680,8 @@ int newcat_close(RIG *rig)
     if (is_ftdx5000)
     {
         // Restore EX103 status
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX103%c;", priv->front_rear_status);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX103%c;",
+                 priv->front_rear_status);
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         newcat_set_cmd(rig); // don't care about the return
     }
@@ -1770,6 +1773,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     switch (ptt)
     {
     case RIG_PTT_ON_MIC:
+
         /* Build the command string */
         // the FTDX5000 uses menu 103 for front/rear audio in USB mode
         if (is_ftdx5000)
@@ -1779,12 +1783,14 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
             newcat_set_cmd(rig); // don't care about the return
         }
+
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         err = newcat_set_cmd(rig);
         break;
 
     case RIG_PTT_ON_DATA:
+
         /* Build the command string */
         // the FTDX5000 uses menu 103 for front/rear audio in USB mode
         if (is_ftdx5000)
@@ -1794,6 +1800,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
             newcat_set_cmd(rig); // don't care about the return
         }
+
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         err = newcat_set_cmd(rig);
