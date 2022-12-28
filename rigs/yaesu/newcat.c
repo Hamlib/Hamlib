@@ -545,6 +545,7 @@ int newcat_open(RIG *rig)
     struct newcat_priv_data *priv = rig->state.priv;
     struct rig_state *rig_s = &rig->state;
     const char *handshake[3] = {"None", "Xon/Xoff", "Hardware"};
+    int err;
 
     ENTERFUNC;
 
@@ -600,7 +601,6 @@ int newcat_open(RIG *rig)
             || priv->rig_id == NC_RIGID_FTDX3000
             || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
-        int err;
         char *cmd = "EX0291;EX029;"; // FT2000/D
 
         if (priv->rig_id == NC_RIGID_FT950 || rig->caps->rig_model == RIG_MODEL_FT950) { cmd = "EX0271;EX027;"; }
@@ -629,6 +629,19 @@ int newcat_open(RIG *rig)
     {
         rig->state.disable_yaesu_bandselect = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: disabling FTDX3000 band select\n", __func__);
+    }
+
+    if (is_ftdx5000)
+    {
+        // Remember EX103 status
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX103;");
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+        err = newcat_get_cmd(rig);
+        if (RIG_OK != (err = newcat_get_cmd(rig)))
+        {
+            RETURNFUNC(err);
+        }
+        if (priv->ret_data[6] == ';') priv->front_rear_status = priv->ret_data[5];
     }
 
     RETURNFUNC(RIG_OK);
@@ -664,8 +677,8 @@ int newcat_close(RIG *rig)
 
     if (is_ftdx5000)
     {
-        // Ensure FT5000 is back to MIC input
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1030;");
+        // Restore EX103 status
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX103%c;", priv->front_rear_status);
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         newcat_set_cmd(rig); // don't care about the return
     }
@@ -1757,13 +1770,21 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     switch (ptt)
     {
     case RIG_PTT_ON_MIC:
+        /* Build the command string */
+        // the FTDX5000 uses menu 103 for front/rear audio in USB mode
+        if (is_ftdx5000)
+        {
+            // Ensure FT5000 is back to MIC input
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1030;");
+            rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+            newcat_set_cmd(rig); // don't care about the return
+        }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+        err = newcat_set_cmd(rig);
         break;
 
     case RIG_PTT_ON_DATA:
-        break;
-
-    case RIG_PTT_ON:
-
         /* Build the command string */
         // the FTDX5000 uses menu 103 for front/rear audio in USB mode
         if (is_ftdx5000)
@@ -1773,6 +1794,12 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
             newcat_set_cmd(rig); // don't care about the return
         }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
+        rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+        err = newcat_set_cmd(rig);
+        break;
+
+    case RIG_PTT_ON:
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txon);
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         err = newcat_set_cmd(rig);

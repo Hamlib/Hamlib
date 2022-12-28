@@ -22,6 +22,7 @@ int ai = 0;
 int sh = 25;
 int na = 0;
 int ex039 = 0;
+int ex103 = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -315,6 +316,20 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "EX039", 3) == 0)
         {
             sscanf(buf, "EX039%d", &ex039);
+        }
+        else if (strcmp(buf, "EX103;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "EX103%d;", ex103);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "EX103", 3) == 0)
+        {
+            sscanf(buf, "EX103%d", &ex103);
+        }
+        else if (strcmp(buf, "PS;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PS1;");
+            n = write(fd, buf, strlen(buf));
         }
         else if (strlen(buf) > 0)
         {
