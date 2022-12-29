@@ -532,7 +532,7 @@ int ic10_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     char infobuf[50];
-    int retval, iflen;
+    int retval, iflen, offset;
 
     retval = get_ic10_if(rig, infobuf);
 
@@ -546,8 +546,15 @@ int ic10_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     /* IFggmmmkkkhhh snnnzrx yytdfcp */
     /* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp */
+    /* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp####  what should be if p13/p14/p15 included  */
+    /* IF00014074000     +00000000003000000 ; QRP QDX bad IF command -- 36 bytes instead of 33 */
+    /* QRP QDX should be 37 bytes but used only 1 byte for p14 instead of 2 bytes */
+    /* 12345678901234567890123456789012345678 */
+    offset = 5;
+    if (iflen == 36) offset = 8; // QRP QDX gets completely bogus length
+    else if (iflen == 37) offset = 9; // just incase somebody does this add p13/p14x2/p15
 
-    *ptt = infobuf[iflen - 5] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
+    *ptt = infobuf[iflen - offset] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
 
     return RIG_OK;
 }
