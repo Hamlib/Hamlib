@@ -29,7 +29,7 @@
 #include "misc.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20221128"
+#define BACKEND_VER "20221230"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -110,6 +110,7 @@ extern struct confparams kenwood_cfg_params[];
 #define RIG_IS_PT8000A   (rig->caps->rig_model == RIG_MODEL_PT8000A)
 #define RIG_IS_POWERSDR  (rig->caps->rig_model == RIG_MODEL_POWERSDR)
 #define RIG_IS_MALACHITE (rig->caps->rig_model == RIG_MODEL_MALACHITE)
+#define RIG_IS_QRPLABS (rig->caps->rig_model == RIG_MODEL_QRPLABS)
 
 struct kenwood_filter_width
 {
@@ -311,6 +312,7 @@ extern const struct rig_caps pt8000a_caps;
 extern const struct rig_caps malachite_caps;
 extern const struct rig_caps tx500_caps;
 extern const struct rig_caps sdruno_caps;
+extern const struct rig_caps qrplabs_caps;
 
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd,
