@@ -23,6 +23,8 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.3
+        * Fix QRP QRDX firmware bugs in IF message so PTT works now
+        * FTDX5000 will now remember startup front/read settings and restore it
         * Fix FTDX5000 write_delay with microham
         * Fix grep error on MingW build
 
