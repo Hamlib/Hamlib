@@ -290,8 +290,10 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     fd = rp->fd;
 
     // Linux sets pins high so we force them low once
-    ser_set_rts(rp, 0);
-    ser_set_dtr(rp, 0);
+    // This fails on Linux and MacOS with hardware flow control
+    // Seems setting low disables hardware flow setting later
+//    ser_set_rts(rp, 0);
+//    ser_set_dtr(rp, 0);
 
     /*
      * Get the current options for the port...
