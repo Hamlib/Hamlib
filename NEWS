@@ -23,6 +23,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.3
+        * Fix serial.c for hardware flow control on Linux and MacOSy
         * Add QRPLabs QCX/QDX rig -- not quite a TS480
         * Fix QRP QRDX firmware bugs in IF message so PTT works now
         * FTDX5000 will now remember startup front/read settings and restore it
