@@ -17,10 +17,12 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <hamlib/config.h>
 
 #include <stdio.h>
+#include <math.h>
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
@@ -366,6 +368,59 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 #endif
         return -RIG_ENIMPL;
 
+    case RIG_LEVEL_STRENGTH:
+    {
+        cal_table_float_t *table;
+        /* Values taken from the TS-890S In-Depth Manual (IDM), p. 8
+         * 0.03 - 21.5 MHz, Preamp 1
+         */
+        /* Meter Type 1 - Kenwood specific, factory default */
+        static cal_table_float_t meter_type1 =
+	{
+            9, { { 0, -28.4f}, { 3, -26}, {11, -19.5f},
+                {19, -13}, {27, -6.5f}, {35, 0},
+                {48, 20}, {59, 40}, {70, 60}
+	        } };
+	/* Meter Type 2 - IARU recommended */
+        static cal_table_float_t meter_type2 =
+        {
+            9, { { 0, -54}, { 3, -48}, {11, -36},
+                {19, -24}, {27, -12}, {35, 0},
+                {48, 20}, {59, 40}, {70, 60}
+	        } };
+        /* Find out which meter type is in use */
+        retval = kenwood_safe_transaction(rig, "EX00011", ackbuf, sizeof(ackbuf), 11);
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+        if (strncmp(ackbuf + 8, "000", 3) == 0)
+        {
+            table = &meter_type1;
+        }
+        else if (strncmp(ackbuf + 8, "001", 3) == 0)
+        {
+            table = &meter_type2;
+        }
+	else
+	{
+	    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected meter type: %s\n",
+		      __func__, ackbuf);
+	    return -RIG_EPROTO;
+	}
+        retval = kenwood_safe_transaction(rig, "SM", ackbuf, 10, 6);
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        sscanf(ackbuf + 2, "%d", &val->i);
+	/* Convert reading back to dB (rounded) */
+        val->i = (int)floorf(rig_raw2val_float(val->i, table) + 0.5f);
+        return RIG_OK;
+    }
+
     default:
         return kenwood_get_level(rig, vfo, level, val);
     }
@@ -377,39 +432,6 @@ static struct kenwood_priv_caps ts890s_priv_caps =
 {
     .cmdtrm = EOM_KEN,
 };
-
-/* S-meter calibration table
- * The TS-890S has two distinct S-meter curves, selectable
- * by menu option.  Define both, but since Hamlib has only
- * one slot, use the the IARU one.
- * Values taken from TS-890S In-Depth Manual, p. 8
- */
-/* Meter Type 1 - Kenwood specific (default) */
-#define TS890_SM_CAL2 { 9, \
-  { \
-    { 0, -28 }, \
-    { 3, -26 }, \
-    { 11, -20 }, \
-    { 19, -13 }, \
-    { 27, -7 }, \
-    { 35, 0 }, \
-    { 48, 20 }, \
-    { 59, 40 }, \
-    { 70, 60 }, \
-  } }
-/* Meter Type 2 - IARU Standard */
-#define TS890_SM_CAL1 { 9, \
-  { \
-    { 0, -54 }, \
-    { 3, -48 }, \
-    { 11, -36 }, \
-    { 19, -24 }, \
-    { 27, -12 }, \
-    { 35, 0 }, \
-    { 48, 20 }, \
-    { 59, 40 }, \
-    { 70, 60 }, \
-  } }
 
 /* SWR meter calibration table */
 /* The full scale value reads infinity, so arbitrary */
@@ -543,7 +565,6 @@ const struct rig_caps ts890s_caps =
     },
     .vfo_ops = TS890_VFO_OPS,
 
-    .str_cal = TS890_SM_CAL1,
     .swr_cal = TS890_SWR_CAL,
 
     .priv = (void *)& ts890s_priv_caps,
