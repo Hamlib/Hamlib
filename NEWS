@@ -26,7 +26,7 @@ Version 4.6
 
 Version 4.5.4
         * 2023-XX-XX
-        * Remove get_powerstat from Icom ID-5100
+        * Remove get_powerstat from Icom ID-5100,ID-4100,ID-31,ID-51 and fix get/set freq in all
 
 Version 4.5.3
         * 2022-12-31
