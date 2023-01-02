@@ -14,6 +14,8 @@ Version 5.x -- future
 
 Version 4.6
         * 2023-11-XX -- Planned for Nov 2023
+        * Add Apex Shared Loop rotator -- unidirectional only so far
+        * Add client_version to rigctld so client can report it's version for future use/compatility/alternatives
         * Add --set-conf=tuner_control_pathname=hamlib_tuner_control (default)
           If file exists then it will be called with 0/1 (Off/On) argument
           with 'U TUNER 0' or 'U TUNER 1"
@@ -22,7 +24,12 @@ Version 4.6
         * Add FLIR PTU-D48, E46, D100, D300 rotors
         * Fix FTDX3000 rig split
 
+Version 4.5.4
+        * 2023-XX-XX
+        * Remove get_powerstat from Icom ID-5100
+
 Version 4.5.3
+        * 2022-12-31
         * Fix serial.c for hardware flow control on Linux and MacOSy
         * Add QRPLabs QCX/QDX rig -- not quite a TS480
         * Fix QRP QRDX firmware bugs in IF message so PTT works now
