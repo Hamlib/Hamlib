@@ -86,7 +86,7 @@ const struct rig_caps id5100_caps =
     RIG_MODEL(RIG_MODEL_ID5100),
     .model_name = "ID-5100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_MOBILE,
@@ -189,7 +189,7 @@ const struct rig_caps id5100_caps =
     .set_vfo =  icom_set_vfo,
 
     .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
+    //.get_powerstat = icom_get_powerstat, // ID-5100 cannot get power status
     .decode_event =  icom_decode_event,
 
     .set_func =  icom_set_func,
