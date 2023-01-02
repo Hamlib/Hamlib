@@ -7717,3 +7717,15 @@ HAMLIB_EXPORT(int) rig_get_lock_mode(RIG *rig, int *mode)
 
     return (retcode);
 }
+
+HAMLIB_EXPORT(int) rig_is_model(RIG *rig, rig_model_t model)
+{
+    int is_rig;
+
+    //a bit too verbose so disable this unless needed
+    //rig_debug(RIG_DEBUG_TRACE, "%s(%d):%s called\n", __FILE__, __LINE__, __func__);
+    is_rig = (model == rig->caps->rig_model) ? 1 : 0;
+
+    return (is_rig); // RETURN is too verbose here
+}
+

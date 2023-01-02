@@ -86,9 +86,9 @@ const struct rig_caps id4100_caps =
     RIG_MODEL(RIG_MODEL_ID4100),
     .model_name = "ID-4100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_ALPHA,
+    .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_MOBILE,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
@@ -98,7 +98,7 @@ const struct rig_caps id4100_caps =
     .serial_data_bits =  8,
     .serial_stop_bits =  1,
     .serial_parity =  RIG_PARITY_NONE,
-    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_XONXOFF,
     .write_delay =  0,
     .post_write_delay =  0,
     .timeout =  1000,
@@ -187,7 +187,7 @@ const struct rig_caps id4100_caps =
     .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
 
-    .set_powerstat = icom_set_powerstat,
+    //.set_powerstat = icom_set_powerstat, // ID-4100 does cannot query power
     .get_powerstat = icom_get_powerstat,
     .decode_event =  icom_decode_event,
 
