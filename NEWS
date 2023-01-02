@@ -26,6 +26,7 @@ Version 4.6
 
 Version 4.5.4
         * 2023-XX-XX
+        * Remove get_powerstat from Icom ID-5100
 
 Version 4.5.3
         * 2022-12-31
