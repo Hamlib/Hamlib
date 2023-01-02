@@ -31,7 +31,12 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20221120"
+#define BACKEND_VER "20230102"
+
+#define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
+#define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
+#define ICOM_IS_ID4100 rig_is_model(rig, RIG_MODEL_ID4100)
+#define ICOM_IS_ID5100 rig_is_model(rig, RIG_MODEL_ID5100)
 
 #define ICOM_IS_SECONDARY_VFO(vfo) ((vfo) & (RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B))
 #define ICOM_GET_VFO_NUMBER(vfo) (ICOM_IS_SECONDARY_VFO(vfo) ? 0x01 : 0x00)

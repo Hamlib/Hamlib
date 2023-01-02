@@ -1324,7 +1324,15 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC2(retval);
     }
 
-    freq_len = priv->civ_731_mode ? 4 : 5;
+    if (ICOM_IS_ID5100 || ICOM_IS_ID5100)
+    {
+        freq_len = 3;
+    }
+    else
+    {
+        freq_len = priv->civ_731_mode ? 4 : 5;
+    }
+
     /*
      * to_bcd requires nibble len
      */
@@ -1688,7 +1696,11 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         RETURNFUNC(RIG_OK);
     }
 
-    if (freq_len != 4 && freq_len != 5)
+    if (freq_len == 3 && (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: 3-byte ID5100/4100 length\n", __func__);
+    }
+    else if (freq_len != 4 && freq_len != 5)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
                   __func__, freq_len);
@@ -1698,7 +1710,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         RETURNFUNC(-RIG_ERJCTED);
     }
 
-    if (freq_len != (priv->civ_731_mode ? 4 : 5))
+    if (freq_len != 3 && freq_len != (priv->civ_731_mode ? 4 : 5))
     {
         rig_debug(RIG_DEBUG_WARN, "%s: freq len (%d) differs from expected\n",
                   __func__, freq_len);
