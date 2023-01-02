@@ -82,7 +82,7 @@ const struct rig_caps id31_caps =
     RIG_MODEL(RIG_MODEL_ID31),
     .model_name = "ID-31",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_ALPHA,
     .rig_type =  RIG_TYPE_HANDHELD,
@@ -179,7 +179,7 @@ const struct rig_caps id31_caps =
     .get_mode =  icom_get_mode,
 
     .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
+//    .get_powerstat = icom_get_powerstat, // not capable
     .decode_event =  icom_decode_event,
 
     .set_func =  icom_set_func,
