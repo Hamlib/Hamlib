@@ -1324,9 +1324,9 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC2(retval);
     }
 
-    if (ICOM_IS_ID5100 || ICOM_IS_ID5100)
+    if (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51)
     {
-        freq_len = 3;
+        freq_len = 5;
     }
     else
     {
@@ -1370,6 +1370,13 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     else
     {
         cmd = C_SET_FREQ;
+
+        if (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51)
+        {
+            // for these rigs 0x00 is setting the freq and 0x03 is just for reading
+            cmd = 0x00;
+        }
+
         subcmd = -1;
         retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                                   &ack_len);
@@ -1696,7 +1703,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         RETURNFUNC(RIG_OK);
     }
 
-    if (freq_len == 3 && (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51))
+    if (freq_len == 3 && (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31
+                          || ICOM_IS_ID51))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: 3-byte ID5100/4100 length\n", __func__);
     }
@@ -1721,7 +1729,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      */
     *freq = from_bcd(freqbuf + freqbuf_offset, freq_len * 2);
 
-    if (freq_len == 3) *freq *= 1000; // 3-byte freq is in KHz so convert to Hz
+    if (freq_len == 3) { *freq *= 100; } // 3-byte freq for ID5100 is in 100Hz units so convert to Hz
 
     if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
