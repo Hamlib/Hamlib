@@ -1721,6 +1721,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      */
     *freq = from_bcd(freqbuf + freqbuf_offset, freq_len * 2);
 
+    if (freq_len == 3) *freq *= 1000; // 3-byte freq is in KHz so convert to Hz
+
     if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
     switch (vfo)
