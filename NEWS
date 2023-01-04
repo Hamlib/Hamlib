@@ -26,6 +26,9 @@ Version 4.6
 
 Version 4.5.4
         * 2023-XX-XX
+        * Allow rigctld to start with autopower_on=0 to avoid startup timeouts when rig is powered off
+        * Fix dummy device to work with grig by disallowing empty "u" call
+        * Fix ID5100 and promote to stable and hopefully ID4100 too
         * Remove get_powerstat from Icom ID-5100,ID-4100,ID-31,ID-51 and fix get/set freq in all
 
 Version 4.5.3
