@@ -1699,7 +1699,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (freq_len == 3 && (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31
                           || ICOM_IS_ID51))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: 3-byte ID5100/4100 length\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: 3-byte ID5100/4100 length - turn off XONXOFF flow control\n", __func__);
     }
     else if (freq_len != 4 && freq_len != 5)
     {
