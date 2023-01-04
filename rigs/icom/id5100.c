@@ -90,12 +90,15 @@ int id5100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     case RIG_MODE_FMN: icmode = 5; modebuf = 2; break;
 
-    case RIG_MODE_DSTAR: icmode = 17; modebuf = 1; break;
+    case RIG_MODE_DSTAR: icmode = 0x17; modebuf = 1; break;
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode=%s\n", __func__, rig_strrmode(mode));
         return -RIG_EINVAL;
     }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: mode=%d, modebuf=%c\n", __func__, icmode,
+              modebuf);
 
     retval = icom_transaction(rig, C_SET_MODE, icmode, &modebuf, 1, ackbuf,
                               &ack_len);
@@ -118,11 +121,17 @@ int id5100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     switch (modebuf[1])
     {
-    case 2: *mode = modebuf[3] == 1 ? RIG_MODE_AM : RIG_MODE_AMN; break;
+    case 2:
+        *mode = modebuf[2] == 1 ? RIG_MODE_AM : RIG_MODE_AMN;
+        *width = modebuf[2] == 1 ? 12000 : 6000; break;
 
-    case 5: *mode = modebuf[3] == 1 ? RIG_MODE_FM : RIG_MODE_FMN; break;
+    case 5:
+        *mode = modebuf[2] == 1 ? RIG_MODE_FM : RIG_MODE_FMN;
+        *width = modebuf[2] == 1 ? 10000 : 5000; break;
 
-    case 17: *mode = RIG_MODE_DSTAR; break;
+    case 0x17:
+        *mode = RIG_MODE_DSTAR;
+        *width = 6000; break;
     }
 
     return RIG_OK;
@@ -144,7 +153,7 @@ const struct rig_caps id5100_caps =
     .mfg_name =  "Icom",
     .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_BETA,
+    .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_MOBILE,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
@@ -154,8 +163,6 @@ const struct rig_caps id5100_caps =
     .serial_data_bits =  8,
     .serial_stop_bits =  1,
     .serial_parity =  RIG_PARITY_NONE,
-    // XONXOFF is not working on Firmware E8
-    //.serial_handshake =  RIG_HANDSHAKE_XONXOFF,
     .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  0,

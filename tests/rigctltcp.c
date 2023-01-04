@@ -146,7 +146,7 @@ static sig_atomic_t volatile ctrl_c;
 static int volatile ctrl_c;
 #endif
 
-const char *portno = "4532";
+const char *portno = "4531";
 const char *src_addr = NULL; /* INADDR_ANY */
 const char *multicast_addr = "0.0.0.0";
 int multicast_port = 4532;
@@ -1314,7 +1314,7 @@ void *handle_socket(void *arg)
                 memset(reply, 0, sizeof(reply));
                 rig_flush(&my_rig->state.rigport);
                 retcode = rig_send_raw(my_rig, cmd, nbytes, reply, sizeof(reply),
-                                       &cmd[nbytes - 1]);
+                                       term);
 
                 if (retcode < 0)
                 {
@@ -1325,8 +1325,7 @@ void *handle_socket(void *arg)
                 {
 
                     rig_debug(RIG_DEBUG_VERBOSE, "%s: reply(%d bytes)='%s'\n", __func__, retcode, reply);
-
-                    fwrite(reply, retcode, 1, fsockout);
+                    fwrite(reply, 1, retcode, fsockout);
                     fflush(fsockout);
                 }
             }
@@ -1541,7 +1540,7 @@ void usage(void)
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -M, --multicast-addr=addr     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
-        "  -n, --multicast-port=port     set multicast UDP port, default 4532\n"
+        "  -n, --multicast-port=port     set multicast UDP port, default 4531\n"
         "  -A, --password                set password for rigctld access\n"
         "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
         "  -h, --help                    display this help and exit\n"

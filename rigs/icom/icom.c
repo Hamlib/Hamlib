@@ -1363,16 +1363,22 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     else
     {
         cmd = C_SET_FREQ;
+        subcmd = -1;
 
         if (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51)
         {
             // for these rigs 0x00 is setting the freq and 0x03 is just for reading
             cmd = 0x00;
+            // temporary fix for ID5100 not giving ACK/NAK on 0x00 freq on E8 firmware
+            retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, NULL,
+                                      NULL);
+            return RIG_OK;
         }
-
-        subcmd = -1;
-        retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
-                                  &ack_len);
+        else
+        {
+            retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
+                                      &ack_len);
+        }
     }
 
     hl_usleep(50 * 1000); // pause for transceive message and we'll flush it
@@ -1699,7 +1705,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (freq_len == 3 && (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31
                           || ICOM_IS_ID51))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: 3-byte ID5100/4100 length - turn off XONXOFF flow control\n", __func__);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: 3-byte ID5100/4100 length - turn off XONXOFF flow control\n", __func__);
     }
     else if (freq_len != 4 && freq_len != 5)
     {
