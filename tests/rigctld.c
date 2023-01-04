@@ -156,6 +156,7 @@ extern int lock_mode;
 extern powerstat_t rig_powerstat;
 static int rigctld_idle =
     0; // if true then rig will close when no clients are connected
+static int skip_open = 0;
 
 #define MAXCONFLEN 1024
 
@@ -509,19 +510,29 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
-            if (*conf_parms != '\0')
+            if (strcmp(optarg, "autopower_on=0") == 0)
             {
-                strcat(conf_parms, ",");
+                rig_debug(RIG_DEBUG_ERR, "%s: skipping rig_open\n", __func__);
+                skip_open = 1;
+            }
+            else
+            {
+
+                if (*conf_parms != '\0')
+                {
+                    strcat(conf_parms, ",");
+                }
+
+                if (strlen(conf_parms) + strlen(optarg) > MAXCONFLEN - 24)
+                {
+                    printf("Length of conf_parms exceeds internal maximum of %d\n",
+                           MAXCONFLEN - 24);
+                    return 1;
+                }
+
+                strncat(conf_parms, optarg, MAXCONFLEN - strlen(conf_parms));
             }
 
-            if (strlen(conf_parms) + strlen(optarg) > MAXCONFLEN - 24)
-            {
-                printf("Length of conf_parms exceeds internal maximum of %d\n",
-                       MAXCONFLEN - 24);
-                return 1;
-            }
-
-            strncat(conf_parms, optarg, MAXCONFLEN - strlen(conf_parms));
             break;
 
         case 't':
@@ -758,8 +769,15 @@ int main(int argc, char *argv[])
     }
 
     /* attempt to open rig to check early for issues */
-    retcode = rig_open(my_rig);
-    rig_opened = retcode == RIG_OK ? 1 : 0;
+    if (skip_open)
+    {
+        rig_opened = 0;
+    }
+    else
+    {
+        retcode = rig_open(my_rig);
+        rig_opened = retcode == RIG_OK ? 1 : 0;
+    }
 
     if (retcode != RIG_OK)
     {
