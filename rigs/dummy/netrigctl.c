@@ -1924,6 +1924,8 @@ static int netrigctl_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     if (ret != RIG_OK) { return ret; }
 
+    if (strlen(rig_strfunc(func)) == 0) { return -RIG_ENAVAIL; }
+
     SNPRINTF(cmd, sizeof(cmd), "u%s %s\n", vfostr, rig_strfunc(func));
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
@@ -2733,7 +2735,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20221214.0",
+    .version =        "20230104.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
