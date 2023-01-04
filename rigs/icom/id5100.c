@@ -154,7 +154,9 @@ const struct rig_caps id5100_caps =
     .serial_data_bits =  8,
     .serial_stop_bits =  1,
     .serial_parity =  RIG_PARITY_NONE,
-    .serial_handshake =  RIG_HANDSHAKE_XONXOFF,
+    // XONXOFF is not working on Firmware E8
+    //.serial_handshake =  RIG_HANDSHAKE_XONXOFF,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
     .write_delay =  0,
     .post_write_delay =  0,
     .timeout =  1000,
