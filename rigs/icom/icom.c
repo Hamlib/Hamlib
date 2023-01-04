@@ -1324,14 +1324,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC2(retval);
     }
 
-    if (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51)
-    {
-        freq_len = 5;
-    }
-    else
-    {
-        freq_len = priv->civ_731_mode ? 4 : 5;
-    }
+    freq_len = priv->civ_731_mode ? 4 : 5;
 
     /*
      * to_bcd requires nibble len
