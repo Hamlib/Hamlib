@@ -510,7 +510,7 @@ int main(int argc, char *argv[])
                 exit(1);
             }
 
-            if (strcmp(optarg, "autopower_on=0") == 0)
+            if (strcmp(optarg, "auto_power_on=0") == 0)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: skipping rig_open\n", __func__);
                 skip_open = 1;
