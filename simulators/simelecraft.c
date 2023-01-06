@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
         buf[0] = 0;
 
         if (getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
-        else { return 0; }
+        else {continue; }
 
         if (strcmp(buf, "RM5;") == 0)
         {
@@ -149,6 +149,22 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("ID"); }
         }
+        else if (strcmp(buf, "PS;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PS1;");
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strcmp(buf, "BW;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "BW0190;");
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strcmp(buf, "BN;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "BN03;");
+            n = write(fd, buf, strlen(buf));
+        }
+
 
 #if 0
         else if (strncmp(buf, "AI", 2) == 0)
@@ -199,29 +215,29 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "K2;") == 0)
         {
-            write(fd, "K20;", 4);
+            n = write(fd, "K20;", 4);
         }
         else if (strcmp(buf, "K3;") == 0)
         {
-            write(fd, "K30;", 4);
+            n = write(fd, "K30;", 4);
         }
         else if (strcmp(buf, "RVM;") == 0)
         {
-            write(fd, "RV02.37;", 8);
+            n = write(fd, "RV02.37;", 8);
         }
         else if (strcmp(buf, "AI;") == 0)
         {
-            write(fd, "AI0;", 4);
+            n = write(fd, "AI0;", 4);
         }
         else if (strcmp(buf, "MD;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "MD%d;", modea);
-            write(fd, buf, strlen(buf));
+            n = write(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "MD$;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "MD$%d;", modeb);
-            write(fd, buf, strlen(buf));
+            n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "MD", 2) == 0)
         {
@@ -231,12 +247,12 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FA;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FA%011d;", freqa);
-            write(fd, buf, strlen(buf));
+            n = write(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "FB;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FB%011d;", freqb);
-            write(fd, buf, strlen(buf));
+            n = write(fd, buf, strlen(buf));
         }
 
         else if (strncmp(buf, "FA", 2) == 0)
@@ -250,17 +266,17 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "FR;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FR0;");
-            write(fd, buf, strlen(buf));
+            n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FT;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FT0;");
-            write(fd, buf, strlen(buf));
+            n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "TQ;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "TQ0;");
-            write(fd, buf, strlen(buf));
+            n = write(fd, buf, strlen(buf));
         }
         else if (strlen(buf) > 0)
         {
