@@ -5847,11 +5847,23 @@ int HAMLIB_API rig_power2mW(RIG *rig,
 
     txrange = rig_get_range(rig->state.tx_range_list, freq, mode);
 
-    if (!txrange)
+    // check all the range lists
+    if (txrange == NULL) { rig_get_range(rig->caps->tx_range_list1, freq, mode); }
+
+    if (txrange == NULL) { rig_get_range(rig->caps->tx_range_list2, freq, mode); }
+
+    if (txrange == NULL) { rig_get_range(rig->caps->tx_range_list3, freq, mode); }
+
+    if (txrange == NULL) { rig_get_range(rig->caps->tx_range_list4, freq, mode); }
+
+    if (txrange == NULL) { rig_get_range(rig->caps->tx_range_list5, freq, mode); }
+
+    if (txrange == NULL)
     {
         /*
          * freq is not on the tx range!
          */
+        rig_debug(RIG_DEBUG_ERR, "%s: freq not in tx range\n", __func__);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -6843,7 +6855,7 @@ const freq_range_t *HAMLIB_API rig_get_range(const freq_range_t *range_list,
 {
     int i;
 
-    if (!range_list)
+    if (range_list == NULL)
     {
         return (NULL);
     }
