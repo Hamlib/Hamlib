@@ -332,7 +332,7 @@ typedef enum {
  */
 /* TODO: kill me, and replace by real AGC delay */
 enum agc_level_e {
-    RIG_AGC_OFF =       0,
+    RIG_AGC_OFF = 0,
     RIG_AGC_SUPERFAST,
     RIG_AGC_FAST,
     RIG_AGC_SLOW,
@@ -340,7 +340,8 @@ enum agc_level_e {
     RIG_AGC_MEDIUM,
     RIG_AGC_AUTO,
     RIG_AGC_LONG,
-    RIG_AGC_ON              /*< Turns AGC ON -- Kenwood -- restores last level set */
+    RIG_AGC_ON,             /*< Turns AGC ON -- Kenwood -- restores last level set */
+    RIG_AGC_NONE            /*< Rig does not have CAT AGC control */
 };
 
 

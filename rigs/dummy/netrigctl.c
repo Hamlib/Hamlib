@@ -811,9 +811,10 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "agc_levels") == 0)
             {
-                int i = 1;
+                int i = 0;
                 char *p = strtok(value, " ");
-                rig->caps->agc_levels[0] = RIG_AGC_OFF;
+                rig->caps->agc_levels[0] = RIG_AGC_NONE; // default value gets overwritten
+                rig->caps->agc_level_count = 1;
 
                 while (p)
                 {
@@ -823,7 +824,9 @@ static int netrigctl_open(RIG *rig)
 
                     if (n == 2)
                     {
+                        if (agc_code == RIG_AGC_OFF) { p = strtok(NULL, " "); continue; } ;
                         rig->caps->agc_levels[i++] = agc_code;
+                        rig->caps->agc_level_count++;
                         rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has agc code=%d, level=%s\n", __func__,
                                   agc_code, agc_string);
                     }
@@ -835,8 +838,6 @@ static int netrigctl_open(RIG *rig)
                     rig_debug(RIG_DEBUG_VERBOSE, "%d=%s\n", agc_code, agc_string);
                     p = strtok(NULL, " ");
                 }
-
-                rig->caps->agc_level_count = i;
             }
             else
             {
@@ -2735,7 +2736,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20230104.0",
+    .version =        "20230106.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
