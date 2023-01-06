@@ -296,7 +296,6 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "\n");
 
 
-#if 0
     fprintf(fout, "AGC levels:");
     const struct icom_priv_caps *priv_caps =
         (const struct icom_priv_caps *) rig->caps->priv;
@@ -313,6 +312,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     }
     else
     {
+
         for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && i < caps->agc_level_count; i++)
         {
             fprintf(fout, " %d=%s", caps->agc_levels[i],
@@ -320,16 +320,13 @@ int dumpcaps(RIG *rig, FILE *fout)
         }
     }
 
-#else
-    //fprintf(fout, "\n");
-    fprintf(fout, "AGC levels: ");
-    char buf[1024];
-    rig_sprintf_agc_levels(rig, buf, (int)sizeof(buf));
-    fprintf(fout, "%s", buf);
-#endif
+    fprintf(fout, "\n");
 
     if (i == 0)
     {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: defaulting to all levels since rig does not have any\n", __func__);
+
         // Fall back to printing out all levels for backwards-compatibility
         for (i = RIG_AGC_OFF; i <= RIG_AGC_LAST; i++)
         {
