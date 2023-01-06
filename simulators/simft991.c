@@ -12,6 +12,10 @@
 
 float freqA = 14074000;
 float freqB = 14074500;
+char tx_vfo = '0';
+char rx_vfo = '0';
+char modeA = '0';
+char modeB = '0';
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -104,7 +108,7 @@ int main(int argc, char *argv[])
         {
             printf("Cmd:%s\n", buf);
         }
-        else { return 0; }
+        else { continue; }
 
         if (strcmp(buf, "RM5;") == 0)
         {
@@ -137,6 +141,24 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("IF"); }
         }
+       else if (strcmp(buf, "FA;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "FA%08.0f;", freqA);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "FA", 2) == 0)
+        {
+            sscanf(buf, "FA%f", &freqA);
+        }
+        else if (strcmp(buf, "FB;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "FB%08.0f;", freqB);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "FB", 2) == 0)
+        {
+            sscanf(buf, "FB%f", &freqB);
+        }
         else if (strcmp(buf, "ID;") == 0)
         {
             printf("%s\n", buf);
@@ -148,6 +170,11 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("ID"); }
         }
+        else if (strcmp(buf, "PS;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PS1;");
+            n = write(fd, buf, strlen(buf));
+        }
         else if (strcmp(buf, "AI;") == 0)
         {
             printf("%s\n", buf);
@@ -158,6 +185,54 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("ID"); }
         }
+        else if (strcmp(buf, "AI0;") == 0)
+        {
+            usleep(50 * 1000);
+        }
+        else if (strcmp(buf, "FT;") == 0)
+        {
+            usleep(50 * 1000);
+            SNPRINTF(buf, sizeof(buf), "FT%c;", tx_vfo);
+            printf(" FT response#1=%s, tx_vfo=%c\n", buf, tx_vfo);
+            n = write(fd, buf, strlen(buf));
+            printf(" FT response#2=%s\n", buf);
+
+            if (n < 0) { perror("FT"); }
+        }
+        else if (strncmp(buf, "FT", 2) == 0)
+        {
+            tx_vfo = buf[2];
+
+            if (tx_vfo == '3') { tx_vfo = '1'; }
+            else if (tx_vfo == '2') { tx_vfo = '0'; }
+            else { perror("Expected 2 or 3"); }
+        }
+        else if (strcmp(buf, "MD0;") == 0)
+        {
+            usleep(50 * 1000);
+            SNPRINTF(buf, sizeof(buf), "MD0%c;", modeA);
+            n = write(fd, buf, strlen(buf));
+
+            if (n < 0) { perror("MD0;"); }
+        }
+        else if (strncmp(buf, "MD0", 3) == 0)
+        {
+            modeA = buf[3];
+        }
+        else if (strcmp(buf, "MD1;") == 0)
+        {
+            usleep(50 * 1000);
+            SNPRINTF(buf, sizeof(buf), "MD1%c;", modeB);
+            n = write(fd, buf, strlen(buf));
+
+            if (n < 0) { perror("MD0;"); }
+        }
+        else if (strncmp(buf, "MD1", 3) == 0)
+        {
+            modeB = buf[3];
+        }
+
+
 
 #if 0
         else if (strncmp(buf, "AI", 2) == 0)

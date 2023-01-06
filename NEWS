@@ -26,6 +26,7 @@ Version 4.6
 
 Version 4.5.4
         * 2023-XX-XX
+        * Fix AGC levels with rigctld
         * Fix rig_power2mW so it checks all ranges
         * Allow rigctld to start with autopower_on=0 to avoid startup timeouts when rig is powered off
         * Fix dummy device to work with grig by disallowing empty "u" call

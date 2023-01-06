@@ -1284,6 +1284,7 @@ static const struct
     { RIG_AGC_AUTO, "AUTO" },
     { RIG_AGC_LONG, "LONG" },
     { RIG_AGC_ON, "ON" },
+    { RIG_AGC_NONE, "NONE" },
     { -1, "" },
 };
 
