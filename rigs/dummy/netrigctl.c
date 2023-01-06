@@ -824,7 +824,6 @@ static int netrigctl_open(RIG *rig)
 
                     if (n == 2)
                     {
-                        if (agc_code == RIG_AGC_OFF) { p = strtok(NULL, " "); continue; } ;
                         rig->caps->agc_levels[i++] = agc_code;
                         rig->caps->agc_level_count++;
                         rig_debug(RIG_DEBUG_VERBOSE, "%s: rig has agc code=%d, level=%s\n", __func__,
