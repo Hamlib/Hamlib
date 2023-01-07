@@ -611,9 +611,9 @@ int newcat_open(RIG *rig)
         else if (priv->rig_id == NC_RIGID_FT991A
                  || rig->caps->rig_model == RIG_MODEL_FT991) { cmd = "EX0321;EX032;"; }
         else if (priv->rig_id == NC_RIGID_FTDX3000
-                 || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;EX039;"; }
+                 || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; }
         else if (priv->rig_id == NC_RIGID_FTDX3000DM
-                 || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;EX039;"; }
+                 || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; }
         else if (priv->rig_id == NC_RIGID_FTDX5000
                  || rig->caps->rig_model == RIG_MODEL_FTDX5000) { cmd = "EX0331;EX033"; }
 
