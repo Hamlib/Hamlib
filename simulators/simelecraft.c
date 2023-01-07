@@ -132,7 +132,8 @@ int main(int argc, char *argv[])
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
-            pbuf = "IF059014200000+000000700000;";
+            //pbuf = "IF059014200000+000000700000;";
+            pbuf = "IF00007230000     -000000 0001000001 ;" ;
             n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
 
@@ -264,7 +265,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "PC;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "PC005;");
+            SNPRINTF(buf, sizeof(buf), "PC0150;");
             n = write(fd, buf, strlen(buf));
         }
         else if (strlen(buf) > 0)
