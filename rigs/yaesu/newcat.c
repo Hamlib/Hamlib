@@ -546,6 +546,7 @@ int newcat_open(RIG *rig)
     struct rig_state *rig_s = &rig->state;
     const char *handshake[3] = {"None", "Xon/Xoff", "Hardware"};
     int err;
+    int set_only = 0;
 
     ENTERFUNC;
 
@@ -611,15 +612,24 @@ int newcat_open(RIG *rig)
         else if (priv->rig_id == NC_RIGID_FT991A
                  || rig->caps->rig_model == RIG_MODEL_FT991) { cmd = "EX0321;EX032;"; }
         else if (priv->rig_id == NC_RIGID_FTDX3000
-                 || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; }
+                 || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; set_only = 1; }
         else if (priv->rig_id == NC_RIGID_FTDX3000DM
-                 || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; }
+                 || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; set_only = 1; }
         else if (priv->rig_id == NC_RIGID_FTDX5000
                  || rig->caps->rig_model == RIG_MODEL_FTDX5000) { cmd = "EX0331;EX033"; }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
 
-        if (RIG_OK != (err = newcat_get_cmd(rig)))
+        if (set_only)
+        {
+            err = newcat_set_cmd(rig);
+        }
+        else
+        {
+            err = newcat_get_cmd(rig);
+        }
+
+        if (err != RIG_OK)
         {
             RETURNFUNC(err);
         }
@@ -636,9 +646,17 @@ int newcat_open(RIG *rig)
         // Remember EX103 status
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX103;");
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-        err = newcat_get_cmd(rig);
 
-        if (RIG_OK != (err = newcat_get_cmd(rig)))
+        if (set_only)
+        {
+            err = newcat_set_cmd(rig);
+        }
+        else
+        {
+            err = newcat_get_cmd(rig);
+        }
+
+        if (err != RIG_OK)
         {
             RETURNFUNC(err);
         }
