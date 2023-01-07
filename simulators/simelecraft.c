@@ -262,6 +262,11 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "TQ0;");
             write(fd, buf, strlen(buf));
         }
+        else if (strncmp(buf, "PC;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PC005;");
+            n = write(fd, buf, strlen(buf));
+        }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
