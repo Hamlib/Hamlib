@@ -165,6 +165,18 @@ int elecraft_open(RIG *rig)
         }
     }
 
+    if (rig->caps->rig_model != RIG_MODEL_XG3)   // XG3 doesn't have extended
+    {
+        // turn on k2 extended to get PC values in more resolution
+        err = kenwood_transaction(rig, "K22;", NULL, 0);
+
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error setting K22='%s'...continuing\n", __func__,
+                      rigerror(err));
+        }
+    }
+
     switch (rig->caps->rig_model)
     {
     case RIG_MODEL_K2:
@@ -310,8 +322,8 @@ int elecraft_open(RIG *rig)
         kenwood_get_trn(rig, &priv->trn_state);  /* ignore errors */
         /* Currently we cannot cope with AI mode so turn it off in
              case last client left it on */
-        kenwood_set_trn(rig, RIG_TRN_OFF); /* ignore status in case
-                                                                                        it's not supported */
+        kenwood_set_trn(rig,
+                        RIG_TRN_OFF); /* ignore status in case it's not supported */
     }
 
     // For rigs like K3X vfo emulation need to set VFO_A to start
