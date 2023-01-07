@@ -160,7 +160,8 @@ int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int k3_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
+int k3_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
+                rmode_t mode);
 
 /* Private helper functions */
 int set_rit_xit(RIG *rig, shortfreq_t rit);
@@ -1825,6 +1826,7 @@ static int k3_get_maxpower(RIG *rig)
             break;
         }
     }
+
 #endif
 
     rig_debug(RIG_DEBUG_TRACE, "%s: maxpower=%d\n", __func__, maxpower);
@@ -1944,8 +1946,9 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-        SNPRINTF(levelbuf, sizeof(levelbuf), "PC%03d",
-                 (int)(val.f * k3_get_maxpower(rig)));
+        kenwood_val = (int)(val.f * k3_get_maxpower(rig));
+        SNPRINTF(levelbuf, sizeof(levelbuf), "PC%03d%s", kenwood_val,
+                 kenwood_val > 15 ? "1" : "0");
         break;
 
     default:
@@ -2247,7 +2250,15 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return RIG_EPROTO;
         }
 
-        val->f = (float) lvl / k3_get_maxpower(rig);
+        // extended K22 format PCnnnx where 0=.1W units and 1=1W units
+        if (len == 6 && levelbuf[5] == '0')
+        {
+            val->f = (float) lvl / 10.0 / k3_get_maxpower(rig);
+        }
+        else
+        {
+            val->f = (float) lvl / k3_get_maxpower(rig);
+        }
 
         break;
 
