@@ -799,22 +799,36 @@ int newcat_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     RETURNFUNC(ret);
 }
 
-
-
-
-/*
- * newcat_set_freq
- *
- * Set frequency for a given VFO
- * RIG_TARGETABLE_VFO
- * Does not SET priv->current_vfo
- *
- */
-
+/* returns 0 if no exeption or 1 if rig needs special handling */
 int newcat_60m_exception(RIG *rig, freq_t freq)
 {
-    // can we improve this to set memory mode and pick the memory slot?
-    if ((is_ftdx10 || is_ft710) && freq > 5.2 && freq < 5.5)
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int err;
+    int is_exception = 0;
+
+    if (!(freq > 5.2 && freq < 5.5)) // we're not on 60M
+    {
+        return 0;
+    }
+
+    if (is_ftdx10) { is_exception = 1; }
+    else if (is_ft710)
+    {
+        // If US mode we need to use memory channels
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0301%c", cat_term);
+
+        if ((err = newcat_get_cmd(rig)) != RIG_OK)
+        {
+            RETURNFUNC2(err);
+        }
+
+        // 01 is the only exception so far -- others may be like UK and have full control too
+        if (strncmp(&priv->ret_data[6], "01", 2) != 0) { return 0; } // no exception
+
+        is_exception = 1;
+    }
+
+    if (is_exception)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
                   __func__);
@@ -824,6 +838,14 @@ int newcat_60m_exception(RIG *rig, freq_t freq)
     return 0;
 }
 
+/*
+ * newcat_set_freq
+ *
+ * Set frequency for a given VFO
+ * RIG_TARGETABLE_VFO
+ * Does not SET priv->current_vfo
+ *
+ */
 int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char c;
