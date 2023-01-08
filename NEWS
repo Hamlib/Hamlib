@@ -26,6 +26,7 @@ Version 4.6
 
 Version 4.5.4
         * 2023-XX-XX
+        * Fix FT-710 usage on 60M
         * Fix timing on NRD-535D
         * Fix AGC levels with rigctld
         * Fix FTDX3000 EX039 error
