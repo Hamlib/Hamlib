@@ -26,6 +26,7 @@ Version 4.6
 
 Version 4.5.4
         * 2023-XX-XX
+        * Fix set_powerstat 0 to reopen with IC-7300 (and others?) on Linux
         * Fix FT-710 usage on 60M
         * Fix timing on NRD-535D
         * Fix AGC levels with rigctld
