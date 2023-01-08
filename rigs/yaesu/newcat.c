@@ -814,7 +814,7 @@ int newcat_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 int newcat_60m_exception(RIG *rig, freq_t freq)
 {
     // can we improve this to set memory mode and pick the memory slot?
-    if (is_ftdx10 && freq > 5.2 && freq < 5.5)
+    if ((is_ftdx10 || is_ft710) && freq > 5.2 && freq < 5.5)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
                   __func__);
