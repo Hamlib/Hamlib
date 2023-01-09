@@ -799,43 +799,88 @@ int newcat_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     RETURNFUNC(ret);
 }
 
+static int freq_60m[] = { 5332000, 5348000, 5358500, 5373000, 5405000 };
+
 /* returns 0 if no exeption or 1 if rig needs special handling */
-int newcat_60m_exception(RIG *rig, freq_t freq)
+int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
-    int is_exception = 0;
+    int channel = -1;
+    int i;
+    rmode_t tmode;
+    pbwidth_t twidth;
 
     if (!(freq > 5.2 && freq < 5.5)) // we're not on 60M
     {
         return 0;
     }
 
-    if (is_ftdx10) { is_exception = 1; }
-    else if (is_ft710)
+    if (mode != RIG_MODE_CW && mode != RIG_MODE_USB && mode != RIG_MODE_PKTUSB
+            && mode != RIG_MODE_RTTYR)
     {
-        // If US mode we need to use memory channels
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0301%c", cat_term);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: only USB, PKTUSB, RTTYR, and CW allowed for 60M operations\n", __func__);
+        return -RIG_EINVAL;
+    }
 
-        if ((err = newcat_get_cmd(rig)) != RIG_OK)
+    if (!is_ftdx10 && !is_ft710 && !is_ftdx101d && !is_ftdx101mp) { return 0; }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
+              __func__);
+    // If US mode we need to use memory channels
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0301%c", cat_term);
+
+    if ((err = newcat_get_cmd(rig)) != RIG_OK)
+    {
+        RETURNFUNC2(err);
+    }
+
+    // 01 is the only exception so far -- others may be like UK and have full control too
+    if (strncmp(&priv->ret_data[6], "01", 2) != 0) { return 0; } // no exception
+
+    // so now we should have a rig that has fixed memory channels 501-510 in USB/CW-U mode
+
+    // toggle vfo mode if we need to
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
+              __func__);
+
+    rig_get_mode(rig, RIG_VFO_A, &tmode, &twidth);
+    if (tmode != RIG_VFO_MEM)
+    {
+        err = newcat_vfomem_toggle(rig);
+        if (err != RIG_OK)
         {
-            RETURNFUNC2(err);
+            rig_debug(RIG_DEBUG_ERR, "%s: Error toggling VFO_MEM\n", __func__);
+            return -err;
         }
-
-        // 01 is the only exception so far -- others may be like UK and have full control too
-        if (strncmp(&priv->ret_data[6], "01", 2) != 0) { return 0; } // no exception
-
-        is_exception = 1;
     }
-
-    if (is_exception)
+    // find the nearest slot below what is requested
+    for (i = 0; i < 5; ++i)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
-                  __func__);
-        return 1;
+        if ((long)freq == freq_60m[i]) { channel = i; }
     }
 
-    return 0;
+    if (channel < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: 60M allowed frequencies are 5.332, 5.348, 5.3585, 5.373,5.405, got %g\n",
+                  __func__, freq / 1000);
+        return -RIG_EINVAL;
+    }
+
+    if (mode == RIG_MODE_CW) { channel += 5; }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MC%3d%c", channel + 501,
+             cat_term);
+
+    if ((err = newcat_set_cmd(rig)) != RIG_OK)
+    {
+        RETURNFUNC2(err);
+    }
+
+    return 1;
 }
 
 /*
@@ -854,10 +899,12 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     const struct rig_caps *caps;
     struct newcat_priv_data *priv;
     int special_60m = 0;
+    rmode_t tmode;
+    pbwidth_t twidth;
 
     ENTERFUNC;
 
-    if (newcat_60m_exception(rig, freq))
+    if (newcat_60m_exception(rig, freq, rig->state.cache.modeMainA))
     {
         // we don't try to set freq on 60m for some rigs since we must be in memory mode
         // and we can't run split mode on 60M memory mode either
@@ -881,6 +928,13 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     priv = (struct newcat_priv_data *)rig->state.priv;
     caps = rig->caps;
+
+    rig_get_mode(rig, RIG_VFO_A, &tmode, &twidth);
+    if (tmode == RIG_VFO_MEM)
+    {
+        // then we need to toggle back to VFO mode
+        newcat_vfomem_toggle(rig);
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
 //    rig_debug(RIG_DEBUG_TRACE, "%s: translated vfo = %s\n", __func__, rig_strvfo(tvfo));
@@ -1386,7 +1440,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     ENTERFUNC;
 
-    if (newcat_60m_exception(rig, rig->state.cache.freqMainA)) { RETURNFUNC(RIG_OK); } // we don't set mode in this case
+    if (newcat_60m_exception(rig, rig->state.cache.freqMainA, mode)) { RETURNFUNC(RIG_OK); } // we don't set mode in this case
 
     if (!newcat_valid_command(rig, "MD"))
     {
