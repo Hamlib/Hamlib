@@ -7979,8 +7979,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         write_block(&rs->rigport, fe_buf, fe_max);
         // close and re-open the rig
         // on linux the USB gets reset during power on
-        sleep(1);         // let serial bus idle for a while
         rig_close(rig);
+        sleep(1);         // let serial bus idle for a while
         rig_open(rig);
 
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
