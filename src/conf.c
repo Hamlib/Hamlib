@@ -559,6 +559,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         }
 
         rs->pttport.parm.cm108.ptt_bitnum = val_i;
+        rs->rigport.parm.cm108.ptt_bitnum = val_i;
         rs->pttport_deprecated.parm.cm108.ptt_bitnum = val_i;
         break;
 
