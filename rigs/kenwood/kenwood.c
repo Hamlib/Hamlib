@@ -4878,6 +4878,7 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
 
     if (!priv->has_ps)
     {
+        *status = RIG_POWER_ON;
         RETURNFUNC(RIG_OK); // fake the OK return for these rigs
     }
 
