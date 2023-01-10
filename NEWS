@@ -26,6 +26,7 @@ Version 4.6
 
 Version 4.5.5
         * Really fix CM108 ptt_bitnum usage
+        * Fix Elecraft power2mW precision/accuracy
         
 Version 4.5.4
         * 2023-XX-XX

@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "PC;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "PC0150;");
+            SNPRINTF(buf, sizeof(buf), "PC0980;");
             n = write(fd, buf, strlen(buf));
         }
         else if (strlen(buf) > 0)

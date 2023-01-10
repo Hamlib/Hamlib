@@ -5845,6 +5845,7 @@ int HAMLIB_API rig_power2mW(RIG *rig,
                             rmode_t mode)
 {
     const freq_range_t *txrange;
+    char buf[32];
 
     ENTERFUNC;
 
@@ -5880,7 +5881,10 @@ int HAMLIB_API rig_power2mW(RIG *rig,
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    *mwpower = (unsigned int)(power * txrange->high_power);
+
+    snprintf(buf, sizeof(buf), "%.0f", power * txrange->high_power);
+    *mwpower = atoi(buf);
+    //*mwpower = (unsigned int)(power * txrange->high_power);
 
     RETURNFUNC(RIG_OK);
 }
