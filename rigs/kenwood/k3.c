@@ -343,7 +343,7 @@ const struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".19",
+    .version =      BACKEND_VER ".20",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -495,7 +495,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".25",
+    .version =      BACKEND_VER ".26",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -646,7 +646,7 @@ const struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".18",
+    .version =      BACKEND_VER ".19",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -797,7 +797,7 @@ const struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".17",
+    .version =      BACKEND_VER ".18",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1839,7 +1839,9 @@ int k3_power2mW(RIG *rig,
                 freq_t freq,
                 rmode_t mode)
 {
-    *mwpower = power * k3_get_maxpower(rig) * 1000;
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.0f", power * k3_get_maxpower(rig) * 1000);
+    *mwpower = atoi(buf);
     return RIG_OK;
 }
 
