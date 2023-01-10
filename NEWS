@@ -24,6 +24,9 @@ Version 4.6
         * Add FLIR PTU-D48, E46, D100, D300 rotors
         * Fix FTDX3000 rig split
 
+Version 4.5.5
+        * Really fix CM108 ptt_bitnum usage
+        
 Version 4.5.4
         * 2023-XX-XX
         * Fix CM108 ptt setting for non-default usage

@@ -1114,8 +1114,12 @@ int HAMLIB_API rig_open(RIG *rig)
         rs->pttport.fd = cm108_open(&rs->pttport);
 
         strncpy(rs->rigport.pathname, DEFAULT_CM108_PORT, HAMLIB_FILPATHLEN);
-        rs->rigport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
-        rs->pttport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+
+        if (rs->rigport.parm.cm108.ptt_bitnum == 0)
+        {
+            rs->rigport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+            rs->pttport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+        }
 
         if (rs->pttport.fd < 0)
         {
@@ -6019,6 +6023,7 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
     HAMLIB_TRACE;
     retcode = rig->caps->set_powerstat(rig, status);
     rig_flush(&rig->state.rigport); // if anything is queued up flush it
+    rig->state.auto_power_on = 1; // ensure we auto power on in the future
     RETURNFUNC(retcode);
 }
 
