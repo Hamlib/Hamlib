@@ -7977,11 +7977,6 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
         write_block(&rs->rigport, fe_buf, fe_max);
-        // close and re-open the rig
-        // on linux the USB gets reset during power on
-        rig_close(rig);
-        sleep(1);         // let serial bus idle for a while
-        rig_open(rig);
 
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
@@ -8043,6 +8038,12 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Wait failed for get_powerstat\n",
                   __func__);
+        // close and re-open the rig
+        // on linux the USB gets reset during power on
+        rig_close(rig);
+        sleep(1);
+        rig_open(rig);
+
         retval = -RIG_ETIMEOUT;
     }
 
