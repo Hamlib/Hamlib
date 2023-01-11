@@ -273,7 +273,7 @@ dnl The host_os variable is set by the AC_CANONICAL_HOST macro above.
 AM_CONDITIONAL([VERSIONDLL], false)
 AS_CASE(["$host_os"],
     [freebsd*], [
-	AM_CPPFLAGS="-I/usr/local/include ${AM_CPPFLAGS}"
+	AM_CPPFLAGS="${AM_CPPFLAGS} -I/usr/local/include"
 	AM_LDFLAGS="${AM_LDFLAGS} -L/usr/local/lib"
 	AC_SUBST([AM_LDFLAGS])],
 
