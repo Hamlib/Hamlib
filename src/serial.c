@@ -231,7 +231,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
             fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
         }
     }
-    while (++i <= 4 && fd == -1);
+    while (++i <= 4 && fd == -1 && errno != ENOENT && errno != EPERM);
 
     if (fd == -1)
     {
