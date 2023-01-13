@@ -1731,7 +1731,7 @@ readline_repeat:
 
     else
     {
-        if (my_rig->caps->set_powerstat && (rig_powerstat == RIG_POWER_OFF
+        if (my_rig->caps->get_powerstat && (rig_powerstat == RIG_POWER_OFF
                                             || rig_powerstat == RIG_POWER_STANDBY))
         {
             // Update power status
