@@ -25,6 +25,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Fix get_powerstat bad call in rigctl_parse.c
         * Really fix CM108 ptt_bitnum usage
         * Fix Elecraft power2mW precision/accuracy
         * Fix power on/off/on for Icom rigs with rigctld power_on=0
