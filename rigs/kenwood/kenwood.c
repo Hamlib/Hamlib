@@ -771,6 +771,7 @@ int kenwood_init(RIG *rig)
     if (rig->caps->rig_model == RIG_MODEL_TS450S
             || rig->caps->rig_model == RIG_MODEL_TS50
             || rig->caps->rig_model == RIG_MODEL_TS140S
+            || rig->caps->rig_model == RIG_MODEL_TS2000
             || rig->caps->rig_model == RIG_MODEL_TS440)
     {
         priv->has_ps = 0;
