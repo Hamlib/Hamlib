@@ -29,7 +29,7 @@
 #include "misc.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20230109"
+#define BACKEND_VER "20230115"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
