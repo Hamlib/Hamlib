@@ -824,6 +824,9 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
         return -RIG_EINVAL;
     }
 
+    // some rigs need to skip freq/mode settings as 60M only operates in memory mode
+    if (is_ft991) { return 1; }
+
     if (!is_ftdx10 && !is_ft710 && !is_ftdx101d && !is_ftdx101mp) { return 0; }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
