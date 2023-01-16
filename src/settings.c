@@ -1029,7 +1029,7 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
 
     if (xdgpath)
     {
-        snprintf(path, pathlen - 1, "%s/%s/%s", xdgpath, cwd, HAMLIB_SETTINGS_FILE);
+        snprintf(path, pathlen - 1, "%s/%s", xdgpath, HAMLIB_SETTINGS_FILE);
     }
     else if (home && access(path, F_OK) != -1)
     {
