@@ -842,6 +842,8 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     case TOK_HANDSHAKE:
         if (rs->rigport.type.rig != RIG_PORT_SERIAL)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s: getting handshake is invalid for non-serial port rig type\n",
+                      __func__);
             return -RIG_EINVAL;
         }
 
@@ -1251,11 +1253,19 @@ token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
  */
 int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
 {
+    struct rig_state *rs = &rig->state;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig || !rig->caps)
     {
         return -RIG_EINVAL;
+    }
+
+    // Some parameters can be ignored
+    if (token == TOK_HANDSHAKE && (rs->rigport.type.rig != RIG_PORT_SERIAL))
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: handshake is not valid for non-serial port rig\n", __func__);
+        return RIG_OK; // this allows rigctld to continue and just print a warning instead of error
     }
 
     if (rig_need_debug(RIG_DEBUG_VERBOSE))
