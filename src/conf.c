@@ -369,6 +369,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
     case TOK_HANDSHAKE:
         if (rs->rigport.type.rig != RIG_PORT_SERIAL)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s: setting handshake is invalid for non-serial port rig type\n",
+                      __func__);
             return -RIG_EINVAL;
         }
 
