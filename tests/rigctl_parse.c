@@ -2040,6 +2040,7 @@ void list_models()
 int set_conf(RIG *my_rig, char *conf_parms)
 {
     char *p, *n;
+    int token;
 
     p = conf_parms;
 
@@ -2063,11 +2064,19 @@ int set_conf(RIG *my_rig, char *conf_parms)
             *n++ = '\0';
         }
 
+        token = rig_token_lookup(my_rig, p);
+        if (token != 0)
+        {
         ret = rig_set_conf(my_rig, rig_token_lookup(my_rig, p), q);
 
         if (ret != RIG_OK)
         {
             return (ret);
+        }
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: invalid token %s for this rig\n", __func__, p);
         }
 
         p = n;
