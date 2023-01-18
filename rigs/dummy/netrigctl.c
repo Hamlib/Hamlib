@@ -814,7 +814,7 @@ static int netrigctl_open(RIG *rig)
                 int i = 0;
                 char *p = strtok(value, " ");
                 rig->caps->agc_levels[0] = RIG_AGC_NONE; // default value gets overwritten
-                rig->caps->agc_level_count = 1;
+                rig->caps->agc_level_count = 0;
 
                 while (p)
                 {
@@ -2735,7 +2735,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20230106.0",
+    .version =        "20230117.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

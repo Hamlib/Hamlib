@@ -939,7 +939,7 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
         {
             if (strlen(str) > 0) { strcat(str, " "); }
 
-            sprintf(tmpbuf, "%d=%s", i,
+            sprintf(tmpbuf, "%d=%s", rig->caps->agc_levels[i],
                     rig_stragclevel(rig->caps->agc_levels[i]));
 
             if (strlen(str) + strlen(tmpbuf) < lenstr - 1)
