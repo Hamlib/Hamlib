@@ -25,6 +25,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Change FTDX10 to no serial handshake
         * Add TS2000 to has_ps exception
         * Add FT991 to 60M exception
         * Fix get_powerstat bad call in rigctl_parse.c
