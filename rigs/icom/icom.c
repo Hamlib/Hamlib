@@ -713,6 +713,7 @@ int icom_init(RIG *rig)
         || rig->caps->rig_model == RIG_MODEL_IC821H
         || rig->caps->rig_model == RIG_MODEL_IC910
         || rig->caps->rig_model == RIG_MODEL_IC2730
+        || rig->caps->rig_model == RIG_MODEL_ID5100
     )
     {
         priv->x25cmdfails = 1;
@@ -991,6 +992,18 @@ icom_rig_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s v%s\n", __func__, rig->caps->model_name,
               rig->caps->version);
+
+    if (rs->auto_power_on && priv->poweron == 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s asking for power on *****************************************\n", __func__);
+        rig_set_powerstat(rig, 1);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s asking for power on #2 =======================================\n",
+                  __func__);
+        priv->poweron = 1;
+    }
+
 retry_open:
     retval_echo = icom_get_usb_echo_off(rig);
 
@@ -1127,7 +1140,8 @@ icom_rig_close(RIG *rig)
 
     ENTERFUNC;
 
-    if (priv->poweron != 0 && rs->auto_power_off)
+    if (priv->poweron == 0) RETURNFUNC(RIG_OK); // nothing to do
+    if (priv->poweron == 1 && rs->auto_power_off)
     {
         // maybe we need power off?
         rig_debug(RIG_DEBUG_VERBOSE, "%s trying power off\n", __func__);
@@ -7991,7 +8005,6 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     {
     case RIG_POWER_ON:
 
-        sleep(1);         // let serial bus idle for a while
         // ic7300 manual says ~150 for 115,200
         // we'll just send a few more to be sure for all speeds
         memset(fe_buf, 0xfe, fe_max);
@@ -8005,6 +8018,14 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
 
+        // poweron == 0 means never powered -- == 2 means CAT turned off
+        if (priv->poweron == 0 || priv->poweron == 2)
+        {
+            sleep(1); // give it a while to power up
+            icom_get_usb_echo_off(rig);
+            return RIG_OK;
+        }
+
         break;
 
     default:
@@ -8012,6 +8033,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         fe_buf[0] = 0;
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
+        priv->poweron = 2;
     }
 
     i = 0;
