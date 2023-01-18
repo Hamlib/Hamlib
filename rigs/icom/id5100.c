@@ -144,6 +144,7 @@ static struct icom_priv_caps id5100_priv_caps =
     0x8C,   /* default address */
     0,      /* 731 mode */
     1,      /* no XCHG */
+    .dualwatch_split = 1
 };
 
 const struct rig_caps id5100_caps =
@@ -151,7 +152,7 @@ const struct rig_caps id5100_caps =
     RIG_MODEL(RIG_MODEL_ID5100),
     .model_name = "ID-5100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_MOBILE,
@@ -252,6 +253,7 @@ const struct rig_caps id5100_caps =
     .set_mode =  id5100_set_mode,
     .get_mode =  id5100_get_mode,
     .set_vfo =  icom_set_vfo,
+    .set_split_vfo = icom_set_split_vfo,
 
     .set_powerstat = icom_set_powerstat,
     //.get_powerstat = icom_get_powerstat, // ID-5100 cannot get power status
