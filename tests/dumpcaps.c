@@ -318,6 +318,11 @@ int dumpcaps(RIG *rig, FILE *fout)
             fprintf(fout, " %d=%s", caps->agc_levels[i],
                     rig_stragclevel(caps->agc_levels[i]));
         }
+
+        if (i == 0)
+        {
+            fprintf(fout, " %d=%s", RIG_AGC_NONE, rig_stragclevel(RIG_AGC_NONE));
+        }
     }
 
     fprintf(fout, "\n");
