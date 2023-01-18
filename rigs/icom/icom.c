@@ -6402,7 +6402,6 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
     RETURNFUNC(retval);
 }
 
-
 /*
  * icom_set_split
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -6410,6 +6409,7 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
 int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+    const struct icom_priv_caps *priv_caps = rig->caps->priv;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
     int split_sc;
@@ -6603,10 +6603,29 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         RETURNFUNC2(-RIG_EINVAL);
     }
 
-    if (RIG_OK != (retval = icom_transaction(rig, C_CTL_SPLT, split_sc, NULL, 0,
-                            ackbuf, &ack_len)))
+    if (priv_caps->dualwatch_split)
     {
-        RETURNFUNC2(retval);
+        int wvfo = tx_vfo & (RIG_VFO_A | RIG_VFO_MAIN) ? S_MAIN : S_SUB;
+
+        if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
+                                              split_sc)))
+        {
+            RETURNFUNC2(retval);
+        }
+
+        if (RIG_OK != (retval = icom_transaction(rig, C_SET_VFO, wvfo, NULL, 0,
+                                ackbuf, &ack_len)))
+        {
+            RETURNFUNC2(retval);
+        }
+    }
+    else
+    {
+        if (RIG_OK != (retval = icom_transaction(rig, C_CTL_SPLT, split_sc, NULL, 0,
+                                ackbuf, &ack_len)))
+        {
+            RETURNFUNC2(retval);
+        }
     }
 
     if ((ack_len >= 1 && ackbuf[0] != ACK) && (ack_len >= 2 && ackbuf[1] != NAK))
@@ -7091,8 +7110,9 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         break;
 
     case RIG_FUNC_DUAL_WATCH:
-        if ((rig->caps->rig_model == RIG_MODEL_IC9100) ||
-                (rig->caps->rig_model == RIG_MODEL_IC9700))
+        if ((rig->caps->rig_model == RIG_MODEL_IC9100)
+                || (rig->caps->rig_model == RIG_MODEL_IC9700)
+                || (rig->caps->rig_model == RIG_MODEL_ID5100))
         {
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_DUALMODE;
