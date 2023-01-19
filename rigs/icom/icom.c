@@ -1140,7 +1140,8 @@ icom_rig_close(RIG *rig)
 
     ENTERFUNC;
 
-    if (priv->poweron == 0) RETURNFUNC(RIG_OK); // nothing to do
+    if (priv->poweron == 0) { RETURNFUNC(RIG_OK); } // nothing to do
+
     if (priv->poweron == 1 && rs->auto_power_off)
     {
         // maybe we need power off?
@@ -8010,6 +8011,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
         write_block(&rs->rigport, fe_buf, fe_max);
+        hl_usleep(200 *
+                  1000); // need to wait a bit for RigPI and others to queue the echo
 
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
@@ -8021,8 +8024,16 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // poweron == 0 means never powered -- == 2 means CAT turned off
         if (priv->poweron == 0 || priv->poweron == 2)
         {
-            sleep(1); // give it a while to power up
-            icom_get_usb_echo_off(rig);
+            retval = -1;
+
+            for (i = 0; i < 5 && retval != RIG_OK; ++i)
+            {
+                sleep(1); // give it a while to power up
+                retval = icom_get_usb_echo_off(rig);
+
+                if (retval != RIG_OK) { sleep(1); }
+            }
+
             return RIG_OK;
         }
 
