@@ -1753,7 +1753,10 @@ readline_repeat:
                 && cmd_entry->cmd != 0x8f // dump_state
                 && cmd_entry->cmd != 0xf0 // chk_vfo
                 && cmd_entry->cmd != 0x87 // set_powerstat
-                && my_rig->caps->rig_model != RIG_MODEL_POWERSDR) // some rigs can do stuff when powered off
+                && cmd_entry->cmd != 0x88 // get_powerstat
+                && cmd_entry->cmd != 0xa5 // client_version
+                && my_rig->caps->rig_model !=
+                RIG_MODEL_POWERSDR) // some rigs can do stuff when powered off
         {
             rig_debug(RIG_DEBUG_WARN,
                       "%s: command %s not allowed when rig is powered off\n", __func__,
