@@ -8028,7 +8028,6 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
             for (i = 0; i < 5 && retval != RIG_OK; ++i)
             {
-                sleep(1); // give it a while to power up
                 retval = icom_get_usb_echo_off(rig);
 
                 if (retval != RIG_OK) { sleep(1); }
