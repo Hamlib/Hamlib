@@ -6917,10 +6917,14 @@ int HAMLIB_API rig_set_vfo_opt(RIG *rig, int status)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    // Only netrigctl has this function
+    // We allow the status to be set for rigctl use
     if (rig->caps->set_vfo_opt == NULL)
     {
         ELAPSED2;
-        RETURNFUNC(-RIG_ENAVAIL);
+        rig->state.vfo_opt = status;
+        //RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC(RIG_OK);
     }
 
     retcode = rig->caps->set_vfo_opt(rig, status);
