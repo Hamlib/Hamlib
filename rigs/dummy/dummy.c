@@ -2675,6 +2675,7 @@ DECLARE_INITRIG_BACKEND(dummy)
     rig_register(&flrig_caps);
     rig_register(&trxmanager_caps);
     rig_register(&dummy_no_vfo_caps);
+    rig_register(&aclog_caps);
 //    rig_register(&tci1x_caps);
     return RIG_OK;
 }

@@ -45,6 +45,7 @@ extern struct rig_caps netrigctl_caps;
 extern const struct rig_caps flrig_caps;
 extern const struct rig_caps trxmanager_caps;
 extern const struct rig_caps tci1x_caps;
+extern const struct rig_caps aclog_caps;
 
 int netrigctl_get_vfo_mode(RIG *);
 
