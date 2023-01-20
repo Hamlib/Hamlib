@@ -64,9 +64,19 @@
      "Command": "set_freq VFOA 14074000",
      "Status": "OK"
   },
+  "__comment_gps__": "Rigs that have gps output may include this data Lat -180 to 180 Lat -90 to 90",
+  "GPS":
+  {
+      "Latitude": 31.6543,
+      "Longitude": -91.6543,
+      "__comment_gps__": "Time is in UTC gps synchronized for this block",
+      "Time": "2023-01-18T14:29:18.740561"
+  },
 
   "Split": true,
   "SatMode": false,
+  "__comment_Time__": "Time is from internal rig not GPS synced so may be inaccurate -- see GPS Time",
+  "Time": "2023-01-18T14:29:18.740561",
   "Rig": "Dummy",
   "App": "Hamlib",
   "__comment_version__": "protocol version date YYYYMMDD",
