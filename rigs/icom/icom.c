@@ -8051,6 +8051,11 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     if (status == RIG_POWER_ON)   // wait for wakeup only
     {
+        if (rig->caps->rig_model == RIG_MODEL_IC7300)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting 5 seconds for rig to wake up\n", __func__);
+            sleep(5);  // IC7300 is slow to start up -- may need to add more rigs
+        }
         for (i = 0; i < retry; ++i)   // up to 10 attempts
         {
             freq_t freq;
