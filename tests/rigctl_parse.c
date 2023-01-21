@@ -1731,23 +1731,6 @@ readline_repeat:
 
     else
     {
-        if (my_rig->caps->get_powerstat && (rig_powerstat == RIG_POWER_OFF
-                                            || rig_powerstat == RIG_POWER_STANDBY))
-        {
-            // Update power status
-            powerstat_t stat = RIG_POWER_ON;
-            retcode = rig_get_powerstat(my_rig, &stat);
-
-            if (retcode == RIG_OK) { rig_powerstat = stat; }
-
-            if (rig_powerstat != RIG_POWER_ON)
-            {
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: rig_powerstat is not on = %d\n", __func__,
-                          rig_powerstat);
-            }
-        }
-
         // Allow only certain commands when the rig is powered off
         if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF
                                   || rig_powerstat == RIG_POWER_STANDBY)
