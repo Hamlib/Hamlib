@@ -6620,7 +6620,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     if (priv_caps->dualwatch_split)
     {
-        int wvfo = tx_vfo & (RIG_VFO_A | RIG_VFO_MAIN) ? S_MAIN : S_SUB;
+        int wvfo = tx_vfo & (RIG_VFO_A | RIG_VFO_MAIN) ? S_SUB : S_MAIN;
 
         if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
                                               split_sc)))
@@ -8020,6 +8020,11 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         priv->serial_USB_echo_off = 1;
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
+        if (rig->caps->rig_model == RIG_MODEL_IC7300)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting 5 seconds for rig to wake up\n", __func__);
+            sleep(5);  // IC7300 is slow to start up -- may need to add more rigs
+        }
 
         // poweron == 0 means never powered -- == 2 means CAT turned off
         if (priv->poweron == 0 || priv->poweron == 2)
@@ -8051,11 +8056,6 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     if (status == RIG_POWER_ON)   // wait for wakeup only
     {
-        if (rig->caps->rig_model == RIG_MODEL_IC7300)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting 5 seconds for rig to wake up\n", __func__);
-            sleep(5);  // IC7300 is slow to start up -- may need to add more rigs
-        }
         for (i = 0; i < retry; ++i)   // up to 10 attempts
         {
             freq_t freq;
