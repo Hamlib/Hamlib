@@ -2640,8 +2640,8 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
     else
     {
-        if (vfo == RIG_VFO_B
-                && rig->caps->rig_model == RIG_MODEL_K4) // K4 new MD$ command for VFOB
+        if ((priv->is_k3 || priv->is_k3s || priv->is_k4 || priv->is_k4d
+                || priv->is_k4hd)  && vfo == RIG_VFO_B)
         {
             SNPRINTF(cmd, sizeof(cmd), "MD$");
             offs = 3;
