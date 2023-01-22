@@ -59,11 +59,15 @@ dnl See README.release on setting these values
 # Set them here to keep c++/Makefile and src/Makefile in sync.
 ABI_VERSION=4
 ABI_REVISION=6
+ABI_PATCH=0
 ABI_AGE=0
 
 AC_DEFINE_UNQUOTED([ABI_VERSION], [$ABI_VERSION], [Frontend ABI version])
 AC_DEFINE_UNQUOTED([ABI_REVISION], [$ABI_REVISION], [Frontend ABI revision])
 AC_DEFINE_UNQUOTED([ABI_AGE], [$ABI_AGE], [Frontend ABI age])
+AC_DEFINE_UNQUOTED([ABI_VERSION_MAJOR], [$ABI_VERSION], [Frontend Major version])
+AC_DEFINE_UNQUOTED([ABI_VERSION_MINOR], [$ABI_REVISION], [Frontend Minor version])
+AC_DEFINE_UNQUOTED([ABI_VERSION_PATCH], [$ABI_PATCH], [Frontend Patch version])
 
 AC_SUBST([ABI_VERSION])
 AC_SUBST([ABI_REVISION])
