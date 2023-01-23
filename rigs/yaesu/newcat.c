@@ -641,6 +641,7 @@ int newcat_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: disabling FTDX3000 band select\n", __func__);
     }
 
+#if 0 // this apparently does not work
     if (is_ftdx5000)
     {
         // Remember EX103 status
@@ -663,6 +664,7 @@ int newcat_open(RIG *rig)
 
         if (priv->ret_data[6] == ';') { priv->front_rear_status = priv->ret_data[5]; }
     }
+#endif
 
     RETURNFUNC(RIG_OK);
 }
@@ -695,6 +697,7 @@ int newcat_close(RIG *rig)
         priv->poweron = 0;
     }
 
+#if 0 // this apparently does not work -- we can't query EX103
     if (is_ftdx5000)
     {
         // Restore EX103 status
@@ -703,6 +706,7 @@ int newcat_close(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         newcat_set_cmd(rig); // don't care about the return
     }
+#endif
 
     RETURNFUNC(RIG_OK);
 }
