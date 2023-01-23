@@ -239,10 +239,7 @@ struct icom_priv_caps
     struct icom_spectrum_scope_caps spectrum_scope_caps; /*!< Icom spectrum scope capabilities, if supported by the rig. Main/Sub scopes in Icom rigs have the same caps. */
     struct icom_spectrum_edge_frequency_range spectrum_edge_frequency_ranges[ICOM_MAX_SPECTRUM_FREQ_RANGES]; /*!< Icom spectrum scope edge frequencies, if supported by the rig. Last entry should have zeros in all fields. */
     struct cmdparams *extcmds;  /*!< Pointer to extended operations array */
-<<<<<<< HEAD
-=======
     int dualwatch_split;        /*!< Rig supports dual watch for split ops -- e.g. ID-5100 */
->>>>>>> 9d096c4a (Improve powerstat on/off behavior for Icom rigs)
 };
 
 struct icom_priv_data
