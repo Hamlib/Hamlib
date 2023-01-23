@@ -7,6 +7,8 @@
     "Freq": 14074000, 
     "Mode": "USB",
     "Width": 5000, 
+    "WidthLower": 200,
+    "WidthUpper": 3000,
     "RX": true, 
     "TX": false
   },
@@ -15,8 +17,10 @@
     "Freq": 14076000,
     "Mode": "USB",
     "Width": 5000,
+    "WidthLower": 200,
+    "WidthUpper": 3000,
     "RX": false,
-    "TX": false
+    "TX": true
   }],
 
   "__comment_spectrum__": "Rigs that have spectrum output may include this data",
