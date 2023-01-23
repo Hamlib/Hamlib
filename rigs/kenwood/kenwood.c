@@ -342,6 +342,8 @@ transaction_write:
         skip |= strncmp(cmdstr, "RU", 2) == 0;
         skip |= strncmp(cmdstr, "RD", 2) == 0;
         skip |= strncmp(cmdstr, "KYW", 3) == 0;
+        skip |= strncmp(cmdstr, "PS1", 3) == 0;
+        skip |= strncmp(cmdstr, "PS0", 3) == 0;
 
         if (skip)
         {
@@ -825,6 +827,14 @@ int kenwood_open(RIG *rig)
 
     id[0] = 0;
     rig->state.rigport.retry = 0;
+
+    if (rig->state.auto_power_on)
+    {
+        // Ensure rig is on
+        rig_set_powerstat(rig, 1);
+        sleep(1);
+    }
+
     err = kenwood_get_id(rig, id);
 
     if (err != RIG_OK)
@@ -855,14 +865,6 @@ int kenwood_open(RIG *rig)
         priv->poweron = 1;
 
         err = RIG_OK;  // reset our err back to OK for later checks
-    }
-
-    if (err == -RIG_ETIMEOUT && rig->state.auto_power_on)
-    {
-        // Ensure rig is on
-        rig_set_powerstat(rig, 1);
-        /* Try get id again */
-        err = kenwood_get_id(rig, id);
     }
 
     if (RIG_OK != err)
@@ -1068,6 +1070,8 @@ int kenwood_close(RIG *rig)
     struct kenwood_priv_data *priv = rig->state.priv;
 
     ENTERFUNC;
+
+    if (priv->poweron == 0) { RETURNFUNC(RIG_OK); } // nothing to do
 
     if (!no_restore_ai && priv->trn_state >= 0)
     {
@@ -4825,15 +4829,26 @@ int kenwood_get_trn(RIG *rig, int *trn)
  */
 int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
-    int retval = kenwood_transaction(rig,
-                                     (status == RIG_POWER_ON) ? ";;;;PS1;" : "PS0",
-                                     NULL, 0);
+    int retval;
+    struct kenwood_priv_data *priv = rig->state.priv;
+
+    if ((priv->is_k3 || priv->is_k3s) && status == RIG_POWER_ON)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: K3/K3S must use aux I/O jack pulled low to power on\n", __func__);
+        return -RIG_EPOWER;
+    }
+
     int i = 0;
     int retry_save = rig->state.rigport.retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
 
     rig->state.rigport.retry = 0;
+
+    retval = kenwood_transaction(rig,
+                                 (status == RIG_POWER_ON) ? ";;;;PS1;" : "PS0",
+                                 NULL, 0);
 
     if (status == RIG_POWER_ON) // wait for wakeup only
     {
