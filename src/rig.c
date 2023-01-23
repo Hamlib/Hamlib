@@ -1267,6 +1267,19 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
+        if (caps->get_powerstat != NULL)
+        {
+            powerstat_t powerflag;
+            status = rig_get_powerstat(rig, &powerflag);
+            if (status == RIG_OK && powerflag == RIG_POWER_OFF) return (-RIG_EPOWER);
+            // don't need auto_power_on if power is already on
+            if (status == RIG_OK && powerflag == RIG_POWER_ON) rig->state.auto_power_on = 0;
+            if (status == -RIG_ETIMEOUT) {
+                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n", __func__);
+                rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
+                return (-RIG_EPOWER);
+            }
+        }
         status = caps->rig_open(rig);
 
         if (status != RIG_OK)

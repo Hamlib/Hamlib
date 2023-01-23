@@ -97,10 +97,18 @@ int elecraft_open(RIG *rig)
     char buf[KENWOOD_MAX_BUF_LEN];
     struct kenwood_priv_data *priv = rig->state.priv;
     char *model = "Unknown";
+    struct rig_state *rs = &rig->state;
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,
               rig->caps->version);
+
+    if (rs->auto_power_on && priv->poweron == 0)
+    {
+        rig_set_powerstat(rig, 1);
+        priv->poweron = 1;
+    }
+
 
     /* Actual read extension levels from radio.
      *
