@@ -25,7 +25,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
-        * Fix QRP QDX PTT to new TQ command
+        * Fix QRP QDX PTT to new TQ command due to firmware changes
         * Remove EX103 check for FTDX5000
         * Fix K3/K3S VFOB setting of mode/width
         * Fix AGC level display in rigctld
