@@ -1251,6 +1251,30 @@ int ts480_init(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
+int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+    const char *ptt_cmd;
+
+    ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d\n", __func__, ptt);
+
+    switch (ptt)
+    {
+    case RIG_PTT_ON:      ptt_cmd = "TQ1"; break;
+
+    case RIG_PTT_OFF: ptt_cmd = "TQ0"; break;
+
+    default: RETURNFUNC(-RIG_EINVAL);
+    }
+
+    int retval = kenwood_transaction(rig, ptt_cmd, NULL, 0);
+
+    //if (ptt == RIG_PTT_OFF) { hl_usleep(100 * 1000); } // a little time for PTT to turn off
+
+    RETURNFUNC(retval);
+}
+
+
 /*
  * TS-480 rig capabilities
  * Notice that some rigs share the same functions.
@@ -1457,7 +1481,7 @@ const struct rig_caps qrplabs_caps =
     RIG_MODEL(RIG_MODEL_QRPLABS),
     .model_name = "QCX/QDX",
     .mfg_name = "QRPLabs",
-    .version = BACKEND_VER ".0",
+    .version = BACKEND_VER ".1",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1780,7 +1804,7 @@ const struct rig_caps pt8000a_caps =
     .set_split_vfo = kenwood_set_split_vfo,
     .get_split_vfo = kenwood_get_split_vfo_if,
     .get_ptt = kenwood_get_ptt,
-    .set_ptt = kenwood_set_ptt,
+    .set_ptt = qdx_set_ptt,
     .get_dcd = kenwood_get_dcd,
     .set_powerstat = kenwood_set_powerstat,
     .get_powerstat = kenwood_get_powerstat,
