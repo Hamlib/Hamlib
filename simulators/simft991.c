@@ -104,11 +104,11 @@ int main(int argc, char *argv[])
 
     while (1)
     {
+        start:
         if (getmyline(fd, buf))
         {
             printf("Cmd:%s\n", buf);
         }
-        else { continue; }
 
         if (strcmp(buf, "RM5;") == 0)
         {
@@ -172,8 +172,10 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "PS;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "PS1;");
+#if 0
+            SNPRINTF(buf, sizeof(buf), "PS0;");
             n = write(fd, buf, strlen(buf));
+#endif
         }
         else if (strcmp(buf, "AI;") == 0)
         {

@@ -3622,7 +3622,7 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
 
     // when not powered on need a dummy byte to wake it up
     // then sleep  from 1 to 2 seconds so we'll do 1.5 secs
-    write_block(&state->rigport, (unsigned char *) "PS;", 3);
+    write_block(&state->rigport, (unsigned char *) ";;;", 3);
     hl_usleep(1200000);
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
