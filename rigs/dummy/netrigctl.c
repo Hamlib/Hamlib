@@ -2065,9 +2065,6 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
         // also a problem with Flex 6xxx and Log4OM not working due to lack of PS command
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: PS command failed (ret=%d) so returning RIG_POWER_ON\n", __func__, ret);
-        if (ret == -RIG_EPOWER)
-        *status = RIG_POWER_OFF;
-        else
         *status = RIG_POWER_ON;
     }
 

@@ -6079,7 +6079,6 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
 
     if (rig->caps->get_powerstat == NULL)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig does not have get_powerstat to assume RIG_POWER_ON\n", __func__);
         *status = RIG_POWER_ON; // default to power if not available
         RETURNFUNC(RIG_OK);
     }
@@ -6087,7 +6086,6 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
     *status = RIG_POWER_OFF; // default now to power off until proven otherwise in get_powerstat
     HAMLIB_TRACE;
     retcode = rig->caps->get_powerstat(rig, status);
-    if (retcode == -RIG_ETIMEOUT) status = RIG_POWER_OFF;
     RETURNFUNC(retcode);
 }
 

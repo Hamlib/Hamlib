@@ -4741,7 +4741,7 @@ declare_proto_rig(get_powerstat)
 
     if (status != RIG_OK)
     {
-        stat = status;
+        RETURNFUNC(status);
     }
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
