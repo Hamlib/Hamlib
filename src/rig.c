@@ -1277,7 +1277,10 @@ int HAMLIB_API rig_open(RIG *rig)
             if (status == -RIG_ETIMEOUT) {
                 rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n", __func__);
                 rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
-                return (-RIG_EPOWER);
+                rig_debug(RIG_DEBUG_ERR, "%s: Rigs that should but don't work: TS480\n", __func__);
+                // A TS-480 user was showing ;;;;PS; not working so we'll just show the error message for now
+                // https://github.com/Hamlib/Hamlib/issues/1226
+                //return (-RIG_EPOWER);
             }
         }
         status = caps->rig_open(rig);
@@ -6086,6 +6089,7 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
     *status = RIG_POWER_OFF; // default now to power off until proven otherwise in get_powerstat
     HAMLIB_TRACE;
     retcode = rig->caps->get_powerstat(rig, status);
+    if (retcode != RIG_OK) *status = RIG_POWER_ON; // if failed assume power is on
     RETURNFUNC(retcode);
 }
 
