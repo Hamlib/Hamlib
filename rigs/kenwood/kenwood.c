@@ -320,6 +320,9 @@ transaction_write:
         /* flush anything in the read buffer before command is sent */
         rig_flush(&rs->rigport);
 
+        // PS command may need to wake up serial port
+        if (strncmp(cmd, "PS", 2) == 0) { write_block(&rs->rigport, (unsigned char *) ";;;;", 4); }
+
         retval = write_block(&rs->rigport, (unsigned char *) cmd, len);
 
         free(cmd);
@@ -4847,7 +4850,7 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
     rig->state.rigport.retry = 0;
 
     retval = kenwood_transaction(rig,
-                                 (status == RIG_POWER_ON) ? ";;;;PS1;" : "PS0",
+                                 (status == RIG_POWER_ON) ? "PS1;" : "PS0;",
                                  NULL, 0);
 
     if (status == RIG_POWER_ON) // wait for wakeup only
