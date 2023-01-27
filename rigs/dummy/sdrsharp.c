@@ -525,7 +525,7 @@ static int sdrsharp_get_vfo(RIG *rig, vfo_t *vfo)
 const struct rig_caps sdrsharp_caps =
 {
     RIG_MODEL(RIG_MODEL_SDRSHARP),
-    .model_name = "SDR#",
+    .model_name = "SDR#/gpredict",
     .mfg_name = "Airspy",
     .version = "20230127.0",
     .copyright = "LGPL",
