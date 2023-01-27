@@ -39,8 +39,8 @@
 #define FALSE 0
 
 
-#define MAXCMDLEN 8192
-#define MAXXMLLEN 8192
+#define MAXCMDLEN 128
+#define MAXXMLLEN 128
 #define MAXARGLEN 128
 #define MAXBANDWIDTHLEN 4096
 
