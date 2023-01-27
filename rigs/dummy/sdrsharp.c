@@ -526,7 +526,7 @@ const struct rig_caps sdrsharp_caps =
 {
     RIG_MODEL(RIG_MODEL_SDRSHARP),
     .model_name = "SDR#",
-    .mfg_name = "Hamlib",
+    .mfg_name = "Airspy",
     .version = "20230127.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
