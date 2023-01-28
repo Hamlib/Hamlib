@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 
     int show_conf = 0;
     int dump_caps_opt = 0;
-    const char *rig_file = NULL, *rig_file2 = NULL;
+    const char *rig_file = NULL, *rig_file2 = "127.0.0.1:4532";
     //const char **ptt_file = NULL, *dcd_file = NULL;
     //ptt_type_t ptt_type = RIG_PTT_NONE;
     //dcd_type_t dcd_type = RIG_DCD_NONE;
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
     char *civaddr = NULL;       /* NULL means no need to set conf */
     char conf_parms[MAXCONFLEN] = "";
 
-    printf("rigctlcom Version 1.4\n");
+    printf("rigctlsync Version 1.0\n");
 
     if (argc < 3)
     {
@@ -494,7 +494,7 @@ int main(int argc, char *argv[])
 
     rig_set_debug(verbose);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s, %s\n", "rigctlcom", hamlib_version2);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s, %s\n", "rigctlsync", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -550,12 +550,7 @@ int main(int argc, char *argv[])
         strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
-    if (!rig_file2)
-    {
-        fprintf(stderr, "-R com port not provided\n");
-        exit(2);
-    }
-
+    fprintf(stderr, "rig to send frequency to: %s\n", rig_file2);
     strncpy(my_rig_sync->state.rigport.pathname, rig_file2, HAMLIB_FILPATHLEN - 1);
 
 #if 0
@@ -691,7 +686,7 @@ void usage()
            name);
 
     printf("Example: Sync freq from rigctld to SDR#\n");
-    printf("\t%s -m 2 -M 9 127.0.0.1:4532\n\n", name);
+    printf("\t%s -m 2 -M 9 -R 127.0.0.1:4532\n\n", name);
     printf("See the %s.1 manual page for complete details.\n\n", name);
 
     printf(
