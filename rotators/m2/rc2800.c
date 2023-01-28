@@ -199,15 +199,24 @@ transaction_write:
 
     /* then comes the answer */
     memset(data, 0, data_len);
-    retval = read_string(&rs->rotport, (unsigned char *) data, data_len, CR,
-                         strlen(CR), 0, 1);
+    retval = read_string(&rs->rotport, (unsigned char *) data, data_len, CR LF,
+                         strlen(CR LF), 0, 1);
 
     // some models seem to echo -- so we'll check and read again if echoed
-    if (cmdstr && strcmp(data, cmdstr) == 0)
+    // skip last char in case the reply is terminated with LF instead of CR
+    if (cmdstr && strncmp(data, cmdstr, strlen(data) - 1) == 0)
     {
         memset(data, 0, data_len);
-        retval = read_string(&rs->rotport, (unsigned char *) data, data_len, CR,
-                             strlen(CR), 0, 1);
+        retval = read_string(&rs->rotport, (unsigned char *) data, data_len, CR LF,
+                             strlen(CR LF), 0, 1);
+    }
+
+    // some models uses both CR + LF -- so we'll check and discard the additional one
+    if (strlen(data) == 1)
+    {
+        memset(data, 0, data_len);
+        retval = read_string(&rs->rotport, (unsigned char *) data, data_len, CR LF,
+                             strlen(CR LF), 0, 1);
     }
 
     if (retval < 0)
@@ -234,18 +243,17 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-    if (rot->caps->rot_model == ROT_MODEL_RC2800_EARLY_AZ)
-    {
-        // we only do azimuth and this is the old protocol
-        // we have to switch modes and then send azimuth
-        // an extra CR gives us a response to expect
-        num_sprintf(cmdstr, "A\r%.0f\r\r", az);
-    }
-    else
+    if (rot->caps->rot_model == ROT_MODEL_RC2800)       // new protocol
     {
         // does the new protocol use decimal points?
         // we'll assume no for now
-        num_sprintf(cmdstr, "A%0f"CR, az);
+        num_sprintf(cmdstr, "A%.0f"CR, az);
+    }
+    else        // old protocol (both AZ and AZEL)
+    {
+        // we have to switch modes and then send azimuth
+        // an extra CR gives us a response to expect
+        num_sprintf(cmdstr, "A\r%.0f\r\r", az);
     }
 
     retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
@@ -258,16 +266,15 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     /* do not overwhelm the MCU? */
     hl_usleep(200 * 1000);
 
-    if (rot->caps->rot_model == ROT_MODEL_RC2800_EARLY_AZEL)
+    if (rot->caps->rot_model == ROT_MODEL_RC2800)       // new protocol
     {
-        // this is the old protocol
+        num_sprintf(cmdstr, "E%.0f"CR, el);
+    }
+    else        // old protocol (both AZ and AZEL)
+    {
         // we have to switch modes and then send azimuth
         // an extra CR gives us a response to expect
         num_sprintf(cmdstr, "E\r%.0f\r\r", el);
-    }
-    else
-    {
-        num_sprintf(cmdstr, "E%.0f"CR, el);
     }
 
     retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
@@ -311,36 +318,37 @@ rc2800_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         }
     }
 
-    if (rot->caps->rot_model == ROT_MODEL_RC2800)
-    {
-        retval = rc2800_transaction(rot, "E" CR, posbuf, sizeof(posbuf));
-
-        if (retval != RIG_OK || strlen(posbuf) < 5)
-        {
-            return retval < 0 ? retval : -RIG_EPROTO;
-        }
-
-        if (rc2800_parse(posbuf, &device, &value) == RIG_OK)
-        {
-            if (device == 'E')
-            {
-                *el = (elevation_t) value;
-            }
-            else
-            {
-                return -RIG_EPROTO;
-            }
-        }
-
-        rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
-                  __func__, *az, *el);
-    }
-    else
+    if (rot->caps->rot_type == ROT_TYPE_AZIMUTH)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: (az) = (%.1f)\n",
                   __func__, *az);
+        return RIG_OK;
     }
 
+    /* do not overwhelm the MCU? */
+    hl_usleep(200 * 1000);
+
+    retval = rc2800_transaction(rot, "E" CR, posbuf, sizeof(posbuf));
+
+    if (retval != RIG_OK || strlen(posbuf) < 5)
+    {
+        return retval < 0 ? retval : -RIG_EPROTO;
+    }
+
+    if (rc2800_parse(posbuf, &device, &value) == RIG_OK)
+    {
+        if (device == 'E')
+        {
+            *el = (elevation_t) value;
+        }
+        else
+        {
+            return -RIG_EPROTO;
+        }
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
+              __func__, *az, *el);
 
     return RIG_OK;
 }
@@ -400,7 +408,7 @@ const struct rot_caps rc2800_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800),
     .model_name =     "RC2800",
     .mfg_name =       "M2",
-    .version =        "20210129",
+    .version =        "20230123",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -432,7 +440,7 @@ const struct rot_caps rc2800az_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800_EARLY_AZ),
     .model_name =     "RC2800_EARLY_AZ",
     .mfg_name =       "M2",
-    .version =        "20201130",
+    .version =        "20230123",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZIMUTH,
@@ -463,7 +471,7 @@ const struct rot_caps rc2800azel_rot_caps =
     ROT_MODEL(ROT_MODEL_RC2800_EARLY_AZEL),
     .model_name =     "RC2800_EARLY_AZEL",
     .mfg_name =       "M2",
-    .version =        "20201130",
+    .version =        "20230123",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
