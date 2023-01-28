@@ -14,6 +14,7 @@ Version 5.x -- future
 
 Version 4.6
         * 2023-11-XX -- Planned for Nov 2023
+        * Add rigctlsync utility to synchronize frequency from a rig to SDR# (or others)
         * Add SDR# rig for use with SDR#'s gpredict plugin -- can only get/set freq 
         * Add Apex Shared Loop rotator -- unidirectional only so far
         * Add client_version to rigctld so client can report it's version for future use/compatility/alternatives

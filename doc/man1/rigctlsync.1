@@ -1,0 +1,329 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\"
+.\" For layout and available macros, see man(7), man-pages(7), groff_man(7)
+.\" Please adjust the date whenever revising the manpage.
+.\"
+.\" Note: Please keep this page in sync with the source, rigctlsync.c
+.\"
+.TH RIGCTLSYNC "1" "2023-01-27" "Hamlib" "Hamlib Utilities"
+.
+.
+.SH NAME
+.
+rigctlsync \- synchronize a rig to SDR# (or other rig) 
+.
+.SH SYNOPSIS
+.
+.
+.SY rigctlsync
+.OP \-hlLuV
+.OP \-m id
+.OP \-r device
+.OP \-R device
+.OP \-s baud
+.OP \-S baud
+.OP \-c id
+.OP \-C parm=val
+.OP \-B
+.RB [ \-v [ \-Z ]]
+.YS
+.
+.SH DESCRIPTION
+Allows you to synchornize frequence from a rig to SDR#.
+Best when used with rigctld, FlRig, or a multiport radio.
+.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the
+.B BUGS
+section below.  Patches and code enhancements sent to the same address are
+welcome.
+.
+.
+.SH OPTIONS
+.
+This program follows the usual GNU command line syntax.  Short options that
+take an argument may have the value follow immediately or be separated by a
+space.  Long options starting with two dashes (\(oq\-\(cq) require an
+\(oq=\(cq between the option and any argument.
+.
+.PP
+Here is a summary of the supported options:
+.
+.TP
+.BR \-m ", " \-\-model = \fIid\fP
+Select radio model number.
+.IP
+See model list (use \(lqrigctlsync -l\(rq).
+.IP
+.BR Note :
+.B rigctlsync
+(or third party software using the C API) will use radio model 2 for
+.B NET rigctl
+(communicating with
+.BR rigctld ).
+.
+.TP
+.BR \-r ", " \-\-rig\-file = \fIdevice\fP
+Use
+.I device
+as the file name of the port connected to the radio.
+.IP
+Often a serial port, but could be a USB to serial adapter.  Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+etc. on Linux,
+.IR COM1 ", " COM2 ,
+etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
+See your system's documentation.
+.IP
+The special string \(lquh\-rig\(rq may be given to enable micro-ham device
+support.
+.
+.TP
+.BR \-R ", " \-\-rig\-file2 = \fIdevice\fP
+Use
+.I device
+as the file name of one of the virtual com ports -- your program will connect
+to the other com port of the virtual pair.
+.
+.TP
+.BR \-s ", " \-\-serial\-speed = \fIbaud\fP
+Set serial speed to
+.I baud
+rate.
+.IP
+Uses maximum serial speed from radio backend capabilities (set by
+.B -m
+above) as the default.
+.
+.TP
+.BR \-S ", " \-\-serial\-speed2 = \fIbaud\fP
+Set serial speed to
+.I baud
+rate for virtual com port (see
+.BR -R ).
+.
+.IP
+Uses maximum serial speed from radio backend capabilities (set by
+.B -m
+above) as the default.
+.
+.TP
+.BR \-c ", " \-\-civaddr = \fIid\fP
+Use
+.I id
+as the CI-V address to communicate with the rig.
+.IP
+Only useful for Icom and some Ten-Tec rigs.
+.IP
+.BR Note :
+The
+.I id
+is in decimal notation, unless prefixed by
+.IR 0x ,
+in which case it is hexadecimal.
+.
+.TP
+.BR \-L ", " \-\-show\-conf
+List all config parameters for the radio defined with
+.B \-m
+above.
+.
+.TP
+.BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
+Set radio configuration parameter(s), e.g.
+.IR stop_bits=2 .
+.IP
+Use the
+.B -L
+option above for a list of configuration parameters for a given model number.
+.
+.TP
+.BR \-u ", " \-\-dump\-caps
+Dump capabilities for the radio defined with
+.B -m
+above and exit.
+.
+.TP
+.BR \-l ", " \-\-list
+List all model numbers defined in
+.B Hamlib
+and exit.
+.IP
+The list is sorted by model number.
+.IP
+.BR Note :
+In Linux the list can be scrolled back using
+.BR Shift-PageUp / Shift-PageDown ,
+or using the scrollbars of a virtual terminal in X or the cmd window in
+Windows.  The output can be piped to
+.BR more (1)
+or
+.BR less (1),
+e.g. \(lqrigctl -l | more\(rq.
+.
+.TP
+.BR \-n ", " \-\-no\-restore\-ai
+.B rigctl
+restores the state of auto information (AI) on the controlled rig.
+.IP
+If this is not desired, for example if you are using
+.B rigctl
+to turn AI mode on or off, pass this option.
+.
+.TP
+.BR \-B ", " \-\-mapa2b
+Maps set_freq on VFOA to VFOB instead.
+This allows using CW skimmer with the rig in split mode and clicking on a frequency in CW skimmer
+will set VFOB to the transmit frequency.
+.
+.TP
+.BR \-v ", " \-\-verbose
+Set verbose mode, cumulative (see
+.B DIAGNOSTICS
+below).
+.
+.TP
+.BR \-Z ", " \-\-debug\-time\-stamps
+Enable time stamps for the debug messages.
+.IP
+Use only in combination with the
+.B -v
+option as it generates no output on its own.
+.
+.TP
+.BR \-h ", " \-\-help
+Show a summary of these options and exit.
+.
+.TP
+.BR \-V ", " \-\-version
+Show version of
+.B rigctl
+and exit.
+.
+.PP
+.BR Note :
+Some options may not be implemented by a given backend and will return an
+error.  This is most likely to occur with the
+.B \-\-set\-conf
+and
+.B \-\-show\-conf
+options.
+.
+.
+.SH DIAGNOSTICS
+.
+The
+.BR \-v ,
+.B \-\-verbose
+option allows different levels of diagnostics
+to be output to
+.B stderr
+and correspond to \-v for
+.BR BUG ,
+\-vv for
+.BR ERR ,
+\-vvv for
+.BR WARN ,
+\-vvvv for
+.BR VERBOSE ,
+or \-vvvvv for
+.BR TRACE .
+.
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.
+.
+.SH EXIT STATUS
+.B rigctlsync
+exits with:
+.
+.TP
+.B 0
+if all operations completed normally;
+.
+.TP
+.B 1
+if there was an invalid command line option or argument;
+.
+.TP
+.B 2
+if an error was returned by
+.BR Hamlib .
+.
+.
+.SH EXAMPLE
+.
+Start
+.B rigctlsync
+with FLRig as the Hamlib model
+.UE
+.
+.PP
+.in +4n
+.EX
+.RB $ " rigctlsync -m 4 -M 9"
+.EE
+.in
+.
+.PP
+The following diagram shows the communications flow that allows N1MM Logger+
+to communicate with a radio connected to Flrig:
+.
+.PP
+.in +4n
+.EE
+.in
+.
+.
+.SH BUGS
+.
+.PP
+Report bugs to:
+.IP
+.nf
+.MT hamlib\-developer@lists.sourceforge.net
+Hamlib Developer mailing list
+.ME
+.fi
+.
+.
+.SH COPYING
+.
+This file is part of Hamlib, a project to develop a library that simplifies
+radio, rotator, and amplifier control functions for developers of software
+primarily of interest to radio amateurs and those interested in radio
+communications.
+.
+.PP
+Copyright \(co 2000-2011 Stephane Fillod
+.br
+Copyright \(co 2000-2018 the Hamlib Group (various contributors)
+.br
+Copyright \(co 2010-2020 Nate Bargmann
+.br
+Copyright \(co 2019 Michael Black W9MDB
+.
+.PP
+This is free software; see the file COPYING for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.
+.
+.SH SEE ALSO
+.
+.BR rigctld (1),
+.BR rigctl (1),
+.BR socat (1),
+.BR hamlib (7)
+.
+.
+.SH COLOPHON
+.
+Links to the Hamlib Wiki, Git repository, release archives, and daily snapshot
+archives are available via
+.
+.UR http://www.hamlib.org
+hamlib.org
+.UE .
