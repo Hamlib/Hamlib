@@ -496,7 +496,8 @@ static const struct
     { RIG_MODE_IQ, "IQ"},
     { RIG_MODE_ISBUSB, "ISBUSB"},
     { RIG_MODE_ISBLSB, "ISBLSB"},
-    { RIG_MODE_NONE, "" },
+    { RIG_MODE_NONE, "None" }, // so we can reutnr None when NONE is requested
+    { -1, "" }, // need to end list
 };
 
 
@@ -513,7 +514,7 @@ rmode_t HAMLIB_API rig_parse_mode(const char *s)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0 ; mode_str[i].str[0] != '\0'; i++)
+    for (i = 0 ; (s != NULL) && (mode_str[i].str[0] != '\0'); i++)
     {
         if (!strcmp(s, mode_str[i].str))
         {
@@ -521,7 +522,7 @@ rmode_t HAMLIB_API rig_parse_mode(const char *s)
         }
     }
 
-    rig_debug(RIG_DEBUG_WARN, "%s: mode '%s' not found\n", __func__, s);
+    rig_debug(RIG_DEBUG_WARN, "%s: mode '%s' not found...returning RIG_MODE_NONE\n", __func__, s);
     return RIG_MODE_NONE;
 }
 
@@ -1915,7 +1916,9 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 
         if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_MAIN; }
 
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
+        //in this case we don't change it as either VFOA/B or Main/Sub makes a difference
+        //ID5100 for example has to turn on dual watch mode for Main/Sub
+        //if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
     }
     else if (vfo == RIG_VFO_TX)
     {
@@ -1963,7 +1966,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 
         if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_SUB; }
 
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_SUB; }
+        //if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_SUB; }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
     }
