@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <sys/time.h>
 #include <hamlib/rig.h>
 #include "../src/misc.h"
@@ -84,7 +85,7 @@ again:
         }
     }
 
-    printf("Error???\n");
+    printf("Error??? c=x%02x\n", c);
 
     return 0;
 }
@@ -234,6 +235,26 @@ void frameParse(int fd, unsigned char *frame, int len)
         {
             static int power_level = 0;
 
+        case 0x07:
+        case 0x08:
+            if (frame[6] != 0xfd)
+            {
+                frame[6] = 0xfb;
+                dumphex(frame,7);
+                n = write(fd, frame, 7);
+                printf("ACK x14 x08\n");
+            }
+            else
+            {
+                to_bcd(&frame[6], (long long)128, 2);
+                frame[8] = 0xfb;
+                dumphex(frame,9);
+                n = write(fd, frame, 9);
+                printf("SEND x14 x08\n");
+            }
+
+            break;
+
         case 0x0a:
             printf("Using power level %d\n", power_level);
             power_level += 10;
@@ -294,6 +315,12 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     case 0x18: // miscellaneous things
         frame[5] = 1;
+        frame[6] = 0xfd;
+        n = write(fd, frame, 7);
+        break;
+
+    case 0x19: // miscellaneous things
+        frame[5] = 0x94;
         frame[6] = 0xfd;
         n = write(fd, frame, 7);
         break;
@@ -474,7 +501,7 @@ void frameParse(int fd, unsigned char *frame, int len)
     default: printf("cmd 0x%02x unknown\n", frame[4]);
     }
 
-    if (n == 0) { printf("Write failed?\n"); }
+    if (n == 0) { printf("Write failed=%s\n", strerror(errno)); }
 
 // don't care about the rig type yet
 
