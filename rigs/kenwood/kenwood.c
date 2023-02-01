@@ -1103,6 +1103,11 @@ int kenwood_get_id(RIG *rig, char *buf)
 {
     ENTERFUNC;
 
+    if (rig->caps->rig_model == RIG_MODEL_K4)
+    {
+        kenwood_transaction(rig, "K40", NULL, 0);
+    }
+
     RETURNFUNC(kenwood_transaction(rig, "ID", buf, KENWOOD_MAX_BUF_LEN));
 }
 
