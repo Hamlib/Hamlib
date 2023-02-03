@@ -1271,18 +1271,25 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             powerstat_t powerflag;
             status = rig_get_powerstat(rig, &powerflag);
-            if (status == RIG_OK && powerflag == RIG_POWER_OFF) return (-RIG_EPOWER);
+
+            if (status == RIG_OK && powerflag == RIG_POWER_OFF) { return (-RIG_EPOWER); }
+
             // don't need auto_power_on if power is already on
-            if (status == RIG_OK && powerflag == RIG_POWER_ON) rig->state.auto_power_on = 0;
-            if (status == -RIG_ETIMEOUT) {
-                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n", __func__);
+            if (status == RIG_OK && powerflag == RIG_POWER_ON) { rig->state.auto_power_on = 0; }
+
+            if (status == -RIG_ETIMEOUT)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
+                          __func__);
                 rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
-                rig_debug(RIG_DEBUG_ERR, "%s: Rigs that should but don't work: TS480\n", __func__);
+                rig_debug(RIG_DEBUG_ERR, "%s: Rigs that should but don't work: TS480\n",
+                          __func__);
                 // A TS-480 user was showing ;;;;PS; not working so we'll just show the error message for now
                 // https://github.com/Hamlib/Hamlib/issues/1226
                 //return (-RIG_EPOWER);
             }
         }
+
         status = caps->rig_open(rig);
 
         if (status != RIG_OK)
@@ -1776,6 +1783,22 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: Twiddle on so skipping this set_freq request one time\n", __func__);
         rig->state.twiddle_state = TWIDDLE_OFF;
+    }
+
+    if (!rig->state.cache.ptt
+            && ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) == 0)
+            && (vfo == RIG_VFO_TX || vfo == rig->state.tx_vfo))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: skip setting frequency on RX vfo when PTT is on\n", __func__);
+    }
+
+    if (!rig->state.cache.ptt
+            && ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) == 0)
+            && (vfo == RIG_VFO_RX || vfo == rig->state.rx_vfo))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: skip setting frequency on TX vfo when PTT is not on\n", __func__);
     }
 
     caps = rig->caps;
@@ -6089,7 +6112,9 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
     *status = RIG_POWER_OFF; // default now to power off until proven otherwise in get_powerstat
     HAMLIB_TRACE;
     retcode = rig->caps->get_powerstat(rig, status);
-    if (retcode != RIG_OK) *status = RIG_POWER_ON; // if failed assume power is on
+
+    if (retcode != RIG_OK) { *status = RIG_POWER_ON; } // if failed assume power is on
+
     RETURNFUNC(retcode);
 }
 
