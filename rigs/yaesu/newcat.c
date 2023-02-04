@@ -492,6 +492,7 @@ int newcat_init(RIG *rig)
      */
 
     is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
+    is_ft450 |= newcat_is_rig(rig, RIG_MODEL_FT450D);
     is_ft891 = newcat_is_rig(rig, RIG_MODEL_FT891);
     is_ft950 = newcat_is_rig(rig, RIG_MODEL_FT950);
     is_ft991 = newcat_is_rig(rig, RIG_MODEL_FT991);
