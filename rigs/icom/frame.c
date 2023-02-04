@@ -289,6 +289,13 @@ read_another_frame:
     if (frm_len < 0)
     {
         set_transaction_inactive(rig);
+
+        if (priv_caps->re_civ_addr != priv->re_civ_addr)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Icom timeout civ expected=%02x, used=%02x\n",
+                      __func__, priv_caps->re_civ_addr, priv->re_civ_addr);
+        }
+
         /* RIG_TIMEOUT: timeout getting response, return timeout */
         /* other error: return it */
         RETURNFUNC(frm_len);
