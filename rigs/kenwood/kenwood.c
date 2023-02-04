@@ -338,7 +338,7 @@ transaction_write:
     // So we'll skip the checks just on this one command for now
     // The TS-480 PC Control says RX; should return RX0; but it doesn't
     // We may eventually want to verify PTT with rig_get_ptt instead
-    // The TS-2000 doesn't like doing and ID right after RU or RD
+    // The TS-2000 doesn't like doing an ID right after RU or RD
     if (retval == RIG_OK)
     {
         int skip = strncmp(cmdstr, "RX", 2) == 0;
