@@ -3943,7 +3943,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         fpf = newcat_scale_float(255, val.f);
 
-        if (is_ftdx10 || is_ft710) { main_sub_vfo = 0; }
+        if (is_ftdx10 || is_ft710) { main_sub_vfo = '0'; }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AG%c%03d%c", main_sub_vfo, fpf,
                  cat_term);
