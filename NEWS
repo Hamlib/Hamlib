@@ -29,6 +29,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Fix FTDX10 FT710 set_level AFy
         * Fix FT-450D detection
         * Fix VFO A/B swapping for gpredict -- hopefully better behavior for VFO swapping rigs
           Should avoid setting RX freq while TX and avoid TX freq while RX
