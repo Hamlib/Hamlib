@@ -1785,7 +1785,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig->state.twiddle_state = TWIDDLE_OFF;
     }
 
-    if (!rig->state.cache.ptt
+    if (rig->state.cache.ptt && rig->state.cache.split
             && ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) == 0)
             && (vfo == RIG_VFO_TX || vfo == rig->state.tx_vfo))
     {
@@ -1793,7 +1793,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                   "%s: skip setting frequency on RX vfo when PTT is on\n", __func__);
     }
 
-    if (!rig->state.cache.ptt
+    if ((!rig->state.cache.ptt) && rig->state.cache.split
             && ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) == 0)
             && (vfo == RIG_VFO_RX || vfo == rig->state.rx_vfo))
     {
