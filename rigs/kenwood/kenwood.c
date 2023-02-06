@@ -1026,7 +1026,7 @@ int kenwood_open(RIG *rig)
                                                       it's not supported */
             }
 
-            if (!RIG_IS_THD74 && !RIG_IS_THD7A)
+            if (!RIG_IS_THD74 && !RIG_IS_THD7A && !RIG_IS_TMD700)
             {
                 // call get_split to fill in current split and tx_vfo status
                 retval = kenwood_get_split_vfo_if(rig, RIG_VFO_A, &split, &tx_vfo);
@@ -4806,7 +4806,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    if (RIG_IS_THD74 || RIG_IS_THD7A)
+    if (RIG_IS_THD74 || RIG_IS_THD7A || RIG_IS_TMD700)
     {
         retval = kenwood_safe_transaction(rig, "AI", trnbuf, 6, 4);
     }
@@ -4820,7 +4820,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
         RETURNFUNC(retval);
     }
 
-    if (RIG_IS_THD74 || RIG_IS_THD7A)
+    if (RIG_IS_THD74 || RIG_IS_THD7A || RIG_IS_TMD700)
     {
         *trn = trnbuf[3] != '0' ? RIG_TRN_RIG : RIG_TRN_OFF;
     }
