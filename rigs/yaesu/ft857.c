@@ -607,13 +607,20 @@ static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
 int ft857_get_vfo(RIG *rig, vfo_t *vfo)
 {
     unsigned char c;
+    static int ignore = 0;
     *vfo = RIG_VFO_B;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
+    // Some 857's cannnot read so we'll just return the cached value if we've seen an error
+    if (ignore)
+    {
+        *vfo = rig->state.cache.vfo;
+        return RIG_OK;
+    }
     if (ft857_read_eeprom(rig, 0x0068, &c) < 0)   /* get vfo status */
     {
-        // Some 857's cannnot read so we'll just return the cached value
+        ignore = 1;
         *vfo = rig->state.cache.vfo;
         return RIG_OK;
     }
