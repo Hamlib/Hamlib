@@ -246,7 +246,7 @@ const struct rig_caps ft857_caps =
     RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
     .mfg_name =       "Yaesu",
-    .version =        "20220712.0",
+    .version =        "20230206.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -613,7 +613,9 @@ int ft857_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (ft857_read_eeprom(rig, 0x0068, &c) < 0)   /* get vfo status */
     {
-        return -RIG_EPROTO;
+        // Some 857's cannnot read so we'll just return the cached value
+        *vfo = rig->state.cache.vfo;
+        return RIG_OK;
     }
 
     if ((c & 0x1) == 0) { *vfo = RIG_VFO_A; }
