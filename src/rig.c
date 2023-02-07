@@ -89,7 +89,9 @@
 const char *hamlib_license = "LGPL";
 //! @cond Doxygen_Suppress
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
-#if INTPTR_MAX == INT64_MAX
+#if INTPTR_MAX == INT128_MAX
+#define ARCHBITS "128-bit"
+#elif INTPTR_MAX == INT64_MAX
 #define ARCHBITS "64-bit"
 #else
 #define ARCHBITS "32-bit"
