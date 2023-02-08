@@ -3097,7 +3097,7 @@ static int kenwood_find_slope_filter_for_value(RIG *rig, vfo_t vfo,
 int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
-    int i, kenwood_val;
+    int i, kenwood_val, len;
     struct kenwood_priv_data *priv = rig->state.priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
@@ -3210,10 +3210,11 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_ATT:
 
+        len = RIG_IS_TS890S ? 1 : 2;
         /* set the attenuator if a correct value is entered */
         if (val.i == 0)
         {
-            SNPRINTF(levelbuf, sizeof(levelbuf), "RA00");
+            SNPRINTF(levelbuf, sizeof(levelbuf), "RA%0*d", len, 0);
         }
         else
         {
@@ -3223,7 +3224,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             {
                 if (val.i == rig->state.attenuator[i])
                 {
-                    SNPRINTF(levelbuf, sizeof(levelbuf), "RA%02d", i + 1);
+                    SNPRINTF(levelbuf, sizeof(levelbuf), "RA%0*d", len, i + 1);
                     foundit = 1;
                     break;
                 }
@@ -3479,7 +3480,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_ATT:
-        retval = kenwood_safe_transaction(rig, "RA", lvlbuf, 50, 6);
+        len = RIG_IS_TS890S ? 3 : 6;
+        retval = kenwood_safe_transaction(rig, "RA", lvlbuf, 50, len);
 
         if (retval != RIG_OK)
         {
