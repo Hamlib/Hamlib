@@ -6478,6 +6478,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     switch (split)
     {
+    case 0x10:  // simplex for ID-5100
     case RIG_SPLIT_OFF:
 
         // if either VFOA or B is the vfo we set to VFOA when split is turned off
@@ -6722,6 +6723,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     switch (splitbuf[1])
     {
+    case 0x10:
     case S_SPLT_OFF:
         *split = RIG_SPLIT_OFF;
         break;
@@ -8020,9 +8022,11 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         priv->serial_USB_echo_off = 1;
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
+
         if (rig->caps->rig_model == RIG_MODEL_IC7300)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting 5 seconds for rig to wake up\n", __func__);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting 5 seconds for rig to wake up\n",
+                      __func__);
             sleep(5);  // IC7300 is slow to start up -- may need to add more rigs
         }
 

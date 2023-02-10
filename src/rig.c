@@ -96,7 +96,8 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 #else
 #define ARCHBITS "32-bit"
 #endif
-const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " " ARCHBITS;
+const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " "
+                              ARCHBITS;
 HAMLIB_EXPORT_VAR(int) cookie_use;
 HAMLIB_EXPORT_VAR(int) lock_mode; // for use by rigctld
 HAMLIB_EXPORT_VAR(powerstat_t) rig_powerstat; // for use by rigctld
@@ -5000,10 +5001,12 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {
         switch (tx_vfo)
         {
-        case RIG_VFO_MAIN:
+        case RIG_VFO_MAIN: rx_vfo = split == 1 ? RIG_VFO_SUB : RIG_VFO_MAIN; break;
+
         case RIG_VFO_A: rx_vfo = split == 1 ? RIG_VFO_B : RIG_VFO_A; break;
 
-        case RIG_VFO_SUB:
+        case RIG_VFO_SUB: rx_vfo = split == 1 ? RIG_VFO_MAIN : RIG_VFO_SUB; break;
+
         case RIG_VFO_B: rx_vfo = split == 1 ? RIG_VFO_A : RIG_VFO_B; break;
         }
 
@@ -5015,7 +5018,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         rig->state.tx_vfo = tx_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: final rxvfo=%s, txvfo=%s, split=%d\n",
                   __func__,
-                  rig_strvfo(rx_vfo), rig_strvfo(tx_vfo), rig->state.cache.split);
+                  rig_strvfo(rx_vfo), rig_strvfo(tx_vfo), split);
     }
 
     // set rig to the the requested RX VFO
@@ -5024,11 +5027,10 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     if ((!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
             && (!(rig->caps->rig_model == RIG_MODEL_NETRIGCTL)))
 #if BUILTINFUNC
-        rig_set_vfo(rig, rx_vfo == RIG_VFO_B ? RIG_VFO_B : RIG_VFO_A,
-                    __builtin_FUNCTION());
+        rig_set_vfo(rig, rx_vfo, __builtin_FUNCTION());
 
 #else
-        rig_set_vfo(rig, rx_vfo == RIG_VFO_B ? RIG_VFO_B : RIG_VFO_A);
+        rig_set_vfo(rig, rx_vfo);
 #endif
 
     if (rx_vfo == RIG_VFO_CURR

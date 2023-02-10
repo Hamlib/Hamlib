@@ -28,6 +28,7 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
+#include "misc.h"
 
 /*
  * Specs and protocol details comes from the chapter 13 of ID-5100_Full-Inst_Manual.pdf
@@ -44,7 +45,7 @@
 #define ID5100_MODES (RIG_MODE_AM|RIG_MODE_AMN|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_DSTAR)
 #define ID5100_ALL_RX_MODES (RIG_MODE_AM|ID5100_MODES)
 
-#define ID5100_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB)
+#define ID5100_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB)
 
 #define ID5100_SCAN_OPS RIG_SCAN_NONE
 
@@ -55,6 +56,7 @@
                             RIG_FUNC_TSQL| \
                             RIG_FUNC_CSQL| \
                             RIG_FUNC_DSQL| \
+                            RIG_FUNC_DUAL_WATCH| \
                             RIG_FUNC_VOX)
 
 #define ID5100_LEVEL_ALL    (RIG_LEVEL_AF| \
@@ -135,6 +137,77 @@ int id5100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     return RIG_OK;
+}
+
+int id5100_set_vfo(RIG *rig, vfo_t vfo)
+{
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+    //struct rig_state *rs = &rig->state;
+    //struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+
+    ENTERFUNC;
+
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_B)
+    {
+        // then we need to turn off dual watch
+
+        if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
+                                              0)))
+        {
+            RETURNFUNC2(retval);
+        }
+    }
+    else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB)
+        if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
+                                              1)))
+        {
+            RETURNFUNC2(retval);
+        }
+
+    int myvfo = S_MAIN;
+
+    if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+    {
+        myvfo = S_SUB;
+    }
+
+    if (RIG_OK != (retval = icom_transaction(rig, C_SET_VFO, myvfo, NULL, 0, ackbuf,
+                            &ack_len)))
+    {
+        RETURNFUNC2(retval);
+    }
+
+    return retval;
+}
+
+int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+    //unsigned char ackbuf[MAXFRAMELEN];
+    //int ack_len = sizeof(ackbuf), icvfo, retval;
+    int retval;
+    //struct rig_state *rs = &rig->state;
+    //struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
+
+    if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_A || vfo == RIG_VFO_B)
+    {
+        return icom_set_vfo(rig, vfo);
+    }
+
+    if (vfo == RIG_VFO_MAIN)
+    {
+        retval = RIG_OK;
+    }
+    else
+    {
+        retval = RIG_OK;
+    }
+
+    return retval;
 }
 
 /*
@@ -252,8 +325,8 @@ const struct rig_caps id5100_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  id5100_set_mode,
     .get_mode =  id5100_get_mode,
-    .set_vfo =  icom_set_vfo,
-    .set_split_vfo = icom_set_split_vfo,
+    .set_vfo =  id5100_set_vfo,
+    .set_split_vfo = id5100_set_split_vfo,
 
     .set_powerstat = icom_set_powerstat,
     //.get_powerstat = icom_get_powerstat, // ID-5100 cannot get power status
