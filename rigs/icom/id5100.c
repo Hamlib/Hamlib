@@ -195,7 +195,7 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_A || vfo == RIG_VFO_B)
     {
-        return icom_set_vfo(rig, vfo);
+        return id5100_set_vfo(rig, vfo);
     }
 
     if (vfo == RIG_VFO_MAIN)
