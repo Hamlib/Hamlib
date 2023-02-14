@@ -24,8 +24,6 @@
  * Version 2009.11.21 Larry Gadallah (VE6VQ)
  */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>

@@ -19,9 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
-
 #include <hamlib/rig.h>
 #include "idx_builtin.h"
 #include "racal.h"

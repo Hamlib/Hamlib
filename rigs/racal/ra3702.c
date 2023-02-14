@@ -18,9 +18,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
-
 #include <hamlib/rig.h>
 #include "idx_builtin.h"
 #include "ra37xx.h"
