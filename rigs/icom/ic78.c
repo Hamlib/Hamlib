@@ -19,9 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
-
 #include "hamlib/rig.h"
 #include "icom.h"
 #include "bandplan.h"

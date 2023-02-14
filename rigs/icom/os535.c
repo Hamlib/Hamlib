@@ -24,8 +24,6 @@
  * Email: james (dot) m (dot) smith (at) earthlink (dot) net
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
