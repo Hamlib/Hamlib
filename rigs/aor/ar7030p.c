@@ -31,7 +31,6 @@
 
 #include "hamlib/rig.h"
 #include "ar7030p.h"
-#include "serial.h"
 #include "idx_builtin.h"
 
 #define AR7030P_MODES ( RIG_MODE_AM | \

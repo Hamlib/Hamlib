@@ -23,7 +23,6 @@
 #define _ICMARINE_H 1
 
 #include "hamlib/rig.h"
-#include "tones.h"
 
 #define BACKEND_VER "20181007"
 

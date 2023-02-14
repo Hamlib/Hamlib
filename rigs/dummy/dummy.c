@@ -21,6 +21,8 @@
  */
 
 // cppcheck-suppress *
+#include <stdint.h>
+// cppcheck-suppress *
 #include <stdio.h>
 // cppcheck-suppress *
 #include <stdlib.h>

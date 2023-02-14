@@ -31,6 +31,10 @@
  * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
  */
 
+#include <stddef.h>
+#include "bandplan.h"
+#include "rig.h"
+#include "riglist.h"
 
 #define BACKEND_VER "20220614"
 

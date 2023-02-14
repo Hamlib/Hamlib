@@ -27,7 +27,6 @@
 #include "serial.h"
 #include "idx_builtin.h"
 #include "misc.h"
-#include "aor.h"
 
 
 static int ar3030_set_vfo(RIG *rig, vfo_t vfo);

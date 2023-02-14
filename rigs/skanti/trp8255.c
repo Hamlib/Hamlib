@@ -24,7 +24,6 @@
 
 #include <hamlib/rig.h>
 #include "idx_builtin.h"
-#include "skanti.h"
 #include "iofunc.h"
 
 

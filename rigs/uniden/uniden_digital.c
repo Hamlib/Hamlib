@@ -25,7 +25,6 @@
 
 #include "hamlib/rig.h"
 #include "serial.h"
-#include "misc.h"
 
 #include "uniden_digital.h"
 

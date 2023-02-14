@@ -24,8 +24,6 @@
 #include <stdio.h>
 #include "hamlib/rig.h"
 
-#include "kit.h"
-
 #define BACKEND_VER "20200112"
 
 /*

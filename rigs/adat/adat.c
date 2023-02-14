@@ -25,7 +25,6 @@
 //    SYSTEM INCLUDES
 // ---------------------------------------------------------------------------
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -36,11 +35,10 @@
 // ---------------------------------------------------------------------------
 
 #include <hamlib/rig.h>
-#include "token.h"
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
-#include "num_stdio.h"
+#include "riglist.h"
 
 // ---------------------------------------------------------------------------
 //    ADAT INCLUDES

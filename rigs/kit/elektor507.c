@@ -27,8 +27,6 @@
 #include "hamlib/rig.h"
 #include "token.h"
 
-#include "kit.h"
-
 #ifdef _WIN32
 #define USE_FTDI_DLL
 #elif defined(HAVE_LIBUSB) && (defined(HAVE_LIBUSB_H) || defined(HAVE_LIBUSB_1_0_LIBUSB_H))

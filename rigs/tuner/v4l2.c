@@ -25,8 +25,6 @@
 #include "hamlib/rig.h"
 #include "tuner.h"  /* include config.h */
 
-#include "misc.h"
-
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif

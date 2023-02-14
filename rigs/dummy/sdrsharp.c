@@ -26,11 +26,6 @@
 #include <hamlib/rig.h>
 #include <serial.h>
 #include <misc.h>
-#include <token.h>
-#include <register.h>
-#include <network.h>
-
-#include "dummy_common.h"
 
 #define DEBUG 1
 #define DEBUG_TRACE DEBUG_VERBOSE

@@ -31,7 +31,6 @@
 #include <hamlib/rig.h>
 #include "ar7030p.h"
 #include "serial.h"
-#include "idx_builtin.h"
 
 static enum PAGE_e curPage = NONE; /* Current memory page */
 static unsigned int curAddr = 65535; /* Current page address */

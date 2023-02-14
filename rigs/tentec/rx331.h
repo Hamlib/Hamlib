@@ -22,7 +22,7 @@
 #ifndef _RX331_H
 #define _RX331_H
 
-#include "hamlib/rig.h"
+#include "token.h"
 
 #define TOK_RIGID TOKEN_BACKEND(1)
 

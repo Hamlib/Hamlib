@@ -27,7 +27,6 @@
 
 #include <serial.h>
 #include <hamlib/rig.h>
-#include "tentec.h"
 #include "tentec2.h"
 #include "bandplan.h"
 

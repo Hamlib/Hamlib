@@ -22,6 +22,7 @@
 #ifndef _AMP_DUMMY_H
 #define _AMP_DUMMY_H 1
 
+#include "amplifier.h"
 
 extern const struct amp_caps dummy_amp_caps;
 extern const struct amp_caps netampctl_caps;

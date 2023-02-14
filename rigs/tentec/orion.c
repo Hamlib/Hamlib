@@ -68,15 +68,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 #include <string.h>  /* String function definitions */
 #include <math.h>
 
 #include <hamlib/rig.h>
-#include "bandplan.h"
 #include "serial.h"
 #include "misc.h"
-#include "idx_builtin.h"
 #include "orion.h"
 
 #ifdef TT565_TIME

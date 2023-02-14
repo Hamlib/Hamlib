@@ -25,6 +25,7 @@
 #include <ctype.h>
 
 #include "hamlib/rig.h"
+#include "misc.h"
 #include "serial.h"
 #include "register.h"
 #include "idx_builtin.h"
