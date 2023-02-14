@@ -24,11 +24,11 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
-#include "misc.h"
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
 #include "idx_builtin.h"
+#include "tones.h"
 
 /*
  * It seems some IC910 out there have weird firmware. Uncomment the following

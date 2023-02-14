@@ -30,7 +30,6 @@
 #include "idx_builtin.h"
 #include "icom.h"
 #include "tones.h"
-#include "token.h"
 #include "optoscan.h"
 
 extern struct confparams opto_ext_parms[];

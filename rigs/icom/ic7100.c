@@ -28,6 +28,7 @@
 #include "idx_builtin.h"
 #include "bandplan.h"
 #include "token.h"
+#include "tones.h"
 #include "misc.h"
 
 

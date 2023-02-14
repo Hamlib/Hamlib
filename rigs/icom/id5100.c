@@ -26,6 +26,7 @@
 #include "icom_defs.h"
 #include "frame.h"
 #include "misc.h"
+#include "tones.h"
 
 /*
  * Specs and protocol details comes from the chapter 13 of ID-5100_Full-Inst_Manual.pdf

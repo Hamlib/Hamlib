@@ -29,6 +29,7 @@
 #include "icom_defs.h"
 #include "frame.h"
 #include "bandplan.h"
+#include "tones.h"
 
 #define IC7000_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_WFM)
 #define IC7000_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)

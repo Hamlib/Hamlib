@@ -26,6 +26,7 @@
 #include "icom.h"
 #include "frame.h"
 #include "icom_defs.h"
+#include "tones.h"
 
 /* TODO: DV (GMSK 4.8 kbps voice) */
 #define IC92D_MODES (RIG_MODE_FM)

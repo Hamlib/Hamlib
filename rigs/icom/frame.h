@@ -22,6 +22,10 @@
 #ifndef _FRAME_H
 #define _FRAME_H 1
 
+#include <stddef.h>
+
+#include "rig.h"
+
 // Has to be big enough for 0xfe sequence to wake up rig
 #define MAXFRAMELEN 200
 

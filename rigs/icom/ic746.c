@@ -23,7 +23,6 @@
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
-#include "token.h"
 #include "idx_builtin.h"
 
 #include "icom.h"
@@ -31,7 +30,7 @@
 #include "frame.h"
 #include "bandplan.h"
 #include "misc.h"
-
+#include "tones.h"
 
 /*
  * IC-746 and IC-746pro
