@@ -37,7 +37,6 @@
 
 #include "hamlib/rotator.h"
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 #include "iofunc.h"
 

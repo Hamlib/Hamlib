@@ -22,6 +22,8 @@
 #ifndef _ROT_GS232A_H
 #define _ROT_GS232A_H 1
 
+#include "rotator.h"
+
 extern const struct rot_caps gs232a_rot_caps;
 extern const struct rot_caps gs232a_az_rot_caps;
 extern const struct rot_caps gs232a_el_rot_caps;

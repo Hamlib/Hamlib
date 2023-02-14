@@ -20,6 +20,8 @@
 #ifndef _ROT_CELESTRON_H
 #define _ROT_CELESTRON_H 1
 
+#include "rotator.h"
+
 extern const struct rot_caps nexstar_rot_caps;
 
 #endif /* _ROT_CELESTRON_H */
