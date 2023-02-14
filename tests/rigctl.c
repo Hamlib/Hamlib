@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
 
@@ -64,10 +63,8 @@ extern int read_history();
 
 #include <hamlib/rig.h>
 #include "misc.h"
-#include "iofunc.h"
-#include "serial.h"
-#include "sprintflst.h"
 #include "rigctl_parse.h"
+#include "riglist.h"
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100    /* max number of different options */

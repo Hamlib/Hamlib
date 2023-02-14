@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <ctype.h>
 
 #include <getopt.h>
 #include <errno.h>
@@ -60,9 +59,10 @@
 #endif
 
 #include <hamlib/amplifier.h>
-#include "misc.h"
 
 #include "ampctl_parse.h"
+#include "amplist.h"
+#include "rig.h"
 
 struct handle_data
 {
