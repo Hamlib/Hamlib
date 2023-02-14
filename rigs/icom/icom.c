@@ -20,8 +20,6 @@
  */
 
 // cppcheck-suppress *
-#include <stdio.h>
-// cppcheck-suppress *
 #include <stdlib.h>
 // cppcheck-suppress *
 #include <string.h>     /* String function definitions */
@@ -32,7 +30,6 @@
 
 #include <hamlib/rig.h>
 #include <serial.h>
-#include <misc.h>
 #include <cal.h>
 #include <token.h>
 #include <register.h>

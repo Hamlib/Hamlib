@@ -23,7 +23,8 @@
 #define _OPTOSCAN_H 1
 
 #include <hamlib/rig.h>
-#include <tones.h>
+
+#include "icom_defs.h"
 
 #define TOK_TAPECNTL  TOKEN_BACKEND(1)
 #define TOK_5KHZWIN   TOKEN_BACKEND(2)

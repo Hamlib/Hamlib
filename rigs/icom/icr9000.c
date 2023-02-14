@@ -22,12 +22,9 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
-#include "serial.h"
-#include "misc.h"
 #include "idx_builtin.h"
 
 #include "icom.h"
-#include "icom_defs.h"
 
 
 #define ICR9000_MODES (RIG_MODE_AM|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_CW|RIG_MODE_WFM)

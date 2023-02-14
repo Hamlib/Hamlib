@@ -22,6 +22,7 @@
 #include "hamlib/rig.h"
 #include "icom.h"
 #include "idx_builtin.h"
+#include "tones.h"
 
 #define ICR6_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 

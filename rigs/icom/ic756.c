@@ -29,6 +29,7 @@
 #include "frame.h"
 #include "misc.h"
 #include "bandplan.h"
+#include "tones.h"
 
 #define IC756_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756_1HZ_TS_MODES IC756_ALL_RX_MODES

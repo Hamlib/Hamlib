@@ -22,6 +22,7 @@
 #include "hamlib/rig.h"
 #include "idx_builtin.h"
 #include "icom.h"
+#include "tones.h"
 
 #define IC2730_MODES (RIG_MODE_FM)
 #define IC2730_ALL_RX_MODES (RIG_MODE_AM|IC2730_MODES)
