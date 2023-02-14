@@ -23,7 +23,6 @@
 #define _KACHINA_H 1
 
 #include <hamlib/rig.h>
-#include <tones.h>
 
 #define BACKEND_VER "20061007"
 

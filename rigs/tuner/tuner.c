@@ -21,7 +21,6 @@
 
 #include "tuner.h"  /* config.h */
 
-
 #include "hamlib/rig.h"
 #include "register.h"
 

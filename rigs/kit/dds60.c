@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include "hamlib/rig.h"
 
-#include "kit.h"
 #include "parallel.h"
 #include "token.h"
 

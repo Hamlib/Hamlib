@@ -25,7 +25,6 @@
 #include <unistd.h>
 
 #include "hamlib/rig.h"
-#include "tentec.h"
 #include "bandplan.h"
 #include "iofunc.h"
 #include "serial.h"

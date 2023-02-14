@@ -22,10 +22,7 @@
 #include <stdio.h>
 
 #include <hamlib/rig.h>
-#include "serial.h"
 #include "misc.h"
-#include "token.h"
-#include "register.h"
 
 #include "barrett.h"
 

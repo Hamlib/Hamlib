@@ -29,10 +29,7 @@
 
 #include "hamlib/rig.h"
 #include "serial.h"
-#include "parallel.h"
 #include "misc.h"
-#include "tones.h"
-#include "idx_builtin.h"
 #include "register.h"
 
 #include "gs100.h"

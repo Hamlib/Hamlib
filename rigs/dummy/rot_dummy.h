@@ -22,6 +22,7 @@
 #ifndef _ROT_DUMMY_H
 #define _ROT_DUMMY_H 1
 
+#include "rotator.h"
 #include "token.h"
 
 /* backend conf */

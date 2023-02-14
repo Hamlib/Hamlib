@@ -20,7 +20,6 @@
  */
 
 #include "hamlib/rig.h"
-#include "idx_builtin.h"
 #include "prm80.h"
 
 

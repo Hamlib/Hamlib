@@ -23,7 +23,6 @@
 
 #include <hamlib/rig.h>
 #include "idx_builtin.h"
-#include "tentec.h"
 #include "tt550.h"
 
 

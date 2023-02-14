@@ -27,8 +27,6 @@
 #include <serial.h>
 #include <misc.h>
 #include <token.h>
-#include <register.h>
-#include <network.h>
 
 #include "dummy_common.h"
 

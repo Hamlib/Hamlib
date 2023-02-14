@@ -19,6 +19,7 @@
  *
  */
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -26,9 +27,6 @@
 #include "parallel.h"
 #include "misc.h"
 #include "bandplan.h"
-#include "register.h"
-
-#include "flexradio.h"
 
 static int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int sdr1k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);

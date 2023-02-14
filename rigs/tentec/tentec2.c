@@ -56,8 +56,6 @@
 
 #include "hamlib/rig.h"
 #include "serial.h"
-#include "misc.h"
-#include "register.h"
 
 #include "tentec.h"
 #include "tentec2.h"

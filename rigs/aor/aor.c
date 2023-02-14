@@ -19,7 +19,9 @@
  *
  */
 
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"

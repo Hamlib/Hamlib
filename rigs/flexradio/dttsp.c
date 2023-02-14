@@ -32,9 +32,7 @@
 #include "iofunc.h"
 #include "misc.h"
 #include "token.h"
-#include "register.h"
 #include "cal.h"
-#include "flexradio.h"
 
 /*
  * This backend is a two layer rig control: DttSP core over a mundane tuner

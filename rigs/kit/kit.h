@@ -23,6 +23,7 @@
 #define _KIT_H 1
 
 #include "hamlib/rig.h"
+#include "rotator.h"
 
 extern const struct rig_caps elektor304_caps;
 extern const struct rig_caps elektor507_caps;

@@ -26,7 +26,6 @@
 #include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"
-#include "token.h"
 #include "register.h"
 
 #include "codan.h"

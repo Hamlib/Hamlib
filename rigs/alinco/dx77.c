@@ -19,6 +19,7 @@
  *
  */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -27,6 +28,7 @@
 #include "idx_builtin.h"
 #include "alinco.h"
 #include <serial.h>
+#include "tones.h"
 #include <misc.h>
 
 /*

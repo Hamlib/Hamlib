@@ -24,7 +24,6 @@
 
 #include "hamlib/amplifier.h"
 #include "iofunc.h"
-#include "misc.h"
 
 #define CMD_MAX 32
 #define BUF_MAX 64

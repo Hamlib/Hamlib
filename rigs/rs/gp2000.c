@@ -26,6 +26,7 @@
  * we implement that and then the XK2100 uses this interface
  */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>     /* String function definitions */
@@ -33,7 +34,6 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
-#include "register.h"
 #include "num_stdio.h"
 
 #include "gp2000.h"
