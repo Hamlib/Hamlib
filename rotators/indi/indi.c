@@ -19,7 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include "indi_wrapper.h"
 

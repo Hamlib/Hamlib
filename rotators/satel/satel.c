@@ -21,7 +21,6 @@
 
 #include "hamlib/rig.h"
 #include <strings.h>
-#include <hamlib/config.h>
 
 #include <stdlib.h>
 #include <string.h>

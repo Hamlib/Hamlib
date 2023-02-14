@@ -21,7 +21,6 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <string.h>  /* String function definitions */

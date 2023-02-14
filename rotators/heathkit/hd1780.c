@@ -26,7 +26,6 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>             /* Standard library definitions */
