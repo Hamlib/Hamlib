@@ -24,8 +24,6 @@
  * The '950 has a relatively small command set.
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
