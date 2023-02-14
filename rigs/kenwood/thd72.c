@@ -19,15 +19,14 @@
  *
  */
 
-#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include <math.h>
 
 #include "hamlib/rig.h"
 #include "kenwood.h"
 #include "th.h"
-#include "num_stdio.h"
-#include "iofunc.h"
-#include "serial.h"
 #include "misc.h"
 
 
