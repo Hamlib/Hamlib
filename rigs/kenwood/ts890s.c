@@ -19,8 +19,6 @@
  */
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <math.h>
 
