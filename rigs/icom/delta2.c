@@ -31,9 +31,6 @@
  * To Do: get the datasheet, and testing on real hardware!!
  */
 
-#include <hamlib/config.h>
-
-
 #include <hamlib/rig.h>
 #include "icom.h"
 #include "icom_defs.h"

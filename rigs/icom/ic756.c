@@ -19,8 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
