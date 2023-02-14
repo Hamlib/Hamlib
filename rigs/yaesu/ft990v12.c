@@ -38,8 +38,6 @@
  *   Collaboration between M0EZP David Brewerton and K1MMI Edmund Hajjar
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
