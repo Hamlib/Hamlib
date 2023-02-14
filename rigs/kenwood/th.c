@@ -28,7 +28,6 @@
 #include "hamlib/rig.h"
 #include "kenwood.h"
 #include "th.h"
-#include "serial.h"
 #include "misc.h"
 #include "num_stdio.h"
 

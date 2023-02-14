@@ -30,7 +30,6 @@
 #include "kenwood.h"
 #include "bandplan.h"
 #include "flex.h"
-#include "token.h"
 
 #define F6K_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
 

@@ -22,11 +22,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <hamlib/rig.h>
 #include "cal.h"
 #include "idx_builtin.h"
 #include "iofunc.h"
+#include "misc.h"
 #include "token.h"
 #include "kenwood.h"
 

@@ -21,6 +21,7 @@
  *
  */
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>  /* String function definitions */
@@ -28,11 +29,11 @@
 #include <ctype.h>
 
 #include "hamlib/rig.h"
-#include "network.h"
 #include "serial.h"
 #include "register.h"
 #include "cal.h"
 #include "cache.h"
+#include "misc.h"
 
 #include "kenwood.h"
 #include "ts990s.h"

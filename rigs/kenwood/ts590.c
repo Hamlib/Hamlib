@@ -20,10 +20,11 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "hamlib/rig.h"
-#include "idx_builtin.h"
 #include "kenwood.h"
+#include "misc.h"
 #include "cal.h"
 
 
