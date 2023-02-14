@@ -36,14 +36,13 @@
 #endif
 
 // cppcheck-suppress *
+#include <stdint.h>
+// cppcheck-suppress *
 #include <stdio.h>
 // cppcheck-suppress *
 #include <stdlib.h>
 // cppcheck-suppress *
 #include <string.h>
-// cppcheck-suppress *
-// cppcheck-suppress *
-#include <ctype.h>
 // cppcheck-suppress *
 #include <errno.h>
 // cppcheck-suppress *
@@ -79,9 +78,8 @@
 #include <hamlib/rig.h>
 #include "misc.h"
 #include "iofunc.h"
-#include "serial.h"
-#include "sprintflst.h"
 #include "rigctl_parse.h"
+#include "riglist.h"
 
 /*
  * Reminder: when adding long options,

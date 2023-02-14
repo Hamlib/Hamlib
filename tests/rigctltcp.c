@@ -34,7 +34,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <ctype.h>
 #include <errno.h>
 #include <signal.h>
 
@@ -48,6 +47,10 @@
 
 #ifdef HAVE_ARPA_INET_H
 #  include <arpa/inet.h>
+#endif
+
+#ifdef HAVE_SYS_SELECT_H
+#  include <sys/select.h>
 #endif
 
 #ifdef HAVE_SYS_SOCKET_H
@@ -70,11 +73,8 @@
 
 #include <hamlib/rig.h>
 #include "misc.h"
-#include "iofunc.h"
-#include "serial.h"
-#include "sprintflst.h"
 #include "network.h"
-
+#include "riglist.h"
 #include "rigctl_parse.h"
 
 

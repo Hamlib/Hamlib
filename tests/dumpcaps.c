@@ -24,7 +24,7 @@
 
 #include <hamlib/rig.h>
 #include "misc.h"
-
+#include "riglist.h"
 #include "sprintflst.h"
 #include "rigctl_parse.h"
 #include "../rigs/icom/icom.h"

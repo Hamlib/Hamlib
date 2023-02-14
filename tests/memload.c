@@ -19,7 +19,6 @@
  */
 
 #include <hamlib/rig.h>
-#include "misc.h"
 
 #ifdef HAVE_XML2
 #  include <libxml/parser.h>

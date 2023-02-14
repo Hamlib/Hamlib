@@ -39,11 +39,6 @@
 // cppcheck-suppress *
 #include <string.h>
 // cppcheck-suppress *
-// cppcheck-suppress *
-#include <ctype.h>
-// cppcheck-suppress *
-#include <errno.h>
-// cppcheck-suppress *
 #include <signal.h>
 
 // cppcheck-suppress *
@@ -74,11 +69,8 @@
 #endif
 
 #include <hamlib/rig.h>
-#include "misc.h"
-#include "iofunc.h"
-#include "serial.h"
-#include "sprintflst.h"
 #include "rigctl_parse.h"
+#include "riglist.h"
 #include "sleep.h"
 
 /*
