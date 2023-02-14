@@ -33,7 +33,6 @@
 #include <string.h>
 
 #include "hamlib/rig.h"
-#include "bandplan.h"
 #include "serial.h"
 #include "misc.h"
 #include "yaesu.h"

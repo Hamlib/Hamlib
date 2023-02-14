@@ -90,7 +90,6 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
-#include "bandplan.h"
 #include "yaesu.h"
 #include "ft980.h"
 
