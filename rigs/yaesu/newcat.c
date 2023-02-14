@@ -643,6 +643,7 @@ int newcat_open(RIG *rig)
     }
 
 #if 0 // this apparently does not work
+
     if (is_ftdx5000)
     {
         // Remember EX103 status
@@ -665,6 +666,7 @@ int newcat_open(RIG *rig)
 
         if (priv->ret_data[6] == ';') { priv->front_rear_status = priv->ret_data[5]; }
     }
+
 #endif
 
     RETURNFUNC(RIG_OK);
@@ -699,6 +701,7 @@ int newcat_close(RIG *rig)
     }
 
 #if 0 // this apparently does not work -- we can't query EX103
+
     if (is_ftdx5000)
     {
         // Restore EX103 status
@@ -707,6 +710,7 @@ int newcat_close(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         newcat_set_cmd(rig); // don't care about the return
     }
+
 #endif
 
     RETURNFUNC(RIG_OK);
@@ -855,15 +859,18 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
               __func__);
 
     rig_get_mode(rig, RIG_VFO_A, &tmode, &twidth);
+
     if (tmode != RIG_VFO_MEM)
     {
         err = newcat_vfomem_toggle(rig);
+
         if (err != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Error toggling VFO_MEM\n", __func__);
             return -err;
         }
     }
+
     // find the nearest slot below what is requested
     for (i = 0; i < 5; ++i)
     {
@@ -938,6 +945,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     caps = rig->caps;
 
     rig_get_mode(rig, RIG_VFO_A, &tmode, &twidth);
+
     if (tmode == RIG_VFO_MEM)
     {
         // then we need to toggle back to VFO mode
@@ -10828,12 +10836,17 @@ int newcat_set_cmd_validate(RIG *rig)
         int bytes;
         char cmd[256]; // big enough
         rig_flush(&state->rigport);  /* discard any unsolicited data */
-        SNPRINTF(cmd, sizeof(cmd), "%s%s", priv->cmd_str, valcmd);
+        SNPRINTF(cmd, sizeof(cmd), "%s", priv->cmd_str);
         rc = write_block(&state->rigport, (unsigned char *) cmd, strlen(cmd));
 
         if (rc != RIG_OK) { RETURNFUNC(-RIG_EIO); }
 
         if (strlen(valcmd) == 0) { RETURNFUNC(RIG_OK); }
+
+        SNPRINTF(cmd, sizeof(cmd), "%s", valcmd);
+        rc = write_block(&state->rigport, (unsigned char *) cmd, strlen(cmd));
+
+        if (rc != RIG_OK) { RETURNFUNC(-RIG_EIO); }
 
         bytes = read_string(&state->rigport, (unsigned char *) priv->ret_data,
                             sizeof(priv->ret_data),
