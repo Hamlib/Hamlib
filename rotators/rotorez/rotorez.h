@@ -28,6 +28,7 @@
 #ifndef _ROT_ROTOREZ_H
 #define _ROT_ROTOREZ_H 1
 
+#include "rotator.h"
 #include "token.h"
 
 #define AZ_READ_LEN 4

@@ -29,7 +29,6 @@
 #include <num_stdio.h>
 
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 
 #include "meade.h"

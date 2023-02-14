@@ -26,10 +26,6 @@
 
 #include "hamlib/rotator.h"
 #include "serial.h"
-#include "misc.h"
-#include "register.h"
-
-#include "gs232a.h"
 
 #define EOM "\r"
 #define REPLY_EOM "\r"

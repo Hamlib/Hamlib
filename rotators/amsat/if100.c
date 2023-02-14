@@ -28,7 +28,6 @@
 
 #include <hamlib/rotator.h>
 #include "parallel.h"
-#include "misc.h"
 #include "register.h"
 
 static int

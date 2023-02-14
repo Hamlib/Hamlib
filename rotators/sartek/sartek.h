@@ -23,6 +23,8 @@
 #ifndef _ROT_SARTEK_H
 #define _ROT_SARTEK_H 1
 
+#include "rotator.h"
+
 #define AZ_READ_LEN 4
 
 extern const struct rot_caps sartek_rot_caps;

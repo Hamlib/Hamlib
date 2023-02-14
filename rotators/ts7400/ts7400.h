@@ -22,6 +22,7 @@
 #ifndef _ROT_ts7400_H
 #define _ROT_ts7400_H 1
 
+#include "rotator.h"
 
 extern const struct rot_caps ts7400_rot_caps;
 extern const struct rot_caps netrotctl_caps;

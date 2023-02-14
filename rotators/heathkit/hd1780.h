@@ -27,6 +27,8 @@
 #ifndef _ROT_HD1780_H
 #define _ROT_HD1780_H 1
 
+#include "rotator.h"
+
 #define AZ_READ_LEN 6
 
 extern const struct rot_caps hd1780_rot_caps;

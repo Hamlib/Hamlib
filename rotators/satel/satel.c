@@ -24,14 +24,11 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdbool.h>
 
 #include "hamlib/rotator.h"
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 
 #include "satel.h"

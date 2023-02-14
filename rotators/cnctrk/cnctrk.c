@@ -27,7 +27,6 @@
 #endif
 
 #include "hamlib/rotator.h"
-#include "misc.h"
 #include "register.h"
 
 char axcmd[512];
