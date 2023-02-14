@@ -26,7 +26,6 @@
  * Looks like the GP2000 could be reused in other rigs so
  * we implement that and then the EK89X uses this interface
  */
-#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <string.h>     /* String function definitions */

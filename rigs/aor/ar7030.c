@@ -24,8 +24,6 @@
 // Version 2004.11.29 F.Melchert (DC9RP)
 //
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 
 #include <hamlib/rig.h>

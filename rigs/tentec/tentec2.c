@@ -51,8 +51,6 @@
  *  For the above command, rcv_len should be 6.
 */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <string.h>  /* String function definitions */
 

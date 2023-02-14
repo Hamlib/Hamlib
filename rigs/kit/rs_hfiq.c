@@ -24,7 +24,6 @@
  * https://sites.google.com/site/rshfiqtransceiver/home/technical-data/interface-commands
  *
  */
-#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
