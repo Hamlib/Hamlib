@@ -25,8 +25,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include "hamlib/rig.h"
 #include "misc.h"
 #include "newcat.h"

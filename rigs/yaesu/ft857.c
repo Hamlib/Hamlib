@@ -50,8 +50,6 @@
  * doesn't work from front panel either.
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 #include <string.h>     /* String function definitions */
 

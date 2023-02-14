@@ -23,8 +23,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"

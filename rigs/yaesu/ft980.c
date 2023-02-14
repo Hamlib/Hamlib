@@ -83,9 +83,6 @@
 *      get_conf
 */
 
-
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <sys/time.h> /* for timeofday call */
