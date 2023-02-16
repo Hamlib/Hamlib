@@ -24,6 +24,7 @@
 #ifndef _ROT_EASYCOMM_H
 #define _ROT_EASYCOMM_H 1
 
+#include "rotator.h"
 #include "token.h"
 
 extern const struct rot_caps easycomm1_rot_caps;

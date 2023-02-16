@@ -26,7 +26,7 @@
  *
  */
 
-#include <hamlib/config.h>
+#include <stddef.h>
 
 #include "hamlib/rig.h"
 #include "bandplan.h"

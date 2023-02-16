@@ -65,19 +65,17 @@
  * This backend supports the Ten-Tec Orion (565) and Orion II (566) transceivers.
  * \n This backend tested mostly with firmware versions 1.372 and 2.062a
  */
-#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <ctype.h>
 #include <string.h>  /* String function definitions */
 #include <math.h>
 
 #include <hamlib/rig.h>
-#include "bandplan.h"
 #include "serial.h"
 #include "misc.h"
-#include "idx_builtin.h"
 #include "orion.h"
 
 #ifdef TT565_TIME

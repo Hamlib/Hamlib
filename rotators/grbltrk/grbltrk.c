@@ -23,6 +23,8 @@
 #include "config.h"
 #endif
 
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
@@ -34,10 +36,8 @@
 #include "hamlib/rotator.h"
 #include "hamlib/rig.h"
 
-#include "misc.h"
 #include "serial.h"
 #include "token.h"
-#include "network.h"
 
 #include "register.h"
 

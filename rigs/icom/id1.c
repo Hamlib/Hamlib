@@ -19,12 +19,10 @@
  *
  */
 
-#include <hamlib/config.h>
-
-
 #include "hamlib/rig.h"
 #include "idx_builtin.h"
 #include "icom.h"
+#include "tones.h"
 
 #define ID1_MODES (RIG_MODE_FM /* |RIG_MODE_DIGVOICE|RIG_MODE_DIGDATA*/ )
 

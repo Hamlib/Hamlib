@@ -18,8 +18,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -27,8 +25,6 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
-#include "register.h"
-#include "token.h"
 
 #include "ra37xx.h"
 

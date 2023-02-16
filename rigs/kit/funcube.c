@@ -25,17 +25,10 @@
 
 #include <hamlib/config.h>
 
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-
 #include <stdlib.h>
 #include <stdio.h>
 #include "hamlib/rig.h"
-#include "token.h"
 #include "misc.h"
-
-#include "kit.h"
 
 #define BACKEND_VER "20210830"
 

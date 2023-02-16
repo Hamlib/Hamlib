@@ -19,7 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +27,6 @@
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
-#include "token.h"
 
 #include "wj.h"
 

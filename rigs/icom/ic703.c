@@ -19,14 +19,13 @@
  *
  */
 
-#include <config.h>
-
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
 #include "icom.h"
 #include "bandplan.h"
 #include "idx_builtin.h"
+#include "tones.h"
 
 #define IC703_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 

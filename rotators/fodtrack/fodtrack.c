@@ -19,7 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include <stdlib.h>
 #ifdef HAVE_SYS_IOCTL_H

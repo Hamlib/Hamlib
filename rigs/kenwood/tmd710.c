@@ -34,20 +34,16 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
-#include <ctype.h>
 
 #include "hamlib/rig.h"
 #include "kenwood.h"
 #include "th.h"
 #include "tones.h"
 #include "num_stdio.h"
-#include "misc.h"
 
 static int tmd710_open(RIG *rig);
 static int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);

@@ -19,13 +19,10 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include "hamlib/rotator.h"
 #include "parallel.h"
-#include "misc.h"
 
 
 /* ************************************************************************* */

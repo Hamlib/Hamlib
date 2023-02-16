@@ -19,13 +19,11 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "kachina.h"
-
+#include <tones.h>
 
 #define K505DSP_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define K505DSP_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)

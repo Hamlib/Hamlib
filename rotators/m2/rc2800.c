@@ -18,11 +18,9 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 #include "hamlib/rotator.h"
 #include "serial.h"

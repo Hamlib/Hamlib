@@ -31,9 +31,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
+#include <getopt.h>
 
 #ifdef HAVE_LIBREADLINE
 #  if defined(HAVE_READLINE_READLINE_H)
@@ -61,7 +63,7 @@ extern int read_history();
 #endif                              /* HAVE_READLINE_HISTORY */
 
 #include <hamlib/rotator.h>
-#include "serial.h"
+#include "iofunc.h"
 #include "misc.h"
 
 
@@ -83,6 +85,7 @@ extern int read_history();
 #endif
 
 #include "rotctl_parse.h"
+#include "rotlist.h"
 #include "sprintflst.h"
 
 /* Hash table implementation See:  http://uthash.sourceforge.net/ */

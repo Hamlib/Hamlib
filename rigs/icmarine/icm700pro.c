@@ -19,14 +19,11 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
 #include "icmarine.h"
 #include "idx_builtin.h"
-#include "bandplan.h"
 
 #define ICM700PRO_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY)
 #define ICM700PRO_RX_MODES (ICM700PRO_MODES|RIG_MODE_AM)

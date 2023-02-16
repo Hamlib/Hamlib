@@ -22,6 +22,8 @@
 #ifndef _MEADE_H
 #define _MEADE_H 1
 
+#include "rotator.h"
+
 #define BUFSIZE 128
 #define CR "\r"
 #define LF "\x0a"

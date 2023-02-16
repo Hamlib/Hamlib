@@ -19,13 +19,10 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include "hamlib/amplifier.h"
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 
 #include "amp_dummy.h"

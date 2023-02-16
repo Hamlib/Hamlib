@@ -19,17 +19,11 @@
  *
  */
 
-#include <hamlib/config.h>
-
-
 #include <hamlib/rig.h>
-#include "serial.h"
-#include "misc.h"
 #include "idx_builtin.h"
 
 #include "icom.h"
-#include "icom_defs.h"
-
+#include "tones.h"
 
 #define ICR9500_MODES (RIG_MODE_AM|RIG_MODE_AMS|\
         RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|\

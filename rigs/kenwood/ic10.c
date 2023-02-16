@@ -21,8 +21,7 @@
  *
  */
 
-#include <hamlib/config.h>
-
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>  /* String function definitions */
@@ -31,7 +30,6 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
-#include "register.h"
 
 #include "kenwood.h"
 #include "ic10.h"

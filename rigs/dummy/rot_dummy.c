@@ -19,8 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <math.h>
@@ -28,10 +26,12 @@
 
 #include "hamlib/rotator.h"
 #include "dummy_common.h"
+#include "rig.h"
 #include "register.h"
 #include "idx_builtin.h"
 
 #include "rot_dummy.h"
+#include "rotlist.h"
 
 #define DUMMY_ROT_FUNC 0
 #define DUMMY_ROT_LEVEL ROT_LEVEL_SPEED

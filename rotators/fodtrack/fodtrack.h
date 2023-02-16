@@ -22,6 +22,8 @@
 #ifndef _ROT_FODTRACK_H
 #define _ROT_FODTRACK_H 1
 
+#include "rotator.h"
+
 extern const struct rot_caps fodtrack_rot_caps;
 
 #endif /* _ROT_FODTRACK_H */

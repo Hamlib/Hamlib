@@ -29,7 +29,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
 
@@ -63,9 +62,10 @@ extern int read_history();
 
 
 #include <hamlib/amplifier.h>
-#include "misc.h"
 
 #include "ampctl_parse.h"
+#include "amplist.h"
+#include "rig.h"
 
 /*
  * Prototypes

@@ -36,8 +36,6 @@
 #include "hamlib/rig.h"
 #include "token.h"
 
-#include "kit.h"
-
 /*
  * Compile this model only if libusb is available
  */

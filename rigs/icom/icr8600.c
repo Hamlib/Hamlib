@@ -21,11 +21,12 @@
  *
  */
 
-#include <hamlib/config.h>
+#include <stddef.h>
 
 #include "hamlib/rig.h"
 #include "idx_builtin.h"
 #include "token.h"
+#include "tones.h"
 
 #include "icom.h"
 #include "icom_defs.h"

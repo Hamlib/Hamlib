@@ -20,8 +20,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <hamlib/rig.h>

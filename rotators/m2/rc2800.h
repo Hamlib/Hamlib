@@ -21,6 +21,8 @@
 #ifndef _ROT_RC2800_H
 #define _ROT_RC2800_H 1
 
+#include "rotator.h"
+
 extern const struct rot_caps rc2800_rot_caps;
 
 #endif /* _ROT_RC2800_H */

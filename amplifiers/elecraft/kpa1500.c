@@ -22,7 +22,6 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include <stdio.h>
 

@@ -21,6 +21,8 @@
 #ifndef _ROT_APEX_H
 #define _ROT_APEX_H 1
 
+#include "rotator.h"
+
 extern const struct rot_caps apex_shared_loop_rot_caps;
 
 extern float apex_azimuth;

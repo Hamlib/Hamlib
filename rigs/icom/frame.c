@@ -23,6 +23,10 @@
 
 #include <string.h>  /* String function definitions */
 
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"

@@ -21,7 +21,9 @@
 #ifndef __TH_H__
 #define __TH_H__ 1
 
-#include "idx_builtin.h"
+#include <stddef.h>
+
+#include "rig.h"
 
 #define TH_VER "20200701"
 

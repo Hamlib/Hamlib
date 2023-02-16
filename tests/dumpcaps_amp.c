@@ -19,15 +19,13 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 
 #include <hamlib/rig.h>
-#include "misc.h"
 
 #include "sprintflst.h"
 #include "ampctl_parse.h"
+#include "amplifier.h"
 
 
 /*

@@ -24,8 +24,6 @@
  * Version 2009.11.21 Larry Gadallah (VE6VQ)
  */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
@@ -33,7 +31,6 @@
 
 #include "hamlib/rig.h"
 #include "ar7030p.h"
-#include "serial.h"
 #include "idx_builtin.h"
 
 #define AR7030P_MODES ( RIG_MODE_AM | \

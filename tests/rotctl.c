@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
 
@@ -63,9 +62,10 @@ extern int read_history();
 
 
 #include <hamlib/rotator.h>
-#include "misc.h"
 
+#include "rig.h"
 #include "rotctl_parse.h"
+#include "rotlist.h"
 
 /*
  * Prototypes

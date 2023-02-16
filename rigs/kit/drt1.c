@@ -19,13 +19,10 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include "hamlib/rig.h"
 
-#include "kit.h"
 #include "serial.h"
 #include "token.h"
 

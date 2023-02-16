@@ -19,7 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include <math.h>
 
@@ -29,7 +28,6 @@
 
 #include <hamlib/rotator.h>
 #include "parallel.h"
-#include "misc.h"
 #include "register.h"
 
 static int

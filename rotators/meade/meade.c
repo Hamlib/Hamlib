@@ -19,7 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -30,7 +29,6 @@
 #include <num_stdio.h>
 
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 
 #include "meade.h"

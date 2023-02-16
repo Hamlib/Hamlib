@@ -83,9 +83,6 @@
 *      get_conf
 */
 
-
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <sys/time.h> /* for timeofday call */
@@ -93,7 +90,6 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
-#include "bandplan.h"
 #include "yaesu.h"
 #include "ft980.h"
 

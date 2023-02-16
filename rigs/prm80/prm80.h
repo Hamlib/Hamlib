@@ -24,7 +24,6 @@
 
 #include <sys/time.h>
 #include <hamlib/rig.h>
-#include "misc.h"
 
 #define BACKEND_VER "20210416"
 

@@ -19,13 +19,12 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "tentec2.h"
 #include "bandplan.h"
+#include "idx_builtin.h"
 
 
 #define TT516_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_SSB)

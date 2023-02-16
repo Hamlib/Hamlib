@@ -17,15 +17,13 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <hamlib/config.h>
-
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rig.h"
 #include "iofunc.h"
-#include "misc.h"
 #include "token.h"
 
 /*

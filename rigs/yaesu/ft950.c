@@ -25,12 +25,8 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include "hamlib/rig.h"
 #include "bandplan.h"
-#include "serial.h"
-#include "misc.h"
 #include "yaesu.h"
 #include "newcat.h"
 #include "ft950.h"
