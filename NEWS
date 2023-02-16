@@ -29,6 +29,12 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Separate the validation cmd in newcat.c to allow rig post_write_delay to be in effect
+        * Increase post_write to 20ms for FT710
+        * Add attenuator level control for TS890
+        * Update SMeter/SWR tables for TS890
+        * Add fix for TMD700
+        * Improve FT-857 get_vfo response when error occurs
         * Allow FT-857 to use cached vfo on get_vfo when error occurs reading EEPROM
         * Fix FTDX10 FT710 set_level AFy
         * Fix FT-450D detection
