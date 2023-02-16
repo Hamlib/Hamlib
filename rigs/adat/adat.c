@@ -21,13 +21,10 @@
 //   License along with this library; if not, write to the Free Software
 //   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-#include <hamlib/config.h>
-
 // ---------------------------------------------------------------------------
 //    SYSTEM INCLUDES
 // ---------------------------------------------------------------------------
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -38,11 +35,10 @@
 // ---------------------------------------------------------------------------
 
 #include <hamlib/rig.h>
-#include "token.h"
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
-#include "num_stdio.h"
+#include "riglist.h"
 
 // ---------------------------------------------------------------------------
 //    ADAT INCLUDES

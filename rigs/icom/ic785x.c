@@ -20,12 +20,11 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <string.h>  /* String function definitions */
 
 #include <hamlib/rig.h>
 #include "token.h"
+#include "tones.h"
 #include "idx_builtin.h"
 
 #include "icom.h"

@@ -21,8 +21,6 @@
  *  the complete text of the GNU Lesser Public License version 2.1.
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>

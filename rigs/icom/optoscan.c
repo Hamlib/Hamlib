@@ -18,7 +18,12 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+
 #include <hamlib/config.h>
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +32,6 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
-#include "token.h"
 
 #include "icom.h"
 #include "icom_defs.h"

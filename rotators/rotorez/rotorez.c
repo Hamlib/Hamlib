@@ -30,8 +30,6 @@
  *
  */
 
-#include <config.h>
-
 #include <stdio.h>
 #include <stdlib.h>          /* Standard library definitions */
 #include <string.h>          /* String function definitions */
@@ -39,7 +37,6 @@
 
 #include "hamlib/rotator.h"
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 #include "iofunc.h"
 

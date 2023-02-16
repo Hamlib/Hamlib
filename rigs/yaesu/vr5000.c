@@ -54,8 +54,6 @@
  */
 
 
-#include <hamlib/config.h>
-
 // cppcheck-suppress *
 #include <stdlib.h>
 

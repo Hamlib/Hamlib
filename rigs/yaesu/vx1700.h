@@ -32,8 +32,6 @@
 #define _VX1700_H 1
 
 #include <hamlib/rig.h>
-#include <tones.h>
-
 
 #define	VX1700_MIN_CHANNEL	1
 #define	VX1700_MAX_CHANNEL	200

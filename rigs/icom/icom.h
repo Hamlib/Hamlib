@@ -22,6 +22,10 @@
 #ifndef _ICOM_H
 #define _ICOM_H 1
 
+#include <stddef.h>
+
+#include <hamlib/config.h>
+
 #include "hamlib/rig.h"
 #include "cal.h"
 #include "tones.h"

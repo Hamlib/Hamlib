@@ -19,18 +19,12 @@
  *
  */
 
-#include <hamlib/config.h>
-
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rotator.h"
 #include "iofunc.h"
-#include "misc.h"
-#include "network.h"
-#include "serial.h"
-
-#include "rot_dummy.h"
 
 #define CMD_MAX 32
 #define BUF_MAX 64

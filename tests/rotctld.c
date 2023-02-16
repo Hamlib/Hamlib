@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <ctype.h>
 
 #include <getopt.h>
 #include <errno.h>
@@ -38,9 +37,6 @@
 
 #ifdef HAVE_NETINET_IN_H
 #  include <netinet/in.h>
-#endif
-#ifdef HAVE_ARPA_INET_H
-#  include <arpa/inet.h>
 #endif
 #ifdef HAVE_SYS_SOCKET_H
 #  include <sys/socket.h>
@@ -60,9 +56,10 @@
 #endif
 
 #include <hamlib/rotator.h>
-#include "misc.h"
 
+#include "rig.h"
 #include "rotctl_parse.h"
+#include "rotlist.h"
 
 struct handle_data
 {

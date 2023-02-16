@@ -19,16 +19,14 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
-#include "idx_builtin.h"
 #include "bandplan.h"
+#include "tones.h"
 
 
 /*

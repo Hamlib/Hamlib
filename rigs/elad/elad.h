@@ -26,6 +26,8 @@
 #define _ELAD_H 1
 
 #include <string.h>
+
+#include "rig.h"
 #include "token.h"
 
 #define BACKEND_VER "20220608"

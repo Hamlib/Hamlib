@@ -19,15 +19,13 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <string.h>
 
 #include <hamlib/rig.h>
-#include "misc.h"
 
 #include "sprintflst.h"
+#include "rotator.h"
 #include "rotctl_parse.h"
 
 

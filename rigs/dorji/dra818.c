@@ -19,7 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -27,11 +26,9 @@
 #include "hamlib/rig.h"
 #include "bandplan.h"
 #include "serial.h"
-#include "register.h"
 #include "tones.h"
 
 #include "dra818.h"
-#include "dorji.h"
 
 static const char *dra818_handshake_cmd = "AT+DMOCONNECT\r\n";
 static const char *dra818_handshake_res = "+DMOCONNECT:0\r\n";

@@ -22,19 +22,19 @@
  *
  */
 
-#include <hamlib/config.h>
-
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include <hamlib/rig.h>
+
 #include "idx_builtin.h"
 #include "kenwood.h"
+#include "misc.h"
 #include "bandplan.h"
 #include "elecraft.h"
-#include "token.h"
 #include "cal.h"
-#include "iofunc.h"
 
 #define K3_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
     RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_PKTUSB|\

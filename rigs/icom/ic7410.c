@@ -19,18 +19,15 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
-#include "token.h"
 #include "idx_builtin.h"
 
 #include "icom.h"
 #include "icom_defs.h"
-#include "misc.h"
 #include "bandplan.h"
+#include "tones.h"
 
 #define IC7410_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM)
 #define IC7410_AM_TX_MODES (RIG_MODE_AM)

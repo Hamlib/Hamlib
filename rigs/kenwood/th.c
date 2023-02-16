@@ -20,8 +20,7 @@
  *
  */
 
-#include <hamlib/config.h>
-
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -30,7 +29,6 @@
 #include "hamlib/rig.h"
 #include "kenwood.h"
 #include "th.h"
-#include "serial.h"
 #include "misc.h"
 #include "num_stdio.h"
 

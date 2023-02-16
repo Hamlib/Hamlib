@@ -18,7 +18,6 @@
 *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 *
 */
-#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,8 +27,6 @@
 #include <serial.h>
 #include <misc.h>
 #include <token.h>
-#include <register.h>
-#include <network.h>
 
 #include "dummy_common.h"
 

@@ -20,12 +20,10 @@
  *
  */
 
-#include <hamlib/config.h>
-
-
 #include "hamlib/rig.h"
 #include "idx_builtin.h"
 #include "icom.h"
+#include "tones.h"
 
 /*
  * Specs and protocol details comes from the chapter 10 of ID-4100A_E_ENG_PU_0.pdf

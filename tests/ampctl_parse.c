@@ -27,12 +27,14 @@
 
 #include <hamlib/config.h>
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <strings.h>
 #include <ctype.h>
 #include <errno.h>
+#include <getopt.h>
 
 #ifdef HAVE_LIBREADLINE
 #  if defined(HAVE_READLINE_READLINE_H)
@@ -60,7 +62,8 @@ extern int read_history();
 #endif                              /* HAVE_READLINE_HISTORY */
 
 #include <hamlib/amplifier.h>
-#include "serial.h"
+#include "amplist.h"
+#include "iofunc.h"
 #include "misc.h"
 #include "sprintflst.h"
 

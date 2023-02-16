@@ -19,7 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
 #include <hamlib/rig.h>
 #include <register.h>
 

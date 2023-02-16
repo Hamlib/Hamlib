@@ -22,6 +22,8 @@
 #ifndef _ROT_SPID_H
 #define _ROT_SPID_H 1
 
+#include "rotator.h"
+
 extern const struct rot_caps spid_rot1prog_rot_caps;
 extern const struct rot_caps spid_rot2prog_rot_caps;
 extern const struct rot_caps spid_md01_rot2prog_rot_caps;

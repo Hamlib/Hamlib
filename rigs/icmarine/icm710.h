@@ -22,8 +22,9 @@
 #ifndef _ICM710_H
 #define _ICM710_H 1
 
+#include <sys/types.h>
+
 #include "hamlib/rig.h"
-#include "tones.h"
 
 struct icm710_priv_caps {
     unsigned char default_remote_id;  /* the remote default equipment's ID */

@@ -18,7 +18,6 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#include <hamlib/config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +27,6 @@
 #include "serial.h"
 #include "idx_builtin.h"
 #include "misc.h"
-#include "aor.h"
 
 
 static int ar3030_set_vfo(RIG *rig, vfo_t vfo);

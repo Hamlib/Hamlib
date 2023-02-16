@@ -27,12 +27,15 @@
 
 #include <hamlib/config.h>
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
+#include <getopt.h>
 
 // If true adds some debug statements to see flow of rigctl parsing
 int debugflow = 0;
@@ -66,6 +69,7 @@ extern int read_history();
 #include <hamlib/rig.h>
 #include "misc.h"
 #include "iofunc.h"
+#include "riglist.h"
 #include "sprintflst.h"
 
 #include "rigctl_parse.h"

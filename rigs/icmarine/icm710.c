@@ -19,20 +19,15 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
 #include <token.h>
 #include <register.h>
 
 #include "idx_builtin.h"
-#include "bandplan.h"
 
 #include "icm710.h"
 #include "icmarine.h"

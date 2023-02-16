@@ -19,15 +19,13 @@
  *
  */
 
-#include <hamlib/config.h>
-
-
 #include "hamlib/rig.h"
 #include "token.h"
 #include "icom.h"
 #include "idx_builtin.h"
 #include "icom_defs.h"
 #include "frame.h"
+#include "tones.h"
 
 #define ICR30_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_AM|RIG_MODE_AMN|\
     RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_WFM|\

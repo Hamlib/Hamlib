@@ -22,6 +22,7 @@
 #ifndef _ROT_FLIR_H
 #define _ROT_FLIR_H 1
 
+#include "rotator.h"
 #include "token.h"
 
 /* backend conf */

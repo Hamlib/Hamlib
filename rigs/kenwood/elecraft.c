@@ -24,11 +24,12 @@
  */
 
 #include <string.h>
-#include <stdlib.h>
+#include <stdio.h>
 
 #include "serial.h"
 #include "elecraft.h"
 #include "kenwood.h"
+#include "misc.h"
 
 
 static const struct elec_ext_id_str elec_ext_id_str_lst[] =

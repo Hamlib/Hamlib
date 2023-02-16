@@ -19,12 +19,14 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+
+#include "frame.h"
+#include "misc.h"
 #include "token.h"
+#include "tones.h"
 #include "idx_builtin.h"
 
 #include "icom.h"

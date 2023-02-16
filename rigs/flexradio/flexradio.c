@@ -19,8 +19,6 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include "hamlib/rig.h"
 #include "flexradio.h"
 #include "register.h"

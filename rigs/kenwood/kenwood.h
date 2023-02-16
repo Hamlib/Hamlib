@@ -26,7 +26,6 @@
 
 #include <string.h>
 #include "token.h"
-#include "misc.h"
 #include "idx_builtin.h"
 
 #define BACKEND_VER "20230208"

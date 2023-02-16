@@ -23,6 +23,7 @@
 #define _WJ_H 1
 
 #include <hamlib/rig.h>
+#include "token.h"
 
 #define BACKEND_VER "20040912"
 

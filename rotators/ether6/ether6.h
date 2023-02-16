@@ -23,6 +23,8 @@
 #ifndef _ROT_ETHER6_H
 #define _ROT_ETHER6_H 1
 
+#include "rotator.h"
+
 #define ROTORCTL_RET "OK"
 
 extern const struct rot_caps ether6_rot_caps;

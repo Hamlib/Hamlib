@@ -44,8 +44,6 @@
  * - the many "fixme" stuff around
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 #include <string.h>     /* String function definitions */
 #include <stdbool.h>

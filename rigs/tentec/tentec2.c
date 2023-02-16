@@ -51,15 +51,11 @@
  *  For the above command, rcv_len should be 6.
 */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <string.h>  /* String function definitions */
 
 #include "hamlib/rig.h"
 #include "serial.h"
-#include "misc.h"
-#include "register.h"
 
 #include "tentec.h"
 #include "tentec2.h"

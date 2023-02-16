@@ -23,13 +23,10 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 
 #include "yaesu.h"

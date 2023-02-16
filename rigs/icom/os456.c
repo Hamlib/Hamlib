@@ -24,15 +24,12 @@
  * Email: james (dot) m (dot) smith (at) earthlink (dot) net
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "idx_builtin.h"
 #include "icom.h"
 #include "tones.h"
-#include "token.h"
 #include "optoscan.h"
 
 extern struct confparams opto_ext_parms[];

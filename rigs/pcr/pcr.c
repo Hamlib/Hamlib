@@ -28,8 +28,8 @@
  * (403) PCR1500 fw 2.0, proto 2.0 (usb) by KM3T
  *
  */
-#include <hamlib/config.h>
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>     /* String function definitions */

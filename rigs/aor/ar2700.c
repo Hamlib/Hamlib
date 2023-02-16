@@ -19,9 +19,8 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
+#include <string.h>
 
 #include <hamlib/rig.h>
 #include "aor.h"

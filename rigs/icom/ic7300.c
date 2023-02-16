@@ -20,20 +20,18 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "idx_builtin.h"
 
 #include "token.h"
+#include "frame.h"
 #include "icom.h"
 #include "icom_defs.h"
-#include "frame.h"
+#include "misc.h"
 #include "bandplan.h"
 #include "tones.h"
-#include "misc.h"
 #include "ic7300.h"
 
 static int ic7300_set_parm(RIG *rig, setting_t parm, value_t val);

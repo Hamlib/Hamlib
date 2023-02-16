@@ -19,17 +19,13 @@
  *
  */
 
-#include <hamlib/config.h>
-
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "hamlib/rig.h"
-#include "bandplan.h"
 #include "serial.h"
-#include "misc.h"
 #include "num_stdio.h"
-#include "token.h"
 
 #include "rx331.h"
 

@@ -21,16 +21,12 @@
  *
  */
 
-#include <hamlib/config.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #include <hamlib/rig.h>
 #include "misc.h"
-#include "sprintflst.h"
 
 
 /*
