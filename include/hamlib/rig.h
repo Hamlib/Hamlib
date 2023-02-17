@@ -2592,6 +2592,8 @@ struct rig_state {
     powerstat_t powerstat; /*<! power status */
     char *tuner_control_pathname;  /*<! Path to external tuner control program that get 0/1 (Off/On) argument */
     char client_version[32];  /*<! Allow client to report version for compatility checks/capability */
+    freq_t offset_vfoa; /*<! Offset to apply to VFOA/Main set_freq */
+    freq_t offset_vfob; /*<! Offset to apply to VFOB/Sub set_freq */
 };
 
 //! @cond Doxygen_Suppress

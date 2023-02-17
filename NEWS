@@ -13,6 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Add offset_vfoa and offset_vfob applying to rig_set_freq
         * Fix K4 to put it in K40 mode when requesting ID
         * 2023-11-XX -- Planned for Nov 2023
         * Fixes for M2 Rotors

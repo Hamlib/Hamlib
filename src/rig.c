@@ -1778,6 +1778,8 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 #endif
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) freq += rig->state.offset_vfoa;
+    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) freq += rig->state.offset_vfob;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -2055,7 +2057,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     // we ignore get_freq for the uplink VFO for gpredict to behave better
     if ((rig->state.uplink == 1 && vfo == RIG_VFO_SUB)
-            || (rig->state.uplink == 2 && vfo == RIG_VFO_MAIN))
+            || (rig->state.uplink == 2 && vfo == RIG_VFO_MAIN)
+            || (vfo == RIG_VFO_TX && rig->state.cache.ptt == 0))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: uplink=%d, ignoring get_freq\n", __func__,
                   rig->state.uplink);
