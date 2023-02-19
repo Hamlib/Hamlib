@@ -516,7 +516,8 @@ transaction_read:
      */
     if (datasize)
     {
-        if (cmdstr && (buffer[0] != cmdstr[0] || (cmdstr[1] && buffer[1] != cmdstr[1])))
+        // we ignore the special ;;;;PS; command
+        if (strcmp(cmdstr,";;;;PS")!=0 && cmdstr && (buffer[0] != cmdstr[0] || (cmdstr[1] && buffer[1] != cmdstr[1])))
         {
             /*
              * TODO: When RIG_TRN is enabled, we can pass the string to
