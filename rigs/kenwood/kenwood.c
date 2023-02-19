@@ -517,7 +517,8 @@ transaction_read:
     if (datasize)
     {
         // we ignore the special ;;;;PS; command
-        if (strcmp(cmdstr,";;;;PS")!=0 && cmdstr && (buffer[0] != cmdstr[0] || (cmdstr[1] && buffer[1] != cmdstr[1])))
+        if (strcmp(cmdstr, ";;;;PS") != 0 && cmdstr && (buffer[0] != cmdstr[0]
+                || (cmdstr[1] && buffer[1] != cmdstr[1])))
         {
             /*
              * TODO: When RIG_TRN is enabled, we can pass the string to
@@ -3212,6 +3213,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_ATT:
 
         len = RIG_IS_TS890S ? 1 : 2;
+
         /* set the attenuator if a correct value is entered */
         if (val.i == 0)
         {
