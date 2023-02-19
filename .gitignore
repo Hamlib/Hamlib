@@ -53,6 +53,8 @@ tests/ampctld
 tests/rigctl
 tests/rigctlcom
 tests/rigctld
+tests/rigctlsync
+tests/rigctltcp
 tests/rigmem
 tests/rigsmtr
 tests/rigswr
