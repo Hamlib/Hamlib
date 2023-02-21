@@ -517,7 +517,7 @@ transaction_read:
     if (datasize)
     {
         // we ignore the special ;;;;PS; command
-        if (strcmp(cmdstr, ";;;;PS") != 0 && cmdstr && (buffer[0] != cmdstr[0]
+        if (cmdstr && strcmp(cmdstr, ";;;;PS") != 0 && (buffer[0] != cmdstr[0]
                 || (cmdstr[1] && buffer[1] != cmdstr[1])))
         {
             /*
