@@ -1376,8 +1376,14 @@ static int read_string_generic(hamlib_port_t *p,
 
         // check to see if our string startis with \...if so we need more chars
         if (total_count == 0 && rxbuffer[total_count] == '\\') { rxmax = (rxmax - 1) * 5; }
-
+        
+        if (total_count == 0 && rxbuffer[0] == ';')
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: skipping single ';' char\n", __func__);
+        }
+        else {
         total_count += (int) rd_count;
+        }
 
         if (total_count == rxmax) break;
 
