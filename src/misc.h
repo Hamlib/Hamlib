@@ -209,6 +209,8 @@ extern HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value, settings
 extern HAMLIB_EXPORT(int) rig_settings_load(char *setting, void *value, settings_value_t valuet);
 extern HAMLIB_EXPORT(int) rig_settings_load_all(char *settings_file);
 
+extern int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran);
+
 __END_DECLS
 
 #endif /* _MISC_H */
