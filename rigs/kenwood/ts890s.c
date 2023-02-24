@@ -602,6 +602,9 @@ const struct rig_caps ts890s_caps =
     .level_gran =
     {
 #include "level_gran_kenwood.h"
+        [LVL_ATT]     = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1100 }, .step = { .i = 5 } },
+        [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0/255.0 } },
     },
     .has_get_func = TS890_FUNC_ALL,
     .has_set_func = TS890_FUNC_ALL,

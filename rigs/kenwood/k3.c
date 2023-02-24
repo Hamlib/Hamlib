@@ -217,6 +217,7 @@ const struct rig_caps k3_caps =
     .level_gran = {
         // cppcheck-suppress *
         [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
+        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 10 }, .step = { .i = 10 } },
     },
     .parm_gran =        {},
     .extlevels =        k3_ext_levels,
@@ -369,6 +370,7 @@ const struct rig_caps k3s_caps =
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
         [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
+        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 15 }, .step = { .i = 5 } },
     },
     .parm_gran =        {},
     .extlevels =        k3_ext_levels,
@@ -521,6 +523,7 @@ const struct rig_caps k4_caps =
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
         [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
+        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 15 }, .step = { .i = 5 } },
     },
     .parm_gran =        {},
     .extlevels =        k3_ext_levels,
@@ -672,6 +675,7 @@ const struct rig_caps kx3_caps =
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
         [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
+        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 10 }, .step = { .i = 10 } },
     },
     .parm_gran =        {},
     .extlevels =        kx3_ext_levels,
@@ -823,6 +827,7 @@ const struct rig_caps kx2_caps =
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
         [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
+        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 10 }, .step = { .i = 10 } },
     },
     .parm_gran =        {},
     .extlevels =        kx3_ext_levels,
