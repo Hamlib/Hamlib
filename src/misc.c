@@ -978,13 +978,13 @@ int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
         {
 	    *gran = this_gran;
 	}
-    /* If min==max==0, all values are OK here but may be checked later */
-    if (this_gran->min.i == 0 && this_gran->max.i == 0)
-        {
-	    return RIG_OK;
-        }
     if (RIG_LEVEL_IS_FLOAT(level))
         {
+	  /* If min==max==0, all values are OK here but may be checked later */
+	  if (this_gran->min.f == 0.0f && this_gran->max.f == 0.0f)
+	    {
+	      return RIG_OK;
+	    }
 	  if (val.f < this_gran->min.f || val.f > this_gran->max.f)
 	    {
 	      return -RIG_EINVAL;
@@ -992,6 +992,11 @@ int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
 	}
     else
         {
+	  /* If min==max==0, all values are OK here but may be checked later */
+	  if (this_gran->min.i == 0 && this_gran->max.i == 0)
+	    {
+	      return RIG_OK;
+	    }
 	  if (val.i < this_gran->min.i || val.i > this_gran->max.i)
 	    {
 	      return -RIG_EINVAL;
