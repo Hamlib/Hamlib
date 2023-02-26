@@ -98,19 +98,6 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         SNPRINTF(levelbuf, sizeof(levelbuf), "GC%d", kenwood_val);
         break;
 
-    case RIG_LEVEL_CWPITCH:
-
-        // TODO: Merge this and formatting difference into kenwood.c
-        if (val.i < 300 || val.i > 1100)
-        {
-            return -RIG_EINVAL;
-        }
-
-        /* 300 - 1100 Hz -> 000 - 160 */
-        kenwood_val = (val.i - 298) / 5; /* Round to nearest 5Hz */
-        SNPRINTF(levelbuf, sizeof(levelbuf), "PT%03d", kenwood_val);
-        break;
-
     default:
         return kenwood_set_level(rig, vfo, level, val);
     }
