@@ -5072,6 +5072,15 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 }
 
 /*
+ * kenwood_stop_morse
+ */
+int kenwood_stop_morse(RIG *rig, vfo_t vfo)
+{
+    ENTERFUNC;
+    RETURNFUNC(kenwood_transaction(rig, "KY0", NULL, 0));
+}
+
+/*
  * kenwood_vfo_op
  */
 int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
