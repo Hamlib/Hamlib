@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20230221"
+#define BACKEND_VER "20230225"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -232,6 +232,7 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status);
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status);
 int kenwood_reset(RIG *rig, reset_t reset);
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+int kenwood_stop_morse(RIG *rig, vfo_t vfo);
 int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
 int kenwood_set_ant_no_ack(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
 int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
