@@ -540,18 +540,6 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
     break;
 
-    case RIG_LEVEL_CWPITCH:
-        retval = kenwood_safe_transaction(rig, "PT", lvlbuf, sizeof(lvlbuf), 5);
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        sscanf(lvlbuf + 2, "%d", &lvl);
-        val->i = 300 + lvl * 10;
-        break;
-
     case RIG_LEVEL_RFPOWER:
         retval = kenwood_safe_transaction(rig, "PC", lvlbuf, sizeof(lvlbuf), 5);
 

@@ -494,19 +494,6 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = (float)atoi(&lvlbuf[3]) / 30.0;
         break;
 
-    case RIG_LEVEL_CWPITCH:
-        retval = kenwood_transaction(rig, "PT", lvlbuf, sizeof(lvlbuf));
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        val->i = atoi(&lvlbuf[2]);
-        val->i = (val->i - 8) * 50 + 800;
-        break;
-
-
     default:
         return kenwood_get_level(rig, vfo, level, val);
     }
