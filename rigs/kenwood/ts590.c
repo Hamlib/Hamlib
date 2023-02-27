@@ -412,6 +412,10 @@ const struct rig_caps ts590sg_caps =
     .has_get_level = TS590_LEVEL_ALL,
     .set_level = kenwood_set_level,
     .get_level = kenwood_get_level,
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+    },
     .has_get_func = TS590_FUNC_ALL,
     .has_set_func = TS590_FUNC_ALL,
     .set_func = kenwood_set_func,
