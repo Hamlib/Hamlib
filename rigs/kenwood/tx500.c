@@ -150,7 +150,9 @@ const struct rig_caps tx500_caps =
     .has_set_level =  RIG_LEVEL_SET(TX500_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-    .level_gran =  {},                 /* FIXME: granularity */
+    .level_gran =  {
+#include "level_gran_kenwood.h"
+    },                 /* FIXME: granularity */
     .parm_gran =  {},
     .vfo_ops =  TX500_VFO_OP,
     .scan_ops =  TX500_SCAN_OP,

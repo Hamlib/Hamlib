@@ -20,6 +20,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -3307,13 +3308,24 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_CWPITCH:
-        if (val.i > 1000 || val.i < 400)
+      {
+        gran_t *level_info;
+
+        retval = check_level_param(rig, level, val, &level_info);
+        if (retval != RIG_OK)
         {
-            RETURNFUNC(-RIG_EINVAL);
+            RETURNFUNC(retval);
         }
 
-        SNPRINTF(levelbuf, sizeof(levelbuf), "PT%02d", (val.i / 50) - 8);
+        /* Newer rigs have an extra digit of pitch factor */
+        int len = (RIG_IS_TS890S || RIG_IS_TS990S) ? 3 : 2;
+
+        /* Round input freq to nearest multiple of step */
+        kenwood_val = (val.i - level_info->min.i + (level_info->step.i / 2))
+		       / level_info->step.i;
+        SNPRINTF(levelbuf, sizeof(levelbuf), "PT%0*d", len, kenwood_val);
         break;
+      }
 
     case RIG_LEVEL_KEYSPD:
         if (val.i > 60 || val.i < 5)
@@ -3425,7 +3437,6 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
         int power_now, power_min, power_max;
-        int min_pitch, step_pitch;  /* Hz */
 
     case RIG_LEVEL_RAWSTR:
         if (RIG_IS_TS590S || RIG_IS_TS590SG)
@@ -3759,29 +3770,19 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_CWPITCH:
-        if (RIG_IS_TS890S)
-        {
-            len = 5;
-            min_pitch = 300;
-            step_pitch = 5;
-        }
-        else
-        {
-            len = 4;
-            min_pitch = 400;
-            step_pitch = 50;
-        }
+        /* Newer rigs have an extra digit of pitch factor */
+        len = (RIG_IS_TS890S || RIG_IS_TS990S) ? 3 : 2;
 
-        retval = kenwood_safe_transaction(rig, "PT", lvlbuf, 50, len);
+        retval = kenwood_safe_transaction(rig, "PT", lvlbuf, 50, len + 2);
 
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
 
-        sscanf(lvlbuf + 2, "%d", &val->i); /* 00 - 12 or 000 - 160 */
-        val->i = (val->i * step_pitch) + min_pitch; /* 400 - 1000 or 300 - 1100
-                             */
+        sscanf(lvlbuf + 2, "%d", &val->i);
+        val->i = (val->i * rig->caps->level_gran[LVL_CWPITCH].step.i)
+        	  + rig->caps->level_gran[LVL_CWPITCH].min.i;
         break;
 
     case RIG_LEVEL_KEYSPD:

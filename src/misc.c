@@ -960,6 +960,50 @@ static const struct
     { AMP_LEVEL_NONE, "" },
 };
 
+/*
+ * \brief check input to set_level
+ * \param rig Pointer to rig data
+ * \param level RIG_LEVEL_* trying to set
+ * \param val Raw input from the caller
+ * \param gran If not NULL, set to location of level_gran data
+ *
+ * \return RIG_OK if value is in range for this level, -RIG_EINVAL if not
+ */
+int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
+{
+    gran_t *this_gran;
+
+    this_gran = &rig->caps->level_gran[rig_setting2idx(level)];
+    if (gran)
+        {
+	    *gran = this_gran;
+	}
+    if (RIG_LEVEL_IS_FLOAT(level))
+        {
+	  /* If min==max==0, all values are OK here but may be checked later */
+	  if (this_gran->min.f == 0.0f && this_gran->max.f == 0.0f)
+	    {
+	      return RIG_OK;
+	    }
+	  if (val.f < this_gran->min.f || val.f > this_gran->max.f)
+	    {
+	      return -RIG_EINVAL;
+	    }
+	}
+    else
+        {
+	  /* If min==max==0, all values are OK here but may be checked later */
+	  if (this_gran->min.i == 0 && this_gran->max.i == 0)
+	    {
+	      return RIG_OK;
+	    }
+	  if (val.i < this_gran->min.i || val.i > this_gran->max.i)
+	    {
+	      return -RIG_EINVAL;
+	    }
+	}
+    return RIG_OK;
+}
 
 /**
  * \brief Convert alpha string to enum RIG_LEVEL_...
