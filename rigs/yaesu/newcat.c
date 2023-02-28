@@ -545,6 +545,7 @@ int newcat_open(RIG *rig)
     const char *handshake[3] = {"None", "Xon/Xoff", "Hardware"};
     int err;
     int set_only = 0;
+    int retry_save = 0;
 
     ENTERFUNC;
 
@@ -618,6 +619,8 @@ int newcat_open(RIG *rig)
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
 
+        retry_save = rig->state.rigport.retry;
+        rig->state.rigport.retry = 0;
         if (set_only)
         {
             err = newcat_set_cmd(rig);
@@ -626,10 +629,11 @@ int newcat_open(RIG *rig)
         {
             err = newcat_get_cmd(rig);
         }
+        rig->state.rigport.retry = retry_save;
 
         if (err != RIG_OK)
         {
-            RETURNFUNC(err);
+          // if we can an err we just ignore the failure -- Win4Yaesu was not recognizing EX032 command  
         }
     }
 
