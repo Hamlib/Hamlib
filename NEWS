@@ -29,6 +29,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Change EX startup commands for Yaesu rigs to allow errors...Win4Yaesu not recognizing EX commands
         * Separate the validation cmd in newcat.c to allow rig post_write_delay to be in effect
         * Increase post_write to 20ms for FT710
         * Add attenuator level control for TS890
