@@ -3451,6 +3451,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         RETURNFUNC(retcode);
 
     case RIG_PTT_SERIAL_RTS:
+#if 0 // do not use caps->get_ptt https://github.com/Hamlib/Hamlib/issues/1241
         if (caps->get_ptt)
         {
             HAMLIB_TRACE;
@@ -3465,11 +3466,11 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             ELAPSED2;
             RETURNFUNC(retcode);
         }
+#endif
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
                 && rs->pttport.fd < 0)
         {
-
             /* port is closed so assume PTT off */
             *ptt = RIG_PTT_OFF;
         }
@@ -3485,6 +3486,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         RETURNFUNC(retcode);
 
     case RIG_PTT_SERIAL_DTR:
+#if 0 // do not use caps->get_ptt https://github.com/Hamlib/Hamlib/issues/1241
         if (caps->get_ptt)
         {
             HAMLIB_TRACE;
@@ -3499,11 +3501,11 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             ELAPSED2;
             RETURNFUNC(retcode);
         }
+#endif
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
                 && rs->pttport.fd < 0)
         {
-
             /* port is closed so assume PTT off */
             *ptt = RIG_PTT_OFF;
         }
