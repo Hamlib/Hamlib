@@ -16,7 +16,7 @@
     12 - Radio Inhibit (Sleep).
     13 - Reserved
     14 - PTT +5V
-
+*/
 
 void serial_num(char *s)
 {
