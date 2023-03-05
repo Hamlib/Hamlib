@@ -47,6 +47,7 @@
 
 #define NB_CHAN 12              /* see caps->chan_list */
 
+#if 0
 struct xg3_priv_data
 {
     /* current vfo already in rig_state ? */
@@ -62,6 +63,7 @@ struct xg3_priv_data
 
     char *magic_conf;
 };
+#endif
 
 /* kenwood_transaction() will add this to command strings
  * sent to the rig and remove it from strings returned from
@@ -161,8 +163,10 @@ const struct rig_caps xg3_caps =
     .rig_open = xg3_open,
     .set_freq = xg3_set_freq,
     .get_freq = xg3_get_freq,
-    .set_mem = xg3_set_mem,
-    .get_mem = xg3_get_mem,
+// temporarily disabled -- not used much if at all
+// need to make mem array dynamic
+//    .set_mem = xg3_set_mem,
+//    .get_mem = xg3_get_mem,
     .set_vfo = xg3_set_vfo,
     .get_vfo = xg3_get_vfo,
     .get_ptt = xg3_get_ptt,
@@ -182,12 +186,12 @@ const struct rig_caps xg3_caps =
  */
 int xg3_init(RIG *rig)
 {
-    struct xg3_priv_data *priv;
+    struct kenwood_priv_data *priv;
     int i;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct xg3_priv_data *)calloc(1, sizeof(struct xg3_priv_data));
+    priv = (struct kenwood_priv_data *)calloc(1, sizeof(struct kenwood_priv_data));
 
     if (!priv)
     {
@@ -200,16 +204,16 @@ int xg3_init(RIG *rig)
 // So we use PTT instead
 //  rig->state.transceive = RIG_TRN_RIG; // this allows xg3_set_trn to be called
     rig->state.current_vfo = RIG_VFO_A;
-    priv->last_vfo = RIG_VFO_A;
-    priv->ptt = RIG_PTT_ON;
-    priv->powerstat = RIG_POWER_ON;
-    //priv->no_id = 1;
-    memset(priv->parms, 0, RIG_SETTING_MAX * sizeof(value_t));
+//    priv->last_vfo = RIG_VFO_A;
+//    priv->ptt = RIG_PTT_ON;
+//    priv->powerstat = RIG_POWER_ON;
+    priv->no_id = 1;
+    //memset(priv->parms, 0, RIG_SETTING_MAX * sizeof(value_t));
 
     for (i = 0; i < NB_CHAN; i++)
     {
-        priv->mem[i].channel_num = i;
-        priv->mem[i].vfo = RIG_VFO_MEM;
+        //priv->mem[i].channel_num = i;
+        //priv->mem[i].vfo = RIG_VFO_MEM;
     }
 
     return RIG_OK;
@@ -493,15 +497,13 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int xg3_set_powerstat(RIG *rig, powerstat_t status)
 {
-    struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (status == RIG_POWER_OFF)
     {
         const char *cmd = "X";
 
-        priv->powerstat = RIG_POWER_OFF;
+        //priv->powerstat = RIG_POWER_OFF;
         return kenwood_transaction(rig, cmd, NULL, 0);
     }
 
@@ -518,20 +520,19 @@ int xg3_get_powerstat(RIG *rig, powerstat_t *status)
     const char *cmd = "G";      // any command to test will do
     char buf[6];
     int retval = kenwood_transaction(rig, cmd, buf, 5);
-    struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (retval == RIG_OK)
     {
         *status = RIG_POWER_ON;
-        priv->powerstat = RIG_POWER_ON;
+        //priv->powerstat = RIG_POWER_ON;
     }
     else
     {
         *status = RIG_POWER_OFF;    // Error indicates power is off
         rig_debug(RIG_DEBUG_VERBOSE, "%s read_string failed\n", __func__);
-        priv->powerstat = RIG_POWER_OFF;
+        //priv->powerstat = RIG_POWER_OFF;
     }
 
     return RIG_OK;              // Always OK since it's a binary state
@@ -604,7 +605,6 @@ int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -614,7 +614,7 @@ int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     if (retval == RIG_OK)
     {
-        priv->ptt = RIG_PTT_ON;
+        //priv->ptt = RIG_PTT_ON;
     }
 
     return retval;
@@ -627,7 +627,6 @@ int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     char pttbuf[6];
     int retval;
-    struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -644,7 +643,7 @@ int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     }
 
     *ptt = pttbuf[3] == '1' ? RIG_PTT_ON : RIG_PTT_OFF;
-    priv->ptt = *ptt;
+    //priv->ptt = *ptt;
 
     return RIG_OK;
 }
