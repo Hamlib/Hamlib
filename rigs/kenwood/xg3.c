@@ -103,7 +103,7 @@ const struct rig_caps xg3_caps =
     RIG_MODEL(RIG_MODEL_XG3),
     .model_name = "XG3",
     .mfg_name = "Elecraft",
-    .version = "20200613.0",
+    .version = "20230305.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -202,6 +202,7 @@ int xg3_init(RIG *rig)
     priv->last_vfo = RIG_VFO_A;
     priv->ptt = RIG_PTT_ON;
     priv->powerstat = RIG_POWER_ON;
+    //priv->no_id = 1;
     memset(priv->parms, 0, RIG_SETTING_MAX * sizeof(value_t));
 
     for (i = 0; i < NB_CHAN; i++)
@@ -514,22 +515,18 @@ int xg3_set_powerstat(RIG *rig, powerstat_t status)
 int xg3_get_powerstat(RIG *rig, powerstat_t *status)
 {
     const char *cmd = "G";      // any command to test will do
-    int retval = kenwood_transaction(rig, cmd, NULL, 0);
-    struct rig_state *rs = &rig->state;
+    char buf[6];
+    int retval = kenwood_transaction(rig, cmd, buf, 5);
     struct xg3_priv_data *priv = (struct xg3_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (retval == RIG_OK)
     {
-        char reply[32];
-        retval = read_string(&rs->rigport, (unsigned char *) reply, sizeof(reply),
-                             ";", 1, 0, 1);
         *status = RIG_POWER_ON;
         priv->powerstat = RIG_POWER_ON;
     }
-
-    if (retval != RIG_OK)
+    else
     {
         *status = RIG_POWER_OFF;    // Error indicates power is off
         rig_debug(RIG_DEBUG_VERBOSE, "%s read_string failed\n", __func__);
