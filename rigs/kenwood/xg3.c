@@ -163,10 +163,8 @@ const struct rig_caps xg3_caps =
     .rig_open = xg3_open,
     .set_freq = xg3_set_freq,
     .get_freq = xg3_get_freq,
-// temporarily disabled -- not used much if at all
-// need to make mem array dynamic
-//    .set_mem = xg3_set_mem,
-//    .get_mem = xg3_get_mem,
+    .set_mem = xg3_set_mem,
+    .get_mem = xg3_get_mem,
     .set_vfo = xg3_set_vfo,
     .get_vfo = xg3_get_vfo,
     .get_ptt = xg3_get_ptt,
