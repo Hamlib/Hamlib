@@ -1380,11 +1380,6 @@ static int read_string_generic(hamlib_port_t *p,
 
         total_count += (int) rd_count;
 
-        if (rxbuffer[0] == ';' && total_count > 1)
-        {
-
-        }
-
         if (total_count == rxmax) { break; }
 
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
