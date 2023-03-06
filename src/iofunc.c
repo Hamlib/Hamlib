@@ -1358,6 +1358,7 @@ static int read_string_generic(hamlib_port_t *p,
                           direct);
             }
         }
+
         while (++i < 10 && errno == EBUSY);   // 50ms should be enough
 
         /* if we get 0 bytes or an error something is wrong */
@@ -1376,16 +1377,15 @@ static int read_string_generic(hamlib_port_t *p,
 
         // check to see if our string startis with \...if so we need more chars
         if (total_count == 0 && rxbuffer[total_count] == '\\') { rxmax = (rxmax - 1) * 5; }
-        
-        if (total_count == 0 && rxbuffer[0] == ';')
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: skipping single ';' char\n", __func__);
-        }
-        else {
+
         total_count += (int) rd_count;
+
+        if (rxbuffer[0] == ';' && total_count > 1)
+        {
+
         }
 
-        if (total_count == rxmax) break;
+        if (total_count == rxmax) { break; }
 
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {
@@ -1399,6 +1399,18 @@ static int read_string_generic(hamlib_port_t *p,
 
             break;
         }
+    }
+
+    if (total_count > 1 && rxbuffer[0] == ';')
+    {
+        while (rxbuffer[0] == ';' && rxbuffer[0] != 0 && total_count >  1)
+        {
+            memmove(rxbuffer, &rxbuffer[1], strlen((char *)rxbuffer) - 1);
+            --total_count;
+        }
+
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: skipping single ';' chars at beginning of reply\n", __func__);
     }
 
     /*
