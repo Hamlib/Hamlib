@@ -1,12 +1,11 @@
 // can run this using rigctl/rigctld and socat pty devices
-// gcc -o simft897 simft897.c
+// gcc -o simft747gx simft747gx.c
 #define _XOPEN_SOURCE 600
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#include "../include/hamlib/rig.h"
 
 #define BUFSIZE 256
 
@@ -82,9 +81,6 @@ int openPort(char *comport) // doesn't matter for using pts devices
 int main(int argc, char *argv[])
 {
     unsigned char buf[256];
-    unsigned char *pbuf;
-    int n;
-
 
 again:
     int fd = openPort(argv[1]);
