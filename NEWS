@@ -30,6 +30,9 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Fix jst145 set_freq and get_freq
+        * Restore tcflush as some odd behavior was seen that tclush fixes
+        * Fix XG3 operations
         * Separate the validation cmd in newcat.c to allow rig post_write_delay to be in effect
         * Increase post_write to 20ms for FT710
         * Add attenuator level control for TS890
