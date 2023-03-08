@@ -30,6 +30,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Change EX startup commands for Yaesu rigs to allow errors...Win4Yaesu not recognizing EX commands
         * Fix jst145 set_freq and get_freq
         * Restore tcflush as some odd behavior was seen that tclush fixes
         * Fix XG3 operations
