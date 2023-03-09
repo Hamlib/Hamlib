@@ -185,6 +185,7 @@ const struct rig_caps ftdx10_caps =
     .swr_cal =            FTDX10_SWR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+        { 501, 510, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* 60M Channels, 5-01 - 5-10, if available */
         RIG_CHAN_END,
     },
 
