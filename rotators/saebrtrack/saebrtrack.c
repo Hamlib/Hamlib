@@ -25,19 +25,11 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <math.h>
 
 #include "hamlib/rotator.h"
 #include "serial.h"
-#include "misc.h"
 #include "register.h"
 
 #include "saebrtrack.h"
@@ -109,7 +101,7 @@ saebrtrack_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
     /*  Non Easycom standard */
-    sprintf(cmdstr, "AZ%05.1f EL%05.1f UP000 XXX DN000 XXX\n", az, el);
+    SNPRINTF(cmdstr, sizeof(cmdstr), "AZ%05.1f EL%05.1f UP000 XXX DN000 XXX\n", az, el);
 
     retval = saebrtrack_transaction(rot, cmdstr, NULL, 0);
 
