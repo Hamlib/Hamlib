@@ -28,6 +28,7 @@
 #ifndef _ROT_SABEBRTRACK_H
 #define _ROT_SABEBRTRACK_H 1
 
+#include "rotator.h"
 #include "token.h"
 
 extern const struct rot_caps saebrtrack_rot_caps;
