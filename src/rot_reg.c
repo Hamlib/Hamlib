@@ -92,6 +92,8 @@ DEFINE_INITROT_BACKEND(androidsensor);
 DEFINE_INITROT_BACKEND(grbltrk);
 DEFINE_INITROT_BACKEND(flir);
 DEFINE_INITROT_BACKEND(apex);
+DEFINE_INITROT_BACKEND(saebrtrack);
+
 //! @endcond
 
 /**
@@ -142,6 +144,7 @@ static struct
     { ROT_GRBLTRK, ROT_BACKEND_GRBLTRK, ROT_FUNCNAMA(grbltrk) },
     { ROT_FLIR, ROT_BACKEND_FLIR, ROT_FUNCNAMA(flir) },
     { ROT_APEX, ROT_BACKEND_APEX, ROT_FUNCNAMA(apex) },
+    { ROT_SAEBRTRACK, ROT_BACKEND_SAEBRTRACK, ROT_FUNCNAMA(saebrtrack)},
     { 0, NULL }, /* end */
 };
 
