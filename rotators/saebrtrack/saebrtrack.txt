@@ -1,0 +1,47 @@
+10-AUG-2020 Matthew J. Wolf Email: mwolf at speciosus.net
+
+I wanted to use Hamlib with my Amsat Tricked-Out WRAPS satellite antenna
+rotator [1],[2] with Hamlib and gpredict. During testing I discovered that the
+ WARPS implementation of EASYCOMM I rotator protocol is not correct.
+
+The EASYCOMM I specification states "The Az and El values (aaa.a and eee.e)
+are not fixed width."
+
+The WRAPS EASYCOMM implementation is FIXED WIDTH! The WRAPS does not work with
+Hamlib's correct implementation of the EASYCOMM protocol.
+
+WARPS is expecting a zero padded number for the Az and El values. Leading
+zeros need to be added.
+Example for Az of 99 and El of 10:
+WARPS:
+ AZ099.0 EL010.0 UP000 XXX DN000 XXX
+EASYCOMM I:
+ AZ99.0 EL10.0 UP000 XXX DN000 XXX
+
+The SAEBRTrack rotator backend is a hack of the Hamlib EASYCOMM rotator
+backend. I copied EASYCOMM backend and removed what was not needed.
+
+I named the Hamlib rotator backend SAEBRTrack because that is the rotator
+protocol that is used with the WRAPS in the Microsoft windows pcsat32 program.
+
+The SAEBRTrack rotator backend only supports changing the rotor's Az and El.
+
+I have tested the rotator backend for Az and El changes with my Amsat WRAPS.
+
+The backend should work with original SAEBRTrack [3] and derivatives.
+
+The specification of EASYCOMM I protocol the are in the easycomm.txt file in
+the EASYCOMM rotator backend source directory
+
+References:
+[1] M. Spencer.
+ WRAPS Rotor Enhancements Add a Second Beam and Circular Polarization".
+ The AMSAT Journal. vol. 37, no. 3, pp. 25 to 31. 2014.
+
+[2] Amsat.org, 2020. [Online].
+ Available: https://www.amsat.org/wordpress/xtra/WRAPSArticlewithStoreAd.pdf.
+ [Accessed: 10 Aug 2020].
+
+[1]"saebrtrack - marklhammond", Sites.google.com, 2020. [Online].
+Available: https://sites.google.com/site/marklhammond/saebrtrack.
+[Accessed: 10 Aug 2020].
