@@ -68,7 +68,7 @@ saebrtrack_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len
 
     rs = &rot->state;
     rig_flush(&rs->rotport);
-    retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
+    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
 
     if (retval != RIG_OK)
     {
@@ -80,7 +80,8 @@ saebrtrack_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len
         return RIG_OK;    /* don't want a reply */
     }
 
-    retval = read_string(&rs->rotport, data, data_len, "\n", 1);
+    retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
+                         "\n", 1, 0, 1);
 
     if (retval < 0)
     {
