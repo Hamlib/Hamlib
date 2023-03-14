@@ -679,6 +679,19 @@
 //! @endcond
 #define ROT_MODEL_APEX_SHARED_LOOP ROT_MAKE_MODEL(ROT_APEX, 1)
 
+/**
+ * \brief A macro that returns the model number of the SAEBRTRACK backend.
+ *
+ * \def ROT_MODEL_SAEBRTRACK
+ *
+ * The SAEBRTRACK backend can be used with SAEBRTRACK * rotators. 
+ */
+//! @cond Doxygen_Suppress
+#define ROT_SAEBRTRACK 27
+#define ROT_BACKEND_SAEBRTRACK "SAEBRTrack"
+//! @endcond
+#define ROT_MODEL_SAEBRTRACK ROT_MAKE_MODEL(ROT_SAEBRTRACK, 1)
+
 
 /**
  * \brief Convenience type definition for a rotator model.
