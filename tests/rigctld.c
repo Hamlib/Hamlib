@@ -1230,9 +1230,9 @@ void *handle_socket(void *arg)
 
     mutex_rigctld(0);
 #else
-    mutext_rigctld(1);
+    mutex_rigctld(1);
     retcode = rig_open(my_rig);
-    mutext_rigctld(1);
+    mutex_rigctld(1);
 
     if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
     {
