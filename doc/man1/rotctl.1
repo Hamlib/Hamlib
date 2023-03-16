@@ -23,6 +23,8 @@ rotctl \- control antenna rotators
 .OP \-s baud
 .OP \-t char
 .OP \-C parm=val
+.OP \-o azoffset
+.OP \-O eloffset
 .RB [ \-v [ \-Z ]]
 .RB [ command | \- ]
 .YS
@@ -129,6 +131,15 @@ command for further explanation.
 .BR Note :
 The semicolon (\(oq;\(cq) is a common terminator for rotators that accept
 ASCII character strings.
+.
+.TP
+.BR \-o ", " \-\-set\-azoffset
+Azimuth correction floating point -- during set value is added, during get value is subtracted.
+.
+.TP
+.BR \-O ", " \-\-set\-eloffset
+Elevation correction floating point -- during set value is added, during get value is subtracted.
+.
 .
 .TP
 .BR \-L ", " \-\-show\-conf
