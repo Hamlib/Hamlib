@@ -345,8 +345,6 @@ int main(int argc, char *argv[])
         my_amp->state.ampport.parm.serial.rate = serial_rate;
     }
 
-#if 0
-
     /*
      * print out conf parameters
      */
@@ -354,8 +352,6 @@ int main(int argc, char *argv[])
     {
         amp_token_foreach(my_amp, print_conf_list, (rig_ptr_t)my_amp);
     }
-
-#endif
 
     /*
      * Print out conf parameters, and exits immediately as we may be
