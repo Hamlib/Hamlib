@@ -82,8 +82,9 @@ if test $# -eq 0 ; then
         cppcheck --inline-suppr \
                  -I src \
                  -I include \
-                 --include=include/hamlib/config.h \
-                 --include=include/hamlib/rig.h \
+                 -I include/hamlib/ \
+                 -I lib \
+                 -I security \
                  -q \
                  --force \
                  --enable=all \
@@ -96,8 +97,9 @@ else
         cppcheck --inline-suppr \
                  -I src \
                  -I include \
-                 --include=include/hamlib/config.h \
-                 --include=include/hamlib/rig.h \
+                 -I include/hamlib/ \
+                 -I lib \
+                 -I security \
                  -q \
                  --force \
                  --enable=all \
