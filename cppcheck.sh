@@ -97,7 +97,7 @@ else
                  --inline-suppr \
                  -I src \
                  -I include \
-                 --include=include/config.h \
+                 --include=include/hamlib/config.h \
                  --include=include/hamlib/rig.h \
                  -q \
                  --force \
