@@ -93,8 +93,7 @@ if test $# -eq 0 ; then
                  . \
                  >cppcheck.log 2>&1
 else
-        cppcheck --check-config \
-                 --inline-suppr \
+        cppcheck --inline-suppr \
                  -I src \
                  -I include \
                  --include=include/hamlib/config.h \
@@ -105,5 +104,5 @@ else
                  --std=c99 \
                  $SUPPRESS \
                  $CHECK \
-                 $1
+                 "$@"
 fi
