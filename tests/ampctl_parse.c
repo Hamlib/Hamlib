@@ -1493,7 +1493,6 @@ void usage_amp(FILE *fout)
 }
 
 
-#if 0
 int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 {
     AMP *amp = (AMP *) data;
@@ -1538,7 +1537,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 
     return 1;  /* != 0, we want them all ! */
 }
-#endif
+
 
 static int hash_model_list(const struct amp_caps *caps, void *data)
 {
