@@ -3144,6 +3144,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_AF:
     {
         int vfo_num;
+
         if (RIG_IS_TS2000)
         {
             vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
@@ -3210,8 +3211,10 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         SNPRINTF(levelbuf, sizeof(levelbuf), "RG%03d", kenwood_val);
         break;
 
-    case RIG_LEVEL_SQL: {
+    case RIG_LEVEL_SQL:
+    {
         int vfo_num;
+
         if (RIG_IS_TS2000)
         {
             vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
@@ -3327,10 +3330,11 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_CWPITCH:
-      {
+    {
         gran_t *level_info;
 
         retval = check_level_param(rig, level, val, &level_info);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
@@ -3341,10 +3345,10 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         /* Round input freq to nearest multiple of step */
         kenwood_val = (val.i - level_info->min.i + (level_info->step.i / 2))
-		       / level_info->step.i;
+                      / level_info->step.i;
         SNPRINTF(levelbuf, sizeof(levelbuf), "PT%0*d", len, kenwood_val);
         break;
-      }
+    }
 
     case RIG_LEVEL_KEYSPD:
         if (val.i > 60 || val.i < 5)
@@ -3467,6 +3471,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         else if (RIG_IS_TS2000)
         {
             len = 3;
+
             if (vfo == RIG_VFO_C)
             {
                 cmd = "SM1";
@@ -3492,7 +3497,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         sscanf(lvlbuf + len, "%d", &val->i);
         break;
 
-    case RIG_LEVEL_STRENGTH: {
+    case RIG_LEVEL_STRENGTH:
+    {
         int multiplier = 1;
 
         if (RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS480)
@@ -3503,6 +3509,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         else if (RIG_IS_TS2000)
         {
             len = 3;
+
             if (vfo == RIG_VFO_C)
             {
                 cmd = "SM1";
@@ -3538,10 +3545,12 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->i = (val->i * 4) - 54;
         }
+
         break;
     }
 
-    case RIG_LEVEL_SQL: {
+    case RIG_LEVEL_SQL:
+    {
         int ack_len;
         int vfo_num;
 
@@ -3672,8 +3681,10 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = (power_now - power_min) / (float)(power_max - power_min);
         RETURNFUNC(RIG_OK);
 
-    case RIG_LEVEL_AF: {
+    case RIG_LEVEL_AF:
+    {
         int vfo_num;
+
         // first time through we'll determine the AG format
         // Can be "AG" "AG0" or "AG0/1"
         // This could be done by rig but easy enough to make it automagic
@@ -3756,7 +3767,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         case 3:
             SNPRINTF(cmdbuf, sizeof(cmdbuf), "AG%d", vfo_num);
-            retval = get_kenwood_level(rig, cmdbuf, &val->f,NULL);
+            retval = get_kenwood_level(rig, cmdbuf, &val->f, NULL);
             break;
 
         default:
@@ -3879,7 +3890,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         sscanf(lvlbuf + 2, "%d", &val->i);
         val->i = (val->i * rig->caps->level_gran[LVL_CWPITCH].step.i)
-        	  + rig->caps->level_gran[LVL_CWPITCH].min.i;
+                 + rig->caps->level_gran[LVL_CWPITCH].min.i;
         break;
 
     case RIG_LEVEL_KEYSPD:
@@ -4786,9 +4797,11 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         case RIG_PTT_ON_DATA:
             ptt_cmd = (vfo == RIG_VFO_C) ? "TX1" : "TX0";
             break;
+
         case RIG_PTT_OFF:
             ptt_cmd = "RX";
             break;
+
         default:
             RETURNFUNC(-RIG_EINVAL);
         }
@@ -4800,15 +4813,19 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         case RIG_PTT_ON:
             ptt_cmd = "TX";
             break;
+
         case RIG_PTT_ON_MIC:
             ptt_cmd = "TX0";
             break;
+
         case RIG_PTT_ON_DATA:
             ptt_cmd = "TX1";
             break;
+
         case RIG_PTT_OFF:
             ptt_cmd = "RX";
             break;
+
         default:
             RETURNFUNC(-RIG_EINVAL);
         }
@@ -4880,7 +4897,7 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     }
 
     if ((RIG_IS_TS990S && RIG_VFO_SUB == vfo) ||
-        (RIG_IS_TS2000 && RIG_VFO_C == vfo))
+            (RIG_IS_TS2000 && RIG_VFO_C == vfo))
     {
         offs = 3;
     }
