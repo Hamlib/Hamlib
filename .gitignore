@@ -8,6 +8,8 @@
 *.lo
 *.la
 *.orig
+*.sh.log
+*.sh.trs
 *.swp
 $depbase.Tpo
 Makefile

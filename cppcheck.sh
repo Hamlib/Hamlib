@@ -21,13 +21,7 @@ SUPPRESS="\
 --suppress=*:extra/gnuradio/ssb.h \
 --suppress=*:extra/gnuradio/wfm.h \
 --suppress=*:extra/gnuradio/wfm.h \
---suppress=*:extra/gnuradio/HrAGC.h \
---suppress=knownConditionTrueFalse:tests/rotctl.c \
---suppress=knownConditionTrueFalse:tests/rigctl.c \
---suppress=knownConditionTrueFalse:tests/ampctl.c \
---suppress=knownConditionTrueFalse:tests/rotctl_parse.c \
---suppress=knownConditionTrueFalse:tests/rigctl_parse.c \
---suppress=knownConditionTrueFalse:tests/ampctl_parse.c"
+--suppress=*:extra/gnuradio/HrAGC.h
 
 #CHECK="\
 #-D RIG_LEVEL_LINEOUT=1 \
@@ -82,8 +76,9 @@ if test $# -eq 0 ; then
         cppcheck --inline-suppr \
                  -I src \
                  -I include \
-                 --include=include/hamlib/config.h \
-                 --include=include/hamlib/rig.h \
+                 -I include/hamlib/ \
+                 -I lib \
+                 -I security \
                  -q \
                  --force \
                  --enable=all \
@@ -93,17 +88,17 @@ if test $# -eq 0 ; then
                  . \
                  >cppcheck.log 2>&1
 else
-        cppcheck --check-config \
-                 --inline-suppr \
+        cppcheck --inline-suppr \
                  -I src \
                  -I include \
-                 --include=include/config.h \
-                 --include=include/hamlib/rig.h \
+                 -I include/hamlib/ \
+                 -I lib \
+                 -I security \
                  -q \
                  --force \
                  --enable=all \
                  --std=c99 \
                  $SUPPRESS \
                  $CHECK \
-                 $1
+                 "$@"
 fi
