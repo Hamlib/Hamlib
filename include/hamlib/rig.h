@@ -163,7 +163,7 @@ enum rig_errcode_e {
     RIG_EDOM,       /*!< 17 Argument out of domain of func */
     RIG_EDEPRECATED,/*!< 18 Function deprecated */
     RIG_ESECURITY,  /*!< 19 Security error */
-    RIG_EPOWER,     /*!, 20 Rig not powered on */
+    RIG_EPOWER,     /*!< 20 Rig not powered on */
     RIG_EEND        // MUST BE LAST ITEM IN LAST
 };
 /**
@@ -340,8 +340,8 @@ enum agc_level_e {
     RIG_AGC_MEDIUM,
     RIG_AGC_AUTO,
     RIG_AGC_LONG,
-    RIG_AGC_ON,             /*< Turns AGC ON -- Kenwood -- restores last level set */
-    RIG_AGC_NONE            /*< Rig does not have CAT AGC control */
+    RIG_AGC_ON,             /*!< Turns AGC ON -- Kenwood -- restores last level set */
+    RIG_AGC_NONE            /*!< Rig does not have CAT AGC control */
 };
 
 
@@ -2363,7 +2363,7 @@ typedef hamlib_port_t port_t;
 #define HAMLIB_ELAPSED_SET 1
 #define HAMLIB_ELAPSED_INVALIDATE 2
 
-#define HAMLIB_CACHE_ALWAYS (-1) /*< value to set cache timeout to always use cache */
+#define HAMLIB_CACHE_ALWAYS (-1) /*!< value to set cache timeout to always use cache */
 
 typedef enum {
     HAMLIB_CACHE_ALL, // to set all cache timeouts at once
@@ -2579,16 +2579,16 @@ struct rig_state {
     /********* DO NOT ADD or CHANGE anything (or than to rename) ABOVE THIS LINE *********/
     /********* ENSURE ANY NEW ITEMS ARE ADDED AFTER HERE *********/
     /* flags instructing the rig_get routines to use cached values when asyncio is in use */
-    int use_cached_freq; /*<! flag instructing rig_get_freq to use cached values when asyncio is in use */
-    int use_cached_mode; /*<! flag instructing rig_get_mode to use cached values when asyncio is in use */
-    int use_cached_ptt;  /*<! flag instructing rig_get_ptt to use cached values when asyncio is in use */
-    int depth; /*<! a depth counter to use for debug indentation and such */
-    int lock_mode; /*<! flag that prevents mode changes if ~= 0 -- see set/get_lock_mode */
-    powerstat_t powerstat; /*<! power status */
-    char *tuner_control_pathname;  /*<! Path to external tuner control program that get 0/1 (Off/On) argument */
-    char client_version[32];  /*<! Allow client to report version for compatility checks/capability */
-    freq_t offset_vfoa; /*<! Offset to apply to VFOA/Main set_freq */
-    freq_t offset_vfob; /*<! Offset to apply to VFOB/Sub set_freq */
+    int use_cached_freq; /*!< flag instructing rig_get_freq to use cached values when asyncio is in use */
+    int use_cached_mode; /*!< flag instructing rig_get_mode to use cached values when asyncio is in use */
+    int use_cached_ptt;  /*!< flag instructing rig_get_ptt to use cached values when asyncio is in use */
+    int depth; /*!< a depth counter to use for debug indentation and such */
+    int lock_mode; /*!< flag that prevents mode changes if ~= 0 -- see set/get_lock_mode */
+    powerstat_t powerstat; /*!< power status */
+    char *tuner_control_pathname;  /*!< Path to external tuner control program that get 0/1 (Off/On) argument */
+    char client_version[32];  /*!<! Allow client to report version for compatility checks/capability */
+    freq_t offset_vfoa; /*!< Offset to apply to VFOA/Main set_freq */
+    freq_t offset_vfob; /*!< Offset to apply to VFOB/Sub set_freq */
 };
 
 //! @cond Doxygen_Suppress

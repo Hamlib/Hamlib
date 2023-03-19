@@ -1645,13 +1645,11 @@ int HAMLIB_API rig_set_twiddle(RIG *rig, int seconds)
 /**
  * \brief For GPredict to avoid reading frequency on uplink VFO
  * \param rig   The rig handle
- * \param seconds    1=Ignore Sub, 2=Ignore Main
+ * \param val   1=Ignore Sub, 2=Ignore Main
  *
  * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
- *
- * \sa rig_set_uplink()
  */
 int HAMLIB_API rig_set_uplink(RIG *rig, int val)
 {
@@ -7066,7 +7064,7 @@ static unsigned long gen_crc(unsigned char *p, size_t n)
  * \brief get freq/mode/width for requested VFO
  * \param rig   The rig handle
  *
- * returns a string for all known VFOs plus rig split status and satellite mode status
+ * \returns a string for all known VFOs plus rig split status and satellite mode status
  */
 int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
 {
@@ -7238,8 +7236,8 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 /**
  * \brief get list of available vfos
  * \param rig   The rig handle
- * \param char*  char buffer[SPRINTF_MAX_SIZE] to hold result
- * \param len   max length of char buffer
+ * \param buf   char buffer to hold result
+ * \param buflen   max length of char buffer
  *
  * Retrieves all usable vfo entries for the rig
  *
