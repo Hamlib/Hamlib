@@ -282,13 +282,12 @@ int gemini_set_level(AMP *amp, setting_t level, value_t val)
 
         if (val.f < .67) { cmd = "PM\n"; }
 
-        return RIG_OK;
         break;
     }
 
     retval = gemini_transaction(amp, cmd, NULL, 0);
 
-    if (retval != RIG_OK) { return retval; }
+    if (retval == RIG_OK) { return retval; }
 
     rig_debug(RIG_DEBUG_ERR, "%s: Unknown level=%s\n", __func__,
               rig_strlevel(level));
