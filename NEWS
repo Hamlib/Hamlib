@@ -13,6 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Add saebrtrack rotor https://sites.google.com/site/marklhammond/saebrtrack
         * Add offset_vfoa and offset_vfob applying to rig_set_freq
         * Fix K4 to put it in K40 mode when requesting ID
         * 2023-11-XX -- Planned for Nov 2023
@@ -30,6 +31,8 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Fix Gemini DX1200 gemini_set_level
+        * Fix async I/O to not call flush
         * Change EX startup commands for Yaesu rigs to allow errors...Win4Yaesu not recognizing EX commands
         * Fix jst145 set_freq and get_freq
         * Restore tcflush as some odd behavior was seen that tclush fixes
