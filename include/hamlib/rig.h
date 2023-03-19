@@ -2074,7 +2074,6 @@ struct rig_caps {
  * \brief Enumeration of all rig_ functions
  *
  */
-//! @cond Doxygen_Suppress
 // all functions enumerated for rig_get_function_ptr
 enum rig_function_e {
     RIG_FUNCTION_INIT,
@@ -2171,14 +2170,12 @@ enum rig_function_e {
  * \brief Function to return pointer to rig_* function
  *
  */
-//! @cond Doxygen_Suppress
 extern HAMLIB_EXPORT (void *) rig_get_function_ptr(rig_model_t rig_model, enum rig_function_e rig_function);
 
 /**
  * \brief Enumeration of rig->caps values
  *
  */
-//! @cond Doxygen_Suppress
 // values enumerated for rig->caps values
 enum rig_caps_int_e {
     RIG_CAPS_TARGETABLE_VFO,
@@ -2199,14 +2196,12 @@ enum rig_caps_cptr_e {
  * \brief Function to return int value from rig->caps
  * Does not support > 32-bit rig_caps values
  */
-//! @cond Doxygen_Suppress
 extern HAMLIB_EXPORT (long long) rig_get_caps_int(rig_model_t rig_model, enum rig_caps_int_e rig_caps);
 
 /**
  * \brief Function to return char pointer value from rig->caps
  *
  */
-//! @cond Doxygen_Suppress
 extern HAMLIB_EXPORT (const char *) rig_get_caps_cptr(rig_model_t rig_model, enum rig_caps_cptr_e rig_caps);
 
 struct hamlib_async_pipe;
