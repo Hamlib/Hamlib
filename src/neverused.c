@@ -23,7 +23,6 @@ void never_used()
     amp_ext_token_lookup();
     amp_probe_all();
     amp_set_powerstat();
-    amp_token_foreach();
     amp_unregister();
     cm108_dcd_get();
     CtrlHandler();

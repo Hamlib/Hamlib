@@ -472,8 +472,6 @@ int frontamp_get_conf2(AMP *amp, token_t token, char *val, int val_len)
  */
 
 
-#ifdef XXREMOVEDXXC
-// Not referenced anywhere
 /**
  * \brief Executes cfunc on all the elements stored in the configuration
  * parameters table.
@@ -534,7 +532,6 @@ int HAMLIB_API amp_token_foreach(AMP *amp,
 
     return RIG_OK;
 }
-#endif
 
 
 /**
