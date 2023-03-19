@@ -27,7 +27,7 @@
 #include <string.h>
 #include "config.h"
 #if defined(HAVE_LIBUSB_H)
-#include "libusb.h"
+#include <libusb.h>
 #elif defined(HAVE_LIBUSB_1_0_LIBUSB_H)
 #include <libusb-1.0/libusb.h>
 #endif
