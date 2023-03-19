@@ -1334,7 +1334,7 @@ static const struct
 
 /**
  * \brief Convert enum RIG_AGC_... to alpha string
- * \param mode RIG_AGC_...
+ * \param level RIG_AGC_...
  * \return alpha string
  */
 const char *HAMLIB_API rig_stragclevel(enum agc_level_e level)
