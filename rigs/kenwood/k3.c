@@ -2762,7 +2762,7 @@ int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 
 // The K4 has a problem in Fake It mode where the FA command is ignored
-// We will use it's special TQ command to try and ensure PTT is really off
+// We will use its special TQ command to try and ensure PTT is really off
 int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char pttbuf[6];
@@ -2808,7 +2808,7 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     return RIG_OK;
 }
 
-// K3S band memory needs some time to do it's thing after freq change
+// K3S band memory needs some time to do its thing after freq change
 // K3 probably does too
 // But what about the K4?
 int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)

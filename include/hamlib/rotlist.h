@@ -666,7 +666,7 @@
  *
  * The FLIR backend can be used with FLIR and DirectedPercepition 
  * rotators using the PTU protocol (e.g. PTU-D48). Currently only 
- * the serial interaface is supported and no ethernet.
+ * the serial interface is supported and no ethernet.
  */
 //! @cond Doxygen_Suppress
 #define ROT_FLIR 25

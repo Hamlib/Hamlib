@@ -1169,7 +1169,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                           __func__, rigerror(err));
             }
 
-            hl_usleep(500 * 1000); // wait for BS to do it's thing and swap back
+            hl_usleep(500 * 1000); // wait for BS to do its thing and swap back
 
             if (newcat_valid_command(rig, "VS"))
             {
@@ -1193,7 +1193,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                           __func__, rigerror(err));
             }
 
-            hl_usleep(500 * 1000); // wait for BS to do it's thing
+            hl_usleep(500 * 1000); // wait for BS to do its thing
         }
 
 
@@ -10964,7 +10964,7 @@ int newcat_set_cmd(RIG *rig)
 
         if (strncmp(priv->cmd_str, "BS", 2) == 0)
         {
-            // the BS command needs time to do it's thing
+            // the BS command needs time to do its thing
             hl_usleep(500 * 1000);
             priv->cache_start.tv_sec = 0; // invalidate the cache
         }
