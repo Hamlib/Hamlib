@@ -480,7 +480,7 @@ static int rig_check_rig_caps()
 }
 
 /**
- * \brief allocate a new RIG handle
+ * \brief Allocate a new #RIG handle.
  * \param rig_model The rig model for this new handle
  *
  * Allocates a new RIG handle and initializes the associated data
@@ -3070,7 +3070,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                 }
 
 #if 0
-                hl_usleep(50 * 1000); // give PTT a chance to do it's thing
+                hl_usleep(50 * 1000); // give PTT a chance to do its thing
 
                 // don't use the cached value and check to see if it worked
                 elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);
@@ -4948,7 +4948,7 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
 /**
  * \brief set the split mode
  * \param rig   The rig handle
- * \param vfo   The target VFO
+ * \param rx_vfo   The receive VFO
  * \param split The split mode to set to
  * \param tx_vfo    The transmit VFO
  *
@@ -6015,7 +6015,7 @@ int HAMLIB_API rig_mW2power(RIG *rig,
  *
  *  Returns the best frequency resolution of the rig, for a given \a mode.
  *
- * \return the frequency resolution in Hertz if the operation h
+ * \return the frequency resolution in Hertz if the operation
  * has been successful, otherwise a negative value if an error occurred.
  *
  */
@@ -6054,7 +6054,7 @@ shortfreq_t HAMLIB_API rig_get_resolution(RIG *rig, rmode_t mode)
  * See #RIG_POWER_ON, #RIG_POWER_OFF and #RIG_POWER_STANDBY defines
  * for the \a status.
  *
- * \return RIG_OK if the operation has been successful, ortherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *

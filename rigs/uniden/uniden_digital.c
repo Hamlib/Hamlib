@@ -293,7 +293,7 @@ const char *uniden_digital_get_info(RIG *rig)
      * STS command returns 3 lines including system, truck, freq info
      *
      * XXX indicates the BCD996T returns some non-printable ascii chars
-     * within it's comma separated fields. See pg 30-32 of BCD996T_Protocol.pdf.
+     * within its comma separated fields. See pg 30-32 of BCD996T_Protocol.pdf.
      * These chars cause abnomalies on stdout! */
 
     /* FIXME: Strip or replace non-printable chars return from STS command!
