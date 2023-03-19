@@ -1828,6 +1828,8 @@ void HAMLIB_API rig_no_restore_ai()
 
     no_restore_ai = -1;
 }
+//! @endcond
+
 
 //! @cond Doxygen_Suppress
 double HAMLIB_API elapsed_ms(struct timespec *start, int option)
@@ -1882,6 +1884,8 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 
     return elapsed_msec;
 }
+//! @endcond
+
 
 int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t selection)
 {
