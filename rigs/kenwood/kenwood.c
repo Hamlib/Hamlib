@@ -348,9 +348,11 @@ transaction_write:
         skip |= strncmp(cmdstr, "KYW", 3) == 0;
         skip |= strncmp(cmdstr, "PS1", 3) == 0;
         skip |= strncmp(cmdstr, "PS0", 3) == 0;
+        skip |= strncmp(cmdstr, "K22", 3) == 0;
 
         if (skip)
         {
+            hl_usleep(200*1000); // give little settle time for these commands
             goto transaction_quit;
         }
     }
