@@ -669,7 +669,7 @@
 /**
  * \brief A macro that returns the model number of the APEX backend.
  *
- * \def ROT_MODEL_APEX
+ * \def ROT_MODEL_APEX_SHARED_LOOP
  *
  * The APEX backend can be used with APEX * rotators. 
  */
