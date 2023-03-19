@@ -191,6 +191,7 @@ extern rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX];
 
 extern tone_t kenwood38_ctcss_list[];
 extern tone_t kenwood42_ctcss_list[];
+extern tone_t kenwood51_ctcss_list[];
 
 int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize);
 int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,

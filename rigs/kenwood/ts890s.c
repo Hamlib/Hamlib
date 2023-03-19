@@ -510,6 +510,7 @@ struct rig_caps ts890s_caps =
         RIG_FLT_END,
     },
     .vfo_ops = TS890_VFO_OPS,
+    .ctcss_list = kenwood51_ctcss_list,
 
     .swr_cal = TS890_SWR_CAL,
 
@@ -529,6 +530,8 @@ struct rig_caps ts890s_caps =
     .get_vfo = kenwood_get_vfo_if,
     .set_split_vfo = kenwood_set_split_vfo,
     .get_split_vfo = kenwood_get_split_vfo_if,
+    .set_ctcss_tone = kenwood_set_ctcss_tone_tn,
+    .get_ctcss_tone = kenwood_get_ctcss_tone,
     .get_ptt = kenwood_get_ptt,
     .set_ptt = kenwood_set_ptt,
     .get_dcd = kenwood_get_dcd,

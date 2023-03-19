@@ -181,6 +181,18 @@ tone_t kenwood42_ctcss_list[] =
     0,
 };
 
+/*
+ * 51 CTCSS sub-audible tones
+ */
+tone_t kenwood51_ctcss_list[] =
+{
+   670 ,  693,  719,  744,  770,  797,  825,  854,  885,  915, /*  0- 9 */
+   948 ,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, /* 10-19 */
+   1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679, /* 20-29 */
+   1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995, /* 30-39 */
+   2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541, /* 40-49 */
+   17500, 0 /* 50-99 */
+};
 
 /* Token definitions for .cfgparams in rig_caps
  *
@@ -4492,7 +4504,14 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
     caps = rig->caps;
 
-    if (RIG_IS_TS990S)
+    if (RIG_IS_TS890S)
+      {
+	char buf[5];
+	
+	retval = kenwood_safe_transaction(rig, "TN", buf, sizeof(buf), 4);
+	memcpy(tonebuf, buf + 2, 2);
+      }
+    else if (RIG_IS_TS990S)
     {
         char cmd[4];
         char buf[6];
