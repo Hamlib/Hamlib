@@ -637,9 +637,17 @@
 #define ROT_MODEL_ANDROIDSENSOR ROT_MAKE_MODEL(ROT_ANDROIDSENSOR, 1)
 
 /**
- * \brief A macro that returns the model number of the GRBLTRK backend.
+ * \brief A macro that returns the model number of the ROT_MODEL_GRBLTRK_SER backend.
  *
- * \def ROT_MODEL_GRBLTRK
+ * \def ROT_MODEL_GRBLTRK_SER
+ *
+ * The GRBLTRK backend can be used with rotators that support the GRBL
+ * protocol.
+ */
+/**
+ * \brief A macro that returns the model number of the ROT_MODEL_GRBLTRK_NET backend.
+ *
+ * \def ROT_MODEL_GRBLTRK_NET
  *
  * The GRBLTRK backend can be used with rotators that support the GRBL
  * protocol.
