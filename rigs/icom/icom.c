@@ -7790,7 +7790,7 @@ int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    /* DCS Polarity ignored, by setting code_len to 3 it's foretval to 0 (= Tx:norm, Rx:norm). */
+    /* DCS Polarity ignored, by setting code_len to 3 it's forced to 0 (= Tx:norm, Rx:norm). */
     code_len = 3;
     to_bcd_be(codebuf, code, code_len * 2);
 

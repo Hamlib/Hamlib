@@ -480,7 +480,7 @@ static int rig_check_rig_caps()
 }
 
 /**
- * \brief allocate a new RIG handle
+ * \brief Allocate a new #RIG handle.
  * \param rig_model The rig model for this new handle
  *
  * Allocates a new RIG handle and initializes the associated data
@@ -1645,13 +1645,11 @@ int HAMLIB_API rig_set_twiddle(RIG *rig, int seconds)
 /**
  * \brief For GPredict to avoid reading frequency on uplink VFO
  * \param rig   The rig handle
- * \param seconds    1=Ignore Sub, 2=Ignore Main
+ * \param val   1=Ignore Sub, 2=Ignore Main
  *
  * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
- *
- * \sa rig_set_uplink()
  */
 int HAMLIB_API rig_set_uplink(RIG *rig, int val)
 {
@@ -3070,7 +3068,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                 }
 
 #if 0
-                hl_usleep(50 * 1000); // give PTT a chance to do it's thing
+                hl_usleep(50 * 1000); // give PTT a chance to do its thing
 
                 // don't use the cached value and check to see if it worked
                 elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);
@@ -4948,7 +4946,7 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
 /**
  * \brief set the split mode
  * \param rig   The rig handle
- * \param vfo   The target VFO
+ * \param rx_vfo   The receive VFO
  * \param split The split mode to set to
  * \param tx_vfo    The transmit VFO
  *
@@ -6015,7 +6013,7 @@ int HAMLIB_API rig_mW2power(RIG *rig,
  *
  *  Returns the best frequency resolution of the rig, for a given \a mode.
  *
- * \return the frequency resolution in Hertz if the operation h
+ * \return the frequency resolution in Hertz if the operation
  * has been successful, otherwise a negative value if an error occurred.
  *
  */
@@ -6054,7 +6052,7 @@ shortfreq_t HAMLIB_API rig_get_resolution(RIG *rig, rmode_t mode)
  * See #RIG_POWER_ON, #RIG_POWER_OFF and #RIG_POWER_STANDBY defines
  * for the \a status.
  *
- * \return RIG_OK if the operation has been successful, ortherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
@@ -7066,7 +7064,7 @@ static unsigned long gen_crc(unsigned char *p, size_t n)
  * \brief get freq/mode/width for requested VFO
  * \param rig   The rig handle
  *
- * returns a string for all known VFOs plus rig split status and satellite mode status
+ * \returns a string for all known VFOs plus rig split status and satellite mode status
  */
 int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
 {
@@ -7238,8 +7236,8 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 /**
  * \brief get list of available vfos
  * \param rig   The rig handle
- * \param char*  char buffer[SPRINTF_MAX_SIZE] to hold result
- * \param len   max length of char buffer
+ * \param buf   char buffer to hold result
+ * \param buflen   max length of char buffer
  *
  * Retrieves all usable vfo entries for the rig
  *
