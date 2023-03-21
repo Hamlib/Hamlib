@@ -460,7 +460,7 @@ tt550_trx_open(RIG *rig)
     priv = (struct tt550_priv_data *) rig->state.priv;
 
     /*
-     * Reset the radio and start it's program running
+     * Reset the radio and start its program running
      * We'll try twice to reset before giving up
      */
     if (tt550_reset(rig, RIG_RESET_SOFT) != RIG_OK)

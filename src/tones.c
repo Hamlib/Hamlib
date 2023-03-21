@@ -480,7 +480,7 @@ int HAMLIB_API rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
  *
  * Sets the current Digitally-Coded *Squelch* code.
  *
- * \return returns RIG_OK if the operation has been successful, ortherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is set
  * appropriately).
  *
@@ -542,7 +542,7 @@ int HAMLIB_API rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
  *
  * Retrieves the current Digitally-Coded *Squelch* code.
  *
- * \return RIG_OK if the operation has been successful, ortherwise
+ * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *

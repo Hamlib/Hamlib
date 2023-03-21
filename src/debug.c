@@ -178,8 +178,6 @@ void HAMLIB_API rig_set_debug_time_stamp(int flag)
     rig_debug_time_stamp = flag;
 }
 
-//! @endcond
-
 
 /**
  * \brief Print debugging messages through `stderr` by default.
