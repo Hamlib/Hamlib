@@ -110,7 +110,13 @@ int main(int argc, char *argv[])
         }
         else { continue; }
 
-        if (strcmp(buf, "RM5;") == 0)
+        if (strcmp(buf, ";") == 0)
+        {
+            pbuf = "?;";
+            n = write(fd, pbuf, strlen(pbuf));
+            printf("n=%d\n", n);
+        }
+        else if (strcmp(buf, "RM5;") == 0)
         {
             printf("%s\n", buf);
             usleep(50 * 1000);
@@ -141,7 +147,7 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("IF"); }
         }
-       else if (strcmp(buf, "FA;") == 0)
+        else if (strcmp(buf, "FA;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FA%08.0f;", freqA);
             n = write(fd, buf, strlen(buf));
