@@ -33,7 +33,7 @@
 // Is this big enough?
 #define KPABUFSZ 100
 
-extern const struct amp_caps kpa1500_rot_caps;
+extern const struct amp_caps kpa1500_amp_caps;
 
 /*
  * Private data structure
