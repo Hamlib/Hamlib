@@ -10855,6 +10855,7 @@ int newcat_set_cmd_validate(RIG *rig)
                 strcpy(valcmd, "");
             // these models do not work with a single ;
             case RIG_MODEL_FT897:
+                break;
             default:
                 // no change to validation command
         }
