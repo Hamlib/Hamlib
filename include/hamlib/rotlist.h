@@ -637,9 +637,17 @@
 #define ROT_MODEL_ANDROIDSENSOR ROT_MAKE_MODEL(ROT_ANDROIDSENSOR, 1)
 
 /**
- * \brief A macro that returns the model number of the GRBLTRK backend.
+ * \brief A macro that returns the model number of the ROT_MODEL_GRBLTRK_SER backend.
  *
- * \def ROT_MODEL_GRBLTRK
+ * \def ROT_MODEL_GRBLTRK_SER
+ *
+ * The GRBLTRK backend can be used with rotators that support the GRBL
+ * protocol.
+ */
+/**
+ * \brief A macro that returns the model number of the ROT_MODEL_GRBLTRK_NET backend.
+ *
+ * \def ROT_MODEL_GRBLTRK_NET
  *
  * The GRBLTRK backend can be used with rotators that support the GRBL
  * protocol.
@@ -658,7 +666,7 @@
  *
  * The FLIR backend can be used with FLIR and DirectedPercepition 
  * rotators using the PTU protocol (e.g. PTU-D48). Currently only 
- * the serial interaface is supported and no ethernet.
+ * the serial interface is supported and no ethernet.
  */
 //! @cond Doxygen_Suppress
 #define ROT_FLIR 25
@@ -669,7 +677,7 @@
 /**
  * \brief A macro that returns the model number of the APEX backend.
  *
- * \def ROT_MODEL_APEX
+ * \def ROT_MODEL_APEX_SHARED_LOOP
  *
  * The APEX backend can be used with APEX * rotators. 
  */
