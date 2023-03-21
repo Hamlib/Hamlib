@@ -10844,6 +10844,21 @@ int newcat_set_cmd_validate(RIG *rig)
 
         if (strlen(valcmd) == 0) { RETURNFUNC(RIG_OK); }
 
+        // we can use a single ; to get a reponse of ?; for some rigs
+        // this list can be expanded as we get more testing
+        // seems newer rigs have this older ones time out
+        switch(rig->caps->rig_model)
+        {
+            case RIG_MODEL_FT991:
+            case RIG_MODEL_FTDX101MP:
+            case RIG_MODEL_FTDX3000:
+                strcpy(valcmd, "");
+            // these models do not work with a single ;
+            case RIG_MODEL_FT897:
+            default:
+                // no change to validation command
+        }
+
         SNPRINTF(cmd, sizeof(cmd), "%s", valcmd);
         rc = write_block(&state->rigport, (unsigned char *) cmd, strlen(cmd));
 
