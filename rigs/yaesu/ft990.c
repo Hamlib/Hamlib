@@ -3221,7 +3221,7 @@ int ft990_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
  *              rl      expected length of returned data in octets
  *
  * Returns:     RIG_OK if all called functions are successful,
- *              otherwise returns error from called functiion
+ *              otherwise returns error from called function
  */
 int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
 {
@@ -3319,7 +3319,7 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
  *              ci      Command index of the ncmd table
  *
  * Returns:     RIG_OK if all called functions are successful,
- *              otherwise returns error from called functiion
+ *              otherwise returns error from called function
  */
 int ft990_send_static_cmd(RIG *rig, unsigned char ci)
 {
@@ -3360,7 +3360,7 @@ int ft990_send_static_cmd(RIG *rig, unsigned char ci)
  *              p1-p4   Command parameters
  *
  * Returns:     RIG_OK if all called functions are successful,
- *              otherwise returns error from called functiion
+ *              otherwise returns error from called function
  */
 int ft990_send_dynamic_cmd(RIG *rig, unsigned char ci,
                            unsigned char p1, unsigned char p2,
@@ -3419,7 +3419,7 @@ int ft990_send_dynamic_cmd(RIG *rig, unsigned char ci,
  *              freq    freq_t frequency value
  *
  * Returns:     RIG_OK if all called functions are successful,
- *              otherwise returns error from called functiion
+ *              otherwise returns error from called function
  */
 int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
 {
@@ -3476,7 +3476,7 @@ int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
  *              rit    shortfreq_t frequency value
  *
  * Returns:     RIG_OK if all called functions are successful,
- *              otherwise returns error from called functiion
+ *              otherwise returns error from called function
  */
 int ft990_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
 {

@@ -32,7 +32,7 @@
 #include "tt550.h"
 
 /*
- * Filter table for 550 reciver support
+ * Filter table for 550 receiver support
  */
 static int tt550_filters[] =
 {

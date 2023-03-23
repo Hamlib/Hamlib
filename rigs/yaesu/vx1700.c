@@ -400,7 +400,7 @@ static int vx1700_do_transaction(RIG *rig,
  *              ci      Command index of the ncmd table
  *
  * Returns:     RIG_OK if all called functions are successful,
- *              otherwise returns error from called functiion
+ *              otherwise returns error from called function
  */
 static int vx1700_do_static_cmd(RIG *rig, unsigned char ci)
 {
@@ -427,7 +427,7 @@ static int vx1700_do_static_cmd(RIG *rig, unsigned char ci)
  *              p1-p4   Command parameters
  *
  * Returns:     RIG_OK if all called functions are successful,
- *              otherwise returns error from called functiion
+ *              otherwise returns error from called function
  */
 static int vx1700_do_dynamic_cmd(RIG *rig, unsigned char ci,
                                  unsigned char p1, unsigned char p2,

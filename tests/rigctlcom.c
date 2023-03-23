@@ -1490,7 +1490,7 @@ static int handle_ts2000(void *arg)
         int isplit;
         int retval;
         char response[32];
-        // Expecting DCnn -- but we dont' care about the control param
+        // Expecting DCnn -- but we don't care about the control param
         int n = sscanf(arg, "DC%d", &isplit);
 
         if (n != 1)

@@ -1,6 +1,6 @@
 This is a test of creating a portable Hamlib GUI controller using dotnet and GTK
 Should be able to compile on Windows, Linux, and MacOS
-No guarante this will go anywhere depending on ability to talk to Hamlib via C#
+No guarantee this will go anywhere depending on ability to talk to Hamlib via C#
 
 On Windows
 dotnet new install GtkSharp.Template.CSharp
