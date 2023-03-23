@@ -267,7 +267,7 @@ static int check_vfo(vfo_t vfo)
 
 /*Rather than use some huge XML library we only need a few things
 * So we'll hand craft them
-* xml_build takes a value and return an xml string for FLRig
+* xml_build takes a value and returns an xml string for FLRig
 */
 static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf,
                        int xmlbuflen)

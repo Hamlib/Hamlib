@@ -811,7 +811,7 @@ int newcat_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 
 static int freq_60m[] = { 5332000, 5348000, 5358500, 5373000, 5405000 };
 
-/* returns 0 if no exeption or 1 if rig needs special handling */
+/* returns 0 if no exception or 1 if rig needs special handling */
 int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
@@ -10852,7 +10852,7 @@ int newcat_set_cmd_validate(RIG *rig)
 
         if (strlen(valcmd) == 0) { RETURNFUNC(RIG_OK); }
 
-        // we can use a single ; to get a reponse of ?; for some rigs
+        // we can use a single ; to get a response of ?; for some rigs
         // this list can be expanded as we get more testing
         // seems newer rigs have this older ones time out
         switch(rig->caps->rig_model)

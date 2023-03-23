@@ -236,7 +236,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
     switch (caps->port_type)
     {
     case RIG_PORT_SERIAL:
-        // Dont' think we need a default port here
+        // Don't think we need a default port here
         //strncpy(rs->ampport.pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
         rs->ampport.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
         rs->ampport.parm.serial.data_bits = caps->serial_data_bits;

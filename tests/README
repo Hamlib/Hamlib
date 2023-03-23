@@ -34,8 +34,8 @@ rigmem    - Combined tool to load/save content of rig memory, see man page
 rotctl    - Similar to 'rigctl' but for rotators, see man page
 rigctld   - A simple daemon to process 'rigctl' commands received over a
             network socket.  Useful for scripting languages or remote access
-            via an SSH tunnel (unsecure program).  See man page.
+            via an SSH tunnel (insecure program).  See man page.
 rotctld   - A simple daemon to process 'rotctl' commands received over a
             network socket.  Useful for scripting languages or remote access
-            via an SSH tunnel (unsecure program).  See man page.
+            via an SSH tunnel (insecure program).  See man page.
 testctld.pl A Perl program to test 'rigctld' and provide some example code.

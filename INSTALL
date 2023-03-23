@@ -362,7 +362,7 @@ the command line of the application's 'configure' script:
 
 These can be set on the Hamlib 'configure' script's command line to see the
 effect on the Hamlib utilities when they are built as statically linked
-applicatins (--disable-shared option passed to 'configure').  With these
+applications (--disable-shared option passed to 'configure').  With these
 environment variables it can be seen that 'rigctl' contains no rotor symbols
 nor does 'rotctl' contain any rig symbols.
 

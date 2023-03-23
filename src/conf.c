@@ -1247,7 +1247,7 @@ const struct confparams *HAMLIB_API rig_confparam_lookup(RIG *rig,
  * \param rig   The rig handle
  * \param name  The name of the configuration parameter
  *
- * Simple lookup returning token id assicated with name.
+ * Simple lookup returning token id associated with name.
  *
  * \return the token id if found, otherwise RIG_CONF_END
  */

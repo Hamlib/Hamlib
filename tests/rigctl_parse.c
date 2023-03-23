@@ -1773,7 +1773,7 @@ readline_repeat:
         }
 
         // we need to copy client_version to our thread in case there are multiple client versions
-        // client_version is used to determine any backward compatiblity requirements or problems
+        // client_version is used to determine any backward compatibility requirements or problems
         strncpy(client_version, my_rig->state.client_version, sizeof(client_version));
     }
 
@@ -4897,7 +4897,7 @@ declare_proto_rig(send_cmd)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
               rs->rigport.fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
-    // we dont' want the 'w' command to wait too long
+    // we don't want the 'w' command to wait too long
     int save_retry = rs->rigport.retry;
     rs->rigport.retry = 0;
     retval = write_block(&rs->rigport, (unsigned char *) bufcmd, cmd_len);

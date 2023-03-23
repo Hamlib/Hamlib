@@ -469,7 +469,7 @@ int dxsr8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EINVAL;
     }
 
-    filter = 0; // avoid compiler warings of being possibly uninitialized
+    filter = 0; // avoid compiler warnings of being possibly uninitialized
     retval = dxsr8_read_num(rig, AL "~RR_NAR" EOM, &filter);
 
     if (filter == 0)
