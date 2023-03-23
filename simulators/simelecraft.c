@@ -12,6 +12,17 @@
 
 float freqA = 14074000;
 float freqB = 14074500;
+int afgain = 180;
+int rfgain = 190;
+int micgain = 30;
+int noiseblanker = 0;
+int bandwidthA = 2200;
+int bandwidthB = 2400;
+int ifshift = 0;
+int preampA = 0;
+int preampB = 0;
+int rxattenuatorA = 0;
+int rxattenuatorB = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -157,13 +168,80 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "BW;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "BW0190;");
+            SNPRINTF(buf, sizeof(buf), "BW%04d;", bandwidthA);
             n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "BW", 2) == 0)
+        {
+            sscanf(buf, "BW%d", &bandwidthA);
+        }
+        else if (strcmp(buf, "BW$;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "BW$%04d;", bandwidthB);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "BW$", 2) == 0)
+        {
+            sscanf(buf, "BW$%d", &bandwidthB);
         }
         else if (strcmp(buf, "BN;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "BN03;");
             n = write(fd, buf, strlen(buf));
+        }
+        else if (strcmp(buf, "SM;") == 0)
+        {
+            static int meter = 0;
+            SNPRINTF(buf, sizeof(buf), "SM%04d;", meter++);
+
+            if (meter > 15) { meter = 0; }
+
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strcmp(buf, "RG;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "RG%03d;", rfgain);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "RG", 2) == 0)
+        {
+            sscanf(buf, "RG%d", &rfgain);
+        }
+        else if (strcmp(buf, "MG;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "MG%03d;", micgain);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "MG", 2) == 0)
+        {
+            sscanf(buf, "MG%d", &micgain);
+        }
+        else if (strcmp(buf, "AG;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "MG%03d;", afgain);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "AG", 2) == 0)
+        {
+            sscanf(buf, "AG%d", &afgain);
+        }
+        else if (strcmp(buf, "NB;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "NB%d;", noiseblanker);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "NB", 2) == 0)
+        {
+            sscanf(buf, "NB%d", &noiseblanker);
+        }
+        else if (strcmp(buf, "IS;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "IS %04d;", ifshift);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "IS", 2) == 0)
+        {
+            sscanf(buf, "IS %d", &ifshift);
         }
 
 
@@ -269,6 +347,10 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "FR0;");
             n = write(fd, buf, strlen(buf));
         }
+        else if (strncmp(buf, "FR", 2) == 0)
+        {
+            // we ignore FR for the K3
+        }
         else if (strncmp(buf, "FT;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FT0;");
@@ -283,6 +365,42 @@ int main(int argc, char *argv[])
         {
             SNPRINTF(buf, sizeof(buf), "PC0980;");
             n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "PA;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PA%d;", preampA);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "PA$;", 4) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PA$%d;", preampB);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "PA", 2) == 0)
+        {
+            sscanf(buf, "PA%d;", &preampA);
+        }
+        else if (strncmp(buf, "PA$", 3) == 0)
+        {
+            sscanf(buf, "PA$%d;", &preampB);
+        }
+        else if (strncmp(buf, "RA;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "RA%02d;", rxattenuatorA);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "RA$;", 4) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "RA$%02d;", rxattenuatorA);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "RA", 2) == 0)
+        {
+            sscanf(buf, "RA%d;", &rxattenuatorB);
+        }
+        else if (strncmp(buf, "RA$", 3) == 0)
+        {
+            sscanf(buf, "RA$%d;", &rxattenuatorB);
         }
         else if (strlen(buf) > 0)
         {
