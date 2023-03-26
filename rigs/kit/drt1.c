@@ -398,7 +398,7 @@ static int ad_write_reg(hamlib_port_t *port, unsigned addr, unsigned nb_bytes,
     return RIG_OK;
 }
 
-/* Register serial adresses */
+/* Register serial addresses */
 #define CFR1    0x0
 #define CFR2    0x1
 #define ASF 0x2

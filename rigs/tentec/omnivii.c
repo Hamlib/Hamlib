@@ -237,7 +237,7 @@ const struct rig_caps tt588_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-/* Filter table for 588 reciver support. */
+/* Filter table for 588 receiver support. */
 static int tt588_rxFilter[] =
 {
     12000, 9000, 8000, 7500, 7000, 6500, 6000, 5500, 5000, 4500, 4000, 3800, 3600, 3400, 3200,
