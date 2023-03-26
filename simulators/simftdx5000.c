@@ -159,42 +159,6 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("ID"); }
         }
-        else if (strcmp(buf, "AI;") == 0)
-        {
-            printf("%s\n", buf);
-            usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "AI0;");
-            n = write(fd, buf, strlen(buf));
-            printf("n=%d\n", n);
-
-            if (n <= 0) { perror("ID"); }
-        }
-
-#if 0
-        else if (strncmp(buf, "AI", 2) == 0)
-        {
-            if (strcmp(buf, "AI;"))
-            {
-                printf("%s\n", buf);
-                usleep(50 * 1000);
-                n = fprintf(fp, "%s", "AI0;");
-                printf("n=%d\n", n);
-
-                if (n <= 0) { perror("AI"); }
-            }
-        }
-
-#endif
-        else if (strcmp(buf, "VS;") == 0)
-        {
-            printf("%s\n", buf);
-            usleep(50 * 1000);
-            pbuf = "VS0;";
-            n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
-
-            if (n < 0) { perror("VS"); }
-        }
         else if (strcmp(buf, "EX032;") == 0)
         {
             static int ant = 0;
