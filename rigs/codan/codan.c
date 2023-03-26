@@ -333,7 +333,7 @@ int codan_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     retval = sscanf(response, "FREQ: %lg", freq);
 
-    *freq *= 1000; // returne freq is in kHz
+    *freq *= 1000; // returned freq is in kHz
 
     if (retval != 1)
     {

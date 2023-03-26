@@ -20,7 +20,7 @@ Tested only with PTU-D48 yet and with one rotor per chain only.
 either using the rotctl `Reset` command (R) or manually via serial terminal
 sending the `R\n` command.
 4. To enable the rotor to fully turn +/- 180°, the softlock must be disabled.
-This is included in the rotctl `Reset` commnad or manually via serial terminal
+This is included in the rotctl `Reset` command or manually via serial terminal
 seinden the command `LD\n`. **WARNING:** Send this command only after the rotor is
 calibrated, or you risk damage running into the hard endstops (at about +/-190°)
 5. Start `rotctl` or `rotctld` with the arguments `-m 2501 -r <Serial

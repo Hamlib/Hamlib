@@ -610,7 +610,7 @@ int ft857_get_vfo(RIG *rig, vfo_t *vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    // Some 857's cannnot read so we'll just return the cached value if we've seen an error
+    // Some 857's cannot read so we'll just return the cached value if we've seen an error
     if (ignore)
     {
         *vfo = rig->state.cache.vfo;

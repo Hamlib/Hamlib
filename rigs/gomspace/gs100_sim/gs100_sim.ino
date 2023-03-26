@@ -132,7 +132,7 @@ static void prnPrompt(void);
 /**
  * @brief Displays hint output for commands
  * @param hint_type Type or command
- * @oaram cmd Part of command to comment
+ * @param cmd Part of command to comment
  */
 static void prnHint(hint_t hint_type, char *cmd);
 

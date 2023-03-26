@@ -865,7 +865,7 @@ int kenwood_open(RIG *rig)
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
             rig_set_powerstat(rig, 1);
         }
-        else if (err == -RIG_ETIMEOUT) // Some rigs like TS-450 dont' have PS cmd
+        else if (err == -RIG_ETIMEOUT) // Some rigs like TS-450 don't have PS cmd
         {
             priv->has_ps = 0;
         }
