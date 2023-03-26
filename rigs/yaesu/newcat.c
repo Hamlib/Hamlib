@@ -10532,7 +10532,6 @@ int newcat_get_cmd(RIG *rig)
         || strcmp(priv->cmd_str, "CO11;") == 0
         || strcmp(priv->cmd_str, "CO12;") == 0
         || strcmp(priv->cmd_str, "CO13;") == 0
-        || strcmp(priv->cmd_str, "IS1;") == 0
         || strcmp(priv->cmd_str, "IS0;") == 0
         || strcmp(priv->cmd_str, "IS1;") == 0
         || strcmp(priv->cmd_str, "MD0;") == 0
@@ -10545,10 +10544,7 @@ int newcat_get_cmd(RIG *rig)
         || strcmp(priv->cmd_str, "NL1;") == 0
         || strcmp(priv->cmd_str, "NR0;") == 0
         || strcmp(priv->cmd_str, "NR1;") == 0
-        || strcmp(priv->cmd_str, "NR0;") == 0
-        || strcmp(priv->cmd_str, "NR1;") == 0
         || strcmp(priv->cmd_str, "OI;") == 0
-        || strcmp(priv->cmd_str, "OS0;") == 0
         || strcmp(priv->cmd_str, "OS0;") == 0
         || strcmp(priv->cmd_str, "OS1;") == 0
         || strcmp(priv->cmd_str, "PA0;") == 0
