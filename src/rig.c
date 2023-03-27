@@ -560,7 +560,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 #endif
 
     rs->priv = NULL;
-    rs->async_data_enabled = 0;
+    rs->async_data_enabled = 1;
     rs->rigport.fd = -1;
     rs->pttport.fd = -1;
     rs->comm_state = 0;
