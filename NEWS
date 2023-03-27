@@ -31,6 +31,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Enable async mode by default to prevent WSJT-X crash on IC9700 with transceive on
         * Fix IC7610 get_powerstat to disable it -- cannot read power status
         * Fix K3 K22 command error for remote operations
         * Fix Gemini DX1200 gemini_set_level
