@@ -214,7 +214,6 @@ const struct rig_caps dx77_caps =
         RIG_FRNG_END,
     },
     .tx_range_list1 = {RIG_FRNG_END,},
-    .tx_range_list2 = {RIG_FRNG_END,},
 
     .rx_range_list2 =
     {
