@@ -641,7 +641,7 @@ struct expert_priv_data *expert_priv;
  * Expert 1.3K-FA, 1.5K-FA, and 2K-FA
  */
 
-const struct amp_caps kpa1500_amp_caps =
+const struct amp_caps expert_amp_caps =
 {
     AMP_MODEL(AMP_MODEL_ELECRAFT_KPA1500),
     .model_name =   "1.3K-FA/1.5K-FA/2K-FA",
