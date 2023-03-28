@@ -52,7 +52,7 @@ dnl here but will be added later, e.g. "winradio".
 RIG_BACKEND_LIST="rigs/adat rigs/alinco rigs/aor rigs/barrett rigs/codan rigs/dorji rigs/drake rigs/dummy rigs/elad rigs/flexradio rigs/icom rigs/icmarine rigs/jrc rigs/kachina rigs/kenwood rigs/kit rigs/lowe rigs/pcr rigs/prm80 rigs/racal rigs/rft rigs/rs rigs/skanti rigs/tapr rigs/tentec rigs/tuner rigs/uniden rigs/winradio rigs/wj rigs/yaesu rigs/gomspace rigs/mds"
 ROT_BACKEND_LIST="rotators/amsat rotators/apex rotators/ars rotators/celestron rotators/cnctrk rotators/grbltrk rotators/easycomm rotators/ether6 rotators/flir rotators/fodtrack rotators/gs232a rotators/heathkit rotators/m2 rotators/meade rotators/rotorez rotators/sartek rotators/saebrtrack rotators/spid rotators/ts7400 rotators/prosistel rotators/ioptron rotators/satel rotators/radant"
 # Amplifiers are all in the amplifiers directory
-AMP_BACKEND_LIST="amplifiers/elecraft amplifiers/gemini"
+AMP_BACKEND_LIST="amplifiers/elecraft amplifiers/gemini amplifiers/expert"
 
 dnl See README.release on setting these values
 # Values given to -version-info when linking.  See libtool documentation.
@@ -907,6 +907,7 @@ scripts/Makefile
 android/Makefile
 amplifiers/elecraft/Makefile
 amplifiers/gemini/Makefile
+amplifiers/expert/Makefile
 simulators/Makefile
 hamlib.pc
 ])
