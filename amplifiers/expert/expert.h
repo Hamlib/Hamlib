@@ -48,7 +48,7 @@ int expert_init(AMP *amp);
 int expert_close(AMP *amp);
 int expert_reset(AMP *amp, amp_reset_t reset);
 int expert_flush_buffer(AMP *amp);
-int expert_transaction(AMP *amp, const char *cmd, char *response,
+int expert_transaction(AMP *amp, const unsigned  char *cmd, int cmd_len, unsigned char *response,
                     int response_len);
 const char *expert_get_info(AMP *amp);
 int expert_get_freq(AMP *amp, freq_t *freq);
