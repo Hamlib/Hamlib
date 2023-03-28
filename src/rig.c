@@ -1266,7 +1266,7 @@ int HAMLIB_API rig_open(RIG *rig)
             powerstat_t powerflag;
             status = rig_get_powerstat(rig, &powerflag);
 
-            if (status == RIG_OK && powerflag == RIG_POWER_OFF) { return (-RIG_EPOWER); }
+            if (status == RIG_OK && powerflag == RIG_POWER_OFF && rig->state.auto_power_on == 0) { return (-RIG_EPOWER); }
 
             // don't need auto_power_on if power is already on
             if (status == RIG_OK && powerflag == RIG_POWER_ON) { rig->state.auto_power_on = 0; }
