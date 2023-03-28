@@ -55,6 +55,7 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth,
                                     elevation_t elevation);
 static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth,
                                     elevation_t *elevation);
+static int rotorez_park(ROT *rot);
 static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth,
                                 elevation_t *elevation);
 static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
@@ -129,7 +130,7 @@ const struct rot_caps rotorez_rot_caps =
     ROT_MODEL(ROT_MODEL_ROTOREZ),
     .model_name =       "Rotor-EZ",
     .mfg_name =         "Idiom Press",
-    .version =          "20220109.0",
+    .version =          "20230328.0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_OTHER,
@@ -157,6 +158,7 @@ const struct rot_caps rotorez_rot_caps =
     .rot_cleanup =      rotorez_rot_cleanup,
     .set_position =     rotorez_rot_set_position,
     .get_position =     rotorez_rot_get_position,
+    .park =             rotorez_park,
     .stop =             rotorez_rot_stop,
     .set_conf =         rotorez_rot_set_conf,
     .get_info =         rotorez_rot_get_info,
@@ -174,7 +176,7 @@ const struct rot_caps rotorcard_rot_caps =
     ROT_MODEL(ROT_MODEL_ROTORCARD),
     .model_name =       "RotorCard",
     .mfg_name =         "Idiom Press",
-    .version =          "20100214.0",
+    .version =          "20230328.0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_BETA,
     .rot_type =         ROT_TYPE_OTHER,
@@ -202,6 +204,7 @@ const struct rot_caps rotorcard_rot_caps =
     .rot_cleanup =      rotorez_rot_cleanup,
     .set_position =     rotorez_rot_set_position,
     .get_position =     rotorez_rot_get_position,
+    .park =             rotorez_park,
     .stop =             rotorez_rot_stop,
     .set_conf =         rotorez_rot_set_conf,
     .get_info =         rotorez_rot_get_info,
@@ -218,7 +221,7 @@ const struct rot_caps dcu_rot_caps =
     ROT_MODEL(ROT_MODEL_DCU),
     .model_name =       "DCU-1/DCU-1X",
     .mfg_name =         "Hy-Gain",
-    .version =          "20100823.0",
+    .version =          "20230328.0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_OTHER,
@@ -262,7 +265,7 @@ const struct rot_caps erc_rot_caps =
     ROT_MODEL(ROT_MODEL_ERC),
     .model_name =       "ERC",
     .mfg_name =         "DF9GR",
-    .version =          "20100823.2",      /* second revision on 23 Aug 2010 */
+    .version =          "20230328.2",      /* second revision on 23 Aug 2010 */
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_OTHER,
@@ -290,6 +293,7 @@ const struct rot_caps erc_rot_caps =
     .rot_cleanup =      rotorez_rot_cleanup,
     .set_position =     rotorez_rot_set_position,
     .get_position =     erc_rot_get_position,
+    .park =             rotorez_park,
     .stop =             dcu1_rot_stop,
     .reset =            rotorez_rot_reset,
 //  .stop =             rotorez_rot_stop,
@@ -309,7 +313,7 @@ const struct rot_caps yrc1_rot_caps =
     ROT_MODEL(ROT_MODEL_YRC1),
     .model_name =       "DCU2/DCU3/YRC-1",
     .mfg_name =         "Hy-Gain",
-    .version =          "20100823.2",
+    .version =          "20230328.2",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_OTHER,
@@ -337,6 +341,7 @@ const struct rot_caps yrc1_rot_caps =
     .rot_cleanup =      rotorez_rot_cleanup,
     .set_position =     rotorez_rot_set_position,
     .get_position =     erc_rot_get_position,
+    .park =             rotorez_park,
     .stop =             dcu1_rot_stop,
     .reset =            rotorez_rot_reset,
 //  .stop =             rotorez_rot_stop,
@@ -351,7 +356,7 @@ const struct rot_caps rt21_rot_caps =
     ROT_MODEL(ROT_MODEL_RT21),
     .model_name =       "RT-21",
     .mfg_name =     "Green Heron",
-    .version =      "20220104.0",
+    .version =      "20230328.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rot_type =     ROT_TYPE_OTHER,
@@ -379,6 +384,7 @@ const struct rot_caps rt21_rot_caps =
     .rot_cleanup =      rotorez_rot_cleanup,
     .set_position =     rt21_rot_set_position,
     .get_position =     rt21_rot_get_position,
+    .park =             rotorez_park,
     .stop =             rotorez_rot_stop,
 //  .set_conf =         rotorez_rot_set_conf,
 //  .get_info =         rotorez_rot_get_info,
@@ -1127,6 +1133,20 @@ static int rotorez_flush_buffer(ROT *rot)
 
     return RIG_OK;
 }
+
+/*
+ * Moves to Home Position
+ */
+static int rotorez_park(ROT *rot)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    /* Assume home is 0,0 */
+    rotorez_rot_set_position(rot, 0, 0);
+
+    return RIG_OK;
+}
+
 
 
 /*
