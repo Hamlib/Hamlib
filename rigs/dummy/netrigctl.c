@@ -2050,7 +2050,7 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
 
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
-    if (ret == 0)
+    if (ret > 0)
     {
         *status = atoi(buf);
     }
@@ -2732,7 +2732,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20230117.0",
+    .version =        "20230328.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
