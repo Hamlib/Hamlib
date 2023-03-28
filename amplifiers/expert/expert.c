@@ -111,7 +111,7 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len, unsigned
     int loop;
     char cmdbuf[64];
     int checksum=0;
-    int bytes;
+    int bytes = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s\n", __func__, cmd);
 
@@ -626,9 +626,6 @@ struct expert_priv_data *expert_priv;
  * Private helper function prototypes
  */
 
-//static int kpa1500_send_priv_cmd(AMP *amp, const char *cmd);
-//static int kpa1500_flush_buffer(AMP *amp);
-
 /* *************************************
  *
  * Separate model capabilities
@@ -643,7 +640,7 @@ struct expert_priv_data *expert_priv;
 
 const struct amp_caps expert_amp_caps =
 {
-    AMP_MODEL(AMP_MODEL_ELECRAFT_KPA1500),
+    AMP_MODEL(AMP_MODEL_EXPERT_FA),
     .model_name =   "1.3K-FA/1.5K-FA/2K-FA",
     .mfg_name =     "Expert",
     .version =      "20230320.0",
@@ -693,7 +690,7 @@ const struct amp_caps expert_amp_caps =
  * Send command string to amplifier
  */
 
-static int kpa1500_send_priv_cmd(AMP *amp, const char *cmdstr)
+static int expert_send_priv_cmd(AMP *amp, const char *cmdstr)
 {
     struct amp_state *rs;
     int err;
