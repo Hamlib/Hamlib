@@ -31,6 +31,8 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * Add park to rotorez.c
+        * Fix rig power on/off from rigctl cmd line and rigctld
         * Enable async mode by default to prevent WSJT-X crash on IC9700 with transceive on
         * Fix IC7610 get_powerstat to disable it -- cannot read power status
         * Fix K3 K22 command error for remote operations
@@ -47,7 +49,7 @@ Version 4.5.5
         * Add fix for TMD700
         * Improve FT-857 get_vfo response when error occurs
         * Allow FT-857 to use cached vfo on get_vfo when error occurs reading EEPROM
-        * Fix FTDX10 FT710 set_level AFy
+        * Fix FTDX10 FT710 set_level AF
         * Fix FT-450D detection
         * Fix VFO A/B swapping for gpredict -- hopefully better behavior for VFO swapping rigs
           Should avoid setting RX freq while TX and avoid TX freq while RX
