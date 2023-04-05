@@ -191,7 +191,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     case RIG_PORT_SERIAL:
         fprintf(fout, "RS-232\n");
         fprintf(fout,
-                "Serial speed: %d..%d bauds, %d%c%d %s\n",
+                "Serial speed: %d..%d baud, %d%c%d, ctrl=%s\n",
                 caps->serial_rate_min,
                 caps->serial_rate_max,
                 caps->serial_data_bits,
@@ -200,7 +200,7 @@ int dumpcaps(RIG *rig, FILE *fout)
                 caps->serial_parity == RIG_PARITY_EVEN ? 'E' :
                 caps->serial_parity == RIG_PARITY_MARK ? 'M' : 'S',
                 caps->serial_stop_bits,
-                caps->serial_handshake == RIG_HANDSHAKE_NONE ? "" :
+                caps->serial_handshake == RIG_HANDSHAKE_NONE ? "NONE" :
                 (caps->serial_handshake == RIG_HANDSHAKE_XONXOFF ? "XONXOFF" : "CTS/RTS")
                );
         break;
