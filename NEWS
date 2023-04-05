@@ -1,8 +1,8 @@
 Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
-Copyright (C) 2000-2021  Stephane Fillod, and others
-Copyright (C) 2000-2021  Michael Black W9MDB, and others
+Copyright (C) 2000-2023  Stephane Fillod, and others
+Copyright (C) 2000-2023  Michael Black W9MDB, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
@@ -31,6 +31,7 @@ Version 4.6
         * Fix FTDX3000 rig split
 
 Version 4.5.5
+        * 2023-04-05
         * Add park to rotorez.c
         * Fix rig power on/off from rigctl cmd line and rigctld
         * Enable async mode by default to prevent WSJT-X crash on IC9700 with transceive on
@@ -66,7 +67,7 @@ Version 4.5.5
         * Fix power on/off/on for Icom rigs with rigctld power_on=0
         
 Version 4.5.4
-        * 2023-XX-XX
+        * 2023-01-10
         * Fix CM108 ptt setting for non-default usage
         * Fix power on/off for Icom rigs with rigctld power_on=0
         * Fix get_powerstat status return for non-PS kenwood rigs
