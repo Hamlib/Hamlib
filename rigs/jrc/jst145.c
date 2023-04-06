@@ -506,7 +506,7 @@ static int jst145_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: jrc_transcation failed: %s\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: jrc_transaction failed: %s\n", __func__,
                   rigerror(retval));
     }
 

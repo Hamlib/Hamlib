@@ -132,7 +132,7 @@ static int remove_opened_amp(const AMP *amp)
 
 #ifdef XXREMOVEDXX
 /**
- * \brief Executess cfunc() on each #AMP handle.
+ * \brief Executes cfunc() on each #AMP handle.
  *
  * \param cfunc The function to be executed on each #AMP handle.
  * \param data Data pointer to be passed to cfunc()
