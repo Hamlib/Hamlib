@@ -565,7 +565,7 @@ typedef unsigned int vfo_t;
 #define RIG_TARGETABLE_ANT (1<<10)
 #define RIG_TARGETABLE_ROOFING (1<<11) // roofing filter targetable by VFO
 #define RIG_TARGETABLE_SPECTRUM (1<<12) // spectrum scope targetable by VFO
-#define RIG_TARGETABLE_BAND (1<<13) // Band select -- e.g. Yaeus BS command
+#define RIG_TARGETABLE_BAND (1<<13) // Band select -- e.g. Yaesu BS command
 #define RIG_TARGETABLE_COMMON (RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_PTT | RIG_TARGETABLE_MEM | RIG_TARGETABLE_BANK)
 #define RIG_TARGETABLE_ALL  0x7fffffff
 //! @endcond
@@ -779,7 +779,7 @@ typedef long token_t;
  *
  *   Current internal implementation
  *   NUMERIC: val.f or val.i
- *   COMBO: val.i, starting from 0.  Points to a table of strings or asci stored values.
+ *   COMBO: val.i, starting from 0.  Points to a table of strings or ASCII stored values.
  *   STRING: val.s or val.cs
  *   CHECKBUTTON: val.i 0/1
  *   BINARY: val.b
@@ -2586,7 +2586,7 @@ struct rig_state {
     int lock_mode; /*!< flag that prevents mode changes if ~= 0 -- see set/get_lock_mode */
     powerstat_t powerstat; /*!< power status */
     char *tuner_control_pathname;  /*!< Path to external tuner control program that get 0/1 (Off/On) argument */
-    char client_version[32];  /*!<! Allow client to report version for compatility checks/capability */
+    char client_version[32];  /*!<! Allow client to report version for compatibility checks/capability */
     freq_t offset_vfoa; /*!< Offset to apply to VFOA/Main set_freq */
     freq_t offset_vfob; /*!< Offset to apply to VFOB/Sub set_freq */
 };

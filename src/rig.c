@@ -843,7 +843,7 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    // rigctl/rigctld may have deprecated values -- backwards compatility
+    // rigctl/rigctld may have deprecated values -- backwards compatibility
     if (rs->rigport_deprecated.pathname[0] != 0)
     {
         strcpy(rs->rigport.pathname, rs->rigport_deprecated.pathname);
@@ -4540,10 +4540,10 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
                   __LINE__, rig_strvfo(tx_vfo), rig_strrmode(tx_mode));
     }
 
-    // code below here should be dead code now -- but maybe we have  VFO situatiuon we need to handle
+    // code below here should be dead code now -- but maybe we have VFO situation we need to handle
     if (caps->rig_model == RIG_MODEL_NETRIGCTL)
     {
-        // special handlingt for netrigctl to avoid set_vfo
+        // special handling for netrigctl to avoid set_vfo
         retcode = caps->set_split_mode(rig, vfo, tx_mode, tx_width);
         ELAPSED2;
         RETURNFUNC(retcode);
@@ -4830,7 +4830,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
         HAMLIB_TRACE;
         retcode = caps->set_split_freq_mode(rig, vfo, tx_freq, tx_mode, tx_width);
-#if 0 // this verification seems to be causing bad behavior on some reigs
+#if 0 // this verification seems to be causing bad behavior on some rigs
 
         // we query freq after set to ensure it really gets done
         do
@@ -7456,7 +7456,7 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
             date_strget(cookie, cookie_len, 0);
             size_t len = strlen(cookie);
             // add on our random number to ensure uniqueness
-            // The cookie should never be longer then HAMLIB_COOKIE_SIZE
+            // The cookie should never be longer than HAMLIB_COOKIE_SIZE
             SNPRINTF(cookie + len, HAMLIB_COOKIE_SIZE - len, " %d\n", rand());
             strcpy(cookie_save, cookie);
             time_last_used = time_curr;
