@@ -26,6 +26,7 @@
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
 /**
+ * \file cache.c
  * \addtogroup rig
  * @{
  */

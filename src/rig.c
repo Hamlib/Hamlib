@@ -5708,7 +5708,7 @@ int HAMLIB_API rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  * \brief set the antenna
  * \param rig   The rig handle
  * \param vfo   The target VFO
- * \param ant   The anntena to select
+ * \param ant   The antenna to select
  * \param option An option that the ant command for the rig recognizes
  *
  *  Select the antenna connector.

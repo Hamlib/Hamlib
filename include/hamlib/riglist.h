@@ -33,6 +33,8 @@
 #define RIG_MAKE_MODEL(a,b) ((a)*MAX_MODELS_PER_BACKEND+(b))
 #define RIG_BACKEND_NUM(a) ((a)/MAX_MODELS_PER_BACKEND)
 
+//! @endcond
+
 /*! \file riglist.h
  *  \brief Hamlib rig(radio) model definitions.
  *
@@ -49,6 +51,13 @@
  *  whishes to use. It is done with the rig_init() API call.
  */
 
+/**
+ * \def RIG_MODEL_NONE
+ * \brief A macro that returns the model number for an unknown model.
+ *
+ * The none backend, as the name suggests, does nothing.  It is mainly for
+ * internal use.
+ */
 #define RIG_MODEL_NONE 0
 
 /*! \def RIG_MODEL_DUMMY
@@ -62,9 +71,12 @@
  *  It has also been expanded to provide support to "virtual" type of rigs
  *  such as the network rig control backend and W1HKJ's Flrig application.
  */
+//! @cond Doxygen_Suppress
 #define RIG_DUMMY 0
 #define RIG_BACKEND_DUMMY "dummy"
+//! @endcond
 #define RIG_MODEL_DUMMY RIG_MAKE_MODEL(RIG_DUMMY, 1)
+//! @cond Doxygen_Suppress
 #define RIG_MODEL_NETRIGCTL RIG_MAKE_MODEL(RIG_DUMMY, 2)
 #define RIG_MODEL_ARMSTRONG RIG_MAKE_MODEL(RIG_DUMMY, 3)
 #define RIG_MODEL_FLRIG RIG_MAKE_MODEL(RIG_DUMMY, 4)
@@ -629,7 +641,6 @@
 #define RIG_GOMSPACE 35
 #define RIG_BACKEND_GOMSPACE "gomspace"
 #define RIG_MODEL_GS100 RIG_MAKE_MODEL(RIG_GOMSPACE, 1)
-//! @endcond
 
 /*
  * MDS Microwave Data Systems https://en.wikipedia.org/wiki/Microwave_Data_Systems
@@ -645,6 +656,7 @@
     etc.
 */
 
+//! @endcond
 
 /*! \typedef typedef int rig_model_t
     \brief Convenience type definition for rig model.
