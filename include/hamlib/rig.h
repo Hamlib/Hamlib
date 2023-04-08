@@ -537,7 +537,7 @@ typedef unsigned int vfo_t;
 /** \brief \c Macro to tell you if VFO can transmit */
 #define RIG_VFO_TX_VFO(v)   ((v)|RIG_VFO_TX_FLAG)
 
-/** \brief \c TX -- alias for split tx or uplink, of VFO_CURR  */
+/** \brief \c TX -- alias for split tx or uplink, of VFO_CURR */
 #define RIG_VFO_TX          RIG_VFO_TX_VFO(RIG_VFO_CURR)
 
 /** \brief \c RX -- alias for split rx or downlink */
