@@ -5196,6 +5196,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         case RIG_MODEL_K3S:
         case RIG_MODEL_KX2:
         case RIG_MODEL_KX3:
+        case RIG_MODEL_QRPLABS:
             SNPRINTF(morsebuf, sizeof(morsebuf), "KY %s", m2);
             break;
 
