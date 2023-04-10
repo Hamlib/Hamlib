@@ -1544,7 +1544,7 @@ readline_repeat:
 
                 rp_getline(pmptstr);
 
-                if (!(strcmp(input_line, "")))
+                if (!input_line || !(strcmp(input_line, "")))
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
