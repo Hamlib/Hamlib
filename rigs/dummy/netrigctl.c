@@ -2052,7 +2052,10 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
 
     if (ret > 0)
     {
-        *status = atoi(buf);
+        int offset=0;
+        // see if there is a RPRT answer to make SDR++ happy
+        if (strstr(buf,"RPRT")) offset=4;
+            *status = atoi(&buf[offset]);
     }
     else
     {
@@ -2732,7 +2735,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20204009.0",
+    .version =        "20204010.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
