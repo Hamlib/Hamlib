@@ -327,7 +327,7 @@ const
 //#define RIG_IS_TOKEN_FRONTEND(t) ((t)&(1<<30))
 
     {*
-     * strongly inspired from soundmedem. Thanks Thomas!
+     * strongly inspired from soundmodem. Thanks Thomas!
      *}
     RIG_CONF_STRING = 0;
     RIG_CONF_COMBO = 1;
@@ -472,7 +472,7 @@ type
 
 const
     {*
-     * tranceive mode, ie. the rig notify the host of any event,
+     * transceive mode, ie. the rig notify the host of any event,
      * like freq changed, mode changed, etc.
      *}
     RIG_TRN_OFF  = 0;

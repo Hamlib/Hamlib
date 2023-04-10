@@ -868,7 +868,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
 
         rp_getline("\nAmplifier command: ");
 
-        /* EOF (Ctl-D) received on empty input line, bail out gracefully. */
+        /* EOF (Ctrl-D) received on empty input line, bail out gracefully. */
         if (!input_line)
         {
             fprintf_flush(fout, "\n");
@@ -952,7 +952,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
             char cmd_name[MAXNAMSIZ];
 
             /* if there is no terminating '\0' character in the source string,
-             * srncpy() doesn't add one even if the supplied length is less
+             * strncpy() doesn't add one even if the supplied length is less
              * than the destination array.  Truncate the source string here.
              */
             if (strlen(parsed_input[0] + 1) >= MAXNAMSIZ)

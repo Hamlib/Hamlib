@@ -46,7 +46,7 @@
  * use the address returned from one of the commands.  If you decide
  * the latter method, the order is slightly confusing but, I have it
  * well documented within DSctl.  The latter method is also as much
- * as 30% faster then using the Uniden software or "Get Next
+ * as 30% faster than using the Uniden software or "Get Next
  * Location" command.
  */
 

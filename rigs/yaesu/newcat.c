@@ -3536,7 +3536,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 
     ENTERFUNC;
 
-#if 0 // all Yaeus rigs have PS and calling this here interferes with power on
+#if 0 // all Yaesu rigs have PS and calling this here interferes with power on
 
     if (!newcat_valid_command(rig, "PS"))
     {
@@ -7809,7 +7809,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
 
     if (is_ftdx101d || is_ftdx101mp)
     {
-        // what other Yaeus rigs should be using this?
+        // what other Yaesu rigs should be using this?
         // The DX101D returns FT0 when in split and not transmitting
         command = "ST";
     }
@@ -7840,7 +7840,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
 
     if (is_ftdx101d || is_ftdx101mp)
     {
-        // what other Yaeus rigs should be using this?
+        // what other Yaesu rigs should be using this?
         // The DX101D returns FT0 when in split and not transmitting
         command = "ST";
     }
@@ -10897,7 +10897,7 @@ int newcat_set_cmd_validate(RIG *rig)
         {
             // for the BS command we can only run it once
             // so we'll assume it worked
-            // maybe Yaeus will make this command more intelligent
+            // maybe Yaesu will make this command more intelligent
             if (strstr(priv->cmd_str, "BS")) { RETURNFUNC(RIG_OK); }
 
             // if the first two chars match we are validated

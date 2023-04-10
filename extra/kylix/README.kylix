@@ -16,13 +16,13 @@ hamlib_rotapi.pas
 HamlibComponents.pas
 
     This file contain two components that encapsulate the rig and rotator 
-    frontends.  It is very simular to the C++ class.
+    frontends.  It is very similar to the C++ class.
 
   
 A simple test program is included in the tests/ directory.  It implements
 a selection dialog and a very simple Radio Control dialog.
 
-This binding was develop with Borland Kylix Open Edition Ver 2.0. Open Edition
+This binding was developed with Borland Kylix Open Edition Ver 2.0. Open Edition
 is freely downloadable from Borland's website for use with GPL projects.
  http://www.borland.com/kylix/
 

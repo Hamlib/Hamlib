@@ -21,7 +21,7 @@ Version 4.6
         * Add rigctlsync utility to synchronize frequency from a rig to SDR# (or others)
         * Add SDR# rig for use with SDR#'s gpredict plugin -- can only get/set freq 
         * Add Apex Shared Loop rotator -- unidirectional only so far
-        * Add client_version to rigctld so client can report it's version for future use/compatility/alternatives
+        * Add client_version to rigctld so client can report it's version for future use/compatibility/alternatives
         * Add --set-conf=tuner_control_pathname=hamlib_tuner_control (default)
           If file exists then it will be called with 0/1 (Off/On) argument
           with 'U TUNER 0' or 'U TUNER 1"

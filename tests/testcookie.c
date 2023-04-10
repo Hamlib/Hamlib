@@ -28,9 +28,9 @@ static int test1()
     else {printf("Test#1c Failed\n"); return 1;}
 
 #if 0
-    // after 1 second we should be able to get a coookie
+    // after 1 second we should be able to get a cookie
     // this means the cookie holder did not renew within 1 second
-    hl_usleep(1500 * 1000); // after 1 second we should be able to get a coookie
+    hl_usleep(1500 * 1000); // after 1 second we should be able to get a cookie
 
     retcode = rig_cookie(NULL, RIG_COOKIE_GET, cookie2, sizeof(cookie2));
 
@@ -91,7 +91,7 @@ static int test3_invalid_input()
     char cookie[HAMLIB_COOKIE_SIZE];
     int n = 0;
 
-    /* Make sure any value smaller then HAMLIB_COOKIE_SIZE is rejected */
+    /* Make sure any value smaller than HAMLIB_COOKIE_SIZE is rejected */
     for (unsigned int i = 0; i < HAMLIB_COOKIE_SIZE; i++)
     {
         retcode = rig_cookie(NULL, RIG_COOKIE_GET, cookie, i);
