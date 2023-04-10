@@ -71,7 +71,7 @@
 #define TOK_STOP_BITS   TOKEN_FRONTEND(22)
 /** \brief  Serial parity (format?) */
 #define TOK_PARITY      TOKEN_FRONTEND(23)
-/** \brief Serial Handshake (format?)  */
+/** \brief Serial Handshake (format?) */
 #define TOK_HANDSHAKE   TOKEN_FRONTEND(24)
 /** \brief Serial Req. To Send status */
 #define TOK_RTS_STATE   TOKEN_FRONTEND(25)
@@ -89,7 +89,7 @@
 #define TOK_PTT_BITNUM        TOKEN_FRONTEND(34)
 /** \brief  PTT share with other applications */
 #define TOK_PTT_SHARE        TOKEN_FRONTEND(35)
-/** \brief  PTT share with other applications */
+/** \brief  Flush with read instead of TCFLUSH */
 #define TOK_FLUSHX        TOKEN_FRONTEND(36)
 /** \brief  Asynchronous data transfer support */
 #define TOK_ASYNC        TOKEN_FRONTEND(37)
@@ -101,7 +101,7 @@
  */
 /* rx_range_list/tx_range_list, filters, announces, has(func,lvl,..) */
 
-/** \brief rig: ?? */
+/** \brief rig: VFO compensation in ppm */
 #define TOK_VFO_COMP    TOKEN_FRONTEND(110)
 /** \brief rig: Rig state poll interval in milliseconds */
 #define TOK_POLL_INTERVAL   TOKEN_FRONTEND(111)
@@ -121,11 +121,13 @@
 #define TOK_AUTO_DISABLE_SCREENSAVER  TOKEN_FRONTEND(126)
 /** \brief rig: Disable Yaesu band select logic */
 #define TOK_DISABLE_YAESU_BANDSELECT  TOKEN_FRONTEND(127)
-/** \brief rig: Supporess get_freq on VFOB for satellite RIT tuning */
+/** \brief rig: Suppress get_freq on VFOB for satellite RIT tuning */
 #define TOK_TWIDDLE_TIMEOUT  TOKEN_FRONTEND(128)
-/** \brief rig: Supporess get_freq on VFOB for satellite RIT tuning */
+/** \brief rig: Suppress get_freq on VFOB for satellite RIT tuning */
 #define TOK_TWIDDLE_RIT  TOKEN_FRONTEND(129)
+/** \brief rig: Add Hz to VFOA/Main frequency set */
 #define TOK_OFFSET_VFOA  TOKEN_FRONTEND(130)
+/** \brief rig: Add Hz to VFOB/Sub frequency set */
 #define TOK_OFFSET_VFOB  TOKEN_FRONTEND(131)
 /*
  * rotator specific tokens

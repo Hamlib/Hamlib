@@ -159,7 +159,7 @@ PDF as blocks of constant width text and should be verbatim input or output
 in the shell, programs, or blocks of source code.
 
 Text intended to be typed at a shell or program prompt should be in bold and
-program orshell output in normal weight.  In some cases it will be necessary
+program or shell output in normal weight.  In some cases it will be necessary
 to use the "\fB...\fP" font formatting calls especially where backslash
 escapes ("\\") are required.
 
