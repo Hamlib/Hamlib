@@ -507,7 +507,7 @@ static int read_icom_frame_generic(hamlib_port_t *p,
                             icom_block_end, icom_block_end_length, 0, 1);
         }
 
-        if (i < 0 && i != RIG_BUSBUSY) /* die on errors */
+        if (i < 0 && i != -RIG_BUSBUSY) /* die on errors */
         {
             return (i);
         }
