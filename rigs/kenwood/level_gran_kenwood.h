@@ -7,7 +7,6 @@
         [LVL_PREAMP]        = { .min = { .i = 10 },    .max = { .i = 20 },   .step = { .i = 10 } },
         [LVL_ATT]           = { .min = { .i = 0 },     .max = { .i = 12 },   .step = { .i = 0 } },
         [LVL_STRENGTH]      = { .min = { .i = 0 },     .max = { .i = 60 },   .step = { .i = 0 } },
-        [LVL_NB]            = { .min = { .f = 0 },     .max = { .f = 10 },    .step = { .f = 1 } },
         /* levels with WPM units */
         [LVL_KEYSPD]  = { .min = { .i = 4 },           .max = { .i = 60 },   .step = { .i = 1 } },
         /* levels with Hz units */
@@ -25,6 +24,7 @@
         [LVL_BAND_SELECT]   = { .min = { .i = 0 },     .max = { .i = 16 },  .step = { .i = 1 } },
         /* levels with 0-1 values -- increment based on rig's range */
         [LVL_NR]            = { .min = { .f = 0 },     .max = { .f = 1 },    .step = { .f = 1.0f/10.0f } },
+        [LVL_NB]            = { .min = { .f = 0 },     .max = { .f = 1.0 },  .step = { .f = 1.0f/10.0f } },
         [LVL_AF]            = { .min = { .f = 0 },     .max = { .f = 1.0 },  .step = { .f = 1.0f/255.0f } },
         [LVL_RF]            = { .min = { .f = 0 },     .max = { .f = 1.0 },  .step = { .f = 1.0f/255.0f } },
         [LVL_RFPOWER]       = { .min = { .f = .05 },   .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },

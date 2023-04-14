@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20230318"
+#define BACKEND_VER "20230414"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -175,6 +175,8 @@ struct kenwood_priv_data
     rmode_t modeB;
     int datamodeA; // datamode status from get_mode or set_mode
     int datamodeB; // datamode status from get_mode or set_mode
+    int ps_cmd_wakeup_data; // PS command requires wakeup characters (;)
+    int question_mark_response_means_rejected; /* the question mark response has multiple meanings */
 };
 
 

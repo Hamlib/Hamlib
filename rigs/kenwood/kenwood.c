@@ -322,7 +322,13 @@ transaction_write:
         rig_flush(&rs->rigport);
 
         // PS command may need to wake up serial port
-        if (strncmp(cmd, "PS", 2) == 0) { write_block(&rs->rigport, (unsigned char *) ";;;;", 4); }
+        if (priv->ps_cmd_wakeup_data)
+        {
+            if (strncmp(cmd, "PS", 2) == 0)
+            {
+                write_block(&rs->rigport, (unsigned char *) ";;;;", 4);
+            }
+        }
 
         retval = write_block(&rs->rigport, (unsigned char *) cmd, len);
 
@@ -484,6 +490,24 @@ transaction_read:
 
         case '?':
 
+            /* The ? response is an ambiguous response, but for get commands it seems to
+             * indicate that the rig rejected the command because the state of the rig is not valid for the command
+             * or that the command parameter is invalid. Retrying the command does not fix the issue,
+             * as the error is caused by the an invalid combination of rig state.
+             *
+             * For example, the following cases have been observed:
+             * - NL (NB level) and RL (NR level) commands fail if NB / NR are not enabled on TS-590SG
+             * - SH and SL (filter width) fail in CW mode on TS-590SG
+             * - GT (AGC) fails in FM mode on TS-590SG
+             *
+             * There are more cases like these and they vary by rig model.
+             */
+            if (priv->question_mark_response_means_rejected)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig (get): '%s'\n", __func__,cmdstr);
+                RETURNFUNC(-RIG_ERJCTED);
+            }
+
             /* Command not understood by rig or rig busy */
             if (cmdstr)
             {
@@ -519,8 +543,18 @@ transaction_read:
      */
     if (datasize)
     {
-        // we ignore the special ;;;;PS; command
-        if (cmdstr && strcmp(cmdstr, ";;;;PS") != 0 && (buffer[0] != cmdstr[0]
+        char *ps_cmd;
+        if (priv->ps_cmd_wakeup_data)
+        {
+            ps_cmd = ";;;;PS";
+        }
+        else
+        {
+            ps_cmd = "PS";
+        }
+
+        // we ignore the special PS command
+        if (cmdstr && strcmp(cmdstr, ps_cmd) != 0 && (buffer[0] != cmdstr[0]
                 || (cmdstr[1] && buffer[1] != cmdstr[1])))
         {
             /*
@@ -835,6 +869,8 @@ int kenwood_open(RIG *rig)
 
     id[0] = 0;
     rig->state.rigport.retry = 0;
+
+    priv->question_mark_response_means_rejected = 0;
 
     if (rig->state.auto_power_on)
     {
@@ -3102,7 +3138,7 @@ static int kenwood_find_slope_filter_for_value(RIG *rig, vfo_t vfo,
 int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
-    int i, kenwood_val, len;
+    int i, kenwood_val, len, result;
     struct kenwood_priv_data *priv = rig->state.priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
@@ -3311,6 +3347,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "SH%02d", kenwood_val);
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_SLOPE_LOW:
@@ -3329,6 +3366,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "SL%02d", kenwood_val);
+        priv->question_mark_response_means_rejected = 1;
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -3404,7 +3442,10 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    RETURNFUNC(kenwood_transaction(rig, levelbuf, NULL, 0));
+    result = kenwood_transaction(rig, levelbuf, NULL, 0);
+    priv->question_mark_response_means_rejected = 0;
+
+    RETURNFUNC(result);
 }
 
 int get_kenwood_level(RIG *rig, const char *cmd, float *fval, int *ival)
@@ -3824,7 +3865,9 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         RETURNFUNC(ret);
 
     case RIG_LEVEL_SLOPE_LOW:
+        priv->question_mark_response_means_rejected = 1;
         retval = kenwood_transaction(rig, "SL", lvlbuf, sizeof(lvlbuf));
+        priv->question_mark_response_means_rejected = 0;
 
         if (retval != RIG_OK)
         {
@@ -3852,7 +3895,9 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SLOPE_HIGH:
+        priv->question_mark_response_means_rejected = 1;
         retval = kenwood_transaction(rig, "SH", lvlbuf, sizeof(lvlbuf));
+        priv->question_mark_response_means_rejected = 0;
 
         if (retval != RIG_OK)
         {
@@ -4661,6 +4706,10 @@ int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
         SNPRINTF(cmd, sizeof(cmd), "AN0%c%c99", c, a);
     }
+    else if (RIG_IS_TS590S || RIG_IS_TS590SG)
+    {
+        SNPRINTF(cmd, sizeof(cmd), "AN%c99", a);
+    }
     else
     {
         SNPRINTF(cmd, sizeof(cmd), "AN%c", a);
@@ -4722,6 +4771,11 @@ int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     {
         retval = kenwood_safe_transaction(rig, "AN0", ackbuf, sizeof(ackbuf), 7);
         offs = 4;
+    }
+    else if (RIG_IS_TS590S || RIG_IS_TS590SG)
+    {
+        retval = kenwood_safe_transaction(rig, "AN", ackbuf, sizeof(ackbuf), 5);
+        offs = 2;
     }
     else
     {
@@ -5068,7 +5122,17 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    retval = kenwood_safe_transaction(rig, ";;;;PS", pwrbuf, 6, 3);
+    char *ps_cmd;
+    if (priv->ps_cmd_wakeup_data)
+    {
+        ps_cmd = ";;;;PS";
+    }
+    else
+    {
+        ps_cmd = "PS";
+    }
+
+    retval = kenwood_safe_transaction(rig, ps_cmd, pwrbuf, 6, 3);
 
     if (retval != RIG_OK)
     {
