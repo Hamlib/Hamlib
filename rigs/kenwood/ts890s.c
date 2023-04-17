@@ -26,6 +26,7 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 #include "cal.h"
+#include "misc.h"
 
 // TODO: Copied from TS-480, to be verified
 #define TS890_VFO (RIG_VFO_A|RIG_VFO_B)
@@ -47,10 +48,16 @@
 int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
-    int kenwood_val;
+    int kenwood_val, retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
+    retval = check_level_param(rig, level, val, NULL);
+    if (retval != RIG_OK)
+      {
+	return retval;
+      }
+    
     switch (level)
     {
     case RIG_LEVEL_RF:
