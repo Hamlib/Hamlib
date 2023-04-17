@@ -42,7 +42,7 @@
 
 #define TS480_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
-    RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
+    RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
 
 #define TS480_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
@@ -658,42 +658,6 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->i = ackbuf[3] == '1' ? 12 : 0;
         break;
 
-    case RIG_LEVEL_METER:
-    {
-        int raw_value;
-
-        // TODO: Read all meters at the same time: RM10000;RM20000;RM30000;
-
-        retval = kenwood_safe_transaction(rig, "RM", ackbuf, sizeof(ackbuf), 7);
-
-        if (retval != RIG_OK)
-        {
-            RETURNFUNC(retval);
-        }
-
-        sscanf(ackbuf, "RM%1d", &raw_value);
-
-        switch (raw_value)
-        {
-        case 1:
-            val->i = RIG_METER_SWR;
-            break;
-
-        case 2:
-            val->i = RIG_METER_COMP;
-            break;
-
-        case 3:
-            val->i = RIG_METER_ALC;
-            break;
-
-        default:
-            val->i = RIG_METER_NONE;
-        }
-
-        break;
-    }
-
     case RIG_LEVEL_SWR:
     case RIG_LEVEL_COMP_METER:
     case RIG_LEVEL_ALC:
@@ -1205,7 +1169,7 @@ static struct kenwood_slope_filter ts480_slope_filter_low[] =
     { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 8, 700 },
     { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 9, 800 },
     { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 10, 900 },
-    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 10, 1, 1000 },
+    { RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_RTTY | RIG_MODE_RTTYR, 0, 11, 1000 },
     { RIG_MODE_AM, 0, 0, 0 },
     { RIG_MODE_AM, 0, 1, 100 },
     { RIG_MODE_AM, 0, 2, 200 },
@@ -1247,6 +1211,7 @@ int ts480_init(RIG *rig)
     priv->ag_format = 2;
     priv->micgain_min = 0;
     priv->micgain_max = 100;
+    priv->ps_cmd_wakeup_data = 1;
 
     RETURNFUNC(RIG_OK);
 }
