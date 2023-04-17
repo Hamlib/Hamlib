@@ -1326,6 +1326,11 @@ typedef uint64_t rmode_t;
 /**
  * \brief macro for backends, not to be used by rig_set_mode et al.
  */
+#define RIG_MODE_PKTSSB (RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+
+/**
+ * \brief macro for backends, not to be used by rig_set_mode et al.
+ */
 #define RIG_MODE_ECSS   (RIG_MODE_ECSSUSB|RIG_MODE_ECSSLSB)
 
 //! @cond Doxygen_Suppress
