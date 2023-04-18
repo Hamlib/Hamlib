@@ -1122,7 +1122,9 @@ const struct rig_caps f6k_caps =
     .has_set_level =    F6K_LEVEL_ALL,
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
-    .level_gran =       {},     /* FIXME: granularity */
+    .level_gran =       {
+  [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
+    },     /* FIXME: granularity */
     .parm_gran =        {},
     //.extlevels =      elecraft_ext_levels,
     //.extparms =       kenwood_cfg_params,
@@ -1260,7 +1262,9 @@ const struct rig_caps powersdr_caps =
     .has_set_level =    POWERSDR_LEVEL_SET,
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
-    .level_gran =       {},     /* FIXME: granularity */
+    .level_gran =       {
+  [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
+    },     /* FIXME: granularity */
     .parm_gran =        {},
     //.extlevels =      elecraft_ext_levels,
     //.extparms =       kenwood_cfg_params,
