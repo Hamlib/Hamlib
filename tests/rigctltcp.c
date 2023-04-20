@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            printf("rigctl %s\n", hamlib_version2);
+            printf("rigctltcp %s\n", hamlib_version2);
             exit(0);
 
         case 'R':
@@ -656,7 +656,7 @@ int main(int argc, char *argv[])
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s\n", rigstartup);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "rigctld %s\n", hamlib_version2);
+    rig_debug(RIG_DEBUG_VERBOSE, "rigctltcp %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
     rig_debug(RIG_DEBUG_VERBOSE, "Max# of rigctld client services=%d\n",
@@ -1513,7 +1513,7 @@ handle_exit:
 
 void usage(void)
 {
-    printf("Usage: rigctld [OPTION]...\n"
+    printf("Usage: rigctltcp [OPTION]...\n"
            "Daemon serving COMMANDs to a connected radio transceiver or receiver.\n\n");
 
 
