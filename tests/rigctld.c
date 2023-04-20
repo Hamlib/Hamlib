@@ -309,7 +309,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            printf("rigctl %s\n", hamlib_version2);
+            printf("rigctld %s\n", hamlib_version2);
             exit(0);
 
         case 'R':
