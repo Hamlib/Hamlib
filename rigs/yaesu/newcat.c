@@ -10827,7 +10827,7 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if (strncmp(priv->cmd_str, "ST", 2) == 0)
     {
-        strcpy(valcmd, "X;");
+        strcpy(valcmd, ";");
     }
     else
     {
@@ -10855,7 +10855,7 @@ int newcat_set_cmd_validate(RIG *rig)
             case RIG_MODEL_FT991:
             case RIG_MODEL_FTDX101MP:
             case RIG_MODEL_FTDX3000:
-                strcpy(valcmd, "X;");
+                strcpy(valcmd, ";");
                 break;
             // these models do not work with a single ;
             case RIG_MODEL_FT897:
