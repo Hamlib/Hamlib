@@ -686,7 +686,7 @@ int icom_init(RIG *rig)
     priv->rx_vfo = RIG_VFO_NONE;
     rig->state.current_vfo = RIG_VFO_NONE;
     priv->filter = RIG_PASSBAND_NOCHANGE;
-    priv->x25cmdfails = 0;
+    priv->x25cmdfails = -1;
     priv->x1cx03cmdfails = 0;
 
     // we can add rigs here that will never use the 0x25 cmd
@@ -1656,7 +1656,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (retval != RIG_OK)
         {
-            priv->x25cmdfails = 1;
+            // only reset if not known -- means cannot change dynamically without restart
+            if (priv->x25cmdfails < 0) priv->x25cmdfails = 1;
             rig_debug(RIG_DEBUG_WARN,
                       "%s: rig probe shows 0x25 CI-V cmd not available\n", __func__);
         }
