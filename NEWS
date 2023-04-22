@@ -30,6 +30,9 @@ Version 4.6
         * Add FLIR PTU-D48, E46, D100, D300 rotors
         * Fix FTDX3000 rig split
 
+Version 4.5.6
+        * Fix rigctld/rigctltcp information
+
 Version 4.5.5
         * 2023-04-05
         * Add park to rotorez.c
