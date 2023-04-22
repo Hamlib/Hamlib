@@ -509,8 +509,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         return (NULL);
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_model=%s %s\n", __func__, caps->mfg_name,
-              caps->model_name);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_model=%s %s %s\n", __func__, caps->mfg_name,
+              caps->model_name, caps->version);
 
     if (caps->hamlib_check_rig_caps != NULL)
     {
