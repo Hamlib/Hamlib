@@ -292,7 +292,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20220419.0",
+    .version =             "20230421.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1432,8 +1432,10 @@ static int ft817_set_vfo(RIG *rig, vfo_t vfo)
     {
         return RIG_OK;
     }
+    retval = ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
+    hl_usleep(50 * 1000); // can take a little while for vfo swap to happen -- otherwise we get errors trying to read eeprom to quickly
 
-    return ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
+    return retval;
 }
 
 static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
