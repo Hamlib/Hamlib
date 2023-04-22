@@ -7,6 +7,32 @@ Copyright (C) 2000-2023  Michael Black W9MDB, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 
+Version 5.x -- future
+        * rig_get_conf deprecated and replaced by rig_get_conf2
+        * rot_get_conf deprecated and replaced by rot_get_conf2
+        * Change FT1000MP Mark V model names to align with FT1000MP
+
+Version 4.6
+        * Add saebrtrack rotor https://sites.google.com/site/marklhammond/saebrtrack
+        * Add offset_vfoa and offset_vfob applying to rig_set_freq
+        * Fix K4 to put it in K40 mode when requesting ID
+        * 2023-11-XX -- Planned for Nov 2023
+        * Fixes for M2 Rotors
+        * Add rigctlsync utility to synchronize frequency from a rig to SDR# (or others)
+        * Add SDR# rig for use with SDR#'s gpredict plugin -- can only get/set freq 
+        * Add Apex Shared Loop rotator -- unidirectional only so far
+        * Add client_version to rigctld so client can report it's version for future use/compatibility/alternatives
+        * Add --set-conf=tuner_control_pathname=hamlib_tuner_control (default)
+          If file exists then it will be called with 0/1 (Off/On) argument
+          with 'U TUNER 0' or 'U TUNER 1"
+          Default path is for current directory
+        * Add MDS 4710/9710 rigs
+        * Add FLIR PTU-D48, E46, D100, D300 rotors
+        * Fix FTDX3000 rig split
+
+Version 4.5.6
+        * Fix rigctld/rigctltcp information
+
 Version 4.5.5
         * 2023-04-05
         * Add park to rotorez.c
@@ -185,7 +211,7 @@ Version 4.3.1
             - scripts: Update example in readme, since 4.0 817 is 1020
             - Make testlibusb.c compatible with libusb < 1.0.23
               Note: On systems with libusb < 1.0.23 a warning will be emitted
-              but compliation should proceed without error.
+              but compilation should proceed without error.
             - Update testlibusb.c warning to "may be" instead of "will be"
             - Change kenwood to only set VFOA default on 1st rig_open call
 
