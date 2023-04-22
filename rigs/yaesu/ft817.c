@@ -292,7 +292,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20230421.0",
+    .version =             "20230422.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -623,6 +623,7 @@ static int ft817_cleanup(RIG *rig)
 static int ft817_open(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+    hl_usleep(100*1000);  // rig needs a bit to allow commands to come through
 
     return RIG_OK;
 }
