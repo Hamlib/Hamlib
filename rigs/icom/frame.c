@@ -138,6 +138,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
     unsigned char sendbuf[MAXFRAMELEN];
     int frm_len, frm_data_len, retval;
     unsigned char ctrl_id;
+    int collision_retry = 0;
 
     ENTERFUNC;
     memset(buf, 0, 200);
@@ -156,6 +157,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
      */
     set_transaction_active(rig);
 
+collision_retry:
     rig_flush(&rs->rigport);
 
     if (data_len) { *data_len = 0; }
@@ -223,6 +225,13 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
         {
         case COL:
             /* Collision */
+            // IC746 for example responds 0xfc when tuning is active so we will retry
+            if (collision_retry++ < 20)
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: collision retry#%d\n", __func__, collision_retry);
+                hl_usleep(500*1000);  // 500ms 20 times for ~15 second max before we back out for a retry if needed
+                goto collision_retry;
+            }
             set_transaction_inactive(rig);
             RETURNFUNC(-RIG_BUSBUSY);
 
