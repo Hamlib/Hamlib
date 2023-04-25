@@ -181,7 +181,7 @@ const struct rig_caps ic746_caps =
     RIG_MODEL(RIG_MODEL_IC746),
     .model_name = "IC-746",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -285,6 +285,11 @@ const struct rig_caps ic746_caps =
         RIG_FLT_END,
     },
     .str_cal = IC746_STR_CAL,
+
+    .async_data_supported = 1,
+    .read_frame_direct = icom_read_frame_direct,
+    .is_async_frame = icom_is_async_frame,
+    .process_async_frame = icom_process_async_frame,
 
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
@@ -413,7 +418,7 @@ const struct rig_caps ic746pro_caps =
     RIG_MODEL(RIG_MODEL_IC746PRO),
     .model_name = "IC-746PRO",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -531,6 +536,11 @@ const struct rig_caps ic746pro_caps =
         RIG_FLT_END,
     },
     .str_cal = IC746_STR_CAL,
+
+    .async_data_supported = 1,
+    .read_frame_direct = icom_read_frame_direct,
+    .is_async_frame = icom_is_async_frame,
+    .process_async_frame = icom_process_async_frame,
 
     .cfgparams =  icom_cfg_params,
     .set_conf =  icom_set_conf,
