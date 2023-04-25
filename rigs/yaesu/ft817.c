@@ -292,7 +292,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20230422.0",
+    .version =             "20230424.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -442,7 +442,7 @@ const struct rig_caps ft818_caps =
     RIG_MODEL(RIG_MODEL_FT818),
     .model_name =          "FT-818",
     .mfg_name =            "Yaesu",
-    .version =             "20220419.0",
+    .version =             "20220424.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -682,7 +682,7 @@ static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
            YAESU_CMD_LENGTH);
 
     data[0] = addr >> 8;
-    data[1] = addr & 0xfe;
+    data[1] = addr & 0xff;
 
     write_block(&rig->state.rigport, data, YAESU_CMD_LENGTH);
 
@@ -1418,7 +1418,7 @@ static int ft817_set_vfo(RIG *rig, vfo_t vfo)
     vfo_t curvfo;
     int retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     retval =  ft817_get_vfo(rig, &curvfo);
 
