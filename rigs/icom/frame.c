@@ -540,7 +540,8 @@ static int read_icom_frame_generic(hamlib_port_t *p,
             && (rxbuffer[read - 1] != COL));
 
     // Check that we have a valid frame preamble (which might be just a single preable character)
-    if (rxbuffer[0] != PR)
+    // Or an error code
+    if (rxbuffer[0] != PR && rxbuffer[0] != COL)
     {
         return -RIG_EPROTO;
     }
