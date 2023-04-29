@@ -1282,7 +1282,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
             if (status == RIG_OK && powerflag == RIG_POWER_OFF && rig->state.auto_power_on == 0) 
             { 
-                rig_debug(RIG_DEBUG_ERR, "%s: rig power is off, use --set-conf=auto_power_on if power on is wanted\n", __func__);
+                rig_debug(RIG_DEBUG_ERR, "%s: rig power is off, use --set-conf=auto_power_on=1 if power on is wanted\n", __func__);
 
                 return (-RIG_EPOWER); 
             }
