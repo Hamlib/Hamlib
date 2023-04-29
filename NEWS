@@ -32,6 +32,7 @@ Version 4.6
 
 Version 4.5.6
         * Fix rigctld/rigctltcp information
+        * Fix FT817 get/set_vfo
 
 Version 4.5.5
         * 2023-04-05
