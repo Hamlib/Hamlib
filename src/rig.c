@@ -6132,7 +6132,7 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
 
     if(retcode == RIG_EIO) 
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: hard error, reopening rig\n");
+        rig_debug(RIG_DEBUG_ERR, "%s: hard error, reopening rig\n", __func__);
         rig_close(rig);
         rig_open(rig);
     }
