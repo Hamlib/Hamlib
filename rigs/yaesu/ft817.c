@@ -292,7 +292,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20230428.0",
+    .version =             "20230429.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -696,7 +696,14 @@ static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
         return -RIG_EIO;
     }
 
-    *out = data[addr % 2];
+    if (addr == 0x55) // for some reason VFO returns high byte
+    {
+        *out = data[0];
+    }
+    else
+    {
+        *out = data[addr % 2];
+    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: data[0]=%02x, data[1]=%02x, out=%02x\n", __func__, data[0], data[1], *out);
 
@@ -1398,7 +1405,7 @@ static int ft817_get_vfo(RIG *rig, vfo_t *vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (ft817_read_eeprom(rig, 0x54, &c) < 0)   /* get vfo status */
+    if (ft817_read_eeprom(rig, 0x55, &c) < 0)   /* get vfo status */
     {
         return -RIG_EPROTO;
     }
