@@ -6130,6 +6130,13 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
     HAMLIB_TRACE;
     retcode = rig->caps->get_powerstat(rig, status);
 
+    if(retcode == RIG_EIO) 
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: hard error, reopening rig\n");
+        rig_close(rig);
+        rig_open(rig);
+    }
+
     if (retcode != RIG_OK) { *status = RIG_POWER_ON; } // if failed assume power is on
 
     if (*status == RIG_POWER_OFF && rig->state.auto_power_on) rig->caps->set_powerstat(rig, RIG_POWER_ON);
