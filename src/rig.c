@@ -6132,6 +6132,8 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
 
     if (retcode != RIG_OK) { *status = RIG_POWER_ON; } // if failed assume power is on
 
+    if (*status == RIG_POWER_OFF && rig->state.auto_power_on) rig->caps->set_powerstat(rig, RIG_POWER_ON);
+
     RETURNFUNC(retcode);
 }
 
