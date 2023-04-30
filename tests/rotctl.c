@@ -356,9 +356,12 @@ int main(int argc, char *argv[])
     }
 
     /* FIXME: bound checking and port type == serial */
+    my_rot->state.rotport2.parm.serial.rate = my_rot->state.rotport2.parm.serial.rate;
+    my_rot->state.rotport2.parm.serial.data_bits = my_rot->state.rotport2.parm.serial.data_bits;
     if (serial_rate != 0)
     {
         my_rot->state.rotport.parm.serial.rate = serial_rate;
+        my_rot->state.rotport2.parm.serial.rate = serial_rate;
     }
 
     /*

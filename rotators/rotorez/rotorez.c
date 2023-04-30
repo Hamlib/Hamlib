@@ -356,7 +356,7 @@ const struct rot_caps rt21_rot_caps =
     ROT_MODEL(ROT_MODEL_RT21),
     .model_name =       "RT-21",
     .mfg_name =     "Green Heron",
-    .version =      "20230328.0",
+    .version =      "20230430.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rot_type =     ROT_TYPE_OTHER,
@@ -652,7 +652,68 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth,
     }
 
     *azimuth = tmp;
-    *elevation = 0;             /* RotorEZ does not support elevation */
+
+    if (rot->state.rotport2.pathname != NULL)
+    {
+        do
+        {
+            err = rotorez_send_priv_cmd2(rot, cmdstr);
+
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
+            rs = &rot->state;
+
+            err = read_block(&rs->rotport, (unsigned char *) az, AZ_READ_LEN);
+
+            if (err != AZ_READ_LEN)
+            {
+                return -RIG_ETRUNC;
+            }
+
+            /* The elevation string should be ';xxx' beginning at offset 0.  If the
+             * ';' is not there, it's likely the RotorEZ has received an invalid
+             * command and the buffer needs to be flushed.  See
+             * rotorez_flush_buffer() definition below for a complete description.
+             */
+            if (az[0] != ';')
+            {
+                err = rotorez_flush_buffer(rot);
+
+                if (err == -RIG_EIO)
+                {
+                    return err;
+                }
+                else
+                {
+                    err = -RIG_EINVAL;
+                }
+            }
+            else if (err == AZ_READ_LEN)
+            {
+                /* Check if remaining chars are digits if az[0] == ';' */
+                for (p = az + 1; p < az + 4; p++)
+                    if (isdigit((int)*p))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        err = -RIG_EINVAL;
+                    }
+            }
+        }
+        while (err == -RIG_EINVAL);
+
+        sscanf(az, ";%f", elevation);
+    }
+    else
+    {
+        *elevation = 0;             /* RotorEZ does not support elevation */
+    }
+
     rig_debug(RIG_DEBUG_TRACE,
               "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
               __func__, *azimuth, *elevation);
@@ -844,7 +905,34 @@ static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
         }
 
         *azimuth = tmp;
-        *elevation = 0.0;   /* RT-21 backend does not support el at this time. */
+
+        if (rot->state.rotport2.pathname != NULL)
+        {
+            err = rotorez_send_priv_cmd2(rot, "BI1;");
+
+            if (err != RIG_OK)
+            {
+                return err;
+            }
+
+            rs = &rot->state;
+
+            err = read_string(&rs->rotport2, (unsigned char *) az, RT21_AZ_LEN + 1, ";",
+                              strlen(";"), 0, 1);
+
+            if (err < 0)    /* read_string returns negative on error. */
+            {
+                return err;
+            }
+
+            sscanf(az, "%f", elevation);
+
+        }
+        else
+        {
+            *elevation = 0.0;   /* RT-21 backend does not support el at this time. */
+        }
+
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
                   __func__, *azimuth, *elevation);

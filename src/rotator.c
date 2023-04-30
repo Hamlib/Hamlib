@@ -269,11 +269,11 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     {
     case RIG_PORT_SERIAL:
         strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
-        rs->rotport.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
-        rs->rotport.parm.serial.data_bits = caps->serial_data_bits;
-        rs->rotport.parm.serial.stop_bits = caps->serial_stop_bits;
-        rs->rotport.parm.serial.parity = caps->serial_parity;
-        rs->rotport.parm.serial.handshake = caps->serial_handshake;
+        rs->rotport.parm.serial.rate = rs->rotport2.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
+        rs->rotport.parm.serial.data_bits = rs->rotport2.parm.serial.data_bits = caps->serial_data_bits;
+        rs->rotport.parm.serial.stop_bits = rs->rotport2.parm.serial.stop_bits = caps->serial_stop_bits;
+        rs->rotport.parm.serial.parity = rs->rotport2.parm.serial.parity = caps->serial_parity;
+        rs->rotport.parm.serial.handshake = rs->rotport2.parm.serial.handshake = caps->serial_handshake;
         break;
 
     case RIG_PORT_PARALLEL:
@@ -379,6 +379,7 @@ int HAMLIB_API rot_open(ROT *rot)
     }
 
     rs->rotport.fd = -1;
+    rs->rotport2.fd = -1;
 
     // determine if we have a network address
     if (sscanf(rs->rotport.pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
@@ -387,6 +388,13 @@ int HAMLIB_API rot_open(ROT *rot)
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rs->rotport.pathname);
         rs->rotport.type.rig = RIG_PORT_NETWORK;
+    }
+    if (sscanf(rs->rotport2.pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
+               &port) == 5)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
+                  rs->rotport2.pathname);
+        rs->rotport2.type.rig = RIG_PORT_NETWORK;
     }
 
     switch (rs->rotport.type.rig)
@@ -397,6 +405,18 @@ int HAMLIB_API rot_open(ROT *rot)
         if (status != 0)
         {
             return status;
+        }
+
+        // RT21 has 2nd serial port elevation
+        // so if a 2nd pathname is provided we'll open it
+        if (rot->caps->rot_model == ROT_MODEL_RT21 && rs->rotport2.pathname[0] != 0)
+        {
+        status = serial_open(&rs->rotport2);
+
+        if (status != 0)
+        {
+            return status;
+        }
         }
 
         break;
