@@ -75,6 +75,7 @@ extern const struct confparams elecraft_ext_levels[];
 
 /* Elecraft extension function declarations */
 int elecraft_open(RIG *rig);
+int elecraft_close(RIG *rig);
 
 /* S-meter calibration tables */
 

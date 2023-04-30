@@ -174,8 +174,17 @@ int elecraft_open(RIG *rig)
         }
     }
 
+    priv->save_k2_ext_lvl = -1; // so we don't restore if not neeede
     if (rig->caps->rig_model != RIG_MODEL_XG3)   // XG3 doesn't have extended
     {
+        err = elecraft_get_extension_level(rig, "K2", &priv->save_k2_ext_lvl);
+
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error getting K2 ext_lvl: %s\n", __func__,
+                      rigerror(err));
+            return err;
+        }
         // turn on k2 extended to get PC values in more resolution
         err = kenwood_transaction(rig, "K22;", NULL, 0);
 
@@ -347,7 +356,27 @@ int elecraft_open(RIG *rig)
     return RIG_OK;
 }
 
+int elecraft_close(RIG *rig)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+    char cmd[32];
+    int err;
 
+    if (priv->save_k2_ext_lvl >= 0)
+    {
+        sprintf(cmd, "K2%d;", priv->save_k2_ext_lvl);
+        err = kenwood_transaction(rig, cmd, NULL, 0);
+
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error restoring %s='%s'...continuing\n", __func__,
+                      cmd,
+                      rigerror(err));
+        }
+    }
+
+    return kenwood_close(rig);
+}
 
 /* Private helper functions */
 
