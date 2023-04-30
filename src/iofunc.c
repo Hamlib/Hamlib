@@ -1283,6 +1283,7 @@ static int read_string_generic(hamlib_port_t *p,
 
     memset(rxbuffer, 0, rxmax);
 
+    int flag = 0; // we will allow one timeout
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
         ssize_t rd_count = 0;
@@ -1292,6 +1293,13 @@ static int read_string_generic(hamlib_port_t *p,
 
         if (result == -RIG_ETIMEOUT)
         {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: flag=%d\n", __func__, flag);
+            if (flag==0)
+            {
+                flag = 1;
+                hl_usleep(50*1000);
+                continue;
+            }
             // a timeout is a timeout no matter how many bytes
             //if (0 == total_count)
             {
