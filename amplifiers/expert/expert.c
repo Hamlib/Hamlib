@@ -81,9 +81,26 @@ int expert_init(AMP *amp)
     return RIG_OK;
 }
 
+int expert_open(AMP *amp)
+{
+    unsigned char cmd=0x80;
+    unsigned char response[256];
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: entered\n", __func__);
+
+    expert_transaction(amp, &cmd, 1, response, 256);
+
+    return RIG_OK;
+}
+
 int expert_close(AMP *amp)
 {
+
+    unsigned char cmd=0x81;
+    unsigned char response[256];
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    expert_transaction(amp, &cmd, 1, response, 4);
 
     if (amp->state.priv) { free(amp->state.priv); }
 
@@ -122,10 +139,10 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len, unsigned
     rs = &amp->state;
 
     cmdbuf[0] = cmdbuf[1] = cmdbuf[2] = 0x55;
-    memcpy(&cmdbuf,cmd,cmd_len);
     for(int i=0;i<cmd_len;++i) checksum += cmd[i];
     checksum = checksum % 256;
     cmdbuf[3] = cmd_len;
+    memcpy(&cmdbuf[4],cmd,cmd_len);
     cmdbuf[3+cmd_len+1] = checksum;
 
     // Now send our command
@@ -643,7 +660,7 @@ const struct amp_caps expert_amp_caps =
     AMP_MODEL(AMP_MODEL_EXPERT_FA),
     .model_name =   "1.3K-FA/1.5K-FA/2K-FA",
     .mfg_name =     "Expert",
-    .version =      "20230320.0",
+    .version =      "20230328.0",
     .copyright =    "LGPL",
     .status =     RIG_STATUS_ALPHA,
     .amp_type =     AMP_TYPE_OTHER,
@@ -661,7 +678,7 @@ const struct amp_caps expert_amp_caps =
     .has_get_level = AMP_LEVEL_SWR | AMP_LEVEL_NH | AMP_LEVEL_PF | AMP_LEVEL_PWR_INPUT | AMP_LEVEL_PWR_FWD | AMP_LEVEL_PWR_REFLECTED | AMP_LEVEL_FAULT,
     .has_set_level = 0,
 
-    .amp_open = NULL,
+    .amp_open = expert_open,
     .amp_init = expert_init,
     .amp_close = expert_close,
     .reset = expert_reset,
