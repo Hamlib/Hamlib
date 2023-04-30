@@ -6,7 +6,7 @@
     "Name": "VFOA",
     "Freq": 14074000, 
     "Mode": "USB",
-    "Width": 5000, 
+    "Width": 2800, 
     "WidthLower": 200,
     "WidthUpper": 3000,
     "RX": true, 
@@ -16,7 +16,7 @@
     "Name": "VFOB",
     "Freq": 14076000,
     "Mode": "USB",
-    "Width": 5000,
+    "Width": 2800,
     "WidthLower": 200,
     "WidthUpper": 3000,
     "RX": false,
@@ -68,11 +68,12 @@
      "Command": "set_freq VFOA 14074000",
      "Status": "OK"
   },
-  "__comment_gps__": "Rigs that have gps output may include this data Lat -180 to 180 Lat -90 to 90",
+  "__comment_gps__": "Rigs that have gps output may include this data Lat -180 to 180 Lat -90 to 90, altitude in meters",
   "GPS":
   {
       "Latitude": 31.6543,
       "Longitude": -91.6543,
+      "Altitude": 640.1,
       "__comment_gps__": "Time is in UTC gps synchronized for this block",
       "Time": "2023-01-18T14:29:18.740561"
   },
