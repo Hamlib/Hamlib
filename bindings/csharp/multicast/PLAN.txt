@@ -1,0 +1,8 @@
+Phase I
+    Broadcast primary rig info plus full packet with dummy values
+Phase II
+    Receive basic rig commands
+Phase III
+    Extend broadcast info
+Phase IV
+    Extend rig commands
