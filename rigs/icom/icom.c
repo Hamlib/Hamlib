@@ -5068,10 +5068,14 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     unsigned char pttbuf[MAXFRAMELEN];
     int ptt_len, retval;
+    int retry=5;
 
     ENTERFUNC;
-    retval = icom_transaction(rig, C_CTL_PTT, S_PTT, NULL, 0,
+
+    do {
+        retval = icom_transaction(rig, C_CTL_PTT, S_PTT, NULL, 0,
                               pttbuf, &ptt_len);
+    } while(--retry >0 && retval != RIG_OK);
 
     if (retval != RIG_OK)
     {
