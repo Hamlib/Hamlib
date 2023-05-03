@@ -2063,9 +2063,18 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
         // a return of 1 should indicate there is no powerstat command available
         // so we fake the ON status
         // also a problem with Flex 6xxx and Log4OM not working due to lack of PS command
-        rig_debug(RIG_DEBUG_VERBOSE,
+        if (ret != RIG_ETIMEOUT)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: PS command failed (ret=%d) so returning RIG_POWER_ON\n", __func__, ret);
-        *status = RIG_POWER_ON;
+            *status = RIG_POWER_ON;
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: PS command failed (ret=%d) so returning RIG_POWER_OFF\n", __func__, ret);
+            *status = RIG_POWER_OFF;
+        }
     }
 
     return RIG_OK; // always return RIG_OK
@@ -2735,7 +2744,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20204010.0",
+    .version =        "20230503.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
