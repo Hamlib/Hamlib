@@ -1261,7 +1261,7 @@ static int read_string_generic(hamlib_port_t *p,
         return -RIG_EINTERNAL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called, rxmax=%d direct=%d, expected_len=%d\n",
+    rig_debug(RIG_DEBUG_CACHE, "%s called, rxmax=%d direct=%d, expected_len=%d\n",
               __func__,
               (int)rxmax, direct, expected_len);
 
@@ -1293,7 +1293,7 @@ static int read_string_generic(hamlib_port_t *p,
 
         if (result == -RIG_ETIMEOUT)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: flag=%d\n", __func__, flag);
+            rig_debug(RIG_DEBUG_CACHE, "%s: flag=%d\n", __func__, flag);
             if (flag==0)
             {
                 flag = 1;
