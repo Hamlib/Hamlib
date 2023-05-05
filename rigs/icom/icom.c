@@ -710,6 +710,7 @@ int icom_init(RIG *rig)
         || rig->caps->rig_model == RIG_MODEL_IC910
         || rig->caps->rig_model == RIG_MODEL_IC2730
         || rig->caps->rig_model == RIG_MODEL_ID5100
+        || rig->caps->rig_model == RIG_MODEL_IC9100
     )
     {
         priv->x25cmdfails = 1;
@@ -1661,7 +1662,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         freqbuf_offset = 2;
     }
 
-    if (priv->x25cmdfails) // then we're doing this the hard way....swap+read
+    if (priv->x25cmdfails == 1) // then we're doing this the hard way....swap+read
     {
         freqbuf_offset = 1;
         HAMLIB_TRACE;
@@ -1680,7 +1681,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
 #if 0
-    else if (!priv->x25cmdfails
+    else if (priv->x25cmdfail == 0)
              && (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_MAIN_A | RIG_VFO_SUB_A)))
     {
         // we can use the 0x03 command for the default VFO
@@ -3067,7 +3068,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         }
 
     default:
-        if (!priv->x25cmdfails)
+        if (priv->x25cmdfails == 0)
             rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__,
                       rig_strvfo(vfo));
 
@@ -5497,7 +5498,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     // If the rigs supports the 0x25 command we'll use it
     // This eliminates VFO swapping and improves split operations
-    if (priv->x25cmdfails == 0)
+    if (priv->x25cmdfails <= 0)
     {
         int satmode = 0;
 
@@ -5762,7 +5763,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
                     RETURNFUNC2(retval);
                 }
 
-                if (priv->x25cmdfails < 0) priv->x25cmdfails = 1;
+//                if (priv->x25cmdfails < 0) priv->x25cmdfails = 1;
             }
         }
         else   // we're in satmode so we try another command
