@@ -1314,7 +1314,7 @@ static int read_string_generic(hamlib_port_t *p,
 
                 if (!flush_flag)
                 {
-                    rig_debug(RIG_DEBUG_WARN,
+                    rig_debug(RIG_DEBUG_CACHE,
                               "%s(): Timed out %d.%03d seconds after %d chars, direct=%d\n",
                               __func__,
                               (int)elapsed_time.tv_sec,
