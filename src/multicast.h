@@ -5,8 +5,11 @@
 //#include <unistd.h>
 #include <hamlib/rig.h>
 //#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <arpa/inet.h>
+#include <netinet/in.h>
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
 
 #ifndef MULTICAST_H
 #define MULTICAST_H
