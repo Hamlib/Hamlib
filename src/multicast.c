@@ -206,7 +206,7 @@ static int multicast_send_json(RIG *rig)
     json_add_vfoA(rig, msg);
 
     // send the thing
-    multicast_send(rig, (unsigned char *)msg, strlen(msg));
+    multicast_send(rig, msg, strlen(msg));
     return 0;
 }
 
@@ -269,7 +269,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     // Set the SO_REUSEADDR option to allow multiple processes to use the same address
     int optval = 1;
 
-    if (setsockopt(rig->state.multicast->sock, SOL_SOCKET, SO_REUSEADDR, &optval,
+    if (setsockopt(rig->state.multicast->sock, SOL_SOCKET, SO_REUSEADDR, (char*)&optval,
                    sizeof(optval)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
@@ -295,7 +295,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     rig->state.multicast->mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
     // Set the multicast TTL (time-to-live) to limit the scope of the packets
-    unsigned char ttl = 1;
+    char ttl = 1;
 
     if (setsockopt(rig->state.multicast->sock, IPPROTO_IP, IP_MULTICAST_TTL, &ttl,
                    sizeof(ttl)) < 0)
@@ -322,7 +322,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     rig->state.multicast->runflag = 1;
     pthread_create(&rig->state.multicast->threadid, NULL, multicast_thread,
                    (void *)rig);
-    printf("threadid=%ld\n", rig->state.multicast->threadid);
+    //printf("threadid=%ld\n", rig->state.multicast->threadid);
     rig->state.multicast->multicast_running = 1;
     return RIG_OK;
 }
@@ -348,7 +348,7 @@ void multicast_close(RIG *rig)
 }
 
 // if msglen=0 msg is assumed to be a string
-int multicast_send(RIG *rig, unsigned char *msg, int msglen)
+int multicast_send(RIG *rig, const char *msg, int msglen)
 {
     // Construct the message to send
     if (msglen == 0) { msglen = strlen((char *)msg); }
