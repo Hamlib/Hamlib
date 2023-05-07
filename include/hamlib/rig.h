@@ -2464,6 +2464,21 @@ struct rig_cache {
     int satmode; // if rig is in satellite mode
 };
 
+/**
+ * \brief Multicast data items the are unique per rig instantiation
+ * This is meant for internal Hamlib use only
+ */
+#include <multicast.h>
+struct multicast_s
+{
+    int multicast_running;
+    int sock;
+    int seqnumber;
+    int runflag; // = 0;
+    struct ip_mreq mreq; // = {0};
+    pthread_t threadid;
+    struct sockaddr_in dest_addr; // = {0};
+};
 
 /**
  * \brief Rig state containing live data and customized fields.
@@ -2594,6 +2609,7 @@ struct rig_state {
     char client_version[32];  /*!<! Allow client to report version for compatibility checks/capability */
     freq_t offset_vfoa; /*!< Offset to apply to VFOA/Main set_freq */
     freq_t offset_vfob; /*!< Offset to apply to VFOB/Sub set_freq */
+    struct multicast_s *multicast; /*!< Pointer to multicast server data */
 };
 
 //! @cond Doxygen_Suppress
