@@ -8,6 +8,10 @@
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
 
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
@@ -53,5 +57,5 @@ struct multicast_broadcast
 
 // returns # of bytes sent
 int multicast_init(RIG *rig, char *addr, int port);
-int multicast_send(RIG *rig, unsigned char *msg, int msglen);
+int multicast_send(RIG *rig, const char *msg, int msglen);
 #endif //MULTICAST_H

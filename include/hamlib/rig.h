@@ -37,6 +37,11 @@
 #include <inttypes.h>
 #include <time.h>
 
+// to stop warnings about including winsock2.h before windows.h
+#if defined(_WIN32)
+#include <winsock2.h>
+#endif
+
 // For MSVC install the NUGet pthread package
 #if defined(_MSC_VER)
 #define HAVE_STRUCT_TIMESPEC
@@ -2477,10 +2482,10 @@ struct multicast_s
     int seqnumber;
     int runflag; // = 0;
     pthread_t threadid;
-#ifdef HAVE_ARPA_INET_H
+//#ifdef HAVE_ARPA_INET_H
     struct ip_mreq mreq; // = {0};
     struct sockaddr_in dest_addr; // = {0};
-#endif
+//#endif
 };
 
 /**
