@@ -2475,9 +2475,11 @@ struct multicast_s
     int sock;
     int seqnumber;
     int runflag; // = 0;
-    struct ip_mreq mreq; // = {0};
     pthread_t threadid;
+#ifdef HAVE_ARPA_INET_H
+    struct ip_mreq mreq; // = {0};
     struct sockaddr_in dest_addr; // = {0};
+#endif
 };
 
 /**
