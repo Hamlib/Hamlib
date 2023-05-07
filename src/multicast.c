@@ -306,7 +306,7 @@ int multicast_init(RIG *rig, char *addr, int port)
 
     // Join the multicast group
     if (setsockopt(rig->state.multicast->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-                   &rig->state.multicast->mreq, sizeof(rig->state.multicast->mreq)) < 0)
+                   (char*)&rig->state.multicast->mreq, sizeof(rig->state.multicast->mreq)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
         return -RIG_EIO;
@@ -333,7 +333,7 @@ void multicast_close(RIG *rig)
 
     // Leave the multicast group
     if ((retval = setsockopt(rig->state.multicast->sock, IPPROTO_IP,
-                             IP_DROP_MEMBERSHIP, &rig->state.multicast->mreq,
+                             IP_DROP_MEMBERSHIP, (char*)&rig->state.multicast->mreq,
                              sizeof(rig->state.multicast->mreq))) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
