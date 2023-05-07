@@ -28,6 +28,7 @@
  * \brief Parallel Port IO
  * \file parallel.c
  */
+#include <hamlib/rig.h>
 #include <hamlib/config.h>
 
 #include <string.h>  /* String function definitions */
@@ -57,7 +58,6 @@
 #  include <winbase.h>
 #endif
 
-#include <hamlib/rig.h>
 #include "parallel.h"
 
 #ifdef HAVE_LINUX_PPDEV_H
