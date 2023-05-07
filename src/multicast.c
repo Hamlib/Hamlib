@@ -367,7 +367,7 @@ int multicast_send(RIG *rig, unsigned char *msg, int msglen)
     return num_bytes;
 }
 
-#define TEST
+//#define TEST
 #ifdef TEST
 int main(int argc, char *argv[])
 {
