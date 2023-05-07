@@ -63,6 +63,8 @@
 #  endif
 #endif
 
+#include <hamlib/rig.h>
+
 //! @cond Doxygen_Suppress
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #  include "win32termios.h"
@@ -74,7 +76,6 @@
 #endif
 //! @endcond
 
-#include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"
 
