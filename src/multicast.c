@@ -317,6 +317,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     rig->state.multicast->runflag = 1;
     pthread_create(&rig->state.multicast->threadid, NULL, multicast_thread,
                    (void *)rig);
+    printf("threadid=%ld\n", rig->state.multicast->threadid);
     rig->state.multicast->multicast_running = 1;
     return RIG_OK;
 }
@@ -390,7 +391,7 @@ int main(int argc, char *argv[])
     strncpy(rig->state.rigport.pathname, "/dev/ttyUSB0", HAMLIB_FILPATHLEN - 1);
     rig->state.rigport.parm.serial.rate = 38400;
     rig_open(rig);
-    multicast_init(rig, NULL, 0);
+    multicast_init(rig, "224.0.0.1", 4532);
     pthread_join(rig->state.multicast->threadid, NULL);
     pthread_exit(NULL);
     return 0;
