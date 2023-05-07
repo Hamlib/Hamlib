@@ -14,7 +14,7 @@ endif
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
-bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rigctltcp rigctlsync ampctl ampctld $(TESTLIBUSB)
+bin_PROGRAMS = rigctl rigctld rigmem rigsmtr rigswr rotctl rotctld rigctlcom rigctltcp rigctlsync ampctl ampctld multicastclient $(TESTLIBUSB)
 
 #check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testgrid testsecurity
 check_PROGRAMS = dumpmem testrig testrigopen testrigcaps testtrn testbcd testfreq listrigs testloc rig_bench testcache cachetest cachetest2 testcookie testgrid hamlibmodels
