@@ -41,6 +41,9 @@
 #define DEFAULTPATH "127.0.0.1:50001"
 
 #define FALSE 0
+#ifdef TRUE
+#undef TRUE
+#endif
 #define TRUE (!FALSE)
 
 #define TCI_VFOS (RIG_VFO_A|RIG_VFO_B)
