@@ -356,7 +356,7 @@ const struct rot_caps rt21_rot_caps =
     ROT_MODEL(ROT_MODEL_RT21),
     .model_name =       "RT-21",
     .mfg_name =     "Green Heron",
-    .version =      "20230430.0",
+    .version =      "20230507.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rot_type =     ROT_TYPE_OTHER,
@@ -906,7 +906,7 @@ static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
 
         *azimuth = tmp;
 
-        if (rot->state.rotport2.pathname != NULL)
+        if (strlen(rot->state.rotport2.pathname) > 0)
         {
             err = rotorez_send_priv_cmd2(rot, "BI1;");
 
