@@ -653,7 +653,7 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth,
 
     *azimuth = tmp;
 
-    if (rot->state.rotport2.pathname != NULL)
+    if (strlen(rot->state.rotport2.pathname) > 0)
     {
         do
         {
