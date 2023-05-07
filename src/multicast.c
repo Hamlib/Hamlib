@@ -246,6 +246,8 @@ int multicast_init(RIG *rig, char *addr, int port)
     }
     else if (rig->state.multicast->multicast_running) { return RIG_OK; } // we only need one port
 
+    //rig->state.multicast->mreq = {0};
+
     if (addr == NULL) { addr = RIG_MULTICAST_ADDR; }
 
     if (port == 0) { port = RIG_MULTICAST_PORT; }

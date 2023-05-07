@@ -45,6 +45,7 @@
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
+#include <hamlib/config.h>
 
 /**
  * \addtogroup rig
@@ -2479,6 +2480,8 @@ struct multicast_s
 #ifdef HAVE_ARPA_INET_H
     struct ip_mreq mreq; // = {0};
     struct sockaddr_in dest_addr; // = {0};
+#else
+#warning NO ARPA_INET
 #endif
 };
 
