@@ -488,13 +488,17 @@ void frameParse(int fd, unsigned char *frame, int len)
 #else
 
     case 0x25:
+    printf("x25 send nak\n");
         frame[4] = 0xfa;
         frame[5] = 0xfd;
+        n = write(fd, frame, 6);
         break;
 
     case 0x26:
+    printf("x26 send nak\n");
         frame[4] = 0xfa;
         frame[5] = 0xfd;
+        n = write(fd, frame, 6);
         break;
 #endif
 
