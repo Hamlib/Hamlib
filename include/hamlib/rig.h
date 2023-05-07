@@ -2480,8 +2480,6 @@ struct multicast_s
 #ifdef HAVE_ARPA_INET_H
     struct ip_mreq mreq; // = {0};
     struct sockaddr_in dest_addr; // = {0};
-#else
-#warning NO ARPA_INET
 #endif
 };
 
