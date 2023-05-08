@@ -126,10 +126,8 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len,
     struct amp_state *rs;
     int err;
     int len = 0;
-    int loop;
     char cmdbuf[64];
     int checksum = 0;
-    int bytes = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s\n", __func__, cmd);
 
@@ -155,6 +153,7 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len,
 
     if (response) // if response expected get it
     {
+        int bytes = 0;
         response[0] = 0;
         // read the 4-byte header x55x55x55xXX where XX is the hex # of bytes
         len = read_block_direct(&rs->ampport, (unsigned  char *) response, 4);
@@ -178,7 +177,7 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len,
     {
         char responsebuf[KPABUFSZ];
         responsebuf[0] = 0;
-        loop = 3;
+        int loop = 3;
 
         do
         {
@@ -218,7 +217,7 @@ const char *expert_get_info(AMP *amp)
 
 int expert_get_freq(AMP *amp, freq_t *freq)
 {
-    char responsebuf[KPABUFSZ];
+    char responsebuf[KPABUFSZ] = "\0";
     int retval;
     unsigned long tfreq;
     int nargs;
@@ -246,7 +245,7 @@ int expert_get_freq(AMP *amp, freq_t *freq)
 
 int expert_set_freq(AMP *amp, freq_t freq)
 {
-    char responsebuf[KPABUFSZ];
+    char responsebuf[KPABUFSZ] = "\0";
     int retval;
     unsigned long tfreq;
     int nargs;
@@ -283,7 +282,7 @@ int expert_set_freq(AMP *amp, freq_t freq)
 
 int expert_get_level(AMP *amp, setting_t level, value_t *val)
 {
-    char responsebuf[KPABUFSZ];
+    char responsebuf[KPABUFSZ] = "\0";
     unsigned char cmd[8];
     int retval;
     int fault;
@@ -530,7 +529,7 @@ int expert_get_level(AMP *amp, setting_t level, value_t *val)
 
 int expert_get_powerstat(AMP *amp, powerstat_t *status)
 {
-    unsigned char responsebuf[KPABUFSZ];
+    unsigned char responsebuf[KPABUFSZ] = "\0";
     int retval;
     int operate = 0;
     int ampon = 0;
