@@ -46,7 +46,7 @@ int main()
     // Set the SO_REUSEADDR option to allow multiple processes to use the same address
     int optval = 1;
 
-    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&optval,
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&optval,
                    sizeof(optval)) < 0)
     {
         //rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));

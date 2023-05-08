@@ -374,7 +374,7 @@ static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct jst145_priv_data *priv = rig->state.priv;
     vfo_t save_vfo = rig->state.current_vfo;
 
-    if (vfo == RIG_VFO_CURR) vfo = save_vfo;
+    if (vfo == RIG_VFO_CURR) { vfo = save_vfo; }
 
     SNPRINTF(freqbuf, sizeof(freqbuf), "F%08u%c\r", (unsigned)(freq),
              vfo == RIG_VFO_A ? 'A' : 'B');
@@ -421,7 +421,7 @@ static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(save_vfo));
 
-    if (vfo == RIG_VFO_CURR) vfo = save_vfo;
+    if (vfo == RIG_VFO_CURR) { vfo = save_vfo; }
 
     if (save_vfo != vfo)
     {

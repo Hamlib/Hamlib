@@ -621,6 +621,7 @@ int newcat_open(RIG *rig)
 
         retry_save = rig->state.rigport.retry;
         rig->state.rigport.retry = 0;
+
         if (set_only)
         {
             err = newcat_set_cmd(rig);
@@ -629,11 +630,12 @@ int newcat_open(RIG *rig)
         {
             err = newcat_get_cmd(rig);
         }
+
         rig->state.rigport.retry = retry_save;
 
         if (err != RIG_OK)
         {
-          // if we can an err we just ignore the failure -- Win4Yaesu was not recognizing EX032 command  
+            // if we can an err we just ignore the failure -- Win4Yaesu was not recognizing EX032 command
         }
     }
 
@@ -10850,17 +10852,18 @@ int newcat_set_cmd_validate(RIG *rig)
         // we can use a single ; to get a response of ?; for some rigs
         // this list can be expanded as we get more testing
         // seems newer rigs have this older ones time out
-        switch(rig->caps->rig_model)
+        switch (rig->caps->rig_model)
         {
-            case RIG_MODEL_FT991:
-            case RIG_MODEL_FTDX101MP:
-            case RIG_MODEL_FTDX3000:
-                strcpy(valcmd, ";");
-                break;
-            // these models do not work with a single ;
-            case RIG_MODEL_FT897:
-            default:
-                break;
+        case RIG_MODEL_FT991:
+        case RIG_MODEL_FTDX101MP:
+        case RIG_MODEL_FTDX3000:
+            strcpy(valcmd, ";");
+            break;
+
+        // these models do not work with a single ;
+        case RIG_MODEL_FT897:
+        default:
+            break;
         }
 
         SNPRINTF(cmd, sizeof(cmd), "%s", valcmd);

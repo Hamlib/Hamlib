@@ -1324,7 +1324,8 @@ void *handle_socket(void *arg)
                 else
                 {
 
-                    rig_debug(RIG_DEBUG_VERBOSE, "%s: reply(%d bytes)='%s'\n", __func__, retcode, reply);
+                    rig_debug(RIG_DEBUG_VERBOSE, "%s: reply(%d bytes)='%s'\n", __func__, retcode,
+                              reply);
                     fwrite(reply, 1, retcode, fsockout);
                     fflush(fsockout);
                 }

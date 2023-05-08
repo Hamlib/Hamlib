@@ -148,8 +148,8 @@ const struct rig_caps ts990s_caps =
     .level_gran =
     {
 #include "level_gran_kenwood.h"
-      [LVL_ATT]     = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
-      [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1100 }, .step = { .i = 10 } },
+        [LVL_ATT]     = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
+        [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1100 }, .step = { .i = 10 } },
     },
     .parm_gran =  {},
     .vfo_ops =  TS990S_VFO_OP,

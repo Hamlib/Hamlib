@@ -151,8 +151,8 @@ again:
             buf[4] = 0x03; n = write(fd, buf, 5);
             break;
 
-        case 0xbb: 
-            buf[0] = 80;buf[1] = 0; printf("READ EPROM\n");
+        case 0xbb:
+            buf[0] = 80; buf[1] = 0; printf("READ EPROM\n");
             n = write(fd, buf, 2);
             break;
 

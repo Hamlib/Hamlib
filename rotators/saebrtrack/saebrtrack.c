@@ -46,7 +46,8 @@
  *             (output) Number of bytes read.
  */
 static int
-saebrtrack_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
+saebrtrack_transaction(ROT *rot, const char *cmdstr, char *data,
+                       size_t data_len)
 {
     struct rot_state *rs;
     int retval;
@@ -101,7 +102,8 @@ saebrtrack_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
     /*  Non Easycom standard */
-    SNPRINTF(cmdstr, sizeof(cmdstr), "AZ%05.1f EL%05.1f UP000 XXX DN000 XXX\n", az, el);
+    SNPRINTF(cmdstr, sizeof(cmdstr), "AZ%05.1f EL%05.1f UP000 XXX DN000 XXX\n", az,
+             el);
 
     retval = saebrtrack_transaction(rot, cmdstr, NULL, 0);
 

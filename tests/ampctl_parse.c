@@ -1479,6 +1479,7 @@ void usage_amp(FILE *fout)
         {
             nbspaces -= fprintf(fout, ", %s", test_list[i].arg4);
         }
+
         rig_debug(RIG_DEBUG_VERBOSE, "%s: nbspace left=%d\n", __func__, nbspaces);
 
         fprintf(fout, ")\n");

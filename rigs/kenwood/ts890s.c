@@ -362,18 +362,20 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
          */
         /* Meter Type 1 - Kenwood specific, factory default */
         static cal_table_float_t meter_type1 =
-	{
+        {
             9, { { 0, -28.4f}, { 3, -26}, {11, -19.5f},
                 {19, -13}, {27, -6.5f}, {35, 0},
                 {48, 20}, {59, 40}, {70, 60}
-	        } };
-	/* Meter Type 2 - IARU recommended */
+            }
+        };
+        /* Meter Type 2 - IARU recommended */
         static cal_table_float_t meter_type2 =
         {
             9, { { 0, -54}, { 3, -48}, {11, -36},
                 {19, -24}, {27, -12}, {35, 0},
                 {48, 20}, {59, 40}, {70, 60}
-	        } };
+            }
+        };
         /* Find out which meter type is in use */
         retval = kenwood_safe_transaction(rig, "EX00011", ackbuf, sizeof(ackbuf), 11);
 
@@ -381,6 +383,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             return retval;
         }
+
         if (strncmp(ackbuf + 8, "000", 3) == 0)
         {
             table = &meter_type1;
@@ -389,20 +392,22 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             table = &meter_type2;
         }
-	else
-	{
-	    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected meter type: %s\n",
-		      __func__, ackbuf);
-	    return -RIG_EPROTO;
-	}
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected meter type: %s\n",
+                      __func__, ackbuf);
+            return -RIG_EPROTO;
+        }
+
         retval = kenwood_safe_transaction(rig, "SM", ackbuf, 10, 6);
+
         if (retval != RIG_OK)
         {
             return retval;
         }
 
         sscanf(ackbuf + 2, "%d", &val->i);
-	/* Convert reading back to dB (rounded) */
+        /* Convert reading back to dB (rounded) */
         val->i = (int)floorf(rig_raw2val_float(val->i, table) + 0.5f);
         return RIG_OK;
     }
@@ -591,7 +596,7 @@ const struct rig_caps ts890s_caps =
 #include "level_gran_kenwood.h"
         [LVL_ATT]     = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1100 }, .step = { .i = 5 } },
-        [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0/255.0 } },
+        [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0 / 255.0 } },
     },
     .has_get_func = TS890_FUNC_ALL,
     .has_set_func = TS890_FUNC_ALL,

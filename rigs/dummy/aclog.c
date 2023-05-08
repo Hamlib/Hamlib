@@ -295,7 +295,7 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
         // we get an unknown response if function does not exist
         if (strstr(xml, "UNKNOWN")) { set_transaction_inactive(rig); RETURNFUNC(RIG_ENAVAIL); }
 
-        if (value) strncpy(value, xml, value_len);
+        if (value) { strncpy(value, xml, value_len); }
 
     }
     while (((value && strlen(value) == 0))

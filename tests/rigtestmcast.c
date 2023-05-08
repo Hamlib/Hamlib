@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
 
     if (rig == NULL)
     {
-	    printf("Error in rig_init\n");
-	    return 1;
+        printf("Error in rig_init\n");
+        return 1;
 
     }
 

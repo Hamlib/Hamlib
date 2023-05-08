@@ -128,7 +128,7 @@ const struct rig_caps ts850_caps =
     .level_gran =
     {
 #include "level_gran_kenwood.h"
-      [LVL_CWPITCH] = { .min = { .i = 400 }, .max = { .i = 1000 }, .step = { .i = 50 } },
+        [LVL_CWPITCH] = { .min = { .i = 400 }, .max = { .i = 1000 }, .step = { .i = 50 } },
     },
     .parm_gran =  {},
     .extparms = ts850_ext_parms,

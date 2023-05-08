@@ -108,23 +108,24 @@ void frameParse(int fd, unsigned char *frame, int len)
         freqA = freq;
         printf("freq=%lf\n", freqA);
         break;
+
     case 0x03:
 
         //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
         if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
         {
             printf("get_freqA\n");
-            to_bcd(&frame[5], (long long)freqA/10000, 3 * 2);
-            dump_hex(frame,11);
+            to_bcd(&frame[5], (long long)freqA / 10000, 3 * 2);
+            dump_hex(frame, 11);
         }
         else
         {
             printf("get_freqB\n");
-            to_bcd(&frame[5], (long long)freqB/10000, 3 * 2);
+            to_bcd(&frame[5], (long long)freqB / 10000, 3 * 2);
         }
 
         frame[8] = 0xfd;
-        dump_hex(frame,9);
+        dump_hex(frame, 9);
 
         n = write(fd, frame, 9);
 

@@ -2052,10 +2052,12 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
 
     if (ret > 0)
     {
-        int offset=0;
+        int offset = 0;
+
         // see if there is a RPRT answer to make SDR++ happy
-        if (strstr(buf,"RPRT")) offset=4;
-            *status = atoi(&buf[offset]);
+        if (strstr(buf, "RPRT")) { offset = 4; }
+
+        *status = atoi(&buf[offset]);
     }
     else
     {
@@ -2066,13 +2068,13 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
         if (ret != RIG_ETIMEOUT)
         {
             rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: PS command failed (ret=%d) so returning RIG_POWER_ON\n", __func__, ret);
+                      "%s: PS command failed (ret=%d) so returning RIG_POWER_ON\n", __func__, ret);
             *status = RIG_POWER_ON;
         }
         else
         {
             rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: PS command failed (ret=%d) so returning RIG_POWER_OFF\n", __func__, ret);
+                      "%s: PS command failed (ret=%d) so returning RIG_POWER_OFF\n", __func__, ret);
             *status = RIG_POWER_OFF;
         }
     }

@@ -616,6 +616,7 @@ int ft857_get_vfo(RIG *rig, vfo_t *vfo)
         *vfo = rig->state.cache.vfo;
         return RIG_OK;
     }
+
     if (ft857_read_eeprom(rig, 0x0068, &c) < 0)   /* get vfo status */
     {
         ignore = 1;
