@@ -144,30 +144,39 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
     //struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
     ENTERFUNC;
-    if (vfo == RIG_VFO_CURR) vfo = rig->state.current_vfo;
+
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_B)
     {
         // then we need to turn off dual watch
-  
-        if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH, 0)))
+
+        if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
+                                              0)))
         {
             RETURNFUNC2(retval);
         }
     }
     else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB)
-        if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH, 1)))
+        if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
+                                              1)))
         {
             RETURNFUNC2(retval);
         }
+
     int myvfo = S_MAIN;
+
     if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
     {
         myvfo = S_SUB;
     }
-    if (RIG_OK != (retval = icom_transaction(rig, C_SET_VFO, myvfo, NULL, 0, ackbuf, &ack_len)))
+
+    if (RIG_OK != (retval = icom_transaction(rig, C_SET_VFO, myvfo, NULL, 0, ackbuf,
+                            &ack_len)))
     {
         RETURNFUNC2(retval);
     }
+
     return retval;
 }
 
@@ -182,7 +191,10 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_A || vfo == RIG_VFO_B)
-        return icom_set_vfo(rig,vfo);
+    {
+        return icom_set_vfo(rig, vfo);
+    }
+
     if (vfo == RIG_VFO_MAIN)
     {
         retval = RIG_OK;
@@ -191,6 +203,7 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     {
         retval = RIG_OK;
     }
+
     return retval;
 }
 

@@ -449,7 +449,7 @@ int tt538_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     bytes[3] = ((unsigned int) freq >> 24) & 0xff;
     bytes[2] = ((unsigned int) freq >> 16) & 0xff;
     bytes[1] = ((unsigned int) freq >>  8) & 0xff;
-    bytes[0] = ((unsigned int) freq      ) & 0xff;
+    bytes[0] = ((unsigned int) freq) & 0xff;
 
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*%c%c%c%c%c" EOM,
              which_vfo(rig, vfo),

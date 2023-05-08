@@ -623,7 +623,8 @@ static int ft817_cleanup(RIG *rig)
 static int ft817_open(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
-    hl_usleep(1500*1000);  // rig needs a bit to allow commands to come through on startup
+    hl_usleep(1500 *
+              1000); // rig needs a bit to allow commands to come through on startup
 
     return RIG_OK;
 }
@@ -705,7 +706,8 @@ static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
         *out = data[addr % 2];
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: data[0]=%02x, data[1]=%02x, out=%02x\n", __func__, data[0], data[1], *out);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: data[0]=%02x, data[1]=%02x, out=%02x\n",
+              __func__, data[0], data[1], *out);
 
     return RIG_OK;
 }
@@ -1442,8 +1444,10 @@ static int ft817_set_vfo(RIG *rig, vfo_t vfo)
     {
         return RIG_OK;
     }
+
     retval = ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
-    hl_usleep(50 * 1000); // can take a little while for vfo swap to happen -- otherwise we get errors trying to read eeprom to quickly
+    hl_usleep(50 *
+              1000); // can take a little while for vfo swap to happen -- otherwise we get errors trying to read eeprom to quickly
 
     return retval;
 }

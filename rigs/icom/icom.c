@@ -1653,9 +1653,11 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (retval != RIG_OK)
         {
-            if (priv->x25cmdfails < 0) priv->x25cmdfails = 1;
+            if (priv->x25cmdfails < 0) { priv->x25cmdfails = 1; }
+
             rig_debug(RIG_DEBUG_TRACE,
-                      "%s: rig probe shows 0x25 CI-V cmd not available for this rig/firmware\n", __func__);
+                      "%s: rig probe shows 0x25 CI-V cmd not available for this rig/firmware\n",
+                      __func__);
         }
 
         freq_len--; // 0x25 cmd is 1 byte longer than 0x03 cmd
@@ -1682,7 +1684,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 #if 0
     else if (priv->x25cmdfail == 0)
-             && (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_MAIN_A | RIG_VFO_SUB_A)))
+        && (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_MAIN_A | RIG_VFO_SUB_A)))
     {
         // we can use the 0x03 command for the default VFO
         retval = icom_transaction(rig, cmd, subcmd, NULL, 0, freqbuf, &freq_len);
@@ -1691,8 +1693,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #endif
 
     if (retval != RIG_OK)
-    {
-        if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
+{
+    if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
         RETURNFUNC(retval);
     }
@@ -1721,9 +1723,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                   "%s: 3-byte ID5100/4100 length - turn off XONXOFF flow control\n", __func__);
     }
     else if (freq_len != 4 && freq_len != 5)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
-                  __func__, freq_len);
+{
+    rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
+              __func__, freq_len);
 
         if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
@@ -1743,36 +1745,36 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (freq_len == 3) { *freq *= 10000; } // 3-byte freq for ID5100 is in 10000Hz units so convert to Hz
 
-    if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
+if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
-    switch (vfo)
-    {
-    case RIG_VFO_A: priv->vfoa_freq = *freq; break;
+switch (vfo)
+{
+case RIG_VFO_A: priv->vfoa_freq = *freq; break;
 
-    case RIG_VFO_MAIN_A: priv->maina_freq = *freq; break;
+case RIG_VFO_MAIN_A: priv->maina_freq = *freq; break;
 
-    case RIG_VFO_SUB_A: priv->suba_freq = *freq; break;
+case RIG_VFO_SUB_A: priv->suba_freq = *freq; break;
 
-    case RIG_VFO_B: priv->vfob_freq = *freq; break;
+case RIG_VFO_B: priv->vfob_freq = *freq; break;
 
-    case RIG_VFO_MAIN_B: priv->mainb_freq = *freq; break;
+case RIG_VFO_MAIN_B: priv->mainb_freq = *freq; break;
 
-    case RIG_VFO_SUB_B: priv->subb_freq = *freq; break;
+case RIG_VFO_SUB_B: priv->subb_freq = *freq; break;
 
-    case RIG_VFO_MAIN: priv->main_freq = *freq; break;
+case RIG_VFO_MAIN: priv->main_freq = *freq; break;
 
-    case RIG_VFO_SUB: priv->sub_freq = *freq; break;
+case RIG_VFO_SUB: priv->sub_freq = *freq; break;
 
-    case RIG_VFO_OTHER: priv->other_freq = *freq; break;
+case RIG_VFO_OTHER: priv->other_freq = *freq; break;
 
-    case RIG_VFO_NONE: // VFO_NONE will become VFO_CURR
-        rig->state.current_vfo = RIG_VFO_CURR;
+case RIG_VFO_NONE: // VFO_NONE will become VFO_CURR
+    rig->state.current_vfo = RIG_VFO_CURR;
 
-    case RIG_VFO_CURR: priv->curr_freq = *freq; break;
+case RIG_VFO_CURR: priv->curr_freq = *freq; break;
 
-    default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO?  VFO=%s\n", __func__,
-                  rig_strvfo(vfo));
+default:
+    rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO?  VFO=%s\n", __func__,
+              rig_strvfo(vfo));
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s exit vfo=%s, curr_vfo=%s\n", __func__,
@@ -5069,14 +5071,16 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     unsigned char pttbuf[MAXFRAMELEN];
     int ptt_len, retval;
-    int retry=5;
+    int retry = 5;
 
     ENTERFUNC;
 
-    do {
+    do
+    {
         retval = icom_transaction(rig, C_CTL_PTT, S_PTT, NULL, 0,
-                              pttbuf, &ptt_len);
-    } while(--retry >0 && retval != RIG_OK);
+                                  pttbuf, &ptt_len);
+    }
+    while (--retry > 0 && retval != RIG_OK);
 
     if (retval != RIG_OK)
     {

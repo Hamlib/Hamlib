@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
     }
 
     char val[256];
-    retcode = rig_get_conf2(my_rig, rig_token_lookup(my_rig, "write_delay"), val, sizeof(val));
+    retcode = rig_get_conf2(my_rig, rig_token_lookup(my_rig, "write_delay"), val,
+                            sizeof(val));
     printf("write_delay=%s\n", val);
 
 //    printf("Port %s opened ok\n", SERIAL_PORT);

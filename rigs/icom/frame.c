@@ -224,14 +224,18 @@ collision_retry:
         switch (buf[retval - 1])
         {
         case COL:
+
             /* Collision */
             // IC746 for example responds 0xfc when tuning is active so we will retry
             if (collision_retry++ < 20)
             {
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: collision retry#%d\n", __func__, collision_retry);
-                hl_usleep(500*1000);  // 500ms 20 times for ~15 second max before we back out for a retry if needed
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: collision retry#%d\n", __func__,
+                          collision_retry);
+                hl_usleep(500 *
+                          1000); // 500ms 20 times for ~15 second max before we back out for a retry if needed
                 goto collision_retry;
             }
+
             set_transaction_inactive(rig);
             RETURNFUNC(-RIG_BUSBUSY);
 

@@ -358,7 +358,7 @@ transaction_write:
 
         if (skip)
         {
-            hl_usleep(200*1000); // give little settle time for these commands
+            hl_usleep(200 * 1000); // give little settle time for these commands
             goto transaction_quit;
         }
     }
@@ -504,7 +504,8 @@ transaction_read:
              */
             if (priv->question_mark_response_means_rejected)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig (get): '%s'\n", __func__,cmdstr);
+                rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig (get): '%s'\n",
+                          __func__, cmdstr);
                 RETURNFUNC(-RIG_ERJCTED);
             }
 
@@ -544,6 +545,7 @@ transaction_read:
     if (datasize)
     {
         char *ps_cmd;
+
         if (priv->ps_cmd_wakeup_data)
         {
             ps_cmd = ";;;;PS";
@@ -5123,6 +5125,7 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
     }
 
     char *ps_cmd;
+
     if (priv->ps_cmd_wakeup_data)
     {
         ps_cmd = ";;;;PS";

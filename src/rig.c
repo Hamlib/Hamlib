@@ -509,7 +509,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         return (NULL);
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_model=%s %s %s\n", __func__, caps->mfg_name,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rig_model=%s %s %s\n", __func__,
+              caps->mfg_name,
               caps->model_name, caps->version);
 
     if (caps->hamlib_check_rig_caps != NULL)
@@ -1280,11 +1281,14 @@ int HAMLIB_API rig_open(RIG *rig)
             powerstat_t powerflag;
             status = rig_get_powerstat(rig, &powerflag);
 
-            if (status == RIG_OK && powerflag == RIG_POWER_OFF && rig->state.auto_power_on == 0) 
-            { 
-                rig_debug(RIG_DEBUG_ERR, "%s: rig power is off, use --set-conf=auto_power_on=1 if power on is wanted\n", __func__);
+            if (status == RIG_OK && powerflag == RIG_POWER_OFF
+                    && rig->state.auto_power_on == 0)
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: rig power is off, use --set-conf=auto_power_on=1 if power on is wanted\n",
+                          __func__);
 
-                return (-RIG_EPOWER); 
+                return (-RIG_EPOWER);
             }
 
             // don't need auto_power_on if power is already on
@@ -1781,8 +1785,9 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 #endif
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) freq += rig->state.offset_vfoa;
-    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) freq += rig->state.offset_vfob;
+
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) { freq += rig->state.offset_vfoa; }
+    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) { freq += rig->state.offset_vfob; }
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -3469,6 +3474,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             ELAPSED2;
             RETURNFUNC(retcode);
         }
+
 #endif
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
@@ -3504,6 +3510,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             ELAPSED2;
             RETURNFUNC(retcode);
         }
+
 #endif
 
         if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
@@ -6130,7 +6137,7 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
     HAMLIB_TRACE;
     retcode = rig->caps->get_powerstat(rig, status);
 
-    if(retcode == RIG_EIO) 
+    if (retcode == RIG_EIO)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: hard error, reopening rig\n", __func__);
         rig_close(rig);
@@ -6139,7 +6146,7 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
 
     if (retcode != RIG_OK) { *status = RIG_POWER_ON; } // if failed assume power is on
 
-    if (*status == RIG_POWER_OFF && rig->state.auto_power_on) rig->caps->set_powerstat(rig, RIG_POWER_ON);
+    if (*status == RIG_POWER_OFF && rig->state.auto_power_on) { rig->caps->set_powerstat(rig, RIG_POWER_ON); }
 
     RETURNFUNC(retcode);
 }

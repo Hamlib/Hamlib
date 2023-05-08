@@ -549,8 +549,9 @@ int ic10_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     /* QRP QDX should be 37 bytes but used only 1 byte for p14 instead of 2 bytes */
     /* 12345678901234567890123456789012345678 */
     offset = 5;
-    if (iflen == 36) offset = 8; // QRP QDX gets completely bogus length
-    else if (iflen == 37) offset = 9; // just in case somebody does this add p13/p14x2/p15
+
+    if (iflen == 36) { offset = 8; } // QRP QDX gets completely bogus length
+    else if (iflen == 37) { offset = 9; } // just in case somebody does this add p13/p14x2/p15
 
     *ptt = infobuf[iflen - offset] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
 

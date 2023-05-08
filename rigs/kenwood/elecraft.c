@@ -175,6 +175,7 @@ int elecraft_open(RIG *rig)
     }
 
     priv->save_k2_ext_lvl = -1; // so we don't restore if not neeede
+
     if (rig->caps->rig_model != RIG_MODEL_XG3)   // XG3 doesn't have extended
     {
         err = elecraft_get_extension_level(rig, "K2", &priv->save_k2_ext_lvl);
@@ -185,6 +186,7 @@ int elecraft_open(RIG *rig)
                       rigerror(err));
             return err;
         }
+
         // turn on k2 extended to get PC values in more resolution
         err = kenwood_transaction(rig, "K22;", NULL, 0);
 

@@ -409,6 +409,7 @@ static int ts2000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_AGC:
+
         /* Possible values for TS-2000 are 0(=off)-020(=slow) */
 
         switch (val.i)
@@ -813,24 +814,29 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int *value;
         int alc;
 
-        switch (level) {
-            case RIG_LEVEL_SWR:
-                meter = 1;
-                value = &swr;
-                break;
-            case RIG_LEVEL_COMP_METER:
-                meter = 2;
-                value = &comp;
-                break;
-            case RIG_LEVEL_ALC:
-                meter = 3;
-                value = &alc;
-                break;
-            default:
-                RETURNFUNC(-RIG_EINVAL);
+        switch (level)
+        {
+        case RIG_LEVEL_SWR:
+            meter = 1;
+            value = &swr;
+            break;
+
+        case RIG_LEVEL_COMP_METER:
+            meter = 2;
+            value = &comp;
+            break;
+
+        case RIG_LEVEL_ALC:
+            meter = 3;
+            value = &alc;
+            break;
+
+        default:
+            RETURNFUNC(-RIG_EINVAL);
         }
 
         retval = ts2000_read_meter(rig, meter, value);
+
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
@@ -896,6 +902,7 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f = (float) raw_value / 30.0f;
         }
+
         break;
     }
 
@@ -1138,7 +1145,8 @@ static int ts2000_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     RETURNFUNC(retval);
 }
 
-static int ts2000_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+static int ts2000_get_ext_level(RIG *rig, vfo_t vfo, token_t token,
+                                value_t *val)
 {
     int retval;
     int value;

@@ -958,6 +958,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 {
                     *nl = '\0';    /* chomp */
                 }
+
                 /* skip a space arg if first arg...happens parsing rigctld commands */
                 {
                     p1 = arg1[0] == ' ' ? arg1 + 1 : arg1;
@@ -2048,14 +2049,15 @@ int set_conf(RIG *my_rig, char *conf_parms)
         }
 
         token = rig_token_lookup(my_rig, p);
+
         if (token != 0)
         {
-        ret = rig_set_conf(my_rig, rig_token_lookup(my_rig, p), q);
+            ret = rig_set_conf(my_rig, rig_token_lookup(my_rig, p), q);
 
-        if (ret != RIG_OK)
-        {
-            return (ret);
-        }
+            if (ret != RIG_OK)
+            {
+                return (ret);
+            }
         }
         else
         {

@@ -48,7 +48,8 @@ getmyline(int fd, char *buf)
 
     while (read(fd, &c, 1) > 0)
     {
-        if (c == 0x0d) return strlen(buf);
+        if (c == 0x0d) { return strlen(buf); }
+
         buf[i++] = c;
     }
 
@@ -126,7 +127,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "BC ", 3) == 0)
         {
-            sscanf(buf,"BC %d,%d",&band,&control);
+            sscanf(buf, "BC %d,%d", &band, &control);
             SNPRINTF(buf, sizeof(buf), "BC %d,%d\r", band, control);
             n = write(fd, buf, strlen(buf));
         }
@@ -145,9 +146,9 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "FQ %011.0f,0\r", freqA);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "FQ ", 3)==0)
+        else if (strncmp(buf, "FQ ", 3) == 0)
         {
-            sscanf(buf,"FQ %lf,0", &freqA);
+            sscanf(buf, "FQ %lf,0", &freqA);
             SNPRINTF(buf, sizeof(buf), "FQ %011.0f,0\r", freqA);
             n = write(fd, buf, strlen(buf));
         }

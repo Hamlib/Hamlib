@@ -236,14 +236,15 @@ void *multicast_thread(void *vrig)
             multicast_status_changed(rig);
             multicast_send_json(rig);
             loopcount = 4;
-	    freqsave = freq;
+            freqsave = freq;
         }
 
     }
+
 #ifdef _WIN32
     WSACleanup();
 #endif
- 
+
 
     return NULL;
 }
@@ -279,7 +280,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     if (rig->state.multicast->sock < 0)
     {
 #ifdef _WIN32
-	int err = WSAGetLastError();
+        int err = WSAGetLastError();
         rig_debug(RIG_DEBUG_ERR, "%s: socket: WSAGetLastError=%d\n", __func__, err);
 #else
         rig_debug(RIG_DEBUG_ERR, "%s: socket: %s\n", __func__, strerror(errno));
@@ -290,7 +291,8 @@ int multicast_init(RIG *rig, char *addr, int port)
     // Set the SO_REUSEADDR option to allow multiple processes to use the same address
     int optval = 1;
 
-    if (setsockopt(rig->state.multicast->sock, SOL_SOCKET, SO_REUSEADDR, (char*)&optval,
+    if (setsockopt(rig->state.multicast->sock, SOL_SOCKET, SO_REUSEADDR,
+                   (char *)&optval,
                    sizeof(optval)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
@@ -327,7 +329,7 @@ int multicast_init(RIG *rig, char *addr, int port)
 
     // Join the multicast group
     if (setsockopt(rig->state.multicast->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-                   (char*)&rig->state.multicast->mreq, sizeof(rig->state.multicast->mreq)) < 0)
+                   (char *)&rig->state.multicast->mreq, sizeof(rig->state.multicast->mreq)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
         return -RIG_EIO;
@@ -354,7 +356,7 @@ void multicast_close(RIG *rig)
 
     // Leave the multicast group
     if ((retval = setsockopt(rig->state.multicast->sock, IPPROTO_IP,
-                             IP_DROP_MEMBERSHIP, (char*)&rig->state.multicast->mreq,
+                             IP_DROP_MEMBERSHIP, (char *)&rig->state.multicast->mreq,
                              sizeof(rig->state.multicast->mreq))) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));

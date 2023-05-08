@@ -83,7 +83,7 @@ int expert_init(AMP *amp)
 
 int expert_open(AMP *amp)
 {
-    unsigned char cmd=0x80;
+    unsigned char cmd = 0x80;
     unsigned char response[256];
 
     rig_debug(RIG_DEBUG_TRACE, "%s: entered\n", __func__);
@@ -96,7 +96,7 @@ int expert_open(AMP *amp)
 int expert_close(AMP *amp)
 {
 
-    unsigned char cmd=0x81;
+    unsigned char cmd = 0x81;
     unsigned char response[256];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -120,14 +120,15 @@ int expert_flushbuffer(AMP *amp)
     return rig_flush(&rs->ampport);
 }
 
-int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len, unsigned char *response, int response_len)
+int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len,
+                       unsigned char *response, int response_len)
 {
     struct amp_state *rs;
     int err;
     int len = 0;
     int loop;
     char cmdbuf[64];
-    int checksum=0;
+    int checksum = 0;
     int bytes = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s\n", __func__, cmd);
@@ -139,14 +140,16 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len, unsigned
     rs = &amp->state;
 
     cmdbuf[0] = cmdbuf[1] = cmdbuf[2] = 0x55;
-    for(int i=0;i<cmd_len;++i) checksum += cmd[i];
+
+    for (int i = 0; i < cmd_len; ++i) { checksum += cmd[i]; }
+
     checksum = checksum % 256;
     cmdbuf[3] = cmd_len;
-    memcpy(&cmdbuf[4],cmd,cmd_len);
-    cmdbuf[3+cmd_len+1] = checksum;
+    memcpy(&cmdbuf[4], cmd, cmd_len);
+    cmdbuf[3 + cmd_len + 1] = checksum;
 
     // Now send our command
-    err = write_block(&rs->ampport, (unsigned char *) cmdbuf, 3+cmd_len+2);
+    err = write_block(&rs->ampport, (unsigned char *) cmdbuf, 3 + cmd_len + 2);
 
     if (err != RIG_OK) { return err; }
 
@@ -155,7 +158,8 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len, unsigned
         response[0] = 0;
         // read the 4-byte header x55x55x55xXX where XX is the hex # of bytes
         len = read_block_direct(&rs->ampport, (unsigned  char *) response, 4);
-        rig_debug(RIG_DEBUG_ERR, "%s: len=%d, bytes=%02x\n", __func__, len, response[3]);
+        rig_debug(RIG_DEBUG_ERR, "%s: len=%d, bytes=%02x\n", __func__, len,
+                  response[3]);
 
         if (len < 0)
         {
@@ -163,10 +167,12 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len, unsigned
                       rigerror(len));
             return len;
         }
-        if (len == 4) bytes = response[3];
+
+        if (len == 4) { bytes = response[3]; }
+
         rig_debug(RIG_DEBUG_ERR, "%s: bytes=%d\n", __func__, bytes);
-        len = read_block_direct(&rs->ampport, (unsigned  char *) response, bytes-3 );
-        dump_hex(response,len);
+        len = read_block_direct(&rs->ampport, (unsigned  char *) response, bytes - 3);
+        dump_hex(response, len);
     }
     else   // if no response expected try to get one
     {
@@ -221,7 +227,7 @@ int expert_get_freq(AMP *amp, freq_t *freq)
 
     if (!amp) { return -RIG_EINVAL; }
 
-    retval = expert_transaction(amp, NULL,0, NULL, sizeof(responsebuf));
+    retval = expert_transaction(amp, NULL, 0, NULL, sizeof(responsebuf));
 
     if (retval != RIG_OK) { return retval; }
 
@@ -357,6 +363,7 @@ int expert_get_level(AMP *amp, setting_t level, value_t *val)
     switch (level)
     {
     case AMP_LEVEL_SWR:
+
         //nargs = sscanf(responsebuf, "^SW%f", &float_value);
 
         if (nargs != 1)
@@ -371,6 +378,7 @@ int expert_get_level(AMP *amp, setting_t level, value_t *val)
 
     case AMP_LEVEL_NH:
     case AMP_LEVEL_PF:
+
         //nargs = sscanf(responsebuf, "^DF%d,%d", &int_value, &int_value2);
 
         if (nargs != 2)

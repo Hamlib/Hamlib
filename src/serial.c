@@ -795,7 +795,8 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 
     p->timeout = timeout_save;
     rig_debug(RIG_DEBUG_VERBOSE, "tcflush%s\n", "");
-    tcflush(p->fd, TCIFLUSH); // we also do this flush https://github.com/Hamlib/Hamlib/issues/1241
+    tcflush(p->fd,
+            TCIFLUSH); // we also do this flush https://github.com/Hamlib/Hamlib/issues/1241
     return (RIG_OK);
 }
 

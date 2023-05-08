@@ -106,8 +106,9 @@ again:
 
         switch (buf[0])
         {
-        case '?': printf("Query %c\n", buf[1]);break;
-        case '*': printf("Set %c\n", buf[1]);break;
+        case '?': printf("Query %c\n", buf[1]); break;
+
+        case '*': printf("Set %c\n", buf[1]); break;
 
         default: printf("Unknown cmd=%02x\n", buf[4]);
         }

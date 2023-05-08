@@ -252,7 +252,8 @@ static int ts590_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 
     case RIG_FUNC_TUNER:
-        SNPRINTF(buf, sizeof(buf), "AC%c%c0", (status == 0) ? '0' : '1', (status == 0) ? '0' : '1');
+        SNPRINTF(buf, sizeof(buf), "AC%c%c0", (status == 0) ? '0' : '1',
+                 (status == 0) ? '0' : '1');
         RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 
     default:
@@ -339,6 +340,7 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_AGC:
+
         /* Possible values for TS-2000 are 0(=off)-020(=slow) */
 
         switch (val.i)
@@ -380,6 +382,7 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             kenwood_val = val.f * 20.0f;
         }
+
         SNPRINTF(levelbuf, sizeof(levelbuf), "ML%03d", kenwood_val);
         break;
 
@@ -642,6 +645,7 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f = (float) raw_value / 20.0f;
         }
+
         break;
     }
 
@@ -972,6 +976,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 37, 1, val.i);
         }
+
         break;
 
     case TOK_LEVEL_DSP_TX_EQUALIZER:
@@ -988,6 +993,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 36, 1, val.i);
         }
+
         break;
 
     case TOK_LEVEL_DSP_TX_SSB_AM_LOW_CUT_FILTER:
@@ -1004,6 +1010,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 31, 1, val.i);
         }
+
         break;
 
     case TOK_LEVEL_DSP_TX_SSB_AM_HIGH_CUT_FILTER:
@@ -1020,6 +1027,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 32, 1, val.i);
         }
+
         break;
 
     case TOK_LEVEL_DSP_TX_SSB_DATA_LOW_CUT_FILTER:
@@ -1036,6 +1044,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 33, 1, val.i);
         }
+
         break;
 
     case TOK_LEVEL_DSP_TX_SSB_DATA_HIGH_CUT_FILTER:
@@ -1052,6 +1061,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 34, 1, val.i);
         }
+
         break;
 
     case TOK_LEVEL_BEEP_VOLUME:
@@ -1068,6 +1078,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 5, 2, (int) val.f);
         }
+
         break;
 
     case TOK_LEVEL_TX_SIDETONE_VOLUME:
@@ -1084,6 +1095,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 6, 2, (int) val.f);
         }
+
         break;
 
     case TOK_LEVEL_ACC2_AUDIO_INPUT_LEVEL:
@@ -1100,6 +1112,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 73, 1, (int) val.f);
         }
+
         break;
 
     case TOK_LEVEL_ACC2_AUDIO_OUTPUT_LEVEL:
@@ -1116,6 +1129,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 74, 1, (int) val.f);
         }
+
         break;
 
     case TOK_LEVEL_USB_AUDIO_INPUT_LEVEL:
@@ -1132,6 +1146,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 71, 1, (int) val.f);
         }
+
         break;
 
     case TOK_LEVEL_USB_AUDIO_OUTPUT_LEVEL:
@@ -1148,6 +1163,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
         {
             retval = ts590_set_ex_menu(rig, 72, 1, (int) val.f);
         }
+
         break;
 
     default:
@@ -1175,6 +1191,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 37, 1, &value);
         }
+
         val->i = value;
         break;
 
@@ -1187,6 +1204,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 36, 1, &value);
         }
+
         val->i = value;
         break;
 
@@ -1199,6 +1217,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 31, 1, &value);
         }
+
         val->i = value;
         break;
 
@@ -1211,6 +1230,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 32, 1, &value);
         }
+
         val->i = value;
         break;
 
@@ -1223,6 +1243,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 33, 1, &value);
         }
+
         val->i = value;
         break;
 
@@ -1235,6 +1256,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 34, 1, &value);
         }
+
         val->i = value;
         break;
 
@@ -1247,6 +1269,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 5, 2, &value);
         }
+
         val->f = value;
         break;
 
@@ -1259,6 +1282,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 6, 2, &value);
         }
+
         val->f = value;
         break;
 
@@ -1271,6 +1295,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 73, 1, &value);
         }
+
         val->f = value;
         break;
 
@@ -1283,6 +1308,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 74, 1, &value);
         }
+
         val->f = value;
         break;
 
@@ -1295,6 +1321,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 71, 1, &value);
         }
+
         val->f = value;
         break;
 
@@ -1307,6 +1334,7 @@ static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
         {
             retval = ts590_get_ex_menu(rig, 72, 1, &value);
         }
+
         val->f = value;
         break;
 
@@ -1520,8 +1548,8 @@ const struct rig_caps ts590_caps =
     .level_gran =
     {
 #include "level_gran_kenwood.h"
-        [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f/100.0f } },
-        [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f/100.0f } },
+        [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
+        [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 4}, .max = {.i = 60}, .step = {.i = 1}},
@@ -1717,8 +1745,8 @@ const struct rig_caps ts590sg_caps =
     },
     .level_gran = {
 #include "level_gran_kenwood.h"
-        [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f/100.0f } },
-        [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f/100.0f } },
+        [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
+        [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 4}, .max = {.i = 60}, .step = {.i = 1}},
