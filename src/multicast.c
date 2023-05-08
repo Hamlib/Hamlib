@@ -236,15 +236,31 @@ void *multicast_thread(void *vrig)
             multicast_status_changed(rig);
             multicast_send_json(rig);
             loopcount = 4;
+	    freqsave = freq;
         }
 
     }
+#ifdef _WIN32
+    WSACleanup();
+#endif
+ 
 
     return NULL;
 }
 
 int multicast_init(RIG *rig, char *addr, int port)
 {
+#ifdef _WIN32
+    WSADATA wsaData;
+
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+    {
+        fprintf(stderr, "WSAStartup failed: %d\n", WSAGetLastError());
+        return 1;
+    }
+
+#endif
+
     if (rig->state.multicast == NULL)
     {
         rig->state.multicast = calloc(1, sizeof(struct multicast_s));
@@ -258,11 +274,16 @@ int multicast_init(RIG *rig, char *addr, int port)
     if (port == 0) { port = RIG_MULTICAST_PORT; }
 
     // Create a UDP socket
-    rig->state.multicast->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    rig->state.multicast->sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     if (rig->state.multicast->sock < 0)
     {
+#ifdef _WIN32
+	int err = WSAGetLastError();
+        rig_debug(RIG_DEBUG_ERR, "%s: socket: WSAGetLastError=%d\n", __func__, err);
+#else
         rig_debug(RIG_DEBUG_ERR, "%s: socket: %s\n", __func__, strerror(errno));
+#endif
         return -RIG_EIO;
     }
 
