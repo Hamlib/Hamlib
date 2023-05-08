@@ -4,7 +4,13 @@
 // gcc -g -Wall -o simicom simicom.c -lhamlib
 // On mingw in the hamlib src directory
 // gcc -static -I../include -g -Wall -o simicom simicom.c -L../../build/src/.libs -lhamlib -lwsock32 -lws2_32
-#define _XOPEN_SOURCE 600
+#define _XOPEN_SOURCE 700
+// since we are POSIX here we need this
+struct ip_mreq
+  {
+    int dummy;
+  };
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -601,7 +607,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            usleep(1000 * 1000);
+            hl_usleep(1000 * 1000);
         }
 
         rigStatus();
