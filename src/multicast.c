@@ -44,30 +44,43 @@ static int multicast_status_changed(RIG *rig)
 
 #endif
 
-    rmode_t mode, modesave = rig->state.cache.modeMainA;
-    pbwidth_t width, widthsave = rig->state.cache.widthMainA;
+    rmode_t modeA, modeAsave = rig->state.cache.modeMainA;
+    rmode_t modeB, modeBsave = rig->state.cache.modeMainB;
+    pbwidth_t widthA, widthAsave = rig->state.cache.widthMainA;
+    pbwidth_t widthB, widthBsave = rig->state.cache.widthMainB;
 
     if (rig->state.multicast->seqnumber % 2 == 0
-            && (retval = rig_get_mode(rig, RIG_VFO_A, &mode, &width)) != RIG_OK)
+            && (retval = rig_get_mode(rig, RIG_VFO_A, &modeA, &widthA)) != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig_get_freq:%s\n", __func__, rigerror(retval));
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_get_modeA:%s\n", __func__, rigerror(retval));
     }
 
-    if (mode != modesave) { return 1; }
+    if (modeA != modeAsave) { return 1; }
 
-    if (width != widthsave) { return 1; }
+    if (widthA != widthAsave) { return 1; }
+
+    if (rig->state.multicast->seqnumber % 2 == 0
+            && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
+            && (retval = rig_get_mode(rig, RIG_VFO_B, &modeB, &widthB)) != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_get_modeB:%s\n", __func__, rigerror(retval));
+    }
+
+    if (modeB != modeBsave) { return 1; }
+
+    if (widthB != widthBsave) { return 1; }
 
     ptt_t ptt, pttsave = rig->state.cache.ptt;
 
     if (rig->state.multicast->seqnumber % 2 == 0
-            && (retval = rig_get_ptt(rig, RIG_VFO_A, &ptt)) != RIG_OK)
+            && (retval = rig_get_ptt(rig, RIG_VFO_CURR, &ptt)) != RIG_OK)
         if (ptt != pttsave) { return 1; }
 
     split_t split, splitsave = rig->state.cache.split;
     vfo_t txvfo;
 
     if (rig->state.multicast->seqnumber % 2 == 0
-            && (retval = rig_get_split_vfo(rig, RIG_VFO_A, &split, &txvfo)) != RIG_OK)
+            && (retval = rig_get_split_vfo(rig, RIG_VFO_CURR, &split, &txvfo)) != RIG_OK)
         if (split != splitsave) { return 1; }
 
     return 0;
@@ -163,8 +176,31 @@ void json_add_vfoA(RIG *rig, char *msg)
         json_add_int(msg, "Width", rig->state.cache.widthMainA);
     }
 
-    json_add_boolean(msg, "RX", !rig->state.cache.ptt);
-    json_add_boolean(msg, "TX", rig->state.cache.ptt);
+    // what about full duplex? rx_vfo would be in rx all the time?
+    if (rig->state.rx_vfo != rig->state.tx_vfo && rig->state.cache.split)
+    {
+        if (rig->state.tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
+        {
+            json_add_boolean(msg, "RX", !rig->state.cache.ptt);
+            json_add_boolean(msg, "TX", 0);
+        }
+        else // we must be in reverse split
+        {
+            json_add_boolean(msg, "RX", 0);
+            json_add_boolean(msg, "TX", rig->state.cache.ptt);
+        }
+    }
+    else if (rig->state.current_vfo && (RIG_VFO_A | RIG_VFO_MAIN_A))
+    {
+        json_add_boolean(msg, "RX", !rig->state.cache.ptt);
+        json_add_boolean(msg, "TX", rig->state.cache.ptt);
+    }
+    else // VFOB must be active so never RX or TX
+    {
+        json_add_boolean(msg, "RX", 0);
+        json_add_boolean(msg, "TX", 0);
+    }
+
     strcat(msg, "\n}\n");
 }
 
@@ -184,8 +220,30 @@ void json_add_vfoB(RIG *rig, char *msg)
         json_add_int(msg, "Width", rig->state.cache.widthMainB);
     }
 
-    json_add_boolean(msg, "RX", !rig->state.cache.ptt);
-    json_add_boolean(msg, "TX", rig->state.cache.ptt);
+    if (rig->state.rx_vfo != rig->state.tx_vfo && rig->state.cache.split)
+    {
+        if (rig->state.tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
+        {
+            json_add_boolean(msg, "RX", 0);
+            json_add_boolean(msg, "TX", rig->state.cache.ptt);
+        }
+        else // we must be in reverse split
+        {
+            json_add_boolean(msg, "RX", rig->state.cache.ptt);
+            json_add_boolean(msg, "TX", 0);
+        }
+    }
+    else if (rig->state.current_vfo && (RIG_VFO_A | RIG_VFO_MAIN_A))
+    {
+        json_add_boolean(msg, "RX", !rig->state.cache.ptt);
+        json_add_boolean(msg, "TX", rig->state.cache.ptt);
+    }
+    else // VFOB must be active so always RX or TX
+    {
+        json_add_boolean(msg, "RX", 1);
+        json_add_boolean(msg, "TX", 1);
+    }
+
     strcat(msg, "\n},\n");
 }
 
@@ -224,19 +282,31 @@ void *multicast_thread(void *vrig)
     while (rig->state.multicast->runflag)
     {
         hl_usleep(100 * 1000);
-        freq_t freq, freqsave = 0;
+        freq_t freqA, freqAsave = 0;
+        freq_t freqB, freqBsave = 0;
 
-        if ((retval = rig_get_freq(rig, RIG_VFO_A, &freq)) != RIG_OK)
+        if ((retval = rig_get_freq(rig, RIG_VFO_A, &freqA)) != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: rig_get_freq:%s\n", __func__, rigerror(retval));
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_get_freqA:%s\n", __func__, rigerror(retval));
         }
 
-        if (freq != freqsave || loopcount-- == 0)
+        if ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
+                && (retval = rig_get_freq(rig, RIG_VFO_B, &freqB)) != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: rig_get_freqB:%s\n", __func__, rigerror(retval));
+        }
+        else
+        {
+            freqB = rig->state.cache.freqMainB;
+        }
+
+        if (freqA != freqAsave || freqB != freqBsave || loopcount-- == 0)
         {
             multicast_status_changed(rig);
             multicast_send_json(rig);
             loopcount = 4;
-            freqsave = freq;
+            freqAsave = freqA;
+            freqBsave = freqB;
         }
 
     }
@@ -249,6 +319,25 @@ void *multicast_thread(void *vrig)
     return NULL;
 }
 
+#ifdef WIN32
+static char *GetWinsockLastError(char *errorBuffer, DWORD errorBufferSize)
+{
+    void GetWinsockErrorString(char *errorBuffer, DWORD errorBufferSize) {
+    int errorCode = WSAGetLastError();
+    DWORD charsWritten;
+
+    FormatMessage(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        errorCode,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        errorBuffer,
+        errorBufferSize,
+        NULL
+    );
+}
+#endif
+
 int multicast_init(RIG *rig, char *addr, int port)
 {
 #ifdef _WIN32
@@ -256,7 +345,8 @@ int multicast_init(RIG *rig, char *addr, int port)
 
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
     {
-        fprintf(stderr, "WSAStartup failed: %d\n", WSAGetLastError());
+        char errorMessage[1024];
+        fprintf(stderr, "WSAStartup failed: %s\n", GetWinsockLastError(errorMessage, sizeof(errorMessage)));
         return 1;
     }
 

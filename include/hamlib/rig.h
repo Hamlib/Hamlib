@@ -40,6 +40,11 @@
 // to stop warnings about including winsock2.h before windows.h
 #if defined(_WIN32)
 #include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #endif
 
 // For MSVC install the NUGet pthread package
@@ -936,6 +941,7 @@ enum meter_level_e {
  */
 typedef union {
     signed int i;       /*!< Signed integer */
+    unsigned int u;     /*!< Unsigned integer */
     float f;            /*!< Single precision float */
     char *s;            /*!< Pointer to char string */
     const char *cs;     /*!< Pointer to constant char string */

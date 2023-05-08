@@ -718,7 +718,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (rig->caps->rig_model == RIG_MODEL_AR8000)
         {
-            sscanf(ackbuf + 2, "%x", &val->i);
+            sscanf(ackbuf + 2, "%x", &val->u);
             val->i &= ~0x80; /* mask squelch status */
         }
         else if (rig->caps->rig_model == RIG_MODEL_AR8200 ||
@@ -728,7 +728,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         else
         {
-            sscanf(ackbuf + 3, "%x", &val->i);
+            sscanf(ackbuf + 3, "%x", &val->u);
         }
 
         break;
