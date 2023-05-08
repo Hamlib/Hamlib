@@ -7435,7 +7435,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     {
         *status = ackbuf[2] == 2 ? 1 : 0;
     }
-    else if (func == RIG_FUNC_SATMODE)
+    else if (func == RIG_FUNC_SATMODE && rig->caps->rig_model != RIG_MODEL_IC9100)
     {
         struct rig_state *rs = &rig->state;
         struct icom_priv_data *priv = rs->priv;
