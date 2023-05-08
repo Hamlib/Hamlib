@@ -90,7 +90,7 @@ int main()
         }
 
         buffer[bytes_received] = '\0';
-        printf("Received: %s\n", buffer);
+        printf("%s\n", buffer);
     }
 
     // Drop membership before closing the socket
