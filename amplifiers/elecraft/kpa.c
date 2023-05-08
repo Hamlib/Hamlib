@@ -226,7 +226,7 @@ int kpa_get_freq(AMP *amp, freq_t *freq)
 
 int kpa_set_freq(AMP *amp, freq_t freq)
 {
-    char responsebuf[KPABUFSZ];
+    char responsebuf[KPABUFSZ] = "\0";
     int retval;
     unsigned long tfreq;
     int nargs;
