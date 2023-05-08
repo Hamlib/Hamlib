@@ -1,6 +1,12 @@
 // can run this using rigctl/rigctld and socat pty devices
 // gcc -o simyaesu simyaesu.c
-#define _XOPEN_SOURCE 600
+#define _XOPEN_SOURCE 700
+// since we are POSIX here we need this
+struct ip_mreq
+  {
+    int dummy;
+  };
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -113,7 +119,7 @@ int main(int argc, char *argv[])
         if (strcmp(buf, "ID") == 0)
         {
             printf("%s\n", buf);
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "ID TM-D700\r");
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);

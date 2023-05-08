@@ -1,7 +1,13 @@
 // can run this using rigctl/rigctld and socat pty devices
 // gcc -o simft990 simft990.c
 // emulates 1.2 ROM FT990 which can only read 1492 bytes
-#define _XOPEN_SOURCE 600
+#define _XOPEN_SOURCE 700
+// since we are POSIX here we need this
+struct ip_mreq
+  {
+    int dummy;
+  };
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>

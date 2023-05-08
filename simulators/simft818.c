@@ -1,6 +1,12 @@
 // can run this using rigctl/rigctld and socat pty devices
 // gcc -o simyaesu simyaesu.c
-#define _XOPEN_SOURCE 600
+#define _XOPEN_SOURCE 700
+// since we are POSIX here we need this
+struct ip_mreq
+  {
+    int dummy;
+  };
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -121,7 +127,7 @@ int main(int argc, char *argv[])
         if (strcmp(buf, "RM5;") == 0)
         {
             printf("%s\n", buf);
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             pbuf = "RM5100000;";
             n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
@@ -132,7 +138,7 @@ int main(int argc, char *argv[])
         if (strcmp(buf, "AN0;") == 0)
         {
             printf("%s\n", buf);
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             pbuf = "AN030;";
             n = write(fd, pbuf, strlen(pbuf));
             printf("n=%d\n", n);
@@ -172,7 +178,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "IF;") == 0)
         {
             printf("%s\n", buf);
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             //pbuf = "IF00107041000+000000200000;";
             pbuf = "IF00010138698     +00000000002000000 ;";
             n = write(fd, pbuf, strlen(pbuf));
@@ -183,7 +189,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "ID;") == 0)
         {
             printf("%s\n", buf);
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             int id = NC_RIGID_FTDX3000DM;
             SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
             n = write(fd, buf, strlen(buf));
@@ -194,7 +200,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "AI;") == 0)
         {
             printf("%s\n", buf);
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "AI0;");
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
@@ -203,7 +209,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "AI0;") == 0)
         {
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
         }
         else if (strcmp(buf, "AB;") == 0)
         {
@@ -217,7 +223,7 @@ int main(int argc, char *argv[])
             if (strcmp(buf, "AI;"))
             {
                 printf("%s\n", buf);
-                usleep(50 * 1000);
+                hl_usleep(50 * 1000);
                 n = fprintf(fp, "%s", "AI0;");
                 printf("n=%d\n", n);
 
@@ -229,12 +235,12 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "VS") == 0 && strlen(buf) > 3)
         {
             curr_vfo = buf[3] == '1' ? RIG_VFO_B : RIG_VFO_A;
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
         }
         else if (strcmp(buf, "VS;") == 0)
         {
             printf("%s\n", buf);
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             pbuf = "VS0;";
 
             if (curr_vfo == RIG_VFO_B || curr_vfo == RIG_VFO_SUB) { pbuf[2] = '1'; }
@@ -246,7 +252,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FT;") == 0)
         {
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             SNPRINTF(resp, sizeof(resp), "FT%c;", tx_vfo);
             printf(" FT response#1=%s, tx_vfo=%c\n", resp, tx_vfo);
             n = write(fd, resp, strlen(resp));
@@ -264,7 +270,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "MD0;") == 0)
         {
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             SNPRINTF(resp, sizeof(resp), "MD0%c;", modeA);
             n = write(fd, resp, strlen(resp));
 
@@ -276,7 +282,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "MD1;") == 0)
         {
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             SNPRINTF(resp, sizeof(resp), "MD1%c;", modeB);
             n = write(fd, resp, strlen(resp));
 
@@ -288,7 +294,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "SM0;") == 0)
         {
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             SNPRINTF(resp, sizeof(resp), "SM0111;");
             n = write(fd, resp, strlen(resp));
 
@@ -296,7 +302,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "TX;") == 0)
         {
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             SNPRINTF(resp, sizeof(resp), "TX%d;", ptt);
             n = write(fd, resp, strlen(resp));
 
@@ -304,7 +310,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "TX", 2) == 0)
         {
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             ptt = buf[2] == '0' ? 0 : 1;
         }
         else if (strcmp(buf, "EX032;") == 0)
@@ -312,7 +318,7 @@ int main(int argc, char *argv[])
             static int ant = 0;
             ant = (ant + 1) % 3;
             printf("%s\n", buf);
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
@@ -322,14 +328,14 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "SH0;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "SH0%02d;", width);
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             n = write(fd, buf, strlen(buf));
             printf("%s n=%d\n", buf, n);
         }
         else if (strcmp(buf, "NA0;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "NA00;");
-            usleep(50 * 1000);
+            hl_usleep(50 * 1000);
             n = write(fd, buf, strlen(buf));
             printf("%s n=%d\n", buf, n);
         }
