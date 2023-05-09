@@ -2480,7 +2480,7 @@ struct rig_cache {
  * \brief Multicast data items the are unique per rig instantiation
  * This is meant for internal Hamlib use only
  */
-#include <multicast.h>
+#include <hamlib/multicast.h>
 struct multicast_s
 {
     int multicast_running;
