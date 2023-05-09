@@ -368,7 +368,7 @@ int dxsr8_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     /* extract RX freq */
-    retval = num_sscanf(freqbuf, "%"SCNfreq, freq);
+    num_sscanf(freqbuf, "%"SCNfreq, freq);
 
     return RIG_OK;
 }
@@ -471,6 +471,12 @@ int dxsr8_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     filter = 0; // avoid compiler warnings of being possibly uninitialized
     retval = dxsr8_read_num(rig, AL "~RR_NAR" EOM, &filter);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: dxsr8_read_num:%s\n", __func__, rigerror(retval));
+        return retval;
+    }
 
     if (filter == 0)
     {

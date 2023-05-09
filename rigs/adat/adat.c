@@ -1486,7 +1486,7 @@ int adat_get_single_cmd_result(RIG *pRig)
             {
                 int   nBufLength  = 0;
 
-                if (*pcPos == '\0') // Adjust for 00 byte at beginning ...
+                if (*pcPos == 0) // Adjust for 00 byte at beginning ...
                 {
                     pcPos++;        // No, please don't ask me why this happens ... ;-)
                 }

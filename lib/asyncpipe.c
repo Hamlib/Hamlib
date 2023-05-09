@@ -43,6 +43,7 @@ int async_pipe_create(hamlib_async_pipe_t **pipe_out,
 
     if (!pipe->read)
     {
+        free(pipe);
         return -RIG_EINTERNAL;
     }
 
@@ -143,7 +144,7 @@ ssize_t async_pipe_read(hamlib_async_pipe_t *pipe, void *buf, size_t count,
     LPOVERLAPPED overlapped = &pipe->read_overlapped;
     DWORD wait_result;
     int result;
-    ssize_t bytes_read;
+    ssize_t bytes_read = 0;
 
     result = ReadFile(read_handle, buf, count, NULL, overlapped);
 
@@ -248,7 +249,7 @@ ssize_t async_pipe_write(hamlib_async_pipe_t *pipe, const unsigned char *buf,
     LPOVERLAPPED overlapped = &pipe->write_overlapped;
     DWORD wait_result;
     int result;
-    ssize_t bytes_written;
+    ssize_t bytes_written = 0;
 
     result = WriteFile(write_handle, buf, count, NULL, overlapped);
 

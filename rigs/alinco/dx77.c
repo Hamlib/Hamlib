@@ -334,7 +334,7 @@ int dx77_transaction(RIG *rig,
         return retval;
     }
 
-    if (!(data && data_len))
+    if (((data == NULL) && (data_len > 0)) || ((data != NULL) && (data_len == 0)))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: data and datalen not both NULL??\n", __func__);
         return -RIG_EINTERNAL;
@@ -1013,11 +1013,11 @@ int dx77_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             lvl = 31;
         }
-        else if (val.i >= 6 && val.i < 20)
+        else if (val.i < 20)
         {
             lvl = val.i + 25;
         }
-        else if (val.i >= 20 && val.i <= 50)
+        else if (val.i <= 50)
         {
             lvl = val.i - 20;
         }

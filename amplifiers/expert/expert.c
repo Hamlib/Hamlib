@@ -129,7 +129,12 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len,
     char cmdbuf[64];
     int checksum = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s\n", __func__, cmd);
+    if (cmd) { rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s\n", __func__, cmd); }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: cmd empty\n", __func__);
+        return -RIG_EINVAL;
+    }
 
     if (!amp) { return -RIG_EINVAL; }
 
