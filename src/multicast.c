@@ -175,13 +175,14 @@ void json_add_vfoA(RIG *rig, char *msg)
 
     if (rig->state.cache.widthMainA > 0)
     {
-        json_add_int(msg, "Width", rig->state.cache.widthMainA, 1);
+        json_add_int(msg, "Width", rig->state.cache.widthMainA, 0);
     }
 
     // what about full duplex? rx_vfo would be in rx all the time?
     rig_debug(RIG_DEBUG_ERR, "%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__, rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo), rig->state.cache.split);
+#if 0 // not working quite yet
     printf("%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__, rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo), rig->state.cache.split);
-    if (rig->state.rx_vfo != rig->state.tx_vfo && rig->state.cache.split)
+    if (rig->state.cache.split)
     {
         if (rig->state.tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
         {
@@ -205,6 +206,7 @@ void json_add_vfoA(RIG *rig, char *msg)
         json_add_boolean(msg, "TX", 0, 0);
     }
 
+#endif
     strcat(msg, "\n}");
 }
 
@@ -212,8 +214,9 @@ void json_add_vfoB(RIG *rig, char *msg)
 {
     strcat(msg, ",\n{\n");
     json_add_string(msg, "Name", "VFOB", 1);
-    json_add_int(msg, "Freq", rig->state.cache.freqMainB, 1);
+    json_add_int(msg, "Freq", rig->state.cache.freqMainB, 0);
 
+#if 0
     if (strlen(rig_strrmode(rig->state.cache.modeMainB)) > 0)
     {
         json_add_string(msg, "Mode", rig_strrmode(rig->state.cache.modeMainB), 1);
@@ -221,9 +224,11 @@ void json_add_vfoB(RIG *rig, char *msg)
 
     if (rig->state.cache.widthMainB > 0)
     {
-        json_add_int(msg, "Width", rig->state.cache.widthMainB, 1);
-    }
+        json_add_int(msg, "Width", rig->state.cache.widthMainB, 0);
+    } 
+#endif
 
+#if 0 // not working yet
     if (rig->state.rx_vfo != rig->state.tx_vfo && rig->state.cache.split)
     {
         if (rig->state.tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
@@ -247,6 +252,7 @@ void json_add_vfoB(RIG *rig, char *msg)
         json_add_boolean(msg, "RX", 1, 1);
         json_add_boolean(msg, "TX", 1, 0);
     }
+#endif
 
     strcat(msg, "\n}\n]\n");
 }
