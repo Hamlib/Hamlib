@@ -179,6 +179,8 @@ void json_add_vfoA(RIG *rig, char *msg)
     }
 
     // what about full duplex? rx_vfo would be in rx all the time?
+    rig_debug(RIG_DEBUG_ERR, "%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__, rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo), rig->state.cache.split);
+    printf("%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__, rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo), rig->state.cache.split);
     if (rig->state.rx_vfo != rig->state.tx_vfo && rig->state.cache.split)
     {
         if (rig->state.tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
@@ -262,6 +264,7 @@ static int multicast_send_json(RIG *rig)
     json_add_time(msg, 1);
     json_add_int(msg, "Sequence", rig->state.multicast->seqnumber++, 1);
     json_add_string(msg, "VFOCurr", rig_strvfo(rig->state.current_vfo), 1);
+    json_add_int(msg, "PTT", rig->state.cache.ptt, 1);
     json_add_int(msg, "Split", rig->state.cache.split, 1);
     strcat(msg, "\"VFOs\": [\n");
     json_add_vfoA(rig, msg);
