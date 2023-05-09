@@ -3635,6 +3635,7 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
     // then sleep  from 1 to 2 seconds so we'll do 1.5 secs
     write_block(&state->rigport, (unsigned char *) "PS;", 3);
     hl_usleep(1200000);
+    rig_flush(&rig->state.rigport);  /* discard any unsolicited data */
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
 
