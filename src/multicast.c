@@ -178,9 +178,9 @@ void json_add_vfoA(RIG *rig, char *msg)
         json_add_int(msg, "Width", rig->state.cache.widthMainA, 0);
     }
 
+#if 0 // not working quite yet
     // what about full duplex? rx_vfo would be in rx all the time?
     rig_debug(RIG_DEBUG_ERR, "%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__, rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo), rig->state.cache.split);
-#if 0 // not working quite yet
     printf("%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__, rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo), rig->state.cache.split);
     if (rig->state.cache.split)
     {
