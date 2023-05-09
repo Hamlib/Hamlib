@@ -55,7 +55,7 @@
 
 /* Rig list is in a separate file so as not to mess up w/ this one */
 #include <hamlib/riglist.h>
-#include <hamlib/config.h>
+//#include <hamlib/config.h>
 
 /**
  * \addtogroup rig
