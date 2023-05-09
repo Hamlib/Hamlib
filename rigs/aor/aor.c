@@ -540,7 +540,7 @@ int parse8k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode,
 int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
-    char ackbuf[BUFSZ], ackbuf2[BUFSZ];
+    char ackbuf[BUFSZ];
     char *mdp, *mdp2;
     int ack_len, ack2_len, retval;
 
@@ -568,6 +568,7 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (rig->caps->rig_model == RIG_MODEL_AR5000 ||
             rig->caps->rig_model == RIG_MODEL_AR5000A)
     {
+        char ackbuf2[BUFSZ];
         retval = aor_transaction(rig, "BW" EOM, 3, ackbuf2, &ack2_len);
 
         if (retval != RIG_OK)
@@ -1150,7 +1151,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep,
         char *tag2p;
         tagp = strstr(basep, "MD");
 
-        if (!tagp && mem_caps->mode && mem_caps->width)
+        if (!tagp)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: no MD in returned string: '%s'\n",
                       __func__, basep);
@@ -1456,7 +1457,7 @@ const char *aor_get_info(RIG *rig)
         return NULL;
     }
 
-    if (retval > 2) { idbuf[2] = '\0'; }
+    // never executed -- if (retval > 2) { idbuf[2] = '\0'; }
 
     retval = aor_transaction(rig, "VR" EOM, 3, frmbuf, &frm_len);
 

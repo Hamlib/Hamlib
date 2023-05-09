@@ -21,7 +21,9 @@ SUPPRESS="\
 --suppress=*:extra/gnuradio/ssb.h \
 --suppress=*:extra/gnuradio/wfm.h \
 --suppress=*:extra/gnuradio/wfm.h \
---suppress=*:extra/gnuradio/HrAGC.h
+--suppress=*:extra/gnuradio/HrAGC.h \
+--suppress=*:extra/gnuradio/gnuradio.cc \
+--suppress=missingIncludeSystem
 
 #CHECK="\
 #-D RIG_LEVEL_LINEOUT=1 \
