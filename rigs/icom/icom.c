@@ -869,7 +869,7 @@ static vfo_t icom_current_vfo(RIG *rig)
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
-    if (priv->x25cmdfails == 0) // these newer rigs get special treatment
+    if (priv->x25cmdfails <= 0) // these newer rigs get special treatment
     {
         return icom_current_vfo_x25(rig);
     }
@@ -1505,7 +1505,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     unsigned char freqbuf[MAXFRAMELEN];
     int freqbuf_offset = 1;
     unsigned char ackbuf[MAXFRAMELEN];
-    int freq_len, retval = -RIG_EINTERNAL;
+    int retval = RIG_OK;
+    int freq_len;
     int cmd, subcmd;
     int ack_len = sizeof(ackbuf);
     int civ_731_mode = 0; // even these rigs have 5-byte channels
@@ -1629,7 +1630,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     // we'll use 0x25 command to get unselected frequency
     // we have to assume current_vfo is accurate to determine what "other" means
-    if (priv->x25cmdfails == 0)
+    if (priv->x25cmdfails <= 0)
     {
         int cmd2 = 0x25;
         int subcmd2 = 0x00;
@@ -1651,9 +1652,16 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         retval = icom_transaction(rig, cmd2, subcmd2, NULL, 0, freqbuf, &freq_len);
 
-        if (retval != RIG_OK)
+        if (retval == RIG_OK)
         {
-            if (priv->x25cmdfails < 0) { priv->x25cmdfails = 1; }
+            priv->x25cmdfails = 0;
+        }
+        else
+        {
+            if (priv->x25cmdfails < 0)
+            {
+                priv->x25cmdfails = 1;
+            }
 
             rig_debug(RIG_DEBUG_TRACE,
                       "%s: rig probe shows 0x25 CI-V cmd not available for this rig/firmware\n",
@@ -1693,8 +1701,11 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #endif
 
     if (retval != RIG_OK)
-{
-    if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
+    {
+        if (vfo == RIG_VFO_MEM && civ_731_mode)
+        {
+            priv->civ_731_mode = 1;
+        }
 
         RETURNFUNC(retval);
     }
@@ -5546,11 +5557,17 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
             if (retval == RIG_OK) // then we're done!!
             {
+                priv->x25cmdfails = 0;
                 RETURNFUNC2(retval);
             }
+            else
+            {
+                if (priv->x25cmdfails < 0)
+                {
+                    priv->x25cmdfails = 1;
+                }
+            }
         }
-
-        priv->x25cmdfails = 1;
     }
 
 
@@ -5731,7 +5748,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     // If the rigs supports the 0x25 command we'll use it
     // This eliminates VFO swapping and improves split operations
     // This does not work in satellite mode for the 9700
-    if (priv->x25cmdfails == 0)
+    if (priv->x25cmdfails <= 0)
     {
         int cmd, subcmd;
         int satmode = 0;
@@ -5748,7 +5765,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
         if (satmode == 0) // only worth trying if not in satmode
         {
-            if (priv->x25cmdfails == 0)
+            if (priv->x25cmdfails <= 0)
             {
                 int retry_save = rs->rigport.retry;
                 rs->rigport.retry = 0;
@@ -5763,11 +5780,12 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
                 if (retval == RIG_OK) // then we're done!!
                 {
+                    priv->x25cmdfails = 0;
                     *tx_freq = from_bcd(ackbuf + 2, (priv->civ_731_mode ? 4 : 5) * 2);
                     RETURNFUNC2(retval);
                 }
 
-//                if (priv->x25cmdfails < 0) priv->x25cmdfails = 1;
+                if (priv->x25cmdfails < 0) priv->x25cmdfails = 1;
             }
         }
         else   // we're in satmode so we try another command
@@ -5788,7 +5806,6 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
                 priv->x1cx03cmdfails = 1;
             }
         }
-
     }
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
@@ -6759,7 +6776,8 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): satmode changed to reset x25cmdfails\n",
                       __func__, __LINE__);
-            priv->x25cmdfails = satmode; // reset this so it tries again
+            // Reset x25cmdfails to current status, because it fails in SATMODE
+            priv->x25cmdfails = satmode;
         }
     }
 
@@ -7161,8 +7179,8 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             fct_sc = S_MEM_SATMODE;
         }
 
-        priv->x25cmdfails =
-            status; // we reset this to current status -- fails in SATMODE
+        // Reset x25cmdfails to current status, because it fails in SATMODE
+        priv->x25cmdfails = status;
         priv->x1cx03cmdfails = 0; // we reset this to try it again
         rig->state.cache.satmode = status;
         icom_satmode_fix(rig, status);
@@ -7443,7 +7461,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         *status = ackbuf[2 + fct_len];
         icom_satmode_fix(rig, *status);
 
-        // we'll reset this based on current status
+        // Reset x25cmdfails to current status, because it fails in SATMODE
         priv->x25cmdfails = *status;
     }
     else
