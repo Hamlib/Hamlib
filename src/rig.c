@@ -7712,70 +7712,85 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     struct rig_state *rs = &rig->state;
     unsigned char buf[200];
     int nbytes;
+    int retval;
+    int simulate = rig->caps->rig_model == RIG_MODEL_DUMMY ||
+            rig->caps->rig_model == RIG_MODEL_NONE ||
+            rs->rigport.rig == RIG_PORT_NONE;
     ENTERFUNC;
-
-    if (rig->caps->rig_model == RIG_MODEL_DUMMY
-            || rig->caps->rig_model == RIG_MODEL_NONE)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: not implemented for model %s\n", __func__,
-                  rig->caps->model_name);
-        return -RIG_ENAVAIL;
-    }
 
     ELAPSED1;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: writing %d bytes\n", __func__, send_len);
-    int retval = write_block(&rs->rigport, send, send_len);
 
-    if (retval < 0)
+    if (simulate)
     {
-        // TODO: error handling? can writing to a pipe really fail in ways we can recover from?
-        rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__,
-                  retval);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating response for model %s\n",
+                __func__, rig->caps->model_name);
+        retval = send_len;
+    }
+    else
+    {
+        retval = write_block(&rs->rigport, send, send_len);
+
+        if (retval < 0)
+        {
+            // TODO: error handling? can writing to a pipe really fail in ways we can recover from?
+            rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__,
+                      retval);
+        }
     }
 
     if (reply)
     {
-        if (term ==
-                NULL) // we have to have terminating char or else we can't read the response
+        // we have to have terminating char or else we can't read the response
+        if (term == NULL)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: term==NULL, must have terminator to read reply\n",
                       __func__);
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        if (*term == 0xfd) // then we want an Icom frame
+        if (simulate)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: reading icom frame\n", __func__);
-            retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
-            nbytes = retval;
+            // Simulate a response by copying the command
+            memcpy(buf, send, send_len);
+            nbytes = send_len + 1;
         }
-        else if (term == NULL)
+        else
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: reading binary frame\n", __func__);
-            nbytes = read_string_direct(&rs->rigport, buf, reply_len, (const char *)term,
-                                        1, 0, 1);
-        }
-        else // we'll assume the provided terminator works
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: reading frame terminated by '%s'\n", __func__,
-                      term);
-            nbytes = read_string_direct(&rs->rigport, buf, sizeof(buf), (const char *)term,
-                                        1, 0, 1);
-        }
+            if (*term == 0xfd) // then we want an Icom frame
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: reading icom frame\n", __func__);
+                retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+                nbytes = retval;
+            }
+            else if (term == NULL)
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: reading binary frame\n", __func__);
+                nbytes = read_string_direct(&rs->rigport, buf, reply_len, (const char *)term,
+                                            1, 0, 1);
+            }
+            else // we'll assume the provided terminator works
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: reading frame terminated by '%s'\n", __func__,
+                          term);
+                nbytes = read_string_direct(&rs->rigport, buf, sizeof(buf), (const char *)term,
+                                            1, 0, 1);
+            }
 
-        if (retval < RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: read_string_direct, result=%d\n", __func__,
-                      retval);
-            RETURNFUNC(retval);
-        }
+            if (retval < RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: read_string_direct, result=%d\n", __func__,
+                          retval);
+                RETURNFUNC(retval);
+            }
 
-        if (nbytes >= reply_len)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: reply_len(%d) less than reply from rig(%d)\n",
-                      __func__, reply_len, nbytes);
-            return -RIG_EINVAL;
+            if (nbytes >= reply_len)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: reply_len(%d) less than reply from rig(%d)\n",
+                          __func__, reply_len, nbytes);
+                return -RIG_EINVAL;
+            }
         }
 
         memcpy(reply, buf, reply_len - 1);

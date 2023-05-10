@@ -3508,13 +3508,13 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
             if (rig->state.current_mode == RIG_MODE_AM) { agcp = agc_level2; }
 
-            rig_debug(RIG_DEBUG_ERR, "%s: val.f=%g\n", __func__, val.f);
+            rig_debug(RIG_DEBUG_ERR, "%s: val.f=%f\n", __func__, val.f);
 
             for (i = 0; i <= 13; ++i)
             {
                 if (agcp[i] <= val.f)
                 {
-                    rig_debug(RIG_DEBUG_ERR, "%s: agcp=%g <= val.f=%g at %d\n", __func__, agcp[i],
+                    rig_debug(RIG_DEBUG_ERR, "%s: agcp=%f <= val.f=%f at %d\n", __func__, agcp[i],
                               val.f, i);
                     icom_val = i;
                 }

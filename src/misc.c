@@ -2156,6 +2156,11 @@ int HAMLIB_API parse_hoststr(char *hoststr, int hoststr_len, char host[256],
 //#define RIG_FLUSH_REMOVE
 int HAMLIB_API rig_flush(hamlib_port_t *port)
 {
+    if (port->type.rig == RIG_PORT_NONE)
+    {
+        return RIG_OK;
+    }
+
     // Data should never be flushed when using async I/O
     if (port->asyncio)
     {
@@ -2165,11 +2170,6 @@ int HAMLIB_API rig_flush(hamlib_port_t *port)
 #ifndef RIG_FLUSH_REMOVE
     rig_debug(RIG_DEBUG_TRACE, "%s: called for %s device\n", __func__,
               port->type.rig == RIG_PORT_SERIAL ? "serial" : "network");
-
-    if (port->type.rig == RIG_PORT_NONE)
-    {
-        return RIG_OK;
-    }
 
     if (port->type.rig == RIG_PORT_NETWORK
             || port->type.rig == RIG_PORT_UDP_NETWORK)

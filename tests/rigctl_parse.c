@@ -1747,8 +1747,7 @@ readline_repeat:
             rig_debug(RIG_DEBUG_WARN,
                       "%s: command %s not allowed when rig is powered off\n", __func__,
                       cmd_entry->name);
-//            retcode = -RIG_EPOWER;
-            retcode = RIG_OK;
+            retcode = -RIG_EPOWER;
         }
         else
         {
@@ -4787,6 +4786,9 @@ declare_proto_rig(send_cmd)
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
     int binary = 0;
     int rxbytes = BUFSZ;
+    int simulate = rig->caps->rig_model == RIG_MODEL_DUMMY ||
+                   rig->caps->rig_model == RIG_MODEL_NONE ||
+                   rs->rigport.rig == RIG_PORT_NONE;
 
     ENTERFUNC;
 
@@ -4890,19 +4892,28 @@ declare_proto_rig(send_cmd)
 
     rs = &rig->state;
 
-    rig_flush(&rs->rigport);
-
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
               rs->rigport.fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
-    // we don't want the 'w' command to wait too long
-    int save_retry = rs->rigport.retry;
-    rs->rigport.retry = 0;
-    retval = write_block(&rs->rigport, (unsigned char *) bufcmd, cmd_len);
-    rs->rigport.retry = save_retry;
 
-    if (retval != RIG_OK)
+    if (simulate)
     {
-        RETURNFUNC(retval);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating response for model %s\n",
+                __func__, rig->caps->model_name);
+    }
+    else
+    {
+        rig_flush(&rs->rigport);
+
+        // we don't want the 'w' command to wait too long
+        int save_retry = rs->rigport.retry;
+        rs->rigport.retry = 0;
+        retval = write_block(&rs->rigport, (unsigned char *) bufcmd, cmd_len);
+        rs->rigport.retry = save_retry;
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
     }
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
@@ -4912,6 +4923,7 @@ declare_proto_rig(send_cmd)
         fwrite(": ", 1, 2, fout); /* i.e. "Frequency" */
     }
 
+    retval = 0;
     do
     {
         if (arg2) { sscanf(arg2, "%d", &rxbytes); }
@@ -4924,17 +4936,33 @@ declare_proto_rig(send_cmd)
 
         if (arg2[0] == ';') { eom_buf[0] = ';'; }
 
-        /* Assumes CR or LF is end of line char for all ASCII protocols. */
-        retval = read_string(&rs->rigport, buf, rxbytes, eom_buf,
-                             strlen(eom_buf), 0, 1);
-
-        if (retval < 0)
+        if (simulate)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: read_string error %s\n", __func__,
-                      rigerror(retval));
-
-            break;
+            if (retval == 0)
+            {
+                // Simulate a response by copying the command
+                memcpy(buf, bufcmd, cmd_len);
+                retval = cmd_len;
+            }
+            else
+            {
+                retval = 0;
+            }
         }
+        else
+        {
+            /* Assumes CR or LF is end of line char for all ASCII protocols. */
+            retval = read_string(&rs->rigport, buf, rxbytes, eom_buf,
+                                 strlen(eom_buf), 0, 1);
+
+            if (retval < 0)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: read_string error %s\n", __func__,
+                          rigerror(retval));
+                break;
+            }
+        }
+
 
         if (retval < BUFSZ)
         {
@@ -4990,7 +5018,7 @@ declare_proto_rig(send_cmd)
     }
     while (retval > 0 && rxbytes == BUFSZ);
 
-// we use fwrite in case of any nulls in binary return
+    // we use fwrite in case of any nulls in binary return
     if (binary) { fwrite(buf, 1, retval, fout); }
 
     if (binary)
