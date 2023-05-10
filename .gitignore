@@ -64,6 +64,8 @@ tests/rotctl
 tests/rotctld
 tests/testlibusb
 tests/rigtestlibusb
+tests/rigtestmcast
+tests/rigtestmcastrx
 src/hamlibdatetime.h
 .gdbinit
 build/
