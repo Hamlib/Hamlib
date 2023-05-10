@@ -4778,7 +4778,7 @@ extern int flrig_cat_string(RIG *rig, const char *arg);
 declare_proto_rig(send_cmd)
 {
     int retval;
-    struct rig_state *rs;
+    struct rig_state *rs = &rig->state;
     int backend_num, cmd_len;
 #define BUFSZ 512
     char bufcmd[BUFSZ * 5]; // allow for 5 chars for binary
@@ -4889,8 +4889,6 @@ declare_proto_rig(send_cmd)
         rig_debug(RIG_DEBUG_TRACE, "%s: text protocol, send_cmd_term=%s\n", __func__,
                   tmpbuf);
     }
-
-    rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
               rs->rigport.fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
