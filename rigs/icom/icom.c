@@ -5568,6 +5568,9 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
                 }
             }
         }
+
+        // Rig is in SATMODE and the command 0x25 fails in SATMODE
+        priv->x25cmdfails = 1;
     }
 
 
