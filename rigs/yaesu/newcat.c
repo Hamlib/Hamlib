@@ -3617,7 +3617,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 int newcat_get_powerstat(RIG *rig, powerstat_t *status)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    struct rig_state *state = &rig->state;
+    //struct rig_state *state = &rig->state;
     int err;
     char ps;
     char command[] = "PS";
