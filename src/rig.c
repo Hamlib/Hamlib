@@ -621,7 +621,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 
     rs->rigport.write_delay = caps->write_delay;
     rs->rigport.post_write_delay = caps->post_write_delay;
-    rs->rigport.timeout = caps->timeout;
+    // since we do two timeouts now we can cut the timeout in half for serial
+    if (caps->port_type == RIG_PORT_SERIAL)
+        rs->rigport.timeout = caps->timeout/2;
     rs->rigport.retry = caps->retry;
     rs->pttport.type.ptt = caps->ptt_type;
     rs->dcdport.type.dcd = caps->dcd_type;
