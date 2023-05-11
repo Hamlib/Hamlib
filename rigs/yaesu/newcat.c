@@ -689,7 +689,7 @@ int newcat_close(RIG *rig)
 
     ENTERFUNC;
 
-    if (!no_restore_ai && priv->trn_state >= 0)
+    if (!no_restore_ai && priv->trn_state >= 0 && rig_s->comm_state)
     {
         /* restore AI state */
         newcat_set_trn(rig, priv->trn_state); /* ignore status in
@@ -697,7 +697,7 @@ int newcat_close(RIG *rig)
                                                    supported */
     }
 
-    if (priv->poweron != 0 && rig_s->auto_power_off)
+    if (priv->poweron != 0 && rig_s->auto_power_off && rig_s->comm_state)
     {
         rig_set_powerstat(rig, 0);
         priv->poweron = 0;
