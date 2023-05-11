@@ -1272,7 +1272,7 @@ int HAMLIB_API rig_open(RIG *rig)
      * In case of failure, just close down and report error code.
      */
     int retry_save = rs->rigport.retry;
-    rs->rigport.retry = 1;
+    rs->rigport.retry = 0;
 
     if (caps->rig_open != NULL)
     {
