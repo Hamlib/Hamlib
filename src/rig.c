@@ -7722,6 +7722,8 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: writing %d bytes\n", __func__, send_len);
 
+    set_transaction_active(rig);
+
     if (simulate)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating response for model %s\n",
@@ -7735,21 +7737,12 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
         if (retval < 0)
         {
             // TODO: error handling? can writing to a pipe really fail in ways we can recover from?
-            rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__,
-                      retval);
+            rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__, retval);
         }
     }
 
     if (reply)
     {
-        // we have to have terminating char or else we can't read the response
-        if (term == NULL)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: term==NULL, must have terminator to read reply\n",
-                      __func__);
-            RETURNFUNC(-RIG_EINVAL);
-        }
-
         if (simulate)
         {
             // Simulate a response by copying the command
@@ -7758,37 +7751,37 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
         }
         else
         {
-            if (*term == 0xfd) // then we want an Icom frame
+            if (term == NULL)
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: reading binary frame\n", __func__);
+                retval = read_string(&rs->rigport, buf, reply_len, NULL, 0, 0, 1);
+            }
+            else if (*term == 0xfd) // then we want an Icom frame
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading icom frame\n", __func__);
                 retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
-                nbytes = retval;
-            }
-            else if (term == NULL)
-            {
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: reading binary frame\n", __func__);
-                nbytes = read_string_direct(&rs->rigport, buf, reply_len, (const char *)term,
-                                            1, 0, 1);
             }
             else // we'll assume the provided terminator works
             {
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: reading frame terminated by '%s'\n", __func__,
-                          term);
-                nbytes = read_string_direct(&rs->rigport, buf, sizeof(buf), (const char *)term,
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: reading frame terminated by 0x%x\n", __func__, *term);
+                retval = read_string(&rs->rigport, buf, sizeof(buf), (const char *)term,
                                             1, 0, 1);
             }
 
             if (retval < RIG_OK)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: read_string_direct, result=%d\n", __func__,
-                          retval);
+                rig_debug(RIG_DEBUG_ERR, "%s: read_string, result=%d\n", __func__, retval);
+                set_transaction_inactive(rig);
                 RETURNFUNC(retval);
             }
+
+            nbytes = retval;
 
             if (nbytes >= reply_len)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: reply_len(%d) less than reply from rig(%d)\n",
                           __func__, reply_len, nbytes);
+                set_transaction_inactive(rig);
                 return -RIG_EINVAL;
             }
         }
@@ -7797,12 +7790,15 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     }
     else
     {
+        set_transaction_inactive(rig);
         RETURNFUNC(retval);
     }
 
+    set_transaction_inactive(rig);
+
     ELAPSED2;
 
-    RETURNFUNC(nbytes > 0 ? nbytes : -RIG_EPROTO);
+    RETURNFUNC(nbytes >= 0 ? nbytes : -RIG_EPROTO);
 }
 
 HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int mode)

@@ -5024,7 +5024,6 @@ declare_proto_rig(send_cmd)
         fwrite("\n", 1, 1, fout);
     }
 
-
     if (retval > 0 || retval == -RIG_ETIMEOUT)
     {
         retval = RIG_OK;
@@ -5421,13 +5420,15 @@ extern int netrigctl_send_raw(RIG *rig, char *s);
 /* 0xa4 */
 declare_proto_rig(send_raw)
 {
+    int result;
     int reply_len;
-    unsigned char term[1];
-    unsigned char buf[100];
-    unsigned char send[100];
+    unsigned char termbyte[1];
+    unsigned char *term = NULL;
+    unsigned char buf[200];
+    unsigned char send[200];
     unsigned char *sendp = (unsigned char *)arg2;
     int arg2_len = strlen(arg2);
-    int hex_flag = 0;
+    int is_binary = 0;
     int buf_len = sizeof(buf);
     int val = 0;
 
@@ -5441,15 +5442,31 @@ declare_proto_rig(send_raw)
         return retval;
     }
 
-    if (strcmp(arg1, ";") == 0) { term[0] = ';'; }
-    else if (strcasecmp(arg1, "CR")) { term[0] = 0x0d; }
-    else if (strcasecmp(arg1, "LF")) { term[0] = 0x0a; }
-    else if (strcasecmp(arg1, "ICOM")) { term[0] = 0xfd; }
-    else if (sscanf(arg1, "%d", &val) == 1) { term[0] = 0; buf_len = val;}
+    if (strcmp(arg1, ";") == 0) { termbyte[0] = ';'; term = termbyte; }
+    else if (strcasecmp(arg1, "CR") == 0) { termbyte[0] = 0x0d; term = termbyte; }
+    else if (strcasecmp(arg1, "LF") == 0) { termbyte[0] = 0x0a; term = termbyte; }
+    else if (strcasecmp(arg1, "ICOM") == 0) { termbyte[0] = 0xfd; term = termbyte; }
+    else if (sscanf(arg1, "0x%x", &val) == 1) { termbyte[0] = val; term = termbyte; }
+    else if (sscanf(arg1, "%d", &val) == 1)
+    {
+        if (val < buf_len - 1)
+        {
+            // Reserve one byte more to allow padding with null
+            buf_len = val + 1;
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: response length %d is larger than maximum of %d bytes",
+                      __func__, val, buf_len);
+            return -RIG_EINVAL;
+        }
+    }
     else
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: unknown arg1 val=%s, expected ';' 'CR' 'LF' 'ICOM' or # of bytes where 0 means no reply and -1 means unknown",
+                  "%s: unknown arg1 val=%s, expected ';', 'CR', 'LF', 'ICOM', 0xFF (hex byte) or "
+                  "# of bytes where 0 means no reply and -1 means unknown",
                   __func__, arg1);
         return -RIG_EINVAL;
     }
@@ -5458,12 +5475,18 @@ declare_proto_rig(send_raw)
     {
         arg2_len = parse_hex(arg2, send, sizeof(send));
         sendp = send;
-        hex_flag = 1;
+        is_binary = 1;
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
-    reply_len = rig_send_raw(rig, (unsigned char *)sendp, arg2_len, buf,
-                             buf_len, term);
+
+    result = rig_send_raw(rig, (unsigned char *)sendp, arg2_len, buf,buf_len, term);
+    if (result < 0)
+    {
+        return result;
+    }
+
+    reply_len = result;
     buf[buf_len + 1] = 0; // null terminate in case it's a string
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
@@ -5475,7 +5498,7 @@ declare_proto_rig(send_raw)
     {
         fprintf(fout, "No answer\n");
     }
-    else if (hex_flag)
+    else if (is_binary)
     {
         int i;
 

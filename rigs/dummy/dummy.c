@@ -2125,6 +2125,13 @@ static int dummy_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     RETURNFUNC(RIG_OK);
 }
 
+static int dummy_stop_morse(RIG *rig, vfo_t vfo)
+{
+    ENTERFUNC;
+
+    RETURNFUNC(RIG_OK);
+}
+
 static int dummy_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 {
     ENTERFUNC;
@@ -2490,6 +2497,7 @@ struct rig_caps dummy_caps =
     .send_dtmf =  dummy_send_dtmf,
     .recv_dtmf =  dummy_recv_dtmf,
     .send_morse =  dummy_send_morse,
+    .stop_morse =  dummy_stop_morse,
     .send_voice_mem =  dummy_send_voice_mem,
     .set_channel =    dummy_set_channel,
     .get_channel =    dummy_get_channel,
