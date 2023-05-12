@@ -706,6 +706,7 @@ int icom_init(RIG *rig)
         || rig->caps->rig_model == RIG_MODEL_IC7000
         || rig->caps->rig_model == RIG_MODEL_IC7100
         || rig->caps->rig_model == RIG_MODEL_IC7200
+        || rig->caps->rig_model == RIG_MODEL_IC7700
         || rig->caps->rig_model == RIG_MODEL_IC821H
         || rig->caps->rig_model == RIG_MODEL_IC910
         || rig->caps->rig_model == RIG_MODEL_IC2730
