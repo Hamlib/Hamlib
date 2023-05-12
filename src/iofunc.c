@@ -787,6 +787,12 @@ int HAMLIB_API write_block_sync_error(hamlib_port_t *p,
     return async_pipe_write(p->sync_data_error_pipe, txbuffer, count, p->timeout);
 }
 
+int HAMLIB_API port_flush_sync_pipes(hamlib_port_t *p)
+{
+    // TODO: To be implemented for Windows
+    return RIG_OK;
+}
+
 #else
 
 /* POSIX */
@@ -968,6 +974,38 @@ int HAMLIB_API write_block_sync_error(hamlib_port_t *p,
     }
 
     return (int) write(p->fd_sync_error_write, txbuffer, count);
+}
+
+int HAMLIB_API port_flush_sync_pipes(hamlib_port_t *p)
+{
+    unsigned char buf[1024];
+    int n;
+    int nbytes;
+
+    if (!p->asyncio)
+    {
+        return RIG_OK;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: flushing sync pipes\n", __func__);
+
+    nbytes = 0;
+    while ((n = read(p->fd_sync_read, buf, sizeof(buf))) > 0)
+    {
+        nbytes += n;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "read flushed %d bytes from sync read pipe\n", nbytes);
+
+    nbytes = 0;
+    while ((n = read(p->fd_sync_error_read, buf, sizeof(buf))) > 0)
+    {
+        nbytes += n;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "read flushed %d bytes from sync error read pipe\n", nbytes);
+
+    return RIG_OK;
 }
 
 #endif

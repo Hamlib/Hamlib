@@ -2714,6 +2714,9 @@ extern HAMLIB_EXPORT(int) rig_open HAMLIB_PARAMS((RIG *rig));
  */
 
 extern HAMLIB_EXPORT(int)
+rig_flush_force(hamlib_port_t *port, int flush_async_data);
+
+extern HAMLIB_EXPORT(int)
 rig_flush(hamlib_port_t *port);
 
 #if BUILTINFUNC
