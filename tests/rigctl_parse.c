@@ -4893,6 +4893,8 @@ declare_proto_rig(send_cmd)
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
               rs->rigport.fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
 
+    set_transaction_active(rig);
+
     if (simulate)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating response for model %s\n",
@@ -4910,6 +4912,8 @@ declare_proto_rig(send_cmd)
 
         if (retval != RIG_OK)
         {
+            rig_flush_force(&rs->rigport, 1);
+            set_transaction_inactive(rig);
             RETURNFUNC(retval);
         }
     }
@@ -5002,6 +5006,9 @@ declare_proto_rig(send_cmd)
                 strncat(hexbuf, hex, hexbufbytes - 1);
             }
 
+            rig_flush_force(&rs->rigport, 1);
+            set_transaction_inactive(rig);
+
             rig_debug(RIG_DEBUG_TRACE, "%s: binary=%s, retval=%d\n", __func__, hexbuf,
                       retval);
             fprintf(fout, "%s %d\n", hexbuf, retval);
@@ -5015,6 +5022,9 @@ declare_proto_rig(send_cmd)
         }
     }
     while (retval > 0 && rxbytes == BUFSZ);
+
+    rig_flush_force(&rs->rigport, 1);
+    set_transaction_inactive(rig);
 
     // we use fwrite in case of any nulls in binary return
     if (binary) { fwrite(buf, 1, retval, fout); }

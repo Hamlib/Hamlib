@@ -7771,6 +7771,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
             if (retval < RIG_OK)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: read_string, result=%d\n", __func__, retval);
+                rig_flush_force(&rs->rigport, 1);
                 set_transaction_inactive(rig);
                 RETURNFUNC(retval);
             }
@@ -7781,6 +7782,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: reply_len(%d) less than reply from rig(%d)\n",
                           __func__, reply_len, nbytes);
+                rig_flush_force(&rs->rigport, 1);
                 set_transaction_inactive(rig);
                 return -RIG_EINVAL;
             }
@@ -7790,10 +7792,12 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     }
     else
     {
+        rig_flush_force(&rs->rigport, 1);
         set_transaction_inactive(rig);
         RETURNFUNC(retval);
     }
 
+    rig_flush_force(&rs->rigport, 1);
     set_transaction_inactive(rig);
 
     ELAPSED2;
