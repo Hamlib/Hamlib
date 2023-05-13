@@ -1030,6 +1030,7 @@ int HAMLIB_API rig_open(RIG *rig)
         }
     }
 
+    rs->rigport.timeout = caps->timeout;
     status = port_open(&rs->rigport);
 
     if (status < 0)
