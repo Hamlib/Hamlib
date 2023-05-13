@@ -2488,6 +2488,8 @@ struct multicast_s
     int seqnumber;
     int runflag; // = 0;
     pthread_t threadid;
+    pthread_mutex_t mutex;
+    int mutex_initialized;
 //#ifdef HAVE_ARPA_INET_H
     struct ip_mreq mreq; // = {0};
     struct sockaddr_in dest_addr; // = {0};
@@ -2715,6 +2717,9 @@ extern HAMLIB_EXPORT(int) rig_open HAMLIB_PARAMS((RIG *rig));
 
 extern HAMLIB_EXPORT(int)
 rig_flush(hamlib_port_t *port);
+
+extern HAMLIB_EXPORT(void)
+rig_lock(RIG *rig, int lock);
 
 #if BUILTINFUNC
 #define rig_set_freq(r,v, f) rig_set_vfo(r,v,f,__builtin_FUNCTION())
