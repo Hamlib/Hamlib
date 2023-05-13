@@ -168,7 +168,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 #define CHECK_RIG_CAPS(r) (!(r) || !(r)->caps)
 
-#define LOCK if (rig->state.depth == 0) { rig_debug(RIG_DEBUG_ERR, "%s: lock!! *******************************************\n", __func__); }
+#define LOCK(n) if (rig->state.depth == 0) { rig_debug(RIG_DEBUG_ERR, "%s: lock!! *******************************************\n", __func__); } rig_lock(rig,n)
 
 #ifdef PTHREAD
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
@@ -1295,7 +1295,7 @@ int HAMLIB_API rig_open(RIG *rig)
                           "%s: rig power is off, use --set-conf=auto_power_on=1 if power on is wanted\n",
                           __func__);
 
-                RETURNFUNC2 (-RIG_EPOWER);
+                RETURNFUNC2(-RIG_EPOWER);
             }
 
             // don't need auto_power_on if power is already on
@@ -1784,7 +1784,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     vfo_t vfo_save;
 
     ELAPSED1;
-    LOCK;
+    LOCK(1);
 #if BUILTINFUNC
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f, called from %s\n",
               __func__,
@@ -1800,6 +1800,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (CHECK_RIG_ARG(rig))
     {
         ELAPSED2;
+        LOCK(0);
         RETURNFUNC2(-RIG_EINVAL);
     }
 
@@ -1843,6 +1844,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (caps->set_freq == NULL)
     {
         ELAPSED2;
+        LOCK(0);
         RETURNFUNC2(-RIG_ENAVAIL);
     }
 
@@ -1864,6 +1866,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             }
 
             ELAPSED2;
+            LOCK(0);
             RETURNFUNC2(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
@@ -1880,9 +1883,9 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             // some rig will return -RIG_ENTARGET if cannot set ptt while transmitting
             // we will just return RIG_OK and the frequency set will be ignored
-            if (retcode == -RIG_ENTARGET) { RETURNFUNC(RIG_OK); }
+            if (retcode == -RIG_ENTARGET) { LOCK(0); RETURNFUNC(RIG_OK); }
 
-            if (retcode != RIG_OK) { RETURNFUNC(retcode); }
+            if (retcode != RIG_OK) { LOCK(0); RETURNFUNC(retcode); }
 
             // Unidirectional rigs do not reset cache
             if (rig->caps->rig_model != RIG_MODEL_FT736R)
@@ -1899,7 +1902,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 // WSJT-X does a 55Hz check so we can stop early if that's the case
                 if ((long long)freq % 100 == 55) { retry = 0; }
 
-                if (retcode != RIG_OK) { RETURNFUNC(retcode); }
+                if (retcode != RIG_OK) { LOCK(0); RETURNFUNC(retcode); }
 
                 if (tfreq != freq)
                 {
@@ -1932,6 +1935,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (!caps->set_vfo)
         {
             ELAPSED2;
+            LOCK(0);
             RETURNFUNC2(-RIG_ENAVAIL);
         }
 
@@ -1956,6 +1960,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             }
 
             ELAPSED2;
+            LOCK(0);
             RETURNFUNC2(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
@@ -1991,6 +1996,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             if (retcode != RIG_OK)
             {
                 ELAPSED2;
+                LOCK(0);
                 RETURNFUNC(retcode);
             }
         }
@@ -2016,6 +2022,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     ELAPSED2;
+    LOCK(0);
     RETURNFUNC2(retcode);
 }
 
@@ -2044,10 +2051,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rmode_t mode;
     pbwidth_t width;
 
-    LOCK;
+    LOCK(1);
 
     if (CHECK_RIG_ARG(rig))
     {
+        LOCK(0);
         RETURNFUNC2(-RIG_EINVAL);
     }
 
@@ -2056,6 +2064,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (!freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: freq ptr invalid\n", __func__);
+        LOCK(0);
         RETURNFUNC2(-RIG_EINVAL);
     }
 
@@ -2088,6 +2097,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_get_cache(rig, vfo, freq, &cache_ms_freq, &mode, &cache_ms_mode, &width,
                       &cache_ms_width);
         ELAPSED2;
+        LOCK(0);
         return (RIG_OK);
     }
 
@@ -2108,6 +2118,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         if (retcode != RIG_OK)
         {
             ELAPSED2;
+            LOCK(0);
             RETURNFUNC2(retcode);
         }
 
@@ -2118,6 +2129,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                       __func__);
             *freq = rig->state.cache.freqMainA;
             ELAPSED2;
+            LOCK(0);
             return (RIG_OK);
         }
     }
@@ -2137,6 +2149,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                   "%s: %s cache hit age=%dms, freq=%.0f, use_cached_freq=%d\n", __func__,
                   rig_strvfo(vfo), cache_ms_freq, *freq, rig->state.use_cached_freq);
         ELAPSED2;
+        LOCK(0);
         return (RIG_OK);
     }
     else
@@ -2153,6 +2166,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (caps->get_freq == NULL)
     {
         ELAPSED2;
+        LOCK(0);
         RETURNFUNC2(-RIG_ENAVAIL);
     }
 
@@ -2197,6 +2211,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         if (!caps->set_vfo)
         {
             ELAPSED2;
+            LOCK(0);
             RETURNFUNC2(-RIG_ENAVAIL);
         }
 
@@ -2206,6 +2221,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         if (retcode != RIG_OK)
         {
             ELAPSED2;
+            LOCK(0);
             RETURNFUNC2(retcode);
         }
 
@@ -2261,6 +2277,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     ELAPSED2;
+    LOCK(0);
     return (retcode);
 }
 
