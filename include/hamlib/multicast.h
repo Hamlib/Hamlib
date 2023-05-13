@@ -19,15 +19,6 @@
 
 #ifndef MULTICAST_H
 #define MULTICAST_H
-#ifdef HAVE_ARPA_INET_H
-#warn HAVE_ARPA_INET
-    struct ip_mreq mreq; // = {0};
-    struct sockaddr_in dest_addr; // = {0};
-#else
-#warn DO NOT HAVE ARPA_INET_H
-#endif
-};
-#endif
 
 struct multicast_vfo
 {
