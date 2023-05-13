@@ -3639,7 +3639,7 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
     if (priv->ret_data[2] == '1')
     {
         *status = 1;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
 
     }
     hl_usleep(1200000); // then we must be waking up
@@ -11175,7 +11175,7 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
     ncboolean narrow;
     int i;
 
-    ENTERFUNC;
+    ENTERFUNC2;
 
     *width = RIG_PASSBAND_NORMAL;
 
@@ -11204,7 +11204,7 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
                 {
                     if (newcat_get_narrow(rig, vfo, &narrow) != RIG_OK)
                     {
-                        RETURNFUNC(newcat_mode_conv[i].mode);
+                        RETURNFUNC2(newcat_mode_conv[i].mode);
                     }
 
                     if (narrow == TRUE)
@@ -11219,14 +11219,14 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
             }
 
             // don't use RETURNFUNC here as that macros expects an int for the return code
-            return (newcat_mode_conv[i].mode);
+            RETURNFUNC2 (newcat_mode_conv[i].mode);
         }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s fell out the bottom %c %s\n", __func__,
               mode, rig_strrmode(mode));
 
-    RETURNFUNC('0');
+    RETURNFUNC2('0');
 }
 
 int newcat_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
