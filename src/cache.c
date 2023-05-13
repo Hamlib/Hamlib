@@ -257,7 +257,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
     if (CHECK_RIG_ARG(rig) || !freq || !cache_ms_freq ||
             !mode || !cache_ms_mode || !width || !cache_ms_width)
     {
-        RETURNFUNC(-RIG_EINVAL);
+        return -RIG_EINVAL;
     }
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
