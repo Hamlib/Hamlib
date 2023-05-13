@@ -972,6 +972,7 @@ static const struct
 int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
 {
     gran_t *this_gran;
+    float maxval;
 
     this_gran = &rig->caps->level_gran[rig_setting2idx(level)];
 
@@ -982,13 +983,21 @@ int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        /* If min==max==0, all values are OK here but may be checked later */
-        if (this_gran->min.f == 0.0f && this_gran->max.f == 0.0f)
+
+        /* If min==max==step==0, all values are OK here */
+        maxval = this_gran->max.f;
+        if (this_gran->min.f == 0.0f && maxval == 0.0f)
         {
-            return RIG_OK;
+	  /* if step==0 also, we're good */
+	  if (this_gran->step.f == 0.0f)
+	    {
+	      return RIG_OK;
+	    }
+	  /* non-zero step, check for max of 1.0 */
+	  maxval = 1.0f;
         }
 
-        if (val.f < this_gran->min.f || val.f > this_gran->max.f)
+        if (val.f < this_gran->min.f || val.f > maxval)
         {
             return -RIG_EINVAL;
         }

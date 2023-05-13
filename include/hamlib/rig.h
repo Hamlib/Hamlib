@@ -1619,7 +1619,7 @@ typedef struct chan_list chan_t;
  *
  * The granularity is undefined if min = 0, max = 0, and step = 0.
  *
- * For float settings, if min.f = 0 and max.f = 0 (and step.f! = 0), max.f is
+ * For float settings, if min.f = 0 and max.f = 0 (and step.f != 0), max.f is
  * assumed to be actually equal to 1.0.
  *
  * If step = 0 (and min and/or max are not null), then this means step can
