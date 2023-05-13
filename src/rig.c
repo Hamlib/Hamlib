@@ -7545,6 +7545,8 @@ void rig_lock(RIG *rig, int lock)
 {
 #ifdef HAVE_PTHREAD
 
+    if (rig->state.multicast == NULL) return; // not initialized yet
+
     if (!rig->state.multicast->mutex_initialized)
     {
         rig->state.multicast->mutex = initializer;
