@@ -448,7 +448,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
     default:
         rig_debug(RIG_DEBUG_ERR, "%s(%d): unknown vfo?, vfo=%s\n", __func__, __LINE__,
                   rig_strvfo(vfo));
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     rig_debug(RIG_DEBUG_CACHE, "%s(%d): vfo=%s, freq=%.0f, mode=%s, width=%d\n",
@@ -457,7 +457,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
-        RETURNFUNC(RIG_OK);
+        RETURNFUNC2(RIG_OK);
     }
 
     return RIG_OK;
