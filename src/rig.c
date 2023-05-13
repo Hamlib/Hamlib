@@ -168,7 +168,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 #define CHECK_RIG_CAPS(r) (!(r) || !(r)->caps)
 
-#define LOCK(n) if (rig->state.depth == 0) { rig_debug(RIG_DEBUG_ERR, "%s: lock!! *******************************************\n", __func__); } rig_lock(rig,n)
+#define LOCK(n) if (rig->state.depth == 0) { rig_debug(RIG_DEBUG_ERR, "%s: lock!! *******************************************\n", __func__);  rig_lock(rig,n); }
 
 #ifdef PTHREAD
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
