@@ -168,7 +168,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 #define CHECK_RIG_CAPS(r) (!(r) || !(r)->caps)
 
-#define LOCK \
+#define LOCK if (rig->state.depth == 1) { rig_debug(RIG_DEBUG_ERR, "%s: lock!! *******************************************\n", __func__); }
 
 #ifdef PTHREAD
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
@@ -831,11 +831,11 @@ int HAMLIB_API rig_open(RIG *rig)
     //unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
     int is_network = 0;
 
-    ENTERFUNC;
+    ENTERFUNC2;
 
     if (!rig || !rig->caps)
     {
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     caps = rig->caps;
@@ -847,7 +847,7 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: 'USB' is not a valid COM port name\n", __func__);
         errno = 2;
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     // rigctl/rigctld may have deprecated values -- backwards compatibility
@@ -987,7 +987,7 @@ int HAMLIB_API rig_open(RIG *rig)
                   rs->comm_state);
         port_close(&rs->rigport, rs->rigport.type.rig);
         rs->comm_state = 0;
-        RETURNFUNC(-RIG_EINVAL);
+        RETURNFUNC2(-RIG_EINVAL);
     }
 
     rs->rigport.fd = -1;
@@ -1001,7 +1001,7 @@ int HAMLIB_API rig_open(RIG *rig)
                       "%s: cannot set RTS with hardware handshake \"%s\"\n",
                       __func__,
                       rs->rigport.pathname);
-            RETURNFUNC(-RIG_ECONF);
+            RETURNFUNC2(-RIG_ECONF);
         }
 
         if ('\0' == rs->pttport.pathname[0]
@@ -1015,7 +1015,7 @@ int HAMLIB_API rig_open(RIG *rig)
                           "%s: cannot set RTS with PTT by RTS \"%s\"\n",
                           __func__,
                           rs->rigport.pathname);
-                RETURNFUNC(-RIG_ECONF);
+                RETURNFUNC2(-RIG_ECONF);
             }
 
             if (rs->rigport.parm.serial.dtr_state != RIG_SIGNAL_UNSET
@@ -1025,7 +1025,7 @@ int HAMLIB_API rig_open(RIG *rig)
                           "%s: cannot set DTR with PTT by DTR \"%s\"\n",
                           __func__,
                           rs->rigport.pathname);
-                RETURNFUNC(-RIG_ECONF);
+                RETURNFUNC2(-RIG_ECONF);
             }
         }
     }
@@ -1038,7 +1038,7 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
                   rs->comm_state);
         rs->comm_state = 0;
-        RETURNFUNC(status);
+        RETURNFUNC2(status);
     }
 
     switch (rs->pttport.type.ptt)
@@ -1256,7 +1256,7 @@ int HAMLIB_API rig_open(RIG *rig)
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
-        RETURNFUNC(status);
+        RETURNFUNC2(status);
     }
 
     status = async_data_handler_start(rig);
@@ -1264,7 +1264,7 @@ int HAMLIB_API rig_open(RIG *rig)
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
-        RETURNFUNC(status);
+        RETURNFUNC2(status);
     }
 
     add_opened_rig(rig);
@@ -1295,7 +1295,7 @@ int HAMLIB_API rig_open(RIG *rig)
                           "%s: rig power is off, use --set-conf=auto_power_on=1 if power on is wanted\n",
                           __func__);
 
-                return (-RIG_EPOWER);
+                RETURNFUNC2 (-RIG_EPOWER);
             }
 
             // don't need auto_power_on if power is already on
@@ -1310,7 +1310,7 @@ int HAMLIB_API rig_open(RIG *rig)
                           __func__);
                 // A TS-480 user was showing ;;;;PS; not working so we'll just show the error message for now
                 // https://github.com/Hamlib/Hamlib/issues/1226
-                //return (-RIG_EPOWER);
+                //RETURNFUNC2 (-RIG_EPOWER);
             }
         }
 
@@ -1323,7 +1323,7 @@ int HAMLIB_API rig_open(RIG *rig)
             port_close(&rs->rigport, rs->rigport.type.rig);
             memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
-            RETURNFUNC(status);
+            RETURNFUNC2(status);
         }
     }
 
@@ -1425,7 +1425,7 @@ int HAMLIB_API rig_open(RIG *rig)
     memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->pttport_deprecated, &rs->pttport, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->dcdport_deprecated, &rs->dcdport, sizeof(hamlib_port_t_deprecated));
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 
@@ -1784,6 +1784,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     vfo_t vfo_save;
 
     ELAPSED1;
+    LOCK;
 #if BUILTINFUNC
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f, called from %s\n",
               __func__,
@@ -2042,6 +2043,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     vfo_t curr_vfo;
     rmode_t mode;
     pbwidth_t width;
+
+    LOCK;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -2526,7 +2529,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     {
         *mode = rig->state.cache.modeMainA;
         *width = rig->state.cache.widthMainA;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
 
     if ((*mode != RIG_MODE_NONE && cache_ms_mode < rig->state.cache.timeout_ms)
