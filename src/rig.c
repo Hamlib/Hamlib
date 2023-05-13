@@ -621,9 +621,13 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 
     rs->rigport.write_delay = caps->write_delay;
     rs->rigport.post_write_delay = caps->post_write_delay;
+
     // since we do two timeouts now we can cut the timeout in half for serial
     if (caps->port_type == RIG_PORT_SERIAL)
-        rs->rigport.timeout = caps->timeout/2;
+    {
+        rs->rigport.timeout = caps->timeout / 2;
+    }
+
     rs->rigport.retry = caps->retry;
     rs->pttport.type.ptt = caps->ptt_type;
     rs->dcdport.type.dcd = caps->dcd_type;
@@ -7495,10 +7499,12 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     return ret;
 }
 
+static pthread_mutex_t initializer = PTHREAD_MUTEX_INITIALIZER;
+
 HAMLIB_EXPORT(void) sync_callback(int lock)
 {
 #ifdef HAVE_PTHREAD
-    static pthread_mutex_t client_lock = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t client_lock = initializer;
 
     if (lock)
     {
@@ -7512,6 +7518,31 @@ HAMLIB_EXPORT(void) sync_callback(int lock)
     }
 
 #endif
+}
+
+void rig_lock(RIG *rig, int lock)
+{
+#ifdef HAVE_PTHREAD
+
+    if (!rig->state.multicast->mutex_initialized)
+    {
+        rig->state.multicast->mutex = initializer;
+        rig->state.multicast->mutex_initialized = 1;
+    }
+
+    if (lock)
+    {
+        pthread_mutex_lock(&rig->state.multicast->mutex);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: client lock engaged\n", __func__);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: client lock disengaged\n", __func__);
+        pthread_mutex_unlock(&rig->state.multicast->mutex);
+    }
+
+#endif
+
 }
 
 
