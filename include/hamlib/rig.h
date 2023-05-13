@@ -2488,6 +2488,9 @@ struct multicast_s
     int seqnumber;
     int runflag; // = 0;
     pthread_t threadid;
+    // this mutex is needed to control serial access
+    // as of 2023-05-13 we have main thread and multicast thread needing it
+    // eventually we should be able to use cached info only in the main thread to avoid contention
     pthread_mutex_t mutex;
     int mutex_initialized;
 //#ifdef HAVE_ARPA_INET_H
