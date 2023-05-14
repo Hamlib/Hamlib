@@ -95,6 +95,8 @@
 #define TOK_ASYNC        TOKEN_FRONTEND(37)
 /** \brief  Tuner external control pathname */
 #define TOK_TUNER_CONTROL_PATHNAME TOKEN_FRONTEND(38)
+/** \brief Number of retries permitted in case of read timeouts */
+#define TOK_TIMEOUT_RETRY       TOKEN_FRONTEND(39)
 
 /*
  * rig specific tokens
