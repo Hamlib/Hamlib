@@ -63,7 +63,7 @@ int hl_usleep(rig_useconds_t usec)
 #ifdef HAVE_NANOSLEEP
     struct timespec t, tleft;
     t.tv_sec = usec/1e6;
-    t.tv_nsec = (usec - (t.tv_sec*1e6)) * 1e3;
+    t.tv_nsec = (usec - (t.tv_sec*1e6)) / 1e3;
     return nanosleep(&t, &tleft);
 #else
     return usleep(usec);
