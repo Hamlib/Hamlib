@@ -135,7 +135,7 @@ const struct rig_caps ftdx10_caps =
     RIG_MODEL(RIG_MODEL_FTDX10),
     .model_name =         "FTDX-10",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".6",
+    .version =            NEWCAT_VER ".7",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
