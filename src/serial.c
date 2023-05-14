@@ -727,6 +727,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 {
     int len;
     int timeout_save;
+    short timeout_retry_save;
     unsigned char buf[4096];
 
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd || p->flushx)
@@ -757,7 +758,9 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
     }
 
     timeout_save = p->timeout;
+    timeout_retry_save = p->timeout_retry;
     p->timeout = 1;
+    p->timeout_retry = 0;
 
     do
     {
@@ -794,10 +797,13 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
     while (len > 0);
 
     p->timeout = timeout_save;
+    p->timeout_retry = timeout_retry_save;
+
     rig_debug(RIG_DEBUG_VERBOSE, "tcflush%s\n", "");
-    tcflush(p->fd,
-            TCIFLUSH); // we also do this flush https://github.com/Hamlib/Hamlib/issues/1241
-    return (RIG_OK);
+    // we also do this flush https://github.com/Hamlib/Hamlib/issues/1241
+    tcflush(p->fd,TCIFLUSH);
+
+    return RIG_OK;
 }
 
 

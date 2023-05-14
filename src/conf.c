@@ -72,7 +72,7 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_TIMEOUT_RETRY, "timeout_retry", "Number of retries for read timeouts",
         "Set the number of retries for data read timeouts that may occur especially with some serial interfaces",
-        "0", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } }
+        "1", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } }
     },
     {
         TOK_RANGE_SELECTED, "Selected range list", "Range list#",
