@@ -269,12 +269,44 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     *mode = kenwood2rmode(*mode, caps->mode_table);
 
-    if (*mode == RIG_MODE_PKTUSB || *mode == RIG_MODE_PKTLSB)
+    // now let's get our widths
+    SNPRINTF(cmd, sizeof(cmd), "SH");
+    retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 15);
+    int hwidth;
+    sscanf(cmd, "SH%d", &hwidth);
+    int lwidth;
+    int shift = 0;
+    SNPRINTF(cmd, sizeof(cmd), "SL");
+    sscanf(cmd, "SH%d", &lwidth);
+    retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 15);
+
+    if (*mode == RIG_MODE_PKTUSB || *mode == RIG_MODE_PKTLSB
+            || *mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM || *mode == RIG_MODE_USB
+            || *mode == RIG_MODE_LSB)
     {
+        const int ssb_htable[] = { 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3400, 4000, 5000 };
+        const int ssb_ltable[] = { 0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+        *width = ssb_htable[hwidth];
+        // we dont' do anything with shift yet which will be just the hwidth value
+        shift = ssb_ltable[lwidth];
     }
     else if (*mode == RIG_MODE_AM || *mode == RIG_MODE_PKTAM)
     {
+        const int am_htable[] = { 2500, 3000, 4000, 5000 };
+        const int am_ltable[] = { 0, 100, 200, 300 };
+        *width = am_htable[hwidth] - am_ltable[lwidth];
     }
+
+#if 0 // is this different?  Manual is confusing
+    else if (*mode == RIG_MODE_SSB || *mode == RIG_MODE_LSB)
+    {
+        const int ssb_htable[] = { 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3400, 4000, 5000 };
+        //const int ssb_ltable[] = { 0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+    }
+
+#endif
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: width=%ld, shift=%d, lwidth=%d, hwidth=%d\n",
+              __func__, *width, shift, lwidth, hwidth);
 
     return RIG_OK;
 }
