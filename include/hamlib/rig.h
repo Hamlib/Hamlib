@@ -2489,6 +2489,11 @@ struct multicast_s
     int seqnumber;
     int runflag; // = 0;
     pthread_t threadid;
+    // this mutex is needed to control serial access
+    // as of 2023-05-13 we have main thread and multicast thread needing it
+    // eventually we should be able to use cached info only in the main thread to avoid contention
+    pthread_mutex_t mutex;
+    int mutex_initialized;
 //#ifdef HAVE_ARPA_INET_H
     struct ip_mreq mreq; // = {0};
     struct sockaddr_in dest_addr; // = {0};
@@ -2719,6 +2724,9 @@ rig_flush_force(hamlib_port_t *port, int flush_async_data);
 
 extern HAMLIB_EXPORT(int)
 rig_flush(hamlib_port_t *port);
+
+extern HAMLIB_EXPORT(void)
+rig_lock(RIG *rig, int lock);
 
 #if BUILTINFUNC
 #define rig_set_freq(r,v, f) rig_set_vfo(r,v,f,__builtin_FUNCTION())

@@ -19,23 +19,6 @@
 
 #ifndef MULTICAST_H
 #define MULTICAST_H
-#if 0 // moved to rig.h
-struct multicast_s
-{
-    int multicast_running;
-    int sock;
-    int seqnumber;
-    int runflag; // = 0;
-    pthread_t threadid;
-#ifdef HAVE_ARPA_INET_H
-#warn HAVE_ARPA_INET
-    struct ip_mreq mreq; // = {0};
-    struct sockaddr_in dest_addr; // = {0};
-#else
-#warn DO NOT HAVE ARPA_INET_H
-#endif
-};
-#endif
 
 struct multicast_vfo
 {
