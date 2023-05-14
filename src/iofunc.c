@@ -1163,6 +1163,8 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer,
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
+    short timeout_retries = p->timeout_retry;
+
     while (count > 0)
     {
         int result;
@@ -1172,6 +1174,15 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer,
 
         if (result == -RIG_ETIMEOUT)
         {
+            if (timeout_retries > 0)
+            {
+                timeout_retries--;
+                rig_debug(RIG_DEBUG_CACHE, "%s: retrying read timeout %d/%d\n", __func__,
+                    p->timeout_retry - timeout_retries, p->timeout_retry);
+                hl_usleep(10 * 1000);
+                continue;
+            }
+
             /* Record timeout time and calculate elapsed time */
             gettimeofday(&end_time, NULL);
             timersub(&end_time, &start_time, &elapsed_time);
@@ -1334,8 +1345,9 @@ static int read_string_generic(hamlib_port_t *p,
         {
             if (timeout_retries > 0)
             {
+                timeout_retries--;
                 rig_debug(RIG_DEBUG_CACHE, "%s: retrying read timeout %d/%d\n", __func__,
-                        timeout_retries + 1, p->timeout_retry);
+                    p->timeout_retry - timeout_retries, p->timeout_retry);
                 hl_usleep(10 * 1000);
                 continue;
             }
