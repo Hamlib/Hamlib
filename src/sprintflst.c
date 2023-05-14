@@ -386,7 +386,7 @@ int rig_sprintf_level_gran(char *str, int nlen, setting_t level,
         if (RIG_LEVEL_IS_FLOAT(rig_idx2setting(i)))
         {
             len += sprintf(str + len,
-                           "%s(%g..%g/%g) ",
+                           "%s(%f..%f/%f) ",
                            ms,
                            gran[i].min.f,
                            gran[i].max.f,
@@ -445,7 +445,7 @@ int rot_sprintf_level_gran(char *str, int nlen, setting_t level,
         if (ROT_LEVEL_IS_FLOAT(rig_idx2setting(i)))
         {
             len += sprintf(str + len,
-                           "%s(%g..%g/%g) ",
+                           "%s(%f..%f/%f) ",
                            ms,
                            gran[i].min.f,
                            gran[i].max.f,
@@ -564,7 +564,7 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
         if (RIG_PARM_IS_FLOAT(rig_idx2setting(i)))
         {
             len += sprintf(str + len,
-                           "%s(%g..%g/%g) ",
+                           "%s(%f..%f/%f) ",
                            ms,
                            gran[i].min.f,
                            gran[i].max.f,
@@ -623,7 +623,7 @@ int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm,
         if (ROT_PARM_IS_FLOAT(rig_idx2setting(i)))
         {
             len += sprintf(str + len,
-                           "%s(%g..%g/%g) ",
+                           "%s(%f..%f/%f) ",
                            ms,
                            gran[i].min.f,
                            gran[i].max.f,
@@ -877,7 +877,7 @@ int print_ext_param(const struct confparams *cfp, rig_ptr_t ptr)
     switch (cfp->type)
     {
     case RIG_CONF_NUMERIC:
-        fprintf((FILE *)ptr, "\t\tRange: %g..%g/%g\n", cfp->u.n.min, cfp->u.n.max,
+        fprintf((FILE *)ptr, "\t\tRange: %f..%f/%f\n", cfp->u.n.min, cfp->u.n.max,
                 cfp->u.n.step);
         break;
 

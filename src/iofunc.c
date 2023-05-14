@@ -787,6 +787,12 @@ int HAMLIB_API write_block_sync_error(hamlib_port_t *p,
     return async_pipe_write(p->sync_data_error_pipe, txbuffer, count, p->timeout);
 }
 
+int HAMLIB_API port_flush_sync_pipes(hamlib_port_t *p)
+{
+    // TODO: To be implemented for Windows
+    return RIG_OK;
+}
+
 #else
 
 /* POSIX */
@@ -970,6 +976,38 @@ int HAMLIB_API write_block_sync_error(hamlib_port_t *p,
     return (int) write(p->fd_sync_error_write, txbuffer, count);
 }
 
+int HAMLIB_API port_flush_sync_pipes(hamlib_port_t *p)
+{
+    unsigned char buf[1024];
+    int n;
+    int nbytes;
+
+    if (!p->asyncio)
+    {
+        return RIG_OK;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: flushing sync pipes\n", __func__);
+
+    nbytes = 0;
+    while ((n = read(p->fd_sync_read, buf, sizeof(buf))) > 0)
+    {
+        nbytes += n;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "read flushed %d bytes from sync read pipe\n", nbytes);
+
+    nbytes = 0;
+    while ((n = read(p->fd_sync_error_read, buf, sizeof(buf))) > 0)
+    {
+        nbytes += n;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "read flushed %d bytes from sync error read pipe\n", nbytes);
+
+    return RIG_OK;
+}
+
 #endif
 
 /**
@@ -1125,6 +1163,8 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer,
     /* Store the time of the read loop start */
     gettimeofday(&start_time, NULL);
 
+    short timeout_retries = p->timeout_retry;
+
     while (count > 0)
     {
         int result;
@@ -1134,6 +1174,15 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer,
 
         if (result == -RIG_ETIMEOUT)
         {
+            if (timeout_retries > 0)
+            {
+                timeout_retries--;
+                rig_debug(RIG_DEBUG_CACHE, "%s: retrying read timeout %d/%d\n", __func__,
+                    p->timeout_retry - timeout_retries, p->timeout_retry);
+                hl_usleep(10 * 1000);
+                continue;
+            }
+
             /* Record timeout time and calculate elapsed time */
             gettimeofday(&end_time, NULL);
             timersub(&end_time, &start_time, &elapsed_time);
@@ -1283,7 +1332,7 @@ static int read_string_generic(hamlib_port_t *p,
 
     memset(rxbuffer, 0, rxmax);
 
-    int flag = 0; // we will allow one timeout
+    short timeout_retries = p->timeout_retry;
 
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
@@ -1294,12 +1343,12 @@ static int read_string_generic(hamlib_port_t *p,
 
         if (result == -RIG_ETIMEOUT)
         {
-            rig_debug(RIG_DEBUG_CACHE, "%s: flag=%d\n", __func__, flag);
-
-            if (flag == 0)
+            if (timeout_retries > 0)
             {
-                flag = 1;
-                hl_usleep(50 * 1000);
+                timeout_retries--;
+                rig_debug(RIG_DEBUG_CACHE, "%s: retrying read timeout %d/%d\n", __func__,
+                    p->timeout_retry - timeout_retries, p->timeout_retry);
+                hl_usleep(10 * 1000);
                 continue;
             }
 
