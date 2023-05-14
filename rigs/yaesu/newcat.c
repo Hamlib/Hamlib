@@ -59,6 +59,7 @@ typedef enum nc_rigid_e
     NC_RIGID_FT2000          = 251,
     NC_RIGID_FT2000D         = 252,
     NC_RIGID_FTDX1200        = 583,
+    NC_RIGID_FTDX10          = 761,
     NC_RIGID_FTDX9000D       = 101,
     NC_RIGID_FTDX9000Contest = 102,
     NC_RIGID_FTDX9000MP      = 103,
@@ -598,6 +599,7 @@ int newcat_open(RIG *rig)
             || priv->rig_id == NC_RIGID_FT991
             || priv->rig_id == NC_RIGID_FT991A
             || priv->rig_id == NC_RIGID_FT950
+            || priv->rig_id == NC_RIGID_FTDX10
             || priv->rig_id == NC_RIGID_FTDX3000
             || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
@@ -616,6 +618,8 @@ int newcat_open(RIG *rig)
                  || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; set_only = 1; }
         else if (priv->rig_id == NC_RIGID_FTDX5000
                  || rig->caps->rig_model == RIG_MODEL_FTDX5000) { cmd = "EX0331;EX033"; }
+        else if (priv->rig_id == NC_RIGID_FTDX10
+                 || rig->caps->rig_model == RIG_MODEL_FTDX10) { cmd = "EX03010901;EX030109;"; }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
 
@@ -689,7 +693,7 @@ int newcat_close(RIG *rig)
 
     ENTERFUNC;
 
-    if (!no_restore_ai && priv->trn_state >= 0)
+    if (!no_restore_ai && priv->trn_state >= 0 && rig_s->comm_state)
     {
         /* restore AI state */
         newcat_set_trn(rig, priv->trn_state); /* ignore status in
@@ -697,7 +701,7 @@ int newcat_close(RIG *rig)
                                                    supported */
     }
 
-    if (priv->poweron != 0 && rig_s->auto_power_off)
+    if (priv->poweron != 0 && rig_s->auto_power_off && rig_s->comm_state)
     {
         rig_set_powerstat(rig, 0);
         priv->poweron = 0;
@@ -3617,7 +3621,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
 int newcat_get_powerstat(RIG *rig, powerstat_t *status)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    struct rig_state *state = &rig->state;
+    //struct rig_state *state = &rig->state;
     int err;
     char ps;
     char command[] = "PS";
@@ -3633,11 +3637,18 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
 
     // when not powered on need a dummy byte to wake it up
     // then sleep  from 1 to 2 seconds so we'll do 1.5 secs
-    write_block(&state->rigport, (unsigned char *) "PS;", 3);
-    hl_usleep(1200000);
+//    write_block(&state->rigport, (unsigned char *) "PS;", 3);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
+    newcat_get_cmd(rig); // don't care about the return
+    if (priv->ret_data[2] == '1')
+    {
+        *status = 1;
+        RETURNFUNC(RIG_OK);
+
+    }
+    hl_usleep(1200000); // then we must be waking up
     rig_flush(&rig->state.rigport);  /* discard any unsolicited data */
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
 
     /* Get Power status */
     if (RIG_OK != (err = newcat_get_cmd(rig)))
@@ -11168,7 +11179,7 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
     ncboolean narrow;
     int i;
 
-    ENTERFUNC;
+    ENTERFUNC2;
 
     *width = RIG_PASSBAND_NORMAL;
 
@@ -11197,7 +11208,7 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
                 {
                     if (newcat_get_narrow(rig, vfo, &narrow) != RIG_OK)
                     {
-                        RETURNFUNC(newcat_mode_conv[i].mode);
+                        RETURNFUNC2(newcat_mode_conv[i].mode);
                     }
 
                     if (narrow == TRUE)
@@ -11212,14 +11223,14 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
             }
 
             // don't use RETURNFUNC here as that macros expects an int for the return code
-            return (newcat_mode_conv[i].mode);
+            RETURNFUNC2 (newcat_mode_conv[i].mode);
         }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s fell out the bottom %c %s\n", __func__,
               mode, rig_strrmode(mode));
 
-    RETURNFUNC('0');
+    RETURNFUNC2('0');
 }
 
 int newcat_send_voice_mem(RIG *rig, vfo_t vfo, int ch)

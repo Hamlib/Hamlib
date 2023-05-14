@@ -167,6 +167,7 @@ void errmsg(int err, char *s, const char *func, const char *file, int line);
 #define RETURNFUNC(rc) {do { \
 			            int rctmp = rc; \
                         rig_debug(RIG_DEBUG_VERBOSE, "%.*s%d:%s(%d):%s returning(%ld) %s\n", rig->state.depth, spaces(), rig->state.depth, __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror2(rctmp):""); \
+                        if (rig->state.depth == 0) rig_debug(RIG_DEBUG_ERR, "%s(%d) depth=0 ******************\n", __func__, __LINE__); \
                         --rig->state.depth; \
                         return (rctmp); \
                        } while(0);}

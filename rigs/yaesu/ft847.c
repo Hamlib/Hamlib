@@ -384,7 +384,7 @@ const struct rig_caps ft847_caps =
     RIG_MODEL(RIG_MODEL_FT847),
     .model_name = "FT-847",
     .mfg_name =  "Yaesu",
-    .version =  "20220525.0",
+    .version =  "20230512.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -542,7 +542,7 @@ const struct rig_caps ft650_caps =
     RIG_MODEL(RIG_MODEL_FT650),
     .model_name = "FT-650",
     .mfg_name =  "Yaesu",
-    .version =  "20220525.0",
+    .version =  "20230512.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -680,7 +680,7 @@ const struct rig_caps mchfqrp_caps =
     RIG_MODEL(RIG_MODEL_MCHFQRP),
     .model_name = "mcHF QRP",
     .mfg_name =  "M0NKA",
-    .version =  "20220525.0",
+    .version =  "20230512.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -853,7 +853,7 @@ const struct rig_caps ft847uni_caps =
     RIG_MODEL(RIG_MODEL_FT847UNI),
     .model_name = "FT-847UNI",
     .mfg_name =  "Yaesu",
-    .version =  "20210221.0",
+    .version =  "20230511.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1137,7 +1137,7 @@ static int opcode_vfo(RIG *rig, unsigned char *cmd, int cmd_index, vfo_t vfo)
     /* If the sat_mode is not enabled,
      * then leave the OpCode untouched (MAIN VFO) */
 
-    if (p->sat_mode == RIG_SPLIT_ON)
+    if (p->sat_mode == RIG_SPLIT_ON || vfo == RIG_VFO_SUB)
     {
         switch (vfo)
         {
