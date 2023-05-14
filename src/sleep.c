@@ -52,6 +52,8 @@ extern "C" {
 int hl_usleep(rig_useconds_t usec)
 {
     int retval = 0;
+    //rig_debug(RIG_DEBUG_ERR, "%s: usec=%ld\n", __func__, usec);
+    if (usec <= 1000) return 0; // dont' sleep if only 1ms is requested -- speeds things up on Windows
 
     while (usec > 1000000)
     {
@@ -63,7 +65,7 @@ int hl_usleep(rig_useconds_t usec)
 #ifdef HAVE_NANOSLEEP
     struct timespec t, tleft;
     t.tv_sec = usec/1e6;
-    t.tv_nsec = (usec - (t.tv_sec*1e6)) / 1e3;
+    t.tv_nsec = (usec - (t.tv_sec*1e6)) * 1e3;
     return nanosleep(&t, &tleft);
 #else
     return usleep(usec);
