@@ -301,7 +301,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     if (priv_caps && RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM
             && priv_caps->agc_levels_present)
     {
-        for (i = 0; i <= RIG_AGC_LAST && priv_caps->agc_levels[i].level != RIG_AGC_LAST
+        for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level != RIG_AGC_LAST
                 && priv_caps->agc_levels[i].icom_level >= 0; i++)
         {
             fprintf(fout, " %d=%s", priv_caps->agc_levels[i].level,
@@ -310,31 +310,16 @@ int dumpcaps(RIG *rig, FILE *fout)
     }
     else
     {
-
         for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && i < caps->agc_level_count; i++)
         {
             fprintf(fout, " %d=%s", caps->agc_levels[i],
                     rig_stragclevel(caps->agc_levels[i]));
         }
-
-        if (i == 0)
-        {
-            fprintf(fout, " %d=%s", RIG_AGC_NONE, rig_stragclevel(RIG_AGC_NONE));
-        }
     }
-
-    fprintf(fout, "\n");
 
     if (i == 0)
     {
-        rig_debug(RIG_DEBUG_WARN,
-                  "%s: defaulting to all levels since rig does not have any\n", __func__);
-
-        // Fall back to printing out all levels for backwards-compatibility
-        for (i = RIG_AGC_OFF; i <= RIG_AGC_LAST; i++)
-        {
-            fprintf(fout, " %d=%s", i, rig_stragclevel(i));
-        }
+        fprintf(fout, " %d=%s", RIG_AGC_NONE, rig_stragclevel(RIG_AGC_NONE));
     }
 
     fprintf(fout, "\n");
@@ -903,6 +888,8 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "Can send DTMF:\t%c\n", caps->send_dtmf != NULL ? 'Y' : 'N');
     fprintf(fout, "Can recv DTMF:\t%c\n", caps->recv_dtmf != NULL ? 'Y' : 'N');
     fprintf(fout, "Can send Morse:\t%c\n", caps->send_morse != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can stop Morse:\t%c\n", caps->stop_morse != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can wait Morse:\t%c\n", caps->wait_morse != NULL ? 'Y' : 'N');
     fprintf(fout, "Can send Voice:\t%c\n",
             caps->send_voice_mem != NULL ? 'Y' : 'N');
 

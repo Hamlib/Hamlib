@@ -2292,8 +2292,8 @@ typedef struct hamlib_port {
             int value;      /*!< Toggle PTT ON or OFF */
         } gpio;             /*!< GPIO attributes */
     } parm;                 /*!< Port parameter union */
-    int client_port;      /*!< client socket port for tcp connection */
-    RIG *rig;             /*!< our parent RIG device */
+    int client_port;        /*!< client socket port for tcp connection */
+    RIG *rig;               /*!< our parent RIG device */
     int asyncio;            /*!< enable asynchronous data handling if true -- async collides with python keyword so _async is used */
 #if defined(_WIN32)
     hamlib_async_pipe_t *sync_data_pipe;         /*!< pipe data structure for synchronous data */
@@ -2304,6 +2304,7 @@ typedef struct hamlib_port {
     int fd_sync_error_write;    /*!< file descriptor for writing synchronous data error codes */
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
 #endif
+    short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to disable */
 } hamlib_port_t;
 
  
@@ -2717,6 +2718,9 @@ extern HAMLIB_EXPORT(int) rig_open HAMLIB_PARAMS((RIG *rig));
  *  General API commands, from most primitive to least.. :()
  *  List Set/Get functions pairs
  */
+
+extern HAMLIB_EXPORT(int)
+rig_flush_force(hamlib_port_t *port, int flush_async_data);
 
 extern HAMLIB_EXPORT(int)
 rig_flush(hamlib_port_t *port);

@@ -2125,6 +2125,13 @@ static int dummy_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     RETURNFUNC(RIG_OK);
 }
 
+static int dummy_stop_morse(RIG *rig, vfo_t vfo)
+{
+    ENTERFUNC;
+
+    RETURNFUNC(RIG_OK);
+}
+
 static int dummy_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 {
     ENTERFUNC;
@@ -2287,6 +2294,10 @@ struct rig_caps dummy_caps =
     .has_get_parm =    DUMMY_PARM,
     .has_set_parm =    RIG_PARM_SET(DUMMY_PARM),
     .level_gran =      {
+        [LVL_RF]            = { .min = { .f = 0 },     .max = { .f = 1.0f },  .step = { .f = 1.0f/255.0f } },
+        [LVL_RFPOWER]       = { .min = { .f = .05f },   .max = { .f = 1 },    .step = { .f = 1.0f/511.0f } },
+        [LVL_RFPOWER_METER] = { .min = { .f = .0f },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
+        [LVL_RFPOWER_METER_WATTS] = { .min = { .f = .0f },    .max = { .f = 100 },    .step = { .f = 1.0f/255.0f } },
         [LVL_CWPITCH] = { .step = { .i = 10 } },
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
         [LVL_SPECTRUM_REF] = {.min = {.f = -30.0f}, .max = {.f = 10.0f}, .step = {.f = 0.5f}},
@@ -2486,6 +2497,7 @@ struct rig_caps dummy_caps =
     .send_dtmf =  dummy_send_dtmf,
     .recv_dtmf =  dummy_recv_dtmf,
     .send_morse =  dummy_send_morse,
+    .stop_morse =  dummy_stop_morse,
     .send_voice_mem =  dummy_send_voice_mem,
     .set_channel =    dummy_set_channel,
     .get_channel =    dummy_get_channel,

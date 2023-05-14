@@ -30,7 +30,7 @@ LVL_KEYSPD
         [LVL_VOXDELAY]      = { .min = { .i = 0 },     .max = { .i = 20 },   .step = { .i = 1 } },
         [LVL_BKINDL]        = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
         [LVL_BKIN_DLYMS]    = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
-        [LVL_AGC_TIME]      = { .min = { .i = 0 },     .max = { .i = 8000 }, .step = { .i = 1 } },
+        [LVL_AGC_TIME]      = { .min = { .f = 0.0f },  .max = { .f = 8.0f }, .step = { .f = 0.1f } },
         /* level with misc units */
         [LVL_SWR]           = { .min = { .f = 0 },     .max = { .f = 5.0 },  .step = { .f = 1.0f/255.0f } },
         [LVL_BAND_SELECT]   = { .min = { .i = 0 },     .max = { .i = 16 },   .step = { .i = 1 } },
