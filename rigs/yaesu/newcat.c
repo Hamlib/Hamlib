@@ -59,6 +59,7 @@ typedef enum nc_rigid_e
     NC_RIGID_FT2000          = 251,
     NC_RIGID_FT2000D         = 252,
     NC_RIGID_FTDX1200        = 583,
+    NC_RIGID_FTDX10          = 761,
     NC_RIGID_FTDX9000D       = 101,
     NC_RIGID_FTDX9000Contest = 102,
     NC_RIGID_FTDX9000MP      = 103,
@@ -598,6 +599,7 @@ int newcat_open(RIG *rig)
             || priv->rig_id == NC_RIGID_FT991
             || priv->rig_id == NC_RIGID_FT991A
             || priv->rig_id == NC_RIGID_FT950
+            || priv->rig_id == NC_RIGID_FTDX10
             || priv->rig_id == NC_RIGID_FTDX3000
             || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
@@ -616,6 +618,8 @@ int newcat_open(RIG *rig)
                  || rig->caps->rig_model == RIG_MODEL_FTDX3000) { cmd = "EX0391;"; set_only = 1; }
         else if (priv->rig_id == NC_RIGID_FTDX5000
                  || rig->caps->rig_model == RIG_MODEL_FTDX5000) { cmd = "EX0331;EX033"; }
+        else if (priv->rig_id == NC_RIGID_FTDX10
+                 || rig->caps->rig_model == RIG_MODEL_FTDX10) { cmd = "EX03010901;EX030109;"; }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
 
