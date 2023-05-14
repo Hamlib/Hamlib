@@ -168,7 +168,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 #define CHECK_RIG_CAPS(r) (!(r) || !(r)->caps)
 
-#define LOCK(n) if (rig->state.depth == 0) { rig_debug(RIG_DEBUG_ERR, "%s: lock!! *******************************************\n", __func__);  rig_lock(rig,n); }
+#define LOCK(n) if (rig->state.depth == 1) { rig_debug(RIG_DEBUG_ERR, "%s: %s\n", n?"lock":"unlock", __func__);  rig_lock(rig,n); }
 
 #ifdef PTHREAD
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
@@ -1784,6 +1784,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     vfo_t vfo_save;
 
     ELAPSED1;
+    ENTERFUNC;
     LOCK(1);
 #if BUILTINFUNC
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f, called from %s\n",
@@ -1801,7 +1802,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         ELAPSED2;
         LOCK(0);
-        RETURNFUNC2(-RIG_EINVAL);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (rig->state.twiddle_state == TWIDDLE_ON)
@@ -1845,7 +1846,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         ELAPSED2;
         LOCK(0);
-        RETURNFUNC2(-RIG_ENAVAIL);
+        RETURNFUNC(-RIG_ENAVAIL);
     }
 
     vfo_save = rig->state.current_vfo;
@@ -1867,7 +1868,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             ELAPSED2;
             LOCK(0);
-            RETURNFUNC2(
+            RETURNFUNC(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
 
@@ -1936,7 +1937,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             ELAPSED2;
             LOCK(0);
-            RETURNFUNC2(-RIG_ENAVAIL);
+            RETURNFUNC(-RIG_ENAVAIL);
         }
 
         retcode = rig_set_vfo(rig, vfo);
@@ -1961,7 +1962,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             ELAPSED2;
             LOCK(0);
-            RETURNFUNC2(
+            RETURNFUNC(
                 RIG_OK); // would be better as error but other software won't handle errors
         }
 
@@ -2023,7 +2024,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     ELAPSED2;
     LOCK(0);
-    RETURNFUNC2(retcode);
+    RETURNFUNC(retcode);
 }
 
 
@@ -2051,12 +2052,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rmode_t mode;
     pbwidth_t width;
 
-    LOCK(1);
+    ENTERFUNC;
 
     if (CHECK_RIG_ARG(rig))
     {
-        LOCK(0);
-        RETURNFUNC2(-RIG_EINVAL);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     ELAPSED1;
@@ -2064,8 +2064,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (!freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: freq ptr invalid\n", __func__);
-        LOCK(0);
-        RETURNFUNC2(-RIG_EINVAL);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) called vfo=%s\n", __func__, __LINE__,
@@ -2097,11 +2096,20 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_get_cache(rig, vfo, freq, &cache_ms_freq, &mode, &cache_ms_mode, &width,
                       &cache_ms_width);
         ELAPSED2;
-        LOCK(0);
-        return (RIG_OK);
+        RETURNFUNC(RIG_OK);
     }
 
     rig_cache_show(rig, __func__, __LINE__);
+    LOCK(1);
+
+    rig_debug(RIG_DEBUG_ERR, "%s: depth=%d\n", __func__, rig->state.depth);
+    if (rig->state.depth == 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %s\n", 1 ? "lock" : "unlock", __func__);
+//        rig_lock(rig, 1);
+    }
+
+
 
     // there are some rigs that can't get VFOA freq while VFOB is transmitting
     // so we'll return the cached VFOA freq for them
@@ -2119,7 +2127,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         {
             ELAPSED2;
             LOCK(0);
-            RETURNFUNC2(retcode);
+            RETURNFUNC(retcode);
         }
 
         if (ptt)
@@ -2130,7 +2138,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             *freq = rig->state.cache.freqMainA;
             ELAPSED2;
             LOCK(0);
-            return (RIG_OK);
+            RETURNFUNC(RIG_OK);
         }
     }
 
@@ -2150,7 +2158,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                   rig_strvfo(vfo), cache_ms_freq, *freq, rig->state.use_cached_freq);
         ELAPSED2;
         LOCK(0);
-        return (RIG_OK);
+        RETURNFUNC(RIG_OK);
     }
     else
     {
@@ -2167,7 +2175,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         ELAPSED2;
         LOCK(0);
-        RETURNFUNC2(-RIG_ENAVAIL);
+        RETURNFUNC(-RIG_ENAVAIL);
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): vfo_opt=%d, model=%d\n", __func__,
@@ -2212,7 +2220,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         {
             ELAPSED2;
             LOCK(0);
-            RETURNFUNC2(-RIG_ENAVAIL);
+            RETURNFUNC(-RIG_ENAVAIL);
         }
 
         HAMLIB_TRACE;
@@ -2222,7 +2230,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         {
             ELAPSED2;
             LOCK(0);
-            RETURNFUNC2(retcode);
+            RETURNFUNC(retcode);
         }
 
         rig_cache_show(rig, __func__, __LINE__);
@@ -2278,7 +2286,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     ELAPSED2;
     LOCK(0);
-    return (retcode);
+    RETURNFUNC(retcode);
 }
 
 /**
@@ -2331,7 +2339,9 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int retcode;
     int locked_mode;
 
+    ENTERFUNC;
     ELAPSED1;
+    LOCK(1);
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s called, vfo=%s, mode=%s, width=%d, curr_vfo=%s\n", __func__,
@@ -2341,7 +2351,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (CHECK_RIG_ARG(rig))
     {
         ELAPSED2;
-        RETURNFUNC2(-RIG_EINVAL);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     rig_get_lock_mode(rig, &locked_mode);
@@ -2349,7 +2359,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (locked_mode)
     {
         ELAPSED2;
-        return (RIG_OK);
+        RETURNFUNC (RIG_OK);
     }
 
     // do not mess with mode while PTT is on
@@ -2357,7 +2367,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s PTT on so set_mode ignored\n", __func__);
         ELAPSED2;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
 
     caps = rig->caps;
@@ -2365,7 +2375,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (caps->set_mode == NULL)
     {
         ELAPSED2;
-        RETURNFUNC2(-RIG_ENAVAIL);
+        RETURNFUNC(-RIG_ENAVAIL);
     }
 
     if (vfo == RIG_VFO_CURR)
@@ -2395,7 +2405,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                       "%s: mode already %s and bw change not requested\n", __func__,
                       rig_strrmode(mode));
             ELAPSED2;
-            RETURNFUNC2(RIG_OK);
+            LOCK(0);
+            RETURNFUNC(RIG_OK);
         }
     }
 
@@ -2418,7 +2429,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             rig_debug(RIG_DEBUG_TRACE, "%s: VFOB mode not changing so ignoring\n",
                       __func__);
             ELAPSED2;
-            RETURNFUNC2(RIG_OK);
+            LOCK(0);
+            RETURNFUNC(RIG_OK);
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: not targetable need vfo swap\n", __func__);
@@ -2426,7 +2438,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (!caps->set_vfo)
         {
             ELAPSED2;
-            RETURNFUNC2(-RIG_ENAVAIL);
+            LOCK(0);
+            RETURNFUNC(-RIG_ENAVAIL);
         }
 
         curr_vfo = rig->state.current_vfo;
@@ -2438,7 +2451,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (retcode != RIG_OK)
         {
             ELAPSED2;
-            RETURNFUNC2(retcode);
+            LOCK(0);
+            RETURNFUNC(retcode);
         }
 
         retcode = caps->set_mode(rig, vfo, mode, width);
@@ -2457,13 +2471,15 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         rig_debug(RIG_DEBUG_TRACE, "%s: failed set_mode(%s)=%s\n",
                   __func__, rig_strrmode(mode), rigerror(retcode));
         ELAPSED2;
+        LOCK(0);
         RETURNFUNC(retcode);
     }
 
     rig_set_cache_mode(rig, vfo, mode, width);
 
     ELAPSED2;
-    RETURNFUNC2(retcode);
+    LOCK(0);
+    RETURNFUNC(retcode);
 }
 
 /*
@@ -2497,8 +2513,8 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     int retcode;
     freq_t freq;
 
-    ENTERFUNC;
     ELAPSED1;
+    ENTERFUNC;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -2564,6 +2580,8 @@ int HAMLIB_API rig_get_mode(RIG *rig,
                   __func__, cache_ms_mode, cache_ms_width);
     }
 
+    LOCK(1); // we let the caching work before we lock things
+
     if ((caps->targetable_vfo & RIG_TARGETABLE_MODE)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
@@ -2582,6 +2600,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
         if (!caps->set_vfo)
         {
             ELAPSED2;
+            LOCK(0);
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
@@ -2596,6 +2615,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
         if (retcode != RIG_OK)
         {
             ELAPSED2;
+            LOCK(0);
             RETURNFUNC(retcode);
         }
 
@@ -2629,6 +2649,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     rig_set_cache_mode(rig, vfo, *mode, *width);
     rig_cache_show(rig, __func__, __LINE__);
 
+    LOCK(0);
     ELAPSED2;
     RETURNFUNC(retcode);
 }
@@ -7545,7 +7566,7 @@ void rig_lock(RIG *rig, int lock)
 {
 #ifdef HAVE_PTHREAD
 
-    if (rig->state.multicast == NULL) return; // not initialized yet
+    if (rig->state.multicast == NULL) { return; } // not initialized yet
 
     if (!rig->state.multicast->mutex_initialized)
     {
