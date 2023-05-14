@@ -759,7 +759,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 
     timeout_save = p->timeout;
     timeout_retry_save = p->timeout_retry;
-    p->timeout = 1;
+    p->timeout = 0;
     p->timeout_retry = 0;
 
     do
