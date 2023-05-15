@@ -45,14 +45,44 @@
 extern "C" {
 #endif
 
+extern double monotonic_seconds();
 
+int hl_usleep(rig_useconds_t usec)
+{
+    double sleep_time = usec / 1e9;
+    struct timespec tv1, tv2;
+    double start_at = monotonic_seconds();
+    double end_at = start_at + sleep_time;
+    double delay = sleep_time - 0.010;
+    double lasterr = 0;
+
+    tv1.tv_sec = (time_t) delay;
+    tv1.tv_nsec = (long) ((delay - tv1.tv_sec) * 1e+9);
+    tv2.tv_sec = 0;
+    tv2.tv_nsec = 10;
+
+#ifdef __WIN32__
+    timeBeginPeriod(1);
+    nanosleep (&tv1, NULL);
+    while ((lasterr = end_at - monotonic_seconds()) > 0)
+        nanosleep(&tv2, NULL);
+    timeEndPeriod(1);
+#else
+    nanosleep (&tv1, NULL);
+    while (((lasterr = end_at - monotonic_seconds()) > 0))
+        nanosleep(&tv2, NULL);
+#endif
+    return 0;
+}
+
+#if 0
 // In order to stop the usleep warnings in cppcheck we provide our own interface
 // So this will use system usleep or our usleep depending on availability of nanosleep
 // This version of usleep can handle > 1000000 usec values
 int hl_usleep(rig_useconds_t usec)
 {
     int retval = 0;
-    //rig_debug(RIG_DEBUG_ERR, "%s: usec=%ld\n", __func__, usec);
+    rig_debug(RIG_DEBUG_ERR, "%s: usec=%ld\n", __func__, usec);
     if (usec <= 1000) return 0; // dont' sleep if only 1ms is requested -- speeds things up on Windows
 
     while (usec > 1000000)
@@ -71,6 +101,8 @@ int hl_usleep(rig_useconds_t usec)
     return usleep(usec);
 #endif
 }
+#endif
+
 
 #ifdef HAVE_NANOSLEEP
 #ifndef HAVE_SLEEP
