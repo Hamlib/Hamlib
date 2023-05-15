@@ -249,6 +249,10 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char cmd[32], ackbuf[32];
     int retval;
 
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+
+    if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) { vfo = vfo_fixup(rig, vfo, rig->state.cache.split); }
+
     if (!sf_fails)
     {
         SNPRINTF(cmd, sizeof(cmd), "SF%d", vfo == RIG_VFO_A ? 0 : 1);
@@ -1542,7 +1546,7 @@ const struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".5",
+    .version = BACKEND_VER ".6",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1740,7 +1744,7 @@ const struct rig_caps ts590sg_caps =
     RIG_MODEL(RIG_MODEL_TS590SG),
     .model_name = "TS-590SG",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".3",
+    .version = BACKEND_VER ".4",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
