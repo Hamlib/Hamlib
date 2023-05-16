@@ -63,7 +63,7 @@ int hl_usleep(rig_useconds_t usec)
     tv1.tv_nsec = (long)((delay - tv1.tv_sec) * 1e+9);
     tv2.tv_sec = 0;
     tv2.tv_nsec = 10;
-    rig_debug(RIG_DEBUG_VERBOSE,"usec=%ld, sleep_time=%f, tv1=%ld,%ld\n", usec, sleep_time, (long)tv1.tv_sec,
+    rig_debug(RIG_DEBUG_CACHE,"usec=%ld, sleep_time=%f, tv1=%ld,%ld\n", usec, sleep_time, (long)tv1.tv_sec,
            (long)tv1.tv_nsec);
 
 #ifdef __WIN32__
