@@ -498,6 +498,7 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
 
         case ERROR_IO_PENDING:
             HAMLIB_TRACE;
+            rig_debug(RIG_DEBUG_ERR, "%s: ERROR_IO_PENDING: timeout=%d\n", __func__, p->timeout);
             timeout.QuadPart = (p->timeout * -1000000LL);
 
             if ((result = SetWaitableTimer(hLocal, &timeout, 0, NULL, NULL, 0)) == 0)
@@ -1177,7 +1178,7 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer,
             if (timeout_retries > 0)
             {
                 timeout_retries--;
-                rig_debug(RIG_DEBUG_CACHE, "%s: retrying read timeout %d/%d\n", __func__,
+                rig_debug(RIG_DEBUG_CACHE, "%s(%d): retrying read timeout %d/%d\n", __func__, __LINE__,
                     p->timeout_retry - timeout_retries, p->timeout_retry);
                 hl_usleep(10 * 1000);
                 continue;
@@ -1333,7 +1334,6 @@ static int read_string_generic(hamlib_port_t *p,
     memset(rxbuffer, 0, rxmax);
 
     short timeout_retries = p->timeout_retry;
-
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
         ssize_t rd_count = 0;
@@ -1346,7 +1346,7 @@ static int read_string_generic(hamlib_port_t *p,
             if (timeout_retries > 0)
             {
                 timeout_retries--;
-                rig_debug(RIG_DEBUG_CACHE, "%s: retrying read timeout %d/%d\n", __func__,
+                rig_debug(RIG_DEBUG_CACHE, "%s(%d): retrying read timeout %d/%d\n", __func__, __LINE__,
                     p->timeout_retry - timeout_retries, p->timeout_retry);
                 hl_usleep(10 * 1000);
                 continue;
