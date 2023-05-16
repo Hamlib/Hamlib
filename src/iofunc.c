@@ -1178,8 +1178,8 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer,
             if (timeout_retries > 0)
             {
                 timeout_retries--;
-                rig_debug(RIG_DEBUG_CACHE, "%s(%d): retrying read timeout %d/%d\n", __func__, __LINE__,
-                    p->timeout_retry - timeout_retries, p->timeout_retry);
+                rig_debug(RIG_DEBUG_CACHE, "%s(%d): retrying read timeout %d/%d timeout=%dms\n", __func__, __LINE__,
+                    p->timeout_retry - timeout_retries, p->timeout_retry, p->timeout);
                 hl_usleep(10 * 1000);
                 continue;
             }
@@ -1346,8 +1346,8 @@ static int read_string_generic(hamlib_port_t *p,
             if (timeout_retries > 0)
             {
                 timeout_retries--;
-                rig_debug(RIG_DEBUG_CACHE, "%s(%d): retrying read timeout %d/%d\n", __func__, __LINE__,
-                    p->timeout_retry - timeout_retries, p->timeout_retry);
+                rig_debug(RIG_DEBUG_CACHE, "%s(%d): retrying read timeout %d/%d timeout=%d\n", __func__, __LINE__,
+                    p->timeout_retry - timeout_retries, p->timeout_retry, p->timeout);
                 hl_usleep(10 * 1000);
                 continue;
             }
