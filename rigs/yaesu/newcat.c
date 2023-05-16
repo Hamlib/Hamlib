@@ -10889,7 +10889,7 @@ int newcat_set_cmd_validate(RIG *rig)
 
         // FA and FB success is now verified in rig.c with a followup query
         // so no validation is needed
-        if (strncmp(priv->cmd_str, "FA", 2) == 0 || strncmp(priv->cmd_str, "FB", 2))
+        if (strncmp(priv->cmd_str, "FA", 2) == 0 || strncmp(priv->cmd_str, "FB", 2) == 0)
         {
             return RIG_OK;
         }
@@ -10919,6 +10919,7 @@ int newcat_set_cmd_validate(RIG *rig)
             if (strncmp(priv->cmd_str, "VS", 2) == 0
                     && strncmp(priv->cmd_str, priv->ret_data, 2) == 0) { RETURNFUNC(RIG_OK); }
             else if (strcmp(priv->cmd_str, priv->ret_data) == 0) { RETURNFUNC(RIG_OK); }
+            else if (priv->cmd_str[0] == ';' && priv->ret_data[0]=='?') { RETURNFUNC(RIG_OK); }
             else { rc = -RIG_EPROTO; }
         }
 
