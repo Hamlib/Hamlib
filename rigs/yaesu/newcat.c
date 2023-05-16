@@ -10869,7 +10869,7 @@ int newcat_set_cmd_validate(RIG *rig)
         case RIG_MODEL_FT991:
         case RIG_MODEL_FTDX101MP:
         case RIG_MODEL_FTDX3000:
-            strcpy(valcmd, ";");
+            strcpy(valcmd, "ID;");
             break;
 
         // these models do not work with a single ;
@@ -10919,7 +10919,7 @@ int newcat_set_cmd_validate(RIG *rig)
             if (strncmp(priv->cmd_str, "VS", 2) == 0
                     && strncmp(priv->cmd_str, priv->ret_data, 2) == 0) { RETURNFUNC(RIG_OK); }
             else if (strcmp(priv->cmd_str, priv->ret_data) == 0) { RETURNFUNC(RIG_OK); }
-            else if (priv->cmd_str[0] == ';' && priv->ret_data[0]=='?') { RETURNFUNC(RIG_OK); }
+            else if (priv->cmd_str[0] == ';' && priv->ret_data[0]=='?') { hl_usleep(50*1000);RETURNFUNC(RIG_OK); }
             else { rc = -RIG_EPROTO; }
         }
 
