@@ -732,9 +732,9 @@ static int port_wait_for_data_direct(hamlib_port_t *p)
     int fd = p->fd;
     struct timeval tv, tv_timeout;
     int result;
-
     tv_timeout.tv_sec = p->timeout / 1000;
     tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
+    rig_debug(RIG_DEBUG_CACHE, "%s(%d): timeout=%ld,%ld\n", __func__, __LINE__, tv_timeout.tv_sec, tv_timeout.tv_usec);
 
     tv = tv_timeout;    /* select may have updated it */
 
@@ -743,6 +743,7 @@ static int port_wait_for_data_direct(hamlib_port_t *p)
     efds = rfds;
 
     result = port_select(p, fd + 1, &rfds, NULL, &efds, &tv, 1);
+    rig_debug(RIG_DEBUG_CACHE, "%s(%d): timeout=%ld,%ld\n", __func__, __LINE__, tv_timeout.tv_sec, tv_timeout.tv_usec);
 
     if (result == 0)
     {
@@ -1127,6 +1128,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
     if (p->post_write_delay > 0)
     {
         method |= 4;
+#if 0
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 #define POST_WRITE_DELAY_TRSHLD 10
 
@@ -1138,6 +1140,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
             p->post_write_date.tv_usec = tv.tv_usec;
         }
         else
+#endif
 #endif
             hl_usleep(p->post_write_delay * 1000); /* optional delay after last write */
 
@@ -1338,7 +1341,6 @@ static int read_string_generic(hamlib_port_t *p,
     {
         ssize_t rd_count = 0;
         int result;
-
         result = port_wait_for_data(p, direct);
 
         if (result == -RIG_ETIMEOUT)
