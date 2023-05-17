@@ -498,7 +498,6 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
 
         case ERROR_IO_PENDING:
             HAMLIB_TRACE;
-            rig_debug(RIG_DEBUG_ERR, "%s: ERROR_IO_PENDING: timeout=%d\n", __func__, p->timeout);
             timeout.QuadPart = (p->timeout * -1000000LL);
 
             if ((result = SetWaitableTimer(hLocal, &timeout, 0, NULL, NULL, 0)) == 0)
