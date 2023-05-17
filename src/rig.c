@@ -7673,6 +7673,9 @@ static int async_data_handler_stop(RIG *rig)
     {
         if (async_data_handler_priv->thread_id != 0)
         {
+            // all cleanup is done in this function so we can kill thread
+            // Windows was taking 30 seconds to stop without this
+            pthread_cancel(async_data_handler_priv->thread_id);
             int err = pthread_join(async_data_handler_priv->thread_id, NULL);
 
             if (err)
@@ -7774,6 +7777,7 @@ void *async_data_handler(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Stopping async data handler thread\n",
               __func__);
 
+    pthread_exit(NULL);
     return NULL;
 }
 #endif
