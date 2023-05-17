@@ -693,7 +693,7 @@ int newcat_close(RIG *rig)
 
     ENTERFUNC;
 
-    if (!no_restore_ai && priv->trn_state >= 0 && rig_s->comm_state)
+    if (!no_restore_ai && priv->trn_state >= 0 && rig_s->comm_state && rig_s->powerstat != RIG_POWER_OFF)
     {
         /* restore AI state */
         newcat_set_trn(rig, priv->trn_state); /* ignore status in
@@ -1073,7 +1073,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (priv->ret_data[2] != target_vfo)
         {
-            HAMLIB_TRACE;
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VS%c%c", target_vfo, cat_term);
             rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -1144,7 +1143,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             && rig->caps->get_vfo != NULL
             && rig->caps->set_vfo != NULL) // gotta' have get_vfo too
     {
-        HAMLIB_TRACE;
 
         if (rig->state.current_vfo != vfo)
         {
@@ -3644,7 +3642,12 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
     {
         *status = 1;
         RETURNFUNC(RIG_OK);
-
+    }
+    if (rig->state.auto_power_on == 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s(%d): auto_power_on not selected so skipping power on\n", __func__, __LINE__);
+        rig->state.powerstat = RIG_POWER_OFF;
+        return -RIG_ETIMEOUT;
     }
     hl_usleep(1200000); // then we must be waking up
     rig_flush(&rig->state.rigport);  /* discard any unsolicited data */
@@ -7814,7 +7817,6 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
             newcat_is_rig(rig, RIG_MODEL_FTDX10) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX3000))
     {
-        HAMLIB_TRACE;
         p1 = p1 + 2;    /* use non-Toggle commands */
 
         // If VFOB is active then we change VFOB with FT3 instead of VFOA
@@ -10505,6 +10507,12 @@ int newcat_get_cmd(RIG *rig)
 
     ENTERFUNC;
 
+    if (state->powerstat == 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n", __func__);
+        return RIG_OK; // to prevent repeats
+    }
+
     // try to cache rapid repeats of the IF command
     // this is for WSJT-X/JTDX sequence of v/f/m/t
     // should allow rapid repeat of any call using the IF; cmd
@@ -10587,12 +10595,13 @@ int newcat_get_cmd(RIG *rig)
     while (rc != RIG_OK && retry_count++ <= state->rigport.retry)
     {
         rig_flush(&state->rigport);  /* discard any unsolicited data */
-
         if (rc != -RIG_BUSBUSY)
         {
             /* send the command */
             rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
+            
+            if (strncmp(priv->cmd_str,"PS",2)==0) state->rigport.timeout_retry = 0;
             if (RIG_OK != (rc = write_block(&state->rigport,
                                             (unsigned char *) priv->cmd_str,
                                             strlen(priv->cmd_str))))
@@ -10606,6 +10615,11 @@ int newcat_get_cmd(RIG *rig)
                               sizeof(priv->ret_data),
                               &cat_term, sizeof(cat_term), 0, 1)) <= 0)
         {
+            // if we get a timeout from PS probably means power is off
+            if (strncmp(priv->cmd_str,"PS",2)==0) {
+                rig_debug(RIG_DEBUG_WARN, "%s: rig power is off?\n", __func__);
+                return -RIG_ETIMEOUT;
+            }
             continue;             /* usually a timeout - retry */
         }
 
