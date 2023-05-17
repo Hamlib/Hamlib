@@ -241,7 +241,7 @@ const struct rig_caps ic9100_caps =
     .set_mode =  icom_set_mode_with_data,
 
     .set_vfo =  icom_set_vfo,
-    .get_vfo =  icom_get_vfo,
+//    .get_vfo =  icom_get_vfo,
     .set_ant =  icom_set_ant,
     .get_ant =  icom_get_ant,
     .get_ts =  icom_get_ts,

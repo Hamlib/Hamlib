@@ -262,7 +262,7 @@ const struct rig_caps ic706_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode,
     .get_mode =  icom_get_mode,
-    .get_vfo =  icom_get_vfo,
+//    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
 
     .decode_event =  icom_decode_event,
@@ -413,7 +413,7 @@ const struct rig_caps ic706mkii_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode,
     .get_mode =  icom_get_mode,
-    .get_vfo =  icom_get_vfo,
+//    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
 
     .decode_event =  icom_decode_event,
@@ -610,7 +610,7 @@ const struct rig_caps ic706mkiig_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode,
     .get_mode =  icom_get_mode,
-    .get_vfo =  icom_get_vfo,
+//    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
 
     .decode_event =  icom_decode_event,
