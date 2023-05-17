@@ -2121,7 +2121,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_CACHE, "%s: depth=%d\n", __func__, rig->state.depth);
     if (rig->state.depth == 1)
     {
-        rig_debug(RIG_DEBUG_DEPTH, "%s: %s\n", 1 ? "lock" : "unlock", __func__);
+        rig_debug(RIG_DEBUG_CACHE, "%s: %s\n", 1 ? "lock" : "unlock", __func__);
 //        rig_lock(rig, 1);
     }
 
