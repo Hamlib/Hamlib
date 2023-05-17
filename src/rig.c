@@ -168,7 +168,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 #define CHECK_RIG_CAPS(r) (!(r) || !(r)->caps)
 
-#define LOCK(n) if (rig->state.depth == 1) { rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", n?"lock":"unlock", __func__);  rig_lock(rig,n); }
+#define LOCK(n) if (rig->state.depth == 1) { rig_debug(RIG_DEBUG_CACHE, "%s: %s\n", n?"lock":"unlock", __func__);  rig_lock(rig,n); }
 
 #ifdef PTHREAD
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
@@ -2118,10 +2118,10 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_cache_show(rig, __func__, __LINE__);
     LOCK(1);
 
-    rig_debug(RIG_DEBUG_ERR, "%s: depth=%d\n", __func__, rig->state.depth);
+    rig_debug(RIG_DEBUG_CACHE, "%s: depth=%d\n", __func__, rig->state.depth);
     if (rig->state.depth == 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: %s\n", 1 ? "lock" : "unlock", __func__);
+        rig_debug(RIG_DEBUG_DEPTH, "%s: %s\n", 1 ? "lock" : "unlock", __func__);
 //        rig_lock(rig, 1);
     }
 
