@@ -5301,6 +5301,20 @@ int kenwood_stop_morse(RIG *rig, vfo_t vfo)
 }
 
 /*
+ * kenwood_send_voice
+ */
+int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
+{
+    char cmd[16];
+    ENTERFUNC;
+
+    SNPRINTF(cmd, sizeof(cmd), "PB01");
+    kenwood_transaction(rig, cmd, NULL, 0);
+    SNPRINTF(cmd, sizeof(cmd), "PB1%d", bank);
+    RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
+}
+
+/*
  * kenwood_vfo_op
  */
 int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
