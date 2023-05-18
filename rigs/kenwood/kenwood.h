@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20230430"
+#define BACKEND_VER "20230517"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -254,6 +254,7 @@ int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 const char *kenwood_get_info(RIG *rig);
 int kenwood_get_id(RIG *rig, char *buf);
 int kenwood_get_if(RIG *rig);
+int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank);
 
 int kenwood_set_trn(RIG *rig, int trn);
 int kenwood_get_trn(RIG *rig, int *trn);
