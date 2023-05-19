@@ -275,14 +275,14 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     // now let's get our widths
     SNPRINTF(cmd, sizeof(cmd), "SH");
-    retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 15);
+    retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 4);
     int hwidth;
     sscanf(cmd, "SH%d", &hwidth);
     int lwidth;
     int shift = 0;
     SNPRINTF(cmd, sizeof(cmd), "SL");
     sscanf(cmd, "SH%d", &lwidth);
-    retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 15);
+    retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 4);
 
     if (*mode == RIG_MODE_PKTUSB || *mode == RIG_MODE_PKTLSB
             || *mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM || *mode == RIG_MODE_USB
@@ -1546,7 +1546,7 @@ const struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".6",
+    .version = BACKEND_VER ".7",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1744,7 +1744,7 @@ const struct rig_caps ts590sg_caps =
     RIG_MODEL(RIG_MODEL_TS590SG),
     .model_name = "TS-590SG",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".4",
+    .version = BACKEND_VER ".5",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
