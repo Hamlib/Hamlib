@@ -1665,10 +1665,8 @@ const struct rig_caps ts590_caps =
 #include "level_gran_kenwood.h"
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
         [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
-        [LVL_KEYSPD] = {.min = {.i = 4}, .max = {.i = 60}, .step = {.i = 1}},
-        [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
+        [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 1000}, .step = {.i = 50}},
         [LVL_BKIN_DLYMS] = {.min = {.i = 0}, .max = {.i = 1000}, .step = {.i = 50}},
         [LVL_SLOPE_LOW] = {.min = {.i = 0}, .max = {.i = 2400}, .step = {.i = 10}},
         [LVL_SLOPE_HIGH] = {.min = {.i = 0}, .max = {.i = 5000}, .step = {.i = 10}},
@@ -1862,10 +1860,8 @@ const struct rig_caps ts590sg_caps =
 #include "level_gran_kenwood.h"
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
         [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
-        [LVL_KEYSPD] = {.min = {.i = 4}, .max = {.i = 60}, .step = {.i = 1}},
-        [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
+        [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 1000}, .step = {.i = 50}},
         [LVL_BKIN_DLYMS] = {.min = {.i = 0}, .max = {.i = 1000}, .step = {.i = 50}},
         [LVL_SLOPE_LOW] = {.min = {.i = 0}, .max = {.i = 2400}, .step = {.i = 10}},
         [LVL_SLOPE_HIGH] = {.min = {.i = 0}, .max = {.i = 5000}, .step = {.i = 10}},

@@ -127,7 +127,9 @@ const struct rig_caps xg3_caps =
     .has_set_level = RIG_LEVEL_SET(XG3_LEVEL_ALL),
     .has_get_parm = XG3_PARM_ALL,
     .has_set_parm = XG3_PARM_ALL,
-    .level_gran = {},           /* FIXME: granularity */
+    .level_gran = {
+#include "level_gran_elecraft.h"
+    },           /* FIXME: granularity */
     .parm_gran = {},
     .extparms = kenwood_cfg_params,
     .max_ifshift = Hz(0),
