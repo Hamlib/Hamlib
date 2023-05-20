@@ -8079,6 +8079,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
                 if (retval != RIG_OK) { sleep(1); }
             }
+            if (retval == RIG_OK) priv->poweron = 1;
 
             return RIG_OK;
         }
