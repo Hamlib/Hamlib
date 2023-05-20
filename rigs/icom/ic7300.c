@@ -575,6 +575,7 @@ const struct rig_caps ic7300_caps =
     .has_get_parm =  IC7300_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
+#include "level_gran_icom.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = {.min = {.i = 0}, .max = {.i = 255}},
         [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
@@ -811,6 +812,7 @@ struct rig_caps ic9700_caps =
     .has_get_parm =  IC9700_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC9700_PARMS),
     .level_gran = {
+#include "level_gran_icom.h"
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
@@ -1123,6 +1125,7 @@ const struct rig_caps ic705_caps =
     .has_get_parm =  IC7300_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
+#include "level_gran_icom.h"
         [LVL_RAWSTR] = {.min = {.i = 0}, .max = {.i = 255}},
         [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
