@@ -1304,14 +1304,13 @@ int HAMLIB_API rig_open(RIG *rig)
             powerstat_t powerflag;
             status = rig_get_powerstat(rig, &powerflag);
 
-            if (status == RIG_OK && powerflag == RIG_POWER_OFF
+            if (status == RIG_OK && (powerflag == RIG_POWER_OFF || powerflag == RIG_POWER_STANDBY)
                     && rig->state.auto_power_on == 0)
             {
+                // rig_open() should succeed even if the rig is powered off, so simply log power status
                 rig_debug(RIG_DEBUG_ERR,
                           "%s: rig power is off, use --set-conf=auto_power_on=1 if power on is wanted\n",
                           __func__);
-
-                RETURNFUNC2(-RIG_EPOWER);
             }
 
             // don't need auto_power_on if power is already on
@@ -1319,14 +1318,10 @@ int HAMLIB_API rig_open(RIG *rig)
 
             if (status == -RIG_ETIMEOUT)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
-                          __func__);
+                // rig_open() should succeed even if get_powerstat() fails,
+                // as many rigs cannot get power status while powered off
+                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n", __func__);
                 rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
-                rig_debug(RIG_DEBUG_ERR, "%s: Rigs that should but don't work: TS480\n",
-                          __func__);
-                // A TS-480 user was showing ;;;;PS; not working so we'll just show the error message for now
-                // https://github.com/Hamlib/Hamlib/issues/1226
-                //RETURNFUNC2 (-RIG_EPOWER);
             }
         }
 
@@ -6154,8 +6149,8 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 
     HAMLIB_TRACE;
     retcode = rig->caps->set_powerstat(rig, status);
-    rig_flush(&rig->state.rigport); // if anything is queued up flush it
-    rig->state.auto_power_on = 1; // ensure we auto power on in the future
+    // if anything is queued up flush it
+    rig_flush_force(&rig->state.rigport, 1);
     RETURNFUNC(retcode);
 }
 
@@ -6201,16 +6196,11 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
     HAMLIB_TRACE;
     retcode = rig->caps->get_powerstat(rig, status);
 
-    if (retcode == RIG_EIO)
+    if (retcode != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: hard error, reopening rig\n", __func__);
-        rig_close(rig);
-        rig_open(rig);
+        // if failed, assume power is on
+        *status = RIG_POWER_ON;
     }
-
-    if (retcode != RIG_OK) { *status = RIG_POWER_ON; } // if failed assume power is on
-
-    if (*status == RIG_POWER_OFF && rig->state.auto_power_on) { rig->caps->set_powerstat(rig, RIG_POWER_ON); }
 
     RETURNFUNC(retcode);
 }

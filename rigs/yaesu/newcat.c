@@ -3538,7 +3538,6 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     int retval;
     int i = 0;
     int retry_save;
-    char ps;
 
     ENTERFUNC;
 
@@ -3554,9 +3553,8 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     switch (status)
     {
     case RIG_POWER_ON:
-        ps = '1';
-        // when powering on need a dummy byte to wake it up
-        // then sleep  from 1 to 2 seconds so we'll do 1.5 secs
+        // When powering on a Yaesu rig needs dummy bytes to wake it up,
+        // then wait from 1 to 2 seconds and issue the power-on command again
         write_block(&state->rigport, (unsigned char *) "PS1;", 4);
         hl_usleep(1200000);
         break;
@@ -3567,10 +3565,11 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
         RETURNFUNC(retval);
 
     default:
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PS%c%c", ps, cat_term);
+    // Power on may require a second command
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PS1%c", cat_term);
 
     retval = write_block(&state->rigport, (unsigned char *) priv->cmd_str,
                          strlen(priv->cmd_str));
@@ -3620,9 +3619,9 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
  */
 int newcat_get_powerstat(RIG *rig, powerstat_t *status)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    //struct rig_state *state = &rig->state;
-    int err;
+    struct rig_state *state = (struct rig_state *) &rig->state;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
+    int result;
     char ps;
     char command[] = "PS";
 
@@ -3635,25 +3634,61 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    // when not powered on need a dummy byte to wake it up
-    // then sleep  from 1 to 2 seconds so we'll do 1.5 secs
-//    write_block(&state->rigport, (unsigned char *) "PS;", 3);
+    // The first PS command has two purposes:
+    // 1. to detect that the rig is turned on when it responds with PS1 immediately
+    // 2. to act as dummy wake-up data for a rig that is turned off
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
-    newcat_get_cmd(rig); // don't care about the return
-    if (priv->ret_data[2] == '1')
-    {
-        *status = 1;
-        RETURNFUNC(RIG_OK);
 
+    // Timeout needs to be set temporarily to a low value,
+    // so that the second command can be sent in 2 seconds, which is what Yaesu rigs expect.
+    short retry_save;
+    short timeout_retry_save;
+    int timeout_save;
+
+    retry_save = state->rigport.retry;
+    timeout_retry_save = state->rigport.timeout_retry;
+    timeout_save = state->rigport.timeout;
+
+    state->rigport.retry = 0;
+    state->rigport.timeout_retry = 0;
+    state->rigport.timeout = 500;
+
+    result = newcat_get_cmd(rig);
+
+    state->rigport.retry = retry_save;
+    state->rigport.timeout_retry = timeout_retry_save;
+    state->rigport.timeout = timeout_save;
+
+    // Rig may respond here already
+    if (result == RIG_OK)
+    {
+        ps = priv->ret_data[2];
+
+        switch (ps)
+        {
+        case '1':
+            *status = RIG_POWER_ON;
+            RETURNFUNC(RIG_OK);
+
+        case '0':
+            *status = RIG_POWER_OFF;
+            RETURNFUNC(RIG_OK);
+
+        default:
+            // fall through to retry command
+            break;
+        }
     }
-    hl_usleep(1200000); // then we must be waking up
-    rig_flush(&rig->state.rigport);  /* discard any unsolicited data */
 
+    // Yeasu rigs in powered-off state require the PS command to be sent between 1 and 2 seconds after dummy data
+    hl_usleep(1100000);
+    // Discard any unsolicited data
+    rig_flush(&rig->state.rigport);
 
-    /* Get Power status */
-    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    result = newcat_get_cmd(rig);
+    if (result != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC(result);
     }
 
     ps = priv->ret_data[2];
@@ -3669,7 +3704,7 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
         break;
 
     default:
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     RETURNFUNC(RIG_OK);

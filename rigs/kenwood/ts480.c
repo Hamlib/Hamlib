@@ -1211,7 +1211,6 @@ int ts480_init(RIG *rig)
     priv->ag_format = 2;
     priv->micgain_min = 0;
     priv->micgain_max = 100;
-    priv->ps_cmd_wakeup_data = 1;
 
     RETURNFUNC(RIG_OK);
 }
