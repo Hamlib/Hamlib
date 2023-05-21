@@ -246,9 +246,16 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct rig_state *rs;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called cmd=%s datasize=%d\n", __func__,
+    if (datasize > 0 && datasize < strlen(cmdstr)) {
+    rig_debug(RIG_DEBUG_WARN, "%s called cmd=%s datasize=%d, datasize < cmd length?\n", __func__,
               cmdstr ? cmdstr : "(NULL)",
               (int)datasize);
+    } 
+    else
+    {
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called cmd=%s\n", __func__,
+              cmdstr ? cmdstr : "(NULL)");
+    }
 
     if ((!cmdstr && !datasize) || (datasize && !data))
     {
@@ -376,13 +383,15 @@ transaction_write:
 
 transaction_read:
     /* allow room for most any response */
+    // this len/expected stuff is confusing -- logic in some places includes the semicolon
+    // so we add 1 to our read_string length to cover these cases
+    // eventually we should be able to get rid of this but requires testing all Kenwood rigs
     len = min(datasize ? datasize + 1 : strlen(priv->verify_cmd) + 48,
               KENWOOD_MAX_BUF_LEN);
     retval = read_string(&rs->rigport, (unsigned char *) buffer, len,
                          cmdtrm_str, strlen(cmdtrm_str), 0, 1);
-    rig_debug(RIG_DEBUG_TRACE, "%s: read_string(expected=%d, len=%d)='%s'\n",
-              __func__,
-              len, (int)strlen(buffer), buffer);
+    rig_debug(RIG_DEBUG_TRACE, "%s: read_string len=%d '%s'\n", __func__,
+              (int)strlen(buffer), buffer);
 
     if (retval < 0)
     {
@@ -1233,7 +1242,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: checking satellite mode status\n", __func__);
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "SA");
 
-        retval = kenwood_transaction(rig, cmdbuf, retbuf, 20);
+        retval = kenwood_transaction(rig, cmdbuf, retbuf, 4);
 
         if (retval != RIG_OK)
         {
@@ -5327,6 +5336,20 @@ int kenwood_stop_morse(RIG *rig, vfo_t vfo)
 {
     ENTERFUNC;
     RETURNFUNC(kenwood_transaction(rig, "KY0", NULL, 0));
+}
+
+/*
+ * kenwood_send_voice
+ */
+int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
+{
+    char cmd[16];
+    ENTERFUNC;
+
+    SNPRINTF(cmd, sizeof(cmd), "PB01");
+    kenwood_transaction(rig, cmd, NULL, 0);
+    SNPRINTF(cmd, sizeof(cmd), "PB1%d", bank);
+    RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
 
 /*

@@ -80,6 +80,7 @@ const struct rig_caps ts930_caps =
     .level_gran =
     {
 #include "level_gran_kenwood.h"
+     [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
     },
     .parm_gran =  {},
     .preamp =   { RIG_DBLST_END, }, /* FIXME: preamp list */

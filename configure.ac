@@ -229,6 +229,16 @@ AC_CHECK_FUNC([gethostbyname],
 			    [])
 	      ])
 
+# Winsock2 32 bit
+AC_CHECK_FUNC([timeBeginPeriod],
+	      [],
+	      [AC_CHECK_LIB([winmm],
+			    [main],
+			    [NET_LIBS="$NET_LIBS -lwinmm"],
+			    [],
+			    [])
+	      ])
+
 LIBS="$LIBS $NET_LIBS"
 
 # macros/hl_getaddrinfo.m4

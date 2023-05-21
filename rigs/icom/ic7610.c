@@ -241,6 +241,7 @@ static const struct icom_priv_caps ic7610_priv_caps =
         },
     },
     .extcmds = ic7610_extcmds,
+    .x25_always = 1,
 };
 
 
@@ -349,7 +350,7 @@ const struct rig_caps ic7610_caps =
     RIG_MODEL(RIG_MODEL_IC7610),
     .model_name = "IC-7610",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".11",
+    .version =  BACKEND_VER ".14",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -581,8 +582,7 @@ const struct rig_caps ic7610_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  icom_get_split_vfo,
     .set_powerstat = icom_set_powerstat,
-    // 7610 cannot read power status apparently
-//    .get_powerstat = icom_get_powerstat,
+    .get_powerstat = icom_get_powerstat,
     .send_morse = icom_send_morse,
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,

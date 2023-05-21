@@ -972,6 +972,7 @@ static const struct
 int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
 {
     gran_t *this_gran;
+    float maxval;
 
     this_gran = &rig->caps->level_gran[rig_setting2idx(level)];
 
@@ -982,13 +983,21 @@ int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
-        /* If min==max==0, all values are OK here but may be checked later */
-        if (this_gran->min.f == 0.0f && this_gran->max.f == 0.0f)
+
+        /* If min==max==step==0, all values are OK here */
+        maxval = this_gran->max.f;
+        if (this_gran->min.f == 0.0f && maxval == 0.0f)
         {
-            return RIG_OK;
+	  /* if step==0 also, we're good */
+	  if (this_gran->step.f == 0.0f)
+	    {
+	      return RIG_OK;
+	    }
+	  /* non-zero step, check for max of 1.0 */
+	  maxval = 1.0f;
         }
 
-        if (val.f < this_gran->min.f || val.f > this_gran->max.f)
+        if (val.f < this_gran->min.f || val.f > maxval)
         {
             return -RIG_EINVAL;
         }
@@ -2551,7 +2560,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
                                       enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
-    //rig_debug(RIG_DEBUG_TRACE, "%s: getting rig_caps=%u\n", __func__, rig_caps);
+    rig_debug(RIG_DEBUG_TRACE, "%s: getting rig_caps for model=%d, rig_caps=%d\n", __func__, rig_model, rig_caps);
 
     switch (rig_caps)
     {
@@ -2562,7 +2571,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->rig_model;
 
     case RIG_CAPS_PTT_TYPE:
-        //rig_debug(RIG_DEBUG_TRACE, "%s: return %u\n", __func__, caps->ptt_type);
+        rig_debug(RIG_DEBUG_TRACE, "%s: return %u\n", __func__, caps->ptt_type);
         return caps->ptt_type;
 
     case RIG_CAPS_PORT_TYPE:
@@ -2572,7 +2581,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->has_get_level;
 
     default:
-        //rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%lld\n", __func__, rig_caps);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%d\n", __func__, rig_caps);
         return (-RIG_EINVAL);
     }
 }

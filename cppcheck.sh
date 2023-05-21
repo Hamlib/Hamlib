@@ -14,6 +14,7 @@ SUPPRESS="\
 -i bindings \
 -i lib/getopt.c \
 -i lib/getopt_long.c \
+-i lib/cJSON.c \
 --suppress=*:extra/gnuradio/demod.h \
 --suppress=*:extra/gnuradio/HrAGC.h \
 --suppress=*:extra/gnuradio/nfm.h \

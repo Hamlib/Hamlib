@@ -216,8 +216,7 @@ const struct rig_caps k3_caps =
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
         // cppcheck-suppress *
-        [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
-        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 10 }, .step = { .i = 10 } },
+#include "level_gran_elecraft.h"
     },
     .parm_gran =        {},
     .extlevels =        k3_ext_levels,
@@ -369,7 +368,7 @@ const struct rig_caps k3s_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
-        [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
+#include "level_gran_elecraft.h"
         [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 15 }, .step = { .i = 5 } },
     },
     .parm_gran =        {},
@@ -522,13 +521,16 @@ const struct rig_caps k4_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
-        [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
-        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 15 }, .step = { .i = 5 } },
+#include "level_gran_elecraft.h"
+        [LVL_CWPITCH]  = { .min = { .i = 250 }, .max = { .i = 950 }, .step = { .i = 10 } },
+        [LVL_ATT]      = { .min = { .i = 0 },   .max = { .i = 15 },  .step = { .i = 5 }  },
+        [LVL_VOXDELAY] = { .min = { .i = 0 },   .max = { .i = 255 }, .step = { .i = 10 } },
+        [LVL_PREAMP]   = { .min = { .i = 0 },   .max = { .i = 30},   .step = { .i = 10 } },
     },
     .parm_gran =        {},
     .extlevels =        k3_ext_levels,
     .extparms =     kenwood_cfg_params,
-    .preamp =       { 1, RIG_DBLST_END, },
+    .preamp =       { 10, 20, 30, RIG_DBLST_END, },
     .attenuator =       { 5, 10, 15, RIG_DBLST_END, },
     .max_rit =      Hz(9990),
     .max_xit =      Hz(9990),
@@ -536,6 +538,8 @@ const struct rig_caps k4_caps =
     .vfo_ops =      K3_VFO_OP,
     .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .transceive =       RIG_TRN_RIG,
+    .agc_level_count = 3,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_SLOW, RIG_AGC_FAST },
     .bank_qty =     0,
     .chan_desc_sz =     0,
 
@@ -674,8 +678,7 @@ const struct rig_caps kx3_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
-        [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
-        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 10 }, .step = { .i = 10 } },
+#include "level_gran_elecraft.h"
     },
     .parm_gran =        {},
     .extlevels =        kx3_ext_levels,
@@ -826,8 +829,7 @@ const struct rig_caps kx2_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
-        [LVL_KEYSPD] = { .min = { .i = 8 }, .max = { .i = 50 }, .step = { .i = 1 } },
-        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 10 }, .step = { .i = 10 } },
+#include "level_gran_elecraft.h"
     },
     .parm_gran =        {},
     .extlevels =        kx3_ext_levels,
