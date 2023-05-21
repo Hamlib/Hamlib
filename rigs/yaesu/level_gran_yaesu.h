@@ -4,14 +4,14 @@
         /* raw data */
         [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } },
         /* levels with dB units */
-        [LVL_PREAMP]        = { .min = { .i = 10 },    .max = { .i = 20 },   .step = { .i = 10 } },
-        [LVL_ATT]           = { .min = { .i = 12 },    .max = { .i = 12 },   .step = { .i = 0 } },
+        [LVL_PREAMP]        = { .min = { .i = 0 },     .max = { .i = 20 },   .step = { .i = 10 } },
+        [LVL_ATT]           = { .min = { .i = 0 },     .max = { .i = 12 },   .step = { .i = 0 } },
         [LVL_STRENGTH]      = { .min = { .i = 0 },     .max = { .i = 60 },   .step = { .i = 0 } },
         [LVL_NB]            = { .min = { .f = 0 },     .max = { .f = 10 },    .step = { .f = 1 } },
         /* levels with WPM units */
         [LVL_KEYSPD]  = { .min = { .i = 4 },           .max = { .i = 60 },   .step = { .i = 1 } },
         /* levels with Hz units */
-        [LVL_CWPITCH]       = { .min = { .i = 300 },   .max = { .i = 1050 }, .step = { .i = 50 } },
+        [LVL_CWPITCH]       = { .min = { .i = 300 },   .max = { .i = 1050 }, .step = { .i = 10 } },
         [LVL_IF]            = { .min = { .i = -1200 }, .max = { .i = 1200 }, .step = { .i = 20 } },
         [LVL_NOTCHF]        = { .min = { .i = 1 },     .max = { .i = 3200 }, .step = { .i = 10 } },
         /* levels with time units */
