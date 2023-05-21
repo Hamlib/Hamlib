@@ -2560,7 +2560,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
                                       enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
-    rig_debug(RIG_DEBUG_TRACE, "%s: getting rig_caps for model=%d\n", __func__, rig_model);
+    rig_debug(RIG_DEBUG_TRACE, "%s: getting rig_caps for model=%d, rig_caps=%d\n", __func__, rig_model, rig_caps);
 
     switch (rig_caps)
     {
@@ -2581,7 +2581,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->has_get_level;
 
     default:
-        //rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%lld\n", __func__, rig_caps);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%d\n", __func__, rig_caps);
         return (-RIG_EINVAL);
     }
 }
