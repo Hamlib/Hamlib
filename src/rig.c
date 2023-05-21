@@ -1274,6 +1274,7 @@ int HAMLIB_API rig_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %p rs->comm_state==1?=%d\n", __func__,
               &rs->comm_state,
               rs->comm_state);
+    hl_usleep(100 * 1000); // wait a bit after opening to give some serial ports time
 
     /*
      * Maybe the backend has something to initialize
