@@ -2560,7 +2560,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
                                       enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
-    //rig_debug(RIG_DEBUG_TRACE, "%s: getting rig_caps=%u\n", __func__, rig_caps);
+    rig_debug(RIG_DEBUG_TRACE, "%s: getting rig_caps for model=%d\n", __func__, rig_model);
 
     switch (rig_caps)
     {
@@ -2571,7 +2571,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->rig_model;
 
     case RIG_CAPS_PTT_TYPE:
-        //rig_debug(RIG_DEBUG_TRACE, "%s: return %u\n", __func__, caps->ptt_type);
+        rig_debug(RIG_DEBUG_TRACE, "%s: return %u\n", __func__, caps->ptt_type);
         return caps->ptt_type;
 
     case RIG_CAPS_PORT_TYPE:
