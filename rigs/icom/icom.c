@@ -8198,8 +8198,12 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
                   RIG_POWER_ON : RIG_POWER_OFF;
     }
 
-    if (rig->caps->rig_model == RIG_MODEL_IC7300 
+    if (rig->caps->rig_model == RIG_MODEL_IC2730 
+        || rig->caps->rig_model == RIG_MODEL_IC7100 
+        || rig->caps->rig_model == RIG_MODEL_IC7300 
+        || rig->caps->rig_model == RIG_MODEL_IC7600
         || rig->caps->rig_model == RIG_MODEL_IC7610
+        || rig->caps->rig_model == RIG_MODEL_IC7700
         || rig->caps->rig_model == RIG_MODEL_IC7800) 
     {
         freq_t freq;
