@@ -42,6 +42,8 @@ int ic7300_get_clock(RIG *rig, int *year, int *month, int *day,
                      int *hour,
                      int *min, int *sec, double *msec, int *utc_offset);
 
+int ic9700_set_vfo(RIG *rig, vfo_t vfo);
+
 
 #define IC7300_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
 #define IC7300_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
@@ -369,6 +371,7 @@ static const struct icom_priv_caps IC7300_priv_caps =
         },
     },
     .extcmds = ic7300_extcmds,   /* Custom op parameters */
+    .x25_always = 1
 };
 
 static const struct icom_priv_caps IC9700_priv_caps =
@@ -417,6 +420,7 @@ static const struct icom_priv_caps IC9700_priv_caps =
         },
     },
     .extcmds = ic9700_extcmds,   /* Custom op parameters */
+    .x25_always = 1
 };
 
 static const struct icom_priv_caps IC705_priv_caps =
@@ -571,6 +575,7 @@ const struct rig_caps ic7300_caps =
     .has_get_parm =  IC7300_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
+#include "level_gran_icom.h"
         // cppcheck-suppress *
         [LVL_RAWSTR] = {.min = {.i = 0}, .max = {.i = 255}},
         [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
@@ -724,7 +729,7 @@ const struct rig_caps ic7300_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
-    .get_vfo =  icom_get_vfo,
+//    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
     .get_ant =  NULL,
@@ -783,7 +788,7 @@ struct rig_caps ic9700_caps =
     RIG_MODEL(RIG_MODEL_IC9700),
     .model_name = "IC-9700",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".12",
+    .version =  BACKEND_VER ".13",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -807,6 +812,7 @@ struct rig_caps ic9700_caps =
     .has_get_parm =  IC9700_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC9700_PARMS),
     .level_gran = {
+#include "level_gran_icom.h"
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
@@ -1042,7 +1048,7 @@ struct rig_caps ic9700_caps =
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
     .get_vfo =  icom_get_vfo,
-    .set_vfo =  icom_set_vfo,
+    .set_vfo =  ic9700_set_vfo,
     .set_ant =  NULL,
     .get_ant =  NULL,
 
@@ -1119,6 +1125,7 @@ const struct rig_caps ic705_caps =
     .has_get_parm =  IC7300_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
+#include "level_gran_icom.h"
         [LVL_RAWSTR] = {.min = {.i = 0}, .max = {.i = 255}},
         [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
@@ -1304,7 +1311,7 @@ const struct rig_caps ic705_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
-    .get_vfo =  icom_get_vfo,
+//    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
     .get_ant =  NULL,
@@ -1689,6 +1696,30 @@ int ic9700_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
         //          "%s: %02d-%02d-%02dT%02d:%02d:%06.3lf%s%04d\n'",
         //          __func__, *year, *month, *day, *hour, *min, *sec + *msec / 1000,
         //          *utc_offset >= 0 ? "+" : "-", (unsigned)abs(*utc_offset));
+    }
+
+    return retval;
+}
+
+int ic9700_set_vfo(RIG *rig, vfo_t vfo)
+{
+    ENTERFUNC;
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    {
+        retval = icom_transaction(rig, 0x07, 0xd0, NULL, 0, ackbuf, &ack_len);
+    }
+    else
+    {
+        retval = icom_transaction(rig, 0x07, 0xd1, NULL, 0, ackbuf, &ack_len);
+    }
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
+        return -retval;
     }
 
     return retval;

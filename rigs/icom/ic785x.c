@@ -234,6 +234,7 @@ static struct icom_priv_caps ic785x_priv_caps =
         },
     },
     .extcmds = ic785x_extcmds,
+    .x25_always = 1,
 };
 
 const struct rig_caps ic785x_caps =
@@ -241,7 +242,7 @@ const struct rig_caps ic785x_caps =
     RIG_MODEL(RIG_MODEL_IC785x),
     .model_name = "IC-7850/7851",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".5",
+    .version =  BACKEND_VER ".7",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,

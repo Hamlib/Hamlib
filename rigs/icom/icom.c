@@ -869,8 +869,9 @@ static vfo_t icom_current_vfo(RIG *rig)
     vfo_t chkVFO = RIG_VFO_A;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+    struct icom_priv_caps *priv_caps = (struct icom_priv_caps*)rig->caps->priv;
 
-    if (priv->x25cmdfails <= 0) // these newer rigs get special treatment
+    if (priv->x25cmdfails <= 0 || priv_caps->x25_always) // these newer rigs get special treatment
     {
         return icom_current_vfo_x25(rig);
     }
@@ -1512,6 +1513,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int ack_len = sizeof(ackbuf);
     int civ_731_mode = 0; // even these rigs have 5-byte channels
     vfo_t vfo_save = rig->state.current_vfo;
+    const struct icom_priv_caps *priv_caps = rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
@@ -1631,7 +1633,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     // we'll use 0x25 command to get unselected frequency
     // we have to assume current_vfo is accurate to determine what "other" means
-    if (priv->x25cmdfails <= 0)
+    if (priv->x25cmdfails <= 0 || priv_caps->x25_always)
     {
         int cmd2 = 0x25;
         int subcmd2 = 0x00;
@@ -2764,22 +2766,28 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     RETURNFUNC2(RIG_OK);
 }
 
-#if 0
-// this seems to work but not for cqrlog and user twiddling VFO knob.
-// may be able to use twiddle but will disable for now
 /*
  * icom_get_vfo
  * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Only works on IC9700 so far
  */
 int icom_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    *vfo = icom_current_vfo(rig);
+    ENTERFUNC;
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+    retval = icom_transaction(rig, 0x07, 0xd2, NULL, 0, ackbuf, &ack_len);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
+        return -retval;
+    }
+    dump_hex(ackbuf, ack_len);
+    if (ackbuf[2] == 0) *vfo = RIG_VFO_MAIN;
+    else *vfo = RIG_VFO_SUB;
 
-    if (vfo == NULL) { RETURNFUNC(-RIG_EINTERNAL); }
-
-    RETURNFUNC2(RIG_OK);
+    RETURNFUNC(RIG_OK);
 }
-#endif
 
 /*
  * icom_set_vfo
@@ -2791,6 +2799,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     int ack_len = sizeof(ackbuf), icvfo, retval;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+    const struct icom_priv_caps *priv_caps = rig->caps->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -3044,6 +3053,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_OTHER:
         switch (rig->state.current_vfo)
         {
+        case RIG_VFO_CURR:
+            break; // no change needed
         case RIG_VFO_A:
             icvfo = vfo = RIG_VFO_B;
             break;
@@ -3082,7 +3093,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         }
 
     default:
-        if (priv->x25cmdfails == 0)
+        if (priv->x25cmdfails == 0 || priv_caps->x25_always)
             rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__,
                       rig_strvfo(vfo));
 
@@ -8068,6 +8079,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
                 if (retval != RIG_OK) { sleep(1); }
             }
+            if (retval == RIG_OK) priv->poweron = 1;
 
             return RIG_OK;
         }
@@ -8186,7 +8198,13 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
                   RIG_POWER_ON : RIG_POWER_OFF;
     }
 
-    if (rig->caps->rig_model == RIG_MODEL_IC7300)
+    if (rig->caps->rig_model == RIG_MODEL_IC2730 
+        || rig->caps->rig_model == RIG_MODEL_IC7100 
+        || rig->caps->rig_model == RIG_MODEL_IC7300 
+        || rig->caps->rig_model == RIG_MODEL_IC7600
+        || rig->caps->rig_model == RIG_MODEL_IC7610
+        || rig->caps->rig_model == RIG_MODEL_IC7700
+        || rig->caps->rig_model == RIG_MODEL_IC7800) 
     {
         freq_t freq;
         int retrysave = rig->caps->retry;
@@ -9052,12 +9070,14 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         freq_t freq = (freq_t) from_bcd(frame + 5, (priv->civ_731_mode ? 4 : 5) * 2);
         rig_fire_freq_event(rig, RIG_VFO_CURR, freq);
 
+#if 0
         if (rs->use_cached_freq != 1)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): use_cached_freq turning on\n", __func__,
                       __LINE__);
-            rs->use_cached_freq = 1;
+            rs->use_cached_freq = 0;
         }
+#endif
 
         break;
     }
@@ -9072,7 +9092,7 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): use_cached_mode turning on\n", __func__,
                       __LINE__);
-            rs->use_cached_mode = 1;
+            rs->use_cached_mode = 0;
         }
 
         break;

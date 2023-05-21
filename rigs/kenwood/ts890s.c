@@ -26,6 +26,7 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 #include "cal.h"
+#include "misc.h"
 
 // TODO: Copied from TS-480, to be verified
 #define TS890_VFO (RIG_VFO_A|RIG_VFO_B)
@@ -47,10 +48,16 @@
 int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
-    int kenwood_val;
+    int kenwood_val, retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
+    retval = check_level_param(rig, level, val, NULL);
+    if (retval != RIG_OK)
+      {
+	return retval;
+      }
+    
     switch (level)
     {
     case RIG_LEVEL_RF:
@@ -68,32 +75,20 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         /* possible values for TS890 0(=off), 1(=slow), 2(=mid), 3(=fast), 4(=off/Last) */
         rig_debug(RIG_DEBUG_VERBOSE, "%s TS890S RIG_LEVEL_AGC\n", __func__);
 
-        switch (val.i)
-        {
-        case RIG_AGC_OFF:
-            kenwood_val = 0;
-            break;
-
-        case RIG_AGC_SLOW:
-            kenwood_val = 1;
-            break;
-
-        case RIG_AGC_MEDIUM:
-            kenwood_val = 2;
-            break;
-
-        case RIG_AGC_FAST:
-            kenwood_val = 3;
-            break;
-
-        case RIG_AGC_AUTO:
-            kenwood_val = 4;
-            break;
-
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unsupported agc value", __func__);
+	kenwood_val = -1; /* Flag invalid value */
+	for (int j = 0; j < rig->caps->agc_level_count; j++)
+	  {
+	    if (val.i == rig->caps->agc_levels[j])
+	      {
+		kenwood_val = j;
+		break;
+	      }
+	  }
+	if ( kenwood_val < 0)
+	  {
+            rig_debug(RIG_DEBUG_ERR, "%s: unsupported agc value:%d\n", __func__, val.i);
             return -RIG_EINVAL;
-        }
+	  }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "GC%d", kenwood_val);
         break;
@@ -228,47 +223,23 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_AGC:
-        retval = kenwood_transaction(rig, "GC", ackbuf, sizeof(ackbuf));
-        ack_len_expected = 3;
+        retval = kenwood_safe_transaction(rig, "GC", ackbuf, sizeof(ackbuf), 3);
 
         if (RIG_OK != retval)
         {
             return retval;
         }
 
-        ack_len = strlen(ackbuf);
-
-        if (ack_len != ack_len_expected)
-        {
+	levelint = ackbuf[2] - '0';  /* atoi */
+	if (levelint >= 0 && levelint < rig->caps->agc_level_count)
+	  {
+	    val->i = rig->caps->agc_levels[levelint];
+	  }
+	else
+	  {
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown agc value: %s\n", __func__, ackbuf);
             return -RIG_EPROTO;
-        }
-
-        switch (ackbuf[ack_len_expected - 1])
-        {
-        case '0':
-            val->i = RIG_AGC_OFF;
-            break;
-
-        case '1':
-            val->i = RIG_AGC_SLOW;
-
-            break;
-
-        case '2':
-            val->i = RIG_AGC_MEDIUM;
-            break;
-
-        case '3':
-            val->i = RIG_AGC_FAST;
-            break;
-
-        case '4':
-            val->i = RIG_AGC_AUTO;
-            break;
-
-        default:
-            return -RIG_EPROTO;
-        }
+	  }
 
         return RIG_OK;
 
@@ -585,6 +556,7 @@ const struct rig_caps ts890s_caps =
     .get_ant = kenwood_get_ant,
     .send_morse =  kenwood_send_morse,
     .stop_morse =  kenwood_stop_morse,
+    .send_voice_mem = kenwood_send_voice_mem,
     .wait_morse =  rig_wait_morse,
     .scan = kenwood_scan,     /* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
     .has_set_level = TS890_LEVEL_SET,

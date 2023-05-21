@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20230512"
+#define BACKEND_VER "20230520"
 
 #define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
 #define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
@@ -244,6 +244,7 @@ struct icom_priv_caps
     struct icom_spectrum_edge_frequency_range spectrum_edge_frequency_ranges[ICOM_MAX_SPECTRUM_FREQ_RANGES]; /*!< Icom spectrum scope edge frequencies, if supported by the rig. Last entry should have zeros in all fields. */
     struct cmdparams *extcmds;  /*!< Pointer to extended operations array */
     int dualwatch_split;        /*!< Rig supports dual watch for split ops -- e.g. ID-5100 */
+    int x25_always;             /*!< Means the rig should use 0x25 and 0x26 commands always */
 };
 
 struct icom_priv_data
@@ -319,7 +320,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode,
                             pbwidth_t *width);
 int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-#if 0 // see icom_get_vfo in icom.c
+#if 1 // see icom_get_vfo in icom.c
 int icom_get_vfo(RIG *rig, vfo_t *vfo);
 #else
 #define icom_get_vfo NULL

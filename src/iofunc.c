@@ -731,9 +731,9 @@ static int port_wait_for_data_direct(hamlib_port_t *p)
     int fd = p->fd;
     struct timeval tv, tv_timeout;
     int result;
-
     tv_timeout.tv_sec = p->timeout / 1000;
     tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
+    rig_debug(RIG_DEBUG_CACHE, "%s(%d): timeout=%ld,%ld\n", __func__, __LINE__, tv_timeout.tv_sec, tv_timeout.tv_usec);
 
     tv = tv_timeout;    /* select may have updated it */
 
@@ -742,6 +742,7 @@ static int port_wait_for_data_direct(hamlib_port_t *p)
     efds = rfds;
 
     result = port_select(p, fd + 1, &rfds, NULL, &efds, &tv, 1);
+    rig_debug(RIG_DEBUG_CACHE, "%s(%d): timeout=%ld,%ld\n", __func__, __LINE__, tv_timeout.tv_sec, tv_timeout.tv_usec);
 
     if (result == 0)
     {
@@ -1126,6 +1127,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
     if (p->post_write_delay > 0)
     {
         method |= 4;
+#if 0
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 #define POST_WRITE_DELAY_TRSHLD 10
 
@@ -1137,6 +1139,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
             p->post_write_date.tv_usec = tv.tv_usec;
         }
         else
+#endif
 #endif
             hl_usleep(p->post_write_delay * 1000); /* optional delay after last write */
 
@@ -1177,8 +1180,8 @@ static int read_block_generic(hamlib_port_t *p, unsigned char *rxbuffer,
             if (timeout_retries > 0)
             {
                 timeout_retries--;
-                rig_debug(RIG_DEBUG_CACHE, "%s: retrying read timeout %d/%d\n", __func__,
-                    p->timeout_retry - timeout_retries, p->timeout_retry);
+                rig_debug(RIG_DEBUG_CACHE, "%s(%d): retrying read timeout %d/%d timeout=%dms\n", __func__, __LINE__,
+                    p->timeout_retry - timeout_retries, p->timeout_retry, p->timeout);
                 hl_usleep(10 * 1000);
                 continue;
             }
@@ -1333,12 +1336,10 @@ static int read_string_generic(hamlib_port_t *p,
     memset(rxbuffer, 0, rxmax);
 
     short timeout_retries = p->timeout_retry;
-
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
         ssize_t rd_count = 0;
         int result;
-
         result = port_wait_for_data(p, direct);
 
         if (result == -RIG_ETIMEOUT)
@@ -1346,8 +1347,8 @@ static int read_string_generic(hamlib_port_t *p,
             if (timeout_retries > 0)
             {
                 timeout_retries--;
-                rig_debug(RIG_DEBUG_CACHE, "%s: retrying read timeout %d/%d\n", __func__,
-                    p->timeout_retry - timeout_retries, p->timeout_retry);
+                rig_debug(RIG_DEBUG_CACHE, "%s(%d): retrying read timeout %d/%d timeout=%d\n", __func__, __LINE__,
+                    p->timeout_retry - timeout_retries, p->timeout_retry, p->timeout);
                 hl_usleep(10 * 1000);
                 continue;
             }

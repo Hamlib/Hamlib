@@ -287,6 +287,9 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
     {
         switch (rig->state.current_vfo)
         {
+        case RIG_VFO_CURR:
+            break;  // no change
+
         case RIG_VFO_OTHER:
             vfo = RIG_VFO_OTHER;
             break;

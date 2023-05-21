@@ -204,8 +204,8 @@ int main(int argc, char *argv[])
         {
             int val = ft;
 
-            if (ft == 2) { val == 0; }
-            else if (ft == 3) { val == 1; }
+            if (ft == 2) { val = 0; }
+            else if (ft == 3) { val = 1; }
 
             SNPRINTF(buf, sizeof(buf), "FT%d;", val);
             n = write(fd, buf, strlen(buf));

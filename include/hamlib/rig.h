@@ -1035,7 +1035,7 @@ typedef uint64_t rig_level_e;
 //! @cond Doxygen_Suppress
 #define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_TEMP_METER|RIG_LEVEL_USB_AF|RIG_LEVEL_AGC_TIME)
 
-#define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
+#define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_TEMP_METER|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
 
 #define RIG_LEVEL_IS_FLOAT(l) ((l)&RIG_LEVEL_FLOAT_LIST)
 #define RIG_LEVEL_SET(l) ((l)&~RIG_LEVEL_READONLY_LIST)
@@ -1619,7 +1619,7 @@ typedef struct chan_list chan_t;
  *
  * The granularity is undefined if min = 0, max = 0, and step = 0.
  *
- * For float settings, if min.f = 0 and max.f = 0 (and step.f! = 0), max.f is
+ * For float settings, if min.f = 0 and max.f = 0 (and step.f != 0), max.f is
  * assumed to be actually equal to 1.0.
  *
  * If step = 0 (and min and/or max are not null), then this means step can
@@ -2084,7 +2084,6 @@ struct rig_caps {
     int (*password)(RIG *rig, const char *key1); /*< Send encrypted password if rigctld is secured with -A/--password */
     int (*set_lock_mode)(RIG *rig, int mode);
     int (*get_lock_mode)(RIG *rig, int *mode);
-    short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to use default value, -1 to disable */
 };
 //! @endcond
 
