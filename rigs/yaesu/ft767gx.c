@@ -259,7 +259,7 @@ const struct rig_caps ft767gx_caps =
     RIG_MODEL(RIG_MODEL_FT767),
     .model_name =       "FT-767GX",
     .mfg_name =         "Yaesu",
-    .version =           "20210221.0",
+    .version =           "20230522.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rig_type =          RIG_TYPE_TRANSCEIVER,
@@ -468,6 +468,7 @@ int ft767_open(RIG *rig)
         return retval;
     }
 
+#if 0 // we should be able to leave CAT on and just turn off on close
     retval = ft767_leave_CAT(rig);
 
     if (retval < 0)
@@ -476,6 +477,7 @@ int ft767_open(RIG *rig)
         memset(priv->update_data, 0, FT767GX_STATUS_UPDATE_DATA_LENGTH);
         return retval;
     }
+#endif
 
     rig->state.vfo_list = RIG_VFO_A | RIG_VFO_B;
     return RIG_OK;
@@ -488,7 +490,13 @@ int ft767_open(RIG *rig)
 
 int ft767_close(RIG *rig)
 {
-    rig_flush(&rig->state.rigport);
+    int retval = ft767_leave_CAT(rig);
+
+    if (retval < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: leave_CAT %d\n", __func__, retval);
+        return retval;
+    }
     return RIG_OK;
 }
 
@@ -506,6 +514,7 @@ int ft767_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* fill in first four bytes */
     to_bcd(cmd, freq / 10, 8);
 
+#if 0
     retval = ft767_enter_CAT(rig);
 
     if (retval < 0)
@@ -513,6 +522,7 @@ int ft767_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_ERR, "%s: enter_CAT %d\n", __func__, retval);
         return retval;
     }
+#endif
 
     retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
 
@@ -523,12 +533,14 @@ int ft767_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return retval;
     }
 
+#if 0
     retval = ft767_leave_CAT(rig);
 
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: leave_CAT %d\n", __func__, retval);
     }
+#endif
 
     return retval;
 }
@@ -541,6 +553,7 @@ int ft767_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     /* fill in p1 */
     cmd[3] = mode2rig(rig, mode);
 
+#if 0
     retval = ft767_enter_CAT(rig);
 
     if (retval < 0)
@@ -548,6 +561,7 @@ int ft767_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         rig_debug(RIG_DEBUG_ERR, "%s: enter_CAT %d\n", __func__, retval);
         return retval;
     }
+#endif
 
     retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
 
@@ -558,12 +572,14 @@ int ft767_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return retval;
     }
 
+#if 0
     retval = ft767_leave_CAT(rig);
 
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: leave_CAT %d\n", __func__, retval);
     }
+#endif
 
     return retval;
 }
@@ -674,6 +690,7 @@ int ft767_set_vfo(RIG *rig, vfo_t vfo)
 
     priv->current_vfo = vfo;
 
+#if 0
     retval = ft767_enter_CAT(rig);
 
     if (retval < 0)
@@ -681,6 +698,7 @@ int ft767_set_vfo(RIG *rig, vfo_t vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: enter_CAT %d\n", __func__, retval);
         return retval;
     }
+#endif
 
     retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
 
@@ -691,12 +709,14 @@ int ft767_set_vfo(RIG *rig, vfo_t vfo)
         return retval;
     }
 
+#if 0
     retval = ft767_leave_CAT(rig);
 
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: leave_CAT %d\n", __func__, retval);
     }
+#endif
 
     return retval;
 }
@@ -761,6 +781,7 @@ int ft767_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     /*  cmd[3] = tone2rig(rig, tone); */
 
+#if 0
     retval = ft767_enter_CAT(rig);
 
     if (retval < 0)
@@ -768,6 +789,7 @@ int ft767_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
         rig_debug(RIG_DEBUG_ERR, "%s: enter_CAT %d\n", __func__, retval);
         return retval;
     }
+#endif
 
     retval =  ft767_send_block_and_ack(rig, cmd, YAESU_CMD_LENGTH);
 
@@ -778,12 +800,14 @@ int ft767_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
         return retval;
     }
 
+#if 0
     retval = ft767_leave_CAT(rig);
 
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: leave_CAT %d\n", __func__, retval);
     }
+#endif
 
     return retval;
 }
@@ -879,6 +903,7 @@ int ft767_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     /* fill in first four bytes */
     to_bcd(freq_cmd, tx_freq / 10, 8);
 
+#if 0
     retval = ft767_enter_CAT(rig);
 
     if (retval < 0)
@@ -886,6 +911,7 @@ int ft767_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         rig_debug(RIG_DEBUG_ERR, "%s: enter_CAT %d\n", __func__, retval);
         return retval;
     }
+#endif
 
     /* change to the xmit VFO */
     vfo_cmd[3] = vfo2rig(rig, change_vfo);
@@ -919,12 +945,14 @@ int ft767_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         return retval;
     }
 
+#if 0
     retval = ft767_leave_CAT(rig);
 
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: leave_CAT %d\n", __func__, retval);
     }
+#endif
 
     return RIG_OK;
 }
@@ -1042,6 +1070,7 @@ int ft767_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     /* fill in p1 */
     mode_cmd[3] = mode2rig(rig, tx_mode);
 
+#if 0
     retval = ft767_enter_CAT(rig);
 
     if (retval < 0)
@@ -1049,6 +1078,7 @@ int ft767_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         rig_debug(RIG_DEBUG_ERR, "%s: enter_CAT %d\n", __func__, retval);
         return retval;
     }
+#endif
 
     /* change to the xmit VFO */
     vfo_cmd[3] = vfo2rig(rig, change_vfo);
@@ -1082,12 +1112,14 @@ int ft767_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         return retval;
     }
 
+#if 0
     retval = ft767_leave_CAT(rig);
 
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: leave_CAT %d\n", __func__, retval);
     }
+#endif
 
     return RIG_OK;
 }
@@ -1227,6 +1259,7 @@ int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
         rig_flush(&rig->state.rigport);
 
+#if 0
         retval = ft767_enter_CAT(rig);
 
         if (retval < 0)
@@ -1234,6 +1267,7 @@ int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             rig_debug(RIG_DEBUG_ERR, "%s: enter_CAT %d\n", __func__, retval);
             return retval;
         }
+#endif
 
         /* See whether we need to toggle the split state */
         curr_split = priv->update_data[STATUS_FLAGS] & STATUS_MASK_SPLIT;
@@ -1284,6 +1318,7 @@ int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             }
         }
 
+#if 0
         retval = ft767_leave_CAT(rig);
 
         if (retval < 0)
@@ -1291,6 +1326,7 @@ int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             rig_debug(RIG_DEBUG_ERR, "%s: leave_CAT %d\n", __func__, retval);
             return retval;
         }
+#endif
 
         break;
 
