@@ -2723,6 +2723,11 @@ char *date_strget(char *buf, int buflen, int localtime)
     return buf;
 }
 
+char *rig_date_strget(char *buf, int buflen, int localtime)
+{
+    return date_strget(buf,buflen,localtime);
+}
+
 const char *spaces()
 {
     static char *s = "                     ";

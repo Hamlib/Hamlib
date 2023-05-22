@@ -3476,6 +3476,8 @@ extern HAMLIB_EXPORT(int) rig_get_lock_mode(RIG *rig, int *lock);
 
 extern HAMLIB_EXPORT(int) rig_is_model(RIG *rig, rig_model_t model);
 
+extern HAMLIB_EXPORT(char*) rig_date_strget(char *buf, int buflen, int localtime);
+
 
 //! @endcond
 
