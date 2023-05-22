@@ -2562,13 +2562,17 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
                                       enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
+#if 0
     rig_debug(RIG_DEBUG_TRACE, "%s: getting rig_caps for model=%d, rig_caps=%d\n",
               __func__, rig_model, rig_caps);
+#endif
 
     if (caps == NULL)
     {
+#if 0
         rig_debug(RIG_DEBUG_ERR, "%s: called with NULL caps...returning -1\n",
                   __func__);
+#endif
         return -1;
     }
 
@@ -2581,7 +2585,9 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->rig_model;
 
     case RIG_CAPS_PTT_TYPE:
+#if 0
         rig_debug(RIG_DEBUG_TRACE, "%s: return %u\n", __func__, caps->ptt_type);
+#endif
         return caps->ptt_type;
 
     case RIG_CAPS_PORT_TYPE:
@@ -2591,7 +2597,9 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->has_get_level;
 
     default:
+#if 0
         rig_debug(RIG_DEBUG_ERR, "%s: Unknown rig_caps value=%d\n", __func__, rig_caps);
+#endif
         return (-RIG_EINVAL);
     }
 }
@@ -2603,8 +2611,8 @@ const char *HAMLIB_API rig_get_caps_cptr(rig_model_t rig_model,
 
     if (caps == NULL)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: called with NULL caps...returning NULL\n",
-                  __func__);
+//        rig_debug(RIG_DEBUG_ERR, "%s: called with NULL caps...returning NULL\n",
+//                  __func__);
         return NULL;
     }
 
@@ -2623,8 +2631,10 @@ const char *HAMLIB_API rig_get_caps_cptr(rig_model_t rig_model,
         return rig_strstatus(caps->status);
 
     default:
+#if 0
         rig_debug(RIG_DEBUG_ERR, "%s: Unknown requested rig_caps value=%d\n", __func__,
                   rig_caps);
+#endif
         return "Unknown caps value";
     }
 }
