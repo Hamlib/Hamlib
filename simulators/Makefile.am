@@ -8,7 +8,7 @@ DISTCLEANFILES =
 
 bin_PROGRAMS = 
 
-check_PROGRAMS = simelecraft simicom simkenwood simyaesu simicom9100 simicom9700 simft991 simftdx1200 simftdx3000 simjupiter simpowersdr simid5100 simft736 simftdx5000 simtmd700 simrotorez simspid simft817 simts590 simft847 simicom7300
+check_PROGRAMS = simelecraft simicom simkenwood simyaesu simicom9100 simicom9700 simft991 simftdx1200 simftdx3000 simjupiter simpowersdr simid5100 simft736 simftdx5000 simtmd700 simrotorez simspid simft817 simts590 simft847 simicom7300 simicom7100
 
 simelecraft_SOURCES = simelecraft.c 
 simicom_SOURCES = simicom.c 
