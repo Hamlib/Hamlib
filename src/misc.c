@@ -986,15 +986,17 @@ int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
 
         /* If min==max==step==0, all values are OK here */
         maxval = this_gran->max.f;
+
         if (this_gran->min.f == 0.0f && maxval == 0.0f)
         {
-	  /* if step==0 also, we're good */
-	  if (this_gran->step.f == 0.0f)
-	    {
-	      return RIG_OK;
-	    }
-	  /* non-zero step, check for max of 1.0 */
-	  maxval = 1.0f;
+            /* if step==0 also, we're good */
+            if (this_gran->step.f == 0.0f)
+            {
+                return RIG_OK;
+            }
+
+            /* non-zero step, check for max of 1.0 */
+            maxval = 1.0f;
         }
 
         if (val.f < this_gran->min.f || val.f > maxval)
@@ -2560,7 +2562,15 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
                                       enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
-    rig_debug(RIG_DEBUG_TRACE, "%s: getting rig_caps for model=%d, rig_caps=%d\n", __func__, rig_model, rig_caps);
+    rig_debug(RIG_DEBUG_TRACE, "%s: getting rig_caps for model=%d, rig_caps=%d\n",
+              __func__, rig_model, rig_caps);
+
+    if (caps == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: called with NULL caps...returning -1\n",
+                  __func__);
+        return -1;
+    }
 
     switch (rig_caps)
     {
@@ -2590,6 +2600,13 @@ const char *HAMLIB_API rig_get_caps_cptr(rig_model_t rig_model,
         enum rig_caps_cptr_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
+
+    if (caps == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: called with NULL caps...returning NULL\n",
+                  __func__);
+        return NULL;
+    }
 
     switch (rig_caps)
     {
