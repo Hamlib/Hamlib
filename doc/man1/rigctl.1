@@ -734,6 +734,11 @@ Stop sending the current morse code.
 Wait for morse to finish -- only works on full break-in
 .
 .TP
+.BR 0x94 ", " send_voice_mem " \(aq" \fIMsgnum\fP \(aq
+Have rig transmit internal message
+.RI \(aq Msgnum \(aq
+.
+.TP
 .BR 0x8b ", " get_dcd
 Get
 .RI \(aq DCD \(aq
@@ -876,9 +881,9 @@ Level is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOXDELAY\(cq, \(oqAF\(cq,
 \(oqBAL\(cq, \(oqMETER\(cq, \(oqVOXGAIN\(cq, \(oqANTIVOX\(cq,
 \(oqSLOPE_LOW\(cq, \(oqSLOPE_HIGH\(cq, \(oqBKIN_DLYMS\(cq, \(oqRAWSTR\(cq, \(oqSWR\(cq,
 \(oqALC\(cq, \(oqSTRENGTH\(cq, \(oqRFPOWER_METER\(cq, \(oqCOMPMETER\(cq, \(oqVD_METER\(cq, \(oqID_METER\(cq,
-\(oqNOTCHF_RAW\(cq, \(oqMONITOR_GAIN\(cq, \(oqNQ\(cq, \(oqRFPOWER_METER_WATTS\cq, \(oqSPECTRUM_MODE\(cq,
-\(oqSPECTRUM_SPAN\(cq, \(oqSPECTRUM_EDGE_LOW\(cq, \(oqSPECTRUM_EDGE_HIGH\(cq, \(oqSPECTRUM_SPEED\cq,
-\(oqSPECTRUM_REF\(cq, (oqSPECTRUM_AVG\(cq, \(oqSPECTRUM_ATT\cq, \(oqTEMP_METER\cq, \(oqBAND_SELECT\(cq,
+\(oqNOTCHF_RAW\(cq, \(oqMONITOR_GAIN\(cq, \(oqNQ\(cq, \(oqRFPOWER_METER_WATTS\(cq, \(oqSPECTRUM_MODE\(cq,
+\(oqSPECTRUM_SPAN\(cq, \(oqSPECTRUM_EDGE_LOW\(cq, \(oqSPECTRUM_EDGE_HIGH\(cq, \(oqSPECTRUM_SPEED\(cq,
+\(oqSPECTRUM_REF\(cq, \(oqSPECTRUM_AVG\(cq, \(oqSPECTRUM_ATT\(cq, \(oqTEMP_METER\(cq, \(oqBAND_SELECT\(cq,
 \(oqUSB_AF\(cq.
 .IP
 The Level Value can be a float or an integer value.  For the AGC token the
