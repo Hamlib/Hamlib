@@ -246,7 +246,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct rig_state *rs;
 
-    if (datasize > 0 && datasize < strlen(cmdstr)) {
+    if (datasize > 0 && datasize < (cmdstr ? strlen(cmdstr) : 0)) {
     rig_debug(RIG_DEBUG_WARN, "%s called cmd=%s datasize=%d, datasize < cmd length?\n", __func__,
               cmdstr ? cmdstr : "(NULL)",
               (int)datasize);
