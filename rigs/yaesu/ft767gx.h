@@ -32,7 +32,7 @@
 
 #define FT767GX_PACING_INTERVAL                5
 #define FT767GX_PACING_DEFAULT_VALUE           0
-#define FT767GX_WRITE_DELAY                    50
+#define FT767GX_WRITE_DELAY                    0
 
 
 /* Sequential fast writes confuse my FT767GX without this delay */
