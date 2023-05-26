@@ -100,7 +100,7 @@ const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " "
                               ARCHBITS;
 HAMLIB_EXPORT_VAR(int) cookie_use;
 HAMLIB_EXPORT_VAR(int) lock_mode; // for use by rigctld
-HAMLIB_EXPORT_VAR(powerstat_t) rig_powerstat; // for use by rigctld
+HAMLIB_EXPORT_VAR(powerstat_t) rig_powerstat; // for use by both rigctld and rigctl
 //! @endcond
 
 struct rig_caps caps_test;
@@ -6167,6 +6167,12 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 
     HAMLIB_TRACE;
     retcode = rig->caps->set_powerstat(rig, status);
+
+    if (retcode == RIG_OK)
+    {
+        rig->state.powerstat = status;
+    }
+
     // if anything is queued up flush it
     rig_flush_force(&rig->state.rigport, 1);
     RETURNFUNC(retcode);
@@ -6214,7 +6220,11 @@ int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
     HAMLIB_TRACE;
     retcode = rig->caps->get_powerstat(rig, status);
 
-    if (retcode != RIG_OK)
+    if (retcode == RIG_OK)
+    {
+        rig->state.powerstat = *status;
+    }
+    else
     {
         // if failed, assume power is on
         *status = RIG_POWER_ON;

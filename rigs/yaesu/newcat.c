@@ -10534,10 +10534,11 @@ int newcat_get_cmd(RIG *rig)
     int retry_count = 0;
     int rc = -RIG_EPROTO;
     int is_read_cmd = 0;
+    int is_power_status_cmd = strncmp(priv->cmd_str, "PS", 2) == 0;
 
     ENTERFUNC;
 
-    if (state->powerstat == 0)
+    if (state->powerstat == 0 && !is_power_status_cmd)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n", __func__);
         return RIG_OK; // to prevent repeats
@@ -10614,13 +10615,12 @@ int newcat_get_cmd(RIG *rig)
         || strcmp(priv->cmd_str, "VT0;") == 0
         || strcmp(priv->cmd_str, "VT1;") == 0;
 
-    if (priv->cmd_str[2] !=
-            ';' && !is_read_cmd) // then we must be setting something so we'll invalidate the cache
+    if (priv->cmd_str[2] != ';' && !is_read_cmd)
     {
+        // then we must be setting something so we'll invalidate the cache
         rig_debug(RIG_DEBUG_TRACE, "%s: cache invalidated\n", __func__);
         priv->cache_start.tv_sec = 0;
     }
-
 
     while (rc != RIG_OK && retry_count++ <= state->rigport.retry)
     {
@@ -10630,11 +10630,8 @@ int newcat_get_cmd(RIG *rig)
             /* send the command */
             rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
-            
-            if (strncmp(priv->cmd_str,"PS",2)==0) state->rigport.timeout_retry = 0;
-            if (RIG_OK != (rc = write_block(&state->rigport,
-                                            (unsigned char *) priv->cmd_str,
-                                            strlen(priv->cmd_str))))
+            rc = write_block(&state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str));
+            if (rc != RIG_OK)
             {
                 RETURNFUNC(rc);
             }
@@ -10646,9 +10643,10 @@ int newcat_get_cmd(RIG *rig)
                               &cat_term, sizeof(cat_term), 0, 1)) <= 0)
         {
             // if we get a timeout from PS probably means power is off
-            if (strncmp(priv->cmd_str,"PS",2)==0) {
+            if (rc == -RIG_ETIMEOUT && is_power_status_cmd)
+            {
                 rig_debug(RIG_DEBUG_WARN, "%s: rig power is off?\n", __func__);
-                return -RIG_ETIMEOUT;
+                RETURNFUNC(rc);
             }
             continue;             /* usually a timeout - retry */
         }
