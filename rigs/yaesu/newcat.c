@@ -2875,7 +2875,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     if (offset == 0)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: incorrect length of IF response, expected 27 or 28, got %du", __func__,
+                  "%s: incorrect length of IF response, expected 27 or 28, got %du\n", __func__,
                   (int)strlen(priv->ret_data));
         RETURNFUNC(-RIG_EPROTO);
     }
