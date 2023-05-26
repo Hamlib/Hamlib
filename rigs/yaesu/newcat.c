@@ -1579,6 +1579,11 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
+    if (rig->state.powerstat == 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n", __func__);
+        return RIG_OK; // to prevent repeats
+    }
 
     err = newcat_set_vfo_from_alias(rig, &vfo);
 
@@ -10449,6 +10454,11 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, rmode_t *vfo_mode)
     {
         RETURNFUNC(err);
     }
+    if (rig->state.powerstat == 0)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n", __func__);
+        return RIG_OK; // to prevent repeats
+    }
 
     /* vfo, mem, P7 ************************** */
     // e.g. FT450 has 27 byte IF response, FT991 has 28 byte if response (one more byte for P2 VFO A Freq)
@@ -10537,6 +10547,7 @@ int newcat_get_cmd(RIG *rig)
     int is_power_status_cmd = strncmp(priv->cmd_str, "PS", 2) == 0;
 
     ENTERFUNC;
+    priv->ret_data[0] = 0;  // ensure zero-length ret_data by default
 
     if (state->powerstat == 0 && !is_power_status_cmd)
     {
