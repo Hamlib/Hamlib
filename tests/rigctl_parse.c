@@ -104,7 +104,7 @@ char rigctld_password[64];
 int is_passwordOK;
 int is_rigctld;
 extern int lock_mode; // used by rigctld
-extern int rig_powerstat;
+extern powerstat_t rig_powerstat;
 
 
 
@@ -4723,7 +4723,6 @@ declare_proto_rig(set_powerstat)
     retval = rig_set_powerstat(rig, (powerstat_t) stat);
     if (retval == RIG_OK)
     {
-        rig->state.powerstat = stat;
         rig_powerstat = stat; // update our global so others can see powerstat
     }
     fflush(fin);
@@ -4752,7 +4751,6 @@ declare_proto_rig(get_powerstat)
     }
 
     fprintf(fout, "%d\n", stat);
-    rig->state.powerstat = stat;
     rig_powerstat = stat; // update our global so others can see powerstat
 
     RETURNFUNC2(status);
