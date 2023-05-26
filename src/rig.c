@@ -1295,7 +1295,7 @@ int HAMLIB_API rig_open(RIG *rig)
             {
                 // rig_open() should succeed even if the rig is powered off, so simply log power status
                 rig_debug(RIG_DEBUG_ERR,
-                          "%s: rig power is off, use --set-conf=auto_power_on=1 if power on is wanted\n",
+                          "%s: rig power is off, use --set-conf=auto_power_on=1 or set_powerstat if power on is wanted\n",
                           __func__);
             }
 
