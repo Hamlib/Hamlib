@@ -175,7 +175,6 @@ struct kenwood_priv_data
     rmode_t modeB;
     int datamodeA; // datamode status from get_mode or set_mode
     int datamodeB; // datamode status from get_mode or set_mode
-    int ps_cmd_wakeup_data; // PS command requires wakeup characters (;)
     int question_mark_response_means_rejected; /* the question mark response has multiple meanings */
     int save_k2_ext_lvl; // so we can restore to original
     int save_k3_ext_lvl; // so we can restore to original -- for future use if needed

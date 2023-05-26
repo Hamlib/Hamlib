@@ -104,7 +104,7 @@ char rigctld_password[64];
 int is_passwordOK;
 int is_rigctld;
 extern int lock_mode; // used by rigctld
-extern int rig_powerstat;
+extern powerstat_t rig_powerstat;
 
 
 
@@ -1732,8 +1732,7 @@ readline_repeat:
     else
     {
         // Allow only certain commands when the rig is powered off
-        if (retcode == RIG_OK && (rig_powerstat == RIG_POWER_OFF
-                                  || rig_powerstat == RIG_POWER_STANDBY)
+        if ((rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY)
                 && cmd_entry->cmd != '1' // dump_caps
                 && cmd_entry->cmd != '3' // dump_conf
                 && cmd_entry->cmd != 0x8f // dump_state
@@ -4722,8 +4721,10 @@ declare_proto_rig(set_powerstat)
     CHKSCN1ARG(sscanf(arg1, "%d", &stat));
 
     retval = rig_set_powerstat(rig, (powerstat_t) stat);
-    rig->state.powerstat = stat;
-    rig_powerstat = stat; // update our global so others can see powerstat
+    if (retval == RIG_OK)
+    {
+        rig_powerstat = stat; // update our global so others can see powerstat
+    }
     fflush(fin);
     RETURNFUNC2(retval);
 }
@@ -4750,7 +4751,7 @@ declare_proto_rig(get_powerstat)
     }
 
     fprintf(fout, "%d\n", stat);
-    rig->state.powerstat = stat;
+    rig_powerstat = stat; // update our global so others can see powerstat
 
     RETURNFUNC2(status);
 }
