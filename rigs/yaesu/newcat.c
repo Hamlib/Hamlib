@@ -2991,7 +2991,7 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     if (offset == 0)
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: incorrect length of IF response, expected 27 or 28, got %du", __func__,
+                  "%s: incorrect length of IF response, expected 27 or 28, got %du\n", __func__,
                   (int)strlen(priv->ret_data));
         RETURNFUNC(-RIG_EPROTO);
     }
@@ -10461,7 +10461,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, rmode_t *vfo_mode)
 
     default:
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: incorrect length of IF response, expected 27 or 28, got %d", __func__,
+                  "%s: incorrect length of IF response, expected 27 or 28, got %d\n", __func__,
                   (int)strlen(priv->ret_data));
         RETURNFUNC(-RIG_EPROTO);
     }
