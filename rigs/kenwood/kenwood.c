@@ -328,15 +328,6 @@ transaction_write:
         /* flush anything in the read buffer before command is sent */
         rig_flush(&rs->rigport);
 
-        // PS command may need to wake up serial port
-        if (priv->ps_cmd_wakeup_data)
-        {
-            if (strncmp(cmd, "PS", 2) == 0)
-            {
-                write_block(&rs->rigport, (unsigned char *) ";;;;", 4);
-            }
-        }
-
         retval = write_block(&rs->rigport, (unsigned char *) cmd, len);
 
         free(cmd);
@@ -553,19 +544,8 @@ transaction_read:
      */
     if (datasize)
     {
-        char *ps_cmd;
-
-        if (priv->ps_cmd_wakeup_data)
-        {
-            ps_cmd = ";;;;PS";
-        }
-        else
-        {
-            ps_cmd = "PS";
-        }
-
         // we ignore the special PS command
-        if (cmdstr && strcmp(cmdstr, ps_cmd) != 0 && (buffer[0] != cmdstr[0]
+        if (cmdstr && strcmp(cmdstr, "PS") != 0 && (buffer[0] != cmdstr[0]
                 || (cmdstr[1] && buffer[1] != cmdstr[1])))
         {
             /*
@@ -5060,6 +5040,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
 int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
     int retval;
+    struct rig_state *state = &rig->state;
     struct kenwood_priv_data *priv = rig->state.priv;
 
     if ((priv->is_k3 || priv->is_k3s) && status == RIG_POWER_ON)
@@ -5073,6 +5054,14 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
     int retry_save = rig->state.rigport.retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
+
+    if (status == RIG_POWER_ON)
+    {
+        // When powering on a Kenwood rig needs dummy bytes to wake it up,
+        // then wait at least 200ms and within 2 seconds issue the power-on command again
+        write_block(&state->rigport, (unsigned char *) "PS1;", 4);
+        hl_usleep(500000);
+    }
 
     rig->state.rigport.retry = 0;
 
@@ -5117,7 +5106,8 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
 {
     char pwrbuf[6];
-    int retval;
+    int result;
+    struct rig_state *state = &rig->state;
     struct kenwood_priv_data *priv = rig->state.priv;
 
     ENTERFUNC;
@@ -5133,22 +5123,61 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    char *ps_cmd;
+    // The first PS command has two purposes:
+    // 1. to detect that the rig is turned on/off when it responds with PS1/PS0 immediately
+    // 2. to act as dummy wake-up data for a rig that is turned off
 
-    if (priv->ps_cmd_wakeup_data)
+    // Timeout needs to be set temporarily to a low value,
+    // so that the second command can be sent in 2 seconds, which is what Kenwood rigs expect.
+    short retry_save;
+    short timeout_retry_save;
+    int timeout_save;
+
+    retry_save = state->rigport.retry;
+    timeout_retry_save = state->rigport.timeout_retry;
+    timeout_save = state->rigport.timeout;
+
+    state->rigport.retry = 0;
+    state->rigport.timeout_retry = 0;
+    state->rigport.timeout = 500;
+
+    result = kenwood_safe_transaction(rig, "PS", pwrbuf, 6, 3);
+
+    state->rigport.retry = retry_save;
+    state->rigport.timeout_retry = timeout_retry_save;
+    state->rigport.timeout = timeout_save;
+
+    // Rig may respond here already
+    if (result == RIG_OK)
     {
-        ps_cmd = ";;;;PS";
+        char ps = pwrbuf[2];
+
+        switch (ps)
+        {
+        case '1':
+            *status = RIG_POWER_ON;
+            RETURNFUNC(RIG_OK);
+
+        case '0':
+            *status = RIG_POWER_OFF;
+            RETURNFUNC(RIG_OK);
+
+        default:
+            // fall through to retry command
+            break;
+        }
     }
-    else
-    {
-        ps_cmd = "PS";
-    }
 
-    retval = kenwood_safe_transaction(rig, ps_cmd, pwrbuf, 6, 3);
+    // Kenwood rigs in powered-off state require the PS command to be sent
+    // after waiting for at least 200ms and within 2 seconds after dummy data
+    hl_usleep(500000);
+    // Discard any unsolicited data
+    rig_flush(&rig->state.rigport);
 
-    if (retval != RIG_OK)
+    result = kenwood_safe_transaction(rig, "PS", pwrbuf, 6, 3);
+    if (result != RIG_OK)
     {
-        RETURNFUNC(retval);
+        RETURNFUNC(result);
     }
 
     *status = pwrbuf[2] == '0' ? RIG_POWER_OFF : RIG_POWER_ON;
