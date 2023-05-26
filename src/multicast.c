@@ -13,6 +13,7 @@
 #endif
 #include "hamlib/rig.h"
 #include "misc.h"
+#if 0
 #include "multicast.h"
 
 #define RIG_MULTICAST_ADDR "224.0.0.1"
@@ -523,4 +524,5 @@ int main(int argc, char *argv[])
     pthread_exit(NULL);
     return 0;
 }
+#endif
 #endif

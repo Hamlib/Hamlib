@@ -2629,7 +2629,7 @@ struct rig_state {
     char client_version[32];  /*!<! Allow client to report version for compatibility checks/capability */
     freq_t offset_vfoa; /*!< Offset to apply to VFOA/Main set_freq */
     freq_t offset_vfob; /*!< Offset to apply to VFOB/Sub set_freq */
-    struct multicast_s *multicast; /*!< Pointer to multicast server data */
+//    struct multicast_s *multicast; /*!< Pointer to multicast server data */
 };
 
 //! @cond Doxygen_Suppress
