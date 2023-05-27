@@ -38,13 +38,14 @@ getmyline(int fd, unsigned char *buf)
     // seemd the anytone only gives 8-byte commands and 1-byte responses
     while (i < 8 && read(fd, &c, 1) > 0)
     {
-        if (i==0 && buf[i]==0x06)
+        if (i == 0 && c == 0x06)
         {
-            write(fd, buf, 1);
+            write(fd, &c, 1);
         }
-        else {
-        buf[i++] = c;
-        n++;
+        else
+        {
+            buf[i++] = c;
+            n++;
         }
     }
 
@@ -96,9 +97,7 @@ int openPort(char *comport) // doesn't matter for using pts devices
 int main(int argc, char *argv[])
 {
     unsigned char buf[256];
-    unsigned char *pbuf;
     int n;
-
 
 again:
     int fd = openPort(argv[1]);
@@ -136,8 +135,15 @@ again:
             n = write(fd, buf, 1);
             break;
 
-        default: printf("Unknown cmd=%02x\n", buf[0]);
+        case 0x06:
+            buf[0] = 0x06;
+            n = write(fd, buf, 1);
+            break;
+
+        default: printf("Unknown cmd=%02x\n", buf[0]); continue;
         }
+
+        printf("%d bytes returned\n", n);
     }
 
     return 0;
