@@ -9,10 +9,23 @@
 
 extern const struct rig_caps anytone_d578_caps;
 
+#ifdef PTHREAD
+#include <pthread.h>
+#define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
+#define MUTEX_LOCK(var) pthread_mutex_lock(var)
+#define MUTEX_UNLOCK(var)  pthread_mutex_unlock(var)
+#else
+#define MUTEX(var)
+#define MUTEX_LOCK(var)
+#define MUTEX_UNLOCK(var)
+#endif
+
 typedef struct _anytone_priv_data
 {
     int           ptt;
     vfo_t         vfo_curr;
+    int           runflag; // thread control
+    pthread_mutex_t mutex;
 } anytone_priv_data_t,
 * anytone_priv_data_ptr;
 

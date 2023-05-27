@@ -29,6 +29,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <errno.h>
 
 // ---------------------------------------------------------------------------
 //    HAMLIB INCLUDES
@@ -117,6 +118,30 @@ DECLARE_PROBERIG_BACKEND(anytone)
     return retval;
 }
 
+// AnyTone needs a keep-alive to emulate the MIC
+// Apparently to keep the rig from getting stuck in PTT if mic disconnects
+void *anytone_thread(void *vrig)
+{
+    RIG *rig = (RIG *)vrig;
+    anytone_priv_data_t *p = rig->state.priv;
+    rig_debug(RIG_DEBUG_TRACE, "%s: anytone_thread started\n", __func__);
+    p->runflag = 1;
+
+    while (p->runflag)
+    {
+        char c = 0x06;
+        MUTEX_LOCK(p->priv.mutex);
+        write_block(&rig->state.rigport, (unsigned char *)&c, 1);
+        hl_usleep(100 * 1000);
+        rig_flush(&rig->state.rigport);
+        MUTEX_UNLOCK(p->priv.mutex);
+        hl_usleep(1000 * 1000); // 1-second loop
+
+    }
+
+    return NULL;
+}
+
 // ---------------------------------------------------------------------------
 // anytone_send
 // ---------------------------------------------------------------------------
@@ -174,6 +199,7 @@ int anytone_transaction(RIG *rig, char *cmd, int cmd_len)
     }
     else
     {
+        MUTEX_LOCK(p->priv.mutex);
         retval = anytone_send(rig, cmd, cmd_len);
 
         if (retval == RIG_OK)
@@ -181,6 +207,8 @@ int anytone_transaction(RIG *rig, char *cmd, int cmd_len)
             char buf[16];
             anytone_receive(rig, buf, sizeof(buf), 1);
         }
+
+        MUTEX_LOCK(p->priv.mutex);
     }
 
     RETURNFUNC(retval);
@@ -212,6 +240,9 @@ int anytone_init(RIG *rig)
         rig->state.priv = pPriv;
         anytone_priv_data_t *p = rig->state.priv;
         p->vfo_curr = RIG_VFO_NONE;
+#ifdef HAVE_PTHREAD
+        pthread_mutex_init(&p->mutex, NULL);
+#endif
     }
 
     RETURNFUNC(retval);
@@ -264,6 +295,17 @@ int anytone_open(RIG *rig)
 
         // can we ask for any information?  Maybe just toggle A/B?
     }
+
+    pthread_t id;
+    int err = pthread_create(&id, NULL, anytone_thread, (void *)rig);
+
+    if (err)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
+                  strerror(errno));
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
 
     RETURNFUNC(retval);
 }
@@ -333,18 +375,19 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
     }
     else
     {
+        // can we use status reponse to deteremin which VFO is active?
         if (vfo == RIG_VFO_A)
         {
-            char buf1[8] = { 0x41, 0x00, 0x01, 0x00, 0x1a, 0x00, 0x00, 0x06 };
-            char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x1a, 0x00, 0x00, 0x06 };
+            char buf1[8] = { 0x41, 0x00, 0x01, 0x00, 0x0d, 0x00, 0x00, 0x06 };
+            char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x06 };
             anytone_transaction(rig, buf1, 8);
             hl_usleep(100 * 1000);
             anytone_transaction(rig, buf2, 8);
         }
         else
         {
-            char buf1[8] = { 0x41, 0x00, 0x01, 0x00, 0x1b, 0x00, 0x00, 0x06 };
-            char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x1b, 0x00, 0x00, 0x06 };
+            char buf1[8] = { 0x41, 0x00, 0x01, 0x00, 0x0d, 0x00, 0x00, 0x06 };
+            char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x06 };
             anytone_transaction(rig, buf1, 8);
             hl_usleep(100 * 1000);
             anytone_transaction(rig, buf2, 8);
