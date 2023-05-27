@@ -190,6 +190,7 @@ int anytone_receive(RIG  *rig, char *buf, int buf_len, int expected)
 int anytone_transaction(RIG *rig, char *cmd, int cmd_len, int expected_len)
 {
     int retval   = RIG_OK;
+    anytone_priv_data_t *p = rig->state.priv;
 
     ENTERFUNC;
 
@@ -199,16 +200,20 @@ int anytone_transaction(RIG *rig, char *cmd, int cmd_len, int expected_len)
     }
     else
     {
-        MUTEX_LOCK(p->priv.mutex);
+        MUTEX_LOCK(p->mutex);
         retval = anytone_send(rig, cmd, cmd_len);
 
         if (retval == RIG_OK && expected_len != 0)
         {
             char buf[16];
             anytone_receive(rig, buf, sizeof(buf), 1);
+            if (buf[0] == 0xaa && buf[1] == 0x53)
+            {
+                p->vfo_curr = buf[8] == 0x00 ? RIG_VFO_A : RIG_VFO_B;
+            }
         }
 
-        MUTEX_LOCK(p->priv.mutex);
+        MUTEX_LOCK(p->mutex);
     }
 
     RETURNFUNC(retval);
