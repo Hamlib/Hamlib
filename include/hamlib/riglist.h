@@ -656,6 +656,14 @@
     etc.
 */
 
+/*
+ * AnyTone rigs
+ */
+#define RIG_ANYTONE 37
+#define RIG_BACKEND_ANYTONE "AnyTone"
+#define RIG_MODEL_ATD578UVIII RIG_MAKE_MODEL(RIG_ANYTONE, 1)
+
+
 //! @endcond
 
 /*! \typedef typedef int rig_model_t
