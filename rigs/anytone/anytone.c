@@ -187,7 +187,7 @@ int anytone_receive(RIG  *rig, char *buf, int buf_len, int expected)
 // ---------------------------------------------------------------------------
 // anytone_transaction
 // ---------------------------------------------------------------------------
-int anytone_transaction(RIG *rig, char *cmd, int cmd_len)
+int anytone_transaction(RIG *rig, char *cmd, int cmd_len, int expected_len)
 {
     int retval   = RIG_OK;
 
@@ -202,7 +202,7 @@ int anytone_transaction(RIG *rig, char *cmd, int cmd_len)
         MUTEX_LOCK(p->priv.mutex);
         retval = anytone_send(rig, cmd, cmd_len);
 
-        if (retval == RIG_OK)
+        if (retval == RIG_OK && expected_len != 0)
         {
             char buf[16];
             anytone_receive(rig, buf, sizeof(buf), 1);
@@ -380,17 +380,17 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
         {
             char buf1[8] = { 0x41, 0x00, 0x01, 0x00, 0x0d, 0x00, 0x00, 0x06 };
             char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x06 };
-            anytone_transaction(rig, buf1, 8);
+            anytone_transaction(rig, buf1, 8, 0);
             hl_usleep(100 * 1000);
-            anytone_transaction(rig, buf2, 8);
+            anytone_transaction(rig, buf2, 8, 15);
         }
         else
         {
             char buf1[8] = { 0x41, 0x00, 0x01, 0x00, 0x0d, 0x00, 0x00, 0x06 };
             char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x06 };
-            anytone_transaction(rig, buf1, 8);
+            anytone_transaction(rig, buf1, 8, 0);
             hl_usleep(100 * 1000);
-            anytone_transaction(rig, buf2, 8);
+            anytone_transaction(rig, buf2, 8, 15);
         }
 
     }
@@ -437,7 +437,7 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         if (ptt) { buf[1] = 0x01; }
 
-        anytone_transaction(rig, buf, 8);
+        anytone_transaction(rig, buf, 8, 1);
     }
 
     RETURNFUNC(retval);
