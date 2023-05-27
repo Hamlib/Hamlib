@@ -1336,12 +1336,11 @@ static int read_string_generic(hamlib_port_t *p,
     memset(rxbuffer, 0, rxmax);
 
     short timeout_retries = p->timeout_retry;
-    while (total_count < rxmax - 1) // allow 1 byte for end-of-string
+    while ( total_count < expected_len && total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
         ssize_t rd_count = 0;
         int result;
         result = port_wait_for_data(p, direct);
-
         if (result == -RIG_ETIMEOUT)
         {
             if (timeout_retries > 0)
