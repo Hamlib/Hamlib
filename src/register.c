@@ -89,6 +89,7 @@ DEFINE_INITRIG_BACKEND(elad);
 DEFINE_INITRIG_BACKEND(codan);
 DEFINE_INITRIG_BACKEND(gomspace);
 DEFINE_INITRIG_BACKEND(mds);
+DEFINE_INITRIG_BACKEND(anytone);
 //! @endcond
 
 #ifdef HAVE_WINRADIO
@@ -148,6 +149,7 @@ static struct
     { RIG_CODAN, RIG_BACKEND_CODAN, RIG_FUNCNAMA(codan) },
     { RIG_GOMSPACE, RIG_BACKEND_GOMSPACE, RIG_FUNCNAM(gomspace) },
     { RIG_MDS, RIG_BACKEND_MDS, RIG_FUNCNAMA(mds) },
+    { RIG_ANYTONE, RIG_BACKEND_ANYTONE, RIG_FUNCNAMA(anytone) },
     { 0, NULL }, /* end */
 };
 
@@ -199,8 +201,8 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
         return -RIG_EINVAL;
     }
 
-#if 0
-    rig_debug(RIG_DEBUG_VERBOSE,
+#if 1
+    rig_debug(RIG_DEBUG_ERR,
               "%s: rig_register (%u)\n",
               __func__,
               caps->rig_model);
