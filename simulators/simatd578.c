@@ -25,6 +25,7 @@ char modeB = '1';
 int width_main = 500;
 int width_sub = 700;
 int ptt = 0;
+int curr_vfo = 0;
 
 
 int
@@ -96,7 +97,7 @@ int openPort(char *comport) // doesn't matter for using pts devices
 
 int main(int argc, char *argv[])
 {
-    unsigned char buf[256];
+    unsigned char buf[256], buf2[256];
     int n;
 
 again:
@@ -120,19 +121,61 @@ again:
         switch (buf[0])
         {
         case 0x41:
-            if (buf[1] == 1)
+            if (buf[4] == 0x00) // set ptt
             {
-                ptt = 1;
-                printf("PTT ON\n");
-            }
-            else
-            {
-                ptt = 0;
-                printf("PTT OFF\n");
+                if (buf[1] == 1)
+                {
+                    ptt = 1;
+                    printf("PTT ON\n");
+                }
+                else
+                {
+                    ptt = 0;
+                    printf("PTT OFF\n");
+                }
+
+                buf[0] = 0x06;
+                n = write(fd, buf, 1);
             }
 
-            buf[0] = 0x00;
-            n = write(fd, buf, 1);
+            if (buf[4] == 0x0d) // set vfo
+            {
+                printf("Set VFO key1=%d, curr_vfo=%d\n", buf[2], curr_vfo);
+
+                if (buf[2] == 0x00)
+                {
+                    if (curr_vfo == 1)
+                    {
+                        curr_vfo = 0;
+                    }
+                    else
+                    {
+                        curr_vfo = 1;
+                    }
+                }
+
+                printf("Set VFO key2=%d, curr_vfo=%d\n", buf[2], curr_vfo);
+                buf2[0] = 0xaa;
+                buf2[1] = 0x53;
+                buf2[2] = 0x00;
+                buf2[3] = 0x00;
+                buf2[4] = 0x00;
+                buf2[5] = 0x00;
+                buf2[6] = 0x00;
+                buf2[7] = 0x00;
+                buf2[8] = curr_vfo;
+                buf2[9] = 0x00;
+                buf2[10] = 0x10;
+                buf2[11] = 0x00;
+                buf2[12] = 0x00;
+                buf2[13] = 0x00;
+                buf2[14] = 0x00;
+                buf2[15] = 0x06;
+
+                if (buf[2] == 0x00) { n = write(fd, buf2, 16); }
+                else { n = 0; }
+            }
+
             break;
 
         case 0x06:

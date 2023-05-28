@@ -93,13 +93,6 @@ DECLARE_PROBERIG_BACKEND(anytone)
 
         memset(acBuf, 0, ANYTONE_RESPSZ + 1);
 
-#if 0
-        retval = write_block(port,
-                             (unsigned char *)ADAT_CMD_DEF_STRING_GET_ID_CODE,
-                             strlen(ADAT_CMD_DEF_STRING_GET_ID_CODE));
-        nRead = read_string(port, (unsigned char *) acBuf, ANYTONE_RESPSZ,
-                            ADAT_EOM, 1, 0, 1);
-#endif
         close(port->fd);
 
         if ((retval != RIG_OK || nRead < 0))
@@ -205,12 +198,14 @@ int anytone_transaction(RIG *rig, char *cmd, int cmd_len, int expected_len)
 
         if (retval == RIG_OK && expected_len != 0)
         {
-            char buf[16];
-            anytone_receive(rig, buf, sizeof(buf), 1);
-            if (buf[0] == 0xaa && buf[1] == 0x53)
+            char *buf = calloc(64,1);
+            int len = anytone_receive(rig, buf, 64, expected_len);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): rx len=%d\n", __func__, __LINE__, len);
+            if ( len == 16 && buf[0] == 0xaa && buf[1] == 0x53)
             {
                 p->vfo_curr = buf[8] == 0x00 ? RIG_VFO_A : RIG_VFO_B;
             }
+            free(buf);
         }
 
         MUTEX_LOCK(p->mutex);
@@ -231,19 +226,18 @@ int anytone_init(RIG *rig)
 
     if (rig != NULL)
     {
-        anytone_priv_data_ptr pPriv = NULL;
+        anytone_priv_data_ptr p = NULL;
 
         // Get new Priv Data
 
-        pPriv = calloc(1, sizeof(anytone_priv_data_t));
+        p = calloc(1, sizeof(anytone_priv_data_t));
 
-        if (pPriv == NULL)
+        if (p == NULL)
         {
             retval = -RIG_ENOMEM;
         }
 
-        rig->state.priv = pPriv;
-        anytone_priv_data_t *p = rig->state.priv;
+        rig->state.priv = p;
         p->vfo_curr = RIG_VFO_NONE;
 #ifdef HAVE_PTHREAD
         pthread_mutex_init(&p->mutex, NULL);
@@ -301,6 +295,7 @@ int anytone_open(RIG *rig)
         // can we ask for any information?  Maybe just toggle A/B?
     }
 
+#if 0
     pthread_t id;
     int err = pthread_create(&id, NULL, anytone_thread, (void *)rig);
 
@@ -310,6 +305,7 @@ int anytone_open(RIG *rig)
                   strerror(errno));
         RETURNFUNC(-RIG_EINTERNAL);
     }
+#endif
 
 
     RETURNFUNC(retval);
@@ -321,21 +317,8 @@ int anytone_open(RIG *rig)
 int anytone_close(RIG *rig)
 {
     int retval = RIG_OK;
-#if 0
-    anytone_priv_data_ptr pPriv = (anytone_priv_data_ptr) rig->state.priv;
-
-    if (pPriv->pcCmd != NULL) { free(pPriv->pcCmd); }
-
-    if (pPriv->pcResult != NULL) { free(pPriv->pcResult); }
-
-#endif
 
     ENTERFUNC;
-#if 0
-    // Now switch to interactive mode
-
-    retval = anytone_transaction(rig, &anytone_cmd_list_close_adat);
-#endif
 
     RETURNFUNC(retval);
 }
@@ -356,9 +339,15 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
     }
     else
     {
-        anytone_priv_data_ptr pPriv = (anytone_priv_data_ptr) rig->state.priv;
+        anytone_priv_data_ptr p = (anytone_priv_data_ptr) rig->state.priv;
+        if (p->vfo_curr == RIG_VFO_NONE) // then we need to find out what our current VFO is
+        {
+            // only way we know to do this is switch VFOS twice so we can get the reply
+            anytone_set_vfo(rig, RIG_VFO_B); // it's just  toggle right now so VFO doesn't really matter
+            anytone_set_vfo(rig, RIG_VFO_A);
+        }
 
-        *vfo = pPriv->vfo_curr;
+        *vfo = p->vfo_curr;
     }
 
     RETURNFUNC(retval);
@@ -370,6 +359,7 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 int anytone_set_vfo(RIG *rig, vfo_t vfo)
 {
     int retval = RIG_OK;
+    anytone_priv_data_t *p = rig->state.priv;
 
     ENTERFUNC;
     // Check Params
@@ -387,7 +377,13 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
             char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x06 };
             anytone_transaction(rig, buf1, 8, 0);
             hl_usleep(100 * 1000);
-            anytone_transaction(rig, buf2, 8, 15);
+            anytone_transaction(rig, buf2, 8, 0);
+            // we expect 16 bytes coming back
+            unsigned char reply[16];
+            int nbytes = read_block(&rig->state.rigport, reply, 16);
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): nbytes=%d\n", __func__, __LINE__, nbytes);
+            if (reply[8] == 0x00) p->vfo_curr = RIG_VFO_A;
+            else p->vfo_curr = RIG_VFO_B;
         }
         else
         {
@@ -395,7 +391,12 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
             char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x06 };
             anytone_transaction(rig, buf1, 8, 0);
             hl_usleep(100 * 1000);
-            anytone_transaction(rig, buf2, 8, 15);
+            anytone_transaction(rig, buf2, 8, 0);
+            unsigned char reply[16];
+            int nbytes = read_block(&rig->state.rigport, reply, 16);
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): nbytes=%d\n", __func__, __LINE__, nbytes);
+            if (reply[8] == 0x00) p->vfo_curr = RIG_VFO_A;
+            else p->vfo_curr = RIG_VFO_B;
         }
 
     }
@@ -419,6 +420,8 @@ int anytone_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     }
     else
     {
+        anytone_priv_data_t *p = rig->state.priv;
+        *ptt = p->ptt;
     }
 
     return retval;
@@ -443,6 +446,8 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         if (ptt) { buf[1] = 0x01; }
 
         anytone_transaction(rig, buf, 8, 1);
+        anytone_priv_data_t *p = rig->state.priv;
+        p->ptt = ptt;
     }
 
     RETURNFUNC(retval);

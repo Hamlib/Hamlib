@@ -3,7 +3,7 @@
 
 #include "hamlib/rig.h"
 
-#define BACKEND_VER "20230527"
+#define BACKEND_VER "20230528"
 
 #define ANYTONE_RESPSZ 64
 
@@ -22,9 +22,10 @@ extern const struct rig_caps anytone_d578_caps;
 
 typedef struct _anytone_priv_data
 {
-    int           ptt;
+    ptt_t         ptt;
     vfo_t         vfo_curr;
     int           runflag; // thread control
+    char          buf[64];
     pthread_mutex_t mutex;
 } anytone_priv_data_t,
 * anytone_priv_data_ptr;
