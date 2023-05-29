@@ -120,7 +120,7 @@ void *anytone_thread(void *vrig)
     rig_debug(RIG_DEBUG_TRACE, "%s: anytone_thread started\n", __func__);
     p->runflag = 1;
 
-    // if we don't have CACHE debug enabled then we only show WARN and higher in this thread
+    // if we don't have CACHE debug enabled then we only show WARN and higher for this rig
     if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
     {
         rig_set_debug(RIG_DEBUG_WARN);    // only show WARN debug otherwise too verbose
