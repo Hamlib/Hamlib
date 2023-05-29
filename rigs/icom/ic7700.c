@@ -250,7 +250,7 @@ const struct rig_caps ic7700_caps =
     RIG_MODEL(RIG_MODEL_IC7700),
     .model_name = "IC-7700",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -293,7 +293,8 @@ const struct rig_caps ic7700_caps =
     .max_ifshift =  Hz(0),
     .agc_level_count = 4,
     .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
-    .targetable_vfo =  0,
+    // 7700 can have a different mode on VFOB but requires VFO swap
+    .targetable_vfo =  RIG_TARGETABLE_MODE,
     .vfo_ops =  IC7700_VFO_OPS,
     .scan_ops =  IC7700_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
