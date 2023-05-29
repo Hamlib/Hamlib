@@ -120,6 +120,12 @@ void *anytone_thread(void *vrig)
     rig_debug(RIG_DEBUG_TRACE, "%s: anytone_thread started\n", __func__);
     p->runflag = 1;
 
+    // if we don't have CACHE debug enabled then we only show WARN and higher in this thread
+    if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
+    {
+        rig_set_debug(RIG_DEBUG_WARN);    // only show WARN debug otherwise too verbose
+    }
+
     while (p->runflag)
     {
         char c = 0x06;
@@ -198,13 +204,15 @@ int anytone_transaction(RIG *rig, char *cmd, int cmd_len, int expected_len)
 
         if (retval == RIG_OK && expected_len != 0)
         {
-            char *buf = calloc(64,1);
+            char *buf = calloc(64, 1);
             int len = anytone_receive(rig, buf, 64, expected_len);
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): rx len=%d\n", __func__, __LINE__, len);
-            if ( len == 16 && buf[0] == 0xaa && buf[1] == 0x53)
+
+            if (len == 16 && buf[0] == 0xaa && buf[1] == 0x53)
             {
                 p->vfo_curr = buf[8] == 0x00 ? RIG_VFO_A : RIG_VFO_B;
             }
+
             free(buf);
         }
 
@@ -295,7 +303,6 @@ int anytone_open(RIG *rig)
         // can we ask for any information?  Maybe just toggle A/B?
     }
 
-#if 0
     pthread_t id;
     int err = pthread_create(&id, NULL, anytone_thread, (void *)rig);
 
@@ -305,8 +312,6 @@ int anytone_open(RIG *rig)
                   strerror(errno));
         RETURNFUNC(-RIG_EINTERNAL);
     }
-#endif
-
 
     RETURNFUNC(retval);
 }
@@ -340,10 +345,13 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
     else
     {
         anytone_priv_data_ptr p = (anytone_priv_data_ptr) rig->state.priv;
-        if (p->vfo_curr == RIG_VFO_NONE) // then we need to find out what our current VFO is
+
+        if (p->vfo_curr ==
+                RIG_VFO_NONE) // then we need to find out what our current VFO is
         {
             // only way we know to do this is switch VFOS twice so we can get the reply
-            anytone_set_vfo(rig, RIG_VFO_B); // it's just  toggle right now so VFO doesn't really matter
+            anytone_set_vfo(rig,
+                            RIG_VFO_B); // it's just  toggle right now so VFO doesn't really matter
             anytone_set_vfo(rig, RIG_VFO_A);
         }
 
@@ -382,8 +390,9 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
             unsigned char reply[16];
             int nbytes = read_block(&rig->state.rigport, reply, 16);
             rig_debug(RIG_DEBUG_ERR, "%s(%d): nbytes=%d\n", __func__, __LINE__, nbytes);
-            if (reply[8] == 0x00) p->vfo_curr = RIG_VFO_A;
-            else p->vfo_curr = RIG_VFO_B;
+
+            if (reply[8] == 0x00) { p->vfo_curr = RIG_VFO_A; }
+            else { p->vfo_curr = RIG_VFO_B; }
         }
         else
         {
@@ -395,8 +404,9 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
             unsigned char reply[16];
             int nbytes = read_block(&rig->state.rigport, reply, 16);
             rig_debug(RIG_DEBUG_ERR, "%s(%d): nbytes=%d\n", __func__, __LINE__, nbytes);
-            if (reply[8] == 0x00) p->vfo_curr = RIG_VFO_A;
-            else p->vfo_curr = RIG_VFO_B;
+
+            if (reply[8] == 0x00) { p->vfo_curr = RIG_VFO_A; }
+            else { p->vfo_curr = RIG_VFO_B; }
         }
 
     }
