@@ -199,7 +199,6 @@ int anytone_transaction(RIG *rig, char *cmd, int cmd_len, int expected_len)
     }
     else
     {
-        MUTEX_LOCK(p->mutex);
         retval = anytone_send(rig, cmd, cmd_len);
 
         if (retval == RIG_OK && expected_len != 0)
@@ -215,8 +214,6 @@ int anytone_transaction(RIG *rig, char *cmd, int cmd_len, int expected_len)
 
             free(buf);
         }
-
-        MUTEX_LOCK(p->mutex);
     }
 
     RETURNFUNC(retval);
@@ -383,21 +380,26 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
         {
             char buf1[8] = { 0x41, 0x00, 0x01, 0x00, 0x0d, 0x00, 0x00, 0x06 };
             char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x06 };
+            MUTEX_LOCK(p->mutex);
             anytone_transaction(rig, buf1, 8, 0);
             hl_usleep(100 * 1000);
             anytone_transaction(rig, buf2, 8, 0);
             // we expect 16 bytes coming back
             unsigned char reply[16];
             int nbytes = read_block(&rig->state.rigport, reply, 16);
+
             rig_debug(RIG_DEBUG_ERR, "%s(%d): nbytes=%d\n", __func__, __LINE__, nbytes);
 
             if (reply[8] == 0x00) { p->vfo_curr = RIG_VFO_A; }
             else { p->vfo_curr = RIG_VFO_B; }
+
+            MUTEX_UNLOCK(p->mutex);
         }
         else
         {
             char buf1[8] = { 0x41, 0x00, 0x01, 0x00, 0x0d, 0x00, 0x00, 0x06 };
             char buf2[8] = { 0x41, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x06 };
+            MUTEX_LOCK(p->mutex);
             anytone_transaction(rig, buf1, 8, 0);
             hl_usleep(100 * 1000);
             anytone_transaction(rig, buf2, 8, 0);
@@ -407,6 +409,8 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
 
             if (reply[8] == 0x00) { p->vfo_curr = RIG_VFO_A; }
             else { p->vfo_curr = RIG_VFO_B; }
+
+            MUTEX_UNLOCK(p->mutex);
         }
 
     }
@@ -455,9 +459,11 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         if (ptt) { buf[1] = 0x01; }
 
+        MUTEX_LOCK(p->mutex);
         anytone_transaction(rig, buf, 8, 1);
         anytone_priv_data_t *p = rig->state.priv;
         p->ptt = ptt;
+        MUTEX_UNLOCK(p->mutex);
     }
 
     RETURNFUNC(retval);
