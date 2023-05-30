@@ -331,6 +331,7 @@ int anytone_close(RIG *rig)
 int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int retval = RIG_OK;
+    char cmd[] = { 0x41, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x06 };
 
     ENTERFUNC;
     // Check Params
@@ -343,14 +344,7 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
     {
         anytone_priv_data_ptr p = (anytone_priv_data_ptr) rig->state.priv;
 
-        if (p->vfo_curr ==
-                RIG_VFO_NONE) // then we need to find out what our current VFO is
-        {
-            // only way we know to do this is switch VFOS twice so we can get the reply
-            anytone_set_vfo(rig,
-                            RIG_VFO_B); // it's just  toggle right now so VFO doesn't really matter
-            anytone_set_vfo(rig, RIG_VFO_A);
-        }
+        anytone_transaction(rig, cmd, sizeof(cmd), 16);
 
         *vfo = p->vfo_curr;
     }
