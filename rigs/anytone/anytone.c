@@ -451,7 +451,7 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     {
         char buf[8] = { 0x41, 0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x06 };
 
-        if (ptt) { buf[1] = 0x01; }
+        if (!ptt) { buf[1] = 0x01; }
 
         MUTEX_LOCK(p->mutex);
         anytone_transaction(rig, buf, 8, 1);
