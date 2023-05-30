@@ -245,7 +245,7 @@ int anytone_init(RIG *rig)
         rig->state.priv = p;
         p->vfo_curr = RIG_VFO_NONE;
 #ifdef HAVE_PTHREAD
-        pthread_mutex_init(&p->mutex, NULL);
+//        pthread_mutex_init(&p->mutex, NULL);
 #endif
     }
 
@@ -449,7 +449,7 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
     else
     {
-        char buf[8] = { 0x41, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06 };
+        char buf[8] = { 0x41, 0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x06 };
 
         if (ptt) { buf[1] = 0x01; }
 
