@@ -4859,8 +4859,9 @@ declare_proto_rig(send_cmd)
         else
         {
             int nbytes = 0;
-            sscanf(arg2, "%d", &nbytes);
-            SNPRINTF(bufcmd, sizeof(bufcmd), "%c %s %d\n", cmd->cmd, arg1, nbytes);
+            int n = sscanf(arg2, "%d", &nbytes);
+            if (n == 1) {SNPRINTF(bufcmd, sizeof(bufcmd), "%c %s %d\n", cmd->cmd, arg1, nbytes);}
+            else {SNPRINTF(bufcmd, sizeof(bufcmd), "%c %s %s\n", cmd->cmd, arg1, arg2);}
         }
 
         cmd_len = strlen(bufcmd);
