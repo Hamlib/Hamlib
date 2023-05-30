@@ -4721,10 +4721,12 @@ declare_proto_rig(set_powerstat)
     CHKSCN1ARG(sscanf(arg1, "%d", &stat));
 
     retval = rig_set_powerstat(rig, (powerstat_t) stat);
+
     if (retval == RIG_OK)
     {
         rig_powerstat = stat; // update our global so others can see powerstat
     }
+
     fflush(fin);
     RETURNFUNC2(retval);
 }
@@ -4860,6 +4862,7 @@ declare_proto_rig(send_cmd)
         {
             int nbytes = 0;
             int n = sscanf(arg2, "%d", &nbytes);
+
             if (n == 1) {SNPRINTF(bufcmd, sizeof(bufcmd), "%c %s %d\n", cmd->cmd, arg1, nbytes);}
             else {SNPRINTF(bufcmd, sizeof(bufcmd), "%c %s %s\n", cmd->cmd, arg1, arg2);}
         }
@@ -4900,7 +4903,7 @@ declare_proto_rig(send_cmd)
     if (simulate)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: simulating response for model %s\n",
-                __func__, rig->caps->model_name);
+                  __func__, rig->caps->model_name);
     }
     else
     {
@@ -4928,6 +4931,7 @@ declare_proto_rig(send_cmd)
     }
 
     retval = 0;
+
     do
     {
         if (arg2) { sscanf(arg2, "%d", &rxbytes); }
@@ -5299,7 +5303,7 @@ declare_proto_rig(set_clock)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: utc_offset=%d\n", __func__, utc_offset);
 
     RETURNFUNC2(rig_set_clock(rig, year, mon, day, hour, min, sec, msec,
-                             utc_offset));
+                              utc_offset));
 }
 
 /* '0xf9' */
@@ -5492,7 +5496,9 @@ declare_proto_rig(send_raw)
 
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
-    result = rig_send_raw(rig, (unsigned char *)sendp, arg2_len, buf,buf_len, term);
+    result = rig_send_raw(rig, (unsigned char *)sendp, arg2_len, buf, buf_len,
+                          term);
+
     if (result < 0)
     {
         return result;
