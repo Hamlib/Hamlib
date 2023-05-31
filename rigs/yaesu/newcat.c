@@ -1945,7 +1945,9 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                 && rig->state.current_mode != RIG_MODE_CWN
            )
         {
-            hl_usleep(100 * 1000);
+            // DX3000 with seperate rx/tx antennas was failing frequency change
+            // so we increased the sleep from 100ms to 300ms
+            hl_usleep(300 * 1000);
         }
 
         break;
