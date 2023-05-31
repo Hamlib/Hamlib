@@ -36,6 +36,7 @@
 #include <stdio.h>  /* Standard input/output definitions */
 #include <string.h> /* String function definitions */
 #include <sys/types.h>
+#include <errno.h>
 
 #ifdef ANDROID
 #  include <android/log.h>
@@ -320,6 +321,32 @@ vprintf_cb_t HAMLIB_API rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
 FILE *HAMLIB_API rig_set_debug_file(FILE *stream)
 {
     FILE *prev_stream = rig_debug_stream;
+
+    rig_debug_stream = stream;
+
+    return prev_stream;
+}
+
+/**
+ * \brief Change the output stream to a filename
+ *
+ * \param filename The filename to direct debugging output.
+ *
+ * \sa `FILE`(3)
+ */
+FILE *HAMLIB_API rig_set_debug_filename(char *filename)
+{
+    FILE *prev_stream = rig_debug_stream;
+    rig_debug(RIG_DEBUG_WARN, "%s: debug will stream to '%s'\n", __func__,
+              filename);
+    FILE *stream = fopen(filename, "w");
+
+    if (stream == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error opening stream: %s\n", __func__,
+                  strerror(errno));
+        return NULL;
+    }
 
     rig_debug_stream = stream;
 
