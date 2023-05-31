@@ -31,9 +31,9 @@ int main(int argc, char *argv[])
 #endif
     rig->state.rigport.parm.serial.rate = 38400;
     rig_open(rig);
-//    multicast_init(rig, "224.0.0.1", 4532);
-    //printf("threadid=%lld\n", (long long)rig->state.multicast->threadid);
-    //pthread_join(rig->state.multicast->threadid, NULL);
+    multicast_init(rig, "224.0.0.1", 4532);
+    printf("threadid=%lld\n", (long long)rig->state.multicast->threadid);
+    pthread_join(rig->state.multicast->threadid, NULL);
     pthread_exit(NULL);
     return 0;
 }
