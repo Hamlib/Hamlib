@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20230520"
+#define BACKEND_VER "20230530"
 
 #define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
 #define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
@@ -459,6 +459,7 @@ extern const struct rig_caps ic7300_caps;
 extern const struct rig_caps ic781_caps;
 extern const struct rig_caps ic820h_caps;
 extern const struct rig_caps ic821h_caps;
+extern const struct rig_caps ic905_caps;
 extern const struct rig_caps ic910_caps;
 extern const struct rig_caps ic9100_caps;
 extern const struct rig_caps ic970_caps;

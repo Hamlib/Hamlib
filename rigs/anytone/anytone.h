@@ -3,7 +3,7 @@
 
 #include "hamlib/rig.h"
 
-#define BACKEND_VER "20230529"
+#define BACKEND_VER "20230530"
 
 #define ANYTONE_RESPSZ 64
 
