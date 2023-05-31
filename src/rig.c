@@ -7599,7 +7599,6 @@ HAMLIB_EXPORT(void) sync_callback(int lock)
 void rig_lock(RIG *rig, int lock)
 {
 #ifdef HAVE_PTHREAD
-#if 0 //MULTICAST disabled as it breaks the DLL backwards compatibility
 
     if (rig->state.multicast == NULL) { return; } // not initialized yet
 
@@ -7620,7 +7619,6 @@ void rig_lock(RIG *rig, int lock)
         pthread_mutex_unlock(&rig->state.multicast->mutex);
     }
 
-#endif
 #endif
 
 }
