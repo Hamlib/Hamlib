@@ -201,7 +201,7 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
         return -RIG_EINVAL;
     }
 
-#if 1
+#if 0
     rig_debug(RIG_DEBUG_ERR,
               "%s: rig_register (%u)\n",
               __func__,

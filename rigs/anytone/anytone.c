@@ -300,6 +300,7 @@ int anytone_open(RIG *rig)
         // can we ask for any information?  Maybe just toggle A/B?
     }
 
+#if 0
     pthread_t id;
     int err = pthread_create(&id, NULL, anytone_thread, (void *)rig);
 
@@ -309,6 +310,7 @@ int anytone_open(RIG *rig)
                   strerror(errno));
         RETURNFUNC(-RIG_EINTERNAL);
     }
+#endif
 
     RETURNFUNC(retval);
 }
