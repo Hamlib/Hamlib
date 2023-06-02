@@ -13,6 +13,9 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Fix W command in rigctld to work propery -- can take terminating char or # of bytes to expect
+        * Add rig_set_debug_filename so Python can redirect debug stream
+        * Fix Yaesu LBL_NR to use proper values
         * Add IC-905
         * Add Anytone D578UVIII -- should work on any D558 model and perhaps others too
         * Add saebrtrack rotor https://sites.google.com/site/marklhammond/saebrtrack
