@@ -66,7 +66,6 @@ const struct rig_caps ft450_caps =
     {
 #include "level_gran_yaesu.h"
         // cppcheck-suppress *
-        [LVL_NR] = { .min = { .f = 1 }, .max = { .f = 11 }, .step = { .f = 1 } },
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_CWPITCH] = { .min = { .i = 400 }, .max = { .i = 800 }, .step = { .i = 100 } },
         [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
