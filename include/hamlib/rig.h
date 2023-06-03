@@ -2630,6 +2630,55 @@ struct rig_state {
     freq_t offset_vfoa; /*!< Offset to apply to VFOA/Main set_freq */
     freq_t offset_vfob; /*!< Offset to apply to VFOB/Sub set_freq */
     struct multicast_s *multicast; /*!< Pointer to multicast server data */
+    // Adding a number of items so netrigctl can see the real rig information
+    // Eventually may want to add these so that rigctld can see more of the backend
+    // But that will come later if requested -- for now they just fill out dumpstate.c
+    rig_model_t rig_model;      /*!< Rig model. */
+    const char *model_name;     /*!< Model name. */
+    const char *mfg_name;       /*!< Manufacturer. */
+    const char *version;        /*!< Driver version. */
+    const char *copyright;      /*!< Copyright info. */
+    enum rig_status_e status;   /*!< Driver status. */
+    int rig_type;               /*!< Rig type. */
+    ptt_type_t ptt_type;        /*!< Type of the PTT port. */
+    dcd_type_t dcd_type;        /*!< Type of the DCD port. */
+    rig_port_t port_type;       /*!< Type of communication port. */
+    int serial_rate_min;        /*!< Minimum serial speed. */
+    int serial_rate_max;        /*!< Maximum serial speed. */
+    int serial_data_bits;       /*!< Number of data bits. */
+    int serial_stop_bits;       /*!< Number of stop bits. */
+    enum serial_parity_e serial_parity;         /*!< Parity. */
+    enum serial_handshake_e serial_handshake;   /*!< Handshake. */
+    int write_delay;            /*!< Delay between each byte sent out, in mS */
+    int post_write_delay;       /*!< Delay between each commands send out, in mS */
+    int timeout;                /*!< Timeout, in mS */
+    int retry;                  /*!< Maximum number of retries if command fails, 0 to disable */
+    int targetable_vfo;         /*!< Bit field list of direct VFO access commands */
+    int async_data_supported;       /*!< Indicates that rig is capable of outputting asynchronous data updates, such as transceive state updates or spectrum data. 1 if true, 0 otherwise. */
+    int agc_level_count; /*!< Number of supported AGC levels. Zero indicates all modes should be available (for backwards-compatibility). */
+    enum agc_level_e agc_levels[HAMLIB_MAX_AGC_LEVELS]; /*!< Supported AGC levels */
+    tone_t *ctcss_list;   /*!< CTCSS tones list, zero ended */
+    tone_t *dcs_list;     /*!< DCS code list, zero ended */
+    vfo_op_t vfo_ops;           /*!< VFO op bit field list */
+    scan_t scan_ops;            /*!< Scan bit field list */
+    int transceive;             /*!< \deprecated Use async_data_supported instead */
+    int bank_qty;               /*!< Number of banks */
+    int chan_desc_sz;           /*!< Max length of memory channel name */
+    freq_range_t rx_range_list1[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #1 */
+    freq_range_t tx_range_list1[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #1 */
+    freq_range_t rx_range_list2[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #2 */
+    freq_range_t tx_range_list2[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #2 */
+    freq_range_t rx_range_list3[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #3 */
+    freq_range_t tx_range_list3[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #3 */
+    freq_range_t rx_range_list4[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #4 */
+    freq_range_t tx_range_list4[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #4 */
+    freq_range_t rx_range_list5[HAMLIB_FRQRANGESIZ];   /*!< Receive frequency range list #5 */
+    freq_range_t tx_range_list5[HAMLIB_FRQRANGESIZ];   /*!< Transmit frequency range list #5 */
+    struct rig_spectrum_scope spectrum_scopes[HAMLIB_MAX_SPECTRUM_SCOPES]; /*!< Supported spectrum scopes. The array index must match the scope ID. Last entry must have NULL name. */
+    enum rig_spectrum_mode_e spectrum_modes[HAMLIB_MAX_SPECTRUM_MODES]; /*!< Supported spectrum scope modes. Last entry must be RIG_SPECTRUM_MODE_NONE. */
+    freq_t spectrum_spans[HAMLIB_MAX_SPECTRUM_SPANS];                   /*!< Supported spectrum scope frequency spans in Hz in center mode. Last entry must be 0. */
+    struct rig_spectrum_avg_mode spectrum_avg_modes[HAMLIB_MAX_SPECTRUM_AVG_MODES]; /*!< Supported spectrum scope averaging modes. Last entry must have NULL name. */
+    int spectrum_attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Spectrum attenuator list in dB, 0 terminated */
 };
 
 //! @cond Doxygen_Suppress

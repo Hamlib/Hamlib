@@ -4354,7 +4354,18 @@ declare_proto_rig(dump_caps)
 {
     ENTERFUNC2;
 
-    dumpcaps(rig, fout);
+#if 1
+    if (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
+    {
+        char cmd[32];
+        SNPRINTF(cmd, sizeof(cmd), "\\dump_caps\n");
+        dumpstate(rig, fout);
+    }
+    else
+#endif
+    {
+        dumpcaps(rig, fout);
+    }
 
     RETURNFUNC2(RIG_OK);
 }
@@ -4467,6 +4478,7 @@ declare_proto_rig(dump_state)
     // protocol 1 allows fields can be listed/processed in any order
     // protocol 1 fields can be multi-line -- just write the thing to allow for it
     // backward compatible as new values will just generate warnings
+    rig_debug(RIG_DEBUG_ERR, "%s: chk_vfo_executed=%d\n", __func__, chk_vfo_executed);
     if (chk_vfo_executed) // for 3.3 compatiblility
     {
         fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
@@ -4523,13 +4535,42 @@ declare_proto_rig(dump_state)
             fprintf(fout, "\n");
         }
 
+
+        fprintf(fout, "level_gran=");
+
+        for (i = 0; i < RIG_SETTING_MAX; ++i)
+        {
+            if (RIG_LEVEL_IS_FLOAT(i))
+            {
+                fprintf(fout, "%d=%g,%g,%g;", i, rig->state.level_gran[i].min.f,
+                        rig->state.level_gran[i].max.f, rig->state.level_gran[i].step.f);
+            }
+            else
+            {
+                fprintf(fout, "%d=%d,%d,%d;", i, rig->state.level_gran[i].min.i,
+                        rig->state.level_gran[i].max.i, rig->state.level_gran[i].step.i);
+            }
+        }
+
+        fprintf(fout, "\nparm_gran=");
+
+        for (i = 0; i < RIG_SETTING_MAX; ++i)
+        {
+            if (RIG_LEVEL_IS_FLOAT(i))
+            {
+                fprintf(fout, "%d=%g,%g,%g;", i, rig->state.parm_gran[i].min.f,
+                        rig->state.parm_gran[i].max.f, rig->state.parm_gran[i].step.f);
+            }
+            else
+            {
+                fprintf(fout, "%d=%d,%d,%d;", i, rig->state.level_gran[i].min.i,
+                        rig->state.level_gran[i].max.i, rig->state.level_gran[i].step.i);
+            }
+        }
+
+        fprintf(fout, "\n");
         fprintf(fout, "done\n");
     }
-
-#if 0 // why isn't this implemented?  Does anybody care?
-    gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
-    gran_t parm_gran[RIG_SETTING_MAX];  /*!< parm granularity */
-#endif
 
     RETURNFUNC2(RIG_OK);
 }
@@ -5054,6 +5095,7 @@ declare_proto_rig(chk_vfo)
 {
     ENTERFUNC2;
 
+rig_debug(RIG_DEBUG_ERR, "%s: **********************************\n", __func__);
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);    /* i.e. "Frequency" */

@@ -24,7 +24,7 @@
         [LVL_SWR]           = { .min = { .f = 0 },     .max = { .f = 5.0 },  .step = { .f = 1.0f/255.0f } },
         [LVL_BAND_SELECT]   = { .min = { .i = 0 },     .max = { .i = 16 },  .step = { .i = 1 } },
         // most recent rigs seem to have 15 as the maximum -- other values can be set in the backend
-        [LVL_NR]            = { .min = { .i = 1 },     .max = { .i = 15 },  .step = { .i = 1 } },
+        [LVL_NR]            = { .min = { .f = 0 },     .max = { .f = 1 },  .step = { .f = 1.0f/15.0f } },
         /* levels with 0-1 values -- increment based on rig's range */
         [LVL_AF]            = { .min = { .f = 0 },     .max = { .f = 1 },  .step = { .f = 1.0f/255.0f } },
         [LVL_RF]            = { .min = { .f = 0 },     .max = { .f = 1 },  .step = { .f = 1.0f/255.0f } },

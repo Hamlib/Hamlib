@@ -36,6 +36,7 @@
  */
 
 int dumpcaps(RIG *, FILE *);
+int dumpstate(RIG *, FILE *);
 int dumpconf(RIG *, FILE *);
 
 /*
