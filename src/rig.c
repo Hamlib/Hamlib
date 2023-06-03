@@ -669,6 +669,11 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
         //return(NULL); // this is not fatal
     }
 
+    if (rs->level_gran)
+    {
+        memcpy(rs->level_gran, rig->caps->level_gran, sizeof(rs->level_gran));
+    }
+
 #if 0 // this is no longer applicable -- replace it with something?
 
 // we need to be able to figure out what model radio we have

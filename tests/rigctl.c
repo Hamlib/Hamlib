@@ -553,6 +553,9 @@ int main(int argc, char *argv[])
             }
 
             rig_close(my_rig);
+            dumpstate(my_rig, stdout);
+            rig_close(my_rig);
+            exit(0);
         }
 
         dumpcaps(my_rig, stdout);

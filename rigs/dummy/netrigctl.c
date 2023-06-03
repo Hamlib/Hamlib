@@ -263,7 +263,7 @@ static int netrigctl_open(RIG *rig)
     SNPRINTF(cmd, sizeof(cmd), "\\chk_vfo\n");
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
-    if (sscanf(buf, "CHKVFO %d", &priv->rigctld_vfo_mode) == 1)
+    if (sscanf(buf, "%d", &priv->rigctld_vfo_mode) == 1)
     {
         rig->state.vfo_opt = priv->rigctld_vfo_mode;
         rig_debug(RIG_DEBUG_TRACE, "%s: chkvfo=%d\n", __func__, priv->rigctld_vfo_mode);
@@ -619,11 +619,6 @@ static int netrigctl_open(RIG *rig)
 
     rig->caps->has_set_parm = rs->has_set_parm = strtoll(buf, NULL, 0);
 
-#if 0
-    gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
-    gran_t parm_gran[RIG_SETTING_MAX];    /*!< parm granularity */
-#endif
-
     for (i = 0; i < HAMLIB_FRQRANGESIZ
             && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++)
     {
@@ -835,6 +830,64 @@ static int netrigctl_open(RIG *rig)
                     p = strtok(NULL, " ");
                 }
             }
+            else if (strcmp(setting, "level_gran") == 0)
+            {
+                char *p = strtok(value, ";");
+
+                for (i = 0; p != NULL && i < RIG_SETTING_MAX; ++i)
+                {
+                    int level;
+                    sscanf(p, "%d", &level);
+
+                    if (RIG_LEVEL_IS_FLOAT(level))
+                    {
+                        double min, max, step;
+                        sscanf(p, "%*d=%lf,%lf,%lf", &min, &max, &step);
+                        rs->level_gran[i].min.f = min;
+                        rs->level_gran[i].max.f = max;
+                        rs->level_gran[i].step.f = step;
+                    }
+                    else
+                    {
+                        int min, max, step;
+                        sscanf(p, "%*d=%d,%d,%d", &min, &max, &step);
+                        rs->level_gran[i].min.i = min;
+                        rs->level_gran[i].max.i = max;
+                        rs->level_gran[i].step.i = step;
+
+                    }
+
+                    p = strtok(NULL, ";");
+                }
+            }
+            else if (strcmp(setting, "parm_gran") == 0)
+            {
+                char *p = strtok(value, ";");
+                for (i = 0; p != NULL && i < RIG_SETTING_MAX; ++i)
+                {
+                    int level;
+                    sscanf(p, "%d", &level);
+
+                    if (RIG_LEVEL_IS_FLOAT(level))
+                    {
+                        double min, max, step;
+                        sscanf(p, "%*d=%lf,%lf,%lf", &min, &max, &step);
+                        rs->parm_gran[i].min.f = min;
+                        rs->parm_gran[i].max.f = max;
+                        rs->parm_gran[i].step.f = step;
+                    }
+                    else
+                    {
+                        int min, max, step;
+                        sscanf(p, "%*d=%d,%d,%d", &min, &max, &step);
+                        rs->parm_gran[i].min.i = min;
+                        rs->parm_gran[i].max.i = max;
+                        rs->parm_gran[i].step.i = step;
+                    }
+                    p = strtok(NULL, ";");
+                }
+            }
+
             else
             {
                 // not an error -- just a warning for backward compatibility
@@ -2746,7 +2799,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20230503.0",
+    .version =        "20230602.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
