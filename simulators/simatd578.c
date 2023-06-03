@@ -138,11 +138,11 @@ again:
                 n = write(fd, buf, 1);
             }
 
-            if (buf[4] == 0x0d) // set vfo
+            if (buf[4] == 0x20) // get vfo
             {
-                printf("Set VFO key1=%d, curr_vfo=%d\n", buf[2], curr_vfo);
+                printf("Get VFO curr_vfo=%d\n", curr_vfo);
 
-                if (buf[2] == 0x00)
+                if (buf[4] == 0x20)
                 {
                     if (curr_vfo == 1)
                     {
@@ -154,14 +154,14 @@ again:
                     }
                 }
 
-                printf("Set VFO key2=%d, curr_vfo=%d\n", buf[2], curr_vfo);
+                printf("Get VFO curr_vfo=%d\n", curr_vfo);
                 buf2[0] = 0xaa;
                 buf2[1] = 0x53;
                 buf2[2] = 0x00;
                 buf2[3] = 0x00;
                 buf2[4] = 0x00;
-                buf2[5] = 0x00;
-                buf2[6] = 0x00;
+                buf2[5] = 0x01;
+                buf2[6] = 0x01;
                 buf2[7] = 0x00;
                 buf2[8] = curr_vfo;
                 buf2[9] = 0x00;
@@ -170,9 +170,10 @@ again:
                 buf2[12] = 0x00;
                 buf2[13] = 0x00;
                 buf2[14] = 0x00;
-                buf2[15] = 0x06;
+                buf2[15] = 0x00;
+                buf2[16] = 0x06;
 
-                if (buf[2] == 0x00) { n = write(fd, buf2, 16); }
+                if (buf[4] == 0x20) { n = write(fd, buf2, 17); }
                 else { n = 0; }
             }
 
