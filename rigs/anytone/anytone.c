@@ -163,15 +163,16 @@ int anytone_send(RIG  *rig,
 // ---------------------------------------------------------------------------
 // anytone_receive
 // ---------------------------------------------------------------------------
-int anytone_receive(RIG  *rig, char *buf, int buf_len, int expected)
+int anytone_receive(RIG  *rig, unsigned char *buf, int buf_len, int expected)
 {
     int               retval       = RIG_OK;
     struct rig_state *rs = &rig->state;
 
     ENTERFUNC;
 
-    retval = read_string(&rs->rigport, (unsigned char *) buf, buf_len,
-                         NULL, 0, 0, expected);
+//    retval = read_string(&rs->rigport, (unsigned char *) buf, buf_len,
+//                         NULL, 0, 0, expected);
+    retval = read_block(&rs->rigport, buf, expected);
 
     if (retval > 0)
     {
@@ -203,11 +204,11 @@ int anytone_transaction(RIG *rig, char *cmd, int cmd_len, int expected_len)
 
         if (retval == RIG_OK && expected_len != 0)
         {
-            char *buf = calloc(64, 1);
+            unsigned char *buf = calloc(64, 1);
             int len = anytone_receive(rig, buf, 64, expected_len);
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): rx len=%d\n", __func__, __LINE__, len);
 
-            if (len == 16 && buf[0] == 0xaa && buf[1] == 0x53)
+            if (buf[0] == 0xaa && buf[1] == 0x53)
             {
                 p->vfo_curr = buf[8] == 0x00 ? RIG_VFO_A : RIG_VFO_B;
             }
@@ -346,7 +347,7 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
     {
         anytone_priv_data_ptr p = (anytone_priv_data_ptr) rig->state.priv;
 
-        anytone_transaction(rig, cmd, sizeof(cmd), 16);
+        anytone_transaction(rig, cmd, sizeof(cmd), 17);
 
         *vfo = p->vfo_curr;
     }
@@ -399,8 +400,8 @@ int anytone_set_vfo(RIG *rig, vfo_t vfo)
             anytone_transaction(rig, buf1, 8, 0);
             hl_usleep(100 * 1000);
             anytone_transaction(rig, buf2, 8, 0);
-            unsigned char reply[16];
-            int nbytes = read_block(&rig->state.rigport, reply, 16);
+            unsigned char reply[17];
+            int nbytes = read_block(&rig->state.rigport, reply, 17);
             rig_debug(RIG_DEBUG_ERR, "%s(%d): nbytes=%d\n", __func__, __LINE__, nbytes);
 
             if (reply[8] == 0x00) { p->vfo_curr = RIG_VFO_A; }
