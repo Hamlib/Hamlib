@@ -56,8 +56,8 @@ int hl_usleep(rig_useconds_t usec)
     double delay = sleep_time;
     double lasterr = 0;
 
-    if (sleep_time > .001) { sleep_time -= .001; }
-    else if (sleep_time > .0001) { sleep_time -= .0005; }
+    if (sleep_time > .001) { delay -= .0001; }
+    else if (sleep_time > .0001) { delay -= .00005; }
 
     tv1.tv_sec = (time_t) delay;
     tv1.tv_nsec = (long)((delay - tv1.tv_sec) * 1e+9);
