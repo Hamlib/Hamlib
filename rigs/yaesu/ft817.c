@@ -292,7 +292,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20230429.1",
+    .version =             "20230604.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1498,6 +1498,7 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     case RIG_MODE_RTTY:
     case RIG_MODE_PKTUSB:
+    case RIG_MODE_PKTLSB:
         /* user has to have correct DIG mode setup on rig */
         index = FT817_NATIVE_CAT_SET_MODE_DIG;
         break;
