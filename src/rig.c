@@ -2420,6 +2420,10 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         retcode = caps->set_mode(rig, vfo, mode, width);
         rig_debug(RIG_DEBUG_TRACE, "%s: targetable retcode after set_mode(%s)=%d\n",
                   __func__, rig_strrmode(mode), retcode);
+        if (rig->caps->rig_model == RIG_MODEL_FT817)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: FT817 must use Menu 26 to switch between upper/lower sideband, Hamlib only sets DIG mode\n", __func__);
+        }
     }
     else
     {
