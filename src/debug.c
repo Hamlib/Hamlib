@@ -149,6 +149,19 @@ void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
     rig_debug_level = debug_level;
 }
 
+/**
+ * \brief Get the current debug level.
+ *
+ * \param debug_level Equivalent to the `-v` option of the utilities.
+ *
+ * Allows for obtaining the current debug level
+ *
+ */
+void HAMLIB_API rig_get_debug(enum rig_debug_level_e *debug_level)
+{
+    *debug_level = rig_debug_level;
+}
+
 
 /**
  * \brief Test if a given debug level is active.

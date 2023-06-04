@@ -84,6 +84,8 @@ const struct rig_caps anytone_d578_caps =
     .get_ptt            =  anytone_get_ptt,
     .set_ptt            =  anytone_set_ptt,
 
+    .get_freq           =  anytone_get_freq,
+
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

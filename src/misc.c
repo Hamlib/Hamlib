@@ -2188,8 +2188,8 @@ int HAMLIB_API rig_flush_force(hamlib_port_t *port, int flush_async_data)
     }
 
 #ifndef RIG_FLUSH_REMOVE
-    rig_debug(RIG_DEBUG_TRACE, "%s: called for %s device\n", __func__,
-              port->type.rig == RIG_PORT_SERIAL ? "serial" : "network");
+//    rig_debug(RIG_DEBUG_TRACE, "%s: called for %s device\n", __func__,
+//              port->type.rig == RIG_PORT_SERIAL ? "serial" : "network");
 
     if (port->type.rig == RIG_PORT_NETWORK
             || port->type.rig == RIG_PORT_UDP_NETWORK)

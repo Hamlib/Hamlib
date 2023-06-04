@@ -36,22 +36,23 @@ getmyline(int fd, unsigned char *buf)
     int n = 0;
     memset(buf, 0, BUFSIZE);
 
-    // seemd the anytone only gives 8-byte commands and 1-byte responses
-    while (i < 8 && read(fd, &c, 1) > 0)
+    // seems the anytone only gives 8-byte commands and 1-byte responses
+    do
     {
-        if (i == 0 && c == 0x06)
-        {
-            write(fd, &c, 1);
-        }
-        else
+        int bytes = read(fd, &c, 1);
+        if (bytes > 0)
         {
             buf[i++] = c;
-            n++;
         }
+        n++;
     }
+    while (c != 0x0a);
 
-    printf("n=%d %02x %02x %02x %02x %02x %02x %02x %02x\n", n, buf[0], buf[1],
-           buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
+    printf("n=%d \n", n);
+
+    for (i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
+
+    printf("\n");
     return n;
 }
 
