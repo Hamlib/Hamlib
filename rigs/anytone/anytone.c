@@ -120,18 +120,28 @@ void *anytone_thread(void *vrig)
     rig_debug(RIG_DEBUG_TRACE, "%s: anytone_thread started\n", __func__);
     p->runflag = 1;
 
-    // if we don't have CACHE debug enabled then we only show WARN and higher for this rig
-    if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
-    {
-        rig_set_debug(RIG_DEBUG_WARN);    // only show WARN debug otherwise too verbose
-    }
-
     while (p->runflag)
     {
-        char c = 0x06;
+//        char c [] = { 0x2b, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3a, 0x30, 0x30, 0x2c, 0x30, 0x30, 0x31, 0x0d, 0x0a, 0x61, 0x0d, 0x0a };
+        char *c = "+ADATA:00,001\r\na\r\n";
         MUTEX_LOCK(p->priv.mutex);
-        write_block(&rig->state.rigport, (unsigned char *)&c, 1);
+        // if we don't have CACHE debug enabled then we only show WARN and higher for this rig
+        enum rig_debug_level_e debug_level_save;
+        rig_get_debug(&debug_level_save);
+
+        if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
+        {
+            rig_set_debug(RIG_DEBUG_WARN);    // only show WARN debug otherwise too verbose
+        }
+
+        write_block(&rig->state.rigport, (unsigned char *)c, strlen(c));
         hl_usleep(100 * 1000);
+
+        if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
+        {
+            rig_set_debug(debug_level_save);
+        }
+
         rig_flush(&rig->state.rigport);
         MUTEX_UNLOCK(p->priv.mutex);
         hl_usleep(1000 * 1000); // 1-second loop
@@ -246,7 +256,7 @@ int anytone_init(RIG *rig)
         rig->state.priv = p;
         p->vfo_curr = RIG_VFO_NONE;
 #ifdef HAVE_PTHREAD
-//        pthread_mutex_init(&p->mutex, NULL);
+        pthread_mutex_init(&p->mutex, NULL);
 #endif
     }
 
@@ -301,8 +311,8 @@ int anytone_open(RIG *rig)
         // can we ask for any information?  Maybe just toggle A/B?
     }
 
-#if 0
     pthread_t id;
+    // will start the keep alive
     int err = pthread_create(&id, NULL, anytone_thread, (void *)rig);
 
     if (err)
@@ -311,7 +321,12 @@ int anytone_open(RIG *rig)
                   strerror(errno));
         RETURNFUNC(-RIG_EINTERNAL);
     }
-#endif
+
+    hl_usleep(500 * 1000);
+    char *cmd  = "+ADATA:00,016\r\n";
+
+    anytone_transaction(rig, cmd, strlen(cmd), 21);
+
 
     RETURNFUNC(retval);
 }
@@ -324,6 +339,8 @@ int anytone_close(RIG *rig)
     int retval = RIG_OK;
 
     ENTERFUNC;
+    char *cmd  = "+ADATA:00,000\r\n";
+    anytone_transaction(rig, cmd, strlen(cmd), 0);
 
     RETURNFUNC(retval);
 }
@@ -452,18 +469,63 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
     else
     {
-        char buf[8] = { 0x41, 0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x06 };
+        //char buf[8] = { 0x41, 0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x06 };
+        char *cmd = "+ADATA:00,001\r\na\r\n";
 
-        if (!ptt) { buf[1] = 0x01; }
+        if (!ptt) { cmd = "+ADATA:00,023\r\nV\r\n"; }
 
         MUTEX_LOCK(p->mutex);
-        anytone_transaction(rig, buf, 8, 1);
+        anytone_transaction(rig, cmd, strlen(cmd), 1);
         anytone_priv_data_t *p = rig->state.priv;
         p->ptt = ptt;
         MUTEX_UNLOCK(p->mutex);
     }
 
     RETURNFUNC(retval);
+}
+
+int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+    char cmd[32];
+
+    if (vfo == RIG_VFO_A)
+    {
+        SNPRINTF(cmd, sizeof(cmd), "+ADATA:00,119\r\n");
+        cmd[15] = 0x04;
+        cmd[16] = 0x2c;
+        cmd[17] = 0x07;
+        cmd[18] = 0x00;
+        cmd[19] = 0x00;
+        cmd[21] = 0x00;
+        cmd[22] = 0x00;
+        cmd[23] = 0x0d;
+        cmd[24] = 0x0a;
+    }
+    else
+    {
+        SNPRINTF(cmd, sizeof(cmd), "+ADATA:00,006\r\n");
+        cmd[15] = 0x04;
+        cmd[16] = 0x2d;
+        cmd[17] = 0x07;
+        cmd[18] = 0x00;
+        cmd[19] = 0x00;
+        cmd[21] = 0x00;
+        cmd[22] = 0x00;
+        cmd[23] = 0x0d;
+        cmd[24] = 0x0a;
+    }
+
+    write_block(&rig->state.rigport, (unsigned char *)cmd, 25);
+    unsigned char buf[64];
+    int retval = read_block(&rig->state.rigport, buf, 135);
+
+    if (retval == 135)
+    {
+        *freq = buf[17] * 10e7 + buf[18] * 10e5 + buf[19] * 10e3 + buf[20] * 10e1;
+        retval = RIG_OK;
+    }
+
+    return RIG_OK;
 }
 
 // ---------------------------------------------------------------------------
