@@ -100,6 +100,7 @@ enum ft817_native_cmd_e
     FT817_NATIVE_CAT_PWR_ON,
     FT817_NATIVE_CAT_PWR_OFF,
     FT817_NATIVE_CAT_EEPROM_READ,
+    FT817_NATIVE_CAT_EEPROM_WRITE,
     FT817_NATIVE_CAT_GET_TX_METERING,
     FT817_NATIVE_SIZE       /* end marker */
 };
@@ -209,6 +210,7 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0xbb } }, /* eeprom read */
+    { 0, { 0x00, 0x00, 0x00, 0x00, 0xbc } }, /* eeprom write */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0xbd } }, /* get TX metering levels (PWR, SWR, MOD, ALC) */
 };
 
@@ -292,7 +294,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20230604.0",
+    .version =             "20230605.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -788,16 +790,16 @@ static int ft817_get_status(RIG *rig, int status)
          * getting the frequency. */
         switch (p->fm_status[4] & 0x7f)
         {
-            unsigned char dig_mode;
+            unsigned char dig_mode[2];
 
         case 0x0a:
-            if ((n = ft817_read_eeprom(rig, 0x0065, &dig_mode)) < 0)
+            if ((n = ft817_read_eeprom(rig, 0x0065, dig_mode)) < 0)
             {
                 return n;
             }
 
             /* Top 3 bit define the digi mode */
-            p->dig_mode = dig_mode >> 5;
+            p->dig_mode = dig_mode[0] >> 5;
 
         default:
             break;
@@ -986,17 +988,17 @@ static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     if (ptt == RIG_PTT_OFF)
     {
         // TX status not valid when in RX
-        unsigned char c;
+        unsigned char c[2];
 
         /* Get split status from EEPROM */
-        n = ft817_read_eeprom(rig, 0x7a, &c);
+        n = ft817_read_eeprom(rig, 0x7a, c);
 
         if (n != RIG_OK)
         {
             return n;
         }
 
-        *split = (c & 0x80) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+        *split = (c[0] & 0x80) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
     }
     else
     {
@@ -1204,10 +1206,10 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     /* The FT818/817 has no RIG_TARGETABLE_ALL
      * so rig.c switched the active VFO to the one requested */
     int ret;
-    unsigned char eeprom_band, eeprom_ant;
+    unsigned char eeprom_band[2], eeprom_ant[2];
 
     /* Read eeprom for current 'band' for both VFO's */
-    ret = ft817_read_eeprom(rig, 0x59, &eeprom_band);
+    ret = ft817_read_eeprom(rig, 0x59, eeprom_band);
 
     if (ret != RIG_OK)
     {
@@ -1217,7 +1219,7 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     /* Read eeprom for antenna selection per band.
      * The FT818/817 stores antenna per band not per VFO!
      * So changing antenna will change for both VFO's */
-    ret = ft817_read_eeprom(rig, 0x7A, &eeprom_ant);
+    ret = ft817_read_eeprom(rig, 0x7A, eeprom_ant);
 
     if (ret != RIG_OK)
     {
@@ -1234,11 +1236,11 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     switch (vfo)
     {
     case RIG_VFO_A:
-        eeprom_band &= 0xF;
+        eeprom_band[0] &= 0xF;
         break;
 
     case RIG_VFO_B:
-        eeprom_band = eeprom_band >> 4;
+        eeprom_band[0] = eeprom_band[0] >> 4;
         break;
 
     default:
@@ -1255,9 +1257,9 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
      * So to make the code simple: if we have a 817 and 2 or higher band then
      * add 1 to the value to align it on the 818 mapping.
      */
-    if (is817 && eeprom_band >= 2)
+    if (is817 && eeprom_band[0] >= 2)
     {
-        eeprom_band++;
+        eeprom_band[0]++;
     }
 
     /* The 817/818 does not have a antenna selection per VFO but per band.
@@ -1266,7 +1268,7 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
      */
 
 
-    switch (eeprom_band)
+    switch (eeprom_band[0])
     {
     case 0:  /* 160M */
     case 1:  /*  80M */
@@ -1279,37 +1281,37 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     case 8:  /*  12M */
     case 9:  /*  10M */
         /* All HF use the same antenna setting, bit 0 */
-        eeprom_ant &= 1 << 0;
+        eeprom_ant[0] &= 1 << 0;
         break;
 
     case 0xA:  /* 6m, bit 1 */
-        eeprom_ant &= 1 << 1;
+        eeprom_ant[0] &= 1 << 1;
         break;
 
     case 0xB:  /* FM BCB 76Mhz - 108Mhz, bit 2 */
-        eeprom_ant &= 1 << 2;
+        eeprom_ant[0] &= 1 << 2;
         break;
 
     case 0xC:  /* Airband, bit 3 */
-        eeprom_ant &= 1 << 3;
+        eeprom_ant[0] &= 1 << 3;
         break;
 
     case 0xD:  /* 2M, bit 4 */
-        eeprom_ant &= 1 << 4;
+        eeprom_ant[0] &= 1 << 4;
         break;
 
     case 0xE:  /* 70cm / UHF, bit 5 */
-        eeprom_ant &= 1 << 5;
+        eeprom_ant[0] &= 1 << 5;
         break;
 
     case 0xF: /* Free-tuning?, bit 6 */
-        eeprom_ant &= 1 << 6;
+        eeprom_ant[0] &= 1 << 6;
         break;
     }
 
     /* We have no split TX/RX capability per VFO.
      * So only set ant_curr and leave rx/tx set to unknown. */
-    *ant_curr = eeprom_ant ? FT817_ANT_REAR : FT817_ANT_FRONT;
+    *ant_curr = eeprom_ant[0] ? FT817_ANT_REAR : FT817_ANT_FRONT;
 
     return RIG_OK;
 }
@@ -1403,16 +1405,16 @@ static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
 /* ---------------------------------------------------------------------- */
 static int ft817_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    unsigned char c;
+    unsigned char c[2];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if (ft817_read_eeprom(rig, 0x55, &c) < 0)   /* get vfo status */
+    if (ft817_read_eeprom(rig, 0x55, c) < 0)   /* get vfo status */
     {
         return -RIG_EPROTO;
     }
 
-    if ((c & 0x1) == 0)
+    if ((c[0] & 0x1) == 0)
     {
         *vfo = RIG_VFO_A;
     }
@@ -1473,6 +1475,7 @@ static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int index;  /* index of sequence to send */
+    unsigned char data[YAESU_CMD_LENGTH - 1];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s\n", __func__,
               rig_strrmode(mode));
@@ -1499,8 +1502,57 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_RTTY:
     case RIG_MODE_PKTUSB:
     case RIG_MODE_PKTLSB:
-        /* user has to have correct DIG mode setup on rig */
+    case RIG_MODE_PSK:
+    case RIG_MODE_PSKR:
+        // first we get our dig mode to see if it needs changing
+        unsigned char digmode[2];
+        int ret = ft817_read_eeprom(rig, 0x65, digmode);
+
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: digmode=0x%02x%02x\n", __func__, digmode[0],
+                  digmode[1]);
+        digmode[0] = digmode[0] >> 5; // shift 5 bits
+
+        // check if we're already in the mode and return if so
+        if (digmode[0] == 0x00 &&  mode == RIG_MODE_RTTY) { return RIG_OK; }
+        else if (digmode[0] == 0x01 &&  mode == RIG_MODE_PSKR) { return RIG_OK; }
+        else if (digmode[0] == 0x02 &&  mode == RIG_MODE_PSK) { return RIG_OK; }
+        else if (digmode[0] == 0x03 &&  mode == RIG_MODE_PKTLSB) { return RIG_OK; }
+        else if (digmode[0] == 0x04 &&  mode == RIG_MODE_PKTUSB) { return RIG_OK; }
+
+        memcpy(data, ncmd[FT817_NATIVE_CAT_EEPROM_WRITE].nseq, YAESU_CMD_LENGTH);
+
+        if (mode == RIG_MODE_RTTY) { data[0] = 0; }
+
+        if (mode == RIG_MODE_PSK) { data[0] = 1 << 5; }
+
+        if (mode == RIG_MODE_PSKR) { data[0] = 2 << 5; }
+
+        if (mode == RIG_MODE_PKTLSB) { data[0] = 3 << 5; }
+
+        if (mode == RIG_MODE_PKTUSB) { data[0] = 4 << 5; }
+
         index = FT817_NATIVE_CAT_SET_MODE_DIG;
+        ret = ft817_send_cmd(rig, index);
+
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: ft817_send_cmd: %s\n", __func__, rigerror(ret));
+        }
+
+        index = FT817_NATIVE_CAT_EEPROM_WRITE;
+        ret = ft817_send_icmd(rig, index, data);
+
+        if (ret != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: ft817_send_icmd: %s\n", __func__, rigerror(ret));
+        }
+
+        return RIG_OK;
         break;
 
     case RIG_MODE_FM:
