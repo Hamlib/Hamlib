@@ -2215,9 +2215,10 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         RETURNFUNC(retval);
     }
 
-    if (tmode == mode && ((width == RIG_PASSBAND_NOCHANGE) || (width == twidth)))
+    // do we really need/want to skip if width == twidth?
+    if ((width == RIG_PASSBAND_NOCHANGE) || (width == twidth))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: mode/width not changing\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: width not changing..keeping filter selection\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
