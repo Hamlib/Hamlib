@@ -294,7 +294,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20230605.0",
+    .version =             "20230606.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -799,7 +799,7 @@ static int ft817_get_status(RIG *rig, int status)
             }
 
             /* Top 3 bit define the digi mode */
-            p->dig_mode = dig_mode[0] >> 5;
+            p->dig_mode = dig_mode[1] >> 5;
 
         default:
             break;
@@ -1475,7 +1475,7 @@ static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int index;  /* index of sequence to send */
-    unsigned char data[YAESU_CMD_LENGTH - 1];
+    unsigned char data[YAESU_CMD_LENGTH];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s\n", __func__,
               rig_strrmode(mode));
@@ -1526,15 +1526,23 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         memcpy(data, ncmd[FT817_NATIVE_CAT_EEPROM_WRITE].nseq, YAESU_CMD_LENGTH);
 
-        if (mode == RIG_MODE_RTTY) { data[0] = 0; }
+        data[0] = 0x00;
+        data[1] = 0x65;
 
-        if (mode == RIG_MODE_PSK) { data[0] = 1 << 5; }
+        if (mode == RIG_MODE_RTTY) { data[2] = 0; }
 
-        if (mode == RIG_MODE_PSKR) { data[0] = 2 << 5; }
+        if (mode == RIG_MODE_PSK) { data[2] = 1 << 5; }
 
-        if (mode == RIG_MODE_PKTLSB) { data[0] = 3 << 5; }
+        if (mode == RIG_MODE_PSKR) { data[2] = 2 << 5; }
 
-        if (mode == RIG_MODE_PKTUSB) { data[0] = 4 << 5; }
+        if (mode == RIG_MODE_PKTLSB) { data[2] = 3 << 5; }
+
+        if (mode == RIG_MODE_PKTUSB) { data[2] = 4 << 5; }
+
+        // data[3] should be the original value at address 0x66,
+        // i.e. "DCS INV" / digmode[1]. This is so we don't end
+        // up overwriting this setting by mistake.
+        data[3] = digmode[1];
 
         index = FT817_NATIVE_CAT_SET_MODE_DIG;
         ret = ft817_send_cmd(rig, index);
@@ -1553,7 +1561,6 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
 
         return RIG_OK;
-        break;
 
     case RIG_MODE_FM:
         index = FT817_NATIVE_CAT_SET_MODE_FM;
