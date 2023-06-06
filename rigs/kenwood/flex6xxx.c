@@ -666,8 +666,17 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_RF:
         if (val.f > 1.0) { return -RIG_EINVAL; }
 
-        ival = val.f * (120 - -20) - 20;
-        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZAR%+04d", ival);
+        if (rig->caps->rig_model == RIG_MODEL_POWERSDR)
+        {
+            ival = val.f * (120 - -20) - 20;
+            SNPRINTF(cmd, sizeof(cmd) - 1, "ZZAR%+04d", ival);
+        }
+        else
+        {
+            ival = val.f * 100;
+            SNPRINTF(cmd, sizeof(cmd) - 1, "ZZAR%03d", ival);
+        }
+
         break;
 
     case RIG_LEVEL_MICGAIN:
@@ -1102,7 +1111,7 @@ const struct rig_caps f6k_caps =
     RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
     .mfg_name =     "FlexRadio",
-    .version =      "20220306.0",
+    .version =      "20230606.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1123,7 +1132,7 @@ const struct rig_caps f6k_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran =       {
-  [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
+        [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
     },     /* FIXME: granularity */
     .parm_gran =        {},
     //.extlevels =      elecraft_ext_levels,
@@ -1263,7 +1272,7 @@ const struct rig_caps powersdr_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran =       {
-  [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
+        [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
     },     /* FIXME: granularity */
     .parm_gran =        {},
     //.extlevels =      elecraft_ext_levels,
