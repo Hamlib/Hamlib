@@ -1504,6 +1504,7 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_PKTLSB:
     case RIG_MODE_PSK:
     case RIG_MODE_PSKR:
+    {
         // first we get our dig mode to see if it needs changing
         unsigned char digmode[2];
         int ret = ft817_read_eeprom(rig, 0x65, digmode);
@@ -1561,6 +1562,7 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
 
         return RIG_OK;
+    }
 
     case RIG_MODE_FM:
         index = FT817_NATIVE_CAT_SET_MODE_FM;
