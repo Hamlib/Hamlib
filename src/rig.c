@@ -788,6 +788,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->rigport.fd = rs->pttport.fd = rs->dcdport.fd = -1;
     rs->powerstat = RIG_POWER_ON; // default to power on
 
+    // we have to copy rs to rig->state_deprecated for DLL backwards compatibility
+    memcpy(&rig->state_deprecated, rs, sizeof(rig->state_deprecated));
+
     /*
      * let the backend a chance to setup his private data
      * This must be done only once defaults are setup,
@@ -2420,10 +2423,6 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         retcode = caps->set_mode(rig, vfo, mode, width);
         rig_debug(RIG_DEBUG_TRACE, "%s: targetable retcode after set_mode(%s)=%d\n",
                   __func__, rig_strrmode(mode), retcode);
-        if (rig->caps->rig_model == RIG_MODEL_FT817)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: FT817 must use Menu 26 to switch between upper/lower sideband, Hamlib only sets DIG mode\n", __func__);
-        }
     }
     else
     {
@@ -6753,7 +6752,9 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     if (vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
+        LOCK(1);
         retcode = caps->send_morse(rig, vfo, msg);
+        LOCK(0);
         RETURNFUNC(retcode);
     }
 
