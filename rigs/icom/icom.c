@@ -8768,6 +8768,7 @@ int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
     int len;
+    int retry = 20;
 
     ENTERFUNC;
     len = strlen(msg);
@@ -8779,6 +8780,7 @@ int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: %s\n", __func__, msg);
 
+morse_retry:
     retval = icom_transaction(rig, C_SND_CW, -1, (unsigned char *) msg, len,
                               ackbuf, &ack_len);
 
@@ -8798,6 +8800,11 @@ int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
+        if (len == 1 && --retry > 0) {
+            // 50 retries should be around 200ms --plenty of time to clear out some characters
+            hl_usleep(10*1000); 
+            goto morse_retry;
+        }
         RETURNFUNC(-RIG_ERJCTED);
     }
 
