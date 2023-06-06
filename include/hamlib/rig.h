@@ -2691,7 +2691,8 @@ struct rig_state {
  * It is NOT fine to touch this struct AT ALL!!!
  */
 struct rig_state_deprecated {
-    /********* DO NOT MODIFY OR REMOVE THIS STRUCTURE -- IT IS FOREVER DEPRECATED  *********/
+    /********* ENSURE YOU DO NOT EVERY MODIFY THIS STRUCTURE *********/
+    /********* It will remain forever to provide DLL backwards compatiblity ******/
     /*
      * overridable fields
      */
@@ -2809,6 +2810,7 @@ struct rig_state_deprecated {
     char client_version[32];  /*!<! Allow client to report version for compatibility checks/capability */
     freq_t offset_vfoa; /*!< Offset to apply to VFOA/Main set_freq */
     freq_t offset_vfob; /*!< Offset to apply to VFOB/Sub set_freq */
+    struct multicast_s *multicast; /*!< Pointer to multicast server data */
 };
 
 //! @cond Doxygen_Suppress
@@ -2883,6 +2885,7 @@ struct s_rig {
     // Do not remove the deprecated structure -- it will mess up DLL backwards compatibility
     struct rig_state_deprecated state_deprecated; /*!< Deprecated Rig state */
     struct rig_callbacks callbacks; /*!< registered event callbacks */
+    // state should really be a pointer but that's a LOT of changes involved
     struct rig_state state;         /*!< Rig state */
 };
 
