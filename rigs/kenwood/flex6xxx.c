@@ -667,7 +667,7 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (val.f > 1.0) { return -RIG_EINVAL; }
 
         ival = val.f * (120 - -20) - 20;
-        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZAR%+04d", ival);
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZAR%+03d", ival);
         break;
 
     case RIG_LEVEL_MICGAIN:
@@ -1233,7 +1233,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20221123.0",
+    .version =      "20230606.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
