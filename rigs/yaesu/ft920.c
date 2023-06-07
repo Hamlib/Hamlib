@@ -407,7 +407,7 @@ const struct rig_caps ft920_caps =
     RIG_MODEL(RIG_MODEL_FT920),
     .model_name =       "FT-920",
     .mfg_name =         "Yaesu",
-    .version =          "20220529.0",           /* YYYYMMDD */
+    .version =          "20220060.0",           /* YYYYMMDD */
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -2296,6 +2296,7 @@ static int ft920_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     {
         return err;
     }
+    hl_usleep(200*1000); // give the rig some time before we try set_freq
 
     return RIG_OK;
 }
