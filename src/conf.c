@@ -70,6 +70,11 @@ static const struct confparams frontend_cfg_params[] =
         "0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
     },
     {
+        TOK_TIMEOUT_RETRY, "timeout_retry", "Number of retries for read timeouts",
+        "Set the number of retries for data read timeouts that may occur especially with some serial interfaces",
+        "1", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } }
+    },
+    {
         TOK_RANGE_SELECTED, "Selected range list", "Range list#",
         "The tx/rx range list in use",
         "0", RIG_CONF_NUMERIC, { .n = { 1, 5, 1 } }
@@ -738,6 +743,15 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rs->tuner_control_pathname = strdup(val); // yeah -- need to free it
         break;
 
+    case TOK_TIMEOUT_RETRY:
+        if (1 != sscanf(val, "%ld", &val_i))
+        {
+            return -RIG_EINVAL;
+        }
+
+        rs->rigport.timeout_retry = val_i;
+        break;
+
     case TOK_OFFSET_VFOA:
         if (1 != sscanf(val, "%ld", &val_i))
         {
@@ -1109,6 +1123,10 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 
     case TOK_ASYNC:
         SNPRINTF(val, val_len, "%d", rs->async_data_enabled);
+        break;
+
+    case TOK_TIMEOUT_RETRY:
+        SNPRINTF(val, val_len, "%d", rs->rigport.timeout_retry);
         break;
 
     default:
