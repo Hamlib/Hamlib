@@ -2170,7 +2170,10 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_cache_show(rig, __func__, __LINE__);
 
-    if (*freq != 0 && (cache_ms_freq < rig->state.cache.timeout_ms
+    // WSJT-X senses rig precision with 55 and 56 Hz values
+    // We do not want to allow cache response with these values 
+    int wsjtx_special = ((long)*freq % 100)==55 || ((long)*freq % 100)==56;
+    if (!wsjtx_special && *freq != 0 && (cache_ms_freq < rig->state.cache.timeout_ms
                        || (rig->state.cache.timeout_ms == HAMLIB_CACHE_ALWAYS
                            || rig->state.use_cached_freq)))
     {
