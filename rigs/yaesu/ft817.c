@@ -224,13 +224,13 @@ enum ft817_digi
 };
 
 #define FT817_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTFM|\
-                                 RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+                                 RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_PSK|RIG_MODE_PSKR)
 #define FT817_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY)
 #define FT817_CWN_RX_MODES      (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY)
 #define FT817_AM_FM_RX_MODES    (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_PKTFM)
 
 #define FT817_OTHER_TX_MODES    (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
-                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+                                 RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_PSK|RIG_MODE_PSKR)
 #define FT817_AM_TX_MODES       (RIG_MODE_AM)
 
 #define FT817_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
@@ -294,7 +294,7 @@ const struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20230606.0",
+    .version =             "20230607.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -711,6 +711,7 @@ static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: data[0]=%02x, data[1]=%02x, out=%02x\n",
               __func__, data[0], data[1], *out);
 
+    memcpy(out, data, 2);
     return RIG_OK;
 }
 
@@ -934,9 +935,9 @@ static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         {
         case FT817_DIGI_RTTY: *mode = RIG_MODE_RTTYR; break;
 
-        case FT817_DIGI_PSK_L: *mode = RIG_MODE_PKTLSB; break;
+        case FT817_DIGI_PSK_L: *mode = RIG_MODE_PSKR; break;
 
-        case FT817_DIGI_PSK_U: *mode = RIG_MODE_PKTUSB; break;
+        case FT817_DIGI_PSK_U: *mode = RIG_MODE_PSK; break;
 
         case FT817_DIGI_USER_L: *mode = RIG_MODE_PKTLSB; break;
 
@@ -1532,9 +1533,9 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         if (mode == RIG_MODE_RTTY) { data[2] = 0; }
 
-        if (mode == RIG_MODE_PSK) { data[2] = 1 << 5; }
+        if (mode == RIG_MODE_PSKR) { data[2] = 1 << 5; }
 
-        if (mode == RIG_MODE_PSKR) { data[2] = 2 << 5; }
+        if (mode == RIG_MODE_PSK) { data[2] = 2 << 5; }
 
         if (mode == RIG_MODE_PKTLSB) { data[2] = 3 << 5; }
 
