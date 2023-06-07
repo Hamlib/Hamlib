@@ -2010,6 +2010,24 @@ int malachite_init(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
+int malachite_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+    int post_write_delay_save = rig->state.post_write_delay;
+    rig->state.post_write_delay = 0;
+    int retval = kenwood_get_mode(rig, vfo, mode, width);
+    rig->state.post_write_delay = post_write_delay_save;
+    return retval;
+}
+
+int malachite_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+    int post_write_delay_save = rig->state.post_write_delay;
+    rig->state.post_write_delay = 0;
+    int retval = kenwood_get_freq(rig, vfo, freq);
+    rig->state.post_write_delay = post_write_delay_save;
+    return retval;
+}
+
 int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
@@ -2035,7 +2053,7 @@ const struct rig_caps malachite_caps =
     RIG_MODEL(RIG_MODEL_MALACHITE),
     .model_name = "DSP",
     .mfg_name = "Malachite",
-    .version = BACKEND_VER ".2",
+    .version = BACKEND_VER ".3",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_RECEIVER,
@@ -2077,9 +2095,9 @@ const struct rig_caps malachite_caps =
     .rig_open = kenwood_open,
     .rig_cleanup = kenwood_cleanup,
     .set_freq = malachite_set_freq,
-    .get_freq = kenwood_get_freq,
+    .get_freq = malachite_get_freq,
     .set_mode = kenwood_set_mode,
-    .get_mode = kenwood_get_mode,
+    .get_mode = malachite_get_mode,
     .set_vfo = kenwood_set_vfo, // Malachite only supports VFOA
     .get_vfo = kenwood_get_vfo_if,
     .set_powerstat = kenwood_set_powerstat,

@@ -1152,11 +1152,26 @@ int kenwood_get_if(RIG *rig)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    int retval;
+    int post_write_delay_save = 0;
 
     ENTERFUNC;
+    
+    // Malachite has a 400ms delay but some get commands can work with no delay
+    if (RIG_IS_MALACHITE)
+    {
+        post_write_delay_save = rig->state.post_write_delay;
+        rig->state.post_write_delay = 0;
+    }
 
-    RETURNFUNC(kenwood_safe_transaction(rig, "IF", priv->info,
-                                        KENWOOD_MAX_BUF_LEN, caps->if_len));
+    retval = kenwood_safe_transaction(rig, "IF", priv->info,
+                                        KENWOOD_MAX_BUF_LEN, caps->if_len);
+
+    if (RIG_IS_MALACHITE)
+    {
+        rig->state.post_write_delay = post_write_delay_save;
+    }
+    RETURNFUNC(retval);
 }
 
 
