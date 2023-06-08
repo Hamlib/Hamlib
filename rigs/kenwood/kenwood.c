@@ -3503,6 +3503,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int i, ret, agclevel, len, value;
     struct kenwood_priv_data *priv = rig->state.priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
+    gran_t *level_info;
 
     ENTERFUNC;
 
@@ -3511,6 +3512,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    level_info = &rig->caps->level_gran[rig_setting2idx(level)];
+    
     switch (level)
     {
         int power_now, power_min, power_max;
@@ -3946,8 +3949,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         sscanf(lvlbuf + 2, "%d", &val->i);
-        val->i = (val->i * rig->caps->level_gran[LVL_CWPITCH].step.i)
-                 + rig->caps->level_gran[LVL_CWPITCH].min.i;
+        val->i = (val->i * level_info->step.i) + level_info->min.i;
         break;
 
     case RIG_LEVEL_KEYSPD:
@@ -3973,14 +3975,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         sscanf(lvlbuf + 2, "%3d", &raw_value);
 
-        if (RIG_IS_TS990S)
-        {
-            val->f = (float) raw_value / 255.0f;
-        }
-        else
-        {
-            val->f = (float) raw_value / 100.0f;
-        }
+        val->f = (float) raw_value * level_info->step.f;
 
         break;
     }
