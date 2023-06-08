@@ -8039,6 +8039,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     unsigned char fe_buf[fe_max]; // for FE's to power up
     int i;
     int retry, retry_save;
+    short timeout_retry_save;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
@@ -8048,19 +8049,21 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     // elimininate retries to speed this up
     // especially important when rig is not turned on
     retry_save = rs->rigport.retry;
+    timeout_retry_save = rs->rigport.timeout_retry;
+
     rs->rigport.retry = 0;
+    rs->rigport.timeout_retry = 0;
 
     switch (status)
     {
     case RIG_POWER_ON:
-
         // ic7300 manual says ~150 for 115,200
         // we'll just send a few more to be sure for all speeds
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
         write_block(&rs->rigport, fe_buf, fe_max);
-        hl_usleep(200 *
-                  1000); // need to wait a bit for RigPI and others to queue the echo
+        // need to wait a bit for RigPI and others to queue the echo
+        hl_usleep(200 * 1000);
 
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
@@ -8085,11 +8088,18 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
             {
                 retval = icom_get_usb_echo_off(rig);
 
-                if (retval != RIG_OK) { sleep(1); }
+                if (retval != RIG_OK)
+                {
+                    sleep(1);
+                }
+            }
+            if (retval == RIG_OK)
+            {
+                priv->poweron = 1;
             }
 
-            if (retval == RIG_OK) { priv->poweron = 1; }
-
+            rs->rigport.retry = retry_save;
+            rs->rigport.retry = timeout_retry_save;
             return RIG_OK;
         }
 
@@ -8128,6 +8138,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
             if (retval == RIG_OK)
             {
                 rig->state.current_vfo = icom_current_vfo(rig);
+                rs->rigport.retry = retry_save;
+                rs->rigport.retry = timeout_retry_save;
                 RETURNFUNC2(retval);
             }
             else
@@ -8142,6 +8154,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     }
 
     rs->rigport.retry = retry_save;
+    rs->rigport.retry = timeout_retry_save;
 
     if (i == retry)
     {
@@ -8208,19 +8221,29 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
     }
 
     if (rig->caps->rig_model == RIG_MODEL_IC2730
+            || rig->caps->rig_model == RIG_MODEL_IC705
             || rig->caps->rig_model == RIG_MODEL_IC7100
             || rig->caps->rig_model == RIG_MODEL_IC7300
             || rig->caps->rig_model == RIG_MODEL_IC7600
             || rig->caps->rig_model == RIG_MODEL_IC7610
             || rig->caps->rig_model == RIG_MODEL_IC7700
             || rig->caps->rig_model == RIG_MODEL_IC7800
+            || rig->caps->rig_model == RIG_MODEL_IC785x
+            || rig->caps->rig_model == RIG_MODEL_IC9700
             || rig->caps->rig_model == RIG_MODEL_IC905)
     {
         freq_t freq;
-        int retrysave = rig->caps->retry;
+        short retry_save = rig->state.rigport.retry;
+        short timeout_retry_save = rig->state.rigport.timeout_retry;
+
         rig->state.rigport.retry = 0;
-        int retval = rig_get_freq(rig, RIG_VFO_A, &freq);
-        rig->state.rigport.retry = retrysave;
+        rig->state.rigport.timeout_retry = 0;
+
+        retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+
+        rig->state.rigport.retry = retry_save;
+        rig->state.rigport.timeout_retry = timeout_retry_save;
+
         *status = retval == RIG_OK ? RIG_POWER_ON : RIG_POWER_OFF;
         return retval;
     }
