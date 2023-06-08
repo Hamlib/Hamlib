@@ -905,15 +905,26 @@ static int netrigctl_open(RIG *rig)
     }
     while (1);
 
+    if (rs->auto_power_on)
+    {
+        rig_set_powerstat(rig, 1);
+    }
+
     RETURNFUNC(RIG_OK);
 }
 
 static int netrigctl_close(RIG *rig)
 {
+    struct rig_state *rs = &rig->state;
     int ret;
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (rs->auto_power_off && rs->comm_state)
+    {
+        rig_set_powerstat(rig, 0);
+    }
 
     ret = netrigctl_transaction(rig, "q\n", 2, buf);
 
