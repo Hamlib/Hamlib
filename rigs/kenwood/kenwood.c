@@ -1874,12 +1874,16 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (RIG_OK != err) { RETURNFUNC2(err); }
     }
 
+    // Malchite is so slow we don't do the get_freq
+    if (!RIG_IS_MALACHITE)
+    {
     rig_get_freq(rig, tvfo, &tfreq);
 
     if (tfreq == freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: no freq change needed\n", __func__);
         RETURNFUNC2(RIG_OK);
+    }
     }
 
     switch (tvfo)

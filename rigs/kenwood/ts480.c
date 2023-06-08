@@ -31,6 +31,7 @@
 #include "misc.h"
 #include "token.h"
 #include "kenwood.h"
+#include "cache.h"
 
 #define TS480_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define SDRUNO_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTUSB)
@@ -2022,21 +2023,34 @@ int malachite_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int malachite_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     int post_write_delay_save = rig->state.post_write_delay;
+    ENTERFUNC;
     rig->state.post_write_delay = 0;
     int retval = kenwood_get_freq(rig, vfo, freq);
     rig->state.post_write_delay = post_write_delay_save;
-    return retval;
+    RETURNFUNC(retval);
 }
 
 int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
 
-    // Malachite has a bug where it takes two freq set to make it work
-    // under some band changes -- so we just do this all the time
-    retval = kenwood_set_freq(rig, vfo, freq + 1);
+    ENTERFUNC;
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    rig_debug(RIG_DEBUG_TRACE, "%s: freqMainA=%g, freq=%g\n", __func__,
+              rig->state.cache.freqMainA, freq);
+
+    if ((rig->state.cache.freqMainA < 400000000 && freq >= 400000000)
+            || (rig->state.cache.freqMainA >= 400000000 && freq < 400000000)
+            || rig->state.cache.freqMainA == 0)
+    {
+        // Malachite has a bug where it takes two freq set to make it work
+        // under band changes -- so we just do this all the time
+        retval = kenwood_set_freq(rig, vfo, freq + 1);
+        hl_usleep(300 *
+                  1000); // we need a bit over 400ms so the 125ms default plus this works
+
+        if (retval != RIG_OK) { RETURNFUNC(retval); }
+    }
 
     retval = kenwood_set_freq(rig, vfo, freq);
 
@@ -2066,13 +2080,15 @@ const struct rig_caps malachite_caps =
     .serial_parity = RIG_PARITY_NONE,
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay = 0,
-    .post_write_delay = 400,
+    // Malchite needs 125ms unless going from low to high band -- see malachite_set_freq
+    // Do not change this without checking the 300ms delay in malachite_set_freq
+    .post_write_delay = 125,
     .timeout = 3000,
     .retry = 3,
     .preamp = {0, RIG_DBLST_END,},
     .attenuator = {0, RIG_DBLST_END,},
     .max_ifshift = Hz(0),
-    .targetable_vfo = RIG_TARGETABLE_FREQ,
+//    .targetable_vfo = RIG_TARGETABLE_FREQ,
     .transceive = RIG_TRN_POLL,
 
 
