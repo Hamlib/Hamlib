@@ -560,6 +560,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
 #endif
 
+    rs->rig_model = caps->rig_model;
     rs->priv = NULL;
     rs->async_data_enabled = 1;
     rs->rigport.fd = -1;
@@ -1793,9 +1794,10 @@ static int twiddling(RIG *rig)
  */
 #if BUILTINFUNC
 #undef rig_set_freq
-int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq, const char *func)
+int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq, const char *func)
+#define rig_set_freq(r,v,f) rig_set_freq(r,v,f,__builtin_FUNCTION())
 #else
-int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #endif
 {
     const struct rig_caps *caps;
@@ -1901,6 +1903,9 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             HAMLIB_TRACE;
             retcode = caps->set_freq(rig, vfo, freq);
+            // disabling the freq check as of 2023-06-02
+            // seems unnecessary and slows down rigs unnecessarily
+            tfreq = freq;
 
             // some rig will return -RIG_ENTARGET if cannot set ptt while transmitting
             // we will just return RIG_OK and the frequency set will be ignored
@@ -1996,15 +2001,22 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // verify our freq to ensure HZ mods are seen
         // some rigs truncate or round e.g. 1,2,5,10,20,100Hz intervals
         // we'll try this all the time and if it works out OK eliminate the #else
-
-        if ((unsigned long long)freq % 100 != 0 // only need to do if < 100Hz interval
-                || freq > 100e6  // or if we are in the VHF and up range
+        if (((unsigned long long)freq % 100 != 0 // only need to do if < 100Hz interval
+                || freq > 100e6)  // or if we are in the VHF and up range
 #if 0
                 // do we need to only do this when cache is turned on? 2020-07-02 W9MDB
                 && rig->state.cache.timeout_ms > 0
 #endif
            )
         {
+            // some rigs we can skip this check for speed sake
+            if (rig->state.rig_model == RIG_MODEL_MALACHITE)
+            {
+                rig_set_cache_freq(rig, vfo, freq);
+                ELAPSED2;
+                LOCK(0);
+                RETURNFUNC(RIG_OK);
+            }
             // Unidirectional rigs do not reset cache
             if (rig->caps->rig_model != RIG_MODEL_FT736R)
             {
@@ -2012,6 +2024,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             }
 
             HAMLIB_TRACE;
+
             retcode = rig_get_freq(rig, vfo, &freq_new);
 
             if (retcode != RIG_OK)
@@ -2064,7 +2077,13 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  *
  * \sa rig_set_freq()
  */
+#if BUILTINFUNC
+#undef rig_get_freq
+int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq, const char *func)
+#define rig_get_freq(r,v,f) rig_get_freq(r,v,f,__builtin_FUNCTION())
+#else
 int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+#endif
 {
     const struct rig_caps *caps;
     int retcode;
@@ -2073,6 +2092,14 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     pbwidth_t width;
 
     ENTERFUNC;
+#if BUILTINFUNC
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, called from %s\n",
+              __func__,
+              rig_strvfo(vfo), func);
+#else
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__,
+              rig_strvfo(vfo));
+#endif
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -2850,6 +2877,7 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
 #if BUILTINFUNC
 #undef rig_set_vfo
 int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo, const char *func)
+#define rig_set_vfo(r,v) rig_set_vfo(r,v,__builtin_FUNCTION())
 #else
 int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 #endif
@@ -5144,12 +5172,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
     if ((!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
             && (!(rig->caps->rig_model == RIG_MODEL_NETRIGCTL)))
-#if BUILTINFUNC
-        rig_set_vfo(rig, rx_vfo, __builtin_FUNCTION());
-
-#else
         rig_set_vfo(rig, rx_vfo);
-#endif
 
     if (rx_vfo == RIG_VFO_CURR
             || rx_vfo == rig->state.current_vfo)

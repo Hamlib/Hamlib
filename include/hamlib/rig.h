@@ -2914,17 +2914,29 @@ extern HAMLIB_EXPORT(void)
 rig_lock(RIG *rig, int lock);
 
 #if BUILTINFUNC
-#define rig_set_freq(r,v, f) rig_set_vfo(r,v,f,__builtin_FUNCTION())
+#define rig_set_freq(r,v,f) rig_set_freq(r,v,f,__builtin_FUNCTION())
+extern HAMLIB_EXPORT(int)
+rig_set_freq HAMLIB_PARAMS((RIG *rig,
+                            vfo_t vfo,
+                            freq_t freq, const char*));
 #else
 extern HAMLIB_EXPORT(int)
 rig_set_freq HAMLIB_PARAMS((RIG *rig,
                             vfo_t vfo,
                             freq_t freq));
 #endif
+#if BUILTINFUNC
+#define rig_get_freq(r,v,f) rig_get_freq(r,v,f,__builtin_FUNCTION())
+extern HAMLIB_EXPORT(int)
+rig_get_freq HAMLIB_PARAMS((RIG *rig,
+                            vfo_t vfo,
+                            freq_t *freq, const char*));
+#else
 extern HAMLIB_EXPORT(int)
 rig_get_freq HAMLIB_PARAMS((RIG *rig,
                             vfo_t vfo,
                             freq_t *freq));
+#endif
 
 extern HAMLIB_EXPORT(int)
 rig_set_mode HAMLIB_PARAMS((RIG *rig,
