@@ -2215,13 +2215,6 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         RETURNFUNC(retval);
     }
 
-    // do we really need/want to skip if width == twidth?
-    if ((width == RIG_PASSBAND_NOCHANGE) || (width == twidth))
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: width not changing..keeping filter selection\n", __func__);
-        RETURNFUNC(RIG_OK);
-    }
-
     // looks like we need to change it
 
     switch (mode)
@@ -2266,7 +2259,8 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
     hl_usleep(50 * 1000); // pause for possible transceive message which we'll flush
 
-    if (RIG_OK == retval)
+    // we 
+    if (RIG_OK == retval && mode != tmode)
     {
         unsigned char datamode[2];
         unsigned char mode_icom; // Not used, we only need the width
@@ -2339,6 +2333,12 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
                 }
             }
         }
+    }
+    // do we really need/want to skip if width == twidth?
+    if ((width == RIG_PASSBAND_NOCHANGE) || (width == twidth))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: width not changing..keeping filter selection\n", __func__);
+        RETURNFUNC(RIG_OK);
     }
 
     icom_set_dsp_flt(rig, mode, width);
