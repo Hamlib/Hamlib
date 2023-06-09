@@ -1242,7 +1242,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20221123.0",
+    .version =      "20230608.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1373,6 +1373,7 @@ const struct rig_caps powersdr_caps =
     .set_func =         powersdr_set_func,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
+    .send_morse =  kenwood_send_morse,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
