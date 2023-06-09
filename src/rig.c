@@ -5005,6 +5005,8 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
     if (RIG_OK == retcode)
     {
+        rig_set_cache_freq(rig, vfo, tx_freq);
+
         HAMLIB_TRACE;
         retcode = rig_set_split_mode(rig, vfo, tx_mode, tx_width);
     }
