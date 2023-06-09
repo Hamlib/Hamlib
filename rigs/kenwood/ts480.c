@@ -2082,7 +2082,7 @@ const struct rig_caps malachite_caps =
     .write_delay = 0,
     // Malchite needs 125ms unless going from low to high band -- see malachite_set_freq
     // Do not change this without checking the 300ms delay in malachite_set_freq
-    .post_write_delay = 125,
+    .post_write_delay = 250,
     .timeout = 3000,
     .retry = 3,
     .preamp = {0, RIG_DBLST_END,},
