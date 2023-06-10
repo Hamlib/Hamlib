@@ -1103,7 +1103,6 @@ int main(int argc, char *argv[])
 #ifdef HAVE_PTHREAD
     /* allow threads to finish current action */
     mutex_rigctld(1);
-    HAMLIB_TRACE;
 
     if (client_count)
     {
@@ -1111,17 +1110,13 @@ int main(int argc, char *argv[])
     }
 
     rig_close(my_rig);
-    HAMLIB_TRACE;
     mutex_rigctld(0);
-    HAMLIB_TRACE;
 #else
     rig_close(my_rig); /* close port */
 #endif
 
-    HAMLIB_TRACE;
     network_multicast_publisher_stop(my_rig);
 
-    HAMLIB_TRACE;
     rig_cleanup(my_rig); /* if you care about memory */
 
 #ifdef __MINGW32__
