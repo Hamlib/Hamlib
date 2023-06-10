@@ -2108,5 +2108,5 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
         return -retval;
     }
 
-    return retval;
+    RETURNFUNC(retval);
 }
