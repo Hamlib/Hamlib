@@ -248,6 +248,7 @@ static int add_opened_rig(RIG *rig)
 {
     struct opened_rig_l *p;
 
+    ENTERFUNC2;
     p = (struct opened_rig_l *)calloc(1, sizeof(struct opened_rig_l));
 
     if (!p)
