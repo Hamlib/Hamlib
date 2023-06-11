@@ -378,6 +378,7 @@ static struct test_table test_list[] =
     { 0xa3, "get_lock_mode",     ACTION(get_lock_mode), ARG_NOVFO, "Locked" },
     { 0xa4, "send_raw",          ACTION(send_raw), ARG_NOVFO | ARG_IN1 | ARG_IN2 | ARG_OUT3, "Terminator", "Command", "Send raw answer" },
     { 0xa5, "client_version",    ACTION(client_version), ARG_NOVFO | ARG_IN1, "Version", "Client version" },
+    { 0xa6, "get_vfo_list",    ACTION(get_vfo_list), ARG_NOVFO },
     { 0x00, "", NULL },
 };
 
@@ -4567,8 +4568,10 @@ declare_proto_rig(dump_state)
                         rig->state.level_gran[i].max.i, rig->state.level_gran[i].step.i);
             }
         }
-
         fprintf(fout, "\n");
+        
+        rig->state.rig_model = rig->caps->rig_model;
+        fprintf(fout, "rig_model=%d\n", rig->state.rig_model);
         fprintf(fout, "done\n");
     }
 
