@@ -132,13 +132,13 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
     }
 
     fprintf(fout,
-            "Write delay:\t\t%dmS, timeout %dmS, %d retr%s\n",
+            "Write delay:\t\t%dms, timeout %dms, %d retr%s\n",
             caps->write_delay,
             caps->timeout, caps->retry,
             (caps->retry == 1) ? "y" : "ies");
 
     fprintf(fout,
-            "Post Write delay:\t%dmS\n",
+            "Post write delay:\t%dms\n",
             caps->post_write_delay);
 
     if (rot->state.has_status != 0)

@@ -236,10 +236,10 @@ int dumpcaps(RIG *rig, FILE *fout)
     }
 
     fprintf(fout,
-            "Write delay: %dmS, timeout %dmS, %d retry\n",
+            "Write delay: %dms, timeout %dms, %d retry\n",
             caps->write_delay, caps->timeout, caps->retry);
     fprintf(fout,
-            "Post Write delay: %dmS\n",
+            "Post write delay: %dms\n",
             caps->post_write_delay);
 
     fprintf(fout,

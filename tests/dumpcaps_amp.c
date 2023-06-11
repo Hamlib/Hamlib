@@ -114,13 +114,13 @@ int dumpcaps_amp(AMP *amp, FILE *fout)
     }
 
     fprintf(fout,
-            "Write delay:\t\t%dmS, timeout %dmS, %d retr%s\n",
+            "Write delay:\t\t%dms, timeout %dms, %d retr%s\n",
             caps->write_delay,
             caps->timeout, caps->retry,
             (caps->retry == 1) ? "y" : "ies");
 
     fprintf(fout,
-            "Post Write delay:\t%dmS\n",
+            "Post write delay:\t%dms\n",
             caps->post_write_delay);
 
     fprintf(fout, "Has priv data:\t\t%c\n", caps->priv != NULL ? 'Y' : 'N');
