@@ -1132,7 +1132,9 @@ const struct rig_caps f6k_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran =       {
-        [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
+      [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
+      [LVL_SLOPE_LOW] = { .min = { .i = 10}, .max = { .i = 1000}, .step = { .i = 50} },
+      [LVL_SLOPE_HIGH] = { .min = { .i = 1000}, .max = { .i = 5000}, .step = { .i = 10} },
     },     /* FIXME: granularity */
     .parm_gran =        {},
     //.extlevels =      elecraft_ext_levels,
@@ -1272,6 +1274,7 @@ const struct rig_caps powersdr_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran =       {
+#include "level_gran_kenwood.h"
         [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
     },     /* FIXME: granularity */
     .parm_gran =        {},
