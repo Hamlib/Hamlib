@@ -3406,7 +3406,12 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         retcode = gpio_ptt_set(&rig->state.pttport, ptt);
         break;
 
+    case RIG_PTT_NONE:
+        // allowed for use with VOX and WSJT-X
+        break;
+
     default:
+        rig_debug(RIG_DEBUG_WARN, "%s: unknown PTT type=%d\n", __func__, rig->state.pttport.type.ptt);
         ELAPSED2;
         RETURNFUNC(-RIG_EINVAL);
     }
