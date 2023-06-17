@@ -1341,7 +1341,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     freq_len = priv->civ_731_mode ? 4 : 5;
 
-    if (rig->caps->rig_model == RIG_MODEL_IC905) { freq/=10; freq_len = 6; }
+    if (rig->caps->rig_model == RIG_MODEL_IC905) { freq /= 10; freq_len = 6; }
 
     /*
      * to_bcd requires nibble len
@@ -1762,7 +1762,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (freq_len == 3) { *freq *= 10000; } // 3-byte freq for ID5100 is in 10000Hz units so convert to Hz
 
-    if (rig->caps->rig_model == RIG_MODEL_IC905) { *freq*=10; }
+if (rig->caps->rig_model == RIG_MODEL_IC905) { *freq *= 10; }
 
 if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
@@ -2261,7 +2261,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
 
     hl_usleep(50 * 1000); // pause for possible transceive message which we'll flush
 
-    // we 
+    // we
     if (RIG_OK == retval && mode != tmode)
     {
         unsigned char datamode[2];
@@ -2336,10 +2336,12 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
             }
         }
     }
+
     // do we really need/want to skip if width == twidth?
     if ((width == RIG_PASSBAND_NOCHANGE) || (width == twidth))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: width not changing..keeping filter selection\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: width not changing..keeping filter selection\n",
+                  __func__);
         RETURNFUNC(RIG_OK);
     }
 
@@ -8802,11 +8804,14 @@ morse_retry:
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
-        if (len == 1 && --retry > 0) {
+
+        if (len == 1 && --retry > 0)
+        {
             // 50 retries should be around 200ms --plenty of time to clear out some characters
-            hl_usleep(10*1000); 
+            hl_usleep(10 * 1000);
             goto morse_retry;
         }
+
         RETURNFUNC(-RIG_ERJCTED);
     }
 
