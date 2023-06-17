@@ -843,18 +843,17 @@ static int netrigctl_open(RIG *rig)
                     {
                         double min, max, step;
                         sscanf(p, "%*d=%lf,%lf,%lf", &min, &max, &step);
-                        rs->level_gran[i].min.f = min;
-                        rs->level_gran[i].max.f = max;
-                        rs->level_gran[i].step.f = step;
+                        rig->caps->level_gran[i].min.f = rs->level_gran[i].min.f = min;
+                        rig->caps->level_gran[i].max.f = rs->level_gran[i].max.f = max;
+                        rig->caps->level_gran[i].step.f = rs->level_gran[i].step.f = step;
                     }
                     else
                     {
                         int min, max, step;
                         sscanf(p, "%*d=%d,%d,%d", &min, &max, &step);
-                        rs->level_gran[i].min.i = min;
-                        rs->level_gran[i].max.i = max;
-                        rs->level_gran[i].step.i = step;
-
+                        rig->caps->level_gran[i].min.i = rs->level_gran[i].min.i = min;
+                        rig->caps->level_gran[i].max.i = rs->level_gran[i].max.i = max;
+                        rig->caps->level_gran[i].step.i = rs->level_gran[i].step.i = step;
                     }
 
                     p = strtok(NULL, ";");
@@ -872,17 +871,17 @@ static int netrigctl_open(RIG *rig)
                     {
                         double min, max, step;
                         sscanf(p, "%*d=%lf,%lf,%lf", &min, &max, &step);
-                        rs->parm_gran[i].min.f = min;
-                        rs->parm_gran[i].max.f = max;
-                        rs->parm_gran[i].step.f = step;
+                        rig->caps->parm_gran[i].min.f = rs->parm_gran[i].min.f = min;
+                        rig->caps->parm_gran[i].max.f = rs->parm_gran[i].max.f = max;
+                        rig->caps->parm_gran[i].step.f = rs->parm_gran[i].step.f = step;
                     }
                     else
                     {
                         int min, max, step;
                         sscanf(p, "%*d=%d,%d,%d", &min, &max, &step);
-                        rs->parm_gran[i].min.i = min;
-                        rs->parm_gran[i].max.i = max;
-                        rs->parm_gran[i].step.i = step;
+                        rig->caps->parm_gran[i].min.i = rs->parm_gran[i].min.i = min;
+                        rig->caps->parm_gran[i].max.i = rs->parm_gran[i].max.i = max;
+                        rig->caps->parm_gran[i].step.i = rs->parm_gran[i].step.i = step;
                     }
                     p = strtok(NULL, ";");
                 }
@@ -2799,7 +2798,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20230602.0",
+    .version =        "20230617.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
