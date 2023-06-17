@@ -1341,7 +1341,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     freq_len = priv->civ_731_mode ? 4 : 5;
 
-    if (rig->caps->rig_model == RIG_MODEL_IC905) { freq_len = 6; }
+    if (rig->caps->rig_model == RIG_MODEL_IC905) { freq/=10; freq_len = 6; }
 
     /*
      * to_bcd requires nibble len
@@ -1761,6 +1761,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     *freq = from_bcd(freqbuf + freqbuf_offset, freq_len * 2);
 
     if (freq_len == 3) { *freq *= 10000; } // 3-byte freq for ID5100 is in 10000Hz units so convert to Hz
+
+    if (rig->caps->rig_model == RIG_MODEL_IC905) { *freq*=10; }
 
 if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
