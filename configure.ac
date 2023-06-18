@@ -382,12 +382,14 @@ AS_IF([test x"$ax_cv_lib_readline" = "xno"], [
 
 dnl Check if INDI support in rigctl/rotctl is wanted
 AC_MSG_CHECKING([whether to use INDI in rigctl/rotctl])
-AC_ARG_WITH([indi],
-    [AS_HELP_STRING([--without-indi],
-	[disable INDI in rigctl/rotctl @<:@default=yes@:>@])],
-	[cf_with_indi_support=no],
-	[cf_with_indi_support=yes]
+AS_IF([test x"${cf_with_cxx_binding}" = "xyes"], [
+    AC_ARG_WITH([indi],
+        [AS_HELP_STRING([--without-indi],
+    	[disable INDI in rigctl/rotctl @<:@default=yes@:>@])],
+    	[cf_with_indi_support=no],
+    	[cf_with_indi_support=yes]
     )
+])
 
 AS_IF([test x"$cf_with_indi_support" != "xno"], [
     # INDI support needs a C++ compiler, tested for presence above.
