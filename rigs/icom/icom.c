@@ -684,6 +684,7 @@ int icom_init(RIG *rig)
     priv->filter = RIG_PASSBAND_NOCHANGE;
     priv->x25cmdfails = -1;
     priv->x1cx03cmdfails = 0;
+    priv->serial_USB_echo_off = -1;  // unknown at this point
 
     // we can add rigs here that will never use the 0x25 cmd
     // some like the 751 don't even reject the command and have to time out
@@ -1520,8 +1521,10 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
+    if (priv->serial_USB_echo_off == -1) icom_get_usb_echo_off(rig);
 
     cmd = C_RD_FREQ;
     subcmd = -1;
