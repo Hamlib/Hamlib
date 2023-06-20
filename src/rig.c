@@ -3070,7 +3070,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (caps->get_vfo == NULL)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: no get_vfo\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: no get_vfo\n", __func__);
         ELAPSED2;
         RETURNFUNC(-RIG_ENAVAIL);
     }
