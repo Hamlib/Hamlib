@@ -2046,10 +2046,13 @@ int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // Malachite has a bug where it takes two freq set to make it work
         // under band changes -- so we just do this all the time
         retval = kenwood_set_freq(rig, vfo, freq + 1);
-        hl_usleep(300 *
-                  1000); // we need a bit over 400ms so the 125ms default plus this works
+        rig->state.post_write_delay = 250; // need a bit more time on band  change
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
+    }
+    else
+    {
+        rig->state.post_write_delay = 125;
     }
 
     retval = kenwood_set_freq(rig, vfo, freq);
@@ -2067,7 +2070,7 @@ const struct rig_caps malachite_caps =
     RIG_MODEL(RIG_MODEL_MALACHITE),
     .model_name = "DSP",
     .mfg_name = "Malachite",
-    .version = BACKEND_VER ".3",
+    .version = BACKEND_VER ".4",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_RECEIVER,
