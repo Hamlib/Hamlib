@@ -1373,6 +1373,11 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             HAMLIB_TRACE;
             subcmd = 0x01;  // get unselected VFO
         }
+        if (rig->state.rig_model == RIG_MODEL_IC7600)
+        { // the 7600 does it different 0=Main, 1=Sub -- maybe other Icoms will start doing this too
+            subcmd = 0;
+            if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd = 1;
+        }
 
         cmd = 0x25;
         retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
@@ -1657,6 +1662,16 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         if ((vfo & vfo_unselected) && !(rig->state.current_vfo & vfo_unselected))
         {
             subcmd2 = 0x01;  // get unselected VFO
+        }
+
+        // Rigs like IC-7600 new firmware  has 0x25 and 0x26
+        // So if this succeeds we'll assume all such rigs are targetable freq & mode
+        rig->caps->targetable_vfo = rig->state.targetable_vfo |= RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: TARGETABLE_FREQ and TARGETABLE_MODE enabled\n", __func__);
+        if (rig->state.rig_model == RIG_MODEL_IC7600)
+        { // the 7600 does it different 0=Main, 1=Sub -- maybe other Icoms will start doing this too
+            subcmd2 = 0;
+            if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd2 = 1;
         }
 
         retval = icom_transaction(rig, cmd2, subcmd2, NULL, 0, freqbuf, &freq_len);
@@ -5803,6 +5818,11 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
                 // when transmitting in split mode the split VFO is active
                 subcmd = (rig->state.cache.split
                           && rig->state.cache.ptt) ? 0x00 : 0x01; // get the unselected vfo
+                if (rig->state.rig_model == RIG_MODEL_IC7600)
+                { // the 7600 does it different 0=Main, 1=Sub -- maybe other Icoms will start doing this too
+                    subcmd = 0;
+                    if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd = 1;
+                }
                 retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
                                           &ack_len);
 

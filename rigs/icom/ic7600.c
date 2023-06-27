@@ -263,7 +263,7 @@ int ic7600_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     return retval;
 }
 
-const struct rig_caps ic7600_caps =
+struct rig_caps ic7600_caps =
 {
     RIG_MODEL(RIG_MODEL_IC7600),
     .model_name = "IC-7600",
