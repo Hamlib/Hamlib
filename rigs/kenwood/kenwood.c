@@ -4861,7 +4861,7 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         case RIG_PTT_ON:
         case RIG_PTT_ON_MIC:
         case RIG_PTT_ON_DATA:
-            ptt_cmd = (vfo == RIG_VFO_C) ? "TX1" : "TX0";
+            ptt_cmd = "TX";
             break;
 
         case RIG_PTT_OFF:
