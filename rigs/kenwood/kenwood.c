@@ -3195,7 +3195,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         if (RIG_IS_TS2000)
         {
-            vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
+            vfo_num = (vfo == RIG_VFO_B) ? 1 : 0;
         }
         else
         {
@@ -3265,7 +3265,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         if (RIG_IS_TS2000)
         {
-            vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
+            vfo_num = (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) ? 1 : 0;
         }
         else
         {
@@ -3525,7 +3525,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             len = 3;
 
-            if (vfo == RIG_VFO_C)
+            if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
             {
                 cmd = "SM1";
             }
@@ -3563,7 +3563,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             len = 3;
 
-            if (vfo == RIG_VFO_C)
+            if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
             {
                 cmd = "SM1";
                 // TS-2000 sub-transceiver S-meter range is half of the main one
@@ -3609,7 +3609,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (RIG_IS_TS2000)
         {
-            vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
+            vfo_num = (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) ? 1 : 0;
         }
         else
         {
@@ -3796,7 +3796,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (RIG_IS_TS2000)
         {
-            vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
+            vfo_num = (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) ? 1 : 0;
         }
         else
         {
@@ -4963,7 +4963,7 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     }
 
     if ((RIG_IS_TS990S && RIG_VFO_SUB == vfo) ||
-            (RIG_IS_TS2000 && RIG_VFO_C == vfo))
+            (RIG_IS_TS2000 && (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo)))
     {
         offs = 3;
     }
