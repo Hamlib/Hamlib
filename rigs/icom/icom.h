@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20230620"
+#define BACKEND_VER "20230627"
 
 #define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
 #define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
@@ -443,7 +443,7 @@ extern const struct rig_caps ic756pro_caps;
 extern const struct rig_caps ic756pro2_caps;
 extern const struct rig_caps ic756pro3_caps;
 extern const struct rig_caps ic751_caps;
-extern const struct rig_caps ic7600_caps;
+extern struct rig_caps ic7600_caps; // need to modify targetable_vfo depending on response to 0x25 cmd
 extern const struct rig_caps ic7610_caps;
 extern const struct rig_caps ic761_caps;
 extern const struct rig_caps ic765_caps;
