@@ -318,6 +318,7 @@ extern const struct rig_caps malachite_caps;
 extern const struct rig_caps tx500_caps;
 extern const struct rig_caps sdruno_caps;
 extern const struct rig_caps qrplabs_caps;
+extern const struct rig_caps fx4_caps;
 
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd,

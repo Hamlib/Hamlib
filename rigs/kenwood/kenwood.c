@@ -6105,6 +6105,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&tx500_caps);
     rig_register(&sdruno_caps);
     rig_register(&qrplabs_caps);
+    rig_register(&fx4_caps);
 
     return (RIG_OK);
 }
