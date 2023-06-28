@@ -658,6 +658,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->lo_freq = 0;
     rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
     rs->cache.ptt = 0;
+    rs->targetable_vfo = rig->caps->targetable_vfo;
 
     // We are using range_list1 as the default
     // Eventually we will have separate model number for different rig variations
@@ -1385,7 +1386,7 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             // for non-Icom rigs if there's no set_vfo then we need to set one
             rs->current_vfo = vfo_fixup(rig, RIG_VFO_A, rig->state.cache.split);
-            rig_debug(RIG_DEBUG_TRACE, "%s: No set_vfo function rig so default vfo = %s\n",
+            rig_debug(RIG_DEBUG_TRACE, "%s: No set_vfo function rig so default vfo=%s\n",
                       __func__, rig_strvfo(rs->current_vfo));
         }
         else
