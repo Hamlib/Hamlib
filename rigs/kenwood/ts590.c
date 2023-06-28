@@ -29,9 +29,13 @@
 #include "cal.h"
 #include "iofunc.h"
 
+#define FX4_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
 #define TS590_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTFM|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_PKTAM)
+#define FX4_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define TS590_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define FX4_AM_TX_MODES (RIG_MODE_AM)
 #define TS590_AM_TX_MODES (RIG_MODE_AM|RIG_MODE_PKTAM)
+#define FX4_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS590_VFO (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define TS590_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
@@ -49,6 +53,7 @@
 
 #define TS590_SCAN_OPS (RIG_SCAN_VFO)
 
+#define FX4_ANTS (RIG_ANT_1)
 #define TS590_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 #define TS590_CHANNEL_CAPS { \
@@ -1656,6 +1661,200 @@ const struct rig_caps ts590_caps =
     .filters =  {
         {RIG_MODE_SSB, kHz(2.2)},
         {RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR, Hz(500)},
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_FM, kHz(12)},
+        RIG_FLT_END,
+    },
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+        [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
+        [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
+        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
+        [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 1000}, .step = {.i = 50}},
+        [LVL_BKIN_DLYMS] = {.min = {.i = 0}, .max = {.i = 1000}, .step = {.i = 50}},
+        [LVL_SLOPE_LOW] = {.min = {.i = 0}, .max = {.i = 2400}, .step = {.i = 10}},
+        [LVL_SLOPE_HIGH] = {.min = {.i = 0}, .max = {.i = 5000}, .step = {.i = 10}},
+    },
+
+    .str_cal = TS590_STR_CAL,
+    .swr_cal = TS590_SWR_CAL,
+
+    .ext_tokens = ts590_ext_tokens,
+    .extfuncs = ts590_ext_funcs,
+    .extlevels = ts590_ext_levels,
+
+    .priv = (void *)& ts590_priv_caps,
+    .rig_init = kenwood_init,
+    .rig_cleanup = kenwood_cleanup,
+    .rig_open = kenwood_open,
+    .rig_close = kenwood_close,
+    .set_freq = kenwood_set_freq,
+    .get_freq = kenwood_get_freq,
+    .set_rit = ts590_set_rit,
+    .get_rit = ts590_get_rit,
+    .set_xit = ts590_set_rit,
+    .get_xit = ts590_get_rit,
+    .set_mode = ts590_set_mode,
+    .get_mode = ts590_get_mode,
+    .set_vfo = kenwood_set_vfo,
+    .get_vfo = kenwood_get_vfo_if,
+    .set_split_vfo = kenwood_set_split_vfo,
+    .get_split_vfo = kenwood_get_split_vfo_if,
+    .get_ptt = kenwood_get_ptt,
+    .set_ptt = kenwood_set_ptt,
+    .get_dcd = kenwood_get_dcd,
+    .set_powerstat = kenwood_set_powerstat,
+    .get_powerstat = kenwood_get_powerstat,
+    .get_info = ts590_get_info,
+    .reset = kenwood_reset,
+    .set_ant = kenwood_set_ant,
+    .get_ant = kenwood_get_ant,
+    .scan_ops =  TS590_SCAN_OPS,
+    .scan = kenwood_scan,     /* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
+    .has_set_level = TS590_LEVEL_SET,
+    .has_get_level = TS590_LEVEL_GET,
+    .set_level = ts590_set_level,
+    .get_level = ts590_get_level,
+    .set_ext_level = ts590_set_ext_level,
+    .get_ext_level = ts590_get_ext_level,
+    .has_get_func = TS590_FUNC_ALL,
+    .has_set_func = TS590_FUNC_ALL,
+    .set_func = ts590_set_func,
+    .get_func = ts590_get_func,
+    .set_ext_func = ts590_set_ext_func,
+    .get_ext_func = ts590_get_ext_func,
+    .set_ctcss_tone =  kenwood_set_ctcss_tone,
+    .get_ctcss_tone =  kenwood_get_ctcss_tone,
+    .ctcss_list =  kenwood38_ctcss_list,
+    .set_trn =  kenwood_set_trn,
+    .get_trn =  kenwood_get_trn,
+    .send_morse =  kenwood_send_morse,
+    .stop_morse =  kenwood_stop_morse,
+    .wait_morse =  rig_wait_morse,
+    .set_mem =  kenwood_set_mem,
+    .get_mem =  kenwood_get_mem,
+    .vfo_ops = TS590_VFO_OPS,
+    .vfo_op =  kenwood_vfo_op,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
+};
+
+/**
+ * BG2FX FX-4C/FX-4CR rig capabilities
+ * Supposed to be 590S compatible
+ * Separate entry allows for customization
+ */
+const struct rig_caps fx4_caps =
+{
+    RIG_MODEL(RIG_MODEL_FX4),
+    .model_name = "FX4/C/CR/L",
+    .mfg_name = "BG2FX",
+    .version = BACKEND_VER ".7",
+    .copyright = "LGPL",
+    .status = RIG_STATUS_STABLE,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .ptt_type = RIG_PTT_RIG_MICDATA,
+    .dcd_type = RIG_DCD_RIG,
+    .port_type = RIG_PORT_SERIAL,
+    .serial_rate_min = 115200,
+    .serial_rate_max = 115200,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_HARDWARE,
+    .write_delay = 0,
+    .post_write_delay = 0,
+    .timeout = 500,
+    .retry = 3,
+    .preamp = {12, RIG_DBLST_END,},
+    .attenuator = {12, RIG_DBLST_END,},
+    .max_rit = kHz(9.99),
+    .max_xit = kHz(9.99),
+    .max_ifshift = Hz(0),
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .transceive = RIG_TRN_RIG,
+    .agc_level_count = 6,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_SUPERFAST, RIG_AGC_ON },
+
+    .chan_list =  { /* TBC */
+        {  0, 89, RIG_MTYPE_MEM,  TS590_CHANNEL_CAPS },
+        { 90, 99, RIG_MTYPE_EDGE, TS590_CHANNEL_CAPS },
+        RIG_CHAN_END,
+    },
+
+    .rx_range_list1 = {
+        {kHz(30),   Hz(59999999), FX4_ALL_MODES, -1, -1, FX4_VFO, FX4_ANTS},
+        RIG_FRNG_END,
+    }, /*!< Receive frequency range list for ITU region 1 */
+    .tx_range_list1 = {
+        {kHz(3500),  kHz(3800),  FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {kHz(3500),  kHz(3800),  FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(7),     kHz(7200),  FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(7),     kHz(7200),  FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {kHz(10100), kHz(10150), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {kHz(10100), kHz(10150), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(14),    kHz(14350), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(14),    kHz(14350), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {kHz(18068), kHz(18168), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {kHz(18068), kHz(18168), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(21),    kHz(21450), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(21),    kHz(21450), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {kHz(24890), kHz(24990), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {kHz(24890), kHz(24990), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(28),    kHz(29700), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(28),    kHz(29700), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(50),    kHz(52000), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(50),    kHz(52000), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        RIG_FRNG_END,
+    },  /*!< Transmit frequency range list for ITU region 1 */
+    .rx_range_list2 = {
+        {kHz(30),   Hz(59999999), FX4_ALL_MODES, -1, -1, FX4_VFO, FX4_ANTS},
+        RIG_FRNG_END,
+    },  /*!< Receive frequency range list for ITU region 2 */
+    .tx_range_list2 = {
+        {kHz(3500),  MHz(4) - 1, FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {kHz(3500),  MHz(4) - 1, FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {kHz(5250),  kHz(5450),  FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {kHz(5250),  kHz(5450),  FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(7),     kHz(7300),  FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(7),     kHz(7300),  FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {kHz(10100), kHz(10150), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {kHz(10100), kHz(10150), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(14),    kHz(14350), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(14),    kHz(14350), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {kHz(18068), kHz(18168), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {kHz(18068), kHz(18168), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(21),    kHz(21450), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(21),    kHz(21450), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {kHz(24890), kHz(24990), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {kHz(24890), kHz(24990), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(28),    kHz(29700), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(28),    kHz(29700), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        {MHz(50),    kHz(52000), FX4_OTHER_TX_MODES, 5000, 100000, FX4_VFO, FX4_ANTS},
+        {MHz(50),    kHz(52000), FX4_AM_TX_MODES, 5000, 25000, FX4_VFO, FX4_ANTS},
+        RIG_FRNG_END,
+    }, /*!< Transmit frequency range list for ITU region 2 */
+    .tuning_steps =  {
+        {TS590_ALL_MODES, kHz(1)},
+        {TS590_ALL_MODES, Hz(2500)},
+        {TS590_ALL_MODES, kHz(5)},
+        {TS590_ALL_MODES, Hz(6250)},
+        {TS590_ALL_MODES, kHz(10)},
+        {TS590_ALL_MODES, Hz(12500)},
+        {TS590_ALL_MODES, kHz(15)},
+        {TS590_ALL_MODES, kHz(20)},
+        {TS590_ALL_MODES, kHz(25)},
+        {TS590_ALL_MODES, kHz(30)},
+        {TS590_ALL_MODES, kHz(100)},
+        {TS590_ALL_MODES, kHz(500)},
+        {TS590_ALL_MODES, MHz(1)},
+        {TS590_ALL_MODES, 0},  /* any tuning step */
+        RIG_TS_END,
+    },
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_SSB, kHz(2.2)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(500)},
         {RIG_MODE_AM, kHz(6)},
         {RIG_MODE_FM, kHz(12)},
         RIG_FLT_END,
