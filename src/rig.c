@@ -6115,6 +6115,7 @@ int HAMLIB_API rig_mW2power(RIG *rig,
                             rmode_t mode)
 {
     const freq_range_t *txrange;
+    int limited = 0;
 
     if (!rig || !rig->caps || !power || mwpower == 0)
     {
@@ -6142,14 +6143,20 @@ int HAMLIB_API rig_mW2power(RIG *rig,
         RETURNFUNC2(RIG_OK);
     }
 
-    *power = (float)mwpower / txrange->high_power;
+    *power = (float)mwpower / (float) txrange->high_power;
 
     if (*power > 1.0)
     {
         *power = 1.0;
+        limited = 1;
+    }
+    else if (*power < 0.0)
+    {
+        *power = 0;
+        limited = 1;
     }
 
-    RETURNFUNC2(mwpower > txrange->high_power ? RIG_OK : -RIG_ETRUNC);
+    RETURNFUNC2(limited ? RIG_ETRUNC : RIG_OK);
 }
 
 
