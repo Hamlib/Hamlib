@@ -4796,7 +4796,7 @@ declare_proto_rig(get_powerstat)
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    fprintf(fout, "%d\n", stat);
+    fprintf(fout, "%d%c", stat, resp_sep);
     rig_powerstat = stat; // update our global so others can see powerstat
 
     RETURNFUNC2(status);
