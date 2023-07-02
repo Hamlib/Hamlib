@@ -1943,6 +1943,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         if (rig->state.current_mode != RIG_MODE_CW
                 && rig->state.current_mode != RIG_MODE_CWR
                 && rig->state.current_mode != RIG_MODE_CWN
+                && (is_ftdx3000 || is_ftdx3000dm)
            )
         {
             // DX3000 with seperate rx/tx antennas was failing frequency change
@@ -10908,6 +10909,7 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         int bytes;
         char cmd[256]; // big enough
+        repeat:
         rig_flush(&state->rigport);  /* discard any unsolicited data */
         SNPRINTF(cmd, sizeof(cmd), "%s", priv->cmd_str);
         rc = write_block(&state->rigport, (unsigned char *) cmd, strlen(cmd));
@@ -10942,6 +10944,7 @@ int newcat_set_cmd_validate(RIG *rig)
         if (strncmp(priv->cmd_str, "TX", 2) == 0
                 && strncmp(priv->ret_data, "TX", 2) == 0)
         {
+            if (strstr(priv->ret_data,"TX2")) goto repeat;
             // TX command does not echo what's sent so we just check the basic command
             RETURNFUNC(RIG_OK);
         }
