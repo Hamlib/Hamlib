@@ -138,7 +138,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20221109.0",
+    .version = "20230703.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -996,12 +996,12 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "LSB-D2")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
         else if (streq(p, "LSB-D3")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
         else if (streq(p, "NFM")) { modeMapAdd(&modes, RIG_MODE_FMN, p); }
-        else if (streq(p, "PKT")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
+        else if (streq(p, "PKT")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "PKT-FM")) { modeMapAdd(&modes, RIG_MODE_PKTFM, p); }
-        else if (streq(p, "PKT-L")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
-        else if (streq(p, "PKT-U")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
-        else if (streq(p, "PKT(L)")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
-        else if (streq(p, "PKT(U)")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
+        else if (streq(p, "PKT-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
+        else if (streq(p, "PKT-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
+        else if (streq(p, "PKT(L)")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
+        else if (streq(p, "PKT(U)")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "PSK")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
         else if (streq(p, "PSK-L")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
         else if (streq(p, "PSK-R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
