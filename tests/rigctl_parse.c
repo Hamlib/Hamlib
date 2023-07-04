@@ -36,6 +36,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
+#include <rig_tests.h>
 
 // If true adds some debug statements to see flow of rigctl parsing
 int debugflow = 0;
@@ -264,6 +265,7 @@ declare_proto_rig(set_lock_mode);
 declare_proto_rig(get_lock_mode);
 declare_proto_rig(send_raw);
 declare_proto_rig(client_version);
+declare_proto_rig(test);
 
 
 /*
@@ -379,6 +381,7 @@ static struct test_table test_list[] =
     { 0xa4, "send_raw",          ACTION(send_raw), ARG_NOVFO | ARG_IN1 | ARG_IN2 | ARG_OUT3, "Terminator", "Command", "Send raw answer" },
     { 0xa5, "client_version",    ACTION(client_version), ARG_NOVFO | ARG_IN1, "Version", "Client version" },
     { 0xa6, "get_vfo_list",    ACTION(get_vfo_list), ARG_NOVFO },
+    { 0xa7, "test",    ACTION(test), ARG_NOVFO | ARG_IN, "routine" },
     { 0x00, "", NULL },
 };
 
@@ -2433,6 +2436,20 @@ declare_proto_rig(get_vfo_list)
     }
 
     fprintf(fout, "%s%c\n", prntbuf[0] ? prntbuf : "None", ext_resp);
+
+    RETURNFUNC2(RIG_OK);
+}
+
+/* '\test' */
+declare_proto_rig(test)
+{
+    ENTERFUNC2;
+    if (!strcmp(arg1, "?"))
+    {
+        fprintf(fout, "cw\n");
+        RETURNFUNC2(RIG_OK);
+    }
+    if (strcmp(arg1, "cw")==0) rig_test_cw(rig);
 
     RETURNFUNC2(RIG_OK);
 }
