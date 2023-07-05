@@ -8,6 +8,7 @@ int rig_test_cw(RIG *rig)
     char *s = "SOS SOS SOS SOS SOS SOS SOS SOS SOS SOS SOS SOS SOS";
     //char *s = "TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST";
     int i;
+    ELAPSED1;
     ENTERFUNC;
 
     for (i = 0; i < strlen(s); ++i)
@@ -26,5 +27,6 @@ int rig_test_cw(RIG *rig)
         }
     }
 
+    ELAPSED2;
     RETURNFUNC(RIG_OK);
 }
