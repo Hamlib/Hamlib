@@ -242,7 +242,7 @@ const struct rig_caps ic785x_caps =
     RIG_MODEL(RIG_MODEL_IC785x),
     .model_name = "IC-7850/7851",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".7",
+    .version =  BACKEND_VER ".8",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -438,7 +438,7 @@ const struct rig_caps ic785x_caps =
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
     .set_vfo =  icom_set_vfo,
-    .get_vfo =  icom_get_vfo,
+//    .get_vfo =  icom_get_vfo,
     .set_ant =  icom_set_ant,
     .get_ant =  icom_get_ant,
 
