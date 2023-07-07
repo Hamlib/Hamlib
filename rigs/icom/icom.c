@@ -1666,12 +1666,16 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         // Rigs like IC-7600 new firmware  has 0x25 and 0x26
         // So if this succeeds we'll assume all such rigs are targetable freq & mode
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: TARGETABLE_FREQ and TARGETABLE_MODE enabled\n", __func__);
-        if (RIG_IS_IC7600 || RIG_IS_IC7610)
+        int targetable_vfo_save = rig->caps->targetable_vfo;
+        if ((RIG_IS_IC7600 || RIG_IS_IC7610) && priv->x25cmdfails <= 0)
         { // the 7600/7610 do it different 0=Main, 1=Sub -- maybe other Icoms will start doing this too
-            rig->caps->targetable_vfo = rig->state.targetable_vfo |= RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE;
             subcmd2 = 0;
             if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd2 = 1;
+            if (priv->x25cmdfails < 0)
+            { // we'll test this once to support the newer firmware
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: TARGETABLE_FREQ and TARGETABLE_MODE enabled for testing\n", __func__);
+                rig->caps->targetable_vfo = rig->state.targetable_vfo |= RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE;
+            }
         }
 
         retval = icom_transaction(rig, cmd2, subcmd2, NULL, 0, freqbuf, &freq_len);
@@ -1685,6 +1689,11 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             if (priv->x25cmdfails < 0)
             {
                 priv->x25cmdfails = 1;
+                if (RIG_IS_IC7600 || RIG_IS_IC7610)
+                {
+                    rig->caps->targetable_vfo = targetable_vfo_save;
+                    rig_debug(RIG_DEBUG_VERBOSE, "%s: TARGETABLE_FREQ and TARGETABLE_MODE disabled -- older firmare likely\n", __func__);
+                }
             }
 
             rig_debug(RIG_DEBUG_TRACE,
