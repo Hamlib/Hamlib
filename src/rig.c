@@ -1,4 +1,3 @@
-Add current_vfo to cache debug statementy
 /*
  *  Hamlib Interface - main file
  *  Copyright (c) 2021 by Mikael Nousiainen
