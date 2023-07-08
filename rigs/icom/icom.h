@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20230606"
+#define BACKEND_VER "20230707"
 
 #define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
 #define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
@@ -443,8 +443,8 @@ extern const struct rig_caps ic756pro_caps;
 extern const struct rig_caps ic756pro2_caps;
 extern const struct rig_caps ic756pro3_caps;
 extern const struct rig_caps ic751_caps;
-extern const struct rig_caps ic7600_caps;
-extern const struct rig_caps ic7610_caps;
+extern struct rig_caps ic7600_caps; // need to modify targetable_vfo depending on response to 0x25 cmd
+extern struct rig_caps ic7610_caps;
 extern const struct rig_caps ic761_caps;
 extern const struct rig_caps ic765_caps;
 extern const struct rig_caps ic7700_caps;
@@ -508,5 +508,89 @@ extern const struct rig_caps x5105_caps;
 
 extern const struct rig_caps icr8600_caps;
 extern const struct rig_caps icr30_caps;
+
+#define RIG_IS_IC1271 (rig->state.rig_model == RIG_MODEL_IC1271)
+#define RIG_IS_IC1275 (rig->state.rig_model == RIG_MODEL_IC1275)
+#define RIG_IS_IC271 (rig->state.rig_model == RIG_MODEL_IC271)
+#define RIG_IS_IC2730 (rig->state.rig_model == RIG_MODEL_IC2730)
+#define RIG_IS_IC275 (rig->state.rig_model == RIG_MODEL_IC275)
+#define RIG_IS_IC375 (rig->state.rig_model == RIG_MODEL_IC375)
+#define RIG_IS_IC471 (rig->state.rig_model == RIG_MODEL_IC471)
+#define RIG_IS_IC475 (rig->state.rig_model == RIG_MODEL_IC475)
+#define RIG_IS_IC575 (rig->state.rig_model == RIG_MODEL_IC575)
+#define RIG_IS_IC7000 (rig->state.rig_model == RIG_MODEL_IC7000)
+#define RIG_IS_IC703 (rig->state.rig_model == RIG_MODEL_IC703)
+#define RIG_IS_IC705 (rig->state.rig_model == RIG_MODEL_IC705)
+#define RIG_IS_IC706 (rig->state.rig_model == RIG_MODEL_IC706)
+#define RIG_IS_IC706MKII (rig->state.rig_model == RIG_MODEL_IC706MKII)
+#define RIG_IS_IC706MKIIG (rig->state.rig_model == RIG_MODEL_IC706MKIIG)
+#define RIG_IS_IC707 (rig->state.rig_model == RIG_MODEL_IC707)
+#define RIG_IS_IC7100 (rig->state.rig_model == RIG_MODEL_IC7100)
+#define RIG_IS_IC718 (rig->state.rig_model == RIG_MODEL_IC718)
+#define RIG_IS_IC7200 (rig->state.rig_model == RIG_MODEL_IC7200)
+#define RIG_IS_IC725 (rig->state.rig_model == RIG_MODEL_IC725)
+#define RIG_IS_IC726 (rig->state.rig_model == RIG_MODEL_IC726)
+#define RIG_IS_IC728 (rig->state.rig_model == RIG_MODEL_IC728)
+#define RIG_IS_IC729 (rig->state.rig_model == RIG_MODEL_IC729)
+#define RIG_IS_IC7300 (rig->state.rig_model == RIG_MODEL_IC7300)
+#define RIG_IS_IC731 (rig->state.rig_model == RIG_MODEL_IC731)
+#define RIG_IS_IC735 (rig->state.rig_model == RIG_MODEL_IC735)
+#define RIG_IS_IC736 (rig->state.rig_model == RIG_MODEL_IC736)
+#define RIG_IS_IC737 (rig->state.rig_model == RIG_MODEL_IC737)
+#define RIG_IS_IC738 (rig->state.rig_model == RIG_MODEL_IC738)
+#define RIG_IS_IC7410 (rig->state.rig_model == RIG_MODEL_IC7410)
+#define RIG_IS_IC746 (rig->state.rig_model == RIG_MODEL_IC746)
+#define RIG_IS_IC746PRO (rig->state.rig_model == RIG_MODEL_IC746PRO)
+#define RIG_IS_IC751 (rig->state.rig_model == RIG_MODEL_IC751)
+#define RIG_IS_IC751A (rig->state.rig_model == RIG_MODEL_IC751A)
+#define RIG_IS_IC756 (rig->state.rig_model == RIG_MODEL_IC756)
+#define RIG_IS_IC756PRO (rig->state.rig_model == RIG_MODEL_IC756PRO)
+#define RIG_IS_IC756PROII (rig->state.rig_model == RIG_MODEL_IC756PROII)
+#define RIG_IS_IC756PROIII (rig->state.rig_model == RIG_MODEL_IC756PROIII)
+#define RIG_IS_IC7600 (rig->state.rig_model == RIG_MODEL_IC7600)
+#define RIG_IS_IC761 (rig->state.rig_model == RIG_MODEL_IC761)
+#define RIG_IS_IC7610 (rig->state.rig_model == RIG_MODEL_IC7610)
+#define RIG_IS_IC765 (rig->state.rig_model == RIG_MODEL_IC765)
+#define RIG_IS_IC7700 (rig->state.rig_model == RIG_MODEL_IC7700)
+#define RIG_IS_IC775 (rig->state.rig_model == RIG_MODEL_IC775)
+#define RIG_IS_IC78 (rig->state.rig_model == RIG_MODEL_IC78)
+#define RIG_IS_IC7800 (rig->state.rig_model == RIG_MODEL_IC7800)
+#define RIG_IS_IC781 (rig->state.rig_model == RIG_MODEL_IC781)
+#define RIG_IS_IC785X (rig->state.rig_model == RIG_MODEL_IC785x)
+#define RIG_IS_IC820 (rig->state.rig_model == RIG_MODEL_IC820)
+#define RIG_IS_IC821 (rig->state.rig_model == RIG_MODEL_IC821)
+#define RIG_IS_IC821H (rig->state.rig_model == RIG_MODEL_IC821H)
+#define RIG_IS_IC905 (rig->state.rig_model == RIG_MODEL_IC905)
+#define RIG_IS_IC910 (rig->state.rig_model == RIG_MODEL_IC910)
+#define RIG_IS_IC9100 (rig->state.rig_model == RIG_MODEL_IC9100)
+#define RIG_IS_IC92D (rig->state.rig_model == RIG_MODEL_IC92D)
+#define RIG_IS_IC970 (rig->state.rig_model == RIG_MODEL_IC970)
+#define RIG_IS_IC9700 (rig->state.rig_model == RIG_MODEL_IC9700)
+#define RIG_IS_IC8101 (rig->state.rig_model == RIG_MODEL_ICF8101)
+#define RIG_IS_ICID1 (rig->state.rig_model == RIG_MODEL_ICID1)
+#define RIG_IS_ICM700PRO (rig->state.rig_model == RIG_MODEL_IC_M700PRO)
+#define RIG_IS_ICM710 (rig->state.rig_model == RIG_MODEL_IC_M710)
+#define RIG_IS_ICM802 (rig->state.rig_model == RIG_MODEL_IC_M802)
+#define RIG_IS_ICM803 (rig->state.rig_model == RIG_MODEL_IC_M803)
+#define RIG_IS_ICR10 (rig->state.rig_model == RIG_MODEL_ICR10)
+#define RIG_IS_ICR20 (rig->state.rig_model == RIG_MODEL_ICR20)
+#define RIG_IS_ICR30 (rig->state.rig_model == RIG_MODEL_ICR30)
+#define RIG_IS_ICR6 (rig->state.rig_model == RIG_MODEL_ICR6)
+#define RIG_IS_ICR7000 (rig->state.rig_model == RIG_MODEL_ICR7000)
+#define RIG_IS_ICR71 (rig->state.rig_model == RIG_MODEL_ICR71)
+#define RIG_IS_ICR7100 (rig->state.rig_model == RIG_MODEL_ICR7100)
+#define RIG_IS_ICR72 (rig->state.rig_model == RIG_MODEL_ICR72)
+#define RIG_IS_ICR75 (rig->state.rig_model == RIG_MODEL_ICR75)
+#define RIG_IS_ICR8500 (rig->state.rig_model == RIG_MODEL_ICR8500)
+#define RIG_IS_ICR8600 (rig->state.rig_model == RIG_MODEL_ICR8600)
+#define RIG_IS_ICR9000 (rig->state.rig_model == RIG_MODEL_ICR9000)
+#define RIG_IS_ICR9500 (rig->state.rig_model == RIG_MODEL_ICR9500)
+#define RIG_IS_ICRX7 (rig->state.rig_model == RIG_MODEL_ICRX7)
+#define RIG_IS_ID5100 (rig->state.rig_model == RIG_MODEL_ID5100)
+#define RIG_IS_OMNIVIP (rig->state.rig_model == RIG_MODEL_OMNIVIP)
+#define RIG_IS_OS456 (rig->state.rig_model == RIG_MODEL_OS456)
+#define RIG_IS_X5105 (rig->state.rig_model == RIG_MODEL_X5105)
+#define RIG_IS_X6100 (rig->state.rig_model == RIG_MODEL_X6100)
+
 
 #endif /* _ICOM_H */

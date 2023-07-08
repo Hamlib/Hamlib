@@ -910,7 +910,7 @@ struct rig_caps ic9700_caps =
     RIG_MODEL(RIG_MODEL_IC9700),
     .model_name = "IC-9700",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".13",
+    .version =  BACKEND_VER ".14",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1169,7 +1169,7 @@ struct rig_caps ic9700_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
-    .get_vfo =  icom_get_vfo,
+//    .get_vfo =  icom_get_vfo,
     .set_vfo =  ic9700_set_vfo,
     .set_ant =  NULL,
     .get_ant =  NULL,
@@ -2108,5 +2108,5 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
         return -retval;
     }
 
-    return retval;
+    RETURNFUNC(retval);
 }

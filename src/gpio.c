@@ -99,7 +99,28 @@ int gpio_open(hamlib_port_t *port, int output, int on_value)
 
 int gpio_close(hamlib_port_t *port)
 {
-    return close(port->fd);
+    int retval;
+    char pathname[HAMLIB_FILPATHLEN * 2];
+    FILE *fexp;
+
+    retval = close(port->fd);
+
+    SNPRINTF(pathname, HAMLIB_FILPATHLEN, "/sys/class/gpio/unexport");
+    fexp = fopen(pathname, "w");
+
+    if (!fexp)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "Export GPIO%s (using %s): %s\n",
+                  port->pathname,
+                  pathname,
+                  strerror(errno));
+        return -RIG_EIO;
+    }
+
+    fprintf(fexp, "%s\n", port->pathname);
+    fclose(fexp);
+    return retval;
 }
 
 

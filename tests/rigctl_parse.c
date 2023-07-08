@@ -36,6 +36,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
+#include <rig_tests.h>
 
 // If true adds some debug statements to see flow of rigctl parsing
 int debugflow = 0;
@@ -264,6 +265,7 @@ declare_proto_rig(set_lock_mode);
 declare_proto_rig(get_lock_mode);
 declare_proto_rig(send_raw);
 declare_proto_rig(client_version);
+declare_proto_rig(test);
 
 
 /*
@@ -378,6 +380,8 @@ static struct test_table test_list[] =
     { 0xa3, "get_lock_mode",     ACTION(get_lock_mode), ARG_NOVFO, "Locked" },
     { 0xa4, "send_raw",          ACTION(send_raw), ARG_NOVFO | ARG_IN1 | ARG_IN2 | ARG_OUT3, "Terminator", "Command", "Send raw answer" },
     { 0xa5, "client_version",    ACTION(client_version), ARG_NOVFO | ARG_IN1, "Version", "Client version" },
+    { 0xa6, "get_vfo_list",    ACTION(get_vfo_list), ARG_NOVFO },
+    { 0xa7, "test",    ACTION(test), ARG_NOVFO | ARG_IN, "routine" },
     { 0x00, "", NULL },
 };
 
@@ -1732,7 +1736,7 @@ readline_repeat:
     else
     {
         // Allow only certain commands when the rig is powered off
-        if ((rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY)
+        if (my_rig->state.powerstat == RIG_POWER_OFF && (rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY)
                 && cmd_entry->cmd != '1' // dump_caps
                 && cmd_entry->cmd != '3' // dump_conf
                 && cmd_entry->cmd != 0x8f // dump_state
@@ -2432,6 +2436,20 @@ declare_proto_rig(get_vfo_list)
     }
 
     fprintf(fout, "%s%c\n", prntbuf[0] ? prntbuf : "None", ext_resp);
+
+    RETURNFUNC2(RIG_OK);
+}
+
+/* '\test' */
+declare_proto_rig(test)
+{
+    ENTERFUNC2;
+    if (!strcmp(arg1, "?"))
+    {
+        fprintf(fout, "cw\n");
+        RETURNFUNC2(RIG_OK);
+    }
+    if (strcmp(arg1, "cw")==0) rig_test_cw(rig);
 
     RETURNFUNC2(RIG_OK);
 }
@@ -4567,8 +4585,10 @@ declare_proto_rig(dump_state)
                         rig->state.level_gran[i].max.i, rig->state.level_gran[i].step.i);
             }
         }
-
         fprintf(fout, "\n");
+        
+        rig->state.rig_model = rig->caps->rig_model;
+        fprintf(fout, "rig_model=%d\n", rig->state.rig_model);
         fprintf(fout, "done\n");
     }
 
@@ -4793,7 +4813,7 @@ declare_proto_rig(get_powerstat)
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
-    fprintf(fout, "%d\n", stat);
+    fprintf(fout, "%d%c", stat, resp_sep);
     rig_powerstat = stat; // update our global so others can see powerstat
 
     RETURNFUNC2(status);

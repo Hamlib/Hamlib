@@ -23,6 +23,7 @@ float freqB = 14074500;
 int filternum = 7;
 int datamode = 0;
 int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
+int tomode = 0;
 
 int
 getmyline(int fd, char *buf)
@@ -219,8 +220,7 @@ int main(int argc, char *argv[])
         {
             printf("%s\n", buf);
             hl_usleep(mysleep * 1000);
-            int id = 24;
-            SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
+            SNPRINTF(buf, sizeof(buf), "ID%03d;", 10);
             n = write(fd, buf, strlen(buf));
 //            printf("n=%d\n", n);
 
@@ -229,21 +229,20 @@ int main(int argc, char *argv[])
             continue;
         }
 
-#if 0
         else if (strncmp(buf, "AI", 2) == 0)
         {
             if (strcmp(buf, "AI;"))
             {
                 printf("%s\n", buf);
                 hl_usleep(mysleep * 1000);
-                n = fprintf(fp, "%s", "AI0;");
+                pbuf = "AI0;";
+                n = write(fd, pbuf, strlen(pbuf));
                 printf("n=%d\n", n);
 
                 if (n <= 0) { perror("AI"); }
             }
         }
 
-#endif
         else if (strcmp(buf, "VS;") == 0)
         {
             printf("%s\n", buf);
@@ -385,6 +384,11 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "DA%d", &datamode);
             printf("%s\n", buf);
+            continue;
+        }
+        else if (strncmp(buf, "TO;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "TO%d;", tomode);
             continue;
         }
         else if (strncmp(buf, "BD;", 3) == 0)

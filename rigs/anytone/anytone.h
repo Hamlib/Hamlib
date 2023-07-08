@@ -42,6 +42,7 @@ extern int anytone_get_ptt(RIG *rig, vfo_t vfo,ptt_t *ptt);
 extern int anytone_set_vfo(RIG *rig, vfo_t vfo);
 extern int anytone_get_vfo(RIG *rig, vfo_t *vfo);
 
+extern int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 extern int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
 #endif /* _ANYTONE_H */

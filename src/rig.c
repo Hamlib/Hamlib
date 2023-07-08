@@ -51,6 +51,7 @@
 
 #include "hamlib/rig.h"
 #include "hamlib/config.h"
+#include "fifo.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -240,6 +241,22 @@ static int async_data_handler_stop(RIG *rig);
 void *async_data_handler(void *arg);
 #endif
 
+typedef struct morse_data_handler_args_s
+{
+    RIG *rig;
+} morse_data_handler_args;
+
+typedef struct morse_data_handler_priv_data_s
+{
+    pthread_t thread_id;
+    morse_data_handler_args args;
+    FIFO fifo;
+} morse_data_handler_priv_data;
+
+static int morse_data_handler_start(RIG *rig);
+static int morse_data_handler_stop(RIG *rig);
+void *morse_data_handler(void *arg);
+
 /*
  * track which rig is opened (with rig_open)
  * needed at least for transceive mode
@@ -248,6 +265,7 @@ static int add_opened_rig(RIG *rig)
 {
     struct opened_rig_l *p;
 
+    ENTERFUNC2;
     p = (struct opened_rig_l *)calloc(1, sizeof(struct opened_rig_l));
 
     if (!p)
@@ -560,11 +578,13 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
 #endif
 
+    rs->rig_model = caps->rig_model;
     rs->priv = NULL;
     rs->async_data_enabled = 1;
     rs->rigport.fd = -1;
     rs->pttport.fd = -1;
     rs->comm_state = 0;
+    rig->state.depth = 1;
 #if 0 // extra debug if needed
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==0?=%d\n", __func__,
               __LINE__, &rs->comm_state,
@@ -655,6 +675,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->lo_freq = 0;
     rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
     rs->cache.ptt = 0;
+    rs->targetable_vfo = rig->caps->targetable_vfo;
 
     // We are using range_list1 as the default
     // Eventually we will have separate model number for different rig variations
@@ -1299,6 +1320,16 @@ int HAMLIB_API rig_open(RIG *rig)
               rs->comm_state);
     hl_usleep(100 * 1000); // wait a bit after opening to give some serial ports time
 
+    status = morse_data_handler_start(rig);
+
+    if (status < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %s\n", __func__, rigerror(status));
+        port_close(&rs->rigport, rs->rigport.type.rig);
+        RETURNFUNC2(status);
+    }
+
+
     /*
      * Maybe the backend has something to initialize
      * In case of failure, just close down and report error code.
@@ -1340,6 +1371,7 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             remove_opened_rig(rig);
             async_data_handler_stop(rig);
+            morse_data_handler_stop(rig);
             port_close(&rs->rigport, rs->rigport.type.rig);
             memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
@@ -1350,7 +1382,6 @@ int HAMLIB_API rig_open(RIG *rig)
     /*
      * trigger state->current_vfo first retrieval
      */
-    HAMLIB_TRACE;
 
     if (caps->get_vfo && rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
     {
@@ -1383,7 +1414,7 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             // for non-Icom rigs if there's no set_vfo then we need to set one
             rs->current_vfo = vfo_fixup(rig, RIG_VFO_A, rig->state.cache.split);
-            rig_debug(RIG_DEBUG_TRACE, "%s: No set_vfo function rig so default vfo = %s\n",
+            rig_debug(RIG_DEBUG_TRACE, "%s: No set_vfo function rig so default vfo=%s\n",
                       __func__, rig_strvfo(rs->current_vfo));
         }
         else
@@ -1491,6 +1522,7 @@ int HAMLIB_API rig_close(RIG *rig)
         caps->rig_close(rig);
     }
 
+    morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
 
     /*
@@ -1793,9 +1825,10 @@ static int twiddling(RIG *rig)
  */
 #if BUILTINFUNC
 #undef rig_set_freq
-int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq, const char *func)
+int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq, const char *func)
+#define rig_set_freq(r,v,f) rig_set_freq(r,v,f,__builtin_FUNCTION())
 #else
-int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #endif
 {
     const struct rig_caps *caps;
@@ -1901,6 +1934,9 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         {
             HAMLIB_TRACE;
             retcode = caps->set_freq(rig, vfo, freq);
+            // disabling the freq check as of 2023-06-02
+            // seems unnecessary and slows down rigs unnecessarily
+            tfreq = freq;
 
             // some rig will return -RIG_ENTARGET if cannot set ptt while transmitting
             // we will just return RIG_OK and the frequency set will be ignored
@@ -1996,15 +2032,22 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // verify our freq to ensure HZ mods are seen
         // some rigs truncate or round e.g. 1,2,5,10,20,100Hz intervals
         // we'll try this all the time and if it works out OK eliminate the #else
-
-        if ((unsigned long long)freq % 100 != 0 // only need to do if < 100Hz interval
-                || freq > 100e6  // or if we are in the VHF and up range
+        if (((unsigned long long)freq % 100 != 0 // only need to do if < 100Hz interval
+                || freq > 100e6)  // or if we are in the VHF and up range
 #if 0
                 // do we need to only do this when cache is turned on? 2020-07-02 W9MDB
                 && rig->state.cache.timeout_ms > 0
 #endif
            )
         {
+            // some rigs we can skip this check for speed sake
+            if (rig->state.rig_model == RIG_MODEL_MALACHITE)
+            {
+                rig_set_cache_freq(rig, vfo, freq);
+                ELAPSED2;
+                LOCK(0);
+                RETURNFUNC(RIG_OK);
+            }
             // Unidirectional rigs do not reset cache
             if (rig->caps->rig_model != RIG_MODEL_FT736R)
             {
@@ -2012,6 +2055,7 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             }
 
             HAMLIB_TRACE;
+
             retcode = rig_get_freq(rig, vfo, &freq_new);
 
             if (retcode != RIG_OK)
@@ -2064,7 +2108,13 @@ int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  *
  * \sa rig_set_freq()
  */
+#if BUILTINFUNC
+#undef rig_get_freq
+int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq, const char *func)
+#define rig_get_freq(r,v,f) rig_get_freq(r,v,f,__builtin_FUNCTION())
+#else
 int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+#endif
 {
     const struct rig_caps *caps;
     int retcode;
@@ -2073,6 +2123,14 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     pbwidth_t width;
 
     ENTERFUNC;
+#if BUILTINFUNC
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, called from %s\n",
+              __func__,
+              rig_strvfo(vfo), func);
+#else
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__,
+              rig_strvfo(vfo));
+#endif
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -2850,6 +2908,7 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
 #if BUILTINFUNC
 #undef rig_set_vfo
 int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo, const char *func)
+#define rig_set_vfo(r,v) rig_set_vfo(r,v,__builtin_FUNCTION())
 #else
 int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 #endif
@@ -3041,7 +3100,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (caps->get_vfo == NULL)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: no get_vfo\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: no get_vfo\n", __func__);
         ELAPSED2;
         RETURNFUNC(-RIG_ENAVAIL);
     }
@@ -3377,7 +3436,12 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         retcode = gpio_ptt_set(&rig->state.pttport, ptt);
         break;
 
+    case RIG_PTT_NONE:
+        // allowed for use with VOX and WSJT-X
+        break;
+
     default:
+        rig_debug(RIG_DEBUG_WARN, "%s: unknown PTT type=%d\n", __func__, rig->state.pttport.type.ptt);
         ELAPSED2;
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -4977,6 +5041,8 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
     if (RIG_OK == retcode)
     {
+        rig_set_cache_freq(rig, vfo, tx_freq);
+
         HAMLIB_TRACE;
         retcode = rig_set_split_mode(rig, vfo, tx_mode, tx_width);
     }
@@ -5144,12 +5210,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
     if ((!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
             && (!(rig->caps->rig_model == RIG_MODEL_NETRIGCTL)))
-#if BUILTINFUNC
-        rig_set_vfo(rig, rx_vfo, __builtin_FUNCTION());
-
-#else
         rig_set_vfo(rig, rx_vfo);
-#endif
 
     if (rx_vfo == RIG_VFO_CURR
             || rx_vfo == rig->state.current_vfo)
@@ -6083,6 +6144,7 @@ int HAMLIB_API rig_mW2power(RIG *rig,
                             rmode_t mode)
 {
     const freq_range_t *txrange;
+    int limited = 0;
 
     if (!rig || !rig->caps || !power || mwpower == 0)
     {
@@ -6110,14 +6172,20 @@ int HAMLIB_API rig_mW2power(RIG *rig,
         RETURNFUNC2(RIG_OK);
     }
 
-    *power = (float)mwpower / txrange->high_power;
+    *power = (float)mwpower / (float) txrange->high_power;
 
     if (*power > 1.0)
     {
         *power = 1.0;
+        limited = 1;
+    }
+    else if (*power < 0.0)
+    {
+        *power = 0;
+        limited = 1;
     }
 
-    RETURNFUNC2(mwpower > txrange->high_power ? RIG_OK : -RIG_ETRUNC);
+    RETURNFUNC2(limited ? RIG_ETRUNC : RIG_OK);
 }
 
 
@@ -7702,6 +7770,39 @@ static int async_data_handler_start(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
+static int morse_data_handler_start(RIG *rig)
+{
+    struct rig_state *rs = &rig->state;
+    morse_data_handler_priv_data *morse_data_handler_priv;
+
+    ENTERFUNC;
+
+    rs->morse_data_handler_thread_run = 1;
+    rs->morse_data_handler_priv_data = calloc(1,
+                                       sizeof(morse_data_handler_priv_data));
+
+    if (rs->morse_data_handler_priv_data == NULL)
+    {
+        RETURNFUNC(-RIG_ENOMEM);
+    }
+
+    morse_data_handler_priv = (morse_data_handler_priv_data *)
+                              rs->morse_data_handler_priv_data;
+    morse_data_handler_priv->args.rig = rig;
+    int err = pthread_create(&morse_data_handler_priv->thread_id, NULL,
+                             morse_data_handler, &morse_data_handler_priv->args);
+
+    if (err)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: pthread_create error: %s\n", __func__,
+                  strerror(errno));
+        RETURNFUNC(-RIG_EINTERNAL);
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
+
 static int async_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -7743,6 +7844,45 @@ static int async_data_handler_stop(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
+static int morse_data_handler_stop(RIG *rig)
+{
+    struct rig_state *rs = &rig->state;
+    morse_data_handler_priv_data *morse_data_handler_priv;
+
+    ENTERFUNC;
+
+    rs->morse_data_handler_thread_run = 0;
+
+    morse_data_handler_priv = (morse_data_handler_priv_data *)
+                              rs->morse_data_handler_priv_data;
+
+    if (morse_data_handler_priv != NULL)
+    {
+        if (morse_data_handler_priv->thread_id != 0)
+        {
+            // all cleanup is done in this function so we can kill thread
+            // Windows was taking 30 seconds to stop without this
+            pthread_cancel(morse_data_handler_priv->thread_id);
+            int err = pthread_join(morse_data_handler_priv->thread_id, NULL);
+
+            if (err)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: pthread_join error: %s\n", __func__,
+                          strerror(errno));
+                // just ignore the error
+            }
+
+            morse_data_handler_priv->thread_id = 0;
+        }
+
+        free(rs->morse_data_handler_priv_data);
+        rs->morse_data_handler_priv_data = NULL;
+    }
+
+    RETURNFUNC(RIG_OK);
+}
+
+
 void *async_data_handler(void *arg)
 {
     struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)
@@ -7783,7 +7923,7 @@ void *async_data_handler(void *arg)
                           __func__, result);
                 hl_usleep(500 * 1000);
             }
-
+            hl_usleep(10*1000);
             continue;
         }
 
@@ -7827,6 +7967,40 @@ void *async_data_handler(void *arg)
     return NULL;
 }
 #endif
+
+void *morse_data_handler(void *arg)
+{
+    struct morse_data_handler_args_s *args = (struct morse_data_handler_args_s *)
+            arg;
+    RIG *rig = args->rig;
+    struct rig_state *rs = &rig->state;
+    int result;
+    FIFO fifo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
+              __func__);
+
+    initFIFO(&fifo);
+    while (rs->morse_data_handler_thread_run)
+    {
+        char c[2];
+        c[1] = 0;
+        while((c[0]=pop(&fifo)!=-1))
+        {
+            result = rig_send_morse(rig, RIG_VFO_CURR, c);
+            if (result != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
+                push(&fifo, c);
+                hl_usleep(20*1000);
+            }
+        }
+        hl_usleep(20*1000);
+    }
+    pthread_exit(NULL);
+    return NULL;
+}
+
 
 HAMLIB_EXPORT(int) rig_password(RIG *rig, const char *key1)
 {
@@ -7994,4 +8168,6 @@ HAMLIB_EXPORT(int) rig_is_model(RIG *rig, rig_model_t model)
 
     return (is_rig); // RETURN is too verbose here
 }
+
+
 

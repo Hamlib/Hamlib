@@ -345,12 +345,12 @@ int ic7610_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     return retval;
 }
 
-const struct rig_caps ic7610_caps =
+struct rig_caps ic7610_caps =
 {
     RIG_MODEL(RIG_MODEL_IC7610),
     .model_name = "IC-7610",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".14",
+    .version =  BACKEND_VER ".15",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -545,7 +545,7 @@ const struct rig_caps ic7610_caps =
     .set_mode =  icom_set_mode_with_data,
     .get_mode =  icom_get_mode_with_data,
     .set_vfo =  icom_set_vfo,
-    .get_vfo =  icom_get_vfo,
+//    .get_vfo =  icom_get_vfo,
     .set_ant =  icom_set_ant,
     .get_ant =  icom_get_ant,
 

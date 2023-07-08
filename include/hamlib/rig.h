@@ -29,7 +29,7 @@
 // Our shared secret password 
 #define HAMLIB_SECRET_LENGTH 32
 
-#define HAMLIB_TRACE rig_debug(RIG_DEBUG_TRACE,"%s(%d) trace\n", __FILE__, __LINE__)
+#define HAMLIB_TRACE rig_debug(RIG_DEBUG_TRACE,"%.*s%s(%d) trace\n",rig->state.depth-1, spaces(), __FILE__, __LINE__)
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 #include <stdio.h>
@@ -2680,6 +2680,8 @@ struct rig_state {
     freq_t spectrum_spans[HAMLIB_MAX_SPECTRUM_SPANS];                   /*!< Supported spectrum scope frequency spans in Hz in center mode. Last entry must be 0. */
     struct rig_spectrum_avg_mode spectrum_avg_modes[HAMLIB_MAX_SPECTRUM_AVG_MODES]; /*!< Supported spectrum scope averaging modes. Last entry must have NULL name. */
     int spectrum_attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Spectrum attenuator list in dB, 0 terminated */
+    volatile int morse_data_handler_thread_run;
+    void *morse_data_handler_priv_data;
 };
 
 /**
@@ -2853,6 +2855,7 @@ typedef int (*spectrum_cb_t)(RIG *,
  * \sa rig_set_freq_callback(), rig_set_mode_callback(), rig_set_vfo_callback(),
  *     rig_set_ptt_callback(), rig_set_dcd_callback()
  */
+// Do NOT add/remove from this structure -- it will break DLL backwards compatiblity
 struct rig_callbacks {
     freq_cb_t freq_event;   /*!< Frequency change event */
     rig_ptr_t freq_arg;     /*!< Frequency change argument */
@@ -2914,17 +2917,29 @@ extern HAMLIB_EXPORT(void)
 rig_lock(RIG *rig, int lock);
 
 #if BUILTINFUNC
-#define rig_set_freq(r,v, f) rig_set_vfo(r,v,f,__builtin_FUNCTION())
+#define rig_set_freq(r,v,f) rig_set_freq(r,v,f,__builtin_FUNCTION())
+extern HAMLIB_EXPORT(int)
+rig_set_freq HAMLIB_PARAMS((RIG *rig,
+                            vfo_t vfo,
+                            freq_t freq, const char*));
 #else
 extern HAMLIB_EXPORT(int)
 rig_set_freq HAMLIB_PARAMS((RIG *rig,
                             vfo_t vfo,
                             freq_t freq));
 #endif
+#if BUILTINFUNC
+#define rig_get_freq(r,v,f) rig_get_freq(r,v,f,__builtin_FUNCTION())
+extern HAMLIB_EXPORT(int)
+rig_get_freq HAMLIB_PARAMS((RIG *rig,
+                            vfo_t vfo,
+                            freq_t *freq, const char*));
+#else
 extern HAMLIB_EXPORT(int)
 rig_get_freq HAMLIB_PARAMS((RIG *rig,
                             vfo_t vfo,
                             freq_t *freq));
+#endif
 
 extern HAMLIB_EXPORT(int)
 rig_set_mode HAMLIB_PARAMS((RIG *rig,
@@ -3540,7 +3555,7 @@ extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debu
 
 // Measuring elapsed time -- local variable inside function when macro is used
 #define ELAPSED1 struct timespec __begin; elapsed_ms(&__begin, HAMLIB_ELAPSED_SET);
-#define ELAPSED2 rig_debug(RIG_DEBUG_TRACE, "%.*s%d:%s: elapsed=%.0lfms\n", rig->state.depth, spaces(), rig->state.depth, __func__, elapsed_ms(&__begin, HAMLIB_ELAPSED_GET));
+#define ELAPSED2 rig_debug(RIG_DEBUG_TRACE, "%.*s%d:%s: elapsed=%.0lfms\n", rig->state.depth-1, spaces(), rig->state.depth, __func__, elapsed_ms(&__begin, HAMLIB_ELAPSED_GET));
 
 // use this instead of snprintf for automatic detection of buffer limit
 #define SNPRINTF(s,n,...) { snprintf(s,n,##__VA_ARGS__);if (strlen(s) > n-1) fprintf(stderr,"****** %s(%d): buffer overflow ******\n", __func__, __LINE__); }

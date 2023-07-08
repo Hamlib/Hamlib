@@ -733,7 +733,6 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
 void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
                    pbwidth_t *width)
 {
-    ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: mode=0x%02x, pd=%d\n", __func__, md, pd);
     *width = RIG_PASSBAND_NORMAL;
 
@@ -864,6 +863,5 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
     default:
         rig_debug(RIG_DEBUG_ERR, "icom: Unsupported Icom mode width %#.2x\n", pd);
     }
-
 }
 
