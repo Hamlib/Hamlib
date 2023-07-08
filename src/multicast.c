@@ -214,9 +214,8 @@ void json_add_vfoB(RIG *rig, char *msg)
 {
     strcat(msg, ",\n{\n");
     json_add_string(msg, "Name", "VFOB", 1);
-    json_add_int(msg, "Freq", rig->state.cache.freqMainB, 0);
+    json_add_int(msg, "Freq", rig->state.cache.freqMainB, 1);
 
-#if 0
     if (strlen(rig_strrmode(rig->state.cache.modeMainB)) > 0)
     {
         json_add_string(msg, "Mode", rig_strrmode(rig->state.cache.modeMainB), 1);
@@ -226,7 +225,6 @@ void json_add_vfoB(RIG *rig, char *msg)
     {
         json_add_int(msg, "Width", rig->state.cache.widthMainB, 0);
     } 
-#endif
 
 #if 0 // not working yet
     if (rig->state.rx_vfo != rig->state.tx_vfo && rig->state.cache.split)
@@ -291,14 +289,12 @@ void *multicast_thread(void *vrig)
     // do the 1st packet all the time
     multicast_status_changed(rig);
     multicast_send_json(rig);
-    int loopcount = 4;
+    int loopcount = 8;
 
+    freq_t freqA, freqAsave = 0;
+    freq_t freqB, freqBsave = 0;
     while (rig->state.multicast->runflag)
     {
-        hl_usleep(100 * 1000);
-        freq_t freqA, freqAsave = 0;
-        freq_t freqB, freqBsave = 0;
-
         if ((retval = rig_get_freq(rig, RIG_VFO_A, &freqA)) != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: rig_get_freqA:%s\n", __func__, rigerror(retval));
@@ -314,14 +310,19 @@ void *multicast_thread(void *vrig)
             freqB = rig->state.cache.freqMainB;
         }
 
-        if (freqA != freqAsave || freqB != freqBsave || loopcount-- == 0)
+        if (freqA != freqAsave || freqB != freqBsave || loopcount-- <= 0)
         {
             multicast_status_changed(rig);
             multicast_send_json(rig);
-            loopcount = 4;
+            loopcount = 8;
             freqAsave = freqA;
             freqBsave = freqB;
         }
+        else
+        {
+        hl_usleep(100 * 1000);
+        }
+
 
     }
 
@@ -379,7 +380,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     if (port == 0) { port = RIG_MULTICAST_PORT; }
 
     // Create a UDP socket
-    rig->state.multicast->sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    rig->state.multicast->sock = socket(AF_INET, SOCK_DGRAM, 0);
 
     if (rig->state.multicast->sock < 0)
     {
@@ -392,6 +393,7 @@ int multicast_init(RIG *rig, char *addr, int port)
         return -RIG_EIO;
     }
 
+#if 0
     // Set the SO_REUSEADDR option to allow multiple processes to use the same address
     int optval = 1;
 
@@ -402,19 +404,22 @@ int multicast_init(RIG *rig, char *addr, int port)
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
         return -RIG_EIO;
     }
+#endif
 
     // Bind the socket to any available local address and the specified port
-    struct sockaddr_in saddr = {0};
-    saddr.sin_family = AF_INET;
-    saddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    saddr.sin_port = htons(port);
+    //struct sockaddr_in saddr = {0};
+    //saddr.sin_family = AF_INET;
+    //saddr.sin_addr.s_addr = inet_addr(addr);
+    //saddr.sin_port = htons(port);
 
+#if 0
     if (bind(rig->state.multicast->sock, (struct sockaddr *)&saddr,
              sizeof(saddr)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: bind: %s\n", __func__, strerror(errno));
         return -RIG_EIO;
     }
+#endif
 
     // Construct the multicast group address
     // struct ip_mreq mreq = {0};
@@ -431,26 +436,30 @@ int multicast_init(RIG *rig, char *addr, int port)
         return -RIG_EIO;
     }
 
+#if 0
+// look like we need to implement the client in a separate thread?
     // Join the multicast group
     if (setsockopt(rig->state.multicast->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
                    (char *)&rig->state.multicast->mreq, sizeof(rig->state.multicast->mreq)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
-        return -RIG_EIO;
+        //return -RIG_EIO;
     }
+#endif
 
     // prime the dest_addr for the send routine
+    memset(&rig->state.multicast->dest_addr,0,sizeof(rig->state.multicast->dest_addr));
     rig->state.multicast->dest_addr.sin_family = AF_INET;
     rig->state.multicast->dest_addr.sin_addr.s_addr = inet_addr(addr);
     rig->state.multicast->dest_addr.sin_port = htons(port);
 
-    printf("starting thread\n");
-
+#if 0
     rig->state.multicast->runflag = 1;
     pthread_create(&rig->state.multicast->threadid, NULL, multicast_thread,
                    (void *)rig);
     //printf("threadid=%ld\n", rig->state.multicast->threadid);
     rig->state.multicast->multicast_running = 1;
+#endif
     return RIG_OK;
 }
 
@@ -479,11 +488,17 @@ int multicast_send(RIG *rig, const char *msg, int msglen)
 {
     // Construct the message to send
     if (msglen == 0) { msglen = strlen((char *)msg); }
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr("224.0.0.1");
+    addr.sin_port = htons(4532);
+
 
     // Send the message to the multicast group
     ssize_t num_bytes = sendto(rig->state.multicast->sock, msg, msglen, 0,
-                               (struct sockaddr *)&rig->state.multicast->dest_addr,
-                               sizeof(rig->state.multicast->dest_addr));
+                               (struct sockaddr *)&addr,
+                               sizeof(addr));
 
     if (num_bytes < 0)
     {
