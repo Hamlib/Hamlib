@@ -1337,7 +1337,10 @@ static int read_string_generic(hamlib_port_t *p,
     {
         ssize_t rd_count = 0;
         int result;
+        int timeout_save = p->timeout;
+        p->timeout = 2;
         result = port_wait_for_data(p, direct);
+        p->timeout = timeout_save;
 
         if (result == -RIG_ETIMEOUT)
         {
