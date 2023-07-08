@@ -1874,12 +1874,16 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (RIG_OK != err) { RETURNFUNC2(err); }
     }
 
+    // Malchite is so slow we don't do the get_freq
+    if (!RIG_IS_MALACHITE)
+    {
     rig_get_freq(rig, tvfo, &tfreq);
 
     if (tfreq == freq)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: no freq change needed\n", __func__);
         RETURNFUNC2(RIG_OK);
+    }
     }
 
     switch (tvfo)
@@ -3191,7 +3195,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         if (RIG_IS_TS2000)
         {
-            vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
+            vfo_num = (vfo == RIG_VFO_B) ? 1 : 0;
         }
         else
         {
@@ -3261,7 +3265,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         if (RIG_IS_TS2000)
         {
-            vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
+            vfo_num = (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) ? 1 : 0;
         }
         else
         {
@@ -3521,7 +3525,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             len = 3;
 
-            if (vfo == RIG_VFO_C)
+            if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
             {
                 cmd = "SM1";
             }
@@ -3559,7 +3563,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             len = 3;
 
-            if (vfo == RIG_VFO_C)
+            if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
             {
                 cmd = "SM1";
                 // TS-2000 sub-transceiver S-meter range is half of the main one
@@ -3605,7 +3609,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (RIG_IS_TS2000)
         {
-            vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
+            vfo_num = (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) ? 1 : 0;
         }
         else
         {
@@ -3792,7 +3796,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (RIG_IS_TS2000)
         {
-            vfo_num = (vfo == RIG_VFO_C) ? 1 : 0;
+            vfo_num = (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) ? 1 : 0;
         }
         else
         {
@@ -4857,7 +4861,7 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         case RIG_PTT_ON:
         case RIG_PTT_ON_MIC:
         case RIG_PTT_ON_DATA:
-            ptt_cmd = (vfo == RIG_VFO_C) ? "TX1" : "TX0";
+            ptt_cmd = "VX0;TX";
             break;
 
         case RIG_PTT_OFF:
@@ -4959,7 +4963,7 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
     }
 
     if ((RIG_IS_TS990S && RIG_VFO_SUB == vfo) ||
-            (RIG_IS_TS2000 && RIG_VFO_C == vfo))
+            (RIG_IS_TS2000 && (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo)))
     {
         offs = 3;
     }
@@ -6101,6 +6105,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&tx500_caps);
     rig_register(&sdruno_caps);
     rig_register(&qrplabs_caps);
+    rig_register(&fx4_caps);
 
     return (RIG_OK);
 }

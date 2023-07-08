@@ -236,10 +236,10 @@ int dumpstate(RIG *rig, FILE *fout)
     }
 
     fprintf(fout,
-            "Write delay: %dmS, timeout %dmS, %d retry\n",
+            "Write delay: %dms, timeout %dms, %d retry\n",
             rig->state.write_delay, rig->state.timeout, rig->state.retry);
     fprintf(fout,
-            "Post Write delay: %dmS\n",
+            "Post write delay: %dms\n",
             rig->state.post_write_delay);
 
     fprintf(fout,
