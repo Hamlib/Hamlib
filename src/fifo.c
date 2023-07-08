@@ -48,6 +48,7 @@ int main()
 
     // Popping and printing one character at a time
     int c;
+
     while ((c = pop(&fifo)) != -1)
     {
         printf("%c", c);
