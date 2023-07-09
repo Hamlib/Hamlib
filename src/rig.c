@@ -6912,6 +6912,7 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
+    resetFIFO(rig->state.fifo); // clear out the CW queue
     if (vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -7999,7 +8000,6 @@ void *morse_data_handler(void *arg)
         //while((c[0]=pop(rig->state.fifo))!=-1)
         if (n > 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: c=%d\n", __func__, c[0]);
             do 
             {
                 result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
@@ -8008,8 +8008,9 @@ void *morse_data_handler(void *arg)
                     rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
                     hl_usleep(100*1000);
                 }
-            } while (result != RIG_OK);
+            } while (result != RIG_OK && rig->state.fifo->flush==0);
         }
+        rig->state.fifo->flush = 0; // reset flush flag
     }
     free(rig->state.fifo);
     pthread_exit(NULL);

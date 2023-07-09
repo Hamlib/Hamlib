@@ -136,6 +136,7 @@ typedef struct
     char data[HAMLIB_FIFO_SIZE];
     int head;
     int tail;
+    int flush;  // flush flag for stop_morse
 } FIFO;
 
 
