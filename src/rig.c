@@ -680,6 +680,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->mfg_name = rig->caps->mfg_name;
     rs->version = rig->caps->version;
     rs->copyright = rig->caps->copyright;
+    rs->status = rig->caps->status;
 
     // We are using range_list1 as the default
     // Eventually we will have separate model number for different rig variations
