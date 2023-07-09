@@ -128,6 +128,17 @@
 
 __BEGIN_DECLS
 
+// FIFO currently used for send_morse queue
+#define HAMLIB_FIFO_SIZE 1024
+
+typedef struct
+{
+    char data[HAMLIB_FIFO_SIZE];
+    int head;
+    int tail;
+} FIFO;
+
+
 /**
  * \brief size of cookie request buffer
  * Minimum size of cookie buffer to pass to rig_cookie
@@ -2682,6 +2693,7 @@ struct rig_state {
     int spectrum_attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Spectrum attenuator list in dB, 0 terminated */
     volatile int morse_data_handler_thread_run;
     void *morse_data_handler_priv_data;
+    FIFO *fifo;
 };
 
 /**
