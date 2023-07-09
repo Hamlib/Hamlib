@@ -676,6 +676,10 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
     rs->cache.ptt = 0;
     rs->targetable_vfo = rig->caps->targetable_vfo;
+    rs->model_name = rig->caps->model_name;
+    rs->mfg_name = rig->caps->mfg_name;
+    rs->version = rig->caps->version;
+    rs->copyright = rig->caps->copyright;
 
     // We are using range_list1 as the default
     // Eventually we will have separate model number for different rig variations
