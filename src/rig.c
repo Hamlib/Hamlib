@@ -6818,7 +6818,7 @@ int HAMLIB_API rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     const struct rig_caps *caps;
-    int retcode, rc2;
+    int retcode=RIG_EINTERNAL, rc2;
     vfo_t curr_vfo;
 
     ENTERFUNC;
@@ -6843,10 +6843,13 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     if (vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
+#if 0
         LOCK(1);
         retcode = caps->send_morse(rig, vfo, msg);
         LOCK(0);
-        RETURNFUNC(retcode);
+#endif
+        push(rig->state.fifo, msg);
+        RETURNFUNC(RIG_OK);
     }
 
     if (!caps->set_vfo)
@@ -7980,28 +7983,35 @@ void *morse_data_handler(void *arg)
     RIG *rig = args->rig;
     struct rig_state *rs = &rig->state;
     int result;
-    FIFO fifo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
               __func__);
 
-    initFIFO(&fifo);
+    if (rig->state.fifo == NULL) rig->state.fifo = calloc(1,sizeof(FIFO));
+    initFIFO(rig->state.fifo);
     while (rs->morse_data_handler_thread_run)
     {
-        char c[2];
-        c[1] = 0;
-        while((c[0]=pop(&fifo)!=-1))
+        char c[11]; // up to 10 chars to be sent
+        memset(c,0,sizeof(c));
+        int n=0;
+        for(n=0;n<sizeof(c)-1 && (c[n]=pop(rig->state.fifo))!=-1;++n);
+
+        //while((c[0]=pop(rig->state.fifo))!=-1)
+        if (n > 0)
         {
-            result = rig_send_morse(rig, RIG_VFO_CURR, c);
-            if (result != RIG_OK)
+            rig_debug(RIG_DEBUG_ERR, "%s: c=%d\n", __func__, c[0]);
+            do 
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
-                push(&fifo, c);
-                hl_usleep(20*1000);
-            }
+                result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
+                if (result != RIG_OK)
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
+                    hl_usleep(100*1000);
+                }
+            } while (result != RIG_OK);
         }
-        hl_usleep(20*1000);
     }
+    free(rig->state.fifo);
     pthread_exit(NULL);
     return NULL;
 }
