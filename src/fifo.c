@@ -12,6 +12,7 @@ void initFIFO(FIFO *fifo)
 void resetFIFO(FIFO *fifo)
 {
     fifo->head = fifo->tail;
+    fifo->flush = 1;
 }
 
 // returns RIG_OK if added
