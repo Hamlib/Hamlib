@@ -137,7 +137,7 @@ typedef struct
     int head;
     int tail;
     int flush;  // flush flag for stop_morse
-} FIFO;
+} FIFO_RIG;
 
 
 /**
@@ -2694,7 +2694,7 @@ struct rig_state {
     int spectrum_attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Spectrum attenuator list in dB, 0 terminated */
     volatile int morse_data_handler_thread_run;
     void *morse_data_handler_priv_data;
-    FIFO *fifo;
+    FIFO_RIG *fifo_morse;
 };
 
 /**

@@ -3,13 +3,13 @@
 #include "fifo.h"
 
 
-void initFIFO(FIFO *fifo)
+void initFIFO(FIFO_RIG *fifo)
 {
     fifo->head = 0;
     fifo->tail = 0;
 }
 
-void resetFIFO(FIFO *fifo)
+void resetFIFO(FIFO_RIG *fifo)
 {
     fifo->head = fifo->tail;
     fifo->flush = 1;
@@ -17,7 +17,7 @@ void resetFIFO(FIFO *fifo)
 
 // returns RIG_OK if added
 // return -RIG error if overflow
-int push(FIFO *fifo, const char *msg)
+int push(FIFO_RIG *fifo, const char *msg)
 {
     int len = strlen(msg);
 
@@ -35,7 +35,7 @@ int push(FIFO *fifo, const char *msg)
     return RIG_OK;
 }
 
-char pop(FIFO *fifo)
+char pop(FIFO_RIG *fifo)
 {
     if (fifo->tail == fifo->head) { return -1; }
 
@@ -49,7 +49,7 @@ char pop(FIFO *fifo)
 #ifdef TEST
 int main()
 {
-    FIFO fifo;
+    FIFO_RIG fifo;
     initFIFO(&fifo);
 
     const char *str = "Hello, World!\n";
