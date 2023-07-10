@@ -250,7 +250,7 @@ typedef struct morse_data_handler_priv_data_s
 {
     pthread_t thread_id;
     morse_data_handler_args args;
-    FIFO fifo;
+    FIFO_RIG fifo_morse;
 } morse_data_handler_priv_data;
 
 static int morse_data_handler_start(RIG *rig);
@@ -6848,7 +6848,7 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         retcode = caps->send_morse(rig, vfo, msg);
         LOCK(0);
 #endif
-        push(rig->state.fifo, msg);
+        push(rig->state.fifo_morse, msg);
         RETURNFUNC(RIG_OK);
     }
 
@@ -6912,7 +6912,7 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    resetFIFO(rig->state.fifo); // clear out the CW queue
+    resetFIFO(rig->state.fifo_morse); // clear out the CW queue
     if (vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -7988,16 +7988,16 @@ void *morse_data_handler(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
               __func__);
 
-    if (rig->state.fifo == NULL) rig->state.fifo = calloc(1,sizeof(FIFO));
-    initFIFO(rig->state.fifo);
+    if (rig->state.fifo_morse == NULL) rig->state.fifo_morse = calloc(1,sizeof(FIFO_RIG));
+    initFIFO(rig->state.fifo_morse);
     while (rs->morse_data_handler_thread_run)
     {
         char c[11]; // up to 10 chars to be sent
         memset(c,0,sizeof(c));
         int n=0;
-        for(n=0;n<sizeof(c)-1 && (c[n]=pop(rig->state.fifo))!=-1;++n);
+        for(n=0;n<sizeof(c)-1 && (c[n]=pop(rig->state.fifo_morse))!=-1;++n);
 
-        //while((c[0]=pop(rig->state.fifo))!=-1)
+        //while((c[0]=pop(rig->state.fifo_morse))!=-1)
         if (n > 0)
         {
             do 
@@ -8008,11 +8008,11 @@ void *morse_data_handler(void *arg)
                     rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
                     hl_usleep(100*1000);
                 }
-            } while (result != RIG_OK && rig->state.fifo->flush==0);
+            } while (result != RIG_OK && rig->state.fifo_morse->flush==0);
         }
-        rig->state.fifo->flush = 0; // reset flush flag
+        rig->state.fifo_morse->flush = 0; // reset flush flag
     }
-    free(rig->state.fifo);
+    free(rig->state.fifo_morse);
     pthread_exit(NULL);
     return NULL;
 }
