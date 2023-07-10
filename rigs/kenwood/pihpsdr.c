@@ -246,6 +246,14 @@ const struct rig_caps pihpsdr_caps =
         RIG_FLT_END,
     },
 
+    .level_gran =
+    {
+#include "level_gran_kenwood.h"
+        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
+        [LVL_KEYSPD] = {.min = {.i = 5}, .max = {.i = 50}, .step = {.i = 1}},
+        [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
+        [LVL_BKIN_DLYMS] = {.min = {.i = 0}, .max = {.i = 1000}, .step = {.i = 50}},
+    },
     .str_cal = PIHPSDR_STR_CAL,
 
     .priv = (void *)& ts2000_priv_caps,
