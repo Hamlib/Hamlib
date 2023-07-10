@@ -10881,11 +10881,11 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if (strncmp(priv->cmd_str, "BU", 2) == 0)
     {
-        strcpy(valcmd, "FA;"); // nothing to validate
+        strcpy(valcmd, ""); // nothing to validate
     }
     else if (strncmp(priv->cmd_str, "BD", 2) == 0)
     {
-        strcpy(valcmd, "FA;"); // nothing to validate
+        strcpy(valcmd, ""); // nothing to validate
     }
     else if (strncmp(priv->cmd_str, "EX", 2) == 0)
     {
