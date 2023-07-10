@@ -47,6 +47,7 @@ extern const struct rig_caps trxmanager_caps;
 extern const struct rig_caps tci1x_caps;
 extern const struct rig_caps aclog_caps;
 extern const struct rig_caps sdrsharp_caps;
+extern struct rig_caps quisk_caps;
 
 int netrigctl_get_vfo_mode(RIG *);
 
