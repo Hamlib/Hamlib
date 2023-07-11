@@ -1518,6 +1518,9 @@ int HAMLIB_API rig_close(RIG *rig)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    morse_data_handler_stop(rig);
+    async_data_handler_stop(rig);
+
     /*
      * Let the backend say 73s to the rig.
      * and ignore the return code.
@@ -1527,8 +1530,6 @@ int HAMLIB_API rig_close(RIG *rig)
         caps->rig_close(rig);
     }
 
-    morse_data_handler_stop(rig);
-    async_data_handler_stop(rig);
 
     /*
      * FIXME: what happens if PTT and rig ports are the same?
