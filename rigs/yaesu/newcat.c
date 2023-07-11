@@ -10919,6 +10919,8 @@ int newcat_set_cmd_validate(RIG *rig)
         if (strlen(valcmd) == 0) { RETURNFUNC(RIG_OK); }
 
         SNPRINTF(cmd, sizeof(cmd), "%s", valcmd);
+        // some rigs like FT-450/Signalink need a little time before we can ask for TX status again
+        if (strncmp(valcmd,"TX",2)==0) hl_usleep(50*1000); 
         rc = write_block(&state->rigport, (unsigned char *) cmd, strlen(cmd));
 
         if (rc != RIG_OK) { RETURNFUNC(-RIG_EIO); }
@@ -10926,6 +10928,8 @@ int newcat_set_cmd_validate(RIG *rig)
         bytes = read_string(&state->rigport, (unsigned char *) priv->ret_data,
                             sizeof(priv->ret_data),
                             &cat_term, sizeof(cat_term), 0, 1);
+        // we're expecting a response so we'll repeat if needed
+        if (bytes == 0) goto repeat;
 
         // FA and FB success is now verified in rig.c with a followup query
         // so no validation is needed
