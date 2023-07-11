@@ -8012,6 +8012,7 @@ void *morse_data_handler(void *arg)
             } while (result != RIG_OK && rig->state.fifo_morse->flush==0);
         }
         rig->state.fifo_morse->flush = 0; // reset flush flag
+        hl_usleep(10*1000);
     }
     free(rig->state.fifo_morse);
     pthread_exit(NULL);
