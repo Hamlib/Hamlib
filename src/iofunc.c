@@ -555,10 +555,12 @@ static int port_read_sync_data(hamlib_port_t *p, void *buf, size_t count)
         {
         case ERROR_SUCCESS:
             // No error?
+            bytes_read = 0;
             break;
 
         case ERROR_IO_PENDING:
             // Shouldn't happen?
+            bytes_read = 0;
             return -RIG_ETIMEOUT;
 
         default:
