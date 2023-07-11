@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'V':
-            version();
+            rig_version();
             exit(0);
 
         case 'B':
