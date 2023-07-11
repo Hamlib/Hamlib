@@ -265,6 +265,7 @@ declare_proto_rig(set_lock_mode);
 declare_proto_rig(get_lock_mode);
 declare_proto_rig(send_raw);
 declare_proto_rig(client_version);
+declare_proto_rig(hamlib_version);
 declare_proto_rig(test);
 
 
@@ -382,6 +383,7 @@ static struct test_table test_list[] =
     { 0xa5, "client_version",    ACTION(client_version), ARG_NOVFO | ARG_IN1, "Version", "Client version" },
     { 0xa6, "get_vfo_list",    ACTION(get_vfo_list), ARG_NOVFO },
     { 0xa7, "test",    ACTION(test), ARG_NOVFO | ARG_IN, "routine" },
+    { 0xa8, "hamlib_version",    ACTION(hamlib_version), ARG_NOVFO },
     { 0x00, "", NULL },
 };
 
@@ -1844,10 +1846,11 @@ readline_repeat:
 }
 
 
-void version()
+declare_proto_rig(hamlib_version)
 {
-    printf("rigctl(d), %s\n\n", hamlib_version2);
-    printf("%s\n", hamlib_copyright);
+    fprintf(fout, "rigctl(d), %s\n\n", hamlib_version2);
+    fprintf(fout, "%s\n", hamlib_copyright);
+    return RIG_OK;
 }
 
 declare_proto_rig(client_version)
