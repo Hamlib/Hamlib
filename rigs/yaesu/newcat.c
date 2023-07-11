@@ -2250,6 +2250,28 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
                  cat_term);
     }
+    else if (is_ft710)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            strcpy(command, "EX010318");
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            strcpy(command, "EX010319");
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
+            RETURNFUNC(-RIG_EINVAL);
+        }
+
+        // Step size is 1 kHz
+        offs /= 1000;
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%04li%c", command, offs,
+                 cat_term);
+    }
     else if (is_ftdx1200)
     {
         if (freq >= 28000000 && freq <= 29700000)
@@ -2457,6 +2479,26 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
         else
         {
             // only valid on 10m to 70cm bands
+            *offs = 0;
+            RETURNFUNC(RIG_OK);
+        }
+
+        // Step size is 1 kHz
+        step = 1000;
+    }
+    else if (is_ft710)
+    {
+        if (freq >= 28000000 && freq <= 29700000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010318%c", cat_term);
+        }
+        else if (freq >= 50000000 && freq <= 54000000)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010319%c", cat_term);
+        }
+        else
+        {
+            // only valid on 10m and 6m bands
             *offs = 0;
             RETURNFUNC(RIG_OK);
         }
@@ -7124,7 +7166,14 @@ int newcat_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     switch (op)
     {
     case RIG_OP_TUNE:
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC002%c", cat_term);
+        if (is_ft710)
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC003%c", cat_term);
+        }
+        else
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC002%c", cat_term);
+        }
         break;
 
     case RIG_OP_CPY:
