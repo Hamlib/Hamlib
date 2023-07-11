@@ -201,7 +201,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (frame[5] == 0xfd)
         {
-            printf("get split %d\n", 1);
+            printf("get split %d\n", split);
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
         }
@@ -416,6 +416,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[11] = 0xfd;
             unsigned char frame2[11];
 
+#if 0
             frame2[0] = 0xfe;
             frame2[1] = 0xfe;
             frame2[2] = 0x00; // send transceive frame
@@ -428,6 +429,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame2[9] = 0x00;
             frame2[10] = 0xfd;
             n = write(fd, frame2, 11);
+#endif
             n = write(fd, frame, 12);
         }
         else
@@ -441,6 +443,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[4] = 0xfb;
             frame[5] = 0xfd;
             n = write(fd, frame, 6);
+#if 0
             // send async frame
             frame[2] = 0x00; // async freq
             frame[3] = 0xa2;
@@ -452,6 +455,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[9] = 0x12;
             frame[10] = 0xfd;
             n = write(fd, frame, 11);
+#endif
         }
 
         break;
