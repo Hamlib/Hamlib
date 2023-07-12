@@ -7980,8 +7980,8 @@ void *async_data_handler(void *arg)
 
 void *morse_data_handler(void *arg)
 {
-    struct morse_data_handler_args_s *args = (struct morse_data_handler_args_s *)
-            arg;
+    struct morse_data_handler_args_s *args =
+            (struct morse_data_handler_args_s *) arg;
     RIG *rig = args->rig;
     struct rig_state *rs = &rig->state;
     int result;
@@ -7989,16 +7989,29 @@ void *morse_data_handler(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
               __func__);
 
-    if (rig->state.fifo_morse == NULL) rig->state.fifo_morse = calloc(1,sizeof(FIFO_RIG));
+    if (rig->state.fifo_morse == NULL)
+    {
+        rig->state.fifo_morse = calloc(1,sizeof(FIFO_RIG));
+    }
+
     initFIFO(rig->state.fifo_morse);
+
     while (rs->morse_data_handler_thread_run)
     {
         char c[11]; // up to 10 chars to be sent
-        memset(c,0,sizeof(c));
-        int n=0;
-        for(n=0;n<sizeof(c)-1 && (c[n]=pop(rig->state.fifo_morse))!=-1;++n);
+        memset(c, 0, sizeof(c));
 
-        //while((c[0]=pop(rig->state.fifo_morse))!=-1)
+        int n = 0;
+        for (n = 0; n < sizeof(c) - 1; n++)
+        {
+            int d = pop(rig->state.fifo_morse);
+            if (d < 0)
+            {
+                break;
+            }
+            c[n] = (char) d;
+        }
+
         if (n > 0)
         {
             do 
@@ -8007,13 +8020,15 @@ void *morse_data_handler(void *arg)
                 if (result != RIG_OK)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
-                    hl_usleep(100*1000);
+                    hl_usleep(100 * 1000);
                 }
-            } while (result != RIG_OK && rig->state.fifo_morse->flush==0);
+            } while (result != RIG_OK && rig->state.fifo_morse->flush == 0);
         }
+
         rig->state.fifo_morse->flush = 0; // reset flush flag
         hl_usleep(10*1000);
     }
+
     free(rig->state.fifo_morse);
     pthread_exit(NULL);
     return NULL;
