@@ -35,7 +35,7 @@ int push(FIFO_RIG *fifo, const char *msg)
     return RIG_OK;
 }
 
-char pop(FIFO_RIG *fifo)
+int pop(FIFO_RIG *fifo)
 {
     if (fifo->tail == fifo->head) { return -1; }
 
