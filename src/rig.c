@@ -251,6 +251,7 @@ typedef struct morse_data_handler_priv_data_s
     pthread_t thread_id;
     morse_data_handler_args args;
     FIFO_RIG fifo_morse;
+    int keyspd;
 } morse_data_handler_priv_data;
 
 static int morse_data_handler_start(RIG *rig);
@@ -6867,6 +6868,21 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         RETURNFUNC(retcode);
     }
 
+    value_t keyspd;
+
+    struct rig_state *rs = &rig->state;
+    morse_data_handler_priv_data *morse_data_handler_priv = (morse_data_handler_priv_data*) rs->morse_data_handler_priv_data;
+    keyspd.i = morse_data_handler_priv->keyspd;
+    if (msg[0]=='+') 
+    {
+        keyspd.i += 5;
+        rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
+    }
+    else if (msg[0]=='-') 
+    {
+        keyspd.i -= 5;
+        rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
+    }
     retcode = caps->send_morse(rig, vfo, msg);
     /* try and revert even if we had an error above */
     HAMLIB_TRACE;
