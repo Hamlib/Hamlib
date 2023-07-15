@@ -7815,6 +7815,11 @@ static int morse_data_handler_start(RIG *rig)
     morse_data_handler_priv = (morse_data_handler_priv_data *)
                               rs->morse_data_handler_priv_data;
     morse_data_handler_priv->args.rig = rig;
+    value_t keyspd;
+    keyspd.i = 25; // default value if KEYSPD doesn't work
+    rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD, &keyspd);
+    morse_data_handler_priv->keyspd = keyspd.i;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: keyspd=%d\n", __func__, keyspd.i);
     int err = pthread_create(&morse_data_handler_priv->thread_id, NULL,
                              morse_data_handler, &morse_data_handler_priv->args);
 
