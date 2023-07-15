@@ -6877,11 +6877,13 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     {
         keyspd.i += 5;
         rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
+        return RIG_OK;
     }
     else if (msg[0]=='-') 
     {
         keyspd.i -= 5;
         rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
+        return RIG_OK;
     }
     retcode = caps->send_morse(rig, vfo, msg);
     /* try and revert even if we had an error above */
