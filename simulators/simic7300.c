@@ -7,9 +7,9 @@
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,6 +30,7 @@ struct ip_mreq
 int civ_731_mode = 0;
 vfo_t current_vfo = RIG_VFO_A;
 int split = 0;
+int keyspd = 85; // 85=20WPM
 
 // we make B different from A to ensure we see a difference at startup
 float freqA = 14074000;
@@ -237,6 +238,8 @@ void frameParse(int fd, unsigned char *frame, int len)
         break;
 
     case 0x14:
+        printf("cmd=0x14\n");
+
         switch (frame[5])
         {
             static int power_level = 0;
@@ -270,6 +273,27 @@ void frameParse(int fd, unsigned char *frame, int len)
             to_bcd(&frame[6], (long long)power_level, 2);
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
+            break;
+
+        case 0x0c:
+            dumphex(frame, 10);
+            printf("subcmd=0x0c #1\n");
+
+            if (frame[6] != 0xfd) // then we have data
+            {
+                printf("subcmd=0x0c #1\n");
+                keyspd = from_bcd(&frame[6], 2);
+                frame[6] = 0xfb;
+                n = write(fd, frame, 7);
+            }
+            else
+            {
+                printf("subcmd=0x0c #1\n");
+                to_bcd(&frame[6], keyspd, 2);
+                frame[8] = 0xfd;
+                n = write(fd, frame, 9);
+            }
+
             break;
         }
 
