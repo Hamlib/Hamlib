@@ -1326,15 +1326,6 @@ int HAMLIB_API rig_open(RIG *rig)
               rs->comm_state);
     hl_usleep(100 * 1000); // wait a bit after opening to give some serial ports time
 
-    status = morse_data_handler_start(rig);
-
-    if (status < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %s\n", __func__, rigerror(status));
-        port_close(&rs->rigport, rs->rigport.type.rig);
-        RETURNFUNC2(status);
-    }
-
 
     /*
      * Maybe the backend has something to initialize
@@ -1428,6 +1419,15 @@ int HAMLIB_API rig_open(RIG *rig)
             rig_debug(RIG_DEBUG_TRACE, "%s: default vfo = %s\n", __func__,
                       rig_strvfo(rs->current_vfo));
         }
+    }
+
+    status = morse_data_handler_start(rig);
+
+    if (status < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %s\n", __func__, rigerror(status));
+        port_close(&rs->rigport, rs->rigport.type.rig);
+        RETURNFUNC2(status);
     }
 
     if (rs->auto_disable_screensaver)
@@ -6876,12 +6876,14 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     if (msg[0]=='+') 
     {
         keyspd.i += 5;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: change keyspd to %d\n", __func__, keyspd.i);
         rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
         return RIG_OK;
     }
     else if (msg[0]=='-') 
     {
         keyspd.i -= 5;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: change keyspd to %d\n", __func__, keyspd.i);
         rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
         return RIG_OK;
     }
