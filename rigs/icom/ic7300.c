@@ -910,7 +910,7 @@ struct rig_caps ic9700_caps =
     RIG_MODEL(RIG_MODEL_IC9700),
     .model_name = "IC-9700",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".14",
+    .version =  BACKEND_VER ".15",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -2099,6 +2099,12 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     }
     else
     {
+        if (rig->state.cache.satmode)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
+            // we return RIG_OK anyways as this should just be a bad request
+            return RIG_OK;
+        }
         retval = icom_transaction(rig, 0x07, 0xd1, NULL, 0, ackbuf, &ack_len);
     }
 
