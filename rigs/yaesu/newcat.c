@@ -36,6 +36,7 @@
 #include "misc.h"
 #include "cal.h"
 #include "newcat.h"
+#include "serial.h"
 
 /* global variables */
 static const char cat_term = ';';             /* Yaesu command terminator */
@@ -3561,24 +3562,31 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_ON:
         // When powering on a Yaesu rig needs dummy bytes to wake it up,
         // then wait from 1 to 2 seconds and issue the power-on command again
+    HAMLIB_TRACE;
         write_block(&state->rigport, (unsigned char *) "PS1;", 4);
         hl_usleep(1200000);
+        write_block(&state->rigport, (unsigned char *) "PS1;", 4);
+        // some rigs reset the serial port during power up
+        // so we reopen the com port  again 
+        HAMLIB_TRACE;
+        //oser_close(&state->rigport);
+        rig_close(rig);
+        hl_usleep(3000000);
+        //state->pttport.fd = ser_open(&state->rigport);
+        rig_open(rig);
         break;
 
     case RIG_POWER_OFF:
     case RIG_POWER_STANDBY:
         retval = write_block(&state->rigport, (unsigned char *) "PS0;", 4);
+        priv->poweron = 0;
         RETURNFUNC(retval);
 
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    // Power on may require a second command
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PS1%c", cat_term);
-
-    retval = write_block(&state->rigport, (unsigned char *) priv->cmd_str,
-                         strlen(priv->cmd_str));
+    HAMLIB_TRACE;
 
     retry_save = rig->state.rigport.retry;
     rig->state.rigport.retry = 0;
@@ -3595,6 +3603,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
             if (retval == RIG_OK)
             {
                 rig->state.rigport.retry = retry_save;
+                priv->poweron = 1;
                 RETURNFUNC(retval);
             }
 
@@ -3674,10 +3683,12 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
         {
         case '1':
             *status = RIG_POWER_ON;
+            priv->poweron = 1;
             RETURNFUNC(RIG_OK);
 
         case '0':
             *status = RIG_POWER_OFF;
+            priv->poweron = 0;
             RETURNFUNC(RIG_OK);
 
         default:
