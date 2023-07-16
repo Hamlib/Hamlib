@@ -4003,6 +4003,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     int fpf;
     char main_sub_vfo = '0';
     char *format;
+    gran_t *level_info;
 
     ENTERFUNC;
 
@@ -4019,6 +4020,13 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
+    //TODO Replace the next line
+    level_info = &rig->caps->level_gran[rig_setting2idx(level)];
+    // with the next 2 lines
+    //err = check_level_param(rig, level, val, &level_info);
+    //if (err != RIG_OK ) { RETURNFUNC(err); }
+    //endTODO
+    
     switch (level)
     {
     case RIG_LEVEL_RFPOWER:
@@ -4197,6 +4205,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+        //TODO Get rid of these checks when limit checking enabled
         if (val.i < 300)
         {
             i = 300;
@@ -4210,15 +4219,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             i = val.i;
         }
 
-        if (is_ft950 || is_ft2000)
-        {
-            kp = (i - 300) / 50;
-        }
-        else
-        {
-            // Most Yaesu rigs seem to use range of 0-75 to represent pitch of 300..1050 Hz in 10 Hz steps
-            kp = (i - 300) / 10;
-        }
+        // Most Yaesu rigs seem to use range of 0-75 to represent pitch of 300..1050 Hz in 10 Hz steps
+        kp = (i - level_info->min.i + (level_info->step.i / 2)) / level_info->step.i;
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KP%02d%c", kp, cat_term);
         break;
@@ -4928,6 +4930,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     float scale;
     char main_sub_vfo = '0';
     int i;
+    gran_t *level_info;
 
     ENTERFUNC;
 
@@ -4943,6 +4946,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
+    
+    level_info = &rig->caps->level_gran[rig_setting2idx(level)];
 
     switch (level)
     {
@@ -5928,15 +5933,9 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_CWPITCH:
-        if (is_ft950 || is_ft2000)
-        {
-            val->i = (atoi(retlvl) * 50) + 300;
-        }
-        else
-        {
-            // Most Yaesu rigs seem to use range of 0-75 to represent pitch of 300..1050 Hz in 10 Hz steps
-            val->i = (atoi(retlvl) * 10) + 300;
-        }
+
+        // Most Yaesu rigs seem to use range of 0-75 to represent pitch of 300..1050 Hz in 10 Hz steps
+        val->i = (atoi(retlvl) * level_info->step.i) + level_info->min.i;
 
         break;
 
