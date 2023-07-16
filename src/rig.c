@@ -6254,6 +6254,7 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__, status);
+    ELAPSED1;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -6276,6 +6277,7 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 
     // if anything is queued up flush it
     rig_flush_force(&rig->state.rigport, 1);
+    ELAPSED2;
     RETURNFUNC(retcode);
 }
 

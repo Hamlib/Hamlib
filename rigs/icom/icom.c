@@ -8073,7 +8073,7 @@ int icom_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 int icom_set_powerstat(RIG *rig, powerstat_t status)
 {
     unsigned char ackbuf[200];
-    int ack_len = sizeof(ackbuf), retval = RIG_OK;
+    int ack_len = sizeof(ackbuf), retval = RIG_OK, echo_status;
     int pwr_sc;
     // so we'll do up to 175 for 115,200
     int fe_max = 175;
@@ -8113,28 +8113,27 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
 
-        if (RIG_IS_IC7300)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting 5 seconds for rig to wake up\n",
-                      __func__);
-            sleep(5);  // IC7300 is slow to start up -- may need to add more rigs
-        }
+        float sec_wait = 5.5; // 5.5 worked for IC-9700 -- we default to worst-case-found
+        if (RIG_IS_IC7300) sec_wait = 3.8;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting %g seconds for rig to wake up\n",
+                  __func__, sec_wait);
+        hl_usleep(sec_wait * 1000 * 1000);  // some are slow to start up -- may need to add more rigs
 
         // poweron == 0 means never powered -- == 2 means CAT turned off
         if (priv->poweron == 0 || priv->poweron == 2)
         {
-            retval = -1;
+            echo_status = -1;
 
-            for (i = 0; i < 5 && retval != RIG_OK; ++i)
+            for (i = 0; i < 10 && echo_status < 0; ++i)
             {
-                retval = icom_get_usb_echo_off(rig);
+                echo_status = icom_get_usb_echo_off(rig); 
 
-                if (retval != RIG_OK)
+                if (echo_status < 0)
                 {
-                    sleep(1);
+                    hl_usleep(500*1000);
                 }
             }
-            if (retval == RIG_OK)
+            if (echo_status >= 0)
             {
                 priv->poweron = 1;
             }
