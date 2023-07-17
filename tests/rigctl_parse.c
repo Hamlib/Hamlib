@@ -5006,8 +5006,15 @@ declare_proto_rig(send_cmd)
             eom_buf[0] = 0;
         }
 
+        int hexval;
         if (arg2[0] == ';') { eom_buf[0] = ';'; }
         else if (strstr(arg2,"fd")) eom_buf[0] = 0xfd; // ICOM answer terminator
+        else
+        { 
+            sscanf(arg2,"\\0x%2x", &hexval);
+            eom_buf[0] = hexval;
+        }
+        
 
         if (simulate)
         {
