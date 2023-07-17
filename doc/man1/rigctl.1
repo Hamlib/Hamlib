@@ -842,7 +842,60 @@ Func is a token: \(oqFAGC\(cq, \(oqNB\(cq, \(oqCOMP\(cq, \(oqVOX\(cq,
 \(oqARO\(cq, \(oqLOCK\(cq, \(oqMUTE\(cq, \(oqVSC\(cq, \(oqREV\(cq,
 \(oqSQL\(cq, \(oqABM\(cq, \(oqBC\(cq, \(oqMBC\(cq, \(oqRIT\(cq, \(oqAFC\(cq,
 \(oqSATMODE\(cq, \(oqSCOPE\(cq, \(oqRESUME\(cq, \(oqTBURST\(cq, \(oqTUNER\(cq,
-\(oqXIT\(cq.
+\(oqXIT\(cq, \(oqNB2\(cq, \(oqDSQL\(cq, \(oqAFLT\(cq, \(oqANL\(cq, \(oqBC2\(cq,
+\(oqDUAL_WATCH\(cq, \(oqDIVERSITY\(cq, \(oqCSQL\(cq, \(oqSCEN\(cq,
+\(oqTRANSCEIVE\(cq, \(oqSPECTRUM\(cq, \(oqSPECTRUM_HOLD\(cq, \(oqSEND_MORSE\(cq,
+\(oqSEND_VOICE_MEM\(cq, \(oqOVF_STATUS\(cq.
+
+ FAGC -- Fast AGC
+ NB -- Noise Blanker
+ COMP -- Speech Compression
+ VOX -- Voice Operated Relay
+ TONE -- CTCSS Tone TX
+ TSQL -- CTCSS Activate/De-activate RX
+ SBKIN -- Semi Break-in (CW mode)
+ FBKIN -- Full Break-in (CW mode)
+ ANF -- Automatic Notch Filter (DSP)
+ NR -- Noise Reduction (DSP)
+ AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.)
+ APF -- Audio Peak Filter
+ MON -- Monitor transmitted signal
+ MN -- Manual Notch
+ RF -- RTTY Filter
+ ARO -- Auto Repeater Offset
+ LOCK -- Lock
+ MUTE -- Mute
+ VSC -- Voice Scan Control
+ REV -- Reverse transmit and receive frequencies
+ SQL -- Turn Squelch Monitor on/off
+ ABM -- Auto Band Mode
+ BC -- Beat Canceller
+ MBC -- Manual Beat Canceller
+ RIT -- Receiver Incremental Tuning
+ AFC -- Auto Frequency Control ON/OFF
+ SATMODE -- Satellite mode ON/OFF
+ SCOPE -- Simple bandscope ON/OFF
+ RESUME -- Scan auto-resume
+ TBURST -- 1750 Hz tone burst
+ TUNER -- Enable automatic tuner
+ XIT -- Transmitter Incremental Tuning
+ NB2 -- 2nd Noise Blanker
+ CSQL -- DCS Squelch setting
+ AFLT -- AF Filter setting
+ ANL -- Noise limiter setting
+ BC2 -- 2nd Beat Cancel
+ DUAL_WATCH -- Dual Watch / Sub Receiver
+ DIVERSITY -- Diversity receive
+ DSQL -- Digital modes squelch
+ SCEN -- scrambler/encryption
+ SLICE -- Rig slice selection -- Flex
+ TRANSCEIVE -- Send radio state changes automatically ON/OFF
+ SPECTRUM -- Spectrum scope data output ON/OFF
+ SPECTRUM_HOLD -- Pause spectrum scope updates ON/OFF
+ SEND_MORSE -- Send specified characters using CW
+ SEND_VOICE_MEM -- Transmit in SSB message stored in memory
+ OVF -- Read overflow status 0=Off, 1=On
+
 .IP
 Func Status is a non null value for \(lqactivate\(rq or \(lqde-activate\(rq
 otherwise, much as TRUE/FALSE definitions in the C language (true is non-zero
