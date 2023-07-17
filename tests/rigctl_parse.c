@@ -5007,6 +5007,7 @@ declare_proto_rig(send_cmd)
         }
 
         if (arg2[0] == ';') { eom_buf[0] = ';'; }
+        else if (strstr(arg2,"fd")) eom_buf[0] = 0xfd; // ICOM answer terminator
 
         if (simulate)
         {
