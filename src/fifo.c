@@ -35,6 +35,15 @@ int push(FIFO_RIG *fifo, const char *msg)
     return RIG_OK;
 }
 
+int peek(FIFO_RIG *fifo)
+{
+    if (fifo->tail == fifo->head) { return -1; }
+    char c = fifo->data[fifo->head];
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: peek %c (%d,%d)\n", __func__, c, fifo->head,
+              fifo->tail);
+    return c;
+}
+
 int pop(FIFO_RIG *fifo)
 {
     if (fifo->tail == fifo->head) { return -1; }
