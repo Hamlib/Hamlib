@@ -33,6 +33,7 @@
 
 #define IC756_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756_1HZ_TS_MODES IC756_ALL_RX_MODES
+#define IC756_FUNC_SET (RIG_FUNC_DUAL_WATCH)
 
 /*
  * 100W in all modes but AM (40W)
@@ -139,7 +140,7 @@ const struct rig_caps ic756_caps =
     RIG_MODEL(RIG_MODEL_IC756),
     .model_name = "IC-756",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -157,7 +158,7 @@ const struct rig_caps ic756_caps =
     .timeout =  1000,
     .retry =  3,
     .has_get_func =  RIG_FUNC_NONE,
-    .has_set_func =  RIG_FUNC_NONE,
+    .has_set_func =  IC756_FUNC_SET,
     .has_get_level =  RIG_LEVEL_NONE,
     .has_set_level =  RIG_LEVEL_NONE,
     .has_get_parm =  RIG_PARM_NONE,
