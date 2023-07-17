@@ -6862,7 +6862,6 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     }
 
     curr_vfo = rig->state.current_vfo;
-    HAMLIB_TRACE;
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
@@ -6870,28 +6869,9 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         RETURNFUNC(retcode);
     }
 
-    value_t keyspd;
-
-    struct rig_state *rs = &rig->state;
-    morse_data_handler_priv_data *morse_data_handler_priv = (morse_data_handler_priv_data*) rs->morse_data_handler_priv_data;
-    keyspd.i = morse_data_handler_priv->keyspd;
-    if (msg[0]=='+') 
-    {
-        keyspd.i += 5;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: change keyspd to %d\n", __func__, keyspd.i);
-        rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
-        return RIG_OK;
-    }
-    else if (msg[0]=='-') 
-    {
-        keyspd.i -= 5;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: change keyspd to %d\n", __func__, keyspd.i);
-        rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
-        return RIG_OK;
-    }
+    HAMLIB_TRACE;
     retcode = caps->send_morse(rig, vfo, msg);
     /* try and revert even if we had an error above */
-    HAMLIB_TRACE;
     rc2 = caps->set_vfo(rig, curr_vfo);
 
     if (RIG_OK == retcode)
