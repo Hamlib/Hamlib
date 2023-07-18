@@ -2625,8 +2625,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     unsigned char modebuf[MAXFRAMELEN];
     const struct icom_priv_caps *priv_caps;
-    struct icom_priv_data *priv_data;
-    vfo_t vfocurr = vfo_fixup(rig, rig->state.current_vfo, 0);
+    struct icom_priv_data *priv_data = (struct icom_priv_data *) rig->state.priv;
+    vfo_t vfocurr = vfo_fixup(rig, rig->state.current_vfo, priv_data->split_on);
     int mode_len, retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
@@ -2646,7 +2646,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             && (rig->caps->rig_model != RIG_MODEL_IC7800))
     {
         int vfosel = 0x00;
-        vfo_t vfoask = vfo_fixup(rig, vfo, 0);
+        vfo_t vfoask = vfo_fixup(rig, vfo, priv_data->split_on);
 
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfoask=%s, vfocurr=%s\n", __func__,
                   rig_strvfo(vfo), rig_strvfo(vfoask), rig_strvfo(vfocurr));
@@ -6072,7 +6072,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         RETURNFUNC(retval);
     }
 
-    if (RIG_OK != (retval = rig->caps->set_mode(rig, RIG_VFO_CURR, tx_mode,
+    if (RIG_OK != (retval = rig->caps->set_mode(rig, tx_vfo, tx_mode,
                             tx_width)))
     {
         RETURNFUNC(retval);

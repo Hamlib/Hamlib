@@ -43,6 +43,7 @@ pbwidth_t widthB = 1;
 ant_t ant_curr = 0;
 int ant_option = 0;
 int ptt = 0;
+int dualwatch = 0;
 int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
@@ -302,6 +303,20 @@ void frameParse(int fd, unsigned char *frame, int len)
     case 0x16:
         switch (frame[5])
         {
+        case 0x59:
+            if (frame[6] == 0xfe)
+            {
+                dualwatch = frame[6];
+            }
+            else
+            {
+                frame[6] = dualwatch;
+                frame[7] = 0xfd;
+                n = write(fd, frame, 8);
+            }
+
+            break;
+
         case 0x5a:
             if (frame[6] == 0xfe)
             {
