@@ -1373,7 +1373,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             HAMLIB_TRACE;
             subcmd = 0x01;  // get unselected VFO
         }
-        if (RIG_IS_IC7600)
+        if (RIG_IS_IC7600 || RIG_IS_IC9700)
         { // the 7600/7610 do it different 0=Main, 1=Sub -- maybe other Icoms will start doing this too
             subcmd = 0;
             if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd = 1;
@@ -1676,6 +1676,11 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: TARGETABLE_FREQ and TARGETABLE_MODE enabled for testing\n", __func__);
                 rig->caps->targetable_vfo = rig->state.targetable_vfo |= RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE;
             }
+        }
+        if (RIG_IS_IC9700)
+        {
+            subcmd2 = 0;
+            if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd2 = 1;
         }
 
         retval = icom_transaction(rig, cmd2, subcmd2, NULL, 0, freqbuf, &freq_len);

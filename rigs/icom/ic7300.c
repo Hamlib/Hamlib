@@ -1584,7 +1584,7 @@ const struct rig_caps ic905_caps =
         { MHz(2300), MHz(2309.999999), IC705_ALL_TX_MODES, W(0.1), W(2), IC7300_VFOS, RIG_ANT_1, "EUR" },
         { MHz(2390), MHz(2450), IC705_ALL_TX_MODES, W(0.1), W(2), IC7300_VFOS, RIG_ANT_1, "EUR" },
         { MHz(5650), MHz(5925), IC705_ALL_TX_MODES, W(0.1), W(2), IC7300_VFOS, RIG_ANT_1, "EUR" },
-        { MHz(10000), MHz(10500), IC705_ALL_TX_MODES, W(0.1), W(2), IC7300_VFOS, RIG_ANT_1, "USA" },
+        { MHz(10000), MHz(10500), IC705_ALL_TX_MODES, W(0.1), W(2), IC7300_VFOS, RIG_ANT_1, "EUR" },
         RIG_FRNG_END,
     },
 
@@ -2093,11 +2093,30 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
 
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+    if (vfo == RIG_VFO_A)
+    {
+        retval = icom_transaction(rig, 0x07, 0x00, NULL, 0, ackbuf, &ack_len);
+    }
+    else if (vfo == RIG_VFO_B)
+    {
+        retval = icom_transaction(rig, 0x07, 0x01, NULL, 0, ackbuf, &ack_len);
+    }
+    else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
     {
         retval = icom_transaction(rig, 0x07, 0xd0, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
+            return -retval;
+        }
+        if (vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
+        {
+            int subcmd =  vfo == RIG_VFO_MAIN_A ? 0x00: 0x01;
+            retval = icom_transaction(rig, 0x07, subcmd, NULL, 0, ackbuf, &ack_len);
+        }
     }
-    else
+    else if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_SUB_A || vfo == RIG_VFO_SUB_B)
     {
         if (rig->state.cache.satmode)
         {
@@ -2105,7 +2124,19 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
             // we return RIG_OK anyways as this should just be a bad request
             return RIG_OK;
         }
+        // first switch to sub
         retval = icom_transaction(rig, 0x07, 0xd1, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
+            return -retval;
+        }
+        if (vfo == RIG_VFO_SUB_A || vfo == RIG_VFO_SUB_B)
+        {
+            HAMLIB_TRACE;
+            int subcmd =  vfo == RIG_VFO_SUB_A ? 0x00: 0x01;
+            retval = icom_transaction(rig, 0x07, subcmd, NULL, 0, ackbuf, &ack_len);
+        }
     }
 
     if (retval != RIG_OK)

@@ -1940,7 +1940,8 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
               __func__, funcname, linenum,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), split);
 
-    if (rig->caps->rig_model == RIG_MODEL_ID5100)
+    if (rig->caps->rig_model == RIG_MODEL_ID5100
+        || rig->caps->rig_model == RIG_MODEL_IC9700)
     {
         return vfo; // no change to requested vfo
     }
