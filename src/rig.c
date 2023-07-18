@@ -6847,6 +6847,12 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
+    if ((rig->state.cache.modeCurr &= (RIG_MODE_CW | RIG_MODE_CWR)) == 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig not in CW/CWR mode\n", __func__);
+        return -RIG_EINVAL;
+    }
+
     if (vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
