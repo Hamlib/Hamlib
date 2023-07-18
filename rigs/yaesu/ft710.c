@@ -119,7 +119,7 @@ const struct rig_caps ft710_caps =
     RIG_MODEL(RIG_MODEL_FT710),
     .model_name =         "FT-710",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".4",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
