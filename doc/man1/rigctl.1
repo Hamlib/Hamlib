@@ -1024,6 +1024,17 @@ Parm is a token: \(oqANN\(cq, \(oqAPO\(cq, \(oqBACKLIGHT\(cq, \(oqBEEP\(cq,
 Passing a \(oq?\(cq (query) as the first argument instead of a Parm token will
 return a space separated list of radio backend supported set parameter tokens.
 Use this to determine the supported parameters of a given radio backend.
+.IP
+ ANN -- "Announce" level, see ann_t
+ APO -- Auto power off, int in minute
+ BACKLIGHT -- LCD light, float [0.0 ... 1.0]
+ BEEP -- Beep on keypressed, int (0,1)
+ TIME -- hh:mm:ss, int in seconds from 00:00:00
+ BAT -- battery level, float [0.0 ... 1.0]
+ KEYLIGHT -- Button backlight, on/off
+ SCREENSAVER -- rig specific timeouts
+ AFIF -- 0=AF audio, 1=IF audio -- see IC-7300/9700/705
+
 .
 .TP
 .BR p ", " get_parm " \(aq" \fIParm\fP \(aq

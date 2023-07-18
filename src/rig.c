@@ -256,6 +256,7 @@ typedef struct morse_data_handler_priv_data_s
 
 static int morse_data_handler_start(RIG *rig);
 static int morse_data_handler_stop(RIG *rig);
+int morse_data_handler_set_keyspd(RIG *rig, int keyspd);
 void *morse_data_handler(void *arg);
 
 /*
@@ -4628,8 +4629,8 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     }
     else
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: mode %s is different from A=%s and B=%s\n",
-                  __func__, rig_strrmode(tx_mode), rig_strrmode(rig->state.cache.modeMainA),
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode %s is different from A=%s and B=%s\n",
+                  __func__, rig_strvfo(vfo), rig_strrmode(tx_mode), rig_strrmode(rig->state.cache.modeMainA),
                   rig_strrmode(rig->state.cache.modeMainB));
     }
 
@@ -4787,14 +4788,16 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
 
     rig_set_split_vfo(rig, rx_vfo, RIG_SPLIT_ON, tx_vfo);
 
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+#if 0
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN_A)
     {
         rig->state.cache.modeMainA = tx_mode;
     }
-    else
+    else if (vfo == RIG_VFO_B || 
     {
         rig->state.cache.modeMainB = tx_mode;
     }
+#endif
 
 
     ELAPSED2;
@@ -6980,7 +6983,7 @@ static int wait_morse_ptt(RIG *rig, vfo_t vfo)
         }
 
         // every 25ms should be short enough
-        hl_usleep(25 * 1000);
+        hl_usleep(50 * 1000);
         ++loops;
     }
     while (pttStatus == RIG_PTT_ON && loops <= 600);
@@ -7805,7 +7808,7 @@ static int morse_data_handler_start(RIG *rig)
     keyspd.i = 25; // default value if KEYSPD doesn't work
     rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD, &keyspd);
     morse_data_handler_priv->keyspd = keyspd.i;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: keyspd=%d\n", __func__, keyspd.i);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
     int err = pthread_create(&morse_data_handler_priv->thread_id, NULL,
                              morse_data_handler, &morse_data_handler_priv->args);
 
@@ -8005,31 +8008,65 @@ void *morse_data_handler(void *arg)
 
     while (rs->morse_data_handler_thread_run)
     {
-        char c[11]; // up to 10 chars to be sent
+        char c[2]; // up to 1 char to be sent -- this allows speed change inter-char
         memset(c, 0, sizeof(c));
 
         int n = 0;
         for (n = 0; n < sizeof(c) - 1; n++)
         {
-            int d = pop(rig->state.fifo_morse);
+            int d = peek(rig->state.fifo_morse);
             if (d < 0)
             {
                 break;
             }
+            d = pop(rig->state.fifo_morse);
             c[n] = (char) d;
         }
 
         if (n > 0)
         {
-            do 
+            char *p;
+            // if we have + or - we will adjust speed and send before/speed/after which hopefully works
+            // I suspect some rigs will change speed immediately and not wait for queued character to flush
+            morse_data_handler_priv_data *morse_data_handler_priv = (morse_data_handler_priv_data *) rs->morse_data_handler_priv_data;
+            value_t keyspd;
+            keyspd.i = morse_data_handler_priv->keyspd;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
+            if ((p=strchr(c,'+')) || (p=strchr(c,'-')))
             {
-                result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
-                if (result != RIG_OK)
-                {
-                    rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
-                    hl_usleep(100 * 1000);
+                HAMLIB_TRACE;
+                char spdchg = *p;
+                *p = 0;
+                if (strlen(c) > 0) rig->caps->send_morse(rig, RIG_VFO_CURR, c);
+                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
+                keyspd.i+=spdchg=='+'?5:-5;
+                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
+                while(p[1] == '+' || p[1] == '-') {
+                    HAMLIB_TRACE;
+                    keyspd.i+=p[1]=='+'?5:-5;
+                    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
+                    p++;
                 }
-            } while (result != RIG_OK && rig->state.fifo_morse->flush == 0);
+                p++;
+                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
+                rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
+                morse_data_handler_priv->keyspd = keyspd.i;
+                memmove(c,p,p-c+1);
+            }
+            if (strlen(c) > 0)
+            {
+                do 
+                {
+                    result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
+                    if (result != RIG_OK)
+                    {
+                        rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
+                        hl_usleep(100 * 1000);
+                    }
+                    wait_morse_ptt(rig, RIG_VFO_CURR);
+                    
+                } while (result != RIG_OK && rig->state.fifo_morse->flush == 0);
+            }
         }
 
         rig->state.fifo_morse->flush = 0; // reset flush flag
@@ -8210,4 +8247,11 @@ HAMLIB_EXPORT(int) rig_is_model(RIG *rig, rig_model_t model)
 }
 
 
-
+int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
+{
+    struct rig_state *rs = &rig->state;
+    morse_data_handler_priv_data *morse_data_handler_priv = (morse_data_handler_priv_data *) rs->morse_data_handler_priv_data;
+    morse_data_handler_priv->keyspd = keyspd;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: keyspd=%d\n", __func__, keyspd);
+    return RIG_OK;
+}
