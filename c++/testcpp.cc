@@ -8,10 +8,10 @@
 
 int main(int argc, char* argv[])
 {
-	Rig myRig {RIG_MODEL_DUMMY};
+	Rig myRig {RIG_MODEL_IC7300};
 
 	try {
-		myRig.setConf("rig_pathname", "/dev/ttyS1");
+		myRig.setConf("rig_pathname", "/dev/pts/4");
 		myRig.open();
 		myRig.setFreq(MHz(144));
 		std::cout << myRig.getLevelI(RIG_LEVEL_STRENGTH) << "dB" << std::endl;
