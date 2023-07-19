@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[])
 {
-	Rig myRig {RIG_MODEL_IC7300};
+	Rig myRig {RIG_MODEL_DUMMY};
 
 	try {
 		myRig.setConf("rig_pathname", "/dev/pts/4");
