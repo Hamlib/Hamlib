@@ -6847,10 +6847,18 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    if ((rig->state.cache.modeCurr &= (RIG_MODE_CW | RIG_MODE_CWR)) == 0)
+    if (caps->get_mode == NULL)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig not in CW/CWR mode\n", __func__);
-        return -RIG_EINVAL;
+        rig_debug(RIG_DEBUG_ERR, "%s: rig does not have get_mode\n", __func__);
+        RETURNFUNC(-RIG_EINVAL);
+    }
+    rmode_t mode;
+    pbwidth_t width;
+    rig_get_mode(rig, RIG_VFO_CURR, &mode, &width);
+    if ((mode & (RIG_MODE_CW | RIG_MODE_CWR)) == 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig is in mode %s, not in CW/CWR mode\n", __func__, rig_strrmode(mode));
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (vfo == RIG_VFO_CURR
@@ -7882,6 +7890,12 @@ static int morse_data_handler_stop(RIG *rig)
     morse_data_handler_priv = (morse_data_handler_priv_data *)
                               rs->morse_data_handler_priv_data;
 
+    // wait until fifo queue is flushed
+    while(peek(rig->state.fifo_morse) > 0)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: waiting for fifo queue to flush\n", __func__);
+        hl_usleep(500*1000);
+    }
     if (morse_data_handler_priv != NULL)
     {
         if (morse_data_handler_priv->thread_id != 0)
@@ -8012,9 +8026,9 @@ void *morse_data_handler(void *arg)
 
     initFIFO(rig->state.fifo_morse);
 
-    while (rs->morse_data_handler_thread_run)
+    while (rs->morse_data_handler_thread_run || (peek(rig->state.fifo_morse) >= 0))
     {
-        char c[2]; // up to 1 char to be sent -- this allows speed change inter-char
+        char c[2]; // up to 1 char to be sent -- this allows speed change inter-char eventually
         memset(c, 0, sizeof(c));
 
         int n = 0;
@@ -8061,6 +8075,7 @@ void *morse_data_handler(void *arg)
             }
             if (strlen(c) > 0)
             {
+                int nloops=10;
                 do 
                 {
                     result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
@@ -8070,8 +8085,13 @@ void *morse_data_handler(void *arg)
                         hl_usleep(100 * 1000);
                     }
                     wait_morse_ptt(rig, RIG_VFO_CURR);
+                    nloops++;
                     
-                } while (result != RIG_OK && rig->state.fifo_morse->flush == 0);
+                } while (result != RIG_OK && rig->state.fifo_morse->flush == 0 && --nloops > 0);
+                if (nloops == 0)
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: send_morse failed\n", __func__);
+                }
             }
         }
 
