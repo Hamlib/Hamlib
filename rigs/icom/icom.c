@@ -2681,8 +2681,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         priv_data->filter = modebuf[2];
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: modebuf[0]=0x%02x, modebuf[1]=0x%02x, modebuf[2]=0x%02x, mode_len=%d, filter=%d\n",
-                  __func__, modebuf[0],
+                  "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, modebuf[2]=0x%02x, mode_len=%d, filter=%d\n",
+                  __func__, __LINE__, modebuf[0],
                   modebuf[1], modebuf[2], mode_len, priv_data->filter);
     }
     else
@@ -2692,7 +2692,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         if (mode_len == 2) { priv_data->filter = modebuf[2]; }
 
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s: modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__, modebuf[0],
+                  "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__, __LINE__, modebuf[0],
                   modebuf[1], mode_len);
     }
 
@@ -2754,10 +2754,10 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         // then we get what was asked for
         if (vfo == RIG_VFO_NONE && rig->state.current_vfo == RIG_VFO_NONE)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s(%d): forcing default VFO_A\n", __func__,
-                      __LINE__);
+            rig_debug(RIG_DEBUG_TRACE, "%s(%d): forcing default to %s\n", __func__,
+                      __LINE__, rig_strvfo(vfo));
             HAMLIB_TRACE;
-            rig_set_vfo(rig, RIG_VFO_A); // force VFOA
+            rig_set_vfo(rig, vfo); // force VFO
         }
 
         retval = icom_get_dsp_flt(rig, *mode);
