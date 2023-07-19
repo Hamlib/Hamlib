@@ -732,7 +732,7 @@ static int port_wait_for_data_direct(hamlib_port_t *p)
     int result;
     tv_timeout.tv_sec = p->timeout / 1000;
     tv_timeout.tv_usec = (p->timeout % 1000) * 1000;
-    rig_debug(RIG_DEBUG_CACHE, "%s(%d): timeout=%ld,%ld\n", __func__, __LINE__, tv_timeout.tv_sec, tv_timeout.tv_usec);
+    //rig_debug(RIG_DEBUG_CACHE, "%s(%d): timeout=%ld,%ld\n", __func__, __LINE__, tv_timeout.tv_sec, tv_timeout.tv_usec);
 
     tv = tv_timeout;    /* select may have updated it */
 
@@ -741,7 +741,7 @@ static int port_wait_for_data_direct(hamlib_port_t *p)
     efds = rfds;
 
     result = port_select(p, fd + 1, &rfds, NULL, &efds, &tv, 1);
-    rig_debug(RIG_DEBUG_CACHE, "%s(%d): timeout=%ld,%ld\n", __func__, __LINE__, tv_timeout.tv_sec, tv_timeout.tv_usec);
+    //rig_debug(RIG_DEBUG_CACHE, "%s(%d): timeout=%ld,%ld\n", __func__, __LINE__, tv_timeout.tv_sec, tv_timeout.tv_usec);
 
     if (result == 0)
     {
