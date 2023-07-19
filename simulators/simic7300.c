@@ -304,6 +304,13 @@ void frameParse(int fd, unsigned char *frame, int len)
         {
             static int meter_level = 0;
 
+        case 0x02:
+            frame[6] = 00;
+            frame[7] = 00;
+            frame[8] = 0xfd;
+            n = write(fd, frame, 9);
+            break;
+            
         case 0x07:
             frame[6] = ovf_status;
             frame[7] = 0xfd;
