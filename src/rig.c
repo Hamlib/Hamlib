@@ -250,7 +250,7 @@ typedef struct morse_data_handler_priv_data_s
 {
     pthread_t thread_id;
     morse_data_handler_args args;
-    FIFO_RIG fifo_morse;
+    volatile FIFO_RIG fifo_morse;
     int keyspd;
 } morse_data_handler_priv_data;
 
@@ -7891,11 +7891,18 @@ static int morse_data_handler_stop(RIG *rig)
                               rs->morse_data_handler_priv_data;
 
     // wait until fifo queue is flushed
-    while(peek(rig->state.fifo_morse) > 0)
+    HAMLIB_TRACE;
+    hl_usleep(100*1000);
+    HAMLIB_TRACE;
+    while(peek(rig->state.fifo_morse) >= 0)
     {
+        HAMLIB_TRACE;
         rig_debug(RIG_DEBUG_TRACE, "%s: waiting for fifo queue to flush\n", __func__);
-        hl_usleep(500*1000);
+        hl_usleep(100*1000);
     }
+    HAMLIB_TRACE;
+    hl_usleep(100*1000);
+    HAMLIB_TRACE;
     if (morse_data_handler_priv != NULL)
     {
         if (morse_data_handler_priv->thread_id != 0)
@@ -8045,6 +8052,9 @@ void *morse_data_handler(void *arg)
 
         if (n > 0)
         {
+#if 0
+// this does not work well at all -- rigs do not queue keyspd so any change is immediate
+// don't know if we can ever implement this
             char *p;
             // if we have + or - we will adjust speed and send before/speed/after which hopefully works
             // I suspect some rigs will change speed immediately and not wait for queued character to flush
@@ -8073,6 +8083,7 @@ void *morse_data_handler(void *arg)
                 morse_data_handler_priv->keyspd = keyspd.i;
                 memmove(c,p,p-c+1);
             }
+#endif
             if (strlen(c) > 0)
             {
                 int nloops=10;
