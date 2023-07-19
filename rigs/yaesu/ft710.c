@@ -4,10 +4,10 @@
  * ft710.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *             (C) Stephane Fillod 2008-2010
  *             (C) Terry Embry 2008-2009
- *             (C) Mikael Nousiainen 2020
+ *             (C) Mikael Nousiainen 2023
  *
  * This shared library provides an API for communicating
- * via serial interface to an FTDX10(D/MP) using the "CAT" interface
+ * via serial interface to an FT-710 using the "CAT" interface
  *
  *
  *   This library is free software; you can redistribute it and/or
@@ -33,34 +33,16 @@
 #include "tones.h"
 #include "newcat.h"
 #include "yaesu.h"
-#include "ftdx10.h" // reuse this until we know different
+#include "ft710.h"
 
 const struct newcat_priv_caps ft710_priv_caps =
 {
-    .roofing_filter_count = 6,
-    .roofing_filters =
-    {
-        // The index must match ext level combo index
-        { .index = 0, .set_value = '0', .get_value = 0, .width = 12000, .optional = 0 },
-        { .index = 1, .set_value = '1', .get_value = '6', .width = 12000, .optional = 0 },
-        { .index = 2, .set_value = '2', .get_value = '7', .width = 3000, .optional = 0 },
-//        { .index = 3, .set_value = '3', .get_value = '8', .width = 1200, .optional = 1 },
-        { .index = 4, .set_value = '4', .get_value = '9', .width = 500, .optional = 0 },
-        { .index = 5, .set_value = '5', .get_value = 'A', .width = 300, .optional = 0 },
-    }
+    .roofing_filter_count = 0,
+    .roofing_filters = {}
 };
 
 const struct confparams ft710_ext_levels[] =
 {
-    {
-        TOK_ROOFING_FILTER,
-        "ROOFINGFILTER",
-        "Roofing filter",
-        "Roofing filter",
-        NULL,
-        RIG_CONF_COMBO,
-        { .c = { .combostr = { "AUTO", "12 kHz", "3 kHz", "500 Hz", "300 Hz (optional)", NULL } } }
-    },
     {
         TOK_KEYER,
         "KEYER",
@@ -127,7 +109,7 @@ const struct confparams ft710_ext_levels[] =
 
 int ft710_ext_tokens[] =
 {
-    TOK_ROOFING_FILTER, TOK_KEYER, TOK_APF_FREQ, TOK_APF_WIDTH,
+    TOK_KEYER, TOK_APF_FREQ, TOK_APF_WIDTH,
     TOK_CONTOUR, TOK_CONTOUR_FREQ, TOK_CONTOUR_LEVEL, TOK_CONTOUR_WIDTH,
     TOK_BACKEND_NONE
 };
@@ -137,7 +119,7 @@ const struct rig_caps ft710_caps =
     RIG_MODEL(RIG_MODEL_FT710),
     .model_name =         "FT-710",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".3",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -154,10 +136,10 @@ const struct rig_caps ft710_caps =
     .post_write_delay =   20,
     .timeout =            1000,
     .retry =              3,
-    .has_get_func =       FTDX10_FUNCS,
-    .has_set_func =       FTDX10_FUNCS,
-    .has_get_level =      FTDX10_LEVELS,
-    .has_set_level =      RIG_LEVEL_SET(FTDX10_LEVELS),
+    .has_get_func =       FT710_FUNCS,
+    .has_set_func =       FT710_FUNCS,
+    .has_get_level =      FT710_LEVELS,
+    .has_set_level =      RIG_LEVEL_SET(FT710_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran =
@@ -177,14 +159,18 @@ const struct rig_caps ft710_caps =
     .max_ifshift =        Hz(1200),
     .agc_level_count =    5,
     .agc_levels =         { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW, RIG_AGC_AUTO },
-    .vfo_ops =            FTDX10_VFO_OPS,
+    .vfo_ops =            FT710_VFO_OPS,
     .scan_ops =           RIG_SCAN_VFO,
-    .targetable_vfo =     RIG_TARGETABLE_FREQ | RIG_TARGETABLE_FUNC | RIG_TARGETABLE_LEVEL | RIG_TARGETABLE_COMMON | RIG_TARGETABLE_TONE | RIG_TARGETABLE_MODE,
-    .transceive =         RIG_TRN_OFF, /* May enable later as the FTDX10 has an Auto Info command */
+    .targetable_vfo =     RIG_TARGETABLE_FREQ,
+    .transceive =         RIG_TRN_OFF, /* May enable later as the FT-710 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
-    .rfpower_meter_cal =  FTDX10_RFPOWER_METER_CAL,
-    .swr_cal =            FTDX10_SWR_CAL,
+    .rfpower_meter_cal =  FT710_RFPOWER_METER_CAL,
+    .swr_cal =            FT710_SWR_CAL,
+    .str_cal =            FT710_STR_CAL,
+    .id_meter_cal =       FT710_ID_CAL,
+    .vd_meter_cal =       FT710_VD_CAL,
+    .comp_meter_cal =     FT710_COMP_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         RIG_CHAN_END,
@@ -192,44 +178,44 @@ const struct rig_caps ft710_caps =
 
     .rx_range_list1 =     {
         /* General coverage + ham, ANT_5 is RX only antenna */
-        {kHz(30), MHz(60), FTDX10_ALL_RX_MODES, -1, -1, FTDX10_VFO_ALL, FTDX10_TX_ANTS, "USA"},
+        {kHz(30), MHz(60), FT710_ALL_RX_MODES, -1, -1, FT710_VFO_ALL, FT710_TX_ANTS, "USA"},
         RIG_FRNG_END,
     },
 
     .tx_range_list1 =     { /* the 101DX is 100W and the MP is 200W */
-        FRQ_RNG_HF(1, FTDX10_OTHER_TX_MODES, W(5), W(200), FTDX10_VFO_ALL, FTDX10_TX_ANTS),
-        FRQ_RNG_HF(1, FTDX10_AM_TX_MODES, W(2), W(75), FTDX10_VFO_ALL, FTDX10_TX_ANTS),   /* AM class */
-        FRQ_RNG_6m(1, FTDX10_OTHER_TX_MODES, W(5), W(200), FTDX10_VFO_ALL, FTDX10_TX_ANTS),
-        FRQ_RNG_6m(1, FTDX10_AM_TX_MODES, W(2), W(75), FTDX10_VFO_ALL, FTDX10_TX_ANTS),   /* AM class */
+        FRQ_RNG_HF(1, FT710_OTHER_TX_MODES, W(5), W(200), FT710_VFO_ALL, FT710_TX_ANTS),
+        FRQ_RNG_HF(1, FT710_AM_TX_MODES, W(2), W(75), FT710_VFO_ALL, FT710_TX_ANTS),   /* AM class */
+        FRQ_RNG_6m(1, FT710_OTHER_TX_MODES, W(5), W(200), FT710_VFO_ALL, FT710_TX_ANTS),
+        FRQ_RNG_6m(1, FT710_AM_TX_MODES, W(2), W(75), FT710_VFO_ALL, FT710_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
 
     .rx_range_list2 =     {
-        {kHz(30), MHz(60), FTDX10_ALL_RX_MODES, -1, -1, FTDX10_VFO_ALL, FTDX10_TX_ANTS, "EUR"},
+        {kHz(30), MHz(60), FT710_ALL_RX_MODES, -1, -1, FT710_VFO_ALL, FT710_TX_ANTS, "EUR"},
         RIG_FRNG_END,
     },
 
     .tx_range_list2 =     {
-        FRQ_RNG_HF(2, FTDX10_OTHER_TX_MODES, W(5), W(200), FTDX10_VFO_ALL, FTDX10_TX_ANTS),
-        FRQ_RNG_HF(2, FTDX10_AM_TX_MODES, W(2), W(75), FTDX10_VFO_ALL, FTDX10_TX_ANTS),   /* AM class */
-        FRQ_RNG_6m(2, FTDX10_OTHER_TX_MODES, W(5), W(200), FTDX10_VFO_ALL, FTDX10_TX_ANTS),
-        FRQ_RNG_6m(2, FTDX10_AM_TX_MODES, W(2), W(75), FTDX10_VFO_ALL, FTDX10_TX_ANTS),   /* AM class */
-        FRQ_RNG_4m_REGION2(FTDX10_OTHER_TX_MODES, W(5), W(200), FTDX10_VFO_ALL, FTDX10_TX_ANTS),
-        FRQ_RNG_4m_REGION2(FTDX10_AM_TX_MODES, W(2), W(75), FTDX10_VFO_ALL, FTDX10_TX_ANTS),   /* AM class */
+        FRQ_RNG_HF(2, FT710_OTHER_TX_MODES, W(5), W(200), FT710_VFO_ALL, FT710_TX_ANTS),
+        FRQ_RNG_HF(2, FT710_AM_TX_MODES, W(2), W(75), FT710_VFO_ALL, FT710_TX_ANTS),   /* AM class */
+        FRQ_RNG_6m(2, FT710_OTHER_TX_MODES, W(5), W(200), FT710_VFO_ALL, FT710_TX_ANTS),
+        FRQ_RNG_6m(2, FT710_AM_TX_MODES, W(2), W(75), FT710_VFO_ALL, FT710_TX_ANTS),   /* AM class */
+        FRQ_RNG_4m_REGION2(FT710_OTHER_TX_MODES, W(5), W(200), FT710_VFO_ALL, FT710_TX_ANTS),
+        FRQ_RNG_4m_REGION2(FT710_AM_TX_MODES, W(2), W(75), FT710_VFO_ALL, FT710_TX_ANTS),   /* AM class */
 
         RIG_FRNG_END,
     },
 
     .tuning_steps =       {
-        {FTDX10_SSB_CW_RX_MODES, Hz(10)},    /* Normal */
-        {FTDX10_SSB_CW_RX_MODES, Hz(100)},   /* Fast */
+        {FT710_SSB_CW_RX_MODES, Hz(10)},    /* Normal */
+        {FT710_SSB_CW_RX_MODES, Hz(100)},   /* Fast */
 
-        {FTDX10_AM_RX_MODES,     Hz(100)},   /* Normal */
-        {FTDX10_AM_RX_MODES,     kHz(1)},    /* Fast */
+        {FT710_AM_RX_MODES,     Hz(100)},   /* Normal */
+        {FT710_AM_RX_MODES,     kHz(1)},    /* Fast */
 
-        {FTDX10_FM_RX_MODES,     Hz(100)},   /* Normal */
-        {FTDX10_FM_RX_MODES,     kHz(1)},    /* Fast */
+        {FT710_FM_RX_MODES,     Hz(100)},   /* Normal */
+        {FT710_FM_RX_MODES,     kHz(1)},    /* Fast */
 
         RIG_TS_END,
 
@@ -237,10 +223,10 @@ const struct rig_caps ft710_caps =
 
     /* mode/filter list, remember that order matters! */
     .filters =            {
-        {FTDX10_CW_RTTY_PKT_RX_MODES,  Hz(600)},   /* Normal CW, RTTY, PKT/USER */
-        {FTDX10_CW_RTTY_PKT_RX_MODES,  Hz(300)},    /* Narrow CW, RTTY, PKT/USER */
-        {FTDX10_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
-        {FTDX10_CW_RTTY_PKT_RX_MODES,  Hz(1200)},   /* Normal CW, RTTY, PKT/USER */
+        {FT710_CW_RTTY_PKT_RX_MODES,  Hz(600)},   /* Normal CW, RTTY, PKT/USER */
+        {FT710_CW_RTTY_PKT_RX_MODES,  Hz(300)},    /* Narrow CW, RTTY, PKT/USER */
+        {FT710_CW_RTTY_PKT_RX_MODES,  Hz(2400)},   /* Wide   CW, RTTY, PKT/USER */
+        {FT710_CW_RTTY_PKT_RX_MODES,  Hz(1200)},   /* Normal CW, RTTY, PKT/USER */
         {RIG_MODE_SSB,                 Hz(2400)},   /* Normal SSB */
         {RIG_MODE_SSB,                 Hz(1800)},   /* Narrow SSB */
         {RIG_MODE_SSB,                 Hz(3000)},   /* Wide   SSB */
@@ -248,7 +234,7 @@ const struct rig_caps ft710_caps =
         {RIG_MODE_AMN,                 Hz(6000)},   /* Narrow AM  */
         {RIG_MODE_FM | RIG_MODE_PKTFM, Hz(16000)},  /* Normal FM  */
         {RIG_MODE_FMN | RIG_MODE_PKTFMN, Hz(9000)},   /* Narrow FM  */
-        {FTDX10_CW_RTTY_PKT_RX_MODES | RIG_MODE_SSB, RIG_FLT_ANY},
+        {FT710_CW_RTTY_PKT_RX_MODES | RIG_MODE_SSB, RIG_FLT_ANY},
 
         RIG_FLT_END,
     },
@@ -276,10 +262,10 @@ const struct rig_caps ft710_caps =
     .get_ptt =            newcat_get_ptt,
     .set_split_vfo =      newcat_set_split_vfo,
     .get_split_vfo =      newcat_get_split_vfo,
-    .set_rit =            newcat_set_rit,
-    .get_rit =            newcat_get_rit,
-    .set_xit =            newcat_set_xit,
-    .get_xit =            newcat_get_xit,
+    .set_rit =            newcat_set_clarifier_frequency,
+    .get_rit =            newcat_get_clarifier_frequency,
+    .set_xit =            newcat_set_clarifier_frequency,
+    .get_xit =            newcat_get_clarifier_frequency,
     .set_ant =            NULL,
     .get_ant =            NULL,
     .get_func =           newcat_get_func,

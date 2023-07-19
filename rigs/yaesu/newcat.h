@@ -204,6 +204,8 @@ int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit);
 int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 int newcat_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * xit);
 int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit);
+int newcat_get_clarifier_frequency(RIG *rig, vfo_t vfo, shortfreq_t *freq);
+int newcat_set_clarifier_frequency(RIG *rig, vfo_t vfo, shortfreq_t freq);
 int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
 int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
