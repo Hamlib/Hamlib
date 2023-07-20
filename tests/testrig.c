@@ -11,7 +11,7 @@
 
 #include <hamlib/config.h>
 
-#define SERIAL_PORT "/dev/pts/4"
+#define SERIAL_PORT "/dev/ttyUSB0"
 
 
 int main(int argc, char *argv[])
