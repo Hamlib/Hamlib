@@ -65,6 +65,7 @@
 #include "network.h"
 #include "rot_conf.h"
 #include "token.h"
+#include "serial.h"
 
 
 #ifndef DOC_HIDDEN
@@ -514,6 +515,22 @@ int HAMLIB_API rot_open(ROT *rot)
                    sizeof(rot->state.rotport_deprecated));
             return status;
         }
+    }
+    if(rs->rotport.parm.serial.dtr_state == RIG_SIGNAL_ON)
+    {
+        ser_set_dtr(&rs->rotport, 1);
+    }
+    else
+    {
+        ser_set_dtr(&rs->rotport, 0);
+    }
+    if(rs->rotport.parm.serial.rts_state == RIG_SIGNAL_ON)
+    {
+        ser_set_rts(&rs->rotport, 1);
+    }
+    else
+    {
+        ser_set_rts(&rs->rotport, 0);
     }
 
     memcpy(&rot->state.rotport_deprecated, &rot->state.rotport,
