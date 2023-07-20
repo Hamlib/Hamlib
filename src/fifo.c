@@ -37,6 +37,7 @@ int push(FIFO_RIG *fifo, const char *msg)
 
 int peek(FIFO_RIG *fifo)
 {
+    if (fifo == NULL) return -1;
     if (fifo->tail < 0 || fifo->head < 0) return -1;
     if (fifo->tail > 1023 || fifo->head > 1023) return -1;
     if (fifo->tail == fifo->head) { return -1; }
