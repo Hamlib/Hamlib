@@ -2031,6 +2031,7 @@ int set_conf(RIG *my_rig, char *conf_parms)
     char *p, *n;
     int token;
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     p = conf_parms;
 
     while (p && *p != '\0')
