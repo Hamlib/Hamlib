@@ -92,6 +92,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "Caps dump for model: %u\n", caps->rig_model);
     fprintf(fout, "Model name:\t%s\n", caps->model_name);
     fprintf(fout, "Mfg name:\t%s\n", caps->mfg_name);
+    fprintf(fout, "Hamlib version:\t%s\n", hamlib_version2);
     fprintf(fout, "Backend version:\t%s\n", caps->version);
     fprintf(fout, "Backend copyright:\t%s\n", caps->copyright);
     fprintf(fout, "Backend status:\t%s\n", rig_strstatus(caps->status));

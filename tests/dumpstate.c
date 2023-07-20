@@ -92,6 +92,7 @@ int dumpstate(RIG *rig, FILE *fout)
     fprintf(fout, "Caps dump for model: %u\n", rig->state.rig_model);
     fprintf(fout, "Model name:\t%s\n", rig->state.model_name);
     fprintf(fout, "Mfg name:\t%s\n", rig->state.mfg_name);
+    fprintf(fout, "Hamlib version:\t%s\n", hamlib_version2);
     fprintf(fout, "Backend version:\t%s\n", rig->state.version);
     fprintf(fout, "Backend copyright:\t%s\n", rig->state.copyright);
     fprintf(fout, "Backend status:\t%s\n", rig_strstatus(rig->state.status));
