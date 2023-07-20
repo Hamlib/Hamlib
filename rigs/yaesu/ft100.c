@@ -314,7 +314,7 @@ const struct rig_caps ft100_caps =
     RIG_MODEL(RIG_MODEL_FT100),
     .model_name =     "FT-100",
     .mfg_name =       "Yaesu",
-    .version =        "20211111.0",
+    .version =        "20230720.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -921,7 +921,8 @@ int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     case RIG_PTT_ON:
         cmd_index = FT100_NATIVE_CAT_PTT_ON;
 
-        if (split) { rig_set_vfo(rig, RIG_VFO_B); }
+        // This was causing WSJT-X to assume reverse split
+        //if (split) { rig_set_vfo(rig, RIG_VFO_B); }
 
         break;
 
