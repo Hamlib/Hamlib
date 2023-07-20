@@ -418,6 +418,23 @@ int HAMLIB_API amp_open(AMP *amp)
         }
     }
 
+    if(rs->ampport.parm.serial.dtr_state == RIG_SIGNAL_ON)
+    {
+        ser_set_dtr(&rs->ampport, 1);
+    }
+    else
+    {
+        ser_set_dtr(&rs->ampport, 0);
+    }
+    if(rs->ampport.parm.serial.rts_state == RIG_SIGNAL_ON)
+    {
+        ser_set_rts(&rs->ampport, 1);
+    }
+    else
+    {
+        ser_set_rts(&rs->ampport, 0);
+    }
+
     memcpy(&amp->state.ampport_deprecated, &amp->state.ampport,
            sizeof(amp->state.ampport_deprecated));
 
