@@ -328,6 +328,64 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
         rs->south_zero = atoi(val);
         break;
 
+
+    case TOK_RTS_STATE:
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
+            return -RIG_EINVAL;
+        }
+
+        if (!strcmp(val, "Unset"))
+        {
+            rs->rotport.parm.serial.rts_state = RIG_SIGNAL_UNSET;
+            rs->rotport_deprecated.parm.serial.rts_state = RIG_SIGNAL_UNSET;
+        }
+        else if (!strcmp(val, "ON"))
+        {
+            rs->rotport.parm.serial.rts_state = RIG_SIGNAL_ON;
+            rs->rotport_deprecated.parm.serial.rts_state = RIG_SIGNAL_ON;
+        }
+        else if (!strcmp(val, "OFF"))
+        {
+            rs->rotport.parm.serial.rts_state = RIG_SIGNAL_OFF;
+            rs->rotport_deprecated.parm.serial.rts_state = RIG_SIGNAL_OFF;
+        }
+        else
+        {
+            return -RIG_EINVAL;
+        }
+
+        break;
+
+    case TOK_DTR_STATE:
+        if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+        {
+            return -RIG_EINVAL;
+        }
+
+        if (!strcmp(val, "Unset"))
+        {
+            rs->rotport.parm.serial.dtr_state = RIG_SIGNAL_UNSET;
+            rs->rotport_deprecated.parm.serial.dtr_state = RIG_SIGNAL_UNSET;
+        }
+        else if (!strcmp(val, "ON"))
+        {
+            rs->rotport.parm.serial.dtr_state = RIG_SIGNAL_ON;
+            rs->rotport_deprecated.parm.serial.dtr_state = RIG_SIGNAL_ON;
+        }
+        else if (!strcmp(val, "OFF"))
+        {
+            rs->rotport.parm.serial.dtr_state = RIG_SIGNAL_OFF;
+            rs->rotport_deprecated.parm.serial.dtr_state = RIG_SIGNAL_OFF;
+        }
+        else
+        {
+            return -RIG_EINVAL;
+        }
+
+        break;
+
+
     default:
         return -RIG_EINVAL;
     }

@@ -1664,6 +1664,7 @@ void list_models()
 int set_conf(ROT *my_rot, char *conf_parms)
 {
     char *p;
+    int token;
 
     rot_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     p = conf_parms;
@@ -1688,12 +1689,20 @@ int set_conf(ROT *my_rot, char *conf_parms)
             *n++ = '\0';
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: token=%s, val=%s\n", __func__, p, q);
-        ret = rot_set_conf(my_rot, rot_token_lookup(my_rot, p), q);
+        token = rot_token_lookup(my_rot, p);
 
-        if (ret != RIG_OK)
+        if (token != 0)
         {
-            return ret;
+            ret = rot_set_conf(my_rot, token, q);
+
+            if (ret != RIG_OK)
+            {
+                return ret;
+            }
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: invalid token %s for this rig\n", __func__, p);
         }
 
         p = n;

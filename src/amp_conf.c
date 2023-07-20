@@ -268,6 +268,64 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         }
 
         break;
+    case TOK_RTS_STATE:
+        if (rs->ampport.type.rig != RIG_PORT_SERIAL)
+        {
+            return -RIG_EINVAL;
+        }
+
+        if (!strcmp(val, "Unset"))
+        {
+            rs->ampport.parm.serial.rts_state = RIG_SIGNAL_UNSET;
+            rs->ampport_deprecated.parm.serial.rts_state = RIG_SIGNAL_UNSET;
+        }
+        else if (!strcmp(val, "ON"))
+        {
+            rs->ampport.parm.serial.rts_state = RIG_SIGNAL_ON;
+            rs->ampport_deprecated.parm.serial.rts_state = RIG_SIGNAL_ON;
+        }
+        else if (!strcmp(val, "OFF"))
+        {
+            rs->ampport.parm.serial.rts_state = RIG_SIGNAL_OFF;
+            rs->ampport_deprecated.parm.serial.rts_state = RIG_SIGNAL_OFF;
+        }
+        else
+        {
+            return -RIG_EINVAL;
+        }
+
+        break;
+
+    case TOK_DTR_STATE:
+        if (rs->ampport.type.rig != RIG_PORT_SERIAL)
+        {
+            return -RIG_EINVAL;
+        }
+
+        if (!strcmp(val, "Unset"))
+        {
+            rs->ampport.parm.serial.dtr_state = RIG_SIGNAL_UNSET;
+            rs->ampport_deprecated.parm.serial.dtr_state = RIG_SIGNAL_UNSET;
+        }
+        else if (!strcmp(val, "ON"))
+        {
+            rs->ampport.parm.serial.dtr_state = RIG_SIGNAL_ON;
+            rs->ampport_deprecated.parm.serial.dtr_state = RIG_SIGNAL_ON;
+        }
+        else if (!strcmp(val, "OFF"))
+        {
+            rs->ampport.parm.serial.dtr_state = RIG_SIGNAL_OFF;
+            rs->ampport_deprecated.parm.serial.dtr_state = RIG_SIGNAL_OFF;
+        }
+        else
+        {
+            return -RIG_EINVAL;
+        }
+
+        break;
+
+
+
 
 #if 0
 

@@ -1593,7 +1593,9 @@ void list_models()
 int set_conf(AMP *my_amp, char *conf_parms)
 {
     char *p, *n;
+    int token;
 
+    amp_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     p = conf_parms;
 
     while (p && *p != '\0')
@@ -1616,11 +1618,19 @@ int set_conf(AMP *my_amp, char *conf_parms)
             *n++ = '\0';
         }
 
-        ret = amp_set_conf(my_amp, amp_token_lookup(my_amp, p), q);
+        token = amp_token_lookup(my_amp, p);
 
-        if (ret != RIG_OK)
+        if (token != 0)
         {
-            return ret;
+            ret = amp_set_conf(my_amp, token, q);
+            if (ret != RIG_OK)
+            {
+                return ret;
+            }
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: invalid token %s for this rig\n", __func__, p);
         }
 
         p = n;
