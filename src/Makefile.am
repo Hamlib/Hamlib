@@ -28,6 +28,7 @@ libhamlib_la_DEPENDENCIES = $(top_builddir)/lib/libmisc.la $(top_builddir)/secur
 
 EXTRA_DIST = Android.mk hamlibdatetime.h.in
 
+
 # If we have  a .git directory then we will  generate the hamlibdate.h
 # file and  replace it if it  is different. Fall  back to a copy  of a
 # generic hamlibdatetime.h.in in the source tree. Build looks in build
@@ -39,6 +40,7 @@ hamlibdatetime.h: FORCE
 		echo "#define HAMLIBDATETIME "\"$$(TZ=UTC git --git-dir=$(top_srcdir)/.git log --no-merges --date='format-local:%Y-%m-%dT%H:%M:%SZ SHA=' --format='%cd' -n 1)$$(git --git-dir=$(top_srcdir)/.git log --no-merges -n 1 | head -n 1 | cut -c8-13)\"  >> $(builddir)/$(@F).tmp ;\
 		diff -qN $(builddir)/$(@F).tmp $(builddir)/$(@F) ; test $$? -eq 0 || { echo "Generating SCS header \"$(builddir)/$(@F)\"" ; mv -f $(builddir)/$(@F).tmp $(builddir)/$(@F) ; } ;\
 		rm -f $(builddir)/$(@F).tmp ;\
+		touch -c $(top_srcdir)/src/version_dll.rc ;\
 	else \
 		test -f $(srcdir)/$(@F) || cp $(srcdir)/$(@F).in $(srcdir)/$(@F) ;\
 	fi
