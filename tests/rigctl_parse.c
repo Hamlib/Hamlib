@@ -4592,6 +4592,7 @@ declare_proto_rig(dump_state)
         
         rig->state.rig_model = rig->caps->rig_model;
         fprintf(fout, "rig_model=%d\n", rig->state.rig_model);
+        fprintf(fout, "hamlib_version=%s\n", hamlib_version2);
         fprintf(fout, "done\n");
     }
 
