@@ -7517,10 +7517,20 @@ int newcat_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     default: c_rptr_shift = '0';
     }
 
+    if (priv->width_frequency == 9)
+    {
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+             "MW%03d%09d%+.4d%c%c%c%c%c%02u%c%c",
+             chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
+             c_tone, tone, c_rptr_shift, cat_term);
+    }
+    else
+    {
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
              "MW%03d%08d%+.4d%c%c%c%c%c%02u%c%c",
              chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
              c_tone, tone, c_rptr_shift, cat_term);
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -7606,11 +7616,16 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
         RETURNFUNC(err);
     }
+    int offset=0;
+    if (priv->width_frequency == 9)
+    {
+        offset = 1;
+    }
 
     /* ret_data string to channel_t struct :: this will destroy ret_data */
 
     /* rptr_shift P10 ************************ */
-    retval = priv->ret_data + 25;
+    retval = priv->ret_data + 25 + offset;
 
     switch (*retval)
     {
@@ -7626,13 +7641,13 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     *retval = '\0';
 
     /* CTCSS Encoding P8 ********************* */
-    retval = priv->ret_data + 22;
+    retval = priv->ret_data + 22 + offset;
     c = *retval;
 
     /* CTCSS Tone P9 ************************* */
     chan->ctcss_tone = 0;
     chan->ctcss_sql  = 0;
-    retval = priv->ret_data + 23;
+    retval = priv->ret_data + 23 + offset;
     i = atoi(retval);
 
     if (c == '1')
@@ -7645,7 +7660,7 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     }
 
     /* vfo, mem, P7 ************************** */
-    retval = priv->ret_data + 21;
+    retval = priv->ret_data + 21 + offset;
 
     if (*retval == '1')
     {
@@ -7659,7 +7674,7 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     /* MODE P6 ******************************* */
     chan->width = 0;
 
-    retval = priv->ret_data + 20;
+    retval = priv->ret_data + 20 + offset;
     chan->mode = newcat_rmode(*retval);
 
     if (chan->mode == RIG_MODE_NONE)
@@ -7669,18 +7684,18 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     }
 
     /* Clarifier TX P5 *********************** */
-    retval = priv->ret_data + 19;
+    retval = priv->ret_data + 19 + offset;
     c2 = *retval;
 
     /* Clarifier RX P4 *********************** */
-    retval = priv->ret_data + 18;
+    retval = priv->ret_data + 18 + offset;
     c = *retval;
     *retval = '\0';
 
     /* Clarifier Offset P3 ******************* */
     chan->rit = 0;
     chan->xit = 0;
-    retval = priv->ret_data + 13;
+    retval = priv->ret_data + 13 + offset;
 
     if (c == '1')
     {
