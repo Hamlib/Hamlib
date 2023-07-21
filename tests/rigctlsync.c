@@ -121,7 +121,7 @@ static sig_atomic_t volatile ctrl_c;
 static int volatile ctrl_c;
 #endif
 
-#define MAXCONFLEN 1024
+#define MAXCONFLEN 2048
 
 #if 0
 # ifdef WIN32

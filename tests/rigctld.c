@@ -154,7 +154,7 @@ static int rigctld_idle =
     0; // if true then rig will close when no clients are connected
 static int skip_open = 0;
 
-#define MAXCONFLEN 1024
+#define MAXCONFLEN 2048
 
 
 void mutex_rigctld(int lock)

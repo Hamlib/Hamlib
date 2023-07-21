@@ -109,7 +109,7 @@ const char *src_addr = NULL;    /* INADDR_ANY */
 
 char send_cmd_term = '\r';      /* send_cmd termination char */
 
-#define MAXCONFLEN 1024
+#define MAXCONFLEN 2048
 
 
 static void handle_error(enum rig_debug_level_e lvl, const char *msg)
