@@ -157,7 +157,7 @@ extern powerstat_t rig_powerstat;
 static int rigctld_idle =
     0; // if true then rig will close when no clients are connected
 
-#define MAXCONFLEN 1024
+#define MAXCONFLEN 2048
 
 
 void mutex_rigctld(int lock)

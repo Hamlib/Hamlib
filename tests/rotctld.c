@@ -106,7 +106,7 @@ const char *src_addr = NULL;    /* INADDR_ANY */
 azimuth_t az_offset;
 elevation_t el_offset;
 
-#define MAXCONFLEN 1024
+#define MAXCONFLEN 2048
 
 
 static void handle_error(enum rig_debug_level_e lvl, const char *msg)
