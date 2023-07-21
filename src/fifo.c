@@ -24,6 +24,14 @@ int push(FIFO_RIG *fifo, const char *msg)
 
     for (int i = 0; i < len; ++i)
     {
+        // FIFO is meant for CW use only
+        // So we skip some chars that don't work with CW
+        switch(msg[i])
+        {
+            case 0x0d:
+            case 0x0a:
+            continue;
+        }
         fifo->data[fifo->tail] = msg[i];
         if (isprint(msg[i]))
         rig_debug(RIG_DEBUG_VERBOSE, "%s: push %c (%d,%d)\n", __func__, msg[i],
