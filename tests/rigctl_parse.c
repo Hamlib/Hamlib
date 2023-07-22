@@ -267,6 +267,8 @@ declare_proto_rig(send_raw);
 declare_proto_rig(client_version);
 declare_proto_rig(hamlib_version);
 declare_proto_rig(test);
+declare_proto_rig(cm108_get_bit);
+declare_proto_rig(cm108_set_bit);
 
 
 /*
@@ -384,6 +386,8 @@ static struct test_table test_list[] =
     { 0xa6, "get_vfo_list",    ACTION(get_vfo_list), ARG_NOVFO },
     { 0xa7, "test",    ACTION(test), ARG_NOVFO | ARG_IN, "routine" },
     { 0xa8, "hamlib_version",    ACTION(hamlib_version), ARG_NOVFO },
+    { 0xa9, "get_gpio",    ACTION(cm108_get_bit), ARG_NOVFO | ARG_IN1 | ARG_OUT1, "GPIO#", "0/1" },
+    { 0xaa, "set_gpio",    ACTION(cm108_set_bit), ARG_NOVFO | ARG_IN , "GPIO#", "0/1" },
     { 0x00, "", NULL },
 };
 
@@ -5608,4 +5612,52 @@ declare_proto_rig(send_raw)
     }
 
     return RIG_OK;
+}
+
+declare_proto_rig(cm108_get_bit)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
+
+    int gpio = -1;
+    int bit = -1;
+    // try GPIO format first
+    int n = sscanf(arg1,"GPIO%d", &gpio);
+    if (n == 0)
+        n = sscanf(arg1,"%d", &gpio);
+    if  (n != 1) return -RIG_EINVAL;
+    int retval = rig_cm108_get_bit(&rig->state.pttport, gpio, &bit);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, strerror(retval));
+        return retval;
+    }
+    rig_debug(RIG_DEBUG_TRACE, "%s: gpio=%d\n", __func__, gpio);
+    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+    {
+        fprintf(fout, "%s: ", cmd->arg2);
+    }
+    fprintf(fout, "%d (simulated)\n", 1);
+
+
+    return RIG_OK;
+}
+
+declare_proto_rig(cm108_set_bit)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
+    int gpio, bit=-1;
+    // try GPIO format first
+    int n = sscanf(arg1,"GPIO%d", &gpio);
+    if (n == 0)
+        n = sscanf(arg1,"%d", &gpio);
+    if  (n != 1) return -RIG_EINVAL;
+    n = sscanf(arg2, "%d", &bit);
+    if  (n != 1) return -RIG_EINVAL;
+    rig_debug(RIG_DEBUG_TRACE, "%s: set gpio=%d, bit=%d\n", __func__, gpio, bit);
+    int retval = rig_cm108_set_bit(&rig->state.pttport, gpio, bit);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, strerror(retval));
+    }
+    return retval;
 }

@@ -13,6 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Added rig_cm108_get/set_bit to API and get/set_gpio to rigctl(d) for GPIO1,2,3,4 access on CM108
         * Added BG2FX FX4/C/CR/L
         * Fixed IC7610 to use new 0x25 0x26 command added in latest firmware
         * Fix W command in rigctld to work propery -- can take terminating char or # of bytes to expect

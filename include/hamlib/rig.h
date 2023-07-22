@@ -3694,6 +3694,10 @@ extern HAMLIB_EXPORT(int) rig_is_model(RIG *rig, rig_model_t model);
 
 extern HAMLIB_EXPORT(char*) rig_date_strget(char *buf, int buflen, int localtime);
 
+enum GPIO { GPIO1, GPIO2, GPIO3, GPIO4 };
+extern HAMLIB_EXPORT(int) rig_cm108_get_bit(hamlib_port_t *p, enum GPIO gpio, int *bit);
+extern HAMLIB_EXPORT(int) rig_cm108_set_bit(hamlib_port_t *p, enum GPIO gpio, int bit);
+
 
 //! @endcond
 

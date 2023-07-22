@@ -189,4 +189,3 @@ int gpio_dcd_get(hamlib_port_t *port, dcd_t *dcdx)
 
     return RIG_OK;
 }
-

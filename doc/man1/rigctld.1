@@ -1202,6 +1202,52 @@ CW Skimmer is started and "set_lock_mode 0" when CW Skimmer is stopped.
 .BR get_lock_mode
 Returns current lock mode status 1=On, 2=Off (only useful with rigctld)
 .
+.TP
+.BR send_raw " \(aq" \fITerminator\fP "\(aq \(aq" \fIString\fP \(aq
+.EX
+Can send ASCII string or 0xnn values -- there can be no spaces in the command string.
+Possible terminator values are CR, LF, ;, ICOM, 0-100 (bytes to read), or -1 meaning unknown (will timeout on read)
+Examples:
+  send_raw ; FA;MD;
+  send_raw icom 0xFE;0xFE;0x94;0x03;0xFD
+  send_raw -1 0xFE;0xFE;0x94;0x03;0xFD
+  send_raw 14 0xFE;0xFE;0x94;0x03;0xFD
+.
+.TP
+.BR client_version " \(aq" \fIString\fP "\(aq
+.EX
+  Client can send its version to rigctld and get feedback on compatibility, deprecation, and alternatives
+.TP
+.BR hamlib_version
+.EX
+Returns hamlib version with ISO8601 date/time
+.
++.TP
++.BR hamlib_version
++.EX
++Returns hamlib version with ISO8601 date/time
++.
++.TP
++.BR test
++.EX
++Performs test routines.  Under development.
++.
++.TP
++.BR set_gpio " \(aq" \fIGPIO#\fP "\(aq
++.EX
++Sets GPIO1, GPIO2, GPIO3, GPIO4 on the GPIO ptt port
++Can also use 1,2,3,4
++.
++.TP
++.BR XXXX
++.EX
++Stuff
++.
++.TP
++.BR XXXX
++.EX
++Stuff
+
 .
 .SH PROTOCOL
 .
