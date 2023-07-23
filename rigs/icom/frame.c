@@ -158,7 +158,8 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
     set_transaction_active(rig);
 
 collision_retry:
-    rig_flush(&rs->rigport);
+    // does not seem necessary and add 6ms overhead per call in Windows
+    //rig_flush(&rs->rigport);
 
     if (data_len) { *data_len = 0; }
 
