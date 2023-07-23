@@ -597,7 +597,13 @@ int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
               (int64_t)freq, rig_strvfo(vfo));
 
     rig_set_cache_freq(rig, vfo, freq);
-    rig->state.use_cached_freq = 1;
+    // This doesn't work well for Icom rigs -- no way to tell which VFO we're on
+    // Should work for most other rigs using AI1; mode
+    if (RIG_BACKEND_NUM(rig->caps->rig_model) != RIG_ICOM)
+    {
+        rig->state.use_cached_freq = 1;
+    }
+
 
     network_publish_rig_transceive_data(rig);
 
@@ -618,7 +624,12 @@ int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               rig_strrmode(mode), width, rig_strvfo(vfo));
 
     rig_set_cache_mode(rig, vfo, mode, width);
-    rig->state.use_cached_mode = 1;
+    // This doesn't work well for Icom rigs -- no way to tell which VFO we're on
+    // Should work for most other rigs using AI1; mode
+    if (RIG_BACKEND_NUM(rig->caps->rig_model) != RIG_ICOM)
+    {
+        rig->state.use_cached_mode = 1;
+    }
 
     network_publish_rig_transceive_data(rig);
 
