@@ -29,6 +29,9 @@ int preampA = 0;
 int preampB = 0;
 int rxattenuatorA = 0;
 int rxattenuatorB = 0;
+int keyspd = 20;
+int ai = 0;
+int dt = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -114,14 +117,14 @@ int main(int argc, char *argv[])
     char *pbuf;
     int n;
     int fd = openPort(argv[1]);
-    int modea, modeb = 0;
+    int modea = 3, modeb = 3;
     int freqa = 14074000, freqb = 14073500;
 
     while (1)
     {
         buf[0] = 0;
 
-        if (getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
+        if ((n=getmyline(fd, buf)) > 0) { printf("Cmd:%s, len=%d\n", buf, n); }
         else {continue; }
 
         if (strcmp(buf, "RM5;") == 0)
@@ -133,6 +136,16 @@ int main(int argc, char *argv[])
             printf("n=%d\n", n);
 
             if (n <= 0) { perror("RM5"); }
+        }
+        else if (strcmp(buf, "AI;") == 0)
+        {
+            SNPRINTF(buf,sizeof(buf),"AI%d;", ai);
+            n = write(fd, buf, strlen(buf));
+            printf("n=%d\n", n);
+        }
+        else if (strncmp(buf, "AI", 2) == 0)
+        {
+            sscanf(buf,"AI%d", &ai);
         }
 
         else if (strcmp(buf, "AN0;") == 0)
@@ -172,6 +185,16 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "PS1;");
             n = write(fd, buf, strlen(buf));
         }
+        else if (strcmp(buf, "BW$;") == 0)
+        {
+            fprintf(stderr,"***** %d\n", __LINE__);
+            SNPRINTF(buf, sizeof(buf), "BW$%04d;", bandwidthB);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "BW$", 3) == 0)
+        {
+            sscanf(buf, "BW$%d", &bandwidthB);
+        }
         else if (strcmp(buf, "BW;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "BW%04d;", bandwidthA);
@@ -181,14 +204,14 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "BW%d", &bandwidthA);
         }
-        else if (strcmp(buf, "BW$;") == 0)
+        else if (strcmp(buf, "DT;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "BW$%04d;", bandwidthB);
+            SNPRINTF(buf, sizeof(buf), "DT%d;", dt);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "BW$", 2) == 0)
+        else if (strncmp(buf, "DT", 2) == 0)
         {
-            sscanf(buf, "BW$%d", &bandwidthB);
+            sscanf(buf, "DT%d", &dt);
         }
         else if (strcmp(buf, "BN;") == 0)
         {
@@ -361,6 +384,15 @@ int main(int argc, char *argv[])
         {
             SNPRINTF(buf, sizeof(buf), "FT0;");
             n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "KS;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "KS%03d;", keyspd);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf,"KS",2) == 0)
+        {
+            sscanf(buf,"KS%d", &keyspd);
         }
         else if (strncmp(buf, "TQ;", 3) == 0)
         {
