@@ -1483,6 +1483,7 @@ int HAMLIB_API rig_open(RIG *rig)
     memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->pttport_deprecated, &rs->pttport, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->dcdport_deprecated, &rs->dcdport, sizeof(hamlib_port_t_deprecated));
+    rig_flush_force(&rs->rigport, 1);
     RETURNFUNC2(RIG_OK);
 }
 
@@ -7970,7 +7971,7 @@ void *async_data_handler(void *arg)
                           __func__, result);
                 hl_usleep(500 * 1000);
             }
-            hl_usleep(10*1000);
+            hl_usleep(20*1000);
             continue;
         }
 
@@ -8107,7 +8108,7 @@ void *morse_data_handler(void *arg)
         }
 
         rig->state.fifo_morse->flush = 0; // reset flush flag
-        hl_usleep(10*1000);
+        hl_usleep(100*1000);
     }
 
     free(rig->state.fifo_morse);
