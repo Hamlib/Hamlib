@@ -4075,9 +4075,10 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+        //TODO Remove when common level checking enabled
         if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
 
-        fpf = newcat_scale_float(255, val.f);
+        fpf = (int)((val.f / level_info->step.f) + 0.5f);
 
         if (is_ftdx10) { main_sub_vfo = '0'; }
 
@@ -4436,18 +4437,10 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (is_ft891)
-        {
-            scale = 30;
-        }
-        else
-        {
-            scale = 255;
-        }
+        fpf = (int)((val.f / level_info->step.f) + 0.5f);
 
         if (is_ftdx10) { main_sub_vfo = '0'; }
 
-        fpf = newcat_scale_float(scale, val.f);
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RG%c%03d%c", main_sub_vfo, fpf,
                  cat_term);
         break;
@@ -5661,20 +5654,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_AF:
-        val->f = (float)atoi(retlvl) / 255;
-        break;
-
     case RIG_LEVEL_RF:
-        if (is_ft891)
-        {
-            scale = 30.;
-        }
-        else
-        {
-            scale = 255.;
-        }
-
-        val->f = (float)atoi(retlvl) / scale;
+        val->f = (float)atoi(retlvl) * level_info->step.f;
         break;
 
     case RIG_LEVEL_SQL:
