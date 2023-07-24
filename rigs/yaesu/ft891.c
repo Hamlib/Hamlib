@@ -161,6 +161,7 @@ const struct rig_caps ft891_caps =
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
         [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 3200 }, .step = { .i = 10 } },
+        [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0f/30.0f } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
