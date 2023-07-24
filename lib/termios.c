@@ -68,8 +68,6 @@ extern int errno;
 
 struct termios_list *first_tl = NULL;
 
-static struct termios_list *find_port(int);
-
 /*----------------------------------------------------------
 serial_test
 
@@ -740,7 +738,7 @@ int win32_serial_close(int fd)
         return (0);
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -1080,7 +1078,7 @@ termios_list()
    comments:
 ----------------------------------------------------------*/
 
-static struct termios_list *find_port(int fd)
+struct termios_list *win32_serial_find_port(int fd)
 {
 
     char message[80];
@@ -1468,7 +1466,7 @@ int win32_serial_write(int fd, const char *Str, int length)
         return 0;
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -1567,7 +1565,7 @@ int win32_serial_read(int fd, void *vb, int size)
         return 0;
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -1766,7 +1764,7 @@ int win32_serial_read(int fd, void *vb, int size)
         return 0;
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -2388,7 +2386,7 @@ int tcgetattr(int fd, struct termios *s_termios)
         return 0;
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -2631,7 +2629,7 @@ int tcsetattr(int fd, int when, struct termios *s_termios)
         return 0;
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -2842,7 +2840,7 @@ int tcsendbreak(int fd, int duration)
 
     ENTER("tcsendbreak");
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -2887,7 +2885,7 @@ int tcdrain(int fd)
     int old_flag;
 
     ENTER("tcdrain");
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -2964,7 +2962,7 @@ int tcflush(int fd, int queue_selector)
 
     ENTER("tcflush");
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -3145,7 +3143,7 @@ int win32_serial_ioctl(int fd, int request, ...)
         return 0;
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -3614,7 +3612,7 @@ int win32_serial_fcntl(int fd, int command, ...)
         return 0;
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -3667,7 +3665,7 @@ termios_interrupt_event_loop()
 ----------------------------------------------------------*/
 static void termios_interrupt_event_loop(int fd, int flag)
 {
-    struct termios_list *index = find_port(fd);
+    struct termios_list *index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -3717,7 +3715,7 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
         goto fail;
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -3874,7 +3872,7 @@ int  win32_serial_select(int  n,  fd_set  *readfds,  fd_set  *writefds,
         return 1;
     }
 
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -4007,7 +4005,7 @@ static int termiosGetParityErrorChar(int fd)
     DCB dcb;
 
     ENTER("termiosGetParityErrorChar");
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
@@ -4037,7 +4035,7 @@ static void termiosSetParityError(int fd, char value)
     struct termios_list *index;
 
     ENTER("termiosSetParityErrorChar");
-    index = find_port(fd);
+    index = win32_serial_find_port(fd);
 
     if (!index)
     {
