@@ -107,7 +107,7 @@ int win32_serial_test(char *filename)
 
 static void termios_setflags(int fd, int termios_flags[])
 {
-    struct termios_list *index = find_port(fd);
+    struct termios_list *index = win32_serial_find_port(fd);
     int i, result;
     int windows_flags[11] = { 0, EV_RXCHAR, EV_TXEMPTY, EV_CTS, EV_DSR,
                               EV_RING | 0x2000, EV_RLSD, EV_ERR,
