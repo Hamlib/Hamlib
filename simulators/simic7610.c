@@ -1,4 +1,3 @@
-// simicom will show the pts port to use for rigctl on Unix
 // using virtual serial ports on Windows is to be developed yet
 // Needs a lot of improvement to work on all Icoms
 // gcc -g -Wall -o simicom simicom.c -lhamlib
@@ -7,9 +6,9 @@
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +24,7 @@ struct ip_mreq
 
 
 #define BUFSIZE 256
-//#define X25
+#define X25
 
 int civ_731_mode = 0;
 vfo_t current_vfo = RIG_VFO_A;
@@ -48,6 +47,7 @@ int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
 int datamode = 0;
+int keyspd = 130; // 130=20WPM
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -238,6 +238,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         break;
 
     case 0x14:
+    printf("******** 0x14 received frame[5]=0x%02x\n", frame[5]);
         switch (frame[5])
         {
             static int power_level = 0;
@@ -272,6 +273,25 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
             break;
+
+        case 0x0c:
+            if (frame[6] != 0xfd)
+            {
+                keyspd = frame[5];
+            }
+            else
+            {
+                frame[6] = keyspd;
+                frame[7] = 0xfd;
+                n = write(fd, frame, 8);
+            }
+            break;
+        default:
+        printf("*********** NAK\n");
+            frame[5] = 0xfa;
+            frame[6] = 0xfd;
+            n = write(fd, frame, 7);
+            break;
         }
 
         break;
@@ -298,6 +318,13 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
             break;
+
+        default:
+            frame[5] = 0xfa;
+            frame[6] = 0xfd;
+            n = write(fd, frame, 7);
+            break;
+
         }
 
     case 0x16:
@@ -377,7 +404,9 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[5] = 0xfd;
                 n = write(fd, frame, 6);
             }
+
             break;
+
         case 0x07: // satmode
             frame[4] = 0;
             frame[7] = 0xfd;
