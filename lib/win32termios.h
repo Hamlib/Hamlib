@@ -149,6 +149,7 @@ int win32_serial_read(int fd, void *b, int size);
 int win32_serial_write(int fd, const char *Str, int length);
 int win32_serial_ioctl(int fd, int request, ... );
 int win32_serial_fcntl(int fd, int command, ...);
+struct termios_list *win32_serial_find_port(int);
 /*
  * lcc winsock.h conflicts
  */
