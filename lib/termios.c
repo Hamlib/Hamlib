@@ -65,28 +65,7 @@ int my_errno;
 #if 0
 extern int errno;
 #endif
-struct termios_list
-{
-    char filename[512];
-    int my_errno;
-    int interrupt;
-    int event_flag;
-    int tx_happened;
-    unsigned long *hComm;
-    struct termios *ttyset;
-    struct serial_struct *sstruct;
-    /* for DTR DSR */
-    unsigned char MSR;
-    struct async_struct *astruct;
-    struct serial_icounter_struct *sis;
-    int open_flags;
-    OVERLAPPED rol;
-    OVERLAPPED wol;
-    OVERLAPPED sol;
-    int fd;
-    struct termios_list *next;
-    struct termios_list *prev;
-};
+
 struct termios_list *first_tl = NULL;
 
 static struct termios_list *find_port(int);
