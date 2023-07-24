@@ -732,7 +732,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 
 #ifdef __WIN32__
     struct termios_list *index;
-    index = win32_serial_find_port(fd);
+    index = win32_serial_find_port(p->fd);
 
     if (!index)
     {
