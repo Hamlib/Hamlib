@@ -26,6 +26,7 @@ int push(FIFO_RIG *fifo, const char *msg)
     {
         // FIFO is meant for CW use only
         // So we skip some chars that don't work with CW
+        if (msg[i] & 0x80) continue; // drop any chars that have high bit set
         switch(msg[i])
         {
             case 0x0d:
@@ -33,7 +34,7 @@ int push(FIFO_RIG *fifo, const char *msg)
             continue;
         }
         fifo->data[fifo->tail] = msg[i];
-        if (isprint(msg[i]))
+        if (isalnum(msg[i]))
         rig_debug(RIG_DEBUG_VERBOSE, "%s: push %c (%d,%d)\n", __func__, msg[i],
                   fifo->head, fifo->tail);
         else
@@ -55,7 +56,7 @@ int peek(FIFO_RIG *fifo)
     if (fifo->tail > 1023 || fifo->head > 1023) return -1;
     if (fifo->tail == fifo->head) { return -1; }
     char c = fifo->data[fifo->head];
-    if (isprint(c))
+    if (isalnum(c))
     rig_debug(RIG_DEBUG_VERBOSE, "%s: peek %c (%d,%d)\n", __func__, c, fifo->head,
               fifo->tail);
     else
@@ -69,7 +70,7 @@ int pop(FIFO_RIG *fifo)
     if (fifo->tail == fifo->head) { return -1; }
 
     char c = fifo->data[fifo->head];
-    if (isprint(c))
+    if (isalnum(c))
     rig_debug(RIG_DEBUG_VERBOSE, "%s: pop %c (%d,%d)\n", __func__, c, fifo->head,
               fifo->tail);
     else
