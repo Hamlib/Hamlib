@@ -1,5 +1,6 @@
 #include <hamlib/rig.h>
 #include <hamlib/config.h>
+#include "misc.h"
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 
@@ -9,9 +10,11 @@
 #ifdef DEBUG
 #define DEBUG_VERBOSE
 #define DEBUG_ERRORS
-#define report(a) fprintf(stderr,a)
-#define report_warning(a) fprintf(stderr,a)
-#define report_error(a) fprintf(stderr,a)
+static char message[256];
+static char datestr[64];
+#define report(a) fprintf(stderr, "%s: %s", date_strget(datestr, sizeof(datestr), 0), a)
+#define report_warning(a) fprintf(stderr, "%s: %s", date_strget(datestr, sizeof(datestr), 0), a)
+#define report_error(a) fprintf(stderr, "%s: %s", date_strget(datestr, sizeof(datestr), 0), a)
 #else
 #define report(a) do {} while (0)
 #define report_warning(a) do {} while (0)
@@ -1627,7 +1630,7 @@ int win32_serial_read(int fd, void *vb, int size)
         do
         {
             ClearErrors(index, &stat);
-            hl_usleep(1000);
+            hl_usleep(100);
         }
         while (stat.cbInQue < index->ttyset->c_cc[VMIN] && c > clock());
 
