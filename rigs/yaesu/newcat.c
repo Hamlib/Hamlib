@@ -4253,19 +4253,10 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             newcat_get_mode(rig, vfo, &mode, &width);
         }
 
+        //TODO Remove when level_gran check enabled
         if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
 
-        if (is_ftdx1200 || is_ftdx3000 || is_ftdx3000dm || is_ft891 || is_ft991 || is_ft710
-                || is_ftdx101d
-                || is_ftdx101mp
-                || is_ftdx10)
-        {
-            fpf = newcat_scale_float(100, val.f);
-        }
-        else
-        {
-            fpf = newcat_scale_float(255, val.f);
-        }
+        fpf = (int) (( val.f / level_info->step.f ) + 0.5f );
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MG%03d%c", fpf, cat_term);
 
@@ -5638,21 +5629,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_MICGAIN:
-        if (is_ftdx1200 || is_ftdx3000 || is_ftdx3000dm || is_ft891 || is_ft991 || is_ft710
-                || is_ftdx101d
-                || is_ftdx101mp
-                || is_ftdx10)
-        {
-            scale = 100.;
-        }
-        else
-        {
-            scale = 255.;
-        }
-
-        val->f = (float)atoi(retlvl) / scale;
-        break;
-
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RF:
         val->f = (float)atoi(retlvl) * level_info->step.f;
