@@ -91,5 +91,6 @@ extern const struct rig_caps ftdx101mp_caps;
 extern const struct rig_caps mchfqrp_caps;
 extern const struct rig_caps ft650_caps;
 extern const struct rig_caps ft710_caps;
+extern const struct rig_caps ft9000Old_caps;
 
 #endif /* _YAESU_H */
