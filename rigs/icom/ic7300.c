@@ -2091,7 +2091,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
 {
     ENTERFUNC;
     unsigned char ackbuf[MAXFRAMELEN];
-    int ack_len = sizeof(ackbuf), retval;
+    int ack_len = sizeof(ackbuf), retval = -RIG_EINTERNAL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
     if (vfo == RIG_VFO_A)
