@@ -4497,16 +4497,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (is_ft2000 || is_ftdx9000 || is_ftdx5000)
-        {
-            scale = 255;
-        }
-        else
-        {
-            scale = 100;
-        }
+        fpf = (int) ((val.f / level_info->step.f) + 0.5f);
 
-        fpf = newcat_scale_float(scale, val.f);
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PL%03d%c", fpf, cat_term);
         break;
 
@@ -5476,7 +5468,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_VOXGAIN:
-    case RIG_LEVEL_COMP:
         if (is_ft2000 || is_ftdx9000 || is_ftdx5000 || is_ft450)
         {
             scale = 255;
@@ -5628,9 +5619,10 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
-    case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RF:
+    case RIG_LEVEL_COMP:
+    case RIG_LEVEL_MICGAIN:
         val->f = (float)atoi(retlvl) * level_info->step.f;
         break;
 
