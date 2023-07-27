@@ -167,6 +167,7 @@ const struct rig_caps ftdx5000_caps =
         // cppcheck-suppress *
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 4000 }, .step = { .i = 10 } },
         [LVL_COMP] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/255.0f } },
+        [LVL_VOXGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/255.0f } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
