@@ -4691,53 +4691,38 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (is_ft2000 || is_ftdx9000 || is_ftdx5000 || is_ft450)
-        {
-            scale = 255;
-        }
-        else
-        {
-            scale = 100;
-        }
-
-        fpf = newcat_scale_float(scale, val.f);
+        fpf = (int) ((val.f / level_info->step.f) + 0.5f );
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VG%03d%c", fpf, cat_term);
         break;
 
     case RIG_LEVEL_ANTIVOX:
+        fpf = (int) (( val.f / level_info->step.f ) + 0.5f );
         if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
         {
-            fpf = newcat_scale_float(100, val.f);
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AV%03d%c", fpf, cat_term);
         }
         else if (is_ftdx5000)
         {
-            fpf = newcat_scale_float(100, val.f);
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX176%03d%c", fpf, cat_term);
         }
         else if (is_ftdx3000 || is_ftdx3000dm || is_ftdx1200)
         {
-            fpf = newcat_scale_float(100, val.f);
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX183%03d%c", fpf, cat_term);
         }
         else if (is_ft991)
         {
-            fpf = newcat_scale_float(100, val.f);
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX145%03d%c", fpf, cat_term);
         }
         else if (is_ft891)
         {
-            fpf = newcat_scale_float(100, val.f);
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX1619%03d%c", fpf, cat_term);
         }
         else if (is_ft950)
         {
-            fpf = newcat_scale_float(100, val.f);
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX117%03d%c", fpf, cat_term);
         }
         else if (is_ft2000)
         {
-            fpf = newcat_scale_float(100, val.f);
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX042%03d%c", fpf, cat_term);
         }
         else
@@ -5467,23 +5452,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = (float)atoi(retlvl) / scale;
         break;
 
-    case RIG_LEVEL_VOXGAIN:
-        if (is_ft2000 || is_ftdx9000 || is_ftdx5000 || is_ft450)
-        {
-            scale = 255;
-        }
-        else
-        {
-            scale = 100;
-        }
-
-        val->f = (float) atoi(retlvl) / scale;
-        break;
-
-    case RIG_LEVEL_ANTIVOX:
-        val->f = ((float) atoi(retlvl)) / 100.;
-        break;
-
     case RIG_LEVEL_SWR:
         if (retlvl_len > 3)
         {
@@ -5622,7 +5590,9 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RF:
     case RIG_LEVEL_COMP:
+    case RIG_LEVEL_ANTIVOX:
     case RIG_LEVEL_MICGAIN:
+    case RIG_LEVEL_VOXGAIN:
         val->f = (float)atoi(retlvl) * level_info->step.f;
         break;
 
