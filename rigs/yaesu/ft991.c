@@ -163,6 +163,7 @@ const struct rig_caps ft991_caps =
     .has_set_parm =       RIG_PARM_NONE,
     .level_gran = {
 #include "level_gran_yaesu.h"
+        [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           common_dcs_list,
