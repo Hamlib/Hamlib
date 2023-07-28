@@ -8112,6 +8112,7 @@ void *morse_data_handler(void *arg)
     }
 
     free(rig->state.fifo_morse);
+    rig->state.fifo_morse = NULL;
     pthread_exit(NULL);
     return NULL;
 }
