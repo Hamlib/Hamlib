@@ -21,6 +21,9 @@ float freqB = 14074500;
 int filternum = 7;
 int datamode = 0;
 int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
+int keyspd = 20;
+double alc = 0;
+int tx;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -450,20 +453,32 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "ZZTX", 4) == 0)
         {
-            ptt = ptt_mic = ptt_data = ptt_tune = 0;
-
+            printf("******** ZZTX[%c]\n", buf[4]);
             switch (buf[4])
             {
-            case ';': ptt = 1;
-
-            case '0': ptt_mic = 1;
-
-            case '1': ptt_data = 1;
-
-            case '2': ptt_tune = 1;
+            case '1': ptt = 1;
+            break;
+            case '0': ptt = 0;
+            break;
             }
 
             continue;
+        }
+        else if (strncmp(buf, "KS;", 3) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "KS%03d;", keyspd);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf,"KS",2) == 0)
+        {
+            sscanf(buf,"KS%d", &keyspd);
+        }
+        else if (strncmp(buf,"ZZRM4",5)==0)
+        {
+            SNPRINTF(buf, sizeof(buf), "ZZRM4%2.0f dB;", alc);
+            n = write(fd, buf, strlen(buf));
+            alc += 1;
+            if (alc > 40) alc = -20;
         }
         else if (strlen(buf) > 0)
         {
