@@ -8080,8 +8080,8 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     unsigned char ackbuf[200];
     int ack_len = sizeof(ackbuf), retval = RIG_OK, echo_status;
     int pwr_sc;
-    // so we'll do up to 175 for 115,200
-    int fe_max = 175;
+    // so we'll do up to 150 for 115,200
+    int fe_max = 150;
     unsigned char fe_buf[fe_max]; // for FE's to power up
     int i;
     int retry, retry_save;
@@ -8105,6 +8105,27 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_ON:
         // ic7300 manual says ~150 for 115,200
         // we'll just send a few more to be sure for all speeds
+        switch(rs->rigport.parm.serial.rate)
+        {
+            case 4800:
+                fe_max = 7;
+                break;
+            case 9600:
+                fe_max = 13;
+                break;
+            case 19200:
+                fe_max = 25;
+                break;
+            case 38400:
+                fe_max = 50;
+                break;
+            case 57600:
+                fe_max = 75;
+                break;
+            case 115200:
+            default:
+                fe_max = 150;
+        }
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
         write_block(&rs->rigport, fe_buf, fe_max);
