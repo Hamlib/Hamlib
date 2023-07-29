@@ -4615,16 +4615,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (is_ft891 || is_ft991 || is_ft710 || is_ftdx101d || is_ftdx101mp || is_ftdx10)
-        {
-            scale = 100;
-        }
-        else
-        {
-            scale = 255;
-        }
-
-        fpf = newcat_scale_float(scale, val.f);
+        fpf = (int) ((val.f / level_info->step.f) + 0.5f );
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SQ%c%03d%c", main_sub_vfo, fpf,
                  cat_term);
 
@@ -5610,24 +5601,12 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RF:
+    case RIG_LEVEL_SQL:
     case RIG_LEVEL_COMP:
     case RIG_LEVEL_ANTIVOX:
     case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_VOXGAIN:
         val->f = (float)atoi(retlvl) * level_info->step.f;
-        break;
-
-    case RIG_LEVEL_SQL:
-        if (is_ft891 || is_ft991 || is_ft710 || is_ftdx101d || is_ftdx101mp || is_ftdx10)
-        {
-            scale = 100.;
-        }
-        else
-        {
-            scale = 255.;
-        }
-
-        val->f = (float)atoi(retlvl) / scale;
         break;
 
     case RIG_LEVEL_BKINDL:
