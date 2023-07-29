@@ -8130,7 +8130,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // sending more than enough 0xfe's to wake up the rs232
         write_block(&rs->rigport, fe_buf, fe_max);
         // need to wait a bit for RigPI and others to queue the echo
-        hl_usleep(200 * 1000);
+        hl_usleep(400 * 1000);
 
         // we'll try 0x18 0x01 now -- should work on STBY rigs too
         pwr_sc = S_PWR_ON;
