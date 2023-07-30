@@ -271,6 +271,7 @@ const struct rig_caps ftdx3000_caps =
 #include "level_gran_yaesu.h"
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 4000 }, .step = { .i = 10 } },
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
+        [LVL_MONITOR_GAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
     },
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
