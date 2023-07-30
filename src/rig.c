@@ -829,7 +829,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->announces = caps->announces;
 
     rs->rigport.fd = rs->pttport.fd = rs->dcdport.fd = -1;
-    rs->powerstat = RIG_POWER_ON; // default to power on
+    // some rigs (like SDR) behave differnt when checking for power on
+    // So we assume power is on until one of the backends KNOWS it is off
+    rs->powerstat = RIG_POWER_ON; // default to power on until proven otherwise
 
     // we have to copy rs to rig->state_deprecated for DLL backwards compatibility
     memcpy(&rig->state_deprecated, rs, sizeof(rig->state_deprecated));
