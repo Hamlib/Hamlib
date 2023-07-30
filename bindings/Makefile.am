@@ -39,7 +39,7 @@ BUILT_SOURCES += hamlibperl_wrap.c
 MOSTLYCLEANFILES += hamlibperl_wrap.c Hamlib.pm Hamlib.bs Hamlib-pl.mk.old
 example_DATA += perltest.pl
 
-hamlibperl_wrap.c: hamlib.swg $(SWIGDEP)
+hamlibperl_wrap.c: hamlib.swg $(SWIGDEP) ignore.swg
 	$(AM_V_GEN)$(SWIG) -perl5 -shadow $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
 		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
