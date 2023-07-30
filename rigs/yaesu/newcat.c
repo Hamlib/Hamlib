@@ -4799,19 +4799,10 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+	//TODO Remove when full level checking enabled
         if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
 
-        if (is_ftdx1200 || is_ftdx3000 || is_ftdx3000dm || is_ft891 || is_ft991 || is_ft710
-                || is_ftdx101d
-                || is_ftdx101mp
-                || is_ftdx10)
-        {
-            fpf = newcat_scale_float(100, val.f);
-        }
-        else
-        {
-            fpf = newcat_scale_float(255, val.f);
-        }
+        fpf = (int)((val.f / level_info->step.f) + 0.5f);
 
         if (is_ftdx9000)
         {
@@ -5606,6 +5597,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_ANTIVOX:
     case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_VOXGAIN:
+    case RIG_LEVEL_MONITOR_GAIN:
         val->f = (float)atoi(retlvl) * level_info->step.f;
         break;
 
@@ -5880,21 +5872,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_NOTCHF:
         val->i = atoi(retlvl) * 10;
-        break;
-
-    case RIG_LEVEL_MONITOR_GAIN:
-        if (is_ftdx1200 || is_ftdx3000 || is_ftdx3000dm || is_ft891 || is_ft991 || is_ft710
-                || is_ftdx101d
-                || is_ftdx101mp)
-        {
-            scale = 100.;
-        }
-        else
-        {
-            scale = 255.;
-        }
-
-        val->f = ((float) atoi(retlvl)) / scale;
         break;
 
     case RIG_LEVEL_NB:
