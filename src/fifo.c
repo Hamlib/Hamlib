@@ -2,12 +2,16 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "fifo.h"
-
+#include "config.h"
 
 void initFIFO(FIFO_RIG *fifo)
 {
     fifo->head = 0;
     fifo->tail = 0;
+#ifdef _PTHREAD_H
+    static pthread_mutex_t t = PTHREAD_MUTEX_INITIALIZER;
+    fifo->mutex = t;
+#endif
 }
 
 void resetFIFO(FIFO_RIG *fifo)
@@ -20,6 +24,10 @@ void resetFIFO(FIFO_RIG *fifo)
 // return -RIG error if overflow
 int push(FIFO_RIG *fifo, const char *msg)
 {
+#ifdef _PTHREAD_H
+    pthread_mutex_lock(&fifo->mutex);
+#endif
+    return RIG_OK;
     int len = strlen(msg);
 
     for (int i = 0; i < len; ++i)
@@ -46,6 +54,9 @@ int push(FIFO_RIG *fifo, const char *msg)
         fifo->tail = (fifo->tail + 1) % HAMLIB_FIFO_SIZE;
     }
 
+#ifdef _PTHREAD_H
+    pthread_mutex_unlock(&fifo->mutex);
+#endif
     return RIG_OK;
 }
 
@@ -55,6 +66,9 @@ int peek(FIFO_RIG *fifo)
     if (fifo->tail < 0 || fifo->head < 0) return -1;
     if (fifo->tail > 1023 || fifo->head > 1023) return -1;
     if (fifo->tail == fifo->head) { return -1; }
+#ifdef _PTHREAD_H
+    pthread_mutex_lock(&fifo->mutex);
+#endif
     char c = fifo->data[fifo->head];
     if (isalnum(c))
     rig_debug(RIG_DEBUG_VERBOSE, "%s: peek %c (%d,%d)\n", __func__, c, fifo->head,
@@ -63,12 +77,18 @@ int peek(FIFO_RIG *fifo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: peek 0x%02x (%d,%d)\n", __func__, c, fifo->head,
               fifo->tail);
     return c;
+#ifdef _PTHREAD_H
+    pthread_mutex_unlock(&fifo->mutex);
+#endif
 }
 
 int pop(FIFO_RIG *fifo)
 {
     if (fifo->tail == fifo->head) { return -1; }
 
+#ifdef _PTHREAD_H
+    pthread_mutex_lock(&fifo->mutex);
+#endif
     char c = fifo->data[fifo->head];
     if (isalnum(c))
     rig_debug(RIG_DEBUG_VERBOSE, "%s: pop %c (%d,%d)\n", __func__, c, fifo->head,
@@ -77,6 +97,9 @@ int pop(FIFO_RIG *fifo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: pop 0x%02x (%d,%d)\n", __func__, c, fifo->head,
               fifo->tail);
     fifo->head = (fifo->head + 1) % HAMLIB_FIFO_SIZE;
+#ifdef _PTHREAD_H
+    pthread_mutex_unlock(&fifo->mutex);
+#endif
     return c;
 }
 
