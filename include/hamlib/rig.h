@@ -137,7 +137,7 @@ typedef struct
     int head;
     int tail;
     int flush;  // flush flag for stop_morse
-#if _PTHREAD_H
+#ifdef _PTHREAD_H
     pthread_mutex_t mutex;
 #else
     int mutex;
