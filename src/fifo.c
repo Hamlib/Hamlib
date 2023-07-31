@@ -27,7 +27,6 @@ int push(FIFO_RIG *fifo, const char *msg)
 #ifdef _PTHREAD_H
     pthread_mutex_lock(&fifo->mutex);
 #endif
-    return RIG_OK;
     int len = strlen(msg);
 
     for (int i = 0; i < len; ++i)
@@ -76,10 +75,10 @@ int peek(FIFO_RIG *fifo)
     else
     rig_debug(RIG_DEBUG_VERBOSE, "%s: peek 0x%02x (%d,%d)\n", __func__, c, fifo->head,
               fifo->tail);
-    return c;
 #ifdef _PTHREAD_H
     pthread_mutex_unlock(&fifo->mutex);
 #endif
+    return c;
 }
 
 int pop(FIFO_RIG *fifo)
