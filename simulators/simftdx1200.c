@@ -27,6 +27,7 @@ int ai = 0;
 int sh = 25;
 int na = 0;
 int ex039 = 0;
+int keyspd = 20;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -284,6 +285,16 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "PS1;");
             n = write(fd, buf, strlen(buf));
         }
+        else if (strncmp(buf, "KS;", 3) == 0)
+        {
+            sprintf(buf,"KS%d;", keyspd);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf,"KS",2) == 0)
+        {
+            sscanf(buf,"KS%03d", &keyspd);
+        }
+
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
