@@ -529,7 +529,7 @@ static int aclog_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     if (p)
     {
         *mode = RIG_MODE_NONE;
-        int n = sscanf(p, "<MODE>%[^<]", modetmp);
+        int n = sscanf(p, "<MODE>%31[^<]", modetmp);
 
         if (n) { *mode = modeMapGetHamlib(modetmp); }
         else
@@ -583,7 +583,7 @@ static int aclog_open(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: returned value=%s\n", __func__, value);
     char version_pgm[64];
     sscanf(value,
-           "<CMD><PROGRAMRESPONSE><PGM>N3FJP's Amateur Contact Log</PGM><VER>%[^<]",
+           "<CMD><PROGRAMRESPONSE><PGM>N3FJP's Amateur Contact Log</PGM><VER>%63[^<]",
            version_pgm);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ACLog version=%s\n", __func__, version_pgm);
 
@@ -608,7 +608,7 @@ static int aclog_open(RIG *rig)
     char transceiver[64];
     strcpy(transceiver, "Unknown");
 
-    if (p) { sscanf(p, "<RIG>%[^<]", transceiver); }
+    if (p) { sscanf(p, "<RIG>%63[^<]", transceiver); }
 
     rig_debug(RIG_DEBUG_VERBOSE, "Transceiver=%s\n", transceiver);
 
