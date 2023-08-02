@@ -732,12 +732,13 @@ int icom_cleanup(RIG *rig)
     struct icom_priv_data *priv;
     int i;
 
-    ENTERFUNC;
-
     if (!rig)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
+
+    ENTERFUNC;
+
 
     priv = rig->state.priv;
 
