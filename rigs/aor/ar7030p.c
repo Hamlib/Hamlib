@@ -333,6 +333,8 @@ static int ar7030p_cleanup(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    if (priv == NULL) return RIG_OK;
+
     for (i = 0; i < NB_CHAN; i++)
     {
         free(priv->mem[ i ].ext_levels);
@@ -343,10 +345,7 @@ static int ar7030p_cleanup(RIG *rig)
 
     free(priv->ext_parms);
 
-    if (NULL != rig->state.priv)
-    {
-        free(rig->state.priv);
-    }
+    free(rig->state.priv);
 
     rig->state.priv = NULL;
 
