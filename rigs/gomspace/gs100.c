@@ -95,8 +95,7 @@ static int gomx_transaction(RIG *rig, char *message, char *response);
 /* GS100 transceiver control init */
 static int gs100_init(RIG *rig)
 {
-    __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
-            *)rig->state.priv;
+    __attribute__((unused)) struct gs100_priv_data *priv;
 
     ENTERFUNC;
 
@@ -495,7 +494,7 @@ static int gomx_get(RIG *rig, int table, char *varname, char *varvalue)
     }
 
     // get the variable
-    sprintf(msg, "param get %s\n", varname);
+    sprintf(msg, "param get %19s\n", varname);
     retval = gomx_transaction(rig, msg, resp);
 
     if (retval != RIG_OK) { return (retval); }
