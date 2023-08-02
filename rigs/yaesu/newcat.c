@@ -4247,6 +4247,16 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+        rmode_t exclude = RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR;
+        if ((rig->state.tx_vfo == RIG_VFO_A && (rig->state.cache.modeMainA & exclude))
+          ||(rig->state.tx_vfo == RIG_VFO_B && (rig->state.cache.modeMainB & exclude))
+          ||(rig->state.tx_vfo == RIG_VFO_C && (rig->state.cache.modeMainC & exclude)))
+         {
+             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot set MG in CW/RTTY modes\n", __func__);
+             return RIG_OK;
+         }
+
+
         if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
                 || is_ftdx101mp)
         {
@@ -5035,6 +5045,15 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
+        rmode_t exclude = RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR;
+        if ((rig->state.tx_vfo == RIG_VFO_A && (rig->state.cache.modeMainA & exclude))
+          ||(rig->state.tx_vfo == RIG_VFO_B && (rig->state.cache.modeMainB & exclude))
+          ||(rig->state.tx_vfo == RIG_VFO_C && (rig->state.cache.modeMainC & exclude)))
+         {
+             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot read MG in CW/RTTY modes\n", __func__);
+             level = 0;
+             return RIG_OK;
+         }
 
         if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
                 || is_ftdx101mp)
