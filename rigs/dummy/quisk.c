@@ -753,7 +753,7 @@ static int quisk_open(RIG *rig)
                 {
                     int agc_code;
                     char agc_string[32];
-                    int n = sscanf(p, "%d=%s\n", &agc_code, agc_string);
+                    int n = sscanf(p, "%d=%31s\n", &agc_code, agc_string);
 
                     if (n == 2)
                     {

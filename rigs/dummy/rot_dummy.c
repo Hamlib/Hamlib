@@ -173,11 +173,7 @@ static int dummy_rot_cleanup(ROT *rot)
     free(priv->ext_levels);
     free(priv->ext_parms);
     free(priv->magic_conf);
-
-    if (rot->state.priv)
-    {
-        free(rot->state.priv);
-    }
+    free(rot->state.priv);
 
     rot->state.priv = NULL;
 
