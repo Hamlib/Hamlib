@@ -666,10 +666,7 @@ int dttsp_cleanup(RIG *rig)
 
     priv->tuner = NULL;
 
-    if (rig->state.priv)
-    {
-        free(rig->state.priv);
-    }
+    free(rig->state.priv);
 
     rig->state.priv = NULL;
 
