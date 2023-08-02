@@ -8286,6 +8286,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
                   RIG_POWER_ON : RIG_POWER_OFF;
     }
 
+    HAMLIB_TRACE;
     if (RIG_IS_IC2730
             || RIG_IS_IC705
             || RIG_IS_IC7100
@@ -8301,16 +8302,27 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
         freq_t freq;
         short retry_save = rig->state.rigport.retry;
         short timeout_retry_save = rig->state.rigport.timeout_retry;
+    HAMLIB_TRACE;
 
         rig->state.rigport.retry = 0;
         rig->state.rigport.timeout_retry = 0;
 
         retval = rig_get_freq(rig, RIG_VFO_A, &freq);
 
+        if (retval == -RIG_ETIMEOUT)
+        { // then rig must be turned off
+    HAMLIB_TRACE;
+            rig_debug(RIG_DEBUG_WARN, "%s: get freq failed...assuming power is off\n", __func__);
+            rig->state.powerstat = RIG_POWER_OFF;
+            return RIG_OK; // returning RIG_OK here makes the rig->state reflect POWER_OFF
+        }
+    HAMLIB_TRACE;
+
         rig->state.rigport.retry = retry_save;
         rig->state.rigport.timeout_retry = timeout_retry_save;
 
         *status = retval == RIG_OK ? RIG_POWER_ON : RIG_POWER_OFF;
+        rig->state.powerstat = *status;
         return retval;
     }
     else
@@ -8318,6 +8330,12 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
         retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0,
                                   ackbuf, &ack_len);
 
+        if (retval == -RIG_ETIMEOUT)
+        { // then rig must be turned off
+            rig_debug(RIG_DEBUG_WARN, "%s: get powerstat failed...assuming power is off\n", __func__);
+            rig->state.powerstat = RIG_POWER_OFF;
+            return RIG_OK; // returning RIG_OK here makes the rig->state reflect POWER_OFF
+        }
         if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
@@ -8551,7 +8569,7 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
                  ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     unsigned char ackbuf[MAXFRAMELEN];
-    int ack_len = sizeof(ackbuf), retval;
+    int ack_len = sizeof(ackbuf), retval = -RIG_EINTERNAL;
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) rig->caps->priv;
 
 
