@@ -1374,7 +1374,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char cmd_arg[MAXCMDLEN];
     char *p;
     char *pttmode;
-    char *ttmode;
+    char *ttmode = NULL;
     struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     ENTERFUNC;
