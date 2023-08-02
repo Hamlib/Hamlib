@@ -157,7 +157,7 @@ int gemini_status_parse(AMP *amp)
     {
         char tmp[8];
         double freq;
-        n += sscanf(p, "BAND=%lf%s", &freq, tmp);
+        n += sscanf(p, "BAND=%lf%7s", &freq, tmp);
 
         if (tmp[0] == 'K') { priv->band = freq * 1000; }
 
@@ -168,10 +168,10 @@ int gemini_status_parse(AMP *amp)
         n += sscanf(p, "VSWR=%lf", &priv->vswr);
         n += sscanf(p, "CURRENT=%d", &priv->current);
         n += sscanf(p, "TEMPERATURE=%d", &priv->temperature);
-        n += sscanf(p, "STATE=%s", priv->state);
-        n += sscanf(p, "PTT=%s", tmp);
+        n += sscanf(p, "STATE=%7s", priv->state);
+        n += sscanf(p, "PTT=%7s", tmp);
         priv->ptt = tmp[0] == 'T';
-        n += sscanf(p, "TRIP=%s", priv->trip);
+        n += sscanf(p, "TRIP=%7s", priv->trip);
 
         if (n == 0)
         {
@@ -187,11 +187,13 @@ int gemini_status_parse(AMP *amp)
 int gemini_get_freq(AMP *amp, freq_t *freq)
 {
     int retval;
-    struct gemini_priv_data *priv = amp->state.priv;
+    struct gemini_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!amp) { return -RIG_EINVAL; }
+
+    priv = amp->state.priv;
 
     retval = gemini_status_parse(amp);
 
