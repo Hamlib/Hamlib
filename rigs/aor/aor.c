@@ -271,8 +271,8 @@ int aor_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_MEM: vfocmd = "MR" EOM; break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "aor_set_vfo: unsupported vfo %d\n",
-                  vfo);
+        rig_debug(RIG_DEBUG_ERR, "aor_set_vfo: unsupported vfo %s\n",
+                  rig_strvfo(vfo));
         return -RIG_EINVAL;
     }
 
@@ -760,7 +760,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (att > HAMLIB_MAXDBLSTSIZ || rs->attenuator[att - 1] == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "Unsupported att %s %d\n",
+            rig_debug(RIG_DEBUG_ERR, "Unsupported att %s %u\n",
                       __func__, att);
             return -RIG_EPROTO;
         }
