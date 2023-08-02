@@ -82,12 +82,9 @@ const struct rig_caps ic765_caps =
     .has_set_level =  RIG_LEVEL_NONE,
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
-#if 0
     .level_gran =
     {
-#include "level_gran_icom.h"
     },
-#endif
     .parm_gran =  {},
     .ctcss_list =  NULL,
     .dcs_list =  NULL,

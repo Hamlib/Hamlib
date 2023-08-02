@@ -57,7 +57,7 @@ static const struct icom_priv_caps ic821h_priv_caps =
 int ic821h_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
-    int retval;
+    int retval = -RIG_EINTERNAL;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, split=%d, tx_vfo=%s\n", __func__,
