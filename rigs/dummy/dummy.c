@@ -413,7 +413,7 @@ static int dummy_get_conf(RIG *rig, token_t token, char *val)
 
 static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv;
     char fstr[20];
 
     ENTERFUNC;
@@ -422,6 +422,11 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig is NULL!!!\n", __func__);
         return -RIG_EINVAL;
+    }
+    priv = (struct dummy_priv_data *)rig->state.priv;
+    if (priv == NULL)
+    {
+        RETURNFUNC(-RIG_EINTERNAL);
     }
 
     if (vfo == RIG_VFO_CURR) { vfo = priv->curr_vfo; }
@@ -2183,7 +2188,7 @@ int dummy_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
 {
     int retval = RIG_OK;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: %04d-%02d-%02dT%02d:%02d:%02d.%.03f%s%02d\n",
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: %04d-%02d-%02dT%02d:%02d:%02d.%.03f%s%02u\n",
               __func__, year,
               month, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
               (unsigned)(abs(utc_offset)));
@@ -2218,7 +2223,7 @@ int dummy_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     *utc_offset = m_utc_offset;
 
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: %02d-%02d-%02dT%02d:%02d:%02d:%0.3lf%s%02d\n'",
+              "%s: %02d-%02d-%02dT%02d:%02d:%02d:%0.3lf%s%02u\n'",
               __func__, *year, *month, *day, *hour, *min, *sec, *msec,
               *utc_offset >= 0 ? "+" : "-", (unsigned)abs(*utc_offset));
     return retval;
