@@ -626,7 +626,7 @@ int newcat_open(RIG *rig)
         else if (priv->rig_id == NC_RIGID_FTDX5000
                  || rig->caps->rig_model == RIG_MODEL_FTDX5000) { cmd = "EX0331;EX033"; }
         else if (priv->rig_id == NC_RIGID_FTDX10
-                 || rig->caps->rig_model == RIG_MODEL_FTDX10) { cmd = "EX03010901;EX030109;"; }
+                 || rig->caps->rig_model == RIG_MODEL_FTDX10) { cmd = "EX0301091;EX030109;"; }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", cmd);
 
