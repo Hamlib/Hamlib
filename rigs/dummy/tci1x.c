@@ -622,7 +622,7 @@ static int tci1x_open(RIG *rig)
         // we fall through and assume old version
     }
 
-    sscanf(&value[2], "device:%s", value);
+    sscanf(&value[2], "device:%8191s", value);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: TCI Device is %s\n", __func__, arg);
 
@@ -635,8 +635,8 @@ static int tci1x_open(RIG *rig)
                   rigerror(retval));
     }
 
-    sscanf(&value[2], "receive_only:%s", value);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: readonly is %s\n", __func__, arg);
+    sscanf(&value[2], "receive_only:%8191s", value);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: readonly is %8191s\n", __func__, arg);
 
     // TRX count
     retval = tci1x_transaction(rig, "trx_count;", NULL, value, sizeof(value));
@@ -820,7 +820,7 @@ static int tci1x_cleanup(RIG *rig)
 
     ENTERFUNC;
 
-    if (!rig)
+    if (rig == NULL)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
