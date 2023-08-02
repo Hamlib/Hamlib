@@ -132,13 +132,16 @@ static int showme = 0;
 	#include <stdint.h>
 
 	static inline uint64_t rdtsc() {
-		uint32_t hi, lo;
+        uint32_t hi, lo;
+		uint64_t hi64, lo64;
 		asm volatile("rdtscp\n"
 								 "movl %%edx, %0\n"
 								 "movl %%eax, %1\n"
 								 "cpuid"
 								 : "=r" (hi), "=r" (lo) : : "%rax", "%rbx", "%rcx", "%rdx");
-		return (((uint64_t)hi) << 32) | (uint64_t)lo;
+        hi64 = hi;
+        lo64 = lo;
+		return (hi64 << 32) | lo64);
 	}
 
 	static uint64_t rdtsc_per_sec = 0;
