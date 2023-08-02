@@ -129,7 +129,7 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len,
     char cmdbuf[64];
     int checksum = 0;
 
-    if (cmd) { rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s\n", __func__, cmd); }
+    if (cmd) { rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%80s\n", __func__, cmd); }
     else
     {
         rig_debug(RIG_DEBUG_ERR, "%s: cmd empty\n", __func__);
@@ -261,6 +261,7 @@ int expert_set_freq(AMP *amp, freq_t freq)
     if (!amp) { return -RIG_EINVAL; }
 
 //    SNPRINTF(cmd, sizeof(cmd), "^FR%05ld;", (long)freq / 1000);
+    cmd[0] = 0x00;
     retval = expert_transaction(amp, cmd, 0, NULL, 0);
 
     if (retval != RIG_OK) { return retval; }
@@ -540,7 +541,6 @@ int expert_get_powerstat(AMP *amp, powerstat_t *status)
     int ampon = 0;
     int nargs = 0;
 
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     *status = RIG_POWER_UNKNOWN;
@@ -615,6 +615,7 @@ int expert_set_powerstat(AMP *amp, powerstat_t status)
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s invalid status=%d\n", __func__, status);
+        cmd[0] = 0x00;
 
     }
 
