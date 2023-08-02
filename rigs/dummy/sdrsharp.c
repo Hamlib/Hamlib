@@ -387,6 +387,8 @@ static int sdrsharp_open(RIG *rig)
     char value[MAXARGLEN];
 
     ENTERFUNC;
+    value[0] = '?';
+    value[1] = 0;
 
     freq_t freq;
     retval = sdrsharp_get_freq(rig, RIG_VFO_CURR, &freq);

@@ -738,7 +738,7 @@ static int aclog_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char cmd[MAXCMDLEN];
     char *p;
     char *pttmode;
-    char *ttmode;
+    char *ttmode = NULL;
     struct aclog_priv_data *priv = (struct aclog_priv_data *) rig->state.priv;
 
     ENTERFUNC;

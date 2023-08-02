@@ -596,6 +596,8 @@ static int tci1x_open(RIG *rig)
     char *p;
     char *pr;
     //struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    arg[0] = '?';
+    arg[1] = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: version %s\n", __func__, rig->caps->version);
     char *websocket =
@@ -1097,7 +1099,7 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char cmd_arg[MAXCMDLEN];
     char *p;
     char *pttmode;
-    char *ttmode;
+    char *ttmode = NULL;
     struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
 
     ENTERFUNC;
