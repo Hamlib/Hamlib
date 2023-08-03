@@ -2317,6 +2317,7 @@ int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int retval;
+    float f;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2328,7 +2329,8 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if (retval != RIG_OK) { return retval; }
 
         // manual says 0-255 as of Rev G5 but experiment says 0-60
-        val->f = val->i / 60.0;
+        f = val->i / 60.0;
+        val->f = f;
         return retval;
 
     case RIG_LEVEL_RF:
@@ -2336,7 +2338,8 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (retval != RIG_OK) { return retval; }
 
-        val->f = (val->i - 190.0) / (250.0 - 190.0);
+        f = (val->i - 190.0) / (250.0 - 190.0);
+        val->f = f;
         return retval;
 
     case RIG_LEVEL_MICGAIN:
@@ -2344,7 +2347,8 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (retval != RIG_OK) { return retval; }
 
-        val->f = val->i / 80.0;
+        f = val->i / 80.0;
+        val->f = f;
         return retval;
 
     case RIG_LEVEL_RFPOWER_METER:
