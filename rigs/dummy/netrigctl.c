@@ -803,7 +803,6 @@ static int netrigctl_open(RIG *rig)
             }
             else if (strcmp(setting, "agc_levels") == 0)
             {
-                int i = 0;
                 char *p = strtok(value, " ");
                 rig->caps->agc_levels[0] = RIG_AGC_NONE; // default value gets overwritten
                 rig->caps->agc_level_count = 0;
@@ -914,7 +913,7 @@ static int netrigctl_open(RIG *rig)
 
 static int netrigctl_close(RIG *rig)
 {
-    struct rig_state *rs = &rig->state;
+    const struct rig_state *rs = &rig->state;
     int ret;
     char buf[BUF_MAX];
 
