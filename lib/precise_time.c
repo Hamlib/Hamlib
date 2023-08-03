@@ -141,7 +141,7 @@ static int showme = 0;
 								 : "=r" (hi), "=r" (lo) : : "%rax", "%rbx", "%rcx", "%rdx");
         hi64 = hi;
         lo64 = lo;
-		return (hi64 << 32) | lo64);
+		return (hi64 << 32) | lo64;
 	}
 
 	static uint64_t rdtsc_per_sec = 0;
