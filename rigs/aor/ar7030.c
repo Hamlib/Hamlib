@@ -73,7 +73,7 @@ static int rxr_writeByte(RIG *rig, unsigned char c)
 static int rxr_readByte(RIG *rig)
 {
     unsigned char response[1];
-    unsigned char buf[] = {0x71}; // Read command
+    const unsigned char buf[] = {0x71}; // Read command
     int retval;
     retval = write_block(&rig->state.rigport, buf, 1);
 
@@ -190,7 +190,7 @@ static void Execute_Routine_2_1(RIG *rig, char mp, char ad, int numSteps)
 }
 #endif
 // Routine 3    Set passband    Setup all IF parameters from filter, pbsval and bfoval bytes.
-static void Execute_Routine_3_1(RIG *rig, char mp, char ad, int numSteps)
+static void Execute_Routine_3_1(RIG *rig, char mp, char ad, unsigned int numSteps)
 {
     setLock(rig, 1);      //Set Lock Level
     setMemPtr(rig, mp, ad);   //page, address
@@ -269,7 +269,7 @@ static void Execute_Routine_6_1(RIG *rig, char mp, char ad, int numSteps)
 static int Execute_Routine_14(RIG *rig)
 {
     unsigned char response[1];
-    unsigned char buf[] = {0x2e}; // Read command
+    const unsigned char buf[] = {0x2e}; // Read command
     int retval;
     retval = write_block(&rig->state.rigport, buf, 1);
 
@@ -488,7 +488,7 @@ static int ar7030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     setMemPtr(rig, 0, 0x38);
 
-    if ((*width = BCD_To_int(rig, rxr_readByte(rig)) * 100) < 0)
+    if ((*width = (pbwidth_t)BCD_To_int(rig, rxr_readByte(rig)) * 100) < 0)
     {
         return -RIG_EINVAL;
     }

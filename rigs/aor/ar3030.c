@@ -356,7 +356,7 @@ int ar3030_set_vfo(RIG *rig, vfo_t vfo)
 
 int ar3030_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    const struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
 
     *vfo = priv->curr_vfo;
 

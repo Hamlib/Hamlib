@@ -938,7 +938,7 @@ int aor_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
  */
 int aor_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
+    const struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
     char membuf[BUFSZ];
     int mem_num;
     char bank_base;
@@ -972,7 +972,7 @@ int aor_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int aor_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
+    const struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
     int mem_len, retval;
     char membuf[BUFSZ];
 
@@ -1239,7 +1239,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep,
 
 int aor_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
+    const struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
     char aorcmd[BUFSZ];
     int chan_len;
     char chanbuf[BUFSZ];
@@ -1345,7 +1345,7 @@ int aor_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
 int aor_get_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
 {
-    struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
+    const struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
     int i, j, retval;
     chan_t *chan_list = rig->state.chan_list;
     channel_t *chan;

@@ -1612,6 +1612,7 @@ static int ar7030p_get_func(RIG *rig, vfo_t vfo, setting_t func,
 {
     assert(NULL != rig);
     assert(NULL != status);
+    *status = 0;
 
     return (-RIG_ENIMPL);
 }
@@ -1640,7 +1641,7 @@ static int ar7030p_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
     unsigned char *p = NULL;
     int ch;
     struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *)rig->state.priv;
-    channel_t *curr = priv->curr;
+    const channel_t *curr = priv->curr;
 
     assert(NULL != chan);
 
