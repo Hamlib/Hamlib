@@ -165,7 +165,7 @@ const struct confparams elad_cfg_params[] =
 int elad_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
 {
     struct elad_priv_data *priv = rig->state.priv;
-    struct elad_priv_caps *caps = elad_caps(rig);
+    const struct elad_priv_caps *caps = elad_caps(rig);
     struct rig_state *rs;
     int retval;
     char cmdtrm[2];  /* Default Command/Reply termination char */
@@ -698,7 +698,7 @@ int elad_open(RIG *rig)
 
 int elad_close(RIG *rig)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -734,7 +734,7 @@ int elad_get_id(RIG *rig, char *buf)
 static int elad_get_if(RIG *rig)
 {
     struct elad_priv_data *priv = rig->state.priv;
-    struct elad_priv_caps *caps = elad_caps(rig);
+    const struct elad_priv_caps *caps = elad_caps(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -753,7 +753,7 @@ int elad_set_vfo(RIG *rig, vfo_t vfo)
     char cmdbuf[6];
     int retval;
     char vfo_function;
-    struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -913,6 +913,10 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = elad_get_split_vfo_if(rig, vfo, &tsplit, &tvfo);
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
 
     if (split == tsplit)
     {
@@ -977,6 +981,10 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
 
     retval = elad_set_split(rig, vfo, split, txvfo);
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
     /* Remember whether split is on, for elad_set_vfo */
     priv->split = split;
 
@@ -1170,7 +1178,7 @@ int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned char vfo_letter = '\0';
     vfo_t tvfo;
     int err;
-    struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = rig->state.priv;
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1257,7 +1265,7 @@ int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int elad_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = rig->state.priv;
     char freqbuf[50];
     int retval;
 
@@ -1490,7 +1498,7 @@ static int elad_set_filter(RIG *rig, pbwidth_t width)
  */
 int elad_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = rig->state.priv;
     struct elad_priv_caps *caps = elad_caps(rig);
     char buf[6];
     char kmode;
@@ -1811,7 +1819,7 @@ int elad_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     int err;
     struct elad_priv_caps *caps = elad_caps(rig);
-    struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2550,7 +2558,7 @@ int elad_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
  */
 int elad_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = rig->state.priv;
     const struct rig_caps *caps;
     char tonebuf[3];
     int i, retval;
@@ -3354,7 +3362,7 @@ int elad_get_mem_if(RIG *rig, vfo_t vfo, int *ch)
 {
     int err;
     char buf[4];
-    struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
