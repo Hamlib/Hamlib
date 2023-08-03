@@ -24,11 +24,13 @@
 #include "misc.h"
 #include "gemini.h"
 
+#if 0
 struct fault_list
 {
     int code;
     char *errmsg;
 };
+#endif
 
 /*
  * Initialize data structures
