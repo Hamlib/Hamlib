@@ -257,6 +257,7 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
 
     ENTERFUNC;
     ELAPSED1;
+    strcpy(xml,"UNKNOWN");
 
     set_transaction_active(rig);
 
@@ -708,10 +709,12 @@ static int aclog_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC2(-RIG_EINVAL);
     }
 
+#if 0
     if (vfo == RIG_VFO_CURR)
     {
         vfo = rig->state.current_vfo;
     }
+#endif
 
     SNPRINTF(cmd, sizeof(cmd),
              "<CMD><CHANGEFREQ><VALUE>%lf</VALUE><SUPPRESSMODEDEFAULT>TRUE</SUPPRESSMODEDEFAULT></CMD>\r\n",
@@ -857,7 +860,7 @@ static int aclog_get_vfo(RIG *rig, vfo_t *vfo)
 */
 static const char *aclog_get_info(RIG *rig)
 {
-    struct aclog_priv_data *priv = (struct aclog_priv_data *) rig->state.priv;
+    const struct aclog_priv_data *priv = (struct aclog_priv_data *) rig->state.priv;
 
     return (priv->info);
 }
@@ -865,7 +868,7 @@ static const char *aclog_get_info(RIG *rig)
 static int aclog_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode)
 {
-    struct aclog_priv_data *priv = (struct aclog_priv_data *) rig->state.priv;
+    const struct aclog_priv_data *priv = (struct aclog_priv_data *) rig->state.priv;
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, power);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
