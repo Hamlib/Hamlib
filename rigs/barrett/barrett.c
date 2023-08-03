@@ -261,7 +261,7 @@ int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char cmd_buf[MAXCMDLEN];
     int retval;
-    struct barrett_priv_data *priv = rig->state.priv;
+    const struct barrett_priv_data *priv = rig->state.priv;
     freq_t tfreq;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __func__,
@@ -672,13 +672,13 @@ const char *barrett_get_info(RIG *rig)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: IDR command failed: %s\n", __func__,
                   strerror(retval));
+        series = "unknown";
     }
     else
     {
-        series = "unknown";
+        series = strdup(response);
     }
 
-    series = strdup(response);
     retval = barrett_transaction(rig, "IDS", 0, &response);
 
     if (retval != RIG_OK)
