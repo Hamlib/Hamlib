@@ -3999,7 +3999,6 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;
     int i;
-    int scale;
     int fpf;
     char main_sub_vfo = '0';
     char *format;
@@ -4035,26 +4034,16 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (is_ft950 || is_ftdx1200 || is_ftdx3000 || is_ft891 || is_ft991 || is_ft710
-                || is_ftdx101d || is_ftdx101mp || is_ftdx10)
-        {
-            scale = 100.;
-        }
-        else if (is_ft450 && newcat_get_rigid(rig) == NC_RIGID_FT450D)
-        {
-            scale = 100.;
-        }
-        else if (is_ftdx3000dm)
-        {
-            scale = 50;
-        }
-        else
-        {
-            scale = 255.;
-        }
+        if ( is_ftdx3000dm )    /* No separate rig->caps for this rig :-( */
+	  {
+	    fpf = (int)((val.f * 50.0f) + 0.5f);
+	  }
+	else
+	  {
+	    fpf = (int)((val.f / level_info->step.f) + 0.5f );
+	  }
 
-        fpf = newcat_scale_float(scale, val.f);
-
+        //TODO Remove when global level checking enabled
         if (is_ft950 || is_ft891 || is_ft991 || is_ftdx3000 || is_ftdx3000dm
                 || is_ftdx101d
                 || is_ftdx101mp || is_ftdx10)
@@ -4065,6 +4054,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                 fpf = 5;
             }
         }
+	//endTODO
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC%03d%c", fpf, cat_term);
         break;
@@ -4880,7 +4870,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int ret_data_len;
     char *retlvl;
     int retlvl_len;
-    float scale;
     char main_sub_vfo = '0';
     int i;
     gran_t *level_info;
@@ -5436,25 +5425,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-    case RIG_LEVEL_RFPOWER:
-        if (is_ft950 || is_ftdx1200 || is_ftdx3000 || is_ftdx3000dm || is_ft891
-                || is_ft991 || is_ft710
-                || is_ftdx101d || is_ftdx101mp || is_ftdx10)
-        {
-            scale = 100.;
-        }
-        else if (is_ft450 && newcat_get_rigid(rig) == NC_RIGID_FT450D)
-        {
-            scale = 100.;
-        }
-        else
-        {
-            scale = 255.;
-        }
-
-        val->f = (float)atoi(retlvl) / scale;
-        break;
-
     case RIG_LEVEL_SWR:
         if (retlvl_len > 3)
         {
@@ -5597,6 +5567,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_ANTIVOX:
     case RIG_LEVEL_MICGAIN:
     case RIG_LEVEL_VOXGAIN:
+    case RIG_LEVEL_RFPOWER:
     case RIG_LEVEL_MONITOR_GAIN:
         val->f = (float)atoi(retlvl) * level_info->step.f;
         break;
