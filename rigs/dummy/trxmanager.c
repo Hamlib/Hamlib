@@ -476,7 +476,7 @@ static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN] = "";
     struct rig_state *rs = &rig->state;
-    struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
+    const struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
                                         rig->state.priv;
 
 
@@ -1214,7 +1214,7 @@ static int trxmanager_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
 
 static const char *trxmanager_get_info(RIG *rig)
 {
-    struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
+    const struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
                                         rig->state.priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
