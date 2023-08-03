@@ -138,7 +138,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20230703.0",
+    .version = "20230802.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1743,7 +1743,7 @@ static int flrig_set_vfo(RIG *rig, vfo_t vfo)
     int retval;
     char cmd_arg[MAXXMLLEN];
     struct rig_state *rs = &rig->state;
-    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
+    const struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -2117,7 +2117,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char value[MAXARGLEN];
     char *cmd;
     int retval;
-    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
+    const struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -2192,7 +2192,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 */
 static const char *flrig_get_info(RIG *rig)
 {
-    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
+    const struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     return (priv->info);
 }
@@ -2200,7 +2200,7 @@ static const char *flrig_get_info(RIG *rig)
 static int flrig_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode)
 {
-    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
+    const struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, power);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
@@ -2372,6 +2372,7 @@ HAMLIB_EXPORT(int) flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
         SNPRINTF(cmd_arg, sizeof(cmd_arg),
                  "<params><param><value>%d</value></param></params>", status);
         retval = flrig_transaction(rig, "rig.tune", cmd_arg, NULL, 0);
+        break;
 
     default:
         retval = -RIG_ENIMPL;
