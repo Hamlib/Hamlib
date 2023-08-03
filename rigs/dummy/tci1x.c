@@ -313,7 +313,7 @@ static int read_transaction(RIG *rig, unsigned char *buf, int buf_len)
 * write_transaction
 * Assumes rig!=NULL, xml!=NULL, xml_len=total size of xml for response
 */
-static int write_transaction(RIG *rig, unsigned char *buf, int buf_len)
+static int write_transaction(RIG *rig, const unsigned char *buf, int buf_len)
 {
 
     int try = rig->caps->retry;
@@ -670,7 +670,7 @@ static int tci1x_open(RIG *rig)
 
     if (retval != RIG_OK) { RETURNFUNC2(retval); }
 
-    sscanf(&value[2], "modulations_list:%s", arg);
+    sscanf(&value[2], "modulations_list:%8191s", arg);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: modes=%s\n", __func__, arg);
     modes = 0;
     pr = value;
@@ -1461,7 +1461,7 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
     int retval;
     char cmd_arg[MAXBUFLEN];
     struct rig_state *rs = &rig->state;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1836,7 +1836,7 @@ static int tci1x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char value[MAXARGLEN];
     char *cmd;
     int retval;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1912,7 +1912,7 @@ static int tci1x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 */
 static const char *tci1x_get_info(RIG *rig)
 {
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
 
     return (priv->info);
 }
@@ -1920,7 +1920,7 @@ static const char *tci1x_get_info(RIG *rig)
 static int tci1x_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode)
 {
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, power);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
