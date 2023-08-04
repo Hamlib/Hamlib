@@ -17,7 +17,7 @@
         /* levels with time units */
         [LVL_VOXDELAY]      = { .min = { .i = 3 },     .max = { .i = 300 },  .step = { .i = 1 } },
         [LVL_BKINDL]        = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
-        [LVL_BKIN_DLYMS]     = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
+        [LVL_BKIN_DLYMS]    = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
         /* levels with watt units */
         [LVL_RFPOWER_METER_WATTS] = { .min = { .f = .0 },    .max = { .f = 100 },    .step = { .f = 1.0f/255.0f } },
         /* level with misc units */
@@ -28,14 +28,14 @@
         /* levels with 0-1 values -- increment based on rig's range */
         [LVL_AF]            = { .min = { .f = 0 },     .max = { .f = 1 },  .step = { .f = 1.0f/255.0f } },
         [LVL_RF]            = { .min = { .f = 0 },     .max = { .f = 1 },  .step = { .f = 1.0f/255.0f } },
-        [LVL_RFPOWER]       = { .min = { .f = .05 },   .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
+        [LVL_RFPOWER]       = { .min = { .f = 5.0/255.0 }, .max = { .f = 1 }, .step = { .f = 1.0f/255.0f } },
         [LVL_RFPOWER_METER] = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_COMP_METER]    = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_ID_METER]      = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_VD_METER]      = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
-        [LVL_SQL]           = { .min = { .f = 0 },    .max = { .f = 1 },     .step = { .f = 1.0f/100.0f } },
+        [LVL_SQL]           = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_MICGAIN]       = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
-        [LVL_MONITOR_GAIN]  = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
+        [LVL_MONITOR_GAIN]  = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
         [LVL_COMP]          = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
         [LVL_VOXGAIN]       = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
         [LVL_ANTIVOX]       = { .min = { .f = 0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
