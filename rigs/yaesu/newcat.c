@@ -8765,7 +8765,10 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else if (width <= 1700) { w = 15; }
             else if (width <= 2000) { w = 16; }
             else if (width <= 2400) { w = 17; }
-            else { w = 18; } // 3000Hz
+            else if (width <= 3000) { w = 18; }
+            else if (width <= 3200) { w = 19; }
+            else if (width <= 3500) { w = 20; }
+            else { w = 21; } // 4000Hz
 
             break;
 
@@ -10053,7 +10056,15 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
             case 18: *width = 3000;  break;
 
-            default: RETURNFUNC(-RIG_EINVAL);
+            case 19: *width = 3200;  break;
+
+            case 20: *width = 3500;  break;
+
+            case 21: *width = 4000;  break;
+
+            default: 
+            
+            RETURNFUNC(-RIG_EINVAL);
             }
 
             break;
