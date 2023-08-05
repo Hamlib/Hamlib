@@ -8737,7 +8737,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             RETURNFUNC(err);
         }
     } // end is_ftdx5000
-    else if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
+    else if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
     {
         switch (mode)
         {
