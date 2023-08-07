@@ -2317,6 +2317,15 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         }
 
         HAMLIB_TRACE;
+        retcode = caps->get_freq(rig, vfo, freq);
+
+        if (retcode != RIG_OK)
+        {
+            ELAPSED2;
+            LOCK(0);
+            RETURNFUNC(retcode);
+        }
+
         retcode = caps->set_vfo(rig, vfo);
 
         if (retcode != RIG_OK)
@@ -7773,6 +7782,7 @@ static int async_data_handler_start(RIG *rig)
                   rs->async_data_enabled);
         RETURNFUNC(RIG_OK);
     }
+    sleep(2);  // give other things a chance to finish opening up the rig
 
 #ifdef HAVE_PTHREAD
 
