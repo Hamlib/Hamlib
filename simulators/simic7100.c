@@ -200,6 +200,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         frame[4] = 0xfb;
         frame[5] = 0xfd;
+        hl_usleep(20*1000);
         n = write(fd, frame, 6);
         break;
 
