@@ -138,7 +138,7 @@ const struct rig_caps ftdx5000_caps =
     RIG_MODEL(RIG_MODEL_FTDX5000),
     .model_name =         "FTDX-5000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".9",
+    .version =            NEWCAT_VER ".10",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -159,8 +159,8 @@ const struct rig_caps ftdx5000_caps =
     .has_set_func =       FTDX5000_FUNCS,
     .has_get_level =      FTDX5000_LEVELS,
     .has_set_level =      RIG_LEVEL_SET(FTDX5000_LEVELS),
-    .has_get_parm =       RIG_PARM_NONE,
-    .has_set_parm =       RIG_PARM_NONE,
+    .has_get_parm =       RIG_PARM_BANDSELECT,
+    .has_set_parm =       RIG_PARM_BANDSELECT,
     .level_gran =
     {
 #include "level_gran_yaesu.h"
@@ -169,6 +169,10 @@ const struct rig_caps ftdx5000_caps =
         [LVL_COMP] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/255.0f } },
         [LVL_VOXGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/255.0f } },
     },
+    .parm_gran =  {
+        [PARM_BANDSELECT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.s = "BAND160M,BAND80M,BANDUNUSED,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDGEN"}}
+        },
+
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
     .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC: Not specified in manual */

@@ -132,7 +132,7 @@ const struct rig_caps ft2000_caps =
     RIG_MODEL(RIG_MODEL_FT2000),
     .model_name =         "FT-2000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".3",
+    .version =            NEWCAT_VER ".4",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -153,8 +153,8 @@ const struct rig_caps ft2000_caps =
     .has_set_func =       FT2000_FUNCS,
     .has_get_level =      FT2000_LEVELS,
     .has_set_level =      RIG_LEVEL_SET(FT2000_LEVELS),
-    .has_get_parm =       RIG_PARM_NONE,
-    .has_set_parm =       RIG_PARM_NONE,
+    .has_get_parm =       RIG_PARM_BANDSELECT,
+    .has_set_parm =       RIG_PARM_BANDSELECT,
     .level_gran = {
 #include "level_gran_yaesu.h"
         // cppcheck-suppress *
@@ -163,6 +163,10 @@ const struct rig_caps ft2000_caps =
         [LVL_COMP] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/255.0f } },
         [LVL_VOXGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/255.0f } },
     },
+    .parm_gran =  {
+        [PARM_BANDSELECT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.s = "BAND160M,BAND80M,BAND60M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDRGEN"}}
+        },
+
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
     .preamp =             { 10, 17, RIG_DBLST_END, },

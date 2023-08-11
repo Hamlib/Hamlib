@@ -1534,6 +1534,10 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
     {
         SNPRINTF(pstr, sizeof(pstr), "%f", val.f);
     }
+    if (RIG_PARM_IS_STRING(parm))
+    {
+        strcpy(pstr,val.cs);
+    }
     else
     {
         SNPRINTF(pstr, sizeof(pstr), "%d", val.i);

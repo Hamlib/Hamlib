@@ -22,6 +22,8 @@ char tx_vfo = '0';
 char rx_vfo = '0';
 char modeA = '0';
 char modeB = '0';
+int keyspd = 20;
+int bandselect = 5;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -282,6 +284,20 @@ int main(int argc, char *argv[])
             printf("n=%d\n", n);
 
             if (n < 0) { perror("EX032"); }
+        }
+        else if (strncmp(buf, "KS;", 3) == 0)
+        {
+            sprintf(buf,"KS%d;", keyspd);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf,"KS",2) == 0)
+        {
+            sscanf(buf,"KS%03d", &keyspd);
+        }
+        else if (strncmp(buf, "BS;", 3) == 0) // cannot query BS
+        {
+            sprintf(buf,"BS%02d;", bandselect);
+            n = write(fd, buf, strlen(buf));
         }
 
         else if (strlen(buf) > 0)

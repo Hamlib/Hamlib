@@ -232,9 +232,9 @@ make -j 4 install
 
 mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/doc
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-4.def
-todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
+#todos ${ZIP_DIR}/lib/msvc/libhamlib-4.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.
-todos ${ZIP_DIR}/include/hamlib/*.h
+#todos ${ZIP_DIR}/include/hamlib/*.h
 
 # C++ binding is useless on w32 because of ABI
 for f in *class.h

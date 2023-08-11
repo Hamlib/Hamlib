@@ -119,7 +119,7 @@ const struct rig_caps ft710_caps =
     RIG_MODEL(RIG_MODEL_FT710),
     .model_name =         "FT-710",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".5",
+    .version =            NEWCAT_VER ".6",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -140,8 +140,8 @@ const struct rig_caps ft710_caps =
     .has_set_func =       FT710_FUNCS,
     .has_get_level =      FT710_LEVELS,
     .has_set_level =      RIG_LEVEL_SET(FT710_LEVELS),
-    .has_get_parm =       RIG_PARM_NONE,
-    .has_set_parm =       RIG_PARM_NONE,
+    .has_get_parm =       RIG_PARM_BANDSELECT,
+    .has_set_parm =       RIG_PARM_BANDSELECT,
     .level_gran =
     {
 #include "level_gran_yaesu.h"
@@ -150,6 +150,10 @@ const struct rig_caps ft710_caps =
         [LVL_MONITOR_GAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
         [LVL_RFPOWER] = { .min = { .f = .05 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
     },
+    .parm_gran =  {
+        [PARM_BANDSELECT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.s = "BAND160M,BAND80M,BAND60M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BAND4M"}}
+        },
+
     .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
     .preamp =             { 10, 20, RIG_DBLST_END, },

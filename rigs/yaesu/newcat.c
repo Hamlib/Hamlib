@@ -6666,15 +6666,62 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
 {
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int retval;
+    int band = 0;
     ENTERFUNC;
 
-    RETURNFUNC(-RIG_ENAVAIL);
+    switch(parm)
+    {
+        case RIG_PARM_BANDSELECT:
+            if (!newcat_valid_command(rig, "BS"))
+            {
+                RETURNFUNC(-RIG_ENAVAIL);
+            }
+            // we should have a string for the desired band
+            band = rig_get_band_rig(rig, 0.0, val.s); 
+
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c", band, cat_term);
+
+            retval = newcat_set_cmd(rig);
+
+            if (retval != RIG_OK)
+            {
+                RETURNFUNC(retval);
+            }
+            RETURNFUNC(RIG_OK);
+    }
+
+    RETURNFUNC(-RIG_ENIMPL);
 }
 
 
 int newcat_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
+    int retval;
     ENTERFUNC;
+
+    switch(parm)
+    {
+        case RIG_PARM_BANDSELECT:
+            if (!newcat_valid_command(rig, "BS"))
+            {
+                RETURNFUNC(-RIG_ENAVAIL);
+            }
+
+            freq_t freq;
+            retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+            if (retval != RIG_OK)
+            {
+                RETURNFUNC(retval);
+            }
+            hamlib_band_t band = rig_get_band(rig, freq, 0);
+            val->cs = rig_get_band_str(rig, band, 0);
+
+            RETURNFUNC(RIG_OK);
+        default:
+            RETURNFUNC(-RIG_EINVAL);
+    }
 
     RETURNFUNC(-RIG_ENAVAIL);
 }
