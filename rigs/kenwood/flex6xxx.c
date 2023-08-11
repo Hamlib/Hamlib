@@ -30,6 +30,7 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 #include "bandplan.h"
+#include "misc.h"
 #include "flex.h"
 
 #define F6K_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
@@ -1103,6 +1104,82 @@ int powersdr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     return RIG_OK;
 }
 
+int powersdr_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+    ENTERFUNC;
+    char cmd[KENWOOD_MAX_BUF_LEN];
+    int retval;
+    int band = 999; // default to the weird WWV band
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%s\n", __func__, val.s);
+
+    switch(parm)
+    {
+        case RIG_PARM_BANDSELECT:
+            if (strcmp(val.s,"BANDWWV")!=0)
+            {
+                int n = sscanf(val.s, "BAND%d", &band);
+                if (n != 1)
+                {
+                    rig_debug(RIG_DEBUG_ERR, "%s: unknown band=%s\n", __func__, val.s);
+                }
+            }
+            SNPRINTF(cmd,sizeof(cmd),"ZZBS%03d;", band);
+            retval = kenwood_transaction(rig, cmd, NULL, 0);
+    }
+    RETURNFUNC(retval);
+}
+
+int powersdr_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+    char cmd[KENWOOD_MAX_BUF_LEN];
+    char buf[KENWOOD_MAX_BUF_LEN];
+    int retval;
+    int len,ans;
+
+    ENTERFUNC;
+
+    switch(parm)
+    {
+        case RIG_PARM_BANDSELECT:
+        len = 4;
+        ans = 3;
+        SNPRINTF(cmd,sizeof(cmd),"%s","ZZBS;");
+        break;
+        default:
+        RETURNFUNC(-RIG_EINVAL);
+    }
+    retval = kenwood_safe_transaction(rig, cmd, buf, 10, len + ans);
+    if (retval != RIG_OK) RETURNFUNC(retval);
+    int band;
+    int n = sscanf(buf,"ZZBS%3d", &band);
+    if (n != 1) 
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown band=%s\n", __func__, buf);
+        return (-RIG_EPROTO);
+    }
+    switch(band)
+    {
+        case 160: val->cs = "BAND160M";break;
+        case  80: val->cs = "BAND80M";break;
+        case  60: val->cs = "BAND60M";break;
+        case  40: val->cs = "BAND40M";break;
+        case  30: val->cs = "BAND30M";break;
+        case  20: val->cs = "BAND20M";break;
+        case  17: val->cs = "BAND17M";break;
+        case  15: val->cs = "BAND15M";break;
+        case  12: val->cs = "BAND12M";break;
+        case  10: val->cs = "BAND10M";break;
+        case   6: val->cs = "BAND6M";break;
+        case 999: val->cs = "BANDWWV";break;
+        default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown band=%d\n", __func__, band);
+        val->cs = "BAND???";    
+    }
+    RETURNFUNC(RIG_OK);
+}
+
+
 /*
  * F6K rig capabilities.
  */
@@ -1244,7 +1321,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20230608.0",
+    .version =      "20230811.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1271,13 +1348,18 @@ const struct rig_caps powersdr_caps =
     .has_set_func =     POWERSDR_FUNC_ALL,
     .has_get_level =    POWERSDR_LEVEL_ALL,
     .has_set_level =    POWERSDR_LEVEL_SET,
-    .has_get_parm =     RIG_PARM_NONE,
-    .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
+    .has_get_parm =     RIG_PARM_BANDSELECT,
+    .has_set_parm =     RIG_PARM_BANDSELECT, 
     .level_gran =       {
 #include "level_gran_kenwood.h"
         [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
     },     /* FIXME: granularity */
     .parm_gran =        {},
+    .parm_gran =  {
+        // there  are V00 thru V13 but we don't cover them as of yet -- what rig?
+        [PARM_BANDSELECT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.s = "BAND160M,BAND80M,BAND60M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BAND2M,BANDWWV,BANDGEN"}}
+        },
+
     //.extlevels =      elecraft_ext_levels,
     //.extparms =       kenwood_cfg_params,
     .preamp =       { RIG_DBLST_END, },
@@ -1374,6 +1456,8 @@ const struct rig_caps powersdr_caps =
     .get_level =        powersdr_get_level,
     .get_func =         powersdr_get_func,
     .set_func =         powersdr_set_func,
+    .get_parm =         powersdr_get_parm,
+    .set_parm =         powersdr_set_parm,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
     .send_morse =  kenwood_send_morse,
