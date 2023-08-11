@@ -22,6 +22,7 @@
 
 #include <hamlib/config.h>
 
+#include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 
@@ -569,6 +570,14 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
                            gran[i].min.f,
                            gran[i].max.f,
                            gran[i].step.f);
+        }
+        else if (RIG_PARM_IS_STRING(rig_idx2setting(i)))
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: BAND_SELECT?\n", __func__);
+            len += sprintf(str + len,
+                "%s(%s)",
+                ms,
+                gran[i].step.s);
         }
         else
         {

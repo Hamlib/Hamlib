@@ -767,6 +767,46 @@ typedef enum { // numbers here reflect the Yaesu values
     RIG_BAND_430MHZ = 16,   /*!< \c 430MHz */
 } hamlib_band_t;
 
+typedef enum { // numbers here reflect the Yaesu values
+    RIG_BANDSELECT_UNUSED = CONSTANT_64BIT_FLAG(0),      /*!< \c Unused */
+    RIG_BANDSELECT_2200M  = CONSTANT_64BIT_FLAG(1),      /*!< \c 160M */
+    RIG_BANDSELECT_600M   = CONSTANT_64BIT_FLAG(2),      /*!< \c 160M */
+    RIG_BANDSELECT_160M   = CONSTANT_64BIT_FLAG(3),      /*!< \c 160M */
+    RIG_BANDSELECT_80M    = CONSTANT_64BIT_FLAG(4),      /*!< \c 80M */
+    RIG_BANDSELECT_60M    = CONSTANT_64BIT_FLAG(5),      /*!< \c 60M */
+    RIG_BANDSELECT_40M    = CONSTANT_64BIT_FLAG(6),      /*!< \c 40M */
+    RIG_BANDSELECT_30M    = CONSTANT_64BIT_FLAG(7),      /*!< \c 30M */
+    RIG_BANDSELECT_20M    = CONSTANT_64BIT_FLAG(8),      /*!< \c 20M */
+    RIG_BANDSELECT_17M    = CONSTANT_64BIT_FLAG(9),      /*!< \c 17M */
+    RIG_BANDSELECT_15M    = CONSTANT_64BIT_FLAG(10),      /*!< \c 15M */
+    RIG_BANDSELECT_12M    = CONSTANT_64BIT_FLAG(11),     /*!< \c 12M */
+    RIG_BANDSELECT_10M    = CONSTANT_64BIT_FLAG(12),     /*!< \c 10M */
+    RIG_BANDSELECT_6M     = CONSTANT_64BIT_FLAG(13),     /*!< \c 6M */
+    RIG_BANDSELECT_WFM    = CONSTANT_64BIT_FLAG(14),     /*!< \c IC705 74.8-108 */
+    RIG_BANDSELECT_GEN    = CONSTANT_64BIT_FLAG(15),     /*!< \c 60M */
+    RIG_BANDSELECT_MW     = CONSTANT_64BIT_FLAG(16),     /*!< \c Medium Wave */
+    RIG_BANDSELECT_AIR    = CONSTANT_64BIT_FLAG(17),     /*!< \c Air band */
+    RIG_BANDSELECT_4M     = CONSTANT_64BIT_FLAG(18),     /*!< \c 70MHz */
+    RIG_BANDSELECT_2M     = CONSTANT_64BIT_FLAG(19),     /*!< \c 144MHz */
+    RIG_BANDSELECT_1_25M  = CONSTANT_64BIT_FLAG(20),     /*!< \c 222MHz */
+    RIG_BANDSELECT_70CM   = CONSTANT_64BIT_FLAG(21),     /*!< \c 420MHz */
+    RIG_BANDSELECT_33CM   = CONSTANT_64BIT_FLAG(22),     /*!< \c 902MHz */
+    RIG_BANDSELECT_23CM   = CONSTANT_64BIT_FLAG(23),     /*!< \c 1240MHz */
+    RIG_BANDSELECT_13CM   = CONSTANT_64BIT_FLAG(24),     /*!< \c 2300MHz */
+    RIG_BANDSELECT_9CM    = CONSTANT_64BIT_FLAG(25),     /*!< \c 3300MHz */
+    RIG_BANDSELECT_5CM    = CONSTANT_64BIT_FLAG(26),     /*!< \c 5650MHz */
+    RIG_BANDSELECT_3CM    = CONSTANT_64BIT_FLAG(27),     /*!< \c 10000MHz */
+} hamlib_bandselect_t;
+
+
+#define RIG_BANDSELECT_ALL
+#define RIG_BANDSELECT_LF (RIG_BANDSELECT_2200M | RIG_BANDSELECT_600M)
+#define RIG_BANDSELECT_HF (RIG_BANDSELECT_160M | RIG_BANDSELECT_80M | RIG_BANDSELECT_60M | RIG_BANDSELECT_40M\
+| RIG_BANDSELECT_30M | RIG_BANDSELECT_20M | RIG_BANDSELECT_17M | RIG_BANDSELECT_15M | RIG_BANDSELECT_12M\
+RIG_BANDSELECT_10M | RIG_BANDSELECT_6M)
+#define RIG_BANDSELECT_UHF (RIG_BANDSELECT_AIR | RIG_BANDSELECT_2M| RIG_BANDSELECT_1_25M(
+#define RIG_BANDSELECT_VHF (RIG_BANDSELECT_70CM)
+
 
 /**
  * \brief Rig Scan operation
@@ -1077,7 +1117,8 @@ enum rig_parm_e {
     RIG_PARM_BAT =          (1 << 6),   /*!< \c BAT -- battery level, float [0.0 ... 1.0] */
     RIG_PARM_KEYLIGHT =     (1 << 7),   /*!< \c KEYLIGHT -- Button backlight, on/off */
     RIG_PARM_SCREENSAVER =  (1 << 8),   /*!< \c SCREENSAVER -- rig specific timeouts */
-    RIG_PARM_AFIF =         (1 << 9)    /*!< \c AFIF -- 0=AF audio, 1=IF audio -- see IC-7300/9700/705 */
+    RIG_PARM_AFIF =         (1 << 9),   /*!< \c AFIF -- 0=AF audio, 1=IF audio -- see IC-7300/9700/705 */
+    RIG_PARM_BANDSELECT =   (1 << 10)   /*!< \c BANDSELECT -- e.g. BAND160M, BAND80M, BAND70CM, BAND2CM */
 };
 
 /**
@@ -1106,9 +1147,11 @@ enum multicast_item_e {
 
 //! @cond Doxygen_Suppress
 #define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT|RIG_PARM_BAT|RIG_PARM_KEYLIGHT)
+#define RIG_PARM_STRING_LIST (RIG_PARM_BANDSELECT)
 #define RIG_PARM_READONLY_LIST (RIG_PARM_BAT)
 
 #define RIG_PARM_IS_FLOAT(l) ((l)&RIG_PARM_FLOAT_LIST)
+#define RIG_PARM_IS_STRING(l) ((l)&RIG_PARM_STRING_LIST)
 #define RIG_PARM_SET(l) ((l)&~RIG_PARM_READONLY_LIST)
 //! @endcond
 
@@ -2102,6 +2145,8 @@ struct rig_caps {
     int (*set_lock_mode)(RIG *rig, int mode);
     int (*get_lock_mode)(RIG *rig, int *mode);
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to use default value, -1 to disable */
+//    int (*bandwidth2rig)(RIG  *rig, enum bandwidth_t bandwidth);
+//    enum bandwidth_t (*rig2bandwidth)(RIG  *rig, int rigbandwidth);
 };
 //! @endcond
 

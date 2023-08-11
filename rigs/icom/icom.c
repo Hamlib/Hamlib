@@ -7607,6 +7607,17 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
     RETURNFUNC(-RIG_EINVAL);
 }
 
+const char * icom_get_band(RIG *rig, int band)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    
+    const char *s = rig_get_band_str(rig, band, 1);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: %d=%s\n", __func__, band, s);
+
+    return s;
+}
+
 /*
  * icom_get_parm
  * Assumes rig!=NULL
@@ -7629,7 +7640,12 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
     {
         if (cmd[i].cmdparamtype == CMD_PARAM_TYPE_PARM && cmd[i].id.s == parm)
         {
-            RETURNFUNC(icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val));
+            int retval = icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
+            if (parm == RIG_PARM_BANDSELECT)
+            {
+                val->s = (char*)icom_get_band(rig, val->i);
+            }
+            RETURNFUNC(retval);
         }
     }
 

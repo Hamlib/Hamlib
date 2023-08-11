@@ -195,6 +195,8 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val);
 int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val);
 int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status);
 int newcat_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status);
+int newcat_set_parm(RIG * rig, setting_t parm, value_t val);
+int newcat_get_parm(RIG * rig, setting_t parm, value_t *val);
 int newcat_set_mem(RIG * rig, vfo_t vfo, int ch);
 int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch);
 int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op);

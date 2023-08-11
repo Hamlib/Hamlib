@@ -3545,6 +3545,23 @@ declare_proto_rig(set_parm)
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
+    if (strcmp(arg1,"BANDSELECT")==0 && !strcmp(arg2,"?"))
+    {
+        char s[SPRINTF_MAX_SIZE];
+        rig_sprintf_parm_gran(s, sizeof(s)-1, RIG_PARM_BANDSELECT, rig->caps->parm_gran);
+        char *p = strchr(s,')');
+        if (p) *p = 0;
+        p = strchr(s,'(');
+
+        if (p)
+        {
+            char *comma;
+            while((comma=strchr(p,','))) *comma=' ';
+            fprintf(fout, "%s\n", p+1);
+            RETURNFUNC2(RIG_OK);
+        }
+        else RETURNFUNC2(-RIG_EINTERNAL);
+    }
 
     parm = rig_parse_parm(arg1);
 
@@ -3593,6 +3610,10 @@ declare_proto_rig(set_parm)
     if (RIG_PARM_IS_FLOAT(parm))
     {
         CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+    }
+    else if (RIG_PARM_IS_STRING(parm))
+    {
+        val.cs = arg2;
     }
     else
     {
@@ -3709,6 +3730,10 @@ declare_proto_rig(get_parm)
     if (RIG_PARM_IS_FLOAT(parm))
     {
         fprintf(fout, "%f\n", val.f);
+    }
+    if (RIG_PARM_IS_STRING(parm))
+    {
+        fprintf(fout, "%s\n", val.s);
     }
     else
     {

@@ -187,6 +187,7 @@
 #define PARM_TIME      setting2idx_builtin(RIG_PARM_TIME)
 #define PARM_BAT       setting2idx_builtin(RIG_PARM_BAT)
 #define PARM_KEYLIGHT  setting2idx_builtin(RIG_PARM_KEYLIGHT)
+#define PARM_BANDSELECT setting2idx_builtin(RIG_PARM_BANDSELECT)
 
 /* Rotator levels */
 
