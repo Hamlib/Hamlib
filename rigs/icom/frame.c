@@ -182,7 +182,6 @@ collision_retry:
          *          up to rs->retry times.
          */
 
-rig_debug(RIG_DEBUG_ERR, "%s: p->timeout=%d\n", __func__,  rs->rigport.timeout);
         retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
 
         if (retval == -RIG_ETIMEOUT || retval == 0)
