@@ -288,10 +288,8 @@ read_another_frame:
      * FIXME: handle padding/collisions
      * ACKFRMLEN is the smallest frame we can expect from the rig
      */
-rig_debug(RIG_DEBUG_ERR, "%s(%d): p->timeout=%d\n", __func__, __LINE__,  rs->rigport.timeout);
     buf[0] = 0;
     frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
-rig_debug(RIG_DEBUG_ERR, "%s(%d): p->timeout=%d\n", __func__, __LINE__ ,rs->rigport.timeout);
     if (frm_len > 4 && memcmp(buf, sendbuf, frm_len) == 0)
         priv->serial_USB_echo_off = 0;
 
