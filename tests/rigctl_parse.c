@@ -3729,14 +3729,17 @@ declare_proto_rig(get_parm)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: float\n", __func__);
         fprintf(fout, "%f%c", val.f, resp_sep);
     }
-    if (RIG_PARM_IS_STRING(parm))
+    else if (RIG_PARM_IS_STRING(parm))
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: string\n", __func__);
         fprintf(fout, "%s%c", val.s, resp_sep);
     }
     else
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: int\n", __func__);
         fprintf(fout, "%d%c", val.i, resp_sep);
     }
 
