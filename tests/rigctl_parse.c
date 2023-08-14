@@ -1697,7 +1697,7 @@ readline_repeat:
                                      " %s",
                                      rig_strvfo(vfo));
 
-        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
+        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), "%c%s", *vfo_opt?',':' ',p1);
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
         p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
 
@@ -3383,15 +3383,15 @@ declare_proto_rig(get_level)
 
         case RIG_CONF_CHECKBUTTON:
         case RIG_CONF_COMBO:
-            fprintf(fout, "%d\n", val.i);
+            fprintf(fout, "%d", val.i);
             break;
 
         case RIG_CONF_NUMERIC:
-            fprintf(fout, "%f\n", val.f);
+            fprintf(fout, "%f", val.f);
             break;
 
         case RIG_CONF_STRING:
-            fprintf(fout, "%s\n", val.s);
+            fprintf(fout, "%s", val.s);
             break;
 
         default:
@@ -3507,7 +3507,7 @@ declare_proto_rig(get_func)
             fprintf(fout, "%s: ", cmd->arg2);
         }
 
-        fprintf(fout, "%d\n", func_stat);
+        fprintf(fout, "%d%c", func_stat, resp_sep);
 
         RETURNFUNC2(status);
     }
@@ -3521,10 +3521,9 @@ declare_proto_rig(get_func)
 
     if (interactive && prompt)
     {
-        fprintf(fout, "%s: ", cmd->arg2);
+        fprintf(fout, "%s: ", cmd->arg1);
     }
-
-    fprintf(fout, "%d\n", func_stat);
+    fprintf(fout, "%d%c", func_stat, resp_sep);
 
     RETURNFUNC2(status);
 }
@@ -3693,19 +3692,20 @@ declare_proto_rig(get_parm)
 
         case RIG_CONF_CHECKBUTTON:
         case RIG_CONF_COMBO:
-            fprintf(fout, "%d\n", val.i);
+            fprintf(fout, "%d%c", val.i, resp_sep);
             break;
 
         case RIG_CONF_NUMERIC:
-            fprintf(fout, "%f\n", val.f);
+            fprintf(fout, "%f%c", val.f, resp_sep);
             break;
 
         case RIG_CONF_STRING:
-            fprintf(fout, "%s\n", val.s);
+            fprintf(fout, "%s%c", val.s, resp_sep);
             break;
 
         case RIG_CONF_BINARY:
             dump_hex((unsigned char *)buffer, val.b.l);
+            fprintf(fout, "%c", resp_sep);
             break;
 
         default:
@@ -3729,15 +3729,15 @@ declare_proto_rig(get_parm)
 
     if (RIG_PARM_IS_FLOAT(parm))
     {
-        fprintf(fout, "%f\n", val.f);
+        fprintf(fout, "%f%c", val.f, resp_sep);
     }
     if (RIG_PARM_IS_STRING(parm))
     {
-        fprintf(fout, "%s\n", val.s);
+        fprintf(fout, "%s%c", val.s, resp_sep);
     }
     else
     {
-        fprintf(fout, "%d\n", val.i);
+        fprintf(fout, "%d%c", val.i, resp_sep);
     }
 
     RETURNFUNC2(status);
