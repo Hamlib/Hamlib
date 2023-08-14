@@ -625,6 +625,7 @@ static const struct
     { RIG_VFO_NONE, "None" },
     { RIG_VFO_OTHER, "otherVFO" },
     { RIG_VFO_ALL, "AllVFOs" },
+    { RIG_VFO_A, "1" }, // to make gpredict happy in set_toggle
     { 0xffffffff, "" },
 };
 
