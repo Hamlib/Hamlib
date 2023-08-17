@@ -1118,7 +1118,14 @@ enum rig_parm_e {
     RIG_PARM_KEYLIGHT =     (1 << 7),   /*!< \c KEYLIGHT -- Button backlight, on/off */
     RIG_PARM_SCREENSAVER =  (1 << 8),   /*!< \c SCREENSAVER -- rig specific timeouts */
     RIG_PARM_AFIF =         (1 << 9),   /*!< \c AFIF -- 0=AF audio, 1=IF audio -- see IC-7300/9700/705 */
-    RIG_PARM_BANDSELECT =   (1 << 10)   /*!< \c BANDSELECT -- e.g. BAND160M, BAND80M, BAND70CM, BAND2CM */
+    RIG_PARM_BANDSELECT =   (1 << 10),  /*!< \c BANDSELECT -- e.g. BAND160M, BAND80M, BAND70CM, BAND2CM */
+    RIG_PARM_KEYERTYPE =    (1 << 11)   /*!< \c KEYERTYPE -- 0,1,2 or STRAIGHT PADDLE BUG */
+};
+
+enum rig_keyertype_e {
+    RIG_KEYERTYPE_STRAIGHT = 0,
+    RIG_KEYERTYPE_BUG      = (1 << 0),
+    RIG_KEYERTYPE_PADDLE   = (2 << 0)
 };
 
 /**
