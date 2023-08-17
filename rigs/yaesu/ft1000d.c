@@ -296,6 +296,9 @@ const struct rig_caps ft1000d_caps =
     {
 #include "level_gran_yaesu.h"
     },
+    .parm_gran =  {
+        [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 13.0f}},
+    },
     .ctcss_list =         NULL,
     .dcs_list =           NULL,
     .preamp =             { RIG_DBLST_END, },

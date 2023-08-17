@@ -174,7 +174,7 @@ const struct rig_caps frg100_caps =
     .has_get_level =      RIG_LEVEL_RAWSTR,
     .has_set_level =      RIG_LEVEL_BAND_SELECT,
     .has_get_parm =       RIG_PARM_NONE,
-    .has_set_parm =       RIG_PARM_BACKLIGHT,
+    .has_set_parm =       RIG_PARM_NONE,
     .level_gran =
     {
 #include "level_gran_yaesu.h"

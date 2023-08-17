@@ -278,6 +278,10 @@ const struct rig_caps ft990uni_caps =
     .has_set_level =      RIG_LEVEL_BAND_SELECT,
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_BACKLIGHT,
+    .parm_gran =  {
+        [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 13.0f}},
+    },
+
     .ctcss_list =         NULL,
     .dcs_list =           NULL,
     .preamp =             { RIG_DBLST_END, },
