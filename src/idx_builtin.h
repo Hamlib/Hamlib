@@ -189,6 +189,7 @@
 #define PARM_KEYLIGHT  setting2idx_builtin(RIG_PARM_KEYLIGHT)
 #define PARM_BANDSELECT setting2idx_builtin(RIG_PARM_BANDSELECT)
 #define PARM_SCREENSAVER setting2idx_builtin(RIG_PARM_SCREENSAVER)
+#define PARM_KEYERTYPE setting2idx_builtin(RIG_PARM_KEYERTYPE)
 
 /* Rotator levels */
 
