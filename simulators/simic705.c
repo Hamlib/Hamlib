@@ -310,7 +310,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
             break;
-            
+
         case 0x07:
             frame[6] = ovf_status;
             frame[7] = 0xfd;

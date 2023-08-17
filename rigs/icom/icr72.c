@@ -74,7 +74,11 @@ const struct rig_caps icr72_caps =
     .has_get_parm =  RIG_PARM_ANN,
     .has_set_parm =  RIG_PARM_ANN,
     .level_gran =  {},      /* granularity */
-    .parm_gran =  {},
+    .parm_gran =  {
+        [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND160M,BAND80M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDGEN"}},
+        [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+    },
+
     .ctcss_list =  NULL,
     .dcs_list =  NULL,
     .preamp =   { RIG_DBLST_END, },

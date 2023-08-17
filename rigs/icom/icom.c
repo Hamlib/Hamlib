@@ -9412,7 +9412,12 @@ int icom_get_raw_buf(RIG *rig, int cmd, int subcmd, int subcmdbuflen,
     cmdhead += (subcmd == -1) ? 1 : 2;
     ack_len -= cmdhead;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: %d\n", __func__, ack_len);
+    rig_debug(RIG_DEBUG_TRACE, "%s: ack_len=%d\n", __func__, ack_len);
+
+    if (ack_len < 0)
+    {
+        RETURNFUNC(-RIG_EPROTO);
+    }
 
     if (*reslen < ack_len || res == NULL)
     {

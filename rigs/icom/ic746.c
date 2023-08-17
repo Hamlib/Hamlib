@@ -446,7 +446,12 @@ const struct rig_caps ic746pro_caps =
 #include "level_gran_icom.h"
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
-    .parm_gran =  {},
+    .parm_gran =  {
+        [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
+        [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}, .step = {.i = 1}},
+        [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+    },
+
     .extparms = ic746pro_ext_parms,
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  full_dcs_list,

@@ -137,6 +137,7 @@
 struct cmdparams ic7000_extcmds[] =
 {
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x17}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x41}, CMD_DAT_TIM, 2 },
     { {.s = RIG_PARM_NONE} }
 };
 
@@ -226,7 +227,14 @@ const struct rig_caps ic7000_caps =
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
-    .parm_gran =  {},
+    .parm_gran =  {
+        [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
+        [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}, .step = {.i = 1}},
+        [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86399}, .step = {.i = 1}},
+        [PARM_APO] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
+        [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+    },
+
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  common_dcs_list,
     .preamp =   { 10, RIG_DBLST_END, }, /* FIXME: TBC it's a guess */
@@ -345,8 +353,8 @@ const struct rig_caps ic7000_caps =
     .get_level =  icom_get_level,
     .set_func =  icom_set_func,
     .get_func =  icom_get_func,
-    .set_parm =  NULL,
-    .get_parm =  NULL,
+    .set_parm =  icom_set_parm,
+    .get_parm =  icom_get_parm,
     .set_mem =  icom_set_mem,
     .set_bank =  icom_set_bank,
     .vfo_op =  icom_vfo_op,

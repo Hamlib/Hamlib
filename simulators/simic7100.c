@@ -47,6 +47,7 @@ int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
+int keyspd = 20;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -72,11 +73,13 @@ again:
         if (c == 0xfd)
         {
             char mytime[256];
-            date_strget(mytime,sizeof(mytime),1);
+            date_strget(mytime, sizeof(mytime), 1);
             printf("%s:", mytime); dumphex(buf, i);
             // echo
             n = write(fd, buf, i);
-            if (n != i) printf("%s: error on write: %s\n", __func__, strerror(errno));
+
+            if (n != i) { printf("%s: error on write: %s\n", __func__, strerror(errno)); }
+
             return i;
         }
 
@@ -200,7 +203,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         frame[4] = 0xfb;
         frame[5] = 0xfd;
-        hl_usleep(20*1000);
+        hl_usleep(20 * 1000);
         n = write(fd, frame, 6);
         break;
 
@@ -281,7 +284,28 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
             break;
+        case 0x0c:
+            dumphex(frame, 10);
+            printf("subcmd=0x0c #1\n");
+
+            if (frame[6] != 0xfd) // then we have data
+            {
+                printf("subcmd=0x0c #1\n");
+                keyspd = from_bcd(&frame[6], 2);
+                frame[6] = 0xfb;
+                n = write(fd, frame, 7);
+            }
+            else
+            {
+                printf("subcmd=0x0c #1\n");
+                to_bcd(&frame[6], keyspd, 2);
+                frame[8] = 0xfd;
+                n = write(fd, frame, 9);
+            }
+
+            break;
         }
+
 
         break;
 

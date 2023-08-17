@@ -144,7 +144,12 @@ const struct rig_caps icr75_caps =
     .parm_gran =  {
         [PARM_APO] = { .min = { .i = 1 }, .max = { .i = 1439} },
         [PARM_TIME] = { .min = { .i = 0 }, .max = { .i = 86399} },
+        [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
+        [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND160M,BAND80M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDGEN"}},
+        [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}, .step = {.i = 1}},
+        [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
     },
+
     .ctcss_list =  NULL,
     .dcs_list =  NULL,
     .preamp =   { 10, 20, RIG_DBLST_END, }, /* TBC */

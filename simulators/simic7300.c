@@ -31,7 +31,7 @@ int civ_731_mode = 0;
 vfo_t current_vfo = RIG_VFO_A;
 int split = 0;
 int keyspd = 85; // 85=20WPM
-int band=8;
+int band = 8;
 
 // we make B different from A to ensure we see a difference at startup
 float freqA = 14074000;
@@ -311,7 +311,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
             break;
-            
+
         case 0x07:
             frame[6] = ovf_status;
             frame[7] = 0xfd;
@@ -371,17 +371,19 @@ void frameParse(int fd, unsigned char *frame, int len)
             {
                 frame[6] = band;
                 frame[7] = 0xfd;
-                n = write(fd,frame,8);
+                n = write(fd, frame, 8);
             }
             else
             {
                 band = frame[6];
-                printf("Band select=%d\n",band);
+                printf("Band select=%d\n", band);
                 frame[4] = 0xfb;
                 frame[5] = 0xfe;
-                n = write(fd,frame,6);
+                n = write(fd, frame, 6);
             }
+
             break;
+
         case 0x03:  // width
             if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { frame[6] = widthA; }
             else { frame[6] = widthB; }

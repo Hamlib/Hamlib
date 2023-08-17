@@ -7,9 +7,9 @@
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -377,7 +377,9 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[5] = 0xfd;
                 n = write(fd, frame, 6);
             }
+
             break;
+
         case 0x07: // satmode
             frame[4] = 0;
             frame[7] = 0xfd;
