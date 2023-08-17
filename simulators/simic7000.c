@@ -48,6 +48,8 @@ int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
 int transceive = 0;
+int keyspd = 20;
+int rigtime = 1230;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -73,11 +75,13 @@ again:
         if (c == 0xfd)
         {
             char mytime[256];
-            date_strget(mytime,sizeof(mytime),1);
+            date_strget(mytime, sizeof(mytime), 1);
             printf("%s:", mytime); dumphex(buf, i);
             // echo
             n = write(fd, buf, i);
-            if (n != i) printf("%s: error on write: %s\n", __func__, strerror(errno));
+
+            if (n != i) { printf("%s: error on write: %s\n", __func__, strerror(errno)); }
+
             return i;
         }
 
@@ -281,9 +285,31 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
             break;
+
+        case 0x0c:
+            dumphex(frame, 10);
+            printf("subcmd=0x0c #1\n");
+
+            if (frame[6] != 0xfd) // then we have data
+            {
+                printf("subcmd=0x0c #1\n");
+                keyspd = from_bcd(&frame[6], 2);
+                frame[6] = 0xfb;
+                n = write(fd, frame, 7);
+            }
+            else
+            {
+                printf("subcmd=0x0c #1\n");
+                to_bcd(&frame[6], keyspd, 2);
+                frame[8] = 0xfd;
+                n = write(fd, frame, 9);
+            }
+
+            break;
         }
 
         break;
+
 
     case 0x15:
         switch (frame[5])
@@ -369,14 +395,47 @@ void frameParse(int fd, unsigned char *frame, int len)
         case 0x05:
             // FE FE 70 E0 1A 05 00 92 00 FD
             printf("0x05 received\n");
-            if (frame[6] == 0x00 && frame[7] == 0x92 && frame[8] == 0x00)
+
+            if (frame[6] == 0x00 && frame[7] == 0x92)
             {
-            printf("0x05 0x00 0x92 received\n");
-                transceive = frame[8];
-                frame[6] = 0xfb;
-                frame[7] = 0xfd;
-                n = write(fd, frame, 8);
+                if (frame[8] == 0x00)
+                {
+                    printf("0x05 0x00 0x92 received\n");
+                    transceive = frame[8];
+                    frame[6] = 0xfb;
+                    frame[7] = 0xfd;
+                    n = write(fd, frame, 8);
+                }
+                else
+                {
+                    frame[8] = transceive;
+                    frame[9] = 0xfb;
+                    frame[10] = 0xfd;
+                    n = write(fd, frame, 11);
+                }
             }
+            // FE FE 70 E0 1A 05 00 41 00 FD
+            else if (frame[6] == 0x00 && frame[7] == 0x41)
+            {
+                if (frame[8] != 0xfd)
+                {
+                    printf("0x05 0x00 0x41 received\n");
+                    rigtime = frame[8] * 100 + frame[9];
+                    frame[6] = 0xfb;
+                    frame[7] = 0xfd;
+                    n = write(fd, frame, 8);
+                }
+                else
+                {
+                    frame[8] = rigtime / 100;
+                    frame[9] = rigtime % 100;
+                    frame[10] = 0xfd;
+                    n = write(fd, frame, 11);
+                }
+            }
+
+            break;
+
         case 0x06: // Data mode
             if (frame[6] == 0xfd) // then we're replying with mode
             {

@@ -238,7 +238,8 @@ void frameParse(int fd, unsigned char *frame, int len)
         break;
 
     case 0x14:
-    printf("******** 0x14 received frame[5]=0x%02x\n", frame[5]);
+        printf("******** 0x14 received frame[5]=0x%02x\n", frame[5]);
+
         switch (frame[5])
         {
             static int power_level = 0;
@@ -285,9 +286,11 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
             }
+
             break;
+
         default:
-        printf("*********** NAK\n");
+            printf("*********** NAK\n");
             frame[5] = 0xfa;
             frame[6] = 0xfd;
             n = write(fd, frame, 7);

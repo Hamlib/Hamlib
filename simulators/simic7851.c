@@ -190,11 +190,13 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     case 0x07:
 
-printf("******* [5] = 0x07\n");
+        printf("******* [5] = 0x07\n");
+
         switch (frame[5])
         {
         case 0xd2:
-printf("******* [6] = 0x07\n");
+            printf("******* [6] = 0x07\n");
+
             switch (frame[6])
             {
             case 0x00: current_vfo = RIG_VFO_MAIN; break;
@@ -247,8 +249,9 @@ printf("******* [6] = 0x07\n");
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
         }
+
         break;
-        
+
 
     case 0x12: // we're simulating the 3-byte version -- not the 2-byte
         if (frame[5] != 0xfd)

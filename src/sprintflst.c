@@ -565,7 +565,7 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
         if (RIG_PARM_IS_FLOAT(rig_idx2setting(i)))
         {
             len += sprintf(str + len,
-                           "%s(%f..%f/%f) ",
+                           "%s(%.g..%.g/%.g) ",
                            ms,
                            gran[i].min.f,
                            gran[i].max.f,
