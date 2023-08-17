@@ -82,7 +82,10 @@ const struct rig_caps r5000_caps =
     .has_set_level =  RIG_LEVEL_SET(R5000_LEVEL_ALL),
     .has_get_parm =  R5000_PARM_ALL,
     .has_set_parm =  RIG_PARM_SET(R5000_PARM_ALL),
-    .parm_gran =  {},
+    .parm_gran =  {
+        [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86399}, .step = {.i = 1}},
+    },
+
     .ctcss_list =  NULL,
     .dcs_list =  NULL,
     .preamp =   { RIG_DBLST_END, },

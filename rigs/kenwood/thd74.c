@@ -1677,7 +1677,12 @@ const struct rig_caps thd74_caps =
     {
 #include "level_gran_kenwood.h"
     },
-    .parm_gran =  {},
+    .parm_gran =  {
+        [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86399}, .step = {.i = 1}},
+    },
+
+
+
     .ctcss_list =  kenwood38_ctcss_list,
     .dcs_list =  NULL,
     .preamp =   { RIG_DBLST_END, },
