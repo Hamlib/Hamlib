@@ -172,6 +172,7 @@ int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
 int kx3_get_bar_graph_level(RIG *rig, float *level);
 int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
 int k3_stop_voice_mem(RIG *rig, vfo_t vfo);
+int k3_stop_morse(RIG *rig, vfo_t vfo);
 
 /* K4 functions */
 int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
@@ -337,6 +338,7 @@ const struct rig_caps k3_caps =
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
     .wait_morse =       rig_wait_morse,
+    .stop_morse =       k3_stop_morse,
     .send_voice_mem =   k3_send_voice_mem,
     .stop_voice_mem =   k3_stop_voice_mem,
     .power2mW =     k3_power2mW,
@@ -491,6 +493,7 @@ const struct rig_caps k3s_caps =
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
     .wait_morse =       rig_wait_morse,
+    .stop_morse =       k3_stop_morse,
     .send_voice_mem =   k3_send_voice_mem,
     .stop_voice_mem =   k3_stop_voice_mem,
     .power2mW =     k3_power2mW,
@@ -651,6 +654,7 @@ const struct rig_caps k4_caps =
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
     .wait_morse =       rig_wait_morse,
+    .stop_morse =       k3_stop_morse,
     .send_voice_mem =   k4_send_voice_mem,
     .stop_voice_mem =   k4_stop_voice_mem,
     .power2mW =     k3_power2mW,
@@ -804,6 +808,7 @@ const struct rig_caps kx3_caps =
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
     .wait_morse =       rig_wait_morse,
+    .stop_morse =       k3_stop_morse,
     .send_voice_mem =   k3_send_voice_mem,
     .stop_voice_mem =   k3_stop_voice_mem,
     .power2mW =     k3_power2mW,
@@ -957,6 +962,7 @@ const struct rig_caps kx2_caps =
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
     .wait_morse =       rig_wait_morse,
+    .stop_morse =       k3_stop_morse,
     .power2mW =     k3_power2mW,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
@@ -2895,5 +2901,12 @@ int k4_stop_voice_mem(RIG *rig, vfo_t vfo)
 {
     int retval;
     retval = kenwood_transaction(rig, "DA0;", NULL, 0);
+    return retval;
+}
+
+int k3_stop_morse(RIG *rig, vfo_t vfo)
+{
+    int retval;
+    retval = kenwood_transaction(rig, "KY;", NULL, 0);
     return retval;
 }
