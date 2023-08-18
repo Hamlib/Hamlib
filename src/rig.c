@@ -7149,6 +7149,41 @@ int HAMLIB_API rig_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
     RETURNFUNC(retcode);
 }
 
+/**
+ * \brief stop sending voice memory
+ * \param rig   The rig handle
+ * \param vfo   The target VFO
+ *
+ *  Stops sending voice memory content.
+ *
+ * \return RIG_OK if the operation has been successful, otherwise
+ * a negative value if an error occurred (in which case, cause is
+ * set appropriately).
+ *
+ */
+
+int HAMLIB_API rig_stop_voice_mem(RIG *rig, vfo_t vfo)
+{
+    const struct rig_caps *caps;
+    int retcode;
+
+    ENTERFUNC;
+
+    if CHECK_RIG_ARG(rig)
+    {
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    caps = rig->caps;
+
+    if (caps->stop_voice_mem == NULL)
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+    retcode = caps->stop_voice_mem(rig, vfo);
+    RETURNFUNC(retcode);
+}
+
 
 /**
  * \brief find the freq_range of freq/mode

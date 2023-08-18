@@ -241,6 +241,7 @@ declare_proto_rig(send_morse);
 declare_proto_rig(stop_morse);
 declare_proto_rig(wait_morse);
 declare_proto_rig(send_voice_mem);
+declare_proto_rig(stop_voice_mem);
 declare_proto_rig(send_cmd);
 declare_proto_rig(set_powerstat);
 declare_proto_rig(get_powerstat);
@@ -352,6 +353,7 @@ static struct test_table test_list[] =
     { 0xbb, "stop_morse",       ACTION(stop_morse),     },
     { 0xbc, "wait_morse",       ACTION(wait_morse),     },
     { 0x94, "send_voice_mem",   ACTION(send_voice_mem), ARG_IN, "Voice Mem#" },
+    { 0xab, "stop_voice_mem",   ACTION(stop_voice_mem), },
     { 0x8b, "get_dcd",          ACTION(get_dcd),        ARG_OUT, "DCD" },
     { 0x8d, "set_twiddle",      ACTION(set_twiddle),    ARG_IN  | ARG_NOVFO, "Timeout (secs)" },
     { 0x8e, "get_twiddle",      ACTION(get_twiddle),    ARG_OUT | ARG_NOVFO, "Timeout (secs)" },
@@ -4787,6 +4789,12 @@ declare_proto_rig(send_voice_mem)
     CHKSCN1ARG(sscanf(arg1, "%d", &ch));
 
     RETURNFUNC2(rig_send_voice_mem(rig, vfo, ch));
+}
+
+declare_proto_rig(stop_voice_mem)
+{
+    ENTERFUNC2;
+    RETURNFUNC2(rig_stop_voice_mem(rig, vfo));
 }
 
 declare_proto_rig(send_dtmf)
