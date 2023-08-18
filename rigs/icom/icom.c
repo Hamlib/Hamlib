@@ -1951,7 +1951,6 @@ int filtericom[] = { 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 
 
 pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
 {
-
     int retval, res_len = 0, rfstatus;
     unsigned char resbuf[MAXFRAMELEN];
     value_t rfwidth;
@@ -1984,7 +1983,8 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     }
 
     if (RIG_MODEL_X108G == rig->caps->rig_model
-            || RIG_MODEL_X5105 == rig->caps->rig_model)
+            || RIG_MODEL_X5105 == rig->caps->rig_model
+            || RIG_MODEL_G90 == rig->caps->rig_model)
     {
         priv->no_1a_03_cmd = ENUM_1A_03_NO;
     }
@@ -2761,12 +2761,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             rig_set_vfo(rig, vfo); // force VFO
         }
 
-        retval = 0;
-        // G90 does have dsp_flt command 
-        if (rig->caps->rig_model != RIG_MODEL_G90)
-        {
-            retval = icom_get_dsp_flt(rig, *mode);
-        }
+        retval = icom_get_dsp_flt(rig, *mode);
         *width = retval;
 
         if (retval == 0)
@@ -2789,12 +2784,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             // we need to figure out how to read VFOB without swapping VFOs
             //HAMLIB_TRACE;
             //rig_set_vfo(rig, RIG_VFO_B);
-            retval = 0;
-
-            if (rig->caps->rig_model != RIG_MODEL_G90)
-            {
-                retval = icom_get_dsp_flt(rig, *mode);
-            }
+            retval = icom_get_dsp_flt(rig, *mode);
             *width = retval;
 
             if (*width == 0) { *width = rig->state.cache.widthMainA; } // we'll use VFOA's width
