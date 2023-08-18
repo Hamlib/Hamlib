@@ -440,6 +440,17 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "RA$%d;", &rxattenuatorB);
         }
+        else if (strncmp(buf, "KY;", 3)==0)
+        {
+            int status = 0;
+            printf("KY query\n");
+            SNPRINTF(buf, sizeof(buf), "KY%d;", status);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "KY",2)==0)
+        {
+            printf("Morse: %s\n", buf);
+        }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
