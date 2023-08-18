@@ -3562,6 +3562,13 @@ declare_proto_rig(set_parm)
         else RETURNFUNC2(-RIG_EINTERNAL);
     }
 
+    if (strcmp(arg1,"KEYERTYPE")==0 && strcmp(arg2,"?") != 0)
+    {
+        if (strcmp(arg2,"STRAIGHT")==0) arg2 = "0";
+        else if (strcmp(arg2,"BUG")==0) arg2 = "1";
+        else if (strcmp(arg2,"PADDLE")==0) arg2 = "2";
+    }
+
     parm = rig_parse_parm(arg1);
 
     if (!rig_has_set_parm(rig, parm))
