@@ -89,6 +89,7 @@
 struct cmdparams ic9100_extcmds[] =
 {
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x27}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_KEYERTYPE}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x02}, CMD_DAT_INT, 1 },
     { {.s = RIG_PARM_NONE} }
 };
 
@@ -142,6 +143,7 @@ const struct rig_caps ic9100_caps =
         [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
         [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND160M,BAND80M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDGEN"}},
         [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT, BUG, PADDLE"}},
     },
 
     .ctcss_list =  common_ctcss_list,

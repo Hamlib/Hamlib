@@ -133,6 +133,7 @@ struct cmdparams ic7600_extcmds[] =
     { {.s = RIG_PARM_BACKLIGHT}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x38}, CMD_DAT_LVL, 2 },
     { {.s = RIG_PARM_TIME}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x00, 0x54}, CMD_DAT_TIM, 2 },
     { {.s = RIG_LEVEL_VOXDELAY}, CMD_PARAM_TYPE_LEVEL, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x67}, CMD_DAT_INT, 1 },
+    { {.s = RIG_PARM_KEYERTYPE}, CMD_PARAM_TYPE_PARM, C_CTL_MEM, S_MEM_PARM, SC_MOD_RW, 2, {0x01, 0x37}, CMD_DAT_INT, 1 },
     { { 0 } }
 };
 
@@ -315,6 +316,7 @@ struct rig_caps ic7600_caps =
         [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86399}, .step = {.i = 1}},
         [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
         [PARM_APO] = { .min = { .i = 1 }, .max = { .i = 1439} },
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT, BUG, PADDLE"}},
     },
 
     .ext_tokens = ic7600_ext_tokens,
