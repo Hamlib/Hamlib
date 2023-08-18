@@ -3734,7 +3734,14 @@ declare_proto_rig(get_parm)
         fprintf(fout, "%s: ", cmd->arg2);
     }
 
-    if (RIG_PARM_IS_FLOAT(parm))
+    if (parm == RIG_PARM_KEYERTYPE)
+    {
+        char *s = "STRAIGHT";
+        if (val.i == 1) s = "BUG";
+        else if (val.i == 2) s = "PADDLE";
+        fprintf(fout, "%s%cv", s, resp_sep);
+    }
+    else if (RIG_PARM_IS_FLOAT(parm))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: float\n", __func__);
         fprintf(fout, "%f%c", val.f, resp_sep);
