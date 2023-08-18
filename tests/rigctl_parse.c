@@ -1701,6 +1701,8 @@ readline_repeat:
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
         p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
 
+        if (cmd == 'b') strtok(a1,"\r\n");
+
         fprintf(fout,
                 "%s:%s%s%s%s%c",
                 cmd_entry->name,
