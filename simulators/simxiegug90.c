@@ -275,6 +275,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[6] = 0xfd;
         n = write(fd, frame, 7);
         break;
+#endif
 
     case 0x1a: // miscellaneous things
         switch (frame[5])
@@ -286,24 +287,9 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
             break;
-
-        case 0x04: // IC7200 data mode
-            frame[6] = 0;
-            frame[7] = 0;
-            frame[8] = 0xfd;
-            n = write(fd, frame, 9);
-            break;
-
-        case 0x07: // satmode
-            frame[6] = 0;
-            frame[7] = 0xfd;
-            n = write(fd, frame, 8);
-            break;
-
         }
 
         break;
-#endif
     case 0x1c:
         switch (frame[5])
         {
