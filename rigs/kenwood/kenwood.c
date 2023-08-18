@@ -350,12 +350,15 @@ transaction_write:
         skip |= strncmp(cmdstr, "RU", 2) == 0;
         skip |= strncmp(cmdstr, "RD", 2) == 0;
         skip |= strncmp(cmdstr, "KYW", 3) == 0;
+        skip |= strncmp(cmdstr, "KY ", 3) == 0;
         skip |= strncmp(cmdstr, "PS1", 3) == 0;
         skip |= strncmp(cmdstr, "PS0", 3) == 0;
         skip |= strncmp(cmdstr, "K22", 3) == 0;
 
         if (skip)
         {
+            // most command we give them a little time -- but not KY
+            if (strncmp(cmdstr, "KY ", 3)!= 0)
             hl_usleep(200 * 1000); // give little settle time for these commands
             goto transaction_quit;
         }
@@ -364,7 +367,7 @@ transaction_write:
     // Malachite SDR cannot send ID after FA
     if (!datasize && priv->no_id) { RETURNFUNC2(RIG_OK); }
 
-    if (!datasize)
+    if (!datasize && strncmp(cmdstr, "KY",2)!=0)
     {
         rig->state.transaction_active = 0;
 
