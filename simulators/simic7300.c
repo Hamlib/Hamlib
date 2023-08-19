@@ -49,6 +49,7 @@ int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
+int keyertype = 0;
 
 void dumphex(unsigned char *buf, int n)
 {
@@ -412,160 +413,182 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             break;
 
-        case 0x07: // satmode
-            frame[4] = 0;
+        case 0x05:
+        {
+            int item = frame[6] * 256 + frame[7];
+            printf("0x05 *************************** item=%04x\n", item);
+
+            if (frame[8] != 0xfd) // then we're setting it
+            {
+                switch (item)
+                {
+                case 164:
+                    keyertype = frame[8];
+                    break;
+                }
+
+                frame[4] = 0xfb;
+                frame[5] = 0xfd;
+                n = write(fd, frame, 6);
+            }
+            else // we're reading it
+            {
+                switch (item)
+                case 164:
+                frame[8] = keyertype;
+                frame[9] = 0xfb;
+                break;
+            }
+
+            n = write(fd, frame, 10);
+        }
+        break;
+    }
+
+case 0x1c:
+    switch (frame[5])
+    {
+    case 0:
+        if (frame[6] == 0xfd)
+        {
+            frame[6] = ptt;
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
-            break;
-
         }
-
-        break;
-
-    case 0x1c:
-        switch (frame[5])
+        else
         {
-        case 0:
-            if (frame[6] == 0xfd)
-            {
-                frame[6] = ptt;
-                frame[7] = 0xfd;
-                n = write(fd, frame, 8);
-            }
-            else
-            {
-                ptt = frame[6];
-                frame[7] = 0xfb;
-                frame[8] = 0xfd;
-                n = write(fd, frame, 9);
-            }
-
-            break;
-
+            ptt = frame[6];
+            frame[7] = 0xfb;
+            frame[8] = 0xfd;
+            n = write(fd, frame, 9);
         }
 
         break;
+
+    }
+
+    break;
 
 
 #ifdef X25
 
-    case 0x25:
-        if (frame[6] == 0xfd)
+case 0x25:
+    if (frame[6] == 0xfd)
+    {
+        if (frame[5] == 0x00)
         {
-            if (frame[5] == 0x00)
-            {
-                to_bcd(&frame[6], (long long)freqA, (civ_731_mode ? 4 : 5) * 2);
-                printf("X25 get_freqA=%.0f\n", freqA);
-            }
-            else
-            {
-                to_bcd(&frame[6], (long long)freqB, (civ_731_mode ? 4 : 5) * 2);
-                printf("X25 get_freqB=%.0f\n", freqB);
-            }
-
-            frame[11] = 0xfd;
-#if 0
-            unsigned char frame2[11];
-
-            frame2[0] = 0xfe;
-            frame2[1] = 0xfe;
-            frame2[2] = 0x00; // send transceive frame
-            frame2[3] = frame[3]; // send transceive frame
-            frame2[4] = 0x00;
-            frame2[5] = 0x70;
-            frame2[6] = 0x28;
-            frame2[7] = 0x57;
-            frame2[8] = 0x03;
-            frame2[9] = 0x00;
-            frame2[10] = 0xfd;
-            n = write(fd, frame2, 11);
-#endif
-            n = write(fd, frame, 12);
+            to_bcd(&frame[6], (long long)freqA, (civ_731_mode ? 4 : 5) * 2);
+            printf("X25 get_freqA=%.0f\n", freqA);
         }
         else
         {
-            freq = from_bcd(&frame[6], (civ_731_mode ? 4 : 5) * 2);
-            printf("set_freq to %.0f\n", freq);
+            to_bcd(&frame[6], (long long)freqB, (civ_731_mode ? 4 : 5) * 2);
+            printf("X25 get_freqB=%.0f\n", freqB);
+        }
 
-            if (frame[5] == 0x00) { freqA = freq; }
-            else { freqB = freq; }
-
-            frame[4] = 0xfb;
-            frame[5] = 0xfd;
-            n = write(fd, frame, 6);
+        frame[11] = 0xfd;
 #if 0
-            // send async frame
-            frame[2] = 0x00; // async freq
-            frame[3] = 0xa2;
-            frame[4] = 0x00;
-            frame[5] = 0x00;
-            frame[6] = 0x10;
-            frame[7] = 0x01;
-            frame[8] = 0x96;
-            frame[9] = 0x12;
-            frame[10] = 0xfd;
-            n = write(fd, frame, 11);
+        unsigned char frame2[11];
+
+        frame2[0] = 0xfe;
+        frame2[1] = 0xfe;
+        frame2[2] = 0x00; // send transceive frame
+        frame2[3] = frame[3]; // send transceive frame
+        frame2[4] = 0x00;
+        frame2[5] = 0x70;
+        frame2[6] = 0x28;
+        frame2[7] = 0x57;
+        frame2[8] = 0x03;
+        frame2[9] = 0x00;
+        frame2[10] = 0xfd;
+        n = write(fd, frame2, 11);
 #endif
-        }
+        n = write(fd, frame, 12);
+    }
+    else
+    {
+        freq = from_bcd(&frame[6], (civ_731_mode ? 4 : 5) * 2);
+        printf("set_freq to %.0f\n", freq);
 
-        break;
+        if (frame[5] == 0x00) { freqA = freq; }
+        else { freqB = freq; }
 
-    case 0x26:
-        for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
-
-        if (frame[6] == 0xfd) // then a query
-        {
-            for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
-
-            frame[6] = frame[5] == 0 ? modeA : modeB;
-            frame[7] = frame[5] == 0 ? datamodeA : datamodeB;
-            frame[8] = 0xfb;
-            frame[9] = 0xfd;
-            n = write(fd, frame, 10);
-        }
-        else
-        {
-            for (int i = 0; i < 12; ++i) { printf("%02x:", frame[i]); }
-
-            if (frame[6] == 0)
-            {
-                modeA = frame[7];
-                datamodeA = frame[8];
-            }
-            else
-            {
-                modeB = frame[7];
-                datamodeB = frame[8];
-            }
-
-            frame[4] = 0xfb;
-            frame[5] = 0xfd;
-            n = write(fd, frame, 6);
-        }
-
-        printf("\n");
-        break;
-#else
-
-    case 0x25:
-        printf("x25 send nak\n");
-        frame[4] = 0xfa;
+        frame[4] = 0xfb;
         frame[5] = 0xfd;
         n = write(fd, frame, 6);
-        break;
-
-    case 0x26:
-        printf("x26 send nak\n");
-        frame[4] = 0xfa;
-        frame[5] = 0xfd;
-        n = write(fd, frame, 6);
-        break;
+#if 0
+        // send async frame
+        frame[2] = 0x00; // async freq
+        frame[3] = 0xa2;
+        frame[4] = 0x00;
+        frame[5] = 0x00;
+        frame[6] = 0x10;
+        frame[7] = 0x01;
+        frame[8] = 0x96;
+        frame[9] = 0x12;
+        frame[10] = 0xfd;
+        n = write(fd, frame, 11);
 #endif
-
-    default: printf("cmd 0x%02x unknown\n", frame[4]);
     }
 
-    if (n == 0) { printf("Write failed=%s\n", strerror(errno)); }
+    break;
+
+case 0x26:
+    for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
+
+    if (frame[6] == 0xfd) // then a query
+    {
+        for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
+
+        frame[6] = frame[5] == 0 ? modeA : modeB;
+        frame[7] = frame[5] == 0 ? datamodeA : datamodeB;
+        frame[8] = 0xfb;
+        frame[9] = 0xfd;
+        n = write(fd, frame, 10);
+    }
+    else
+    {
+        for (int i = 0; i < 12; ++i) { printf("%02x:", frame[i]); }
+
+        if (frame[6] == 0)
+        {
+            modeA = frame[7];
+            datamodeA = frame[8];
+        }
+        else
+        {
+            modeB = frame[7];
+            datamodeB = frame[8];
+        }
+
+        frame[4] = 0xfb;
+        frame[5] = 0xfd;
+        n = write(fd, frame, 6);
+    }
+
+    printf("\n");
+    break;
+#else
+
+case 0x25:
+    printf("x25 send nak\n");
+    frame[4] = 0xfa;
+    frame[5] = 0xfd;
+    n = write(fd, frame, 6);
+    break;
+
+case 0x26:
+    printf("x26 send nak\n");
+    frame[4] = 0xfa;
+    frame[5] = 0xfd;
+    n = write(fd, frame, 6);
+    break;
+#endif
+
+default: printf("cmd 0x%02x unknown\n", frame[4]);
+}
+
+if (n == 0) { printf("Write failed=%s\n", strerror(errno)); }
 
 // don't care about the rig type yet
 
@@ -574,98 +597,98 @@ void frameParse(int fd, unsigned char *frame, int len)
 #if defined(WIN32) || defined(_WIN32)
 int openPort(char *comport) // doesn't matter for using pts devices
 {
-    int fd;
-    fd = open(comport, O_RDWR);
+int fd;
+fd = open(comport, O_RDWR);
 
-    if (fd < 0)
-    {
-        perror(comport);
-    }
+if (fd < 0)
+{
+    perror(comport);
+}
 
-    return fd;
+return fd;
 }
 
 #else
 int openPort(char *comport) // doesn't matter for using pts devices
 {
-    int fd = posix_openpt(O_RDWR);
-    char *name = ptsname(fd);
+int fd = posix_openpt(O_RDWR);
+char *name = ptsname(fd);
 
-    if (name == NULL)
-    {
-        perror("pstname");
-        return -1;
-    }
+if (name == NULL)
+{
+    perror("pstname");
+    return -1;
+}
 
-    printf("name=%s\n", name);
+printf("name=%s\n", name);
 
-    if (fd == -1 || grantpt(fd) == -1 || unlockpt(fd) == -1)
-    {
-        perror("posix_openpt");
-        return -1;
-    }
+if (fd == -1 || grantpt(fd) == -1 || unlockpt(fd) == -1)
+{
+    perror("posix_openpt");
+    return -1;
+}
 
-    return fd;
+return fd;
 }
 #endif
 
 void rigStatus()
 {
-    char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';
-    char vfob = current_vfo == RIG_VFO_B ? '*' : ' ';
-    printf("%cVFOA: mode=%d datamode=%d width=%ld freq=%.0f\n", vfoa, modeA,
-           datamodeA,
-           widthA,
-           freqA);
-    printf("%cVFOB: mode=%d datamode=%d width=%ld freq=%.0f\n", vfob, modeB,
-           datamodeB,
-           widthB,
-           freqB);
+char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';
+char vfob = current_vfo == RIG_VFO_B ? '*' : ' ';
+printf("%cVFOA: mode=%d datamode=%d width=%ld freq=%.0f\n", vfoa, modeA,
+       datamodeA,
+       widthA,
+       freqA);
+printf("%cVFOB: mode=%d datamode=%d width=%ld freq=%.0f\n", vfob, modeB,
+       datamodeB,
+       widthB,
+       freqB);
 }
 
 int main(int argc, char **argv)
 {
-    unsigned char buf[256];
-    int fd = openPort(argv[1]);
+unsigned char buf[256];
+int fd = openPort(argv[1]);
 
-    printf("%s: %s\n", argv[0], rig_version());
+printf("%s: %s\n", argv[0], rig_version());
 #ifdef X25
-    printf("x25/x26 command recognized\n");
+printf("x25/x26 command recognized\n");
 #else
-    printf("x25/x26 command rejected\n");
+printf("x25/x26 command rejected\n");
 #endif
 #if defined(WIN32) || defined(_WIN32)
 
-    if (argc != 2)
-    {
-        printf("Missing comport argument\n");
-        printf("%s [comport]\n", argv[0]);
-        exit(1);
-    }
+if (argc != 2)
+{
+    printf("Missing comport argument\n");
+    printf("%s [comport]\n", argv[0]);
+    exit(1);
+}
 
 #endif
 
-    while (1)
+while (1)
+{
+    int len = frameGet(fd, buf);
+
+    if (len <= 0)
     {
-        int len = frameGet(fd, buf);
-
-        if (len <= 0)
-        {
-            close(fd);
-            fd = openPort(argv[1]);
-        }
-
-        if (powerstat)
-        {
-            frameParse(fd, buf, len);
-        }
-        else
-        {
-            hl_usleep(1000 * 1000);
-        }
-
-        rigStatus();
+        close(fd);
+        fd = openPort(argv[1]);
     }
 
-    return 0;
+    if (powerstat)
+    {
+        frameParse(fd, buf, len);
+    }
+    else
+    {
+        hl_usleep(1000 * 1000);
+    }
+
+    rigStatus();
+}
+
+return 0;
 }

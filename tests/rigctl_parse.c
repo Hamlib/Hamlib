@@ -3568,9 +3568,9 @@ declare_proto_rig(set_parm)
 
     if (strcmp(arg1,"KEYERTYPE")==0 && strcmp(arg2,"?") != 0)
     {
-        if (strcmp(arg2,"STRAIGHT")==0) arg2 = "0";
-        else if (strcmp(arg2,"BUG")==0) arg2 = "1";
-        else if (strcmp(arg2,"PADDLE")==0) arg2 = "2";
+        if (strcmp(arg2,"STRAIGHT")==0) {arg2 = "0";}
+        else if (strcmp(arg2,"BUG")==0) {arg2 = "1";}
+        else if (strcmp(arg2,"PADDLE")==0) {arg2 = "2";}
     }
 
     parm = rig_parse_parm(arg1);
@@ -3603,6 +3603,9 @@ declare_proto_rig(set_parm)
             break;
 
         case RIG_CONF_STRING:
+            if (parm == RIG_PARM_KEYERTYPE)
+            val.i = atoi(arg2);
+            else
             val.cs = arg2;
             break;
 
@@ -3623,6 +3626,9 @@ declare_proto_rig(set_parm)
     }
     else if (RIG_PARM_IS_STRING(parm))
     {
+        if (parm == RIG_PARM_KEYERTYPE)
+        val.i = atoi(arg2);
+        else
         val.cs = arg2;
     }
     else
