@@ -6933,21 +6933,39 @@ int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int rc;
-    char *s = strdup(msg);
+
     ENTERFUNC;
 
-    if (newcat_is_rig(rig, RIG_MODEL_FT450))
+    int chan = 0;
+    if (strlen(msg)==1)
     {
-        // 450 manual says 1/2/3 playback needs P1=6/7/8
-        s[0] += 5;
+        switch(*msg)
+        {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+                chan = atoi(msg);
+            default:
+            RETURNFUNC(-RIG_EINVAL);
+        }
     }
     else
     {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KY%c%c", s[0], cat_term);
+        RETURNFUNC(-RIG_EINVAL);
+    }
+    if (newcat_is_rig(rig, RIG_MODEL_FT450) && chan < 4)
+    {
+        // 450 manual says 1/2/3 playback needs P1=6/7/8
+        chan += 5;
+    }
+    else
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KY%d%c", chan, cat_term);
     }
 
     rc = newcat_set_cmd(rig);
-    free(s);
     RETURNFUNC(rc);
 }
 

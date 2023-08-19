@@ -8142,10 +8142,16 @@ void *morse_data_handler(void *arg)
                     if (result != RIG_OK)
                     {
                         rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
+                        if (result == -RIG_EINVAL) 
+                        {
+                            // severe error -- so flush it and stop
+                            resetFIFO(rig->state.fifo_morse);
+                            nloops = 0;
+                        }
                         hl_usleep(100 * 1000);
                     }
                     //wait_morse_ptt(rig, RIG_VFO_CURR);
-                    nloops++;
+                    nloops--;
                     
                 } while (result != RIG_OK && rig->state.fifo_morse->flush == 0 && --nloops > 0);
                 if (nloops == 0)

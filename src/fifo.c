@@ -16,6 +16,7 @@ void initFIFO(FIFO_RIG *fifo)
 
 void resetFIFO(FIFO_RIG *fifo)
 {
+    rig_debug(RIG_DEBUG_TRACE, "%s: fifo flushed\n", __func__);
     fifo->head = fifo->tail;
     fifo->flush = 1;
 }
