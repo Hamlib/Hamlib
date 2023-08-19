@@ -5277,7 +5277,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
             if (!strncmp(m2, "KY2", 3)) { break; }
 
-            if (!strncmp(m2, "KY1", 3)) { hl_usleep(500000); }
+            if (!strncmp(m2, "KY1", 3)) { hl_usleep(50*1000); }
             else { RETURNFUNC(-RIG_EINVAL); }
         }
 
