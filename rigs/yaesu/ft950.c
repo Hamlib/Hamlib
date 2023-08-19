@@ -289,5 +289,6 @@ const struct rig_caps ft950_caps =
     .send_morse =         newcat_send_morse,
     .wait_morse =         rig_wait_morse,
     .scan =               newcat_scan,
+    .morse_qsize =        50,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

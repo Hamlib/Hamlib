@@ -132,7 +132,7 @@ const struct rig_caps ft2000_caps =
     RIG_MODEL(RIG_MODEL_FT2000),
     .model_name =         "FT-2000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".4",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -313,5 +313,6 @@ const struct rig_caps ft2000_caps =
     .send_morse =         newcat_send_morse,
     .wait_morse =         rig_wait_morse,
     .scan =               newcat_scan,
+    .morse_qsize =        50,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
