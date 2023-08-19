@@ -24,6 +24,8 @@ char modeA = '0';
 char modeB = '0';
 int keyspd = 20;
 int bandselect = 5;
+int  width = 21;
+int narrow = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -298,6 +300,24 @@ int main(int argc, char *argv[])
         {
             sprintf(buf,"BS%02d;", bandselect);
             n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "SH0;", 4)==0)
+        {
+            sprintf(buf,"SH0%02d;", width);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "SH0", 3)==0)
+        {
+            sscanf(buf,"SH0%02d", &width);
+        }
+        else if (strncmp(buf, "NA0;", 4)==0)
+        {
+            sprintf(buf,"NA0%d;", narrow);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "NA0", 3)==0)
+        {
+            sscanf(buf,"NA0%d", &narrow);
         }
 
         else if (strlen(buf) > 0)
