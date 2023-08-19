@@ -207,6 +207,7 @@ const struct rig_caps ft450_caps =
     .send_morse =         newcat_send_morse,
     .wait_morse =         rig_wait_morse,
     .scan =               newcat_scan,
+    .morse_qsize =        40,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

@@ -8082,13 +8082,15 @@ void *morse_data_handler(void *arg)
 
     initFIFO(rig->state.fifo_morse);
 
+    char *c;
+    int qsize = rig->caps->morse_qsize; // if backend overrides qsize
+    if (qsize == 0) qsize = 20; // shortest length of any rig's CW morse capability
+    c = calloc(1,qsize+1);
     while (rs->morse_data_handler_thread_run || (peek(rig->state.fifo_morse) >= 0))
     {
-        char c[2]; // up to 1 char to be sent -- this allows speed change inter-char eventually
-        memset(c, 0, sizeof(c));
-
         int n = 0;
-        for (n = 0; n < sizeof(c) - 1; n++)
+        memset(c,0,qsize);
+        for (n = 0; n < qsize; n++)
         {
             int d = peek(rig->state.fifo_morse);
             if (d < 0)
@@ -8166,6 +8168,7 @@ void *morse_data_handler(void *arg)
     }
 
     free(rig->state.fifo_morse);
+    free(c);
     rig->state.fifo_morse = NULL;
     pthread_exit(NULL);
     return NULL;

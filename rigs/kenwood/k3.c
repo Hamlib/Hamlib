@@ -342,6 +342,7 @@ const struct rig_caps k3_caps =
     .send_voice_mem =   k3_send_voice_mem,
     .stop_voice_mem =   k3_stop_voice_mem,
     .power2mW =     k3_power2mW,
+    .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -497,6 +498,7 @@ const struct rig_caps k3s_caps =
     .send_voice_mem =   k3_send_voice_mem,
     .stop_voice_mem =   k3_stop_voice_mem,
     .power2mW =     k3_power2mW,
+    .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -658,6 +660,7 @@ const struct rig_caps k4_caps =
     .send_voice_mem =   k4_send_voice_mem,
     .stop_voice_mem =   k4_stop_voice_mem,
     .power2mW =     k3_power2mW,
+    .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -812,6 +815,7 @@ const struct rig_caps kx3_caps =
     .send_voice_mem =   k3_send_voice_mem,
     .stop_voice_mem =   k3_stop_voice_mem,
     .power2mW =     k3_power2mW,
+    .morse_qsize = 24,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

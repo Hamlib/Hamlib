@@ -46,7 +46,7 @@ const struct rig_caps ft9000_caps =
     RIG_MODEL(RIG_MODEL_FT9000),
     .model_name =         "FTDX-9000",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".4",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -214,6 +214,7 @@ const struct rig_caps ft9000_caps =
     .send_morse =         newcat_send_morse,
     .wait_morse =         rig_wait_morse,
     .scan =               newcat_scan,
+    .morse_qsize =        50,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -222,7 +223,7 @@ const struct rig_caps ft9000Old_caps =
     RIG_MODEL(RIG_MODEL_FT9000OLD),
     .model_name =         "FTDX-9000 Old",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".4",
+    .version =            NEWCAT_VER ".5",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -390,5 +391,6 @@ const struct rig_caps ft9000Old_caps =
     .send_morse =         newcat_send_morse,
     .wait_morse =         rig_wait_morse,
     .scan =               newcat_scan,
+    .morse_qsize =        50,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
