@@ -1108,7 +1108,7 @@ int powersdr_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     ENTERFUNC;
     char cmd[KENWOOD_MAX_BUF_LEN];
-    int retval;
+    int retval = -RIG_EINTERNAL;
     int band = 999; // default to the weird WWV band
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%s\n", __func__, val.s);
@@ -1321,7 +1321,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20230811.0",
+    .version =      "20230819.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
