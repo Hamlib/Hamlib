@@ -198,19 +198,17 @@ void frameParse(int fd, unsigned char *frame, int len)
         break;
 
     case 0x0f:
-        if (frame[5] == 0) { split = 0; }
-        else if (frame[5] == 1) { split = 1; }
-        else { frame[6] = split; }
-
         if (frame[5] == 0xfd)
         {
             printf("get split %d\n", split);
-            frame[7] = 0xfd;
-            n = write(fd, frame, 8);
+            frame[5] = split;
+            frame[6] = 0xfd;
+            n = write(fd, frame, 7);
         }
         else
         {
             printf("set split %d\n", 1);
+            split = frame[5];
             frame[4] = 0xfb;
             frame[5] = 0xfd;
             n = write(fd, frame, 6);

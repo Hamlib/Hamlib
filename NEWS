@@ -13,6 +13,8 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * rig set level METER can now take SWR,COMP,ALC,IC/ID,DB,PO,VDD,TEMP arguments to set which meter to display
+        * reg get level displays meter number=name now
         * Added parm BANDSELECT for Yaesu rigs
             'p BANDSELECT' returns current band of VFOA
             'P BANDSELECT BAND160M' example selects the 160M band
