@@ -3272,6 +3272,13 @@ declare_proto_rig(set_level)
 
     level = rig_parse_level(arg1);
 
+    if ((!strcmp(arg2, "?") || arg2[0]==0) && level == RIG_LEVEL_METER)
+    {
+        fprintf(fout, "COMP ALC SWR ID/IC VDD DB PO TEMP%c", resp_sep);
+        RETURNFUNC2(RIG_OK);
+    }
+
+
     // some Java apps send comma in international setups so substitute period
     char *p = strchr(arg2, ',');
 
@@ -3287,6 +3294,7 @@ declare_proto_rig(set_level)
         {
             RETURNFUNC2(-RIG_ENAVAIL);    /* no such parameter */
         }
+
 
         switch (cfp->type)
         {
@@ -3315,6 +3323,23 @@ declare_proto_rig(set_level)
         RETURNFUNC2(rig_set_ext_level(rig, vfo, cfp->token, val));
     }
 
+    int dummy;
+    if (level == RIG_LEVEL_METER && sscanf(arg2,"%d",&dummy)==0)
+    {
+        if (strcmp(arg2,"COMP")==0) arg2 = "2";
+        else if (strcmp(arg2,"ALC")==0) arg2 = "4";
+        else if (strcmp(arg2,"SWR")==0) arg2 = "1";
+        else if (strcmp(arg2,"ID")==0 || strcmp(arg2,"IC")==0) arg2 = "8";
+        else if (strcmp(arg2,"VDD")==0) arg2 = "64";
+        else if (strcmp(arg2, "DB")==0) arg2 = "16";
+        else if (strcmp(arg2, "PO")==0) arg2 = "32";
+        else if (strcmp(arg2, "TEMP")==0) arg2 = "128";
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown meter=%s, only know COMP,ALC,SWR,ID/IC,VDD,DB,PO,TEMP\n", __func__, arg2);
+            RETURNFUNC2(-RIG_EINVAL);
+        }
+    }
     if (RIG_LEVEL_IS_FLOAT(level))
     {
         CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
@@ -3352,7 +3377,6 @@ declare_proto_rig(get_level)
         //fputc('\n', fout);
         RETURNFUNC2(RIG_OK);
     }
-
     level = rig_parse_level(arg1);
 
     if (!rig_has_get_level(rig, level))
@@ -3416,6 +3440,26 @@ declare_proto_rig(get_level)
     {
         fprintf(fout, "%s: ", cmd->arg2);
     }
+        if (level == RIG_LEVEL_METER && interactive && prompt)
+        {
+            // we will show text answers as they make morse sense for rigtl
+            switch(val.i)
+            {
+                case RIG_METER_COMP: fprintf(fout, "%d=%s%c", val.i, "COMP", resp_sep);break;
+                case RIG_METER_ALC: fprintf(fout, "%d=%s%c", val.i, "ALC", resp_sep);break;
+                case RIG_METER_SWR: fprintf(fout, "%d=%s%c", val.i, "SWR", resp_sep);break;
+                case RIG_METER_IC: fprintf(fout, "%d=%s%c", val.i, "IC", resp_sep);break;
+                case RIG_METER_VDD: fprintf(fout, "%d=%s%c", val.i, "VDD", resp_sep);break;
+                case RIG_METER_DB: fprintf(fout, "%d=%s%c", val.i, "DB", resp_sep);break;
+                case RIG_METER_PO: fprintf(fout, "%d=%s%c", val.i, "PO", resp_sep);break;
+                case RIG_METER_TEMP: fprintf(fout, "%d=%s%c", val.i, "TEMP", resp_sep);break;
+                default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown meter=%d, only know COMP,ALC,SWR,ID/IC,VDD,DB,PO,TEMP\n", __func__, val.i);
+                RETURNFUNC2(-RIG_EINVAL);
+            }
+            RETURNFUNC(RIG_OK);
+        }
+
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
