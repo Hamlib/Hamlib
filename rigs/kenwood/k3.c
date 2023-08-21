@@ -179,6 +179,7 @@ int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int k4_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
 int k4_stop_voice_mem(RIG *rig, vfo_t vfo);
+int k4_stop_morse(RIG *rig, vfo_t vfo);
 
 /*
  * K3 rig capabilities.
@@ -508,7 +509,7 @@ const struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".27",
+    .version =      BACKEND_VER ".28",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -656,7 +657,7 @@ const struct rig_caps k4_caps =
     .get_ant =      kenwood_get_ant,
     .send_morse =       kenwood_send_morse,
     .wait_morse =       rig_wait_morse,
-    .stop_morse =       k3_stop_morse,
+    .stop_morse =       k4_stop_morse,
     .send_voice_mem =   k4_send_voice_mem,
     .stop_voice_mem =   k4_stop_voice_mem,
     .power2mW =     k3_power2mW,
@@ -2908,10 +2909,18 @@ int k4_stop_voice_mem(RIG *rig, vfo_t vfo)
     return retval;
 }
 
+int k4_stop_morse(RIG *rig, vfo_t vfo)
+{
+    int retval;
+    retval = kenwood_transaction(rig, "KY@;", NULL, 0);
+    return retval;
+}
+
 int k3_stop_morse(RIG *rig, vfo_t vfo)
 {
     int retval;
-    char buf[32];
-    retval = kenwood_transaction(rig, "KY;", buf, 4);
+    char cmd[32];
+    SNPRINTF(cmd,sizeof(cmd),"KY%c;", 0x04);
+    retval = kenwood_transaction(rig, cmd, NULL, 0);
     return retval;
 }
