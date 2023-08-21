@@ -719,6 +719,8 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         if (checklen && length != expected) /* worth retrying as some rigs
                                    occasionally send short results */
         {
+            // QRPLABS can't seem top decide if they give 37 or 38 bytes for IF command
+            if (strncmp(cmd,"IF",2)==0 && rig->caps->rig_model == RIG_MODEL_QRPLABS) break;
             struct kenwood_priv_data *priv = rig->state.priv;
             rig_debug(RIG_DEBUG_ERR,
                       "%s: wrong answer; len for cmd %s: expected = %d, got %d\n",
