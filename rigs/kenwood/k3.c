@@ -2912,7 +2912,7 @@ int k4_stop_voice_mem(RIG *rig, vfo_t vfo)
 int k4_stop_morse(RIG *rig, vfo_t vfo)
 {
     int retval;
-    retval = kenwood_transaction(rig, "KY@;", NULL, 0);
+    retval = kenwood_transaction(rig, "KY @;", NULL, 0);
     return retval;
 }
 
@@ -2920,7 +2920,7 @@ int k3_stop_morse(RIG *rig, vfo_t vfo)
 {
     int retval;
     char cmd[32];
-    SNPRINTF(cmd,sizeof(cmd),"KY%c;", 0x04);
+    SNPRINTF(cmd,sizeof(cmd),"KY %c;", 0x04);
     retval = kenwood_transaction(rig, cmd, NULL, 0);
     return retval;
 }
