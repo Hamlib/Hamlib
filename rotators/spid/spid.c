@@ -168,6 +168,14 @@ static int read_r2p_frame(hamlib_port_t *port, unsigned char *rxbuffer,
     }
 }
 
+static int spid_write(hamlib_port_t *p, const unsigned char *txbuffer,
+                      size_t count)
+{
+    int ret = rig_flush(p);
+    if (ret < 0) return ret;
+    return write_block(p, txbuffer, count);
+}
+
 static int spid_rot_init(ROT *rot)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
@@ -310,7 +318,7 @@ static int spid_rot1prog_rot_set_position(ROT *rot, azimuth_t az,
     cmdstr[11] = 0x2F;                      /* K   */
     cmdstr[12] = 0x20;                      /* END */
 
-    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, 13);
+    retval = spid_write(&rs->rotport, (unsigned char *) cmdstr, 13);
 
     if (retval != RIG_OK)
     {
@@ -337,7 +345,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
     {
         do
         {
-            retval = write_block(&rs->rotport,
+            retval = spid_write(&rs->rotport,
                                  (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
             if (retval != RIG_OK)
@@ -378,7 +386,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
     cmdstr[11] = 0x2F;                      /* K   */
     cmdstr[12] = 0x20;                      /* END */
 
-    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, 13);
+    retval = spid_write(&rs->rotport, (unsigned char *) cmdstr, 13);
 
     if (retval != RIG_OK)
     {
@@ -412,7 +420,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     do
     {
-        retval = write_block(&rs->rotport,
+        retval = spid_write(&rs->rotport,
                              (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
         if (retval != RIG_OK)
@@ -484,7 +492,7 @@ static int spid_rot_stop(ROT *rot)
 
     do
     {
-        retval = write_block(&rs->rotport,
+        retval = spid_write(&rs->rotport,
                              (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
 
         if (retval != RIG_OK)
@@ -559,7 +567,7 @@ static int spid_md01_rot2prog_rot_move(ROT *rot, int direction, int speed)
        moving at all), always send the stop command first. */
     spid_rot_stop(rot);
 
-    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, 13);
+    retval = spid_write(&rs->rotport, (unsigned char *) cmdstr, 13);
     return retval;
 }
 
