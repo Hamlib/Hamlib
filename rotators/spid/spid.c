@@ -94,12 +94,16 @@ static int read_r2p_frame(hamlib_port_t *port, unsigned char *rxbuffer,
     // strict numerical bounds that could be used to sanity check the contents
     // of the reply frame).
 
-
     int res = 0;
     unsigned char peek = 0;
     enum r2p_frame_parser_state pstate = ROT2PROG_PARSER_EXPECT_FRAME_START;
 
-    while (1) {
+    // This will loop infinitely in the case of a badly-behaved serial device
+    // that is producing log-like frames faster than we can consume them.
+    // However, this is not expected to be a practical possibility, and there's
+    // no concrete loop bounds we can use.
+    while (1)
+    {
         switch (pstate)
         {
         case ROT2PROG_PARSER_EXPECT_FRAME_START:
@@ -108,27 +112,14 @@ static int read_r2p_frame(hamlib_port_t *port, unsigned char *rxbuffer,
 
             switch (peek)
             {
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9': {
-                    pstate = ROT2PROG_PARSER_EXPECT_CR;
-                    break;
-                }
-
-                case ROT2PROG_FRAME_START_BYTE: {
+                case ROT2PROG_FRAME_START_BYTE:
                     rxbuffer[0] = peek;
                     pstate = ROT2PROG_PARSER_EXPECT_FRAME_END;
                     break;
-                }
 
-                default: return -RIG_EPROTO;
+                default:
+                    pstate = ROT2PROG_PARSER_EXPECT_CR;
+                    break;
             }
             break;
 
@@ -168,10 +159,11 @@ static int read_r2p_frame(hamlib_port_t *port, unsigned char *rxbuffer,
                 return -RIG_EPROTO;
             }
 
-            // lie about the number of bytes read
+            // account for the already-read start byte here
             return res + 1;
 
-        default: return -RIG_EINTERNAL;
+        default:
+            return -RIG_EINTERNAL;
         }
     }
 }
