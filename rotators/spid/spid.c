@@ -39,6 +39,143 @@ struct spid_rot2prog_priv_data
     int el_resolution;
 };
 
+enum spid_rot2prog_framemagic {
+    ROT2PROG_FRAME_START_BYTE = 'W',
+    ROT2PROG_FRAME_END_BYTE = ' ',
+};
+
+enum r2p_frame_parser_state {
+    ROT2PROG_PARSER_EXPECT_FRAME_START,
+    ROT2PROG_PARSER_EXPECT_CR,
+    ROT2PROG_PARSER_EXPECT_LF,
+    ROT2PROG_PARSER_EXPECT_FRAME_END,
+};
+
+static int read_r2p_frame(hamlib_port_t *port, unsigned char *rxbuffer,
+        size_t count)
+{
+    // Some MD-01 firmware can apparently print debug messages to the same
+    // serial port that is used for the control protocol. This awkwardly
+    // intersperses the normal fixed-size frame response with a line-based
+    // logs. Theoretically, a valid response frame will not actually be emitted
+    // in the middle of a log message.
+    //
+    // Log messages are of the format <timestamp>: <message>\r\n, where
+    // <timestamp> is a unix-ish timestamp (inasmuch as it is an integer) and
+    // <message> is an ASCII string.
+
+    // Due to poor(?) design decisions by the protocol designers, the frame
+    // start and end bytes are both printable ASCII characters ('W' and ' '
+    // respectively) and the MD-01 response frame contains no other validation
+    // information (such as a CRC), which means that a valid log line can
+    // contain a character sequence that is indistinguishable from a valid
+    // response frame, without actually being a valid response frame.
+
+    // However, since the log messages appear to be reasonably strictly
+    // structured, we can make a small number of assumptions that will allow us
+    // to reliably separate response frames from log lines without having to
+    // fall back on a heuristic-based parsing strategy. These assumptions are
+    // as follows:
+
+    // 1. A log line will always begin with an ASCII character in the range
+    //    [0-9], none of which are the frame start byte.
+    // 2. A log line will never contain \r\n in the middle of the line (i.e.
+    //    multi-line log messages do not exist). This means a log "frame" will
+    //    always be of the form [0-9]<anything>\r\n.
+    // 3. The controller will not emit a response frame in the middle of a log
+    //    line.
+    // 4. The operating system's serial port read buffer is large enough that we
+    //    won't lose data while accumulating log messages between commands.
+
+    // Provided the above assumptions are true, a simple state machine can be
+    // used to parse the response by treating the log lines as a different type
+    // of frame. This could be made much more robust by applying additional
+    // heuristics for specific packets (e.g. get_position has some reasonably
+    // strict numerical bounds that could be used to sanity check the contents
+    // of the reply frame).
+
+    int res = 0;
+    unsigned char peek = 0;
+    enum r2p_frame_parser_state pstate = ROT2PROG_PARSER_EXPECT_FRAME_START;
+
+    // This will loop infinitely in the case of a badly-behaved serial device
+    // that is producing log-like frames faster than we can consume them.
+    // However, this is not expected to be a practical possibility, and there's
+    // no concrete loop bounds we can use.
+    while (1)
+    {
+        switch (pstate)
+        {
+        case ROT2PROG_PARSER_EXPECT_FRAME_START:
+            res = read_block(port, &peek, 1);
+            if (res < 0) return res;
+
+            switch (peek)
+            {
+                case ROT2PROG_FRAME_START_BYTE:
+                    rxbuffer[0] = peek;
+                    pstate = ROT2PROG_PARSER_EXPECT_FRAME_END;
+                    break;
+
+                default:
+                    pstate = ROT2PROG_PARSER_EXPECT_CR;
+                    break;
+            }
+            break;
+
+        case ROT2PROG_PARSER_EXPECT_CR:
+            res = read_block(port, &peek, 1);
+            if (res < 0) return res;
+
+            if (peek == '\r') pstate = ROT2PROG_PARSER_EXPECT_LF;
+            break;
+
+        case ROT2PROG_PARSER_EXPECT_LF:
+            res = read_block(port, &peek, 1);
+            if (res < 0) return res;
+
+            if (peek == '\n')
+            {
+                pstate = ROT2PROG_PARSER_EXPECT_FRAME_START;
+            }
+            else
+            {
+                // we have stumbled across a \r that is not immediately
+                // followed by \n. We could assume this is a weirdly formed
+                // log message, but I think it makes more sense to be
+                // defensive here and assume it is invalid for this to
+                // happen.
+                return -RIG_EPROTO;
+            }
+            break;
+
+        case ROT2PROG_PARSER_EXPECT_FRAME_END:
+            // we already read the frame start byte
+            res = read_block(port, rxbuffer + 1, count - 1);
+            if (res < 0) return res;
+
+            if (rxbuffer[count - 1] != ROT2PROG_FRAME_END_BYTE)
+            {
+                return -RIG_EPROTO;
+            }
+
+            // account for the already-read start byte here
+            return res + 1;
+
+        default:
+            return -RIG_EINTERNAL;
+        }
+    }
+}
+
+static int spid_write(hamlib_port_t *p, const unsigned char *txbuffer,
+                      size_t count)
+{
+    int ret = rig_flush(p);
+    if (ret < 0) return ret;
+    return write_block(p, txbuffer, count);
+}
+
 static int spid_rot_init(ROT *rot)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
@@ -181,7 +318,7 @@ static int spid_rot1prog_rot_set_position(ROT *rot, azimuth_t az,
     cmdstr[11] = 0x2F;                      /* K   */
     cmdstr[12] = 0x20;                      /* END */
 
-    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, 13);
+    retval = spid_write(&rs->rotport, (unsigned char *) cmdstr, 13);
 
     if (retval != RIG_OK)
     {
@@ -208,7 +345,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
     {
         do
         {
-            retval = write_block(&rs->rotport,
+            retval = spid_write(&rs->rotport,
                                  (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
             if (retval != RIG_OK)
@@ -217,7 +354,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
             }
 
             memset(cmdstr, 0, 12);
-            retval = read_block(&rs->rotport, (unsigned char *) cmdstr, 12);
+            retval = read_r2p_frame(&rs->rotport, (unsigned char *) cmdstr, 12);
         }
         while (retval < 0 && retry_read++ < rot->state.rotport.retry);
 
@@ -249,7 +386,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
     cmdstr[11] = 0x2F;                      /* K   */
     cmdstr[12] = 0x20;                      /* END */
 
-    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, 13);
+    retval = spid_write(&rs->rotport, (unsigned char *) cmdstr, 13);
 
     if (retval != RIG_OK)
     {
@@ -264,7 +401,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
 
         do
         {
-            retval = read_block(&rs->rotport, (unsigned char *) cmdstr, 12);
+            retval = read_r2p_frame(&rs->rotport, (unsigned char *) cmdstr, 12);
         }
         while ((retval < 0) && (retry_read++ < rot->state.rotport.retry));
     }
@@ -283,7 +420,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     do
     {
-        retval = write_block(&rs->rotport,
+        retval = spid_write(&rs->rotport,
                              (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
         if (retval != RIG_OK)
@@ -295,12 +432,12 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
         if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
         {
-            retval = read_block(&rs->rotport, (unsigned char *) posbuf, 5);
+            retval = read_r2p_frame(&rs->rotport, (unsigned char *) posbuf, 5);
         }
         else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
                  rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
         {
-            retval = read_block(&rs->rotport, (unsigned char *) posbuf, 12);
+            retval = read_r2p_frame(&rs->rotport, (unsigned char *) posbuf, 12);
         }
         else
         {
@@ -355,7 +492,7 @@ static int spid_rot_stop(ROT *rot)
 
     do
     {
-        retval = write_block(&rs->rotport,
+        retval = spid_write(&rs->rotport,
                              (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
 
         if (retval != RIG_OK)
@@ -367,12 +504,12 @@ static int spid_rot_stop(ROT *rot)
 
         if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
         {
-            retval = read_block(&rs->rotport, (unsigned char *) posbuf, 5);
+            retval = read_r2p_frame(&rs->rotport, (unsigned char *) posbuf, 5);
         }
         else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
                  rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
         {
-            retval = read_block(&rs->rotport, (unsigned char *) posbuf, 12);
+            retval = read_r2p_frame(&rs->rotport, (unsigned char *) posbuf, 12);
         }
     }
     while (retval < 0 && retry_read++ < rot->state.rotport.retry);
@@ -430,7 +567,7 @@ static int spid_md01_rot2prog_rot_move(ROT *rot, int direction, int speed)
        moving at all), always send the stop command first. */
     spid_rot_stop(rot);
 
-    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, 13);
+    retval = spid_write(&rs->rotport, (unsigned char *) cmdstr, 13);
     return retval;
 }
 
