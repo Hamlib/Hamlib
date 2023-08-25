@@ -1262,7 +1262,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: checking satellite mode status\n", __func__);
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "SA");
 
-        retval = kenwood_transaction(rig, cmdbuf, retbuf, 4);
+        retval = kenwood_transaction(rig, cmdbuf, retbuf, 18);
 
         if (retval != RIG_OK)
         {
@@ -5330,6 +5330,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
 /*
  * kenwood_stop_morse
+ /
  */
 int kenwood_stop_morse(RIG *rig, vfo_t vfo)
 {
