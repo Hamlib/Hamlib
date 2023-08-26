@@ -136,6 +136,10 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo);
 
 
 /*
+ * IC905 items that differ from IC7300
+ */
+#define IC905_VFO_OPS (RIG_OP_CPY|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
+/*
  * IC705 items that differ from IC7300
  */
 #define IC705_ALL_TX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR)
@@ -1523,7 +1527,7 @@ const struct rig_caps ic905_caps =
     RIG_MODEL(RIG_MODEL_IC905),
     .model_name = "IC-905",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1576,7 +1580,7 @@ const struct rig_caps ic905_caps =
     .agc_level_count = 3,
     .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
-    .vfo_ops =  IC7300_VFO_OPS,
+    .vfo_ops =  IC905_VFO_OPS,
     .scan_ops =  IC7300_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   5,
