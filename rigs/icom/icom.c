@@ -1346,8 +1346,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (RIG_IS_IC905)
     {
         // 10Hz resolution and > 5.85MHz is 6 bytes
-        freq /= 10;
-        if (freq > 5.85e6) { freq_len = 6; }
+        if (freq > 5.85e9) { freq_len = 6; }
+        freq /= 10; 
     }
 
     /*
@@ -1355,7 +1355,6 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      */
     to_bcd(freqbuf, freq, freq_len * 2);
 
-    // mike
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
     {
         vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B
@@ -1834,8 +1833,8 @@ default:
               rig_strvfo(vfo));
     }
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s exit vfo=%s, curr_vfo=%s\n", __func__,
-              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s exit vfo=%s, curr_vfo=%s ,freq=%g\n", __func__,
+              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), *freq);
     RETURNFUNC2(RIG_OK);
 }
 
