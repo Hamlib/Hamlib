@@ -1343,7 +1343,12 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     freq_len = priv->civ_731_mode ? 4 : 5;
 
-    if (RIG_IS_IC905) { freq /= 10; freq_len = 6; }
+    if (RIG_IS_IC905)
+    {
+        // 10Hz resolution and > 5.85MHz is 6 bytes
+        freq /= 10;
+        if (freq > 5.85e6) { freq_len = 6; }
+    }
 
     /*
      * to_bcd requires nibble len
