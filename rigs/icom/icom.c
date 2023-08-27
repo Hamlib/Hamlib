@@ -1347,7 +1347,6 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         // 10Hz resolution and > 5.85MHz is 6 bytes
         if (freq > 5.85e9) { freq_len = 6; }
-        freq /= 10; 
     }
 
     /*
@@ -1798,8 +1797,6 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     *freq = from_bcd(freqbuf + freqbuf_offset, freq_len * 2);
 
     if (freq_len == 3) { *freq *= 10000; } // 3-byte freq for ID5100 is in 10000Hz units so convert to Hz
-
-if (RIG_IS_IC905) { *freq *= 10; }
 
 if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 

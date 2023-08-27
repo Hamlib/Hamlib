@@ -540,9 +540,8 @@ case 0x26:
 
         frame[6] = frame[5] == 0 ? modeA : modeB;
         frame[7] = frame[5] == 0 ? datamodeA : datamodeB;
-        frame[8] = 0xfb;
-        frame[9] = 0xfd;
-        n = write(fd, frame, 10);
+        frame[8] = 0xfd;
+        n = write(fd, frame, 9);
     }
     else
     {
