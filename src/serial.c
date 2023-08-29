@@ -772,7 +772,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
     }
 
     timeout_save = p->timeout;
-    rig_debug(RIG_DEBUG_ERR, "%s: p->timeout=%d\n", __func__,  p->timeout);
+    //rig_debug(RIG_DEBUG_ERR, "%s: p->timeout=%d\n", __func__,  p->timeout);
     timeout_retry_save = p->timeout_retry;
     p->timeout = 0;
     p->timeout_retry = 0;
