@@ -1345,7 +1345,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (RIG_IS_IC905)
     {
-        // 10Hz resolution and > 5.85MHz is 6 bytes
+        //  > 5.85GHz is 6 bytes
         if (freq > 5.85e9) { freq_len = 6; }
     }
 
@@ -2241,6 +2241,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
                       || RIG_IS_IC9100
                       || RIG_IS_IC9700
                       || RIG_IS_IC705
+                      || RIG_IS_IC905
                       || RIG_IS_X6100;
 
     ENTERFUNC;
