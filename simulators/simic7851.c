@@ -35,7 +35,7 @@ float freqA = 14074000;
 float freqB = 14074500;
 mode_t modeA = 1;
 mode_t modeB = 0;
-int datamodeA = 2;
+int datamodeA = 1;
 int datamodeB = 1;
 int filterA = 3;
 int filterB = 2;
@@ -601,7 +601,9 @@ void frameParse(int fd, unsigned char *frame, int len)
         if (frame[6] == 0xfd) // then a query
         {
     printf("GET MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
-// fe fe e0 8e 26 00 01 00 fd fd
+// fe fe e0 8e 26 00 01 00 01 fd
+// 0  1  2  3  4  5  6  7  8
+//                AB MD DM FF
             frame[6] = frame[5] == 0 ? modeA : modeB;
             frame[7] = frame[5] == 0 ? datamodeA : datamodeB;
             frame[8] = frame[5] == 0 ? filterA : filterB;
