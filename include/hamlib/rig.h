@@ -1573,6 +1573,7 @@ struct channel {
     char channel_desc[HAMLIB_MAXCHANDESC];     /*!< Name */
     struct ext_list
             *ext_levels;                /*!< Extension level value list, NULL ended. ext_levels can be NULL */
+    char tag[32];               /*!< TAG ASCII for channel name, etc */      
 };
 
 /**
@@ -1614,6 +1615,7 @@ struct channel_cap {
     unsigned flags:         1;  /*!< Channel flags */
     unsigned channel_desc:  1;  /*!< Name */
     unsigned ext_levels:    1;  /*!< Extension level value list */
+    unsigned tag:           1;  /*!< Has tag field e.g. FT991 */
 };
 
 /**

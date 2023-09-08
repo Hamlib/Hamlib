@@ -279,6 +279,12 @@ int dump_xml_chan(RIG *rig,
         xmlNewProp(node, (unsigned char *) "flags", (unsigned char *) attrbuf);
     }
 
+    if (mem_caps->tag[0] != 0)
+    {
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%s", chan.tag);
+        xmlNewProp(node, (unsigned char *) "tag", (unsigned char *) attrbuf);
+    }
+
     return 0;
 }
 #endif

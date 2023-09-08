@@ -540,6 +540,11 @@ void dump_csv_name(const channel_cap_t *mem_caps, FILE *f)
         fprintf(f, "flags%c", csv_sep);
     }
 
+    if (mem_caps->tag)
+    {
+        fprintf(f, "tag%c", csv_sep);
+    }
+
     fprintf(f, "\n");
 }
 
@@ -693,7 +698,14 @@ int dump_csv_chan(RIG *rig,
 
     if (mem_caps->flags)
     {
-        fprintf(f, "%x%c", chan.flags, csv_sep);
+        if (chan.tag[0] != 0)  // then we need the seperator
+            fprintf(f, "%x%c", chan.flags, csv_sep);
+        else
+            fprintf(f, "%x", chan.flags);
+    }
+    if (chan.tag[0] != 0)
+    {
+        fprintf(f, "%s", chan.tag);
     }
 
     fprintf(f, "\n");
