@@ -29,6 +29,7 @@
 #include <getopt.h>
 
 #include <hamlib/rig.h>
+#include <hamlib/config.h>
 #include "riglist.h"
 
 #define MAXNAMSIZ 32
@@ -209,6 +210,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_XML2
 
         case 'x':
+        printf("xml\n");
             xml++;
             break;
 #endif
@@ -218,6 +220,7 @@ int main(int argc, char *argv[])
             break;
 
         default:
+            fprintf(stderr, "Unknown option '%c'\n", c);
             usage();    /* unknown option? */
             exit(1);
         }

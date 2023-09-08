@@ -73,7 +73,7 @@ const struct rig_caps ftdx101mp_caps =
     RIG_MODEL(RIG_MODEL_FTDX101MP),
     .model_name =         "FTDX-101MP",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".10",
+    .version =            NEWCAT_VER ".11",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -126,6 +126,8 @@ const struct rig_caps ftdx101mp_caps =
     .swr_cal =            FTDX101D_SWR_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+        {   100,  117, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // P1L-P9U PMS channels
+        {   501,  510, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // 5xx 5MHz band
         RIG_CHAN_END,
     },
 

@@ -242,7 +242,7 @@ static ncboolean is_ftdx9000Old;
  */
 static const yaesu_newcat_commands_t valid_commands[] =
 {
-    /* Command FT-450 FT-950 FT-891 FT-991  FT-2000 FT-9000 FT-5000 FT-1200 FT-3000 FTDX101D FTDX10 FTDX101MP FT710 */
+    /* Command FT-450 FT-950 FT-891 FT-991  FT-2000 FT-9000 FT-5000 FT-1200 FT-3000 FTDX101D FTDX10 FTDX101MP FT710 FT9000Old*/
     {"AB",     FALSE, TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"AC",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"AG",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
@@ -7527,8 +7527,14 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     rig_debug(RIG_DEBUG_TRACE, "sizeof(priv->cmd_str) = %d\n",
               (int)sizeof(priv->cmd_str));
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MR%03d%c", chan->channel_num,
-             cat_term);
+    if (is_ftdx101d || is_ftdx101mp || is_ft991 || is_ft710)
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MT%03d%c", chan->channel_num, cat_term);
+    }
+    else
+    {
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MR%03d%c", chan->channel_num, cat_term);
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -7645,6 +7651,15 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     /* Frequency P2 ************************** */
     retval = priv->ret_data + 5;
     chan->freq = atof(retval);
+
+    chan->tag[0] = '?'; // assume nothing
+    if (priv->ret_data[28] != ';') // must have TAG data?
+    {
+        // get the TAG data
+        sscanf(&priv->ret_data[28],"%s",chan->tag);
+        char *p = strchr(chan->tag,';');
+        if(p) *p = 0;
+    }
 
     if (!read_only)
     {
