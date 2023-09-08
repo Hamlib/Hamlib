@@ -352,7 +352,6 @@ int elecraft_open(RIG *rig)
         if (err != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Firmware RVF failed\n", __func__);
-            return err;
         }
         }
 
