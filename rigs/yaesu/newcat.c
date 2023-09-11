@@ -11099,9 +11099,11 @@ int newcat_set_cmd(RIG *rig)
         }
 
         // freq set and ptt are now verified in rig.c
+        // ST command is not validate -- caused problems on FTDX101D
         if (strncmp(priv->cmd_str, "FA", 2) == 0
                 || strncmp(priv->cmd_str, "FB", 2) == 0
-                || strncmp(priv->cmd_str, "TX", 2) == 0)
+                || strncmp(priv->cmd_str, "TX", 2) == 0
+                || strncmp(priv->cmd_str, "ST", 2) == 0)
         {
             RETURNFUNC(RIG_OK);
         }
