@@ -10890,9 +10890,13 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if ((strncmp(priv->cmd_str, "MD", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
+#if 0
         strcpy(valcmd, priv->cmd_str); // pull the needed part of the cmd
         valcmd[3] = ';';
         valcmd[4] = 0;
+#endif
+        // Win4Yaesu was not responding fast enough to validate the MD cmd
+        strcpy(valcmd, "");
     }
     else if ((strncmp(priv->cmd_str, "TX", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
@@ -11101,10 +11105,11 @@ int newcat_set_cmd(RIG *rig)
         }
 
         // freq set and ptt are now verified in rig.c
-        // ST command is not validate -- caused problems on FTDX101D
+        // ST command is not validated -- caused problems on FTDX101D
         if (strncmp(priv->cmd_str, "FA", 2) == 0
                 || strncmp(priv->cmd_str, "FB", 2) == 0
                 || strncmp(priv->cmd_str, "TX", 2) == 0
+                || strncmp(priv->cmd_str, "MD", 2) == 0 // Win4Yaesu not responding fast enough on MD change
                 || strncmp(priv->cmd_str, "ST", 2) == 0)
         {
             RETURNFUNC(RIG_OK);
