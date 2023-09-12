@@ -7915,12 +7915,14 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
         if (rig->state.current_vfo == RIG_VFO_B || rig->state.current_vfo == RIG_VFO_SUB) { p1++; }
     }
 
-    if (is_ftdx101d || is_ftdx101mp)
+#if 0 // this doesn't seem to work on FTDX101MP latest firmware as of 20230911
+    if ((is_ftdx101d || is_ftdx101mp) && p1 == '1')
     {
         // what other Yaesu rigs should be using this?
         // The DX101D returns FT0 when in split and not transmitting
         command = "ST";
     }
+#endif
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
 
