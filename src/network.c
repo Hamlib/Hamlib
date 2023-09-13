@@ -902,6 +902,8 @@ void *multicast_publisher(void *arg)
     dest_addr.sin_addr.s_addr = inet_addr(args->multicast_addr);
     dest_addr.sin_port = htons(args->multicast_port);
 
+    rs->multicast_publisher_run = 1;
+
     while (rs->multicast_publisher_run)
     {
         result = multicast_publisher_read_packet(args, &packet_type, &spectrum_line,
