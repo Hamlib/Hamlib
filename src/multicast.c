@@ -282,7 +282,7 @@ static int multicast_send_json(RIG *rig)
 
 void *multicast_thread(void *vrig)
 {
-    int retval;
+    //int retval;
     RIG *rig = (RIG *)vrig;
     rig_debug(RIG_DEBUG_TRACE, "%s: multicast_thread started\n", __func__);
 
@@ -293,8 +293,14 @@ void *multicast_thread(void *vrig)
 
     freq_t freqA, freqAsave = 0;
     freq_t freqB, freqBsave = 0;
+    mode_t modeA, modeAsave = 0;
+    mode_t modeB, modeBsave = 0;
+    ptt_t ptt, pttsave = 0;
+    rig->state.multicast->runflag = 1;
+
     while (rig->state.multicast->runflag)
     {
+#if 0
         if ((retval = rig_get_freq(rig, RIG_VFO_A, &freqA)) != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: rig_get_freqA:%s\n", __func__, rigerror(retval));
@@ -309,17 +315,37 @@ void *multicast_thread(void *vrig)
         {
             freqB = rig->state.cache.freqMainB;
         }
+#else
+        freqA = rig->state.cache.freqMainA;
+        freqB = rig->state.cache.freqMainB;
+        modeA = rig->state.cache.modeMainA;
+        modeB = rig->state.cache.modeMainB;
+        ptt = rig->state.cache.ptt;
+#endif
 
-        if (freqA != freqAsave || freqB != freqBsave || loopcount-- <= 0)
+        if (freqA != freqAsave 
+            || freqB != freqBsave
+            || modeA != modeAsave
+            || modeB != modeBsave
+            || ptt != pttsave
+            || loopcount-- <= 0)
         {
-            multicast_status_changed(rig);
+            if (loopcount <= 0)
+            rig_debug(RIG_DEBUG_CACHE, "%s: sending multicast packet timeout\n", __func__);
+            else rig_debug(RIG_DEBUG_ERR, "%s: sending multicast packet due to change\n", __func__);
+//            multicast_status_changed(rig);
             multicast_send_json(rig);
             loopcount = 8;
             freqAsave = freqA;
             freqBsave = freqB;
+            modeAsave = modeA;
+            modeBsave = modeB;
+            pttsave = ptt;
+            loopcount = 8;
         }
         else
         {
+            //rig_debug(RIG_DEBUG_VERBOSE, "%s: loop\n", __func__);
         hl_usleep(100 * 1000);
         }
 
@@ -354,6 +380,7 @@ static char *GetWinsockLastError(char *errorBuffer, DWORD errorBufferSize)
 
 int multicast_init(RIG *rig, char *addr, int port)
 {
+    if (rig->state.multicast && rig->state.multicast->multicast_running) return RIG_OK;
 #ifdef _WIN32
     WSADATA wsaData;
 
@@ -453,7 +480,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     rig->state.multicast->dest_addr.sin_addr.s_addr = inet_addr(addr);
     rig->state.multicast->dest_addr.sin_port = htons(port);
 
-#if 0
+#if 1
     rig->state.multicast->runflag = 1;
     pthread_create(&rig->state.multicast->threadid, NULL, multicast_thread,
                    (void *)rig);
