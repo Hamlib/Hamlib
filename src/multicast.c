@@ -295,6 +295,7 @@ static int multicast_send_json(RIG *rig)
     return 0;
 }
 
+#define LOOPCOUNT 50
 void *multicast_thread(void *vrig)
 {
     //int retval;
@@ -304,7 +305,7 @@ void *multicast_thread(void *vrig)
     // do the 1st packet all the time
     //multicast_status_changed(rig);
     //multicast_send_json(rig);
-    int loopcount = 8;
+    int loopcount = LOOPCOUNT;
 
     freq_t freqA, freqAsave = 0;
     freq_t freqB, freqBsave = 0;
@@ -356,7 +357,7 @@ void *multicast_thread(void *vrig)
             modeAsave = modeA;
             modeBsave = modeB;
             pttsave = ptt;
-            loopcount = 8;
+            loopcount = LOOPCOUNT;
         }
         else
         {
