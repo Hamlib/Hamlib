@@ -29,6 +29,14 @@ static struct sockaddr_in dest_addr = {0};
 #endif
 
 
+int multicast_stop(RIG *rig)
+{
+    if (rig->state.multicast) rig->state.multicast->runflag = 0;
+    pthread_join(rig->state.multicast->threadid, NULL);
+    return RIG_OK;
+}
+
+#if 0
 static int multicast_status_changed(RIG *rig)
 {
     int retval;
@@ -49,22 +57,26 @@ static int multicast_status_changed(RIG *rig)
     pbwidth_t widthA, widthAsave = rig->state.cache.widthMainA;
     pbwidth_t widthB, widthBsave = rig->state.cache.widthMainB;
 
+#if  0
     if (rig->state.multicast->seqnumber % 2 == 0
             && (retval = rig_get_mode(rig, RIG_VFO_A, &modeA, &widthA)) != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig_get_modeA:%s\n", __func__, rigerror(retval));
     }
+#endif
 
     if (modeA != modeAsave) { return 1; }
 
     if (widthA != widthAsave) { return 1; }
 
+#if 0
     if (rig->state.multicast->seqnumber % 2 == 0
             && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
             && (retval = rig_get_mode(rig, RIG_VFO_B, &modeB, &widthB)) != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig_get_modeB:%s\n", __func__, rigerror(retval));
     }
+#endif
 
     if (modeB != modeBsave) { return 1; }
 
@@ -72,6 +84,7 @@ static int multicast_status_changed(RIG *rig)
 
     ptt_t ptt, pttsave = rig->state.cache.ptt;
 
+#if 0
     if (rig->state.multicast->seqnumber % 2 == 0
             && (retval = rig_get_ptt(rig, RIG_VFO_CURR, &ptt)) != RIG_OK)
         if (ptt != pttsave) { return 1; }
@@ -82,9 +95,11 @@ static int multicast_status_changed(RIG *rig)
     if (rig->state.multicast->seqnumber % 2 == 0
             && (retval = rig_get_split_vfo(rig, RIG_VFO_CURR, &split, &txvfo)) != RIG_OK)
         if (split != splitsave) { return 1; }
+#endif
 
     return 0;
 }
+#endif
 
 void json_add_string(char *msg, const char *key, const char *value,
                      int addComma)
@@ -287,8 +302,8 @@ void *multicast_thread(void *vrig)
     rig_debug(RIG_DEBUG_TRACE, "%s: multicast_thread started\n", __func__);
 
     // do the 1st packet all the time
-    multicast_status_changed(rig);
-    multicast_send_json(rig);
+    //multicast_status_changed(rig);
+    //multicast_send_json(rig);
     int loopcount = 8;
 
     freq_t freqA, freqAsave = 0;
@@ -346,7 +361,7 @@ void *multicast_thread(void *vrig)
         else
         {
             //rig_debug(RIG_DEBUG_VERBOSE, "%s: loop\n", __func__);
-        hl_usleep(100 * 1000);
+        hl_usleep(10 * 1000);
         }
 
 
