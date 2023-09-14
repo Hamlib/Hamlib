@@ -1526,6 +1526,7 @@ int HAMLIB_API rig_close(RIG *rig)
 
     morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
+    multicast_stop(rig);
 
     /*
      * Let the backend say 73s to the rig.

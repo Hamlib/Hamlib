@@ -2571,6 +2571,7 @@ struct multicast_s
 //#ifdef HAVE_ARPA_INET_H
     struct ip_mreq mreq; // = {0};
     struct sockaddr_in dest_addr; // = {0};
+    int port;
 //#endif
 };
 
@@ -2756,6 +2757,7 @@ struct rig_state {
     volatile int morse_data_handler_thread_run;
     void *morse_data_handler_priv_data;
     FIFO_RIG *fifo_morse;
+    int port_multicast;  /*!< May be different so this is initially a copy of rigctl'd port selection */
 };
 
 /**
