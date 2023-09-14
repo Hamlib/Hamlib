@@ -10900,7 +10900,14 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if ((strncmp(priv->cmd_str, "TX", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
-        strcpy(valcmd, "TX;");
+        if (priv->cmd_str[2]=='1' && rig->caps->rig_model == RIG_MODEL_FT950) // FT950 didn't like TX; after TX1;
+        {
+            valcmd[0] = 0;
+        }
+        else
+        {
+            strcpy(valcmd, "TX;");
+        }
     }
     else if ((strncmp(priv->cmd_str, "FT", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
