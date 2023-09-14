@@ -41,4 +41,5 @@ struct multicast_broadcast
 // returns # of bytes sent
 extern HAMLIB_EXPORT (int) multicast_init(RIG *rig, char *addr, int port);
 extern HAMLIB_EXPORT (int) multicast_send(RIG *rig, const char *msg, int msglen);
+extern HAMLIB_EXPORT (int) multicast_stop(RIG *rig);
 #endif //MULTICAST_H
