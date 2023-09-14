@@ -5346,9 +5346,19 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
     char cmd[16];
     ENTERFUNC;
 
+#if 0 // don't really need to turn on the list
     SNPRINTF(cmd, sizeof(cmd), "PB01");
     kenwood_transaction(rig, cmd, NULL, 0);
-    SNPRINTF(cmd, sizeof(cmd), "PB1%d", bank);
+#endif
+    SNPRINTF(cmd, sizeof(cmd), "PB1%d1", bank);
+    RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
+}
+
+int kenwood_stop_voice_mem(RIG *rig, vfo_t vfo)
+{
+    char cmd[16];
+    ENTERFUNC;
+    SNPRINTF(cmd, sizeof(cmd), "PB0");
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
 
