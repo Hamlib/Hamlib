@@ -54,16 +54,16 @@ struct chan_map_s
 // Our 10 bands
 static struct chan_map_s chan_map[] =
 {
-    { 1.8, 2.0, 0},
-    { 3.5, 4.0, 1},
-    { 5.3, 5.4, 2},
-    { 7.0, 7.3, 3},
-    { 10.1, 10.15, 4},
-    { 14.0, 14.35, 5},
-    { 18.068, 18.168, 6},
-    { 21.0, 21.45, 7},
-    { 24.89, 24.99, 8},
-    { 28.0, 29.7, 9}
+    { 0, 3.5, 0},
+    { 3.5, 5.3, 1},
+    { 5.3, 7.0, 2},
+    { 7.0, 10.1, 3},
+    { 10.1, 14.0, 4},
+    { 14.0, 18.068, 5},
+    { 18.068, 21.0, 6},
+    { 21.0, 24.89, 7},
+    { 24.89, 28.0, 8},
+    { 28.0, 30.0, 9}
 };
 
 const struct rig_caps barrett950_caps =
@@ -71,7 +71,7 @@ const struct rig_caps barrett950_caps =
     RIG_MODEL(RIG_MODEL_BARRETT_950),
     .model_name =       "950",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER ".0",
+    .version =          BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -164,6 +164,7 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     for (i = 0; i < 10; ++i)
     {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Mhz=%lg, lo=%lg, hi=%lg\n", __func__, freq_MHz, chan_map[i].lo, chan_map[i].hi);
         if (freq_MHz >= chan_map[i].lo && freq_MHz <= chan_map[i].hi)
         {
             int channel_base = priv->channel_base;
