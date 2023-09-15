@@ -2,7 +2,8 @@ Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) Stephane Fillod 2000-2011
          (C) The Hamlib Group 2000-2013
 
-Take a look at http://sourceforge.net/projects/hamlib/
+Primary site for the latest development version of Hamlib is https://github.com/Hamlib/Hamlib
+Also take a look at http://sourceforge.net/projects/hamlib/
 Here you will find a mail list, and the latest releases.
 
 See README.md for frontend/backend outline.
