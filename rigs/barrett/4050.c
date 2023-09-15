@@ -32,20 +32,11 @@
 
 #define BARRETT4050_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_RTTY | RIG_MODE_SSB)
 
-#define BARRETT4050_LEVELS (RIG_LEVEL_NONE)
+#define BARRETT4050_LEVELS (RIG_LEVEL_AGC|RIG_LEVEL_STRENGTH)
 
 #define BARRETT4050_FUNCTIONS (RIG_FUNC_TUNER)
 
 extern int barret950_get_freq(RIG *rig, vfo_t vfo, freq_t freq);
-
-/*
- * barrett4050_get_level
- */
-static int barrett4050_get_level(RIG *rig, vfo_t vfo, setting_t level,
-                                 value_t *val)
-{
-    return -RIG_ENIMPL;
-}
 
 /*
  * barrett4050_get_info
@@ -130,7 +121,7 @@ const struct rig_caps barrett4050_caps =
     .has_get_func =     BARRETT4050_FUNCTIONS,
     .has_set_func =     BARRETT4050_FUNCTIONS,
     .has_get_level =    BARRETT4050_LEVELS,
-    .has_set_level =    RIG_LEVEL_NONE,
+    .has_set_level =    RIG_LEVEL_AGC,
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,
     .transceive =       RIG_TRN_RIG,
@@ -164,7 +155,8 @@ const struct rig_caps barrett4050_caps =
     .set_mode = barrett_set_mode,
     .get_mode = barrett_get_mode,
 
-    .get_level =    barrett4050_get_level,
+    .set_level =    barrett_set_level,
+    .get_level =    barrett_get_level,
 
     .get_info =     barrett4050_get_info,
     .set_ptt =      barrett_set_ptt,

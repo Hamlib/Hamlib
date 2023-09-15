@@ -66,6 +66,9 @@ extern int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split,
 extern int barrett_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
                                  vfo_t *txvfo);
 
+extern int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+extern int barrett_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+
 
 
 
