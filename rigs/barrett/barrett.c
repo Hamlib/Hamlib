@@ -642,6 +642,27 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
+    case RIG_LEVEL_AGC:
+        retval = barrett_transaction(rig, "IGA", 0, &response);
+
+        if (retval < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: invalid response=%s\n", __func__,
+                      response);
+            return retval;
+        }
+
+        if (response[0] == 'H') // then AGC hang is on
+        {
+            val->i = 1;
+        }
+        else
+        {
+            val->i = 0;
+        }
+
+        break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported level %s\n", __func__,
                   rig_strlevel(level));
@@ -651,6 +672,29 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s level=%s val=%s\n", __func__,
               rig_strvfo(vfo), rig_strlevel(level), response);
 
+    return RIG_OK;
+}
+
+int barrett_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    char cmd_buf[MAXCMDLEN];
+    struct rig_state *rs = &rig->state;
+    int retval;
+
+    switch (level)
+    {
+        case RIG_LEVEL_AGC:
+            sprintf(cmd_buf,"EG%c%s", val.i==0?'N':'H' , EOM);
+            break;
+        default: return -RIG_ENIMPL;
+    }
+    rig_flush(&rs->rigport);
+    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));
+
+    if (retval < 0)
+    {
+        return retval;
+    }
     return RIG_OK;
 }
 
