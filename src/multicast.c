@@ -322,7 +322,7 @@ void *multicast_thread_rx(void *vrig)
     rig->state.ptt_type = RIG_PTT_RIG;
     rig->state.port_type = RIG_PORT_UDP_NETWORK;
     strcpy(port.pathname, "127.0.0.1:4532");
-    rig_debug(RIG_DEBUG_TRACE, "%s: started\n", __func__);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: started\n", __func__);
     network_open(&port, 4532);
 
     while (rig->state.multicast->runflag && ret >= 0)
@@ -330,7 +330,7 @@ void *multicast_thread_rx(void *vrig)
         ret = read_string(&rig->state.rigport, (unsigned char *) buf, sizeof(buf), "\n", 1,
                           0, 1);
 
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: read %s\n", __func__, buf);
+        //rig_debug(RIG_DEBUG_VERBOSE, "%s: read %s\n", __func__, buf);
         hl_usleep(10 * 1000);
     }
 
@@ -342,7 +342,7 @@ void *multicast_thread(void *vrig)
 {
     //int retval;
     RIG *rig = (RIG *)vrig;
-    rig_debug(RIG_DEBUG_TRACE, "%s: started\n", __func__);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: started\n", __func__);
 
     // do the 1st packet all the time
     //multicast_status_changed(rig);
