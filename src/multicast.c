@@ -317,7 +317,9 @@ static int multicast_send_json(RIG *rig)
 
 void *multicast_thread_rx(void *vrig)
 {
+#if 0
     char buf[256];
+#endif
     int ret = 0;
     RIG *rig = (RIG *)vrig;
     hamlib_port_t port;
