@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20230914"
+#define BACKEND_VER "20230916"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -178,6 +178,7 @@ struct kenwood_priv_data
     int question_mark_response_means_rejected; /* the question mark response has multiple meanings */
     int save_k2_ext_lvl; // so we can restore to original
     int save_k3_ext_lvl; // so we can restore to original -- for future use if needed
+    int voice_bank; /* last voice bank send for use by stop_voice_mem */
 };
 
 

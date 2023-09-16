@@ -5344,6 +5344,7 @@ int kenwood_stop_morse(RIG *rig, vfo_t vfo)
 int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
 {
     char cmd[16];
+    struct kenwood_priv_data *priv = rig->state.priv;
     ENTERFUNC;
 
 #if 0 // don't really need to turn on the list
@@ -5351,14 +5352,16 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
     kenwood_transaction(rig, cmd, NULL, 0);
 #endif
     SNPRINTF(cmd, sizeof(cmd), "PB1%d1", bank);
+    priv->voice_bank = bank;
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
 
 int kenwood_stop_voice_mem(RIG *rig, vfo_t vfo)
 {
     char cmd[16];
+    struct kenwood_priv_data *priv = rig->state.priv;
     ENTERFUNC;
-    SNPRINTF(cmd, sizeof(cmd), "PB0");
+    SNPRINTF(cmd, sizeof(cmd), "PB1%d0", priv->voice_bank);
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
 
