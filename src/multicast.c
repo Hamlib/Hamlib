@@ -390,11 +390,13 @@ void *multicast_thread(void *vrig)
                 || ptt != pttsave
                 || loopcount-- <= 0)
         {
+#if 0
             if (loopcount <= 0)
             {
                 rig_debug(RIG_DEBUG_CACHE, "%s: sending multicast packet timeout\n", __func__);
             }
             else { rig_debug(RIG_DEBUG_ERR, "%s: sending multicast packet due to change\n", __func__); }
+#endif
 
 //            multicast_status_changed(rig);
             multicast_send_json(rig);
