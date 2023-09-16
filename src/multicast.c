@@ -15,6 +15,7 @@
 #include "misc.h"
 #include "multicast.h"
 #include "network.h"
+#include "sprintflst.h"
 
 #define RIG_MULTICAST_ADDR "224.0.0.1"
 #define RIG_MULTICAST_PORT 4532
@@ -302,6 +303,8 @@ static int multicast_send_json(RIG *rig)
     json_add_string(msg, "VFOCurr", rig_strvfo(rig->state.current_vfo), 1);
     json_add_int(msg, "PTT", rig->state.cache.ptt, 1);
     json_add_int(msg, "Split", rig->state.cache.split, 1);
+    rig_sprintf_mode(buf, sizeof(buf), rig->state.mode_list);
+    json_add_string(msg, "ModeList", buf,1);
     strcat(msg, "\"VFOs\": [\n");
     json_add_vfoA(rig, msg);
     json_add_vfoB(rig, msg);
