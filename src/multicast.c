@@ -326,12 +326,16 @@ void *multicast_thread_rx(void *vrig)
     rig->state.port_type = RIG_PORT_UDP_NETWORK;
     strcpy(port.pathname, "127.0.0.1:4532");
     //rig_debug(RIG_DEBUG_TRACE, "%s: started\n", __func__);
+#if  0
     network_open(&port, 4532);
+#endif
 
     while (rig->state.multicast->runflag && ret >= 0)
     {
+#if 0
         ret = read_string(&rig->state.rigport, (unsigned char *) buf, sizeof(buf), "\n", 1,
                           0, 1);
+#endif
 
         //rig_debug(RIG_DEBUG_VERBOSE, "%s: read %s\n", __func__, buf);
         hl_usleep(10 * 1000);
