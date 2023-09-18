@@ -560,7 +560,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     rig->state.multicast->dest_addr.sin_addr.s_addr = inet_addr(addr);
     rig->state.multicast->dest_addr.sin_port = htons(port);
 
-#if 1
+#if 0
     rig->state.multicast->runflag = 1;
     pthread_create(&rig->state.multicast->threadid, NULL, multicast_thread,
                    (void *)rig);
