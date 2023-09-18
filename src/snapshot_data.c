@@ -4,6 +4,7 @@
 #include "misc.h"
 #include "snapshot_data.h"
 #include "hamlibdatetime.h"
+#include "sprintflst.h"
 
 #include "cJSON.h"
 
@@ -15,9 +16,13 @@
 static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
 {
     cJSON *node;
+    char buf[1024];
 
     // TODO: need to assign rig an ID, e.g. from command line
-    node = cJSON_AddStringToObject(rig_node, "id", "rig_id");
+    snprintf(buf, sizeof(buf), "%s:%s", rig->caps->model_name,
+         rig->state.rigport.pathname);
+
+    node = cJSON_AddStringToObject(rig_node, "id", buf);
 
     if (node == NULL)
     {
@@ -66,6 +71,14 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
 
     node = cJSON_AddBoolToObject(rig_node, "satMode",
                                  rig->state.cache.satmode ? 1 : 0);
+
+    if (node == NULL)
+    {
+        goto error;
+    }
+
+    rig_sprintf_mode(buf, sizeof(buf), rig->state.mode_list);
+    node = cJSON_AddStringToObject(rig_node, "modelist", buf);
 
     if (node == NULL)
     {
@@ -296,6 +309,7 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
     cJSON *rig_node, *vfos_array, *vfo_node, *spectra_array, *spectrum_node;
     cJSON *node;
     cJSON_bool bool_result;
+    char buf[256];
 
     int vfo_count = 2;
     vfo_t vfos[MAX_VFO_COUNT];
@@ -334,6 +348,14 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
     {
         goto error;
     }
+    date_strget(buf, sizeof(buf), 0);
+    node = cJSON_AddStringToObject(root_node, "time", buf);
+
+    if (node == NULL)
+    {
+        goto error;
+    }
+
 
     // TODO: Calculate 32-bit CRC of the entire JSON record replacing the CRC value with 0
     node = cJSON_AddNumberToObject(root_node, "crc", 0);

@@ -1486,7 +1486,7 @@ int HAMLIB_API rig_open(RIG *rig)
     memcpy(&rs->pttport_deprecated, &rs->pttport, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->dcdport_deprecated, &rs->dcdport, sizeof(hamlib_port_t_deprecated));
     rig_flush_force(&rs->rigport, 1);
-    if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL) multicast_init(rig, "224.0.0.1", 4532);
+//    if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL) multicast_init(rig, "224.0.0.1", 4532);
     RETURNFUNC2(RIG_OK);
 }
 
@@ -1526,7 +1526,7 @@ int HAMLIB_API rig_close(RIG *rig)
 
     morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
-    multicast_stop(rig);
+    //multicast_stop(rig);
 
     /*
      * Let the backend say 73s to the rig.
