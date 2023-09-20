@@ -573,11 +573,14 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
         }
         else if (RIG_PARM_IS_STRING(rig_idx2setting(i)))
         {
+            if (gran[i].step.s)
+            {
             rig_debug(RIG_DEBUG_ERR, "%s: BAND_SELECT?\n", __func__);
             len += sprintf(str + len,
-                "%s(%s)",
+                "%s(%s) ",
                 ms,
                 gran[i].step.s);
+            }
         }
         else
         {
