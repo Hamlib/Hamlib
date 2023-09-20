@@ -31,10 +31,13 @@ int main(int argc, char *argv[])
 #endif
     rig->state.rigport.parm.serial.rate = 38400;
     rig_open(rig);
+    // disabled until we change this to the other multicast capability
+#if 0
     multicast_init(rig, "224.0.0.1", 4532);
     printf("threadid=%lld\n", (long long)rig->state.multicast->threadid);
     pthread_join(rig->state.multicast->threadid, NULL);
     pthread_exit(NULL);
+#endif
     return 0;
 }
 #endif
