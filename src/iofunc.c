@@ -1417,8 +1417,8 @@ static int read_string_generic(hamlib_port_t *p,
             if (errno == EAGAIN)
             {
                 hl_usleep(5 * 1000);
-                rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy? direct=%d\n", __func__,
-                          direct);
+//                rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy? direct=%d\n", __func__,
+//                          direct);
             }
         }
 
