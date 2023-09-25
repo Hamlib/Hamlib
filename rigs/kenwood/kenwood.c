@@ -5351,7 +5351,29 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
     SNPRINTF(cmd, sizeof(cmd), "PB01");
     kenwood_transaction(rig, cmd, NULL, 0);
 #endif
-    SNPRINTF(cmd, sizeof(cmd), "PB1%d1", bank);
+    if (rig->caps->rig_model == RIG_MODEL_TS2000 && (bank < 1 || bank > 3))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: TS2000 channel is from 1 to 3\n", __func__);
+        return -RIG_EINVAL;
+    }
+    // some rigs have 5 channels -- newew ones  have 10 channels
+    if ((bank  < 1 || bank > 5)
+        && (rig->caps->rig_model == RIG_MODEL_TS590SG
+        || rig->caps->rig_model == RIG_MODEL_TS590S))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: TS590S/SG channel is from 1 to 5\n", __func__);
+        return -RIG_EINVAL;
+    }
+    if (rig->caps->rig_model == RIG_MODEL_TS2000
+        || (rig->caps->rig_model == RIG_MODEL_TS590SG
+        || rig->caps->rig_model == RIG_MODEL_TS590S))
+    {
+        SNPRINTF(cmd, sizeof(cmd), "PB%d", bank);
+    }
+    else
+    {
+        SNPRINTF(cmd, sizeof(cmd), "PB1%d1", bank);
+    }
     priv->voice_bank = bank;
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
@@ -5361,7 +5383,14 @@ int kenwood_stop_voice_mem(RIG *rig, vfo_t vfo)
     char cmd[16];
     struct kenwood_priv_data *priv = rig->state.priv;
     ENTERFUNC;
-    SNPRINTF(cmd, sizeof(cmd), "PB1%d0", priv->voice_bank);
+    if (rig->caps->rig_model == RIG_MODEL_TS2000)
+    {
+        SNPRINTF(cmd, sizeof(cmd), "PB0");
+    }
+    else
+    {
+        SNPRINTF(cmd, sizeof(cmd), "PB1%d0", priv->voice_bank);
+    }
     RETURNFUNC(kenwood_transaction(rig, cmd, NULL, 0));
 }
 
