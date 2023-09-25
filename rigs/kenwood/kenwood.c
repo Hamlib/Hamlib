@@ -5351,9 +5351,11 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
     SNPRINTF(cmd, sizeof(cmd), "PB01");
     kenwood_transaction(rig, cmd, NULL, 0);
 #endif
-    if (rig->caps->rig_model == RIG_MODEL_TS2000 && (bank < 1 || bank > 3))
+    if ((bank < 1 || bank > 3) &&
+        (rig->caps->rig_model == RIG_MODEL_TS2000
+        || rig->caps->rig_model == RIG_MODEL_TS480))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: TS2000 channel is from 1 to 3\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: TS2000/TS480 channel is from 1 to 3\n", __func__);
         return -RIG_EINVAL;
     }
     // some rigs have 5 channels -- newew ones  have 10 channels
@@ -5365,8 +5367,9 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
         return -RIG_EINVAL;
     }
     if (rig->caps->rig_model == RIG_MODEL_TS2000
+        || (rig->caps->rig_model == RIG_MODEL_TS480
         || (rig->caps->rig_model == RIG_MODEL_TS590SG
-        || rig->caps->rig_model == RIG_MODEL_TS590S))
+        || rig->caps->rig_model == RIG_MODEL_TS590S)))
     {
         SNPRINTF(cmd, sizeof(cmd), "PB%d", bank);
     }
