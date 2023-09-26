@@ -5386,7 +5386,10 @@ int kenwood_stop_voice_mem(RIG *rig, vfo_t vfo)
     char cmd[16];
     struct kenwood_priv_data *priv = rig->state.priv;
     ENTERFUNC;
-    if (rig->caps->rig_model == RIG_MODEL_TS2000)
+    if (rig->caps->rig_model == RIG_MODEL_TS2000
+        || (rig->caps->rig_model == RIG_MODEL_TS480
+        || (rig->caps->rig_model == RIG_MODEL_TS590SG
+        || rig->caps->rig_model == RIG_MODEL_TS590S)))
     {
         SNPRINTF(cmd, sizeof(cmd), "PB0");
     }
