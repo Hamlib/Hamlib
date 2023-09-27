@@ -2924,6 +2924,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     {
     case 27: offset = 13; break;
 
+    case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
 
     default: offset = 0;
@@ -3040,6 +3041,7 @@ int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     {
     case 27: offset = 13; break;
 
+    case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 14; break;
 
     default: offset = 0;
