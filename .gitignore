@@ -73,3 +73,5 @@ libs/
 obj/
 .project
 .cproject
+.DS_Store
+._.DS_Store
