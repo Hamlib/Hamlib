@@ -10537,6 +10537,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, rmode_t *vfo_mode)
     {
     case 27: offset = 21; priv->width_frequency = 8; break;
 
+    case 41: // FT-991 V2-01 seems to randomly give 13 extra bytes
     case 28: offset = 22; priv->width_frequency = 9; break;
 
     default:
