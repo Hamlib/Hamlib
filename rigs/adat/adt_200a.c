@@ -5,7 +5,7 @@
 //  adt_200a.c
 //
 //  Created by Frank Goenninger DG1SBG.
-//  Copyright © 2011, 2012 Frank Goenninger.
+//  Copyright © 2011, 2012, 2023 Frank Goenninger.
 //
 //   This library is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU Lesser General Public
@@ -100,12 +100,18 @@ const struct rig_caps adt_200a_caps =
     .rx_range_list1 =
     {
         { kHz(10), MHz(30), ADT_200A_MODES, -1, -1, ADT_200A_VFO },
+        { MHz(50), MHz(50.5), ADT_200A_MODES, -1, -1, ADT_200A_VFO },
+        { MHz(70), MHz(70.7), ADT_200A_MODES, -1, -1, ADT_200A_VFO },
+        { MHz(146), MHz(148), ADT_200A_MODES, -1, -1, ADT_200A_VFO },
         RIG_FRNG_END,
     },
 
     .tx_range_list1 =
     {
         { kHz(10), MHz(30), ADT_200A_MODES, mW(100), W(50), ADT_200A_VFO },
+        { MHz(50), MHz(50.5), ADT_200A_MODES, mW(10), W(1), ADT_200A_FRA },
+        { MHz(70), MHz(70.7), ADT_200A_MODES, mW(10), W(1), ADT_200A_FRA },
+        { MHz(146), MHz(148), ADT_200A_MODES, mW(10), mW(100), ADT_200A_FRA },
         RIG_FRNG_END,
     },
 
@@ -163,8 +169,10 @@ const struct rig_caps adt_200a_caps =
         { RIG_MODE_FM, Hz(8000) },
         { RIG_MODE_FM, Hz(9000) },
         { RIG_MODE_FM, Hz(10000) },
-        { RIG_MODE_FM, Hz(11000) },
         { RIG_MODE_FM, Hz(12000) },
+        { RIG_MODE_FM, Hz(15000) },
+        { RIG_MODE_FM, Hz(20000) },
+        { RIG_MODE_FM, Hz(25000) },
         RIG_FLT_END,
     },
     .str_cal = ADT_200A_STR_CAL,
