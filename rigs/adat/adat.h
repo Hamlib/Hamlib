@@ -5,7 +5,7 @@
 //  adat.h
 //
 //  Created by Frank Goenninger DG1SBG.
-//  Copyright © 2011, 2012 Frank Goenninger.
+//  Copyright © 2011, 2012, 2023 Frank Goenninger.
 //
 //   This library is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU Lesser General Public
@@ -42,10 +42,10 @@
 //    GLOBAL DEFINITIONS
 // ---------------------------------------------------------------------------
 
-#define BACKEND_VER "20191206"
+#define BACKEND_VER "20230927"
 
-#define ADAT_BUFSZ                 256
-#define ADAT_RESPSZ                256
+#define ADAT_BUFSZ                 255
+#define ADAT_RESPSZ                255
 
 #define ADAT_CR                    "\x0d"
 #define ADAT_EOL                   "\x0a"
@@ -100,7 +100,7 @@
 
 // ADAT MODE DEFINITIONS
 
-#define ADAT_MODE_LENGTH           5
+#define ADAT_MODE_LENGTH           15
 #define ADAT_NR_MODES              8
 
 // Each mode is defined by three values:
