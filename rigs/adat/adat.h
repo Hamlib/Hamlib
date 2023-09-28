@@ -547,9 +547,6 @@ int adat_cmd_recover_from_error(RIG *, int);
 
 int adat_transaction(RIG *, adat_cmd_list_ptr);
 
-adat_priv_data_ptr adat_new_priv_data(RIG *);
-void adat_del_priv_data(adat_priv_data_t **);
-
 // Command implementation
 
 int adat_cmd_fn_get_serial_nr(RIG *);
@@ -559,7 +556,6 @@ int adat_cmd_fn_get_gui_fw_version(RIG *);
 int adat_cmd_fn_get_id_code(RIG *);
 int adat_cmd_fn_get_options(RIG *);
 
-int adat_cmd_fn_set_callsign(RIG *);
 int adat_cmd_fn_get_callsign(RIG *);
 
 int adat_cmd_fn_set_freq(RIG *);

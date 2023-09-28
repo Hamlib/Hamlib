@@ -294,20 +294,6 @@ static adat_cmd_def_t adat_cmd_get_callsign =
     }
 };
 
-// -- ADAT SPECIAL: SET CALLSIGN --
-
-static adat_cmd_def_t adat_cmd_set_callsign =
-{
-    ADAT_CMD_DEF_ADAT_SPECIAL,
-    ADAT_CMD_KIND_WITHOUT_RESULT,
-    adat_cmd_fn_set_callsign,
-
-    1,
-    {
-        ADAT_CMD_DEF_STRING_SET_CALLSIGN
-    }
-};
-
 // -- HAMLIB DEFINED COMMANDS --
 
 // -- GET FREQ --
@@ -531,7 +517,7 @@ static adat_cmd_list_t adat_cmd_list_open_adat =
         &adat_cmd_get_gui_fw_version,
         &adat_cmd_get_hw_version,
         &adat_cmd_get_options,
-        &adat_cmd_set_callsign
+        &adat_cmd_get_callsign
     }
 };
 
@@ -2593,11 +2579,7 @@ int adat_cleanup(RIG *pRig)
     }
     else
     {
-        if (pRig->state.priv != NULL)
-        {
-            adat_del_priv_data((adat_priv_data_t **) & (pRig->state.priv));
-            pRig->state.priv = NULL;
-        }
+        pRig->state.priv = NULL;
     }
 
     rig_debug(RIG_DEBUG_TRACE,
