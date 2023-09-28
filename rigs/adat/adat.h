@@ -324,31 +324,45 @@
 // -- GET POWER STATUS --
 
 // -- GET INFO --
+// Nothing to define here
 
 // -- OPEN ADAT --
+// Nothing to define here
 
 // -- ADAT SPECIAL: RECOVER FROM ERROR --
+// Nothing to define here
 
 // ---------------------------------------------------------------------------
 //    ADAT PRIVATE DATA
 // ---------------------------------------------------------------------------
 
+#define ADAT_PRIV_DATA_PRODUCTNAME_LENGTH    255
+#define ADAT_PRIV_DATA_SERIALNR_LENGTH       255
+#define ADAT_PRIV_DATA_IDCODE_LENGTH         255
+#define ADAT_PRIV_DATA_OPTIONS_LENGTH        255
+#define ADAT_PRIV_DATA_FWVERSION_LENGTH      255
+#define ADAT_PRIV_DATA_HWVERSION_LENGTH      255
+#define ADAT_PRIV_DATA_GUIFWVERSION_LENGTH   255
+#define ADAT_PRIV_DATA_CALLSIGN_LENGTH       255
+#define ADAT_PRIV_DATA_CMD_LENGTH            255
+#define ADAT_PRIV_DATA_RESULT_LENGTH         255
+
 typedef struct _adat_priv_data
 {
     int           nOpCode;
 
-    char         *pcProductName; // Future use (USB direct I/O)
+    char          acProductName[ ADAT_PRIV_DATA_PRODUCTNAME_LENGTH + 1]; // Future use (USB direct I/O)
 
     // ADAT device info
 
-    char         *pcSerialNr;
-    char         *pcIDCode;
-    char         *pcOptions;
-    char         *pcFWVersion;
-    char         *pcHWVersion;
-    char         *pcGUIFWVersion;
+    char          acSerialNr[ ADAT_PRIV_DATA_SERIALNR_LENGTH + 1 ];
+    char          acIDCode[ ADAT_PRIV_DATA_IDCODE_LENGTH + 1 ];
+    char          acOptions[ ADAT_PRIV_DATA_OPTIONS_LENGTH + 1 ];
+    char          acFWVersion[ ADAT_PRIV_DATA_FWVERSION_LENGTH + 1 ];
+    char          acHWVersion[ ADAT_PRIV_DATA_HWVERSION_LENGTH + 1 ];
+    char          acGUIFWVersion[ ADAT_PRIV_DATA_GUIFWVERSION_LENGTH + 1 ];
 
-    char         *pcCallsign;
+    char          acCallsign[ ADAT_PRIV_DATA_CALLSIGN_LENGTH + 1 ];
 
     // ADAT Operational Settings: will change during TRX use
 
@@ -379,10 +393,10 @@ typedef struct _adat_priv_data
 
     // ADAT Command-related Values
 
-    char         *pcCmd;
+    char          acCmd[ ADAT_PRIV_DATA_CMD_LENGTH + 1 ];
     int           nCmdKind;
 
-    char         *pcResult;
+    char          acResult[ ADAT_PRIV_DATA_RESULT_LENGTH + 1 ];
     int           nRC;
 
 } adat_priv_data_t,
