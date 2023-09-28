@@ -5,7 +5,7 @@
 //  adat.c
 //
 //  Created by Frank Goenninger DG1SBG.
-//  Copyright © 2011, 2012 Frank Goenninger.
+//  Copyright © 2011, 2012, 2023 Frank Goenninger.
 //
 //   This library is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU Lesser General Public
@@ -1419,9 +1419,8 @@ int adat_priv_clear_result(RIG *pRig)
         if (pPriv->pcResult != NULL)
         {
             free(pPriv->pcResult);
+            pPriv->pcResult = NULL;
         }
-
-        pPriv->pcResult = NULL;
     }
 
     // Done !
@@ -1545,13 +1544,11 @@ int adat_get_single_cmd_result(RIG *pRig)
                     nRC = -RIG_EINVAL;
                 }
 
+                adat_priv_clear_result(pRig);
+
                 if (nRC == RIG_OK)
                 {
                     adat_priv_set_result(pRig, pcResult);
-                }
-                else
-                {
-                    adat_priv_clear_result(pRig);
                 }
             }
         }
@@ -2630,28 +2627,9 @@ adat_priv_data_ptr adat_new_priv_data(RIG *pRig)
     {
         // Init Priv Data
 
-        pPriv = pRig->state.priv = (adat_priv_data_ptr) calloc(sizeof(adat_priv_data_t),
-                                   1);
+        pPriv = pRig->state.priv = (adat_priv_data_ptr) calloc(1,sizeof(adat_priv_data_t));
 
-        if (pRig->state.priv != NULL)
-        {
-            char acBuf[ ADAT_BUFSZ + 1 ];
-            memset(acBuf, 0, ADAT_BUFSZ + 1);
-
-            // FIXME: pointless code at init time
-#if 0
-            nRC = adat_get_conf(pRig, TOKEN_ADAT_PRODUCT_NAME, acBuf);
-
-            if (nRC == 0)
-            {
-                pPriv->pcProductName = strdup(acBuf);
-
-                pRig->state.priv = (void *) pPriv;
-            }
-
-#endif
-        }
-        else
+        if (pRig->state.priv == NULL)
         {
             nRC = -RIG_ENOMEM;
         }
