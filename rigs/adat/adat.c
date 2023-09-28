@@ -1313,7 +1313,7 @@ int adat_priv_set_cmd(RIG *pRig, char *pcCmd, int nCmdKind)
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
 	memset( pPriv->acCmd, 0, ADAT_PRIV_DATA_CMD_LENGTH + 1 );
-        SNPRINTF( pPriv->acCmd, ADAT_PRIV_DATA_CMD_LENGTH, pcCmd );
+        snprintf(pPriv->acCmd,ADAT_PRIV_DATA_CMD_LENGTH+1,"%s",pcCmd );
         pPriv->nCmdKind = nCmdKind;
     }
 
@@ -1352,7 +1352,7 @@ int adat_priv_set_result(RIG *pRig, char *pcResult)
         adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
 	memset( pPriv->acResult, 0, ADAT_PRIV_DATA_RESULT_LENGTH + 1 );
-        SNPRINTF( pPriv->acResult, ADAT_PRIV_DATA_RESULT_LENGTH, pcResult );
+        snprintf(pPriv->acResult,ADAT_PRIV_DATA_RESULT_LENGTH+1,"%s",pcResult );
 
         rig_debug(RIG_DEBUG_TRACE,
                   "*** ADAT: %d pPriv->acResult = \"%s\"\n",
@@ -1631,7 +1631,7 @@ int adat_cmd_fn_get_callsign(RIG *pRig)
             if (nRC == RIG_OK)
             {
 	        memset( pPriv->acCallsign, 0, ADAT_PRIV_DATA_CALLSIGN_LENGTH + 1 );
-                SNPRINTF( pPriv->acCallsign, ADAT_PRIV_DATA_CALLSIGN_LENGTH, pPriv->acResult );
+                snprintf(pPriv->acCallsign,ADAT_PRIV_DATA_CALLSIGN_LENGTH+1,"%s",pPriv->acResult );
 
                 rig_debug(RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->acCallsign = \"%s\"\n",
@@ -1684,7 +1684,7 @@ int adat_cmd_fn_get_serial_nr(RIG *pRig)
             if (nRC == RIG_OK)
             {
                 memset( pPriv->acSerialNr, 0, ADAT_PRIV_DATA_SERIALNR_LENGTH + 1 );
-                SNPRINTF( pPriv->acSerialNr, ADAT_PRIV_DATA_SERIALNR_LENGTH, pPriv->acResult );
+                snprintf(pPriv->acSerialNr,ADAT_PRIV_DATA_SERIALNR_LENGTH+1,"%s",pPriv->acResult );
 
                 rig_debug(RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->acSerialNr = \"%s\"\n",
@@ -1737,7 +1737,7 @@ int adat_cmd_fn_get_fw_version(RIG *pRig)
             if (nRC == RIG_OK)
             {
                 memset( pPriv->acFWVersion, 0, ADAT_PRIV_DATA_FWVERSION_LENGTH + 1 );
-                SNPRINTF( pPriv->acFWVersion, ADAT_PRIV_DATA_FWVERSION_LENGTH, pPriv->acResult );
+                snprintf(pPriv->acFWVersion,ADAT_PRIV_DATA_FWVERSION_LENGTH+1,"%s",pPriv->acResult );
 
                 rig_debug(RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->acFWVersion = \"%s\"\n",
@@ -1791,7 +1791,7 @@ int adat_cmd_fn_get_hw_version(RIG *pRig)
             if (nRC == RIG_OK)
             {
                 memset( pPriv->acHWVersion, 0, ADAT_PRIV_DATA_HWVERSION_LENGTH + 1 );
-                SNPRINTF( pPriv->acHWVersion, ADAT_PRIV_DATA_HWVERSION_LENGTH, pPriv->acResult );
+                snprintf(pPriv->acHWVersion,ADAT_PRIV_DATA_HWVERSION_LENGTH+1,"%s",pPriv->acResult );
 
                 rig_debug(RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->acHWVersion = \"%s\"\n",
@@ -1844,7 +1844,7 @@ int adat_cmd_fn_get_gui_fw_version(RIG *pRig)
             if (nRC == RIG_OK)
             {
                 memset( pPriv->acGUIFWVersion, 0, ADAT_PRIV_DATA_GUIFWVERSION_LENGTH + 1 );
-                SNPRINTF( pPriv->acGUIFWVersion, ADAT_PRIV_DATA_GUIFWVERSION_LENGTH, pPriv->acResult );
+                snprintf(pPriv->acGUIFWVersion,ADAT_PRIV_DATA_GUIFWVERSION_LENGTH+1,"%s",pPriv->acResult );
 
                 rig_debug(RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->acGUIFWVersion = \"%s\"\n",
@@ -1898,7 +1898,7 @@ int adat_cmd_fn_get_id_code(RIG *pRig)
             if (nRC == RIG_OK)
             {
                 memset( pPriv->acIDCode, 0, ADAT_PRIV_DATA_IDCODE_LENGTH + 1 );
-                SNPRINTF( pPriv->acIDCode, ADAT_PRIV_DATA_IDCODE_LENGTH, pPriv->acResult );
+                snprintf(pPriv->acIDCode,ADAT_PRIV_DATA_IDCODE_LENGTH+1,"%s",pPriv->acResult );
 
                 rig_debug(RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->acIDCode = \"%s\"\n",
@@ -1951,7 +1951,7 @@ int adat_cmd_fn_get_options(RIG *pRig)
             if (nRC == RIG_OK)
             {
                 memset( pPriv->acOptions, 0, ADAT_PRIV_DATA_OPTIONS_LENGTH + 1 );
-                SNPRINTF( pPriv->acOptions, ADAT_PRIV_DATA_OPTIONS_LENGTH, pPriv->acResult );
+                snprintf(pPriv->acOptions,ADAT_PRIV_DATA_OPTIONS_LENGTH+1,"%s",pPriv->acResult );
 
                 rig_debug(RIG_DEBUG_TRACE,
                           "*** ADAT: %d pPriv->acOptions = \"%s\"\n",
@@ -2055,7 +2055,7 @@ int adat_cmd_fn_set_mode(RIG *pRig)
 
             memset(acBuf, 0, ADAT_BUFSZ + 1);
 
-            SNPRINTF(acBuf, sizeof(acBuf), "%s%02d%s",
+            snprintf(acBuf,sizeof(acBuf),"%s%02d%s",
                      ADAT_CMD_DEF_STRING_SET_MODE,
                      (int) pPriv->nADATMode,
                      ADAT_EOM);
@@ -2171,7 +2171,7 @@ int adat_cmd_fn_set_freq(RIG *pRig)
 
         memset(acBuf, 0, ADAT_BUFSZ + 1);
 
-        SNPRINTF(acBuf, sizeof(acBuf), "%s%d%s",
+        snprintf(acBuf,sizeof(acBuf),"%s%d%s",
                  ADAT_CMD_DEF_STRING_SET_FREQ,
                  (int) pPriv->nFreq,
                  ADAT_EOM);
@@ -2226,7 +2226,7 @@ int adat_cmd_fn_set_vfo(RIG *pRig)
 
         memset(acBuf, 0, ADAT_BUFSZ + 1);
 
-        SNPRINTF(acBuf, ADAT_BUFSZ, ADAT_CMD_DEF_STRING_SWITCH_ON_VFO,
+        snprintf(acBuf,sizeof(acBuf), ADAT_CMD_DEF_STRING_SWITCH_ON_VFO,
                  (int) pPriv->nCurrentVFO,
                  ADAT_EOM);
 
@@ -2239,7 +2239,7 @@ int adat_cmd_fn_set_vfo(RIG *pRig)
             if (nRC == RIG_OK)
             {
                 memset(acBuf, 0, ADAT_BUFSZ + 1);
-                SNPRINTF(acBuf, ADAT_BUFSZ,
+                snprintf(acBuf,sizeof(acBuf),
                          ADAT_CMD_DEF_STRING_SET_VFO_AS_MAIN_VFO,
                          (int) pPriv->nCurrentVFO,
                          ADAT_EOM);
@@ -2345,8 +2345,6 @@ int adat_cmd_fn_set_ptt(RIG *pRig)
         char                acBuf[ ADAT_BUFSZ + 1 ];
         char               *pcPTTStr = NULL;
 
-        memset(acBuf, 0, ADAT_BUFSZ + 1);
-
         // Switch PTT
 
         switch (pPriv->nOpCode)
@@ -2373,7 +2371,8 @@ int adat_cmd_fn_set_ptt(RIG *pRig)
 
         if (nRC == RIG_OK)
         {
-            SNPRINTF(acBuf, ADAT_BUFSZ, ADAT_CMD_DEF_STRING_SET_PTT,
+            memset(acBuf, 0, ADAT_BUFSZ + 1);
+            snprintf(acBuf,sizeof(acBuf),ADAT_CMD_DEF_STRING_SET_PTT,
                      pcPTTStr,
                      ADAT_EOM);
 
@@ -2489,7 +2488,7 @@ int adat_transaction(RIG                *pRig,
                                     }
 
 				    memset( pPriv->acResult, 0, ADAT_PRIV_DATA_RESULT_LENGTH + 1 );
-                                    SNPRINTF( pPriv->acResult, ADAT_PRIV_DATA_RESULT_LENGTH, acBuf);
+                                    snprintf(pPriv->acResult,ADAT_PRIV_DATA_RESULT_LENGTH+1,"%s",acBuf);
                                 }
                             }
 
@@ -2675,7 +2674,7 @@ const char *adat_get_info(RIG *pRig)
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = %p\n",
               gFnLevel, __func__, __FILE__, __LINE__, pRig);
 
-    memset(acBuf, 0, 1024);
+    memset(acBuf, 0, 2048);
 
     if (pRig != NULL)
     {
@@ -2685,7 +2684,7 @@ const char *adat_get_info(RIG *pRig)
         {
             adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
 
-            SNPRINTF(acBuf, 2047,
+            snprintf(acBuf,2048,
                      "ADAT ADT-200A, Callsign: %s, S/N: %s, ID Code: %s, Options: %s, FW: %s, GUI FW: %s, HW: %s",
                      pPriv->acCallsign,
                      pPriv->acSerialNr,
@@ -3264,7 +3263,7 @@ int adat_set_conf(RIG *pRig, token_t token, const char *val)
         {
         case TOKEN_ADAT_PRODUCT_NAME:
 
-            SNPRINTF( pPriv->acProductName, ADAT_PRIV_DATA_PRODUCTNAME_LENGTH, val );
+            snprintf(pPriv->acProductName,ADAT_PRIV_DATA_PRODUCTNAME_LENGTH+1,"%s",val );
             break;
 
         default:
