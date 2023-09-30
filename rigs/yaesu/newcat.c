@@ -6948,7 +6948,7 @@ int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     }
     else
     {
-        // 5-chan playback 6-A: FT-1200, FT-2000, FT-3000, FTDX-5000, FT-891, FT-9000, FT-950, FT-991, FTDX-101MP/D
+        // 5-chan playback 6-A: FT-1200, FT-2000, FT-3000, FTDX-5000, FT-891, FT-9000, FT-950, FT-991, FTDX-101MP/D, FTDX10
         // 5-chan but 1-5 playback: FT-710
         if (strlen(msg)==1 && (msg[0] < '1' || msg[0] > '5'))
         {
