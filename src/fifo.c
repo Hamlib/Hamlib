@@ -70,12 +70,15 @@ int peek(FIFO_RIG *fifo)
     pthread_mutex_lock(&fifo->mutex);
 #endif
     char c = fifo->data[fifo->head];
+
+#if 0
     if (isalnum(c))
     rig_debug(RIG_DEBUG_VERBOSE, "%s: peek %c (%d,%d)\n", __func__, c, fifo->head,
               fifo->tail);
     else
     rig_debug(RIG_DEBUG_VERBOSE, "%s: peek 0x%02x (%d,%d)\n", __func__, c, fifo->head,
               fifo->tail);
+#endif
 #ifdef _PTHREAD_H
     pthread_mutex_unlock(&fifo->mutex);
 #endif
@@ -90,12 +93,14 @@ int pop(FIFO_RIG *fifo)
     pthread_mutex_lock(&fifo->mutex);
 #endif
     char c = fifo->data[fifo->head];
+#if 0
     if (isalnum(c))
     rig_debug(RIG_DEBUG_VERBOSE, "%s: pop %c (%d,%d)\n", __func__, c, fifo->head,
               fifo->tail);
     else
     rig_debug(RIG_DEBUG_VERBOSE, "%s: pop 0x%02x (%d,%d)\n", __func__, c, fifo->head,
               fifo->tail);
+#endif
     fifo->head = (fifo->head + 1) % HAMLIB_FIFO_SIZE;
 #ifdef _PTHREAD_H
     pthread_mutex_unlock(&fifo->mutex);
