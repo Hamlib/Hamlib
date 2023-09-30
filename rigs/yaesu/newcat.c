@@ -6938,34 +6938,69 @@ int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     ENTERFUNC;
 
-    int chan = 0;
-    if (strlen(msg)==1)
+    char chan = '1';
+
+    if (newcat_is_rig(rig, RIG_MODEL_FT450) && strlen(msg)==1 && msg[0] > '4')
     {
-        switch(*msg)
+        // 450 manual says 1/2/3 playback needs P1=6/7/8
+        rig_debug(RIG_DEBUG_ERR, "%s: only messages 1-3 accepted\n", __func__);
+        RETURNFUNC(-RIG_EINVAL);
+    }
+    else
+    {
+        // 5-chan playback 6-A: FT-1200, FT-2000, FT-3000, FTDX-5000, FT-891, FT-9000, FT-950, FT-991, FTDX-101MP/D
+        // 5-chan but 1-5 playback: FT-710
+        if (strlen(msg)==1 && (msg[0] < '1' || msg[0] > '5'))
         {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-                chan = atoi(msg);
+            rig_debug(RIG_DEBUG_ERR, "%s: only messages 1-5 accepted\n", __func__);
+            RETURNFUNC(-RIG_EINVAL);
+        }
+        if (!newcat_is_rig(rig, RIG_MODEL_FT710))
+        {
+            chan += 5;  // 6,7,8 needed for playback
+        }
+    }
+    char *msg2 = strdup(msg);  // copy so we can modify it if needed
+
+    if (strlen(msg2)==1)
+    {
+        switch(*msg2)
+        {
+            // do all Yaeus rigs play back with chan+5?
+            case '1': msg2[0] = '6';break;
+            case '2': msg2[0] = '7';break;
+            case '3': msg2[0] = '8';break;
+            case '4': msg2[0] = '9';break;
+            case '5': msg2[0] = 'A';break;
+            case '6': // we'll let these pass
+            case '7':
+            case '8':
+            case '9':
+            case 'A':
+            case 'a':
+                break;
             default:
             RETURNFUNC(-RIG_EINVAL);
         }
     }
     else
     {
-        RETURNFUNC(-RIG_EINVAL);
+        if (strlen(msg2)>50) {
+            msg2[50]=0; // truncate if too long
+            rig_debug(RIG_DEBUG_ERR, "%s: msg length of %d truncated to 50\n", __func__, (int)strlen(msg));
+        }
+        chan = '1';
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KM1%s;",msg2);
+        rc = newcat_set_cmd(rig);
+        if (rc != RIG_OK)
+        {
+            free(msg2);
+            RETURNFUNC(-RIG_EINVAL);
+        }
+        chan = '6'; // the channel we use to key msg 1
     }
-    if (newcat_is_rig(rig, RIG_MODEL_FT450) && chan < 4)
-    {
-        // 450 manual says 1/2/3 playback needs P1=6/7/8
-        chan += 5;
-    }
-    else
-    {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KY%d%c", chan, cat_term);
-    }
+    free(msg2);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KY%c%c", chan, cat_term);
 
     rc = newcat_set_cmd(rig);
     RETURNFUNC(rc);
@@ -10982,6 +11017,14 @@ int newcat_set_cmd_validate(RIG *rig)
     else if (strncmp(priv->cmd_str, "ST", 2) == 0)
     {
         strcpy(valcmd, ";");
+    }
+    else if (strncmp(priv->cmd_str, "KM", 2) == 0)
+    {
+        strcpy(valcmd, "");
+    }
+    else if (strncmp(priv->cmd_str, "KY", 2) == 0)
+    {
+        strcpy(valcmd, "");
     }
     else
     {
