@@ -86,7 +86,6 @@ int gemini_transaction(AMP *amp, const char *cmd, char *response,
 
     struct amp_state *rs;
     int err;
-    int len = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, cmd=%s\n", __func__, cmd);
 
@@ -104,7 +103,7 @@ int gemini_transaction(AMP *amp, const char *cmd, char *response,
     if (response) // if response expected get it
     {
         response[0] = 0;
-        len = read_string(&rs->ampport, (unsigned char *) response, response_len, "\n",
+        int len = read_string(&rs->ampport, (unsigned char *) response, response_len, "\n",
                           1, 0, 1);
 
         if (len < 0)
