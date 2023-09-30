@@ -725,9 +725,10 @@ number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
 .BR b ", " send_morse " \(aq" \fIMorse\fP \(aq
 Send
 .RI \(aq Morse \(aq
-ymbols.  For Yaesu rigs use memory#.
+symbols.  For Yaesu rigs use memory# (1-5 for most rigs) or up to 50 char message (which will use memory#1)
 .EX
 Example from rigctld socket:  b CQ CQ DE ME
+Yaesu example to send message#1 frm rigctld socket: b 1
 .
 .TP
 .BR 0xbb ", " stop_morse "

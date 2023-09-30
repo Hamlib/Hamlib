@@ -725,9 +725,10 @@ Option returned depends on rig..for Icom is likely the RX only flag.
 .BR b ", " send_morse " \(aq" \fIMorse\fP \(aq
 Send
 .RI \(aq Morse \(aq
-symbols.  For Yaesu rigs use memory#.
+symbols.  For Yaesu rigs use memory#1-5 or up to 50 char msg
 .EX
 Example from command line:  rigctl -m 3073 -r /dev/ttyUSB0 b "CQ CQ DE ME"
+Yaesu example to send message#1: rigctl -m 1035 -r /dev/ttyUSB0 b 1
 .
 .TP
 .BR 0xbb ", " stop_morse "
