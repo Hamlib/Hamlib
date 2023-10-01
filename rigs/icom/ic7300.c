@@ -1798,7 +1798,6 @@ int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
 
     switch (parm)
     {
-        unsigned char prmbuf[MAXFRAMELEN];
 
     case RIG_PARM_ANN:
     {
@@ -1835,6 +1834,7 @@ int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
         }
         else if (ann_lang >= 0)
         {
+            unsigned char prmbuf[MAXFRAMELEN];
             prmbuf[0] = 0x1a;
             prmbuf[1] = 0x05;
 

@@ -24,7 +24,8 @@ SUPPRESS="\
 --suppress=*:extra/gnuradio/wfm.h \
 --suppress=*:extra/gnuradio/HrAGC.h \
 --suppress=*:extra/gnuradio/gnuradio.cc \
---suppress=missingIncludeSystem
+--suppress=missingIncludeSystem \
+--suppress=*.style/rigs/adat/adat.c
 
 #CHECK="\
 #-D RIG_LEVEL_LINEOUT=1 \

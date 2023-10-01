@@ -1476,7 +1476,6 @@ static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int index;  /* index of sequence to send */
-    unsigned char data[YAESU_CMD_LENGTH];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: generic mode = %s\n", __func__,
               rig_strrmode(mode));
@@ -1507,6 +1506,7 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_PSKR:
     {
         // first we get our dig mode to see if it needs changing
+        unsigned char data[YAESU_CMD_LENGTH];
         unsigned char digmode[2];
         int ret = ft817_read_eeprom(rig, 0x65, digmode);
 

@@ -929,7 +929,6 @@ int kenwood_open(RIG *rig)
     {
         /* we need the firmware version for these rigs to deal with f/w defects */
         static char fw_version[7];
-        char *dot_pos;
 
         err = kenwood_transaction(rig, "FV", fw_version, sizeof(fw_version));
 
@@ -942,7 +941,7 @@ int kenwood_open(RIG *rig)
         }
         else
         {
-
+            char *dot_pos;
             /* store the data  after the "FV" which should be  a f/w version
                string of the form n.n e.g. 1.07 */
             priv->fw_rev = &fw_version[2];
@@ -1048,7 +1047,6 @@ int kenwood_open(RIG *rig)
         if (kenwood_id_string_list[i].model == rig->caps->rig_model)
         {
             int retval;
-            split_t split;
             vfo_t tx_vfo;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: found the right driver for %s(%d)\n",
                       __func__, rig->caps->model_name, rig->caps->rig_model);
@@ -1066,6 +1064,7 @@ int kenwood_open(RIG *rig)
             if (!RIG_IS_THD74 && !RIG_IS_THD7A && !RIG_IS_TMD700)
             {
                 // call get_split to fill in current split and tx_vfo status
+                split_t split;
                 retval = kenwood_get_split_vfo_if(rig, RIG_VFO_A, &split, &tx_vfo);
 
                 if (retval != RIG_OK)
@@ -4962,11 +4961,11 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 int kenwood_set_trn(RIG *rig, int trn)
 {
-    char buf[5];
     ENTERFUNC;
 
     switch (rig->caps->rig_model)
     {
+    char buf[5];
     case RIG_MODEL_POWERSDR: // powersdr doesn't have AI command
         RETURNFUNC(-RIG_ENAVAIL);
 

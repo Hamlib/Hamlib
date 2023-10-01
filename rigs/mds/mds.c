@@ -175,7 +175,6 @@ int mds_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int mds_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    char cmd_buf[MAXCMDLEN];
     int retval;
     freq_t tfreq;
 
@@ -200,6 +199,7 @@ int mds_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // If we are not explicitly asking for VFO_B then we'll set the receive side also
     if (vfo != RIG_VFO_B)
     {
+        char cmd_buf[MAXCMDLEN];
         char *response = NULL;
         SNPRINTF((char *) cmd_buf, sizeof(cmd_buf), "TX%.4f", freq / 1e6);
         retval = mds_transaction(rig, cmd_buf, 0, &response);

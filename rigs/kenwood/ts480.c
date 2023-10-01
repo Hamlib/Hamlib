@@ -1037,7 +1037,6 @@ static int ts480_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
 static int ts480_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
-    char ackbuf[20];
     int retval;
     int value;
 
@@ -1049,6 +1048,7 @@ static int ts480_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     {
         int enabled;
         int level;
+        char ackbuf[20];
 
         retval = kenwood_safe_transaction(rig, "DL", ackbuf, sizeof(ackbuf), 5);
 

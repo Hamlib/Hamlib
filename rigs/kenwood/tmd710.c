@@ -2121,7 +2121,7 @@ int tmd710_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 int tmd710_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    int retval, vfonum;
+    int vfonum;
     char cmd[16];
     char membuf[16];
 
@@ -2134,7 +2134,7 @@ int tmd710_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     if (RIG_VFO_CURR == vfo || RIG_VFO_VFO == vfo)
     {
-        retval = tmd710_get_vfo_num(rig, &vfonum, NULL);
+        int retval = tmd710_get_vfo_num(rig, &vfonum, NULL);
 
         if (retval != RIG_OK)
         {

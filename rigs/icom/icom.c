@@ -1135,7 +1135,6 @@ retry_open:
 int
 icom_rig_close(RIG *rig)
 {
-    int retval;
     // Nothing to do yet
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
@@ -1148,7 +1147,7 @@ icom_rig_close(RIG *rig)
     {
         // maybe we need power off?
         rig_debug(RIG_DEBUG_VERBOSE, "%s trying power off\n", __func__);
-        retval = abs(rig_set_powerstat(rig, 0));
+        int retval = abs(rig_set_powerstat(rig, 0));
 
         // this is only a fatal error if powerstat is implemented
         // if not iplemented than we're at an error here
@@ -8107,7 +8106,7 @@ int icom_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 int icom_set_powerstat(RIG *rig, powerstat_t status)
 {
     unsigned char ackbuf[200];
-    int ack_len = sizeof(ackbuf), retval = RIG_OK, echo_status;
+    int ack_len = sizeof(ackbuf), retval = RIG_OK;
     int pwr_sc;
     // so we'll do up to 150 for 115,200
     int fe_max = 150;
@@ -8177,7 +8176,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         // poweron == 0 means never powered -- == 2 means CAT turned off
         if (priv->poweron == 0 || priv->poweron == 2)
         {
-            echo_status = -1;
+            int echo_status = -1;
 
             for (i = 0; i < 10 && echo_status < 0; ++i)
             {
