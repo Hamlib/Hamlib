@@ -88,7 +88,6 @@ int openPort(char *comport) // doesn't matter for using pts devices
 int main(int argc, char *argv[])
 {
     unsigned char buf[256];
-    unsigned char *pbuf;
     int n;
 
 

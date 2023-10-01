@@ -87,18 +87,18 @@ enum ft600_native_cmd_e
  */
 typedef struct
 {
-    unsigned char band_no;
+//    unsigned char band_no;
     unsigned char freq[16];
-    unsigned char mode;
-    unsigned char ctcss;
-    unsigned char dcs;
-    unsigned char flag1;
-    unsigned char flag2;
-    unsigned char clarifier[2];
-    unsigned char not_used;
-    unsigned char step1;
-    unsigned char step2;
-    unsigned char filter;
+//    unsigned char mode;
+//    unsigned char ctcss;
+//    unsigned char dcs;
+//    unsigned char flag1;
+//    unsigned char flag2;
+//    unsigned char clarifier[2];
+//    unsigned char not_used;
+//    unsigned char step1;
+//    unsigned char step2;
+//    unsigned char filter;
 
 // cppcheck-suppress *
     unsigned char stuffing[16];

@@ -145,8 +145,6 @@ int openPort(char *comport) // doesn't matter for using pts devices
 int main(int argc, char *argv[])
 {
     char buf[256];
-    char *pbuf;
-    int n;
     int fd = openPort(argv[1]);
 
     load_dat("simft990.dat", alldata);

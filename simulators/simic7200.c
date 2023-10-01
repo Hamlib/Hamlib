@@ -71,7 +71,7 @@ void dumphex(unsigned char *buf, int n)
 int
 frameGet(int fd, unsigned char *buf)
 {
-    int i = 0, n;
+    int i = 0;
     memset(buf, 0, BUFSIZE);
     unsigned char c;
 
