@@ -54,7 +54,7 @@ int read_calibration(int buf[NUM_CHANNELS][2])
                 buf[i][j] = cal[k];
                 k++;
 
-                if (k < NUM_CHANNELS * 2)
+                if (k < NUM_CHANNELS * 2 - 1)
                 {
                     printf(", ");
                 }

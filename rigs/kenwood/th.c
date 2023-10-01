@@ -1267,7 +1267,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        if (ackbuf[4] < '0' || ackbuf[4] > '9')
+        if (ackbuf[4] < '0' || ackbuf[4] > '8')
         {
             return -RIG_EPROTO;
         }
