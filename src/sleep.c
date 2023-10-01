@@ -185,7 +185,7 @@ double get_elapsed_time(struct tm start, struct tm end) {
 
 int main()
 {
-    struct tm start_time, end_time;
+    //struct tm start_time, end_time;
     time_t rawtime;
 
     for (int i = 0; i < 11; ++i)
