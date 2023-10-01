@@ -1307,7 +1307,7 @@ static int read_string_generic(hamlib_port_t *p,
     int i = 0;
     static int minlen = 1; // dynamic minimum length of rig response data
 
-    if (!p->asyncio && !direct)
+    if (p != NULL && !p->asyncio && !direct)
     {
         return -RIG_EINTERNAL;
     }
@@ -1461,7 +1461,7 @@ static int read_string_generic(hamlib_port_t *p,
 
     if (total_count > 1 && rxbuffer[0] == ';')
     {
-        while (rxbuffer[0] == ';' && rxbuffer[0] != 0 && total_count >  1)
+        while (rxbuffer[0] == ';' && total_count >  1)
         {
             memmove(rxbuffer, &rxbuffer[1], strlen((char *)rxbuffer) - 1);
             --total_count;
