@@ -348,17 +348,11 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 // ---------------------------------------------------------------------------
 int anytone_set_vfo(RIG *rig, vfo_t vfo)
 {
-    int retval = RIG_OK;
     //anytone_priv_data_t *p = rig->state.priv;
 
     ENTERFUNC;
     RETURNFUNC(RIG_OK);
 
-    if (rig == NULL)
-    {
-        retval = -RIG_EARG;
-    }
-    RETURNFUNC(retval);
 }
 
 // ---------------------------------------------------------------------------
