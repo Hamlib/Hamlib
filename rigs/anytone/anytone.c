@@ -85,28 +85,7 @@ DECLARE_PROBERIG_BACKEND(anytone)
 
     if (retval != RIG_OK)
     {
-        retval = RIG_MODEL_NONE;
-    }
-    else
-    {
-        char acBuf[ ANYTONE_RESPSZ + 1 ];
-        int  nRead = 0;
-
-        memset(acBuf, 0, ANYTONE_RESPSZ + 1);
-
-        close(port->fd);
-
-        if ((retval != RIG_OK || nRead < 0))
-        {
-            retval = RIG_MODEL_NONE;
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "Received ID = %s.",
-                      acBuf);
-
-            retval = RIG_MODEL_ADT_200A;
-        }
+        retval = -RIG_EIO;
     }
 
     return retval;
