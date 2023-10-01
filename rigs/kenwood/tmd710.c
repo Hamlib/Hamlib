@@ -815,10 +815,10 @@ static int tmd710_scan_me(char *buf, tmd710_me *me_struct)
 
     retval = num_sscanf(buf,
                         "ME %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d,%"SCNfreq",%d,%d",
-                        &me_struct->channel, &me_struct->freq,
-                        &me_struct->step, &me_struct->shift,
-                        &me_struct->reverse, &me_struct->tone,
-                        &me_struct->ct, &me_struct->dcs,
+                        (unsigned int*)&me_struct->channel, &me_struct->freq,
+                        (unsigned int*)&me_struct->step, &me_struct->shift,
+                        (unsigned int*)&me_struct->reverse, (unsigned int*)&me_struct->tone,
+                        (unsigned int*)&me_struct->ct, (unsigned int*)&me_struct->dcs,
                         &me_struct->tone_freq, &me_struct->ct_freq,
                         &me_struct->dcs_val, &me_struct->offset,
                         &me_struct->mode, &me_struct->tx_freq,
@@ -963,10 +963,10 @@ int tmd710_pull_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
     }
 
     retval = num_sscanf(buf, "FO %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d",
-                        &fo_struct->vfo, &fo_struct->freq,
-                        &fo_struct->step, &fo_struct->shift,
-                        &fo_struct->reverse, &fo_struct->tone,
-                        &fo_struct->ct, &fo_struct->dcs,
+                        (unsigned int*)&fo_struct->vfo, &fo_struct->freq,
+                        (unsigned int*)&fo_struct->step, (unsigned int*)&fo_struct->shift,
+                        (unsigned int*)&fo_struct->reverse, (unsigned int*)&fo_struct->tone,
+                        (unsigned int*)&fo_struct->ct, (unsigned int*)&fo_struct->dcs,
                         &fo_struct->tone_freq, &fo_struct->ct_freq,
                         &fo_struct->dcs_val, &fo_struct->offset,
                         &fo_struct->mode);
@@ -1006,10 +1006,10 @@ int tmd710_push_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
     }
 
     retval = num_sscanf(buf, "FO %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d",
-                        &fo_struct->vfo, &fo_struct->freq,
-                        &fo_struct->step, &fo_struct->shift,
-                        &fo_struct->reverse, &fo_struct->tone,
-                        &fo_struct->ct, &fo_struct->dcs,
+                        (unsigned int*)&fo_struct->vfo, &fo_struct->freq,
+                        (unsigned int*)&fo_struct->step, (unsigned int*)&fo_struct->shift,
+                        (unsigned int*)&fo_struct->reverse, (unsigned int*)&fo_struct->tone,
+                        (unsigned int*)&fo_struct->ct, (unsigned int*)&fo_struct->dcs,
                         &fo_struct->tone_freq, &fo_struct->ct_freq,
                         &fo_struct->dcs_val, &fo_struct->offset,
                         &fo_struct->mode);
@@ -1061,12 +1061,12 @@ int tmd710_scan_mu(char *buf, tmd710_mu *mu_struct)
                         &mu_struct->brightness_level,
                         &mu_struct->auto_brightness,
                         &mu_struct->backlight_color,
-                        &mu_struct->pf1_key,
-                        &mu_struct->pf2_key,
-                        &mu_struct->mic_pf1_key,
-                        &mu_struct->mic_pf2_key,
-                        &mu_struct->mic_pf3_key,
-                        &mu_struct->mic_pf4_key,
+                        (unsigned int*)&mu_struct->pf1_key,
+                        (unsigned int*)&mu_struct->pf2_key,
+                        (unsigned int*)&mu_struct->mic_pf1_key,
+                        (unsigned int*)&mu_struct->mic_pf2_key,
+                        (unsigned int*)&mu_struct->mic_pf3_key,
+                        (unsigned int*)&mu_struct->mic_pf4_key,
                         &mu_struct->mic_key_lock,
                         &mu_struct->scan_resume,
                         &mu_struct->auto_power_off,
@@ -1260,7 +1260,7 @@ int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int tmd710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called for vfo: %s(%d)\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: called for vfo: %s(%u)\n", __func__,
               rig_strvfo(vfo), vfo);
 
     return tmd710_do_set_freq(rig, vfo, freq);
@@ -1319,7 +1319,7 @@ static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, int *ctcss_index)
 
     if (stepind == -1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported tone value '%d'\n", __func__, tone);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported tone value '%u'\n", __func__, tone);
         return -RIG_EINVAL;
     }
 
@@ -1965,7 +1965,7 @@ int tmd710_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %u\n", __func__, vfo);
         return -RIG_EVFO;
     }
 
@@ -2491,7 +2491,7 @@ int tmd710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = sscanf(ackbuf, "SQ %X", &l);
+        retval = sscanf(ackbuf, "SQ %X", (unsigned int*)&l);
 
         if (retval != 1 || l < TMD710_SQL_MIN || l > TMD710_SQL_MAX)
         {
