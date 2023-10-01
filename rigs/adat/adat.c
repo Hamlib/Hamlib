@@ -2342,8 +2342,7 @@ int adat_cmd_fn_set_ptt(RIG *pRig)
     else
     {
         adat_priv_data_ptr  pPriv    = (adat_priv_data_ptr) pRig->state.priv;
-        char                acBuf[ ADAT_BUFSZ + 1 ];
-        char               *pcPTTStr = NULL;
+        char *pcPTTStr = NULL;
 
         // Switch PTT
 
@@ -2371,6 +2370,7 @@ int adat_cmd_fn_set_ptt(RIG *pRig)
 
         if (nRC == RIG_OK)
         {
+            char acBuf[ ADAT_BUFSZ + 1 ];
             memset(acBuf, 0, ADAT_BUFSZ + 1);
             snprintf(acBuf,sizeof(acBuf),ADAT_CMD_DEF_STRING_SET_PTT,
                      pcPTTStr,
