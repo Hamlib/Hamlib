@@ -4646,7 +4646,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: ft101 #1 val.i=%d\n", __func__, val.i);
 
-            if (val.i == 0) { val.i = 0; }
+            if (val.i == 0) { ; }
             else if (val.i <= 100) { val.i = 2; }
             else if (val.i <= 200) { val.i = 4; }
             else if (val.i > 3000) { val.i = 33; }

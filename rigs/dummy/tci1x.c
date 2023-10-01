@@ -820,11 +820,6 @@ static int tci1x_cleanup(RIG *rig)
 
     ENTERFUNC;
 
-    if (rig == NULL)
-    {
-        RETURNFUNC(-RIG_EINVAL);
-    }
-
     priv = (struct tci1x_priv_data *)rig->state.priv;
 
     free(priv->ext_parms);
