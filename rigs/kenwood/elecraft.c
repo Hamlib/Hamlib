@@ -394,11 +394,11 @@ int elecraft_open(RIG *rig)
 int elecraft_close(RIG *rig)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
-    char cmd[32];
 
     if (priv->save_k2_ext_lvl >= 0)
     {
         int err;
+        char cmd[32];
         sprintf(cmd, "K2%d;", priv->save_k2_ext_lvl);
         err = kenwood_transaction(rig, cmd, NULL, 0);
 

@@ -1886,7 +1886,6 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     struct newcat_priv_data *priv  = (struct newcat_priv_data *)rig->state.priv;
     int err = -RIG_EPROTO;
     char txon[] = "TX1;";
-    char txoff[] = "TX0;";
 
     ENTERFUNC;
 
@@ -1941,6 +1940,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         break;
 
     case RIG_PTT_OFF:
+        char txoff[] = "TX0;";
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txoff);
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         err = newcat_set_cmd(rig);
@@ -11429,7 +11429,6 @@ static int newcat_set_clarifier(RIG *rig, vfo_t vfo, int rx, int tx)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char main_sub_vfo = '0';
-    int result;
 
     if (!newcat_valid_command(rig, "CF"))
     {
@@ -11444,7 +11443,7 @@ static int newcat_set_clarifier(RIG *rig, vfo_t vfo, int rx, int tx)
     // Negative value keeps the current state for RIT/XIT
     if (rx < 0 || tx < 0)
     {
-        int current_rx, current_tx;
+        int current_rx, current_tx, result;
         result = newcat_get_clarifier(rig, vfo, &current_rx, &current_tx);
         if (result == RIG_OK)
         {
