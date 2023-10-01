@@ -522,7 +522,7 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
         break;
 
     case 6: /*intended for D700 BC 0,0*/
-        if ((buf[0] == 'B') && (buf[1] == 'C') && (buf[2] == ' ') && (buf[4] = ','))
+        if ((buf[0] == 'B') && (buf[1] == 'C') && (buf[2] == ' ') && (buf[4] == ','))
         {
             vfoc = buf[3];
         }
