@@ -1940,6 +1940,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         break;
 
     case RIG_PTT_OFF:
+    {
         char txoff[] = "TX0;";
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txoff);
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
@@ -1957,6 +1958,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             // so we increased the sleep from 100ms to 300ms
             hl_usleep(300 * 1000);
         }
+    }
 
         break;
 
