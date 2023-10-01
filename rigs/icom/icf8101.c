@@ -322,7 +322,7 @@ int icf8101_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         RETURNFUNC(-RIG_ETIMEOUT);
     }
 
-    if (ack_len != 1 || (ack_len >= 1 && ackbuf[0] != ACK))
+    if (ack_len != 1 || ackbuf[0] != ACK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), len=%d\n", __func__,
                   ackbuf[0], ack_len);
