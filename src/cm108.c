@@ -295,8 +295,6 @@ int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
  */
 int cm108_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 {
-    int bytes;
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     return RIG_OK;

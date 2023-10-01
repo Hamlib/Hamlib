@@ -98,9 +98,9 @@ typedef struct satel_stat satel_stat_t;
 struct satel_stat
 {
     bool   motion_enabled;
-    int    mode;
-    time_t time;
-    int    absolute;
+//    int    mode;
+//    time_t time;
+//    int    absolute;
     int    az;
     int    el;
 };
