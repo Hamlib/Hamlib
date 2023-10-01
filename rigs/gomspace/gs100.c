@@ -99,11 +99,6 @@ static int gs100_init(RIG *rig)
 
     ENTERFUNC;
 
-    if (!rig || !rig->caps)
-    {
-        RETURNFUNC(-RIG_EINVAL);
-    }
-
     priv = (struct gs100_priv_data *)calloc(1, sizeof(struct gs100_priv_data));
 
     if (!priv)

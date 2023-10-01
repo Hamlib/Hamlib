@@ -5919,11 +5919,6 @@ DECLARE_PROBERIG_BACKEND(kenwood)
     int write_delay = port->write_delay;
     short retry = port->retry;
 
-    if (!port)
-    {
-        return (RIG_MODEL_NONE);
-    }
-
     if (port->type.rig != RIG_PORT_SERIAL)
     {
         return (RIG_MODEL_NONE);
