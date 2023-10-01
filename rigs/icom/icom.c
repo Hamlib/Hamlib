@@ -3580,7 +3580,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         lvl_sc = 0x04;
         cmd_len = 1;
         {
-            int i;
             icom_val = 0;
             const float *agcp = agc_level;
 

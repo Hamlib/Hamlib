@@ -130,7 +130,6 @@ int elecraft_open(RIG *rig)
 
     if (rig->caps->rig_model == RIG_MODEL_XG3)   // XG3 doesn't have ID
     {
-        struct rig_state *rs = &rig->state;
         char *cmd = "V;";
         char data[32];
 

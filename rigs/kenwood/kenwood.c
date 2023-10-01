@@ -3387,7 +3387,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_CWPITCH:
     {
         /* Newer rigs have an extra digit of pitch factor */
-        int len = (RIG_IS_TS890S || RIG_IS_TS990S) ? 3 : 2;
+        len = (RIG_IS_TS890S || RIG_IS_TS990S) ? 3 : 2;
 
         /* Round input freq to nearest multiple of step */
         kenwood_val = (val.i - level_info->min.i + (level_info->step.i / 2))
@@ -4304,8 +4304,6 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     case RIG_FUNC_FBKIN:
     {
-        int raw_value;
-
         retval = kenwood_safe_transaction(rig, "SD", respbuf, 20, 6);
 
         if (retval != RIG_OK)
