@@ -386,7 +386,6 @@ const struct confparams newcat_cfg_params[] =
 static ncboolean newcat_is_rig(RIG *rig, rig_model_t model);
 
 static int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo);
-static int newcat_scale_float(int scale, float fval);
 static int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode,
                                    pbwidth_t *width);
 static int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode,
@@ -4446,10 +4445,9 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+        fpf = (int)((val.f / level_info->step.f) + 0.5);
         if (newcat_is_rig(rig, RIG_MODEL_FT450))
         {
-            fpf = newcat_scale_float(11, val.f);
-
             if (fpf < 1)
             {
                 fpf = 1;
@@ -4466,22 +4464,13 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             if (is_ft991)
             {
-                fpf = newcat_scale_float(15, val.f);
-
                 if (fpf > 15) { fpf = 15; }
 
                 if (fpf < 1) { fpf = 1; }
             }
             else
             {
-                fpf = newcat_scale_float(15, val.f);
-
                 if (fpf > 15) { fpf = 10; }
-            }
-
-            if (fpf < 0)
-            {
-                fpf = 0;
             }
 
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RL0%02d%c", fpf, cat_term);
@@ -5566,6 +5555,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RF:
+    case RIG_LEVEL_NR:
     case RIG_LEVEL_SQL:
     case RIG_LEVEL_COMP:
     case RIG_LEVEL_ANTIVOX:
@@ -5684,18 +5674,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         else
         {
             val->i = atoi(retlvl);
-        }
-
-        break;
-
-    case RIG_LEVEL_NR:
-        if (is_ft450)
-        {
-            val->f = (float)(atoi(retlvl) / 11.);
-        }
-        else
-        {
-            val->f = (float)(atoi(retlvl) / 15.);
         }
 
         break;
@@ -8116,35 +8094,6 @@ int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo)
 
     RETURNFUNC(RIG_OK);
 }
-
-/*
- *  Found newcat_set_level() floating point math problem
- *  Using rigctl on FT950 I was trying to set RIG_LEVEL_COMP to 12
- *  I kept setting it to 11.  I wrote some test software and
- *  found out that 0.12 * 100 = 11 with my setup.
- *  Compiler is gcc 4.2.4, CPU is AMD X2
- *  This works somewhat but Find a better way.
- *  The newcat_get_level() seems to work correctly.
- *  Terry KJ4EED
- *
- */
-int newcat_scale_float(int scale, float fval)
-{
-    float f;
-    float fudge = 0.003;
-
-    if ((fval + fudge) > 1.0)
-    {
-        f = scale * fval;
-    }
-    else
-    {
-        f = scale * (fval + fudge);
-    }
-
-    return (int) f; // RETURN is too verbose here
-}
-
 
 int newcat_set_narrow(RIG *rig, vfo_t vfo, ncboolean narrow)
 {
