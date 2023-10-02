@@ -405,9 +405,17 @@ static int scanfc(FILE *fin, const char *format, void *p)
                 continue;
             }
 
-            rig_debug(RIG_DEBUG_ERR, "fscanf: %s\n", strerror(errno));
-            rig_debug(RIG_DEBUG_ERR, "fscanf: parsing '%s' with '%s'\n", (char *)p, format);
+            if (!feof(fin))
+            {
+                rig_debug(RIG_DEBUG_TRACE,"%s fscanf of:", __func__);
+                dump_hex((unsigned char *)p, strlen(p));
+                rig_debug(RIG_DEBUG_TRACE," failed with format '%s'\n", format);
+                ret = 0x0a;
+            }
+
         }
+
+        if (ferror(fin)) { rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); }
 
         return ret;
     }

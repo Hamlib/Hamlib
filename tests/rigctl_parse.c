@@ -550,6 +550,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
         int ret;
         *(char *)p = 0;
 
+
         ret = fscanf(fin, format, p);
 
         if (ret < 0)
@@ -561,16 +562,16 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
             if (!feof(fin))
             {
-                rig_debug(RIG_DEBUG_ERR,
-                          "fscanf: parsing '%s' with '%s'\n",
-                          (char *)p,
-                          format);
+                rig_debug(RIG_DEBUG_TRACE,"%s fscanf of:", __func__);
+                dump_hex((unsigned char *)p, strlen(p));
+                rig_debug(RIG_DEBUG_TRACE," failed with format '%s'\n", format);
+                ret = 0x0a;
             }
         }
 
         if (ret < 1) { rig_debug(RIG_DEBUG_TRACE, "%s: ret=%d\n", __func__, ret); }
 
-        if (ferror(fin)) { rig_debug(RIG_DEBUG_TRACE, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); }
+        if (ferror(fin)) { rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); }
 
         return ret;
     }
