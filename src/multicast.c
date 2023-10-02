@@ -641,7 +641,8 @@ int main(int argc, char *argv[])
 
     if (rig == NULL)
     {
-
+        fprintf(stderr, "rig==NULL?\n");
+        return 1;
     }
 
     strncpy(rig->state.rigport.pathname, "/dev/ttyUSB0", HAMLIB_FILPATHLEN - 1);

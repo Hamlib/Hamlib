@@ -469,7 +469,7 @@ int HAMLIB_API amp_close(AMP *amp)
     if (amp == NULL || amp->caps == NULL)
     {
         amp_debug(RIG_DEBUG_ERR, "%s: NULL ptr? amp=%p, amp->caps=%p\n", __func__, amp,
-                  amp->caps);
+                  amp->caps==NULL?NULL:amp->caps);
         return -RIG_EINVAL;
     }
 
