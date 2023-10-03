@@ -643,25 +643,25 @@ int main(int argc, char *argv[])
     do
     {
         freq_t freq;
-        int retval = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
+        retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
 
-        if (retval != RIG_OK)
+        if (retcode != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Error in rig_get_freq: %s\n", __func__,
-                      rigerror(retval));
+                      rigerror(retcode));
         }
 
-        if (retval != RIG_OK)
+        if (retcode != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Error in rig_set_freq: %s\n", __func__,
-                      rigerror(retval));
+                      rigerror(retcode));
         }
 
-        retval = rig_set_freq(my_rig_sync, RIG_VFO_CURR, freq);
+        retcode = rig_set_freq(my_rig_sync, RIG_VFO_CURR, freq);
 
         hl_usleep(400 * 1000); // fairly fast to keep up
     }
-    while (retval == 0 && !ctrl_c);
+    while (retcode == 0 && !ctrl_c);
 
     rig_close(my_rig);          /* close port */
     rig_cleanup(my_rig);        /* if you care about memory */
