@@ -1215,7 +1215,6 @@ int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
-    // cppcheck-suppress *
     SNPRINTF(freqbuf, sizeof(freqbuf), "F%c%011"PRIll, vfo_letter, (int64_t)freq);
 
     err = elad_transaction(rig, freqbuf, NULL, 0);

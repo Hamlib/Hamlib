@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
   }
 
   // turn this into a macro
+// cppcheck-suppress cstyleCast
   priv = (struct gnuradio_priv_data*)my_rig->state.priv;
   if (priv == NULL) {
 	printf("Internal error, can't retrieve priv data!\n");

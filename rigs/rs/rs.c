@@ -97,7 +97,6 @@ int rs_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char freqbuf[32];
     int retval;
 
-    // cppcheck-suppress *
     SNPRINTF(freqbuf, sizeof(freqbuf), BOM "FREQ %"PRIll EOM, (int64_t)freq);
     retval = rs_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);
 

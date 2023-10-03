@@ -156,7 +156,6 @@ const struct rig_caps ft891_caps =
     .level_gran =
     {
 #include "level_gran_yaesu.h"
-        // cppcheck-suppress *
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0f/30.0f } },
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },

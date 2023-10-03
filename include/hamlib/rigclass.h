@@ -298,6 +298,7 @@ inline void THROW(const RigException *e)
 #elif defined(_MSC_VER)
     throw* e;
 #elif defined(__SUNPRO_CC)
+// cppcheck-suppress cstyleCast
     genericerror(1, ((e != 0) ? (char *)(e->message) : ""));
 #else
 

@@ -1260,6 +1260,7 @@ static int ar7030p_set_vfo(RIG *rig, vfo_t vfo)
     return (rc);
 }
 
+// cppcheck-suppress constParameterCallback
 static int ar7030p_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int rc = RIG_OK;
@@ -1272,6 +1273,7 @@ static int ar7030p_get_vfo(RIG *rig, vfo_t *vfo)
     return (rc);
 }
 
+// cppcheck-suppress constParameterCallback
 static int ar7030p_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     int rc = -RIG_ENIMPL;
@@ -1296,6 +1298,7 @@ static int ar7030p_set_parm(RIG *rig, setting_t parm, value_t val)
     return (rc);
 }
 
+// cppcheck-suppress constParameterCallback
 static int ar7030p_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
     int rc = -RIG_ENIMPL;
@@ -1346,7 +1349,7 @@ static int ar7030p_get_mem(RIG *rig, vfo_t vfo, int *ch)
     int rc = RIG_OK;
 
     struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
-    channel_t *curr = priv->curr;
+    const channel_t *curr = priv->curr;
 
     assert(NULL != ch);
 
@@ -1384,6 +1387,7 @@ static int ar7030p_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     return (rc);
 }
 
+// cppcheck-suppress constParameterCallback
 static int ar7030p_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
     int rc = -RIG_ENIMPL;
@@ -1599,6 +1603,7 @@ static int ar7030p_reset(RIG *rig, reset_t reset)
     return (rc);
 }
 
+// cppcheck-suppress constParameterCallback
 static int ar7030p_set_func(RIG *rig, vfo_t vfo, setting_t func,
                             int status)
 {
@@ -1607,6 +1612,7 @@ static int ar7030p_set_func(RIG *rig, vfo_t vfo, setting_t func,
     return (-RIG_ENIMPL);
 }
 
+// cppcheck-suppress constParameterCallback
 static int ar7030p_get_func(RIG *rig, vfo_t vfo, setting_t func,
                             int *status)
 {
@@ -1617,6 +1623,7 @@ static int ar7030p_get_func(RIG *rig, vfo_t vfo, setting_t func,
     return (-RIG_ENIMPL);
 }
 
+// cppcheck-suppress constParameterCallback
 static int ar7030p_decode_event(RIG *rig)
 {
     assert(NULL != rig);
@@ -1624,6 +1631,7 @@ static int ar7030p_decode_event(RIG *rig)
     return (-RIG_ENIMPL);
 }
 
+// cppcheck-suppress constParameterCallback
 static int ar7030p_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     assert(NULL != rig);
@@ -1640,7 +1648,7 @@ static int ar7030p_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
     unsigned int f;
     unsigned char *p = NULL;
     int ch;
-    struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *)rig->state.priv;
+    const struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *)rig->state.priv;
     const channel_t *curr = priv->curr;
 
     assert(NULL != chan);
@@ -1670,7 +1678,6 @@ static int ar7030p_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
 
         if (RIG_OK == rc)
         {
-            // cppcheck-suppress *
             chan->levels[ LVL_SQL ].f = (float) v / 255.0;
         }
 

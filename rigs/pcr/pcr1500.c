@@ -83,7 +83,6 @@ const struct rig_caps pcr1500_caps =
     .has_set_parm       = RIG_PARM_NONE,
 
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 }, .step = { .i = 1 } },
         [LVL_NR] = { .min = { .f = 0 }, .max = { .f = 16.0 }, .step = { .f = 1.0 } },
         /* XXX check this */

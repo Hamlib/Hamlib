@@ -248,7 +248,6 @@ const struct rig_caps id5100_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .extparms = icom_ext_parms,

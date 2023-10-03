@@ -100,7 +100,6 @@ const struct rig_caps rx320_caps =
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 10000 } },
         [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1 }, .step = { .f = 1.0 / 64 } },
         [LVL_IF] = { .min = { .i = -2000 }, .max = { .i = 2000 }, .step = { .i = 10} },

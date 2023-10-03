@@ -344,7 +344,6 @@ int dxsr8_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
-    // cppcheck-suppress *
     SNPRINTF(cmd, sizeof(cmd), AL "~RW_RXF%08"PRIll EOM, (int64_t)freq);
     return dxsr8_transaction(rig, cmd, strlen(cmd), NULL, NULL);
 }
@@ -357,7 +356,7 @@ int dxsr8_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     int retval, data_len;
 
-    char cmd[] = AL "~RR_RXF" EOM;
+    const char cmd[] = AL "~RR_RXF" EOM;
     char freqbuf[BUFSZ];
 
     retval = dxsr8_transaction(rig, cmd, strlen(cmd), freqbuf, &data_len);

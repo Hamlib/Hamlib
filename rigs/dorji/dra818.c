@@ -100,7 +100,7 @@ static void dra818_subaudio(RIG *rig, char *subaudio, int subaudio_len,
 
 static int dra818_setgroup(RIG *rig)
 {
-    struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = rig->state.priv;
     char cmd[80];
     char subtx[8] = { 0 };
     char subrx[8] = { 0 };

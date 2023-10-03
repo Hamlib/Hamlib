@@ -756,7 +756,6 @@ pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     priv = (struct pcr_priv_data *) rig->state.priv;
     rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
-    // cppcheck-suppress *
     SNPRINTF((char *) buf, sizeof(buf), "K%c%010" PRIll "0%c0%c00",
              is_sub_rcvr(rig, vfo) ? '1' : '0',
              (int64_t) freq,
