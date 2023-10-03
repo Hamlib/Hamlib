@@ -320,7 +320,7 @@ void *multicast_thread_rx(void *vrig)
 #if 0
     char buf[256];
 #endif
-    int ret = 0;
+//    int ret = 0;
     RIG *rig = (RIG *)vrig;
     hamlib_port_t port;
     rig->state.rig_type = RIG_TYPE_TRANSCEIVER;
@@ -332,7 +332,8 @@ void *multicast_thread_rx(void *vrig)
     network_open(&port, 4532);
 #endif
 
-    while (rig->state.multicast->runflag && ret >= 0)
+    //while (rig->state.multicast->runflag && ret >= 0)
+    while (rig->state.multicast->runflag)
     {
 #if 0
         ret = read_string(&rig->state.rigport, (unsigned char *) buf, sizeof(buf), "\n", 1,

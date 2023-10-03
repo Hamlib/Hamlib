@@ -1096,7 +1096,7 @@ int main(int argc, char *argv[])
 #endif
         }
     }
-    while (retcode == 0 && !ctrl_c);
+    while (!ctrl_c);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: while loop done\n", __func__);
 

@@ -652,10 +652,7 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
         return ret;
     }
 
-    if (ret >= 0)
-    {
-        statebuf[ret] = '\0';
-    }
+    statebuf[ret] = '\0';
 
     if (ret < CMD_E_RSP_LEN)
     {

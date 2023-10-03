@@ -71,6 +71,7 @@ CHECK="\
 -D SIGINT \
 -D WIN32 \
 -D CLOCK_REALTIME \
+-D HAVE_PTHREAD \
 -D HAVE_SIGNAL"
 
 # If no directory or file name provided, scan the entire project.

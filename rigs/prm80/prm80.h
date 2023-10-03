@@ -25,7 +25,7 @@
 #include <sys/time.h>
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "20210416"
+#define BACKEND_VER "20231002.0"
 
 #define PRM80_MEM_CAP {    \
         .freq = 1,  \

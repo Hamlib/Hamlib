@@ -380,15 +380,12 @@ void add2debugmsgsave(const char *s)
 
         if (p && strlen(p + 1) > 0)
         {
-            if (strlen(p + 1) > 0)
-            {
                 strcpy(stmp, p + 1);
                 strcpy(debugmsgsave, stmp);
-            }
-            else
-            {
-                debugmsgsave[0] = '\0';
-            }
+        }
+        else
+        {
+            debugmsgsave[0] = '\0';
         }
 
         --nlines;
@@ -7325,28 +7322,24 @@ static void make_crc_table(unsigned long crcTable[])
     unsigned long POLYNOMIAL = 0xEDB88320;
     unsigned char b = 0;
 
-    do
+    // Start with the data byte
+    unsigned long remainder = b;
+
+    unsigned long bit;
+
+    for (bit = 8; bit > 0; --bit)
     {
-        // Start with the data byte
-        unsigned long remainder = b;
-
-        unsigned long bit;
-
-        for (bit = 8; bit > 0; --bit)
+        if (remainder & 1)
         {
-            if (remainder & 1)
-            {
-                remainder = (remainder >> 1) ^ POLYNOMIAL;
-            }
-            else
-            {
-                remainder = (remainder >> 1);
-            }
+            remainder = (remainder >> 1) ^ POLYNOMIAL;
         }
-
-        crcTable[(size_t)b] = remainder;
+        else
+        {
+            remainder = (remainder >> 1);
+        }
     }
-    while (0 != ++b);
+
+    crcTable[(size_t)b] = remainder;
 }
 
 static unsigned long crcTable[256];
