@@ -88,7 +88,6 @@ const struct rig_caps v4l_caps =
     .has_set_parm =  RIG_PARM_SET(V4L_PARM_ALL),
     .vfo_ops =  RIG_OP_NONE,
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 65535 } },
     },
     .preamp =   { RIG_DBLST_END },

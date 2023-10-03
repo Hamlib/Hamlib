@@ -124,6 +124,7 @@ int gemini_transaction(AMP *amp, const char *cmd, char *response,
  * Get Info
  * returns the model name string
  */
+// cppcheck-suppress constParameterPointer
 const char *gemini_get_info(AMP *amp)
 {
     const struct amp_caps *rc;

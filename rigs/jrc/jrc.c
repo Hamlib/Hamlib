@@ -293,8 +293,6 @@ int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
-    // cppcheck-suppress *
-    // suppressing bogus cppcheck error in ver 1.90
     SNPRINTF(freqbuf, sizeof(freqbuf), "F%0*"PRIll EOM, priv->max_freq_len,
              (int64_t)freq);
 

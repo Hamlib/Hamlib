@@ -175,7 +175,6 @@ const struct rig_caps x108g_caps =
     .has_set_parm =  RIG_PARM_SET(X108G_PARMS),
     .level_gran = {
         // cppcheck-suppress *
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
@@ -351,7 +350,6 @@ const struct rig_caps x6100_caps =
     .has_get_parm =  X108G_PARMS,
     .has_set_parm =  RIG_PARM_SET(X108G_PARMS),
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
@@ -528,7 +526,6 @@ const struct rig_caps g90_caps =
     .has_get_parm =  X108G_PARMS,
     .has_set_parm =  RIG_PARM_SET(X108G_PARMS),
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
@@ -705,7 +702,6 @@ const struct rig_caps x5105_caps =
     .has_get_parm =  X108G_PARMS,
     .has_set_parm =  RIG_PARM_SET(X108G_PARMS),
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},

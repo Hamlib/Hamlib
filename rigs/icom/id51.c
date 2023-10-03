@@ -111,7 +111,6 @@ const struct rig_caps id51_caps =
     .has_get_parm =  ID51_PARM_ALL,
     .has_set_parm =  ID51_PARM_ALL,
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .ext_tokens = id51_tokens,

@@ -117,7 +117,6 @@ const struct rig_caps nrd545_caps =
     .has_get_parm =  RIG_PARM_TIME,
     .has_set_parm =  RIG_PARM_SET(NRD545_PARM),
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 20 } },
         [LVL_IF] = { .min = { .i = -2550 }, .max = { .i = 2550 }, .step = { .i = 10} },

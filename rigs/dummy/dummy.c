@@ -1205,7 +1205,6 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 qrm = -50;
             }
 
-            // cppcheck-suppress *
             level1 = LVL_ATT;
             level2 = LVL_PREAMP;
             curr->levels[idx].i = qrm + (time(NULL) % 32) + (rand() % 4)

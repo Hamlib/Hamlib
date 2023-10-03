@@ -497,7 +497,6 @@ int dx77_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     /* at least 6 digits */
-    // cppcheck-suppress *
     SNPRINTF(freqbuf, sizeof(freqbuf), AL CMD_RXFREQ "%06"PRIll EOM, (int64_t)freq);
 
     return dx77_transaction(rig, freqbuf, strlen(freqbuf), NULL, NULL);

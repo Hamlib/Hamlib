@@ -394,7 +394,6 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 #ifdef TT565_ASCII_FREQ
     /*  Use ASCII mode to set frequencies */
-    // cppcheck-suppress *
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "*%cF%"PRIll EOM,
              which_vfo(rig, vfo),
              (int64_t)freq);

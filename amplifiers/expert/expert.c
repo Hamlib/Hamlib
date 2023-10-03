@@ -207,6 +207,7 @@ int expert_transaction(AMP *amp, const unsigned char *cmd, int cmd_len,
  * Get Info
  * returns the model name string
  */
+// cppcheck-suppress constParameterCallback
 const char *expert_get_info(AMP *amp)
 {
     const struct amp_caps *rc;

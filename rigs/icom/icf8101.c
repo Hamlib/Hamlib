@@ -401,7 +401,6 @@ const struct rig_caps icf8101_caps =
     .has_get_parm =   RIG_PARM_NONE,
     .has_set_parm =   RIG_PARM_NONE,
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
     },

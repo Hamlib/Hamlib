@@ -104,7 +104,6 @@ const struct rig_caps id31_caps =
     .has_get_parm =  ID31_PARM_ALL,
     .has_set_parm =  ID31_PARM_ALL,
     .level_gran = {
-        // cppcheck-suppress *
         [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .extparms = icom_ext_parms,

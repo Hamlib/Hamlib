@@ -870,7 +870,6 @@ int gnuradio_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
   return ret;
 }
 
-// cppcheck-suppress *
 DECLARE_INITRIG_BACKEND(gnuradio)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "gnuradio: _init called\n");

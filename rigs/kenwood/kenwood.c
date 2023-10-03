@@ -1922,7 +1922,6 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC2(-RIG_EINVAL);
     }
 
-    // cppcheck-suppress *
     SNPRINTF(freqbuf, sizeof(freqbuf), "F%c%011"PRIll, vfo_letter, (int64_t)freq);
 
     // we need to modify priv->verify_cmd if ID is not being used

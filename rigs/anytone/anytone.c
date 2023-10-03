@@ -317,7 +317,7 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo=0x%02x\n", __func__, reply[113]);
     }
 
-    *vfo = p->vfo_curr;
+    p->vfo_curr = *vfo;
 
     RETURNFUNC(retval);
 }

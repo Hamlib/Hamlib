@@ -363,7 +363,7 @@ int codan_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return retval;
     }
 
-    char *p = strstr(response, "Ptt");
+    const char *p = strstr(response, "Ptt");
 
     if (p)
     {

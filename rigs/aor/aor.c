@@ -174,7 +174,6 @@ static int format_freq(char *buf, int buf_len, freq_t freq)
 
     f = f * 100 + lowhz;
 
-    // cppcheck-suppress *
     SNPRINTF(buf, buf_len, "RF%010"PRIll, f);
     return strlen(buf);
 }

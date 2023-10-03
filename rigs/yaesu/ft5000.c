@@ -164,7 +164,6 @@ const struct rig_caps ftdx5000_caps =
     .level_gran =
     {
 #include "level_gran_yaesu.h"
-        // cppcheck-suppress *
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 4000 }, .step = { .i = 10 } },
         [LVL_COMP] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/255.0f } },
         [LVL_VOXGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/255.0f } },

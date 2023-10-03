@@ -440,7 +440,6 @@ int main(int argc, char *argv[])
 
     if (retcode == RIG_OK)
     {
-        // cppcheck-suppress *
         printf("rig_get_mode: mode = %s\n", rig_strrmode(rmode));
     }
     else
