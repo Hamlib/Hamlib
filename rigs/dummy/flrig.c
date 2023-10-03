@@ -440,6 +440,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
             rig_debug(RIG_DEBUG_WARN, "%s: retry needed? retry=%d\n", __func__, retry);
         }
 
+        rig_debug(RIG_DEBUG_TRACE, "%s: before read_string\n", __func__);
         int len = read_string(&rs->rigport, (unsigned char *) tmp_buf, sizeof(tmp_buf),
                               delims,
                               strlen(delims), 0, 1);

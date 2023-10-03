@@ -72,7 +72,7 @@ const struct rot_caps apex_shared_loop_rot_caps =
     ROT_MODEL(ROT_MODEL_APEX_SHARED_LOOP),
     .model_name =     "Shared Loop",
     .mfg_name =       "Apex",
-    .version =        "20221224.0",
+    .version =        "20231002.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZIMUTH,

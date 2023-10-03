@@ -105,15 +105,6 @@ typedef struct
 }
 FT600_STATUS_INFO;
 
-
-typedef struct
-{
-    unsigned char byte[8];
-}
-// cppcheck-suppress *
-FT600_FLAG_INFO;
-
-
 static int ft600_init(RIG *rig);
 static int ft600_open(RIG *rig);
 static int ft600_cleanup(RIG *rig);
@@ -133,7 +124,6 @@ static int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 struct ft600_priv_data
 {
     FT600_STATUS_INFO status;
-    FT600_FLAG_INFO flags;
     unsigned char s_meter;
 
 };
@@ -234,7 +224,7 @@ const struct rig_caps ft600_caps =
     RIG_MODEL(RIG_MODEL_FT600),
     .model_name =     "FT-600",
     .mfg_name =       "Yaesu",
-    .version =        "20201009.0",
+    .version =        "20231001.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,

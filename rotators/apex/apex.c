@@ -68,26 +68,23 @@ static void *apex_read(void *arg)
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: data='%s'\n", __func__, data);
 
-        if (retval == 0)
+        switch (data[16])
         {
-            switch (data[16])
-            {
-            case '0': apex_azimuth =  45; break;
+        case '0': apex_azimuth =  45; break;
 
-            case '1': apex_azimuth =  90; break;
+        case '1': apex_azimuth =  90; break;
 
-            case '2': apex_azimuth = 135; break;
+        case '2': apex_azimuth = 135; break;
 
-            case '3': apex_azimuth = 180; break;
+        case '3': apex_azimuth = 180; break;
 
-            case '4': apex_azimuth = 225; break;
+        case '4': apex_azimuth = 225; break;
 
-            case '5': apex_azimuth = 270; break;
+        case '5': apex_azimuth = 270; break;
 
-            case '6': apex_azimuth = 315; break;
+        case '6': apex_azimuth = 315; break;
 
-            case '7': apex_azimuth =   0; break;
-            }
+        case '7': apex_azimuth =   0; break;
         }
 
 //            printf("az=%f\n", apex_azimuth);

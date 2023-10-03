@@ -494,11 +494,6 @@ int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level)
 
     for (i = 0; elec_ext_id_str_lst[i].level != EXT_LEVEL_NONE; i++)
     {
-        if (strcmp(elec_ext_id_str_lst[i].id, bufptr) != 0)
-        {
-            continue;
-        }
-
         if (strcmp(elec_ext_id_str_lst[i].id, bufptr) == 0)
         {
             *ext_level = elec_ext_id_str_lst[i].level;

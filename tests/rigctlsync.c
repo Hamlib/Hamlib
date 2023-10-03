@@ -661,7 +661,7 @@ int main(int argc, char *argv[])
 
         hl_usleep(400 * 1000); // fairly fast to keep up
     }
-    while (retcode == 0 && !ctrl_c);
+    while (retval == 0 && !ctrl_c);
 
     rig_close(my_rig);          /* close port */
     rig_cleanup(my_rig);        /* if you care about memory */

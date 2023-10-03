@@ -143,16 +143,13 @@ again:
             {
                 printf("Get VFO curr_vfo=%d\n", curr_vfo);
 
-                if (buf[4] == 0x20)
+                if (curr_vfo == 1)
                 {
-                    if (curr_vfo == 1)
-                    {
-                        curr_vfo = 0;
-                    }
-                    else
-                    {
-                        curr_vfo = 1;
-                    }
+                    curr_vfo = 0;
+                }
+                else
+                {
+                    curr_vfo = 1;
                 }
 
                 printf("Get VFO curr_vfo=%d\n", curr_vfo);

@@ -161,9 +161,8 @@ static int get_ic10_if(RIG *rig, char *data)
             continue;
         }
 
-        if (retval == RIG_OK &&
-                (data_len < priv->if_len ||
-                 data[0] != 'I' || data[1] != 'F'))
+        if (data_len < priv->if_len ||
+                 data[0] != 'I' || data[1] != 'F')
         {
             rig_debug(RIG_DEBUG_WARN, "%s: unexpected answer %s, len=%d\n",
                       __func__, data, data_len);
