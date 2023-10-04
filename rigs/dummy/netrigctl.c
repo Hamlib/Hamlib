@@ -1092,14 +1092,13 @@ static int netrigctl_set_vfo(RIG *rig, vfo_t vfo)
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
-    char vfostr[16] = "";
     struct netrigctl_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     priv = (struct netrigctl_priv_data *)rig->state.priv;
 
-    SNPRINTF(cmd, sizeof(cmd), "V%s %s\n", vfostr, rig_strvfo(vfo));
+    SNPRINTF(cmd, sizeof(cmd), "V %s\n", rig_strvfo(vfo));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd='%s'\n", __func__, cmd);
     ret = netrigctl_transaction(rig, cmd, strlen(cmd), buf);
 
@@ -2494,7 +2493,8 @@ static const char *netrigctl_get_info(RIG *rig)
 static int netrigctl_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 {
     int ret, len;
-    char *cmdp, cmd[] = "\\send_dtmf ";
+    char *cmdp;
+    const char cmd[] = "\\send_dtmf ";
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2577,7 +2577,8 @@ static int netrigctl_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     int ret, len;
-    char *cmdp, cmd[] = "\\send_morse ";
+    char *cmdp; 
+    const char cmd[] = "\\send_morse ";
     char buf[BUF_MAX];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2808,7 +2809,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20230802.0",
+    .version =        "20231004.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

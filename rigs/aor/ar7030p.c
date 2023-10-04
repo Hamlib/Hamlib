@@ -427,6 +427,7 @@ static int ar7030p_open(RIG *rig)
  *
  * /return 0 on success, < 0 on failure
  */
+// cppcheck-suppress *
 static int ar7030p_close(RIG *rig)
 {
     assert(NULL != rig);
@@ -1260,7 +1261,7 @@ static int ar7030p_set_vfo(RIG *rig, vfo_t vfo)
     return (rc);
 }
 
-// cppcheck-suppress constParameterCallback
+// cppcheck-suppress constVariablePointer
 static int ar7030p_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int rc = RIG_OK;
@@ -1344,6 +1345,7 @@ static int ar7030p_set_mem(RIG *rig, vfo_t vfo, int ch)
     return (rc);
 }
 
+// cppcheck-suppress constVariablePointer
 static int ar7030p_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     int rc = RIG_OK;

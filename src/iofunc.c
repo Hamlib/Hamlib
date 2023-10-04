@@ -1347,7 +1347,7 @@ static int read_string_generic(hamlib_port_t *p,
         int timeout_save = p->timeout;
 //        p->timeout = 2;
         result = port_wait_for_data(p, direct);
-    HAMLIB_TRACE2;
+    //HAMLIB_TRACE2;
         p->timeout = timeout_save;
 
         if (result == -RIG_ETIMEOUT)
@@ -1407,7 +1407,7 @@ static int read_string_generic(hamlib_port_t *p,
          * read 1 character from the rig, (check if in stop set)
          * The file descriptor must have been set up non blocking.
          */
-        {
+        do {
 #if 0
 #ifndef __MINGW32__
             // The ioctl works on Linux but not mingw
@@ -1417,6 +1417,7 @@ static int read_string_generic(hamlib_port_t *p,
 #endif
 #endif
     HAMLIB_TRACE2;
+    shortcut:
             rd_count = port_read_generic(p, &rxbuffer[total_count],
                                          expected_len == 1 ? 1 : minlen, direct);
     HAMLIB_TRACE2;
@@ -1455,6 +1456,7 @@ static int read_string_generic(hamlib_port_t *p,
 
         if (total_count == rxmax) { break; }
 
+
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {
             if (minlen == 1) { minlen = total_count; }
@@ -1479,6 +1481,19 @@ static int read_string_generic(hamlib_port_t *p,
 
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: skipping single ';' chars at beginning of reply\n", __func__);
+    }
+    // special read for FLRig
+    if (strcmp(stopset, "/methodResponse>") == 0 || timeout_retries <= 0) 
+    {
+        if (strstr((char*)rxbuffer, stopset)) 
+        {
+            HAMLIB_TRACE2;
+        }
+
+        else {
+            HAMLIB_TRACE2;
+            goto shortcut;
+        }
     }
 
     /*

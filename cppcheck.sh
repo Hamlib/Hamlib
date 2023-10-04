@@ -79,6 +79,7 @@ if test $# -eq 0 ; then
         echo "See cppcheck.log when done"
         echo "This takes a while to run"
         cppcheck --inline-suppr \
+                 --check-level=exhaustive
                  -I src \
                  -I include \
                  -I include/hamlib/ \
@@ -91,10 +92,11 @@ if test $# -eq 0 ; then
                  $SUPPRESS \
                  $CHECK \
                  . \
-                 --template='{file}:{line},{severity},{id},{message}'
+                 --template='{file}:{line},{severity},{id},{message}' \
                  >cppcheck.log 2>&1
 else
         cppcheck --inline-suppr \
+                 --check-level=exhaustive
                  -I src \
                  -I include \
                  -I include/hamlib/ \
@@ -106,6 +108,6 @@ else
                  --std=c99 \
                  $SUPPRESS \
                  $CHECK \
-                 --template='{file}:{line},{severity},{id},{message}'
+                 --template='{file}:{line},{severity},{id},{message}'\
                  "$@"
 fi

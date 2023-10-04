@@ -1364,7 +1364,7 @@ int elad_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     int retval;
     char buf[6];
-    struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
