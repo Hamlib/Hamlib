@@ -7964,18 +7964,18 @@ static int morse_data_handler_stop(RIG *rig)
                               rs->morse_data_handler_priv_data;
 
     // wait until fifo queue is flushed
-    HAMLIB_TRACE;
+    //HAMLIB_TRACE;
     hl_usleep(100*1000);
-    HAMLIB_TRACE;
+    //HAMLIB_TRACE;
     while(peek(rig->state.fifo_morse) >= 0)
     {
         HAMLIB_TRACE;
         rig_debug(RIG_DEBUG_TRACE, "%s: waiting for fifo queue to flush\n", __func__);
         hl_usleep(100*1000);
     }
-    HAMLIB_TRACE;
+    //HAMLIB_TRACE;
     hl_usleep(100*1000);
-    HAMLIB_TRACE;
+    //HAMLIB_TRACE;
     if (morse_data_handler_priv != NULL)
     {
         if (morse_data_handler_priv->thread_id != 0)
