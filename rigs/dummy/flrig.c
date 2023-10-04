@@ -429,7 +429,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     ENTERFUNC;
 
     retry = 2;
-    delims = "\n";
+    //delims = "\n";
     xml[0] = 0;
 
     do
