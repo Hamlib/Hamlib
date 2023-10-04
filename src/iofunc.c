@@ -1339,7 +1339,7 @@ static int read_string_generic(hamlib_port_t *p,
     memset(rxbuffer, 0, rxmax);
 
     short timeout_retries = p->timeout_retry;
-    HAMLIB_TRACE2;
+    //HAMLIB_TRACE2;
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
         ssize_t rd_count = 0;
@@ -1358,7 +1358,7 @@ static int read_string_generic(hamlib_port_t *p,
                 rig_debug(RIG_DEBUG_CACHE, "%s(%d): retrying read timeout %d/%d timeout=%d\n", __func__, __LINE__,
                     p->timeout_retry - timeout_retries, p->timeout_retry, p->timeout);
                 hl_usleep(10 * 1000);
-    HAMLIB_TRACE2;
+    //HAMLIB_TRACE2;
                 continue;
             }
 
@@ -1416,12 +1416,12 @@ static int read_string_generic(hamlib_port_t *p,
             //rig_debug(RIG_DEBUG_ERR, "xs: avail=%d expected_len=%d, minlen=%d, direct=%d\n", __func__, avail, expected_len, minlen, direct);
 #endif
 #endif
-    HAMLIB_TRACE2;
+    //HAMLIB_TRACE2;
     shortcut:
             rd_count = port_read_generic(p, &rxbuffer[total_count],
                                          expected_len == 1 ? 1 : minlen, direct);
-    HAMLIB_TRACE2;
-//            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes tot=%d\n", __func__, (int)rd_count, total_count);
+    //HAMLIB_TRACE2;
+//            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes tot=%d\nrxbuffer=%s\n", __func__, (int)rd_count, total_count, rxbuffer);
             minlen -= rd_count;
 
             if (errno == EAGAIN)
@@ -1433,7 +1433,7 @@ static int read_string_generic(hamlib_port_t *p,
         }
 
         while (++i < 10 && errno == EBUSY);   // 50ms should be enough
-    HAMLIB_TRACE2;
+    //HAMLIB_TRACE2;
 
         /* if we get 0 bytes or an error something is wrong */
         if (rd_count <= 0)
@@ -1449,6 +1449,7 @@ static int read_string_generic(hamlib_port_t *p,
             return -RIG_EIO;
         }
 
+        //HAMLIB_TRACE2;
         // check to see if our string startis with \...if so we need more chars
         if (total_count == 0 && rxbuffer[total_count] == '\\') { rxmax = (rxmax - 1) * 5; }
 
@@ -1456,7 +1457,27 @@ static int read_string_generic(hamlib_port_t *p,
 
         if (total_count == rxmax) { break; }
 
+    // special read for FLRig
+//    rig_debug(RIG_DEBUG_TRACE, "%s: stopset=%s\n", __func__, stopset);
+    if (strcmp(stopset, "</methodResponse>") == 0 || timeout_retries <= 0) 
+    {
+        //HAMLIB_TRACE2;
+        if (strstr((char*)rxbuffer, stopset)) 
+        {
+            //HAMLIB_TRACE2;
+            break;
+        }
 
+        else {
+            //HAMLIB_TRACE2;
+            goto shortcut;
+        }
+    }
+        //else
+        //HAMLIB_TRACE2;
+
+
+        //HAMLIB_TRACE2;
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {
             if (minlen == 1) { minlen = total_count; }
@@ -1481,19 +1502,6 @@ static int read_string_generic(hamlib_port_t *p,
 
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: skipping single ';' chars at beginning of reply\n", __func__);
-    }
-    // special read for FLRig
-    if (strcmp(stopset, "/methodResponse>") == 0 || timeout_retries <= 0) 
-    {
-        if (strstr((char*)rxbuffer, stopset)) 
-        {
-            HAMLIB_TRACE2;
-        }
-
-        else {
-            HAMLIB_TRACE2;
-            goto shortcut;
-        }
     }
 
     /*
