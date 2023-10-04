@@ -229,7 +229,7 @@ static int vfo_curr(RIG *rig, vfo_t vfo)
 static int read_transaction(RIG *rig, char *response, int response_len)
 {
     struct rig_state *rs = &rig->state;
-    char *delims = "\n";
+    const char *delims = "\n";
     int len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);

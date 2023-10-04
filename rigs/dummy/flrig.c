@@ -269,6 +269,7 @@ static int check_vfo(vfo_t vfo)
 * So we'll hand craft them
 * xml_build takes a value and returns an xml string for FLRig
 */
+// cppcheck-suppress constParameterPointer
 static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf,
                        int xmlbuflen)
 {
@@ -442,8 +443,8 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
 
         rig_debug(RIG_DEBUG_TRACE, "%s: before read_string\n", __func__);
         int len = read_string(&rs->rigport, (unsigned char *) tmp_buf, sizeof(tmp_buf),
-                              delims,
-                              strlen(delims), 0, 1);
+                              "<methodResponse>",
+                              16, 0, 1);
         rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, tmp_buf);
 
         // if our first response we should see the HTTP header
