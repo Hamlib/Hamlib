@@ -1421,7 +1421,7 @@ static int read_string_generic(hamlib_port_t *p,
             rd_count = port_read_generic(p, &rxbuffer[total_count],
                                          expected_len == 1 ? 1 : minlen, direct);
     //HAMLIB_TRACE2;
-//            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes tot=%d\nrxbuffer=%s\n", __func__, (int)rd_count, total_count, rxbuffer);
+//            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes tot=%d\n", __func__, (int)rd_count, total_count);
             minlen -= rd_count;
 
             if (errno == EAGAIN)
@@ -1430,6 +1430,20 @@ static int read_string_generic(hamlib_port_t *p,
 //                rig_debug(RIG_DEBUG_WARN, "%s: port_read is busy? direct=%d\n", __func__,
 //                          direct);
             }
+                // special read for FLRig
+    if (strcmp(stopset, "/methodResponse>") == 0)
+    {
+        if (strstr((char*)rxbuffer, stopset))
+        {
+            HAMLIB_TRACE2;
+        }
+
+        else {
+            HAMLIB_TRACE2;
+            goto shortcut;
+        }
+    }
+
         }
 
         while (++i < 10 && errno == EBUSY);   // 50ms should be enough
@@ -1449,7 +1463,6 @@ static int read_string_generic(hamlib_port_t *p,
             return -RIG_EIO;
         }
 
-        //HAMLIB_TRACE2;
         // check to see if our string startis with \...if so we need more chars
         if (total_count == 0 && rxbuffer[total_count] == '\\') { rxmax = (rxmax - 1) * 5; }
 
@@ -1457,30 +1470,6 @@ static int read_string_generic(hamlib_port_t *p,
 
         if (total_count == rxmax) { break; }
 
-    // special read for FLRig
-//    rig_debug(RIG_DEBUG_TRACE, "%s: stopset=%s\n", __func__, stopset);
-    if (strcmp(stopset, "</methodResponse>") == 0 || timeout_retries <= 0) 
-    {
-        //HAMLIB_TRACE2;
-        if (strstr((char*)rxbuffer, stopset)) 
-        {
-            // get the last two bytes of FLRig's response
-            unsigned char buf[2];
-            read_block(p, buf, 2);
-            //HAMLIB_TRACE2;
-            break;
-        }
-
-        else {
-            //HAMLIB_TRACE2;
-            goto shortcut;
-        }
-    }
-        //else
-        //HAMLIB_TRACE2;
-
-
-        //HAMLIB_TRACE2;
         if (stopset && memchr(stopset, rxbuffer[total_count - 1], stopset_len))
         {
             if (minlen == 1) { minlen = total_count; }
