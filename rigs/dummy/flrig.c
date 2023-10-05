@@ -138,7 +138,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20231005.0",
+    .version = "20230802.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -423,12 +423,10 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     int retval;
     int retry;
     //char *delims;
-    char terminator[32] = "</methodResponse>";
+    char *terminator = "</methodResponse>";
     struct rig_state *rs = &rig->state;
 
     ENTERFUNC;
-
-    SNPRINTF(terminator,sizeof(terminator), "</methodResponse>%c%c", 0x0d, 0x0a);
 
     retry = 2;
     //delims = "\n";
