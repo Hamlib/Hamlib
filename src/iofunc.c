@@ -1464,6 +1464,9 @@ static int read_string_generic(hamlib_port_t *p,
         //HAMLIB_TRACE2;
         if (strstr((char*)rxbuffer, stopset)) 
         {
+            // get the last two bytes of FLRig's response
+            unsigned char buf[2];
+            read_block(p, buf, 2);
             //HAMLIB_TRACE2;
             break;
         }
