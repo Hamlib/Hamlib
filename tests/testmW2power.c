@@ -66,7 +66,6 @@ int callback(const struct rig_caps *caps, rig_ptr_t rigp)
 int main(int argc, char *argv[])
 {
     RIG *rig;
-    int i;
 
     rig_set_debug(RIG_DEBUG_NONE);
 
