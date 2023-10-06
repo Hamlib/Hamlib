@@ -214,7 +214,7 @@ int anytone_init(RIG *rig)
         if (p == NULL)
         {
             retval = -RIG_ENOMEM;
-            
+            RETURNFUNC(retval);
         }
         else
         {
@@ -238,7 +238,11 @@ int anytone_cleanup(RIG *rig)
 
     ENTERFUNC;
 
-    if (rig->state.priv != NULL)
+    if (rig == NULL)
+    {
+        RETURNFUNC(-RIG_EARG);
+    }
+    else
     {
         free(rig->state.priv);
         rig->state.priv = NULL;
@@ -305,7 +309,7 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 
     ENTERFUNC;
 
-    anytone_priv_data_ptr p = (anytone_priv_data_ptr) rig->state.priv;
+    const anytone_priv_data_ptr p = (anytone_priv_data_ptr) rig->state.priv;
     unsigned char reply[512];
     unsigned char cmd[] = { 0x2b,0x41,0x44,0x41,0x54,0x41,0x3a,0x30,0x30,0x2c,0x30,0x30,0x36,0x0d,0x0a,0x04,0x05,0x00,0x00,0x00,0x00,0x0d,0x0a };
     anytone_transaction(rig, cmd, sizeof(cmd), reply, sizeof(reply), 114);
@@ -327,11 +331,8 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 // ---------------------------------------------------------------------------
 int anytone_set_vfo(RIG *rig, vfo_t vfo)
 {
-    //anytone_priv_data_t *p = rig->state.priv;
-
     ENTERFUNC;
     RETURNFUNC(RIG_OK);
-
 }
 
 // ---------------------------------------------------------------------------
