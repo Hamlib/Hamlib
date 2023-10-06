@@ -79,7 +79,7 @@ if test $# -eq 0 ; then
         echo "See cppcheck.log when done"
         echo "This takes a while to run"
         cppcheck --inline-suppr \
-                 --check-level=exhaustive
+                 --check-level=exhaustive \
                  -I src \
                  -I include \
                  -I include/hamlib/ \
