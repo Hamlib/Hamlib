@@ -91,8 +91,8 @@ if test $# -eq 0 ; then
                  --std=c99 \
                  $SUPPRESS \
                  $CHECK \
-                 . \
                  --template='{file}:{line},{severity},{id},{message}' \
+                 . \
                  >cppcheck.log 2>&1
 else
         cppcheck --inline-suppr \
