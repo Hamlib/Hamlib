@@ -2569,7 +2569,7 @@ struct multicast_s
     pthread_mutex_t mutex;
     int mutex_initialized;
 //#ifdef HAVE_ARPA_INET_H
-    struct ip_mreq mreq; // = {0};
+    //struct ip_mreq mreq; // = {0};
     struct sockaddr_in dest_addr; // = {0};
     int port;
 //#endif

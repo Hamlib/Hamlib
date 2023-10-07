@@ -3,9 +3,9 @@
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -287,12 +287,12 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "KS;", 3) == 0)
         {
-            sprintf(buf,"KS%d;", keyspd);
+            sprintf(buf, "KS%d;", keyspd);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf,"KS",2) == 0)
+        else if (strncmp(buf, "KS", 2) == 0)
         {
-            sscanf(buf,"KS%03d", &keyspd);
+            sscanf(buf, "KS%03d", &keyspd);
         }
 
         else if (strlen(buf) > 0)

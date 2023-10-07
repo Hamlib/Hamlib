@@ -313,19 +313,21 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "SA0;");
             n = write(fd, buf, strlen(buf));
         }
-        else if (buf[3] == ';' && strncmp(buf, "SF", 2)==0)
+        else if (buf[3] == ';' && strncmp(buf, "SF", 2) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "SF%c%011.0f%c;", buf[2], buf[2] == '0' ? freqA : freqB,
+            SNPRINTF(buf, sizeof(buf), "SF%c%011.0f%c;", buf[2],
+                     buf[2] == '0' ? freqA : freqB,
                      buf[2] == '0' ? modeA + '0' : modeB + '0');
             n = write(fd, buf, strlen(buf));
             continue;
         }
         else if (strncmp(buf, "SF", 2) == 0)
         {
-            mode_t tmpmode= buf[14];
+            mode_t tmpmode = buf[14];
 
             if (buf[2] == '0') { modeA = tmpmode - '0'; }
             else { modeB = tmpmode - '0'; }
+
             printf("modeA=%c, modeB=%c\n", modeA, modeB);
 
             continue;

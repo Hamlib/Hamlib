@@ -2,10 +2,12 @@
 // gcc -o simyaesu simyaesu.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -289,35 +291,35 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "KS;", 3) == 0)
         {
-            sprintf(buf,"KS%d;", keyspd);
+            sprintf(buf, "KS%d;", keyspd);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf,"KS",2) == 0)
+        else if (strncmp(buf, "KS", 2) == 0)
         {
-            sscanf(buf,"KS%03d", &keyspd);
+            sscanf(buf, "KS%03d", &keyspd);
         }
         else if (strncmp(buf, "BS;", 3) == 0) // cannot query BS
         {
-            sprintf(buf,"BS%02d;", bandselect);
+            sprintf(buf, "BS%02d;", bandselect);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "SH0;", 4)==0)
+        else if (strncmp(buf, "SH0;", 4) == 0)
         {
-            sprintf(buf,"SH0%02d;", width);
+            sprintf(buf, "SH0%02d;", width);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "SH0", 3)==0)
+        else if (strncmp(buf, "SH0", 3) == 0)
         {
-            sscanf(buf,"SH0%02d", &width);
+            sscanf(buf, "SH0%02d", &width);
         }
-        else if (strncmp(buf, "NA0;", 4)==0)
+        else if (strncmp(buf, "NA0;", 4) == 0)
         {
-            sprintf(buf,"NA0%d;", narrow);
+            sprintf(buf, "NA0%d;", narrow);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "NA0", 3)==0)
+        else if (strncmp(buf, "NA0", 3) == 0)
         {
-            sscanf(buf,"NA0%d", &narrow);
+            sscanf(buf, "NA0%d", &narrow);
         }
 
         else if (strlen(buf) > 0)

@@ -5,10 +5,12 @@
 // gcc -static -I../include -g -Wall -o simicom simicom.c -L../../build/src/.libs -lhamlib -lwsock32 -lws2_32
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
 {
     int dummy;
 };
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,7 +57,7 @@ int notch = 0;
 int speechcompressor = 0;
 int vox = 0;
 
-void dumphex(unsigned char *buf, int n)
+void dumphex(const unsigned char *buf, int n)
 {
     for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
 
@@ -120,9 +122,12 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     int echo = 0;
 
+// cppcheck-suppress knownConditionTrueFalse
     if (echo)
     {
         n = write(fd, frame, len);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
     }
 
     frame[3] = frame[2];
@@ -149,6 +154,8 @@ void frameParse(int fd, unsigned char *frame, int len)
         if (powerstat)
         {
             n = write(fd, frame, 11);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
         }
 
         break;
@@ -169,10 +176,14 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         frame[7] = 0xfd;
         n = write(fd, frame, 8);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
         break;
 
     case 0x05:
         freq = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
+
         //printf("set_freq to %.0f\n", freq);
 
         if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { freqA = freq; }
@@ -181,6 +192,9 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[4] = 0xfb;
         frame[5] = 0xfd;
         n = write(fd, frame, 6);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
         break;
 
     case 0x06:
@@ -190,6 +204,9 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[4] = 0xfb;
         frame[5] = 0xfd;
         n = write(fd, frame, 6);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
         break;
 
     case 0x07:
@@ -199,6 +216,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         switch (frame[5])
         {
         case 0xd2:
+
             //printf("******* [6] = 0x07\n");
 
             switch (frame[6])
@@ -216,6 +234,9 @@ void frameParse(int fd, unsigned char *frame, int len)
         //printf("0x07 0xd2 answer: \n");
         dump_hex(frame, 6);
         n = write(fd, frame, 6);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
         break;
 
     case 0x0f:
@@ -228,6 +249,8 @@ void frameParse(int fd, unsigned char *frame, int len)
             //printf("get split %d\n", 1);
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
         }
         else
         {
@@ -235,6 +258,8 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[4] = 0xfb;
             frame[5] = 0xfd;
             n = write(fd, frame, 6);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
         }
 
         break;
@@ -246,12 +271,16 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[4] = 0xfb;
             frame[5] = 0xfd;
             n = write(fd, frame, 6);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
         }
         else
         {
             frame[5] = attenuator;
             frame[6] = 0xfd;
             n = write(fd, frame, 7);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
         }
 
         break;
@@ -275,9 +304,13 @@ void frameParse(int fd, unsigned char *frame, int len)
         //printf("write 8 bytes\n");
         dump_hex(frame, 8);
         n = write(fd, frame, 8);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
         break;
 
     case 0x14:
+
         //printf("******** 0x14 received frame[5]=0x%02x\n", frame[5]);
 
         switch (frame[5])
@@ -293,6 +326,9 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[5] = 0xfd;
                 dumphex(frame, 6);
                 n = write(fd, frame, 6);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
                 //printf("ACK x14 x08\n");
             }
             else
@@ -303,6 +339,9 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[9] = 0xfd;
                 dumphex(frame, 10);
                 n = write(fd, frame, 10);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
                 //printf("SEND x14 x08\n");
             }
 
@@ -317,6 +356,9 @@ void frameParse(int fd, unsigned char *frame, int len)
             to_bcd(&frame[6], (long long)power_level, 2);
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
             break;
 
         case 0x0c:
@@ -329,6 +371,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[6] = keyspd;
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
 
             break;
@@ -338,6 +382,9 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[5] = 0xfa;
             frame[6] = 0xfd;
             n = write(fd, frame, 7);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
             break;
         }
 
@@ -352,6 +399,9 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[6] = ovf_status;
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
             ovf_status = ovf_status == 0 ? 1 : 0;
             break;
 
@@ -364,12 +414,18 @@ void frameParse(int fd, unsigned char *frame, int len)
             to_bcd(&frame[6], (long long)meter_level, 2);
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
             break;
 
         default:
             frame[5] = 0xfa;
             frame[6] = 0xfd;
             n = write(fd, frame, 7);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
             break;
 
         }
@@ -383,6 +439,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[6] = speechcompressor;
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
             else
             {
@@ -390,14 +448,20 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[4] = 0xfb;
                 frame[5] = 0xfd;
                 n = write(fd, frame, 6);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
+
             break;
+
         case 0x46:
             if (frame[6] == 0xfe)
             {
                 frame[6] = vox;
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
             else
             {
@@ -405,14 +469,20 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[4] = 0xfb;
                 frame[5] = 0xfd;
                 n = write(fd, frame, 6);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
+
             break;
+
         case 0x48:
             if (frame[6] == 0xfe)
             {
                 frame[6] = notch;
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
             else
             {
@@ -420,8 +490,12 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[4] = 0xfb;
                 frame[5] = 0xfd;
                 n = write(fd, frame, 6);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
+
             break;
+
         case 0x5a:
             if (frame[6] == 0xfe)
             {
@@ -432,6 +506,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[6] = satmode;
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
 
             break;
@@ -443,12 +519,18 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[5] = 1;
         frame[6] = 0xfd;
         n = write(fd, frame, 7);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
         break;
 
     case 0x19: // miscellaneous things
         frame[5] = 0x94;
         frame[6] = 0xfd;
         n = write(fd, frame, 7);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
         break;
 
     case 0x1a: // miscellaneous things
@@ -460,9 +542,13 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
             break;
 
         case 0x04: // AGC TIME
+
             //printf("frame[6]==x%02x, frame[7]=0%02x\n", frame[6], frame[7]);
 
             if (frame[6] == 0xfd)   // the we are reading
@@ -470,6 +556,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[6] = agc_time;
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
             else
             {
@@ -478,6 +566,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[4] = 0xfb;
                 frame[5] = 0xfd;
                 n = write(fd, frame, 6);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
 
             break;
@@ -488,6 +578,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[6] = datamode;
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
             else
             {
@@ -495,6 +587,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[4] = 0xfd;
                 frame[5] = 0xfd;
                 n = write(fd, frame, 6);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
 
             break;
@@ -503,6 +597,9 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[4] = 0;
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
             break;
 
         }
@@ -518,6 +615,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[6] = ptt;
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
             else
             {
@@ -525,6 +624,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[7] = 0xfb;
                 frame[8] = 0xfd;
                 n = write(fd, frame, 9);
+
+                if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
 
             break;
@@ -566,12 +667,20 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame2[9] = 0x00;
             frame2[10] = 0xfd;
             n = write(fd, frame2, 11);
-#endif
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
+#else
             n = write(fd, frame, 12);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
+#endif
         }
         else
         {
             freq = from_bcd(&frame[6], (civ_731_mode ? 4 : 5) * 2);
+
             //printf("set_freq to %.0f\n", freq);
 
             if (frame[5] == 0x00) { freqA = freq; }
@@ -580,6 +689,9 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[4] = 0xfb;
             frame[5] = 0xfd;
             n = write(fd, frame, 6);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
             // send async frame
             frame[2] = 0x00; // async freq
             frame[3] = 0xa2;
@@ -591,6 +703,8 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[9] = 0x12;
             frame[10] = 0xfd;
             n = write(fd, frame, 11);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
         }
 
         break;
@@ -600,7 +714,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (frame[6] == 0xfd) // then a query
         {
-    printf("GET MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+            printf("GET MODE XXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
 // fe fe e0 8e 26 00 01 00 01 fd
 // 0  1  2  3  4  5  6  7  8
 //                AB MD DM FF
@@ -611,10 +725,13 @@ void frameParse(int fd, unsigned char *frame, int len)
             printf("x26 response: ");
             dumphex(frame, 10);
             n = write(fd, frame, 10);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
         }
         else
         {
-    printf("SET MODE YYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n");
+            printf("SET MODE YYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n");
+
             for (int i = 0; i < 12; ++i) { printf("%02x:", frame[i]); }
 
             if (frame[5] == 0)
@@ -633,6 +750,8 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[4] = 0xfb;
             frame[5] = 0xfd;
             n = write(fd, frame, 6);
+
+            if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
         }
 
         printf("\n");
@@ -644,6 +763,9 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[4] = 0xfa;
         frame[5] = 0xfd;
         n = write(fd, frame, 6);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
         break;
 
     case 0x26:
@@ -651,6 +773,9 @@ void frameParse(int fd, unsigned char *frame, int len)
         frame[4] = 0xfa;
         frame[5] = 0xfd;
         n = write(fd, frame, 6);
+
+        if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
+
         break;
 #endif
 

@@ -2,10 +2,12 @@
 // gcc -o simatd578 simatd578.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
 {
     int dummy;
 };
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,10 +42,12 @@ getmyline(int fd, unsigned char *buf)
     do
     {
         int bytes = read(fd, &c, 1);
+
         if (bytes > 0)
         {
             buf[i++] = c;
         }
+
         n++;
     }
     while (c != 0x0a);
@@ -171,8 +175,7 @@ again:
                 buf2[15] = 0x00;
                 buf2[16] = 0x06;
 
-                if (buf[4] == 0x20) { n = write(fd, buf2, 17); }
-                else { n = 0; }
+                n = write(fd, buf2, 17);
             }
 
             break;

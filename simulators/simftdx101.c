@@ -2,10 +2,12 @@
 // gcc -o simyaesu simyaesu.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -213,11 +215,6 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "FB%f", &freqB);
         }
-        else if (strcmp(buf, "VS;") == 0)
-        {
-            SNPRINTF(buf, sizeof(buf), "VS%c;", vfo == 0 ? '0' : '1');
-            n = write(fd, buf, strlen(buf));
-        }
         else if (strcmp(buf, "FT;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FT%d;", ft);
@@ -230,7 +227,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "MD0", 3) == 0)
         {
-            sscanf(buf,"MD0%d", &modeA);
+            sscanf(buf, "MD0%d", &modeA);
         }
         else if (strcmp(buf, "MD1;") == 0)
         {
@@ -239,7 +236,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "MD1", 3) == 0)
         {
-            sscanf(buf,"MD1%d", &modeB);
+            sscanf(buf, "MD1%d", &modeB);
         }
         else if (strcmp(buf, "VS;") == 0)
         {
@@ -302,21 +299,21 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "KS;", 3) == 0)
         {
-            sprintf(buf,"KS%d;", keyspd);
+            sprintf(buf, "KS%d;", keyspd);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf,"KS",2) == 0)
+        else if (strncmp(buf, "KS", 2) == 0)
         {
-            sscanf(buf,"KS%03d", &keyspd);
+            sscanf(buf, "KS%03d", &keyspd);
         }
         else if (strncmp(buf, "ST;", 3) == 0)
         {
-            sprintf(buf,"ST%d;", split);
+            sprintf(buf, "ST%d;", split);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf,"ST",2) == 0)
+        else if (strncmp(buf, "ST", 2) == 0)
         {
-            sscanf(buf,"ST%d", &split);
+            sscanf(buf, "ST%d", &split);
         }
 
         else if (strlen(buf) > 0)

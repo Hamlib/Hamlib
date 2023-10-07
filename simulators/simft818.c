@@ -2,10 +2,12 @@
 // gcc -o simyaesu simyaesu.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,9 +164,9 @@ int main(int argc, char *argv[])
             SNPRINTF(resp, sizeof(resp), "FB%08.0f;", freqB);
             n = write(fd, resp, strlen(resp));
         }
-        else if (strncmp(buf, "FA", 2) == 0)
+        else if (strncmp(buf, "FB", 2) == 0)
         {
-            sscanf(buf, "FA%f", &freqA);
+            sscanf(buf, "FB%f", &freqA);
         }
         else if (strcmp(buf, "FB;") == 0)
         {
@@ -241,12 +243,13 @@ int main(int argc, char *argv[])
         {
             printf("%s\n", buf);
             hl_usleep(50 * 1000);
-            pbuf = "VS0;";
+            pbuf = strdup("VS0;");
 
             if (curr_vfo == RIG_VFO_B || curr_vfo == RIG_VFO_SUB) { pbuf[2] = '1'; }
 
             n = write(fd, pbuf, strlen(pbuf));
             printf("%s\n", pbuf);
+            free(pbuf);
 
             if (n < 0) { perror("VS"); }
         }
@@ -344,6 +347,8 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
         }
+
+        if (n == 0) { fprintf(stderr, "Write error? n==0\n"); }
 
     }
 

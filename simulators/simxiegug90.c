@@ -155,7 +155,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         case 0x00: current_vfo = RIG_VFO_A; break;
 
         case 0x01: current_vfo = RIG_VFO_B; break;
-        
+
         case 0xb0: freq = freqA; freqA = freqB; freqB = freq; break;
 
         }
@@ -178,6 +178,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         break;
 
 #if 0
+
     case 0x12: // we're simulating the 3-byte version -- not the 2-byte
         if (frame[5] != 0xfd)
         {
@@ -270,6 +271,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         break;
 
 #if 0
+
     case 0x18: // miscellaneous things
         frame[5] = 1;
         frame[6] = 0xfd;
@@ -290,6 +292,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         }
 
         break;
+
     case 0x1c:
         switch (frame[5])
         {
