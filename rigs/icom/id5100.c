@@ -140,8 +140,8 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
 {
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
-    //struct rig_state *rs = &rig->state;
-    //struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+    struct rig_state *rs = &rig->state;
+    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
 
     ENTERFUNC;
 
@@ -150,7 +150,8 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_B)
     {
         // then we need to turn off dual watch
-
+        // and 0x25 works in this mode
+        priv->x25cmdfails = 0;
         if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
                                               0)))
         {
@@ -158,11 +159,15 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
         }
     }
     else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB)
+    {
+        // x25 does not work in DUAL_WATCH mode
+        priv->x25cmdfails = 1;
         if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
                                               1)))
         {
             RETURNFUNC2(retval);
         }
+    }
 
     int myvfo = S_MAIN;
 
