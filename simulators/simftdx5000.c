@@ -2,10 +2,12 @@
 // gcc -o simyaesu simyaesu.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -195,11 +197,6 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "FB", 2) == 0)
         {
             sscanf(buf, "FB%f", &freqB);
-        }
-        else if (strcmp(buf, "VS;") == 0)
-        {
-            SNPRINTF(buf, sizeof(buf), "VS%c;", vfo == 0 ? '0' : '1');
-            n = write(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "FT;") == 0)
         {

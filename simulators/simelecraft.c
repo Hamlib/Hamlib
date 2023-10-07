@@ -2,10 +2,12 @@
 // gcc -o simyaesu simyaesu.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if  0
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,7 +126,7 @@ int main(int argc, char *argv[])
     {
         buf[0] = 0;
 
-        if ((n=getmyline(fd, buf)) > 0) { printf("Cmd:%s, len=%d\n", buf, n); }
+        if ((n = getmyline(fd, buf)) > 0) { printf("Cmd:%s, len=%d\n", buf, n); }
         else {continue; }
 
         if (strcmp(buf, "RM5;") == 0)
@@ -139,13 +141,13 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "AI;") == 0)
         {
-            SNPRINTF(buf,sizeof(buf),"AI%d;", ai);
+            SNPRINTF(buf, sizeof(buf), "AI%d;", ai);
             n = write(fd, buf, strlen(buf));
             printf("n=%d\n", n);
         }
         else if (strncmp(buf, "AI", 2) == 0)
         {
-            sscanf(buf,"AI%d", &ai);
+            sscanf(buf, "AI%d", &ai);
         }
 
         else if (strcmp(buf, "AN0;") == 0)
@@ -187,7 +189,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "BW$;") == 0)
         {
-            fprintf(stderr,"***** %d\n", __LINE__);
+            fprintf(stderr, "***** %d\n", __LINE__);
             SNPRINTF(buf, sizeof(buf), "BW$%04d;", bandwidthB);
             n = write(fd, buf, strlen(buf));
         }
@@ -333,10 +335,6 @@ int main(int argc, char *argv[])
         {
             n = write(fd, "RV02.37;", 8);
         }
-        else if (strcmp(buf, "AI;") == 0)
-        {
-            n = write(fd, "AI0;", 4);
-        }
         else if (strcmp(buf, "MD;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "MD%d;", modea);
@@ -390,9 +388,9 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "KS%03d;", keyspd);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf,"KS",2) == 0)
+        else if (strncmp(buf, "KS", 2) == 0)
         {
-            sscanf(buf,"KS%d", &keyspd);
+            sscanf(buf, "KS%d", &keyspd);
         }
         else if (strncmp(buf, "TQ;", 3) == 0)
         {
@@ -440,20 +438,25 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "RA$%d;", &rxattenuatorB);
         }
-        else if (strncmp(buf, "KY;", 3)==0)
+        else if (strncmp(buf, "KY;", 3) == 0)
         {
             int status = 0;
             printf("KY query\n");
             SNPRINTF(buf, sizeof(buf), "KY%d;", status);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "KY",2)==0)
+        else if (strncmp(buf, "KY", 2) == 0)
         {
             printf("Morse: %s\n", buf);
         }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
+        }
+
+        if (n == 0)
+        {
+            fprintf(stderr, "Write error?  n==0\n");
         }
 
     }

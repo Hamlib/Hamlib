@@ -3,9 +3,9 @@
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 struct ip_mreq
-  {
+{
     int dummy;
-  };
+};
 
 #include <stdio.h>
 #include <stdlib.h>

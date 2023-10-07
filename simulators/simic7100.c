@@ -6,10 +6,12 @@
 // gcc -static -I../include -g -Wall -o simicom simicom.c -L../../build/src/.libs -lhamlib -lwsock32 -lws2_32
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
 {
     int dummy;
 };
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,7 +51,7 @@ int ovf_status = 0;
 int powerstat = 1;
 int keyspd = 20;
 
-void dumphex(unsigned char *buf, int n)
+void dumphex(const unsigned char *buf, int n)
 {
     for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
 
@@ -284,6 +286,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
             break;
+
         case 0x0c:
             dumphex(frame, 10);
             printf("subcmd=0x0c #1\n");
