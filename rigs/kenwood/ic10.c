@@ -76,6 +76,11 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     int retry_cmd = 0;
     struct rig_state *rs;
 
+    if (cmd == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: cmd==NULL?\n", __func__);
+        return -RIG_EARG;
+    }
     rig_debug(RIG_DEBUG_TRACE,
               "%s: called cmd='%s', len=%d, data=%p, data_len=%p\n", __func__, cmd, cmd_len,
               data, data_len);
@@ -95,7 +100,7 @@ transaction:
     if (!data)
     {
         char buffer[50];
-        struct kenwood_priv_data *priv = rig->state.priv;
+        const struct kenwood_priv_data *priv = rig->state.priv;
 
         if (RIG_OK != (retval = write_block(&rs->rigport,
                                             (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
@@ -146,7 +151,7 @@ transaction:
  */
 static int get_ic10_if(RIG *rig, char *data)
 {
-    struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
+    const struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     int i, data_len, retval = RIG_EINVAL;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
@@ -216,7 +221,7 @@ int ic10_set_vfo(RIG *rig, vfo_t vfo)
  */
 int ic10_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
+    const struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     char vfobuf[50];
     unsigned char c;
     int retval, iflen;
@@ -283,7 +288,7 @@ int ic10_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
 int ic10_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
 {
-    struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
+    const struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     char infobuf[50];
     int retval, iflen;
 
@@ -312,7 +317,7 @@ int ic10_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
  */
 int ic10_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
+    const struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     char modebuf[50];
     unsigned char c;
     int retval, iflen;
@@ -526,7 +531,7 @@ int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
  */
 int ic10_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
+    const struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     char infobuf[50];
     int retval, iflen, offset;
 
@@ -595,7 +600,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 int ic10_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
+    const struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     char membuf[50];
     int retval, iflen;
 
@@ -1150,7 +1155,7 @@ const char *ic10_get_info(RIG *rig)
  */
 int ic10_decode_event(RIG *rig)
 {
-    struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
+    const struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
     char asyncbuf[128], c;
     int retval, async_len = 128, iflen;
     vfo_t vfo;

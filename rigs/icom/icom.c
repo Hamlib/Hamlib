@@ -1392,6 +1392,11 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             // temporary fix for ID5100 not giving ACK/NAK on 0x00 freq on E8 firmware
             retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, NULL,
                                       NULL);
+            if (retval != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: set_freq failed: %s\n", __func__, rigerror(retval));
+                return retval;
+            }
             return RIG_OK;
         }
         else
@@ -2300,7 +2305,7 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
         unsigned char datamode[2];
         unsigned char mode_icom; // Not used, we only need the width
         signed char width_icom;
-        struct icom_priv_data *priv = rig->state.priv;
+        const struct icom_priv_data *priv = rig->state.priv;
 
         HAMLIB_TRACE;
 
@@ -2675,6 +2680,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (--mode_len == 3)
     {
+        // cppcheck-suppress redundantAssignment
         priv_data->filter = modebuf[2];
         rig_debug(RIG_DEBUG_TRACE,
                   "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, modebuf[2]=0x%02x, mode_len=%d, filter=%d\n",
@@ -5626,13 +5632,6 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
                 priv->x25cmdfails = 0;
                 RETURNFUNC2(retval);
             }
-            else
-            {
-                if (priv->x25cmdfails < 0)
-                {
-                    priv->x25cmdfails = 1;
-                }
-            }
         }
 
         // Rig is in SATMODE and the command 0x25 fails in SATMODE
@@ -6714,7 +6713,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     if (priv_caps->dualwatch_split)
     {
-        int wvfo = tx_vfo & (RIG_VFO_A | RIG_VFO_MAIN) ? S_SUB : S_MAIN;
+        int wvfo = (tx_vfo & (RIG_VFO_A | RIG_VFO_MAIN)) ? S_SUB : S_MAIN;
 
         if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
                                               split_sc)))
@@ -7644,7 +7643,8 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
             int retval = icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
             if (parm == RIG_PARM_BANDSELECT)
             {
-                val->s = (char*)icom_get_band(rig, val->i);
+                char *s = (char*)icom_get_band(rig, val->i);
+                val->s = s;
             }
             RETURNFUNC(retval);
         }
@@ -8102,7 +8102,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     int fe_max = 150;
     unsigned char fe_buf[fe_max]; // for FE's to power up
     int i;
-    int retry, retry_save;
+    int retry;
     short timeout_retry_save;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
@@ -8112,7 +8112,6 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
     // elimininate retries to speed this up
     // especially important when rig is not turned on
-    retry_save = rs->rigport.retry;
     timeout_retry_save = rs->rigport.timeout_retry;
 
     rs->rigport.retry = 0;
@@ -8182,7 +8181,6 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
                 priv->poweron = 1;
             }
 
-            rs->rigport.retry = retry_save;
             rs->rigport.retry = timeout_retry_save;
             return RIG_OK;
         }
@@ -8222,7 +8220,6 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
             if (retval == RIG_OK)
             {
                 rig->state.current_vfo = icom_current_vfo(rig);
-                rs->rigport.retry = retry_save;
                 rs->rigport.retry = timeout_retry_save;
                 RETURNFUNC2(retval);
             }
@@ -8237,7 +8234,6 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         }
     }
 
-    rs->rigport.retry = retry_save;
     rs->rigport.retry = timeout_retry_save;
 
     if (i == retry)

@@ -285,7 +285,7 @@ int jrc_close(RIG *rig)
  */
 int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     char freqbuf[BUFSZ];
 
     if (freq >= (freq_t)pow(10, priv->max_freq_len))
@@ -324,7 +324,7 @@ static int get_current_istate(RIG *rig, char *buf, int *buf_len)
  */
 int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     int retval;
     char freqbuf[BUFSZ];
     int freq_len;
@@ -429,7 +429,7 @@ int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int jrc_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     int md_len, retval;
     char mdbuf[BUFSZ];
     char cmode;
@@ -524,7 +524,7 @@ int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  */
 int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     int retval, func_len;
     char funcbuf[BUFSZ];
 
@@ -671,7 +671,7 @@ int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     char cmdbuf[BUFSZ];
 
     /* Optimize:
@@ -775,7 +775,7 @@ int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     int retval, lvl_len, lvl;
     char lvlbuf[BUFSZ];
     char cwbuf[BUFSZ];
@@ -1101,7 +1101,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     char cmdbuf[BUFSZ];
     int minutes;
 
@@ -1144,7 +1144,7 @@ int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
  */
 int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     int retval, lvl_len, i;
     char lvlbuf[BUFSZ];
     char cmdbuf[BUFSZ];
@@ -1362,7 +1362,7 @@ int jrc_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int jrc_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     int mem_len, retval;
     char membuf[BUFSZ];
     int chan;
@@ -1397,7 +1397,7 @@ int jrc_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int jrc_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     char    cmdbuf[BUFSZ];
     int retval;
     rmode_t mode;
@@ -1462,7 +1462,7 @@ int jrc_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
  */
 int jrc_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     char    membuf[BUFSZ], cmdbuf[BUFSZ];
     int     mem_len, retval;
 
@@ -1611,7 +1611,7 @@ int jrc_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
  */
 int jrc_decode_event(RIG *rig)
 {
-    struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
+    const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
     struct rig_state *rs;
     freq_t freq;
     rmode_t mode;

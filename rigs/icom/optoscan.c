@@ -53,7 +53,7 @@ const struct confparams opto_ext_parms[] =
 };
 
 static int optoscan_get_status_block(RIG *rig, struct optostat *status_block);
-static int optoscan_send_freq(RIG *rig, vfo_t vfo, pltstate_t *state);
+static int optoscan_send_freq(RIG *rig, vfo_t vfo, const pltstate_t *state);
 static int optoscan_RTS_toggle(RIG *rig);
 static int optoscan_start_timer(RIG *rig, pltstate_t *state);
 static int optoscan_wait_timer(RIG *rig, pltstate_t *state);
@@ -767,7 +767,7 @@ static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
 }
 
 
-static int optoscan_send_freq(RIG *rig, vfo_t vfo, pltstate_t *state)
+static int optoscan_send_freq(RIG *rig, vfo_t vfo, const pltstate_t *state)
 {
     unsigned char buff[OPTO_BUFF_SIZE];
     char md, pd;

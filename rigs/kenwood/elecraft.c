@@ -392,7 +392,7 @@ int elecraft_open(RIG *rig)
 
 int elecraft_close(RIG *rig)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    const struct kenwood_priv_data *priv = rig->state.priv;
 
     if (priv->save_k2_ext_lvl >= 0)
     {

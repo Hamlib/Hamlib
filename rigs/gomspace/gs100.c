@@ -83,7 +83,7 @@ static int gomx_set(RIG *rig, int table, char *varname, char *varvalue);
 /**
  * Get variable from the GS100 configuration table
  */
-static int gomx_get(RIG *rig, int table, char *varname, char *varvalue);
+static int gomx_get(RIG *rig, int table, char *varname, char *varvalue, int varvalue_len);
 
 /**
  * Sends a message to the GS100 and parses response lines
@@ -261,7 +261,7 @@ static int gs100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     ENTERFUNC;
 
     // perform the get command
-    retval = gomx_get(rig, GOM_CONFIG_TAB_RX, "freq", resp);
+    retval = gomx_get(rig, GOM_CONFIG_TAB_RX, "freq", resp, sizeof(resp));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -331,7 +331,7 @@ static int gs100_get_tx_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     ENTERFUNC;
 
     // perform the get command
-    retval = gomx_get(rig, GOM_CONFIG_TAB_TX, "freq", resp);
+    retval = gomx_get(rig, GOM_CONFIG_TAB_TX, "freq", resp, sizeof(resp));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
@@ -470,12 +470,13 @@ static int gomx_set(RIG *rig, int table, char *varname, char *varvalue)
 
 
 /* Get variable from the GS100 configuration table */
-static int gomx_get(RIG *rig, int table, char *varname, char *varvalue)
+static int gomx_get(RIG *rig, int table, char *varname, char *varvalue, int varvalue_len)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
             *)rig->state.priv;
     int retval;
     char msg[BUFSZ], resp[BUFSZ], *c;
+    char fmt[32];
 
     assert(rig != NULL);
     assert(varname != NULL);
@@ -502,7 +503,8 @@ static int gomx_get(RIG *rig, int table, char *varname, char *varvalue)
     // check response and extract the value
     if ((c = strchr(resp, '=')) == NULL) { return (-RIG_EPROTO); }
 
-    if (sscanf(c + 1, "%s", varvalue) != 1) { return (-RIG_EPROTO); }
+    snprintf(fmt, sizeof(fmt), "%%%ds", varvalue_len);
+    if (sscanf(c + 1, fmt, varvalue_len) != 1) { return (-RIG_EPROTO); }
 
     return (RIG_OK);
 }

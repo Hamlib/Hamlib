@@ -99,7 +99,15 @@ static int icf8101_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
     int modebuf_len;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
     retval = icom_transaction(rig, 0x1A, 0x34, NULL, 0, modebuf, &modebuf_len);
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
     dump_hex(modebuf, modebuf_len);
 
     switch (modebuf[1])
@@ -377,7 +385,7 @@ const struct rig_caps icf8101_caps =
     RIG_MODEL(RIG_MODEL_ICF8101),
     .model_name =   "IC-F8101",
     .mfg_name =   "Icom",
-    .version =    BACKEND_VER ".2",
+    .version =    BACKEND_VER ".3",
     .copyright =    "LGPL",
     .status =   RIG_STATUS_STABLE,
     .rig_type =   RIG_TYPE_TRANSCEIVER,
