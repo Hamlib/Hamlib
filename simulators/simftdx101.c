@@ -32,6 +32,7 @@ int na = 0;
 int ex039 = 0;
 int keyspd = 20;
 int split = 0;
+int power=50;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -264,6 +265,15 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "AI", 2) == 0)
         {
             sscanf(buf, "AI%d", &ai);
+        }
+        else if (strcmp(buf, "PC;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "PC%d;", power);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "PC", 2) == 0)
+        {
+            sscanf(buf, "PC%d", &power);
         }
         else if (strcmp(buf, "SH0;") == 0)
         {
