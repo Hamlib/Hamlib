@@ -3412,15 +3412,15 @@ declare_proto_rig(get_level)
 
         case RIG_CONF_CHECKBUTTON:
         case RIG_CONF_COMBO:
-            fprintf(fout, "%d", val.i);
+            fprintf(fout, "%d%c", val.i, resp_sep);
             break;
 
         case RIG_CONF_NUMERIC:
-            fprintf(fout, "%f", val.f);
+            fprintf(fout, "%f%c", val.f, resp_sep);
             break;
 
         case RIG_CONF_STRING:
-            fprintf(fout, "%s", val.s);
+            fprintf(fout, "%s%c", val.s, resp_sep);
             break;
 
         default:
