@@ -860,7 +860,8 @@ enum rig_conf_e {
     RIG_CONF_NUMERIC,       /*!<    Numeric type integer or real */
     RIG_CONF_CHECKBUTTON,   /*!<    on/off type */
     RIG_CONF_BUTTON,        /*!<    Button type */
-    RIG_CONF_BINARY         /*!<    Binary buffer type */
+    RIG_CONF_BINARY,        /*!<    Binary buffer type */
+    RIG_CONF_INT            /*!<    Integer */
 };
 
 //! @cond Doxygen_Suppress
@@ -970,7 +971,7 @@ typedef unsigned int ant_t;
 
 
 //! @cond Doxygen_Suppress
-#define RIG_AGC_LAST -1
+#define RIG_AGC_LAST 99999
 //! @endcond
 
 #if 1 // deprecated

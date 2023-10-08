@@ -3419,6 +3419,10 @@ declare_proto_rig(get_level)
             fprintf(fout, "%f%c", val.f, resp_sep);
             break;
 
+        case RIG_CONF_INT:
+            fprintf(fout, "%d%c", val.i, resp_sep);
+            break;
+
         case RIG_CONF_STRING:
             fprintf(fout, "%s%c", val.s, resp_sep);
             break;
