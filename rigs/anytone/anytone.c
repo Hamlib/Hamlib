@@ -236,17 +236,15 @@ int anytone_cleanup(RIG *rig)
 {
     int retval = RIG_OK;
 
-    ENTERFUNC;
-
     if (rig == NULL)
     {
-        RETURNFUNC(-RIG_EARG);
+        return -RIG_EARG;
     }
-    else
-    {
-        free(rig->state.priv);
-        rig->state.priv = NULL;
-    }
+
+    ENTERFUNC;
+
+    free(rig->state.priv);
+    rig->state.priv = NULL;
 
     RETURNFUNC(retval);
 }
