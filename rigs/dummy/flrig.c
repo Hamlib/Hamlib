@@ -138,7 +138,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20230802.0",
+    .version = "20231010.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -422,14 +422,14 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
 {
     int retval;
     int retry;
-    //char *delims;
+    char *delims;
     char *terminator = "</methodResponse>";
     struct rig_state *rs = &rig->state;
 
     ENTERFUNC;
 
     retry = 2;
-    //delims = "\n";
+    delims = "\n";
     xml[0] = 0;
 
     do
@@ -443,8 +443,9 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
 
         rig_debug(RIG_DEBUG_TRACE, "%s: before read_string\n", __func__);
         int len = read_string(&rs->rigport, (unsigned char *) tmp_buf, sizeof(tmp_buf),
-                              "</methodResponse>",
-                              17, 0, 1);
+                              delims,
+                              strlen(delims), 0, 1);
+//                              "</methodResponse>", 17,0,1);
         rig_debug(RIG_DEBUG_TRACE, "%s: string='%s'\n", __func__, tmp_buf);
 
         // if our first response we should see the HTTP header
