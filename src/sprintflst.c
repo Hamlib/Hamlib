@@ -329,6 +329,7 @@ int sprintf_level_ext(char *str, int nlen, const struct confparams *extlevels)
 
         switch (extlevels->type)
         {
+        case RIG_CONF_INT:
         case RIG_CONF_CHECKBUTTON:
         case RIG_CONF_COMBO:
         case RIG_CONF_NUMERIC:
@@ -871,6 +872,9 @@ char *get_rig_conf_type(enum rig_conf_e type)
 
     case RIG_CONF_BINARY:
         return "BINARY";
+
+    case RIG_CONF_INT:
+        return "INT";
     }
 
     return "UNKNOWN";

@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20231007"
+#define NEWCAT_VER "20231008"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -254,5 +254,11 @@ int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 #define TOK_CONTOUR_FREQ   TOKEN_BACKEND(105)
 #define TOK_CONTOUR_LEVEL  TOKEN_BACKEND(106)
 #define TOK_CONTOUR_WIDTH  TOKEN_BACKEND(107)
+#define TOK_MAXPOWER_HF    TOKEN_BACKEND(108)
+#define TOK_MAXPOWER_6M    TOKEN_BACKEND(109)
+#define TOK_MAXPOWER_4M    TOKEN_BACKEND(110)
+#define TOK_MAXPOWER_AM    TOKEN_BACKEND(111)
+#define TOK_MAXPOWER_VHF   TOKEN_BACKEND(112)
+#define TOK_MAXPOWER_UHF   TOKEN_BACKEND(113)
 
 #endif /* _NEWCAT_H */

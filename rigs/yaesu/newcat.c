@@ -6708,6 +6708,56 @@ int newcat_get_parm(RIG *rig, setting_t parm, value_t *val)
     RETURNFUNC(-RIG_ENAVAIL);
 }
 
+static int newcat_set_maxpower(RIG *rig, vfo_t vfo, token_t token, float val)
+{
+    return -RIG_ENIMPL;
+}
+
+static int newcat_get_maxpower(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    int retval;
+    int code = 0;
+    int offset = 0;
+
+    val->i = 0;
+    if  (newcat_is_rig(rig, RIG_MODEL_FT991))
+    {
+        offset = 5;
+        switch(token)
+        {
+            case TOK_MAXPOWER_HF:  code = 137; break;
+            case TOK_MAXPOWER_6M:  code = 138; break;
+            case TOK_MAXPOWER_VHF: code = 139; break;
+            case TOK_MAXPOWER_UHF: code = 140; break;
+            default: return -RIG_EINVAL;
+        }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX%03d%c", code, cat_term);
+    }
+    else if  (newcat_is_rig(rig, RIG_MODEL_FTDX101MP) || newcat_is_rig(rig, RIG_MODEL_FTDX101D))
+    {
+        offset = 6;
+        switch(token)
+        {
+            case TOK_MAXPOWER_HF:  code = 1; break;
+            case TOK_MAXPOWER_6M:  code = 2; break;
+            case TOK_MAXPOWER_4M:  code = 3; break;
+            case TOK_MAXPOWER_AM:  code = 4; break;
+            default: return -RIG_EINVAL;
+        }
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0304%02d%c", code, cat_term);
+    }
+    retval = newcat_get_cmd(rig);
+
+    if (retval == RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: offset=%d, scanning '%s'\n", __func__, offset, &priv->ret_data[offset]);
+        sscanf(&priv->ret_data[offset], "%d", &val->i);
+    }
+
+    return retval;
+}
+
 
 int newcat_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
@@ -6748,6 +6798,12 @@ int newcat_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
     case TOK_CONTOUR_WIDTH:
         RETURNFUNC(newcat_set_contour_width(rig, vfo, val.f));
+
+    case TOK_MAXPOWER_HF:
+    case TOK_MAXPOWER_6M:
+    case TOK_MAXPOWER_VHF:
+    case TOK_MAXPOWER_UHF:
+        RETURNFUNC(newcat_set_maxpower(rig, vfo, token, val.f));
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__,
@@ -6869,6 +6925,12 @@ int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
         val->f = value;
         break;
+
+    case TOK_MAXPOWER_HF:
+    case TOK_MAXPOWER_6M:
+    case TOK_MAXPOWER_VHF:
+    case TOK_MAXPOWER_UHF:
+        RETURNFUNC(newcat_get_maxpower(rig, vfo, token, val));
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: Unsupported ext level %s\n", __func__,
@@ -10979,7 +11041,7 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if (strncmp(priv->cmd_str, "PC", 2) == 0)
     {
-        strcpy(valcmd, "");
+        strcpy(valcmd, "PC;");
     }
     else
     {
@@ -11020,6 +11082,11 @@ int newcat_set_cmd_validate(RIG *rig)
             return RIG_OK;
         }
 
+        if (strncmp(priv->cmd_str, "PC", 2) == 0 && priv->ret_data[0] == '?')
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Power level error, check if exceeding max power setting\n", __func__);
+            RETURNFUNC(RIG_OK);
+        }
         if (strncmp(priv->cmd_str, "FT", 2) == 0
                 && strncmp(priv->ret_data, "FT", 2) == 0)
         {

@@ -120,6 +120,42 @@ const struct confparams ft991_ext_levels[] =
         RIG_CONF_NUMERIC,
         { .n = { .min = 1, .max = 11, .step = 1 } },
     },
+    {
+        TOK_MAXPOWER_HF,
+        "MAXPOWER_HF",
+        "Maxpower HF",
+        "Maxpower HF",
+        NULL,
+        RIG_CONF_INT,
+        { .n = { .min = 5, .max = 100, .step = 1 } },
+    },
+    {
+        TOK_MAXPOWER_6M,
+        "MAXPOWER_6M",
+        "Maxpower 6m",
+        "Maxpower 6m",
+        NULL,
+        RIG_CONF_INT,
+        { .n = { .min = 5, .max = 100, .step = 1 } },
+    },
+    {
+        TOK_MAXPOWER_VHF,
+        "MAXPOWER_VHF",
+        "Maxpower VHF",
+        "Maxpower VHF",
+        NULL,
+        RIG_CONF_INT,
+        { .n = { .min = 5, .max = 50, .step = 1 } },
+    },
+    {
+        TOK_MAXPOWER_UHF,
+        "MAXPOWER_UHF",
+        "Maxpower UHF",
+        "Maxpower UHF",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = 5, .max = 50, .step = 1 } },
+    },
     { RIG_CONF_END, NULL, }
 };
 
@@ -127,6 +163,7 @@ int ft991_ext_tokens[] =
 {
     TOK_KEYER, TOK_APF_FREQ, TOK_APF_WIDTH,
     TOK_CONTOUR, TOK_CONTOUR_FREQ, TOK_CONTOUR_LEVEL, TOK_CONTOUR_WIDTH,
+    TOK_MAXPOWER_HF, TOK_MAXPOWER_6M, TOK_MAXPOWER_UHF, TOK_MAXPOWER_VHF,
     TOK_BACKEND_NONE
 };
 
