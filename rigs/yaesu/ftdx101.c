@@ -120,6 +120,43 @@ const struct confparams ftdx101d_ext_levels[] =
         RIG_CONF_NUMERIC,
         { .n = { .min = 1, .max = 11, .step = 1 } },
     },
+        {
+        TOK_MAXPOWER_HF,
+        "MAXPOWER_HF",
+        "Maxpower HF",
+        "Maxpower HF",
+        NULL,
+        RIG_CONF_INT,
+        { .n = { .min = 5, .max = 100, .step = 1 } },
+    },
+    {
+        TOK_MAXPOWER_6M,
+        "MAXPOWER_6M",
+        "Maxpower 6m",
+        "Maxpower 6m",
+        NULL,
+        RIG_CONF_INT,
+        { .n = { .min = 5, .max = 100, .step = 1 } },
+    },
+    {
+        TOK_MAXPOWER_4M,
+        "MAXPOWER_4M",
+        "Maxpower 4m",
+        "Maxpower 4m",
+        NULL,
+        RIG_CONF_INT,
+        { .n = { .min = 5, .max = 50, .step = 1 } },
+    },
+    {
+        TOK_MAXPOWER_AM,
+        "MAXPOWER_AM",
+        "Maxpower AM",
+        "Maxpower AM",
+        NULL,
+        RIG_CONF_NUMERIC,
+        { .n = { .min = 5, .max = 25, .step = 1 } },
+    },
+
     { RIG_CONF_END, NULL, }
 };
 
@@ -127,6 +164,7 @@ int ftdx101d_ext_tokens[] =
 {
     TOK_ROOFING_FILTER, TOK_KEYER, TOK_APF_FREQ, TOK_APF_WIDTH,
     TOK_CONTOUR, TOK_CONTOUR_FREQ, TOK_CONTOUR_LEVEL, TOK_CONTOUR_WIDTH,
+    TOK_MAXPOWER_HF, TOK_MAXPOWER_6M, TOK_MAXPOWER_4M, TOK_MAXPOWER_AM,
     TOK_BACKEND_NONE
 };
 
@@ -135,7 +173,7 @@ const struct rig_caps ftdx101d_caps =
     RIG_MODEL(RIG_MODEL_FTDX101D),
     .model_name =         "FTDX-101D",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".20",
+    .version =            NEWCAT_VER ".21",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,

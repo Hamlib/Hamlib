@@ -1941,6 +1941,12 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 
     switch (cfp->type)
     {
+    case RIG_CONF_INT:
+        printf("\tRange: %d..%d, step %d\n",
+               cfp->u.n.min,
+               cfp->u.n.max,
+               cfp->u.n.step);
+        break;
     case RIG_CONF_NUMERIC:
         printf("\tRange: %.1f..%.1f, step %.1f\n",
                cfp->u.n.min,

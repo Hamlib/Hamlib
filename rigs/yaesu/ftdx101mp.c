@@ -65,6 +65,9 @@ const struct confparams ftdx101mp_ext_levels[] =
 
 int ftdx101mp_ext_tokens[] =
 {
+    TOK_ROOFING_FILTER, TOK_KEYER, TOK_APF_FREQ, TOK_APF_WIDTH,
+    TOK_CONTOUR, TOK_CONTOUR_FREQ, TOK_CONTOUR_LEVEL, TOK_CONTOUR_WIDTH,
+    TOK_MAXPOWER_HF, TOK_MAXPOWER_6M, TOK_MAXPOWER_4M, TOK_MAXPOWER_AM,
     TOK_ROOFING_FILTER, TOK_BACKEND_NONE
 };
 
@@ -73,7 +76,7 @@ const struct rig_caps ftdx101mp_caps =
     RIG_MODEL(RIG_MODEL_FTDX101MP),
     .model_name =         "FTDX-101MP",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".11",
+    .version =            NEWCAT_VER ".12",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
