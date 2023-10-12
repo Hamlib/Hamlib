@@ -142,13 +142,13 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->vfo)
     {
-        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.vfo);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%u", chan.vfo);
         xmlNewProp(node, (unsigned char *) "vfo", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->ant && chan.ant != RIG_ANT_NONE)
     {
-        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.ant);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%u", chan.ant);
         xmlNewProp(node, (unsigned char *) "ant", (unsigned char *) attrbuf);
     }
 
@@ -156,6 +156,7 @@ int dump_xml_chan(RIG *rig,
     {
         // cppcheck-suppress *
         char *fmt = "%"PRIll;
+        // cppcheck-suppress *
         SNPRINTF(attrbuf, sizeof(attrbuf), fmt, (int64_t)chan.freq);
         xmlNewProp(node, (unsigned char *) "freq", (unsigned char *) attrbuf);
     }
@@ -245,25 +246,25 @@ int dump_xml_chan(RIG *rig,
 
     if (mem_caps->ctcss_tone && chan.ctcss_tone != 0)
     {
-        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_tone);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%u", chan.ctcss_tone);
         xmlNewProp(node, (unsigned char *) "ctcss_tone", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->ctcss_sql && chan.ctcss_sql != 0)
     {
-        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.ctcss_sql);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%u", chan.ctcss_sql);
         xmlNewProp(node, (unsigned char *) "ctcss_sql", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->dcs_code && chan.dcs_code != 0)
     {
-        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.dcs_code);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%u", chan.dcs_code);
         xmlNewProp(node, (unsigned char *) "dcs_code", (unsigned char *) attrbuf);
     }
 
     if (mem_caps->dcs_sql && chan.dcs_sql != 0)
     {
-        SNPRINTF(attrbuf, sizeof(attrbuf), "%d", chan.dcs_sql);
+        SNPRINTF(attrbuf, sizeof(attrbuf), "%u", chan.dcs_sql);
         xmlNewProp(node, (unsigned char *) "dcs_sql", (unsigned char *) attrbuf);
     }
 

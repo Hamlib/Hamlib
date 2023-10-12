@@ -108,6 +108,8 @@ static struct option long_options[] =
 /* variable for readline support */
 #ifdef HAVE_LIBREADLINE
 static const int have_rl = 1;
+#else
+static const int have_rl = 0;
 #endif
 
 int main(int argc, char *argv[])
@@ -357,9 +359,9 @@ int main(int argc, char *argv[])
 
     /* FIXME: bound checking and port type == serial */
     my_rot->state.rotport2.parm.serial.rate =
-        my_rot->state.rotport2.parm.serial.rate;
+        my_rot->state.rotport.parm.serial.rate;
     my_rot->state.rotport2.parm.serial.data_bits =
-        my_rot->state.rotport2.parm.serial.data_bits;
+        my_rot->state.rotport.parm.serial.data_bits;
 
     if (serial_rate != 0)
     {

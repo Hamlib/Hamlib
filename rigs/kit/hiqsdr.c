@@ -188,7 +188,7 @@ const struct rig_caps hiqsdr_caps =
 
 static int send_command(RIG *rig)
 {
-    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+    const struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
     int ret;
 
     ret = write_block(&rig->state.rigport, (unsigned char *) priv->control_frame,

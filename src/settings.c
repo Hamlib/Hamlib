@@ -1028,8 +1028,9 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
 #endif
 #endif
 
-    char *xdgpath = getenv("XDG_CONFIG_HOME");
+    const char *xdgpath = getenv("XDG_CONFIG_HOME");
     char *home = getenv("HOME");
+    if (home == NULL) home = "?HOME";
     snprintf(path, pathlen, "%s/.config", home);
 
     if (xdgpath)
@@ -1062,7 +1063,7 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
  *
  * \sa rig_setting_load()
  */
-HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value,
+HAMLIB_EXPORT(int) rig_settings_save(const char *setting, void *value,
                                      settings_value_t valuetype)
 {
     FILE *fp;
@@ -1218,8 +1219,8 @@ HAMLIB_EXPORT(int) rig_settings_load_all(char *settings_file)
 
     while (fgets(buf, sizeof(buf), fp))
     {
-        char *s = strtok(buf, "=");
-        char *v = strtok(NULL, "\r\n");
+        const char *s = strtok(buf, "=");
+        const char *v = strtok(NULL, "\r\n");
 
         if (strcmp(s, "sharedkey") == 0)
         {

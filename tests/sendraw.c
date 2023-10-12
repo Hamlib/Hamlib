@@ -7,7 +7,7 @@ int
 main()
 {
     RIG *my_rig;
-    unsigned char sendCmd[] = "FA;";
+    const unsigned char sendCmd[] = "FA;";
     int sendCmdLen = 3;
     unsigned char term[] = ";";
     unsigned char rcvdCmd[100];

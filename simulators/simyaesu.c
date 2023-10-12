@@ -2,10 +2,12 @@
 // gcc -o simyaesu simyaesu.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
 {
     int dummy;
 };
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -275,7 +277,7 @@ int main(int argc, char *argv[])
             hl_usleep(50 * 1000);
             pbuf = "VS0;";
 
-            if (curr_vfo == RIG_VFO_B || curr_vfo == RIG_VFO_SUB) { pbuf[2] = '1'; }
+            if (curr_vfo == RIG_VFO_B || curr_vfo == RIG_VFO_SUB) { pbuf = "VS1"; }
 
             n = write(fd, pbuf, strlen(pbuf));
             printf("%s\n", pbuf);

@@ -902,7 +902,6 @@ static int ts480_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
 
 static int ts480_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
 {
-    char ackbuf[20];
     int retval;
 
     ENTERFUNC;
@@ -912,6 +911,7 @@ static int ts480_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
     case TOK_FUNC_NOISE_REDUCTION_2:
     {
         int value;
+        char ackbuf[20];
 
         retval = kenwood_safe_transaction(rig, "NR", ackbuf, sizeof(ackbuf), 3);
 

@@ -25,7 +25,7 @@ int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 }
 
 
-int main(int argc, char *argv[])
+int main(int argc, const  char *argv[])
 {
     RIG *my_rig;        /* handle to rig (nstance) */
     int retcode;        /* generic return code from functions */

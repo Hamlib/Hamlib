@@ -302,8 +302,7 @@ int dumpstate(RIG *rig, FILE *fout)
     if (priv_caps && RIG_BACKEND_NUM(rig->state.rig_model) == RIG_ICOM
             && priv_caps->agc_levels_present)
     {
-        for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level != RIG_AGC_LAST
-                && priv_caps->agc_levels[i].icom_level >= 0; i++)
+        for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level != RIG_AGC_LAST; i++)
         {
             fprintf(fout, " %d=%s", priv_caps->agc_levels[i].level,
                     rig_stragclevel(priv_caps->agc_levels[i].level));

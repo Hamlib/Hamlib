@@ -31,7 +31,7 @@
 /*
  * the amp may be in amp_init state, but not opened
  */
-int dumpcaps_amp(AMP *amp, FILE *fout)
+int dumpcaps_amp(const AMP *amp, FILE *fout)
 {
     const struct amp_caps *caps;
     int backend_warnings = 0;

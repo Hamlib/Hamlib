@@ -1942,7 +1942,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
     switch (cfp->type)
     {
     case RIG_CONF_INT:
-        printf("\tRange: %d..%d, step %d\n",
+        printf("\tRange: %.0f..%.0f, step %.0f\n",
                cfp->u.n.min,
                cfp->u.n.max,
                cfp->u.n.step);
@@ -3315,6 +3315,10 @@ declare_proto_rig(set_level)
             CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
             break;
 
+        case RIG_CONF_INT:
+            CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+            break;
+
         case RIG_CONF_NUMERIC:
             CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
             break;
@@ -3426,7 +3430,7 @@ declare_proto_rig(get_level)
             break;
 
         case RIG_CONF_INT:
-            fprintf(fout, "%d%c", val.i, resp_sep);
+            fprintf(fout, "%.0f%c", val.f, resp_sep);
             break;
 
         case RIG_CONF_STRING:
@@ -3653,6 +3657,10 @@ declare_proto_rig(set_parm)
             CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
             break;
 
+        case RIG_CONF_INT:
+            CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
+            break;
+
         case RIG_CONF_NUMERIC:
             CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
             break;
@@ -3765,6 +3773,10 @@ declare_proto_rig(get_parm)
         case RIG_CONF_CHECKBUTTON:
         case RIG_CONF_COMBO:
             fprintf(fout, "%d%c", val.i, resp_sep);
+            break;
+
+        case RIG_CONF_INT:
+            fprintf(fout, "%.0f%c", val.f, resp_sep);
             break;
 
         case RIG_CONF_NUMERIC:
@@ -4456,6 +4468,10 @@ int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 
         case RIG_CONF_COMBO:
             SNPRINTF(lstr, sizeof(lstr), "%d", chan->ext_levels[idx].val.i);
+            break;
+
+        case RIG_CONF_INT:
+            SNPRINTF(lstr, sizeof(lstr), "%.0f", chan->ext_levels[idx].val.f);
             break;
 
         case RIG_CONF_NUMERIC:

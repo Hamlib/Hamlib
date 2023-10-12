@@ -80,6 +80,7 @@
 #include "snapshot_data.h"
 
 #ifdef HAVE_WINDOWS_H
+// cppcheck-suppress missingInclude
 #include "io.h"
 #endif
 
@@ -161,15 +162,15 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 
 int network_init()
 {
+    int retval = RIG_OK;
 #ifdef __MINGW32__
     WSADATA wsadata;
 
     if (wsstarted == 0)
     {
-        int ret;
-        ret = WSAStartup(MAKEWORD(1, 1), &wsadata);
+        retval = WSAStartup(MAKEWORD(1, 1), &wsadata);
 
-        if (ret == 0)
+        if (retval == 0)
         {
             wsstarted = 1;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: WSAStartup OK\n", __func__);
@@ -177,13 +178,13 @@ int network_init()
         else
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error creating socket, WSAStartup ret=%d\n",
-                      __func__, ret);
+                      __func__, retval);
             return (-RIG_EIO);
         }
     }
 
 #endif
-    return RIG_OK;
+    return retval;
 }
 
 /**
@@ -599,7 +600,7 @@ static void multicast_publisher_close_data_pipe(multicast_publisher_priv_data
     }
 }
 
-static int multicast_publisher_write_data(multicast_publisher_args
+static int multicast_publisher_write_data(const multicast_publisher_args
         *mcast_publisher_args, size_t length, const unsigned char *data)
 {
     int fd = mcast_publisher_args->data_write_fd;
@@ -627,7 +628,7 @@ static int multicast_publisher_write_data(multicast_publisher_args
     return (RIG_OK);
 }
 
-static int multicast_publisher_read_data(multicast_publisher_args
+static int multicast_publisher_read_data(const multicast_publisher_args
         *mcast_publisher_args, size_t length, unsigned char *data)
 {
     int fd = mcast_publisher_args->data_read_fd;
@@ -726,7 +727,7 @@ static int multicast_publisher_write_packet_header(RIG *rig,
 
 int network_publish_rig_poll_data(RIG *rig)
 {
-    struct rig_state *rs = &rig->state;
+    const struct rig_state *rs = &rig->state;
     multicast_publisher_data_packet packet =
     {
         .type = MULTICAST_PUBLISHER_DATA_PACKET_TYPE_POLL,
@@ -745,7 +746,7 @@ int network_publish_rig_poll_data(RIG *rig)
 
 int network_publish_rig_transceive_data(RIG *rig)
 {
-    struct rig_state *rs = &rig->state;
+    const struct rig_state *rs = &rig->state;
     multicast_publisher_data_packet packet =
     {
         .type = MULTICAST_PUBLISHER_DATA_PACKET_TYPE_TRANSCEIVE,
@@ -891,7 +892,6 @@ void *multicast_publisher(void *arg)
 
     struct sockaddr_in dest_addr;
     int socket_fd = args->socket_fd;
-    int result;
     ssize_t send_result;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast publisher\n", __FILE__,
@@ -906,6 +906,7 @@ void *multicast_publisher(void *arg)
 
     while (rs->multicast_publisher_run)
     {
+        int result;
         result = multicast_publisher_read_packet(args, &packet_type, &spectrum_line,
                  spectrum_data);
 

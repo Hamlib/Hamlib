@@ -816,7 +816,7 @@ static int tmd710_scan_me(char *buf, tmd710_me *me_struct)
     retval = num_sscanf(buf,
                         "ME %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d,%"SCNfreq",%d,%d",
                         (unsigned int*)&me_struct->channel, &me_struct->freq,
-                        (unsigned int*)&me_struct->step, &me_struct->shift,
+                        (unsigned int*)&me_struct->step, (unsigned int*)&me_struct->shift,
                         (unsigned int*)&me_struct->reverse, (unsigned int*)&me_struct->tone,
                         (unsigned int*)&me_struct->ct, (unsigned int*)&me_struct->dcs,
                         &me_struct->tone_freq, &me_struct->ct_freq,
@@ -865,7 +865,7 @@ int tmd710_pull_me(RIG *rig, int ch, tmd710_me *me_struct)
     return RIG_OK;
 }
 
-int tmd710_push_me(RIG *rig, tmd710_me *me_struct)
+int tmd710_push_me(RIG *rig, const tmd710_me *me_struct)
 {
     char cmdbuf[80];
     char buf[80];
@@ -902,7 +902,7 @@ int tmd710_get_memory_name(RIG *rig, int ch, char *name)
         return retval;
     }
 
-    retval = num_sscanf(buf, "MN %d,%s", &ch, name);
+    retval = num_sscanf(buf, "MN %d,%30s", &ch, name);
 
     if (retval != 2)
     {
@@ -1240,7 +1240,7 @@ int tmd710_do_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     tmd710_fo fo_struct;
     int retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called for vfo: %s(%d)\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: called for vfo: %s(%u)\n", __func__,
               rig_strvfo(vfo), vfo);
 
     retval = tmd710_pull_fo(rig, vfo, &fo_struct);
@@ -1458,7 +1458,7 @@ int tmd710_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 
     if (fo_struct.dcs)
     {
-        tone_t *dcs_list = common_dcs_list;
+        const tone_t *dcs_list = common_dcs_list;
         *code = dcs_list[fo_struct.dcs_val];
     }
     else
@@ -1474,7 +1474,7 @@ static int tmd710_find_dcs_index(tone_t code, int *dcs_index)
     int i = 0;
 
     // we only allow exact matches here
-    tone_t *dcs_list = common_dcs_list;
+    const tone_t *dcs_list = common_dcs_list;
 
     while (code != dcs_list[i])
     {
@@ -2206,7 +2206,7 @@ int tmd710_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     if (me_struct.dcs)
     {
-        tone_t *dcs_list = common_dcs_list;
+        const tone_t *dcs_list = common_dcs_list;
         chan->dcs_sql = dcs_list[me_struct.dcs_val];
     }
     else

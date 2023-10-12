@@ -6,10 +6,12 @@
 // gcc -static -I../include -g -Wall -o simicom simicom.c -L../../build/src/.libs -lhamlib -lwsock32 -lws2_32
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
 {
     int dummy;
 };
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +24,7 @@ struct ip_mreq
 #include "../src/misc.h"
 #include <termios.h>
 #include <unistd.h>
+#include "sim.h"
 
 
 #define BUFSIZE 256
@@ -53,25 +56,7 @@ int keyspd = 25;
 int datamode = 0;
 int filter = 0;
 
-#define write(f,b,l) write_sim(f,b,l,__func__,__LINE__)
-
-int write_sim(int fd, const unsigned char *buf, int buflen, const char *func,
-              int linenum)
-{
-    int n;
-    dump_hex(buf, buflen);
-    n = write(fd, buf, buflen);
-
-    if (n <= 0)
-    {
-        fprintf(stderr, "%s(%d) write error %d: %s\n", func, linenum, n,
-                strerror(errno));
-    }
-
-    return n;
-}
-
-void dumphex(unsigned char *buf, int n)
+void dumphex(const unsigned char *buf, int n)
 {
     for (int i = 0; i < n; ++i) { printf("%02x ", buf[i]); }
 

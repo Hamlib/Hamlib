@@ -629,7 +629,7 @@ int main(int argc, char *argv[])
 
     if (verbose > 0)
     {
-        printf("Opened rig model %d, '%s'\n",
+        printf("Opened rig model %u, '%s'\n",
                my_rig->caps->rig_model,
                my_rig->caps->model_name);
     }
@@ -651,12 +651,6 @@ int main(int argc, char *argv[])
                       rigerror(retcode));
         }
 
-        if (retcode != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: Error in rig_set_freq: %s\n", __func__,
-                      rigerror(retcode));
-        }
-
         retcode = rig_set_freq(my_rig_sync, RIG_VFO_CURR, freq);
 
         hl_usleep(400 * 1000); // fairly fast to keep up
@@ -671,7 +665,7 @@ int main(int argc, char *argv[])
 
 void usage()
 {
-    char *name = "rigctlsync";
+    const char *name = "rigctlsync";
     printf("Usage: %s -m rignumber -r comport -s baud -M rignumber -R comport [OPTIONS]...\n\n"
            "Will copy frequency from -m rig to -M rig\n"
            "e.g. will keep SDR# synchronized to a rig.\n\n",

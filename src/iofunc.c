@@ -839,11 +839,11 @@ static int port_read_sync_data_error_code(hamlib_port_t *p, int fd, int direct)
     ssize_t total_bytes_read = 0;
     ssize_t bytes_read;
     struct timeval tv_timeout;
-    int result;
     signed char data;
 
     do
     {
+        int result;
         tv_timeout.tv_sec = 0;
         tv_timeout.tv_usec = 0;
 
@@ -1047,7 +1047,6 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
                            size_t count)
 {
     int ret;
-    int method = 0;
 
     if (p->fd < 0)
     {
@@ -1084,7 +1083,6 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
     if (p->write_delay > 0)
     {
         int i;
-        method = 1;
 
         for (i = 0; i < count; i++)
         {
@@ -1107,7 +1105,6 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
     }
     else
     {
-        method = 2;
         ret = port_write(p, txbuffer, count);
 
         if (ret != count)
@@ -1123,13 +1120,12 @@ int HAMLIB_API write_block(hamlib_port_t *p, const unsigned char *txbuffer,
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes, method=%d\n", __func__,
-              (int)count, method);
+    rig_debug(RIG_DEBUG_TRACE, "%s(): TX %d bytes\n", __func__,
+              (int)count);
     dump_hex((unsigned char *) txbuffer, count);
 
     if (p->post_write_delay > 0)
     {
-        method |= 4;
 #if 0
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 #define POST_WRITE_DELAY_TRSHLD 10
@@ -1431,7 +1427,7 @@ static int read_string_generic(hamlib_port_t *p,
 //                          direct);
             }
                 // special read for FLRig
-    if (strcmp(stopset, "/methodResponse>") == 0)
+    if (strcmp(stopset, "</methodResponse>") == 0)
     {
         if (strstr((char*)rxbuffer, stopset))
         {

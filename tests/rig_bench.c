@@ -15,7 +15,7 @@
 #define SERIAL_PORT "/dev/ttyUSB0"
 
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     RIG *my_rig;        /* handle to rig (nstance) */
     int retcode;        /* generic return code from functions */

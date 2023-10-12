@@ -46,7 +46,7 @@
 
 static int rig_has_ext_token(RIG *rig, token_t token)
 {
-    int *ext_tokens = rig->caps->ext_tokens;
+    const int *ext_tokens = rig->caps->ext_tokens;
     int i;
 
     if (ext_tokens == NULL)

@@ -624,7 +624,7 @@ th_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int tm_set_vfo_bc2(RIG *rig, vfo_t vfo)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    const struct kenwood_priv_data *priv = rig->state.priv;
     char cmd[16];
     int vfonum, txvfonum, vfomode = 0;
     int retval;

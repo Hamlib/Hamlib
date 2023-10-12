@@ -1046,7 +1046,6 @@ int kenwood_open(RIG *rig)
 
         if (kenwood_id_string_list[i].model == rig->caps->rig_model)
         {
-            int retval;
             vfo_t tx_vfo;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: found the right driver for %s(%u)\n",
                       __func__, rig->caps->model_name, rig->caps->rig_model);
@@ -1063,6 +1062,7 @@ int kenwood_open(RIG *rig)
 
             if (!RIG_IS_THD74 && !RIG_IS_THD7A && !RIG_IS_TMD700)
             {
+                int retval;
                 // call get_split to fill in current split and tx_vfo status
                 split_t split;
                 retval = kenwood_get_split_vfo_if(rig, RIG_VFO_A, &split, &tx_vfo);
@@ -2476,6 +2476,11 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         SNPRINTF(buf, sizeof(buf), "MD%c", c);
         err = kenwood_transaction(rig, buf, NULL, 0);
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: MD cmd failed: %s\n", __func__, rigerror(err));
+            RETURNFUNC2(err);
+        }
     }
 
     // determine if we need to set datamode on A or B
@@ -3824,6 +3829,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_MICGAIN:
     {
         int micgain_now;
+        float vali = 0;
 
         if (priv->micgain_min == -1) // then we need to know our min/max
         {
@@ -3843,8 +3849,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             rig_debug(RIG_DEBUG_ERR, "%s: Error getting MICGAIN\n", __func__);
             RETURNFUNC(ret);
         }
-
-        val->f = (val->i - priv->micgain_min) / (float)(priv->micgain_max -
+        vali = val->i;
+        val->f = (vali - priv->micgain_min) / (float)(priv->micgain_max -
                  priv->micgain_min);
         RETURNFUNC(RIG_OK);
     }
@@ -5908,7 +5914,7 @@ const char *kenwood_get_info(RIG *rig)
  */
 DECLARE_PROBERIG_BACKEND(kenwood)
 {
-    char idbuf[IDBUFSZ];
+    char idbuf[IDBUFSZ] = "";
     int id_len = -1, i, k_id;
     int retval = -1;
     int rates[] = { 115200, 57600, 38400, 19200, 9600, 4800, 1200, 0 }; /* possible baud rates */

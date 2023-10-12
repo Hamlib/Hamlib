@@ -1035,7 +1035,6 @@ static const struct
 int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
 {
     gran_t *this_gran;
-    float maxval;
 
     this_gran = &rig->caps->level_gran[rig_setting2idx(level)];
 
@@ -1046,6 +1045,7 @@ int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran)
 
     if (RIG_LEVEL_IS_FLOAT(level))
     {
+        float maxval;
 
         /* If min==max==step==0, all values are OK here */
         maxval = this_gran->max.f;
@@ -1494,7 +1494,7 @@ enum agc_level_e rig_levelagcvalue(int agcValue)
  * \param mode AGC string...
  * \return agc_level_e
  */
-enum agc_level_e rig_levelagcstr(char *agcString)
+enum agc_level_e rig_levelagcstr(const char *agcString)
 {
     enum agc_level_e agcLevel;
 
@@ -2741,7 +2741,7 @@ uint32_t CRC32_function(uint8_t *buf, uint32_t len)
 static struct tm *gmtime_r(const time_t *t, struct tm *r)
 {
     // gmtime is threadsafe in windows because it uses TLS
-    struct tm *theTm = gmtime(t);
+    const struct tm *theTm = gmtime(t);
 
     if (theTm)
     {
@@ -2763,7 +2763,7 @@ char *date_strget(char *buf, int buflen, int localtime)
     struct tm *mytm;
     time_t t;
     struct timeval tv;
-    struct tm result;
+    struct tm result = { 0,0,0,0,0,0,0,0,0};
     int mytimezone;
 
     t = time(NULL);

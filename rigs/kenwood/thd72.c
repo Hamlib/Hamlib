@@ -192,7 +192,7 @@ static int thd72_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int retval;
     char vfobuf[16];
-    struct kenwood_priv_data *priv = rig->state.priv;
+    const struct kenwood_priv_data *priv = rig->state.priv;
     char vfonum = '0';
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);

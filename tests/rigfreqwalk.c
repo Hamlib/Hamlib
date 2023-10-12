@@ -17,7 +17,7 @@ double history[HISTORYSIZE];
 int nhistory;
 int historyinit = 1;
 
-double compute_mean(double arr[], int length) 
+double compute_mean(const double arr[], int length) 
 {
     double sum = 0.0;
     for (int i = 0; i < length; i++) {
@@ -37,7 +37,7 @@ double sigma(double arr[], int length) {
     return sqrt(sum_of_squares / length);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     RIG *my_rig;        /* handle to rig (nstance) */
     int strength;       /* S-Meter level */
@@ -62,16 +62,16 @@ int main(int argc, char *argv[])
      * allocate memory, setup & open port
      */
 
-    hamlib_port_t myport;
+//    hamlib_port_t myport;
     myrig_model = atoi(argv[1]);
-    strncpy(myport.pathname, argv[2], HAMLIB_FILPATHLEN - 1);
-    myport.parm.serial.rate = atoi(argv[3]);
+//    strncpy(myport.pathname, argv[2], HAMLIB_FILPATHLEN - 1);
+//    myport.parm.serial.rate = atoi(argv[3]);
 
     my_rig = rig_init(myrig_model);
 
     if (!my_rig)
     {
-        fprintf(stderr, "Unknown rig num: %d\n", myrig_model);
+        fprintf(stderr, "Unknown rig num: %u\n", myrig_model);
         fprintf(stderr, "Please check riglist.h\n");
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }

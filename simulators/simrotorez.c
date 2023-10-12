@@ -2,10 +2,12 @@
 // gcc -o simspid simspid.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
+#if 0
 struct ip_mreq
 {
     int dummy;
 };
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +35,7 @@ getmyline(int fd, char *buf)
         buf[i++] = c;
         n++;
 
-        for (int i = 0; i < strlen(buf); ++i) { printf("%02x ", buf[i]); }
+        for (int j = 0; j < strlen(buf); ++j) { printf("%02x ", buf[j]); }
 
         printf("\n");
     }

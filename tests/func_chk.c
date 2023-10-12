@@ -3,14 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     char buf[4096];
     char buf2[4096];
     FILE *fp = fopen(argv[1], "r");
     int linenum = 0;
     int enterfunc = 0;
-    int infunc = 0;
     int retval = 0;
     retval = 0;
 

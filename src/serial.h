@@ -36,7 +36,7 @@ int ser_open(hamlib_port_t *p);
 int ser_close(hamlib_port_t *p);
 extern HAMLIB_EXPORT(int) ser_set_rts(hamlib_port_t *p, int state);
 extern HAMLIB_EXPORT(int) ser_get_rts(hamlib_port_t *p, int *state);
-extern HAMLIB_EXPORT(int) ser_set_brk(hamlib_port_t *p, int state);
+extern HAMLIB_EXPORT(int) ser_set_brk(const hamlib_port_t *p, int state);
 extern HAMLIB_EXPORT(int) ser_set_dtr(hamlib_port_t *p, int state);
 extern HAMLIB_EXPORT(int) ser_get_dtr(hamlib_port_t *p, int *state);
 extern HAMLIB_EXPORT(int) ser_get_cts(hamlib_port_t *p, int *state);

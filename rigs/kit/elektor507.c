@@ -1119,7 +1119,7 @@ int elektor507_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int elektor507_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
+    const struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
                                         rig->state.priv;
     int ret = 0;
 
@@ -1196,7 +1196,7 @@ int elektor507_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
                        ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
-    struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
+    const struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
                                         rig->state.priv;
 
     *ant_curr = priv->ant;
@@ -1210,7 +1210,7 @@ int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
  */
 static int cy_update_pll(RIG *rig, unsigned char IICadr)
 {
-    struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
+    const struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
                                         rig->state.priv;
     int P0, R40, R41, R42;
     unsigned char Div1N;

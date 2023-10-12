@@ -52,7 +52,7 @@ int callback(const struct rig_caps *caps, rig_ptr_t rigp)
         if (fpow < 0.009 || fpow > .11)
         {
 //            printf("rig=%d, fpow=%g, min=%d, max=%d\n", caps->rig_model, fpow, caps->);
-            printf("rig=%d, fpow=%g\n", caps->rig_model, fpow);
+            printf("rig=%u, fpow=%g\n", caps->rig_model, fpow);
             // we call again to make debugging this section easier
             rig_mW2power(rig, &fpow, mwpower, freq, RIG_MODE_CW);
         }

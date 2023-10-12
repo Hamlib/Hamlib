@@ -258,6 +258,7 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) { vfo = vfo_fixup(rig, vfo, rig->state.cache.split); }
 
+    retval = RIG_OK;
     if (!sf_fails)
     {
         SNPRINTF(cmd, sizeof(cmd), "SF%d", vfo == RIG_VFO_A ? 0 : 1);
@@ -288,6 +289,11 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     SNPRINTF(cmd, sizeof(cmd), "SL");
     sscanf(cmd, "SH%d", &lwidth);
     retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 4);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: SL command failed: %s\n", __func__, rigerror(retval));
+        return retval;
+    }
 
     if (*mode == RIG_MODE_PKTUSB || *mode == RIG_MODE_PKTLSB
             || *mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM || *mode == RIG_MODE_USB

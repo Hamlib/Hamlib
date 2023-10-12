@@ -44,7 +44,7 @@ void list_models();
 int print_conf_list(const struct confparams *cfp, rig_ptr_t data);
 int set_conf(ROT *my_rot, char *conf_parms);
 
-int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
+int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char **argv, int argc,
                  int interactive, int prompt, char send_cmd_term);
 
 #endif  /* ROTCTL_PARSE_H */
