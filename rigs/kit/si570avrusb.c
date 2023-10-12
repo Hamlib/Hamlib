@@ -1111,7 +1111,7 @@ static const int HS_DIV_MAP[] = {4, 5, 6, 7, -1, 9, -1, 11};
 
 static int calcDividers(RIG *rig, double f, struct solution *solution)
 {
-    struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
+    const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
     struct solution sols[8];
     int i;
@@ -1193,7 +1193,7 @@ static int calcDividers(RIG *rig, double f, struct solution *solution)
 
 int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
+    const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
     libusb_device_handle *udh = rig->state.rigport.handle;
     int ret;
@@ -1259,7 +1259,7 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
+    const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
     libusb_device_handle *udh = rig->state.rigport.handle;
     int ret;
@@ -1298,7 +1298,7 @@ int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 
 static double calculateFrequency(RIG *rig, const unsigned char *buffer)
 {
-    struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
+    const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
 
     int RFREQ_int = ((buffer[2] & 0xf0) >> 4) + ((buffer[1] & 0x3f) * 16);
@@ -1361,7 +1361,7 @@ int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
+    const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
                                          rig->state.priv;
     libusb_device_handle *udh = rig->state.rigport.handle;
     int ret;

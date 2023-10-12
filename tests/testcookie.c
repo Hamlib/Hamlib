@@ -96,7 +96,7 @@ static int test3_invalid_input()
     {
         retcode = rig_cookie(NULL, RIG_COOKIE_GET, cookie, i);
 
-        if (retcode != -RIG_EINVAL) { n++; printf("Test#3a failed at %d bytes\n", i); }
+        if (retcode != -RIG_EINVAL) { n++; printf("Test#3a failed at %u bytes\n", i); }
     }
 
     if (n == 0) { printf("Test#3a OK\n"); }

@@ -45,7 +45,7 @@ int check_buffer_overflow(char *str, int len, int nlen)
     if (len + 32 >= nlen) // make sure at least 32 bytes are available
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: buffer overflow, len=%u, nlen=%d, str='%s', len+32 must be >= nlen\n",
+                  "%s: buffer overflow, len=%d, nlen=%d, str='%s', len+32 must be >= nlen\n",
                   __func__, len, nlen, str);
     }
 
@@ -931,7 +931,7 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
     {
         for (i = 0; i <= HAMLIB_MAX_AGC_LEVELS
                 && priv_caps->agc_levels[i].level != RIG_AGC_LAST
-                && priv_caps->agc_levels[i].icom_level >= 0; i++)
+                ;i++)
         {
             if (strlen(str) > 0) { strcat(str, " "); }
 

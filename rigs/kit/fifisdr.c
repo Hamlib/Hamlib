@@ -424,7 +424,7 @@ const char *fifisdr_get_info(RIG *rig)
 
 int fifisdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct fifisdr_priv_instance_data *priv = (struct fifisdr_priv_instance_data *)
+    const struct fifisdr_priv_instance_data *priv = (struct fifisdr_priv_instance_data *)
             rig->state.priv;
     int ret;
     double mhz;
@@ -450,7 +450,7 @@ int fifisdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int fifisdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct fifisdr_priv_instance_data *priv = (struct fifisdr_priv_instance_data *)
+    const struct fifisdr_priv_instance_data *priv = (struct fifisdr_priv_instance_data *)
             rig->state.priv;
     int ret;
     uint32_t freq1121;

@@ -575,19 +575,17 @@ int multicast_init(RIG *rig, char *addr, int port)
 
 void multicast_close(RIG *rig)
 {
-    int retval;
-
     // Leave the multicast group
-    if ((retval = setsockopt(rig->state.multicast->sock, IPPROTO_IP,
+    if (setsockopt(rig->state.multicast->sock, IPPROTO_IP,
                              IP_DROP_MEMBERSHIP, (char *)&rig->state.multicast->mreq,
-                             sizeof(rig->state.multicast->mreq))) < 0)
+                             sizeof(rig->state.multicast->mreq)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
         return;
     }
 
     // Close the socket
-    if ((retval = close(rig->state.multicast->sock)))
+    if (close(rig->state.multicast->sock))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: close: %s\n", __func__, strerror(errno));
     }
@@ -626,7 +624,7 @@ int multicast_send(RIG *rig, const char *msg, int msglen)
 
 //#define TEST
 #ifdef TEST
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     RIG *rig;
     rig_model_t myrig_model;

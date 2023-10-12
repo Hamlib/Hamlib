@@ -308,7 +308,7 @@ void hash_add_model(int id,
 
 
 /* Hash sorting functions */
-int hash_model_id_sort(struct mod_lst *a, struct mod_lst *b)
+int hash_model_id_sort(const struct mod_lst *a, const struct mod_lst *b)
 {
     return (a->id > b->id);
 }
@@ -431,7 +431,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
  * returns <0 is error number
  * returns >=0 when successful
  */
-static int next_word(char *buffer, int argc, char *argv[], int newline)
+static int next_word(char *buffer, int argc, const char **argv, int newline)
 {
     int ret;
     char c;
@@ -526,7 +526,7 @@ static int next_word(char *buffer, int argc, char *argv[], int newline)
     })
 
 
-int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc,
+int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[], int argc,
                  int interactive, int prompt, char send_cmd_term)
 {
     int retcode;            /* generic return code from functions */
@@ -1528,32 +1528,29 @@ void usage_rot(FILE *fout)
 
     for (i = 0; test_list[i].cmd != 0; i++)
     {
-        int nbspaces;
         fprintf(fout,
                 "%c: %-12s(",
                 isprint(test_list[i].cmd) ? test_list[i].cmd : '?',
                 test_list[i].name);
 
-        nbspaces = 16;
-
         if (test_list[i].arg1 && (test_list[i].flags & ARG_IN1))
         {
-            nbspaces -= fprintf(fout, "%s", test_list[i].arg1);
+            fprintf(fout, "%s", test_list[i].arg1);
         }
 
         if (test_list[i].arg2 && (test_list[i].flags & ARG_IN2))
         {
-            nbspaces -= fprintf(fout, ", %s", test_list[i].arg2);
+            fprintf(fout, ", %s", test_list[i].arg2);
         }
 
         if (test_list[i].arg3 && (test_list[i].flags & ARG_IN3))
         {
-            nbspaces -= fprintf(fout, ", %s", test_list[i].arg3);
+            fprintf(fout, ", %s", test_list[i].arg3);
         }
 
         if (test_list[i].arg4 && (test_list[i].flags & ARG_IN4))
         {
-            nbspaces -= fprintf(fout, ", %s", test_list[i].arg4);
+            fprintf(fout, ", %s", test_list[i].arg4);
         }
 
         fprintf(fout, ")\n");
@@ -1671,14 +1668,13 @@ void list_models()
 int set_conf(ROT *my_rot, char *conf_parms)
 {
     char *p;
-    int token;
 
     rot_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
     p = conf_parms;
 
     while (p && *p != '\0')
     {
-        int ret;
+        int token;
         char *q, *n = NULL;
         /* FIXME: left hand value of = cannot be null */
         q = strchr(p, '=');
@@ -1700,6 +1696,7 @@ int set_conf(ROT *my_rot, char *conf_parms)
 
         if (token != 0)
         {
+            int ret;
             ret = rot_set_conf(my_rot, token, q);
 
             if (ret != RIG_OK)

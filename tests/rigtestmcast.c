@@ -3,7 +3,7 @@
 
 #define TEST
 #ifdef TEST
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     RIG *rig;
     rig_model_t myrig_model;

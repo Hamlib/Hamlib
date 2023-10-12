@@ -18,7 +18,7 @@
     14 - PTT +5V
 */
 
-void serial_num(char *s)
+void serial_num(const char *s)
 {
     char model[16];
     char *operation;
@@ -28,6 +28,8 @@ void serial_num(char *s)
     char *diagnostics;
     char *agency;
 
+    *rxfreq = 0;
+    *txfreq = 0;
     memcpy(model, s, 5);
     model[5] = 0;
 

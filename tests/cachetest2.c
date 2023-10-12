@@ -20,7 +20,7 @@
 #include "misc.h"
 
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     RIG *my_rig;
     char *rig_file, *info_buf;

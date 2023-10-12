@@ -206,7 +206,7 @@ typedef enum settings_value_e
 } settings_value_t;
 
 
-extern HAMLIB_EXPORT(int) rig_settings_save(char *setting, void *value, settings_value_t valuet);
+extern HAMLIB_EXPORT(int) rig_settings_save(const char *setting, void *value, settings_value_t valuet);
 extern HAMLIB_EXPORT(int) rig_settings_load(char *setting, void *value, settings_value_t valuet);
 extern HAMLIB_EXPORT(int) rig_settings_load_all(char *settings_file);
 

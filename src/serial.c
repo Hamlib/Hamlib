@@ -782,7 +782,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
     {
         // we pass an empty stopset so read_string can determine
         // the appropriate stopset for async data
-        char stopset[1];
+        const char stopset[1];
         len = read_string(p, buf, sizeof(buf) - 1, stopset, 0, 1, 1);
 
         if (len > 0)
@@ -1164,7 +1164,7 @@ int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
  * \param state (ignored?)
  * \return RIG_OK or < 0
  */
-int HAMLIB_API ser_set_brk(hamlib_port_t *p, int state)
+int HAMLIB_API ser_set_brk(const hamlib_port_t *p, int state)
 {
     // ignore this for microHam ports
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd)

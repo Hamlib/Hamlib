@@ -787,7 +787,7 @@ int main(int argc, char *argv[])
 
         if (verbose > RIG_DEBUG_ERR)
         {
-            printf("Closed rig model %d, '%s - will reopen for clients'\n",
+            printf("Closed rig model %u, '%s - will reopen for clients'\n",
                    my_rig->caps->rig_model,
                    my_rig->caps->model_name);
         }
@@ -1034,7 +1034,7 @@ int main(int argc, char *argv[])
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: ignoring interrupted system call\n",
                           __func__);
-                retcode = 0;
+                //retcode = 0; // not used?
             }
         }
         else if (retcode == 0)
@@ -1244,7 +1244,7 @@ void *handle_socket(void *arg)
 
         mutex_rigctld(0);
 
-        int nbytes = -1;
+        int nbytes;
 
         if (rig_opened) // only do this if rig is open
         {
@@ -1426,7 +1426,7 @@ client_done:
 #ifdef HAVE_PTHREAD
     --client_count;
 
-    if (rigctld_idle && client_count > 0) { printf("%d client%s still connected so rig remains open\n", client_count, client_count > 1 ? "s" : ""); }
+    if (rigctld_idle && client_count > 0) { printf("%u client%s still connected so rig remains open\n", client_count, client_count > 1 ? "s" : ""); }
 
 #if 0
     mutex_rigctld(1);

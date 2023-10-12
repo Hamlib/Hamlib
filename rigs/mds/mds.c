@@ -557,6 +557,10 @@ int mds_open(RIG *rig)
     ENTERFUNC;
     mds_get_info(rig);
     retval = mds_transaction(rig, "MODEM NONE", 0, &response);
-    retval = mds_transaction(rig, "PTT 0", 0, &response);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: MODEM cmd failed: %s\n", __func__, rigerror(retval));
+    }
+    else retval = mds_transaction(rig, "PTT 0", 0, &response);
     RETURNFUNC(retval);
 }

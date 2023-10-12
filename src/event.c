@@ -593,8 +593,7 @@ int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
 {
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_TRACE, "Event: freq changed to %"PRIll"Hz on %s\n",
-              (int64_t)freq, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "Event: freq changed to %"PRIll"Hz on %s\n", (int64_t)freq, rig_strvfo(vfo));
 
     rig_set_cache_freq(rig, vfo, freq);
     // This doesn't work well for Icom rigs -- no way to tell which VFO we're on

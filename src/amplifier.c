@@ -466,10 +466,14 @@ int HAMLIB_API amp_close(AMP *amp)
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (amp == NULL || amp->caps == NULL)
+    if (amp == NULL)
     {
-        amp_debug(RIG_DEBUG_ERR, "%s: NULL ptr? amp=%p, amp->caps=%p\n", __func__, amp,
-                  amp->caps==NULL?NULL:amp->caps);
+        amp_debug(RIG_DEBUG_ERR, "%s: NULL ptr? amp=%p\n", __func__, amp);
+        return -RIG_EINVAL;
+    }
+    if (amp->caps == NULL)
+    {
+        amp_debug(RIG_DEBUG_ERR, "%s: NULL ptr? amp->caps=%p\n", __func__, amp->caps);
         return -RIG_EINVAL;
     }
 

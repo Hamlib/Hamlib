@@ -61,7 +61,7 @@ static int  tokenize_line(char *line,
                           size_t siz,
                           char delim);
 
-static int find_on_list(char **list, char *what);
+static int find_on_list(char **list, const char *what);
 
 int csv_save(RIG *rig, const char *outfilename);
 int csv_load(RIG *rig, const char *infilename);
@@ -272,6 +272,7 @@ static char *mystrtok(char *s, char delim)
     }
     else
     {
+        return NULL;
     }
 
     if (str && str[ pos + 1 ] == '\0')
@@ -1026,7 +1027,7 @@ int set_channel_data(RIG *rig,
     \return string position on the list on success,
            -1 if string not found or if string is empty
 */
-int find_on_list(char **list, char *what)
+int find_on_list(char **list, const char *what)
 {
     int i = 0;
 

@@ -29,7 +29,7 @@ int callback(const struct rig_caps *caps, rig_ptr_t rigp)
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }
 
-    char *port = "/dev/pts/3";
+    const char *port = "/dev/pts/3";
     strcpy(rig->state.rigport.pathname, port);
 
     printf("%20s:", caps->model_name);

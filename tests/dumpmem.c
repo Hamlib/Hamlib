@@ -37,7 +37,7 @@ static char *decode_modes(rmode_t modes);
 static int dump_chan(RIG *rig, int chan_num);
 
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     RIG *my_rig;
     int status, i, j;

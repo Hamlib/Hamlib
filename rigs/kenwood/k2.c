@@ -349,6 +349,7 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = flt->filt_list[0].width;
             f = '1';
         }
+        // cppcheck-suppress knownConditionTrueFalse
         else if ((flt->filt_list[1].width >= width)
                  && (width > flt->filt_list[2].width))
         {

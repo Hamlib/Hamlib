@@ -34,7 +34,7 @@
 static struct tm *gmtime_r(const time_t *t, struct tm *r)
 {
     // gmtime is threadsafe in windows because it uses TLS
-    struct tm *theTm = gmtime(t);
+    const struct tm *theTm = gmtime(t);
 
     if (theTm)
     {
@@ -67,7 +67,7 @@ static int my_rand(int max)
 
 void rig_make_key(char key[33])
 {
-    char *all =
+    const char *all =
         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123467890!@#$%^&*()_=~<>/?";
     int max = strlen(all);
     int i;

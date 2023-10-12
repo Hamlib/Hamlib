@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     char vfo[16];
     char mode[16];
     double freq;
-    sscanf(riginfo, "VFO=%s Freq=%lf Mode=%s", vfo, &freq, mode);
+    sscanf(riginfo, "VFO=%16s Freq=%lf Mode=%16s", vfo, &freq, mode);
     printf("VFO=%s Freq=%.0f Mode=%s\n", vfo, freq, mode);
     printf("=========================\nEntire response:\n%s", riginfo);
     rig_close(rig);

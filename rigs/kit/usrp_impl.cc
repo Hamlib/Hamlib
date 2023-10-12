@@ -45,7 +45,7 @@ struct usrp_priv_data {
 
 int usrp_init(RIG *rig)
 {
-	rig->state.priv = (struct usrp_priv_data*)malloc(sizeof(struct usrp_priv_data));
+	rig->state.priv = static_cast<struct usrp_priv_data*>malloc(sizeof(struct usrp_priv_data));
 	if (!rig->state.priv) {
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
@@ -68,7 +68,7 @@ int usrp_cleanup(RIG *rig)
 
 int usrp_open(RIG *rig)
 {
-	struct usrp_priv_data *priv = (struct usrp_priv_data*)rig->state.priv;
+	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 
 	int which_board = 0;
 	int decim = 125;
@@ -82,7 +82,7 @@ int usrp_open(RIG *rig)
 
 int usrp_close(RIG *rig)
 {
-	struct usrp_priv_data *priv = (struct usrp_priv_data*)rig->state.priv;
+	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 
 	delete priv->urx;
 
@@ -94,7 +94,7 @@ int usrp_close(RIG *rig)
  */
 int usrp_set_conf(RIG *rig, token_t token, const char *val)
 {
-	struct usrp_priv_data *priv = (struct usrp_priv_data*)rig->state.priv;
+	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 
 	switch(token) {
 		case TOK_IFMIXFREQ:
@@ -113,7 +113,7 @@ int usrp_set_conf(RIG *rig, token_t token, const char *val)
  */
 int usrp_get_conf(RIG *rig, token_t token, char *val)
 {
-	struct usrp_priv_data *priv = (struct usrp_priv_data*)rig->state.priv;
+	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 
 	switch(token) {
 		case TOK_IFMIXFREQ:
@@ -129,7 +129,7 @@ int usrp_get_conf(RIG *rig, token_t token, char *val)
 
 int usrp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	struct usrp_priv_data *priv = (struct usrp_priv_data*)rig->state.priv;
+	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 	int chan = 0;
 
 	if (!priv->urx->set_rx_freq (chan, freq))
@@ -141,7 +141,7 @@ int usrp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int usrp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	struct usrp_priv_data *priv = (struct usrp_priv_data*)rig->state.priv;
+	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 	int chan = 0;
 
 	*freq = priv->urx->rx_freq (chan);
