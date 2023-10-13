@@ -45,12 +45,15 @@ struct quisk_priv_data
     vfo_t tx_vfo;
 };
 
+
+#if 0
 int quisk_get_vfo_mode(RIG *rig)
 {
     struct quisk_priv_data *priv;
     priv = (struct quisk_priv_data *)rig->state.priv;
     return priv->rigctld_vfo_mode;
 }
+#endif
 
 /*
  * Helper function with protocol return code parsing
@@ -2705,6 +2708,7 @@ int quisk_password(RIG *rig, const char *key1)
     RETURNFUNC(retval);
 }
 
+#if 0
 int quisk_set_lock_mode(RIG *rig, int lock)
 {
     char cmdbuf[256];
@@ -2722,7 +2726,9 @@ int quisk_set_lock_mode(RIG *rig, int lock)
 
     return (RIG_OK);
 }
+#endif
 
+#if 0
 int quisk_get_lock_mode(RIG *rig, int *lock)
 {
     char cmdbuf[256];
@@ -2739,7 +2745,9 @@ int quisk_get_lock_mode(RIG *rig, int *lock)
     sscanf(buf, "%d", lock);
     return (RIG_OK);
 }
+#endif
 
+#if 0
 int quisk_send_raw(RIG *rig, char *s)
 {
     int ret;
@@ -2747,6 +2755,7 @@ int quisk_send_raw(RIG *rig, char *s)
     ret = quisk_transaction(rig, s, strlen(s), buf);
     return ret;
 }
+#endif
 
 /*
  * Netrigctl rig capabilities.

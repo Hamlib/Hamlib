@@ -510,7 +510,7 @@ int prm80_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  */
 int prm80_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    const struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
 
     *split = priv->split;
     *tx_vfo = RIG_VFO_CURR;
@@ -723,7 +723,7 @@ static int prm80_read_system_state(RIG *rig, char *statebuf)
  */
 int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    const struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
     char statebuf[BUFSZ];
     int ret, chanstate, mode_byte, lock_byte;
 
@@ -1103,6 +1103,7 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 /*
  * get_level RIG_LEVEL_RAWSTR
  */
+// cppcheck-suppress unusedFunction
 static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
 {
     char buf[BUFSZ];

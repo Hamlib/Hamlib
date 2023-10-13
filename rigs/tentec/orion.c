@@ -297,7 +297,7 @@ int tt565_open(RIG *rig)
  */
 static char which_receiver(const RIG *rig, vfo_t vfo)
 {
-    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -326,7 +326,7 @@ static char which_receiver(const RIG *rig, vfo_t vfo)
  */
 static char which_vfo(const RIG *rig, vfo_t vfo)
 {
-    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -511,7 +511,7 @@ int tt565_set_vfo(RIG *rig, vfo_t vfo)
  */
 int tt565_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
 
     *vfo = priv->vfo_curr;
 
@@ -1814,7 +1814,7 @@ int tt565_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int tt565_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
 
     *ch = priv->ch;
     return RIG_OK;
@@ -1836,7 +1836,7 @@ int tt565_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int tt565_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
     char cmdbuf[TT565_BUFSIZE];
     int retval;
 

@@ -41,6 +41,11 @@ int ic7300_set_clock(RIG *rig, int year, int month, int day, int hour,
 int ic7300_get_clock(RIG *rig, int *year, int *month, int *day,
                      int *hour,
                      int *min, int *sec, double *msec, int *utc_offset);
+int ic9700_set_clock(RIG *rig, int year, int month, int day, int hour,
+                     int min, int sec, double msec, int utc_offset);
+int ic9700_get_clock(RIG *rig, int *year, int *month, int *day,
+                     int *hour,
+                     int *min, int *sec, double *msec, int *utc_offset);
 
 int ic9700_set_vfo(RIG *rig, vfo_t vfo);
 
@@ -934,7 +939,7 @@ struct rig_caps ic9700_caps =
     RIG_MODEL(RIG_MODEL_IC9700),
     .model_name = "IC-9700",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".17",
+    .version =  BACKEND_VER ".18",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1246,6 +1251,8 @@ struct rig_caps ic9700_caps =
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,
     .send_voice_mem = icom_send_voice_mem,
+    .set_clock = ic9700_set_clock,
+    .get_clock = ic9700_get_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 

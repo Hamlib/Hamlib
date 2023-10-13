@@ -347,6 +347,7 @@ FILE *HAMLIB_API rig_set_debug_file(FILE *stream)
  *
  * \sa `FILE`(3)
  */
+// cppcheck-suppress unusedFunction
 FILE *HAMLIB_API rig_set_debug_filename(char *filename)
 {
     FILE *prev_stream = rig_debug_stream;

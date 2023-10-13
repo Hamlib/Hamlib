@@ -48,6 +48,7 @@ static int
 androidsensor_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
+    // cppcheck-suppress cstyleCast
     struct androidsensor_rot_priv_data *priv = (struct androidsensor_rot_priv_data *)rot->state.priv;
 
     priv->target_az = az;
@@ -59,6 +60,7 @@ static int
 androidsensor_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called: ", __func__);
+    // cppcheck-suppress cstyleCast
     struct androidsensor_rot_priv_data *priv = (struct androidsensor_rot_priv_data *)rot->state.priv;
 
     priv->imu->update();
@@ -84,7 +86,9 @@ static int
 androidsensor_rot_init(ROT *rot)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called, make new NdkImu\n", __func__);
+    // cppcheck-suppress cstyleCast
     rot->state.priv = (struct androidsensor_rot_priv_data *)malloc(sizeof(struct androidsensor_rot_priv_data));
+    // cppcheck-suppress cstyleCast
     struct androidsensor_rot_priv_data *priv = (struct androidsensor_rot_priv_data *)rot->state.priv;
 
     if (!rot->state.priv)
@@ -102,6 +106,7 @@ static int
 androidsensor_rot_cleanup(ROT *rot)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called, delete imu\n", __func__);
+    // cppcheck-suppress cstyleCast
     struct androidsensor_rot_priv_data *priv = (struct androidsensor_rot_priv_data *)rot->state.priv;
 
     delete priv->imu;
@@ -136,6 +141,7 @@ const struct rot_caps androidsensor_rot_caps =
 
 /* ************************************************************************* */
 
+// cppcheck-suppress syntaxError
 DECLARE_INITROT_BACKEND(androidsensor)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);

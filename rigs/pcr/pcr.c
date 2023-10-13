@@ -1840,7 +1840,7 @@ int pcr_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t tone)
     struct pcr_rcvr *rcvr = is_sub_rcvr(rig,
                                         vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone = %d\n", __func__, tone);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: tone = %u\n", __func__, tone);
 
     if (tone == 0)
     {
@@ -1855,7 +1855,7 @@ int pcr_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t tone)
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: index = %d, tone = %d\n",
+    rig_debug(RIG_DEBUG_TRACE, "%s: index = %d, tone = %u\n",
               __func__, i, rig->caps->dcs_list[i]);
 
     if (rig->caps->dcs_list[i] != tone)

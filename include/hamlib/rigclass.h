@@ -177,22 +177,27 @@ public:
     void reset(reset_t reset);
 
     // callbacks available in your derived object
+// cppcheck-suppress unusedFunction
     virtual int FreqEvent(vfo_t, freq_t, rig_ptr_t) const
     {
         return RIG_OK;
     }
+// cppcheck-suppress unusedFunction
     virtual int ModeEvent(vfo_t, rmode_t, pbwidth_t, rig_ptr_t) const
     {
         return RIG_OK;
     }
+// cppcheck-suppress unusedFunction
     virtual int VFOEvent(vfo_t, rig_ptr_t) const
     {
         return RIG_OK;
     }
+// cppcheck-suppress unusedFunction
     virtual int PTTEvent(vfo_t, ptt_t, rig_ptr_t) const
     {
         return RIG_OK;
     }
+// cppcheck-suppress unusedFunction
     virtual int DCDEvent(vfo_t, dcd_t, rig_ptr_t) const
     {
         return RIG_OK;
@@ -287,6 +292,7 @@ public:
 //! @endcond
 
 
+// cppcheck-suppress unusedFunction
 inline void THROW(const RigException *e)
 {
 #if defined(__GNUG__)

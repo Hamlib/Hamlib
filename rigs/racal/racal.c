@@ -68,7 +68,7 @@ const struct confparams racal_cfg_params[] =
 static int racal_transaction(RIG *rig, const char *cmd, char *data,
                              int *data_len)
 {
-    struct racal_priv_data *priv = (struct racal_priv_data *)rig->state.priv;
+    const struct racal_priv_data *priv = (struct racal_priv_data *)rig->state.priv;
     struct rig_state *rs = &rig->state;
     char cmdbuf[BUFSZ + 1];
     int retval;
@@ -186,7 +186,7 @@ int racal_set_conf(RIG *rig, token_t token, const char *val)
  */
 int racal_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
-    struct racal_priv_data *priv = (struct racal_priv_data *)rig->state.priv;
+    const struct racal_priv_data *priv = (struct racal_priv_data *)rig->state.priv;
 
     switch (token)
     {
@@ -275,7 +275,7 @@ int racal_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int racal_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct racal_priv_data *priv = (struct racal_priv_data *)rig->state.priv;
+    const struct racal_priv_data *priv = (struct racal_priv_data *)rig->state.priv;
     int ra_mode;
     char buf[BUFSZ];
 

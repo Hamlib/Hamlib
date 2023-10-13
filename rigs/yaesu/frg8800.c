@@ -155,7 +155,7 @@ const struct rig_caps frg8800_caps =
  */
 int frg8800_open(RIG *rig)
 {
-    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
+    const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
@@ -166,7 +166,7 @@ int frg8800_open(RIG *rig)
 
 int frg8800_close(RIG *rig)
 {
-    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x80, 0x00};
+    const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x80, 0x00};
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 

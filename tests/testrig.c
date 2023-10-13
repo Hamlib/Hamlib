@@ -14,7 +14,7 @@
 #define SERIAL_PORT "/dev/ttyUSB0"
 
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     RIG *my_rig;        /* handle to rig (nstance) */
     freq_t freq;        /* frequency  */
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 
     if (!my_rig)
     {
-        fprintf(stderr, "Unknown rig num: %d\n", myrig_model);
+        fprintf(stderr, "Unknown rig num: %u\n", myrig_model);
         fprintf(stderr, "Please check riglist.h\n");
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }
@@ -80,6 +80,10 @@ int main(int argc, char *argv[])
     char val[256];
     retcode = rig_get_conf2(my_rig, rig_token_lookup(my_rig, "write_delay"), val,
                             sizeof(val));
+    if (retcode != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_get_conf2: %s\n", __func__, rigerror(retcode));
+    }
     printf("write_delay=%s\n", val);
 
 //    printf("Port %s opened ok\n", SERIAL_PORT);
@@ -418,7 +422,7 @@ int main(int argc, char *argv[])
 
     if (retcode == RIG_OK)
     {
-        printf("rig_get_vfo: vfo = %i \n", vfo);
+        printf("rig_get_vfo: vfo = %u \n", vfo);
     }
     else
     {

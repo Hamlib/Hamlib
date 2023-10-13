@@ -21,6 +21,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+// cppcheck-suppress unusedFunction
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -42,8 +43,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         return FALSE;
     }
 
-    RIG* myRig = rig_init(RIG_MODEL_DUMMY);
-    ROT* myRot = rot_init(ROT_MODEL_DUMMY);
+    // cppcheck-suppress unreadVariable
+    const RIG* myRig = rig_init(RIG_MODEL_DUMMY);
+    // cppcheck-suppress unreadVariable
+    const ROT* myRot = rot_init(ROT_MODEL_DUMMY);
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_HAMLIBTEST));
 

@@ -166,15 +166,6 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "FB", 2) == 0)
         {
-            sscanf(buf, "FB%f", &freqA);
-        }
-        else if (strcmp(buf, "FB;") == 0)
-        {
-            SNPRINTF(resp, sizeof(resp), "FB%010.0f;", freqB);
-            n = write(fd, resp, strlen(resp));
-        }
-        else if (strncmp(buf, "FB", 2) == 0)
-        {
             sscanf(buf, "FB%f", &freqB);
         }
         else if (strcmp(buf, "IF;") == 0)

@@ -556,7 +556,7 @@ static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    const struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
@@ -627,7 +627,7 @@ static int ft757_set_vfo(RIG *rig, vfo_t vfo)
 
 static int ft757gx_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    const struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
     // we'll just use the cached vfo for the 757GX since we can't read it
     *vfo = priv->current_vfo;
     return RIG_OK;
@@ -635,7 +635,7 @@ static int ft757gx_get_vfo(RIG *rig, vfo_t *vfo)
 
 static int ft757_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    const struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
@@ -736,7 +736,7 @@ static int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 static int ft757_get_update_data(RIG *rig)
 {
-    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x10};
+    const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x10};
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
     int retval = 0;
     long nbtries;

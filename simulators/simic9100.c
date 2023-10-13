@@ -101,7 +101,6 @@ again:
 void frameParse(int fd, unsigned char *frame, int len)
 {
     double freq;
-    int n = 0;
 
     dumphex(frame, len);
 
@@ -512,11 +511,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     default: printf("cmd 0x%02x unknown\n", frame[4]);
     }
-
-    if (n == 0) { printf("Write failed=%s\n", strerror(errno)); }
-
 // don't care about the rig type yet
-
 }
 
 #if defined(WIN32) || defined(_WIN32)

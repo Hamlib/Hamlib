@@ -166,11 +166,13 @@ int get_elad_func(RIG *rig, const char *cmd, int *status);
 
 extern const struct rig_caps fdm_duo_caps;
 
+#if 0
 /* use when not interested in the answer, but want to check its len */
 static int inline elad_simple_transaction(RIG *rig, const char *cmd, size_t expected)
 {
   struct elad_priv_data *priv = rig->state.priv;
   return elad_safe_transaction(rig, cmd, priv->info, ELAD_MAX_BUF_LEN, expected);
 }
+#endif
 
 #endif /* _ELAD_H */

@@ -2,6 +2,7 @@
 // produces a ldrh or strh since the compiler may choose to use
 // a byte write instead.  Hence, we emit the peeks and pokes using
 // inline assembler.  --JO
+// cppcheck-suppress unusedFunction
 static inline unsigned short PEEK16(unsigned long addr) {
         unsigned short ret;
 
@@ -14,6 +15,7 @@ static inline unsigned short PEEK16(unsigned long addr) {
         return ret;
 }
 
+// cppcheck-suppress unusedFunction
 static inline void POKE16(unsigned long addr, unsigned short dat) {
         asm volatile (
                 "strh %1, [ %0 ]\n"
@@ -45,6 +47,7 @@ static inline void POKE32(unsigned long addr, unsigned long dat) {
 }
 
 
+// cppcheck-suppress unusedFunction
 static inline unsigned char PEEK8(unsigned long addr) {
         unsigned char ret;
 
@@ -57,6 +60,7 @@ static inline unsigned char PEEK8(unsigned long addr) {
         return ret;
 }
 
+// cppcheck-suppress unusedFunction
 static inline void POKE8(unsigned long addr, unsigned char dat) {
         asm volatile (
                 "strb %1, [ %0 ]\n"

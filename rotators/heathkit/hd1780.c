@@ -168,7 +168,7 @@ static int hd1780_rot_set_position(ROT *rot, azimuth_t azimuth,
 {
     struct rot_state *rs;
     char cmdstr[8];
-    char execstr[5] = "\r", ok[3];
+    const char execstr[5] = "\r", ok[3];
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -232,7 +232,7 @@ static int hd1780_rot_get_position(ROT *rot, azimuth_t *azimuth,
                                    elevation_t *elevation)
 {
     struct rot_state *rs;
-    char cmdstr[3] = "b\r";
+    const char cmdstr[3] = "b\r";
     char az[7];          /* read azimuth string */
     char *p;
     azimuth_t tmp = 0;

@@ -790,6 +790,7 @@ DECLARE_PROBERIG_BACKEND(uniden)
     int rates[] = { 9600, 19200, 0 };   /* possible baud rates */
     int rates_idx;
 
+    memset(idbuf,0,IDBUFSZ);
     if (!port)
     {
         return RIG_MODEL_NONE;

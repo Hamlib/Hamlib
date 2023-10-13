@@ -223,7 +223,7 @@ static int ts7400_rot_reset(ROT *rot, rot_reset_t reset)
 
 static int ts7400_rot_move(ROT *rot, int direction, int speed)
 {
-    struct ts7400_rot_priv_data *priv = (struct ts7400_rot_priv_data *)
+    const struct ts7400_rot_priv_data *priv = (struct ts7400_rot_priv_data *)
                                         rot->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);

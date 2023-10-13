@@ -190,7 +190,7 @@ int v4l_open(RIG *rig)
 
 int v4l_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct rig_state *rs = &rig->state;
+    const struct rig_state *rs = &rig->state;
     struct      video_tuner vt;
     const freq_range_t *range;
     unsigned long f;
@@ -236,7 +236,7 @@ int v4l_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int v4l_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct rig_state *rs = &rig->state;
+    const struct rig_state *rs = &rig->state;
     const freq_range_t *range;
     unsigned long f;
     double fact;

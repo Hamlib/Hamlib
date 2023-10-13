@@ -50,7 +50,7 @@
 
 static int rot_has_ext_token(ROT *rot, token_t token)
 {
-    int *ext_tokens = rot->caps->ext_tokens;
+    const int *ext_tokens = rot->caps->ext_tokens;
     int i;
 
     if (ext_tokens == NULL)

@@ -267,7 +267,7 @@ gs232b_rot_stop(ROT *rot)
 
 static int gs232b_rot_get_level(ROT *rot, setting_t level, value_t *val)
 {
-    struct rot_state *rs = &rot->state;
+    const struct rot_state *rs = &rot->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
 
@@ -289,12 +289,12 @@ static int gs232b_rot_set_level(ROT *rot, setting_t level, value_t val)
 {
     struct rot_state *rs = &rot->state;
     char cmdstr[24];
-    int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
 
     switch (level)
     {
+    int retval;
     case ROT_LEVEL_SPEED:
     {
         int speed = val.i;

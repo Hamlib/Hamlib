@@ -583,7 +583,7 @@ int ft897_close(RIG *rig)
 
 /* ---------------------------------------------------------------------- */
 
-static inline long timediff(struct timeval *tv1, struct timeval *tv2)
+static inline long timediff(const struct timeval *tv1, const struct timeval *tv2)
 {
     struct timeval tv;
 
@@ -1060,7 +1060,7 @@ static int ft897_send_cmd(RIG *rig, int index)
 /*
  * The same for incomplete commands.
  */
-static int ft897_send_icmd(RIG *rig, int index, unsigned char *data)
+static int ft897_send_icmd(RIG *rig, int index, const unsigned char *data)
 {
     unsigned char cmd[YAESU_CMD_LENGTH];
 

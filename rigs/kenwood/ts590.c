@@ -282,6 +282,11 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     // now let's get our widths
     SNPRINTF(cmd, sizeof(cmd), "SH");
     retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 4);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: SH command failed: %s\n", __func__, rigerror(retval));
+        return retval;
+    }
     int hwidth;
     sscanf(cmd, "SH%d", &hwidth);
     int lwidth;

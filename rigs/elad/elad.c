@@ -903,6 +903,8 @@ int elad_get_vfo_main_sub(RIG *rig, vfo_t *vfo)
  */
 int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
+    // this is a bogus suppress which complains priv is not used -- but it is 20231012
+    // cppcheck-suppress unreadVariable
     struct elad_priv_data *priv = rig->state.priv;
     char cmdbuf[6];
     int retval;
