@@ -619,7 +619,7 @@ int ft767_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int ft767_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
     int retval;
 
     retval = ft767_get_update_data(rig);  /* get whole shebang from rig */
@@ -709,7 +709,7 @@ int ft767_set_vfo(RIG *rig, vfo_t vfo)
 
 int ft767_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    const struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
     int retval;
 
     retval = ft767_get_update_data(rig);  /* get whole shebang from rig */
@@ -796,7 +796,7 @@ int ft767_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 int ft767_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    const struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
     int retval;
 
     retval = ft767_get_update_data(rig);  /* get whole shebang from rig */
@@ -1309,7 +1309,7 @@ int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 int ft767_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
     int retval;
     vfo_t curr_vfo;
 

@@ -237,7 +237,7 @@ enum ft857_digi
 #define FT857_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
 #define FT857_ANTS              0
 
-static int ft857_send_icmd(RIG *rig, int index, unsigned char *data);
+static int ft857_send_icmd(RIG *rig, int index, const unsigned char *data);
 
 const struct rig_caps ft857_caps =
 {
@@ -431,7 +431,7 @@ int ft857_close(RIG *rig)
 
 /* ---------------------------------------------------------------------- */
 
-static inline long timediff(struct timeval *tv1, struct timeval *tv2)
+static inline long timediff(const struct timeval *tv1, const struct timeval *tv2)
 {
     struct timeval tv;
 
@@ -581,7 +581,7 @@ static int ft857_send_cmd(RIG *rig, int index)
 /*
  * The same for incomplete commands.
  */
-static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
+static int ft857_send_icmd(RIG *rig, int index, const unsigned char *data)
 {
     unsigned char cmd[YAESU_CMD_LENGTH];
 
@@ -632,9 +632,10 @@ int ft857_get_vfo(RIG *rig, vfo_t *vfo)
 int ft857_set_vfo(RIG *rig, vfo_t vfo)
 {
     vfo_t curvfo;
-    int retval =  ft857_get_vfo(rig, &curvfo);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+
+    int retval =  ft857_get_vfo(rig, &curvfo);
 
     if (retval != RIG_OK)
     {
@@ -672,7 +673,7 @@ int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return -RIG_OK;
 }
 
-static void get_mode(RIG *rig, struct ft857_priv_data *priv, rmode_t *mode,
+static void get_mode(RIG *rig, const struct ft857_priv_data *priv, rmode_t *mode,
                      pbwidth_t *width)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);

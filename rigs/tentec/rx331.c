@@ -243,7 +243,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     char str[BUFSZ];
     char fmt[16];
     struct rig_state *rs;
-    struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
 
     rs = &rig->state;
 
@@ -342,7 +342,7 @@ int rx331_set_conf(RIG *rig, token_t token, const char *val)
 
 int rx331_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
-    struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
 
     switch (token)
     {
@@ -362,6 +362,7 @@ int rx331_get_conf(RIG *rig, token_t token, char *val)
     return rx331_get_conf2(rig, token, val, 128);
 }
 
+// cppcheck-suppress constParameterCallback
 int rx331_open(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -377,6 +378,7 @@ int rx331_open(RIG *rig)
 /*
  * rig_close
  */
+// cppcheck-suppress constParameterCallback
 int rx331_close(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -391,7 +393,7 @@ int rx331_close(RIG *rig)
 
 int rx331_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
 
     struct rig_state *rs = &rig->state;
     int freq_len, retval;
@@ -440,7 +442,7 @@ int rx331_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
     struct rig_state *rs = &rig->state;
     char dmode;
     int mdbuf_len, retval;
@@ -562,7 +564,7 @@ int rx331_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
     struct rig_state *rs = &rig->state;
     int retval = RIG_OK;
     char cmdbuf[32];

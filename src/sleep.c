@@ -173,6 +173,7 @@ int usleep(rig_useconds_t usec)
 
 #ifdef TEST
 #include "misc.h"
+// cppcheck-suppress unusedFunction
 double get_elapsed_time(struct tm start, struct tm end) {
     // Convert struct tm to time_t
     time_t start_seconds = mktime(&start);

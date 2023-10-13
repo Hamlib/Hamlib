@@ -167,7 +167,7 @@ int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: expected 1,2,3 got %d\n", __func__, ant);
+        rig_debug(RIG_DEBUG_ERR, "%s: expected 1,2,3 got %u\n", __func__, ant);
         RETURNFUNC(-RIG_EINVAL);
     }
 

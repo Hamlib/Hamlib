@@ -4,6 +4,8 @@
 
 NdkImu::NdkImu(char kPackageName[])
 {
+    sensorAccDataIndex = 0;
+    sensorMagDataIndex = 0;
     sensorManager = AcquireASensorManagerInstance(kPackageName);
     assert(sensorManager != NULL);
     accelerometer = ASensorManager_getDefaultSensor(sensorManager, ASENSOR_TYPE_ACCELEROMETER);
@@ -48,6 +50,7 @@ NdkImu::~NdkImu()
 
 ASensorManager *NdkImu::AcquireASensorManagerInstance(char kPackageName[])
 {
+    // cppcheck-suppress  cstyleCast
     typedef ASensorManager *(*PF_GETINSTANCEFORPACKAGE)(const char *name);
     void* androidHandle = dlopen("libandroid.so", RTLD_NOW);
     PF_GETINSTANCEFORPACKAGE getInstanceForPackageFunc = (PF_GETINSTANCEFORPACKAGE)
@@ -56,6 +59,7 @@ ASensorManager *NdkImu::AcquireASensorManagerInstance(char kPackageName[])
         return getInstanceForPackageFunc(kPackageName);
     }
 
+    // cppcheck-suppress  cstyleCast
     typedef ASensorManager *(*PF_GETINSTANCE)();
     PF_GETINSTANCE getInstanceFunc = (PF_GETINSTANCE)
             dlsym(androidHandle, "ASensorManager_getInstance");
@@ -69,7 +73,7 @@ ASensorManager *NdkImu::AcquireASensorManagerInstance(char kPackageName[])
  * blob: 9e78a6bb476061b4e20378ba20a00a2761e1ed7e
  * line 1174
  */
-bool NdkImu::getRotationMatrix(float R[], size_t Rlength, float I[], size_t Ilength, float gravity[], float geomagnetic[])
+bool NdkImu::getRotationMatrix(float R[], size_t Rlength, float I[], size_t Ilength, const  float gravity[], const float geomagnetic[])
 {
     // TODO: move this to native code for efficiency
     float Ax = gravity[0];
@@ -144,10 +148,13 @@ bool NdkImu::getRotationMatrix(float R[], size_t Rlength, float I[], size_t Ilen
  * blob: 9e78a6bb476061b4e20378ba20a00a2761e1ed7e
  * line 1469
  */
-float *NdkImu::getOrientation(float R[], size_t Rlength, float valuesBuf[])
+float *NdkImu::getOrientation(const float R[], size_t Rlength, float valuesBuf[])
 {
     if(valuesBuf == NULL)
+    {
+        // cppcheck-suppress  cstyleCast
         valuesBuf = (float*)malloc(sizeof (float)*3);
+    } 
 
     if (Rlength == 9) {
         valuesBuf[0] = (float) std::atan2(R[1], R[4]);
@@ -189,7 +196,10 @@ void NdkImu::update()
 float *NdkImu::getAccData(float accDataBuf[])
 {
     if(accDataBuf == NULL)
+    {
+        // cppcheck-suppress  cstyleCast
         accDataBuf = (float*)malloc(sizeof (float)*3);
+    }
     accDataBuf[0] = sensorAccDataFilter.x;
     accDataBuf[1] = sensorAccDataFilter.y;
     accDataBuf[2] = sensorAccDataFilter.z;
@@ -199,7 +209,10 @@ float *NdkImu::getAccData(float accDataBuf[])
 float *NdkImu::getMagData(float magDataBuf[])
 {
     if(magDataBuf == NULL)
+    {
+        // cppcheck-suppress  cstyleCast
         magDataBuf = (float*)malloc(sizeof (float)*3);
+    }
     magDataBuf[0] = sensorMagDataFilter.x;
     magDataBuf[1] = sensorMagDataFilter.y;
     magDataBuf[2] = sensorMagDataFilter.z;

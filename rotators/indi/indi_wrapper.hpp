@@ -30,6 +30,7 @@
 class RotINDIClient : public INDI::BaseClient
 {
 public:
+    void RotINDIClient() {};
     int setSpeed(int speedPercent);
     int move(int direction, int speedPercent);
     int stop();

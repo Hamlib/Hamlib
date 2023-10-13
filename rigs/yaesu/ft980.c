@@ -610,7 +610,7 @@ int ft980_transaction(RIG *rig, const unsigned char *cmd, unsigned char *data,
 
 int ft980_get_status_data(RIG *rig)
 {
-    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01 };
+    const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01 };
     struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
     int retval;
 
@@ -754,7 +754,7 @@ int ft980_open(RIG *rig)
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
         write_block(&rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
-        retval = read_block(&rig->state.rigport, (unsigned char *) &priv->update_data,
+        read_block(&rig->state.rigport, (unsigned char *) &priv->update_data,
                             FT980_ALL_STATUS_LENGTH);
     }
     while (!priv->update_data.ext_ctl_flag
@@ -800,7 +800,7 @@ int ft980_close(RIG *rig)
         while (retval != 5 && retry_count2++ < rig->state.rigport.retry);
 
         write_block(&rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
-        retval = read_block(&rig->state.rigport, (unsigned char *) &priv->update_data,
+        read_block(&rig->state.rigport, (unsigned char *) &priv->update_data,
                             FT980_ALL_STATUS_LENGTH);
     }
     while (priv->update_data.ext_ctl_flag

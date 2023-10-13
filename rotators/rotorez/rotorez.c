@@ -463,7 +463,7 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth,
                                     elevation_t elevation)
 {
     char cmdstr[8];
-    char execstr[5] = "AM1;";
+    const char execstr[5] = "AM1;";
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -566,7 +566,7 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth,
                                     elevation_t *elevation)
 {
     struct rot_state *rs;
-    char cmdstr[5] = "AI1;";
+    const char cmdstr[5] = "AI1;";
     char az[5];         /* read azimuth string */
     char *p;
     azimuth_t tmp = 0;
@@ -733,7 +733,7 @@ static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth,
                                 elevation_t *elevation)
 {
     struct rot_state *rs;
-    char cmdstr[5] = "AI1;";
+    const char cmdstr[5] = "AI1;";
     char az[5];         /* read azimuth string */
     char *p;
     azimuth_t tmp = 0;
@@ -954,7 +954,7 @@ static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
 
 static int rotorez_rot_stop(ROT *rot)
 {
-    char cmdstr[2] = ";";
+    const char cmdstr[2] = ";";
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -987,7 +987,7 @@ static int rotorez_rot_reset(ROT *rot, rot_reset_t reset)
 
 static int dcu1_rot_stop(ROT *rot)
 {
-    char cmdstr[5] = "AS1;";
+    const char cmdstr[5] = "AS1;";
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);

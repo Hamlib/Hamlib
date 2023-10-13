@@ -288,17 +288,16 @@ static char *val[] =
     "f1809a48a497200e046d39ccc7112cd0"
 };
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
-    FILE *f;
     int i, j;
-    char output[65];
     sha256_context ctx;
     unsigned char buf[1000];
     unsigned char sha256sum[32];
 
     if (argc < 2)
     {
+        char output[65];
         printf("\n SHA-256 Validation Tests:\n\n");
 
         for (i = 0; i < 3; i++)
@@ -342,6 +341,7 @@ int main(int argc, char *argv[])
     }
     else
     {
+        FILE *f;
         if (!(f = fopen(argv[1], "rb")))
         {
             perror("fopen");

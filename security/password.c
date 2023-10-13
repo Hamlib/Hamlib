@@ -49,23 +49,23 @@ HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
 
     srand(product);
 
-    snprintf(newpass, sizeof(newpass) - 1, "%s\t%lu\t%lu", pass, (long)rand(),
+    snprintf(newpass, sizeof(newpass) - 1, "%s\t%ld\t%ld", pass, (long)rand(),
              (long)time(NULL));
     //printf("debug=%s\n", newpass);
-    char *md5str = rig_make_md5(newpass);
+    const char *md5str = rig_make_md5(newpass);
 
     strncpy(result, md5str, HAMLIB_SECRET_LENGTH);
 
     // now that we have the md5 we'll do the AES256
 
-    printf("Shared Secret: %s\n", result);
+    printf("sharedkey=%s\n", result);
 
-    printf("\nCan be used with rigctl --password [secret]\nOr can be place in ~/.hamlib_settings\n");
+    printf("\nCan be used with rigctl --password [secret]\nOr can be placed in ~/.hamlib_settings\n");
 }
 
 //#define TESTPASSWORD
 #ifdef TESTPASSWORD
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     char secret[HAMLIB_SECRET_LENGTH + 1];
     char password[HAMLIB_SECRET_LENGTH +

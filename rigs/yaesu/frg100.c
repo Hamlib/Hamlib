@@ -348,7 +348,7 @@ static int frg100_read_op_data(RIG *rig, unsigned char *hwmode,
  */
 int frg100_open(RIG *rig)
 {
-    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0e};
+    const  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0e};
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 

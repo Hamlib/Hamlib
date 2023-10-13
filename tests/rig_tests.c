@@ -3,6 +3,7 @@
 #include <misc.h>
 
 
+// cppcheck-suppress unusedFunction
 int rig_test_cw(RIG *rig)
 {
     char *s = "SOS SOS SOS SOS SOS SOS SOS SOS SOS SOS SOS SOS SOS";

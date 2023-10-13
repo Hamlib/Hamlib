@@ -640,7 +640,7 @@ static int ft817_close(RIG *rig)
 
 /* ---------------------------------------------------------------------- */
 
-static inline long timediff(struct timeval *tv1, struct timeval *tv2)
+static inline long timediff(const struct timeval *tv1, const struct timeval *tv2)
 {
     struct timeval tv;
 
@@ -972,7 +972,7 @@ static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                vfo_t *tx_vfo)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    const struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     ptt_t ptt;
     int n;
 
@@ -1384,7 +1384,7 @@ static int ft817_send_cmd(RIG *rig, int index)
 /*
  * The same for incomplete commands.
  */
-static int ft817_send_icmd(RIG *rig, int index, unsigned char *data)
+static int ft817_send_icmd(RIG *rig, int index, const unsigned char *data)
 {
     unsigned char cmd[YAESU_CMD_LENGTH];
 

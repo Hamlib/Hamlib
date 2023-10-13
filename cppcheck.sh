@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -x
 # Author Michael Black W9MDB
 # This SUPPRESS setting results in no warnings as of 2020-01-14
 # There are things that could still be done...especially in the C++ area
@@ -96,7 +96,7 @@ if test $# -eq 0 ; then
                  >cppcheck.log 2>&1
 else
         cppcheck --inline-suppr \
-                 --check-level=exhaustive
+                 --check-level=exhaustive \
                  -I src \
                  -I include \
                  -I include/hamlib/ \

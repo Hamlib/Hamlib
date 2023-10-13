@@ -379,7 +379,7 @@ int tt585_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int tt585_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    const struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
     int ret;
 
     ret = tt585_get_status_data(rig);

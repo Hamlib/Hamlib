@@ -229,7 +229,7 @@ static int spid_rot_cleanup(ROT *rot)
 
 static int spid_get_conf2(ROT *rot, token_t token, char *val, int val_len)
 {
-    struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
+    const  struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
                                            rot->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called %d\n", __func__, (int)token);
@@ -332,7 +332,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
         elevation_t el)
 {
     struct rot_state *rs = &rot->state;
-    struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
+    const  struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
                                            rs->priv;
     int retval;
     int retry_read = 0;

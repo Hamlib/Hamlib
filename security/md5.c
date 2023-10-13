@@ -2,7 +2,8 @@
 
 char *make_digest(const unsigned char *digest, int len) /* {{{ */
 {
-    char *md5str = (char *) calloc(1, sizeof(char) * (len * 2 + 1));
+    int md5len = sizeof(char) * (len * 2 + 1);
+    char *md5str = (char *) calloc(1, md5len); 
     static const char hexits[17] = "0123456789abcdef";
     int i;
 
@@ -12,7 +13,6 @@ char *make_digest(const unsigned char *digest, int len) /* {{{ */
         md5str[(i * 2) + 1] = hexits[digest[i] &  0x0F];
     }
 
-    md5str[len * 2] = '\0';
     return md5str;
 }
 
@@ -69,7 +69,6 @@ const void *body(void *ctxBuf, const void *data, size_t size)
     MD5_CTX *ctx = (MD5_CTX *)ctxBuf;
     const unsigned char *ptr;
     MD5_u32plus a, b, c, d;
-    MD5_u32plus saved_a, saved_b, saved_c, saved_d;
 
     ptr = (unsigned char *)data;
 
@@ -80,6 +79,7 @@ const void *body(void *ctxBuf, const void *data, size_t size)
 
     do
     {
+        MD5_u32plus saved_a, saved_b, saved_c, saved_d;
         saved_a = a;
         saved_b = b;
         saved_c = c;
@@ -190,7 +190,7 @@ void MD5Update(void *ctxBuf, const void *data, size_t size)
 {
     MD5_CTX *ctx = (MD5_CTX *)ctxBuf;
     MD5_u32plus saved_lo;
-    MD5_u32plus used, free;
+    MD5_u32plus used;
 
     saved_lo = ctx->lo;
 
@@ -205,6 +205,7 @@ void MD5Update(void *ctxBuf, const void *data, size_t size)
 
     if (used)
     {
+        MD5_u32plus free;
         free = 64 - used;
 
         if (size < free)
@@ -281,7 +282,7 @@ void MD5Final(unsigned char *result, void *ctxBuf)
     memset(ctx, 0, sizeof(*ctx));
 }
 
-unsigned char *make_hash(char *arg)
+unsigned char *make_hash(const char *arg)
 {
     MD5_CTX context;
     static unsigned char digest[65];
@@ -293,7 +294,7 @@ unsigned char *make_hash(char *arg)
 
 char *rig_make_md5(char *pass)
 {
-    unsigned char *hash = make_hash(pass);
+    const unsigned char *hash = make_hash(pass);
     char *md5str = make_digest(hash, 16);
     return md5str;
 }
@@ -303,7 +304,7 @@ char *rig_make_md5(char *pass)
 #include <stdio.h>
 int main()
 {
-    char *md5str = make_md5("password");
+    const char *md5str = make_md5("password");
     printf("md5=%s\n", md5str);
     return 0;
 }

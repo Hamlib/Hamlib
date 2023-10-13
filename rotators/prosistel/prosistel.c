@@ -130,7 +130,7 @@ transaction_quit:
 
 static int prosistel_rot_open(ROT *rot)
 {
-    struct prosistel_rot_priv_caps *priv_caps =
+    const struct prosistel_rot_priv_caps *priv_caps =
         (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     int retval;
@@ -173,7 +173,7 @@ static int prosistel_rot_open(ROT *rot)
 
 static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    struct prosistel_rot_priv_caps *priv_caps =
+    const struct prosistel_rot_priv_caps *priv_caps =
         (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     int retval = -RIG_EINTERNAL;
@@ -218,7 +218,7 @@ static int prosistel_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
 static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    struct prosistel_rot_priv_caps *priv_caps =
+    const struct prosistel_rot_priv_caps *priv_caps =
         (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     char data[20];
@@ -310,7 +310,7 @@ static int prosistel_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
 static int prosistel_rot_stop(ROT *rot)
 {
-    struct prosistel_rot_priv_caps *priv_caps =
+    const struct prosistel_rot_priv_caps *priv_caps =
         (struct prosistel_rot_priv_caps *) rot->caps->priv;
     char cmdstr[64];
     int retval = -RIG_EINTERNAL;

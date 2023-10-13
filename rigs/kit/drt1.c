@@ -338,7 +338,7 @@ static int ad_sdio(hamlib_port_t *port, int i)
     return ret;
 }
 
-static int ad_sclk(hamlib_port_t *port, int i)
+static int ad_sclk(const hamlib_port_t *port, int i)
 {
     int ret;
 

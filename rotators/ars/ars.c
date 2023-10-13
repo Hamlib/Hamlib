@@ -606,7 +606,7 @@ static int comparunsigned(const void *a, const void *b)
 int
 ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    const struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
     struct rot_state *rs = &rot->state;
     hamlib_port_t *pport = &rs->rotport;
     int i, num_sample;

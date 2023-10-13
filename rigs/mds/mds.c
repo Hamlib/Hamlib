@@ -295,6 +295,7 @@ int mds_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  * Assumes rig!=NULL
  * Note that 2050 does not have set or get width
  */
+#if 0
 int mds_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char cmd_buf[32], ttmode;
@@ -361,12 +362,14 @@ int mds_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     return RIG_OK;
 }
+#endif
 
 /*
  * mds_get_mode
  * Assumes rig!=NULL
  * Note that 2050 does not have set or get width
  */
+#if 0
 int mds_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     char *result = NULL;
@@ -417,6 +420,7 @@ int mds_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     return RIG_OK;
 }
+#endif
 
 #if 0
 int mds_get_vfo(RIG *rig, vfo_t *vfo)
@@ -439,6 +443,7 @@ int mds_get_vfo(RIG *rig, vfo_t *vfo)
 /*
  * mds_get_level
  */
+#if 0
 int mds_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int retval = 0;
@@ -485,6 +490,7 @@ int mds_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     return RIG_OK;
 }
+#endif
 
 /*
  * mds_get_info

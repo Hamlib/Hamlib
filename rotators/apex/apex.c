@@ -50,7 +50,7 @@ static void *apex_read(void *arg)
 
     while (1)
     {
-        apex_get_string(rot, data, expected_return_length);
+        retval = apex_get_string(rot, data, expected_return_length);
 
         if (strstr(data, "<VER>"))
         {

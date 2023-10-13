@@ -307,7 +307,7 @@ static int ether_rot_move(ROT *rot, int direction, int speed)
 
 static int ether_rot_get_level(ROT *rot, setting_t level, value_t *val)
 {
-    struct rot_state *rs = &rot->state;
+    const struct rot_state *rs = &rot->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
 

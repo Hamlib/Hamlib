@@ -28,8 +28,8 @@ void serial_num(const char *s)
     char *diagnostics;
     char *agency;
 
-    *rxfreq = 0;
-    *txfreq = 0;
+    rxfreq = "Unknown";
+    txfreq = "Unknown";
     memcpy(model, s, 5);
     model[5] = 0;
 

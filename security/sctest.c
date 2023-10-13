@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
          passlen;
     unsigned long long plaintext_length,
              ciphertext_length;
-    char *plaintext_tests[TEST_COUNT] =
+    const char *plaintext_tests[TEST_COUNT] =
     {
         "",
         "0",
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
          */
         strcpy(plaintext, pass_input);
         printf("Plaintext: %s\n", plaintext);
-        printf("Plaintext length: %lu\n", strlen(plaintext));
+        printf("Plaintext length: %ld\n", strlen(plaintext));
 
         /*
          * Encrypt the string

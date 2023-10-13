@@ -330,6 +330,7 @@ static int remove_opened_rig(const RIG *rig)
  *
  * \return always RIG_OK.
  */
+// cppcheck-suppress unusedFunction
 int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
 {
     struct opened_rig_l *p;
@@ -2408,6 +2409,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  *
  * \sa rig_set_freq()
  */
+// cppcheck-suppress unusedFunction
 int HAMLIB_API rig_get_freqs(RIG *rig, freq_t *freqA, freq_t freqB)
 {
     // we will attempt to avoid vfo swapping in this routine
@@ -2778,7 +2780,7 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
     if (!rig)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
-        RETURNFUNC(RIG_PASSBAND_NORMAL);    /* huhu! */
+        return(RIG_PASSBAND_NORMAL);    /* huhu! */
     }
 
     ENTERFUNC;
@@ -2831,7 +2833,7 @@ pbwidth_t HAMLIB_API rig_passband_narrow(RIG *rig, rmode_t mode)
     if (!rig)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
-        RETURNFUNC(0);   /* huhu! */
+        return(0);   /* huhu! */
     }
 
     ENTERFUNC;
@@ -4450,7 +4452,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     const struct rig_caps *caps;
     int retcode = -RIG_EPROTO, rc2;
-    vfo_t save_vfo, tx_vfo;
+    vfo_t tx_vfo;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -4483,7 +4485,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     /* Assisted mode */
-    save_vfo = rig->state.current_vfo;
+    //save_vfo = rig->state.current_vfo;
 
     /* Use previously setup TxVFO */
     if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
@@ -4549,6 +4551,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     /* try and revert even if we had an error above */
     if (caps->set_vfo)
     {
+        vfo_t save_vfo;
         // If we started with RIG_VFO_CURR we need to choose VFO_A/MAIN as appropriate to return to
         //rig_debug(RIG_DEBUG_TRACE, "%s: save_vfo=%s, hasmainsub=%d\n",__func__, rig_strvfo(save_vfo), VFO_HAS_MAIN_SUB);
         save_vfo = VFO_HAS_MAIN_SUB ? RIG_VFO_MAIN : RIG_VFO_A;
@@ -6478,7 +6481,7 @@ vfo_op_t HAMLIB_API rig_has_vfo_op(RIG *rig, vfo_op_t op)
 
     if (!rig || !rig->caps)
     {
-        RETURNFUNC(0);
+        return(0);
     }
 
     ENTERFUNC;
@@ -6590,12 +6593,13 @@ scan_t HAMLIB_API rig_has_scan(RIG *rig, scan_t scan)
 {
     int retcode;
 
-    ENTERFUNC;
-
     if (!rig || !rig->caps)
     {
-        RETURNFUNC(0);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is NULL\n", __func__);
+        return(0);
     }
+
+    ENTERFUNC;
 
     retcode = rig->caps->scan_ops & scan;
     RETURNFUNC(retcode);
@@ -7362,7 +7366,6 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
     int satmode;
     int ret;
     int rxa, txa, rxb, txb;
-    response[0] = 0;
 
     if (CHECK_RIG_ARG(rig) || !response)
     {
@@ -7370,6 +7373,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
         return -RIG_EINVAL;
     }
 
+    response[0] = 0;
     ELAPSED1;
 
     vfoA = vfo_fixup(rig, RIG_VFO_A, rig->state.cache.split);

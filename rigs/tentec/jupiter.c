@@ -315,7 +315,7 @@ int tt538_init(RIG *rig)
 
 static char which_vfo(const RIG *rig, vfo_t vfo)
 {
-    struct tt538_priv_data *priv = (struct tt538_priv_data *)rig->state.priv;
+    const struct tt538_priv_data *priv = (struct tt538_priv_data *)rig->state.priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -340,7 +340,7 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 int tt538_get_vfo(RIG *rig, vfo_t *vfo)
 {
 
-    struct tt538_priv_data *priv = (struct tt538_priv_data *) rig->state.priv;
+    const struct tt538_priv_data *priv = (struct tt538_priv_data *) rig->state.priv;
     *vfo = priv->vfo_curr;
     return RIG_OK;
 }
@@ -634,7 +634,7 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     unsigned char cmdbuf[32], respbuf[32], ttmode;
     int resp_len, retval;
 
-    struct tt538_priv_data *priv = (struct tt538_priv_data *) rig->state.priv;
+    const struct tt538_priv_data *priv = (struct tt538_priv_data *) rig->state.priv;
 
     /* Query mode for both VFOs. */
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?M" EOM);

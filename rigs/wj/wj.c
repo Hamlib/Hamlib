@@ -277,7 +277,7 @@ int wj_set_conf(RIG *rig, token_t token, const char *val)
  */
 int wj_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
-    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
+    const struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
     switch (token)
     {
@@ -316,7 +316,7 @@ int wj_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int wj_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
+    const struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
     int retval;
 
     retval =  wj_transaction(rig, 1);
@@ -360,7 +360,7 @@ int wj_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int wj_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
+    const struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
     int retval;
 
     retval =  wj_transaction(rig, 1);

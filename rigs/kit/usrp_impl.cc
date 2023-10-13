@@ -45,6 +45,7 @@ struct usrp_priv_data {
 
 int usrp_init(RIG *rig)
 {
+    // cppcheck-suppress leakReturnValNotUsed
 	rig->state.priv = static_cast<struct usrp_priv_data*>malloc(sizeof(struct usrp_priv_data));
 	if (!rig->state.priv) {
 		/* whoops! memory shortage! */

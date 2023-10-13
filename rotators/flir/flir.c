@@ -71,8 +71,6 @@ static int flir_request(ROT *rot, char *request, char *response,
                         int resp_size)
 {
     int return_value = -RIG_EINVAL;
-    int retry_read = 0;
-    int read_char = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -93,6 +91,8 @@ static int flir_request(ROT *rot, char *request, char *response,
     //Is a direct response expected?
     if (response != NULL)
     {
+        int retry_read = 0;
+        int read_char;
         while (retry_read < rot->state.rotport.retry)
         {
             memset(response, 0, (size_t)resp_size);
@@ -118,7 +118,7 @@ static int flir_request(ROT *rot, char *request, char *response,
             retry_read++;
         }
 
-        response = "";
+        response[0] = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "timeout for command %s\n", request);
         return -RIG_ETIMEOUT;
     }
@@ -185,9 +185,19 @@ static int flir_open(ROT *rot)
 
     // Disable ECHO
     return_value = flir_request(rot, "ED\n", NULL, MAXBUF);
+    if (return_value != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ED: %s\n", __func__, rigerror(return_value));
+        return return_value;
+    }
 
     // Disable Verbose Mode
     return_value = flir_request(rot, "FT\n", return_str, MAXBUF);
+    if (return_value != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: FT: %s\n", __func__, rigerror(return_value));
+        return return_value;
+    }
 
     // Get PAN resolution in arcsecs
     if (flir_request(rot, "PR\n", return_str, MAXBUF) == RIG_OK)
@@ -313,10 +323,20 @@ static int flir_stop(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     return_value = flir_request(rot, "H\n", NULL, MAXBUF);
+    if (return_value != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: H: %s\n", __func__, rigerror(return_value));
+        return return_value;
+    }
     // Wait 2s until rotor has stopped (Needs to be refactored)
     hl_usleep(2000000);
 
     return_value = flir_get_position(rot, &az, &el);
+    if (return_value != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: flrig_get_position: %s\n", __func__, rigerror(return_value));
+        return return_value;
+    }
 
     priv->target_az = priv->az = az;
     priv->target_el = priv->el = el;
@@ -474,7 +494,7 @@ static int flir_get_ext_parm(ROT *rot, token_t token, value_t *val)
 
 static int flir_get_status(ROT *rot, rot_status_t *status)
 {
-    struct flir_priv_data *priv = (struct flir_priv_data *)
+    const struct flir_priv_data *priv = (struct flir_priv_data *)
                                   rot->state.priv;
     *status = priv->status;
 

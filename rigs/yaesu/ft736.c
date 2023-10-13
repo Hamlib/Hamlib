@@ -220,7 +220,7 @@ const struct rig_caps ft736_caps =
  */
 int ft736_open(RIG *rig)
 {
-    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
+    const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
     struct ft736_priv_data *priv;
     int ret;
 
@@ -252,7 +252,7 @@ int ft736_open(RIG *rig)
 
 int ft736_close(RIG *rig)
 {
-    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x80, 0x80, 0x80, 0x80, 0x80};
+    const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x80, 0x80, 0x80, 0x80, 0x80};
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
@@ -267,7 +267,7 @@ int ft736_close(RIG *rig)
 int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
-    struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+    const struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
     int retval;
 
     // we will assume requesting to set VFOB is split mode
@@ -318,7 +318,7 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x07};
     unsigned char md;
-    struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+    const struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
 
     if (vfo == RIG_VFO_B) { return ft736_set_split_mode(rig, vfo, mode, width); }
 

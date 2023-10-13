@@ -759,7 +759,7 @@ static const char *vx1700_get_info(RIG *rig)
 
 static int vx1700_set_vfo(RIG *rig, vfo_t vfo)
 {
-    struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
+    const struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s, vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -1126,7 +1126,7 @@ static int vx1700_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 static int vx1700_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
-    struct rig_state *state = &rig->state;
+    const struct rig_state *state = &rig->state;
 
     if (! vx1700_channel_is_ok(ch)) { return -RIG_EINVAL; }
 
@@ -1149,7 +1149,7 @@ static int vx1700_set_mem(RIG *rig, vfo_t vfo, int ch)
 static int vx1700_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
-    struct rig_state        *state = &rig->state;
+    const struct rig_state        *state = &rig->state;
     unsigned char       channel = 0;
 
     if (vfo == RIG_VFO_CURR) { vfo = state->current_vfo; }
@@ -1178,7 +1178,7 @@ static int vx1700_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 static int vx1700_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
+    const struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
 
     (void) rig;
     (void) vfo;

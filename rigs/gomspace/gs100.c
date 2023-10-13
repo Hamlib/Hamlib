@@ -83,7 +83,7 @@ static int gomx_set(RIG *rig, int table, char *varname, char *varvalue);
 /**
  * Get variable from the GS100 configuration table
  */
-static int gomx_get(RIG *rig, int table, char *varname, char *varvalue, int varvalue_len);
+static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue, int varvalue_len);
 
 /**
  * Sends a message to the GS100 and parses response lines
@@ -470,7 +470,7 @@ static int gomx_set(RIG *rig, int table, char *varname, char *varvalue)
 
 
 /* Get variable from the GS100 configuration table */
-static int gomx_get(RIG *rig, int table, char *varname, char *varvalue, int varvalue_len)
+static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue, int varvalue_len)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
             *)rig->state.priv;

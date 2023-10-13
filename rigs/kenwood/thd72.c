@@ -1575,7 +1575,7 @@ int thd72_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
          */
         for (j = 0; j < CHAN_PER_BLOCK; j++)
         {
-            char *block_chan = block + j * (BLOCK_SZ / CHAN_PER_BLOCK);
+            const char *block_chan = block + j * (BLOCK_SZ / CHAN_PER_BLOCK);
             memset(chan, 0, sizeof(channel_t));
             chan->vfo = RIG_VFO_MEM;
             chan->channel_num = i * CHAN_PER_BLOCK + j;

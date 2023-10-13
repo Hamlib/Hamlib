@@ -697,7 +697,7 @@ int g313_set_conf(RIG *rig, token_t token, const char *val)
 
 int g313_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    const struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 
     switch (token)
     {

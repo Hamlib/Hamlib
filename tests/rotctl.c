@@ -462,7 +462,7 @@ int main(int argc, char *argv[])
 
     do
     {
-        retcode = rotctl_parse(my_rot, stdin, stdout, argv, argc,
+        retcode = rotctl_parse(my_rot, stdin, stdout, (const char**)argv, argc,
                                interactive, prompt, send_cmd_term);
 
         if (retcode == 2)

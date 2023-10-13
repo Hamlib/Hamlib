@@ -240,6 +240,7 @@ static int rshfiq_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 static int rshfiq_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
+    // cppcheck-suppress syntaxError
     rig_debug(RIG_DEBUG_VERBOSE, "%s called. level type =%"PRIll"\n", __func__, level);
 
     char cmdstr[15];

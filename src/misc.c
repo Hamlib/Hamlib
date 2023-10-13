@@ -829,6 +829,7 @@ setting_t HAMLIB_API rig_parse_func(const char *s)
  *
  * \sa rig_func_e()
  */
+// cppcheck-suppress unusedFunction
 setting_t HAMLIB_API rig_parse_band(const char *s)
 {
     int i;

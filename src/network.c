@@ -162,7 +162,7 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 
 int network_init()
 {
-    int retval = RIG_OK;
+    int retval = -RIG_EINTERNAL;
 #ifdef __MINGW32__
     WSADATA wsadata;
 
@@ -182,6 +182,8 @@ int network_init()
             return (-RIG_EIO);
         }
     }
+#else
+    retval = RIG_OK;
 
 #endif
     return retval;
@@ -725,6 +727,7 @@ static int multicast_publisher_write_packet_header(RIG *rig,
     RETURNFUNC2(RIG_OK);
 }
 
+// cppcheck-suppress unusedFunction
 int network_publish_rig_poll_data(RIG *rig)
 {
     const struct rig_state *rs = &rig->state;
@@ -744,6 +747,7 @@ int network_publish_rig_poll_data(RIG *rig)
     return multicast_publisher_write_packet_header(rig, &packet);
 }
 
+// cppcheck-suppress unusedFunction
 int network_publish_rig_transceive_data(RIG *rig)
 {
     const struct rig_state *rs = &rig->state;
@@ -763,6 +767,7 @@ int network_publish_rig_transceive_data(RIG *rig)
     return multicast_publisher_write_packet_header(rig, &packet);
 }
 
+// cppcheck-suppress unusedFunction
 int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line)
 {
     int result;
@@ -812,7 +817,7 @@ int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line)
     RETURNFUNC2(RIG_OK);
 }
 
-static int multicast_publisher_read_packet(multicast_publisher_args
+static int multicast_publisher_read_packet(const multicast_publisher_args
         *mcast_publisher_args,
         uint8_t *type, struct rig_spectrum_line *spectrum_line,
         unsigned char *spectrum_data)

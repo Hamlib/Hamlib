@@ -139,6 +139,7 @@ void json_add_int(char *msg, const char *key, const int number, int addComma)
     }
 }
 
+// cppcheck-suppress unusedFunction
 void json_add_double(char *msg, const char *key, const double value)
 {
     if (strlen(msg) != 0)
@@ -154,6 +155,7 @@ void json_add_double(char *msg, const char *key, const double value)
     strcat(msg, tmp);
 }
 
+// cppcheck-suppress unusedFunction
 void json_add_boolean(char *msg, const char *key, const int value, int addComma)
 {
 
@@ -315,6 +317,7 @@ static int multicast_send_json(RIG *rig)
     return 0;
 }
 
+// cppcheck-suppress unusedFunction
 void *multicast_thread_rx(void *vrig)
 {
 #if 0
@@ -348,6 +351,7 @@ void *multicast_thread_rx(void *vrig)
 }
 
 #define LOOPCOUNT 50
+// cppcheck-suppress unusedFunction
 void *multicast_thread(void *vrig)
 {
     //int retval;
@@ -573,6 +577,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     return RIG_OK;
 }
 
+// cppcheck-suppress unusedFunction
 void multicast_close(RIG *rig)
 {
     // Leave the multicast group

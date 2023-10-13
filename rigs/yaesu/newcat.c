@@ -552,7 +552,6 @@ int newcat_open(RIG *rig)
     const char *handshake[3] = {"None", "Xon/Xoff", "Hardware"};
     int err;
     int set_only = 0;
-    int retry_save = 0;
 
     ENTERFUNC;
 
@@ -610,6 +609,7 @@ int newcat_open(RIG *rig)
             || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
         char *cmd = "EX0291;EX029;"; // FT2000/D
+        int retry_save;
 
         if (priv->rig_id == NC_RIGID_FT950 || rig->caps->rig_model == RIG_MODEL_FT950) { cmd = "EX0271;EX027;"; }
         else if (priv->rig_id == NC_RIGID_FT891
@@ -1940,7 +1940,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     case RIG_PTT_OFF:
     {
-        char txoff[] = "TX0;";
+        const char txoff[] = "TX0;";
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s", txoff);
         rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
         err = newcat_set_cmd(rig);
@@ -2388,7 +2388,7 @@ int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
     int ret_data_len;
     char *retoffs;
     freq_t freq = 0;
-    int step;
+    int step = 0;
 
     ENTERFUNC;
 
@@ -2836,7 +2836,7 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    vfo_t oldvfo;
+    int oldvfo;
     int ret;
 
     ENTERFUNC;
@@ -2952,7 +2952,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 int newcat_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    vfo_t oldvfo;
+    int oldvfo;
     int ret;
 
     ENTERFUNC;
@@ -3487,7 +3487,7 @@ int newcat_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
     case NC_RIGID_FTDX1200:
         /* 100 Watts */
         *mwpower = power * 100000;
-        rig_debug(RIG_DEBUG_TRACE, "case FTDX1200 - rig_id = %d, *mwpower = %d\n",
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX1200 - rig_id = %d, *mwpower = %u\n",
                   rig_id,
                   *mwpower);
         break;
@@ -4148,7 +4148,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
         }
 
-        if (is_ftdx101d || is_ftdx101mp || is_ftdx10)
+        if (is_ftdx101d || is_ftdx101mp)
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "IS%c0%+.4d%c", main_sub_vfo,
                      val.i, cat_term);
@@ -5016,7 +5016,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
           ||(rig->state.tx_vfo == RIG_VFO_C && (rig->state.cache.modeMainC & exclude)))
          {
              rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot read MG in CW/RTTY modes\n", __func__);
-             level = 0;
              return RIG_OK;
          }
 
@@ -5309,10 +5308,6 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX176%c", cat_term);
         }
         else if (is_ftdx3000 || is_ftdx3000dm || is_ftdx1200)
-        {
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX183%c", cat_term);
-        }
-        else if (is_ftdx1200)
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX183%c", cat_term);
         }
@@ -5886,6 +5881,10 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                 || is_ftdx101mp)
         {
             err = newcat_get_mode(rig, vfo, &mode, &width);
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
+            }
         }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BC0%d%c", status ? 1 : 0,
@@ -5922,7 +5921,11 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         if (is_ft991 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
                 || is_ftdx101mp)
         {
-            newcat_get_mode(rig, vfo, &mode, &width);
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
+            }
         }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BP00%03d%c", status ? 1 : 0,
@@ -6080,7 +6083,11 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         if (is_ft991 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
                 || is_ftdx101mp)
         {
-            newcat_get_mode(rig, vfo, &mode, &width);
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
+            }
         }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "NR0%d%c", status ? 1 : 0,
@@ -6117,7 +6124,11 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
                 || is_ftdx101mp)
         {
-            newcat_get_mode(rig, vfo, &mode, &width);
+            err = newcat_get_mode(rig, vfo, &mode, &width);
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
+            }
         }
 
         if (is_ft891 || is_ft991 || is_ft710 || is_ftdx1200 || is_ftdx3000 || is_ftdx3000dm
@@ -6285,6 +6296,10 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
                 || is_ftdx101mp)
         {
             err = newcat_get_mode(rig, vfo, &mode, &width);
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
+            }
         }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BC0%c", cat_term);
@@ -7031,7 +7046,6 @@ int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg)
             msg2[50]=0; // truncate if too long
             rig_debug(RIG_DEBUG_ERR, "%s: msg length of %d truncated to 50\n", __func__, (int)strlen(msg));
         }
-        chan = '1';
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KM1%s;",msg2);
         rc = newcat_set_cmd(rig);
         if (rc != RIG_OK)
@@ -7735,7 +7749,7 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     if (priv->ret_data[28] != ';') // must have TAG data?
     {
         // get the TAG data
-        sscanf(&priv->ret_data[28],"%s",chan->tag);
+        sscanf(&priv->ret_data[28],"%32s",chan->tag);
         char *p = strchr(chan->tag,';');
         if(p) *p = 0;
     }
@@ -9174,7 +9188,7 @@ static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
 
     for (i = 0; roofing_filters[i].index >= 0; i++)
     {
-        struct newcat_roofing_filter *current_filter = &roofing_filters[i];
+        const struct newcat_roofing_filter *current_filter = &roofing_filters[i];
         char set_value = current_filter->set_value;
 
         if (set_value == 0)
@@ -9225,7 +9239,7 @@ static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width)
 
     for (i = 0; i < priv_caps->roofing_filter_count; i++)
     {
-        struct newcat_roofing_filter *current_filter = &priv_caps->roofing_filters[i];
+        const struct newcat_roofing_filter *current_filter = &priv_caps->roofing_filters[i];
         char set_value = current_filter->set_value;
 
         // Skip get-only values and optional filters
@@ -10135,7 +10149,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         if (w == 0) // then we need to know the roofing filter
         {
             struct newcat_roofing_filter *roofing_filter;
-            int err = get_roofing_filter(rig, vfo, &roofing_filter);
+            err = get_roofing_filter(rig, vfo, &roofing_filter);
 
             if (err == RIG_OK)
             {

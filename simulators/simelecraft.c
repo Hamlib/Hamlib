@@ -136,8 +136,6 @@ int main(int argc, char *argv[])
             hl_usleep(50 * 1000);
             pbuf = "RM5100000;";
             write(fd, pbuf, strlen(pbuf));
-
-            if (n <= 0) { perror("RM5"); }
         }
         else if (strcmp(buf, "AI;") == 0)
         {
@@ -155,8 +153,6 @@ int main(int argc, char *argv[])
             hl_usleep(50 * 1000);
             pbuf = "AN030;";
             write(fd, pbuf, strlen(pbuf));
-
-            if (n <= 0) { perror("AN"); }
         }
         else if (strcmp(buf, "IF;") == 0)
         {
@@ -165,8 +161,6 @@ int main(int argc, char *argv[])
             //pbuf = "IF059014200000+000000700000;";
             pbuf = "IF00007230000     -000000 0001000001 ;" ;
             write(fd, pbuf, strlen(pbuf));
-
-            if (n <= 0) { perror("IF"); }
         }
         else if (strcmp(buf, "ID;") == 0)
         {
@@ -175,8 +169,6 @@ int main(int argc, char *argv[])
             int id = 24;
             SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
             write(fd, buf, strlen(buf));
-
-            if (n <= 0) { perror("ID"); }
         }
         else if (strcmp(buf, "PS;") == 0)
         {
@@ -292,8 +284,6 @@ int main(int argc, char *argv[])
             hl_usleep(50 * 1000);
             pbuf = "VS0;";
             write(fd, pbuf, strlen(pbuf));
-
-            if (n < 0) { perror("VS"); }
         }
         else if (strcmp(buf, "EX032;") == 0)
         {
@@ -303,8 +293,6 @@ int main(int argc, char *argv[])
             hl_usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
             write(fd, buf, strlen(buf));
-
-            if (n < 0) { perror("EX032"); }
         }
         else if (strcmp(buf, "OM;") == 0)
         {
@@ -312,8 +300,6 @@ int main(int argc, char *argv[])
             // K4+KPA3
             SNPRINTF(buf, sizeof(buf), "OM AP-S----4---;");
             write(fd, buf, strlen(buf));
-
-            if (n < 0) { perror("OM"); }
         }
         else if (strcmp(buf, "K2;") == 0)
         {
@@ -445,12 +431,6 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
         }
-
-        if (n == 0)
-        {
-            fprintf(stderr, "Write error?  n==0\n");
-        }
-
     }
 
     return 0;

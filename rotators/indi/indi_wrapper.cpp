@@ -298,15 +298,15 @@ int RotINDIClient::unPark()
         return -RIG_EPROTO;
     }
 
-    ISwitch *park = IUFindSwitch(switchVector, "PARK");
+    ISwitch *park2 = IUFindSwitch(switchVector, "PARK");
 
-    if (!park)
+    if (!park2)
     {
         rig_debug(RIG_DEBUG_ERR, "indi: unable to find switch member PARK\n");
         return -RIG_EPROTO;
     }
 
-    park->s = ISS_OFF;
+    park2->s = ISS_OFF;
 
     ISwitch *unpark = IUFindSwitch(switchVector, "UNPARK");
 
@@ -462,7 +462,9 @@ int RotINDIClient::setPosition(azimuth_t az, elevation_t el)
     return RIG_OK;
 }
 
+// cppcheck-suppress unusedFunction
 void RotINDIClient::removeDevice(INDI::BaseDevice *dp) {}
+// cppcheck-suppress unusedFunction
 void RotINDIClient::newProperty(INDI::Property *property)
 {
     std::string name(property->getName());
@@ -489,9 +491,13 @@ void RotINDIClient::newProperty(INDI::Property *property)
         mEl = property->getNumber()->np[1].value;
     }
 }
+// cppcheck-suppress unusedFunction
 void RotINDIClient::removeProperty(INDI::Property *property) {}
+// cppcheck-suppress unusedFunction
 void RotINDIClient::newBLOB(IBLOB *bp) {}
+// cppcheck-suppress unusedFunction
 void RotINDIClient::newSwitch(ISwitchVectorProperty *svp) {}
+// cppcheck-suppress unusedFunction
 void RotINDIClient::newNumber(INumberVectorProperty *nvp)
 {
     std::string name(nvp->name);
@@ -502,16 +508,22 @@ void RotINDIClient::newNumber(INumberVectorProperty *nvp)
         mEl = nvp->np[1].value;
     }
 }
+// cppcheck-suppress unusedFunction
 void RotINDIClient::newMessage(INDI::BaseDevice *dp, int messageID) {}
+// cppcheck-suppress unusedFunction
 void RotINDIClient::newText(ITextVectorProperty *tvp) {}
+// cppcheck-suppress unusedFunction
 void RotINDIClient::newLight(ILightVectorProperty *lvp) {}
+// cppcheck-suppress unusedFunction
 void RotINDIClient::newDevice(INDI::BaseDevice *dp) {}
 
+// cppcheck-suppress unusedFunction
 void RotINDIClient::serverConnected()
 {
     rig_debug(RIG_DEBUG_VERBOSE, "indi: server connected\n");
 }
 
+// cppcheck-suppress unusedFunction
 void RotINDIClient::serverDisconnected(int exit_code)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "indi: server disconnected\n");
