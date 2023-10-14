@@ -120,6 +120,7 @@ saebrtrack_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
  * Get Info
  * returns the model name string
  */
+// cppcheck-suppress constParameterCallback
 static const char *saebrtrack_rot_get_info(ROT *rot)
 {
     const struct rot_caps *rc;

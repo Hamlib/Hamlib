@@ -85,6 +85,12 @@ int usrp_close(RIG *rig)
 {
 	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 
+    if (!priv)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: priv == NULL?\n", __func__);
+        return -RIG_EARG;
+    }
+
 	delete priv->urx;
 
 	return RIG_OK;
@@ -96,6 +102,12 @@ int usrp_close(RIG *rig)
 int usrp_set_conf(RIG *rig, token_t token, const char *val)
 {
 	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
+
+    if (!priv)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: priv == NULL?\n", __func__);
+        return -RIG_EARG;
+    }
 
 	switch(token) {
 		case TOK_IFMIXFREQ:
@@ -116,6 +128,12 @@ int usrp_get_conf(RIG *rig, token_t token, char *val)
 {
 	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 
+    if (!priv)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: priv == NULL?\n", __func__);
+        return -RIG_EARG;
+    }
+
 	switch(token) {
 		case TOK_IFMIXFREQ:
 			sprintf(val, "%"PRIfreq, priv->if_mix_freq);
@@ -133,6 +151,12 @@ int usrp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 	int chan = 0;
 
+    if (!priv)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: priv == NULL?\n", __func__);
+        return -RIG_EARG;
+    }
+
 	if (!priv->urx->set_rx_freq (chan, freq))
 		return -RIG_EPROTO;
 
@@ -144,6 +168,12 @@ int usrp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 	int chan = 0;
+
+    if (!priv)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: priv == NULL?\n", __func__);
+        return -RIG_EARG;
+    }
 
 	*freq = priv->urx->rx_freq (chan);
 
