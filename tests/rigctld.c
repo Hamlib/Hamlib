@@ -109,6 +109,7 @@ static struct option long_options[] =
     {"multicast-port",  1, 0, 'n'},
     {"password",        1, 0, 'A'},
     {"rigctld-idle",    0, 0, 'R'},
+    {"bind-all",        0, 0, 'b'},
     {0, 0, 0, 0}
 };
 
@@ -153,6 +154,7 @@ extern powerstat_t rig_powerstat;
 static int rigctld_idle =
     0; // if true then rig will close when no clients are connected
 static int skip_open = 0;
+static int bind_all = 0;
 
 #define MAXCONFLEN 2048
 
@@ -257,7 +259,7 @@ int main(int argc, char *argv[])
 
     struct addrinfo hints, *result, *saved_result;
     int sock_listen;
-    int reuseaddr = 1;
+//    int reuseaddr = 1;
     int twiddle_timeout = 0;
     int twiddle_rit = 0;
     int uplink = 0;
@@ -314,6 +316,10 @@ int main(int argc, char *argv[])
 
         case 'R':
             rigctld_idle = 1;
+            break;
+
+        case 'b':
+            bind_all = 1;
             break;
 
         case 'A':
@@ -886,6 +892,7 @@ int main(int argc, char *argv[])
             exit(2);
         }
 
+#if 0
         if (setsockopt(sock_listen,
                        SOL_SOCKET,
                        SO_REUSEADDR,
@@ -898,6 +905,7 @@ int main(int argc, char *argv[])
             freeaddrinfo(saved_result);     /* No longer needed */
             exit(1);
         }
+#endif
 
 #ifdef IPV6_V6ONLY
 
@@ -923,19 +931,26 @@ int main(int argc, char *argv[])
 
 #endif
 
-        if (0 == bind(sock_listen, result->ai_addr, result->ai_addrlen))
+        int retval = bind(sock_listen, result->ai_addr, result->ai_addrlen);
+        if (retval == 0)
         {
             break;
         }
+        {
+            rig_debug(RIG_DEBUG_ERR,"%s: bind: %s\n", __func__, strerror(errno));
+        }
 
-        handle_error(RIG_DEBUG_WARN, "binding failed (trying next interface)");
+        if (bind_all)
+            handle_error(RIG_DEBUG_WARN, "binding failed (trying next interface)");
+        else
+            handle_error(RIG_DEBUG_WARN, "binding failed");
 #ifdef __MINGW32__
         closesocket(sock_listen);
 #else
         close(sock_listen);
 #endif
     }
-    while ((result = result->ai_next) != NULL);
+    while (bind_all && ((result = result->ai_next) != NULL));
 
     freeaddrinfo(saved_result);     /* No longer needed */
 
@@ -1122,7 +1137,11 @@ int main(int argc, char *argv[])
     {
         rig_debug(RIG_DEBUG_WARN, "%u outstanding client(s)\n", client_count);
     }
-
+#ifdef __MINGW__
+    closesocket(sock_listen);
+#else
+    close(sock_listen);
+#endif
     rig_close(my_rig);
     mutex_rigctld(0);
 #else
