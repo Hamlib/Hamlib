@@ -415,6 +415,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_LIBREADLINE
 
+    // cppcheck-suppress knownConditionTrueFalse
     if (interactive && prompt && have_rl)
     {
         rl_readline_name = "rotctl";
@@ -470,6 +471,7 @@ int main(int argc, char *argv[])
             exitcode = 2;
         }
     }
+    // cppcheck-suppress knownConditionTrueFalse
     while (retcode == 0 || retcode == 2);
 
 #ifdef HAVE_LIBREADLINE

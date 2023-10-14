@@ -1474,6 +1474,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[], int arg
             rot_debug(RIG_DEBUG_TRACE, "%s: NETROTCTL_RET %d\n", __func__, retcode);
             fprintf(fout, NETROTCTL_RET "%d\n", retcode);
             // ext_resp = 0; // not used ?
+            // cppcheck-suppress unreadVariable
             resp_sep = '\n';
         }
         else
@@ -1501,6 +1502,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[], int arg
             {
                 rot_debug(RIG_DEBUG_TRACE, "%s: NETROTCTL_RET 0\n", __func__);
                 fprintf(fout, NETROTCTL_RET "0\n");
+                // cppcheck-suppress unreadVariable
                 resp_sep = '\n';
             }
         }

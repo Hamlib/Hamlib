@@ -621,6 +621,7 @@ int main(int argc, char *argv[])
 
 #else
         handle_socket(arg);
+        retcode = 1;
 #endif
     }
 
