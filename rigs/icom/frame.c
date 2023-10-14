@@ -462,7 +462,8 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
         retval = icom_one_transaction(rig, cmd, subcmd, payload, payload_len, data,
                                       data_len);
 
-        if (retval == RIG_OK || retval == -RIG_ERJCTED)
+        // codes that make us return immediately
+        if (retval == RIG_OK || retval == -RIG_ERJCTED || retval == -RIG_BUSERROR)
         {
             break;
         }
