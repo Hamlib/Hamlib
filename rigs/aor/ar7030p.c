@@ -1264,7 +1264,7 @@ static int ar7030p_set_vfo(RIG *rig, vfo_t vfo)
 static int ar7030p_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int rc = RIG_OK;
-    struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
+    struct ar7030p_priv_data const *priv = (struct ar7030p_priv_data *) rig->state.priv;
 
     assert(NULL != vfo);
 
@@ -1348,7 +1348,7 @@ static int ar7030p_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     int rc = RIG_OK;
 
-    struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
+    struct ar7030p_priv_data const *priv = (struct ar7030p_priv_data *) rig->state.priv;
     const channel_t *curr = priv->curr;
 
     assert(NULL != ch);
