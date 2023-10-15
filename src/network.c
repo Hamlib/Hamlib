@@ -510,7 +510,7 @@ static int multicast_publisher_write_data(multicast_publisher_args
 }
 
 static int multicast_publisher_read_data(multicast_publisher_args
-        *mcast_publisher_args, size_t length, unsigned char *data)
+        const *mcast_publisher_args, size_t length, unsigned char *data)
 {
     ssize_t result;
 
@@ -817,8 +817,8 @@ int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line)
     RETURNFUNC2(RIG_OK);
 }
 
-static int multicast_publisher_read_packet(const multicast_publisher_args
-        *mcast_publisher_args,
+static int multicast_publisher_read_packet(multicast_publisher_args
+        const *mcast_publisher_args,
         uint8_t *type, struct rig_spectrum_line *spectrum_line,
         unsigned char *spectrum_data)
 {
