@@ -391,7 +391,6 @@ AC_MSG_CHECKING([whether to use INDI in rigctl/rotctl])
     )
 #])
 
-echo Here#1 $cf_with_indi_support
 AS_IF([test x"$cf_with_indi_support" != "xno"], [
     # INDI support needs a C++ compiler, tested for presence above.
     AS_IF([test x"${cf_with_cxx}" != "xyes"], [
@@ -399,7 +398,6 @@ AS_IF([test x"$cf_with_indi_support" != "xno"], [
 	cf_with_indi_support=no
     ])
 ])
-echo Here#2 $cf_with_indi_support
 
 AS_IF([test x"$cf_with_indi_support" != "xno"], [
     # macros/ax_lib_nova.m4
