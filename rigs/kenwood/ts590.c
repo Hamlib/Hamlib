@@ -40,11 +40,11 @@
 
 #define TS590_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
-    RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
+    RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_USB_AF|RIG_LEVEL_USB_AF_INPUT)
 
 #define TS590_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
-    RIG_LEVEL_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
+    RIG_LEVEL_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_USB_AF|RIG_LEVEL_USB_AF_INPUT)
 
 #define TS590_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT| \
     RIG_FUNC_TUNER|RIG_FUNC_MON|RIG_FUNC_FBKIN|RIG_FUNC_LOCK)
@@ -94,6 +94,8 @@
 #define TOK_LEVEL_TX_SIDETONE_VOLUME TOKEN_BACKEND(108)
 #define TOK_LEVEL_ACC2_AUDIO_INPUT_LEVEL TOKEN_BACKEND(109)
 #define TOK_LEVEL_ACC2_AUDIO_OUTPUT_LEVEL TOKEN_BACKEND(110)
+// these two USB_AUDIO items are being kept for backwards compatibility
+// replaced by RIG_LEVEL_USB_AF and RIG_LEVEL_USB_AF_INPUT
 #define TOK_LEVEL_USB_AUDIO_INPUT_LEVEL TOKEN_BACKEND(113)
 #define TOK_LEVEL_USB_AUDIO_OUTPUT_LEVEL TOKEN_BACKEND(114)
 #define TOK_LEVEL_DSP_TX_SSB_AM_LOW_CUT_FILTER TOKEN_BACKEND(115)
@@ -644,13 +646,23 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     struct kenwood_priv_data *priv = rig->state.priv;
     char ackbuf[50];
     size_t ack_len, ack_len_expected;
-    int levelint;
+    int levelint = 0;
     int retval;
 
     ENTERFUNC;
 
     switch (level)
     {
+    case RIG_LEVEL_USB_AF:
+        retval = ts590_get_ex_menu(rig, 65, 1, &levelint);
+        val->f = levelint / 9.0;
+        return retval;
+
+    case RIG_LEVEL_USB_AF_INPUT:
+        retval = ts590_get_ex_menu(rig, 64, 1, &levelint);
+        val->f = levelint / 9.0;
+        return retval;
+
     case RIG_LEVEL_AF:
         return kenwood_get_level(rig, vfo, level, val);
 
@@ -1263,7 +1275,17 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
         break;
 
-    case TOK_LEVEL_USB_AUDIO_INPUT_LEVEL:
+    case RIG_LEVEL_USB_AF_INPUT: // this one expect 0-1.0 levels
+        if (val.f > 1.0)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: Clipping USB AF input level to 1.0\n", __func__);
+            val.f = 9;
+        }
+        else
+        {
+            val.f = val.f * 9;
+        }
+    case TOK_LEVEL_USB_AUDIO_INPUT_LEVEL: // keep for backwards compatibility
         if (val.f < 0 || val.f > 9)
         {
             RETURNFUNC(-RIG_EINVAL);
@@ -1280,7 +1302,17 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
         break;
 
-    case TOK_LEVEL_USB_AUDIO_OUTPUT_LEVEL:
+    case RIG_LEVEL_USB_AF:
+        if (val.f > 1.0)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: Clipping USB AF output level to 1.0\n", __func__);
+            val.f = 9;
+        }
+        else
+        {
+            val.f = val.f * 9;
+        }
+    case TOK_LEVEL_USB_AUDIO_OUTPUT_LEVEL: // keep for backwards compatibility
         if (val.f < 0 || val.f > 9)
         {
             RETURNFUNC(-RIG_EINVAL);
@@ -1562,7 +1594,7 @@ const struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".7",
+    .version = BACKEND_VER ".8",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
