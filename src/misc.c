@@ -991,6 +991,7 @@ static const struct
     { RIG_LEVEL_TEMP_METER, "TEMP_METER" },
     { RIG_LEVEL_BAND_SELECT, "BAND_SELECT" },
     { RIG_LEVEL_USB_AF, "USB_AF" },
+    { RIG_LEVEL_USB_AF_INPUT, "USB_AF_INPUT" },
     { RIG_LEVEL_AGC_TIME, "AGC_TIME" },
     { RIG_LEVEL_NONE, "" },
 };

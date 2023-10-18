@@ -139,6 +139,8 @@
 #define LVL_SWR           setting2idx_builtin(RIG_LEVEL_SWR)
 #define LVL_ALC           setting2idx_builtin(RIG_LEVEL_ALC)
 #define LVL_STRENGTH      setting2idx_builtin(RIG_LEVEL_STRENGTH)
+#define LVL_USB_AF        setting2idx_builtin(RIG_LEVEL_USB_AF)
+#define LVL_USB_AF_INPUT  setting2idx_builtin(RIG_LEVEL_USB_AF_INPUT)
 /*#define LVL_BWC          setting2idx_builtin(RIG_LEVEL_BWC)*/
 
 #define LVL_RFPOWER_METER setting2idx_builtin(RIG_LEVEL_RFPOWER_METER)
