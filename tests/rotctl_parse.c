@@ -414,7 +414,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
         }
 
-        if (ferror(fin)) { rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); }
+        if (ferror(fin)) { rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); clearerr(fin); }
 
         return ret;
     }
