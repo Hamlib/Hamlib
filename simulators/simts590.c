@@ -29,6 +29,7 @@ int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
 int keyspd = 25;
 int width_high = 0;
 int width_low = 0;
+int afgain = 50;
 
 int
 getmyline(int fd, char *buf)
@@ -152,11 +153,18 @@ int main(int argc, char *argv[])
             pbuf = "MG050;";
             WRITE(fd, pbuf, strlen(pbuf));
         }
-        else if (strcmp(buf, "AG;") == 0)
+        else if (strcmp(buf, "AG0;") == 0)
         {
-            hl_usleep(mysleep * 1000);
-            pbuf = "AG100;";
-            WRITE(fd, pbuf, strlen(pbuf));
+            SNPRINTF(buf, sizeof(buf), "AG0%03d;", afgain);
+            WRITE(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "AG0",3) == 0)
+        {
+            sscanf(buf,"AG0%d",&afgain);
+        }
+        else if (strncmp(buf,"AG",2) == 0)
+        {
+            WRITE(fd,"?;",2);
         }
         else if (strcmp(buf, "FV;") == 0)
         {
