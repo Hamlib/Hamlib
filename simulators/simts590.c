@@ -15,6 +15,7 @@ struct ip_mreq
 #include <string.h>
 #include <unistd.h>
 #include <hamlib/rig.h>
+#include "sim.h"
 
 #define BUFSIZE 256
 
@@ -25,6 +26,9 @@ float freqB = 14074500;
 int filternum = 7;
 int datamode = 0;
 int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
+int keyspd = 25;
+int width_high = 0;
+int width_low = 0;
 
 int
 getmyline(int fd, char *buf)
@@ -104,7 +108,7 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             hl_usleep(mysleep * 1000);
             pbuf = "RM5100000;";
-            write(fd, pbuf, strlen(pbuf));
+            WRITE(fd, pbuf, strlen(pbuf));
         }
 
         else if (strcmp(buf, "AN0;") == 0)
@@ -112,7 +116,7 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             hl_usleep(mysleep * 1000);
             pbuf = "AN030;";
-            write(fd, pbuf, strlen(pbuf));
+            WRITE(fd, pbuf, strlen(pbuf));
         }
         else if (strcmp(buf, "IF;") == 0)
         {
@@ -120,91 +124,71 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             hl_usleep(mysleep * 1000);
             pbuf = "IF000503130001000+0000000000030000000;";
-            sprintf(ifbuf, "IF%011d0001000+0000000000030000000;", freqa);
+            sprintf(ifbuf, "IF%011d1000+0000000000030000000;", freqa);
             //pbuf = "IF00010138698     +00000000002000000 ;
-            write(fd, ifbuf, strlen(ifbuf));
-            continue;
+            WRITE(fd, ifbuf, strlen(ifbuf));
         }
         else if (strcmp(buf, "NB;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "NB0;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
+            WRITE(fd, pbuf, strlen(pbuf));
         }
         else if (strcmp(buf, "RA;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "RA01;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
+            WRITE(fd, pbuf, strlen(pbuf));
         }
         else if (strcmp(buf, "RG;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "RG055;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
+            WRITE(fd, pbuf, strlen(pbuf));
         }
         else if (strcmp(buf, "MG;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "MG050;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
+            WRITE(fd, pbuf, strlen(pbuf));
         }
         else if (strcmp(buf, "AG;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "AG100;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
+            WRITE(fd, pbuf, strlen(pbuf));
         }
         else if (strcmp(buf, "FV;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "FV1.2;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
+            WRITE(fd, pbuf, strlen(pbuf));
         }
         else if (strncmp(buf, "IS;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "IS+0000;");
-            write(fd, buf, strlen(buf));
+            WRITE(fd, buf, strlen(buf));
             printf("%s\n", buf);
-            continue;
         }
         else if (strncmp(buf, "IS", 2) == 0)
         {
-            continue;
         }
         else if (strncmp(buf, "SM;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "SM0035;");
-            write(fd, buf, strlen(buf));
-            printf("%s\n", buf);
-            continue;
-        }
-        else if (strncmp(buf, "PC;", 3) == 0)
-        {
-            SNPRINTF(buf, sizeof(buf), "PC100;");
-            write(fd, buf, strlen(buf));
-            printf("%s\n", buf);
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "FW;") == 0)
         {
             //usleep(mysleep * 1000);
             pbuf = "FW240";
-            write(fd, pbuf, strlen(pbuf));
+            WRITE(fd, pbuf, strlen(pbuf));
             hl_usleep(20 * 1000);
             pbuf = "0;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
+            WRITE(fd, pbuf, strlen(pbuf));
         }
         else if (strncmp(buf, "FW", 2) == 0)
         {
-            continue;
         }
         else if (strcmp(buf, "ID;") == 0)
         {
@@ -212,8 +196,7 @@ int main(int argc, char *argv[])
             hl_usleep(mysleep * 1000);
             int id = 24;
             SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
 
 #if 0
@@ -233,8 +216,7 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             hl_usleep(mysleep * 1000);
             pbuf = "VS0;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
+            WRITE(fd, pbuf, strlen(pbuf));
         }
         else if (strcmp(buf, "EX032;") == 0)
         {
@@ -243,60 +225,51 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             hl_usleep(mysleep * 1000);
             SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "EX", 2) == 0)
         {
-            continue;
         }
         else if (strcmp(buf, "FA;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FA%011d;", freqa);
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "FB;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FB%011d;", freqb);
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FA", 2) == 0)
         {
             sscanf(buf, "FA%d", &freqa);
-            continue;
         }
         else if (strncmp(buf, "FB", 2) == 0)
         {
             sscanf(buf, "FB%d", &freqb);
-            continue;
         }
         else if (strncmp(buf, "AI;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "AI0;");
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
 
         else if (strncmp(buf, "PS;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "PS1;");
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "SA;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "SA0;");
-            write(fd, buf, strlen(buf));
+            WRITE(fd, buf, strlen(buf));
         }
         else if (buf[3] == ';' && strncmp(buf, "SF", 2) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "SF%c%011.0f%c;", buf[2],
                      buf[2] == '0' ? freqA : freqB,
                      buf[2] == '0' ? modeA + '0' : modeB + '0');
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "SF", 2) == 0)
         {
@@ -307,36 +280,30 @@ int main(int argc, char *argv[])
 
             printf("modeA=%c, modeB=%c\n", modeA, modeB);
 
-            continue;
         }
         else if (strncmp(buf, "MD;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "MD%d;",
                      modeA); // not worried about modeB yet for simulator
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "MD", 2) == 0)
         {
             sscanf(buf, "MD%d", &modeA); // not worried about modeB yet for simulator
-            continue;
         }
         else if (strncmp(buf, "FL;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FL%03d;", filternum);
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FL", 2) == 0)
         {
             sscanf(buf, "FL%d", &filternum);
-            continue;
         }
         else if (strcmp(buf, "FR;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FR%d;", vfo);
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FR", 2) == 0)
         {
@@ -345,8 +312,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FT;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FR%d;", vfo_tx);
-            write(fd, buf, strlen(buf));
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FT", 2) == 0)
         {
@@ -355,23 +321,17 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "DA;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "DA%d;", datamode);
-            write(fd, buf, strlen(buf));
-            printf("%s\n", buf);
-            continue;
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "DA", 2) == 0)
         {
             sscanf(buf, "DA%d", &datamode);
-            printf("%s\n", buf);
-            continue;
         }
         else if (strncmp(buf, "BD;", 3) == 0)
         {
-            continue;
         }
         else if (strncmp(buf, "BU;", 3) == 0)
         {
-            continue;
         }
         else if (strncmp(buf, "TX", 2) == 0)
         {
@@ -388,8 +348,35 @@ int main(int argc, char *argv[])
             case '2': ptt_tune = 1;
             }
 
-            continue;
         }
+        else if (strncmp(buf, "KS;", 3) == 0)
+        {
+            sprintf(buf, "KS%03d;", keyspd);
+            WRITE(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "KS", 2) == 0)
+        {
+            sscanf(buf, "KS%03d", &keyspd);
+        }
+        else if (strncmp(buf, "SH", 2) == 0 && strlen(buf) > 4)
+        {
+        }
+        else if (strncmp(buf, "SH", 2) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "SH%02d;", width_high);
+            WRITE(fd,buf,strlen(buf));
+        }
+        else if (strncmp(buf, "SL", 2) == 0 && strlen(buf) > 4)
+        {
+            sscanf(buf, "SL%d", &width_low);
+            printf("width_main=%d, width_sub=%d\n", width_high, width_low);
+        }
+        else if (strncmp(buf, "SL", 2) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "SL%02d;", width_low);
+            WRITE(fd,buf,strlen(buf));
+        }
+
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
