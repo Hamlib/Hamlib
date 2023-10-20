@@ -160,6 +160,8 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 #endif
 }
 
+#define TRACE rig_debug(RIG_DEBUG_ERR, "TRACE %s(%d)\n", __func__,__LINE__);
+
 int network_init()
 {
     int retval = -RIG_EINTERNAL;
