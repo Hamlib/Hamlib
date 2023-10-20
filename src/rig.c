@@ -881,6 +881,7 @@ int HAMLIB_API rig_open(RIG *rig)
     value_t parm_value;
     //unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
     int is_network = 0;
+    int retval = 0;
 
     ENTERFUNC2;
 
@@ -1450,7 +1451,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (rig->caps->get_freq)
     {
-        int retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+        retval = rig_get_freq(rig, RIG_VFO_A, &freq);
 
         if (retval == RIG_OK && rig->caps->rig_model != RIG_MODEL_F6K)
         {
@@ -1484,6 +1485,21 @@ int HAMLIB_API rig_open(RIG *rig)
     memcpy(&rs->dcdport_deprecated, &rs->dcdport, sizeof(hamlib_port_t_deprecated));
     rig_flush_force(&rs->rigport, 1);
 //    if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL) multicast_init(rig, "224.0.0.1", 4532);
+//    multicast_init(rig, "224.0.0.1", 4532);
+    char *multicast_addr = "224.0.0.1";
+    int multicast_port = 4532;
+    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE |
+                                  RIG_MULTICAST_SPECTRUM;
+    retval = network_multicast_publisher_start(rig, multicast_addr,
+              multicast_port, items);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_server failed: %s\n", __FILE__,
+                  rigerror(retval));
+        // we will consider this non-fatal for now
+    }
+
     RETURNFUNC2(RIG_OK);
 }
 

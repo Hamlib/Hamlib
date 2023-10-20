@@ -13,6 +13,9 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Hamlib now starts a multicast server that sends out rig information.  Does not receive commands yet.
+          See README.multicast
+
         * rigctld has new -b/bind-all option to try all interfaces -- restores original behavior.  This was done to fix duplicate rigctld instances on Windows
         * Yaesu rigs can now use send_morse to send keyer message 1-5 or a CW message up to 50 chars (which will use memory 1)
         * rig set level METER can now take SWR,COMP,ALC,IC/ID,DB,PO,VDD,TEMP arguments to set which meter to display
