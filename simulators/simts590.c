@@ -30,6 +30,8 @@ int keyspd = 25;
 int width_high = 0;
 int width_low = 0;
 int afgain = 50;
+int usb_af = 5;
+int usb_af_input = 2;
 
 int
 getmyline(int fd, char *buf)
@@ -225,6 +227,24 @@ int main(int argc, char *argv[])
             hl_usleep(mysleep * 1000);
             pbuf = "VS0;";
             WRITE(fd, pbuf, strlen(pbuf));
+        }
+        else if (strcmp(buf, "EX0640000;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "EX0640000%d;", usb_af_input);
+            WRITE(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "EX0640000", 9) == 0)
+        {
+            sscanf(buf, "EX0640000%d", &usb_af_input);
+        }
+        else if (strcmp(buf, "EX0650000;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "EX0650000%d;", usb_af);
+            WRITE(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "EX0650000", 9) == 0)
+        {
+            sscanf(buf, "EX0650000%d", &usb_af);
         }
         else if (strcmp(buf, "EX032;") == 0)
         {

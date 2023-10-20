@@ -459,6 +459,16 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
+    case RIG_LEVEL_USB_AF:
+        kenwood_val = val.f * 10;
+        SNPRINTF(levelbuf, sizeof(levelbuf), "EX0650000%d", kenwood_val);
+        break;
+
+    case RIG_LEVEL_USB_AF_INPUT:
+        kenwood_val = val.f * 10;
+        SNPRINTF(levelbuf, sizeof(levelbuf), "EX0640000%d", kenwood_val);
+        break;
+
     case RIG_LEVEL_RF:
         kenwood_val = val.f * 255;
         SNPRINTF(levelbuf, sizeof(levelbuf), "RG%03d", kenwood_val);
@@ -655,12 +665,12 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
     case RIG_LEVEL_USB_AF:
         retval = ts590_get_ex_menu(rig, 65, 1, &levelint);
-        val->f = levelint / 9.0;
+        val->f = levelint / 10.0;
         return retval;
 
     case RIG_LEVEL_USB_AF_INPUT:
         retval = ts590_get_ex_menu(rig, 64, 1, &levelint);
-        val->f = levelint / 9.0;
+        val->f = levelint / 10.0;
         return retval;
 
     case RIG_LEVEL_AF:
@@ -1594,7 +1604,7 @@ const struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".8",
+    .version = BACKEND_VER ".9",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1986,7 +1996,7 @@ const struct rig_caps ts590sg_caps =
     RIG_MODEL(RIG_MODEL_TS590SG),
     .model_name = "TS-590SG",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".5",
+    .version = BACKEND_VER ".6",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,

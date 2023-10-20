@@ -3418,8 +3418,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level %s", __func__,
-                  rig_strlevel(level));
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_level (0x%08lx) %s", __func__,
+                  level, rig_strlevel(level));
         RETURNFUNC(-RIG_EINVAL);
     }
 
