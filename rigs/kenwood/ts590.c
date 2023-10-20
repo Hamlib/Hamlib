@@ -454,6 +454,7 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     char levelbuf[16];
     int kenwood_val;
     int result;
+    int cmd;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
@@ -461,12 +462,16 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_USB_AF:
         kenwood_val = val.f * 10;
-        SNPRINTF(levelbuf, sizeof(levelbuf), "EX0650000%d", kenwood_val);
+        cmd = 65; // TS-590S
+        if (rig->caps->rig_model == RIG_MODEL_TS590SG cmd=72)
+        SNPRINTF(levelbuf, sizeof(levelbuf), "EX%03d0000%d", kenwood_val);
         break;
 
     case RIG_LEVEL_USB_AF_INPUT:
         kenwood_val = val.f * 10;
-        SNPRINTF(levelbuf, sizeof(levelbuf), "EX0640000%d", kenwood_val);
+        cmd = 64; // TS-590S
+        if (rig->caps->rig_model == RIG_MODEL_TS590SG cmd=71)
+        SNPRINTF(levelbuf, sizeof(levelbuf), "EX%03d0000%d", cmd, kenwood_val);
         break;
 
     case RIG_LEVEL_RF:
