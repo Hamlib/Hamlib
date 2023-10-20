@@ -408,7 +408,7 @@ grbltrk_rot_set_conf(ROT *rot, token_t token, const char *val)
 {
     uint32_t resp_size, len;
 
-    rot_debug(RIG_DEBUG_ERR, "token: %ld; value: [%s]\n", token, val);
+    rot_debug(RIG_DEBUG_ERR, "token: %lld; value: [%s]\n", token, val);
 
     len = strlen(val);
 
