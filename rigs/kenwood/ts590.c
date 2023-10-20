@@ -663,18 +663,23 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     size_t ack_len, ack_len_expected;
     int levelint = 0;
     int retval;
+    int cmd;
 
     ENTERFUNC;
 
     switch (level)
     {
     case RIG_LEVEL_USB_AF:
-        retval = ts590_get_ex_menu(rig, 65, 1, &levelint);
+        cmd = 65; // TS-590S
+        if (rig->caps->rig_model == RIG_MODEL_TS590SG) cmd=72;
+        retval = ts590_get_ex_menu(rig, cmd, 1, &levelint);
         val->f = levelint / 10.0;
         return retval;
 
     case RIG_LEVEL_USB_AF_INPUT:
-        retval = ts590_get_ex_menu(rig, 64, 1, &levelint);
+        cmd = 65; // TS-590S
+        if (rig->caps->rig_model == RIG_MODEL_TS590SG) cmd=71;
+        retval = ts590_get_ex_menu(rig, cmd, 1, &levelint);
         val->f = levelint / 10.0;
         return retval;
 
