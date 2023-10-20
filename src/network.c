@@ -945,7 +945,7 @@ void *multicast_publisher(void *arg)
             continue;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: sending rig snapshot data: %s\n", __func__,
+        rig_debug(RIG_DEBUG_CACHE, "%s: sending rig snapshot data: %s\n", __func__,
                   snapshot_buffer);
 
         send_result = sendto(

@@ -40,6 +40,7 @@ getmyline(int fd, char *buf)
     int i = 0;
     memset(buf, 0, BUFSIZE);
 
+    hl_usleep(5*1000);
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
