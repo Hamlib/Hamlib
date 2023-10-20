@@ -832,7 +832,7 @@ typedef enum {
 /**
  * \brief configuration token
  */
-typedef long token_t;
+typedef unsigned long long token_t;
 
 
 //! @cond Doxygen_Suppress
