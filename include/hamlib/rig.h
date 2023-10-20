@@ -1076,9 +1076,8 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_TEMP_METER           CONSTANT_64BIT_FLAG(48)      /*!< \c TEMP_METER -- arg float (C, centigrade) */
 #define RIG_LEVEL_BAND_SELECT          CONSTANT_64BIT_FLAG(49)      /*!< \c BAND_SELECT -- arg enum BAND_ENUM */
 #define RIG_LEVEL_USB_AF               CONSTANT_64BIT_FLAG(50)      /*!< \c ACC/USB AF output level */
-#define RIG_LEVEL_USB_AF_INPUT         CONSTANT_64BIT_FLAG(51)      /*!< \c ACC/USB AF output level */
-#define RIG_LEVEL_AGC_TIME             CONSTANT_64BIT_FLAG(51)      /*!< \c AGC_TIME -- in seconds, rig dependent */
-#define RIG_LEVEL_52           CONSTANT_64BIT_FLAG(52)      /*!< \c Future use */
+#define RIG_LEVEL_USB_AF_INPUT         CONSTANT_64BIT_FLAG(51)      /*!< \c ACC/USB AF input level */
+#define RIG_LEVEL_AGC_TIME             CONSTANT_64BIT_FLAG(52)      /*!< \c AGC_TIME -- in seconds, rig dependent */
 #define RIG_LEVEL_53           CONSTANT_64BIT_FLAG(53)      /*!< \c Future use */
 #define RIG_LEVEL_54           CONSTANT_64BIT_FLAG(54)      /*!< \c Future use */
 #define RIG_LEVEL_55           CONSTANT_64BIT_FLAG(55)      /*!< \c Future use */
