@@ -1,13 +1,69 @@
-Planned for version 5.0 -- comments/suggestions about this are more than welcome
+Planned for version 4.6 -- comments/suggestions about this are more than welcome
+Example of multicast packet as of 2023-10-20
+===================================================================
+{
+  "app": "Hamlib",
+  "version": "4.6~git 2023-10-20T16:52:59Z SHA=d87671",
+  "seq": 183,
+  "time": "2023-10-20T20:13:53.139869-0000",
+  "crc": 0,
+  "rig": {
+    "id": "FLRig:127.0.0.1:12345:30508",
+    "status": "OK",
+    "errorMsg": "",
+    "name": "FLRig",
+    "split": false,
+    "splitVfo": "VFOA",
+    "satMode": false,
+    "modelist": "AM CW USB LSB FM CWR PKTLSB PKTUSB "
+  },
+  "vfos": [
+    {
+      "name": "VFOA",
+      "freq": 14074270,
+      "mode": "PKTUSB",
+      "width": 3,
+      "ptt": false,
+      "rx": true,
+      "tx": true
+    },
+    {
+      "name": "VFOB",
+      "freq": 14074500,
+      "mode": "",
+      "width": 0,
+      "ptt": false,
+      "rx": false,
+      "tx": false
+    }
+  ],
+  "spectra": [
+    {
+      "id": 0,
+      "name": "?",
+      "type": "FIXED",
+      "minLevel": 0,
+      "maxLevel": 0,
+      "minStrength": 0,
+      "maxStrength": 0,
+      "centerFreq": 0,
+      "span": 0,
+      "lowFreq": 0,
+      "highFreq": 0,
+      "length": 0,
+      "data": ""
+    }
+  ]
+}
+===========================================================
 Multicast UDP broadcast containing rig snapshot data
 Bidirectional rig control and status
 Choice of token pairs or JSON
 All packets will be tagged with ID=[unique name] -- so multiple rigs can broadcast/rx on the same port
-Will be able to set freq, mode, width, ptt, satmode, and split to start since those are common to many apps.
+Will eventually be able to set freq, mode, width, ptt, satmode, and split to start since those are common to many apps.
 More functions will be added as time goes on.
 
 Broadcast packet contents to be based on get_rig_info output
-This will be the text format of name=value pairs
 Can be multiple VFO lines
 Parsers should allow for unknown tags that may be added in the future
 

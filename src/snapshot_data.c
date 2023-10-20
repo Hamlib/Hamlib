@@ -1,5 +1,7 @@
+#include <sys/types.h>
+#define _XOPEN_SOURCE 700
+#include <unistd.h>
 #include <hamlib/config.h>
-
 #include <hamlib/rig.h>
 #include "misc.h"
 #include "snapshot_data.h"
@@ -19,8 +21,8 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     char buf[1024];
 
     // TODO: need to assign rig an ID, e.g. from command line
-    snprintf(buf, sizeof(buf), "%s:%s", rig->caps->model_name,
-         rig->state.rigport.pathname);
+    snprintf(buf, sizeof(buf), "%s:%s:%d", rig->caps->model_name,
+         rig->state.rigport.pathname, getpid());
 
     node = cJSON_AddStringToObject(rig_node, "id", buf);
 
