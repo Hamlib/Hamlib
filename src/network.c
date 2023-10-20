@@ -182,6 +182,10 @@ int network_init()
             return (-RIG_EIO);
         }
     }
+    else // already started
+    {
+        retval = RIG_OK;
+    }
 #else
     retval = RIG_OK;
 
