@@ -95,6 +95,7 @@ int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
     for (i = 0; i < HAMLIB_MAX_MODES; i++)
     {
         const char *ms = rig_strrmode(mode & (1ULL << i));
+        if (i > 0) strcat(str, " ");
 
         if (!ms || !ms[0])
         {
@@ -102,7 +103,6 @@ int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
         }
 
         strcat(str, ms);
-        strcat(str, " ");
         len += strlen(ms) + 1;
         check_buffer_overflow(str, len, nlen);
     }
