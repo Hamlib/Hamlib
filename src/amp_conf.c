@@ -694,7 +694,7 @@ int HAMLIB_API amp_set_conf(AMP *amp, token_t token, const char *val)
     {
         const struct confparams *cfp;
         char tokenstr[12];
-        SNPRINTF(tokenstr, sizeof(tokenstr), "%lld", token);
+        SNPRINTF(tokenstr, sizeof(tokenstr), "%ld", token);
         cfp = amp_confparam_lookup(amp, tokenstr);
 
         if (!cfp)

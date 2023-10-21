@@ -4588,7 +4588,7 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     int lvl_cn, lvl_sc;       /* Command Number, Subcommand */
     int i, retval;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called: token=%lld int=%d float=%f\n", __func__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called: token=%ld int=%d float=%f\n", __func__,
               token, val.i, val.f);
 
     switch (token)
@@ -4699,7 +4699,7 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
             else { i++; }
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_ext_level token: %lld\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported set_ext_level token: %ld\n", __func__,
                   token);
         RETURNFUNC2(-RIG_EINVAL);
     }
@@ -4806,7 +4806,7 @@ int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
             else { i++; }
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_ext_level token: %lld\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_ext_level token: %ld\n", __func__,
                   token);
         RETURNFUNC(-RIG_EINVAL);
     }

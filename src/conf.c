@@ -1287,7 +1287,7 @@ int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
     {
         const struct confparams *cfp;
         char tokenstr[12];
-        SNPRINTF(tokenstr, sizeof(tokenstr), "%lld", token);
+        SNPRINTF(tokenstr, sizeof(tokenstr), "%ld", token);
         cfp = rig_confparam_lookup(rig, tokenstr);
 
         if (!cfp)
