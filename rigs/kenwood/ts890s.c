@@ -28,31 +28,28 @@
 #include "cal.h"
 #include "misc.h"
 
-// TODO: Copied from TS-480, to be verified
 #define TS890_VFO (RIG_VFO_A|RIG_VFO_B)
 
 #define TS890_ALL_MODES (RIG_MODE_LSB|RIG_MODE_USB|RIG_MODE_CW|RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
 
-// TODO: Copied from TS-480, to be verified
 #define TS890_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
-// TODO: Copied from TS-480, to be verified
 #define TS890_AM_TX_MODES RIG_MODE_AM
 
-// TODO: Copied from TS-480, to be verified
-#define TS890_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH|RIG_LEVEL_ATT)
-#define TS890_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_KEYSPD|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_TEMP_METER|RIG_LEVEL_CWPITCH|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT)
+#define TS890_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH|RIG_LEVEL_ATT|RIG_LEVEL_USB_AF|RIG_LEVEL_USB_AF_INPUT)
+#define TS890_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_KEYSPD|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_TEMP_METER|RIG_LEVEL_CWPITCH|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_USB_AF|RIG_LEVEL_USB_AF_INPUT)
 #define TS890_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_NB2|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_SEND_MORSE)
 
 #define TS890_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_CPY|RIG_OP_TUNE)
 
 int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    char levelbuf[16];
+    char levelbuf[16], *command_string;
     int kenwood_val, retval;
+    gran_t *level_info;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    retval = check_level_param(rig, level, val, NULL);
+    retval = check_level_param(rig, level, val, &level_info);
     if (retval != RIG_OK)
       {
 	return retval;
@@ -60,16 +57,6 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     
     switch (level)
     {
-    case RIG_LEVEL_RF:
-        kenwood_val = val.f * 255;
-        SNPRINTF(levelbuf, sizeof(levelbuf), "RG%03d", kenwood_val);
-        break;
-
-    case RIG_LEVEL_SQL:
-        kenwood_val = val.f * 255;
-        SNPRINTF(levelbuf, sizeof(levelbuf), "SQ%03d", kenwood_val);
-        break;
-
     case RIG_LEVEL_AGC:
         /* hamlib argument is int, possible values rig.h:enum agc_level_e */
         /* possible values for TS890 0(=off), 1(=slow), 2(=mid), 3(=fast), 4(=off/Last) */
@@ -91,12 +78,31 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	  }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "GC%d", kenwood_val);
+        return kenwood_transaction(rig, levelbuf, NULL, 0); /* Odd man out */
+
+    case RIG_LEVEL_RF:
+        command_string = "RG%03d";
+        break;
+
+    case RIG_LEVEL_SQL:
+        command_string = "SQ%03d";
+        break;
+
+    case RIG_LEVEL_USB_AF:
+        command_string = "EX00708 %03d";
+        break;
+
+    case RIG_LEVEL_USB_AF_INPUT:
+        command_string = "EX00706 %03d";
         break;
 
     default:
         return kenwood_set_level(rig, vfo, level, val);
     }
 
+    //TODO: Add use of RIG_LEVEL_IS_FLOAT() if need to handle int level
+    kenwood_val = val.f / level_info->step.f + 0.5;
+    SNPRINTF(levelbuf, sizeof(levelbuf), command_string, kenwood_val);
     return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
@@ -153,10 +159,13 @@ int ts890_get_meter_reading(RIG *rig, char meter, int *pips)
 int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char ackbuf[50];
-    size_t ack_len, ack_len_expected;
+    size_t ack_len, ack_len_expected, len;
     int levelint;
     int retval;
+    char *command_string;
+    gran_t *level_info;
 
+    level_info = &rig->caps->level_gran[rig_setting2idx(level)];
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     switch (level)
@@ -219,7 +228,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_EPROTO;
         }
 
-        val->f = (float) levelint / 255.;
+        val->f = (float) levelint * level_info->step.f;
         return RIG_OK;
 
     case RIG_LEVEL_AGC:
@@ -382,6 +391,19 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->i = (int)floorf(rig_raw2val_float(val->i, table) + 0.5f);
         return RIG_OK;
     }
+
+    case RIG_LEVEL_USB_AF:
+    case RIG_LEVEL_USB_AF_INPUT:
+        if ( level == RIG_LEVEL_USB_AF )
+          { command_string = "EX00708"; }
+        else
+          { command_string = "EX00706"; }
+        len = strlen(command_string);
+        retval = kenwood_safe_transaction(rig, command_string, ackbuf, sizeof(ackbuf), len + 4);
+        if (retval != RIG_OK) { return retval; }
+        sscanf(&ackbuf[len + 1], "%3d", &levelint);  /* Skip the extra space */
+        val->f = levelint * level_info->step.f;
+        return RIG_OK;
 
     default:
         return kenwood_get_level(rig, vfo, level, val);
@@ -570,6 +592,8 @@ const struct rig_caps ts890s_caps =
         [LVL_ATT]     = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1100 }, .step = { .i = 5 } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0 / 255.0 } },
+        [LVL_USB_AF] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0/100.0 } },
+        [LVL_USB_AF_INPUT] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0/100.0 } },
     },
     .has_get_func = TS890_FUNC_ALL,
     .has_set_func = TS890_FUNC_ALL,
