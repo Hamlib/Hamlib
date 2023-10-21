@@ -1488,8 +1488,8 @@ int HAMLIB_API rig_open(RIG *rig)
 //    multicast_init(rig, "224.0.0.1", 4532);
     char *multicast_addr = "224.0.0.1";
     int multicast_port = 4532;
-    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE |
-                                  RIG_MULTICAST_SPECTRUM;
+    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE;
+//                                  | RIG_MULTICAST_SPECTRUM;
     retval = network_multicast_publisher_start(rig, multicast_addr,
               multicast_port, items);
 
