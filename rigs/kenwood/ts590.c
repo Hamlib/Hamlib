@@ -1295,16 +1295,6 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
         break;
 
-    case RIG_LEVEL_USB_AF_INPUT: // this one expect 0-1.0 levels
-        if (val.f > 1.0)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: Clipping USB AF input level to 1.0\n", __func__);
-            val.f = 9;
-        }
-        else
-        {
-            val.f = val.f * 9;
-        }
     case TOK_LEVEL_USB_AUDIO_INPUT_LEVEL: // keep for backwards compatibility
         if (val.f < 0 || val.f > 9)
         {
@@ -1322,16 +1312,6 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 
         break;
 
-    case RIG_LEVEL_USB_AF:
-        if (val.f > 1.0)
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: Clipping USB AF output level to 1.0\n", __func__);
-            val.f = 9;
-        }
-        else
-        {
-            val.f = val.f * 9;
-        }
     case TOK_LEVEL_USB_AUDIO_OUTPUT_LEVEL: // keep for backwards compatibility
         if (val.f < 0 || val.f > 9)
         {
