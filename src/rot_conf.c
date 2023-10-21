@@ -759,7 +759,7 @@ int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
     {
         const struct confparams *cfp;
         char tokenstr[32];
-        SNPRINTF(tokenstr, sizeof(tokenstr), "%lld", token);
+        SNPRINTF(tokenstr, sizeof(tokenstr), "%ld", token);
         cfp = rot_confparam_lookup(rot, tokenstr);
 
         if (!cfp)
