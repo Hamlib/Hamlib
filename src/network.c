@@ -921,7 +921,14 @@ void *multicast_publisher(void *arg)
 
     while (rs->multicast_publisher_run == 1)
     {
+        int i;
         int result;
+        static freq_t freqA, freqB, freqC;
+        static mode_t modeA, modeB, modeC;
+        static pbwidth_t widthA, widthB, widthC;
+        static ptt_t ptt;
+        static split_t split;
+
 #if 0
         result = multicast_publisher_read_packet(args, &packet_type, &spectrum_line,
                  spectrum_data);
@@ -967,7 +974,65 @@ void *multicast_publisher(void *arg)
             rig_debug(RIG_DEBUG_ERR, "%s: error sending UDP packet: %s\n", __func__,
                       strerror(errno));
         }
-        hl_usleep(1000*1000);
+        for(i=0;i<5;++i)
+        {
+            if (rig->state.cache.freqMainA != freqA)
+            {
+                freqA = rig->state.cache.freqMainA;
+                break;
+            }
+            if (rig->state.cache.freqMainB != freqB)
+            {
+                freqB = rig->state.cache.freqMainB;
+                break;
+            }
+            if (rig->state.cache.freqMainC != freqC)
+            {
+                freqC = rig->state.cache.freqMainC;
+                break;
+            }
+            if (rig->state.cache.ptt != ptt)
+            {
+                ptt = rig->state.cache.ptt;
+                break;
+            }
+            if (rig->state.cache.split != split)
+            {
+                split = rig->state.cache.split;
+                break;
+            }
+            if (rig->state.cache.modeMainA != modeA)
+            {
+                modeA = rig->state.cache.modeMainA;
+                break;
+            }
+            if (rig->state.cache.modeMainB != modeB)
+            {
+                modeB = rig->state.cache.modeMainB;
+                break;
+            }
+            if (rig->state.cache.modeMainC != modeC)
+            {
+                modeC = rig->state.cache.modeMainC;
+                break;
+            }
+            if (rig->state.cache.widthMainA != widthA)
+            {
+                widthA = rig->state.cache.widthMainA;
+                break;
+            }
+            if (rig->state.cache.widthMainB != widthB)
+            {
+                widthB = rig->state.cache.widthMainB;
+                break;
+            }
+            if (rig->state.cache.widthMainC != widthC)
+            {
+                widthC = rig->state.cache.widthMainC;
+                break;
+            }
+            hl_usleep(200*1000);
+        }
 
     }
     rs->multicast_publisher_run = 2; // stop value
