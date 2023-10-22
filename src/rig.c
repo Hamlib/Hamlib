@@ -1542,7 +1542,7 @@ int HAMLIB_API rig_close(RIG *rig)
     morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
     network_multicast_publisher_stop(rig);
-    while(rs->multicast_publisher_run != 2) hl_usleep(10*1000);
+    //while(rs->multicast_publisher_run != 2) hl_usleep(10*1000);
     //multicast_stop(rig);
 
     /*

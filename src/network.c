@@ -636,6 +636,7 @@ static int multicast_publisher_write_data(const multicast_publisher_args
     return (RIG_OK);
 }
 
+#if 0
 static int multicast_publisher_read_data(const multicast_publisher_args
         *mcast_publisher_args, size_t length, unsigned char *data)
 {
@@ -700,6 +701,7 @@ static int multicast_publisher_read_data(const multicast_publisher_args
 
     return (RIG_OK);
 }
+#endif
 
 #endif
 
@@ -823,6 +825,7 @@ int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line)
     RETURNFUNC2(RIG_OK);
 }
 
+#if 0
 static int multicast_publisher_read_packet(multicast_publisher_args
         const *mcast_publisher_args,
         uint8_t *type, struct rig_spectrum_line *spectrum_line,
@@ -888,10 +891,11 @@ static int multicast_publisher_read_packet(multicast_publisher_args
 
     return (RIG_OK);
 }
+#endif
 
 void *multicast_publisher(void *arg)
 {
-    unsigned char spectrum_data[HAMLIB_MAX_SPECTRUM_DATA];
+    //unsigned char spectrum_data[HAMLIB_MAX_SPECTRUM_DATA];
     char snapshot_buffer[HAMLIB_MAX_SNAPSHOT_PACKET_SIZE];
 
     struct multicast_publisher_args_s *args = (struct multicast_publisher_args_s *)
@@ -915,12 +919,13 @@ void *multicast_publisher(void *arg)
 
     rs->multicast_publisher_run = 1;
 
-    while (rs->multicast_publisher_run)
+    while (rs->multicast_publisher_run == 1)
     {
         int result;
+#if 0
         result = multicast_publisher_read_packet(args, &packet_type, &spectrum_line,
                  spectrum_data);
-
+#endif      
         if (result != RIG_OK)
         {
             if (result == -RIG_ETIMEOUT)
@@ -962,7 +967,10 @@ void *multicast_publisher(void *arg)
             rig_debug(RIG_DEBUG_ERR, "%s: error sending UDP packet: %s\n", __func__,
                       strerror(errno));
         }
+        hl_usleep(1000);
+
     }
+    rs->multicast_publisher_run = 2; // stop value
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping multicast publisher\n", __FILE__,
               __LINE__);
