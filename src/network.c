@@ -967,7 +967,7 @@ void *multicast_publisher(void *arg)
             rig_debug(RIG_DEBUG_ERR, "%s: error sending UDP packet: %s\n", __func__,
                       strerror(errno));
         }
-        hl_usleep(1000);
+        hl_usleep(1000*1000);
 
     }
     rs->multicast_publisher_run = 2; // stop value

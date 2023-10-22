@@ -20,16 +20,26 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     cJSON *node;
     char buf[1024];
 
+#if 0
     // TODO: need to assign rig an ID, e.g. from command line
     snprintf(buf, sizeof(buf), "%s:%s:%d", rig->caps->model_name,
          rig->state.rigport.pathname, getpid());
 
     node = cJSON_AddStringToObject(rig_node, "id", buf);
-
     if (node == NULL)
     {
         goto error;
     }
+
+#else
+    cJSON *id_node = cJSON_CreateObject();
+    cJSON_AddStringToObject(id_node, "model", rig->caps->model_name);
+    cJSON_AddStringToObject(id_node, "endpoint", rig->state.rigport.pathname);
+    char pid[16];
+    sprintf(pid,"%d",getpid());
+    cJSON_AddStringToObject(id_node, "process", pid);
+    cJSON_AddItemToObject(rig_node, "id", id_node);
+#endif
 
     // TODO: what kind of status should this reflect?
     node = cJSON_AddStringToObject(rig_node, "status",
@@ -80,13 +90,17 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     }
 
     rig_sprintf_mode(buf, sizeof(buf), rig->state.mode_list);
-    node = cJSON_AddStringToObject(rig_node, "modelist", buf);
-
-    if (node == NULL)
+    char *p;
+    cJSON *modes_array = cJSON_CreateArray();
+    for(p=strtok(buf," ");p;p=strtok(NULL, " "))
     {
-        goto error;
+        if (strlen(buf)>0) {
+            cJSON *tmp = cJSON_CreateString(p);
+            cJSON_AddItemToArray(modes_array, tmp);
+        }
     }
-
+    cJSON_AddItemToObject(rig_node, "modes", modes_array);
+    
     //RETURNFUNC2(RIG_OK);
     return RIG_OK;
 
@@ -94,11 +108,15 @@ error:
     RETURNFUNC2(-RIG_EINTERNAL);
 }
 
+// 128 max modes should last a while
+#define MAX_MODES 128
+
 static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
 {
     freq_t freq;
     int freq_ms, mode_ms, width_ms;
     rmode_t mode;
+    //rmode_t modes[MAX_MODES];
     pbwidth_t width;
     ptt_t ptt;
     split_t split;

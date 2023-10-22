@@ -90,14 +90,23 @@ JSON data snapshot format for UDP packets:
   "crc": 0,
   "rig": {
     "__comment1__": "customizable rig identification -- will allow multiple rigs to be on the multicast",
-    "id": "Rig#1",
-    "name": "Dummy",
+    "id": {
+        "model":"IC-7300",
+        "endpoint":"com1",
+        "process":"53535",
+    }
+    "name": "IC-7300",
     "ptt" : false,
     "split": true,
     "splitVfo": "VFOB",
     "satMode": false,
     "status": "OK";
     "errorMsg": "OK",
+    "modes":[
+        "AM",
+        "CW",
+        "USB"
+    ]
   },
   "vfos": [
   {
