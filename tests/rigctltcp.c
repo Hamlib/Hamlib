@@ -586,7 +586,7 @@ int main(int argc, char *argv[])
 
             twiddle_rit = atoi(optarg);
             fprintf(stderr,
-                    "twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
+                    "twiddle_rit is deprecated...use e.g. --set-conf=twiddle_rit=1\n");
             break;
 
 
