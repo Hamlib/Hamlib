@@ -1427,7 +1427,7 @@ static int read_string_generic(hamlib_port_t *p,
 //                          direct);
             }
                 // special read for FLRig
-    if (strcmp(stopset, "</methodResponse>") == 0)
+    if (stopset != NULL && strcmp(stopset, "</methodResponse>") == 0)
     {
         if (strstr((char*)rxbuffer, stopset))
         {
