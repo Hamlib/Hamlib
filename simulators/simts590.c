@@ -32,6 +32,7 @@ int width_low = 0;
 int afgain = 50;
 int usb_af = 5;
 int usb_af_input = 2;
+int mic_gain = 50;
 
 int
 getmyline(int fd, char *buf)
@@ -153,8 +154,12 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "MG;") == 0)
         {
             hl_usleep(mysleep * 1000);
-            pbuf = "MG050;";
-            WRITE(fd, pbuf, strlen(pbuf));
+            SNPRINTF(buf, sizeof(buf), "MG%03d;", mic_gain);
+            WRITE(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "MG", 2) == 0)
+        {
+            sscanf(buf,"MG%d", &mic_gain);
         }
         else if (strcmp(buf, "AG0;") == 0)
         {

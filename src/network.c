@@ -515,6 +515,7 @@ static int multicast_publisher_write_data(multicast_publisher_args
     return (RIG_OK);
 }
 
+#if 0 // disable until we figure out what to do about Windows poor performance
 static int multicast_publisher_read_data(multicast_publisher_args
         const *mcast_publisher_args, size_t length, unsigned char *data)
 {
@@ -557,6 +558,7 @@ static int multicast_publisher_read_data(multicast_publisher_args
 
     return (RIG_OK);
 }
+#endif
 
 #else
 
@@ -978,6 +980,7 @@ void *multicast_publisher(void *arg)
         }
         for(i=0;i<5;++i)
         {
+            hl_usleep(200*1000);
             if (rig->state.cache.freqMainA != freqA)
             {
                 freqA = rig->state.cache.freqMainA;
@@ -1033,7 +1036,6 @@ void *multicast_publisher(void *arg)
                 widthC = rig->state.cache.widthMainC;
                 break;
             }
-            hl_usleep(200*1000);
         }
 
     }
