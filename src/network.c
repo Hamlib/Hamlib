@@ -957,8 +957,10 @@ void *multicast_publisher(void *arg)
             continue;
         }
 
+#if 0
         rig_debug(RIG_DEBUG_CACHE, "%s: sending rig snapshot data: %s\n", __func__,
                   snapshot_buffer);
+#endif
 
         send_result = sendto(
                           socket_fd,
