@@ -3789,7 +3789,7 @@ int newcat_reset(RIG *rig, reset_t reset)
 
 
 /* If we ever want to support ANT3 better on the FTDX101D
-Maybe make ANT_4/5/6/7?
+Maybe make ANT_4/5/6/7?  Since firmware version 201906
 EX0301030   => RX 3 - TX 3  => MONITOR [3]
 EX0301031   => RX 3 - TX 1  => MONITOR [R/T1]
 EX0301032   => RX 3 - TX 2  => MONITOR [R/T2]
