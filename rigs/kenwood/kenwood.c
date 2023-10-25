@@ -2861,7 +2861,7 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf),
-                         NULL, ";", 1, 1);
+                         NULL, 0, 1, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 
