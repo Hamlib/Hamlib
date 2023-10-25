@@ -4814,24 +4814,25 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (is_ftdx101d || is_ftdx101mp)
         {
             rmode_t curmode = rig->state.current_vfo == RIG_VFO_A? rig->state.cache.modeMainA : rig->state.cache.modeMainB;
+            float valf = (val.f / level_info->step.f) + 0.5f;
             switch(curmode)
             {
                 case RIG_MODE_USB:
                 case RIG_MODE_LSB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%03.0f%c", val.f*100, cat_term);
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%03.0f%c", valf, cat_term);
                     break;
                 case RIG_MODE_AM:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%03.0f%c", val.f*100, cat_term);
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%03.0f%c", valf, cat_term);
                     break;
                 case RIG_MODE_FM:
                 case RIG_MODE_FMN:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%03.0f%c", val.f*100, cat_term);
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%03.0f%c", valf, cat_term);
                     break;
                 case RIG_MODE_PKTFM:  // is this the right place for this?
                 case RIG_MODE_PKTFMN: // is this the right place for this?
                 case RIG_MODE_PKTUSB:
                 case RIG_MODE_PKTLSB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%03.0f%c", val.f*100, cat_term);
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%03.0f%c", valf, cat_term);
                     break;
                 default:
                     rig_debug(RIG_DEBUG_ERR, "%s: unknown how to set USB_AF for mode=%s\n", __func__, rig_strrmode(curmode));
@@ -5910,7 +5911,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_USB_AF_INPUT:
         i = 0;
         sscanf(retlvl, "%3d", &i);
-        val->f = i / 100.0;
+        val->f = i * level_info->step.f;
         break;
 
     default:
