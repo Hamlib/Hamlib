@@ -4850,6 +4850,36 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         break;
 
+    case RIG_LEVEL_USB_AF:
+        if (is_ftdx101d || is_ftdx101mp)
+        {
+            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A? rig->state.cache.modeMainA : rig->state.cache.modeMainB;
+            switch(curmode)
+            {
+                case RIG_MODE_USB:
+                case RIG_MODE_LSB:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%03.0f%c", val.f*100, cat_term);
+                    break;
+                case RIG_MODE_AM:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%03.0f%c", val.f*100, cat_term);
+                    break;
+                case RIG_MODE_FM:
+                case RIG_MODE_FMN:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%03.0f%c", val.f*100, cat_term);
+                    break;
+                case RIG_MODE_PKTFM:  // is this the right place for this?
+                case RIG_MODE_PKTFMN: // is this the right place for this?
+                case RIG_MODE_PKTUSB:
+                case RIG_MODE_PKTLSB:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%03.0f%c", val.f*100, cat_term);
+                    break;
+                default:
+                    rig_debug(RIG_DEBUG_ERR, "%s: unknown how to set USB_AF for mode=%s\n", __func__, rig_strrmode(curmode));
+                    RETURNFUNC(-RIG_EINVAL);
+            }
+        }
+        break;
+
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -5396,7 +5426,79 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         break;
 
+    case RIG_LEVEL_USB_AF_INPUT:
+        if (is_ftdx101d || is_ftdx101mp)
+        {
+            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A? rig->state.cache.modeMainA : rig->state.cache.modeMainB;
+            switch(curmode)
+            {
+                case RIG_MODE_LSB:
+                case RIG_MODE_USB:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%c", cat_term);
+                    break;
+                case RIG_MODE_AM:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%c", cat_term);
+                    break;
+                case RIG_MODE_FM:
+                case RIG_MODE_FMN:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%c", cat_term);
+                    break;
+                case RIG_MODE_PKTFM:
+                case RIG_MODE_PKTFMN:
+                case RIG_MODE_PKTUSB:
+                case RIG_MODE_PKTLSB:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%c", cat_term);
+                    break;
+                default:
+                    rig_debug(RIG_DEBUG_ERR, "%s: unknown how to get USB_AF_INPUT for mode=%s\n", __func__, rig_strrmode(curmode));
+                    RETURNFUNC(-RIG_EINVAL);
+            }
+        }
+        else
+        {
+            RETURNFUNC(-RIG_ENIMPL);
+        }
+        break;
+
+    case RIG_LEVEL_USB_AF:
+        if (is_ftdx101d || is_ftdx101mp)
+        {
+            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A? rig->state.cache.modeMainA : rig->state.cache.modeMainB;
+            switch(curmode)
+            {
+                case RIG_MODE_LSB:
+                case RIG_MODE_USB:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010109%c", cat_term);
+                    break;
+                case RIG_MODE_AM:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010209%c", cat_term);
+                    break;
+                case RIG_MODE_FM:
+                case RIG_MODE_FMN:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010309%c", cat_term);
+                    break;
+                case RIG_MODE_PKTFM:
+                case RIG_MODE_PKTFMN:
+                case RIG_MODE_PKTUSB:
+                case RIG_MODE_PKTLSB:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010411%c", cat_term);
+                    break;
+                case RIG_MODE_RTTY:
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010511%c", cat_term);
+                    break;
+                    // we have PSK level too but no means to have this mode yet
+                default:
+                    rig_debug(RIG_DEBUG_ERR, "%s: unknown how to get USB_AF for mode=%s\n", __func__, rig_strrmode(curmode));
+                    RETURNFUNC(-RIG_EINVAL);
+            }
+        }
+        else
+        {
+            RETURNFUNC(-RIG_ENIMPL);
+        }
+        break;
     default:
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%08lx\n", __func__, level);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -5842,6 +5944,13 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         val->f = i / 255. * 100.;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: retlvl=%s, i=%d, val=%g\n", __func__, retlvl,
                   i, val->f);
+        break;
+
+    case RIG_LEVEL_USB_AF:
+    case RIG_LEVEL_USB_AF_INPUT:
+        i = 0;
+        sscanf(retlvl, "%3d", &i);
+        val->f = i / 100.0;
         break;
 
     default:

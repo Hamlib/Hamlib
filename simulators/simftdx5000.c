@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "EX039%d;", ex039);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "EX039", 3) == 0)
+        else if (strncmp(buf, "EX039", 5) == 0)
         {
             sscanf(buf, "EX039%d", &ex039);
         }

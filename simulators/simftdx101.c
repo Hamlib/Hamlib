@@ -33,6 +33,10 @@ int ex039 = 0;
 int keyspd = 20;
 int split = 0;
 int power=50;
+int rport_gain_ssb=50;
+int rport_gain_am=50;
+int rport_gain_fm=50;
+int rport_gain_psk=50;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -298,7 +302,7 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "EX039%d;", ex039);
             n = write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "EX039", 3) == 0)
+        else if (strncmp(buf, "EX039", 5) == 0)
         {
             sscanf(buf, "EX039%d", &ex039);
         }
@@ -324,6 +328,16 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "ST", 2) == 0)
         {
             sscanf(buf, "ST%d", &split);
+        }
+        else if (strcmp(buf, "EX010415;") == 0)
+        {
+            sprintf(buf,"EX010415%03d;", rport_gain);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "EX010415", 8) == 0)
+        {
+            printf("Here#1");
+            sscanf(buf,"EX010415%d", &rport_gain);
         }
 
         else if (strlen(buf) > 0)
