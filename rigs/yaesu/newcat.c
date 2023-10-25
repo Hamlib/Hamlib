@@ -4030,12 +4030,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    //TODO Replace the next line
-    level_info = &rig->caps->level_gran[rig_setting2idx(level)];
-    // with the next 2 lines
-    //err = check_level_param(rig, level, val, &level_info);
-    //if (err != RIG_OK ) { RETURNFUNC(err); }
-    //endTODO
+    err = check_level_param(rig, level, val, &level_info);
+    if (err != RIG_OK ) { RETURNFUNC(err); }
     
     switch (level)
     {
@@ -4054,19 +4050,6 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	    fpf = (int)((val.f / level_info->step.f) + 0.5f );
 	  }
 
-        //TODO Remove when global level checking enabled
-        if (is_ft950 || is_ft891 || is_ft991 || is_ftdx3000 || is_ftdx3000dm
-                || is_ftdx101d
-                || is_ftdx101mp || is_ftdx10)
-        {
-            // Minimum is 5 watts on these rigs
-            if (fpf < 5)
-            {
-                fpf = 5;
-            }
-        }
-	//endTODO
-
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC%03d%c", fpf, cat_term);
         break;
 
@@ -4075,9 +4058,6 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
-
-        //TODO Remove when common level checking enabled
-        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
 
         fpf = (int)((val.f / level_info->step.f) + 0.5f);
 
@@ -4207,22 +4187,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        //TODO Get rid of these checks when limit checking enabled
-        if (val.i < 300)
-        {
-            i = 300;
-        }
-        else if (val.i > 1050)
-        {
-            i = 1050;
-        }
-        else
-        {
-            i = val.i;
-        }
-
         // Most Yaesu rigs seem to use range of 0-75 to represent pitch of 300..1050 Hz in 10 Hz steps
-        kp = (i - level_info->min.i + (level_info->step.i / 2)) / level_info->step.i;
+        kp = (val.i - level_info->min.i + (level_info->step.i / 2)) / level_info->step.i;
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KP%02d%c", kp, cat_term);
         break;
@@ -4263,9 +4229,6 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             newcat_get_mode(rig, vfo, &mode, &width);
         }
-
-        //TODO Remove when level_gran check enabled
-        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
 
         fpf = (int) (( val.f / level_info->step.f ) + 0.5f );
 
@@ -4790,9 +4753,6 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-	//TODO Remove when full level checking enabled
-        if (val.f > 1.0) { RETURNFUNC(-RIG_EINVAL); }
-
         fpf = (int)((val.f / level_info->step.f) + 0.5f);
 
         if (is_ftdx9000)
@@ -4854,24 +4814,25 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (is_ftdx101d || is_ftdx101mp)
         {
             rmode_t curmode = rig->state.current_vfo == RIG_VFO_A? rig->state.cache.modeMainA : rig->state.cache.modeMainB;
+            float valf = (val.f / level_info->step.f) + 0.5f;
             switch(curmode)
             {
                 case RIG_MODE_USB:
                 case RIG_MODE_LSB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%03.0f%c", val.f*100, cat_term);
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%03.0f%c", valf, cat_term);
                     break;
                 case RIG_MODE_AM:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%03.0f%c", val.f*100, cat_term);
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%03.0f%c", valf, cat_term);
                     break;
                 case RIG_MODE_FM:
                 case RIG_MODE_FMN:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%03.0f%c", val.f*100, cat_term);
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%03.0f%c", valf, cat_term);
                     break;
                 case RIG_MODE_PKTFM:  // is this the right place for this?
                 case RIG_MODE_PKTFMN: // is this the right place for this?
                 case RIG_MODE_PKTUSB:
                 case RIG_MODE_PKTLSB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%03.0f%c", val.f*100, cat_term);
+                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%03.0f%c", valf, cat_term);
                     break;
                 default:
                     rig_debug(RIG_DEBUG_ERR, "%s: unknown how to set USB_AF for mode=%s\n", __func__, rig_strrmode(curmode));
@@ -5950,7 +5911,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_USB_AF_INPUT:
         i = 0;
         sscanf(retlvl, "%3d", &i);
-        val->f = i / 100.0;
+        val->f = i * level_info->step.f;
         break;
 
     default:
