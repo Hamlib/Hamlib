@@ -4814,7 +4814,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         if (is_ftdx101d || is_ftdx101mp)
         {
             rmode_t curmode = rig->state.current_vfo == RIG_VFO_A? rig->state.cache.modeMainA : rig->state.cache.modeMainB;
-            float valf = (val.f / level_info->step.f) + 0.5f;
+            float valf = val.f / level_info->step.f;
             switch(curmode)
             {
                 case RIG_MODE_USB:
