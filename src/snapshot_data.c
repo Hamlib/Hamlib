@@ -161,19 +161,26 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
         }
     }
 
+    split = rig->state.cache.split;
+    split_vfo = rig->state.cache.split_vfo;
+
+    is_rx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
+            || (split == RIG_SPLIT_ON && vfo != split_vfo);
+    is_tx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
+            || (split == RIG_SPLIT_ON && vfo == split_vfo);
     ptt = rig->state.cache.ptt;
+
+    if (is_tx)
     node = cJSON_AddBoolToObject(vfo_node, "ptt", ptt == RIG_PTT_OFF ? 0 : 1);
+    else 
+    node = cJSON_AddBoolToObject(vfo_node, "ptt", 0);
 
     if (node == NULL)
     {
         goto error;
     }
 
-    split = rig->state.cache.split;
-    split_vfo = rig->state.cache.split_vfo;
 
-    is_rx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
-            || (split == RIG_SPLIT_ON && vfo != split_vfo);
     node = cJSON_AddBoolToObject(vfo_node, "rx", is_rx);
 
     if (node == NULL)
@@ -181,8 +188,6 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
         goto error;
     }
 
-    is_tx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
-            || (split == RIG_SPLIT_ON && vfo == split_vfo);
     node = cJSON_AddBoolToObject(vfo_node, "tx", is_tx);
 
     if (node == NULL)
