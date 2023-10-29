@@ -540,8 +540,16 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_VFO_MAIN:
         case RIG_VFO_A: width = priv->vfo_a.width; break;
 
+        case RIG_VFO_MAIN_A: width = priv->vfo_maina.width; break;
+
+        case RIG_VFO_MAIN_B: width = priv->vfo_mainb.width; break;
+
         case RIG_VFO_SUB:
         case RIG_VFO_B: width = priv->vfo_b.width; break;
+
+        case RIG_VFO_SUB_A:  width = priv->vfo_suba.width; break;
+
+        case RIG_VFO_SUB_B:  width = priv->vfo_subb.width; break;
 
         case RIG_VFO_C: width = priv->vfo_c.width; break;
         }
@@ -552,8 +560,16 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_VFO_MAIN:
     case RIG_VFO_A: priv->vfo_a.mode = mode; priv->vfo_a.width = width; break;
 
+    case RIG_VFO_MAIN_A: priv->vfo_maina.mode = mode; priv->vfo_maina.width = width; break;
+
+    case RIG_VFO_MAIN_B: priv->vfo_mainb.mode = mode; priv->vfo_mainb.width = width; break;
+
     case RIG_VFO_SUB:
     case RIG_VFO_B: priv->vfo_b.mode = mode; priv->vfo_b.width = width; break;
+
+    case RIG_VFO_SUB_A: priv->vfo_suba.mode = mode; priv->vfo_suba.width = width; break;
+
+    case RIG_VFO_SUB_B: priv->vfo_subb.mode = mode; priv->vfo_subb.width = width; break;
 
     case RIG_VFO_C: priv->vfo_c.mode = mode; priv->vfo_c.width = width; break;
 
@@ -941,11 +957,11 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     int retval;
 
     ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __func__, rig_strvfo(vfo), tx_freq);
 
     retval = dummy_set_freq(rig, vfo, tx_freq);
     priv->curr->tx_freq = tx_freq;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->curr->tx_freq = %.0f\n", __func__,
-              priv->curr->tx_freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f\n", __func__, tx_freq);
 
     RETURNFUNC(retval);
 }
@@ -953,15 +969,15 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
 static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    int retval;
 
     ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    *tx_freq = priv->curr->tx_freq;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: priv->curr->tx_freq = %.0f\n", __func__,
-              priv->curr->tx_freq);
+    retval = dummy_get_freq(rig, vfo, tx_freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: freq=%.0f\n", __func__, *tx_freq);
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(retval);
 }
 
 static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
@@ -969,41 +985,50 @@ static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
+    int retval;
 
     ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s tx_mode=%s tx_width=%ld\n",
+            __func__, rig_strvfo(vfo), rig_strrmode(tx_mode), tx_width);
 
+    retval = dummy_set_mode(rig, vfo, tx_mode, tx_width);
     curr->tx_mode = tx_mode;
 
-    if (RIG_PASSBAND_NOCHANGE == tx_width) { RETURNFUNC(RIG_OK); }
+    if (RIG_PASSBAND_NOCHANGE == tx_width)
+    {
+        RETURNFUNC(retval);
+    }
 
     curr->tx_width = tx_width;
 
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC(retval);
 }
 
 static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                                 pbwidth_t *tx_width)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
-    const channel_t *curr = priv->curr;
+    int retval;
 
     ENTERFUNC;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    *tx_mode = curr->tx_mode;
-    *tx_width = curr->tx_width;
+    retval = dummy_get_mode(rig, vfo, tx_mode, tx_width);
 
-    RETURNFUNC(RIG_OK);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s tx_mode=%s tx_width=%ld\n",
+            __func__, rig_strvfo(vfo), rig_strrmode(*tx_mode), *tx_width);
+
+    RETURNFUNC(retval);
 }
 
 static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
-    channel_t *curr = priv->curr;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: split=%d, vfo=%s, tx_vfo=%s\n",
               __func__, split, rig_strvfo(vfo), rig_strvfo(tx_vfo));
-    curr->split = split;
+
+    priv->split = split;
     priv->tx_vfo = tx_vfo;
 
     RETURNFUNC(RIG_OK);
@@ -1014,10 +1039,14 @@ static int dummy_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                vfo_t *tx_vfo)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
-    const channel_t *curr = priv->curr;
 
     ENTERFUNC;
-    *split = curr->split;
+
+    *split = priv->split;
+    *tx_vfo = priv->tx_vfo;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: split=%d, vfo=%s, tx_vfo=%s\n",
+            __func__, *split, rig_strvfo(vfo), rig_strvfo(*tx_vfo));
 
     RETURNFUNC(RIG_OK);
 }
@@ -2310,6 +2339,13 @@ struct rig_caps dummy_caps =
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
         [LVL_SPECTRUM_REF] = {.min = {.f = -30.0f}, .max = {.f = 10.0f}, .step = {.f = 0.5f}},
         [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
+    },
+    .parm_gran =  {
+            [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
+            [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND70CM,BAND33CM,BAND23CM"}},
+            [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}},
+            [PARM_SCREENSAVER] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
+            [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
     },
     .ctcss_list =      common_ctcss_list,
     .dcs_list =        full_dcs_list,

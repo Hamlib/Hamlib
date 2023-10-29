@@ -515,7 +515,6 @@ static int multicast_publisher_write_data(multicast_publisher_args
     return (RIG_OK);
 }
 
-#if 0 // disable until we figure out what to do about Windows poor performance
 static int multicast_publisher_read_data(multicast_publisher_args
         const *mcast_publisher_args, size_t length, unsigned char *data)
 {
@@ -558,7 +557,6 @@ static int multicast_publisher_read_data(multicast_publisher_args
 
     return (RIG_OK);
 }
-#endif
 
 #else
 
@@ -638,7 +636,6 @@ static int multicast_publisher_write_data(const multicast_publisher_args
     return (RIG_OK);
 }
 
-#if 0
 static int multicast_publisher_read_data(const multicast_publisher_args
         *mcast_publisher_args, size_t length, unsigned char *data)
 {
@@ -703,7 +700,6 @@ static int multicast_publisher_read_data(const multicast_publisher_args
 
     return (RIG_OK);
 }
-#endif
 
 #endif
 
@@ -827,7 +823,6 @@ int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line)
     RETURNFUNC2(RIG_OK);
 }
 
-#if 0
 static int multicast_publisher_read_packet(multicast_publisher_args
         const *mcast_publisher_args,
         uint8_t *type, struct rig_spectrum_line *spectrum_line,
@@ -893,11 +888,10 @@ static int multicast_publisher_read_packet(multicast_publisher_args
 
     return (RIG_OK);
 }
-#endif
 
 void *multicast_publisher(void *arg)
 {
-    //unsigned char spectrum_data[HAMLIB_MAX_SPECTRUM_DATA];
+    unsigned char spectrum_data[HAMLIB_MAX_SPECTRUM_DATA];
     char snapshot_buffer[HAMLIB_MAX_SNAPSHOT_PACKET_SIZE];
 
     struct multicast_publisher_args_s *args = (struct multicast_publisher_args_s *)
@@ -923,29 +917,21 @@ void *multicast_publisher(void *arg)
 
     while (rs->multicast_publisher_run == 1)
     {
-        int i;
         int result;
-        static freq_t freqA, freqB, freqC;
-        static mode_t modeA, modeB, modeC;
-        static pbwidth_t widthA, widthB, widthC;
-        static ptt_t ptt;
-        static split_t split;
 
-#if 0
         result = multicast_publisher_read_packet(args, &packet_type, &spectrum_line,
                  spectrum_data);
-#endif      
         if (result != RIG_OK)
         {
             if (result == -RIG_ETIMEOUT)
             {
- //               continue;
+                continue;
             }
 
             // TODO: how to detect closing of pipe, indicate with error code
             // TODO: error handling, flush pipe in case of error?
-            //hl_usleep(500 * 1000);
-//            continue;
+            hl_usleep(500 * 1000);
+            continue;
         }
 
         result = snapshot_serialize(sizeof(snapshot_buffer), snapshot_buffer, rig,
@@ -959,10 +945,8 @@ void *multicast_publisher(void *arg)
             continue;
         }
 
-#if 0
         rig_debug(RIG_DEBUG_CACHE, "%s: sending rig snapshot data: %s\n", __func__,
                   snapshot_buffer);
-#endif
 
         send_result = sendto(
                           socket_fd,
@@ -978,68 +962,7 @@ void *multicast_publisher(void *arg)
             rig_debug(RIG_DEBUG_ERR, "%s: error sending UDP packet: %s\n", __func__,
                       strerror(errno));
         }
-        for(i=0;i<5;++i)
-        {
-            hl_usleep(200*1000);
-            if (rig->state.cache.freqMainA != freqA)
-            {
-                freqA = rig->state.cache.freqMainA;
-                break;
-            }
-            if (rig->state.cache.freqMainB != freqB)
-            {
-                freqB = rig->state.cache.freqMainB;
-                break;
-            }
-            if (rig->state.cache.freqMainC != freqC)
-            {
-                freqC = rig->state.cache.freqMainC;
-                break;
-            }
-            if (rig->state.cache.ptt != ptt)
-            {
-                ptt = rig->state.cache.ptt;
-                break;
-            }
-            if (rig->state.cache.split != split)
-            {
-                split = rig->state.cache.split;
-                break;
-            }
-            if (rig->state.cache.modeMainA != modeA)
-            {
-                modeA = rig->state.cache.modeMainA;
-                break;
-            }
-            if (rig->state.cache.modeMainB != modeB)
-            {
-                modeB = rig->state.cache.modeMainB;
-                break;
-            }
-            if (rig->state.cache.modeMainC != modeC)
-            {
-                modeC = rig->state.cache.modeMainC;
-                break;
-            }
-            if (rig->state.cache.widthMainA != widthA)
-            {
-                widthA = rig->state.cache.widthMainA;
-                break;
-            }
-            if (rig->state.cache.widthMainB != widthB)
-            {
-                widthB = rig->state.cache.widthMainB;
-                break;
-            }
-            if (rig->state.cache.widthMainC != widthC)
-            {
-                widthC = rig->state.cache.widthMainC;
-                break;
-            }
-        }
-
     }
-    rs->multicast_publisher_run = 2; // stop value
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping multicast publisher\n", __FILE__,
               __LINE__);

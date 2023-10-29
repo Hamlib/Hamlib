@@ -315,7 +315,7 @@ struct rig_caps ic7600_caps =
         [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86399}, .step = {.i = 1}},
         [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
         [PARM_APO] = { .min = { .i = 1 }, .max = { .i = 1439} },
-        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT, BUG, PADDLE"}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
     },
 
     .ext_tokens = ic7600_ext_tokens,

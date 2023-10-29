@@ -60,6 +60,16 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_OTHER) { vfo = vfo_fixup(rig, vfo, rig->state.cache.split); }
 
+    if (vfo == rig->state.current_vfo)
+    {
+        rig->state.cache.modeCurr = mode;
+        if (width > 0)
+        {
+            rig->state.cache.widthCurr = width;
+        }
+        elapsed_ms(&rig->state.cache.time_modeCurr, HAMLIB_ELAPSED_SET);
+    }
+
     switch (vfo)
     {
     case RIG_VFO_ALL: // we'll use NONE to reset all VFO caches
@@ -151,6 +161,12 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_CACHE, "%s(%d): set vfo=%s to freq=%.0f\n", __func__,
                   __LINE__,
                   rig_strvfo(vfo), freq);
+    }
+
+    if (vfo == rig->state.current_vfo)
+    {
+        rig->state.cache.freqCurr = freq;
+        elapsed_ms(&rig->state.cache.time_freqCurr, flag);
     }
 
     switch (vfo)
