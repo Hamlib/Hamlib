@@ -48,6 +48,7 @@ static int icom_set_default_vfo(RIG *rig);
 static int icom_get_spectrum_vfo(RIG *rig, vfo_t vfo);
 static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo,
         int *range_id);
+static int icom_get_vfo_number_x25x26(RIG *rig, vfo_t vfo);
 
 const cal_table_float_t icom_default_swr_cal =
 {
@@ -678,9 +679,6 @@ int icom_init(RIG *rig)
     priv->re_civ_addr = priv_caps->re_civ_addr;
     priv->civ_731_mode = priv_caps->civ_731_mode;
     priv->no_xchg = priv_caps->no_xchg;
-    priv->tx_vfo = RIG_VFO_NONE;
-    priv->rx_vfo = RIG_VFO_NONE;
-    rig->state.current_vfo = RIG_VFO_NONE;
     priv->filter = RIG_PASSBAND_NOCHANGE;
     priv->x25cmdfails = -1;
     priv->x1cx03cmdfails = 0;
@@ -705,9 +703,7 @@ int icom_init(RIG *rig)
         || RIG_IS_IC746PRO
         || RIG_IS_IC756
         || RIG_IS_IC7000
-        || RIG_IS_IC7100
         || RIG_IS_IC7200
-        || RIG_IS_IC7700
         || RIG_IS_IC821H
         || RIG_IS_IC910
         || RIG_IS_IC2730
@@ -867,13 +863,14 @@ static vfo_t icom_current_vfo(RIG *rig)
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *)rig->caps->priv;
 
-    if (priv->x25cmdfails <= 0
-            || priv_caps->x25_always) // these newer rigs get special treatment
+    if (priv->x25cmdfails <= 0 || priv_caps->x25_always)
     {
+        // these newer rigs get special treatment
         return icom_current_vfo_x25(rig);
     }
-    else if (rig->state.cache.ptt) // don't do this if transmitting -- XCHG would mess it up
+    else if (rig->state.cache.ptt)
     {
+        // don't do this if transmitting -- XCHG would mess it up
         return rig->state.current_vfo;
     }
     else if (priv->no_xchg || !rig_has_vfo_op(rig, RIG_OP_XCHG))
@@ -1105,13 +1102,13 @@ retry_open:
         // Should we also set/force VFOA for Main&Sub here?
         if (retval == RIG_OK && satmode)
         {
-            priv->rx_vfo = RIG_VFO_MAIN;
-            priv->tx_vfo = RIG_VFO_SUB;
+            rig->state.rx_vfo = RIG_VFO_MAIN;
+            rig->state.tx_vfo = RIG_VFO_SUB;
         }
         else if (retval == RIG_OK && !satmode)
         {
-            priv->rx_vfo = RIG_VFO_MAIN;
-            priv->tx_vfo = RIG_VFO_MAIN;
+            rig->state.rx_vfo = RIG_VFO_MAIN;
+            rig->state.tx_vfo = RIG_VFO_MAIN;
         }
     }
 
@@ -1313,7 +1310,6 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 #endif
 
-
     if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ))
     {
         HAMLIB_TRACE;
@@ -1342,43 +1338,16 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (freq > 5.85e9) { freq_len = 6; }
     }
 
-    /*
-     * to_bcd requires nibble len
-     */
     to_bcd(freqbuf, freq, freq_len * 2);
 
     if (rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
     {
-        vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B
-                               | RIG_VFO_OTHER;
-
-        // if we are on the "other" vfo already then we have to allow for that
-        if (rig->state.current_vfo & vfo_unselected)
-        {
-            HAMLIB_TRACE;
-            vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
-                             RIG_VFO_OTHER;
-        }
-
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): vfo=%s, currvfo=%s\n", __func__, __LINE__,
                   rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
-        subcmd  = 0x00;
 
-        // if we ask for unselected but we're not on unselected subcmd2 changes
-        if ((vfo & vfo_unselected) && !(rig->state.current_vfo & vfo_unselected))
-        {
-            HAMLIB_TRACE;
-            subcmd = 0x01;  // get unselected VFO
-        }
-        if (RIG_IS_IC7600 || RIG_IS_IC9700)
-        { // the 7600/7610 do it different 0=Main, 1=Sub -- maybe other Icoms will start doing this too
-            subcmd = 0;
-            if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd = 1;
-        }
-
-        cmd = 0x25;
-        retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
-                                  &ack_len);
+        cmd = C_SEND_SEL_FREQ;
+        subcmd = icom_get_vfo_number_x25x26(rig, vfo);
+        retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf, &ack_len);
     }
     else
     {
@@ -1387,8 +1356,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51)
         {
-            // for these rigs 0x00 is setting the freq and 0x03 is just for reading
-            cmd = 0x00;
+            // for these rigs C_SND_FREQ (0x00) is setting the freq and 0x03 is just for reading
+            cmd = C_SND_FREQ;
             // temporary fix for ID5100 not giving ACK/NAK on 0x00 freq on E8 firmware
             retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, NULL,
                                       NULL);
@@ -1471,38 +1440,6 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC2(-RIG_ERJCTED);
     }
 
-    priv->curr_freq = freq;
-
-    switch (vfo)
-    {
-    case RIG_VFO_A: priv->vfoa_freq = freq; break;
-
-    case RIG_VFO_MAIN_A: priv->maina_freq = freq; break;
-
-    case RIG_VFO_SUB_A: priv->suba_freq = freq; break;
-
-    case RIG_VFO_B: priv->vfob_freq = freq; break;
-
-    case RIG_VFO_MAIN_B: priv->mainb_freq = freq;
-
-    case RIG_VFO_SUB_B: priv->subb_freq = freq;
-
-    case RIG_VFO_MAIN: priv->main_freq = freq; break;
-
-    case RIG_VFO_SUB: priv->sub_freq = freq; break;
-
-    case RIG_VFO_NONE: // VFO_NONE will become VFO_CURR
-        rig->state.current_vfo = RIG_VFO_CURR;
-
-    case RIG_VFO_CURR: priv->curr_freq = freq; break;
-
-    case RIG_VFO_OTHER: priv->other_freq = freq; break;
-
-    default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO?  VFO=%s\n", __func__,
-                  rig_strvfo(vfo));
-    }
-
     RETURNFUNC2(RIG_OK);
 }
 
@@ -1531,31 +1468,32 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
-    if (priv->serial_USB_echo_off == -1) icom_get_usb_echo_off(rig);
+    if (priv->serial_USB_echo_off == -1)
+    {
+        icom_get_usb_echo_off(rig);
+    }
 
     cmd = C_RD_FREQ;
     subcmd = -1;
 
-    if (vfo == RIG_VFO_MEM && (priv->civ_731_mode
-                               || RIG_IS_IC706))
+    if (vfo == RIG_VFO_MEM && (priv->civ_731_mode || RIG_IS_IC706))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO=MEM so turning off civ_731\n", __func__);
         civ_731_mode = 1;
         priv->civ_731_mode = 0;
-
     }
 
     // Pick the appropriate VFO when VFO_TX is requested
     if (vfo == RIG_VFO_TX)
     {
-        if (priv->x1cx03cmdfails == 0) // we can try this command to avoid vfo swapping
+        if (priv->x1cx03cmdfails == 0)
         {
-            cmd = 0x1c;
-            subcmd = 0x03;
-            retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
-                                      &ack_len);
+            // Attempt to read the transmit frequency directly to avoid VFO swapping
+            cmd = C_CTL_PTT;
+            subcmd = S_RD_TX_FREQ;
+            retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf, &ack_len);
 
-            if (retval == RIG_OK) // then we're done!!
+            if (retval == RIG_OK)
             {
                 *freq = from_bcd(&ackbuf[2], (priv->civ_731_mode ? 4 : 5) * 2);
                 RETURNFUNC(retval);
@@ -1567,7 +1505,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_TX requested, vfo=%s\n", __func__,
                   rig_strvfo(vfo));
 
-        if (priv->split_on)
+        if (rig->state.cache.split != RIG_SPLIT_OFF)
         {
             vfo = (rig->state.vfo_list & RIG_VFO_B) ? RIG_VFO_B : RIG_VFO_SUB;
         }
@@ -1578,7 +1516,6 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
 #if 0 // does not work with rigs without VFO_A
-
     if (vfo == RIG_VFO_CURR)
     {
         vfo = rig->state.current_vfo;
@@ -1588,13 +1525,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: CurrVFO changed to %s\n", __func__,
                   rig_strvfo(vfo));
     }
-
 #endif
 
-
-
 #if 0
-
     // Pick the appropriate VFO when VFO_RX or VFO_TX is requested
     if (vfo == RIG_VFO_RX && rig->state.current_vfo)
     {
@@ -1620,14 +1553,12 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         rig_debug(RIG_DEBUG_ERR, "%s: VFO_TX requested, new vfo=%s\n", __func__,
                   rig_strvfo(vfo));
     }
-
 #endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: using vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
 #if 0
-
     if (rig->state.current_vfo == RIG_VFO_NONE)
     {
         // we default to VFOA/MAIN as appropriate
@@ -1641,66 +1572,34 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                       rigerror(retval));
         }
     }
-
 #endif
 
-    // we'll use 0x25 command to get unselected frequency
-    // we have to assume current_vfo is accurate to determine what "other" means
+    // Attempt to use the 0x25 command to get selected/unselected or Main/Sub VFO frequency directly
+    // For the rigs that indicate selected/unselected VFO frequency, assume current_vfo is accurate to determine what "selected" means
     if (priv->x25cmdfails <= 0 || priv_caps->x25_always)
     {
-        int cmd2 = 0x25;
-        int subcmd2 = 0x00;
-        vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B
-                               | RIG_VFO_OTHER;
-
-        // if we are on the "other" vfo already then we have to allow for that
-        if (rig->state.current_vfo & vfo_unselected)
-        {
-            vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
-                             RIG_VFO_OTHER;
-        }
-
-        // if we ask for unselected but we're not on unselected subcmd2 changes
-        if ((vfo & vfo_unselected) && !(rig->state.current_vfo & vfo_unselected))
-        {
-            subcmd2 = 0x01;  // get unselected VFO
-        }
-
-        // Rigs like IC-7600 new firmware  has 0x25 and 0x26
-        // So if this succeeds we'll assume all such rigs are targetable freq & mode
-        int targetable_vfo_save = rig->caps->targetable_vfo;
-        if ((RIG_IS_IC7600 || RIG_IS_IC7610) && priv->x25cmdfails <= 0)
-        { // the 7600/7610 do it different 0=Main, 1=Sub -- maybe other Icoms will start doing this too
-            subcmd2 = 0;
-            if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd2 = 1;
-            if (priv->x25cmdfails < 0)
-            { // we'll test this once to support the newer firmware
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: TARGETABLE_FREQ and TARGETABLE_MODE enabled for testing\n", __func__);
-                rig->caps->targetable_vfo = rig->state.targetable_vfo |= RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE;
-            }
-        }
-        if (RIG_IS_IC9700)
-        {
-            subcmd2 = 0;
-            if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd2 = 1;
-        }
+        int cmd2 = C_SEND_SEL_FREQ;
+        int subcmd2 = icom_get_vfo_number_x25x26(rig, vfo);
 
         retval = icom_transaction(rig, cmd2, subcmd2, NULL, 0, freqbuf, &freq_len);
 
         if (retval == RIG_OK)
         {
             priv->x25cmdfails = 0;
+
+            // Rigs like IC-7600, IC-7700, IC-7800 and IC-7100 have new firmware that implements commands 0x25 and 0x26
+            // So if this succeeds we'll assume all such rigs are targetable freq & mode
+            if (!(rig->state.targetable_vfo & RIG_TARGETABLE_FREQ) || !(rig->state.targetable_vfo & RIG_TARGETABLE_MODE))
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: TARGETABLE_FREQ and TARGETABLE_MODE enabled for Icom rig\n", __func__);
+                rig->caps->targetable_vfo = rig->state.targetable_vfo |= RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE;
+            }
         }
         else
         {
             if (priv->x25cmdfails < 0)
             {
                 priv->x25cmdfails = 1;
-                if (RIG_IS_IC7600 || RIG_IS_IC7610)
-                {
-                    rig->caps->targetable_vfo = targetable_vfo_save;
-                    rig_debug(RIG_DEBUG_VERBOSE, "%s: TARGETABLE_FREQ and TARGETABLE_MODE disabled -- older firmare likely\n", __func__);
-                }
             }
 
             rig_debug(RIG_DEBUG_TRACE,
@@ -1712,7 +1611,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         freqbuf_offset = 2;
     }
 
-    if (priv->x25cmdfails == 1) // then we're doing this the hard way....swap+read
+    // If the command 0x25 is not supported, swap VFO (if required) and read the frequency
+    if (priv->x25cmdfails == 1)
     {
         freqbuf_offset = 1;
         HAMLIB_TRACE;
@@ -1741,8 +1641,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #endif
 
     if (retval != RIG_OK)
-{
-    if (vfo == RIG_VFO_MEM && civ_731_mode)
+    {
+        if (vfo == RIG_VFO_MEM && civ_731_mode)
         {
             priv->civ_731_mode = 1;
         }
@@ -1771,12 +1671,12 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                           || ICOM_IS_ID51))
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s: 3-byte ID5100/4100 length - turn off XONXOFF flow control\n", __func__);
+                "%s: 3-byte ID5100/4100 length - turn off XONXOFF flow control\n", __func__);
     }
     else if (freq_len != 4 && freq_len != 5 && freq_len != 6)
-{
-    rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
-              __func__, freq_len);
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: wrong frame len=%d\n",
+                __func__, freq_len);
 
         if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
@@ -1789,44 +1689,11 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                   __func__, freq_len);
     }
 
-    /*
-     * from_bcd requires nibble len
-     */
     *freq = from_bcd(freqbuf + freqbuf_offset, freq_len * 2);
 
     if (freq_len == 3) { *freq *= 10000; } // 3-byte freq for ID5100 is in 10000Hz units so convert to Hz
 
-if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
-
-switch (vfo)
-{
-case RIG_VFO_A: priv->vfoa_freq = *freq; break;
-
-case RIG_VFO_MAIN_A: priv->maina_freq = *freq; break;
-
-case RIG_VFO_SUB_A: priv->suba_freq = *freq; break;
-
-case RIG_VFO_B: priv->vfob_freq = *freq; break;
-
-case RIG_VFO_MAIN_B: priv->mainb_freq = *freq; break;
-
-case RIG_VFO_SUB_B: priv->subb_freq = *freq; break;
-
-case RIG_VFO_MAIN: priv->main_freq = *freq; break;
-
-case RIG_VFO_SUB: priv->sub_freq = *freq; break;
-
-case RIG_VFO_OTHER: priv->other_freq = *freq; break;
-
-case RIG_VFO_NONE: // VFO_NONE will become VFO_CURR
-    rig->state.current_vfo = RIG_VFO_CURR;
-
-case RIG_VFO_CURR: priv->curr_freq = *freq; break;
-
-default:
-    rig_debug(RIG_DEBUG_ERR, "%s: unknown VFO?  VFO=%s\n", __func__,
-              rig_strvfo(vfo));
-    }
+    if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s exit vfo=%s, curr_vfo=%s ,freq=%g\n", __func__,
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), *freq);
@@ -1890,36 +1757,6 @@ static int icom_set_it_new(RIG *rig, vfo_t vfo, shortfreq_t ts, int set_xit)
         RETURNFUNC2(retval);
     }
 
-#if 0 // why is this here?  We have another function to turn it on/off
-
-    if (ts == 0)          // Turn off both RIT/XIT
-    {
-        if (rig->caps->has_get_func & RIG_FUNC_XIT)
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s: turning of XIT too\n", __func__);
-            retval = icom_set_func(rig, vfo, RIG_FUNC_XIT, 0);
-
-            if (retval != RIG_OK)
-            {
-                RETURNFUNC2(retval);
-            }
-        }
-        else          // some rigs don't have XIT like the 9700
-        {
-            rig_debug(RIG_DEBUG_TRACE,
-                      "%s: rig does not have xit command enabled\n", __func__);
-        }
-
-        retval = icom_set_func(rig, vfo, RIG_FUNC_RIT, 0);
-    }
-    else
-    {
-        retval =
-            icom_set_func(rig, vfo, set_xit ? RIG_FUNC_XIT : RIG_FUNC_RIT, 1);
-    }
-
-#endif
-
     RETURNFUNC2(retval);
 }
 
@@ -1982,6 +1819,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
         }
     }
 
+    // TODO: Skip for Xiegu G90 too????
     if (RIG_MODEL_X108G == rig->caps->rig_model
             || RIG_MODEL_X5105 == rig->caps->rig_model)
     {
@@ -2073,6 +1911,7 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
         width = rig_passband_normal(rig, mode);
     }
 
+    // TODO: Rename RIG_FUNC_RF to RIG_FUNC_RTTYFLT ? AMBIGUOUS!
     if (rig_has_get_func(rig, RIG_FUNC_RF)
             && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR)))
     {
@@ -2168,31 +2007,13 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
 
     ENTERFUNC;
 
-    if (priv->x26cmdfails) { RETURNFUNC(-RIG_ENAVAIL); }
-
-
-    int cmd2 = 0x26;
-    int subcmd2 = 0x00;
-    vfo_t vfo_unselected = RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B
-                           | RIG_VFO_OTHER;
-
-    // if we are on the "other" vfo already then we have to allow for that
-    if (rig->state.current_vfo & vfo_unselected)
+    if (priv->x26cmdfails)
     {
-        vfo_unselected = RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
-                         RIG_VFO_OTHER;
+        RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    // if we ask for unselected but we're not on unselected subcmd2 changes
-    if ((vfo & vfo_unselected) && !(rig->state.current_vfo & vfo_unselected))
-    {
-        subcmd2 = 0x01;  // get unselected VFO
-    }
-    if (RIG_IS_IC7600 || RIG_IS_IC7610)
-    { // the 7600/7610 do it different 0=Main, 1=Sub -- maybe other Icoms will start doing this too
-        subcmd2 = 0;
-        if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd2 = 1;
-    }
+    int cmd2 = C_SEND_SEL_MODE;
+    int subcmd2 = icom_get_vfo_number_x25x26(rig, vfo);
 
     buf[0] = mode;
     buf[1] = datamode;
@@ -2225,7 +2046,6 @@ int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode,
     rmode_t icom_mode;
     rmode_t tmode;
     pbwidth_t twidth;
-    //struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     unsigned char dm_sub_cmd =
         RIG_IS_IC7200  ? 0x04 : S_MEM_DATA_MODE;
     int filter_byte = RIG_IS_IC7100
@@ -2627,7 +2447,6 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     unsigned char modebuf[MAXFRAMELEN];
     const struct icom_priv_caps *priv_caps;
     struct icom_priv_data *priv_data = (struct icom_priv_data *) rig->state.priv;
-    vfo_t vfocurr = vfo_fixup(rig, rig->state.current_vfo, priv_data->split_on);
     int mode_len, retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
@@ -2642,26 +2461,22 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
               __func__, rig->caps->targetable_vfo, RIG_TARGETABLE_MODE,
               rig->caps->targetable_vfo & RIG_TARGETABLE_MODE);
 
-    // IC7800 can set but not read with 0x26
+    // Use command 0x26 to get selected/unselected or Main/Sub VFO mode, data mode and filter width
+    // IC-7800 can set, but not read with 0x26 (although manual states otherwise?)
     if ((rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
             && (rig->caps->rig_model != RIG_MODEL_IC7800))
     {
-        int vfosel = 0x00;
-        vfo_t vfoask = vfo_fixup(rig, vfo, priv_data->split_on);
+        int vfo_number = icom_get_vfo_number_x25x26(rig, vfo);
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfoask=%s, vfocurr=%s\n", __func__,
-                  rig_strvfo(vfo), rig_strvfo(vfoask), rig_strvfo(vfocurr));
+        rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_number=%d\n", __func__, rig_strvfo(vfo), vfo_number);
 
-        if (vfoask != RIG_VFO_CURR && vfoask != vfocurr) { vfosel = 0x01; }
-
+        // TODO: FIX/REMOVE: Shouldn't be necessary for 0x26 command
         // use cache for the non-selected VFO -- can't get it by VFO
         // this avoids vfo swapping but accurate answers for these rigs
-        *width = rig->state.cache.widthMainB;
+        //*width = rig->state.cache.widthMainB;
+        //if (vfo == RIG_VFO_SUB_B) { *width = rig->state.cache.widthSubB; }
 
-        if (vfo == RIG_VFO_SUB_B) { *width = rig->state.cache.widthSubB; }
-
-        // then get non-selected VFO mode/width
-        retval = icom_transaction(rig, 0x26, vfosel, NULL, 0, modebuf, &mode_len);
+        retval = icom_transaction(rig, C_SEND_SEL_MODE, vfo_number, NULL, 0, modebuf, &mode_len);
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: mode_len=%d, modebuf=%02x %02x %02x %02x %02x\n", __func__, mode_len,
                   modebuf[0], modebuf[1], modebuf[2], modebuf[3], modebuf[4]);
@@ -2743,14 +2558,35 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         RETURNFUNC2(RIG_OK);
     }
 
-    /* Most rigs RETURN 1-wide, 2-normal,3-narrow
-     * For DSP rigs these are presets, can be programmed for 30 - 41 bandwidths, depending on mode.
-     * Lets check for dsp filters
+    /**
+     * Most rigs RETURN 1-wide, 2-normal,3-narrow
+     *
+     * For DSP rigs these are presets that can be programmed for 30 - 41 bandwidths, depending on mode.
+     *
+     * The DSP filter width can be read only for the selected VFO, so use cached width for other VFOs.
      */
 
+    pbwidth_t filter_width;
+    if (vfo == rig->state.current_vfo)
+    {
+        filter_width = icom_get_dsp_flt(rig, *mode);
+    }
+    else
+    {
+        freq_t freq_cached;
+        rmode_t mode_cached;
+        pbwidth_t width_cached = 0;
+        int cache_ms_freq, cache_ms_mode, cache_ms_width;
+        rig_get_cache(rig, vfo, &freq_cached, &cache_ms_freq,
+                &mode_cached, &cache_ms_mode, &width_cached, &cache_ms_width);
+        filter_width = width_cached;
+    }
+    *width = filter_width;
+
+    // TODO: FIX/REMOVE: None of this should be necessary?
     // if we already set width we won't update with except during set_vfo or set_mode
     // reason is we can't get width without swapping vfos -- yuck!!
-    if (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
+    /*if (vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A |
                RIG_VFO_CURR))
     {
         // then we get what was asked for
@@ -2816,7 +2652,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                       "%s: vfo arrangement not supported yet, vfo=%s, currvfo=%s\n", __func__,
                       rig_strvfo(vfo), rig_strvfo(vfosave));
         }
-    }
+    }*/
 
     if (*mode == RIG_MODE_FM) { *width = 12000; }
 
@@ -2826,25 +2662,39 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 /*
  * icom_get_vfo
  * Assumes rig!=NULL, rig->state.priv!=NULL
- * Only works on IC9700 so far
+ *
+ * Only some recent Icom rigs support reading the selected band (between Main/Sub).
+ * Even then, they cannot distinguish between VFO A/B.
+ *
+ * Supported rigs so far: IC-7610, IC-7800 (firmware version 3.1+), IC-785x
+ * While IC-9700 supports the command too, it provides Main A/B and Sub A/B VFOs too, where A/B selection
+ * cannot be detected.
  */
 int icom_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    ENTERFUNC;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
-    retval = icom_transaction(rig, 0x07, 0xd2, NULL, 0, ackbuf, &ack_len);
+
+    ENTERFUNC;
+
+    retval = icom_transaction(rig, C_SET_VFO, S_BAND_SEL, NULL, 0, ackbuf, &ack_len);
 
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-        return -retval;
+        RETURNFUNC(retval);
     }
 
     dump_hex(ackbuf, ack_len);
 
-    if (ackbuf[2] == 0) { *vfo = RIG_VFO_MAIN; }
-    else { *vfo = RIG_VFO_SUB; }
+    if (ackbuf[2] == 0)
+    {
+        *vfo = RIG_VFO_MAIN;
+    }
+    else
+    {
+        *vfo = RIG_VFO_SUB;
+    }
 
     RETURNFUNC(RIG_OK);
 }
@@ -2877,8 +2727,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
                   "%s: Rig does not have MAIN/SUB so Main changed to %s\n",
                   __func__, rig_strvfo(vfo));
     }
-    else if ((vfo == RIG_VFO_SUB) && (VFO_HAS_A_B_ONLY
-                                      || (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode)))
+    else if ((vfo == RIG_VFO_SUB) &&
+        (VFO_HAS_A_B_ONLY || (VFO_HAS_MAIN_SUB_A_B_ONLY && rig->state.cache.split == RIG_SPLIT_OFF && !rig->state.cache.satmode)))
     {
         // if rig doesn't have Main/Sub
         // or if rig has both Main/Sub and A/B -- e.g. 9700
@@ -2952,7 +2802,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO changing from %s to %s\n", __func__,
                   rig_strvfo(rig->state.current_vfo), rig_strvfo(vfo));
-        priv->curr_freq = 0; // reset curr_freq so set_freq works 1st time
+        rig->state.cache.freqCurr = 0; // reset current frequency so set_freq works 1st time
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: line#%d\n", __func__, __LINE__);
@@ -2971,7 +2821,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         icvfo = S_MAIN;
 
         // If not split or satmode then we must want VFOA
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode) { icvfo = S_VFOA; }
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && rig->state.cache.split == RIG_SPLIT_OFF && !rig->state.cache.satmode) { icvfo = S_VFOA; }
 
         break;
 
@@ -2979,10 +2829,10 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         icvfo = S_SUB;
 
         // If split is on these rigs can only split on Main/VFOB
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && priv->split_on) { icvfo = S_VFOB; }
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && rig->state.cache.split != RIG_SPLIT_OFF) { icvfo = S_VFOB; }
 
         // If not split or satmode then we must want VFOB
-        if (VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode) { icvfo = S_VFOB; }
+        if (VFO_HAS_MAIN_SUB_A_B_ONLY && rig->state.cache.split == RIG_SPLIT_OFF && !rig->state.cache.satmode) { icvfo = S_VFOB; }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: Sub asked for, ended up with vfo=%s\n",
                   __func__, icvfo == S_SUB ? "Sub" : "VFOB");
@@ -2990,8 +2840,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
     case RIG_VFO_TX:
-        icvfo = priv->split_on ? S_VFOB : S_VFOA;
-        vfo = priv->split_on ? RIG_VFO_B : RIG_VFO_A;
+        icvfo = (rig->state.cache.split != RIG_SPLIT_OFF) ? S_VFOB : S_VFOA;
+        vfo = (rig->state.cache.split != RIG_SPLIT_OFF) ? RIG_VFO_B : RIG_VFO_A;
         rig_debug(RIG_DEBUG_TRACE, "%s: RIG_VFO_TX changing vfo to %s\n", __func__,
                   rig_strvfo(vfo));
         break;
@@ -3117,35 +2967,47 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
             break; // no change needed
 
         case RIG_VFO_A:
-            icvfo = vfo = RIG_VFO_B;
+            vfo = RIG_VFO_B;
+            icvfo = S_VFOB;
             break;
 
         case RIG_VFO_B:
-            icvfo = vfo = RIG_VFO_A;
+            vfo = RIG_VFO_A;
+            icvfo = S_VFOA;
             break;
 
         case RIG_VFO_MAIN:
-            icvfo = vfo = RIG_VFO_SUB;
+            vfo = RIG_VFO_SUB;
+            icvfo = S_SUB;
             break;
 
         case RIG_VFO_SUB:
-            icvfo = vfo = RIG_VFO_MAIN;
+            vfo = RIG_VFO_MAIN;
+            icvfo = S_MAIN;
             break;
 
         case RIG_VFO_MAIN_A:
-            icvfo = vfo = RIG_VFO_MAIN_B;
+            vfo = RIG_VFO_MAIN_B;
+            icvfo = S_MAIN;
+            // TODO: Select also VFOB?
             break;
 
         case RIG_VFO_MAIN_B:
-            icvfo = vfo = RIG_VFO_MAIN_A;
+            vfo = RIG_VFO_MAIN_A;
+            icvfo = S_MAIN;
+            // TODO: Select also VFOA?
             break;
 
         case RIG_VFO_SUB_A:
-            icvfo = vfo = RIG_VFO_SUB_B;
+            vfo = RIG_VFO_SUB_B;
+            icvfo = S_SUB;
+            // TODO: Select also VFOB?
             break;
 
         case RIG_VFO_SUB_B:
-            icvfo = vfo = RIG_VFO_SUB_A;
+            vfo = RIG_VFO_SUB_A;
+            icvfo = S_SUB;
+            // TODO: Select also VFOA?
             break;
 
         default:
@@ -5438,20 +5300,17 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
  */
 int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
 {
-    struct icom_priv_data *priv;
     struct rig_state *rs;
 
     ENTERFUNC;
 
     rs = (struct rig_state *) &rig->state;
-    priv = (struct icom_priv_data *) rs->priv;
-
 
     if (VFO_HAS_A_B_ONLY)
     {
         *rx_vfo = *tx_vfo = RIG_VFO_A;
 
-        if (priv->split_on)
+        if (rs->cache.split != RIG_SPLIT_OFF)
         {
             *rx_vfo = RIG_VFO_A;
             *tx_vfo = RIG_VFO_B;  /* rig doesn't enforce this but
@@ -5459,14 +5318,13 @@ int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO_HAS_A_B_ONLY, split=%d, rx=%s, tx=%s\n",
-                  __func__,
-                  priv->split_on, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
+                  __func__, rs->cache.split, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else if (VFO_HAS_MAIN_SUB_ONLY)
     {
         *rx_vfo = *tx_vfo = RIG_VFO_MAIN;
 
-        if (priv->split_on)
+        if (rs->cache.split != RIG_SPLIT_OFF)
         {
             *rx_vfo = RIG_VFO_MAIN;
             *tx_vfo = RIG_VFO_SUB;
@@ -5474,7 +5332,7 @@ int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
 
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: VFO_HAS_MAIN_SUB_ONLY, split=%d, rx=%s, tx=%s\n",
-                  __func__, priv->split_on, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
+                  __func__, rs->cache.split, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
@@ -5489,28 +5347,28 @@ int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
             icom_satmode_fix(rig, satmode);
         }
 
-        rig->state.cache.satmode = satmode;
+        rs->cache.satmode = satmode;
 
         // don't care about retval here...only care about satmode=1
         if (satmode)
         {
-            *rx_vfo = priv->rx_vfo = RIG_VFO_MAIN;
-            *tx_vfo = priv->tx_vfo = RIG_VFO_SUB;
+            *rx_vfo = rs->rx_vfo = RIG_VFO_MAIN;
+            *tx_vfo = rs->tx_vfo = RIG_VFO_SUB;
         }
-        else if (priv->split_on)
+        else if (rs->cache.split != RIG_SPLIT_OFF)
         {
-            *rx_vfo = priv->rx_vfo = RIG_VFO_A;
-            *tx_vfo = priv->tx_vfo = RIG_VFO_B;
+            *rx_vfo = rs->rx_vfo = RIG_VFO_A;
+            *tx_vfo = rs->tx_vfo = RIG_VFO_B;
         }
         else
         {
-            *rx_vfo = priv->rx_vfo = RIG_VFO_A;
-            *tx_vfo = priv->tx_vfo = RIG_VFO_A;
+            *rx_vfo = rs->rx_vfo = RIG_VFO_A;
+            *tx_vfo = rs->tx_vfo = RIG_VFO_A;
         }
 
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: VFO_HAS_MAIN_SUB_A_B_ONLY, split=%d, rx=%s, tx=%s\n",
-                  __func__, priv->split_on, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
+                  __func__, rs->cache.split, rig_strvfo(*rx_vfo), rig_strvfo(*tx_vfo));
     }
     else
     {
@@ -5543,20 +5401,18 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: curr_vfo=%s\n", __func__,
               rig_strvfo(rig->state.current_vfo));
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d, subvfo=%s\n", __func__,
-              rig->state.cache.satmode, rig_strvfo(priv->tx_vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d, tx_vfo=%s\n", __func__,
+              rig->state.cache.satmode, rig_strvfo(rs->tx_vfo));
 
     if (vfo == RIG_VFO_TX)
     {
         if (rig->state.cache.satmode) { vfo = RIG_VFO_SUB; }
-        else { vfo = priv->tx_vfo; }
+        else { vfo = rs->tx_vfo; }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo is now %s\n", __func__, rig_strvfo(vfo));
 
-    if (rig->state.cache.satmode && vfo == RIG_VFO_TX) { vfo = RIG_VFO_SUB; }
-
-    if (rig->state.current_vfo == RIG_VFO_NONE)
+    if (rig->state.current_vfo == RIG_VFO_NONE || rig->state.current_vfo == RIG_VFO_CURR)
     {
         HAMLIB_TRACE;
         retval = icom_set_default_vfo(rig);
@@ -5569,26 +5425,13 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         }
     }
 
-#if 0
-    HAMLIB_TRACE;
-    retval = set_vfo_curr(rig, RIG_VFO_TX, RIG_VFO_TX);
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: set_default_vfo failed: %s\n", __func__,
-                  rigerror(retval));
-        RETURNFUNC2(retval);
-    }
-
-#endif
-
-    // If the rigs supports the 0x25 command we'll use it
+    // Use the command 0x25 if the rig supports it
     // This eliminates VFO swapping and improves split operations
     if (priv->x25cmdfails <= 0)
     {
         int satmode = 0;
 
-        // retval not important here...only satmode=1 means anything
+        // Return value is not important, as only satmode=1 means anything
         if (rig->caps->has_get_func & RIG_FUNC_SATMODE)
         {
             rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
@@ -5599,26 +5442,17 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: satmode=%d\n", __func__, satmode);
 
         // we can add rigs we know will never have 0x25 here to skip this check
-        if ((satmode == 0)
-                && !(RIG_IS_IC751)
-           ) // only worth trying if not in satmode
+        // only worth trying if not in satmode
+        if ((satmode == 0) && !(RIG_IS_IC751))
         {
             int cmd, subcmd, freq_len, retry_save;
             unsigned char freqbuf[32];
+
             freq_len = priv->civ_731_mode ? 4 : 5;
-            /*
-             * to_bcd requires nibble len
-             */
             to_bcd(freqbuf, tx_freq, freq_len * 2);
 
             cmd = C_SEND_SEL_FREQ;
-            subcmd = 0x01; // set the unselected vfo
-
-            // if we're already on the tx_vfo don't need the "other" vfo
-            if (rig->state.current_vfo == rig->state.tx_vfo)
-            {
-                subcmd = 0x00;
-            }
+            subcmd = icom_get_vfo_number_x25x26(rig, rs->tx_vfo);
 
             retry_save = rig->state.rigport.retry;
             rig->state.rigport.retry = 1;
@@ -5626,7 +5460,7 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
                                       &ack_len);
             rig->state.rigport.retry = retry_save;
 
-            if (retval == RIG_OK) // then we're done!!
+            if (retval == RIG_OK)
             {
                 priv->x25cmdfails = 0;
                 RETURNFUNC2(retval);
@@ -5636,7 +5470,6 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         // Rig is in SATMODE and the command 0x25 fails in SATMODE
         priv->x25cmdfails = 1;
     }
-
 
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
@@ -5664,15 +5497,13 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
        current VFO is VFO A and the split Tx VFO is always VFO B. These
        assumptions allow us to deal with the lack of VFO and split
        queries */
-    if (VFO_HAS_A_B_ONLY
-            && priv->split_on)   /* broken if user changes split on rig :( */
+    /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
            split for certainty */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC2(retval);
         }
@@ -5692,7 +5523,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         }
     }
 
-    if (RIG_OK != (retval = icom_get_split_vfos(rig, &rx_vfo, &tx_vfo)))
+    retval = icom_get_split_vfos(rig, &rx_vfo, &tx_vfo);
+    if (retval != RIG_OK)
     {
         RETURNFUNC2(retval);
     }
@@ -5702,13 +5534,17 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     HAMLIB_TRACE;
 
-    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
-            && RIG_OK != (retval = rig_set_vfo(rig, tx_vfo)))
+    if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ))
     {
-        RETURNFUNC2(retval);
+        retval = rig_set_vfo(rig, tx_vfo);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC2(retval);
+        }
     }
 
-    if (RIG_OK != (retval = rig_set_freq(rig, tx_vfo, tx_freq)))
+    retval = rig_set_freq(rig, tx_vfo, tx_freq);
+    if (retval != RIG_OK)
     {
         RETURNFUNC2(retval);
     }
@@ -5719,15 +5555,17 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     {
         // Then we return the VFO to the rx_vfo
         rig_debug(RIG_DEBUG_TRACE, "%s: SATMODE split_on=%d rig so setting vfo to %s\n",
-                  __func__,
-                  priv->split_on, rig_strvfo(rx_vfo));
+                  __func__, rs->cache.split, rig_strvfo(rx_vfo));
 
         HAMLIB_TRACE;
 
-        if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ)
-                && RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
+        if (!(rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ))
         {
-            RETURNFUNC2(retval);
+            retval = rig_set_vfo(rig, rx_vfo);
+            if (retval != RIG_OK)
+            {
+                RETURNFUNC2(retval);
+            }
         }
     }
     else if (RIG_OK != (retval = rig_set_vfo(rig, rx_vfo)))
@@ -5736,26 +5574,25 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         RETURNFUNC2(retval);
     }
 
-    if (VFO_HAS_A_B_ONLY && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC2(retval);
         }
     }
 
+    // TODO: Should update cache for all possible VFOs!
     // Update our internal freqs to match what we just did
     if (vfo == RIG_VFO_MAIN)
     {
-        priv->main_freq = tx_freq;
+        rs->cache.freqMainA = tx_freq;
     }
     else if (vfo == RIG_VFO_SUB)
     {
-        priv->sub_freq = tx_freq;
+        rs->cache.freqSubA = tx_freq;
     }
 
     RETURNFUNC2(retval);
@@ -5798,7 +5635,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: ptt is on so returning last known freq\n",
                       __func__);
-            *tx_freq = priv->vfob_freq;
+            *tx_freq = rs->cache.freqMainB;
             RETURNFUNC2(RIG_OK);
         }
     }
@@ -5814,7 +5651,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
     // If the rigs supports the 0x25 command we'll use it
     // This eliminates VFO swapping and improves split operations
-    // This does not work in satellite mode for the 9700
+    // This does not work in satellite mode for the IC-9700
     if (priv->x25cmdfails <= 0)
     {
         int cmd, subcmd;
@@ -5834,17 +5671,10 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         {
             int retry_save = rs->rigport.retry;
             rs->rigport.retry = 0;
+
             cmd = C_SEND_SEL_FREQ;
-            // when transmitting in split mode the split VFO is active
-            subcmd = (rig->state.cache.split
-                      && rig->state.cache.ptt) ? 0x00 : 0x01; // get the unselected vfo
-            if (RIG_IS_IC7600 || RIG_IS_IC7610)
-            { // the 7600/7610 do it different 0=Main, 1=Sub -- maybe other Icoms will start doing this too
-                subcmd = 0;
-                if (vfo & RIG_VFO_B || vfo & RIG_VFO_SUB) subcmd = 1;
-            }
-            retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf,
-                                      &ack_len);
+            subcmd = icom_get_vfo_number_x25x26(rig, rs->tx_vfo);
+            retval = icom_transaction(rig, cmd, subcmd, NULL, 0, ackbuf, &ack_len);
 
             rs->rigport.retry = retry_save;
 
@@ -5855,7 +5685,10 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
                 RETURNFUNC2(retval);
             }
 
-            if (priv->x25cmdfails < 0) { priv->x25cmdfails = 1; }
+            if (priv->x25cmdfails < 0)
+            {
+                priv->x25cmdfails = 1;
+            }
         }
         else   // we're in satmode so we try another command
         {
@@ -5890,7 +5723,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
             RETURNFUNC2(retval);
         }
 
-        priv->vfob_freq = *tx_freq;
+        rs->cache.freqMainB = *tx_freq;
 
         if (RIG_OK != (retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG)))
         {
@@ -5904,15 +5737,13 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
        current VFO is VFO A and the split Tx VFO is always VFO B. These
        assumptions allow us to deal with the lack of VFO and split
        queries */
-    if (VFO_HAS_A_B_ONLY
-            && priv->split_on)   /* broken if user changes split on rig :( */
+    /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
            split for certainty */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC2(retval);
         }
@@ -5970,19 +5801,17 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         RETURNFUNC2(retval);
     }
 
-    if (VFO_HAS_A_B_ONLY && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC2(retval);
         }
     }
 
-    priv->vfob_freq = *tx_freq;
+    rs->cache.freqMainB = *tx_freq;
     RETURNFUNC2(retval);
 }
 
@@ -6000,6 +5829,8 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     struct rig_state *rs;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
+
+    // TODO: FIX: set/get split_mode could use 0x26 too when TARGETABLE_MODE is available (and VFO not MEM?)
 
     ENTERFUNC;
     rs = &rig->state;
@@ -6031,15 +5862,13 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
        current VFO is VFO A and the split Tx VFO is always VFO B. These
        assumptions allow us to deal with the lack of VFO and split
        queries */
-    if (VFO_HAS_A_B_ONLY
-            && priv->split_on)   /* broken if user changes split on rig :( */
+    /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
            split for certainty */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
@@ -6086,13 +5915,11 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         RETURNFUNC(retval);
     }
 
-    if (VFO_HAS_A_B_ONLY && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
@@ -6121,6 +5948,8 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
 
+    // TODO: FIX: set/get split_mode could use 0x26 too when TARGETABLE_MODE is available (and VFO not MEM?)
+
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
     {
@@ -6147,15 +5976,13 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
        current VFO is VFO A and the split Tx VFO is always VFO B. These
        assumptions allow us to deal with the lack of VFO and split
        queries */
-    if (VFO_HAS_A_B_ONLY
-            && priv->split_on)   /* broken if user changes split on rig :( */
+    /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
            split for certainty */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
@@ -6200,13 +6027,11 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         RETURNFUNC(retval);
     }
 
-    if (VFO_HAS_A_B_ONLY && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf,&ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
@@ -6224,6 +6049,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
                              rmode_t tx_mode, pbwidth_t tx_width)
 {
     int retval;
+    struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
@@ -6242,6 +6068,8 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         HAMLIB_TRACE;
         icom_set_default_vfo(rig);
     }
+
+    // TODO: FIX: set/get split_mode could use 0x26 too when TARGETABLE_MODE is available (and VFO not MEM?)
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
@@ -6276,14 +6104,12 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
        assumptions allow us to deal with the lack of VFO and split
        queries */
     /* broken if user changes split on rig :( */
-    if (VFO_HAS_A_B && (split_assumed || priv->split_on))
+    if (VFO_HAS_A_B && (split_assumed || rs->cache.split != RIG_SPLIT_OFF))
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
            split for certainty */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC2(retval);
         }
@@ -6305,7 +6131,7 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: before get_split_vfos rx_vfo=%s tx_vfo=%s\n", __func__,
-              rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+              rig_strvfo(rs->rx_vfo), rig_strvfo(rs->tx_vfo));
 
     if (RIG_OK != (retval = icom_get_split_vfos(rig, &rx_vfo, &tx_vfo)))
     {
@@ -6324,10 +6150,10 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: after get_split_vfos  rx_vfo=%s tx_vfo=%s\n", __func__,
-              rig_strvfo(priv->rx_vfo), rig_strvfo(priv->tx_vfo));
+              rig_strvfo(rs->rx_vfo), rig_strvfo(rs->tx_vfo));
 
     // if not asking for RIG_VFO_CURR we'll use the requested VFO in the function call as tx_vfo
-    if (!priv->split_on && vfo != RIG_VFO_CURR)
+    if (rs->cache.split == RIG_SPLIT_OFF && vfo != RIG_VFO_CURR)
     {
         tx_vfo = vfo;
         rig_debug(RIG_DEBUG_TRACE, "%s: split not on so using requested vfo=%s\n",
@@ -6369,13 +6195,11 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
         RETURNFUNC2(retval);
     }
 
-    if (VFO_HAS_A_B && priv->split_on)
+    if (VFO_HAS_A_B && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC2(retval);
         }
@@ -6403,6 +6227,8 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
     ENTERFUNC;
     rs = &rig->state;
     priv = (struct icom_priv_data *) rs->priv;
+
+    // TODO: FIX: set/get split_mode could use 0x26 too when TARGETABLE_MODE is available (and VFO not MEM?)
 
     /* This method works also in memory mode(RIG_VFO_MEM) */
     if (!priv->no_xchg && rig_has_vfo_op(rig, RIG_OP_XCHG))
@@ -6435,15 +6261,13 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
        current VFO is VFO A and the split Tx VFO is always VFO B. These
        assumptions allow us to deal with the lack of VFO and split
        queries */
-    if (VFO_HAS_A_B_ONLY
-            && priv->split_on)   /* broken if user changes split on rig :( */
+    /* broken if user changes split on rig :( */
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
            split for certainty */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
@@ -6493,13 +6317,11 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
         RETURNFUNC(retval);
     }
 
-    if (VFO_HAS_A_B_ONLY && priv->split_on)
+    if (VFO_HAS_A_B_ONLY && rs->cache.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
-        if (RIG_OK !=
-                (retval =
-                     icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf,
-                                      &ack_len)))
+        retval = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
         {
             RETURNFUNC(retval);
         }
@@ -6514,12 +6336,11 @@ int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
  */
 int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+    struct rig_state *rs = &rig->state;
     const struct icom_priv_caps *priv_caps = rig->caps->priv;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), retval;
     int split_sc;
-    //vfo_t vfo_final = RIG_VFO_NONE;  // where does the VFO end up?
 
     /* For Icom which VFO is active for this call is not important
      * S VFOA 1 VFOB -- RX on VFOA, TX on VFOB
@@ -6543,7 +6364,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 1);
             icom_satmode_fix(rig, 1);
             rig->state.cache.satmode = 1;
-            priv->tx_vfo = RIG_VFO_SUB;
+            rs->tx_vfo = RIG_VFO_SUB;
         }
         else if ((tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_B)
                  && rig->state.cache.satmode)
@@ -6554,7 +6375,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, 0);
             icom_satmode_fix(rig, 0);
             rig->state.cache.satmode = 0;
-            priv->tx_vfo = RIG_VFO_B;
+            rs->tx_vfo = RIG_VFO_B;
         }
         else if (tx_vfo == RIG_VFO_SUB && rig->state.cache.satmode && split == 1)
         {
@@ -6577,8 +6398,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s\n", __func__,
                       rig_strvfo(tx_vfo));
-            priv->tx_vfo = RIG_VFO_A;
-            //vfo_final = RIG_VFO_A; // do we need to switch back at all?
+            rs->tx_vfo = RIG_VFO_A;
         }
         // otherwise if Main or Sub we set Main or VFOA as the current vfo
         else if (tx_vfo == RIG_VFO_MAIN || tx_vfo == RIG_VFO_SUB)
@@ -6586,18 +6406,15 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             rig_debug(RIG_DEBUG_TRACE, "%s: vfo is VFO_MAIN/SUB tx_vfo=%s\n",
                       __func__, rig_strvfo(tx_vfo));
 
-            //rig_set_vfo(rig, RIG_VFO_MAIN);
-            //vfo_final = RIG_VFO_MAIN; // do we need to switch back at all?
-
             if (VFO_HAS_A_B_ONLY)
             {
-                priv->tx_vfo = RIG_VFO_A;
-                priv->rx_vfo = RIG_VFO_A;
+                rs->tx_vfo = RIG_VFO_A;
+                rs->rx_vfo = RIG_VFO_A;
             }
             else
             {
-                priv->tx_vfo = RIG_VFO_MAIN;
-                priv->rx_vfo = RIG_VFO_MAIN;
+                rs->tx_vfo = RIG_VFO_MAIN;
+                rs->rx_vfo = RIG_VFO_MAIN;
             }
         }
 
@@ -6618,8 +6435,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             if (tx_vfo == RIG_VFO_MAIN) { tx_vfo = RIG_VFO_A; vfo = RIG_VFO_B; }
             else if (tx_vfo == RIG_VFO_SUB) { tx_vfo = RIG_VFO_B; vfo = RIG_VFO_A; }
 
-            priv->tx_vfo = tx_vfo;
-            priv->rx_vfo = vfo;
+            rs->tx_vfo = tx_vfo;
+            rs->rx_vfo = vfo;
         }
 
         /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
@@ -6632,13 +6449,13 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
             if (tx_vfo == RIG_VFO_B)
             {
-                priv->tx_vfo = RIG_VFO_B;
-                priv->rx_vfo = vfo = RIG_VFO_A;
+                rs->tx_vfo = RIG_VFO_B;
+                rs->rx_vfo = vfo = RIG_VFO_A;
             }
             else
             {
-                priv->tx_vfo = RIG_VFO_A;
-                priv->rx_vfo = vfo = RIG_VFO_B;
+                rs->tx_vfo = RIG_VFO_A;
+                rs->rx_vfo = vfo = RIG_VFO_B;
             }
         }
         else if (VFO_HAS_MAIN_SUB_A_B_ONLY && (tx_vfo == RIG_VFO_MAIN
@@ -6647,11 +6464,11 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             // do we need another case for tx_vfo = A/B ?
             rig_debug(RIG_DEBUG_TRACE, "%s: vfo clause 3\n", __func__);
             // if we're asking for split in this case we split Main on A/B
-            priv->tx_vfo = RIG_VFO_SUB;
-            priv->rx_vfo = RIG_VFO_MAIN;
+            rs->tx_vfo = RIG_VFO_SUB;
+            rs->rx_vfo = RIG_VFO_MAIN;
             rig_debug(RIG_DEBUG_TRACE,
                       "%s: tx=%s, rx=%s because tx_vfo=%s\n", __func__,
-                      rig_strvfo(priv->tx_vfo), rig_strvfo(priv->rx_vfo), rig_strvfo(tx_vfo));
+                      rig_strvfo(rs->tx_vfo), rig_strvfo(rs->rx_vfo), rig_strvfo(tx_vfo));
             tx_vfo = RIG_VFO_SUB;
 
 #if 0 // is this needed for satmode?
@@ -6690,9 +6507,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 #endif
 
-            priv->rx_vfo = vfo;
-            priv->tx_vfo = tx_vfo;
-            //vfo_final = RIG_VFO_MAIN;
+            rs->rx_vfo = vfo;
+            rs->tx_vfo = tx_vfo;
 
             split_sc = S_SPLT_ON;
         }
@@ -6749,31 +6565,14 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         RETURNFUNC2(-RIG_ERJCTED);
     }
 
-    priv->split_on = RIG_SPLIT_ON == split;
-
-#if 0 // don't think we need this anymore -- 20210731
-
-    if (vfo_final != RIG_VFO_NONE && vfo_final != rig->state.current_vfo)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: vfo_final set %s\n", __func__,
-                  rig_strvfo(vfo_final));
-        HAMLIB_TRACE;
-        retval = rig_set_vfo(rig, vfo_final);
-
-        if (retval != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_TRACE, "%s: vfo_final set failed? err=%s\n", __func__,
-                      rigerror(retval));
-        }
-    }
-
-#endif
+    rs->cache.split = split;
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: vfo=%s curr_vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
               __func__, rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo),
-              rig_strvfo(priv->rx_vfo),
-              rig_strvfo(priv->tx_vfo), split);
+              rig_strvfo(rs->rx_vfo),
+              rig_strvfo(rs->tx_vfo), split);
+
     RETURNFUNC2(RIG_OK);
 }
 
@@ -6788,6 +6587,7 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     unsigned char splitbuf[MAXFRAMELEN];
     int split_len, retval, satmode = 0;
+    struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
 
     ENTERFUNC;
@@ -6852,14 +6652,15 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     rig->state.cache.satmode = satmode;
 
-    priv->split_on = RIG_SPLIT_ON == *split;
+    rs->cache.split = *split;
 
-    icom_get_split_vfos(rig, &priv->rx_vfo, &priv->tx_vfo);
+    icom_get_split_vfos(rig, &rs->rx_vfo, &rs->tx_vfo);
 
-    *tx_vfo = priv->tx_vfo;
+    *tx_vfo = rs->tx_vfo;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s rx_vfo=%s tx_vfo=%s split=%d\n",
-              __func__, rig_strvfo(vfo), rig_strvfo(priv->rx_vfo),
-              rig_strvfo(priv->tx_vfo), *split);
+              __func__, rig_strvfo(vfo), rig_strvfo(rs->rx_vfo),
+              rig_strvfo(rs->tx_vfo), *split);
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -7289,15 +7090,17 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-        priv->tx_vfo = RIG_VFO_A;
+        rs->tx_vfo = RIG_VFO_A;
 
-        if (priv->split_on)   // must have turned off satmode
+        if (rs->cache.split != RIG_SPLIT_OFF)
         {
-            priv->tx_vfo = RIG_VFO_B;
+            // must have turned off satmode
+            rs->tx_vfo = RIG_VFO_B;
         }
-        else if (status)   // turned on satmode so tx is always Sub
+        else if (status)
         {
-            priv->tx_vfo = RIG_VFO_SUB;
+            // turned on satmode so tx is always Sub
+            rs->tx_vfo = RIG_VFO_SUB;
         }
     }
 
@@ -9617,7 +9420,7 @@ int icom_get_freq_range(RIG *rig)
 static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
 {
     int retval;
-    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+    struct rig_state *rs = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(curr_vfo));
@@ -9625,8 +9428,8 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     if (vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: Asking for currVFO,  currVFO=%s\n", __func__,
-                  rig_strvfo(rig->state.current_vfo));
-        vfo = rig->state.current_vfo;
+                  rig_strvfo(rs->current_vfo));
+        vfo = rs->current_vfo;
         RETURNFUNC2(RIG_OK);
     }
 
@@ -9646,23 +9449,23 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     /* This method works also in memory mode(RIG_VFO_MEM) */
     // first time we will set default to VFOA or Main as
     // So if you ask for frequency or such without setting VFO first you'll get Main/VFOA
-    if (rig->state.current_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
+    if (rs->current_vfo == RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
         HAMLIB_TRACE;
         icom_set_default_vfo(rig);
     }
     // asking for vfo_curr so give it to them
-    else if (rig->state.current_vfo != RIG_VFO_NONE && vfo == RIG_VFO_CURR)
+    else if (rs->current_vfo != RIG_VFO_NONE && vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using curr_vfo=%s\n", __func__,
-                  rig_strvfo(rig->state.current_vfo));
-        vfo = rig->state.current_vfo;
+                  rig_strvfo(rs->current_vfo));
+        vfo = rs->current_vfo;
     }
     // only need to set vfo if it's changed
-    else if (rig->state.current_vfo != vfo)
+    else if (rs->current_vfo != vfo)
     {
-        if (!(VFO_HAS_MAIN_SUB_A_B_ONLY && !priv->split_on && !rig->state.cache.satmode
-                && vfo == RIG_VFO_SUB && rig->state.current_vfo == RIG_VFO_B))
+        if (!(VFO_HAS_MAIN_SUB_A_B_ONLY && rs->cache.split == RIG_SPLIT_OFF && !rs->cache.satmode
+                && vfo == RIG_VFO_SUB && rs->current_vfo == RIG_VFO_B))
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: setting new vfo=%s\n", __func__,
                       rig_strvfo(vfo));
@@ -9677,9 +9480,9 @@ static int set_vfo_curr(RIG *rig, vfo_t vfo, vfo_t curr_vfo)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo now=%s\n", __func__,
-              rig_strvfo(rig->state.current_vfo));
+              rig_strvfo(rs->current_vfo));
 
-    rig->state.current_vfo = vfo;
+    rs->current_vfo = vfo;
 
     RETURNFUNC2(RIG_OK);
 }
@@ -9941,6 +9744,65 @@ DECLARE_PROBERIG_BACKEND(icom)
     }
 
     return (model);
+}
+
+/**
+ * Resolves the VFO number for Icom commands 0x25 and 0x26
+ */
+static int icom_get_vfo_number_x25x26(RIG *rig, vfo_t vfo)
+{
+    int vfo_number = 0x00;
+
+    // Rigs with Main/Sub VFOs can directly address VFOs: 0 = Main, 1 = Sub
+    // TODO: Based on manual, IC-9700 does not do this, but refers to selected/unselected VFOs -- however, logic in Hamlib had been written this way successfully
+    if (RIG_IS_IC7600 || RIG_IS_IC7610 || RIG_IS_IC7800 || RIG_IS_IC785X)
+    {
+        vfo_t actual_vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
+        if (actual_vfo == RIG_VFO_CURR)
+        {
+            actual_vfo = rig->state.current_vfo;
+        }
+
+        if (actual_vfo & (RIG_VFO_B | RIG_VFO_SUB))
+        {
+            vfo_number = 0x01;
+        }
+    }
+    else
+    {
+        // Other Icom rigs have: 0 = selected VFO, 1 = unselected VFO
+        if (vfo == RIG_VFO_CURR)
+        {
+            return 0x00; // selected VFO
+        }
+        else if (vfo == RIG_VFO_OTHER)
+        {
+            return 0x01; // unselected VFO
+        }
+
+        vfo_t vfo_unselected =
+                RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_SUB_B | RIG_VFO_MAIN_B | RIG_VFO_OTHER;
+
+        // Check if we are on the requested VFO already
+        if (rig->state.current_vfo & vfo_unselected)
+        {
+            HAMLIB_TRACE;
+            vfo_unselected =
+                    RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_SUB_A | RIG_VFO_MAIN_A | RIG_VFO_OTHER;
+        }
+
+        // Check if we are not on the unselected VFO
+        if ((vfo & vfo_unselected) && !(rig->state.current_vfo & vfo_unselected))
+        {
+            HAMLIB_TRACE;
+            vfo_number = 0x01;  // unselected VFO
+        }
+
+        // The split VFO is active when transmitting in split mode
+        vfo_number = (rig->state.cache.split && rig->state.cache.ptt) ? !vfo_number : vfo_number;
+    }
+
+    return vfo_number;
 }
 
 /*

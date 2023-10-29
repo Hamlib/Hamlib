@@ -253,22 +253,28 @@ struct icom_priv_data
     int civ_731_mode; /*!< Off: freqs on 10 digits, On: freqs on 8 digits */
     int no_xchg; /*!< Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
     int no_1a_03_cmd; /*!< Rig doesn't tell IF widths */
-    int split_on; /*!< Record split state */
+    int split_on_deprecated; /*!< @deprecated Use rig_cache.split - Record split state */
     pltstate_t *pltstate; /*!< Only on optoscan */
     int serial_USB_echo_off; /*!< USB is not set to echo */
-    /* we track vfos internally for use with different functions like split */
-    /* this allows queries using CURR_VFO and Main/Sub to behave */
-    vfo_t rx_vfo;
-    vfo_t tx_vfo;
-    freq_t curr_freq; /*!< Our current freq depending on which vfo is selected */
-    freq_t main_freq; /*!< Track last setting of main -- not being used yet */
-    freq_t sub_freq;  /*!< Track last setting of sub -- not being used yet */
-    freq_t maina_freq;
-    freq_t mainb_freq;
-    freq_t suba_freq;
-    freq_t subb_freq;
-    freq_t vfoa_freq; /*!< Track last setting of vfoa -- used to return last freq when ptt is asserted */
-    freq_t vfob_freq; /*!< Track last setting of vfob -- used to return last freq when ptt is asserted */
+
+    /**
+     * Icom backends track VFOs internally for use with different functions like split.
+     * This allows queries using CURR_VFO and Main/Sub to work correctly.
+     *
+     * The fields in this struct are no longer used, because rig_state and rig_cache structs provide
+     * the same functionality for all rigs globally.
+     */
+    vfo_t rx_vfo_deprecated; /*!< @deprecated Use rig_state.rx_vfo */
+    vfo_t tx_vfo_deprecated; /*!< @deprecated Use rig_state.tx_vfo */
+    freq_t curr_freq_deprecated; /*!< @deprecated Use rig_cache.freqCurr - Our current freq depending on which vfo is selected */
+    freq_t main_freq_deprecated; /*!< @deprecated Use rig_cache.freqMainA - Track last setting of main -- not being used yet */
+    freq_t sub_freq_deprecated;  /*!< @deprecated Use rig_cache.freqSubA - Track last setting of sub -- not being used yet */
+    freq_t maina_freq_deprecated; /*!< @deprecated Use rig_cache.freqMainA */
+    freq_t mainb_freq_deprecated; /*!< @deprecated Use rig_cache.freqMainB */
+    freq_t suba_freq_deprecated; /*!< @deprecated Use rig_cache.freqSubA */
+    freq_t subb_freq_deprecated; /*!< @deprecated Use rig_cache.freqSubB */
+    freq_t vfoa_freq_deprecated; /*!< @deprecated Use rig_cache.freqMainA - Track last setting of vfoa -- used to return last freq when ptt is asserted */
+    freq_t vfob_freq_deprecated; /*!< @deprecated Use rig_cache.freqMainB - Track last setting of vfob -- used to return last freq when ptt is asserted */
     int x25cmdfails; /*!< This will get set if the 0x25 command fails so we try just once */
     int x26cmdfails; /*!< This will get set if the 0x26 command fails so we try just once */
     int x1cx03cmdfails; /*!< This will get set if the 0x1c 0x03 command fails so we try just once */
@@ -277,7 +283,7 @@ struct icom_priv_data
     unsigned char datamode; /*!< Current datamode */
     int spectrum_scope_count; /*!< Number of spectrum scopes, calculated from caps */
     struct icom_spectrum_scope_cache spectrum_scope_cache[HAMLIB_MAX_SPECTRUM_SCOPES]; /*!< Cached Icom spectrum scope data used during reception of the data. The array index must match the scope ID. */
-    freq_t other_freq; /*!< Our other freq depending on which vfo is selected */
+    freq_t other_freq_deprecated; /*!< @deprecated Use rig_cache.freqOther - Our other freq depending on which vfo is selected */
     int vfo_flag; // used to skip vfo check when frequencies are equal
 };
 

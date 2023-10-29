@@ -576,11 +576,10 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
         {
             if (gran[i].step.s)
             {
-            rig_debug(RIG_DEBUG_ERR, "%s: BAND_SELECT?\n", __func__);
-            len += sprintf(str + len,
-                "%s(%s) ",
-                ms,
-                gran[i].step.s);
+                len += sprintf(str + len,
+                    "%s(%s) ",
+                    ms,
+                    gran[i].step.s);
             }
         }
         else

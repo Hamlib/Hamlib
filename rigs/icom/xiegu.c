@@ -891,7 +891,6 @@ int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct icom_priv_data *priv = (struct icom_priv_data *)rig->state.priv;
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf), rc;
     int split_sc;
@@ -907,7 +906,7 @@ static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     case RIG_SPLIT_ON:
         split_sc = S_SPLT_ON;
 
-        if (!priv->split_on)
+        if (rig->state.cache.split == RIG_SPLIT_OFF)
         {
             /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
             if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B))
@@ -934,7 +933,7 @@ static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return -RIG_ERJCTED;
     }
 
-    priv->split_on = RIG_SPLIT_ON == split;
+    rig->state.cache.split = split;
     return RIG_OK;
 }
 
@@ -973,13 +972,17 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
              current VFO is VFO A and the split Tx VFO is always VFO B. These
              assumptions allow us to deal with the lack of VFO and split
              queries */
+    /* broken if user changes split on rig :( */
     if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)                              /* broken if user changes split on rig :( */
+            && rig->state.cache.split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
                  split for certainty */
-        if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0,
-                                             ackbuf, &ack_len))) { return rc; }
+        rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+        if (rc != RIG_OK)
+        {
+            return rc;
+        }
 
         if (ack_len != 2 || ackbuf[0] != 0x0f)
         {
@@ -998,11 +1001,14 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
     if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)
+            && rig->state.cache.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
-        if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
-                                             ackbuf, &ack_len))) { return rc; }
+        rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
+        if (rc != RIG_OK)
+        {
+            return rc;
+        }
     }
 
     return rc;
@@ -1043,13 +1049,17 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
              current VFO is VFO A and the split Tx VFO is always VFO B. These
              assumptions allow us to deal with the lack of VFO and split
              queries */
+    /* broken if user changes split on rig :( */
     if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)                              /* broken if user changes split on rig :( */
+            && rig->state.cache.split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
                  split for certainty */
-        if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0,
-                                             ackbuf, &ack_len))) { return rc; }
+        rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+        if (rc != RIG_OK)
+        {
+            return rc;
+        }
 
         if (ack_len != 2 || ackbuf[0] != 0x0f)
         {
@@ -1069,13 +1079,15 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
     if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
-            && priv->split_on)
+            && rig->state.cache.split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
-        if (RIG_OK != (rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0,
-                                             ackbuf, &ack_len))) { return rc; }
+        rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
+        if (rc != RIG_OK)
+        {
+            return rc;
+        }
     }
 
     return rc;
 }
-
