@@ -270,6 +270,7 @@ declare_proto_rig(hamlib_version);
 declare_proto_rig(test);
 declare_proto_rig(cm108_get_bit);
 declare_proto_rig(cm108_set_bit);
+declare_proto_rig(set_conf);
 
 
 /*
