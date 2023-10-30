@@ -1094,6 +1094,13 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     }
 
     socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    u_long mode = 1; // Enable non-blocking mode
+#ifdef __MINGW32__
+    ioctlsocket(socket_fd, FIONBIO, &mode);
+#else
+    ioctl(socket_fd, FIONBIO, &mode);
+#endif
+
 
     if (socket_fd < 0)
     {
