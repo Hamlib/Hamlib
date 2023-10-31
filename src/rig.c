@@ -1887,8 +1887,24 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               rig_strvfo(vfo), freq);
 #endif
 
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) { freq += rig->state.offset_vfoa; }
-    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) { freq += rig->state.offset_vfob; }
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    { 
+        if (rig->state.cache.freqMainA != freq && ((int)freq % 10) != 0) 
+        {
+            rig->state.doppler = 1;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, rig->state.cache.freqMainA);
+        } 
+        freq += rig->state.offset_vfoa; 
+    }
+    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+    {
+        if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0) 
+        {
+            rig->state.doppler = 1;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, rig->state.cache.freqMainA);
+        } 
+        freq += rig->state.offset_vfob; 
+    }
 
     if (rig->state.twiddle_state == TWIDDLE_ON)
     {
@@ -3499,6 +3515,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     memcpy(&rig->state.pttport_deprecated, &rig->state.pttport,
            sizeof(rig->state.pttport_deprecated));
+    if (rig->state.rigport.post_ptt_delay > 0) hl_usleep(rig->state.rigport.post_ptt_delay*1000);
     ELAPSED2;
 
     RETURNFUNC(retcode);
