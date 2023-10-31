@@ -978,6 +978,16 @@ void *multicast_publisher(void *arg)
             rig_debug(RIG_DEBUG_ERR, "%s: error sending UDP packet: %s\n", __func__,
                       strerror(errno));
         }
+
+        struct sockaddr_in client_addr;
+        char buf[4096];
+        socklen_t client_len = sizeof(client_addr);
+        int n = recvfrom(socket_fd, buf, sizeof(buf), 0, (struct sockaddr*)&client_addr, &client_len);
+        if (n > 0)
+        {
+            // To-do handle commands from multicast clients
+            rig_debug(RIG_DEBUG_ERR, "%s: received %d bytes=%s\n", __func__, n, buf);
+        }
         for(i=0;i<5;++i)
         {
             hl_usleep(200*1000);
@@ -1119,11 +1129,6 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) MULTICAST_SPECTRUM enabled\n", __FILE__,
                   __LINE__);
-    }
-    else
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s(%d) unknown MULTICAST item requested=0x%x\n",
-                  __FILE__, __LINE__, items);
     }
 
     rs->snapshot_packet_sequence_number = 0;
