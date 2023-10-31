@@ -2551,6 +2551,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         int rc2;
         vfo_t curr_vfo;
 
+        // TODO: Add a universal check (based on cache) if mode actually needs to be changed, to prevent VFO swapping
         // if not a targetable rig we will only set mode on VFOB if it is changing
         if (rig->state.cache.modeMainB == mode)
         {
@@ -2588,7 +2589,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         rc2 = caps->set_vfo(rig, curr_vfo);
 
         /* return the first error code */
-        if (RIG_OK == retcode)
+        if (retcode == RIG_OK)
         {
             retcode = rc2;
         }
