@@ -2380,6 +2380,7 @@ typedef struct hamlib_port {
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
 #endif
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to disable */
+    int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
 } hamlib_port_t;
 
  
@@ -2759,6 +2760,7 @@ struct rig_state {
     void *morse_data_handler_priv_data;
     FIFO_RIG *fifo_morse;
     int port_multicast;  /*!< May be different so this is initially a copy of rigctl'd port selection */
+    int doppler;         /*!< True if doppler changing detected */
 };
 
 /**
