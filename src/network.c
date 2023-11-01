@@ -996,6 +996,8 @@ void *multicast_receiver(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast receiver\n", __FILE__,
             __LINE__);
 
+// Not working right now
+#if 0
     int optval = 1;
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
     {
@@ -1003,6 +1005,7 @@ void *multicast_receiver(void *arg)
                 strerror(errno));
         return NULL;
     }
+#endif
 
     memset(&dest_addr, 0, sizeof(dest_addr));
     dest_addr.sin_family = AF_INET;
