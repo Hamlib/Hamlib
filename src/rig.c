@@ -1909,6 +1909,9 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
     }
 
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) { freq += rig->state.offset_vfoa; }
+    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) { freq += rig->state.offset_vfob; }
+
     if (rig->state.twiddle_state == TWIDDLE_ON)
     {
         // we keep skipping set_freq while the vfo knob is in motion
