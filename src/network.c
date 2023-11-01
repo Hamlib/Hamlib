@@ -728,7 +728,7 @@ static int multicast_publisher_write_packet_header(RIG *rig,
     if (rs->multicast_publisher_priv_data == NULL)
     {
         // Silently ignore if multicast publisher is not enabled
-        RETURNFUNC2(RIG_OK);
+        return RIG_OK;
     }
 
     mcast_publisher_priv = (multicast_publisher_priv_data *)
@@ -741,10 +741,10 @@ static int multicast_publisher_write_packet_header(RIG *rig,
 
     if (result != RIG_OK)
     {
-        RETURNFUNC2(result);
+        return result;
     }
 
-    RETURNFUNC2(RIG_OK);
+    return RIG_OK;
 }
 
 // cppcheck-suppress unusedFunction
@@ -996,13 +996,34 @@ void *multicast_receiver(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast receiver\n", __FILE__,
             __LINE__);
 
+    int optval = 1;
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP port reuse: %s\n", __func__,
+                strerror(errno));
+        return NULL;
+    }
+
     memset(&dest_addr, 0, sizeof(dest_addr));
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_addr.s_addr = inet_addr(args->multicast_addr);
     dest_addr.sin_port = htons(args->multicast_port);
 
-    if ((bind(socket_fd, (struct sockaddr *) &dest_addr, sizeof(dest_addr))) < 0) {
+    if ((bind(socket_fd, (struct sockaddr *) &dest_addr, sizeof(dest_addr))) < 0)
+    {
         rig_debug(RIG_DEBUG_ERR, "%s: error binding UDP socket to %s:%d: %s\n", __func__,
+                args->multicast_addr, args->multicast_port, strerror(errno));
+        return NULL;
+    }
+
+    struct ip_mreq mreq;
+    memset(&mreq, 0, sizeof(mreq));
+    mreq.imr_multiaddr.s_addr = inet_addr(args->multicast_addr);
+    mreq.imr_interface.s_addr = INADDR_ANY;
+
+    if (setsockopt(socket_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error joining multicast group %s:%d: %s\n", __func__,
                 args->multicast_addr, args->multicast_port, strerror(errno));
         return NULL;
     }
@@ -1017,12 +1038,15 @@ void *multicast_receiver(void *arg)
 
         result = recvfrom(socket_fd, data, sizeof(data), 0, (struct sockaddr *) &client_addr, &client_len);
 
-        rig_debug(RIG_DEBUG_ERR, "%s: received multicast packet with result %ld\n", __func__, result);
-
         if (result <= 0)
         {
             if (result < 0)
             {
+                if (errno == EAGAIN)
+                {
+                    hl_usleep(100 * 1000);
+                    continue;
+                }
                 rig_debug(RIG_DEBUG_ERR, "%s: error receiving from UDP socket %s:%d: %s\n", __func__,
                         args->multicast_addr, args->multicast_port, strerror(errno));
             }
@@ -1030,7 +1054,7 @@ void *multicast_receiver(void *arg)
         }
 
         // TODO: handle commands from multicast clients
-        rig_debug(RIG_DEBUG_ERR, "%s: received %ld bytes=%s\n", __func__, result, data);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: received %ld bytes of data: %.*s\n", __func__, result, (int) result, data);
 
         // TODO: if a new snapshot needs to be sent, call network_publish_rig_poll_data() and the publisher routine will send out a snapshot
         // TODO: new logic in publisher needs to be written for other types of responses
