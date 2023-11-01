@@ -996,10 +996,10 @@ void *multicast_receiver(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast receiver\n", __FILE__,
             __LINE__);
 
-    int optval = 1;
-    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) < 0)
+    char optval = 1;
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP port reuse: %s\n", __func__,
+        rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP address reuse: %s\n", __func__,
                 strerror(errno));
         return NULL;
     }
