@@ -5463,7 +5463,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         break;
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%08lx\n", __func__, level);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%08llx\n", __func__, (long long unsigned  int)level);
         RETURNFUNC(-RIG_EINVAL);
     }
 
