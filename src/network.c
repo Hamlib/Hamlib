@@ -1054,7 +1054,7 @@ void *multicast_receiver(void *arg)
         }
 
         // TODO: handle commands from multicast clients
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: received %ld bytes of data: %.*s\n", __func__, result, (int) result, data);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: received %ld bytes of data: %.*s\n", __func__, (long) result, (int) result, data);
 
         // TODO: if a new snapshot needs to be sent, call network_publish_rig_poll_data() and the publisher routine will send out a snapshot
         // TODO: new logic in publisher needs to be written for other types of responses
