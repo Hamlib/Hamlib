@@ -1887,23 +1887,26 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               rig_strvfo(vfo), freq);
 #endif
 
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN)
+    if (rig->state.doppler == 0)
+    {
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_A))
     { 
-        if (rig->state.cache.freqMainA != freq && ((int)freq % 10) != 0) 
+        if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0)) 
         {
             rig->state.doppler = 1;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, rig->state.cache.freqMainA);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainA);
         } 
         freq += rig->state.offset_vfoa; 
     }
-    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
+    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_B))
     {
         if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0) 
         {
             rig->state.doppler = 1;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, rig->state.cache.freqMainA);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainB);
         } 
         freq += rig->state.offset_vfob; 
+    }
     }
 
     if (rig->state.twiddle_state == TWIDDLE_ON)
@@ -2311,9 +2314,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
               __LINE__, rig->state.vfo_opt, rig->caps->rig_model);
 
     // If we're in vfo_mode then rigctld will do any VFO swapping we need
+    // If we detected doppler we skip the frequency check to make timing more consistent for relay control
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo
-            || (rig->state.vfo_opt == 1 && rig->caps->rig_model == RIG_MODEL_NETRIGCTL))
+            || (rig->state.vfo_opt == 1 && rig->caps->rig_model == RIG_MODEL_NETRIGCTL
+            && rig->state.doppler == 0))
     {
         // If rig does not have set_vfo we need to change vfo
         if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
