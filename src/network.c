@@ -996,7 +996,7 @@ void *multicast_receiver(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast receiver\n", __FILE__,
             __LINE__);
 
-    char optval = 1;
+    int optval = 1;
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP address reuse: %s\n", __func__,
@@ -1009,7 +1009,7 @@ void *multicast_receiver(void *arg)
     dest_addr.sin_addr.s_addr = inet_addr(args->multicast_addr);
     dest_addr.sin_port = htons(args->multicast_port);
 
-    if ((bind(socket_fd, (struct sockaddr *) &dest_addr, sizeof(dest_addr))) < 0)
+    if (bind(socket_fd, (struct sockaddr *) &dest_addr, sizeof(dest_addr)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error binding UDP socket to %s:%d: %s\n", __func__,
                 args->multicast_addr, args->multicast_port, strerror(errno));
