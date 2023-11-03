@@ -674,7 +674,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->multicast_data_addr = "224.0.0.1"; // enable multicast data publishing by default
     rs->multicast_data_port = 4532;
     rs->multicast_cmd_addr = "224.0.0.2"; // enable multicast command server by default
-    rs->multicast_cmd_port = 4531;
+    rs->multicast_cmd_port = 4532;
     rs->lo_freq = 0;
     rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
     rs->cache.ptt = 0;

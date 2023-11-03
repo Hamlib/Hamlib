@@ -208,7 +208,7 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_MULTICAST_CMD_PORT, "multicast_cmd_port", "Multicast command server UDP port",
         "Multicast data UDP port for sending commands to rig",
-        "4531", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
+        "4532", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
     },
 
     { RIG_CONF_END, NULL, }

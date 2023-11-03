@@ -1047,9 +1047,43 @@ void *multicast_receiver(void *arg)
 
     while (rs->multicast_receiver_run == 1)
     {
-        ssize_t result;
         struct sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
+        fd_set rfds, efds;
+        struct timeval timeout;
+        int select_result;
+        ssize_t result;
+
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
+
+        FD_ZERO(&rfds);
+        FD_SET(socket_fd, &rfds);
+        efds = rfds;
+
+        select_result = select(socket_fd + 1, &rfds, NULL, &efds, &timeout);
+        if (select_result == 0)
+        {
+            // Select timed out
+            continue;
+        }
+
+        if (select_result < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                    "%s(): select() failed when reading UDP multicast socket data: %s\n",
+                    __func__,
+                    strerror(errno));
+
+            break;
+        }
+
+        if (FD_ISSET(socket_fd, &efds))
+        {
+            rig_debug(RIG_DEBUG_ERR,
+                    "%s(): fd error when reading UDP multicast socket data\n", __func__);
+            break;
+        }
 
         result = recvfrom(socket_fd, data, sizeof(data), 0, (struct sockaddr *) &client_addr, &client_len);
 
@@ -1057,9 +1091,8 @@ void *multicast_receiver(void *arg)
         {
             if (result < 0)
             {
-                if (errno == EAGAIN)
+                if (errno == 0 || errno == EAGAIN || errno == EWOULDBLOCK)
                 {
-                    hl_usleep(100 * 1000);
                     continue;
                 }
                 rig_debug(RIG_DEBUG_ERR, "%s: error receiving from UDP socket %s:%d: %s\n", __func__,
@@ -1128,13 +1161,6 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     }
 
     socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    u_long mode = 1; // Enable non-blocking mode
-#ifdef __MINGW32__
-    ioctlsocket(socket_fd, FIONBIO, &mode);
-#else
-    ioctl(socket_fd, FIONBIO, &mode);
-#endif
-
 
     if (socket_fd < 0)
     {
@@ -1142,6 +1168,24 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
                   strerror(errno));
         RETURNFUNC(-RIG_EIO);
     }
+
+    // Enable non-blocking mode
+    u_long mode = 1;
+#ifdef __MINGW32__
+    if (ioctlsocket(socket_fd, FIONBIO, &mode) == SOCKET_ERROR)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error enabling non-blocking mode for socket: %s", __func__,
+                strerror(errno));
+        RETURNFUNC(-RIG_EIO);
+    }
+#else
+    if (ioctl(socket_fd, FIONBIO, &mode) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error enabling non-blocking mode for socket: %s", __func__,
+                strerror(errno));
+        RETURNFUNC(-RIG_EIO);
+    }
+#endif
 
     if (items & RIG_MULTICAST_TRANSCEIVE)
     {
@@ -1310,6 +1354,24 @@ int network_multicast_receiver_start(RIG *rig, const char *multicast_addr, int m
         RETURNFUNC(-RIG_EIO);
     }
 
+    // Enable non-blocking mode
+    u_long mode = 1;
+#ifdef __MINGW32__
+    if (ioctlsocket(socket_fd, FIONBIO, &mode) == SOCKET_ERROR)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error enabling non-blocking mode for socket: %s", __func__,
+                strerror(errno));
+        RETURNFUNC(-RIG_EIO);
+    }
+#else
+    if (ioctl(socket_fd, FIONBIO, &mode) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error enabling non-blocking mode for socket: %s", __func__,
+                strerror(errno));
+        RETURNFUNC(-RIG_EIO);
+    }
+#endif
+
     rs->multicast_receiver_run = 1;
     rs->multicast_receiver_priv_data = calloc(1,
                                        sizeof(multicast_receiver_priv_data));
@@ -1371,6 +1433,11 @@ int network_multicast_receiver_stop(RIG *rig)
     // Close the socket first to stop the routine
     if (mcast_receiver_priv->args.socket_fd >= 0)
     {
+#ifdef __MINGW32__
+        shutdown(mcast_receiver_priv->args.socket_fd, SD_BOTH);
+#else
+        shutdown(mcast_receiver_priv->args.socket_fd, SHUT_RDWR);
+#endif
         close(mcast_receiver_priv->args.socket_fd);
     }
 

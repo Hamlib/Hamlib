@@ -87,6 +87,10 @@ void *rig_poll_routine(void *arg)
     // Rig cache time should be equal to rig poll interval (should be set automatically by rigctld at least)
     rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, rs->poll_interval);
 
+    // Attempt to detect changes with the interval below (in milliseconds)
+    int change_detection_interval = 50;
+    int interval_count = 0;
+
     update_occurred = 0;
 
     while (rs->poll_routine_thread_run)
@@ -333,9 +337,18 @@ void *rig_poll_routine(void *arg)
         {
             network_publish_rig_poll_data(rig);
             update_occurred = 0;
+            interval_count = 0;
         }
 
-        hl_usleep(rs->poll_interval * 1000);
+        hl_usleep(change_detection_interval * 1000);
+        interval_count++;
+
+        // Publish updates every poll_interval if no changes have been detected
+        if (interval_count >= (rs->poll_interval / change_detection_interval))
+        {
+            interval_count = 0;
+            network_publish_rig_poll_data(rig);
+        }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping rig poll routine thread\n",
