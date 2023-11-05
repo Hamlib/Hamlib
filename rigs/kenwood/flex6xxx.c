@@ -841,7 +841,9 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             // if not PTT  we'll return the last SWR value
             // seems desirable to able to see this always
-            if (!rig->state.cache.ptt) { val->f = rig->state.cache.swr; return RIG_OK; }
+            ptt_t ptt;
+            rig_get_ptt(rig, RIG_VFO_TX, &ptt);
+            if (!ptt) { val->f = rig->state.cache.swr; return RIG_OK; }
             double forward=0, reverse=0;
             cmd = "ZZRM5"; // get forward power
             len = 5;
@@ -942,14 +944,20 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RFPOWER_METER:
     case RIG_LEVEL_RFPOWER_METER_WATTS:
-        n = sscanf(lvlbuf, "ZZRM5%f", &val->f);
-
-        if (n != 1)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+            // if not ptt then no power is going out so return 0W
+            ptt_t ptt;
+            rig_get_ptt(rig, RIG_VFO_TX, &ptt);
+            if (!ptt) { val->f = 0; return RIG_OK; }
+            n = sscanf(lvlbuf, "ZZRM5%f", &val->f);
+
+            if (n != 1)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
                       __func__, lvlbuf);
-            val->f = 0;
-            return -RIG_EPROTO;
+                val->f = 0;
+                return -RIG_EPROTO;
+            }
         }
 
         if (level != RIG_LEVEL_RFPOWER_METER_WATTS)
