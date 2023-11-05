@@ -593,6 +593,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 #if defined(HAVE_PTHREAD)
     rs->rigport.asyncio = 0;
 #endif
+    rig->state.comm_status = RIG_COMM_STATUS_CONNECTING;
 
     rs->tuner_control_pathname = DEFAULT_TUNER_CONTROL_PATHNAME;
 
@@ -1046,6 +1047,8 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC2(-RIG_EINVAL);
     }
 
+    rs->comm_status = RIG_COMM_STATUS_CONNECTING;
+
     rs->rigport.fd = -1;
 
     if (rs->rigport.type.rig == RIG_PORT_SERIAL)
@@ -1094,6 +1097,7 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
                   rs->comm_state);
         rs->comm_state = 0;
+        rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
 
@@ -1312,6 +1316,7 @@ int HAMLIB_API rig_open(RIG *rig)
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
+        rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
 
@@ -1320,10 +1325,9 @@ int HAMLIB_API rig_open(RIG *rig)
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
+        rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
-
-    add_opened_rig(rig);
 
     rs->comm_state = 1;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %p rs->comm_state==1?=%d\n", __func__,
@@ -1377,6 +1381,7 @@ int HAMLIB_API rig_open(RIG *rig)
             port_close(&rs->rigport, rs->rigport.type.rig);
             memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
+            rig->state.comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
         }
     }
@@ -1518,6 +1523,10 @@ int HAMLIB_API rig_open(RIG *rig)
         // we will consider this non-fatal for now
     }
 
+    rig->state.comm_status = RIG_COMM_STATUS_OK;
+
+    add_opened_rig(rig);
+
     RETURNFUNC2(RIG_OK);
 }
 
@@ -1556,6 +1565,10 @@ int HAMLIB_API rig_close(RIG *rig)
     {
         RETURNFUNC(-RIG_EINVAL);
     }
+
+    remove_opened_rig(rig);
+
+    rig->state.comm_status = RIG_COMM_STATUS_DISCONNECTED;
 
     morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
@@ -1675,8 +1688,6 @@ int HAMLIB_API rig_close(RIG *rig)
     rs->dcdport.fd = rs->pttport.fd = -1;
 
     port_close(&rs->rigport, rs->rigport.type.rig);
-
-    remove_opened_rig(rig);
 
     // zero split so it will allow it to be set again on open for rigctld
     rig->state.cache.split = 0;
