@@ -2759,8 +2759,13 @@ struct rig_state {
     volatile int morse_data_handler_thread_run;
     void *morse_data_handler_priv_data;
     FIFO_RIG *fifo_morse;
-    int port_multicast;  /*!< May be different so this is initially a copy of rigctl'd port selection */
     int doppler;         /*!< True if doppler changing detected */
+    char *multicast_data_addr;  /*!< Multicast data UDP address for publishing rig data and state */
+    int multicast_data_port;  /*!< Multicast data UDP port for publishing rig data and state */
+    char *multicast_cmd_addr;  /*!< Multicast command server UDP address for sending commands to rig */
+    int multicast_cmd_port;  /*!< Multicast command server UDP port for sending commands to rig */
+    volatile int multicast_receiver_run;
+    void *multicast_receiver_priv_data;
 };
 
 /**

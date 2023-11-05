@@ -105,8 +105,6 @@ static struct option long_options[] =
     {"twiddle_rit",     1, 0, 'w'},
     {"uplink",          1, 0, 'x'},
     {"debug-time-stamps", 0, 0, 'Z'},
-    {"multicast-addr",  1, 0, 'M'},
-    {"multicast-port",  1, 0, 'n'},
     {"password",        1, 0, 'A'},
     {"rigctld-idle",    0, 0, 'R'},
     {"bind-all",        0, 0, 'b'},
@@ -145,8 +143,6 @@ static int volatile ctrl_c;
 
 const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
-const char *multicast_addr = "0.0.0.0";
-int multicast_port = 4532;
 extern char rigctld_password[65];
 char resp_sep = '\n';
 extern int lock_mode;
@@ -618,33 +614,6 @@ int main(int argc, char *argv[])
             rig_set_debug_time_stamp(1);
             break;
 
-        case 'M':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
-            multicast_addr = optarg;
-            break;
-
-        case 'n':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
-            multicast_port = atoi(optarg);
-
-            if (multicast_port == 0)
-            {
-                fprintf(stderr, "Invalid multicast port: %s\n", optarg);
-                exit(1);
-            }
-
-            break;
-
         default:
             usage();    /* unknown option? */
             exit(1);
@@ -866,18 +835,6 @@ int main(int argc, char *argv[])
     }
 
     saved_result = result;
-
-    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE |
-                                  RIG_MULTICAST_SPECTRUM;
-    retcode = network_multicast_publisher_start(my_rig, multicast_addr,
-              multicast_port, items);
-
-    if (retcode != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_server failed: %s\n", __FILE__,
-                  rigerror(retcode));
-        // we will consider this non-fatal for now
-    }
 
     do
     {
@@ -1147,8 +1104,6 @@ int main(int argc, char *argv[])
 #else
     rig_close(my_rig); /* close port */
 #endif
-
-    network_multicast_publisher_stop(my_rig);
 
     rig_cleanup(my_rig); /* if you care about memory */
 
@@ -1464,8 +1419,6 @@ void usage(void)
         "  -w, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -M, --multicast-addr=addr     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
-        "  -n, --multicast-port=port     set multicast UDP port, default 4532\n"
         "  -A, --password                set password for rigctld access\n"
         "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
         "  -h, --help                    display this help and exit\n"

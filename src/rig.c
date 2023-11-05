@@ -670,7 +670,11 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->vfo_comp = 0.0; /* override it with preferences */
     rs->current_vfo = RIG_VFO_CURR; /* we don't know yet! */
     rs->tx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
-    rs->poll_interval = 0; // disable polling by default
+    rs->poll_interval = 1000; // enable polling by default
+    rs->multicast_data_addr = "224.0.0.1"; // enable multicast data publishing by default
+    rs->multicast_data_port = 4532;
+    rs->multicast_cmd_addr = "224.0.0.2"; // enable multicast command server by default
+    rs->multicast_cmd_port = 4532;
     rs->lo_freq = 0;
     rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
     rs->cache.ptt = 0;
@@ -1484,19 +1488,33 @@ int HAMLIB_API rig_open(RIG *rig)
     memcpy(&rs->pttport_deprecated, &rs->pttport, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->dcdport_deprecated, &rs->dcdport, sizeof(hamlib_port_t_deprecated));
     rig_flush_force(&rs->rigport, 1);
-//    if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL) multicast_init(rig, "224.0.0.1", 4532);
-//    multicast_init(rig, "224.0.0.1", 4532);
-    char *multicast_addr = "224.0.0.1";
-    int multicast_port = 4532;
-    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE;
-//                                  | RIG_MULTICAST_SPECTRUM;
-    retval = network_multicast_publisher_start(rig, multicast_addr,
-              multicast_port, items);
+
+    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE
+            | RIG_MULTICAST_SPECTRUM;
+    retval = network_multicast_publisher_start(rig, rs->multicast_data_addr,
+              rs->multicast_data_port, items);
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_server failed: %s\n", __FILE__,
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_publisher_start failed: %s\n", __FILE__,
                   rigerror(retval));
+        // we will consider this non-fatal for now
+    }
+
+    retval = network_multicast_receiver_start(rig, rs->multicast_cmd_addr, rs->multicast_cmd_port);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_receiver_start failed: %s\n", __FILE__,
+                rigerror(retval));
+        // we will consider this non-fatal for now
+    }
+
+    retval = rig_poll_routine_start(rig);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_poll_routine_start failed: %s\n", __FILE__,
+                rigerror(retval));
         // we will consider this non-fatal for now
     }
 
@@ -1541,9 +1559,9 @@ int HAMLIB_API rig_close(RIG *rig)
 
     morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
+    rig_poll_routine_stop(rig);
+    network_multicast_receiver_stop(rig);
     network_multicast_publisher_stop(rig);
-    //while(rs->multicast_publisher_run != 2) hl_usleep(10*1000);
-    //multicast_stop(rig);
 
     /*
      * Let the backend say 73s to the rig.
