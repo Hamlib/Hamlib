@@ -27,6 +27,7 @@ int filternum = 7;
 int datamode = 0;
 int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
 int tomode = 0;
+int keyspd = 25;
 
 int
 getmyline(int fd, char *buf)
@@ -203,17 +204,6 @@ int main(int argc, char *argv[])
             WRITE(fd, buf, strlen(buf));
         }
 
-        else if (strncmp(buf, "AI", 2) == 0)
-        {
-            if (strcmp(buf, "AI;"))
-            {
-                printf("%s\n", buf);
-                hl_usleep(mysleep * 1000);
-                pbuf = "AI0;";
-                WRITE(fd, pbuf, strlen(pbuf));
-            }
-        }
-
         else if (strcmp(buf, "VS;") == 0)
         {
             printf("%s\n", buf);
@@ -251,10 +241,9 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "FB%d", &freqb);
         }
-        else if (strncmp(buf, "AI;", 3) == 0)
+        else if (strncmp(buf, "AI", 2) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "AI0;");
-            WRITE(fd, buf, strlen(buf));
+            // nothing to do yet
         }
 
         else if (strncmp(buf, "PS;", 3) == 0)
@@ -314,7 +303,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FT;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FR%d;", vfo_tx);
+            SNPRINTF(buf, sizeof(buf), "FT%d;", vfo_tx);
             WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FT", 2) == 0)
@@ -358,12 +347,11 @@ int main(int argc, char *argv[])
             }
 
         }
+
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
         }
-
-
     }
 
     return 0;

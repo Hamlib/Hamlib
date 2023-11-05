@@ -62,6 +62,11 @@ static const struct confparams frontend_cfg_params[] =
         "0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } }
     },
     {
+        TOK_POST_PTT_DELAY, "post_ptt_delay", "Post ptt delay",
+        "Delay in ms after PTT is asserted",
+        "0", RIG_CONF_NUMERIC, { .n = { 0, 2000, 1 } } // 2000ms should be more than enough
+    },
+    {
         TOK_TIMEOUT, "timeout", "Timeout", "Timeout in ms",
         "0", RIG_CONF_NUMERIC, { .n = { 0, 10000, 1 } }
     },
@@ -71,7 +76,7 @@ static const struct confparams frontend_cfg_params[] =
     },
     {
         TOK_TIMEOUT_RETRY, "timeout_retry", "Number of retries for read timeouts",
-        "Set the number of retries for data read timeouts that may occur especially with some serial interfaces",
+        "Set the # of retries for read timeouts that may occur with some serial interfaces",
         "1", RIG_CONF_NUMERIC, { .n = { 0, 100, 1 } }
     },
     {
@@ -91,8 +96,8 @@ static const struct confparams frontend_cfg_params[] =
         "0", RIG_CONF_NUMERIC, { .n = { 0.0, 1000.0, .001 } }
     },
     {
-        TOK_POLL_INTERVAL, "poll_interval", "Rig state poll interval in milliseconds",
-        "Polling interval in milliseconds for transceive emulation, defaults to 1000, value of 0 disables polling",
+        TOK_POLL_INTERVAL, "poll_interval", "Rig state poll interval in ms",
+        "Polling interval in ms for transceive emulation, defaults to 1000, value of 0 disables polling",
         "1000", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
     },
     {
@@ -102,7 +107,7 @@ static const struct confparams frontend_cfg_params[] =
     },
     {
         TOK_PTT_PATHNAME, "ptt_pathname", "PTT path name",
-        "Path name to the device file of the Push-To-Talk",
+        "Path to the device of the Push-To-Talk",
         "/dev/rig", RIG_CONF_STRING,
     },
     {
@@ -117,7 +122,7 @@ static const struct confparams frontend_cfg_params[] =
     },
     {
         TOK_DCD_PATHNAME, "dcd_pathname", "DCD path name",
-        "Path name to the device file of the Data Carrier Detect (or squelch)",
+        "Path to the device of the Data Carrier Detect (or squelch)",
         "/dev/rig", RIG_CONF_STRING,
     },
     {
@@ -172,12 +177,12 @@ static const struct confparams frontend_cfg_params[] =
     },
     {
         TOK_ASYNC, "async", "Asynchronous data transfer support",
-        "True enables asynchronous data transfer for backends that support it. This allows use of transceive and spectrum data.",
+        "True enables async data for rigs that support it to allow use of transceive and spectrum data",
         "0", RIG_CONF_CHECKBUTTON, { }
     },
     {
         TOK_TUNER_CONTROL_PATHNAME, "tuner_control_pathname", "Tuner script/program path name",
-        "Path name to a script/program to control a tuner with 1 argument of 0/1 for Tuner Off/On",
+        "Path to a program to control a tuner with 1 argument of 0/1 for Tuner Off/On",
         "hamlib_tuner_control", RIG_CONF_STRING,
     },
     {
@@ -816,6 +821,10 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 
     case TOK_POST_WRITE_DELAY:
         SNPRINTF(val, val_len, "%d", rs->rigport.post_write_delay);
+        break;
+
+    case TOK_POST_PTT_DELAY:
+        SNPRINTF(val, val_len, "%d", rs->rigport.post_ptt_delay);
         break;
 
     case TOK_TIMEOUT:

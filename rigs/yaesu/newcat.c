@@ -211,6 +211,8 @@ const cal_table_float_t yaesu_default_id_meter_cal =
 static ncboolean is_ft450;
 static ncboolean is_ft710;
 static ncboolean is_ft891;
+static ncboolean is_ft897;
+static ncboolean is_ft897d;
 static ncboolean is_ft950;
 static ncboolean is_ft991;
 static ncboolean is_ft2000;
@@ -497,6 +499,8 @@ int newcat_init(RIG *rig)
     is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
     is_ft450 |= newcat_is_rig(rig, RIG_MODEL_FT450D);
     is_ft891 = newcat_is_rig(rig, RIG_MODEL_FT891);
+    is_ft897 = newcat_is_rig(rig, RIG_MODEL_FT897);
+    is_ft897d = newcat_is_rig(rig, RIG_MODEL_FT897D);
     is_ft950 = newcat_is_rig(rig, RIG_MODEL_FT950);
     is_ft991 = newcat_is_rig(rig, RIG_MODEL_FT991);
     is_ft2000 = newcat_is_rig(rig, RIG_MODEL_FT2000);
@@ -847,7 +851,7 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
     }
 
     // some rigs need to skip freq/mode settings as 60M only operates in memory mode
-    if (is_ft991) { return 1; }
+    if (is_ft991 || is_ft897 || is_ft897d || is_ftdx5000) { return 1; }
 
     if (!is_ftdx10 && !is_ft710 && !is_ftdx101d && !is_ftdx101mp) { return 0; }
 
@@ -5459,7 +5463,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         break;
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%08lx\n", __func__, level);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%08llx\n", __func__, (long long unsigned  int)level);
         RETURNFUNC(-RIG_EINVAL);
     }
 
