@@ -69,10 +69,10 @@ void *rig_poll_routine(void *arg)
     rig_poll_routine_args *args = (rig_poll_routine_args *)arg;
     RIG *rig = args->rig;
     struct rig_state *rs = &rig->state;
-    int result;
+    //int result;
     int update_occurred;
 
-    vfo_t vfo = RIG_VFO_NONE, vfo_prev = RIG_VFO_NONE;
+    //vfo_t vfo = RIG_VFO_NONE, vfo_prev = RIG_VFO_NONE;
     freq_t freq_main_a = 0, freq_main_b = 0, freq_main_c = 0, freq_sub_a = 0, freq_sub_b = 0, freq_sub_c = 0;
     rmode_t mode_main_a = 0, mode_main_b = 0, mode_main_c = 0, mode_sub_a = 0, mode_sub_b = 0, mode_sub_c = 0;
     pbwidth_t width_main_a = 0, width_main_b = 0, width_main_c = 0, width_sub_a = 0, width_sub_b = 0, width_sub_c = 0;
