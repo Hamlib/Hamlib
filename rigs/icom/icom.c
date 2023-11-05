@@ -3937,7 +3937,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     for (i = 0; extcmds && extcmds[i].id.s != 0; i++)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: i=%d\n", __func__, i);
+        //rig_debug(RIG_DEBUG_TRACE, "%s: i=%d\n", __func__, i);
 
         if (extcmds[i].cmdparamtype == CMD_PARAM_TYPE_LEVEL && extcmds[i].id.s == level)
         {
