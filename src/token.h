@@ -97,6 +97,7 @@
 #define TOK_TUNER_CONTROL_PATHNAME TOKEN_FRONTEND(38)
 /** \brief Number of retries permitted in case of read timeouts */
 #define TOK_TIMEOUT_RETRY       TOKEN_FRONTEND(39)
+#define TOK_POST_PTT_DELAY       TOKEN_FRONTEND(40)
 
 /*
  * rig specific tokens

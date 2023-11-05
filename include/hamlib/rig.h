@@ -2380,6 +2380,7 @@ typedef struct hamlib_port {
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
 #endif
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to disable */
+    int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
 } hamlib_port_t;
 
  
@@ -2758,11 +2759,11 @@ struct rig_state {
     volatile int morse_data_handler_thread_run;
     void *morse_data_handler_priv_data;
     FIFO_RIG *fifo_morse;
+    int doppler;         /*!< True if doppler changing detected */
     char *multicast_data_addr;  /*!< Multicast data UDP address for publishing rig data and state */
     int multicast_data_port;  /*!< Multicast data UDP port for publishing rig data and state */
     char *multicast_cmd_addr;  /*!< Multicast command server UDP address for sending commands to rig */
     int multicast_cmd_port;  /*!< Multicast command server UDP port for sending commands to rig */
-
     volatile int multicast_receiver_run;
     void *multicast_receiver_priv_data;
 };
