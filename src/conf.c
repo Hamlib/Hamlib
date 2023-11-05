@@ -89,6 +89,11 @@ static const struct confparams frontend_cfg_params[] =
         "The tx/rx range list name",
         "Default", RIG_CONF_STRING
     },
+    {
+        TOK_DEVICE_ID, "device_id", "Device ID",
+        "User-specified device ID for multicast state data and commands",
+        "", RIG_CONF_STRING,
+    },
 
     {
         TOK_VFO_COMP, "vfo_comp", "VFO compensation",
@@ -627,6 +632,10 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         strncpy(rs->dcdport_deprecated.pathname, val, HAMLIB_FILPATHLEN - 1);
         break;
 
+    case TOK_DEVICE_ID:
+        strncpy(rs->device_id, val, HAMLIB_RIGNAMSIZ - 1);
+        break;
+
 
     case TOK_VFO_COMP:
         rs->vfo_comp = atof(val);
@@ -989,6 +998,10 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
         strcpy(val, s);
         break;
 
+    case TOK_DEVICE_ID:
+        SNPRINTF(val, val_len, "%s", rs->device_id);
+        break;
+
     case TOK_VFO_COMP:
         SNPRINTF(val, val_len, "%f", rs->vfo_comp);
         break;
@@ -1147,6 +1160,22 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 
     case TOK_TIMEOUT_RETRY:
         SNPRINTF(val, val_len, "%d", rs->rigport.timeout_retry);
+        break;
+
+    case TOK_MULTICAST_DATA_ADDR:
+        SNPRINTF(val, val_len, "%s", rs->multicast_data_addr);
+        break;
+
+    case TOK_MULTICAST_DATA_PORT:
+        SNPRINTF(val, val_len, "%d", rs->multicast_data_port);
+        break;
+
+    case TOK_MULTICAST_CMD_ADDR:
+        SNPRINTF(val, val_len, "%s", rs->multicast_cmd_addr);
+        break;
+
+    case TOK_MULTICAST_CMD_PORT:
+        SNPRINTF(val, val_len, "%d", rs->multicast_cmd_port);
         break;
 
     default:

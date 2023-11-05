@@ -98,6 +98,7 @@
 /** \brief Number of retries permitted in case of read timeouts */
 #define TOK_TIMEOUT_RETRY       TOKEN_FRONTEND(39)
 #define TOK_POST_PTT_DELAY       TOKEN_FRONTEND(40)
+#define TOK_DEVICE_ID            TOKEN_FRONTEND(41)
 
 /*
  * rig specific tokens

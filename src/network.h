@@ -34,6 +34,7 @@ void network_flush(hamlib_port_t *rp);
 int network_publish_rig_poll_data(RIG *rig);
 int network_publish_rig_transceive_data(RIG *rig);
 int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line);
+int network_publish_rig_status_change(RIG *rig, int32_t status);
 HAMLIB_EXPORT(int) network_multicast_publisher_start(RIG *rig, const char *multicast_addr, int multicast_port, enum multicast_item_e items);
 HAMLIB_EXPORT(int) network_multicast_publisher_stop(RIG *rig);
 HAMLIB_EXPORT(int) network_multicast_receiver_start(RIG *rig, const char *multicast_addr, int multicast_port);

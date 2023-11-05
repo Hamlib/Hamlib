@@ -2707,6 +2707,42 @@ const char *HAMLIB_API rig_get_caps_cptr(rig_model_t rig_model,
     }
 }
 
+static const struct
+{
+    rig_comm_status_t status;
+    const char *str;
+} comm_status_str[] =
+{
+    { RIG_COMM_STATUS_OK, "OK" },
+    { RIG_COMM_STATUS_CONNECTING, "CONNECTING" },
+    { RIG_COMM_STATUS_DISCONNECTED, "DISCONNECTED" },
+    { RIG_COMM_STATUS_TERMINATED, "TERMINATIED" },
+    { RIG_COMM_STATUS_WARNING, "WARNING" },
+    { RIG_COMM_STATUS_ERROR, "ERROR" },
+    { 0xffffffff, "" },
+};
+
+/**
+ * \brief Convert enum RIG_COMM_STATUS... to alpha string
+ * \param vfo RIG_COMM_STATUS_...
+ * \return alpha string
+ */
+const char *HAMLIB_API rig_strcommstatus(rig_comm_status_t status)
+{
+    int i;
+
+    for (i = 0; comm_status_str[i].str[0] != '\0'; i++)
+    {
+        if (status == comm_status_str[i].status)
+        {
+            return comm_status_str[i].str;
+        }
+    }
+
+    return "";
+}
+
+
 void errmsg(int err, char *s, const char *func, const char *file, int line)
 {
     rig_debug(RIG_DEBUG_ERR, "%s(%s:%d): %s: %s\b", __func__, file, line, s,
