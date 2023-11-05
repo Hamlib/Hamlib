@@ -97,8 +97,8 @@ static const struct confparams frontend_cfg_params[] =
     },
     {
         TOK_POLL_INTERVAL, "poll_interval", "Rig state poll interval in ms",
-        "Polling interval in ms for transceive emulation, value of 0 disables polling",
-        "0", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
+        "Polling interval in ms for transceive emulation, defaults to 1000, value of 0 disables polling",
+        "1000", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
     },
     {
         TOK_PTT_TYPE, "ptt_type", "PTT type",
@@ -194,6 +194,26 @@ static const struct confparams frontend_cfg_params[] =
         TOK_OFFSET_VFOB, "offset_vfob", "Offset value in Hz",
         "Add Hz to VFOB/Sub frequency set",
         "0", RIG_CONF_NUMERIC, { .n = {0, 1e12, 1}}
+    },
+    {
+        TOK_MULTICAST_DATA_ADDR, "multicast_data_addr", "Multicast data UDP address",
+        "Multicast data UDP address for publishing rig data and state, value of 0.0.0.0 disables multicast data publishing",
+        "224.0.0.1", RIG_CONF_STRING,
+    },
+    {
+        TOK_MULTICAST_DATA_PORT, "multicast_data_port", "Multicast data UDP port",
+        "Multicast data UDP port for publishing rig data and state",
+        "4532", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
+    },
+    {
+        TOK_MULTICAST_CMD_ADDR, "multicast_cmd_addr", "Multicast command server UDP address",
+        "Multicast command UDP address for sending commands to rig, value of 0.0.0.0 disables multicast command server",
+        "224.0.0.2", RIG_CONF_STRING,
+    },
+    {
+        TOK_MULTICAST_CMD_PORT, "multicast_cmd_port", "Multicast command server UDP port",
+        "Multicast data UDP port for sending commands to rig",
+        "4532", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
     },
 
     { RIG_CONF_END, NULL, }
@@ -613,7 +633,11 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         break;
 
     case TOK_POLL_INTERVAL:
-        rs->poll_interval = atof(val);
+        if (1 != sscanf(val, "%ld", &val_i))
+        {
+            return -RIG_EINVAL;
+        }
+        rs->poll_interval = val_i;
         // Make sure cache times out before next poll cycle
         rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, atol(val));
         break;
@@ -740,7 +764,31 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: offset_vfob=%ld\n", __func__, val_i);
         break;
 
+    case TOK_MULTICAST_DATA_ADDR:
+        rs->multicast_data_addr = strdup(val);
+        break;
 
+    case TOK_MULTICAST_DATA_PORT:
+        if (1 != sscanf(val, "%ld", &val_i))
+        {
+            return -RIG_EINVAL;
+        }
+
+        rs->multicast_data_port = val_i;
+        break;
+
+    case TOK_MULTICAST_CMD_ADDR:
+        rs->multicast_cmd_addr = strdup(val);
+        break;
+
+    case TOK_MULTICAST_CMD_PORT:
+        if (1 != sscanf(val, "%ld", &val_i))
+        {
+            return -RIG_EINVAL;
+        }
+
+        rs->multicast_cmd_port = val_i;
+        break;
 
     default:
         return -RIG_EINVAL;

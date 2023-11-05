@@ -36,6 +36,8 @@ int network_publish_rig_transceive_data(RIG *rig);
 int network_publish_rig_spectrum_data(RIG *rig, struct rig_spectrum_line *line);
 HAMLIB_EXPORT(int) network_multicast_publisher_start(RIG *rig, const char *multicast_addr, int multicast_port, enum multicast_item_e items);
 HAMLIB_EXPORT(int) network_multicast_publisher_stop(RIG *rig);
+HAMLIB_EXPORT(int) network_multicast_receiver_start(RIG *rig, const char *multicast_addr, int multicast_port);
+HAMLIB_EXPORT(int) network_multicast_receiver_stop(RIG *rig);
 
 __END_DECLS
 
