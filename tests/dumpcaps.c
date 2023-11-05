@@ -28,6 +28,7 @@
 #include "sprintflst.h"
 #include "rigctl_parse.h"
 #include "../rigs/icom/icom.h"
+#include "dumpcaps.h"
 
 void range_print(FILE *fout, const struct freq_range_list range_list[], int rx);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
@@ -1236,5 +1237,17 @@ int dumpconf(RIG *rig, FILE *fout)
     fprintf(fout, "model: %s\n", rig->caps->model_name);
     rig_token_foreach(rig, print_conf_list, (rig_ptr_t)rig);
 
+    return 0;
+}
+
+int dumpconf_list(RIG *rig, FILE *fout)
+{
+    rig_token_foreach(rig, print_conf_list2, (rig_ptr_t)rig);
+    return 0;
+}
+
+int dumpconf_list_rot(ROT *rot, FILE *fout)
+{
+    rot_token_foreach(rot, print_conf_list2, rot);
     return 0;
 }

@@ -242,3 +242,10 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
 
     return backend_warnings;
 }
+
+int dumpconf_list(ROT *rot, FILE *fout)
+{
+    rot_token_foreach(rot, print_conf_list, rot);
+    return 0;
+}
+
