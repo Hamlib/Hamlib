@@ -136,9 +136,9 @@ static volatile int rig_opened = 0;
 static int verbose;
 
 #ifdef HAVE_SIG_ATOMIC_T
-static sig_atomic_t volatile ctrl_c;
+static sig_atomic_t volatile ctrl_c = 0;
 #else
-static int volatile ctrl_c;
+static int volatile ctrl_c = 0;
 #endif
 
 const char *portno = "4532";
@@ -196,6 +196,10 @@ static void signal_handler(int sig)
     switch (sig)
     {
     case SIGINT:
+    case SIGTERM:
+        fprintf(stderr, "\nTerminating application, caught signal %d\n", sig);
+        // Close stdin to stop reading input
+        fclose(stdin);
         ctrl_c = 1;
         break;
 
@@ -950,6 +954,16 @@ int main(int argc, char *argv[])
     }
 
 #endif
+#ifdef SIGTERM
+    memset(&act, 0, sizeof act);
+    act.sa_handler = signal_handler;
+
+    if (sigaction(SIGTERM, &act, NULL))
+    {
+        handle_error(RIG_DEBUG_ERR, "sigaction SIGTERM");
+    }
+
+#endif
 #elif defined (WIN32)
 
     if (!SetConsoleCtrlHandler(CtrlHandler, TRUE))
@@ -971,6 +985,14 @@ int main(int argc, char *argv[])
     if (SIG_ERR == signal(SIGINT, signal_handler))
     {
         handle_error(RIG_DEBUG_ERR, "signal SIGINT");
+    }
+
+#endif
+#ifdef SIGTERM
+
+    if (SIG_ERR == signal(SIGTERM, signal_handler))
+    {
+        handle_error(RIG_DEBUG_ERR, "signal SIGTERM");
     }
 
 #endif

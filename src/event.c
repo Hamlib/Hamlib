@@ -64,8 +64,6 @@ typedef struct rig_poll_routine_priv_data_s
     rig_poll_routine_args args;
 } rig_poll_routine_priv_data;
 
-// TODO: Where to start/stop rig poll routine?
-
 void *rig_poll_routine(void *arg)
 {
     rig_poll_routine_args *args = (rig_poll_routine_args *)arg;
@@ -92,6 +90,8 @@ void *rig_poll_routine(void *arg)
     int interval_count = 0;
 
     update_occurred = 0;
+
+    network_publish_rig_poll_data(rig);
 
     while (rs->poll_routine_thread_run)
     {
@@ -351,6 +351,8 @@ void *rig_poll_routine(void *arg)
         }
     }
 
+    network_publish_rig_poll_data(rig);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping rig poll routine thread\n",
               __FILE__,
               __LINE__);
@@ -408,6 +410,8 @@ int rig_poll_routine_start(RIG *rig)
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
+    network_publish_rig_poll_data(rig);
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -452,6 +456,8 @@ int rig_poll_routine_stop(RIG *rig)
 
         poll_routine_priv->thread_id = 0;
     }
+
+    network_publish_rig_poll_data(rig);
 
     free(rs->poll_routine_priv_data);
     rs->poll_routine_priv_data = NULL;

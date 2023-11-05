@@ -2577,6 +2577,15 @@ struct multicast_s
 //#endif
 };
 
+typedef unsigned int rig_comm_status_t;
+
+#define RIG_COMM_STATUS_OK            0x00
+#define RIG_COMM_STATUS_CONNECTING    0x01
+#define RIG_COMM_STATUS_DISCONNECTED  0x02
+#define RIG_COMM_STATUS_TERMINATED    0x03
+#define RIG_COMM_STATUS_WARNING       0x04
+#define RIG_COMM_STATUS_ERROR         0x05
+
 /**
  * \brief Rig state containing live data and customized fields.
  *
@@ -2766,6 +2775,8 @@ struct rig_state {
     int multicast_cmd_port;  /*!< Multicast command server UDP port for sending commands to rig */
     volatile int multicast_receiver_run;
     void *multicast_receiver_priv_data;
+    rig_comm_status_t comm_status; /*!< Detailed rig control status */
+    char device_id[HAMLIB_RIGNAMSIZ];
 };
 
 /**
@@ -3710,6 +3721,7 @@ extern HAMLIB_EXPORT(const char *) rig_strscan(scan_t scan);
 extern HAMLIB_EXPORT(const char *) rig_strstatus(enum rig_status_e status);
 extern HAMLIB_EXPORT(const char *) rig_strmtype(chan_type_t mtype);
 extern HAMLIB_EXPORT(const char *) rig_strspectrummode(enum rig_spectrum_mode_e mode);
+extern HAMLIB_EXPORT(const char *) rig_strcommstatus(rig_comm_status_t vfo);
 
 extern HAMLIB_EXPORT(rmode_t) rig_parse_mode(const char *s);
 extern HAMLIB_EXPORT(vfo_t) rig_parse_vfo(const char *s);
