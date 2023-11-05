@@ -2551,6 +2551,7 @@ struct rig_cache {
     struct timespec time_ptt;
     struct timespec time_split;
     int satmode; // if rig is in satellite mode
+    double swr; // keep swr 
 };
 
 /**
