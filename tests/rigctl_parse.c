@@ -270,6 +270,8 @@ declare_proto_rig(hamlib_version);
 declare_proto_rig(test);
 declare_proto_rig(cm108_get_bit);
 declare_proto_rig(cm108_set_bit);
+declare_proto_rig(set_conf);
+declare_proto_rig(get_conf);
 
 
 /*
@@ -390,6 +392,8 @@ static struct test_table test_list[] =
     { 0xa8, "hamlib_version",    ACTION(hamlib_version), ARG_NOVFO },
     { 0xa9, "get_gpio",    ACTION(cm108_get_bit), ARG_NOVFO | ARG_IN1 | ARG_OUT1, "GPIO#", "0/1" },
     { 0xaa, "set_gpio",    ACTION(cm108_set_bit), ARG_NOVFO | ARG_IN , "GPIO#", "0/1" },
+    { 0xac, "set_conf",    ACTION(set_conf), ARG_NOVFO | ARG_IN , "Token", "Token Value" },
+    { 0xad, "get_conf",    ACTION(get_conf), ARG_NOVFO | ARG_IN1 | ARG_OUT2, "Token", "Value"},
     { 0x00, "", NULL },
 };
 
@@ -1989,6 +1993,21 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
     return 1;  /* !=0, we want them all ! */
 }
 
+// short list for rigctl/rigctld display
+int print_conf_list2(const struct confparams *cfp, rig_ptr_t data)
+{
+    RIG *rig = (RIG *) data;
+    char buf[128] = "";
+
+    rig_get_conf(rig, cfp->token, buf);
+    fprintf(stdout,"%s: \"%s\"\n" "\t" "Default: %s, Value: %s\n",
+           cfp->name,
+           cfp->tooltip,
+           cfp->dflt,
+           buf);
+
+    return 1;  /* !=0, we want them all ! */
+}
 
 static int hash_model_list(const struct rig_caps *caps, void *data)
 {
@@ -2039,58 +2058,6 @@ void list_models()
     print_model_list();
     hash_delete_all();
 }
-
-
-int set_conf(RIG *my_rig, char *conf_parms)
-{
-    char *p, *n;
-    int token;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
-    p = conf_parms;
-
-    while (p && *p != '\0')
-    {
-        int ret;
-
-        /* FIXME: left hand value of = cannot be null */
-        char *q = strchr(p, '=');
-
-        if (!q)
-        {
-            return (-RIG_EINVAL);
-        }
-
-        *q++ = '\0';
-        n = strchr(q, ',');
-
-        if (n)
-        {
-            *n++ = '\0';
-        }
-
-        token = rig_token_lookup(my_rig, p);
-
-        if (token != 0)
-        {
-            ret = rig_set_conf(my_rig, rig_token_lookup(my_rig, p), q);
-
-            if (ret != RIG_OK)
-            {
-                return (ret);
-            }
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_WARN, "%s: invalid token %s for this rig\n", __func__, p);
-        }
-
-        p = n;
-    }
-
-    return (RIG_OK);
-}
-
 
 /*
  * static int (f)(RIG *rig, FILE *fout, int interactive, const struct test_table *cmd,
@@ -5790,3 +5757,62 @@ declare_proto_rig(cm108_set_bit)
     }
     return retval;
 }
+
+declare_proto_rig(get_conf)
+{
+    int ret;
+    rig_debug(RIG_DEBUG_ERR, "%s: \n", __func__);
+    if (arg1 == NULL || arg1[0] == '?')
+    {
+        dumpconf_list(rig, stdout);
+        debugmsgsave[0] = 0;
+        debugmsgsave2[0] = 0;
+        return RIG_OK;
+    }
+    token_t mytoken = rig_token_lookup(rig, arg1);
+    if (mytoken == 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rig\n", __func__, arg1);
+        ret = -RIG_EINVAL;
+    }
+    else
+    {
+        char value[4096]; // no max value known -- should we limit it?
+        ret = rig_get_conf(rig, mytoken, value);
+        if (ret != RIG_OK)
+        {
+            return ret;
+        }
+        fprintf(fout, "%s=%s\n", arg1, value);
+    }
+
+    return (ret);
+}
+
+declare_proto_rig(set_conf)
+{
+    int ret;
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+
+    if (arg1[0] == '?')
+    {
+        dumpconf_list(rig, fout);
+        debugmsgsave[0] = 0;
+        debugmsgsave2[0] = 0;
+        return RIG_OK;
+    }
+    token_t mytoken = rig_token_lookup(rig, arg1);
+    if (mytoken == 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rig\n", __func__, arg1);
+        ret = -RIG_EINVAL;
+    }
+    else
+    {
+        ret = rig_set_conf(rig, rig_token_lookup(rig, arg1), arg2);
+    }
+
+    return (ret);
+}
+

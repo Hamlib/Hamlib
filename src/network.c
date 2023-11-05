@@ -999,15 +999,19 @@ void *multicast_receiver(void *arg)
             __LINE__);
 
     int optval = 1;
+#ifdef __MINGW32__
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (PCHAR)&optval, sizeof(optval)) < 0)
+#else
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
+#endif
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP address reuse: %s\n", __func__,
                 strerror(errno));
         return NULL;
     }
 
-#if defined(SO_REUSEPORT)
     // Windows does not have SO_REUSEPORT. However, SO_REUSEADDR works in a similar way.
+#if defined(SO_REUSEPORT)
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP port reuse: %s\n", __func__,
@@ -1038,7 +1042,11 @@ void *multicast_receiver(void *arg)
     mreq.imr_multiaddr.s_addr = inet_addr(args->multicast_addr);
     mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
+#ifdef __MINGW32__
+    if (setsockopt(socket_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (PCHAR)&mreq, sizeof(mreq)) < 0)
+#else
     if (setsockopt(socket_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0)
+#endif
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error joining multicast group %s:%d: %s\n", __func__,
                 args->multicast_addr, args->multicast_port, strerror(errno));

@@ -1630,7 +1630,7 @@ int set_conf(AMP *my_amp, char *conf_parms)
         }
         else
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: invalid token %s for this rig\n", __func__, p);
+            rig_debug(RIG_DEBUG_WARN, "%s: invalid token %s for this amp\n", __func__, p);
         }
 
         p = n;
