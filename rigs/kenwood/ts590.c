@@ -461,14 +461,14 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_USB_AF:
-        kenwood_val = val.f * 10;
+        kenwood_val = val.f * 9;
         cmd = 65; // TS-590S
         if (rig->caps->rig_model == RIG_MODEL_TS590SG) cmd=72;
         SNPRINTF(levelbuf, sizeof(levelbuf), "EX%03d0000%d", cmd, kenwood_val);
         break;
 
     case RIG_LEVEL_USB_AF_INPUT:
-        kenwood_val = val.f * 10;
+        kenwood_val = val.f * 9;
         cmd = 64; // TS-590S
         if (rig->caps->rig_model == RIG_MODEL_TS590SG) cmd=71;
         SNPRINTF(levelbuf, sizeof(levelbuf), "EX%03d0000%d", cmd, kenwood_val);
@@ -673,14 +673,14 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         cmd = 65; // TS-590S
         if (rig->caps->rig_model == RIG_MODEL_TS590SG) cmd=72;
         retval = ts590_get_ex_menu(rig, cmd, 1, &levelint);
-        val->f = levelint / 10.0;
+        val->f = levelint / 9.0;
         return retval;
 
     case RIG_LEVEL_USB_AF_INPUT:
         cmd = 65; // TS-590S
         if (rig->caps->rig_model == RIG_MODEL_TS590SG) cmd=71;
         retval = ts590_get_ex_menu(rig, cmd, 1, &levelint);
-        val->f = levelint / 10.0;
+        val->f = levelint / 9.0;
         return retval;
 
     case RIG_LEVEL_AF:

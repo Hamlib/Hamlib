@@ -105,8 +105,6 @@ static struct option long_options[] =
     {"twiddle_rit",     1, 0, 'w'},
     {"uplink",          1, 0, 'x'},
     {"debug-time-stamps", 0, 0, 'Z'},
-    {"multicast-addr",  1, 0, 'M'},
-    {"multicast-port",  1, 0, 'n'},
     {"password",        1, 0, 'A'},
     {"rigctld-idle",    0, 0, 'R'},
     {"bind-all",        0, 0, 'b'},
@@ -138,15 +136,13 @@ static volatile int rig_opened = 0;
 static int verbose;
 
 #ifdef HAVE_SIG_ATOMIC_T
-static sig_atomic_t volatile ctrl_c;
+static sig_atomic_t volatile ctrl_c = 0;
 #else
-static int volatile ctrl_c;
+static int volatile ctrl_c = 0;
 #endif
 
 const char *portno = "4532";
 const char *src_addr = NULL; /* INADDR_ANY */
-const char *multicast_addr = "0.0.0.0";
-int multicast_port = 4532;
 extern char rigctld_password[65];
 char resp_sep = '\n';
 extern int lock_mode;
@@ -200,6 +196,10 @@ static void signal_handler(int sig)
     switch (sig)
     {
     case SIGINT:
+    case SIGTERM:
+        fprintf(stderr, "\nTerminating application, caught signal %d\n", sig);
+        // Close stdin to stop reading input
+        fclose(stdin);
         ctrl_c = 1;
         break;
 
@@ -618,33 +618,6 @@ int main(int argc, char *argv[])
             rig_set_debug_time_stamp(1);
             break;
 
-        case 'M':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
-            multicast_addr = optarg;
-            break;
-
-        case 'n':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
-            multicast_port = atoi(optarg);
-
-            if (multicast_port == 0)
-            {
-                fprintf(stderr, "Invalid multicast port: %s\n", optarg);
-                exit(1);
-            }
-
-            break;
-
         default:
             usage();    /* unknown option? */
             exit(1);
@@ -686,13 +659,28 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Please check with --list option.\n");
         exit(2);
     }
-
-    retcode = set_conf(my_rig, conf_parms);
-
-    if (retcode != RIG_OK)
+    
+    char *token=strtok(conf_parms,",");
+    while(token)
     {
-        fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
-        exit(2);
+        char mytoken[100], myvalue[100];
+        token_t lookup;
+        sscanf(token,"%99[^=]=%99s", mytoken, myvalue);
+        //printf("mytoken=%s,myvalue=%s\n",mytoken, myvalue);
+        lookup = rig_token_lookup(my_rig,mytoken);
+        if (lookup == 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: no such token as '%s'\n", __func__, mytoken);
+            token = strtok(NULL, ",");
+            continue;
+        }
+        retcode = rig_set_conf(my_rig, rig_token_lookup(my_rig,mytoken), myvalue);
+        if (retcode != RIG_OK)
+        {
+            fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
+            exit(2);
+        }
+        token = strtok(NULL, ",");
     }
 
     if (rig_file)
@@ -867,18 +855,6 @@ int main(int argc, char *argv[])
 
     saved_result = result;
 
-    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE |
-                                  RIG_MULTICAST_SPECTRUM;
-    retcode = network_multicast_publisher_start(my_rig, multicast_addr,
-              multicast_port, items);
-
-    if (retcode != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_server failed: %s\n", __FILE__,
-                  rigerror(retcode));
-        // we will consider this non-fatal for now
-    }
-
     do
     {
         sock_listen = socket(result->ai_family,
@@ -993,6 +969,16 @@ int main(int argc, char *argv[])
     }
 
 #endif
+#ifdef SIGTERM
+    memset(&act, 0, sizeof act);
+    act.sa_handler = signal_handler;
+
+    if (sigaction(SIGTERM, &act, NULL))
+    {
+        handle_error(RIG_DEBUG_ERR, "sigaction SIGTERM");
+    }
+
+#endif
 #elif defined (WIN32)
 
     if (!SetConsoleCtrlHandler(CtrlHandler, TRUE))
@@ -1014,6 +1000,14 @@ int main(int argc, char *argv[])
     if (SIG_ERR == signal(SIGINT, signal_handler))
     {
         handle_error(RIG_DEBUG_ERR, "signal SIGINT");
+    }
+
+#endif
+#ifdef SIGTERM
+
+    if (SIG_ERR == signal(SIGTERM, signal_handler))
+    {
+        handle_error(RIG_DEBUG_ERR, "signal SIGTERM");
     }
 
 #endif
@@ -1147,8 +1141,6 @@ int main(int argc, char *argv[])
 #else
     rig_close(my_rig); /* close port */
 #endif
-
-    network_multicast_publisher_stop(my_rig);
 
     rig_cleanup(my_rig); /* if you care about memory */
 
@@ -1464,8 +1456,6 @@ void usage(void)
         "  -w, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -M, --multicast-addr=addr     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
-        "  -n, --multicast-port=port     set multicast UDP port, default 4532\n"
         "  -A, --password                set password for rigctld access\n"
         "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
         "  -h, --help                    display this help and exit\n"

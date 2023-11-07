@@ -42,6 +42,7 @@ void usage_rot(FILE *);
 void version();
 void list_models();
 int print_conf_list(const struct confparams *cfp, rig_ptr_t data);
+int print_conf_list2(const struct confparams *cfp, rig_ptr_t data, FILE *fout);
 int set_conf(ROT *my_rot, char *conf_parms);
 
 int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char **argv, int argc,

@@ -2380,6 +2380,7 @@ typedef struct hamlib_port {
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
 #endif
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to disable */
+    int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
 } hamlib_port_t;
 
  
@@ -2550,6 +2551,7 @@ struct rig_cache {
     struct timespec time_ptt;
     struct timespec time_split;
     int satmode; // if rig is in satellite mode
+    double swr; // keep swr 
 };
 
 /**
@@ -2575,6 +2577,15 @@ struct multicast_s
     int port;
 //#endif
 };
+
+typedef unsigned int rig_comm_status_t;
+
+#define RIG_COMM_STATUS_OK            0x00
+#define RIG_COMM_STATUS_CONNECTING    0x01
+#define RIG_COMM_STATUS_DISCONNECTED  0x02
+#define RIG_COMM_STATUS_TERMINATED    0x03
+#define RIG_COMM_STATUS_WARNING       0x04
+#define RIG_COMM_STATUS_ERROR         0x05
 
 /**
  * \brief Rig state containing live data and customized fields.
@@ -2758,7 +2769,15 @@ struct rig_state {
     volatile int morse_data_handler_thread_run;
     void *morse_data_handler_priv_data;
     FIFO_RIG *fifo_morse;
-    int port_multicast;  /*!< May be different so this is initially a copy of rigctl'd port selection */
+    int doppler;         /*!< True if doppler changing detected */
+    char *multicast_data_addr;  /*!< Multicast data UDP address for publishing rig data and state */
+    int multicast_data_port;  /*!< Multicast data UDP port for publishing rig data and state */
+    char *multicast_cmd_addr;  /*!< Multicast command server UDP address for sending commands to rig */
+    int multicast_cmd_port;  /*!< Multicast command server UDP port for sending commands to rig */
+    volatile int multicast_receiver_run;
+    void *multicast_receiver_priv_data;
+    rig_comm_status_t comm_status; /*!< Detailed rig control status */
+    char device_id[HAMLIB_RIGNAMSIZ];
 };
 
 /**
@@ -3703,6 +3722,7 @@ extern HAMLIB_EXPORT(const char *) rig_strscan(scan_t scan);
 extern HAMLIB_EXPORT(const char *) rig_strstatus(enum rig_status_e status);
 extern HAMLIB_EXPORT(const char *) rig_strmtype(chan_type_t mtype);
 extern HAMLIB_EXPORT(const char *) rig_strspectrummode(enum rig_spectrum_mode_e mode);
+extern HAMLIB_EXPORT(const char *) rig_strcommstatus(rig_comm_status_t vfo);
 
 extern HAMLIB_EXPORT(rmode_t) rig_parse_mode(const char *s);
 extern HAMLIB_EXPORT(vfo_t) rig_parse_vfo(const char *s);

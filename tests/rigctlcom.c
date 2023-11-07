@@ -492,7 +492,8 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    retcode = set_conf(my_rig, conf_parms);
+    retcode = -RIG_ENIMPL;
+//    retcode = set_conf(my_rig, conf_parms);
 
     if (retcode != RIG_OK)
     {

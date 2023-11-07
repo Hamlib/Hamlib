@@ -97,6 +97,8 @@
 #define TOK_TUNER_CONTROL_PATHNAME TOKEN_FRONTEND(38)
 /** \brief Number of retries permitted in case of read timeouts */
 #define TOK_TIMEOUT_RETRY       TOKEN_FRONTEND(39)
+#define TOK_POST_PTT_DELAY       TOKEN_FRONTEND(40)
+#define TOK_DEVICE_ID            TOKEN_FRONTEND(41)
 
 /*
  * rig specific tokens
@@ -131,6 +133,15 @@
 #define TOK_OFFSET_VFOA  TOKEN_FRONTEND(130)
 /** \brief rig: Add Hz to VFOB/Sub frequency set */
 #define TOK_OFFSET_VFOB  TOKEN_FRONTEND(131)
+/** \brief rig: Multicast data UDP address for publishing rig data and state, default 224.0.0.1, value of 0.0.0.0 disables multicast data publishing */
+#define TOK_MULTICAST_DATA_ADDR  TOKEN_FRONTEND(132)
+/** \brief rig: Multicast data UDP port, default 4532 */
+#define TOK_MULTICAST_DATA_PORT  TOKEN_FRONTEND(133)
+/** \brief rig: Multicast command server UDP address for sending commands to rig, default 224.0.0.2, value of 0.0.0.0 disables multicast command server */
+#define TOK_MULTICAST_CMD_ADDR  TOKEN_FRONTEND(134)
+/** \brief rig: Multicast command server UDP port, default 4532 */
+#define TOK_MULTICAST_CMD_PORT  TOKEN_FRONTEND(135)
+
 /*
  * rotator specific tokens
  * (strictly, should be documented as rotator_internal)

@@ -30,8 +30,8 @@ int keyspd = 25;
 int width_high = 0;
 int width_low = 0;
 int afgain = 50;
-int usb_af = 5;
-int usb_af_input = 2;
+int usb_af = 9;
+int usb_af_input = 9;
 int mic_gain = 50;
 
 int
@@ -234,23 +234,41 @@ int main(int argc, char *argv[])
             pbuf = "VS0;";
             WRITE(fd, pbuf, strlen(pbuf));
         }
-        else if (strcmp(buf, "EX0640000;") == 0)
+        else if (strcmp(buf, "EX0640000;") == 0) // TS-590S version
         {
             SNPRINTF(buf, sizeof(buf), "EX0640000%d;", usb_af_input);
             WRITE(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "EX0640000", 9) == 0)
+        else if (strncmp(buf, "EX0640000", 9) == 0) // TS-590S version
         {
             sscanf(buf, "EX0640000%d", &usb_af_input);
         }
-        else if (strcmp(buf, "EX0650000;") == 0)
+        else if (strcmp(buf, "EX0650000;") == 0) // TS-590S version
         {
-            SNPRINTF(buf, sizeof(buf), "EX0650000%d;", usb_af);
+            SNPRINTF(buf, sizeof(buf), "EX0650000%d;", usb_af); // TS-590S version
             WRITE(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "EX0650000", 9) == 0)
+        else if (strncmp(buf, "EX0650000", 9) == 0) // TS-590S version
         {
             sscanf(buf, "EX0650000%d", &usb_af);
+        }
+        else if (strcmp(buf, "EX0710000;") == 0) // TS-590SG version
+        {
+            SNPRINTF(buf, sizeof(buf), "EX0710000%d;", usb_af_input);
+            WRITE(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "EX0710000", 9) == 0) // TS-590SG version
+        {
+            sscanf(buf, "EX0710000%d", &usb_af_input);
+        }
+        else if (strcmp(buf, "EX0720000;") == 0) // TS-590SG version
+        {
+            SNPRINTF(buf, sizeof(buf), "EX0720000%d;", usb_af); // TS-590SG version
+            WRITE(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "EX0720000", 9) == 0) // TS-590S version
+        {
+            sscanf(buf, "EX0720000%d", &usb_af);
         }
         else if (strcmp(buf, "EX032;") == 0)
         {
