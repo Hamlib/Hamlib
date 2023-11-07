@@ -839,6 +839,9 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_SWR:
         {
+            ptt_t ptt = 0;
+            rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+            if (ptt == RIG_PTT_OFF) { val->f = rig->state.cache.swr; return RIG_OK;}
             cmd = "ZZRM8"; // get SWR
             len = 5;
             ans = 8;
