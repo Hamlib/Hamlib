@@ -49,7 +49,7 @@
 
 #define POWERSDR_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_SQL|RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_MUTE|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER)
 
-#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF|RIG_LEVEL_STRENGTH)
+#define POWERSDR_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR)
 #define POWERSDR_LEVEL_SET (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_VOXGAIN|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_IF)
 
 
@@ -837,6 +837,29 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         ans = 3;
         break;
 
+    case RIG_LEVEL_SWR:
+        {
+            // if not PTT  we'll return the last SWR value
+            // seems desirable to able to see this always
+            ptt_t ptt;
+            rig_get_ptt(rig, RIG_VFO_TX, &ptt);
+            if (!ptt) { val->f = rig->state.cache.swr; return RIG_OK; }
+            double forward=0, reverse=0;
+            cmd = "ZZRM5"; // get forward power
+            len = 5;
+            ans = 4;
+            retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), len + ans);
+            if (retval != RIG_OK) { val->f = 0; return RIG_OK;};
+            sscanf(lvlbuf,"ZZRM5%lg", &forward);
+            if (forward == 0) { val->f = 1.0; return RIG_OK;}
+            cmd = "ZZRM7";
+            retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), len + ans);
+            if (retval != RIG_OK) { val->f = 0; return RIG_OK;};
+            sscanf(lvlbuf,"ZZRM7%lg", &reverse);
+            rig->state.cache.swr = val->f = (1.0 + sqrt(reverse/forward)) / (1.0 - sqrt(reverse/forward));
+            return RIG_OK;
+        }
+
     default:
         return kenwood_get_level(rig, vfo, level, val);
     }
@@ -921,14 +944,20 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RFPOWER_METER:
     case RIG_LEVEL_RFPOWER_METER_WATTS:
-        n = sscanf(lvlbuf, "ZZRM5%f", &val->f);
-
-        if (n != 1)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+            // if not ptt then no power is going out so return 0W
+            ptt_t ptt;
+            rig_get_ptt(rig, RIG_VFO_TX, &ptt);
+            if (!ptt) { val->f = 0; return RIG_OK; }
+            n = sscanf(lvlbuf, "ZZRM5%f", &val->f);
+
+            if (n != 1)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
                       __func__, lvlbuf);
-            val->f = 0;
-            return -RIG_EPROTO;
+                val->f = 0;
+                return -RIG_EPROTO;
+            }
         }
 
         if (level != RIG_LEVEL_RFPOWER_METER_WATTS)
@@ -1321,7 +1350,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20230819.0",
+    .version =      "20231104.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,

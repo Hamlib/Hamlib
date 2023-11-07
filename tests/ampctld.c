@@ -323,16 +323,29 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-#if 0
-    retcode = set_conf(my_amp, conf_parms);
+    char *token=strtok(conf_parms,",");
 
-    if (retcode != RIG_OK)
+    while(token)
     {
-        fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
-        exit(2);
+        char mytoken[100], myvalue[100];
+        token_t lookup;
+        sscanf(token,"%99[^=]=%99s", mytoken, myvalue);
+        //printf("mytoken=%s,myvalue=%s\n",mytoken, myvalue);
+        lookup = amp_token_lookup(my_amp,mytoken);
+        if (lookup == 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: no such token as '%s'\n", __func__, mytoken);
+            token = strtok(NULL, ",");
+            continue;
+        }
+        retcode = amp_set_conf(my_amp, amp_token_lookup(my_amp,mytoken), myvalue);
+        if (retcode != RIG_OK)
+        {
+            fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
+            exit(2);
+        }
+        token = strtok(NULL, ",");
     }
-
-#endif
 
     if (amp_file)
     {

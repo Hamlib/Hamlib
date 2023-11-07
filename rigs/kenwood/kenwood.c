@@ -1862,15 +1862,17 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     // Malchite is so slow we don't do the get_freq
-    if (!RIG_IS_MALACHITE)
+    // And when we have detected Doppler operations we just set the freq all the time 
+    // This should provide stable timing for set_ptt operation so relay delays are consistent
+    if (!RIG_IS_MALACHITE && rig->state.doppler == 0) 
     {
-    rig_get_freq(rig, tvfo, &tfreq);
+        rig_get_freq(rig, tvfo, &tfreq);
 
-    if (tfreq == freq)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: no freq change needed\n", __func__);
-        RETURNFUNC2(RIG_OK);
-    }
+        if (tfreq == freq)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s: no freq change needed\n", __func__);
+            RETURNFUNC2(RIG_OK);
+        }
     }
 
     switch (tvfo)
@@ -2861,7 +2863,7 @@ static int kenwood_get_micgain_minmax(RIG *rig, int *micgain_now,
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     retval = read_string(&rs->rigport, (unsigned char *) levelbuf, sizeof(levelbuf),
-                         NULL, ";", 1, 1);
+                         NULL, 0, 1, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);
 

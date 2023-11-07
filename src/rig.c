@@ -604,6 +604,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 #if defined(HAVE_PTHREAD)
     rs->rigport.asyncio = 0;
 #endif
+    rig->state.comm_status = RIG_COMM_STATUS_CONNECTING;
 
     rs->tuner_control_pathname = DEFAULT_TUNER_CONTROL_PATHNAME;
 
@@ -682,7 +683,11 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->current_vfo = RIG_VFO_CURR; /* we don't know yet! */
     rs->rx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
     rs->tx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
-    rs->poll_interval = 0; // disable polling by default
+    rs->poll_interval = 1000; // enable polling by default
+    rs->multicast_data_addr = "224.0.0.1"; // enable multicast data publishing by default
+    rs->multicast_data_port = 4532;
+    rs->multicast_cmd_addr = "224.0.0.2"; // enable multicast command server by default
+    rs->multicast_cmd_port = 4532;
     rs->lo_freq = 0;
     rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
     rs->cache.ptt = 0;
@@ -1054,6 +1059,8 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC2(-RIG_EINVAL);
     }
 
+    rs->comm_status = RIG_COMM_STATUS_CONNECTING;
+
     rs->rigport.fd = -1;
 
     if (rs->rigport.type.rig == RIG_PORT_SERIAL)
@@ -1102,6 +1109,7 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
                   rs->comm_state);
         rs->comm_state = 0;
+        rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
 
@@ -1320,6 +1328,7 @@ int HAMLIB_API rig_open(RIG *rig)
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
+        rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
 
@@ -1328,10 +1337,9 @@ int HAMLIB_API rig_open(RIG *rig)
     if (status < 0)
     {
         port_close(&rs->rigport, rs->rigport.type.rig);
+        rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
-
-    add_opened_rig(rig);
 
     rs->comm_state = 1;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %p rs->comm_state==1?=%d\n", __func__,
@@ -1385,6 +1393,7 @@ int HAMLIB_API rig_open(RIG *rig)
             port_close(&rs->rigport, rs->rigport.type.rig);
             memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
+            rig->state.comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
         }
     }
@@ -1489,21 +1498,39 @@ int HAMLIB_API rig_open(RIG *rig)
     memcpy(&rs->pttport_deprecated, &rs->pttport, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->dcdport_deprecated, &rs->dcdport, sizeof(hamlib_port_t_deprecated));
     rig_flush_force(&rs->rigport, 1);
-//    if (rig->caps->rig_model != RIG_MODEL_NETRIGCTL) multicast_init(rig, "224.0.0.1", 4532);
-//    multicast_init(rig, "224.0.0.1", 4532);
-    char *multicast_addr = "224.0.0.1";
-    int multicast_port = 4532;
-    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE;
-//                                  | RIG_MULTICAST_SPECTRUM;
-    retval = network_multicast_publisher_start(rig, multicast_addr,
-              multicast_port, items);
+
+    enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE
+            | RIG_MULTICAST_SPECTRUM;
+    retval = network_multicast_publisher_start(rig, rs->multicast_data_addr,
+              rs->multicast_data_port, items);
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_server failed: %s\n", __FILE__,
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_publisher_start failed: %s\n", __FILE__,
                   rigerror(retval));
         // we will consider this non-fatal for now
     }
+
+    retval = network_multicast_receiver_start(rig, rs->multicast_cmd_addr, rs->multicast_cmd_port);
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_receiver_start failed: %s\n", __FILE__,
+                rigerror(retval));
+        // we will consider this non-fatal for now
+    }
+
+    retval = rig_poll_routine_start(rig);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_poll_routine_start failed: %s\n", __FILE__,
+                rigerror(retval));
+        // we will consider this non-fatal for now
+    }
+
+    rig->state.comm_status = RIG_COMM_STATUS_OK;
+
+    add_opened_rig(rig);
 
     RETURNFUNC2(RIG_OK);
 }
@@ -1544,11 +1571,15 @@ int HAMLIB_API rig_close(RIG *rig)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    remove_opened_rig(rig);
+
+    rig->state.comm_status = RIG_COMM_STATUS_DISCONNECTED;
+
     morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
+    rig_poll_routine_stop(rig);
+    network_multicast_receiver_stop(rig);
     network_multicast_publisher_stop(rig);
-    //while(rs->multicast_publisher_run != 2) hl_usleep(10*1000);
-    //multicast_stop(rig);
 
     /*
      * Let the backend say 73s to the rig.
@@ -1662,8 +1693,6 @@ int HAMLIB_API rig_close(RIG *rig)
     rs->dcdport.fd = rs->pttport.fd = -1;
 
     port_close(&rs->rigport, rs->rigport.type.rig);
-
-    remove_opened_rig(rig);
 
     // zero split so it will allow it to be set again on open for rigctld
     rig->state.cache.split = 0;
@@ -1891,6 +1920,28 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 #endif
+
+    if (rig->state.doppler == 0)
+    {
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_A))
+    { 
+        if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0)) 
+        {
+            rig->state.doppler = 1;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainA);
+        } 
+        freq += rig->state.offset_vfoa; 
+    }
+    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_B))
+    {
+        if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0) 
+        {
+            rig->state.doppler = 1;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainB);
+        } 
+        freq += rig->state.offset_vfob; 
+    }
+    }
 
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) { freq += rig->state.offset_vfoa; }
     else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB) { freq += rig->state.offset_vfob; }
@@ -2300,9 +2351,11 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
               __LINE__, rig->state.vfo_opt, rig->caps->rig_model);
 
     // If we're in vfo_mode then rigctld will do any VFO swapping we need
+    // If we detected doppler we skip the frequency check to make timing more consistent for relay control
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo
-            || (rig->state.vfo_opt == 1 && rig->caps->rig_model == RIG_MODEL_NETRIGCTL))
+            || (rig->state.vfo_opt == 1 && rig->caps->rig_model == RIG_MODEL_NETRIGCTL
+            && rig->state.doppler == 0))
     {
         // If rig does not have set_vfo we need to change vfo
         if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
@@ -3484,6 +3537,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     memcpy(&rig->state.pttport_deprecated, &rig->state.pttport,
            sizeof(rig->state.pttport_deprecated));
+    if (rig->state.rigport.post_ptt_delay > 0) hl_usleep(rig->state.rigport.post_ptt_delay*1000);
     ELAPSED2;
 
     RETURNFUNC(retcode);

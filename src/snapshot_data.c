@@ -15,35 +15,21 @@
 #define SPECTRUM_MODE_FIXED "FIXED"
 #define SPECTRUM_MODE_CENTER "CENTER"
 
+char snapshot_data_pid[20];
+
 static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
 {
     cJSON *node;
     char buf[1024];
 
-#if 0
-    // TODO: need to assign rig an ID, e.g. from command line
-    snprintf(buf, sizeof(buf), "%s:%s:%d", rig->caps->model_name,
-         rig->state.rigport.pathname, getpid());
-
-    node = cJSON_AddStringToObject(rig_node, "id", buf);
-    if (node == NULL)
-    {
-        goto error;
-    }
-
-#else
     cJSON *id_node = cJSON_CreateObject();
     cJSON_AddStringToObject(id_node, "model", rig->caps->model_name);
     cJSON_AddStringToObject(id_node, "endpoint", rig->state.rigport.pathname);
-    char pid[16];
-    sprintf(pid,"%d",getpid());
-    cJSON_AddStringToObject(id_node, "process", pid);
+    cJSON_AddStringToObject(id_node, "process", snapshot_data_pid);
+    cJSON_AddStringToObject(id_node, "deviceId", rig->state.device_id);
     cJSON_AddItemToObject(rig_node, "id", id_node);
-#endif
 
-    // TODO: what kind of status should this reflect?
-    node = cJSON_AddStringToObject(rig_node, "status",
-                                   rig->state.comm_state ? "OK" : "CLOSED");
+    node = cJSON_AddStringToObject(rig_node, "status", rig_strcommstatus(rig->state.comm_status));
 
     if (node == NULL)
     {
@@ -161,19 +147,26 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
         }
     }
 
+    split = rig->state.cache.split;
+    split_vfo = rig->state.cache.split_vfo;
+
+    is_rx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
+            || (split == RIG_SPLIT_ON && vfo != split_vfo);
+    is_tx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
+            || (split == RIG_SPLIT_ON && vfo == split_vfo);
     ptt = rig->state.cache.ptt;
+
+    if (is_tx)
     node = cJSON_AddBoolToObject(vfo_node, "ptt", ptt == RIG_PTT_OFF ? 0 : 1);
+    else 
+    node = cJSON_AddBoolToObject(vfo_node, "ptt", 0);
 
     if (node == NULL)
     {
         goto error;
     }
 
-    split = rig->state.cache.split;
-    split_vfo = rig->state.cache.split_vfo;
 
-    is_rx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
-            || (split == RIG_SPLIT_ON && vfo != split_vfo);
     node = cJSON_AddBoolToObject(vfo_node, "rx", is_rx);
 
     if (node == NULL)
@@ -181,8 +174,6 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
         goto error;
     }
 
-    is_tx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
-            || (split == RIG_SPLIT_ON && vfo == split_vfo);
     node = cJSON_AddBoolToObject(vfo_node, "tx", is_tx);
 
     if (node == NULL)
@@ -323,6 +314,11 @@ static int snapshot_serialize_spectrum(cJSON *spectrum_node, RIG *rig,
 
 error:
     RETURNFUNC2(-RIG_EINTERNAL);
+}
+
+void snapshot_init()
+{
+    snprintf(snapshot_data_pid, sizeof(snapshot_data_pid), "%d", getpid());
 }
 
 int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
