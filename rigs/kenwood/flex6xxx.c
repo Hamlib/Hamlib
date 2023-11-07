@@ -839,24 +839,14 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_SWR:
         {
-            // if not PTT  we'll return the last SWR value
-            // seems desirable to able to see this always
-            ptt_t ptt;
-            rig_get_ptt(rig, RIG_VFO_TX, &ptt);
-            if (!ptt) { val->f = rig->state.cache.swr; return RIG_OK; }
-            double forward=0, reverse=0;
-            cmd = "ZZRM5"; // get forward power
+            cmd = "ZZRM8"; // get SWR
             len = 5;
-            ans = 4;
-            retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), len + ans);
-            if (retval != RIG_OK) { val->f = 0; return RIG_OK;};
-            sscanf(lvlbuf,"ZZRM5%lg", &forward);
-            if (forward == 0) { val->f = 1.0; return RIG_OK;}
-            cmd = "ZZRM7";
-            retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), len + ans);
-            if (retval != RIG_OK) { val->f = 0; return RIG_OK;};
-            sscanf(lvlbuf,"ZZRM7%lg", &reverse);
-            rig->state.cache.swr = val->f = (1.0 + sqrt(reverse/forward)) / (1.0 - sqrt(reverse/forward));
+            ans = 8;
+            retval = kenwood_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf));
+            if (retval != RIG_OK) { val->f = rig->state.cache.swr; return RIG_OK;};
+            sscanf(lvlbuf,"ZZRM8%lg", &rig->state.cache.swr);
+            val->f = rig->state.cache.swr;
+            rig_debug(RIG_DEBUG_ERR, "%s(%d) swr=%.1f\n", __func__, __LINE__, val->f);
             return RIG_OK;
         }
 
@@ -1350,7 +1340,7 @@ const struct rig_caps powersdr_caps =
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",
     .mfg_name =     "FlexRadio/ANAN",
-    .version =      "20231104.0",
+    .version =      "20231107.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
