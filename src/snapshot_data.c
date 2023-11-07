@@ -10,8 +10,6 @@
 
 #include "cJSON.h"
 
-#define MAX_VFO_COUNT 4
-
 #define SPECTRUM_MODE_FIXED "FIXED"
 #define SPECTRUM_MODE_CENTER "CENTER"
 
@@ -87,7 +85,6 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     }
     cJSON_AddItemToObject(rig_node, "modes", modes_array);
     
-    //RETURNFUNC2(RIG_OK);
     return RIG_OK;
 
 error:
@@ -157,9 +154,13 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
     ptt = rig->state.cache.ptt;
 
     if (is_tx)
-    node = cJSON_AddBoolToObject(vfo_node, "ptt", ptt == RIG_PTT_OFF ? 0 : 1);
-    else 
-    node = cJSON_AddBoolToObject(vfo_node, "ptt", 0);
+    {
+        node = cJSON_AddBoolToObject(vfo_node, "ptt", ptt == RIG_PTT_OFF ? 0 : 1);
+    }
+    else
+    {
+        node = cJSON_AddBoolToObject(vfo_node, "ptt", 0);
+    }
 
     if (node == NULL)
     {
@@ -181,7 +182,6 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
         goto error;
     }
 
-    //RETURNFUNC2(RIG_OK);
     return RIG_OK;
 
 error:
@@ -309,7 +309,6 @@ static int snapshot_serialize_spectrum(cJSON *spectrum_node, RIG *rig,
         goto error;
     }
 
-    //RETURNFUNC2(RIG_OK);
     return RIG_OK;
 
 error:
@@ -329,14 +328,8 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
     cJSON *node;
     cJSON_bool bool_result;
     char buf[256];
-
-    int vfo_count = 2;
-    vfo_t vfos[MAX_VFO_COUNT];
     int result;
     int i;
-
-    vfos[0] = RIG_VFO_A;
-    vfos[1] = RIG_VFO_B;
 
     root_node = cJSON_CreateObject();
 
@@ -408,10 +401,16 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
         goto error;
     }
 
-    for (i = 0; i < vfo_count; i++)
+    for (i = 0; i < HAMLIB_MAX_VFOS; i++)
     {
+        vfo_t vfo = rig->state.vfo_list & RIG_VFO_N(i);
+        if (!vfo)
+        {
+            continue;
+        }
+
         vfo_node = cJSON_CreateObject();
-        result = snapshot_serialize_vfo(vfo_node, rig, vfos[i]);
+        result = snapshot_serialize_vfo(vfo_node, rig, vfo);
 
         if (result != RIG_OK)
         {
@@ -459,7 +458,6 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
 
     rig->state.snapshot_packet_sequence_number++;
 
-    //RETURNFUNC2(RIG_OK);
     return RIG_OK;
 
 error:
