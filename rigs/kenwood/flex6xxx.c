@@ -94,7 +94,8 @@ static struct kenwood_priv_caps powersdr_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
     .mode_table = powersdr_mode_table,
-    .if_len = 37
+    .if_len = 37,
+    .swr = 0
 };
 
 #define DSP_BW_NUM 8
@@ -839,16 +840,17 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_SWR:
         {
+            struct kenwood_priv_caps *priv = kenwood_caps(rig);
             ptt_t ptt = 0;
             rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
-            if (ptt == RIG_PTT_OFF) { val->f = rig->state.cache.swr; return RIG_OK;}
+            if (ptt == RIG_PTT_OFF) { val->f = priv->swr; return RIG_OK;}
             cmd = "ZZRM8"; // get SWR
             len = 5;
             ans = 8;
             retval = kenwood_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf));
-            if (retval != RIG_OK) { val->f = rig->state.cache.swr; return RIG_OK;};
-            sscanf(lvlbuf,"ZZRM8%lg", &rig->state.cache.swr);
-            val->f = rig->state.cache.swr;
+            if (retval != RIG_OK) { val->f = priv->swr; return RIG_OK;};
+            sscanf(lvlbuf,"ZZRM8%lg", &priv->swr);
+            val->f = priv->swr;
             rig_debug(RIG_DEBUG_ERR, "%s(%d) swr=%.1f\n", __func__, __LINE__, val->f);
             return RIG_OK;
         }
