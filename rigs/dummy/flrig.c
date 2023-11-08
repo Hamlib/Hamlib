@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>             /* String function definitions */
+#include <math.h>
 
 #include <hamlib/rig.h>
 #include <serial.h>
@@ -138,7 +139,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20231107.0",
+    .version = "20231108.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -2111,6 +2112,39 @@ static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     RETURNFUNC(RIG_OK);
 }
 
+typedef struct {
+    float mtr;
+    float swr;
+} swrpair;
+
+static swrpair swrtbl[] = {
+    {0.0, 1.0},
+    {10.5, 1.5},
+    {23.0, 2.0},
+    {35.0, 2.5},
+    {48.0, 3.0},
+    {100.0, 10.0 } // assuming 10.0 is infinity for FLRig
+};
+
+// Function to interpolate SWR from MTR
+float interpolateSWR(float mtr) {
+    int i;
+    for (i = 0; i < sizeof(swrtbl)/sizeof(swrpair) - 1; i++) {
+        if (mtr == swrtbl[i].mtr) {
+            // Exact match
+            return swrtbl[i].swr;
+        }
+        if (mtr < swrtbl[i + 1].mtr) {
+            // Perform linear interpolation
+            float slope = (swrtbl[i + 1].swr - swrtbl[i].swr) / (swrtbl[i + 1].mtr - swrtbl[i].mtr);
+            float swr = round((swrtbl[i].swr + slope * (mtr - swrtbl[i].mtr))*10)/10.0;
+            rig_debug(RIG_DEBUG_VERBOSE,"%s: swr=%f\n", __func__, swr);
+            return swr;
+        }
+    }
+    // If mtr is not within the range of values in the table, you could choose to return an error or extrapolate
+    return 10; // Example er
+}
 /*
 * flrig_get_level
 * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
@@ -2161,6 +2195,11 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     // most levels are 0-100 -- may have to allow for different ranges
     switch (level)
     {
+    case RIG_LEVEL_SWR:
+    {
+        val->f = interpolateSWR(atoi(value));
+        break;
+    }
     case RIG_LEVEL_STRENGTH:
         val->i = atoi(value) - 54;
         //if (val->i > 0) val->i /= 10;
