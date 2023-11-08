@@ -135,6 +135,7 @@ struct kenwood_priv_caps
     struct kenwood_filter_width *filter_width; /* Last entry should have value == -1 and width_hz == -1 */
     struct kenwood_slope_filter *slope_filter_high; /* Last entry should have value == -1 and frequency_hz == -1 */
     struct kenwood_slope_filter *slope_filter_low; /* Last entry should have value == -1 and frequency_hz == -1 */
+    double swr;
 };
 
 struct kenwood_priv_data
