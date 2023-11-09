@@ -392,7 +392,13 @@ static const struct icom_priv_caps IC7300_priv_caps =
         },
     },
     .extcmds = ic7300_extcmds,   /* Custom op parameters */
-    .x25_always = 1
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 static const struct icom_priv_caps IC9700_priv_caps =
@@ -441,7 +447,13 @@ static const struct icom_priv_caps IC9700_priv_caps =
         },
     },
     .extcmds = ic9700_extcmds,   /* Custom op parameters */
-    .x25_always = 1
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 static const struct icom_priv_caps IC705_priv_caps =
@@ -565,6 +577,13 @@ static const struct icom_priv_caps IC705_priv_caps =
         },
     },
     .extcmds = ic705_extcmds,     /* Custom parameters */
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 static const struct icom_priv_caps IC905_priv_caps =
@@ -687,6 +706,13 @@ static const struct icom_priv_caps IC905_priv_caps =
         },
     },
     .extcmds = ic705_extcmds,     /* Custom parameters */
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 const struct rig_caps ic7300_caps =
@@ -878,8 +904,8 @@ const struct rig_caps ic7300_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
@@ -1202,8 +1228,8 @@ struct rig_caps ic9700_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  ic9700_set_vfo,
     .set_ant =  NULL,
@@ -1474,8 +1500,8 @@ const struct rig_caps ic705_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
@@ -1744,8 +1770,8 @@ const struct rig_caps ic905_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,

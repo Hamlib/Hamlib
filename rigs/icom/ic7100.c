@@ -200,7 +200,14 @@ static const struct icom_priv_caps ic7100_priv_caps =
     },
     .extcmds = ic7100_extcmds,
     .antack_len = 2,
-    .ant_count = 2
+    .ant_count = 2,
+    .x25x26_always = 0,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 0,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 // if hour < 0 then only date will be set
@@ -371,7 +378,7 @@ const struct rig_caps ic7100_caps =
     .max_ifshift =  Hz(0),
     .agc_level_count = 3,
     .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
-    .targetable_vfo =  0,
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .vfo_ops =  IC7100_VFO_OPS,
     .scan_ops =  IC7100_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
@@ -477,8 +484,8 @@ const struct rig_caps ic7100_caps =
     .get_freq =  icom_get_freq,
     .set_freq =  icom_set_freq,
 
-    .get_mode =  icom_get_mode_with_data,
-    .set_mode =  icom_set_mode_with_data,
+    .get_mode =  icom_get_mode,
+    .set_mode =  icom_set_mode,
 
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,

@@ -143,6 +143,13 @@ static const struct icom_priv_caps ic7700_priv_caps =
         { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
     .extcmds = ic7700_extcmds,
+    .x25x26_always = 0,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 0,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 // if hour < 0 then only date will be set
@@ -306,7 +313,7 @@ const struct rig_caps ic7700_caps =
     .agc_level_count = 4,
     .agc_levels = { RIG_AGC_OFF, RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
     // 7700 can have a different mode on VFOB but requires VFO swap
-    .targetable_vfo =  RIG_TARGETABLE_MODE,
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .vfo_ops =  IC7700_VFO_OPS,
     .scan_ops =  IC7700_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
@@ -396,8 +403,8 @@ const struct rig_caps ic7700_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
 //    .get_vfo =  icom_get_vfo,
     .set_ant =  icom_set_ant,

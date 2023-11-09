@@ -115,6 +115,7 @@ static const struct icom_priv_caps ic7410_priv_caps =
         { .level = RIG_AGC_FAST, .icom_level = 3 },
         { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
+    .data_mode_supported = 1,
 };
 
 
@@ -250,8 +251,8 @@ const struct rig_caps ic7410_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
 //    .get_vfo =  icom_get_vfo,
     .set_ant =  icom_set_ant,

@@ -426,7 +426,6 @@ typedef enum {
 typedef enum {
     RIG_SPLIT_OFF = 0,        /*!< Split mode disabled */
     RIG_SPLIT_ON,             /*!< Split mode enabled */
-    RIG_SPLIT_SIMPLEX = 0x10, /*< Split mode simples for ID-5100 */
 } split_t;
 
 

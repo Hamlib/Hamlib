@@ -141,7 +141,7 @@ static struct icom_priv_caps x108g_priv_caps =
     0x70,   /* default address */
     0,      /* 731 mode */
     0,    /* no XCHG */
-    ic7200_ts_sc_list
+    ic7200_ts_sc_list,
 };
 
 
@@ -321,6 +321,21 @@ const struct rig_caps x108g_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
+static struct icom_priv_caps x6100_priv_caps =
+{
+    0x70,   /* default address */
+    0,      /* 731 mode */
+    0,    /* no XCHG */
+    ic7200_ts_sc_list,
+    .x25x26_always = 0,
+    .x25x26_possibly = 0,
+    .x1cx03_always = 0,
+    .x1cx03_possibly = 0,
+    .x1ax03_supported = 0,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
+};
+
 const struct rig_caps x6100_caps =
 {
     RIG_MODEL(RIG_MODEL_X6100),
@@ -445,7 +460,7 @@ const struct rig_caps x6100_caps =
     .set_conf =  icom_set_conf,
     .get_conf =  icom_get_conf,
 
-    .priv = (void *)& x108g_priv_caps,
+    .priv = (void *) &x6100_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
     .rig_open =  icom_rig_open,
@@ -453,8 +468,8 @@ const struct rig_caps x6100_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,  /*automatically set by rig depending band */
     .get_ant =  NULL,
