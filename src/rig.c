@@ -4758,7 +4758,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     }
 
     // Use set_split_mode directly if implemented and mode is targetable
-    if (caps->set_split_mode)
+    if (caps->set_split_mode && (caps->targetable_vfo & RIG_TARGETABLE_MODE))
     {
         HAMLIB_TRACE;
         retcode = caps->set_split_mode(rig, tx_vfo, tx_mode, tx_width);

@@ -102,6 +102,13 @@ static const struct icom_priv_caps ic9100_priv_caps =
     .antack_len = 2,
     .ant_count = 2,
     .extcmds = ic9100_extcmds,
+    .x25x26_always = 0,
+    .x25x26_possibly = 0,
+    .x1cx03_always = 0,
+    .x1cx03_possibly = 0,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 const struct rig_caps ic9100_caps =
@@ -243,8 +250,8 @@ const struct rig_caps ic9100_caps =
     .get_freq =  icom_get_freq,
     .set_freq =  icom_set_freq,
 
-    .get_mode =  icom_get_mode_with_data,
-    .set_mode =  icom_set_mode_with_data,
+    .get_mode =  icom_get_mode,
+    .set_mode =  icom_set_mode,
 
     .set_vfo =  icom_set_vfo,
 //    .get_vfo =  icom_get_vfo,

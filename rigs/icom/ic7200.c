@@ -116,6 +116,13 @@ static const struct icom_priv_caps IC7200_priv_caps =
         { .level = RIG_AGC_SLOW, .icom_level = 2 },
         { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
+    .x25x26_always = 0,
+    .x25x26_possibly = 0,
+    .x1cx03_always = 0,
+    .x1cx03_possibly = 0,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 const struct rig_caps ic7200_caps =
@@ -246,8 +253,8 @@ const struct rig_caps ic7200_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
 //    .get_vfo =  icom_get_vfo,
     .set_ant =  NULL,  /*automatically set by rig depending band */

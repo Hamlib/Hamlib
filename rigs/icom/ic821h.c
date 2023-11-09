@@ -56,7 +56,6 @@ static const struct icom_priv_caps ic821h_priv_caps =
 // If Main/Sub we assume we're doing satmode
 int ic821h_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     int retval = -RIG_EINTERNAL;
 
     ENTERFUNC;

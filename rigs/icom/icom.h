@@ -55,7 +55,7 @@
  * parameters and levels.
  */
 #define STR_CAL_LENGTH 16
-#define STR_CAL_S0 -54
+#define STR_CAL_S0 (-54)
 #define MULTIB_SUBCMD
 
 /*
@@ -244,7 +244,13 @@ struct icom_priv_caps
     struct icom_spectrum_edge_frequency_range spectrum_edge_frequency_ranges[ICOM_MAX_SPECTRUM_FREQ_RANGES]; /*!< Icom spectrum scope edge frequencies, if supported by the rig. Last entry should have zeros in all fields. */
     struct cmdparams *extcmds;  /*!< Pointer to extended operations array */
     int dualwatch_split;        /*!< Rig supports dual watch for split ops -- e.g. ID-5100 */
-    int x25_always;             /*!< Means the rig should use 0x25 and 0x26 commands always */
+    int x25x26_always;          /*!< Rig should use 0x25 and 0x26 commands always */
+    int x25x26_possibly;        /*!< Rig might support 0x25 and 0x26 commands if the firmware is upgraded */
+    int x1cx03_always;          /*!< Rig should use 0x1C 0x03 command for getting TX frequency */
+    int x1cx03_possibly;        /*!< Rig might support 0x1C 0x03 command if the firmware is upgraded TODO: is this added by FW upgrade ever? */
+    int x1ax03_supported;       /*!< Rig supports setting/getting filter width */
+    int mode_with_filter;       /*!< Rig mode commands include filter selection */
+    int data_mode_supported;    /*!< Rig supports data mode flag */
 };
 
 struct icom_priv_data
@@ -252,7 +258,7 @@ struct icom_priv_data
     unsigned char re_civ_addr;  /*!< The remote equipment's CI-V address */
     int civ_731_mode; /*!< Off: freqs on 10 digits, On: freqs on 8 digits */
     int no_xchg; /*!< Off: use VFO XCHG to set other VFO, On: use set VFO to set other VFO */
-    int no_1a_03_cmd; /*!< Rig doesn't tell IF widths */
+    int no_1a_03_cmd; /*!< Rig does not support setting/getting filter width */
     int split_on_deprecated; /*!< @deprecated Use rig_cache.split - Record split state */
     pltstate_t *pltstate; /*!< Only on optoscan */
     int serial_USB_echo_off; /*!< USB is not set to echo */
@@ -321,16 +327,9 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int icom_get_rit_new(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 int icom_set_rit_new(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int icom_set_xit_new(RIG *rig, vfo_t vfo, shortfreq_t ts);
-int icom_set_mode_with_data(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int icom_get_mode_with_data(RIG *rig, vfo_t vfo, rmode_t *mode,
-                            pbwidth_t *width);
 int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-#if 1 // see icom_get_vfo in icom.c
 int icom_get_vfo(RIG *rig, vfo_t *vfo);
-#else
-#define icom_get_vfo NULL
-#endif
 int icom_set_vfo(RIG *rig, vfo_t vfo);
 int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
 int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);
@@ -597,6 +596,5 @@ extern const struct rig_caps icr30_caps;
 #define RIG_IS_OS456 (rig->state.rig_model == RIG_MODEL_OS456)
 #define RIG_IS_X5105 (rig->state.rig_model == RIG_MODEL_X5105)
 #define RIG_IS_X6100 (rig->state.rig_model == RIG_MODEL_X6100)
-
 
 #endif /* _ICOM_H */
