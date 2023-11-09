@@ -2477,6 +2477,7 @@ typedef enum {
  * \brief Rig cache data
  *
  * This struct contains all the items we cache at the highest level
+ * DO NOT MODIFY THIS STRUCTURE AT ALL -- we need a new cache that is a pointer rather than a structure
  */
 struct rig_cache {
     int timeout_ms;  // the cache timeout for invalidating itself
@@ -2550,7 +2551,6 @@ struct rig_cache {
     struct timespec time_ptt;
     struct timespec time_split;
     int satmode; // if rig is in satellite mode
-    double swr; // keep swr 
 };
 
 /**
