@@ -151,7 +151,7 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
             || (split == RIG_SPLIT_ON && vfo != split_vfo);
     is_tx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
             || (split == RIG_SPLIT_ON && vfo == split_vfo);
-    ptt = rig->state.cache.ptt;
+    ptt = rig->state.cache.ptt && is_tx;
 
     if (is_tx)
     {
