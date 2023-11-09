@@ -69,10 +69,9 @@ void *rig_poll_routine(void *arg)
     rig_poll_routine_args *args = (rig_poll_routine_args *)arg;
     RIG *rig = args->rig;
     struct rig_state *rs = &rig->state;
-    int result;
     int update_occurred;
 
-    vfo_t vfo = RIG_VFO_NONE, vfo_prev = RIG_VFO_NONE;
+    vfo_t vfo = RIG_VFO_NONE, tx_vfo = RIG_VFO_NONE;
     freq_t freq_main_a = 0, freq_main_b = 0, freq_main_c = 0, freq_sub_a = 0, freq_sub_b = 0, freq_sub_c = 0;
     rmode_t mode_main_a = 0, mode_main_b = 0, mode_main_c = 0, mode_sub_a = 0, mode_sub_b = 0, mode_sub_c = 0;
     pbwidth_t width_main_a = 0, width_main_b = 0, width_main_c = 0, width_sub_a = 0, width_sub_b = 0, width_sub_c = 0;
@@ -95,243 +94,116 @@ void *rig_poll_routine(void *arg)
 
     while (rs->poll_routine_thread_run)
     {
+        if (rig->state.current_vfo != vfo)
+        {
+            vfo = rig->state.current_vfo;
+            update_occurred = 1;
+        }
+        if (rig->state.tx_vfo != tx_vfo)
+        {
+            tx_vfo = rig->state.tx_vfo;
+            update_occurred = 1;
+        }
         if (rig->state.cache.freqMainA != freq_main_a)
         {
             freq_main_a = rig->state.cache.freqMainA;
             update_occurred = 1;
         }
-        else if (rig->state.cache.freqMainB != freq_main_b)
+        if (rig->state.cache.freqMainB != freq_main_b)
         {
             freq_main_b = rig->state.cache.freqMainB;
             update_occurred = 1;
         }
-        else if (rig->state.cache.freqMainC != freq_main_c)
+        if (rig->state.cache.freqMainC != freq_main_c)
         {
             freq_main_b = rig->state.cache.freqMainC;
             update_occurred = 1;
         }
-        else if (rig->state.cache.freqSubA != freq_sub_a)
+        if (rig->state.cache.freqSubA != freq_sub_a)
         {
             freq_sub_a = rig->state.cache.freqSubA;
             update_occurred = 1;
         }
-        else if (rig->state.cache.freqSubB != freq_sub_b)
+        if (rig->state.cache.freqSubB != freq_sub_b)
         {
             freq_sub_b = rig->state.cache.freqSubB;
             update_occurred = 1;
         }
-        else if (rig->state.cache.freqSubC != freq_sub_c)
+        if (rig->state.cache.freqSubC != freq_sub_c)
         {
             freq_sub_c = rig->state.cache.freqSubC;
             update_occurred = 1;
         }
-        else if (rig->state.cache.ptt != ptt)
+        if (rig->state.cache.ptt != ptt)
         {
             ptt = rig->state.cache.ptt;
             update_occurred = 1;
         }
-        else if (rig->state.cache.split != split)
+        if (rig->state.cache.split != split)
         {
             split = rig->state.cache.split;
             update_occurred = 1;
         }
-        else if (rig->state.cache.modeMainA != mode_main_a)
+        if (rig->state.cache.modeMainA != mode_main_a)
         {
             mode_main_a = rig->state.cache.modeMainA;
             update_occurred = 1;
         }
-        else if (rig->state.cache.modeMainB != mode_main_b)
+        if (rig->state.cache.modeMainB != mode_main_b)
         {
             mode_main_b = rig->state.cache.modeMainB;
             update_occurred = 1;
         }
-        else if (rig->state.cache.modeMainC != mode_main_c)
+        if (rig->state.cache.modeMainC != mode_main_c)
         {
             mode_main_c = rig->state.cache.modeMainC;
             update_occurred = 1;
         }
-        else if (rig->state.cache.modeSubA != mode_sub_a)
+        if (rig->state.cache.modeSubA != mode_sub_a)
         {
             mode_sub_a = rig->state.cache.modeSubA;
             update_occurred = 1;
         }
-        else if (rig->state.cache.modeSubB != mode_sub_b)
+        if (rig->state.cache.modeSubB != mode_sub_b)
         {
             mode_sub_b = rig->state.cache.modeSubB;
             update_occurred = 1;
         }
-        else if (rig->state.cache.modeSubC != mode_sub_c)
+        if (rig->state.cache.modeSubC != mode_sub_c)
         {
             mode_sub_c = rig->state.cache.modeSubC;
             update_occurred = 1;
         }
-        else if (rig->state.cache.widthMainA != width_main_a)
+        if (rig->state.cache.widthMainA != width_main_a)
         {
             width_main_a = rig->state.cache.widthMainA;
             update_occurred = 1;
         }
-        else if (rig->state.cache.widthMainB != width_main_b)
+        if (rig->state.cache.widthMainB != width_main_b)
         {
             width_main_b = rig->state.cache.widthMainB;
             update_occurred = 1;
         }
-        else if (rig->state.cache.widthMainC != width_main_c)
+        if (rig->state.cache.widthMainC != width_main_c)
         {
             width_main_c = rig->state.cache.widthMainC;
             update_occurred = 1;
         }
-        else if (rig->state.cache.widthSubA != width_sub_a)
+        if (rig->state.cache.widthSubA != width_sub_a)
         {
             width_sub_a = rig->state.cache.widthSubA;
             update_occurred = 1;
         }
-        else if (rig->state.cache.widthSubB != width_sub_b)
+        if (rig->state.cache.widthSubB != width_sub_b)
         {
             width_sub_b = rig->state.cache.widthSubB;
             update_occurred = 1;
         }
-        else if (rig->state.cache.widthSubC != width_sub_c)
+        if (rig->state.cache.widthSubC != width_sub_c)
         {
             width_sub_c = rig->state.cache.widthSubC;
             update_occurred = 1;
         }
-
-// The original code here actively reads rig state, which can be too intensive and intrusive
-#if 0
-        if (rig->caps->get_vfo)
-        {
-            result = rig_get_vfo(rig, &vfo);
-
-            if (result != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_vfo error %s\n", __FILE__, __LINE__,
-                          rigerror(result));
-            }
-
-            if (vfo != vfo_prev)
-            {
-                rig_fire_vfo_event(rig, vfo);
-            }
-
-            if (vfo != vfo_prev)
-            {
-                rig_debug(RIG_DEBUG_CACHE,
-                          "%s(%d) vfo=%s was %s\n", __FILE__, __LINE__,
-                          rig_strvfo(vfo), rig_strvfo(vfo_prev));
-                update_occurred = 1;
-                vfo_prev = vfo;
-            }
-        }
-
-        if (rig->caps->get_freq)
-        {
-            result = rig_get_freq(rig, RIG_VFO_A, &freq_main);
-
-            if (result != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_freqA error %s\n", __FILE__, __LINE__,
-                          rigerror(result));
-            }
-
-            result = rig_get_freq(rig, RIG_VFO_B, &freq_sub);
-
-            if (result != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_freqB error %s\n", __FILE__, __LINE__,
-                          rigerror(result));
-            }
-
-            if (freq_main != freq_main_prev)
-            {
-                rig_fire_freq_event(rig, RIG_VFO_A, freq_main);
-            }
-
-            if (freq_sub != freq_sub_prev)
-            {
-                rig_fire_freq_event(rig, RIG_VFO_B, freq_sub);
-            }
-
-            if (freq_main != freq_main_prev || freq_sub != freq_sub_prev)
-            {
-                rig_debug(RIG_DEBUG_CACHE,
-                          "%s(%d) freq_main=%.0f was %.0f, freq_sub=%.0f was %.0f\n", __FILE__, __LINE__,
-                          freq_main, freq_main_prev, freq_sub, freq_sub_prev);
-                update_occurred = 1;
-                freq_main_prev = freq_main;
-                freq_sub_prev = freq_sub;
-            }
-        }
-
-        if (rig->caps->get_mode)
-        {
-            result = rig_get_mode(rig, RIG_VFO_A, &mode_main, &width_main);
-
-            if (result != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_modeA error %s\n", __FILE__, __LINE__,
-                          rigerror(result));
-            }
-
-            result = rig_get_mode(rig, RIG_VFO_B, &mode_sub, &width_sub);
-
-            if (result != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_modeB error %s\n", __FILE__, __LINE__,
-                          rigerror(result));
-            }
-
-            if (mode_main != mode_main_prev || width_main != width_main_prev)
-            {
-                rig_fire_mode_event(rig, RIG_VFO_A, mode_main, width_main);
-            }
-
-            if (mode_sub != mode_sub_prev || width_sub != width_sub_prev)
-            {
-                rig_fire_mode_event(rig, RIG_VFO_B, mode_sub, width_sub);
-            }
-
-            if (mode_main != mode_main_prev || mode_sub != mode_sub_prev)
-            {
-                rig_debug(RIG_DEBUG_CACHE, "%s(%d) mode_main=%s was %s, mode_sub=%s was %s\n",
-                          __FILE__, __LINE__, rig_strrmode(mode_main), rig_strrmode(mode_main_prev),
-                          rig_strrmode(mode_sub), rig_strrmode(mode_sub_prev));
-                update_occurred = 1;
-                mode_main_prev = mode_main;
-                mode_sub_prev = mode_sub;
-            }
-
-            if (width_main != width_main_prev || width_sub != width_sub_prev)
-            {
-                rig_debug(RIG_DEBUG_CACHE,
-                          "%s(%d) width_main=%ld was %ld, width_sub=%ld was %ld\n", __FILE__, __LINE__,
-                          width_main, width_main_prev, width_sub, width_sub_prev);
-                update_occurred = 1;
-                width_main_prev = width_main;
-                width_sub_prev = width_sub;
-            }
-        }
-
-        if (rig->caps->get_split_vfo)
-        {
-            vfo_t tx_vfo;
-            result = rig_get_split_vfo(rig, RIG_VFO_A, &split, &tx_vfo);
-
-            if (result != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s(%d): rig_get_modeA error %s\n", __FILE__, __LINE__,
-                          rigerror(result));
-            }
-
-            if (split != split_prev)
-            {
-                rig_debug(RIG_DEBUG_CACHE, "%s(%d) split=%d was %d\n", __FILE__, __LINE__,
-                          split,
-                          split_prev);
-                update_occurred = 1;
-                split_prev = split;
-            }
-        }
-#endif
 
         if (update_occurred)
         {
