@@ -117,6 +117,7 @@ struct flrig_priv_data
     float powermeter_scale;  /* So we can scale power meter to 0-1 */
     value_t parms[RIG_SETTING_MAX];
     struct ext_list *ext_parms;
+    int get_SWR;
 };
 
 /* level's and parm's tokens */
@@ -639,6 +640,7 @@ static int flrig_init(RIG *rig)
     priv->curr_modeB = -1;
     priv->curr_widthA = -1;
     priv->curr_widthB = -1;
+    priv->get_SWR = 1;  // we'll try getSWR once to see if it works
 
     if (!rig->caps)
     {
@@ -2154,7 +2156,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char value[MAXARGLEN];
     char *cmd;
     int retval;
-    const struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
+    struct flrig_priv_data *priv = (struct flrig_priv_data *) rig->state.priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -2171,8 +2173,11 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_STRENGTH: cmd = "rig.get_smeter"; break;
 
-    case RIG_LEVEL_SWR: cmd = "rig.get_SWR"; break;
-    //case RIG_LEVEL_SWR: cmd = "rig.get_swrmeter"; break;
+    case RIG_LEVEL_SWR: 
+        cmd = "rig.get_swrmeter";
+        // we'll try get_SWR at least once to see if it works
+        if  (priv->get_SWR) cmd = "rig.get_SWR"; 
+        break;
 
     case RIG_LEVEL_RFPOWER: cmd = "rig.get_power"; break;
 
@@ -2188,6 +2193,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     if (retval == RIG_ENAVAIL && strcmp(cmd,"rig.get_SWR")==0)
     {
+        priv->get_SWR = 0;
         cmd = "rig.get_swrmeter"; // revert to old flrig method
         retval = flrig_transaction(rig, cmd, NULL, value, sizeof(value));
     }
