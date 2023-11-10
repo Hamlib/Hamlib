@@ -2185,34 +2185,19 @@ int ic9700_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
 
 int ic9700_set_vfo(RIG *rig, vfo_t vfo)
 {
-    ENTERFUNC;
     unsigned char ackbuf[MAXFRAMELEN];
-    int ack_len = sizeof(ackbuf), retval = -RIG_EINTERNAL;
+    int ack_len = sizeof(ackbuf);
+    int retval;
+
+    ENTERFUNC;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+
     if (vfo == RIG_VFO_A)
     {
-        retval = icom_transaction(rig, 0x07, 0x00, NULL, 0, ackbuf, &ack_len);
+        retval = icom_transaction(rig, C_SET_VFO, S_VFOA, NULL, 0, ackbuf, &ack_len);
     }
     else if (vfo == RIG_VFO_B)
-    {
-        retval = icom_transaction(rig, 0x07, 0x01, NULL, 0, ackbuf, &ack_len);
-    }
-    else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
-    {
-        retval = icom_transaction(rig, 0x07, 0xd0, NULL, 0, ackbuf, &ack_len);
-        if (retval != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-            return -retval;
-        }
-        if (vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
-        {
-            int subcmd =  vfo == RIG_VFO_MAIN_A ? 0x00: 0x01;
-            retval = icom_transaction(rig, 0x07, subcmd, NULL, 0, ackbuf, &ack_len);
-        }
-    }
-    else if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_SUB_A || vfo == RIG_VFO_SUB_B)
     {
         if (rig->state.cache.satmode)
         {
@@ -2220,25 +2205,66 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
             // we return RIG_OK anyways as this should just be a bad request
             return RIG_OK;
         }
-        // first switch to sub
-        retval = icom_transaction(rig, 0x07, 0xd1, NULL, 0, ackbuf, &ack_len);
+
+        retval = icom_transaction(rig, C_SET_VFO, S_VFOB, NULL, 0, ackbuf, &ack_len);
+    }
+    else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
+    {
+        // First switch to Main receiver
+        retval = icom_transaction(rig, C_SET_VFO, S_MAIN, NULL, 0, ackbuf, &ack_len);
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-            return -retval;
+            return retval;
         }
+
+        if (rig->state.cache.satmode && vfo == RIG_VFO_MAIN_B)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
+            // we return RIG_OK anyways as this should just be a bad request
+            return RIG_OK;
+        }
+
+        if (vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
+        {
+            int subcmd = vfo == RIG_VFO_MAIN_A ? S_VFOA : S_VFOB;
+            retval = icom_transaction(rig, C_SET_VFO, subcmd, NULL, 0, ackbuf, &ack_len);
+        }
+    }
+    else if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_SUB_A || vfo == RIG_VFO_SUB_B)
+    {
+        // First switch to Sub receiver
+        retval = icom_transaction(rig, C_SET_VFO, S_SUB, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
+            return retval;
+        }
+
+        if (rig->state.cache.satmode && vfo == RIG_VFO_SUB_B)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
+            // we return RIG_OK anyways as this should just be a bad request
+            return RIG_OK;
+        }
+
         if (vfo == RIG_VFO_SUB_A || vfo == RIG_VFO_SUB_B)
         {
             HAMLIB_TRACE;
-            int subcmd =  vfo == RIG_VFO_SUB_A ? 0x00: 0x01;
-            retval = icom_transaction(rig, 0x07, subcmd, NULL, 0, ackbuf, &ack_len);
+            int subcmd = vfo == RIG_VFO_SUB_A ? S_VFOA : S_VFOB;
+            retval = icom_transaction(rig, C_SET_VFO, subcmd, NULL, 0, ackbuf, &ack_len);
         }
+    }
+    else
+    {
+        // Unsupported VFO
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-        return -retval;
+        return retval;
     }
 
     RETURNFUNC(retval);

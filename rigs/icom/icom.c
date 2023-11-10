@@ -1386,6 +1386,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
     unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int freq_len, ack_len = sizeof(ackbuf), retval;
+    int check_ack = 0;
     int cmd, subcmd;
     freq_t curr_freq;
 
@@ -1454,6 +1455,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                                       &ack_len);
         }
+
+        check_ack = 1;
     }
 
     // pause for transceive message and we'll flush it
@@ -1499,6 +1502,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
                     RETURNFUNC2(retval);
                 }
+
+                check_ack = 1;
             }
         }
 
@@ -1510,7 +1515,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
     }
 
-    if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
+    if (check_ack && (retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
         RETURNFUNC2(retval);
     }
