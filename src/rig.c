@@ -22,17 +22,6 @@
  */
 
 /**
- * TEST: Remove use of private state cache for VFOs/frequencies/modes in Icom backends and migrate to using the rig_state cache
- * TEST: Ignore VFO targeting in all set/get split freq/mode commands and use the TX VFO set by \set_split_vfo command instead
- * TEST: If split is not enabled, make \get_split_freq return 0 Hz frequency and get_split_mode return NONE mode with 0 Hz filter to indicate split is OFF
- * TEST: set_split_freq and set_split_mode turn split ON if it is not enabled yet
- * TODO: Make sure Icom set_freq/get_freq/set_mode/get_mode + set_split_freq/get_split_freq/set_split_mode/get_split_mode all use the 0x25 and 0x26 commands in a consistent way to avoid VFO swapping (on both the selected/unselected type rigs and Main/Sub VFO rigs)
- *
- * TODO: Test targeted set_freq/get_freq/set_mode/get_mode + split commands
- * TODO: Test latest WSJT-X in split mode
- */
-
-/**
  * \addtogroup rig
  * @{
  */
