@@ -139,7 +139,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20231108.0",
+    .version = "20231110.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -2171,7 +2171,8 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_STRENGTH: cmd = "rig.get_smeter"; break;
 
-    case RIG_LEVEL_SWR: cmd = "rig.get_swrmeter"; break;
+    case RIG_LEVEL_SWR: cmd = "rig.get_SWR"; break;
+    //case RIG_LEVEL_SWR: cmd = "rig.get_swrmeter"; break;
 
     case RIG_LEVEL_RFPOWER: cmd = "rig.get_power"; break;
 
@@ -2184,6 +2185,12 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     retval = flrig_transaction(rig, cmd, NULL, value, sizeof(value));
+
+    if (retval == RIG_ENAVAIL && strcmp(cmd,"rig.get_SWR")==0)
+    {
+        cmd = "rig.get_swrmeter"; // revert to old flrig method
+        retval = flrig_transaction(rig, cmd, NULL, value, sizeof(value));
+    }
 
     if (retval != RIG_OK)
     {
