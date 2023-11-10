@@ -14,6 +14,7 @@ struct ip_mreq
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 #include <hamlib/rig.h>
 
 #define BUFSIZE 256
@@ -32,22 +33,6 @@ int modeMain = 2;
 int modeSub = 2;
 int keyspd = 20;
 
-int
-getmyline(int fd, char *buf)
-{
-    char c;
-    int i = 0;
-    memset(buf, 0, BUFSIZE);
-
-    while (read(fd, &c, 1) > 0)
-    {
-        buf[i++] = c;
-
-        if (c == ';') { return strlen(buf); }
-    }
-
-    return strlen(buf);
-}
 
 #if defined(WIN32) || defined(_WIN32)
 int openPort(char *comport) // doesn't matter for using pts devices
@@ -87,6 +72,30 @@ int openPort(char *comport) // doesn't matter for using pts devices
 }
 #endif
 
+int
+getmyline(int fd, char *buf)
+{
+    char c;
+    int i = 0;
+    memset(buf, 0, BUFSIZE);
+    int retval;
+
+    while ((retval=read(fd, &c, 1)) > 0)
+    {
+        buf[i++] = c;
+
+        if (c == ';') { return strlen(buf); }
+    }
+    if (retval != 0)
+    {
+        perror("read failed:");
+        close(fd);
+        fd = openPort("");
+    }
+
+    return strlen(buf);
+}
+
 
 
 int main(int argc, char *argv[])
@@ -99,13 +108,19 @@ int main(int argc, char *argv[])
 
     while (1)
     {
+        hl_usleep(10);
         buf[0] = 0;
 
         if (getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
 
 //        else { return 0; }
 
-        if (strcmp(buf, "RM5;") == 0)
+        if (strncmp(buf, "RM2", 3) == 0)
+        {
+            pbuf = "RM20020;";
+            write(fd, pbuf, strlen(pbuf));
+        }
+        else if (strcmp(buf, "RM5;") == 0)
         {
             printf("%s\n", buf);
             hl_usleep(mysleep * 1000);
