@@ -2210,7 +2210,10 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
     case RIG_LEVEL_SWR:
     {
-        val->f = interpolateSWR(atoi(value));
+        if (priv->get_SWR)
+            val->f = atof(value);
+        else
+            val->f = interpolateSWR(atoi(value));
         break;
     }
     case RIG_LEVEL_STRENGTH:
