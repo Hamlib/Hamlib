@@ -2346,6 +2346,12 @@ void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 
+    if (caps == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: caps == null for model %d??\n", __func__, rig_model);
+        return NULL;
+    }
+
     switch (rig_function)
     {
     case RIG_FUNCTION_INIT:
