@@ -59,9 +59,9 @@
 #define TS990S_SWR_CAL { 5, \
     { \
         {   0, 1.0f }, \
-        {   14, 1.5f }, \
-        {   28, 2.0f }, \
-        {   42, 3.0f }, \
+        {   7, 1.5f }, \
+        {   36, 3.0f }, \
+        {   43, 6.0f }, \
         {   70, 10.0f } \
     } }
 
@@ -647,7 +647,9 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SWR:
-        retval = kenwood_safe_transaction(rig, "RM21", lvlbuf, sizeof(lvlbuf), 7);
+        // we need to turn on read, read it, and turn it off again
+        // first RM meter with read on is the that gets read with RM;
+        retval = kenwood_safe_transaction(rig, "RM21;RM;RM20", lvlbuf, sizeof(lvlbuf), 8);
 
         if (retval != RIG_OK)
         {
