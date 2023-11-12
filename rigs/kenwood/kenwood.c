@@ -1100,6 +1100,15 @@ int kenwood_open(RIG *rig)
     // mismatched IDs can still be tested
     rig->state.rigport.retry = retry_save;
 
+
+    // TS-990S needs to ensure all RM meters are turned off as first one with read on gets read
+    // Any RM commands need to be ON/READ/OFF to allow other apps or threads to read meters
+
+    if (RIG_IS_TS990S)
+    {
+        kenwood_transaction(rig, "RM10;RM20;RM30;RM40;RM50;RM60;", NULL, 0);
+    }
+
     RETURNFUNC(RIG_OK);
 }
 

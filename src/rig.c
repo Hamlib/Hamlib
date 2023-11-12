@@ -2740,6 +2740,14 @@ int HAMLIB_API rig_get_mode(RIG *rig,
         *width = rig->state.cache.widthMainA;
         RETURNFUNC(RIG_OK);
     }
+    else if (vfo == RIG_VFO_B)
+    {
+        if (rig->state.cache.modeMainB == RIG_MODE_NONE)
+        {
+            retcode = caps->get_mode(rig, vfo, mode, width);
+            return retcode;
+        }
+    }
 
     if ((*mode != RIG_MODE_NONE && cache_ms_mode < rig->state.cache.timeout_ms)
             && cache_ms_width < rig->state.cache.timeout_ms)
