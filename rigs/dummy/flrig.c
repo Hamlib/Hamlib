@@ -118,6 +118,9 @@ struct flrig_priv_data
     value_t parms[RIG_SETTING_MAX];
     struct ext_list *ext_parms;
     int get_SWR;
+    int has_get_modeB; /* True if this function is available */
+    int has_get_bwB; /* True if this function is available */
+    int has_set_bwB; /* True if this function is available */
 };
 
 /* level's and parm's tokens */
@@ -140,7 +143,7 @@ const struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20231110.0",
+    .version = "20231113.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -863,6 +866,21 @@ static int flrig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is available\n", __func__);
     }
 
+    /* see if get_modeB is available */
+    retval = flrig_transaction(rig, "rig.get_modeB", NULL, value, sizeof(value));
+
+    if (retval == RIG_ENAVAIL) // must not have it
+    {
+        priv->has_get_modeB = 0;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeB is not available=%s\n", __func__,
+                  value);
+    }
+    else
+    {
+        priv->has_get_modeB = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeB is available\n", __func__);
+    }
+
     freq_t freq;
     retval = flrig_get_freq(rig, RIG_VFO_CURR, &freq);
 
@@ -900,6 +918,36 @@ static int flrig_open(RIG *rig)
     {
         priv->has_set_bwA = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwA is available=%s\n", __func__, value);
+    }
+
+    /* see if get_bwB is available */
+    retval = flrig_transaction(rig, "rig.get_bwB", NULL, value, sizeof(value));
+
+    if (retval == RIG_ENAVAIL) // must not have it
+    {
+        priv->has_get_bwB = 0;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwB is not available=%s\n", __func__,
+                  value);
+    }
+    else
+    {
+        priv->has_get_bwB = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwB is available=%s\n", __func__, value);
+    }
+
+    /* see if set_bwA is available */
+    retval = flrig_transaction(rig, "rig.set_bwB", NULL, value, sizeof(value));
+
+    if (retval == RIG_ENAVAIL) // must not have it
+    {
+        priv->has_set_bwB = 0;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwB is not available=%s\n", __func__,
+                  value);
+    }
+    else
+    {
+        priv->has_set_bwB = 1;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwB is available=%s\n", __func__, value);
     }
 
     retval = flrig_transaction(rig, "rig.get_AB", NULL, value, sizeof(value));
@@ -1599,6 +1647,8 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
 
+    *width = 0;
+
     if (check_vfo(vfo) == FALSE)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n",
@@ -1655,7 +1705,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         /* so we may not be 100% accurate if op is twiddling knobs */
         cmdp = "rig.get_modeA";
 
-        if (vfo == RIG_VFO_B) { cmdp = "rig.get_modeB"; }
+        if (priv->has_get_modeB && vfo == RIG_VFO_B) { cmdp = "rig.get_modeB"; }
     }
 
     retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
@@ -1692,15 +1742,25 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         /* vfo B may not be getting polled though in FLRig */
         /* so we may not be 100% accurate if op is twiddling knobs */
         cmdp = "rig.get_bwA";
+        retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
 
-        if (vfo == RIG_VFO_B) { cmdp = "rig.get_bwB"; }
-    }
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
 
-    retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
 
-    if (retval != RIG_OK)
-    {
-        RETURNFUNC(retval);
+        if (priv->has_get_bwB && vfo == RIG_VFO_B)
+        {
+            cmdp = "rig.get_bwB";
+            retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
+
+            if (retval != RIG_OK)
+            {
+                RETURNFUNC(retval);
+            }
+
+        }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: mode=%s width='%s'\n", __func__,
@@ -2114,12 +2174,14 @@ static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     RETURNFUNC(RIG_OK);
 }
 
-typedef struct {
+typedef struct
+{
     float mtr;
     float swr;
 } swrpair;
 
-static swrpair swrtbl[] = {
+static swrpair swrtbl[] =
+{
     {0.0, 1.0},
     {10.5, 1.5},
     {23.0, 2.0},
@@ -2129,21 +2191,29 @@ static swrpair swrtbl[] = {
 };
 
 // Function to interpolate SWR from MTR
-float interpolateSWR(float mtr) {
+float interpolateSWR(float mtr)
+{
     int i;
-    for (i = 0; i < sizeof(swrtbl)/sizeof(swrpair) - 1; i++) {
-        if (mtr == swrtbl[i].mtr) {
+
+    for (i = 0; i < sizeof(swrtbl) / sizeof(swrpair) - 1; i++)
+    {
+        if (mtr == swrtbl[i].mtr)
+        {
             // Exact match
             return swrtbl[i].swr;
         }
-        if (mtr < swrtbl[i + 1].mtr) {
+
+        if (mtr < swrtbl[i + 1].mtr)
+        {
             // Perform linear interpolation
-            float slope = (swrtbl[i + 1].swr - swrtbl[i].swr) / (swrtbl[i + 1].mtr - swrtbl[i].mtr);
-            float swr = round((swrtbl[i].swr + slope * (mtr - swrtbl[i].mtr))*10)/10.0;
-            rig_debug(RIG_DEBUG_VERBOSE,"%s: swr=%f\n", __func__, swr);
+            float slope = (swrtbl[i + 1].swr - swrtbl[i].swr) / (swrtbl[i + 1].mtr -
+                          swrtbl[i].mtr);
+            float swr = round((swrtbl[i].swr + slope * (mtr - swrtbl[i].mtr)) * 10) / 10.0;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: swr=%f\n", __func__, swr);
             return swr;
         }
     }
+
     // If mtr is not within the range of values in the table, you could choose to return an error or extrapolate
     return 10; // Example er
 }
@@ -2173,10 +2243,12 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_STRENGTH: cmd = "rig.get_smeter"; break;
 
-    case RIG_LEVEL_SWR: 
+    case RIG_LEVEL_SWR:
         cmd = "rig.get_swrmeter";
+
         // we'll try get_SWR at least once to see if it works
-        if  (priv->get_SWR) cmd = "rig.get_SWR"; 
+        if (priv->get_SWR) { cmd = "rig.get_SWR"; }
+
         break;
 
     case RIG_LEVEL_RFPOWER: cmd = "rig.get_power"; break;
@@ -2191,7 +2263,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     retval = flrig_transaction(rig, cmd, NULL, value, sizeof(value));
 
-    if (retval == RIG_ENAVAIL && strcmp(cmd,"rig.get_SWR")==0)
+    if (retval == RIG_ENAVAIL && strcmp(cmd, "rig.get_SWR") == 0)
     {
         priv->get_SWR = 0;
         cmd = "rig.get_swrmeter"; // revert to old flrig method
@@ -2211,11 +2283,17 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_SWR:
     {
         if (priv->get_SWR)
+        {
             val->f = atof(value);
+        }
         else
+        {
             val->f = interpolateSWR(atoi(value));
+        }
+
         break;
     }
+
     case RIG_LEVEL_STRENGTH:
         val->i = atoi(value) - 54;
         //if (val->i > 0) val->i /= 10;
