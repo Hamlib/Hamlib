@@ -647,16 +647,12 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SWR:
-        // we need to turn on read, read it, and turn it off again
-        // first RM meter with read on is the that gets read with RM;
-        retval = kenwood_safe_transaction(rig, "RM21;RM;RM20", lvlbuf, sizeof(lvlbuf), 8);
-
+        retval = get_kenwood_meter_reading(rig, '2', &lvl);
         if (retval != RIG_OK)
         {
             return retval;
         }
 
-        sscanf(lvlbuf, "RM2%d", &lvl);
         val->f = rig_raw2val_float(lvl, &rig->caps->swr_cal);
         val->f = round(val->f*10)/10.0;  // 1 decimal place precision 
         break;
