@@ -1100,15 +1100,6 @@ int kenwood_open(RIG *rig)
     // mismatched IDs can still be tested
     rig->state.rigport.retry = retry_save;
 
-
-    // TS-990S needs to ensure all RM meters are turned off as first one with read on gets read
-    // Any RM commands need to be ON/READ/OFF to allow other apps or threads to read meters
-
-    if (RIG_IS_TS990S)
-    {
-        kenwood_transaction(rig, "RM10;RM20;RM30;RM40;RM50;RM60;", NULL, 0);
-    }
-
     RETURNFUNC(RIG_OK);
 }
 
@@ -3471,6 +3462,54 @@ int get_kenwood_level(RIG *rig, const char *cmd, float *fval, int *ival)
     RETURNFUNC(RIG_OK);
 }
 
+/* Helper to get and parse meter values using RM
+ * Note that we turn readings on, but nothing off.
+ * 'pips' is the number of LED bars lit in the digital meter, max=70
+ */
+int get_kenwood_meter_reading(RIG *rig, char meter, int *pips)
+{
+    char reading[9];   /* 8 char + '\0' */
+    int retval;
+    char target[] = "RMx1"; /* Turn on reading this meter */
+
+    target[2] = meter;
+    retval = kenwood_transaction(rig, target, NULL, 0);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    /* Read the first value */
+    retval = kenwood_transaction(rig, "RM", reading, sizeof(reading));
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    /* Find the one we want */
+    while (strncmp(reading, target, 3) != 0)
+    {
+        /* That wasn't it, get the next one */
+        retval = kenwood_transaction(rig, NULL, reading, sizeof(reading));
+
+        if (retval != RIG_OK)
+        {
+            return retval;
+        }
+
+        if (reading[0] != target[0] || reading[1] != target[1])
+        {
+            /* Somebody else's data, bail */
+            return -RIG_EPROTO;
+        }
+    }
+
+    sscanf(reading + 3, "%4d", pips);
+    return RIG_OK;
+
+}
 
 /*
  * kenwood_get_level

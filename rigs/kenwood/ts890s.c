@@ -106,56 +106,6 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
-/* Helper to get and parse meter values using RM
- * Note that we turn readings on, but nothing off.
- * 'pips' is the number of LED bars lit in the digital meter, max=70
- */
-static
-int ts890_get_meter_reading(RIG *rig, char meter, int *pips)
-{
-    char reading[9];   /* 8 char + '\0' */
-    int retval;
-    char target[] = "RMx1"; /* Turn on reading this meter */
-
-    target[2] = meter;
-    retval = kenwood_transaction(rig, target, NULL, 0);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    /* Read the first value */
-    retval = kenwood_transaction(rig, "RM", reading, sizeof(reading));
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    /* Find the one we want */
-    while (strncmp(reading, target, 3) != 0)
-    {
-        /* That wasn't it, get the next one */
-        retval = kenwood_transaction(rig, NULL, reading, sizeof(reading));
-
-        if (retval != RIG_OK)
-        {
-            return retval;
-        }
-
-        if (reading[0] != target[0] || reading[1] != target[1])
-        {
-            /* Somebody else's data, bail */
-            return -RIG_EPROTO;
-        }
-    }
-
-    sscanf(reading + 3, "%4d", pips);
-    return RIG_OK;
-
-}
-
 int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char ackbuf[50];
@@ -253,7 +203,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_ALC:
-        retval = ts890_get_meter_reading(rig, '1', &levelint);
+        retval = get_kenwood_meter_reading(rig, '1', &levelint);
 
         if (retval != RIG_OK)
         {
@@ -264,7 +214,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_SWR:
-        retval = ts890_get_meter_reading(rig, '2', &levelint);
+        retval = get_kenwood_meter_reading(rig, '2', &levelint);
 
         if (retval != RIG_OK)
         {
@@ -287,7 +237,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_COMP_METER:
-        retval = ts890_get_meter_reading(rig, '3', &levelint);
+        retval = get_kenwood_meter_reading(rig, '3', &levelint);
 
         if (retval != RIG_OK)
         {
@@ -301,7 +251,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_ID_METER:
-        retval = ts890_get_meter_reading(rig, '4', &levelint);
+        retval = get_kenwood_meter_reading(rig, '4', &levelint);
 
         if (retval != RIG_OK)
         {
@@ -312,7 +262,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_VD_METER:
-        retval = ts890_get_meter_reading(rig, '5', &levelint);
+        retval = get_kenwood_meter_reading(rig, '5', &levelint);
 
         if (retval != RIG_OK)
         {
@@ -324,7 +274,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_TEMP_METER:
 #if 0
-        retval = ts890_get_meter_reading(rig, '6', &levelint);
+        retval = get_kenwood_meter_reading(rig, '6', &levelint);
 
         if (retval != RIG_OK)
         {
