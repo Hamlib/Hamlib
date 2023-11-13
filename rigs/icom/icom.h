@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20231007"
+#define BACKEND_VER "20231113"
 
 #define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
 #define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
@@ -279,6 +279,7 @@ struct icom_priv_data
     struct icom_spectrum_scope_cache spectrum_scope_cache[HAMLIB_MAX_SPECTRUM_SCOPES]; /*!< Cached Icom spectrum scope data used during reception of the data. The array index must match the scope ID. */
     freq_t other_freq; /*!< Our other freq depending on which vfo is selected */
     int vfo_flag; // used to skip vfo check when frequencies are equal
+    int dual_watch; // dual watch mode on status
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];

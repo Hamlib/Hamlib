@@ -147,25 +147,39 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
 
+    // if user requests VFOA/B we automatically turn of dual watch mode
+    // if user requests  Main/Sub we automatically turn on dual watch mode
+    // hopefully this is a good idea and just prevents users/clients from having set the mode themselves
+
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_B)
     {
-        // then we need to turn off dual watch
         // and 0x25 works in this mode
         priv->x25cmdfails = 0;
-        if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
-                                              0)))
+
+        if (priv->dual_watch)
         {
-            RETURNFUNC2(retval);
+            // then we need to turn off dual watch
+            if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
+                                                  0)))
+            {
+                RETURNFUNC2(retval);
+            }
+            priv->dual_watch = 0;
         }
     }
     else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB)
     {
         // x25 does not work in DUAL_WATCH mode
         priv->x25cmdfails = 1;
-        if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
-                                              1)))
+
+        if (priv->dual_watch == 0)
         {
-            RETURNFUNC2(retval);
+            if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
+                                                  1)))
+            {
+                RETURNFUNC2(retval);
+            }
+            priv->dual_watch = 1;
         }
     }
 
@@ -190,7 +204,7 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
- 
+
     // ID5100 puts tx on Main an rx on Sub
     if (tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_MAIN)
     {
@@ -199,7 +213,9 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: ID5100 split must have Tx=Main=Tx, Rx=Sub, got Tx=%s, Rx=%s\n", __func__, rig_strvfo(tx_vfo), rig_strvfo(vfo));
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: ID5100 split must have Tx=Main=Tx, Rx=Sub, got Tx=%s, Rx=%s\n", __func__,
+                  rig_strvfo(tx_vfo), rig_strvfo(vfo));
         retval = -RIG_EINVAL;
     }
 
@@ -221,7 +237,7 @@ const struct rig_caps id5100_caps =
     RIG_MODEL(RIG_MODEL_ID5100),
     .model_name = "ID-5100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".5",
+    .version =  BACKEND_VER ".6",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_MOBILE,
