@@ -53,6 +53,7 @@
 #include "serial.h"
 #include "network.h"
 #include "sprintflst.h"
+#include "../rigs/icom/icom.h"
 
 #if defined(_WIN32)
 #  include <time.h>
@@ -2010,6 +2011,13 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
     if (rig->caps->rig_model == RIG_MODEL_ID5100
         || rig->caps->rig_model == RIG_MODEL_IC9700)
     {
+        // dualwatch on ID5100 is TX=Main, RX=Sub
+        struct icom_priv_data *icom_priv = (struct icom_priv_data *)rig->caps->priv;
+        if (rig->caps->rig_model == RIG_MODEL_ID5100 && icom_priv->dual_watch)
+        {
+            if (vfo == RIG_VFO_TX) return RIG_VFO_MAIN;
+            return RIG_VFO_SUB;
+        }
         return vfo; // no change to requested vfo
     }
 
