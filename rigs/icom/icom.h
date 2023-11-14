@@ -345,8 +345,8 @@ int icom_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
                              rmode_t tx_mode, pbwidth_t tx_width);
 int icom_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
                              rmode_t *tx_mode, pbwidth_t *tx_width);
-int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+int icom_set_split_vfo(RIG *rig, vfo_t rx_vfo, split_t split, vfo_t tx_vfo);
+int icom_get_split_vfo(RIG *rig, vfo_t rx_vfo, split_t *split, vfo_t *tx_vfo);
 int icom_mem_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
