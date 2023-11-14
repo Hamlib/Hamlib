@@ -590,6 +590,8 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
         // we get an unknown response if function does not exist
         if (strstr(xml, "unknown")) { set_transaction_inactive(rig); RETURNFUNC(RIG_ENAVAIL); }
 
+        if (strstr(xml, "get_bw") && strstr(xml, "NONE")) { set_transaction_inactive(rig); RETURNFUNC(RIG_ENAVAIL); }
+
         if (value)
         {
             xml_parse(xml, value, value_len);
@@ -896,7 +898,8 @@ static int flrig_open(RIG *rig)
     if (retval == RIG_ENAVAIL) // must not have it
     {
         priv->has_get_bwA = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA is not available=%s\n", __func__,
+        priv->has_get_bwB = 0; // if we don't have A then surely we don't have B either
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA/B is not available=%s\n", __func__,
                   value);
     }
     else
@@ -911,6 +914,7 @@ static int flrig_open(RIG *rig)
     if (retval == RIG_ENAVAIL) // must not have it
     {
         priv->has_set_bwA = 0;
+        priv->has_set_bwB = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwA is not available=%s\n", __func__,
                   value);
     }
@@ -920,34 +924,37 @@ static int flrig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwA is available=%s\n", __func__, value);
     }
 
-    /* see if get_bwB is available */
-    retval = flrig_transaction(rig, "rig.get_bwB", NULL, value, sizeof(value));
+    if (priv->has_get_bwA)
+    {
+        /* see if get_bwB is available FLRig can return empty value too */
+        retval = flrig_transaction(rig, "rig.get_bwB", NULL, value, sizeof(value));
 
-    if (retval == RIG_ENAVAIL) // must not have it
-    {
-        priv->has_get_bwB = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwB is not available=%s\n", __func__,
-                  value);
-    }
-    else
-    {
-        priv->has_get_bwB = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwB is available=%s\n", __func__, value);
-    }
+        if (retval == RIG_ENAVAIL || strlen(value) == 0) // must not have it
+        {
+            priv->has_get_bwB = 0;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwB is not available=%s\n", __func__,
+                      value);
+        }
+        else
+        {
+            priv->has_get_bwB = 1;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwB is available=%s\n", __func__, value);
+        }
 
-    /* see if set_bwA is available */
-    retval = flrig_transaction(rig, "rig.set_bwB", NULL, value, sizeof(value));
+        /* see if set_bwA is available */
+        retval = flrig_transaction(rig, "rig.set_bwB", NULL, value, sizeof(value));
 
-    if (retval == RIG_ENAVAIL) // must not have it
-    {
-        priv->has_set_bwB = 0;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwB is not available=%s\n", __func__,
-                  value);
-    }
-    else
-    {
-        priv->has_set_bwB = 1;
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwB is available=%s\n", __func__, value);
+        if (retval == RIG_ENAVAIL) // must not have it
+        {
+            priv->has_set_bwB = 0;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwB is not available=%s\n", __func__,
+                      value);
+        }
+        else
+        {
+            priv->has_set_bwB = 1;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwB is available=%s\n", __func__, value);
+        }
     }
 
     retval = flrig_transaction(rig, "rig.get_AB", NULL, value, sizeof(value));
@@ -1743,8 +1750,14 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         /* so we may not be 100% accurate if op is twiddling knobs */
         cmdp = "rig.get_bwA";
         retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
+        if (retval == RIG_OK && strstr(value,"NONE"))
+        {
+            priv->has_get_bwA = priv->has_get_bwB = 0;
+            *width = 0;
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: does not have rig.get_bwA/B\n", __func__);
+        }
 
-        if (retval != RIG_OK)
+        if (retval != RIG_OK || strstr(value,"NONE"))
         {
             RETURNFUNC(retval);
         }
@@ -1754,6 +1767,12 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         {
             cmdp = "rig.get_bwB";
             retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
+            if (retval == RIG_OK && strlen(value)==0)
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: does not have rig.get_bwB\n", __func__);
+                priv->has_get_bwB = 0;
+                *width = 0;
+            }
 
             if (retval != RIG_OK)
             {
