@@ -720,9 +720,18 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 if ((retcode = scanfc(fin, "%c", &cmd)) < 1)
                 {
+                    if (last_cmd==0)
+                    {
+                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d, last_cmd=[empty]\n",
+                              __func__,
+                              retcode);
+                    }
+                    else
+                    {
                     rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d, last_cmd=%c\n",
                               __func__,
                               retcode, last_cmd);
+                    }
                     return (RIGCTL_PARSE_ERROR);
                 }
 
