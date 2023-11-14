@@ -138,8 +138,14 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("RM5"); }
         }
+        else if (strcmp(buf,"MR118;") == 0)
+        {
+            pbuf = "?;";
+            n = write(fd, pbuf, strlen(pbuf));
+            if (n <= 0) { perror("MR118"); }
+        }
 
-        if (strcmp(buf, "AN0;") == 0)
+        else if (strcmp(buf, "AN0;") == 0)
         {
             printf("%s\n", buf);
             hl_usleep(50 * 1000);
@@ -161,7 +167,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FA%08.0f;", freqA);
+            SNPRINTF(buf, sizeof(buf), "FA%09.0f;", freqA);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FA", 2) == 0)
@@ -170,7 +176,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FB%08.0f;", freqB);
+            SNPRINTF(buf, sizeof(buf), "FB%09.0f;", freqB);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FB", 2) == 0)

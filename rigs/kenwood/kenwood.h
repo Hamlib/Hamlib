@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20231031"
+#define BACKEND_VER "20231112"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -264,6 +264,7 @@ int kenwood_get_trn(RIG *rig, int *trn);
 /* only use if returned string has length 6, e.g. 'SQ011;' */
 int get_kenwood_level(RIG *rig, const char *cmd, float *fval, int *ival);
 int get_kenwood_func(RIG *rig, const char *cmd, int *status);
+int get_kenwood_meter_reading(RIG *rig, char meter, int *pips);
 
 extern const struct rig_caps ts950s_caps;
 extern const struct rig_caps ts950sdx_caps;
