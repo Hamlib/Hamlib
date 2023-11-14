@@ -2062,36 +2062,13 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         vfo = RIG_VFO_A; // default to mapping VFO_MAIN to VFO_A
 
         if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_MAIN; }
-
-        //in this case we don't change it as either VFOA/B or Main/Sub makes a difference
-        //ID5100 for example has to turn on dual watch mode for Main/Sub
-        //if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_MAIN; }
     }
     else if (vfo == RIG_VFO_TX)
     {
-#if 0
-        int retval;
-        split_t split = 0;
-        // get split if we can -- it will default to off otherwise
-        // maybe split/satmode/vfo/freq/mode can be cached for rigs
-        // that don't have read capability or get_vfo like Icom?
-        // Icom's lack of get_vfo is problematic in this respect
-        // If we cache vfo or others than twiddling the rig may cause problems
-        retval = rig_get_split(rig, vfo, &split);
-
-        if (retval != RIG_OK)
-        {
-            split = rig->state.cache.split;
-        }
-
-#endif
-
         int satmode = rig->state.cache.satmode;
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split=%d, vfo==%s tx_vfo=%s\n", __func__,
                   __LINE__, split, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));
-
-        //if (vfo == RIG_VFO_TX) { vfo = rig->state.tx_vfo; RETURNFUNC(RIG_OK); }
 
         if (VFO_HAS_MAIN_SUB_ONLY && !split && !satmode && vfo != RIG_VFO_B) { vfo = RIG_VFO_MAIN; }
 
@@ -2112,11 +2089,9 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         vfo = RIG_VFO_B;  // default to VFO_B
 
         if (VFO_HAS_MAIN_SUB_ONLY) { vfo = RIG_VFO_SUB; }
-
-        //if (VFO_HAS_MAIN_SUB_A_B_ONLY) { vfo = RIG_VFO_SUB; }
-
-        rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
     }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: final vfo=%s\n", __func__, rig_strvfo(vfo));
 
     return vfo;
 }
