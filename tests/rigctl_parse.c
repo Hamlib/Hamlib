@@ -3352,7 +3352,7 @@ declare_proto_rig(get_level)
             fprintf(fout, "%s%c", s, resp_sep);
         }
 
-        //fputc('\n', fout);
+        fputc('\n', fout);
         RETURNFUNC2(RIG_OK);
     }
     level = rig_parse_level(arg1);
