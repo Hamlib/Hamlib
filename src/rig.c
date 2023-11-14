@@ -1341,7 +1341,7 @@ int HAMLIB_API rig_open(RIG *rig)
      * Maybe the backend has something to initialize
      * In case of failure, just close down and report error code.
      */
-    int retry_save = rs->rigport.retry;
+    short retry_save = rs->rigport.retry;
     rs->rigport.retry = 0;
 
     if (caps->rig_open != NULL)
@@ -1395,12 +1395,12 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         rs->tx_vfo = rs->current_vfo;
     }
-    else // no get_vfo so set some sensible defaults
+    else
     {
-        //int backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
+        // No get_vfo available, so set some sensible defaults
         rs->tx_vfo = RIG_VFO_TX;
 
-        // If we haven't gotten the vfo by now we will default to VFO_CURR
+        // If we haven't gotten the VFO by now we will default to VFO_CURR
         if (rs->current_vfo == RIG_VFO_NONE) { rs->current_vfo = RIG_VFO_CURR; }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo_curr=%s, tx_vfo=%s\n", __func__,
@@ -1438,13 +1438,8 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_set_parm(rig, RIG_PARM_SCREENSAVER, parm_value);
     }
 
-    // read frequency to update internal status
-//    freq_t freq;
-//    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_A, &freq);
-//    if (caps->get_freq) rig_get_freq(rig, RIG_VFO_B, &freq);
-
-    // prime the freq and mode settings
-    // don't care about the return here -- if it doesn't work so be it
+    // read frequency, mode and split to update internal status
+    // don't care about the command return values here -- if they don't succeed, so be it
     freq_t freq;
 
     if (rig->caps->get_freq)
@@ -1456,16 +1451,11 @@ int HAMLIB_API rig_open(RIG *rig)
             split_t split = RIG_SPLIT_OFF;
             vfo_t tx_vfo = RIG_VFO_NONE;
             rig_get_freq(rig, RIG_VFO_B, &freq);
-            // TODO: Does this actually update rs->tx_vfo and split status?
-            retval = rig_get_split_vfo(rig, RIG_VFO_RX, &split, &tx_vfo);
-            if (retval == RIG_OK && caps->get_split_vfo != NULL)
-            {
-                rs->tx_vfo = tx_vfo;
-            }
+            rig_get_split_vfo(rig, RIG_VFO_RX, &split, &tx_vfo);
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Current split=%d, tx_vfo=%s\n", __func__,
                       __LINE__, split, rig_strvfo(tx_vfo));
             rmode_t mode;
-            pbwidth_t width = 2400; // we'll use 2400Hz as default width
+            pbwidth_t width = 2400; // use 2400Hz as default width
 
             if (rig->caps->get_mode)
             {
@@ -1912,24 +1902,24 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (rig->state.doppler == 0)
     {
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_A))
-    { 
-        if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0)) 
+        if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_A))
         {
-            rig->state.doppler = 1;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainA);
-        } 
-        freq += rig->state.offset_vfoa; 
-    }
-    else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_B))
-    {
-        if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0) 
+            if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0))
+            {
+                rig->state.doppler = 1;
+                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainA);
+            }
+            freq += rig->state.offset_vfoa;
+        }
+        else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_B))
         {
-            rig->state.doppler = 1;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainB);
-        } 
-        freq += rig->state.offset_vfob; 
-    }
+            if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0)
+            {
+                rig->state.doppler = 1;
+                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainB);
+            }
+            freq += rig->state.offset_vfob;
+        }
     }
 
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN) { freq += rig->state.offset_vfoa; }
@@ -2480,7 +2470,6 @@ int HAMLIB_API rig_get_freqs(RIG *rig, freq_t *freqA, freq_t freqB)
     // we will attempt to avoid vfo swapping in this routine
 
     return (-RIG_ENIMPL);
-
 }
 
 
@@ -2593,18 +2582,27 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         int rc2;
         vfo_t curr_vfo;
 
-        // TODO: Add a universal check (based on cache) if mode actually needs to be changed, to prevent VFO swapping
-        // if not a targetable rig we will only set mode on VFOB if it is changing
-        if (rig->state.cache.modeMainB == mode)
+        // If the rig does not support targetable mode, only set mode on an unselected if it is changing
+        // to avoid unnecessary VFO swapping
+        if (vfo != rig->state.current_vfo)
         {
-            rig_debug(RIG_DEBUG_TRACE, "%s: VFOB mode not changing so ignoring\n",
-                      __func__);
-            ELAPSED2;
-            LOCK(0);
-            RETURNFUNC(RIG_OK);
+            freq_t cache_freq;
+            rmode_t cache_mode;
+            pbwidth_t cache_width;
+            int cache_ms_freq, cache_ms_mode, cache_ms_width;
+
+            rig_get_cache(rig, vfo, &cache_freq, &cache_ms_freq, &cache_mode, &cache_ms_mode, &cache_width, &cache_ms_width);
+            if (cache_mode == mode)
+            {
+                rig_debug(RIG_DEBUG_TRACE, "%s: mode not changing, so ignoring\n",
+                        __func__);
+                ELAPSED2;
+                LOCK(0);
+                RETURNFUNC(RIG_OK);
+            }
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: not targetable need vfo swap\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: mode is not targetable, VFO swapping needed\n", __func__);
 
         if (!caps->set_vfo)
         {
@@ -5339,11 +5337,51 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         return RIG_OK;
     }
 
+    if (rx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_NONE)
+    {
+        ELAPSED2;
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
     // We fix up vfos for non-satmode rigs only
     if (caps->has_get_func & RIG_FUNC_SATMODE)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: satmode rig...not fixing up vfos rx=%s tx=%s\n",
-                  __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
+        if (tx_vfo == RIG_VFO_CURR)
+        {
+            tx_vfo = rs->current_vfo;
+            rx_vfo = vfo_fixup(rig, RIG_VFO_OTHER, split);
+        }
+
+        // Fix up only special cases to allow ambiguous parameters
+        if (rx_vfo == tx_vfo)
+        {
+            switch (tx_vfo)
+            {
+            case RIG_VFO_MAIN:
+                rx_vfo = split != RIG_SPLIT_OFF ? RIG_VFO_SUB : RIG_VFO_MAIN;
+                break;
+
+            case RIG_VFO_A:
+                rx_vfo = split != RIG_SPLIT_OFF ? RIG_VFO_B : RIG_VFO_A;
+                break;
+
+            case RIG_VFO_SUB:
+                rx_vfo = split != RIG_SPLIT_OFF ? RIG_VFO_MAIN : RIG_VFO_SUB;
+                break;
+
+            case RIG_VFO_B:
+                rx_vfo = split != RIG_SPLIT_OFF ? RIG_VFO_A : RIG_VFO_B;
+                break;
+
+            default:
+                tx_vfo = rs->current_vfo;
+                rx_vfo = vfo_fixup(rig, RIG_VFO_OTHER, split);
+                break;
+            }
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: rig supports satmode, not fixing up vfos: rx=%s tx=%s\n",
+                __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
     }
     else
     {
@@ -5364,11 +5402,15 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         case RIG_VFO_B:
             rx_vfo = split != RIG_SPLIT_OFF ? RIG_VFO_A : RIG_VFO_B;
             break;
+
+        default:
+            break;
         }
 
         rx_vfo = vfo_fixup(rig, rx_vfo, split);
         tx_vfo = vfo_fixup(rig, tx_vfo, split);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: final rxvfo=%s, txvfo=%s, split=%d\n",
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: final rx_vfo=%s, tx_vfo=%s, split=%d\n",
                   __func__,
                   rig_strvfo(rx_vfo), rig_strvfo(tx_vfo), split);
     }
@@ -5378,7 +5420,9 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
     if ((!(caps->targetable_vfo & RIG_TARGETABLE_FREQ))
             && (!(caps->rig_model == RIG_MODEL_NETRIGCTL)))
+    {
         rig_set_vfo(rig, rx_vfo);
+    }
 
     // Check if RX VFO is the currently active VFO and we don't need to change the VFO
     if (rx_vfo == RIG_VFO_CURR || rx_vfo == rs->current_vfo)
@@ -5386,7 +5430,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         // for non-targetable VFOs we will not set split again
         if (rs->cache.split == split && rs->cache.split_vfo == tx_vfo)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split already set...ignoring\n", __func__,
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split already on, ignoring\n", __func__,
                       __LINE__);
             RETURNFUNC(RIG_OK);
         }
@@ -5397,10 +5441,18 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
         if (retcode == RIG_OK)
         {
             // Only update cache on success
-            rs->rx_vfo = rx_vfo;
-            rs->tx_vfo = tx_vfo;
+            rs->rx_vfo = rs->current_vfo;
             rs->cache.split = split;
-            rs->cache.split_vfo = tx_vfo;
+            if (split == RIG_SPLIT_OFF)
+            {
+                rs->tx_vfo = rs->current_vfo;
+                rs->cache.split_vfo = rs->current_vfo;
+            }
+            else
+            {
+                rs->tx_vfo = tx_vfo;
+                rs->cache.split_vfo = tx_vfo;
+            }
         }
 
         elapsed_ms(&rs->cache.time_split, HAMLIB_ELAPSED_SET);
@@ -5448,10 +5500,28 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     if (retcode == RIG_OK)
     {
         // Only update cache on success
-        rs->rx_vfo = rx_vfo;
-        rs->tx_vfo = tx_vfo;
         rs->cache.split = split;
-        rs->cache.split_vfo = tx_vfo;
+        if (split == RIG_SPLIT_OFF)
+        {
+            if (caps->targetable_vfo & RIG_TARGETABLE_FREQ)
+            {
+                rs->rx_vfo = rx_vfo;
+                rs->tx_vfo = rx_vfo;
+                rs->cache.split_vfo = rx_vfo;
+            }
+            else
+            {
+                rs->rx_vfo = rs->current_vfo;
+                rs->tx_vfo = rs->current_vfo;
+                rs->cache.split_vfo = rs->current_vfo;
+            }
+        }
+        else
+        {
+            rs->rx_vfo = rx_vfo;
+            rs->tx_vfo = tx_vfo;
+            rs->cache.split_vfo = tx_vfo;
+        }
     }
 
     elapsed_ms(&rs->cache.time_split, HAMLIB_ELAPSED_SET);
@@ -5540,6 +5610,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     if (retcode == RIG_OK)
     {
         // Only update cache on success
+        rs->tx_vfo = *tx_vfo;
         rs->cache.split = *split;
         rs->cache.split_vfo = *tx_vfo;
         elapsed_ms(&rs->cache.time_split, HAMLIB_ELAPSED_SET);
