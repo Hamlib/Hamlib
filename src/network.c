@@ -1025,6 +1025,7 @@ void *multicast_receiver(void *arg)
 #ifdef __MINGW32__
     // Windows cannot bind to multicast group addresses for some unknown reason
     dest_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    rig_debug(RIG_DEBUG_ERR, "%s(%d): INADDR_ANY=%x,%x\n", htonl(INADDR_ANY), INADDR_ANY);
 #else
     dest_addr.sin_addr.s_addr = inet_addr(args->multicast_addr);
 #endif
