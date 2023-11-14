@@ -514,26 +514,32 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         if (!strcmp(val, "RIG"))
         {
             rs->pttport.type.ptt = RIG_PTT_RIG;
+            rig->caps->ptt_type = RIG_PTT_RIG;
         }
         else if (!strcmp(val, "RIGMICDATA"))
         {
             rs->pttport.type.ptt = RIG_PTT_RIG_MICDATA;
+            rig->caps->ptt_type = RIG_PTT_RIG_MICDATA;
         }
         else if (!strcmp(val, "DTR"))
         {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_DTR;
+            rig->caps->ptt_type = RIG_PTT_SERIAL_DTR;
         }
         else if (!strcmp(val, "RTS"))
         {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_RTS;
+            rig->caps->ptt_type = RIG_PTT_SERIAL_RTS;
         }
         else if (!strcmp(val, "Parallel"))
         {
             rs->pttport.type.ptt = RIG_PTT_PARALLEL;
+            rig->caps->ptt_type = RIG_PTT_PARALLEL;
         }
         else if (!strcmp(val, "CM108"))
         {
             rs->pttport.type.ptt = RIG_PTT_CM108;
+            rig->caps->ptt_type = RIG_PTT_CM108;
         }
         else if (!strcmp(val, "GPIO"))
         {
@@ -542,6 +548,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         else if (!strcmp(val, "GPION"))
         {
             rs->pttport.type.ptt = RIG_PTT_GPION;
+            rig->caps->ptt_type = RIG_PTT_GPION;
         }
         else if (!strcmp(val, "None"))
         {
