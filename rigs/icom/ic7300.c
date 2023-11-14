@@ -1230,6 +1230,7 @@ struct rig_caps ic9700_caps =
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode,
     .get_mode =  icom_get_mode,
+    // IC-9700 can indicate Main/Sub band selection, but not VFO A/B, so leave get_vfo not implemented
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  ic9700_set_vfo,
     .set_ant =  NULL,

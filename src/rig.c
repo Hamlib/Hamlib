@@ -1972,6 +1972,11 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     vfo_save = rig->state.current_vfo;
     vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
 
+    if (vfo == RIG_VFO_CURR)
+    {
+        vfo = vfo_save;
+    }
+
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
     {
@@ -2681,6 +2686,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     const struct rig_caps *caps;
     int retcode;
     freq_t freq;
+    vfo_t curr_vfo;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -2705,7 +2711,9 @@ int HAMLIB_API rig_get_mode(RIG *rig,
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
+    curr_vfo = rig->state.current_vfo;
     vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
+    if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
     *mode = RIG_MODE_NONE;
     rig_cache_show(rig, __func__, __LINE__);
@@ -2725,21 +2733,6 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
         ELAPSED2;
         RETURNFUNC(RIG_OK);
-    }
-
-    if (vfo == RIG_VFO_B && !(caps->targetable_vfo & RIG_TARGETABLE_MODE))
-    {
-        *mode = rig->state.cache.modeMainA;
-        *width = rig->state.cache.widthMainA;
-        RETURNFUNC(RIG_OK);
-    }
-    else if (vfo == RIG_VFO_B)
-    {
-        if (rig->state.cache.modeMainB == RIG_MODE_NONE)
-        {
-            retcode = caps->get_mode(rig, vfo, mode, width);
-            return retcode;
-        }
     }
 
     if ((*mode != RIG_MODE_NONE && cache_ms_mode < rig->state.cache.timeout_ms)
@@ -2772,7 +2765,6 @@ int HAMLIB_API rig_get_mode(RIG *rig,
     else
     {
         int rc2;
-        vfo_t curr_vfo;
 
         if (!caps->set_vfo)
         {
@@ -2781,11 +2773,10 @@ int HAMLIB_API rig_get_mode(RIG *rig,
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        curr_vfo = rig->state.current_vfo;
         rig_debug(RIG_DEBUG_TRACE, "%s(%d): vfo=%s, curr_vfo=%s\n", __func__, __LINE__,
                   rig_strvfo(vfo), rig_strvfo(curr_vfo));
         HAMLIB_TRACE;
-        retcode = caps->set_vfo(rig, vfo == RIG_VFO_CURR ? RIG_VFO_A : vfo);
+        retcode = caps->set_vfo(rig, vfo);
 
         rig_cache_show(rig, __func__, __LINE__);
 
