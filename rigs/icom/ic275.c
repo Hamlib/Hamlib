@@ -143,6 +143,8 @@ const struct rig_caps ic275_caps =
     .set_mode =  icom_set_mode,
     .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
+    .send_voice_mem = icom_send_voice_mem,
+    .stop_voice_mem = icom_stop_voice_mem,
 
     .decode_event =  icom_decode_event,
     .set_mem =  icom_set_mem,
