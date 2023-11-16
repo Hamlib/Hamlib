@@ -983,6 +983,109 @@ void *multicast_publisher(void *arg)
     return NULL;
 }
 
+
+#ifdef __MINGW32__
+#include <winsock2.h>
+#include <iphlpapi.h>
+int is_wireless()
+{
+    DWORD dwSize = 0;
+    DWORD dwRetVal = 0;
+    ULONG flags = GAA_FLAG_INCLUDE_PREFIX;
+    PIP_ADAPTER_ADDRESSES pAddresses = NULL, pCurrAddresses = NULL;
+
+    // First call to determine actual memory size needed
+    GetAdaptersAddresses(AF_UNSPEC, flags, NULL, pAddresses, &dwSize);
+    pAddresses = (IP_ADAPTER_ADDRESSES *)malloc(dwSize);
+
+    // Second call to get the actual data
+    dwRetVal = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, pAddresses, &dwSize);
+
+    if (dwRetVal == NO_ERROR)
+    {
+        for (pCurrAddresses = pAddresses; pCurrAddresses != NULL;
+                pCurrAddresses = pCurrAddresses->Next)
+        {
+            // printf("Adapter name: %s\n", pCurrAddresses->AdapterName);
+            // printf("Adapter description: %ls\n", pCurrAddresses->Description);
+            // printf("Adapter type: ");
+
+            if (pCurrAddresses->IfType == IF_TYPE_IEEE80211)
+            {
+                //       printf("Wireless\n\n");
+                return 1;
+            }
+            else
+            {
+                //      printf("Not Wireless\n\n");
+            }
+        }
+    }
+    else
+    {
+        //printf("GetAdaptersAddresses failed with error: %lu\n", dwRetVal);
+    }
+
+    if (pAddresses)
+    {
+        free(pAddresses);
+    }
+
+    return 0;
+}
+#else
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <linux/wireless.h>
+#include <ifaddrs.h>
+
+int is_wireless_linux(const char *ifname)
+{
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    struct iwreq pwrq;
+    memset(&pwrq, 0, sizeof(pwrq));
+    strncpy(pwrq.ifr_name, ifname, IFNAMSIZ);
+
+    if (ioctl(sock, SIOCGIWNAME, &pwrq) != -1)
+    {
+        close(sock);
+        return 1;  // Wireless
+    }
+
+    close(sock);
+    return 0;  // Not wireless
+}
+
+int is_wireless()
+{
+    struct ifaddrs *ifaddr, *ifa;
+
+    if (getifaddrs(&ifaddr) == -1)
+    {
+        perror("getifaddrs");
+        return 0;
+    }
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+    {
+        if (ifa->ifa_addr == NULL)
+        {
+            continue;
+        }
+
+        int iswireless = is_wireless_linux(ifa->ifa_name);
+
+        //printf("%s is %s\n", ifa->ifa_name, iswireless ? "wireless" : "not wireless");
+        if (iswireless) {freeifaddrs(ifaddr); return 1;}
+    }
+
+    freeifaddrs(ifaddr);
+    return 0;
+}
+#endif
+
+
 void *multicast_receiver(void *arg)
 {
     char data[4096];
@@ -1024,8 +1127,15 @@ void *multicast_receiver(void *arg)
     dest_addr.sin_family = AF_INET;
 #ifdef __MINGW32__
     // Windows cannot bind to multicast group addresses for some unknown reason
-    dest_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    rig_debug(RIG_DEBUG_ERR, "%s(%d): INADDR_ANY=%x,%x\n", htonl(INADDR_ANY), INADDR_ANY);
+    if (is_wireless())
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: no wireless detect so INADDR_ANY is being used\n", __func__);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: wireless detected so localhost is being used\n", __func__);
+        dest_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    }
 #else
     dest_addr.sin_addr.s_addr = inet_addr(args->multicast_addr);
 #endif

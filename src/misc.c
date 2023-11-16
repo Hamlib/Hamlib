@@ -2640,7 +2640,7 @@ void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
  * \param RIG* and rig_caps_int_e
  * \return the corresponding long value -- -RIG_EINVAL is the only error possible
  */
-long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
+uint64_t HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
                                       enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
@@ -2676,6 +2676,7 @@ long long HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->port_type;
 
     case RIG_CAPS_HAS_GET_LEVEL:
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): return %8lx\n", __func__, __LINE__, caps->has_get_level);
         return caps->has_get_level;
 
     default:

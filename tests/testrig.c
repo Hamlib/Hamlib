@@ -11,7 +11,7 @@
 
 #include <hamlib/config.h>
 
-#define SERIAL_PORT "/dev/ttyUSB0"
+#define SERIAL_PORT "/dev/pts/2"
 
 
 int main(int argc, const char *argv[])
@@ -38,9 +38,9 @@ int main(int argc, const char *argv[])
      * allocate memory, setup & open port
      */
 
+        hamlib_port_t myport;
     if (argc < 2)
     {
-        hamlib_port_t myport;
         /* may be overridden by backend probe */
         myport.type.rig = RIG_PORT_SERIAL;
         myport.parm.serial.rate = 9600;
@@ -48,7 +48,6 @@ int main(int argc, const char *argv[])
         myport.parm.serial.stop_bits = 1;
         myport.parm.serial.parity = RIG_PARITY_NONE;
         myport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-        strncpy(myport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
         rig_load_all_backends();
         myrig_model = rig_probe(&myport);
@@ -59,6 +58,7 @@ int main(int argc, const char *argv[])
     }
 
     my_rig = rig_init(myrig_model);
+    rig_set_conf(my_rig, rig_token_lookup(my_rig, "rig_pathname"), SERIAL_PORT);
 
     if (!my_rig)
     {
@@ -76,6 +76,9 @@ int main(int argc, const char *argv[])
         printf("rig_open: error = %s\n", rigerror(retcode));
         exit(2);
     }
+
+    uint64_t levels = rig_get_caps_int(my_rig->caps->rig_model, RIG_CAPS_HAS_GET_LEVEL);
+    printf("HAS_GET_LEVEL=0x%8lx, SWR=%8llx,true=%d\n", levels, levels & RIG_LEVEL_SWR, (levels & RIG_LEVEL_SWR) == RIG_LEVEL_SWR);
 
     char val[256];
     retcode = rig_get_conf2(my_rig, rig_token_lookup(my_rig, "write_delay"), val,

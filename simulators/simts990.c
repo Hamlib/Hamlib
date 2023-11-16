@@ -456,6 +456,11 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "OM1%d", &modeSub);
         }
+        else if (strcmp(buf,"RM;") == 0)
+        {
+            sprintf(buf, "RM2%04d;", 10);
+            write(fd, buf, strlen(buf));
+        }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
