@@ -7462,7 +7462,8 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     case RIG_FUNC_DUAL_WATCH:
         if ((RIG_IS_IC9100) ||
-                (RIG_IS_IC9700))
+            (RIG_IS_IC9700) ||
+            (RIG_IS_ID5100))
         {
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_DUALMODE;
