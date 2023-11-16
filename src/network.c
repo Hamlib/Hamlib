@@ -1034,6 +1034,7 @@ int is_wireless()
     return 0;
 }
 #else
+#ifndef __APPLE__
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -1083,6 +1084,7 @@ int is_wireless()
     freeifaddrs(ifaddr);
     return 0;
 }
+#endif
 #endif
 
 
