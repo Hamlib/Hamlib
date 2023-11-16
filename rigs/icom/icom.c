@@ -9500,6 +9500,10 @@ int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
     RETURNFUNC(RIG_OK);
 }
 
+int icom_stop_voice_mem(RIG *rig, vfo_t vfo)
+{
+    return icom_send_voice_mem(rig, vfo, 0);
+}
 /*
  * icom_send_voice_mem
  * Assumes rig!=NULL, rig->state.priv!=NULL
