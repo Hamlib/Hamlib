@@ -2256,6 +2256,7 @@ enum rig_function_e {
     RIG_FUNCTION_IS_ASYNC_FRAME,
     RIG_FUNCTION_PROCESS_ASYNC_FRAME,
     RIG_FUNCTION_GET_CONF2,
+    RIG_FUNCTION_STOP_VOICE_MEM,
 };
 
 /**
@@ -2274,7 +2275,8 @@ enum rig_caps_int_e {
     RIG_CAPS_RIG_MODEL,
     RIG_CAPS_PORT_TYPE,
     RIG_CAPS_PTT_TYPE,
-    RIG_CAPS_HAS_GET_LEVEL
+    RIG_CAPS_HAS_GET_LEVEL,
+    RIG_CAPS_HAS_SET_LEVEL,
 };
 
 enum rig_caps_cptr_e {
