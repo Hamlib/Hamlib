@@ -1282,11 +1282,11 @@ option above, will terminate each command string sent to the radio.  This
 character should not be a part of the input string.
 .
 .TP
-.BR W ", " send_cmd_rx " \(aq" \fICmd\fP\(aq " " \fI[nbytes or terminator char\FP
+.BR W ", " send_cmd_rx " \(aq" \fICmd\fP\(aq " " \fInbytes_or_terminator_char\fP
 Send a raw command string to the radio and expect nbytes returned or the terminator char (e.g. ;).
 .IP
 This is useful for testing and troubleshooting radio commands and responses when
-developing a backend.  If the # of bytes requested is <= the number actually returned no timeout will occur.
+developing a backend.  If the # of bytes requested is <= the number actually returned no timeout will occur. If a char is provided it will be used to terminate reading the string so ';' is popular for Kenwood/Yaesu commands for example.
 .IP
 The command argument can have no spaces in it.
 For binary protocols enter values as \\0xAA\\0xBB.  Expect a
