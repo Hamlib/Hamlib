@@ -391,6 +391,10 @@ int main(int argc, char *argv[])
 
             continue;
         }
+        else if (strcmp(buf, "RX;") == 0)
+        {
+            ptt = ptt_mic = ptt_data = ptt_tune = 0;
+        }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
