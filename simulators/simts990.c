@@ -394,6 +394,10 @@ int main(int argc, char *argv[])
         {
             continue;
         }
+        else if (strcmp(buf, "RX;") == 0)
+        {
+            ptt = ptt_mic = ptt_data = ptt_tune = 0;
+        }
         else if (strncmp(buf, "TX", 2) == 0)
         {
             ptt = ptt_mic = ptt_data = ptt_tune = 0;
