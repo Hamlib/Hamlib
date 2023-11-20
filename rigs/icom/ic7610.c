@@ -609,6 +609,7 @@ struct rig_caps ic7610_caps =
     .stop_morse = icom_stop_morse,
     .wait_morse = rig_wait_morse,
     .send_voice_mem = icom_send_voice_mem,
+    .stop_voice_mem = icom_stop_voice_mem,
     .set_clock = ic7610_set_clock,
     .get_clock = ic7610_get_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
