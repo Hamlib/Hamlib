@@ -7799,26 +7799,27 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
         freq_t freq;
         short retry_save = rig->state.rigport.retry;
         short timeout_retry_save = rig->state.rigport.timeout_retry;
-    HAMLIB_TRACE;
+        HAMLIB_TRACE;
 
         rig->state.rigport.retry = 0;
         rig->state.rigport.timeout_retry = 0;
 
         retval = rig_get_freq(rig, RIG_VFO_A, &freq);
 
-        if (retval == -RIG_ETIMEOUT)
-        { // then rig must be turned off
-    HAMLIB_TRACE;
-            rig_debug(RIG_DEBUG_WARN, "%s: get freq failed...assuming power is off\n", __func__);
-            rig->state.powerstat = RIG_POWER_OFF;
-            return RIG_OK; // returning RIG_OK here makes the rig->state reflect POWER_OFF
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: get freq failed, assuming power is off\n", __func__);
         }
-    HAMLIB_TRACE;
+        HAMLIB_TRACE;
 
         rig->state.rigport.retry = retry_save;
         rig->state.rigport.timeout_retry = timeout_retry_save;
 
+        // Assume power is OFF if get_freq fails
         *status = retval == RIG_OK ? RIG_POWER_ON : RIG_POWER_OFF;
+
+        // Modify rig_state powerstat directly to reflect power ON/OFF status, but return the result of rig_get_freq,
+        // because the error could indicate other connectivity issues too
         rig->state.powerstat = *status;
         return retval;
     }
@@ -7827,14 +7828,13 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
         retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0,
                                   ackbuf, &ack_len);
 
-        if (retval == -RIG_ETIMEOUT)
-        { // then rig must be turned off
-            rig_debug(RIG_DEBUG_WARN, "%s: get powerstat failed...assuming power is off\n", __func__);
-            rig->state.powerstat = RIG_POWER_OFF;
-            return RIG_OK; // returning RIG_OK here makes the rig->state reflect POWER_OFF
-        }
         if (retval != RIG_OK)
         {
+            // Assume power is OFF if getting power status fails
+            // Modify rig_state powerstat directly to reflect power ON/OFF status, but return the result of rig_get_freq,
+            // because the error could indicate other connectivity issues too
+            rig_debug(RIG_DEBUG_WARN, "%s: get powerstat failed, assuming power is off\n", __func__);
+            rig->state.powerstat = RIG_POWER_OFF;
             RETURNFUNC(retval);
         }
 

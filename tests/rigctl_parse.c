@@ -1759,6 +1759,7 @@ readline_repeat:
                 && cmd_entry->cmd != 0x87 // set_powerstat
                 && cmd_entry->cmd != 0x88 // get_powerstat
                 && cmd_entry->cmd != 0xa5 // client_version
+                && cmd_entry->cmd != 0xf2 // set_vfo_opt
                 && my_rig->caps->rig_model !=
                 RIG_MODEL_POWERSDR) // some rigs can do stuff when powered off
         {
