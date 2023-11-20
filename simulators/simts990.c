@@ -394,6 +394,10 @@ int main(int argc, char *argv[])
         {
             continue;
         }
+        else if (strcmp(buf, "RX;") == 0)
+        {
+            ptt = ptt_mic = ptt_data = ptt_tune = 0;
+        }
         else if (strncmp(buf, "TX", 2) == 0)
         {
             ptt = ptt_mic = ptt_data = ptt_tune = 0;
@@ -455,6 +459,11 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "OM1", 3) == 0)
         {
             sscanf(buf, "OM1%d", &modeSub);
+        }
+        else if (strcmp(buf,"RM;") == 0)
+        {
+            sprintf(buf, "RM2%04d;", 10);
+            write(fd, buf, strlen(buf));
         }
         else if (strlen(buf) > 0)
         {

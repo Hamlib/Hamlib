@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20231113"
+#define BACKEND_VER "20231116"
 
 #define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
 #define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
@@ -395,6 +395,7 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
 int icom_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 int icom_stop_morse(RIG *rig, vfo_t vfo);
 int icom_send_voice_mem(RIG *rig, vfo_t vfo, int bank);
+int icom_stop_voice_mem(RIG *rig, vfo_t vfo);
 /* Exposed routines */
 int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo);
 int icom_set_raw(RIG *rig, int cmd, int subcmd, int subcmdbuflen,

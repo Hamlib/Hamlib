@@ -564,28 +564,6 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         SNPRINTF(levelbuf, sizeof(levelbuf), "RA%02d", (val.i == 12) ? 1 : 0);
         break;
 
-    case RIG_LEVEL_METER:
-        switch (val.i)
-        {
-        case RIG_METER_SWR:
-            kenwood_val = 1;
-            break;
-
-        case RIG_METER_COMP:
-            kenwood_val = 2;
-            break;
-
-        case RIG_METER_ALC:
-            kenwood_val = 3;
-            break;
-
-        default:
-            RETURNFUNC(-RIG_EINVAL);
-        }
-
-        SNPRINTF(levelbuf, sizeof(levelbuf), "RM%d", kenwood_val);
-        break;
-
     case RIG_LEVEL_CWPITCH:
         if (val.i > 1000 || val.i < 300)
         {
@@ -1594,7 +1572,7 @@ const struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".9",
+    .version = BACKEND_VER ".10",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1792,7 +1770,7 @@ const struct rig_caps fx4_caps =
     RIG_MODEL(RIG_MODEL_FX4),
     .model_name = "FX4/C/CR/L",
     .mfg_name = "BG2FX",
-    .version = BACKEND_VER ".8",
+    .version = BACKEND_VER ".9",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1986,7 +1964,7 @@ const struct rig_caps ts590sg_caps =
     RIG_MODEL(RIG_MODEL_TS590SG),
     .model_name = "TS-590SG",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".6",
+    .version = BACKEND_VER ".7",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,

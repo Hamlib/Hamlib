@@ -716,7 +716,7 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
                   modeFLRigCheck, modeMap[i].mode_flrig);
 
         if (modeMap[i].mode_flrig
-                && strcmp(modeMap[i].mode_flrig, modeFLRigCheck) == 0)
+                && strstr(modeMap[i].mode_flrig, modeFLRigCheck))
         {
             return (modeMap[i].mode_hamlib);
         }

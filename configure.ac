@@ -241,7 +241,7 @@ AC_CHECK_FUNC([gethostbyname],
 	      [],
 	      [AC_CHECK_LIB([ws2_32],
 			    [main],
-			    [NET_LIBS="$NET_LIBS -lws2_32"],
+			    [NET_LIBS="$NET_LIBS -lws2_32 -liphlpapi"],
 			    [],
 			    [])
 	      ])

@@ -867,6 +867,26 @@ int main(int argc, char *argv[])
             freeaddrinfo(saved_result);     /* No longer needed */
             exit(2);
         }
+    int optval = 1;
+#ifdef __MINGW32__
+    if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR, (PCHAR)&optval, sizeof(optval)) < 0)
+#else
+    if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
+#endif
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP address reuse: %s\n", __func__,
+                strerror(errno));
+    }
+
+    // Windows does not have SO_REUSEPORT. However, SO_REUSEADDR works in a similar way.
+#if defined(SO_REUSEPORT)
+    if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP port reuse: %s\n", __func__,
+                strerror(errno));
+    }
+#endif
+
 
 #if 0
         if (setsockopt(sock_listen,

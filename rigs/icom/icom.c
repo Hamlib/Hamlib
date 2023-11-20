@@ -6960,7 +6960,8 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     case RIG_FUNC_DUAL_WATCH:
         if ((RIG_IS_IC9100) ||
-                (RIG_IS_IC9700))
+            (RIG_IS_IC9700) ||
+            (RIG_IS_ID5100))
         {
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_DUALMODE;
@@ -8923,6 +8924,10 @@ int icom_get_level_raw(RIG *rig, setting_t level, int cmd, int subcmd,
     RETURNFUNC(RIG_OK);
 }
 
+int icom_stop_voice_mem(RIG *rig, vfo_t vfo)
+{
+    return icom_send_voice_mem(rig, vfo, 0);
+}
 /*
  * icom_send_voice_mem
  * Assumes rig!=NULL, rig->state.priv!=NULL

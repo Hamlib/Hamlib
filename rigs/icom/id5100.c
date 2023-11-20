@@ -154,7 +154,7 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
     if (vfo == RIG_VFO_A || vfo == RIG_VFO_B)
     {
         // and 0x25 works in this mode
-        priv->x25cmdfails = 0;
+        priv->x25cmdfails = 1;
 
         if (priv->dual_watch)
         {
@@ -222,6 +222,24 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     return retval;
 }
 
+int id5100_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf), retval;
+    int fct_cn, fct_sc;       /* Command Number, Subcommand */
+    unsigned char fctbuf[MAXFRAMELEN];
+    int fct_len = 0;
+
+    const struct icom_priv_caps *priv_caps = rig->caps->priv;
+    const struct cmdparams *extcmds = priv_caps->extcmds;
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
+
+    value_t value;
+    RETURNFUNC(icom_get_func(rig, vfo, func, status));
+}
 /*
  */
 static struct icom_priv_caps id5100_priv_caps =
@@ -237,7 +255,7 @@ const struct rig_caps id5100_caps =
     RIG_MODEL(RIG_MODEL_ID5100),
     .model_name = "ID-5100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".6",
+    .version =  BACKEND_VER ".7",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_MOBILE,
@@ -344,7 +362,7 @@ const struct rig_caps id5100_caps =
     .decode_event =  icom_decode_event,
 
     .set_func =  icom_set_func,
-    .get_func =  icom_get_func,
+    .get_func =  id5100_get_func,
     .set_level =  icom_set_level,
     .get_level =  icom_get_level,
     .set_parm =  icom_set_parm,
