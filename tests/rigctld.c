@@ -1192,6 +1192,7 @@ void *handle_socket(void *arg)
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
     rig_powerstat = RIG_POWER_ON; // defaults to power on
+    struct timespec powerstat_check_time;
 
     fsockin = get_fsockin(handle_data_arg);
 
@@ -1257,6 +1258,8 @@ void *handle_socket(void *arg)
         my_rig->state.powerstat = rig_powerstat;
     }
 
+    elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_SET);
+
     do
     {
         mutex_rigctld(1);
@@ -1273,7 +1276,6 @@ void *handle_socket(void *arg)
 
         if (rig_opened) // only do this if rig is open
         {
-            powerstat_t powerstat;
             rig_debug(RIG_DEBUG_TRACE, "%s: doing rigctl_parse vfo_mode=%d, secure=%d\n",
                       __func__,
                       handle_data_arg->vfo_mode, handle_data_arg->use_password);
@@ -1286,8 +1288,11 @@ void *handle_socket(void *arg)
 
             // If we get a timeout, the rig might be powered off
             // Update our power status in case power gets turned off
-            if (retcode == -RIG_ETIMEOUT && my_rig->caps->get_powerstat)
+            // Check power status if rig is powered off, but not more often than once per second
+            if (my_rig->caps->get_powerstat && (retcode == -RIG_ETIMEOUT ||
+                    (retcode == -RIG_EPOWER && elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_GET) >= 1000)))
             {
+                powerstat_t powerstat;
                 rig_get_powerstat(my_rig, &powerstat);
                 rig_powerstat = powerstat;
 
@@ -1295,6 +1300,8 @@ void *handle_socket(void *arg)
                 {
                     retcode = -RIG_EPOWER;
                 }
+
+                elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_SET);
             }
         }
         else

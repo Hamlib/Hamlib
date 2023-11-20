@@ -227,6 +227,7 @@ int main(int argc, char *argv[])
     char rigstartup[1024];
     char vbuf[1024];
     rig_powerstat = RIG_POWER_ON; // defaults to power on
+    struct timespec powerstat_check_time;
 #if HAVE_SIGACTION
     struct sigaction act;
 #endif
@@ -814,6 +815,8 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
+    elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_SET);
+
     do
     {
         if (!rig_opened)
@@ -829,10 +832,11 @@ int main(int argc, char *argv[])
 
         // If we get a timeout, the rig might be powered off
         // Update our power status in case power gets turned off
-        if (retcode == -RIG_ETIMEOUT && my_rig->caps->get_powerstat)
+        // Check power status if rig is powered off, but not more often than once per second
+        if (my_rig->caps->get_powerstat && (retcode == -RIG_ETIMEOUT ||
+            (retcode == -RIG_EPOWER && elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_GET) >= 1000)))
         {
             powerstat_t powerstat;
-
             rig_get_powerstat(my_rig, &powerstat);
             rig_powerstat = powerstat;
 
@@ -840,6 +844,8 @@ int main(int argc, char *argv[])
             {
                 retcode = -RIG_EPOWER;
             }
+
+            elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_SET);
         }
 
         // if we get a hard error we try to reopen the rig again

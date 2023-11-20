@@ -533,6 +533,8 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
 
+    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+
     if (width == RIG_PASSBAND_NOCHANGE)
     {
         switch (vfo)
@@ -613,12 +615,34 @@ static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     switch (vfo)
     {
     case RIG_VFO_MAIN:
-    case RIG_VFO_A: *mode = priv->vfo_a.mode; *width = priv->vfo_a.width; break;
+    case RIG_VFO_A:
+        *mode = priv->vfo_a.mode; *width = priv->vfo_a.width;
+        break;
+
+    case RIG_VFO_MAIN_A:
+        *mode = priv->vfo_maina.mode; *width = priv->vfo_maina.width;
+        break;
+
+    case RIG_VFO_MAIN_B:
+        *mode = priv->vfo_mainb.mode; *width = priv->vfo_mainb.width;
+        break;
 
     case RIG_VFO_SUB:
-    case RIG_VFO_B: *mode = priv->vfo_b.mode; *width = priv->vfo_b.width; break;
+    case RIG_VFO_B:
+        *mode = priv->vfo_b.mode; *width = priv->vfo_b.width;
+        break;
 
-    case RIG_VFO_C: *mode = priv->vfo_c.mode; *width = priv->vfo_c.width; break;
+    case RIG_VFO_SUB_A:
+        *mode = priv->vfo_suba.mode; *width = priv->vfo_suba.width;
+        break;
+
+    case RIG_VFO_SUB_B:
+        *mode = priv->vfo_subb.mode; *width = priv->vfo_subb.width;
+        break;
+
+    case RIG_VFO_C:
+        *mode = priv->vfo_c.mode; *width = priv->vfo_c.width;
+        break;
     }
 
     RETURNFUNC(RIG_OK);
@@ -635,9 +659,6 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rig_strvfo(vfo));
 
     if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
-
-    priv->last_vfo = priv->curr_vfo;
-    priv->curr_vfo = vfo;
 
     switch (vfo)
     {
@@ -683,6 +704,8 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(-RIG_EINVAL);
     }
 
+    priv->last_vfo = priv->curr_vfo;
+    priv->curr_vfo = vfo;
     rig->state.current_vfo = vfo;
 
     RETURNFUNC(RIG_OK);
