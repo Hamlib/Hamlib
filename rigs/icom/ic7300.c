@@ -758,6 +758,8 @@ const struct rig_caps ic7300_caps =
 
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
+		{	1,	8,	RIG_MTYPE_VOICE },
+		{	1,	8,	RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -1001,6 +1003,8 @@ struct rig_caps ic9700_caps =
 
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
+		{	1,	8,	RIG_MTYPE_VOICE },
+		{	1,	8,	RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -1323,6 +1327,8 @@ const struct rig_caps ic705_caps =
 
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
+		{	1,	8,	RIG_MTYPE_VOICE },
+		{	1,	8,	RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -1597,6 +1603,8 @@ const struct rig_caps ic905_caps =
 
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
+		{	1,	8,	RIG_MTYPE_VOICE },
+		{	1,	8,	RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
