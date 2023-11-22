@@ -237,7 +237,7 @@ static const struct confparams frontend_serial_cfg_params[] =
  */
 static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     struct rig_state *rs;
     long val_i;
 
