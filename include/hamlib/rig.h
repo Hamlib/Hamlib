@@ -1643,7 +1643,9 @@ typedef enum {
     RIG_MTYPE_MEMOPAD,      /*!< Memory pad */
     RIG_MTYPE_SAT,          /*!< Satellite */
     RIG_MTYPE_BAND,         /*!< VFO/Band channel */
-    RIG_MTYPE_PRIO          /*!< Priority channel */
+    RIG_MTYPE_PRIO,         /*!< Priority channel */
+	RIG_MTYPE_VOICE,		/*!< Stored Voice Message */
+	RIG_MTYPE_MORSE			/*!< Morse Message */
 } chan_type_t;
 
 
