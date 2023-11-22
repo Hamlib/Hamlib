@@ -514,7 +514,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         if (!strcmp(val, "RIG"))
         {
             rs->pttport.type.ptt = RIG_PTT_RIG;
-            rig->caps->ptt_type = RIG_PTT_RIG;
+            caps->ptt_type = RIG_PTT_RIG;
         }
         else if (!strcmp(val, "RIGMICDATA"))
         {
