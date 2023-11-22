@@ -237,7 +237,7 @@ static const struct confparams frontend_serial_cfg_params[] =
  */
 static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     struct rig_state *rs;
     long val_i;
 
@@ -514,7 +514,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         if (!strcmp(val, "RIG"))
         {
             rs->pttport.type.ptt = RIG_PTT_RIG;
-            rig->caps->ptt_type = RIG_PTT_RIG;
+            caps->ptt_type = RIG_PTT_RIG;
         }
         else if (!strcmp(val, "RIGMICDATA"))
         {
