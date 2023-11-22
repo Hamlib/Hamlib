@@ -1297,6 +1297,8 @@ int icom_band_changing(RIG *rig, freq_t test_freq)
     freq_t curr_freq, freq1, freq2;
     int retval;
 
+    ENTERFUNC2;
+
     // We should be sitting on the VFO we want to change so just get it's frequency
     retval = rig_get_freq(rig, RIG_VFO_CURR, &curr_freq);
 
@@ -1347,7 +1349,7 @@ static int icom_set_freq_x25(RIG *rig, vfo_t vfo, freq_t freq, int freq_len, uns
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        return retval;
     }
 
     return retval;
@@ -1429,6 +1431,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     vfo_t vfo_save = rs->current_vfo;
     freq_t curr_freq;
 
+    ENTERFUNC2;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called %s=%" PRIfreq "\n", __func__,
               rig_strvfo(vfo), freq);
 
@@ -1493,9 +1497,9 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             if (retval != RIG_OK)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: set_freq failed: %s\n", __func__, rigerror(retval));
-                return retval;
+                RETURNFUNC2(retval);
             }
-            return RIG_OK;
+            RETURNFUNC2(RIG_OK);
         }
         else
         {
@@ -1511,9 +1515,6 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         check_ack = 1;
     }
-
-    // pause for transceive message and we'll flush it
-    hl_usleep(50 * 1000);
 
     if (retval != RIG_OK)
     {
@@ -2135,11 +2136,9 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
 
-    ENTERFUNC;
-
     if (priv->x26cmdfails > 0 && !priv_caps->x25x26_always)
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        return -RIG_ENAVAIL;
     }
 
     buf[0] = mode;
@@ -2161,10 +2160,10 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        return retval;
     }
 
-    RETURNFUNC(RIG_OK);
+    return RIG_OK;
 }
 
 static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len, unsigned char *modebuf)
@@ -2173,11 +2172,9 @@ static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len, unsigned char *
     const struct icom_priv_caps *priv_caps = rig->caps->priv;
     int retval;
 
-    ENTERFUNC;
-
     if (priv->x26cmdfails > 0 && !priv_caps->x25x26_always)
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        return -RIG_ENAVAIL;
     }
 
     int vfo_number = icom_get_vfo_number_x25x26(rig, vfo);
@@ -2193,14 +2190,14 @@ static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len, unsigned char *
 
     if (retval != RIG_OK)
     {
-        RETURNFUNC(retval);
+        return retval;
     }
 
     rig_debug(RIG_DEBUG_TRACE,
               "%s: mode_len=%d, modebuf=%02x %02x %02x %02x %02x\n", __func__, *mode_len,
               modebuf[0], modebuf[1], modebuf[2], modebuf[3], modebuf[4]);
 
-    RETURNFUNC(RIG_OK);
+    return RIG_OK;
 }
 
 /*
@@ -2238,7 +2235,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         retval = set_vfo_curr(rig, vfo, rig->state.current_vfo);
         if (retval != RIG_OK)
         {
-            RETURNFUNC2(retval);
+            RETURNFUNC(retval);
         }
     }
 
@@ -2255,7 +2252,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 retval = retval2;
             }
         }
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     // Do nothing if current mode and width is not changing
@@ -2309,8 +2306,6 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         retval = RIG_OK;
     }
 
-    hl_usleep(50 * 1000); // pause for possible transceive message which we'll flush
-
     if (retval == RIG_OK && mode != current_mode)
     {
         unsigned char datamode[2];
@@ -2335,7 +2330,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (retval < 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error on rig2icom_mode, result=%d\n", __func__, retval);
-            RETURNFUNC2(retval);
+            RETURNFUNC(retval);
         }
 
         // Check if the filter width byte is needed
@@ -2420,6 +2415,8 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidt
     unsigned char modebuf[MAXFRAMELEN];
     int mode_len;
     int retval;
+
+    ENTERFUNC2;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -2548,6 +2545,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     unsigned char dm_sub_cmd = RIG_IS_IC7200 ? 0x04 : S_MEM_DATA_MODE;
     int force_vfo_swap = 0;
     vfo_t vfo_save = rs->current_vfo;
+
+    ENTERFUNC2;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 

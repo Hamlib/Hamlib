@@ -961,6 +961,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     priv = (struct newcat_priv_data *)rig->state.priv;
     caps = rig->caps;
 
+    // TODO: this is likely a bug, should call get_vfo_mode()
     rig_get_mode(rig, RIG_VFO_A, &tmode, &twidth);
 
     if (tmode == RIG_VFO_MEM)
