@@ -70,17 +70,17 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 const char* tentec_get_info(RIG *rig);
 
-extern const struct rig_caps rx320_caps;
-extern const struct rig_caps rx340_caps;
-extern const struct rig_caps rx350_caps;
-extern const struct rig_caps tt516_caps;
-extern const struct rig_caps tt538_caps;
-extern const struct rig_caps tt585_caps;
-extern const struct rig_caps tt588_caps;
-extern const struct rig_caps tt550_caps;
-extern const struct rig_caps tt565_caps;
-extern const struct rig_caps tt599_caps;
-extern const struct rig_caps rx331_caps;
+extern struct rig_caps rx320_caps;
+extern struct rig_caps rx340_caps;
+extern struct rig_caps rx350_caps;
+extern struct rig_caps tt516_caps;
+extern struct rig_caps tt538_caps;
+extern struct rig_caps tt585_caps;
+extern struct rig_caps tt588_caps;
+extern struct rig_caps tt550_caps;
+extern struct rig_caps tt565_caps;
+extern struct rig_caps tt599_caps;
+extern struct rig_caps rx331_caps;
 
 
 #endif /* _TENTEC_H */

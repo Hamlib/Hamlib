@@ -45,7 +45,7 @@
  *   http://www.premium-rx.org/ekd500.htm
  */
 
-const struct rig_caps ekd500_caps =
+struct rig_caps ekd500_caps =
 {
     RIG_MODEL(RIG_MODEL_EKD500),
     .model_name = "EKD-500",

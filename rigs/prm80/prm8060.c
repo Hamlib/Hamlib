@@ -61,7 +61,7 @@
  * http://prm80.sourceforge.net/
  * https://github.com/f4fez/prm80
  */
-const struct rig_caps prm8060_caps =
+struct rig_caps prm8060_caps =
 {
     RIG_MODEL(RIG_MODEL_PRM8060),
     .model_name = "PRM8060",

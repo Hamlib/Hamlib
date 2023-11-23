@@ -51,7 +51,7 @@ static struct icom_priv_caps icr10_priv_caps =
     r8500_ts_sc_list  /* wrong, but don't have set_ts anyway */
 };
 
-const struct rig_caps icr10_caps =
+struct rig_caps icr10_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR10),
     .model_name = "IC-R10",

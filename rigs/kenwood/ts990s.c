@@ -128,7 +128,7 @@ static struct kenwood_priv_caps  ts990s_priv_caps  =
  *
  * part of infos comes from http://www.kenwood.net/
  */
-const struct rig_caps ts990s_caps =
+struct rig_caps ts990s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS990S),
     .model_name = "TS-990S",

@@ -98,7 +98,7 @@ const struct confparams hiqsdr_cfg_params[] =
 
 #define HIQSDR_MODES (RIG_MODE_CW|RIG_MODE_DSB)
 
-const struct rig_caps hiqsdr_caps =
+struct rig_caps hiqsdr_caps =
 {
     RIG_MODEL(RIG_MODEL_HIQSDR),
     .model_name =     "HiQSDR",

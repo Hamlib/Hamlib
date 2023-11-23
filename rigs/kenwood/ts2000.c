@@ -1671,7 +1671,7 @@ int ts2000_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 /*
  * TS-2000 rig capabilities
  */
-const struct rig_caps ts2000_caps =
+struct rig_caps ts2000_caps =
 {
     RIG_MODEL(RIG_MODEL_TS2000),
     .model_name = "TS-2000",

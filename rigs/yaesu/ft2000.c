@@ -127,7 +127,7 @@ int ft2000_ext_tokens[] =
 /*
  * FT-2000 rig capabilities
  */
-const struct rig_caps ft2000_caps =
+struct rig_caps ft2000_caps =
 {
     RIG_MODEL(RIG_MODEL_FT2000),
     .model_name =         "FT-2000",

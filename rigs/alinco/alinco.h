@@ -26,8 +26,8 @@
 
 #define BACKEND_VER "20200323"
 
-extern const struct rig_caps dx77_caps;
-extern const struct rig_caps dxsr8_caps;
+extern struct rig_caps dx77_caps;
+extern struct rig_caps dxsr8_caps;
 
 #define BUFSZ 32
 

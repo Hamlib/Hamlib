@@ -48,7 +48,7 @@
 //    ADT-200A HAMLIB CAPS / DESCRIPTION
 // ---------------------------------------------------------------------------
 
-const struct rig_caps adt_200a_caps =
+struct rig_caps adt_200a_caps =
 {
     RIG_MODEL(RIG_MODEL_ADT_200A),
     .model_name         =  "ADT-200A",

@@ -94,7 +94,7 @@ static int barrett4050_open(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-const struct rig_caps barrett4050_caps =
+struct rig_caps barrett4050_caps =
 {
     RIG_MODEL(RIG_MODEL_BARRETT_4050),
     .model_name =       "4050",

@@ -262,7 +262,7 @@ struct ft1000d_priv_data
                 .flags = 1,      \
 }
 
-const struct rig_caps ft1000d_caps =
+struct rig_caps ft1000d_caps =
 {
 
     RIG_MODEL(RIG_MODEL_FT1000D),

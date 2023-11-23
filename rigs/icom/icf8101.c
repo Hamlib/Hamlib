@@ -380,7 +380,7 @@ int icf8101_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 }
 
 
-const struct rig_caps icf8101_caps =
+struct rig_caps icf8101_caps =
 {
     RIG_MODEL(RIG_MODEL_ICF8101),
     .model_name =   "IC-F8101",

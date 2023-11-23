@@ -75,8 +75,8 @@ int icm710_set_conf(RIG *rig, token_t token, const char *val);
 int icm710_get_conf(RIG *rig, token_t token, char *val);
 int icm710_get_conf2(RIG *rig, token_t token, char *val, int val_len);
 
-extern const struct rig_caps icm700pro_caps;
-extern const struct rig_caps icm710_caps;
-extern const struct rig_caps icm802_caps;
+extern struct rig_caps icm700pro_caps;
+extern struct rig_caps icm710_caps;
+extern struct rig_caps icm802_caps;
 
 #endif /* _ICM710_H */

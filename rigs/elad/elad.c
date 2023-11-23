@@ -2468,7 +2468,7 @@ int elad_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int elad_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     char tonebuf[16];
     int i;
 
@@ -2498,7 +2498,7 @@ int elad_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 int elad_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    const struct rig_caps *caps = rig->caps;
+    struct rig_caps *caps = rig->caps;
     char buf[16];
     int i;
 
@@ -2560,7 +2560,7 @@ int elad_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
 int elad_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
     const struct elad_priv_data *priv = rig->state.priv;
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     char tonebuf[3];
     int i, retval;
     unsigned int tone_idx;
@@ -2637,7 +2637,7 @@ int elad_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 int elad_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    const struct rig_caps *caps = rig->caps;
+    struct rig_caps *caps = rig->caps;
     char buf[16];
     int i;
 
@@ -2693,7 +2693,7 @@ int elad_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
 int elad_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     char cmd[4];
     char tonebuf[6];
     int offs;

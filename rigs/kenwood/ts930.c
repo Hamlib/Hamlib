@@ -48,7 +48,7 @@ static struct kenwood_priv_caps  ts930_priv_caps  =
  *
  * part of infos comes from .http = //www.kenwood.net/
  */
-const struct rig_caps ts930_caps =
+struct rig_caps ts930_caps =
 {
     RIG_MODEL(RIG_MODEL_TS930),
     .model_name = "TS-930",

@@ -34,7 +34,7 @@
 /*
  * FT-450 rig capabilities
  */
-const struct rig_caps ft450_caps =
+struct rig_caps ft450_caps =
 {
     RIG_MODEL(RIG_MODEL_FT450),
     .model_name =         "FT-450",

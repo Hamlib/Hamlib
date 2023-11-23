@@ -87,7 +87,7 @@ static const struct jrc_priv_caps nrd545_priv_caps =
  * NRD-545 rig capabilities.
  *
  */
-const struct rig_caps nrd545_caps =
+struct rig_caps nrd545_caps =
 {
     RIG_MODEL(RIG_MODEL_NRD545),
     .model_name = "NRD-545 DSP",

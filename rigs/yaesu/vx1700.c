@@ -207,7 +207,7 @@ struct vx1700_priv_data
         .width   = 1,   \
 }
 
-const struct rig_caps vx1700_caps =
+struct rig_caps vx1700_caps =
 {
     RIG_MODEL(RIG_MODEL_VX1700),
     .model_name =  "VX-1700",

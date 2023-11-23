@@ -309,7 +309,7 @@ static tone_t ft100_dcs_list[] =
             { 200, -54 }  /*  S0 */ \
             } }
 
-const struct rig_caps ft100_caps =
+struct rig_caps ft100_caps =
 {
     RIG_MODEL(RIG_MODEL_FT100),
     .model_name =     "FT-100",

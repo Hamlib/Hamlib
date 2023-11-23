@@ -93,7 +93,7 @@ struct ar3030_priv_data
  *
  * ar3030 rig capabilities.
  */
-const struct rig_caps ar3030_caps =
+struct rig_caps ar3030_caps =
 {
     RIG_MODEL(RIG_MODEL_AR3030),
     .model_name = "AR3030",

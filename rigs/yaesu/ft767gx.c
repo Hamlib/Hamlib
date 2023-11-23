@@ -254,7 +254,7 @@ tone_t static_767gx_ctcss_list[] =
  * Also this struct is READONLY!
  */
 
-const struct rig_caps ft767gx_caps =
+struct rig_caps ft767gx_caps =
 {
     RIG_MODEL(RIG_MODEL_FT767),
     .model_name =       "FT-767GX",

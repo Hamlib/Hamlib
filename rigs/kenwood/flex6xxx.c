@@ -1207,7 +1207,7 @@ int powersdr_get_parm(RIG *rig, setting_t parm, value_t *val)
 /*
  * F6K rig capabilities.
  */
-const struct rig_caps f6k_caps =
+struct rig_caps f6k_caps =
 {
     RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
@@ -1340,7 +1340,7 @@ const struct rig_caps f6k_caps =
 /*
  * PowerSDR rig capabilities.
  */
-const struct rig_caps powersdr_caps =
+struct rig_caps powersdr_caps =
 {
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR/Thetis",

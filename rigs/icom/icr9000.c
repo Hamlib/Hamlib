@@ -62,7 +62,7 @@ static struct icom_priv_caps icr9000_priv_caps =
 /*
  * ICR9000A rig capabilities.
  */
-const struct rig_caps icr9000_caps =
+struct rig_caps icr9000_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR9000),
     .model_name = "IC-R9000",

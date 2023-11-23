@@ -36,9 +36,9 @@
 // RET_LEN is # of max channels times the per-channel response length
 #define BARRETT_RET_LEN 24*1000
 
-extern const struct rig_caps barrett_caps;
-extern const struct rig_caps barrett950_caps;
-extern const struct rig_caps barrett4050_caps;
+extern struct rig_caps barrett_caps;
+extern struct rig_caps barrett950_caps;
+extern struct rig_caps barrett4050_caps;
 
 struct barrett_priv_data {
     char cmd_str[BARRETT_DATA_LEN];       /* command string buffer */

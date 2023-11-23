@@ -933,7 +933,7 @@ static int aclog_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 }
 
 
-const struct rig_caps aclog_caps =
+struct rig_caps aclog_caps =
 {
     RIG_MODEL(RIG_MODEL_ACLOG),
     .model_name = "ACLog",

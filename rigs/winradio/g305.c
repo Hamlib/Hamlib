@@ -121,7 +121,7 @@ struct g3_priv_data
 };
 
 
-const struct rig_caps g305_caps =
+struct rig_caps g305_caps =
 {
     RIG_MODEL(RIG_MODEL_G305),
     .model_name =     "WR-G305",

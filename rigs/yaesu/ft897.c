@@ -245,7 +245,7 @@ enum ft897_digi
 #define FT897_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
 #define FT897_ANTS              0
 
-const struct rig_caps ft897_caps =
+struct rig_caps ft897_caps =
 {
     RIG_MODEL(RIG_MODEL_FT897),
     .model_name =     "FT-897",
@@ -393,7 +393,7 @@ const struct rig_caps ft897_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps ft897d_caps =
+struct rig_caps ft897d_caps =
 {
     RIG_MODEL(RIG_MODEL_FT897D),
     .model_name =     "FT-897D",

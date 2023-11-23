@@ -32,8 +32,8 @@
 
 #define MAXCMDLEN 32
 
-extern const struct rig_caps mds_4710_caps;
-extern const struct rig_caps mds_9710_caps;
+extern struct rig_caps mds_4710_caps;
+extern struct rig_caps mds_9710_caps;
 
 DECLARE_INITRIG_BACKEND(mds)
 {

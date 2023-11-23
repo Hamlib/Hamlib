@@ -170,7 +170,7 @@ int ft991_ext_tokens[] =
 /*
  * FT-991 rig capabilities
  */
-const struct rig_caps ft991_caps =
+struct rig_caps ft991_caps =
 {
     RIG_MODEL(RIG_MODEL_FT991),
     .model_name =         "FT-991",

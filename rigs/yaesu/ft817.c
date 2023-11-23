@@ -289,7 +289,7 @@ enum ft817_digi
                 } }
 
 
-const struct rig_caps ft817_caps =
+struct rig_caps ft817_caps =
 {
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
@@ -439,7 +439,7 @@ const struct rig_caps ft817_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps ft818_caps =
+struct rig_caps ft818_caps =
 {
     RIG_MODEL(RIG_MODEL_FT818),
     .model_name =          "FT-818",

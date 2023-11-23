@@ -80,7 +80,7 @@ static int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
  *
  * http://www.iw5edi.com/ham-radio/files/TH-G71_Serial_Protocol.pdf
  */
-const struct rig_caps thg71_caps =
+struct rig_caps thg71_caps =
 {
     RIG_MODEL(RIG_MODEL_THG71),
     .model_name = "TH-G71",

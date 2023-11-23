@@ -379,7 +379,7 @@ static tone_t ft650_ctcss_list[] =
  * Notice that some rigs share the same functions.
  */
 
-const struct rig_caps ft847_caps =
+struct rig_caps ft847_caps =
 {
     RIG_MODEL(RIG_MODEL_FT847),
     .model_name = "FT-847",
@@ -537,7 +537,7 @@ const struct rig_caps ft847_caps =
  * Notice that some rigs share the same functions.
  */
 
-const struct rig_caps ft650_caps =
+struct rig_caps ft650_caps =
 {
     RIG_MODEL(RIG_MODEL_FT650),
     .model_name = "FT-650",
@@ -675,7 +675,7 @@ const struct rig_caps ft650_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps mchfqrp_caps =
+struct rig_caps mchfqrp_caps =
 {
     RIG_MODEL(RIG_MODEL_MCHFQRP),
     .model_name = "mcHF QRP",
@@ -848,7 +848,7 @@ improvements. This version was made in May 1998. Later serial numbers (e.g.,
 8L09nnnn) all seem to have incorporated the earlier improvements plus new
 ones...."
  */
-const struct rig_caps ft847uni_caps =
+struct rig_caps ft847uni_caps =
 {
     RIG_MODEL(RIG_MODEL_FT847UNI),
     .model_name = "FT-847UNI",

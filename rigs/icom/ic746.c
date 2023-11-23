@@ -176,7 +176,7 @@ static const struct icom_priv_caps ic746_priv_caps =
     },
 };
 
-const struct rig_caps ic746_caps =
+struct rig_caps ic746_caps =
 {
     RIG_MODEL(RIG_MODEL_IC746),
     .model_name = "IC-746",
@@ -412,7 +412,7 @@ static const struct icom_priv_caps ic746pro_priv_caps =
     },
 };
 
-const struct rig_caps ic746pro_caps =
+struct rig_caps ic746pro_caps =
 {
     RIG_MODEL(RIG_MODEL_IC746PRO),
     .model_name = "IC-746PRO",

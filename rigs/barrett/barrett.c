@@ -756,7 +756,7 @@ int barrett_open(RIG *rig)
 }
 
 
-const struct rig_caps barrett_caps =
+struct rig_caps barrett_caps =
 {
     RIG_MODEL(RIG_MODEL_BARRETT_2050),
     .model_name =       "2050",

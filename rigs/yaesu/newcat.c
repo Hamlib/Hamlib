@@ -928,7 +928,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char c;
     char target_vfo;
     int err;
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     struct newcat_priv_data *priv;
     int special_60m = 0;
     rmode_t tmode;
@@ -7884,7 +7884,7 @@ const char *newcat_get_info(RIG *rig)
 
 ncboolean newcat_valid_command(RIG *rig, char const *const command)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     int search_high;
     int search_low;
 

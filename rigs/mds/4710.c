@@ -1,6 +1,6 @@
 #include "mds.h"
 
-const struct rig_caps mds_4710_caps =
+struct rig_caps mds_4710_caps =
 {
     RIG_MODEL(RIG_MODEL_MDS4710),
     .model_name =       "4710",

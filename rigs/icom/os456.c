@@ -68,7 +68,7 @@ static struct icom_priv_caps os456_priv_caps =
     .settle_time = 20,
 };
 
-const struct rig_caps os456_caps =
+struct rig_caps os456_caps =
 {
     RIG_MODEL(RIG_MODEL_OS456),
     .model_name = "OptoScan456",

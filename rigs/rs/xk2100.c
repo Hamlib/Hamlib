@@ -66,7 +66,7 @@
  *  - set/get_channels
  */
 
-const struct rig_caps xk2100_caps =
+struct rig_caps xk2100_caps =
 {
     RIG_MODEL(RIG_MODEL_XK2100),
     .model_name = "XK2100",

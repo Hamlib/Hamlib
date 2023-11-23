@@ -142,7 +142,7 @@ static const char *dwtdll_get_info(RIG *rig);
  * see Winradio G303 as an example
  */
 
-const struct rig_caps dwt_caps =
+struct rig_caps dwt_caps =
 {
     RIG_MODEL(RIG_MODEL_DWT),
     .model_name =       "Digital World Traveller",
@@ -542,7 +542,7 @@ static const char *dwt_get_info(RIG *rig);
  * see dsbr100.c as an example
  */
 
-const struct rig_caps dwt_caps =
+struct rig_caps dwt_caps =
 {
     RIG_MODEL(RIG_MODEL_DWT),
     .model_name =       "Digital World Traveller",

@@ -77,7 +77,7 @@ int ft950_ext_tokens[] =
 /*
  * FT-950 rig capabilities
  */
-const struct rig_caps ft950_caps =
+struct rig_caps ft950_caps =
 {
     RIG_MODEL(RIG_MODEL_FT950),
     .model_name =         "FT-950",
