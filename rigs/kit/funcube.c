@@ -94,7 +94,7 @@ struct funcube_priv_data
  *
  */
 
-const struct rig_caps funcube_caps =
+struct rig_caps funcube_caps =
 {
     RIG_MODEL(RIG_MODEL_FUNCUBEDONGLE),
     .model_name =       "FUNcube Dongle",
@@ -159,7 +159,7 @@ const struct rig_caps funcube_caps =
 };
 
 
-const struct rig_caps funcubeplus_caps =
+struct rig_caps funcubeplus_caps =
 {
     RIG_MODEL(RIG_MODEL_FUNCUBEDONGLEPLUS),
     .model_name =       "FUNcube Dongle Pro+",

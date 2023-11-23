@@ -391,7 +391,7 @@ struct ft890_priv_data
  *
  */
 
-const struct rig_caps ft890_caps =
+struct rig_caps ft890_caps =
 {
     RIG_MODEL(RIG_MODEL_FT890),
     .model_name =         "FT-890",

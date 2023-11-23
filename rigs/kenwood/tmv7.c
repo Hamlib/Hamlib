@@ -89,7 +89,7 @@ static int tmv7_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 /*
  * tm-v7 rig capabilities.
  */
-const struct rig_caps tmv7_caps =
+struct rig_caps tmv7_caps =
 {
     RIG_MODEL(RIG_MODEL_TMV7),
     .model_name = "TM-V7",

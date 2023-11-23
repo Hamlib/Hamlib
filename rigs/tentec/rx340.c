@@ -77,7 +77,7 @@ static const char *rx340_get_info(RIG *rig);
  * TODO: from/to memory, scan, get_level, ..
  * supposes non-multidrop
  */
-const struct rig_caps rx340_caps =
+struct rig_caps rx340_caps =
 {
     RIG_MODEL(RIG_MODEL_RX340),
     .model_name = "RX-340",

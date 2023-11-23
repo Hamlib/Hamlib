@@ -519,7 +519,7 @@ static int sdrsharp_get_vfo(RIG *rig, vfo_t *vfo)
     RETURNFUNC(RIG_OK);
 }
 
-const struct rig_caps sdrsharp_caps =
+struct rig_caps sdrsharp_caps =
 {
     RIG_MODEL(RIG_MODEL_SDRSHARP),
     .model_name = "SDR#/gpredict",

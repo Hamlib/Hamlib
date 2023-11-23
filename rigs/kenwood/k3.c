@@ -191,7 +191,7 @@ int k4_stop_morse(RIG *rig, vfo_t vfo);
  * look for K3 Programmer's Reference PDF
  *
  */
-const struct rig_caps k3_caps =
+struct rig_caps k3_caps =
 {
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
@@ -347,7 +347,7 @@ const struct rig_caps k3_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps k3s_caps =
+struct rig_caps k3s_caps =
 {
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
@@ -504,7 +504,7 @@ const struct rig_caps k3s_caps =
 };
 
 // How similar is this to the K3S?
-const struct rig_caps k4_caps =
+struct rig_caps k4_caps =
 {
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
@@ -665,7 +665,7 @@ const struct rig_caps k4_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps kx3_caps =
+struct rig_caps kx3_caps =
 {
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
@@ -820,7 +820,7 @@ const struct rig_caps kx3_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps kx2_caps =
+struct rig_caps kx2_caps =
 {
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",

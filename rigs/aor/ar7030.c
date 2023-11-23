@@ -772,7 +772,7 @@ static int ar7030_reset(RIG *rig, reset_t reset)
 
 
 
-const struct rig_caps ar7030_caps =
+struct rig_caps ar7030_caps =
 {
     RIG_MODEL(RIG_MODEL_AR7030),
     .model_name = "AR7030",

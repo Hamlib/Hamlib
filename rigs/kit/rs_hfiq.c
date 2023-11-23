@@ -355,7 +355,7 @@ static int rshfiq_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 
-const struct rig_caps rshfiq_caps =
+struct rig_caps rshfiq_caps =
 {
     RIG_MODEL(RIG_MODEL_RSHFIQ),
     .model_name =     "RS-HFIQ",

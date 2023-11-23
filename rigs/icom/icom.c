@@ -973,7 +973,7 @@ static void icom_satmode_fix(RIG *rig, int satmode)
 int
 icom_rig_open(RIG *rig)
 {
-    int retval, retval_echo;
+    int retval, retval_echo, value;
     int satmode = 0;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
@@ -1017,6 +1017,14 @@ retry_open:
 
     if (retval == RIG_OK) // then we know our echo status
     {
+        // we need to know about dual watch for later use
+        rs->dual_watch = 0;
+        retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH, &value);
+
+        if (retval == RIG_OK) {
+            rs->dual_watch = value;
+        }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: dual_watch=%d\n", __func__, rs->dual_watch);
         rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting frequency\n",
                   __func__);
         rs->rigport.retry = 0;
@@ -1120,6 +1128,7 @@ retry_open:
 #endif
 
     rs->rigport.retry = retry_save;
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -1173,6 +1182,7 @@ static int icom_set_default_vfo(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: called, curr_vfo=%s\n", __func__,
               rig_strvfo(rig->state.current_vfo));
 
+    // we need to know if dual watch is on
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN/VFOA\n",
@@ -1385,8 +1395,10 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         cmd = C_SET_FREQ;
         subcmd = -1;
 
-        if (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51)
+#if 0
+        if (rig->state.cache.ptt && (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51))
         {
+            rig_debug(RIG_DEBUG_TRACE, "%s(%d): ID55100 0x00\n", __func__, __LINE__);
             // for these rigs 0x00 is setting the freq and 0x03 is just for reading
             cmd = 0x00;
             // temporary fix for ID5100 not giving ACK/NAK on 0x00 freq on E8 firmware
@@ -1400,6 +1412,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             return RIG_OK;
         }
         else
+#endif
         {
             retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                                       &ack_len);

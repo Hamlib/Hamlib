@@ -1244,7 +1244,7 @@ int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  * TS-480 rig capabilities
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps ts480_caps =
+struct rig_caps ts480_caps =
 {
     RIG_MODEL(RIG_MODEL_TS480),
     .model_name = "TS-480",
@@ -1443,7 +1443,7 @@ const struct rig_caps ts480_caps =
  * QRPLabs TS-480 emulation rig capabilities
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps qrplabs_caps =
+struct rig_caps qrplabs_caps =
 {
     RIG_MODEL(RIG_MODEL_QRPLABS),
     .model_name = "QCX/QDX",
@@ -1635,7 +1635,7 @@ const struct rig_caps qrplabs_caps =
  * Hilberling PS8000A TS480 emulation
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps pt8000a_caps =
+struct rig_caps pt8000a_caps =
 {
     RIG_MODEL(RIG_MODEL_PT8000A),
     .model_name = "PT-8000A",
@@ -1806,7 +1806,7 @@ const struct rig_caps pt8000a_caps =
  * SDRPlay SDRUno rig capabilities
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps sdruno_caps =
+struct rig_caps sdruno_caps =
 {
     RIG_MODEL(RIG_MODEL_SDRUNO),
     .model_name = "SDRUno",
@@ -2079,7 +2079,7 @@ int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
  */
-const struct rig_caps malachite_caps =
+struct rig_caps malachite_caps =
 {
     RIG_MODEL(RIG_MODEL_MALACHITE),
     .model_name = "DSP",

@@ -103,7 +103,7 @@ static struct icom_priv_caps icr75_priv_caps =
     .ant_count = 2
 };
 
-const struct rig_caps icr75_caps =
+struct rig_caps icr75_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR75),
     .model_name = "IC-R75",

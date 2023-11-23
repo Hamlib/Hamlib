@@ -1392,7 +1392,7 @@ int th_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int
 th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     char tonebuf[16];
     int i;
 
@@ -1470,7 +1470,7 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 int
 th_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     char tonebuf[16];
     int i;
 
@@ -1552,7 +1552,7 @@ th_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 int
 th_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     char codebuf[16];
     int i, retval;
 

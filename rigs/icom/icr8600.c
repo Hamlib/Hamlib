@@ -128,7 +128,7 @@ static struct icom_priv_caps icr8600_priv_caps =
     .extcmds = icr8600_extcmds      /* Custom ext_cmd parameters */
 };
 
-const struct rig_caps icr8600_caps =
+struct rig_caps icr8600_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR8600),
     .model_name = "IC-R8600",

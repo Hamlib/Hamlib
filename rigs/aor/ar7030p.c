@@ -483,7 +483,7 @@ static int ar7030p_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (RIG_OK == rc)
     {
-        const struct rig_caps *caps = rig->caps;
+        struct rig_caps *caps = rig->caps;
 
         if ((caps->rx_range_list1[ 0 ].endf   > freq) &&
                 (caps->rx_range_list1[ 0 ].startf < freq))
@@ -1770,7 +1770,7 @@ static int ar7030p_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
     return (rc);
 }
 
-const struct rig_caps ar7030p_caps =
+struct rig_caps ar7030p_caps =
 {
     RIG_MODEL(RIG_MODEL_AR7030P),
     .model_name = "AR7030 Plus",

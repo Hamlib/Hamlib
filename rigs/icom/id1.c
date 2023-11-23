@@ -67,7 +67,7 @@ static struct icom_priv_caps id1_priv_caps =
     id1_ts_sc_list
 };
 
-const struct rig_caps id1_caps =
+struct rig_caps id1_caps =
 {
     RIG_MODEL(RIG_MODEL_ICID1),
     .model_name = "IC ID-1",

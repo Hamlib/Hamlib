@@ -533,7 +533,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  *
  * part of infos comes from .http = //www.kenwood.net/
  */
-const struct rig_caps ts870s_caps =
+struct rig_caps ts870s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS870S),
     .model_name = "TS-870S",

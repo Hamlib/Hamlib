@@ -43,7 +43,7 @@
  *
  */
 
-const struct rig_caps hf235_caps =
+struct rig_caps hf235_caps =
 {
     RIG_MODEL(RIG_MODEL_HF235),
     .model_name = "HF-235",

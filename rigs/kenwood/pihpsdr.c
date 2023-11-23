@@ -94,7 +94,7 @@ static struct kenwood_priv_caps  ts2000_priv_caps  =
 /*
  * PiHPSDR rig capabilities. (Emulates Kenwood TS-2000)
  */
-const struct rig_caps pihpsdr_caps =
+struct rig_caps pihpsdr_caps =
 {
     RIG_MODEL(RIG_MODEL_HPSDR),
     .model_name = "PiHPSDR",

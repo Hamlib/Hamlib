@@ -51,7 +51,7 @@ static struct icom_priv_caps icr6_priv_caps =
     .ant_count = 2
 };
 
-const struct rig_caps icr6_caps =
+struct rig_caps icr6_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR6),
     .model_name = "IC-R6",

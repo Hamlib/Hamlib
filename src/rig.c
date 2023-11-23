@@ -880,7 +880,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
  */
 int HAMLIB_API rig_open(RIG *rig)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     struct rig_state *rs;
     int status = RIG_OK;
     value_t parm_value;

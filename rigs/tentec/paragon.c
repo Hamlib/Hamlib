@@ -92,7 +92,7 @@ static int tt585_get_status_data(RIG *rig);
  * tt585 transceiver capabilities,
  * with the optional model 258 RS232 Interface board.
  */
-const struct rig_caps tt585_caps =
+struct rig_caps tt585_caps =
 {
     RIG_MODEL(RIG_MODEL_TT585),
     .model_name = "TT-585 Paragon",

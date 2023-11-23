@@ -190,7 +190,7 @@ static const struct icom_priv_caps IC7000_priv_caps =
     .r2i_mode = ic7000_r2i_mode
 };
 
-const struct rig_caps ic7000_caps =
+struct rig_caps ic7000_caps =
 {
     RIG_MODEL(RIG_MODEL_IC7000),
     .model_name = "IC-7000",

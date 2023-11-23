@@ -114,7 +114,7 @@ int ft710_ext_tokens[] =
     TOK_BACKEND_NONE
 };
 
-const struct rig_caps ft710_caps =
+struct rig_caps ft710_caps =
 {
     RIG_MODEL(RIG_MODEL_FT710),
     .model_name =         "FT-710",

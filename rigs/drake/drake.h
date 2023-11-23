@@ -53,8 +53,8 @@ int drake_set_powerstat (RIG * rig, powerstat_t status);
 int drake_get_powerstat (RIG * rig, powerstat_t *status);
 const char *drake_get_info(RIG *rig);
 
-extern const struct rig_caps r8a_caps;
-extern const struct rig_caps r8b_caps;
+extern struct rig_caps r8a_caps;
+extern struct rig_caps r8b_caps;
 
 #endif /* _DRAKE_H */
 

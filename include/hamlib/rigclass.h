@@ -46,7 +46,7 @@ public:
 #endif
 
 
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
 
     // This method opens the communication port to the rig
     void open(void);

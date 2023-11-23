@@ -59,7 +59,7 @@ static struct icom_priv_caps omnivip_priv_caps =
     NULL    /* TODO */
 };
 
-const struct rig_caps omnivip_caps =
+struct rig_caps omnivip_caps =
 {
     RIG_MODEL(RIG_MODEL_OMNIVIP),
     .model_name = "Omni VI Plus",

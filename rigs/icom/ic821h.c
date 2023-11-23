@@ -88,7 +88,7 @@ int ic821h_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     RETURNFUNC(retval);
 }
 
-const struct rig_caps ic821h_caps =
+struct rig_caps ic821h_caps =
 {
     RIG_MODEL(RIG_MODEL_IC821H),
     .model_name = "IC-821H",

@@ -147,7 +147,7 @@ static int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width);
  *  - Dim
  */
 
-const struct rig_caps frg100_caps =
+struct rig_caps frg100_caps =
 {
     RIG_MODEL(RIG_MODEL_FRG100),
     .model_name =         "FRG-100",

@@ -383,7 +383,7 @@ static struct kenwood_priv_caps ts890s_priv_caps =
  * Copied from ts480_caps, many of the values have not been verified.
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps ts890s_caps =
+struct rig_caps ts890s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS890S),
     .model_name = "TS-890S",

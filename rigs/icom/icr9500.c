@@ -76,7 +76,7 @@ static struct icom_priv_caps icr9500_priv_caps =
 /*
  * ICR9500A rig capabilities.
  */
-const struct rig_caps icr9500_caps =
+struct rig_caps icr9500_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR9500),
     .model_name = "IC-R9500",

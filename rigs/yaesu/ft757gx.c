@@ -108,7 +108,7 @@ const struct confparams ft757gx_cfg_params[] =
  * ft757gx rig capabilities.
  * Also this struct is READONLY!
  */
-const struct rig_caps ft757gx_caps =
+struct rig_caps ft757gx_caps =
 {
     RIG_MODEL(RIG_MODEL_FT757),
     .model_name =       "FT-757GX",
@@ -225,7 +225,7 @@ const struct rig_caps ft757gx_caps =
  * ft757gx2 rig capabilities.
  * Also this struct is READONLY!
  */
-const struct rig_caps ft757gx2_caps =
+struct rig_caps ft757gx2_caps =
 {
     RIG_MODEL(RIG_MODEL_FT757GXII),
     .model_name =       "FT-757GXII",

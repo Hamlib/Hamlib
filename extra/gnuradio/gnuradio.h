@@ -61,10 +61,10 @@ int graudioiq_open(RIG *rig);
 
 extern const struct confparams gnuradio_cfg_params[];
 
-extern const struct rig_caps gr_caps;
-extern const struct rig_caps mc4020_caps;
-extern const struct rig_caps graudio_caps;
-extern const struct rig_caps graudioiq_caps;
+extern struct rig_caps gr_caps;
+extern struct rig_caps mc4020_caps;
+extern struct rig_caps graudio_caps;
+extern struct rig_caps graudioiq_caps;
 
 __END_DECLS
 

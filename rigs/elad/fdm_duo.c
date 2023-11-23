@@ -328,7 +328,7 @@ static struct elad_priv_caps fdm_duo_priv_caps =
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
  */
-const struct rig_caps fdm_duo_caps =
+struct rig_caps fdm_duo_caps =
 {
     RIG_MODEL(RIG_MODEL_ELAD_FDM_DUO),
     .model_name = "FDM-DUO",

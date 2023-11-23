@@ -237,7 +237,7 @@ int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
  * so this is just a copy of the FTDX 5000 caps.
  * It really needs to be reviewed for accuracy, but it works for WSJT-X.
  */
-const struct rig_caps ftdx3000_caps =
+struct rig_caps ftdx3000_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX3000),
     .model_name =         "FTDX-3000",

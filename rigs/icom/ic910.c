@@ -196,7 +196,7 @@ int ic910_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 }
 
-const struct rig_caps ic910_caps =
+struct rig_caps ic910_caps =
 {
     RIG_MODEL(RIG_MODEL_IC910),
     .model_name =   "IC-910",

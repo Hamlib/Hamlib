@@ -219,7 +219,7 @@ static const yaesu_cmd_set_t ncmd[] =
             { 246,  60 } /* S9+60dB */  \
 }}
 
-const struct rig_caps ft600_caps =
+struct rig_caps ft600_caps =
 {
     RIG_MODEL(RIG_MODEL_FT600),
     .model_name =     "FT-600",

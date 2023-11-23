@@ -151,7 +151,7 @@ struct si570xxxusb_priv_data
  *
  */
 
-const struct rig_caps si570avrusb_caps =
+struct rig_caps si570avrusb_caps =
 {
     RIG_MODEL(RIG_MODEL_SI570AVRUSB),
     .model_name =       "Si570 AVR-USB",
@@ -228,7 +228,7 @@ const struct rig_caps si570avrusb_caps =
  * Peaberry V1
  * http://www.ae9rb.com
  */
-const struct rig_caps si570peaberry1_caps =
+struct rig_caps si570peaberry1_caps =
 {
     RIG_MODEL(RIG_MODEL_SI570PEABERRY1),
     .model_name =       "Si570 Peaberry V1",
@@ -305,7 +305,7 @@ const struct rig_caps si570peaberry1_caps =
  * Peaberry V2
  * http://www.ae9rb.com
  */
-const struct rig_caps si570peaberry2_caps =
+struct rig_caps si570peaberry2_caps =
 {
     RIG_MODEL(RIG_MODEL_SI570PEABERRY2),
     .model_name =       "Si570 Peaberry V2",
@@ -387,7 +387,7 @@ const struct rig_caps si570peaberry2_caps =
  *
  *   http://home.kpn.nl/rw.engberts/sdr_kth.htm
  */
-const struct rig_caps si570picusb_caps =
+struct rig_caps si570picusb_caps =
 {
     RIG_MODEL(RIG_MODEL_SI570PICUSB),
     .model_name =       "Si570 PIC-USB",
@@ -468,7 +468,7 @@ const struct rig_caps si570picusb_caps =
  *   ( BX- 200 )
  */
 
-const struct rig_caps fasdr_caps =
+struct rig_caps fasdr_caps =
 {
     RIG_MODEL(RIG_MODEL_FASDR),
     .model_name =       "FA-SDR",

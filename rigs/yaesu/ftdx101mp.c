@@ -71,7 +71,7 @@ int ftdx101mp_ext_tokens[] =
     TOK_ROOFING_FILTER, TOK_BACKEND_NONE
 };
 
-const struct rig_caps ftdx101mp_caps =
+struct rig_caps ftdx101mp_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX101MP),
     .model_name =         "FTDX-101MP",

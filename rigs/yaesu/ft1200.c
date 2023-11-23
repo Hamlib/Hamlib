@@ -142,7 +142,7 @@ int ftdx1200_ext_tokens[] =
 /*
  * FTDX 1200 rig capabilities
  */
-const struct rig_caps ftdx1200_caps =
+struct rig_caps ftdx1200_caps =
 {
     RIG_MODEL(RIG_MODEL_FTDX1200),
     .model_name =         "FTDX-1200",

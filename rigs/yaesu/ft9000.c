@@ -41,7 +41,7 @@
  *
  */
 
-const struct rig_caps ft9000_caps =
+struct rig_caps ft9000_caps =
 {
     RIG_MODEL(RIG_MODEL_FT9000),
     .model_name =         "FTDX-9000",
@@ -217,7 +217,7 @@ const struct rig_caps ft9000_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps ft9000Old_caps =
+struct rig_caps ft9000Old_caps =
 {
     RIG_MODEL(RIG_MODEL_FT9000OLD),
     .model_name =         "FTDX-9000 Old",

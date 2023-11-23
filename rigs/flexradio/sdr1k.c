@@ -110,7 +110,7 @@ struct sdr1k_priv_data
  *    What about IOUD_Clock?
  */
 
-const struct rig_caps sdr1k_rig_caps =
+struct rig_caps sdr1k_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SDR1000),
     .model_name =     "SDR-1000",

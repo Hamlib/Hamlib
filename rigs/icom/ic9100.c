@@ -104,7 +104,7 @@ static const struct icom_priv_caps ic9100_priv_caps =
     .extcmds = ic9100_extcmds,
 };
 
-const struct rig_caps ic9100_caps =
+struct rig_caps ic9100_caps =
 {
     RIG_MODEL(RIG_MODEL_IC9100),
     .model_name = "IC-9100",

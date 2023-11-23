@@ -553,7 +553,7 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf,
  * http://www.b-kainka.de/sdrusb.html
  */
 
-const struct rig_caps elektor507_caps =
+struct rig_caps elektor507_caps =
 {
     RIG_MODEL(RIG_MODEL_ELEKTOR507),
     .model_name =       "Elektor SDR-USB",

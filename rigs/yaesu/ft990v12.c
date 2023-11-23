@@ -249,7 +249,7 @@ struct ft990v12_priv_data
 
 // Old FT990 ROM has to read all 1492 to get frequency
 // So for this model we just use the cache to read freq
-const struct rig_caps ft990uni_caps =
+struct rig_caps ft990uni_caps =
 {
     RIG_MODEL(RIG_MODEL_FT990UNI),
     .model_name =         "FT-990 Old Rom",

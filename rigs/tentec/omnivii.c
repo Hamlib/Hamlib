@@ -119,7 +119,7 @@ static int tt588_set_ant(RIG *rig, vfo_t vfo, ant_t ant);
  *
  * Protocol is documented at the tentec site
  */
-const struct rig_caps tt588_caps =
+struct rig_caps tt588_caps =
 {
     RIG_MODEL(RIG_MODEL_TT588),
     .model_name = "TT-588 Omni VII",

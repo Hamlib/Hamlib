@@ -161,7 +161,7 @@ static struct
 //! @cond Doxygen_Suppress
 struct rig_list
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     struct rig_list *next;
 };
 //! @endcond
@@ -189,7 +189,7 @@ static int rig_lookup_backend(rig_model_t rig_model);
  * Basically, this is a hash insert function that doesn't check for dup!
  */
 //! @cond Doxygen_Suppress
-int HAMLIB_API rig_register(const struct rig_caps *caps)
+int HAMLIB_API rig_register(struct rig_caps *caps)
 {
     int hval;
     struct rig_list *p;
@@ -239,7 +239,7 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
  */
 
 //! @cond Doxygen_Suppress
-const struct rig_caps *HAMLIB_API rig_get_caps(rig_model_t rig_model)
+struct rig_caps *HAMLIB_API rig_get_caps(rig_model_t rig_model)
 {
     struct rig_list *p;
 
@@ -389,7 +389,7 @@ int HAMLIB_API rig_unregister(rig_model_t rig_model)
  * executes cfunc on all the elements stored in the rig hash list
  */
 //! @cond Doxygen_Suppress
-int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
+int HAMLIB_API rig_list_foreach(int (*cfunc)(struct rig_caps *,
                                 rig_ptr_t),
                                 rig_ptr_t data)
 {

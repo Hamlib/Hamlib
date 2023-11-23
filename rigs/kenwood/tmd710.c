@@ -250,7 +250,7 @@ const struct confparams tmd710_ext_levels[] =
     { RIG_CONF_END, NULL, }
 };
 
-const struct rig_caps tmd710_caps =
+struct rig_caps tmd710_caps =
 {
     .rig_model =  RIG_MODEL_TMD710,
     .model_name = "TM-D710(G)",
@@ -408,7 +408,7 @@ const struct rig_caps tmd710_caps =
     .decode_event =  th_decode_event,
 };
 
-const struct rig_caps tmv71_caps =
+struct rig_caps tmv71_caps =
 {
     RIG_MODEL(RIG_MODEL_TMV71),
     .model_name = "TM-V71(A)",
@@ -1367,7 +1367,7 @@ int tmd710_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     tmd710_fo fo_struct;
     int retval;
 
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     caps = rig->caps;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
@@ -1421,7 +1421,7 @@ int tmd710_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
     tmd710_fo fo_struct;
     int retval;
 
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     caps = rig->caps;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);

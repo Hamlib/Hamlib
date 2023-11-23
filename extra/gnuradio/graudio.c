@@ -52,7 +52,7 @@ static const struct gnuradio_priv_caps graudio_priv_caps =
 };
 
 
-const struct rig_caps graudio_caps =
+struct rig_caps graudio_caps =
 {
     .rig_model =      RIG_MODEL_GRAUDIO,
     .model_name =     "GNU Radio GrAudio",
@@ -126,7 +126,7 @@ const struct rig_caps graudio_caps =
     .vfo_op =   gnuradio_vfo_op,
 };
 
-const struct rig_caps graudioiq_caps =
+struct rig_caps graudioiq_caps =
 {
     .rig_model =      RIG_MODEL_GRAUDIOIQ,
     .model_name =     "GNU Radio GrAudio I&Q",

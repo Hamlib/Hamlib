@@ -2011,11 +2011,11 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
     if (rig->caps->rig_model == RIG_MODEL_ID5100
         || rig->caps->rig_model == RIG_MODEL_IC9700)
     {
+        struct rig_state *rs = &rig->state;
         // dualwatch on ID5100 is TX=Main, RX=Sub
-        struct icom_priv_data *icom_priv = (struct icom_priv_data *)rig->caps->priv;
-        if (rig->caps->rig_model == RIG_MODEL_ID5100 && icom_priv->dual_watch)
+        if (rig->caps->rig_model == RIG_MODEL_ID5100 && rs->dual_watch)
         {
-            if (vfo == RIG_VFO_TX) return RIG_VFO_MAIN;
+            if (vfo == RIG_VFO_TX || vfo == RIG_VFO_MAIN) return RIG_VFO_MAIN;
             return RIG_VFO_SUB;
         }
         return vfo; // no change to requested vfo

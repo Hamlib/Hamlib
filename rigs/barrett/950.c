@@ -66,7 +66,7 @@ static struct chan_map_s chan_map[] =
     { 28.0, 30.0, 9}
 };
 
-const struct rig_caps barrett950_caps =
+struct rig_caps barrett950_caps =
 {
     RIG_MODEL(RIG_MODEL_BARRETT_950),
     .model_name =       "950",

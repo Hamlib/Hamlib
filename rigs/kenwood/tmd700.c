@@ -88,7 +88,7 @@ static struct kenwood_priv_caps  tmd700_priv_caps  =
  * specs: http://www.geocities.jp/hkwatarin/TM-D700/English/spec.htm
  * protocol: http://www.qsl.net/k/k7jar//pages/D700Cmds.html
  */
-const struct rig_caps tmd700_caps =
+struct rig_caps tmd700_caps =
 {
     RIG_MODEL(RIG_MODEL_TMD700),
     .model_name = "TM-D700",

@@ -1567,7 +1567,7 @@ static struct kenwood_priv_caps ts590_priv_caps =
 /**
  * TS-590 rig capabilities
  */
-const struct rig_caps ts590_caps =
+struct rig_caps ts590_caps =
 {
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
@@ -1765,7 +1765,7 @@ const struct rig_caps ts590_caps =
  * Supposed to be 590S compatible
  * Separate entry allows for customization
  */
-const struct rig_caps fx4_caps =
+struct rig_caps fx4_caps =
 {
     RIG_MODEL(RIG_MODEL_FX4),
     .model_name = "FX4/C/CR/L",
@@ -1959,7 +1959,7 @@ const struct rig_caps fx4_caps =
 /**
  * TS-590SG rig capabilities
  */
-const struct rig_caps ts590sg_caps =
+struct rig_caps ts590sg_caps =
 {
     RIG_MODEL(RIG_MODEL_TS590SG),
     .model_name = "TS-590SG",

@@ -49,7 +49,7 @@ static int frg8800_set_powerstat(RIG *rig, powerstat_t status);
  *
  */
 
-const struct rig_caps frg8800_caps =
+struct rig_caps frg8800_caps =
 {
     RIG_MODEL(RIG_MODEL_FRG8800),
     .model_name =         "FRG-8800",

@@ -132,7 +132,7 @@ static const struct confparams tci1x_ext_parms[] =
     { RIG_CONF_END, NULL, }
 };
 
-const struct rig_caps tci1x_caps =
+struct rig_caps tci1x_caps =
 {
     RIG_MODEL(RIG_MODEL_TCI1X),
     .model_name = "TCI1.X",

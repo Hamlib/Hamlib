@@ -59,7 +59,7 @@ static const struct icom_priv_caps ic2730_priv_caps =
     1,      /* no XCHG */
 };
 
-const struct rig_caps ic2730_caps =
+struct rig_caps ic2730_caps =
 {
     RIG_MODEL(RIG_MODEL_IC2730),
     .model_name = "IC-2730",

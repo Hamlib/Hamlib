@@ -689,7 +689,7 @@ static const struct icom_priv_caps IC905_priv_caps =
     .extcmds = ic705_extcmds,     /* Custom parameters */
 };
 
-const struct rig_caps ic7300_caps =
+struct rig_caps ic7300_caps =
 {
     RIG_MODEL(RIG_MODEL_IC7300),
     .model_name = "IC-7300",
@@ -1262,7 +1262,7 @@ struct rig_caps ic9700_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps ic705_caps =
+struct rig_caps ic705_caps =
 {
     RIG_MODEL(RIG_MODEL_IC705),
     .model_name = "IC-705",
@@ -1537,7 +1537,7 @@ const struct rig_caps ic705_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps ic905_caps =
+struct rig_caps ic905_caps =
 {
     RIG_MODEL(RIG_MODEL_IC905),
     .model_name = "IC-905",

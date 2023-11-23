@@ -2782,6 +2782,7 @@ struct rig_state {
     void *multicast_receiver_priv_data;
     rig_comm_status_t comm_status; /*!< Detailed rig control status */
     char device_id[HAMLIB_RIGNAMSIZ];
+    int dual_watch; /*!< Boolean DUAL_WATCH status */
 };
 
 /**
@@ -3595,7 +3596,7 @@ rig_set_uplink HAMLIB_PARAMS((RIG *rig,
 extern HAMLIB_EXPORT(const char *)
 rig_get_info HAMLIB_PARAMS((RIG *rig));
 
-extern HAMLIB_EXPORT(const struct rig_caps *)
+extern HAMLIB_EXPORT(struct rig_caps *)
 rig_get_caps HAMLIB_PARAMS((rig_model_t rig_model));
 
 extern HAMLIB_EXPORT(const freq_range_t *)
@@ -3676,13 +3677,13 @@ extern HAMLIB_EXPORT(FILE *)
 rig_set_debug_file HAMLIB_PARAMS((FILE *stream));
 
 extern HAMLIB_EXPORT(int)
-rig_register HAMLIB_PARAMS((const struct rig_caps *caps));
+rig_register HAMLIB_PARAMS((struct rig_caps *caps));
 
 extern HAMLIB_EXPORT(int)
 rig_unregister HAMLIB_PARAMS((rig_model_t rig_model));
 
 extern HAMLIB_EXPORT(int)
-rig_list_foreach HAMLIB_PARAMS((int (*cfunc)(const struct rig_caps *, rig_ptr_t),
+rig_list_foreach HAMLIB_PARAMS((int (*cfunc)(struct rig_caps *, rig_ptr_t),
                                 rig_ptr_t data));
 
 extern HAMLIB_EXPORT(int)
