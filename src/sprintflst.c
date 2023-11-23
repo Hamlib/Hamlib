@@ -896,6 +896,11 @@ int print_ext_param(const struct confparams *cfp, rig_ptr_t ptr)
                 cfp->u.n.step);
         break;
 
+    case RIG_CONF_INT:
+        fprintf((FILE *)ptr, "\t\tRange: %d..%d/%d\n", (int) cfp->u.n.min, (int) cfp->u.n.max,
+                (int) cfp->u.n.step);
+        break;
+
     case RIG_CONF_COMBO:
         fprintf((FILE *)ptr, "\t\tValues:");
 
