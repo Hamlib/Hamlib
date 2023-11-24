@@ -120,7 +120,7 @@ static int ft1000d_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft1000d_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
                             pbwidth_t *width);
 static int ft1000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
-                            pbwidth_t *width);
+                           pbwidth_t *width);
 static int ft1000d_set_vfo(RIG *rig, vfo_t vfo);
 static int ft1000d_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft1000_get_vfo(RIG *rig, vfo_t *vfo);
@@ -4116,15 +4116,28 @@ static int ft1000d_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 static int ft1000_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     if (vfo == RIG_VFO_A)
-    *freq = rig->state.cache.freqMainA;
+    {
+        *freq = rig->state.cache.freqMainA;
+    }
     else
-    *freq = rig->state.cache.freqMainB;
+    {
+        *freq = rig->state.cache.freqMainB;
+    }
+
     return RIG_OK;
 }
 
 static int ft1000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    *mode = rig->state.cache.modeMainA;
+    if (vfo == RIG_VFO_A)
+    {
+        *mode = rig->state.cache.modeMainA;
+    }
+    else
+    {
+        *mode = rig->state.cache.modeMainB;
+    }
+
     return RIG_OK;
 }
 
