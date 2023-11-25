@@ -69,7 +69,7 @@ frameGet(int fd, unsigned char *buf)
         }
     }
 
-    printf("Error???\n");
+    printf("Error %s\n", strerror(errno));
 
     return 0;
 }
