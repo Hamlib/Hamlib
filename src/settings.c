@@ -1030,7 +1030,12 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
 
     const char *xdgpath = getenv("XDG_CONFIG_HOME");
     char *home = getenv("HOME");
-    if (home == NULL) home = "?HOME";
+    if (home == NULL) {
+        home = getenv("HOMEPATH");
+    }
+    if (home == NULL) {
+        home = "?HOME";
+    }
     snprintf(path, pathlen, "%s/.config", home);
 
     if (xdgpath)
