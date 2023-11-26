@@ -1046,7 +1046,7 @@ int is_wireless_linux(const char *ifname)
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
     struct iwreq pwrq;
     memset(&pwrq, 0, sizeof(pwrq));
-    strncpy(pwrq.ifr_name, ifname, IFNAMSIZ);
+    strncpy(pwrq.ifr_name, ifname, IFNAMSIZ-1);
 
     if (ioctl(sock, SIOCGIWNAME, &pwrq) != -1)
     {
