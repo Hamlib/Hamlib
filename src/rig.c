@@ -2389,7 +2389,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-#if 0 // this seems redundant as we ask for freq a few lines below
+#if 1 // this seems redundant as we ask for freq a few lines below
         HAMLIB_TRACE;
         retcode = caps->get_freq(rig, vfo, freq);
 
