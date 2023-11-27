@@ -227,7 +227,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
         if (fd == -1) // some serial ports fail to open 1st time for some unknown reason
         {
-            rig_debug(RIG_DEBUG_WARN, "%s(%d): open failed#%d\n", __func__, __LINE__, i);
+            rig_debug(RIG_DEBUG_WARN, "%s(%d): open failed#%d %s\n", __func__, __LINE__, i, strerror(errno));
             hl_usleep(500 * 1000);
             fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
         }
