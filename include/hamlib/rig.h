@@ -24,6 +24,10 @@
 #ifndef _RIG_H
 #define _RIG_H 1
 
+// as of 2023-11-23 rig_caps is no longer constant
+// this #define allows clients to test which declaration to use for backwards compatibility
+#define RIGCAPS_NOT_CONST 1
+
 #define BUILTINFUNC 0
 
 // Our shared secret password 
