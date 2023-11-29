@@ -42,6 +42,7 @@
 #include <errno.h>   /* Error number definitions */
 #include <sys/types.h>
 #include <signal.h>
+#include <execinfo.h>
 #include <pthread.h>
 
 #ifdef HAVE_NETINET_IN_H
@@ -686,7 +687,10 @@ static int multicast_publisher_read_data(const multicast_publisher_args
     if (FD_ISSET(fd, &efds))
     {
         rig_debug(RIG_DEBUG_ERR,
-                  "%s(): fd error when reading multicast publisher data\n", __func__);
+                  "%s(): fd error when reading multicast publisher data: %s\n",
+                  __func__,
+                  strerror(errno));
+
         return -RIG_EIO;
     }
 
@@ -1087,7 +1091,6 @@ int is_wireless()
 #endif
 #endif
 
-
 void *multicast_receiver(void *arg)
 {
     char data[4096];
@@ -1173,38 +1176,50 @@ void *multicast_receiver(void *arg)
         struct sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
         fd_set rfds, efds;
-        struct timeval timeout;
+        sigset_t sigfds;
+        struct timespec timeout;
         int select_result;
         ssize_t result;
 
         timeout.tv_sec = 1;
-        timeout.tv_usec = 0;
-
+        timeout.tv_nsec = 0;
         FD_ZERO(&rfds);
         FD_SET(socket_fd, &rfds);
         efds = rfds;
+        sigfillset(&sigfds);
 
-        select_result = select(socket_fd + 1, &rfds, NULL, &efds, &timeout);
+        select_result = pselect(socket_fd + 1, &rfds, NULL, &efds, &timeout, &sigfds);
+
+        if (rs->multicast_receiver_run == 0 && sigismember(&sigfds, SIGINT))
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): pselect signal\n", __func__, __LINE__);
+            break;
+        }
+
         if (select_result == 0)
         {
             // Select timed out
+            rig_debug(RIG_DEBUG_ERR, "%s: select timeout\n", __FILE__);
+//            char *p = NULL;
+//            *p = 0;
             continue;
         }
 
-        if (select_result < 0)
+        if (select_result <= 0)
         {
             rig_debug(RIG_DEBUG_ERR,
-                    "%s(): select() failed when reading UDP multicast socket data: %s\n",
+                    "%s((%d): select() failed when reading UDP multicast socket data: %s\n",
                     __func__,
+                    __LINE__,
                     strerror(errno));
 
             break;
         }
 
-        if (FD_ISSET(socket_fd, &efds))
+        if ((result = FD_ISSET(socket_fd, &efds)))
         {
             rig_debug(RIG_DEBUG_ERR,
-                    "%s(): fd error when reading UDP multicast socket data\n", __func__);
+                    "%s(%d): fd error when reading UDP multicast socket data: (%d)=%s\n", __func__, __LINE__, (int)result, strerror(errno));
             break;
         }
 
@@ -1230,6 +1245,7 @@ void *multicast_receiver(void *arg)
         // TODO: if a new snapshot needs to be sent, call network_publish_rig_poll_data() and the publisher routine will send out a snapshot
         // TODO: new logic in publisher needs to be written for other types of responses
     }
+    rs->multicast_receiver_run = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping multicast receiver\n", __FILE__,
             __LINE__);
