@@ -42,7 +42,6 @@
 #include <errno.h>   /* Error number definitions */
 #include <sys/types.h>
 #include <signal.h>
-#include <execinfo.h>
 #include <pthread.h>
 
 #ifdef HAVE_NETINET_IN_H
