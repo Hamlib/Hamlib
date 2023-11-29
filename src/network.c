@@ -1196,9 +1196,7 @@ void *multicast_receiver(void *arg)
         if (select_result == 0)
         {
             // Select timed out
-            rig_debug(RIG_DEBUG_ERR, "%s: select timeout\n", __FILE__);
-//            char *p = NULL;
-//            *p = 0;
+//            rig_debug(RIG_DEBUG_ERR, "%s: select timeout\n", __FILE__);
             continue;
         }
 
