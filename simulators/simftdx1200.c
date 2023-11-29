@@ -65,6 +65,7 @@ getmyline(int fd, char *buf)
 
         if (c == ';') { return strlen(buf); }
     }
+    if (strlen(buf)==0) hl_usleep(10*1000);
 
     return strlen(buf);
 }

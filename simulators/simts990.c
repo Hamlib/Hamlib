@@ -92,6 +92,7 @@ getmyline(int fd, char *buf)
         close(fd);
         fd = openPort("");
     }
+    if (strlen(buf)==0) hl_usleep(10*1000);
 
     return strlen(buf);
 }
