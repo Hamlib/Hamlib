@@ -1175,21 +1175,19 @@ void *multicast_receiver(void *arg)
         struct sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
         fd_set rfds, efds;
-        sigset_t sigfds;
-        struct timespec timeout;
+        struct timeval timeout;
         int select_result;
         ssize_t result;
 
         timeout.tv_sec = 1;
-        timeout.tv_nsec = 0;
+        timeout.tv_usec = 0;
         FD_ZERO(&rfds);
         FD_SET(socket_fd, &rfds);
         efds = rfds;
-        sigfillset(&sigfds);
 
-        select_result = pselect(socket_fd + 1, &rfds, NULL, &efds, &timeout, &sigfds);
+        select_result = select(socket_fd + 1, &rfds, NULL, &efds, &timeout);
 
-        if (rs->multicast_receiver_run == 0 && sigismember(&sigfds, SIGINT))
+        if (rs->multicast_receiver_run == 0)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): pselect signal\n", __func__, __LINE__);
             break;
