@@ -950,6 +950,7 @@ static vfo_t icom_current_vfo(RIG *rig)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: currVFO=%s\n", __func__, rig_strvfo(currVFO));
+    if (rig->state.current_vfo != RIG_VFO_NONE) currVFO = rig->state.current_vfo;
     return currVFO;
 }
 
@@ -2211,9 +2212,9 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     buf[1] = datamode;
     // filter fixed to filter 1 due to IC7300 bug defaulting to filter 2 on mode changed -- yuck!!
     // buf[2] = filter // if Icom ever fixed this
-    buf[2] = 1;
+    // buf[2] = 1; // let's skip the filter selection
 
-    retval = icom_transaction(rig, cmd2, subcmd2, buf, 3, ackbuf, &ack_len);
+    retval = icom_transaction(rig, cmd2, subcmd2, buf, 2, ackbuf, &ack_len);
 
     if (retval != RIG_OK)
     {
