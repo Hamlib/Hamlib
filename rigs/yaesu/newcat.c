@@ -4046,13 +4046,19 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         if ( is_ftdx3000dm )    /* No separate rig->caps for this rig :-( */
-	  {
-	    fpf = (int)((val.f * 50.0f) + 0.5f);
-	  }
-	else
-	  {
-	    fpf = (int)((val.f / level_info->step.f) + 0.5f );
-	  }
+	    {
+	      fpf = (int)((val.f * 50.0f) + 0.5f);
+	    }
+        else if (is_ftdx101mp)
+        {
+	      fpf = (int)((val.f / level_info->step.f) + 0.5f ) * 2;
+          if (fpf > 200) fpf = 200;
+        }
+
+	    else
+	    {
+	      fpf = (int)((val.f / level_info->step.f) + 0.5f );
+	    }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC%03d%c", fpf, cat_term);
         break;
@@ -5634,6 +5640,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER:
     case RIG_LEVEL_MONITOR_GAIN:
         val->f = (float)atoi(retlvl) * level_info->step.f;
+        if (is_ftdx101mp) val->f /= 2;
         break;
 
     case RIG_LEVEL_BKINDL:
