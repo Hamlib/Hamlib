@@ -104,7 +104,7 @@ struct rig_caps ftdx101mp_caps =
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
         [LVL_MONITOR_GAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
-        [LVL_RFPOWER] = { .min = { .f = .05 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
+        [LVL_RFPOWER] = { .min = { .f = .025 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/200.0f } },
         [LVL_USB_AF] = { .min = { .f = .0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
         [LVL_USB_AF_INPUT] = { .min = { .f = .0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/100.0f } },
     },
