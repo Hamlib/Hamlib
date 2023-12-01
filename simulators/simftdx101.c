@@ -332,13 +332,13 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "EX010415;") == 0)
         {
-            sprintf(buf,"EX010415%03d;", rport_gain);
+            sprintf(buf,"EX010415%03d;", rport_gain_psk);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "EX010415", 8) == 0)
         {
             printf("Here#1");
-            sscanf(buf,"EX010415%d", &rport_gain);
+            sscanf(buf,"EX010415%d", &rport_gain_psk);
         }
 
         else if (strlen(buf) > 0)
