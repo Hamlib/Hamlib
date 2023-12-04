@@ -268,7 +268,15 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         }
 
         rs->rigport.post_write_delay = val_i;
-        rs->rigport_deprecated.timeout = val_i;
+        rs->rigport_deprecated.post_write_delay = val_i;
+        break;
+
+    case TOK_POST_PTT_DELAY:
+        if (1 != sscanf(val, "%ld", &val_i))
+        {
+	  return -RIG_EINVAL;
+        }
+        rs->post_ptt_delay = val_i;
         break;
 
     case TOK_TIMEOUT:
@@ -841,7 +849,7 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
         break;
 
     case TOK_POST_PTT_DELAY:
-        SNPRINTF(val, val_len, "%d", rs->rigport.post_ptt_delay);
+        SNPRINTF(val, val_len, "%d", rs->post_ptt_delay);
         break;
 
     case TOK_TIMEOUT:
