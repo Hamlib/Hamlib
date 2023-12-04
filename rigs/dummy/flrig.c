@@ -143,7 +143,7 @@ struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20231113.0",
+    .version = "20231204.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1209,6 +1209,9 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     *freq = atof(value);
 
+
+#if 0 // zero is actually valid for PowerSDR
+
     if (*freq == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\nvalue=%s\n", __func__,
@@ -1216,6 +1219,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         RETURNFUNC(-RIG_EPROTO);
     }
     else
+#endif
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
     }
