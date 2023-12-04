@@ -3562,7 +3562,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     memcpy(&rig->state.pttport_deprecated, &rig->state.pttport,
            sizeof(rig->state.pttport_deprecated));
-    if (rig->state.rigport.post_ptt_delay > 0) hl_usleep(rig->state.rigport.post_ptt_delay*1000);
+    if (rig->state.post_ptt_delay > 0) hl_usleep(rig->state.post_ptt_delay*1000);
     ELAPSED2;
 
     RETURNFUNC(retcode);
