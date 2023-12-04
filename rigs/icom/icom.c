@@ -2212,7 +2212,7 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     buf[1] = datamode;
     // filter fixed to filter 1 due to IC7300 bug defaulting to filter 2 on mode changed -- yuck!!
     // buf[2] = filter // if Icom ever fixed this
-    // buf[2] = 1; // let's skip the filter selection
+    // buf[2] = 1; // let's skip the filter selection Tested on 7300 and 9700
 
     retval = icom_transaction(rig, cmd2, subcmd2, buf, 2, ackbuf, &ack_len);
 
