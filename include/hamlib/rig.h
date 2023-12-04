@@ -2388,7 +2388,7 @@ typedef struct hamlib_port {
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
 #endif
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to disable */
-    int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
+// DO NOT ADD ANYTHING HERE UNTIL 5.0!!
 } hamlib_port_t;
 
  
@@ -2787,6 +2787,8 @@ struct rig_state {
     rig_comm_status_t comm_status; /*!< Detailed rig control status */
     char device_id[HAMLIB_RIGNAMSIZ];
     int dual_watch; /*!< Boolean DUAL_WATCH status */
+    int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
+// New rig_state items go before this line ============================================
 };
 
 /**
@@ -2799,7 +2801,7 @@ struct rig_state {
  * It is NOT fine to touch this struct AT ALL!!!
  */
 struct rig_state_deprecated {
-    /********* ENSURE YOU DO NOT EVERY MODIFY THIS STRUCTURE *********/
+    /********* ENSURE YOU DO NOT EVER MODIFY THIS STRUCTURE *********/
     /********* It will remain forever to provide DLL backwards compatiblity ******/
     /*
      * overridable fields
