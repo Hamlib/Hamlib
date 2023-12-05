@@ -893,6 +893,7 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
     {
         if ((long)freq == freq_60m[i]) { channel = i; }
     }
+    if ((long)freq == 5357000) channel = 3; // 60M channel for FT8
 
     if (channel < 0)
     {
