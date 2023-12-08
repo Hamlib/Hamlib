@@ -215,6 +215,10 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         elapsed_ms(&rig->state.cache.time_freqMem, flag);
         break;
 
+    case RIG_VFO_OTHER:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): ignoring VFO_OTHER\n", __func__, __LINE__);
+        break;
+            
     default:
         rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown vfo?, vfo=%s\n", __func__, __LINE__,
                   rig_strvfo(vfo));
