@@ -326,6 +326,10 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
             vfo = RIG_VFO_SUB_A;
             break;
 
+        case RIG_VFO_NONE:
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): ignoring VFO_OTHER\n", __func__, __LINE__);
+            break;
+
         default:
             rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown vfo=%s, curr_vfo=%s\n", __func__, __LINE__,
                       rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
