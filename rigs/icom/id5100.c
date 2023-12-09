@@ -133,7 +133,7 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
     {
         myvfo = S_SUB;
         priv->dual_watch_main_sub = MAIN_ON_RIGHT;
-        rig->state.current_vfo = RIG_VFO_B;
+        rig->state.current_vfo = vfo;
     }
 
     if (RIG_OK != (retval = icom_transaction(rig, C_SET_VFO, myvfo, NULL, 0, ackbuf,
@@ -215,10 +215,7 @@ int id5100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     vfo_t currvfo = rig->state.current_vfo;
 
-    // we automatically dual_watchy based on requested VFO
-    if (rs->dual_watch == 0 && (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB)) { id5100_set_split_vfo(rig, RIG_VFO_SUB, 1, RIG_VFO_MAIN); }
-
-    if (rs->dual_watch == 1 && (vfo == RIG_VFO_A || vfo == RIG_VFO_B)) { id5100_set_split_vfo(rig, RIG_VFO_A, 0, RIG_VFO_A); }
+    if (rs->dual_watch == 1 && rig->state.current_vfo != RIG_VFO_SUB) { id5100_set_split_vfo(rig, RIG_VFO_SUB, 0, RIG_VFO_MAIN); }
 
     if (rs->dual_watch) // dual watch is different
     {
@@ -249,7 +246,7 @@ int id5100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Sub on left\n", __func__, __LINE__);
 
-            if (currvfo == RIG_VFO_B && (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB))
+            if ((currvfo == RIG_VFO_B || currvfo == RIG_VFO_SUB) && (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB))
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Method#3\n", __func__);
                 id5100_set_vfo(rig, RIG_VFO_MAIN);
@@ -430,7 +427,13 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    if (rs->dual_watch == 0)
+    if (tx_vfo != RIG_VFO_MAIN)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s Split VFO must be Main\n", __func__);
+        return -RIG_EINVAL;
+    }
+
+    if (rs->dual_watch == 0 || split == RIG_SPLIT_OFF)
     {
         if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
                                               split)))
@@ -440,7 +443,7 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
         rs->dual_watch = split;
 
-        if (split == 0) { rig_set_vfo(rig, RIG_VFO_A); }
+//        if (split == RIG_SPLIT_OFF) { rig_set_vfo(rig, RIG_VFO_A); }
 
         return RIG_OK;
     }
@@ -449,20 +452,10 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     // ID5100 puts tx on Main and rx on Left side
     // So we put Main on right side to match gpredict positions
-    if (tx_vfo == RIG_VFO_A || tx_vfo == RIG_VFO_MAIN)
-    {
-        // we must set RX vfo to SUB
-        retval = id5100_set_vfo(rig, RIG_VFO_SUB);
-        rs->current_vfo = RIG_VFO_SUB;
-        priv->dual_watch_main_sub = MAIN_ON_RIGHT;
-    }
-    else
-    {
-        rig_debug(RIG_DEBUG_ERR,
-                  "%s: ID5100 split must have Tx=Main=Tx, Rx=Sub, got Tx=%s, Rx=%s\n", __func__,
-                  rig_strvfo(tx_vfo), rig_strvfo(vfo));
-        retval = -RIG_EINVAL;
-    }
+    // we must set RX vfo to SUB
+    retval = id5100_set_vfo(rig, RIG_VFO_SUB);
+    rs->current_vfo = RIG_VFO_SUB;
+    priv->dual_watch_main_sub = MAIN_ON_RIGHT;
 
     return retval;
 }
@@ -492,14 +485,14 @@ int id5100_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 int id5100_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     int retval;
-    struct rig_state *rs = &rig->state;
-    struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
-    vfo_t currvfo;
+    //struct rig_state *rs = &rig->state;
+    //struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
+    //vfo_t currvfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): vfo=%s\n", __func__, __LINE__,
               rig_strvfo(vfo));
-    currvfo = rig->state.current_vfo;
 #if 0
+    currvfo = rig->state.current_vfo;
 
     if (priv->dual_watch_main_sub == MAIN_ON_LEFT && (currvfo == RIG_VFO_MAIN
             || currvfo == RIG_VFO_A) && vfo == RIG_VFO_TX)
@@ -534,9 +527,9 @@ struct rig_caps id5100_caps =
     RIG_MODEL(RIG_MODEL_ID5100),
     .model_name = "ID-5100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".8",
+    .version =  BACKEND_VER ".9",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_STABLE,
+    .status =  RIG_STATUS_BETA,
     .rig_type =  RIG_TYPE_MOBILE,
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
