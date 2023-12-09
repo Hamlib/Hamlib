@@ -572,6 +572,7 @@
 #define TOK_IPP_FUNC TOKEN_BACKEND(149)
 #define TOK_TX_INHIBIT_FUNC TOKEN_BACKEND(150)
 #define TOK_DPP_FUNC TOKEN_BACKEND(151)
+#define TOK_ICPW2_FUNC TOKEN_BACKEND(152)
 
 /*
  * icom_ext_parm table subcommand modifiers
