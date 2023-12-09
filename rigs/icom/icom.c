@@ -463,6 +463,7 @@ const struct confparams icom_ext_funcs[] =
     { TOK_IPP_FUNC, "IPP", "IP Plus", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_TX_INHIBIT_FUNC, "TX_INHIBIT", "TX Inhibit", "", "", RIG_CONF_CHECKBUTTON, {} },
     { TOK_DPP_FUNC, "DPP", "Digital Pre Distortion-SEL enable", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_ICPW2_FUNC, "ICPW2", "Icom PW2 enable", "", "", RIG_CONF_CHECKBUTTON, {} },
     { RIG_CONF_END, NULL, }
 };
 
@@ -525,6 +526,7 @@ const struct cmdparams icom_ext_cmd[] =
     { {.t = TOK_IPP_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_FUNC, S_FUNC_IPP, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
     { {.t = TOK_TX_INHIBIT_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_FUNC, S_FUNC_TX_INHIBIT, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
     { {.t = TOK_DPP_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_FUNC, S_FUNC_DPP, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t = TOK_ICPW2_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_MEM, 0x05, SC_MOD_RW, 2, {0x03, 0x10}, CMD_DAT_BOL, 1 },
     { {0} }
 };
 
