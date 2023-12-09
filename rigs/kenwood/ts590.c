@@ -44,7 +44,7 @@
 
 #define TS590_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
-    RIG_LEVEL_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_USB_AF|RIG_LEVEL_USB_AF_INPUT)
+    RIG_LEVEL_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_USB_AF|RIG_LEVEL_USB_AF_INPUT)
 
 #define TS590_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT| \
     RIG_FUNC_TUNER|RIG_FUNC_MON|RIG_FUNC_FBKIN|RIG_FUNC_LOCK)
@@ -894,6 +894,7 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     case RIG_LEVEL_RFPOWER_METER:
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
         int raw_value;
 
@@ -913,6 +914,8 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         sscanf(ackbuf, "SM0%d", &raw_value);
 
         val->f = (float) raw_value / 30.0f;
+        if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
+            val->f *= 100;
         break;
     }
 
@@ -1572,7 +1575,7 @@ struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".10",
+    .version = BACKEND_VER ".11",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1964,7 +1967,7 @@ struct rig_caps ts590sg_caps =
     RIG_MODEL(RIG_MODEL_TS590SG),
     .model_name = "TS-590SG",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".7",
+    .version = BACKEND_VER ".8",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
