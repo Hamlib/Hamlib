@@ -469,6 +469,7 @@ extern void sync_callback(int lock);
 //! @cond Doxygen_Suppress
 
 #define MULTICAST_DATA_PIPE_TIMEOUT_MILLIS 1000
+#define MULTICAST_DATA_PIPE_TIMEOUT_USEC 100000
 
 #if defined(WIN32) && defined(HAVE_WINDOWS_H)
 
@@ -535,7 +536,7 @@ static int multicast_publisher_read_data(multicast_publisher_args
     ssize_t result;
 
     result = async_pipe_wait_for_data(mcast_publisher_args->data_pipe,
-                                      MULTICAST_DATA_PIPE_TIMEOUT_MILLIS);
+                                      MULTICAST_DATA_PIPE_TIMEOUT_USEC);
 
     if (result < 0)
     {
@@ -659,8 +660,8 @@ static int multicast_publisher_read_data(const multicast_publisher_args
     ssize_t result;
     int retval;
 
-    timeout.tv_sec = MULTICAST_DATA_PIPE_TIMEOUT_MILLIS / 1000;
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = MULTICAST_DATA_PIPE_TIMEOUT_USEC;
 
     FD_ZERO(&rfds);
     FD_SET(fd, &rfds);
@@ -1179,8 +1180,8 @@ void *multicast_receiver(void *arg)
         int select_result;
         ssize_t result;
 
-        timeout.tv_sec = 1;
-        timeout.tv_usec = 0;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 100000;
         FD_ZERO(&rfds);
         FD_SET(socket_fd, &rfds);
         efds = rfds;
@@ -1196,7 +1197,7 @@ void *multicast_receiver(void *arg)
         if (select_result == 0)
         {
             // Select timed out
-//            rig_debug(RIG_DEBUG_ERR, "%s: select timeout\n", __FILE__);
+            //rig_debug(RIG_DEBUG_ERR, "%s: select timeout\n", __FILE__);
             continue;
         }
 
