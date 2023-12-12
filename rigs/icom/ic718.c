@@ -103,7 +103,6 @@ struct rig_caps ic718_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
     .str_cal = IC718_STR_CAL,

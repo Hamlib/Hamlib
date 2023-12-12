@@ -553,7 +553,6 @@ struct rig_caps id5100_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .extparms = icom_ext_parms,
     .parm_gran =  {},
@@ -630,7 +629,6 @@ struct rig_caps id5100_caps =
     .get_mode =  id5100_get_mode,
     .set_vfo =  id5100_set_vfo,
     .set_split_vfo = id5100_set_split_vfo,
-    .set_split_freq = id5100_set_split_freq,
 
     .set_powerstat = icom_set_powerstat,
     //.get_powerstat = icom_get_powerstat, // ID-5100 cannot get power status

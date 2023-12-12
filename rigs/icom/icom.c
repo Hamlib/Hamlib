@@ -1398,6 +1398,11 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         cmd = 0x25;
         retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                                   &ack_len);
+        if (retval == -RIG_ERJCTED && vfo == RIG_VFO_MEM)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Rig is in MEM mode and MEM channel is empty\n", __func__);
+            return -RIG_ECONF;
+        }
     }
     else
     {
@@ -1801,8 +1806,14 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
               __func__, freq_len);
 
         if (vfo == RIG_VFO_MEM && civ_731_mode) { priv->civ_731_mode = 1; }
+        if (freq_len == 1 && vfo == RIG_VFO_MEM)
+        {
+            *freq = 0;
+            rig_debug(RIG_DEBUG_ERR, "%s: Rig is in MEM mode and MEM channel is empty\n", __func__);
+            return -RIG_ETRUNC;
+        }
 
-        RETURNFUNC(-RIG_ERJCTED);
+        RETURNFUNC(-RIG_ENAVAIL);
     }
 
     if (freq_len != 3 && freq_len != 6 && freq_len != (priv->civ_731_mode ? 4 : 5))

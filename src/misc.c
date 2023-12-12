@@ -2932,7 +2932,7 @@ hamlib_band_t rig_get_band(RIG *rig, freq_t freq, int band)
             n++;
         }
 
-        return RIG_BANDSELECT_UNUSED;
+        return RIG_BAND_UNUSED;
     }
     for (i = 0 ; rig_bandselect_str[i].str[0] != '\0'; i++)
     {
@@ -2942,7 +2942,7 @@ hamlib_band_t rig_get_band(RIG *rig, freq_t freq, int band)
         }
     }
 
-    return RIG_BANDSELECT_GEN;
+    return RIG_BAND_UNUSED;
 }
 
 // Gets the rig's band index from the hamlib_band_t

@@ -719,8 +719,6 @@ struct rig_caps ic7300_caps =
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = {.min = {.i = 0}, .max = {.i = 255}},
-        [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
@@ -967,8 +965,6 @@ struct rig_caps ic9700_caps =
     .has_set_parm =  RIG_PARM_SET(IC9700_PARMS),
     .level_gran = {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
@@ -1292,8 +1288,6 @@ struct rig_caps ic705_caps =
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = {.min = {.i = 0}, .max = {.i = 255}},
-        [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
@@ -1567,8 +1561,6 @@ struct rig_caps ic905_caps =
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = {.min = {.i = 0}, .max = {.i = 255}},
-        [LVL_VOXDELAY] = {.min = {.i = 0}, .max = {.i = 20}, .step = {.i = 1}},
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
@@ -2219,6 +2211,10 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
             int subcmd =  vfo == RIG_VFO_SUB_A ? 0x00: 0x01;
             retval = icom_transaction(rig, 0x07, subcmd, NULL, 0, ackbuf, &ack_len);
         }
+    }
+    else if (vfo == RIG_VFO_MEM)
+    {
+        return icom_set_vfo(rig, vfo);
     }
 
     if (retval != RIG_OK)
