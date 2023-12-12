@@ -93,7 +93,6 @@ struct rig_caps ic78_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
     .preamp =   { 10, 20, RIG_DBLST_END, },

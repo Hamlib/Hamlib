@@ -1378,7 +1378,6 @@ struct rig_caps powersdr_caps =
 #include "level_gran_kenwood.h"
         [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
     },     /* FIXME: granularity */
-    .parm_gran =        {},
     .parm_gran =  {
         // there  are V00 thru V13 but we don't cover them as of yet -- what rig?
         [PARM_BANDSELECT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.s = "BAND160M,BAND80M,BAND60M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BAND2M,BANDWWV,BANDGEN"}}
