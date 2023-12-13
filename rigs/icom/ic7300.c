@@ -441,7 +441,7 @@ static const struct icom_priv_caps IC9700_priv_caps =
         },
     },
     .extcmds = ic9700_extcmds,   /* Custom op parameters */
-    .x25_always = 1
+    // .x25_always = 1 // except when in satellite mode so can't do this
 };
 
 static const struct icom_priv_caps IC705_priv_caps =
@@ -940,7 +940,7 @@ struct rig_caps ic9700_caps =
     RIG_MODEL(RIG_MODEL_IC9700),
     .model_name = "IC-9700",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".18",
+    .version =  BACKEND_VER ".19",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
