@@ -2168,6 +2168,16 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     int ack_len = sizeof(ackbuf), retval = -RIG_EINTERNAL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+    if (rig->state.cache.satmode)
+    {
+        if (vfo == RIG_VFO_A) vfo = RIG_VFO_MAIN;
+        else if (vfo == RIG_VFO_B) vfo = RIG_VFO_SUB;
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo %s\n", __func__, rig_strvfo(vfo));
+            return -RIG_EINVAL;
+        }
+    }
     if (vfo == RIG_VFO_A)
     {
         retval = icom_transaction(rig, 0x07, 0x00, NULL, 0, ackbuf, &ack_len);
