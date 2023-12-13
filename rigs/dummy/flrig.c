@@ -143,7 +143,7 @@ struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20231204.0",
+    .version = "20231213.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -894,11 +894,14 @@ static int flrig_open(RIG *rig)
 
     /* see if get_bwA is available */
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
+    int dummy;
 
-    if (retval == RIG_ENAVAIL) // must not have it
+    if (retval == RIG_ENAVAIL || value[0] == 0 || sscanf(value,"%d",&dummy)==0) // must not have it
     {
         priv->has_get_bwA = 0;
         priv->has_get_bwB = 0; // if we don't have A then surely we don't have B either
+        priv->has_set_bwA = 0; // and we don't have set functions either
+        priv->has_set_bwB = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA/B is not available=%s\n", __func__,
                   value);
     }
