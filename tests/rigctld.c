@@ -867,7 +867,7 @@ int main(int argc, char *argv[])
             freeaddrinfo(saved_result);     /* No longer needed */
             exit(2);
         }
-    int optval = 1;
+    const int optval = 1;
 #ifdef __MINGW32__
     if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR, (PCHAR)&optval, sizeof(optval)) < 0)
 #else
