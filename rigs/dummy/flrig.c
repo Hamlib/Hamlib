@@ -2511,7 +2511,7 @@ static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
-int flrig_cat_string(RIG *rig, const char *arg)
+HAMLIB_EXPORT(int) flrig_cat_string(RIG *rig, const char *arg)
 {
     int retval;
     char cmd_arg[MAXARGLEN];
