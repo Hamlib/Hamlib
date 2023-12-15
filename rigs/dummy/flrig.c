@@ -2511,7 +2511,7 @@ static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
-HAMLIB_EXPORT(int) flrig_cat_string(RIG *rig, const char *arg)
+int flrig_cat_string(RIG *rig, const char *arg)
 {
     int retval;
     char cmd_arg[MAXARGLEN];
@@ -2522,7 +2522,7 @@ HAMLIB_EXPORT(int) flrig_cat_string(RIG *rig, const char *arg)
     return retval;
 }
 
-HAMLIB_EXPORT(int) flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
+int flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
                                   int status)
 {
     int retval;
