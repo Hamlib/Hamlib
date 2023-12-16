@@ -50,7 +50,7 @@
                     RIG_MODE_PKTLSB | RIG_MODE_PKTUSB |\
                     RIG_MODE_SSB | RIG_MODE_LSB | RIG_MODE_USB |\
                     RIG_MODE_FM | RIG_MODE_WFM | RIG_MODE_FMN | RIG_MODE_PKTFM |\
-                    RIG_MODE_C4FM)
+                    RIG_MODE_C4FM | RIG_MODE_DSTAR)
 
 #define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER_METER | RIG_LEVEL_RFPOWER_METER_WATTS | RIG_LEVEL_RFPOWER | RIG_LEVEL_SWR)
 
@@ -143,7 +143,7 @@ struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20231213.0",
+    .version = "20231216.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -242,6 +242,7 @@ static struct s_modeMap modeMap[] =
     {RIG_MODE_RTTY, NULL},
     {RIG_MODE_RTTYR, NULL},
     {RIG_MODE_C4FM, NULL},
+    {RIG_MODE_DSTAR, NULL},
     {0, NULL}
 };
 
@@ -1092,6 +1093,7 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "UCW")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
         else if (streq(p, "C4FM")) { modeMapAdd(&modes, RIG_MODE_C4FM, p); }
         else if (streq(p, "SPEC")) { modeMapAdd(&modes, RIG_MODE_SPEC, p); }
+        else if (streq(p, "DV")) { modeMapAdd(&modes, RIG_MODE_DSTAR, p); }
         else if (streq(p, "DRM")) // we don't support DRM yet (or maybe ever)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: no mapping for mode %s\n", __func__, p);
