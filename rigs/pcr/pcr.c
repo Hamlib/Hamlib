@@ -783,7 +783,7 @@ pcr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
     const struct pcr_rcvr *rcvr = is_sub_rcvr(rig,
-                                        vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
+                                  vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
     *freq = rcvr->last_freq;
 
@@ -1169,7 +1169,7 @@ pcr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int err;
     struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
     const struct pcr_rcvr *rcvr = is_sub_rcvr(rig,
-                                        vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
+                                  vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 //  rig_debug(RIG_DEBUG_TRACE, "%s: level = %d\n", __func__, level);
 
@@ -1243,7 +1243,7 @@ pcr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
     const struct pcr_rcvr *rcvr = is_sub_rcvr(rig,
-                                        vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
+                                  vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %d, func = %s\n", __func__,
               status, rig_strfunc(func));
@@ -1777,7 +1777,7 @@ int pcr_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
     struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
     const struct pcr_rcvr *rcvr = is_sub_rcvr(rig,
-                                        vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
+                                  vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
     *tone = rcvr->last_ctcss_sql;
     return RIG_OK;
@@ -1827,7 +1827,7 @@ int pcr_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
     struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
     const struct pcr_rcvr *rcvr = is_sub_rcvr(rig,
-                                        vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
+                                  vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
     *tone = rcvr->last_dcs_sql;
     return RIG_OK;
@@ -1956,7 +1956,7 @@ int pcr_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
     const struct pcr_rcvr *rcvr = is_sub_rcvr(rig,
-                                        vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
+                                  vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
     if (priv->auto_update == 0)
     {

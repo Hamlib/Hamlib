@@ -187,8 +187,8 @@ declare_proto_rot(set_parm);
 declare_proto_rot(get_parm);
 declare_proto_rot(get_info);
 declare_proto_rot(get_status);
-declare_proto_rot(set_conf);  
-declare_proto_rot(get_conf);  
+declare_proto_rot(set_conf);
+declare_proto_rot(get_conf);
 declare_proto_rot(send_cmd);
 declare_proto_rot(dump_state);
 declare_proto_rot(dump_caps);
@@ -409,9 +409,9 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
             if (!feof(fin))
             {
-                rig_debug(RIG_DEBUG_TRACE,"%s fscanf of:", __func__);
+                rig_debug(RIG_DEBUG_TRACE, "%s fscanf of:", __func__);
                 dump_hex((unsigned char *)p, strlen(p));
-                rig_debug(RIG_DEBUG_TRACE," failed with format '%s'\n", format);
+                rig_debug(RIG_DEBUG_TRACE, " failed with format '%s'\n", format);
             }
 
         }
@@ -528,7 +528,8 @@ static int next_word(char *buffer, int argc, const char **argv, int newline)
     })
 
 
-int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[], int argc,
+int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
+                 int argc,
                  int interactive, int prompt, char send_cmd_term)
 {
     int retcode;            /* generic return code from functions */
@@ -1576,23 +1577,23 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
     char buf[128] = "";
 
     rot_get_conf2(rot, cfp->token, buf, sizeof(buf));
-    fprintf(stdout,"%s: \"%s\"\n" "\tDefault: %s, Value: %s\n",
-           cfp->name,
-           cfp->tooltip,
-           cfp->dflt,
-           buf);
+    fprintf(stdout, "%s: \"%s\"\n" "\tDefault: %s, Value: %s\n",
+            cfp->name,
+            cfp->tooltip,
+            cfp->dflt,
+            buf);
 
     switch (cfp->type)
     {
     case RIG_CONF_NUMERIC:
-        fprintf(stdout,"\tRange: %.1f..%.1f, step %.1f\n",
-               cfp->u.n.min,
-               cfp->u.n.max,
-               cfp->u.n.step);
+        fprintf(stdout, "\tRange: %.1f..%.1f, step %.1f\n",
+                cfp->u.n.min,
+                cfp->u.n.max,
+                cfp->u.n.step);
         break;
 
     case RIG_CONF_CHECKBUTTON:
-        fprintf(stdout,"\tCheckbox: 0,1\n");
+        fprintf(stdout, "\tCheckbox: 0,1\n");
         break;
 
     case RIG_CONF_COMBO:
@@ -1601,14 +1602,14 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
             break;
         }
 
-        fprintf(stdout,"\tCombo: %s", cfp->u.c.combostr[0]);
+        fprintf(stdout, "\tCombo: %s", cfp->u.c.combostr[0]);
 
         for (i = 1 ; i < RIG_COMBO_MAX && cfp->u.c.combostr[i]; i++)
         {
-            fprintf(stdout,", %s", cfp->u.c.combostr[i]);
+            fprintf(stdout, ", %s", cfp->u.c.combostr[i]);
         }
 
-        fprintf(stdout,"\n");
+        fprintf(stdout, "\n");
         break;
 
     default:
@@ -1672,6 +1673,7 @@ declare_proto_rot(get_conf)
 {
     int ret;
     rig_debug(RIG_DEBUG_ERR, "%s: \n", __func__);
+
     if (arg1 == NULL || arg1[0] == '?')
     {
         dumpconf_list(rot, fout);
@@ -1679,20 +1681,25 @@ declare_proto_rot(get_conf)
         debugmsgsave2[0] = 0;
         return RIG_OK;
     }
+
     token_t mytoken = rot_token_lookup(rot, arg1);
+
     if (mytoken == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rot\n", __func__, arg1);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rot\n", __func__,
+                  arg1);
         ret = -RIG_EINVAL;
     }
     else
     {
         char value[4096];
         ret = rot_get_conf(rot, rot_token_lookup(rot, arg1), value);
+
         if (ret != RIG_OK)
         {
             return ret;
         }
+
         fprintf(fout, "%s=%s\n", arg1, value);
     }
 
@@ -1715,9 +1722,11 @@ declare_proto_rot(set_conf)
     }
 
     token_t mytoken = rot_token_lookup(rot, arg1);
+
     if (mytoken == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rot\n", __func__, arg1);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rot\n", __func__,
+                  arg1);
         ret = -RIG_EINVAL;
     }
     else
@@ -2891,11 +2900,11 @@ int print_conf_list2(const struct confparams *cfp, rig_ptr_t data, FILE *fout)
     char buf[128] = "";
 
     rot_get_conf(rot, cfp->token, buf);
-    fprintf(fout,"%s: \"%s\"\n" "\t" "Default: %s, Value: %s\n",
-           cfp->name,
-           cfp->tooltip,
-           cfp->dflt,
-           buf);
+    fprintf(fout, "%s: \"%s\"\n" "\t" "Default: %s, Value: %s\n",
+            cfp->name,
+            cfp->tooltip,
+            cfp->dflt,
+            buf);
 
     return 1;  /* !=0, we want them all ! */
 }

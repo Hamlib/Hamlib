@@ -52,7 +52,8 @@ static int setDirection(hamlib_port_t *port, unsigned char outputvalue,
     unsigned char outputstatus;
 
     retval = par_lock(port);
-    if  (retval != RIG_OK)
+
+    if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\n", __func__, __LINE__, rigerror(retval));
         return retval;
@@ -60,7 +61,8 @@ static int setDirection(hamlib_port_t *port, unsigned char outputvalue,
 
     // set the data bits
     retval = par_write_data(port, outputvalue);
-    if  (retval != RIG_OK)
+
+    if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\n", __func__, __LINE__, rigerror(retval));
         return retval;
@@ -77,11 +79,13 @@ static int setDirection(hamlib_port_t *port, unsigned char outputvalue,
     }
 
     retval = par_write_control(port, outputstatus ^ CP_ACTIVE_LOW_BITS);
-    if  (retval != RIG_OK)
+
+    if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\n", __func__, __LINE__, rigerror(retval));
         return retval;
     }
+
     // and now the strobe impulse
     hl_usleep(1);
 
@@ -95,11 +99,13 @@ static int setDirection(hamlib_port_t *port, unsigned char outputvalue,
     }
 
     retval = par_write_control(port, outputstatus ^ CP_ACTIVE_LOW_BITS);
-    if  (retval != RIG_OK)
+
+    if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\n", __func__, __LINE__, rigerror(retval));
         return retval;
     }
+
     hl_usleep(1);
 
     if (direction)
@@ -112,14 +118,16 @@ static int setDirection(hamlib_port_t *port, unsigned char outputvalue,
     }
 
     retval = par_write_control(port, outputstatus ^ CP_ACTIVE_LOW_BITS);
-    if  (retval != RIG_OK)
+
+    if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\n", __func__, __LINE__, rigerror(retval));
         return retval;
     }
 
     retval = par_unlock(port);
-    if  (retval != RIG_OK)
+
+    if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): %s\n", __func__, __LINE__, rigerror(retval));
         return retval;

@@ -759,7 +759,8 @@ static const char *vx1700_get_info(RIG *rig)
 
 static int vx1700_set_vfo(RIG *rig, vfo_t vfo)
 {
-    const struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
+    const struct vx1700_priv_data *priv = (struct vx1700_priv_data *)
+                                          rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s, vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -1178,7 +1179,8 @@ static int vx1700_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 static int vx1700_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    const struct vx1700_priv_data *priv = (struct vx1700_priv_data *)rig->state.priv;
+    const struct vx1700_priv_data *priv = (struct vx1700_priv_data *)
+                                          rig->state.priv;
 
     (void) rig;
     (void) vfo;

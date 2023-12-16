@@ -80,19 +80,21 @@ getmyline(int fd, char *buf)
     memset(buf, 0, BUFSIZE);
     int retval;
 
-    while ((retval=read(fd, &c, 1)) > 0)
+    while ((retval = read(fd, &c, 1)) > 0)
     {
         buf[i++] = c;
 
         if (c == ';') { return strlen(buf); }
     }
+
     if (retval != 0)
     {
         perror("read failed:");
         close(fd);
         fd = openPort("");
     }
-    if (strlen(buf)==0) hl_usleep(10*1000);
+
+    if (strlen(buf) == 0) { hl_usleep(10 * 1000); }
 
     return strlen(buf);
 }
@@ -461,7 +463,7 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "OM1%d", &modeSub);
         }
-        else if (strcmp(buf,"RM;") == 0)
+        else if (strcmp(buf, "RM;") == 0)
         {
             sprintf(buf, "RM2%04d;", 10);
             write(fd, buf, strlen(buf));

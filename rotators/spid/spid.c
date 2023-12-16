@@ -39,12 +39,14 @@ struct spid_rot2prog_priv_data
     int el_resolution;
 };
 
-enum spid_rot2prog_framemagic {
+enum spid_rot2prog_framemagic
+{
     ROT2PROG_FRAME_START_BYTE = 'W',
     ROT2PROG_FRAME_END_BYTE = ' ',
 };
 
-enum r2p_frame_parser_state {
+enum r2p_frame_parser_state
+{
     ROT2PROG_PARSER_EXPECT_FRAME_START,
     ROT2PROG_PARSER_EXPECT_CR,
     ROT2PROG_PARSER_EXPECT_LF,
@@ -52,7 +54,7 @@ enum r2p_frame_parser_state {
 };
 
 static int read_r2p_frame(hamlib_port_t *port, unsigned char *rxbuffer,
-        size_t count)
+                          size_t count)
 {
     // Some MD-01 firmware can apparently print debug messages to the same
     // serial port that is used for the control protocol. This awkwardly
@@ -108,31 +110,36 @@ static int read_r2p_frame(hamlib_port_t *port, unsigned char *rxbuffer,
         {
         case ROT2PROG_PARSER_EXPECT_FRAME_START:
             res = read_block(port, &peek, 1);
-            if (res < 0) return res;
+
+            if (res < 0) { return res; }
 
             switch (peek)
             {
-                case ROT2PROG_FRAME_START_BYTE:
-                    rxbuffer[0] = peek;
-                    pstate = ROT2PROG_PARSER_EXPECT_FRAME_END;
-                    break;
+            case ROT2PROG_FRAME_START_BYTE:
+                rxbuffer[0] = peek;
+                pstate = ROT2PROG_PARSER_EXPECT_FRAME_END;
+                break;
 
-                default:
-                    pstate = ROT2PROG_PARSER_EXPECT_CR;
-                    break;
+            default:
+                pstate = ROT2PROG_PARSER_EXPECT_CR;
+                break;
             }
+
             break;
 
         case ROT2PROG_PARSER_EXPECT_CR:
             res = read_block(port, &peek, 1);
-            if (res < 0) return res;
 
-            if (peek == '\r') pstate = ROT2PROG_PARSER_EXPECT_LF;
+            if (res < 0) { return res; }
+
+            if (peek == '\r') { pstate = ROT2PROG_PARSER_EXPECT_LF; }
+
             break;
 
         case ROT2PROG_PARSER_EXPECT_LF:
             res = read_block(port, &peek, 1);
-            if (res < 0) return res;
+
+            if (res < 0) { return res; }
 
             if (peek == '\n')
             {
@@ -147,12 +154,14 @@ static int read_r2p_frame(hamlib_port_t *port, unsigned char *rxbuffer,
                 // happen.
                 return -RIG_EPROTO;
             }
+
             break;
 
         case ROT2PROG_PARSER_EXPECT_FRAME_END:
             // we already read the frame start byte
             res = read_block(port, rxbuffer + 1, count - 1);
-            if (res < 0) return res;
+
+            if (res < 0) { return res; }
 
             if (rxbuffer[count - 1] != ROT2PROG_FRAME_END_BYTE)
             {
@@ -172,7 +181,9 @@ static int spid_write(hamlib_port_t *p, const unsigned char *txbuffer,
                       size_t count)
 {
     int ret = rig_flush(p);
-    if (ret < 0) return ret;
+
+    if (ret < 0) { return ret; }
+
     return write_block(p, txbuffer, count);
 }
 
@@ -230,7 +241,7 @@ static int spid_rot_cleanup(ROT *rot)
 static int spid_get_conf2(ROT *rot, token_t token, char *val, int val_len)
 {
     const  struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
-                                           rot->state.priv;
+            rot->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called %d\n", __func__, (int)token);
 
@@ -333,7 +344,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
 {
     struct rot_state *rs = &rot->state;
     const  struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
-                                           rs->priv;
+            rs->priv;
     int retval;
     int retry_read = 0;
     char cmdstr[13];
@@ -346,7 +357,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
         do
         {
             retval = spid_write(&rs->rotport,
-                                 (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
+                                (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
             if (retval != RIG_OK)
             {
@@ -421,7 +432,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     do
     {
         retval = spid_write(&rs->rotport,
-                             (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
+                            (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
         if (retval != RIG_OK)
         {
@@ -493,7 +504,7 @@ static int spid_rot_stop(ROT *rot)
     do
     {
         retval = spid_write(&rs->rotport,
-                             (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
+                            (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
 
         if (retval != RIG_OK)
         {

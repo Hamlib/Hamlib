@@ -333,7 +333,7 @@ static int ar7030p_cleanup(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (priv == NULL) return RIG_OK;
+    if (priv == NULL) { return RIG_OK; }
 
     for (i = 0; i < NB_CHAN; i++)
     {
@@ -1264,7 +1264,8 @@ static int ar7030p_set_vfo(RIG *rig, vfo_t vfo)
 static int ar7030p_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int rc = RIG_OK;
-    struct ar7030p_priv_data const *priv = (struct ar7030p_priv_data *) rig->state.priv;
+    struct ar7030p_priv_data const *priv = (struct ar7030p_priv_data *)
+                                           rig->state.priv;
 
     assert(NULL != vfo);
 
@@ -1348,7 +1349,8 @@ static int ar7030p_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     int rc = RIG_OK;
 
-    struct ar7030p_priv_data const *priv = (struct ar7030p_priv_data *) rig->state.priv;
+    struct ar7030p_priv_data const *priv = (struct ar7030p_priv_data *)
+                                           rig->state.priv;
     const channel_t *curr = priv->curr;
 
     assert(NULL != ch);
@@ -1648,7 +1650,8 @@ static int ar7030p_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
     unsigned int f;
     unsigned char *p = NULL;
     int ch;
-    const struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *)rig->state.priv;
+    const struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *)
+                                           rig->state.priv;
     const channel_t *curr = priv->curr;
 
     assert(NULL != chan);

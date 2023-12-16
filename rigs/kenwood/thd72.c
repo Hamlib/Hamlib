@@ -1282,11 +1282,13 @@ static int thd72_parse_channel(int kind, const char *buf, channel_t *chan)
     else { data = buf + 7; }
 
     n = sscanf(data, "%"SCNfreq, &chan->freq);
+
     if (n != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error scanning %s\n", __func__, data);
         return -RIG_EPROTO;
     }
+
     c = data[46]; // mode
 
     if (c >= '0' && c <= '2')
@@ -1310,16 +1312,19 @@ static int thd72_parse_channel(int kind, const char *buf, channel_t *chan)
     }
 
     n = sscanf(data + 37, "%ld", &chan->rptr_offs);
+
     if (n != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: error scanning data[37]%s\n", __func__, data);
         return -RIG_EPROTO;
     }
+
     c = data[17]; // Tone status
 
     if (c != '0')
     {
         n = sscanf(data + 25, "%d", &tmp);
+
         if (n != 1)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error scanning data[25]%s\n", __func__, data);
@@ -1341,6 +1346,7 @@ static int thd72_parse_channel(int kind, const char *buf, channel_t *chan)
     if (c != '0')
     {
         n = sscanf(data + 28, "%d", &tmp);
+
         if (n != 1)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error scanning data[28]%s\n", __func__, data);
@@ -1362,11 +1368,13 @@ static int thd72_parse_channel(int kind, const char *buf, channel_t *chan)
     if (c != '0')
     {
         n = sscanf(data + 31, "%d", &tmp);
+
         if (n != 1)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error scanning data[31]%s\n", __func__, data);
             return -RIG_EPROTO;
         }
+
         chan->dcs_code = tmp;
     }
     else

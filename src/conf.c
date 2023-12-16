@@ -274,8 +274,9 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
     case TOK_POST_PTT_DELAY:
         if (1 != sscanf(val, "%ld", &val_i))
         {
-	  return -RIG_EINVAL;
+            return -RIG_EINVAL;
         }
+
         rs->post_ptt_delay = val_i;
         break;
 
@@ -662,6 +663,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             return -RIG_EINVAL;
         }
+
         rs->poll_interval = val_i;
         // Make sure cache times out before next poll cycle
         rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, atol(val));

@@ -832,7 +832,9 @@ int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else if (kenwood_val == RIG_AGC_SLOW) { kenwood_val = 20; }
         else if (kenwood_val != RIG_AGC_OFF)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unknown AGC level, expect OFF,SLOW,MEDIUM,FAST,SUPERFAST, got %d\n", __func__, kenwood_val);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: unknown AGC level, expect OFF,SLOW,MEDIUM,FAST,SUPERFAST, got %d\n",
+                      __func__, kenwood_val);
             return -RIG_EINVAL;
         }
 

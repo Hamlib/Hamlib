@@ -418,7 +418,7 @@ int HAMLIB_API amp_open(AMP *amp)
         }
     }
 
-    if(rs->ampport.parm.serial.dtr_state == RIG_SIGNAL_ON)
+    if (rs->ampport.parm.serial.dtr_state == RIG_SIGNAL_ON)
     {
         ser_set_dtr(&rs->ampport, 1);
     }
@@ -426,7 +426,8 @@ int HAMLIB_API amp_open(AMP *amp)
     {
         ser_set_dtr(&rs->ampport, 0);
     }
-    if(rs->ampport.parm.serial.rts_state == RIG_SIGNAL_ON)
+
+    if (rs->ampport.parm.serial.rts_state == RIG_SIGNAL_ON)
     {
         ser_set_rts(&rs->ampport, 1);
     }
@@ -471,6 +472,7 @@ int HAMLIB_API amp_close(AMP *amp)
         amp_debug(RIG_DEBUG_ERR, "%s: NULL ptr? amp=%p\n", __func__, amp);
         return -RIG_EINVAL;
     }
+
     if (amp->caps == NULL)
     {
         amp_debug(RIG_DEBUG_ERR, "%s: NULL ptr? amp->caps=%p\n", __func__, amp->caps);

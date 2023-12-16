@@ -839,21 +839,28 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SWR:
-        {
-            struct kenwood_priv_caps *priv = kenwood_caps(rig);
-            ptt_t ptt = 0;
-            rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
-            if (ptt == RIG_PTT_OFF) { val->f = priv->swr; return RIG_OK;}
-            cmd = "ZZRM8"; // get SWR
-            len = 5;
-            ans = 8;
-            retval = kenwood_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf));
-            if (retval != RIG_OK) { val->f = priv->swr; return RIG_OK;};
-            sscanf(lvlbuf,"ZZRM8%lg", &priv->swr);
-            val->f = priv->swr;
-            rig_debug(RIG_DEBUG_ERR, "%s(%d) swr=%.1f\n", __func__, __LINE__, val->f);
-            return RIG_OK;
-        }
+    {
+        struct kenwood_priv_caps *priv = kenwood_caps(rig);
+        ptt_t ptt = 0;
+        rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+
+        if (ptt == RIG_PTT_OFF) { val->f = priv->swr; return RIG_OK;}
+
+        cmd = "ZZRM8"; // get SWR
+        len = 5;
+        ans = 8;
+        retval = kenwood_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf));
+
+        if (retval != RIG_OK) { val->f = priv->swr; return RIG_OK;};
+
+        sscanf(lvlbuf, "ZZRM8%lg", &priv->swr);
+
+        val->f = priv->swr;
+
+        rig_debug(RIG_DEBUG_ERR, "%s(%d) swr=%.1f\n", __func__, __LINE__, val->f);
+
+        return RIG_OK;
+    }
 
     default:
         return kenwood_get_level(rig, vfo, level, val);
@@ -939,28 +946,30 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RFPOWER_METER:
     case RIG_LEVEL_RFPOWER_METER_WATTS:
-        {
-            // if not ptt then no power is going out so return 0W
-            ptt_t ptt;
-            rig_get_ptt(rig, RIG_VFO_TX, &ptt);
-            if (!ptt) { val->f = 0; return RIG_OK; }
-            n = sscanf(lvlbuf, "ZZRM5%f", &val->f);
+    {
+        // if not ptt then no power is going out so return 0W
+        ptt_t ptt;
+        rig_get_ptt(rig, RIG_VFO_TX, &ptt);
 
-            if (n != 1)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+        if (!ptt) { val->f = 0; return RIG_OK; }
+
+        n = sscanf(lvlbuf, "ZZRM5%f", &val->f);
+
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
                       __func__, lvlbuf);
-                val->f = 0;
-                return -RIG_EPROTO;
-            }
+            val->f = 0;
+            return -RIG_EPROTO;
         }
+    }
 
-        if (level != RIG_LEVEL_RFPOWER_METER_WATTS)
-        {
-            val->f /= 100;
-        }
+    if (level != RIG_LEVEL_RFPOWER_METER_WATTS)
+    {
+        val->f /= 100;
+    }
 
-        break;
+    break;
 
     case RIG_LEVEL_RF:
         n = sscanf(lvlbuf + len, "%d", &val->i);
@@ -1137,20 +1146,23 @@ int powersdr_set_parm(RIG *rig, setting_t parm, value_t val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: val=%s\n", __func__, val.s);
 
-    switch(parm)
+    switch (parm)
     {
-        case RIG_PARM_BANDSELECT:
-            if (strcmp(val.s,"BANDWWV")!=0)
+    case RIG_PARM_BANDSELECT:
+        if (strcmp(val.s, "BANDWWV") != 0)
+        {
+            int n = sscanf(val.s, "BAND%d", &band);
+
+            if (n != 1)
             {
-                int n = sscanf(val.s, "BAND%d", &band);
-                if (n != 1)
-                {
-                    rig_debug(RIG_DEBUG_ERR, "%s: unknown band=%s\n", __func__, val.s);
-                }
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown band=%s\n", __func__, val.s);
             }
-            SNPRINTF(cmd,sizeof(cmd),"ZZBS%03d;", band);
-            retval = kenwood_transaction(rig, cmd, NULL, 0);
+        }
+
+        SNPRINTF(cmd, sizeof(cmd), "ZZBS%03d;", band);
+        retval = kenwood_transaction(rig, cmd, NULL, 0);
     }
+
     RETURNFUNC(retval);
 }
 
@@ -1159,47 +1171,66 @@ int powersdr_get_parm(RIG *rig, setting_t parm, value_t *val)
     char cmd[KENWOOD_MAX_BUF_LEN];
     char buf[KENWOOD_MAX_BUF_LEN];
     int retval;
-    int len,ans;
+    int len, ans;
 
     ENTERFUNC;
 
-    switch(parm)
+    switch (parm)
     {
-        case RIG_PARM_BANDSELECT:
+    case RIG_PARM_BANDSELECT:
         len = 4;
         ans = 3;
-        SNPRINTF(cmd,sizeof(cmd),"%s","ZZBS;");
+        SNPRINTF(cmd, sizeof(cmd), "%s", "ZZBS;");
         break;
-        default:
+
+    default:
         RETURNFUNC(-RIG_EINVAL);
     }
+
     retval = kenwood_safe_transaction(rig, cmd, buf, 10, len + ans);
-    if (retval != RIG_OK) RETURNFUNC(retval);
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+
     int band;
-    int n = sscanf(buf,"ZZBS%3d", &band);
-    if (n != 1) 
+    int n = sscanf(buf, "ZZBS%3d", &band);
+
+    if (n != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unknown band=%s\n", __func__, buf);
         return (-RIG_EPROTO);
     }
-    switch(band)
+
+    switch (band)
     {
-        case 160: val->cs = "BAND160M";break;
-        case  80: val->cs = "BAND80M";break;
-        case  60: val->cs = "BAND60M";break;
-        case  40: val->cs = "BAND40M";break;
-        case  30: val->cs = "BAND30M";break;
-        case  20: val->cs = "BAND20M";break;
-        case  17: val->cs = "BAND17M";break;
-        case  15: val->cs = "BAND15M";break;
-        case  12: val->cs = "BAND12M";break;
-        case  10: val->cs = "BAND10M";break;
-        case   6: val->cs = "BAND6M";break;
-        case 999: val->cs = "BANDWWV";break;
-        default:
+    case 160: val->cs = "BAND160M"; break;
+
+    case  80: val->cs = "BAND80M"; break;
+
+    case  60: val->cs = "BAND60M"; break;
+
+    case  40: val->cs = "BAND40M"; break;
+
+    case  30: val->cs = "BAND30M"; break;
+
+    case  20: val->cs = "BAND20M"; break;
+
+    case  17: val->cs = "BAND17M"; break;
+
+    case  15: val->cs = "BAND15M"; break;
+
+    case  12: val->cs = "BAND12M"; break;
+
+    case  10: val->cs = "BAND10M"; break;
+
+    case   6: val->cs = "BAND6M"; break;
+
+    case 999: val->cs = "BANDWWV"; break;
+
+    default:
         rig_debug(RIG_DEBUG_ERR, "%s: unknown band=%d\n", __func__, band);
-        val->cs = "BAND???";    
+        val->cs = "BAND???";
     }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -1233,9 +1264,9 @@ struct rig_caps f6k_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran =       {
-      [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
-      [LVL_SLOPE_LOW] = { .min = { .i = 10}, .max = { .i = 1000}, .step = { .i = 50} },
-      [LVL_SLOPE_HIGH] = { .min = { .i = 1000}, .max = { .i = 5000}, .step = { .i = 10} },
+        [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
+        [LVL_SLOPE_LOW] = { .min = { .i = 10}, .max = { .i = 1000}, .step = { .i = 50} },
+        [LVL_SLOPE_HIGH] = { .min = { .i = 1000}, .max = { .i = 5000}, .step = { .i = 10} },
     },     /* FIXME: granularity */
     .parm_gran =        {},
     //.extlevels =      elecraft_ext_levels,
@@ -1373,7 +1404,7 @@ struct rig_caps powersdr_caps =
     .has_get_level =    POWERSDR_LEVEL_ALL,
     .has_set_level =    POWERSDR_LEVEL_SET,
     .has_get_parm =     RIG_PARM_BANDSELECT,
-    .has_set_parm =     RIG_PARM_BANDSELECT, 
+    .has_set_parm =     RIG_PARM_BANDSELECT,
     .level_gran =       {
 #include "level_gran_kenwood.h"
         [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
@@ -1381,7 +1412,7 @@ struct rig_caps powersdr_caps =
     .parm_gran =  {
         // there  are V00 thru V13 but we don't cover them as of yet -- what rig?
         [PARM_BANDSELECT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.s = "BAND160M,BAND80M,BAND60M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BAND2M,BANDWWV,BANDGEN"}}
-        },
+    },
 
     //.extlevels =      elecraft_ext_levels,
     //.extparms =       kenwood_cfg_params,

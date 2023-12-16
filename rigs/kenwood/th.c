@@ -73,7 +73,7 @@ th_decode_event(RIG *rig)
 
         retval = num_sscanf(asyncbuf,
                             "BUF %u,%"SCNfreq",%X,%d,%d,%d,%d,,%d,,%d,%"SCNfreq",%d",
-                            &vfo, &freq, (unsigned int*)&step, &shift, &rev, &tone,
+                            &vfo, &freq, (unsigned int *)&step, &shift, &rev, &tone,
                             &ctcss, &tonefq, &ctcssfq, &offset, &mode);
 
         if (retval != 11)
@@ -268,7 +268,7 @@ th_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    retval = num_sscanf(buf, "FQ %"SCNfreq",%x", freq, (unsigned*)&step);
+    retval = num_sscanf(buf, "FQ %"SCNfreq",%x", freq, (unsigned *)&step);
 
     if (retval != 2)
     {

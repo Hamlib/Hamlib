@@ -659,27 +659,32 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Please check with --list option.\n");
         exit(2);
     }
-    
-    char *token=strtok(conf_parms,",");
-    while(token)
+
+    char *token = strtok(conf_parms, ",");
+
+    while (token)
     {
         char mytoken[100], myvalue[100];
         token_t lookup;
-        sscanf(token,"%99[^=]=%99s", mytoken, myvalue);
+        sscanf(token, "%99[^=]=%99s", mytoken, myvalue);
         //printf("mytoken=%s,myvalue=%s\n",mytoken, myvalue);
-        lookup = rig_token_lookup(my_rig,mytoken);
+        lookup = rig_token_lookup(my_rig, mytoken);
+
         if (lookup == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: no such token as '%s'\n", __func__, mytoken);
             token = strtok(NULL, ",");
             continue;
         }
-        retcode = rig_set_conf(my_rig, rig_token_lookup(my_rig,mytoken), myvalue);
+
+        retcode = rig_set_conf(my_rig, rig_token_lookup(my_rig, mytoken), myvalue);
+
         if (retcode != RIG_OK)
         {
             fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
             exit(2);
         }
+
         token = strtok(NULL, ",");
     }
 
@@ -867,28 +872,36 @@ int main(int argc, char *argv[])
             freeaddrinfo(saved_result);     /* No longer needed */
             exit(2);
         }
-    const int optval = 1;
-#ifdef __MINGW32__
-    if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR, (PCHAR)&optval, sizeof(optval)) < 0)
-#else
-    if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0)
-#endif
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP address reuse: %s\n", __func__,
-                strerror(errno));
-    }
 
-    // Windows does not have SO_REUSEPORT. However, SO_REUSEADDR works in a similar way.
+        const int optval = 1;
+#ifdef __MINGW32__
+
+        if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR, (PCHAR)&optval,
+                       sizeof(optval)) < 0)
+#else
+        if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR, &optval,
+                       sizeof(optval)) < 0)
+#endif
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP address reuse: %s\n", __func__,
+                      strerror(errno));
+        }
+
+        // Windows does not have SO_REUSEPORT. However, SO_REUSEADDR works in a similar way.
 #if defined(SO_REUSEPORT)
-    if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) < 0)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP port reuse: %s\n", __func__,
-                strerror(errno));
-    }
+
+        if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEPORT, &optval,
+                       sizeof(optval)) < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: error enabling UDP port reuse: %s\n", __func__,
+                      strerror(errno));
+        }
+
 #endif
 
 
 #if 0
+
         if (setsockopt(sock_listen,
                        SOL_SOCKET,
                        SO_REUSEADDR,
@@ -901,6 +914,7 @@ int main(int argc, char *argv[])
             freeaddrinfo(saved_result);     /* No longer needed */
             exit(1);
         }
+
 #endif
 
 #ifdef IPV6_V6ONLY
@@ -928,18 +942,25 @@ int main(int argc, char *argv[])
 #endif
 
         int retval = bind(sock_listen, result->ai_addr, result->ai_addrlen);
+
         if (retval == 0)
         {
             break;
         }
+
         {
-            rig_debug(RIG_DEBUG_ERR,"%s: bind: %s\n", __func__, strerror(errno));
+            rig_debug(RIG_DEBUG_ERR, "%s: bind: %s\n", __func__, strerror(errno));
         }
 
         if (bind_all)
+        {
             handle_error(RIG_DEBUG_WARN, "binding failed (trying next interface)");
+        }
         else
+        {
             handle_error(RIG_DEBUG_WARN, "binding failed");
+        }
+
 #ifdef __MINGW32__
         closesocket(sock_listen);
 #else
@@ -1139,7 +1160,7 @@ int main(int argc, char *argv[])
 #endif
         }
     }
-    while(!ctrl_c);
+    while (!ctrl_c);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: while loop done\n", __func__);
 
@@ -1151,6 +1172,7 @@ int main(int argc, char *argv[])
     {
         rig_debug(RIG_DEBUG_WARN, "%u outstanding client(s)\n", client_count);
     }
+
 #ifdef __MINGW__
     closesocket(sock_listen);
 #else

@@ -96,9 +96,10 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
         if (level == RIG_LEVEL_KEYSPD)
         {
-            extern int morse_data_handler_set_keyspd(RIG *rig, int keyspd);
+            extern int morse_data_handler_set_keyspd(RIG * rig, int keyspd);
             morse_data_handler_set_keyspd(rig, val.i);
         }
+
         return caps->set_level(rig, vfo, level, val);
     }
 
@@ -1030,12 +1031,17 @@ HAMLIB_EXPORT(int) rig_settings_get_path(char *path, int pathlen)
 
     const char *xdgpath = getenv("XDG_CONFIG_HOME");
     char *home = getenv("HOME");
-    if (home == NULL) {
+
+    if (home == NULL)
+    {
         home = getenv("HOMEPATH");
     }
-    if (home == NULL) {
+
+    if (home == NULL)
+    {
         home = "?HOME";
     }
+
     snprintf(path, pathlen, "%s/.config", home);
 
     if (xdgpath)

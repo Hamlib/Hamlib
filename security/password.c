@@ -42,6 +42,7 @@ HAMLIB_EXPORT(void) rig_password_generate_secret(char *pass,
     product = pass[0];
 
     int i;
+
     for (i = 1; pass[i]; ++i)
     {
         product *= pass[i];

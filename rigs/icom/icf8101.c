@@ -99,15 +99,19 @@ static int icf8101_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
     int modebuf_len;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
+
     if (retval != RIG_OK)
     {
         return retval;
     }
+
     retval = icom_transaction(rig, 0x1A, 0x34, NULL, 0, modebuf, &modebuf_len);
+
     if (retval != RIG_OK)
     {
         return retval;
     }
+
     dump_hex(modebuf, modebuf_len);
 
     switch (modebuf[1])

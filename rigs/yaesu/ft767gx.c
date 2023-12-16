@@ -495,6 +495,7 @@ int ft767_close(RIG *rig)
         rig_debug(RIG_DEBUG_ERR, "%s: leave_CAT %d\n", __func__, retval);
         return retval;
     }
+
     return RIG_OK;
 }
 

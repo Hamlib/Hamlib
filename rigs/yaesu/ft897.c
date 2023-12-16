@@ -583,7 +583,8 @@ int ft897_close(RIG *rig)
 
 /* ---------------------------------------------------------------------- */
 
-static inline long timediff(const struct timeval *tv1, const struct timeval *tv2)
+static inline long timediff(const struct timeval *tv1,
+                            const struct timeval *tv2)
 {
     struct timeval tv;
 

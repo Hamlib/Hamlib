@@ -72,7 +72,7 @@ again:
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
-        printf("i=%d, c=0x%02x\n",i,c);
+        printf("i=%d, c=0x%02x\n", i, c);
 
         if (c == 0xfd)
         {
@@ -141,7 +141,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (powerstat)
         {
-            dump_hex(frame,11);
+            dump_hex(frame, 11);
             n = write(fd, frame, 11);
 
             if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }

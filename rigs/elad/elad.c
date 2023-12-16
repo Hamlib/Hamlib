@@ -915,6 +915,7 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     retval = elad_get_split_vfo_if(rig, vfo, &tsplit, &tvfo);
+
     if (retval != RIG_OK)
     {
         return retval;
@@ -983,10 +984,12 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
 
     retval = elad_set_split(rig, vfo, split, txvfo);
+
     if (retval != RIG_OK)
     {
         return retval;
     }
+
     /* Remember whether split is on, for elad_set_vfo */
     priv->split = split;
 
