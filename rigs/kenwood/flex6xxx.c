@@ -847,8 +847,6 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if (ptt == RIG_PTT_OFF) { val->f = priv->swr; return RIG_OK;}
 
         cmd = "ZZRM8"; // get SWR
-        len = 5;
-        ans = 8;
         retval = kenwood_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf));
 
         if (retval != RIG_OK) { val->f = priv->swr; return RIG_OK;};
