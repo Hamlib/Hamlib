@@ -1623,6 +1623,7 @@ int set_conf(AMP *my_amp, char *conf_parms)
         if (token != 0)
         {
             ret = amp_set_conf(my_amp, token, q);
+
             if (ret != RIG_OK)
             {
                 return ret;

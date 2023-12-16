@@ -246,7 +246,8 @@ int id5100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Sub on left\n", __func__, __LINE__);
 
-            if ((currvfo == RIG_VFO_B || currvfo == RIG_VFO_SUB) && (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB))
+            if ((currvfo == RIG_VFO_B || currvfo == RIG_VFO_SUB) && (vfo == RIG_VFO_B
+                    || vfo == RIG_VFO_SUB))
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Method#3\n", __func__);
                 id5100_set_vfo(rig, RIG_VFO_MAIN);

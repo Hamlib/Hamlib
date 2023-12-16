@@ -227,7 +227,8 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
 
         if (fd == -1) // some serial ports fail to open 1st time for some unknown reason
         {
-            rig_debug(RIG_DEBUG_WARN, "%s(%d): open failed#%d %s\n", __func__, __LINE__, i, strerror(errno));
+            rig_debug(RIG_DEBUG_WARN, "%s(%d): open failed#%d %s\n", __func__, __LINE__, i,
+                      strerror(errno));
             hl_usleep(500 * 1000);
             fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
         }
@@ -739,9 +740,10 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
         rig_debug(RIG_DEBUG_ERR, "%s: No WIN32 index for port???\n", __func__);
         return -1;
     }
+
     PurgeComm(index->hComm, PURGE_RXCLEAR);
     return RIG_OK;
-    
+
 #endif
 
     if (p->fd == uh_ptt_fd || p->fd == uh_radio_fd || p->flushx)
@@ -776,7 +778,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
     timeout_retry_save = p->timeout_retry;
     p->timeout = 0;
     p->timeout_retry = 0;
-    
+
 
     do
     {
@@ -817,7 +819,7 @@ int HAMLIB_API serial_flush(hamlib_port_t *p)
 
 //    rig_debug(RIG_DEBUG_VERBOSE, "tcflush%s\n", "");
     // we also do this flush https://github.com/Hamlib/Hamlib/issues/1241
-    tcflush(p->fd,TCIFLUSH);
+    tcflush(p->fd, TCIFLUSH);
 
     return RIG_OK;
 }

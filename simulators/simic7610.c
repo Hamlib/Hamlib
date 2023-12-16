@@ -398,42 +398,58 @@ void frameParse(int fd, unsigned char *frame, int len)
                 frame[6] = satmode;
                 frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
                 if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
 
             break;
+
         case 0x65:
             if (frame[6] == 0xfd)
+            {
                 ipp = frame[6];
+            }
             else
             {
                 frame[6] = ipp;
-                frame[7]=0xfd;
+                frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
                 if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
+
             break;
+
         case 0x66:
             if (frame[6] == 0xfd)
+            {
                 tx_inhibit = frame[6];
+            }
             else
             {
                 frame[6] = tx_inhibit;
-                frame[7]=0xfd;
+                frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
                 if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
+
             break;
+
         case 0x67:
             if (frame[6] == 0xfd)
+            {
                 dpp = frame[6];
+            }
             else
             {
                 frame[6] = dpp;
-                frame[7]=0xfd;
+                frame[7] = 0xfd;
                 n = write(fd, frame, 8);
+
                 if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }
             }
+
             break;
         }
 
@@ -780,10 +796,11 @@ int main(int argc, char **argv)
     while (1)
     {
         int len = frameGet(fd, buf);
-printf("#1 ========================================");
+        printf("#1 ========================================");
+
         if (len <= 0)
         {
-printf("#2 ========================================");
+            printf("#2 ========================================");
             close(fd);
             fd = openPort(argv[1]);
         }
@@ -797,9 +814,9 @@ printf("#2 ========================================");
             hl_usleep(100 * 1000);
         }
 
-printf("#3 ========================================");
+        printf("#3 ========================================");
         rigStatus();
-printf("#3 ========================================");
+        printf("#3 ========================================");
     }
 
     return 0;

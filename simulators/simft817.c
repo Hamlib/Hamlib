@@ -122,10 +122,12 @@ again:
 
         case 0x88: printf("PTT OFF\n"); break;
 
-        case 0x07: 
-            printf("MODE %0xx\n", buf[0]); 
-            if (vfo == 0) modeA = buf[0];
-            else modeB = buf[0];
+        case 0x07:
+            printf("MODE %0xx\n", buf[0]);
+
+            if (vfo == 0) { modeA = buf[0]; }
+            else { modeB = buf[0]; }
+
             break;
 
         case 0x05: printf("CLAR ON\n"); break;
@@ -134,10 +136,10 @@ again:
 
         case 0xF5: printf("FREQ\n"); break;
 
-        case 0x81: 
-        vfo = !vfo;
-        printf("VFO TOGGLE, %s active\n", vfo==0?"VFOA":"VFOB"); 
-        break;
+        case 0x81:
+            vfo = !vfo;
+            printf("VFO TOGGLE, %s active\n", vfo == 0 ? "VFOA" : "VFOB");
+            break;
 
         case 0x02: printf("SPLIT ON\n"); break;
 

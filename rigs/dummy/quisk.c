@@ -199,8 +199,10 @@ static int quisk_cleanup(RIG *rig)
 }
 
 // these are in netrigctl.c
-extern int parse_array_int(const char *s, const char *delim, int *array, int array_len);
-extern int parse_array_double(const char *s, const char *delim, double *array, int array_len);
+extern int parse_array_int(const char *s, const char *delim, int *array,
+                           int array_len);
+extern int parse_array_double(const char *s, const char *delim, double *array,
+                              int array_len);
 
 static int quisk_open(RIG *rig)
 {
@@ -554,6 +556,7 @@ static int quisk_open(RIG *rig)
     {
         RETURNFUNC((ret < 0) ? ret : -RIG_EPROTO);
     }
+
     HAMLIB_TRACE;
 
     rig->caps->has_set_parm = rs->has_set_parm = strtoll(buf, NULL, 0);
@@ -564,6 +567,7 @@ static int quisk_open(RIG *rig)
         rs->mode_list |= rs->rx_range_list[i].modes;
         rs->vfo_list |= rs->rx_range_list[i].vfo;
     }
+
     HAMLIB_TRACE;
 
     for (i = 0; i < HAMLIB_FRQRANGESIZ
@@ -572,6 +576,7 @@ static int quisk_open(RIG *rig)
         rs->mode_list |= rs->tx_range_list[i].modes;
         rs->vfo_list |= rs->tx_range_list[i].vfo;
     }
+
     HAMLIB_TRACE;
 
     if (rs->vfo_list == 0)
@@ -580,10 +585,12 @@ static int quisk_open(RIG *rig)
                   __func__);
         rs->vfo_list = RIG_VFO_A | RIG_VFO_B;
     }
+
     HAMLIB_TRACE;
 #endif
 
     if (prot_ver == 0) { RETURNFUNC(RIG_OK); }
+
     HAMLIB_TRACE;
 
     // otherwise we continue reading protocol 1 fields
@@ -805,6 +812,7 @@ static int quisk_open(RIG *rig)
             else if (strcmp(setting, "parm_gran") == 0)
             {
                 char *p = strtok(value, ";");
+
                 for (i = 0; p != NULL && i < RIG_SETTING_MAX; ++i)
                 {
                     int level;
@@ -826,6 +834,7 @@ static int quisk_open(RIG *rig)
                         rig->caps->parm_gran[i].max.i = rs->parm_gran[i].max.i = max;
                         rig->caps->parm_gran[i].step.i = rs->parm_gran[i].step.i = step;
                     }
+
                     p = strtok(NULL, ";");
                 }
             }
@@ -961,7 +970,7 @@ static int quisk_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 
 static int quisk_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
-                              pbwidth_t width)
+                          pbwidth_t width)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -991,7 +1000,7 @@ static int quisk_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 
 
 static int quisk_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
-                              pbwidth_t *width)
+                          pbwidth_t *width)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -1186,7 +1195,7 @@ static int quisk_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 
 static int quisk_set_rptr_shift(RIG *rig, vfo_t vfo,
-                                    rptr_shift_t rptr_shift)
+                                rptr_shift_t rptr_shift)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -1215,7 +1224,7 @@ static int quisk_set_rptr_shift(RIG *rig, vfo_t vfo,
 
 
 static int quisk_get_rptr_shift(RIG *rig, vfo_t vfo,
-                                    rptr_shift_t *rptr_shift)
+                                rptr_shift_t *rptr_shift)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -1581,7 +1590,7 @@ static int quisk_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 }
 
 static int quisk_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
-                                    pbwidth_t tx_width)
+                                pbwidth_t tx_width)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -1610,7 +1619,7 @@ static int quisk_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 }
 
 static int quisk_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
-                                    pbwidth_t *tx_width)
+                                pbwidth_t *tx_width)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -1650,7 +1659,7 @@ static int quisk_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 }
 
 static int quisk_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
-                                   vfo_t tx_vfo)
+                               vfo_t tx_vfo)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -1680,7 +1689,7 @@ static int quisk_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
 
 
 static int quisk_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
-                                   vfo_t *tx_vfo)
+                               vfo_t *tx_vfo)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -1952,7 +1961,7 @@ static int quisk_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 
 static int quisk_set_level(RIG *rig, vfo_t vfo, setting_t level,
-                               value_t val)
+                           value_t val)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -1993,7 +2002,7 @@ static int quisk_set_level(RIG *rig, vfo_t vfo, setting_t level,
 
 
 static int quisk_get_level(RIG *rig, vfo_t vfo, setting_t level,
-                               value_t *val)
+                           value_t *val)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -2208,7 +2217,7 @@ static int quisk_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
 
 static int quisk_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
-                             ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
+                         ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     int ret;
     char cmd[CMD_MAX];
@@ -2645,7 +2654,7 @@ static int quisk_get_trn(RIG *rig, int *trn)
 #endif
 
 static int quisk_mW2power(RIG *rig, float *power, unsigned int mwpower,
-                              freq_t freq, rmode_t mode)
+                          freq_t freq, rmode_t mode)
 {
     char cmdbuf[32];
     char buf[BUF_MAX];
@@ -2669,7 +2678,7 @@ static int quisk_mW2power(RIG *rig, float *power, unsigned int mwpower,
 
 
 static int quisk_power2mW(RIG *rig, unsigned int *mwpower, float power,
-                              freq_t freq, rmode_t mode)
+                          freq_t freq, rmode_t mode)
 {
     char cmdbuf[64];
     char buf[BUF_MAX];

@@ -533,6 +533,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     default: printf("cmd 0x%02x unknown\n", frame[4]);
     }
+
 // don't care about the rig type yet
 }
 

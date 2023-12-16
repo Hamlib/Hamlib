@@ -2296,7 +2296,8 @@ static int ft920_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     {
         return err;
     }
-    hl_usleep(200*1000); // give the rig some time before we try set_freq
+
+    hl_usleep(200 * 1000); // give the rig some time before we try set_freq
 
     return RIG_OK;
 }

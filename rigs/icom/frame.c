@@ -261,7 +261,7 @@ collision_retry:
 
         // first 2 bytes of everyting are 0xfe so we won't test those
         // this allows some corruptin of the 0xfe bytes which has been seen in the wild
-        if (memcmp(&buf[2], &sendbuf[2], frm_len-2) != 0)
+        if (memcmp(&buf[2], &sendbuf[2], frm_len - 2) != 0)
         {
             /* Frames are different? */
             /* Problem on ci-v bus? */
@@ -290,8 +290,11 @@ read_another_frame:
      */
     buf[0] = 0;
     frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+
     if (frm_len > 4 && memcmp(buf, sendbuf, frm_len) == 0)
+    {
         priv->serial_USB_echo_off = 0;
+    }
 
 #if 0
 
@@ -587,7 +590,8 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
     unsigned char icmode;
     signed char icmode_ext;
     pbwidth_t width_tmp = width;
-    const struct icom_priv_data *priv_data = (struct icom_priv_data *) rig->state.priv;
+    const struct icom_priv_data *priv_data = (struct icom_priv_data *)
+            rig->state.priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: mode=%d, width=%d\n", __func__, (int)mode,

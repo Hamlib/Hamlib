@@ -703,7 +703,8 @@ int newcat_close(RIG *rig)
 
     ENTERFUNC;
 
-    if (!no_restore_ai && priv->trn_state >= 0 && rig_s->comm_state && rig_s->powerstat != RIG_POWER_OFF)
+    if (!no_restore_ai && priv->trn_state >= 0 && rig_s->comm_state
+            && rig_s->powerstat != RIG_POWER_OFF)
     {
         /* restore AI state */
         newcat_set_trn(rig, priv->trn_state); /* ignore status in
@@ -893,7 +894,8 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
     {
         if ((long)freq == freq_60m[i]) { channel = i; }
     }
-    if ((long)freq == 5357000) channel = 3; // 60M channel for FT8
+
+    if ((long)freq == 5357000) { channel = 3; } // 60M channel for FT8
 
     if (channel < 0)
     {
@@ -1166,7 +1168,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             }
 
             // we need to change vfos, BS, and change back
-            if (is_ft991==FALSE && is_ft891==FALSE && newcat_valid_command(rig, "VS"))
+            if (is_ft991 == FALSE && is_ft891 == FALSE && newcat_valid_command(rig, "VS"))
             {
                 SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VS%d;BS%02d%c",
                          vfo1, newcat_band_index(freq), cat_term);
@@ -1590,9 +1592,11 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
+
     if (rig->state.powerstat == 0)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n",
+                  __func__);
         return RIG_OK; // to prevent repeats
     }
 
@@ -1964,7 +1968,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         }
     }
 
-        break;
+    break;
 
     default:
         RETURNFUNC(-RIG_EINVAL);
@@ -3618,12 +3622,12 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
     case RIG_POWER_ON:
         // When powering on a Yaesu rig needs dummy bytes to wake it up,
         // then wait from 1 to 2 seconds and issue the power-on command again
-    HAMLIB_TRACE;
+        HAMLIB_TRACE;
         write_block(&state->rigport, (unsigned char *) "PS1;", 4);
         hl_usleep(1200000);
         write_block(&state->rigport, (unsigned char *) "PS1;", 4);
         // some rigs reset the serial port during power up
-        // so we reopen the com port  again 
+        // so we reopen the com port  again
         HAMLIB_TRACE;
         //oser_close(&state->rigport);
         rig_close(rig);
@@ -3759,6 +3763,7 @@ int newcat_get_powerstat(RIG *rig, powerstat_t *status)
     rig_flush(&rig->state.rigport);
 
     result = newcat_get_cmd(rig);
+
     if (result != RIG_OK)
     {
         RETURNFUNC(result);
@@ -4036,8 +4041,9 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
 
     err = check_level_param(rig, level, val, &level_info);
-    if (err != RIG_OK ) { RETURNFUNC(err); }
-    
+
+    if (err != RIG_OK) { RETURNFUNC(err); }
+
     switch (level)
     {
     case RIG_LEVEL_RFPOWER:
@@ -4046,14 +4052,14 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if ( is_ftdx3000dm )    /* No separate rig->caps for this rig :-( */
-	  {
-	    fpf = (int)((val.f * 50.0f) + 0.5f);
-	  }
-	else
-	  {
-	    fpf = (int)((val.f / level_info->step.f) + 0.5f );
-	  }
+        if (is_ftdx3000dm)      /* No separate rig->caps for this rig :-( */
+        {
+            fpf = (int)((val.f * 50.0f) + 0.5f);
+        }
+        else
+        {
+            fpf = (int)((val.f / level_info->step.f) + 0.5f);
+        }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PC%03d%c", fpf, cat_term);
         break;
@@ -4193,7 +4199,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         // Most Yaesu rigs seem to use range of 0-75 to represent pitch of 300..1050 Hz in 10 Hz steps
-        kp = (val.i - level_info->min.i + (level_info->step.i / 2)) / level_info->step.i;
+        kp = (val.i - level_info->min.i + (level_info->step.i / 2)) /
+             level_info->step.i;
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KP%02d%c", kp, cat_term);
         break;
@@ -4220,27 +4227,31 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         rmode_t exclude = RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR;
+
         if ((rig->state.tx_vfo == RIG_VFO_A && (rig->state.cache.modeMainA & exclude))
-          ||(rig->state.tx_vfo == RIG_VFO_B && (rig->state.cache.modeMainB & exclude))
-          ||(rig->state.tx_vfo == RIG_VFO_C && (rig->state.cache.modeMainC & exclude)))
-         {
-             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot set MG in CW/RTTY modes\n", __func__);
-             return RIG_OK;
-         }
+                || (rig->state.tx_vfo == RIG_VFO_B && (rig->state.cache.modeMainB & exclude))
+                || (rig->state.tx_vfo == RIG_VFO_C && (rig->state.cache.modeMainC & exclude)))
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot set MG in CW/RTTY modes\n",
+                      __func__);
+            return RIG_OK;
+        }
 
 
-        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
+        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000
+                || is_ftdx101d
                 || is_ftdx101mp)
         {
             newcat_get_mode(rig, vfo, &mode, &width);
         }
 
-        fpf = (int) (( val.f / level_info->step.f ) + 0.5f );
+        fpf = (int)((val.f / level_info->step.f) + 0.5f);
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MG%03d%c", fpf, cat_term);
 
         // Some Yaesu rigs reject this command in RTTY modes
-        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
+        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000
+                || is_ftdx101d
                 || is_ftdx101mp)
         {
             if (mode & RIG_MODE_RTTY || mode & RIG_MODE_RTTYR)
@@ -4422,6 +4433,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
         fpf = (int)((val.f / level_info->step.f) + 0.5);
+
         if (newcat_is_rig(rig, RIG_MODEL_FT450))
         {
             if (fpf < 1)
@@ -4466,7 +4478,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        fpf = (int) ((val.f / level_info->step.f) + 0.5f);
+        fpf = (int)((val.f / level_info->step.f) + 0.5f);
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "PL%03d%c", fpf, cat_term);
         break;
@@ -4574,7 +4586,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        fpf = (int) ((val.f / level_info->step.f) + 0.5f );
+        fpf = (int)((val.f / level_info->step.f) + 0.5f);
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SQ%c%03d%c", main_sub_vfo, fpf,
                  cat_term);
 
@@ -4609,7 +4621,8 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VD%04d%c", val.i, cat_term);
         }
-        else if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710) // new lookup table argument
+        else if (is_ftdx101d || is_ftdx101mp || is_ftdx10
+                 || is_ft710) // new lookup table argument
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: ft101 #1 val.i=%d\n", __func__, val.i);
 
@@ -4651,12 +4664,13 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        fpf = (int) ((val.f / level_info->step.f) + 0.5f );
+        fpf = (int)((val.f / level_info->step.f) + 0.5f);
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "VG%03d%c", fpf, cat_term);
         break;
 
     case RIG_LEVEL_ANTIVOX:
-        fpf = (int) (( val.f / level_info->step.f ) + 0.5f );
+        fpf = (int)((val.f / level_info->step.f) + 0.5f);
+
         if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft710)
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AV%03d%c", fpf, cat_term);
@@ -4818,32 +4832,44 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_USB_AF:
         if (is_ftdx101d || is_ftdx101mp)
         {
-            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A? rig->state.cache.modeMainA : rig->state.cache.modeMainB;
+            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A ?
+                              rig->state.cache.modeMainA : rig->state.cache.modeMainB;
             float valf = val.f / level_info->step.f;
-            switch(curmode)
+
+            switch (curmode)
             {
-                case RIG_MODE_USB:
-                case RIG_MODE_LSB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%03.0f%c", valf, cat_term);
-                    break;
-                case RIG_MODE_AM:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%03.0f%c", valf, cat_term);
-                    break;
-                case RIG_MODE_FM:
-                case RIG_MODE_FMN:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%03.0f%c", valf, cat_term);
-                    break;
-                case RIG_MODE_PKTFM:  // is this the right place for this?
-                case RIG_MODE_PKTFMN: // is this the right place for this?
-                case RIG_MODE_PKTUSB:
-                case RIG_MODE_PKTLSB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%03.0f%c", valf, cat_term);
-                    break;
-                default:
-                    rig_debug(RIG_DEBUG_ERR, "%s: unknown how to set USB_AF for mode=%s\n", __func__, rig_strrmode(curmode));
-                    RETURNFUNC(-RIG_EINVAL);
+            case RIG_MODE_USB:
+            case RIG_MODE_LSB:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%03.0f%c", valf,
+                         cat_term);
+                break;
+
+            case RIG_MODE_AM:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%03.0f%c", valf,
+                         cat_term);
+                break;
+
+            case RIG_MODE_FM:
+            case RIG_MODE_FMN:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%03.0f%c", valf,
+                         cat_term);
+                break;
+
+            case RIG_MODE_PKTFM:  // is this the right place for this?
+            case RIG_MODE_PKTFMN: // is this the right place for this?
+            case RIG_MODE_PKTUSB:
+            case RIG_MODE_PKTLSB:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%03.0f%c", valf,
+                         cat_term);
+                break;
+
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown how to set USB_AF for mode=%s\n",
+                          __func__, rig_strrmode(curmode));
+                RETURNFUNC(-RIG_EINVAL);
             }
         }
+
         break;
 
     default:
@@ -4885,7 +4911,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
-    
+
     level_info = &rig->caps->level_gran[rig_setting2idx(level)];
 
     switch (level)
@@ -4920,6 +4946,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
+
         if (is_ftdx10) { main_sub_vfo = '0'; }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AG%c%c", main_sub_vfo,
@@ -5014,16 +5041,20 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
-        rmode_t exclude = RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR;
-        if ((rig->state.tx_vfo == RIG_VFO_A && (rig->state.cache.modeMainA & exclude))
-          ||(rig->state.tx_vfo == RIG_VFO_B && (rig->state.cache.modeMainB & exclude))
-          ||(rig->state.tx_vfo == RIG_VFO_C && (rig->state.cache.modeMainC & exclude)))
-         {
-             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot read MG in CW/RTTY modes\n", __func__);
-             return RIG_OK;
-         }
 
-        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
+        rmode_t exclude = RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR;
+
+        if ((rig->state.tx_vfo == RIG_VFO_A && (rig->state.cache.modeMainA & exclude))
+                || (rig->state.tx_vfo == RIG_VFO_B && (rig->state.cache.modeMainB & exclude))
+                || (rig->state.tx_vfo == RIG_VFO_C && (rig->state.cache.modeMainC & exclude)))
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot read MG in CW/RTTY modes\n",
+                      __func__);
+            return RIG_OK;
+        }
+
+        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000
+                || is_ftdx101d
                 || is_ftdx101mp)
         {
             newcat_get_mode(rig, vfo, &mode, &width);
@@ -5032,7 +5063,8 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MG%c", cat_term);
 
         // Some Yaesu rigs reject this command in RTTY modes
-        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
+        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000
+                || is_ftdx101d
                 || is_ftdx101mp)
         {
             if (mode & RIG_MODE_RTTY || mode & RIG_MODE_RTTYR)
@@ -5174,6 +5206,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             RETURNFUNC(-RIG_ENAVAIL);
         }
+
         if (is_ftdx10) { main_sub_vfo = '0'; }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SM%c%c", main_sub_vfo,
@@ -5395,76 +5428,95 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_USB_AF_INPUT:
         if (is_ftdx101d || is_ftdx101mp)
         {
-            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A? rig->state.cache.modeMainA : rig->state.cache.modeMainB;
-            switch(curmode)
+            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A ?
+                              rig->state.cache.modeMainA : rig->state.cache.modeMainB;
+
+            switch (curmode)
             {
-                case RIG_MODE_LSB:
-                case RIG_MODE_USB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%c", cat_term);
-                    break;
-                case RIG_MODE_AM:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%c", cat_term);
-                    break;
-                case RIG_MODE_FM:
-                case RIG_MODE_FMN:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%c", cat_term);
-                    break;
-                case RIG_MODE_PKTFM:
-                case RIG_MODE_PKTFMN:
-                case RIG_MODE_PKTUSB:
-                case RIG_MODE_PKTLSB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%c", cat_term);
-                    break;
-                default:
-                    rig_debug(RIG_DEBUG_ERR, "%s: unknown how to get USB_AF_INPUT for mode=%s\n", __func__, rig_strrmode(curmode));
-                    RETURNFUNC(-RIG_EINVAL);
+            case RIG_MODE_LSB:
+            case RIG_MODE_USB:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010113%c", cat_term);
+                break;
+
+            case RIG_MODE_AM:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010214%c", cat_term);
+                break;
+
+            case RIG_MODE_FM:
+            case RIG_MODE_FMN:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010313%c", cat_term);
+                break;
+
+            case RIG_MODE_PKTFM:
+            case RIG_MODE_PKTFMN:
+            case RIG_MODE_PKTUSB:
+            case RIG_MODE_PKTLSB:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010415%c", cat_term);
+                break;
+
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown how to get USB_AF_INPUT for mode=%s\n",
+                          __func__, rig_strrmode(curmode));
+                RETURNFUNC(-RIG_EINVAL);
             }
         }
         else
         {
             RETURNFUNC(-RIG_ENIMPL);
         }
+
         break;
 
     case RIG_LEVEL_USB_AF:
         if (is_ftdx101d || is_ftdx101mp)
         {
-            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A? rig->state.cache.modeMainA : rig->state.cache.modeMainB;
-            switch(curmode)
+            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A ?
+                              rig->state.cache.modeMainA : rig->state.cache.modeMainB;
+
+            switch (curmode)
             {
-                case RIG_MODE_LSB:
-                case RIG_MODE_USB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010109%c", cat_term);
-                    break;
-                case RIG_MODE_AM:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010209%c", cat_term);
-                    break;
-                case RIG_MODE_FM:
-                case RIG_MODE_FMN:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010309%c", cat_term);
-                    break;
-                case RIG_MODE_PKTFM:
-                case RIG_MODE_PKTFMN:
-                case RIG_MODE_PKTUSB:
-                case RIG_MODE_PKTLSB:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010411%c", cat_term);
-                    break;
-                case RIG_MODE_RTTY:
-                    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010511%c", cat_term);
-                    break;
-                    // we have PSK level too but no means to have this mode yet
-                default:
-                    rig_debug(RIG_DEBUG_ERR, "%s: unknown how to get USB_AF for mode=%s\n", __func__, rig_strrmode(curmode));
-                    RETURNFUNC(-RIG_EINVAL);
+            case RIG_MODE_LSB:
+            case RIG_MODE_USB:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010109%c", cat_term);
+                break;
+
+            case RIG_MODE_AM:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010209%c", cat_term);
+                break;
+
+            case RIG_MODE_FM:
+            case RIG_MODE_FMN:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010309%c", cat_term);
+                break;
+
+            case RIG_MODE_PKTFM:
+            case RIG_MODE_PKTFMN:
+            case RIG_MODE_PKTUSB:
+            case RIG_MODE_PKTLSB:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010411%c", cat_term);
+                break;
+
+            case RIG_MODE_RTTY:
+                SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX010511%c", cat_term);
+                break;
+
+            // we have PSK level too but no means to have this mode yet
+            default:
+                rig_debug(RIG_DEBUG_ERR, "%s: unknown how to get USB_AF for mode=%s\n",
+                          __func__, rig_strrmode(curmode));
+                RETURNFUNC(-RIG_EINVAL);
             }
         }
         else
         {
             RETURNFUNC(-RIG_ENIMPL);
         }
+
         break;
+
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%08llx\n", __func__, (long long unsigned  int)level);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown level=%08llx\n", __func__,
+                  (long long unsigned  int)level);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -5964,6 +6016,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                 || is_ftdx101mp)
         {
             err = newcat_get_mode(rig, vfo, &mode, &width);
+
             if (err != RIG_OK)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
@@ -6005,6 +6058,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                 || is_ftdx101mp)
         {
             err = newcat_get_mode(rig, vfo, &mode, &width);
+
             if (err != RIG_OK)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
@@ -6167,6 +6221,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                 || is_ftdx101mp)
         {
             err = newcat_get_mode(rig, vfo, &mode, &width);
+
             if (err != RIG_OK)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
@@ -6204,17 +6259,20 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
+        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000
+                || is_ftdx101d
                 || is_ftdx101mp)
         {
             err = newcat_get_mode(rig, vfo, &mode, &width);
+
             if (err != RIG_OK)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
             }
         }
 
-        if (is_ft891 || is_ft991 || is_ft710 || is_ftdx1200 || is_ftdx3000 || is_ftdx3000dm
+        if (is_ft891 || is_ft991 || is_ft710 || is_ftdx1200 || is_ftdx3000
+                || is_ftdx3000dm
                 || is_ftdx101d
                 || is_ftdx101mp)
         {
@@ -6229,7 +6287,8 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         }
 
         // Some Yaesu rigs reject this command in AM/FM/RTTY modes
-        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx101d
+        if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000
+                || is_ftdx101d
                 || is_ftdx101mp)
         {
             if (mode & RIG_MODE_AM || mode & RIG_MODE_FM || mode & RIG_MODE_AMN
@@ -6280,6 +6339,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RT%d%c", status ? 1 : 0,
                      cat_term);
         }
+
         break;
 
     case RIG_FUNC_XIT:
@@ -6297,6 +6357,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "XT%d%c", status ? 1 : 0,
                      cat_term);
         }
+
         break;
 
     case RIG_FUNC_APF:
@@ -6379,6 +6440,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
                 || is_ftdx101mp)
         {
             err = newcat_get_mode(rig, vfo, &mode, &width);
+
             if (err != RIG_OK)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: get_mode: %s\n", __func__, rigerror(err));
@@ -6529,7 +6591,8 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
-        if (is_ftdx1200 || is_ftdx3000 || is_ftdx3000dm || is_ft891 || is_ft991 || is_ft710
+        if (is_ftdx1200 || is_ftdx3000 || is_ftdx3000dm || is_ft891 || is_ft991
+                || is_ft710
                 || is_ftdx101d
                 || is_ftdx101mp)
         {
@@ -6574,6 +6637,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "RT%c", cat_term);
         }
+
         break;
 
     case RIG_FUNC_XIT:
@@ -6590,6 +6654,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "XT%c", cat_term);
         }
+
         break;
 
     case RIG_FUNC_APF:
@@ -6717,7 +6782,8 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     case RIG_FUNC_APF:
-        if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft991 || is_ft891 || is_ft710)
+        if (is_ftdx101d || is_ftdx101mp || is_ftdx10 || is_ft991 || is_ft891
+                || is_ft710)
         {
             *status = (retfunc[last_char_index] == '1') ? 1 : 0;
         }
@@ -6751,25 +6817,27 @@ int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
     int band = 0;
     ENTERFUNC;
 
-    switch(parm)
+    switch (parm)
     {
-        case RIG_PARM_BANDSELECT:
-            if (!newcat_valid_command(rig, "BS"))
-            {
-                RETURNFUNC(-RIG_ENAVAIL);
-            }
-            // we should have a string for the desired band
-            band = rig_get_band_rig(rig, 0.0, val.s); 
+    case RIG_PARM_BANDSELECT:
+        if (!newcat_valid_command(rig, "BS"))
+        {
+            RETURNFUNC(-RIG_ENAVAIL);
+        }
 
-            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c", band, cat_term);
+        // we should have a string for the desired band
+        band = rig_get_band_rig(rig, 0.0, val.s);
 
-            retval = newcat_set_cmd(rig);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c", band, cat_term);
 
-            if (retval != RIG_OK)
-            {
-                RETURNFUNC(retval);
-            }
-            RETURNFUNC(RIG_OK);
+        retval = newcat_set_cmd(rig);
+
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        RETURNFUNC(RIG_OK);
     }
 
     RETURNFUNC(-RIG_ENIMPL);
@@ -6781,26 +6849,29 @@ int newcat_get_parm(RIG *rig, setting_t parm, value_t *val)
     int retval;
     ENTERFUNC;
 
-    switch(parm)
+    switch (parm)
     {
-        case RIG_PARM_BANDSELECT:
-            if (!newcat_valid_command(rig, "BS"))
-            {
-                RETURNFUNC(-RIG_ENAVAIL);
-            }
+    case RIG_PARM_BANDSELECT:
+        if (!newcat_valid_command(rig, "BS"))
+        {
+            RETURNFUNC(-RIG_ENAVAIL);
+        }
 
-            freq_t freq;
-            retval = rig_get_freq(rig, RIG_VFO_A, &freq);
-            if (retval != RIG_OK)
-            {
-                RETURNFUNC(retval);
-            }
-            hamlib_band_t band = rig_get_band(rig, freq, 0);
-            val->cs = rig_get_band_str(rig, band, 0);
+        freq_t freq;
+        retval = rig_get_freq(rig, RIG_VFO_A, &freq);
 
-            RETURNFUNC(RIG_OK);
-        default:
-            RETURNFUNC(-RIG_EINVAL);
+        if (retval != RIG_OK)
+        {
+            RETURNFUNC(retval);
+        }
+
+        hamlib_band_t band = rig_get_band(rig, freq, 0);
+        val->cs = rig_get_band_str(rig, band, 0);
+
+        RETURNFUNC(RIG_OK);
+
+    default:
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     RETURNFUNC(-RIG_ENAVAIL);
@@ -6819,37 +6890,53 @@ static int newcat_get_maxpower(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     int offset = 0;
 
     val->i = 0;
-    if  (newcat_is_rig(rig, RIG_MODEL_FT991))
+
+    if (newcat_is_rig(rig, RIG_MODEL_FT991))
     {
         offset = 5;
-        switch(token)
+
+        switch (token)
         {
-            case TOK_MAXPOWER_HF:  code = 137; break;
-            case TOK_MAXPOWER_6M:  code = 138; break;
-            case TOK_MAXPOWER_VHF: code = 139; break;
-            case TOK_MAXPOWER_UHF: code = 140; break;
-            default: return -RIG_EINVAL;
+        case TOK_MAXPOWER_HF:  code = 137; break;
+
+        case TOK_MAXPOWER_6M:  code = 138; break;
+
+        case TOK_MAXPOWER_VHF: code = 139; break;
+
+        case TOK_MAXPOWER_UHF: code = 140; break;
+
+        default: return -RIG_EINVAL;
         }
+
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX%03d%c", code, cat_term);
     }
-    else if  (newcat_is_rig(rig, RIG_MODEL_FTDX101MP) || newcat_is_rig(rig, RIG_MODEL_FTDX101D))
+    else if (newcat_is_rig(rig, RIG_MODEL_FTDX101MP)
+             || newcat_is_rig(rig, RIG_MODEL_FTDX101D))
     {
         offset = 6;
-        switch(token)
+
+        switch (token)
         {
-            case TOK_MAXPOWER_HF:  code = 1; break;
-            case TOK_MAXPOWER_6M:  code = 2; break;
-            case TOK_MAXPOWER_4M:  code = 3; break;
-            case TOK_MAXPOWER_AM:  code = 4; break;
-            default: return -RIG_EINVAL;
+        case TOK_MAXPOWER_HF:  code = 1; break;
+
+        case TOK_MAXPOWER_6M:  code = 2; break;
+
+        case TOK_MAXPOWER_4M:  code = 3; break;
+
+        case TOK_MAXPOWER_AM:  code = 4; break;
+
+        default: return -RIG_EINVAL;
         }
+
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "EX0304%02d%c", code, cat_term);
     }
+
     retval = newcat_get_cmd(rig);
 
     if (retval == RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: offset=%d, scanning '%s'\n", __func__, offset, &priv->ret_data[offset]);
+        rig_debug(RIG_DEBUG_ERR, "%s: offset=%d, scanning '%s'\n", __func__, offset,
+                  &priv->ret_data[offset]);
         sscanf(&priv->ret_data[offset], "%d", &val->i);
     }
 
@@ -7080,7 +7167,7 @@ int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
     char chan = '1';
 
-    if (newcat_is_rig(rig, RIG_MODEL_FT450) && strlen(msg)==1 && msg[0] > '4')
+    if (newcat_is_rig(rig, RIG_MODEL_FT450) && strlen(msg) == 1 && msg[0] > '4')
     {
         // 450 manual says 1/2/3 playback needs P1=6/7/8
         rig_debug(RIG_DEBUG_ERR, "%s: only messages 1-3 accepted\n", __func__);
@@ -7090,54 +7177,68 @@ int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     {
         // 5-chan playback 6-A: FT-1200, FT-2000, FT-3000, FTDX-5000, FT-891, FT-9000, FT-950, FT-991, FTDX-101MP/D, FTDX10
         // 5-chan but 1-5 playback: FT-710
-        if (strlen(msg)==1 && (msg[0] < '1' || msg[0] > '5'))
+        if (strlen(msg) == 1 && (msg[0] < '1' || msg[0] > '5'))
         {
             rig_debug(RIG_DEBUG_ERR, "%s: only messages 1-5 accepted\n", __func__);
             RETURNFUNC(-RIG_EINVAL);
         }
+
         if (!newcat_is_rig(rig, RIG_MODEL_FT710))
         {
             chan += 5;  // 6,7,8 needed for playback
         }
     }
+
     char *msg2 = strdup(msg);  // copy so we can modify it if needed
 
-    if (strlen(msg2)==1)
+    if (strlen(msg2) == 1)
     {
-        switch(*msg2)
+        switch (*msg2)
         {
-            // do all Yaeus rigs play back with chan+5?
-            case '1': msg2[0] = '6';break;
-            case '2': msg2[0] = '7';break;
-            case '3': msg2[0] = '8';break;
-            case '4': msg2[0] = '9';break;
-            case '5': msg2[0] = 'A';break;
-            case '6': // we'll let these pass
-            case '7':
-            case '8':
-            case '9':
-            case 'A':
-            case 'a':
-                break;
-            default:
+        // do all Yaeus rigs play back with chan+5?
+        case '1': msg2[0] = '6'; break;
+
+        case '2': msg2[0] = '7'; break;
+
+        case '3': msg2[0] = '8'; break;
+
+        case '4': msg2[0] = '9'; break;
+
+        case '5': msg2[0] = 'A'; break;
+
+        case '6': // we'll let these pass
+        case '7':
+        case '8':
+        case '9':
+        case 'A':
+        case 'a':
+            break;
+
+        default:
             RETURNFUNC(-RIG_EINVAL);
         }
     }
     else
     {
-        if (strlen(msg2)>50) {
-            msg2[50]=0; // truncate if too long
-            rig_debug(RIG_DEBUG_ERR, "%s: msg length of %d truncated to 50\n", __func__, (int)strlen(msg));
+        if (strlen(msg2) > 50)
+        {
+            msg2[50] = 0; // truncate if too long
+            rig_debug(RIG_DEBUG_ERR, "%s: msg length of %d truncated to 50\n", __func__,
+                      (int)strlen(msg));
         }
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KM1%s;",msg2);
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KM1%s;", msg2);
         rc = newcat_set_cmd(rig);
+
         if (rc != RIG_OK)
         {
             free(msg2);
             RETURNFUNC(-RIG_EINVAL);
         }
+
         chan = '6'; // the channel we use to key msg 1
     }
+
     free(msg2);
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "KY%c%c", chan, cat_term);
 
@@ -7325,6 +7426,7 @@ int newcat_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         {
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AC002%c", cat_term);
         }
+
         break;
 
     case RIG_OP_CPY:
@@ -7629,17 +7731,17 @@ int newcat_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
     if (priv->width_frequency == 9)
     {
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
-             "MW%03d%09d%+.4d%c%c%c%c%c%02u%c%c",
-             chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
-             c_tone, tone, c_rptr_shift, cat_term);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                 "MW%03d%09d%+.4d%c%c%c%c%c%02u%c%c",
+                 chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
+                 c_tone, tone, c_rptr_shift, cat_term);
     }
     else
     {
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
-             "MW%03d%08d%+.4d%c%c%c%c%c%02u%c%c",
-             chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
-             c_tone, tone, c_rptr_shift, cat_term);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str),
+                 "MW%03d%08d%+.4d%c%c%c%c%c%02u%c%c",
+                 chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
+                 c_tone, tone, c_rptr_shift, cat_term);
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
@@ -7705,11 +7807,13 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
     if (is_ftdx101d || is_ftdx101mp || is_ft991 || is_ft710)
     {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MT%03d%c", chan->channel_num, cat_term);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MT%03d%c", chan->channel_num,
+                 cat_term);
     }
     else
     {
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MR%03d%c", chan->channel_num, cat_term);
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "MR%03d%c", chan->channel_num,
+                 cat_term);
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
@@ -7732,7 +7836,9 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
         RETURNFUNC(err);
     }
-    int offset=0;
+
+    int offset = 0;
+
     if (priv->width_frequency == 9)
     {
         offset = 1;
@@ -7829,12 +7935,14 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     chan->freq = atof(retval);
 
     chan->tag[0] = '?'; // assume nothing
+
     if (priv->ret_data[28] != ';') // must have TAG data?
     {
         // get the TAG data
-        sscanf(&priv->ret_data[28],"%32s",chan->tag);
-        char *p = strchr(chan->tag,';');
-        if(p) *p = 0;
+        sscanf(&priv->ret_data[28], "%32s", chan->tag);
+        char *p = strchr(chan->tag, ';');
+
+        if (p) { *p = 0; }
     }
 
     if (!read_only)
@@ -8088,7 +8196,8 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
         p1 = p1 + 2;    /* use non-Toggle commands */
 
         // If VFOB is active then we change VFOB with FT3 instead of VFOA
-        if (rig->state.current_vfo == RIG_VFO_B || rig->state.current_vfo == RIG_VFO_SUB) { p1++; }
+        if (rig->state.current_vfo == RIG_VFO_B
+                || rig->state.current_vfo == RIG_VFO_SUB) { p1++; }
     }
 
     // this doesn't seem to work on FTDX101MP latest firmware as of 20230911 so we test once and disable if needed
@@ -8099,7 +8208,9 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
         command = "ST";
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
         int retval = newcat_set_cmd(rig);
-        if (retval != RIG_OK) {priv->ftdx101_st_missing = 1;retval=RIG_OK;}
+
+        if (retval != RIG_OK) {priv->ftdx101_st_missing = 1; retval = RIG_OK;}
+
         RETURNFUNC(retval);
     }
 
@@ -9322,7 +9433,8 @@ static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width)
 
     for (i = 0; i < priv_caps->roofing_filter_count; i++)
     {
-        const struct newcat_roofing_filter *current_filter = &priv_caps->roofing_filters[i];
+        const struct newcat_roofing_filter *current_filter =
+                &priv_caps->roofing_filters[i];
         char set_value = current_filter->set_value;
 
         // Skip get-only values and optional filters
@@ -10294,9 +10406,9 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
             case 21: *width = 4000;  break;
 
-            default: 
-            
-            RETURNFUNC(-RIG_EINVAL);
+            default:
+
+                RETURNFUNC(-RIG_EINVAL);
             }
 
             break;
@@ -10674,9 +10786,11 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, rmode_t *vfo_mode)
     {
         RETURNFUNC(err);
     }
+
     if (rig->state.powerstat == 0)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n",
+                  __func__);
         return RIG_OK; // to prevent repeats
     }
 
@@ -10772,7 +10886,8 @@ int newcat_get_cmd(RIG *rig)
 
     if (state->powerstat == 0 && !is_power_status_cmd)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n", __func__);
+        rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n",
+                  __func__);
         return RIG_OK; // to prevent repeats
     }
 
@@ -10857,12 +10972,15 @@ int newcat_get_cmd(RIG *rig)
     while (rc != RIG_OK && retry_count++ <= state->rigport.retry)
     {
         rig_flush(&state->rigport);  /* discard any unsolicited data */
+
         if (rc != -RIG_BUSBUSY)
         {
             /* send the command */
             rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
-            rc = write_block(&state->rigport, (unsigned char *) priv->cmd_str, strlen(priv->cmd_str));
+            rc = write_block(&state->rigport, (unsigned char *) priv->cmd_str,
+                             strlen(priv->cmd_str));
+
             if (rc != RIG_OK)
             {
                 RETURNFUNC(rc);
@@ -10880,6 +10998,7 @@ int newcat_get_cmd(RIG *rig)
                 rig_debug(RIG_DEBUG_WARN, "%s: rig power is off?\n", __func__);
                 RETURNFUNC(rc);
             }
+
             continue;             /* usually a timeout - retry */
         }
 
@@ -11051,7 +11170,8 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if ((strncmp(priv->cmd_str, "TX", 2) == 0) && (strlen(priv->cmd_str) > 3))
     {
-        if (priv->cmd_str[2]=='1' && rig->caps->rig_model == RIG_MODEL_FT950) // FT950 didn't like TX; after TX1;
+        if (priv->cmd_str[2] == '1'
+                && rig->caps->rig_model == RIG_MODEL_FT950) // FT950 didn't like TX; after TX1;
         {
             valcmd[0] = 0;
         }
@@ -11150,7 +11270,7 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         int bytes;
         char cmd[256]; // big enough
-        repeat:
+repeat:
         rig_flush(&state->rigport);  /* discard any unsolicited data */
         SNPRINTF(cmd, sizeof(cmd), "%s", priv->cmd_str);
         rc = write_block(&state->rigport, (unsigned char *) cmd, strlen(cmd));
@@ -11160,8 +11280,10 @@ int newcat_set_cmd_validate(RIG *rig)
         if (strlen(valcmd) == 0) { RETURNFUNC(RIG_OK); }
 
         SNPRINTF(cmd, sizeof(cmd), "%s", valcmd);
+
         // some rigs like FT-450/Signalink need a little time before we can ask for TX status again
-        if (strncmp(valcmd,"TX",2)==0) hl_usleep(50*1000); 
+        if (strncmp(valcmd, "TX", 2) == 0) { hl_usleep(50 * 1000); }
+
         rc = write_block(&state->rigport, (unsigned char *) cmd, strlen(cmd));
 
         if (rc != RIG_OK) { RETURNFUNC(-RIG_EIO); }
@@ -11169,21 +11291,25 @@ int newcat_set_cmd_validate(RIG *rig)
         bytes = read_string(&state->rigport, (unsigned char *) priv->ret_data,
                             sizeof(priv->ret_data),
                             &cat_term, sizeof(cat_term), 0, 1);
+
         // we're expecting a response so we'll repeat if needed
-        if (bytes == 0) goto repeat;
+        if (bytes == 0) { goto repeat; }
 
         // FA and FB success is now verified in rig.c with a followup query
         // so no validation is needed
-        if (strncmp(priv->cmd_str, "FA", 2) == 0 || strncmp(priv->cmd_str, "FB", 2) == 0)
+        if (strncmp(priv->cmd_str, "FA", 2) == 0
+                || strncmp(priv->cmd_str, "FB", 2) == 0)
         {
             return RIG_OK;
         }
 
         if (strncmp(priv->cmd_str, "PC", 2) == 0 && priv->ret_data[0] == '?')
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: Power level error, check if exceeding max power setting\n", __func__);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: Power level error, check if exceeding max power setting\n", __func__);
             RETURNFUNC(RIG_OK);
         }
+
         if (strncmp(priv->cmd_str, "FT", 2) == 0
                 && strncmp(priv->ret_data, "FT", 2) == 0)
         {
@@ -11194,7 +11320,8 @@ int newcat_set_cmd_validate(RIG *rig)
         if (strncmp(priv->cmd_str, "TX", 2) == 0
                 && strncmp(priv->ret_data, "TX", 2) == 0)
         {
-            if (strstr(priv->ret_data,"TX2")) goto repeat;
+            if (strstr(priv->ret_data, "TX2")) { goto repeat; }
+
             // TX command does not echo what's sent so we just check the basic command
             RETURNFUNC(RIG_OK);
         }
@@ -11210,7 +11337,7 @@ int newcat_set_cmd_validate(RIG *rig)
             if (strncmp(priv->cmd_str, "VS", 2) == 0
                     && strncmp(priv->cmd_str, priv->ret_data, 2) == 0) { RETURNFUNC(RIG_OK); }
             else if (strcmp(priv->cmd_str, priv->ret_data) == 0) { RETURNFUNC(RIG_OK); }
-            else if (priv->cmd_str[0] == ';' && priv->ret_data[0]=='?') { hl_usleep(50*1000);RETURNFUNC(RIG_OK); }
+            else if (priv->cmd_str[0] == ';' && priv->ret_data[0] == '?') { hl_usleep(50 * 1000); RETURNFUNC(RIG_OK); }
             else { rc = -RIG_EPROTO; }
         }
 
@@ -11284,7 +11411,8 @@ int newcat_set_cmd(RIG *rig)
         if (strncmp(priv->cmd_str, "FA", 2) == 0
                 || strncmp(priv->cmd_str, "FB", 2) == 0
                 || strncmp(priv->cmd_str, "TX", 2) == 0
-                || strncmp(priv->cmd_str, "MD", 2) == 0 // Win4Yaesu not responding fast enough on MD change
+                || strncmp(priv->cmd_str, "MD",
+                           2) == 0 // Win4Yaesu not responding fast enough on MD change
                 || strncmp(priv->cmd_str, "ST", 2) == 0)
         {
             RETURNFUNC(RIG_OK);
@@ -11518,7 +11646,7 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
             }
 
             // don't use RETURNFUNC here as that macros expects an int for the return code
-            RETURNFUNC2 (newcat_mode_conv[i].mode);
+            RETURNFUNC2(newcat_mode_conv[i].mode);
         }
     }
 
@@ -11564,12 +11692,14 @@ static int newcat_set_clarifier(RIG *rig, vfo_t vfo, int rx, int tx)
     {
         int current_rx, current_tx, result;
         result = newcat_get_clarifier(rig, vfo, &current_rx, &current_tx);
+
         if (result == RIG_OK)
         {
             if (rx < 0)
             {
                 rx = current_rx;
             }
+
             if (tx < 0)
             {
                 tx = current_tx;
@@ -11581,6 +11711,7 @@ static int newcat_set_clarifier(RIG *rig, vfo_t vfo, int rx, int tx)
             {
                 rx = 0;
             }
+
             if (tx < 0)
             {
                 tx = 0;
@@ -11589,7 +11720,7 @@ static int newcat_set_clarifier(RIG *rig, vfo_t vfo, int rx, int tx)
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00%d%d000%c", main_sub_vfo,
-            rx ? 1 : 0, tx ? 1 : 0, cat_term);
+             rx ? 1 : 0, tx ? 1 : 0, cat_term);
 
     RETURNFUNC2(newcat_set_cmd(rig));
 }
@@ -11612,7 +11743,8 @@ static int newcat_get_clarifier(RIG *rig, vfo_t vfo, int *rx, int *tx)
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00%c", main_sub_vfo, cat_term);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c00%c", main_sub_vfo,
+             cat_term);
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
@@ -11631,6 +11763,7 @@ static int newcat_get_clarifier(RIG *rig, vfo_t vfo, int *rx, int *tx)
     {
         *rx = (ret_data[0] == '1') ? 1 : 0;
     }
+
     if (tx != NULL)
     {
         *tx = (ret_data[1] == '1') ? 1 : 0;
@@ -11655,7 +11788,7 @@ int newcat_set_clarifier_frequency(RIG *rig, vfo_t vfo, shortfreq_t freq)
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c01%+05d%c", main_sub_vfo,
-        (int) freq, cat_term);
+             (int) freq, cat_term);
 
     RETURNFUNC2(newcat_set_cmd(rig));
 }
@@ -11680,7 +11813,8 @@ int newcat_get_clarifier_frequency(RIG *rig, vfo_t vfo, shortfreq_t *freq)
         main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     }
 
-    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c01%c", main_sub_vfo, cat_term);
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "CF%c01%c", main_sub_vfo,
+             cat_term);
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
@@ -11696,9 +11830,11 @@ int newcat_get_clarifier_frequency(RIG *rig, vfo_t vfo, shortfreq_t *freq)
     priv->ret_data[ret_data_len - 1] = '\0';
 
     result = sscanf(ret_data, "%05d", &freq_result);
+
     if (result != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: error parsing clarifier frequency: %s\n", __func__, ret_data);
+        rig_debug(RIG_DEBUG_ERR, "%s: error parsing clarifier frequency: %s\n",
+                  __func__, ret_data);
         RETURNFUNC2(-RIG_EPROTO);
     }
 

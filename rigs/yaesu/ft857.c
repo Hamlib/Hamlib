@@ -431,7 +431,8 @@ int ft857_close(RIG *rig)
 
 /* ---------------------------------------------------------------------- */
 
-static inline long timediff(const struct timeval *tv1, const struct timeval *tv2)
+static inline long timediff(const struct timeval *tv1,
+                            const struct timeval *tv2)
 {
     struct timeval tv;
 
@@ -673,7 +674,8 @@ int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return -RIG_OK;
 }
 
-static void get_mode(RIG *rig, const struct ft857_priv_data *priv, rmode_t *mode,
+static void get_mode(RIG *rig, const struct ft857_priv_data *priv,
+                     rmode_t *mode,
                      pbwidth_t *width)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);

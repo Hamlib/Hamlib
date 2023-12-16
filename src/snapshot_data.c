@@ -27,7 +27,8 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     cJSON_AddStringToObject(id_node, "deviceId", rig->state.device_id);
     cJSON_AddItemToObject(rig_node, "id", id_node);
 
-    node = cJSON_AddStringToObject(rig_node, "status", rig_strcommstatus(rig->state.comm_status));
+    node = cJSON_AddStringToObject(rig_node, "status",
+                                   rig_strcommstatus(rig->state.comm_status));
 
     if (node == NULL)
     {
@@ -76,15 +77,18 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     rig_sprintf_mode(buf, sizeof(buf), rig->state.mode_list);
     char *p;
     cJSON *modes_array = cJSON_CreateArray();
-    for(p=strtok(buf," ");p;p=strtok(NULL, " "))
+
+    for (p = strtok(buf, " "); p; p = strtok(NULL, " "))
     {
-        if (strlen(buf)>0) {
+        if (strlen(buf) > 0)
+        {
             cJSON *tmp = cJSON_CreateString(p);
             cJSON_AddItemToArray(modes_array, tmp);
         }
     }
+
     cJSON_AddItemToObject(rig_node, "modes", modes_array);
-    
+
     return RIG_OK;
 
 error:
@@ -360,6 +364,7 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
     {
         goto error;
     }
+
     date_strget(buf, sizeof(buf), 0);
     node = cJSON_AddStringToObject(root_node, "time", buf);
 
@@ -404,6 +409,7 @@ int snapshot_serialize(size_t buffer_length, char *buffer, RIG *rig,
     for (i = 0; i < HAMLIB_MAX_VFOS; i++)
     {
         vfo_t vfo = rig->state.vfo_list & RIG_VFO_N(i);
+
         if (!vfo)
         {
             continue;

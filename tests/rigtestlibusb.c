@@ -107,7 +107,8 @@ static void print_2_0_ext_cap(const struct libusb_usb_2_0_extension_descriptor
     printf("      bmAttributes:          %08xh\n", usb_2_0_ext_cap->bmAttributes);
 }
 
-static void print_ss_usb_cap(const struct libusb_ss_usb_device_capability_descriptor
+static void print_ss_usb_cap(const struct
+                             libusb_ss_usb_device_capability_descriptor
                              *ss_usb_cap)
 {
     printf("    USB 3.0 Capabilities:\n");

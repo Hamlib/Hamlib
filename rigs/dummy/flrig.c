@@ -896,7 +896,8 @@ static int flrig_open(RIG *rig)
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
     int dummy;
 
-    if (retval == RIG_ENAVAIL || value[0] == 0 || sscanf(value,"%d",&dummy)==0) // must not have it
+    if (retval == RIG_ENAVAIL || value[0] == 0
+            || sscanf(value, "%d", &dummy) == 0) // must not have it
     {
         priv->has_get_bwA = 0;
         priv->has_get_bwB = 0; // if we don't have A then surely we don't have B either
@@ -1757,14 +1758,15 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         /* so we may not be 100% accurate if op is twiddling knobs */
         cmdp = "rig.get_bwA";
         retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
-        if (retval == RIG_OK && strstr(value,"NONE"))
+
+        if (retval == RIG_OK && strstr(value, "NONE"))
         {
             priv->has_get_bwA = priv->has_get_bwB = 0;
             *width = 0;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: does not have rig.get_bwA/B\n", __func__);
         }
 
-        if (retval != RIG_OK || strstr(value,"NONE"))
+        if (retval != RIG_OK || strstr(value, "NONE"))
         {
             RETURNFUNC(retval);
         }
@@ -1774,7 +1776,8 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         {
             cmdp = "rig.get_bwB";
             retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
-            if (retval == RIG_OK && strlen(value)==0)
+
+            if (retval == RIG_OK && strlen(value) == 0)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: does not have rig.get_bwB\n", __func__);
                 priv->has_get_bwB = 0;
@@ -2523,7 +2526,7 @@ HAMLIB_EXPORT(int) flrig_cat_string(RIG *rig, const char *arg)
 }
 
 int flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
-                                  int status)
+                   int status)
 {
     int retval;
     char cmd_arg[MAXARGLEN];

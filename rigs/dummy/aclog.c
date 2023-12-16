@@ -257,7 +257,7 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
 
     ENTERFUNC;
     ELAPSED1;
-    strcpy(xml,"UNKNOWN");
+    strcpy(xml, "UNKNOWN");
 
     set_transaction_active(rig);
 
@@ -710,10 +710,12 @@ static int aclog_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
 #if 0
+
     if (vfo == RIG_VFO_CURR)
     {
         vfo = rig->state.current_vfo;
     }
+
 #endif
 
     SNPRINTF(cmd, sizeof(cmd),

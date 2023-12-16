@@ -245,7 +245,7 @@ static int sdrsharp_transaction(RIG *rig, char *cmd, char *value,
         if (value)
         {
             read_transaction(rig, xml, sizeof(xml));    // this might time out -- that's OK
-            strncpy(value, xml, value_len); 
+            strncpy(value, xml, value_len);
         }
 
     }
@@ -486,10 +486,12 @@ static int sdrsharp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
 #if 0
+
     if (vfo == RIG_VFO_CURR)
     {
         vfo = rig->state.current_vfo;
     }
+
 #endif
 
     SNPRINTF(cmd, sizeof(cmd), "F %.0lf\n", freq);

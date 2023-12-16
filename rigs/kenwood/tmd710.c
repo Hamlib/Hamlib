@@ -815,10 +815,10 @@ static int tmd710_scan_me(char *buf, tmd710_me *me_struct)
 
     retval = num_sscanf(buf,
                         "ME %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d,%"SCNfreq",%d,%d",
-                        (unsigned int*)&me_struct->channel, &me_struct->freq,
-                        (unsigned int*)&me_struct->step, (unsigned int*)&me_struct->shift,
-                        (unsigned int*)&me_struct->reverse, (unsigned int*)&me_struct->tone,
-                        (unsigned int*)&me_struct->ct, (unsigned int*)&me_struct->dcs,
+                        (unsigned int *)&me_struct->channel, &me_struct->freq,
+                        (unsigned int *)&me_struct->step, (unsigned int *)&me_struct->shift,
+                        (unsigned int *)&me_struct->reverse, (unsigned int *)&me_struct->tone,
+                        (unsigned int *)&me_struct->ct, (unsigned int *)&me_struct->dcs,
                         &me_struct->tone_freq, &me_struct->ct_freq,
                         &me_struct->dcs_val, &me_struct->offset,
                         &me_struct->mode, &me_struct->tx_freq,
@@ -963,10 +963,10 @@ int tmd710_pull_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
     }
 
     retval = num_sscanf(buf, "FO %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d",
-                        (unsigned int*)&fo_struct->vfo, &fo_struct->freq,
-                        (unsigned int*)&fo_struct->step, (unsigned int*)&fo_struct->shift,
-                        (unsigned int*)&fo_struct->reverse, (unsigned int*)&fo_struct->tone,
-                        (unsigned int*)&fo_struct->ct, (unsigned int*)&fo_struct->dcs,
+                        (unsigned int *)&fo_struct->vfo, &fo_struct->freq,
+                        (unsigned int *)&fo_struct->step, (unsigned int *)&fo_struct->shift,
+                        (unsigned int *)&fo_struct->reverse, (unsigned int *)&fo_struct->tone,
+                        (unsigned int *)&fo_struct->ct, (unsigned int *)&fo_struct->dcs,
                         &fo_struct->tone_freq, &fo_struct->ct_freq,
                         &fo_struct->dcs_val, &fo_struct->offset,
                         &fo_struct->mode);
@@ -1006,10 +1006,10 @@ int tmd710_push_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
     }
 
     retval = num_sscanf(buf, "FO %x,%"SCNfreq",%x,%x,%x,%x,%x,%x,%d,%d,%d,%d,%d",
-                        (unsigned int*)&fo_struct->vfo, &fo_struct->freq,
-                        (unsigned int*)&fo_struct->step, (unsigned int*)&fo_struct->shift,
-                        (unsigned int*)&fo_struct->reverse, (unsigned int*)&fo_struct->tone,
-                        (unsigned int*)&fo_struct->ct, (unsigned int*)&fo_struct->dcs,
+                        (unsigned int *)&fo_struct->vfo, &fo_struct->freq,
+                        (unsigned int *)&fo_struct->step, (unsigned int *)&fo_struct->shift,
+                        (unsigned int *)&fo_struct->reverse, (unsigned int *)&fo_struct->tone,
+                        (unsigned int *)&fo_struct->ct, (unsigned int *)&fo_struct->dcs,
                         &fo_struct->tone_freq, &fo_struct->ct_freq,
                         &fo_struct->dcs_val, &fo_struct->offset,
                         &fo_struct->mode);
@@ -1061,12 +1061,12 @@ int tmd710_scan_mu(char *buf, tmd710_mu *mu_struct)
                         &mu_struct->brightness_level,
                         &mu_struct->auto_brightness,
                         &mu_struct->backlight_color,
-                        (unsigned int*)&mu_struct->pf1_key,
-                        (unsigned int*)&mu_struct->pf2_key,
-                        (unsigned int*)&mu_struct->mic_pf1_key,
-                        (unsigned int*)&mu_struct->mic_pf2_key,
-                        (unsigned int*)&mu_struct->mic_pf3_key,
-                        (unsigned int*)&mu_struct->mic_pf4_key,
+                        (unsigned int *)&mu_struct->pf1_key,
+                        (unsigned int *)&mu_struct->pf2_key,
+                        (unsigned int *)&mu_struct->mic_pf1_key,
+                        (unsigned int *)&mu_struct->mic_pf2_key,
+                        (unsigned int *)&mu_struct->mic_pf3_key,
+                        (unsigned int *)&mu_struct->mic_pf4_key,
                         &mu_struct->mic_key_lock,
                         &mu_struct->scan_resume,
                         &mu_struct->auto_power_off,
@@ -2491,7 +2491,7 @@ int tmd710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = sscanf(ackbuf, "SQ %X", (unsigned int*)&l);
+        retval = sscanf(ackbuf, "SQ %X", (unsigned int *)&l);
 
         if (retval != 1 || l < TMD710_SQL_MIN || l > TMD710_SQL_MAX)
         {

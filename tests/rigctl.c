@@ -145,17 +145,17 @@ static void signal_handler(int sig)
 {
     switch (sig)
     {
-        case SIGINT:
-        case SIGTERM:
-            fprintf(stderr, "\nTerminating application, caught signal %d\n", sig);
-            // Close stdin to stop reading input
-            fclose(stdin);
-            ctrl_c = 1;
-            break;
+    case SIGINT:
+    case SIGTERM:
+        fprintf(stderr, "\nTerminating application, caught signal %d\n", sig);
+        // Close stdin to stop reading input
+        fclose(stdin);
+        ctrl_c = 1;
+        break;
 
-        default:
-            /* do nothing */
-            break;
+    default:
+        /* do nothing */
+        break;
     }
 }
 #endif
@@ -555,27 +555,31 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    char *token=strtok(conf_parms,",");
-    
-    while(token)
+    char *token = strtok(conf_parms, ",");
+
+    while (token)
     {
         char mytoken[100], myvalue[100];
         token_t lookup;
-        sscanf(token,"%99[^=]=%99s", mytoken, myvalue);
+        sscanf(token, "%99[^=]=%99s", mytoken, myvalue);
         //printf("mytoken=%s,myvalue=%s\n",mytoken, myvalue);
-        lookup = rig_token_lookup(my_rig,mytoken);
+        lookup = rig_token_lookup(my_rig, mytoken);
+
         if (lookup == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: no such token as '%s'\n", __func__, mytoken);
             token = strtok(NULL, ",");
             continue;
         }
-        retcode = rig_set_conf(my_rig, rig_token_lookup(my_rig,mytoken), myvalue);
+
+        retcode = rig_set_conf(my_rig, rig_token_lookup(my_rig, mytoken), myvalue);
+
         if (retcode != RIG_OK)
         {
             fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
             exit(2);
         }
+
         token = strtok(NULL, ",");
     }
 

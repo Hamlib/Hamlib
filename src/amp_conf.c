@@ -268,6 +268,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
         }
 
         break;
+
     case TOK_RTS_STATE:
         if (rs->ampport.type.rig != RIG_PORT_SERIAL)
         {

@@ -68,7 +68,8 @@ const struct confparams ra37xx_cfg_params[] =
 static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
                                   int *data_len)
 {
-    const struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)rig->state.priv;
+    const struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)
+                                          rig->state.priv;
     struct rig_state *rs = &rig->state;
     char cmdbuf[BUFSZ];
     char respbuf[BUFSZ];
@@ -289,7 +290,8 @@ int ra37xx_set_conf(RIG *rig, token_t token, const char *val)
  */
 int ra37xx_get_conf2(RIG *rig, token_t token, char *val, int val_len)
 {
-    const struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)rig->state.priv;
+    const struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)
+                                          rig->state.priv;
 
     switch (token)
     {

@@ -46,7 +46,8 @@
 // ---------------------------------------------------------------------------
 
 #include "anytone.h"
-int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len, unsigned char *reply, int reply_len, int expected_len);
+int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len,
+                        unsigned char *reply, int reply_len, int expected_len);
 
 DECLARE_INITRIG_BACKEND(anytone)
 {
@@ -116,7 +117,7 @@ void *anytone_thread(void *vrig)
 
         write_block(&rig->state.rigport, (unsigned char *)c, strlen(c));
         char buf[32];
-        read_block(&rig->state.rigport, (unsigned char*)buf, 22);
+        read_block(&rig->state.rigport, (unsigned char *)buf, 22);
 
         if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
         {
@@ -176,7 +177,8 @@ int anytone_receive(RIG  *rig, unsigned char *buf, int buf_len, int expected)
 // ---------------------------------------------------------------------------
 // anytone_transaction
 // ---------------------------------------------------------------------------
-int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len, unsigned char *reply, int reply_len, int expected_len)
+int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len,
+                        unsigned char *reply, int reply_len, int expected_len)
 {
     int retval   = RIG_OK;
     //anytone_priv_data_t *p = rig->state.priv;
@@ -258,7 +260,7 @@ int anytone_open(RIG *rig)
 
     ENTERFUNC;
 
-    unsigned char cmd[] = { 0x2B,0x41,0x44,0x41,0x54,0x41,0x3A,0x30,0x30,0x2C,0x30,0x30,0x31,0x0d,0x0a,'a',0x0d,0x0a };
+    unsigned char cmd[] = { 0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30, 0x30, 0x2C, 0x30, 0x30, 0x31, 0x0d, 0x0a, 'a', 0x0d, 0x0a };
     write_block(&rig->state.rigport, cmd, sizeof(cmd));
     hl_usleep(500 * 1000);
     char cmd2[64];
@@ -266,7 +268,8 @@ int anytone_open(RIG *rig)
     write_block(&rig->state.rigport, (unsigned char *)cmd2, strlen(cmd2));
     SNPRINTF(cmd2, sizeof(cmd2), "+ADATA:00,000\r\n");
     unsigned char reply[512];
-    anytone_transaction(rig, (unsigned char*)cmd2, strlen(cmd2), reply, sizeof(reply), strlen(cmd2));
+    anytone_transaction(rig, (unsigned char *)cmd2, strlen(cmd2), reply,
+                        sizeof(reply), strlen(cmd2));
 
     pthread_t id;
     // will start the keep alive
@@ -291,7 +294,7 @@ int anytone_close(RIG *rig)
 
     ENTERFUNC;
     char *cmd  = "+ADATA:00,000\r\n";
-    anytone_transaction(rig, (unsigned char*)cmd, strlen(cmd), NULL, 0, 0);
+    anytone_transaction(rig, (unsigned char *)cmd, strlen(cmd), NULL, 0, 0);
 
     RETURNFUNC(retval);
 }
@@ -309,10 +312,11 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 
     const anytone_priv_data_ptr p = (anytone_priv_data_ptr) rig->state.priv;
     unsigned char reply[512];
-    unsigned char cmd[] = { 0x2b,0x41,0x44,0x41,0x54,0x41,0x3a,0x30,0x30,0x2c,0x30,0x30,0x36,0x0d,0x0a,0x04,0x05,0x00,0x00,0x00,0x00,0x0d,0x0a };
+    unsigned char cmd[] = { 0x2b, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3a, 0x30, 0x30, 0x2c, 0x30, 0x30, 0x36, 0x0d, 0x0a, 0x04, 0x05, 0x00, 0x00, 0x00, 0x00, 0x0d, 0x0a };
     anytone_transaction(rig, cmd, sizeof(cmd), reply, sizeof(reply), 114);
-    if (reply[113] == 0x9b) *vfo = RIG_VFO_A;
-    else if (reply[113] == 0x9c) *vfo = RIG_VFO_B;
+
+    if (reply[113] == 0x9b) { *vfo = RIG_VFO_A; }
+    else if (reply[113] == 0x9c) { *vfo = RIG_VFO_B; }
     else
     {
         *vfo = RIG_VFO_A; // default to VFOA
@@ -357,10 +361,11 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     ENTERFUNC;
 
     //char buf[8] = { 0x41, 0x00, 0x00, 0x00, 0x27, 0x00, 0x00, 0x06 };
-    unsigned char ptton[] =  { 0x2B,0x41,0x44,0x41,0x54,0x41,0x3A,0x30,0x30,0x2C,0x30,0x30,0x31,0x0d,0x0a,0x61,0x0d,0x0a };
-    unsigned char pttoff[] = { 0x2B,0x41,0x44,0x41,0x54,0x41,0x3A,0x30,0x30,0x2C,0x30,0x32,0x33,0x0d,0x0a,0x56,0x0d,0x0a };
+    unsigned char ptton[] =  { 0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30, 0x30, 0x2C, 0x30, 0x30, 0x31, 0x0d, 0x0a, 0x61, 0x0d, 0x0a };
+    unsigned char pttoff[] = { 0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30, 0x30, 0x2C, 0x30, 0x32, 0x33, 0x0d, 0x0a, 0x56, 0x0d, 0x0a };
     void *pttcmd = ptton;
-    if (!ptt) pttcmd = pttoff;
+
+    if (!ptt) { pttcmd = pttoff; }
 
     //if (!ptt) { cmd = " (unsigned char*)+ADATA:00,023\r\nV\r\n"; }
 
@@ -409,6 +414,7 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         }
     }
     while (retval != 138 && --retry > 0);
+
     MUTEX_UNLOCK(p->priv.mutex);
 
     return RIG_OK;
@@ -417,19 +423,25 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char cmd[64];
+
     if (vfo == RIG_VFO_A)
-    snprintf(cmd, sizeof(cmd), "ADATA:00,005\r\n%c%c%c%c\r\n", 2, 0, 0, 0);
+    {
+        snprintf(cmd, sizeof(cmd), "ADATA:00,005\r\n%c%c%c%c\r\n", 2, 0, 0, 0);
+    }
     else
-    snprintf(cmd, sizeof(cmd), "ADATA:00,005\r\n%c%c%c%c\r\n", 1, 0, 0, 0);
+    {
+        snprintf(cmd, sizeof(cmd), "ADATA:00,005\r\n%c%c%c%c\r\n", 1, 0, 0, 0);
+    }
+
     MUTEX_LOCK(p->priv.mutex);
     rig_flush(&rig->state.rigport);
-    write_block(&rig->state.rigport, (unsigned char*) cmd, 20);
+    write_block(&rig->state.rigport, (unsigned char *) cmd, 20);
     unsigned char backend[] = { 0x2f, 0x03, 0x00, 0xff, 0xff, 0xff, 0xff, 0x15, 0x50, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xcf, 0x09, 0x00, 0x00, 0x0d, 0x0a};
     snprintf(cmd, sizeof(cmd), "ADATA:00,023\r\n");
     int bytes = strlen(cmd) + sizeof(backend);
     memcpy(&cmd[15], backend, sizeof(backend));
-    hl_usleep(10*1000);
-    write_block(&rig->state.rigport, (unsigned char*)cmd, bytes);
+    hl_usleep(10 * 1000);
+    write_block(&rig->state.rigport, (unsigned char *)cmd, bytes);
     MUTEX_UNLOCK(p->priv.mutex);
 
     return -RIG_ENIMPL;
