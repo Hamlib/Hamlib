@@ -841,7 +841,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_SWR:
     {
         struct kenwood_priv_caps *priv = kenwood_caps(rig);
-        ptt_t ptt = 0;
+        ptt = 0;
         rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
 
         if (ptt == RIG_PTT_OFF) { val->f = priv->swr; return RIG_OK;}
@@ -948,7 +948,7 @@ int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
         // if not ptt then no power is going out so return 0W
-        ptt_t ptt;
+        ptt = 0;
         rig_get_ptt(rig, RIG_VFO_TX, &ptt);
 
         if (!ptt) { val->f = 0; return RIG_OK; }
