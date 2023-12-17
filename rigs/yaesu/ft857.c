@@ -636,14 +636,7 @@ int ft857_set_vfo(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    int retval =  ft857_get_vfo(rig, &curvfo);
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: error get_vfo '%s'\n", __func__,
-                  rigerror(retval));
-        return retval;
-    }
+    ft857_get_vfo(rig, &curvfo); // retval is always RIG_OK so ignore it
 
     if (curvfo == vfo)
     {
