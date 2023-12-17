@@ -7565,7 +7565,7 @@ int newcat_get_trn(RIG *rig, int *trn)
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
 
     /* Get Auto Information */
-    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    if (RIG_OK != newcat_get_cmd(rig))
     {
         // if we failed to get AI we turn it off and try again
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s0%c", command, cat_term);
