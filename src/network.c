@@ -470,6 +470,7 @@ extern void sync_callback(int lock);
 //! @cond Doxygen_Suppress
 
 #define MULTICAST_DATA_PIPE_TIMEOUT_MILLIS 1000
+#define MULTICAST_DATA_PIPE_TIMEOUT_USEC 100000
 
 #if defined(WIN32) && defined(HAVE_WINDOWS_H)
 
@@ -535,8 +536,7 @@ static int multicast_publisher_read_data(multicast_publisher_args
 {
     ssize_t result;
 
-    result = async_pipe_wait_for_data(mcast_publisher_args->data_pipe,
-                                      MULTICAST_DATA_PIPE_TIMEOUT_MILLIS);
+    result = async_pipe_wait_for_data(mcast_publisher_args->data_pipe, 100);
 
     if (result < 0)
     {
@@ -660,8 +660,8 @@ static int multicast_publisher_read_data(const multicast_publisher_args
     ssize_t result;
     int retval;
 
-    timeout.tv_sec = MULTICAST_DATA_PIPE_TIMEOUT_MILLIS / 1000;
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = MULTICAST_DATA_PIPE_TIMEOUT_USEC;
 
     FD_ZERO(&rfds);
     FD_SET(fd, &rfds);
@@ -917,6 +917,8 @@ void *multicast_publisher(void *arg)
     struct rig_state *rs = &rig->state;
     struct rig_spectrum_line spectrum_line;
     uint8_t packet_type = MULTICAST_PUBLISHER_DATA_PACKET_TYPE_SPECTRUM;
+    multicast_publisher_priv_data *mcast_publisher_priv = (multicast_publisher_priv_data *)
+                           rs->multicast_publisher_priv_data;
 
     struct sockaddr_in dest_addr;
     int socket_fd = args->socket_fd;
@@ -982,8 +984,9 @@ void *multicast_publisher(void *arg)
                       strerror(errno));
         }
     }
+    mcast_publisher_priv->thread_id = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping multicast publisher\n", __FILE__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopped multicast publisher\n", __FILE__,
               __LINE__);
     return NULL;
 }
@@ -1198,14 +1201,16 @@ void *multicast_receiver(void *arg)
         int select_result;
         ssize_t result;
 
-        timeout.tv_sec = 1;
-        timeout.tv_usec = 0;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 100000;
         FD_ZERO(&rfds);
         FD_SET(socket_fd, &rfds);
         efds = rfds;
 
         select_result = select(socket_fd + 1, &rfds, NULL, &efds, &timeout);
+    rig_debug(RIG_DEBUG_VERBOSE,"%s(%d)\n", __func__, __LINE__);
 
+    rig_debug(RIG_DEBUG_VERBOSE,"%s(%d)\n", __func__, __LINE__);
         if (rs->multicast_receiver_run == 0)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): pselect signal\n", __func__, __LINE__);
@@ -1215,7 +1220,7 @@ void *multicast_receiver(void *arg)
         if (select_result == 0)
         {
             // Select timed out
-//            rig_debug(RIG_DEBUG_ERR, "%s: select timeout\n", __FILE__);
+            //rig_debug(RIG_DEBUG_ERR, "%s: select timeout\n", __FILE__);
             continue;
         }
 
@@ -1268,7 +1273,7 @@ void *multicast_receiver(void *arg)
 
     rs->multicast_receiver_run = 0;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopping multicast receiver\n", __FILE__,
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopped multicast receiver\n", __FILE__,
               __LINE__);
     return NULL;
 }
@@ -1316,10 +1321,12 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
 
     status = network_init();
 
+#ifdef __MINGW32__ // always RIG_OK if not Windows
     if (status != RIG_OK)
     {
         RETURNFUNC(status);
     }
+#endif
 
     socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -1367,7 +1374,6 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     }
 
     rs->snapshot_packet_sequence_number = 0;
-    rs->multicast_publisher_run = 1;
     rs->multicast_publisher_priv_data = calloc(1,
                                         sizeof(multicast_publisher_priv_data));
 
@@ -1441,7 +1447,7 @@ int network_multicast_publisher_stop(RIG *rig)
 
     if (mcast_publisher_priv->thread_id != 0)
     {
-        int err = pthread_join(mcast_publisher_priv->thread_id, NULL);
+    int err = pthread_join(mcast_publisher_priv->thread_id, NULL);
 
         if (err)
         {
