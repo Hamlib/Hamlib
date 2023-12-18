@@ -917,8 +917,9 @@ void *multicast_publisher(void *arg)
     struct rig_state *rs = &rig->state;
     struct rig_spectrum_line spectrum_line;
     uint8_t packet_type = MULTICAST_PUBLISHER_DATA_PACKET_TYPE_SPECTRUM;
-    multicast_publisher_priv_data *mcast_publisher_priv = (multicast_publisher_priv_data *)
-                           rs->multicast_publisher_priv_data;
+    multicast_publisher_priv_data *mcast_publisher_priv =
+        (multicast_publisher_priv_data *)
+        rs->multicast_publisher_priv_data;
 
     struct sockaddr_in dest_addr;
     int socket_fd = args->socket_fd;
@@ -984,6 +985,7 @@ void *multicast_publisher(void *arg)
                       strerror(errno));
         }
     }
+
     mcast_publisher_priv->thread_id = 0;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Stopped multicast publisher\n", __FILE__,
@@ -1320,10 +1322,12 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     status = network_init();
 
 #ifdef __MINGW32__ // always RIG_OK if not Windows
+
     if (status != RIG_OK)
     {
         RETURNFUNC(status);
     }
+
 #endif
 
     socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -1445,7 +1449,7 @@ int network_multicast_publisher_stop(RIG *rig)
 
     if (mcast_publisher_priv->thread_id != 0)
     {
-    int err = pthread_join(mcast_publisher_priv->thread_id, NULL);
+        int err = pthread_join(mcast_publisher_priv->thread_id, NULL);
 
         if (err)
         {
