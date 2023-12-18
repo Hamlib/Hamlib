@@ -77,8 +77,8 @@ easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
 
     if (retval < 0)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s read_string failed with status %d\n", __func__,
-                  retval);
+        rig_debug(RIG_DEBUG_TRACE, "%s read_string failed with status %d:%s\n", __func__,
+                  retval, strerror(retval));
         goto transaction_quit;
     }
     else
