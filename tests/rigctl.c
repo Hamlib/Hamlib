@@ -79,7 +79,7 @@ static void usage(void);
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "+m:r:p:d:P:D:s:c:t:lC:LuonvhVYZ!"
+#define SHORT_OPTIONS "+m:r:p:d:P:D:s:c:t:lC:LuonvhVYZ!#"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -107,6 +107,7 @@ static struct option long_options[] =
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
     {"cookie",          0, 0, '!'},
+    {"skipinit",        0, 0, '#'},
     {0, 0, 0, 0}
 
 };
@@ -254,6 +255,9 @@ int main(int argc, char *argv[])
 
         switch (c)
         {
+        case '#':
+            skip_init = 1;
+            break;
         case '!':
             cookie_use = 1;
             break;
@@ -679,7 +683,7 @@ int main(int argc, char *argv[])
                my_rig->caps->model_name);
     }
 
-    if (my_rig->caps->get_powerstat)
+    if (!skip_init && my_rig->caps->get_powerstat)
     {
         rig_get_powerstat(my_rig, &rig_powerstat);
         my_rig->state.powerstat = rig_powerstat;

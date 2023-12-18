@@ -100,6 +100,7 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " "
                               ARCHBITS;
 HAMLIB_EXPORT_VAR(int) cookie_use;
+HAMLIB_EXPORT_VAR(int) skip_init;
 HAMLIB_EXPORT_VAR(int) lock_mode; // for use by rigctld
 HAMLIB_EXPORT_VAR(powerstat_t)
 rig_powerstat; // for use by both rigctld and rigctl
@@ -1326,6 +1327,8 @@ int HAMLIB_API rig_open(RIG *rig)
     }
 
 #if defined(HAVE_PTHREAD)
+    if (!skip_init)
+    {
     status = async_data_handler_start(rig);
 
     if (status < 0)
@@ -1334,7 +1337,7 @@ int HAMLIB_API rig_open(RIG *rig)
         rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
-
+    }
 #endif
 
     rs->comm_state = 1;
@@ -1354,7 +1357,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
-        if (caps->get_powerstat != NULL)
+        if (caps->get_powerstat != NULL && !skip_init)
         {
             powerstat_t powerflag;
             status = rig_get_powerstat(rig, &powerflag);
@@ -1388,8 +1391,11 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             remove_opened_rig(rig);
 #if defined(HAVE_PTHREAD)
+            if (!skip_init)
+            { 
             async_data_handler_stop(rig);
             morse_data_handler_stop(rig);
+            }
 #endif
             port_close(&rs->rigport, rs->rigport.type.rig);
             memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
@@ -1443,6 +1449,7 @@ int HAMLIB_API rig_open(RIG *rig)
                       rig_strvfo(rs->current_vfo));
         }
     }
+    if (skip_init) return RIG_OK;
 
 #if defined(HAVE_PTHREAD)
     status = morse_data_handler_start(rig);
@@ -1595,11 +1602,14 @@ int HAMLIB_API rig_close(RIG *rig)
     rig->state.comm_status = RIG_COMM_STATUS_DISCONNECTED;
 
 #if defined(HAVE_PTHREAD)
+    if (!skip_init)
+    {
     morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
     rig_poll_routine_stop(rig);
     network_multicast_receiver_stop(rig);
     network_multicast_publisher_stop(rig);
+    }
 #endif
 
     /*
