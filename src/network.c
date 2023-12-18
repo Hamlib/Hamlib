@@ -1142,17 +1142,17 @@ void *multicast_receiver(void *arg)
     dest_addr.sin_family = AF_INET;
 #ifdef __MINGW32__
 
-    // Windows cannot bind to multicast group addresses for some unknown reason
+    // Windows wireless cannot bind to multicast group addresses for some unknown reason
     if (is_wireless())
-    {
-        rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: no wireless detect so INADDR_ANY is being used\n", __func__);
-    }
-    else
     {
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: wireless detected so localhost is being used\n", __func__);
         dest_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: no wireless detect so INADDR_ANY is being used\n", __func__);
     }
 
 #else
