@@ -1378,7 +1378,12 @@ void *handle_socket(void *arg)
     }
     while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode)));
 
+#if defined(HAVE_PTHREAD)
+
     if (rigctld_idle && client_count == 1)
+#else
+    if (rigctld_idle)
+#endif
     {
         rig_close(my_rig);
 
