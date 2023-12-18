@@ -94,11 +94,15 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             || vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
+#if defined(HAVE_PTHREAD)
+
         if (level == RIG_LEVEL_KEYSPD)
         {
             extern int morse_data_handler_set_keyspd(RIG * rig, int keyspd);
             morse_data_handler_set_keyspd(rig, val.i);
         }
+
+#endif
 
         return caps->set_level(rig, vfo, level, val);
     }

@@ -608,6 +608,7 @@ int HAMLIB_API rig_get_trn(RIG *rig, int *trn)
     RETURNFUNC(-RIG_EDEPRECATED);
 }
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
 {
     ENTERFUNC;
@@ -634,8 +635,9 @@ int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
 
     RETURNFUNC(0);
 }
+#endif
 
-
+#if defined(HAVE_PTHREAD)
 int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     ENTERFUNC;
@@ -661,8 +663,10 @@ int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     RETURNFUNC(0);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_vfo_event(RIG *rig, vfo_t vfo)
 {
     ENTERFUNC;
@@ -681,8 +685,10 @@ int rig_fire_vfo_event(RIG *rig, vfo_t vfo)
 
     RETURNFUNC(0);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_ptt_event(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     ENTERFUNC;
@@ -702,8 +708,10 @@ int rig_fire_ptt_event(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     RETURNFUNC(0);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_dcd_event(RIG *rig, vfo_t vfo, dcd_t dcd)
 {
     ENTERFUNC;
@@ -720,8 +728,10 @@ int rig_fire_dcd_event(RIG *rig, vfo_t vfo, dcd_t dcd)
 
     RETURNFUNC(0);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_pltune_event(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
                           pbwidth_t *width)
 {
@@ -739,8 +749,10 @@ int rig_fire_pltune_event(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 static int print_spectrum_line(char *str, size_t length,
                                struct rig_spectrum_line *line)
 {
@@ -798,8 +810,10 @@ static int print_spectrum_line(char *str, size_t length,
 
     return c;
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_spectrum_event(RIG *rig, struct rig_spectrum_line *line)
 {
     ENTERFUNC;
@@ -821,5 +835,6 @@ int rig_fire_spectrum_event(RIG *rig, struct rig_spectrum_line *line)
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
 /** @} */

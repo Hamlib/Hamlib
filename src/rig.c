@@ -60,7 +60,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
 #include <pthread.h>
 #endif
 
@@ -225,7 +225,7 @@ static const char *const rigerror_table[] =
 
 #define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
 typedef struct async_data_handler_args_s
 {
     RIG *rig;
@@ -242,6 +242,7 @@ static int async_data_handler_stop(RIG *rig);
 void *async_data_handler(void *arg);
 #endif
 
+#if defined(HAVE_PTHREAD)
 typedef struct morse_data_handler_args_s
 {
     RIG *rig;
@@ -259,6 +260,7 @@ static int morse_data_handler_start(RIG *rig);
 static int morse_data_handler_stop(RIG *rig);
 int morse_data_handler_set_keyspd(RIG *rig, int keyspd);
 void *morse_data_handler(void *arg);
+#endif
 
 /*
  * track which rig is opened (with rig_open)
@@ -574,7 +576,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      * TODO: read the Preferences here!
      */
     rs = &rig->state;
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
 #endif
 
@@ -1323,6 +1325,7 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC2(status);
     }
 
+#if defined(HAVE_PTHREAD)
     status = async_data_handler_start(rig);
 
     if (status < 0)
@@ -1331,6 +1334,8 @@ int HAMLIB_API rig_open(RIG *rig)
         rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
+
+#endif
 
     rs->comm_state = 1;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %p rs->comm_state==1?=%d\n", __func__,
@@ -1382,8 +1387,10 @@ int HAMLIB_API rig_open(RIG *rig)
         if (status != RIG_OK)
         {
             remove_opened_rig(rig);
+#if defined(HAVE_PTHREAD)
             async_data_handler_stop(rig);
             morse_data_handler_stop(rig);
+#endif
             port_close(&rs->rigport, rs->rigport.type.rig);
             memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
@@ -1437,6 +1444,7 @@ int HAMLIB_API rig_open(RIG *rig)
         }
     }
 
+#if defined(HAVE_PTHREAD)
     status = morse_data_handler_start(rig);
 
     if (status < 0)
@@ -1446,6 +1454,8 @@ int HAMLIB_API rig_open(RIG *rig)
         port_close(&rs->rigport, rs->rigport.type.rig);
         RETURNFUNC2(status);
     }
+
+#endif
 
     if (rs->auto_disable_screensaver)
     {
@@ -1501,6 +1511,7 @@ int HAMLIB_API rig_open(RIG *rig)
     memcpy(&rs->dcdport_deprecated, &rs->dcdport, sizeof(hamlib_port_t_deprecated));
     rig_flush_force(&rs->rigport, 1);
 
+#if defined(HAVE_PTHREAD)
     enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE
                                   | RIG_MULTICAST_SPECTRUM;
     retval = network_multicast_publisher_start(rig, rs->multicast_data_addr,
@@ -1533,6 +1544,8 @@ int HAMLIB_API rig_open(RIG *rig)
                   rigerror(retval));
         // we will consider this non-fatal for now
     }
+
+#endif
 
     rig->state.comm_status = RIG_COMM_STATUS_OK;
 
@@ -1581,11 +1594,13 @@ int HAMLIB_API rig_close(RIG *rig)
 
     rig->state.comm_status = RIG_COMM_STATUS_DISCONNECTED;
 
+#if defined(HAVE_PTHREAD)
     morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
     rig_poll_routine_stop(rig);
     network_multicast_receiver_stop(rig);
     network_multicast_publisher_stop(rig);
+#endif
 
     /*
      * Let the backend say 73s to the rig.
@@ -7885,11 +7900,13 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     return ret;
 }
 
+#if defined(HAVE_PTHREAD)
 static pthread_mutex_t initializer = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 HAMLIB_EXPORT(void) sync_callback(int lock)
 {
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
     pthread_mutex_t client_lock = initializer;
 
     if (lock)
@@ -7908,7 +7925,7 @@ HAMLIB_EXPORT(void) sync_callback(int lock)
 
 void rig_lock(RIG *rig, int lock)
 {
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
 
     if (rig->state.multicast == NULL) { return; } // not initialized yet
 
@@ -7936,10 +7953,10 @@ void rig_lock(RIG *rig, int lock)
 
 /*! @} */
 
-#ifdef HAVE_PTHREAD
 
 #define MAX_FRAME_LENGTH 1024
 
+#if defined(HAVE_PTHREAD)
 static int async_data_handler_start(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -7956,8 +7973,6 @@ static int async_data_handler_start(RIG *rig)
     }
 
     sleep(2);  // give other things a chance to finish opening up the rig
-
-#ifdef HAVE_PTHREAD
 
     rs->async_data_handler_thread_run = 1;
     rs->async_data_handler_priv_data = calloc(1,
@@ -7981,11 +7996,11 @@ static int async_data_handler_start(RIG *rig)
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
-#endif // HAVE_PTHREAD
-
     RETURNFUNC(RIG_OK);
 }
+#endif
 
+#if defined(HAVE_PTHREAD)
 static int morse_data_handler_start(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -8023,8 +8038,10 @@ static int morse_data_handler_start(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 static int async_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -8032,7 +8049,6 @@ static int async_data_handler_stop(RIG *rig)
 
     ENTERFUNC;
 
-#ifdef HAVE_PTHREAD
     rs->async_data_handler_thread_run = 0;
 
     async_data_handler_priv = (async_data_handler_priv_data *)
@@ -8061,11 +8077,12 @@ static int async_data_handler_stop(RIG *rig)
         rs->async_data_handler_priv_data = NULL;
     }
 
-#endif
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
+#if defined(HAVE_PTHREAD)
 static int morse_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -8119,8 +8136,9 @@ static int morse_data_handler_stop(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
-
+#if defined(HAVE_PTHREAD)
 void *async_data_handler(void *arg)
 {
     struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)
@@ -8207,6 +8225,7 @@ void *async_data_handler(void *arg)
 }
 #endif
 
+#if defined(HAVE_PTHREAD)
 void *morse_data_handler(void *arg)
 {
     struct morse_data_handler_args_s *args =
@@ -8343,6 +8362,7 @@ void *morse_data_handler(void *arg)
     pthread_exit(NULL);
     return NULL;
 }
+#endif
 
 
 HAMLIB_EXPORT(int) rig_password(RIG *rig, const char *key1)
@@ -8514,6 +8534,7 @@ HAMLIB_EXPORT(int) rig_is_model(RIG *rig, rig_model_t model)
 }
 
 
+#if defined(HAVE_PTHREAD)
 int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
 {
     struct rig_state *rs = &rig->state;
@@ -8523,3 +8544,4 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: keyspd=%d\n", __func__, keyspd);
     return RIG_OK;
 }
+#endif
