@@ -345,7 +345,7 @@ static const yaesu_newcat_commands_t valid_commands[] =
     {"SS",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
     // ST command has two meanings Step or Split Status
     // If new rig is added that has ST ensure it means Split
-    // Otherwise modify newcat_get_tx_vfo
+    // Otherwise modify newcat_(set|get)_split
     {"ST",     TRUE,  FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,    TRUE,  TRUE,     TRUE, FALSE },
     {"SV",     TRUE,  TRUE,  TRUE,  TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,   TRUE,    TRUE,  TRUE,     TRUE, TRUE  },
     {"SY",     FALSE, FALSE, FALSE, FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  FALSE,  TRUE,   FALSE,  TRUE,     FALSE, FALSE},
@@ -387,6 +387,8 @@ const struct confparams newcat_cfg_params[] =
 /* NewCAT Internal Functions */
 static ncboolean newcat_is_rig(RIG *rig, rig_model_t model);
 
+static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo, vfo_t *tx_vfo);
+static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo);
 static int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo);
 static int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode,
                                    pbwidth_t *width);
@@ -397,7 +399,7 @@ static int newcat_get_narrow(RIG *rig, vfo_t vfo, ncboolean *narrow);
 static int newcat_set_faststep(RIG *rig, ncboolean fast_step);
 static int newcat_get_faststep(RIG *rig, ncboolean *fast_step);
 static int newcat_get_rigid(RIG *rig);
-static int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, rmode_t *vfo_mode);
+static int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode);
 static int newcat_vfomem_toggle(RIG *rig);
 static int set_roofing_filter(RIG *rig, vfo_t vfo, int index);
 static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width);
@@ -834,8 +836,7 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
     int err;
     int channel = -1;
     int i;
-    rmode_t tmode;
-    pbwidth_t twidth;
+    vfo_t vfo_mode;
 
     if (!(freq > 5.2 && freq < 5.5)) // we're not on 60M
     {
@@ -875,9 +876,9 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: 60M exception ignoring freq/mode commands\n",
               __func__);
 
-    rig_get_mode(rig, RIG_VFO_A, &tmode, &twidth);
+    newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
 
-    if (tmode != RIG_VFO_MEM)
+    if (vfo_mode != RIG_VFO_MEM)
     {
         err = newcat_vfomem_toggle(rig);
 
@@ -931,8 +932,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     const struct rig_caps *caps;
     struct newcat_priv_data *priv;
     int special_60m = 0;
-    rmode_t tmode;
-    pbwidth_t twidth;
+    vfo_t vfo_mode;
 
     ENTERFUNC;
 
@@ -961,10 +961,9 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     priv = (struct newcat_priv_data *)rig->state.priv;
     caps = rig->caps;
 
-    // TODO: this is likely a bug, should call get_vfo_mode()
-    rig_get_mode(rig, RIG_VFO_A, &tmode, &twidth);
+    newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
 
-    if (tmode == RIG_VFO_MEM)
+    if (vfo_mode == RIG_VFO_MEM)
     {
         // then we need to toggle back to VFO mode
         newcat_vfomem_toggle(rig);
@@ -1104,7 +1103,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // Call this after open to set width_frequency for later use
     if (priv->width_frequency == 0)
     {
-        rmode_t vfo_mode;
+        vfo_t vfo_mode;
         newcat_get_vfo_mode(rig, vfo, &vfo_mode);
     }
 
@@ -1660,7 +1659,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
     struct rig_state *state;
     char c;
     int err, mem;
-    rmode_t vfo_mode;
+    vfo_t vfo_mode;
     char command[] = "VS";
 
     priv = (struct newcat_priv_data *)rig->state.priv;
@@ -1816,7 +1815,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
     struct rig_state *state = &rig->state;
     struct newcat_priv_data *priv  = (struct newcat_priv_data *)rig->state.priv;
     int err;
-    rmode_t vfo_mode;
+    vfo_t vfo_mode;
     char const *command = "VS";
 
     ENTERFUNC;
@@ -2716,7 +2715,6 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     int err;
     vfo_t rx_vfo = RIG_VFO_NONE;
 
-    //ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: entered, rxvfo=%s, txvfo=%s, split=%d\n",
               __func__, rig_strvfo(vfo), rig_strvfo(tx_vfo), split);
 
@@ -2729,13 +2727,21 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     if (is_ft991)
     {
+        // FT-991(A) doesn't have a concept of an active VFO, so VFO B needs to be the split VFO
         vfo = RIG_VFO_A;
         tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_B : RIG_VFO_A;
     }
     else if (is_ftdx101d || is_ftdx101mp)
     {
+        // FTDX101(D/MP) always use Sub VFO for transmit when in split mode
         vfo = RIG_VFO_MAIN;
         tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_SUB : RIG_VFO_MAIN;
+    }
+    else if (is_ftdx10)
+    {
+        // FTDX10 always uses VFO B for transmit when in split mode
+        vfo = RIG_VFO_A;
+        tx_vfo = RIG_SPLIT_ON == split ? RIG_VFO_B : RIG_VFO_A;
     }
     else
     {
@@ -2750,11 +2756,21 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     switch (split)
     {
     case RIG_SPLIT_OFF:
-        err = newcat_set_tx_vfo(rig, vfo);
+        err = -RIG_ENAVAIL;
 
-        if (err != RIG_OK)
+        if (newcat_valid_command(rig, "ST"))
         {
-            RETURNFUNC(err);
+            err = newcat_set_split(rig, split, &rx_vfo, &tx_vfo);
+        }
+
+        if (err == -RIG_ENAVAIL)
+        {
+            err = newcat_set_tx_vfo(rig, vfo);
+
+            if (err != RIG_OK)
+            {
+                RETURNFUNC(err);
+            }
         }
 
         if (rx_vfo != vfo && newcat_valid_command(rig, "VS"))
@@ -2770,11 +2786,21 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         break;
 
     case RIG_SPLIT_ON:
-        err = newcat_set_tx_vfo(rig, tx_vfo);
+        err = -RIG_ENAVAIL;
 
-        if (err != RIG_OK)
+        if (newcat_valid_command(rig, "ST"))
         {
-            RETURNFUNC(err);
+            err = newcat_set_split(rig, split, &rx_vfo, &tx_vfo);
+        }
+
+        if (err == -RIG_ENAVAIL)
+        {
+            err = newcat_set_tx_vfo(rig, tx_vfo);
+
+            if (err != RIG_OK)
+            {
+                RETURNFUNC(err);
+            }
         }
 
         if (rx_vfo != vfo)
@@ -2810,25 +2836,32 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         RETURNFUNC(err);
     }
 
-    err = newcat_get_tx_vfo(rig, tx_vfo);
-
-    if (err != RIG_OK)
+    err = -RIG_ENAVAIL;
+    if (newcat_valid_command(rig, "ST"))
     {
-        RETURNFUNC(err);
+        err = newcat_get_split(rig, split, tx_vfo);
     }
 
-    // we assume split is always on VFO_B
-    //if (*tx_vfo == RIG_VFO_B || *tx_vfo == RIG_VFO_SUB)
-    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s, curr_vfo=%s\n", __func__,
-              rig_strvfo(*tx_vfo), rig_strvfo(rig->state.current_vfo));
+    if (err == -RIG_ENAVAIL)
+    {
+        err = newcat_get_tx_vfo(rig, tx_vfo);
 
-    if (*tx_vfo != rig->state.current_vfo)
-    {
-        *split = RIG_SPLIT_ON;
-    }
-    else
-    {
-        *split = RIG_SPLIT_OFF;
+        if (err != RIG_OK)
+        {
+            RETURNFUNC(err);
+        }
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s, curr_vfo=%s\n", __func__,
+                rig_strvfo(*tx_vfo), rig_strvfo(rig->state.current_vfo));
+
+        if (*tx_vfo != rig->state.current_vfo)
+        {
+            *split = RIG_SPLIT_ON;
+        }
+        else
+        {
+            *split = RIG_SPLIT_OFF;
+        }
     }
 
     rig_debug(RIG_DEBUG_TRACE, "SPLIT = %d, vfo = %s, TX_vfo = %s\n", *split,
@@ -8019,16 +8052,12 @@ ncboolean newcat_is_rig(RIG *rig, rig_model_t model)
 }
 
 
-/*
- * newcat_set_tx_vfo does not set priv->curr_vfo
- * does set rig->state.tx_vfo
- */
 int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    int err;
-    char p1;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
     char *command = "FT";
+    int result;
+    char p1;
 
     ENTERFUNC;
 
@@ -8037,11 +8066,11 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    err = newcat_set_vfo_from_alias(rig, &tx_vfo);
+    result = newcat_set_vfo_from_alias(rig, &tx_vfo);
 
-    if (err < 0)
+    if (result < 0)
     {
-        RETURNFUNC(err);
+        RETURNFUNC(result);
     }
 
     switch (tx_vfo)
@@ -8074,33 +8103,12 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    /* TODO: G4WJS - FT-450 only has toggle command so not sure how to
-       definitively set the TX VFO (VS; doesn't seem to help
-       either) */
-    if (newcat_is_rig(rig, RIG_MODEL_FT950) ||
-            newcat_is_rig(rig, RIG_MODEL_FT2000) ||
-            newcat_is_rig(rig, RIG_MODEL_FTDX5000) ||
-            newcat_is_rig(rig, RIG_MODEL_FTDX1200) ||
-            newcat_is_rig(rig, RIG_MODEL_FT991) ||
-            newcat_is_rig(rig, RIG_MODEL_FTDX10) ||
-            newcat_is_rig(rig, RIG_MODEL_FTDX3000))
+    // NOTE: FT-450 only has toggle command so not sure how to definitively set the TX VFO (VS; doesn't seem to help either)
+    if (is_ft950 || is_ft2000 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx1200 || is_ft991 ||
+             is_ftdx10 || is_ftdx101d || is_ftdx101mp)
     {
-        p1 = p1 + 2;    /* use non-Toggle commands */
-
-        // If VFOB is active then we change VFOB with FT3 instead of VFOA
-        if (rig->state.current_vfo == RIG_VFO_B || rig->state.current_vfo == RIG_VFO_SUB) { p1++; }
-    }
-
-    // this doesn't seem to work on FTDX101MP latest firmware as of 20230911 so we test once and disable if needed
-    if ((is_ftdx101d || is_ftdx101mp) && p1 == '1' && !priv->ftdx101_st_missing)
-    {
-        // what other Yaesu rigs should be using this?
-        // The DX101D returns FT0 when in split and not transmitting
-        command = "ST";
-        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
-        int retval = newcat_set_cmd(rig);
-        if (retval != RIG_OK) {priv->ftdx101_st_missing = 1;retval=RIG_OK;}
-        RETURNFUNC(retval);
+        // These rigs use numbers 2 and 3 to denote A/B or Main/Sub VFOs - 0 and 1 are for toggling TX function
+        p1 = p1 + 2;
     }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
@@ -8108,31 +8116,28 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s, vfo=%s\n", priv->cmd_str,
               rig_strvfo(tx_vfo));
 
+    result = newcat_set_cmd(rig);
+
+    if (result != RIG_OK)
+    {
+        RETURNFUNC(result);
+    }
+
     rig->state.tx_vfo = tx_vfo;
 
-    RETURNFUNC(newcat_set_cmd(rig));
+    RETURNFUNC(result);
 }
 
 
-/*
- * newcat_get_tx_vfo does not set priv->curr_vfo
- */
 int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
-    int err;
-    char c;
-    rmode_t vfo_mode;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
     char const *command = "FT";
+    vfo_t vfo_mode;
+    int result;
+    char c;
 
     ENTERFUNC;
-
-    if (is_ftdx101d || is_ftdx101mp)
-    {
-        // what other Yaesu rigs should be using this?
-        // The DX101D returns FT0 when in split and not transmitting
-        command = "ST";
-    }
 
     if (!newcat_valid_command(rig, command))
     {
@@ -8141,10 +8146,9 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
 
-    /* Get TX VFO */
-    if (RIG_OK != (err = newcat_get_cmd(rig)))
+    if (RIG_OK != (result = newcat_get_cmd(rig)))
     {
-        RETURNFUNC(err);
+        RETURNFUNC(result);
     }
 
     c = priv->ret_data[2];
@@ -8152,17 +8156,25 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     switch (c)
     {
     case '0':
-        if (rig->state.vfo_list & RIG_VFO_MAIN) { *tx_vfo = RIG_VFO_MAIN; }
-        else { *tx_vfo = RIG_VFO_A; }
-
-        rig->state.cache.split = 0;
+        if (rig->state.vfo_list & RIG_VFO_MAIN)
+        {
+            *tx_vfo = RIG_VFO_MAIN;
+        }
+        else
+        {
+            *tx_vfo = RIG_VFO_A;
+        }
         break;
 
     case '1' :
-        if (rig->state.vfo_list & RIG_VFO_SUB) { *tx_vfo = RIG_VFO_SUB; }
-        else { *tx_vfo = RIG_VFO_B; }
-
-        rig->state.cache.split = 1;
+        if (rig->state.vfo_list & RIG_VFO_SUB)
+        {
+            *tx_vfo = RIG_VFO_SUB;
+        }
+        else
+        {
+            *tx_vfo = RIG_VFO_B;
+        }
         break;
 
     default:
@@ -8172,16 +8184,171 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     }
 
     /* Check to see if RIG is in MEM mode */
-    err = newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
+    result = newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
 
-    if (err != RIG_OK)
+    if (result != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC(result);
     }
 
     if (vfo_mode == RIG_VFO_MEM && *tx_vfo == RIG_VFO_A)
     {
         *tx_vfo = RIG_VFO_MEM;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo = %s\n", __func__, rig_strvfo(*tx_vfo));
+
+    RETURNFUNC(RIG_OK);
+}
+
+
+static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo, vfo_t *tx_vfo)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
+    char *command = "ST";
+    char p1;
+    int result;
+
+    ENTERFUNC;
+
+    if (!newcat_valid_command(rig, "ST") || is_ft450 || priv->split_st_command_missing)
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    result = newcat_set_vfo_from_alias(rig, tx_vfo);
+
+    if (result < 0)
+    {
+        RETURNFUNC(result);
+    }
+
+    switch (split)
+    {
+    case RIG_SPLIT_OFF:
+        p1 = '0';
+        break;
+    case RIG_SPLIT_ON:
+        p1 = '1';
+        break;
+    default:
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
+
+    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s, vfo=%s\n", priv->cmd_str,
+              rig_strvfo(*tx_vfo));
+
+    result = newcat_set_cmd(rig);
+
+    if (result != RIG_OK)
+    {
+        priv->split_st_command_missing = 1;
+        RETURNFUNC(result);
+    }
+
+    switch (split)
+    {
+    case RIG_SPLIT_OFF:
+        *rx_vfo = rig->state.current_vfo;
+        *tx_vfo = rig->state.current_vfo;
+        break;
+    case RIG_SPLIT_ON:
+        // These rigs have fixed RX and TX VFOs when using the ST split command
+        if (is_ftdx101d || is_ftdx101mp)
+        {
+            *rx_vfo = RIG_VFO_MAIN;
+            *tx_vfo = RIG_VFO_SUB;
+        }
+        else if (is_ftdx10)
+        {
+            *rx_vfo = RIG_VFO_A;
+            *tx_vfo = RIG_VFO_B;
+        }
+        else
+        {
+            *rx_vfo = rig->state.current_vfo;
+
+            result = newcat_get_tx_vfo(rig, tx_vfo);
+            if (result != RIG_OK)
+            {
+                RETURNFUNC(result);
+            }
+        }
+        break;
+    default:
+        RETURNFUNC(-RIG_EINVAL);
+    }
+
+    RETURNFUNC(result);
+}
+
+
+static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo)
+{
+    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
+    char const *command = "ST";
+    vfo_t vfo_mode;
+    int result;
+    char c;
+
+    ENTERFUNC;
+
+    if (!newcat_valid_command(rig, "ST") || is_ft450 || priv->split_st_command_missing)
+    {
+        RETURNFUNC(-RIG_ENAVAIL);
+    }
+
+    SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
+
+    result = newcat_get_cmd(rig);
+    if (result != RIG_OK)
+    {
+        priv->split_st_command_missing = 1;
+        RETURNFUNC(result);
+    }
+
+    c = priv->ret_data[2];
+
+    switch (c)
+    {
+    case '0':
+        *split = RIG_SPLIT_OFF;
+
+        result = newcat_get_tx_vfo(rig, tx_vfo);
+        if (result != RIG_OK)
+        {
+            RETURNFUNC(result);
+        }
+        break;
+
+    case '1' :
+        *split = RIG_SPLIT_ON;
+
+        // These rigs have fixed RX and TX VFOs when using the ST split command
+        if (is_ftdx101d || is_ftdx101mp)
+        {
+            *tx_vfo = RIG_VFO_SUB;
+        }
+        else if (is_ftdx10)
+        {
+            *tx_vfo = RIG_VFO_B;
+        }
+        else
+        {
+            result = newcat_get_tx_vfo(rig, tx_vfo);
+            if (result != RIG_OK)
+            {
+                RETURNFUNC(result);
+            }
+        }
+        break;
+
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown split=%c from index 2 of %s\n", __func__,
+                  c, priv->ret_data);
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo = %s\n", __func__, rig_strvfo(*tx_vfo));
@@ -10647,7 +10814,7 @@ int newcat_get_rigid(RIG *rig)
  *                    RIG_VFO_MEM for VFO MEM
  * return: RIG_OK or error
  */
-int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, rmode_t *vfo_mode)
+int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int err;

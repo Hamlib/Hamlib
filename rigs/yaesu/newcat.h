@@ -129,7 +129,7 @@ struct newcat_priv_data
     int poweron; /* to prevent powering on more than once */
     int question_mark_response_means_rejected; /* the question mark response has multiple meanings */
     char front_rear_status; /* e.g. FTDX5000 EX103 status */
-    int ftdx101_st_missing; /* is ST command gone?  assume not until proven otherwise */
+    int split_st_command_missing; /* is ST command gone?  assume not until proven otherwise */
 };
 
 /*

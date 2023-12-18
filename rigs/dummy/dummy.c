@@ -258,28 +258,50 @@ static int dummy_init(RIG *rig)
     }
 
     priv->vfo_a.ext_levels = alloc_init_ext(dummy_ext_levels);
-
     if (!priv->vfo_a.ext_levels)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
-
     priv->vfo_b.ext_levels = alloc_init_ext(dummy_ext_levels);
-
     if (!priv->vfo_b.ext_levels)
+    {
+        RETURNFUNC(-RIG_ENOMEM);
+    }
+    priv->vfo_c.ext_levels = alloc_init_ext(dummy_ext_levels);
+    if (!priv->vfo_c.ext_levels)
+    {
+        RETURNFUNC(-RIG_ENOMEM);
+    }
+
+    priv->vfo_maina.ext_levels = alloc_init_ext(dummy_ext_levels);
+    if (!priv->vfo_maina.ext_levels)
+    {
+        RETURNFUNC(-RIG_ENOMEM);
+    }
+    priv->vfo_mainb.ext_levels = alloc_init_ext(dummy_ext_levels);
+    if (!priv->vfo_mainb.ext_levels)
+    {
+        RETURNFUNC(-RIG_ENOMEM);
+    }
+
+    priv->vfo_suba.ext_levels = alloc_init_ext(dummy_ext_levels);
+    if (!priv->vfo_suba.ext_levels)
+    {
+        RETURNFUNC(-RIG_ENOMEM);
+    }
+    priv->vfo_subb.ext_levels = alloc_init_ext(dummy_ext_levels);
+    if (!priv->vfo_subb.ext_levels)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv->ext_funcs = alloc_init_ext(dummy_ext_funcs);
-
     if (!priv->ext_funcs)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv->ext_parms = alloc_init_ext(dummy_ext_parms);
-
     if (!priv->ext_parms)
     {
         RETURNFUNC(-RIG_ENOMEM);
@@ -287,6 +309,7 @@ static int dummy_init(RIG *rig)
 
     init_chan(rig, RIG_VFO_A, &priv->vfo_a);
     init_chan(rig, RIG_VFO_B, &priv->vfo_b);
+    init_chan(rig, RIG_VFO_C, &priv->vfo_c);
     init_chan(rig, RIG_VFO_MAIN_A, &priv->vfo_maina);
     init_chan(rig, RIG_VFO_MAIN_B, &priv->vfo_mainb);
     init_chan(rig, RIG_VFO_SUB_A, &priv->vfo_suba);
@@ -321,6 +344,11 @@ static int dummy_cleanup(RIG *rig)
 
     free(priv->vfo_a.ext_levels);
     free(priv->vfo_b.ext_levels);
+    free(priv->vfo_c.ext_levels);
+    free(priv->vfo_maina.ext_levels);
+    free(priv->vfo_mainb.ext_levels);
+    free(priv->vfo_suba.ext_levels);
+    free(priv->vfo_subb.ext_levels);
     free(priv->ext_funcs);
     free(priv->ext_parms);
     free(priv->magic_conf);
