@@ -291,6 +291,8 @@ typedef unsigned int tone_t;
 
 /**
  * \brief Port type
+ * 
+ * Note: All rigs may use a network:port address ( e.g. tcp/serial adapter)
  */
 typedef enum rig_port_e {
     RIG_PORT_NONE = 0,      /*!< No port */
