@@ -1208,9 +1208,7 @@ void *multicast_receiver(void *arg)
         efds = rfds;
 
         select_result = select(socket_fd + 1, &rfds, NULL, &efds, &timeout);
-    rig_debug(RIG_DEBUG_VERBOSE,"%s(%d)\n", __func__, __LINE__);
 
-    rig_debug(RIG_DEBUG_VERBOSE,"%s(%d)\n", __func__, __LINE__);
         if (rs->multicast_receiver_run == 0)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): pselect signal\n", __func__, __LINE__);
