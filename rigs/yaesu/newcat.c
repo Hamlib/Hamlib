@@ -8289,7 +8289,6 @@ static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
     char const *command = "ST";
-    vfo_t vfo_mode;
     int result;
     char c;
 
