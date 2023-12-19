@@ -2547,8 +2547,9 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         vfo = rig->state.current_vfo;
     }
 
-    if (mode == RIG_MODE_NONE) // the we just use the current mode to set width
+    if (mode == RIG_MODE_NONE)
     {
+        // Use the current mode to set width
         pbwidth_t twidth;
         rig_get_mode(rig, vfo, &mode, &twidth);
     }
@@ -4688,6 +4689,10 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     const struct rig_state *rs;
     int retcode, rc2;
     vfo_t curr_vfo, tx_vfo, rx_vfo;
+    freq_t cache_freq;
+    rmode_t cache_mode;
+    pbwidth_t cache_width;
+    int cache_ms_freq, cache_ms_mode, cache_ms_width;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -4719,28 +4724,19 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     // TX VFO may change after enabling split
     tx_vfo = rs->tx_vfo;
 
-    // we check both VFOs are in the same tx mode -- then we can ignore
-    // this could be make more intelligent but this should cover all cases where we can skip this
-    if (tx_mode == rs->cache.modeMainA && tx_mode == rs->cache.modeMainB)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: mode already %s so no change required\n",
-                  __func__, rig_strrmode(tx_mode));
-        ELAPSED2;
-        RETURNFUNC(RIG_OK);
-    }
-    else
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode %s is different from A=%s and B=%s\n",
-                  __func__, rig_strvfo(vfo), rig_strrmode(tx_mode), rig_strrmode(rs->cache.modeMainA),
-                  rig_strrmode(rs->cache.modeMainB));
-    }
-
     // do not mess with mode while PTT is on
     if (rs->cache.ptt)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s PTT on so set_split_mode ignored\n", __func__);
         ELAPSED2;
         RETURNFUNC(RIG_OK);
+    }
+
+    if (tx_mode == RIG_MODE_NONE)
+    {
+        // Get TX VFO mode from cache to avoid extra VFO swapping
+        rig_get_cache(rig, tx_vfo, &cache_freq, &cache_ms_freq, &cache_mode, &cache_ms_mode, &cache_width, &cache_ms_width);
+        tx_mode = cache_mode;
     }
 
     // Use set_split_mode directly if implemented and mode is targetable
@@ -4789,20 +4785,13 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): rx_vfo=%s, tx_vfo=%s\n", __func__,
               __LINE__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
 
-    // we will reuse cached mode instead of trying to set mode again
-    if ((tx_vfo & (RIG_VFO_A | RIG_VFO_MAIN | RIG_VFO_MAIN_A | RIG_VFO_SUB_A))
-            && (tx_mode == rs->cache.modeMainA))
+    // If mode is not targetable, we will reuse cached mode/passband instead of trying to set them again
+    rig_get_cache(rig, tx_vfo, &cache_freq, &cache_ms_freq, &cache_mode, &cache_ms_mode, &cache_width, &cache_ms_width);
+
+    if ((tx_mode == cache_mode || tx_mode == RIG_MODE_NONE) && (tx_width == cache_width || tx_width == RIG_PASSBAND_NOCHANGE))
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): VFOA mode=%s already set...ignoring\n",
-                  __func__, __LINE__, rig_strrmode(tx_mode));
-        ELAPSED2;
-        RETURNFUNC(RIG_OK);
-    }
-    else if ((tx_vfo & (RIG_VFO_B | RIG_VFO_SUB | RIG_VFO_MAIN_B | RIG_VFO_SUB_B))
-             && (tx_mode == rs->cache.modeMainB))
-    {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): VFOB mode=%s already set...ignoring\n",
-                  __func__, __LINE__, rig_strrmode(tx_mode));
+        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): mode=%s and width=%ld already set for vfo=%s, ignoring\n",
+                __func__, __LINE__, rig_strrmode(tx_mode), tx_width, rig_strvfo(tx_vfo));
         ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
@@ -4888,17 +4877,6 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     }
 
     rig_set_split_vfo(rig, rx_vfo, RIG_SPLIT_ON, tx_vfo);
-
-#if 0
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN_A)
-    {
-        rig->state.cache.modeMainA = tx_mode;
-    }
-    else if (vfo == RIG_VFO_B || 
-    {
-        rig->state.cache.modeMainB = tx_mode;
-    }
-#endif
 
     ELAPSED2;
     RETURNFUNC(retcode);
