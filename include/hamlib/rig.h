@@ -2464,6 +2464,21 @@ typedef hamlib_port_t_deprecated port_t_deprecated;
 typedef hamlib_port_t port_t;
 #endif
 
+/* Macros to access port structures/pointers
+ * Make it easier to change location in preparation
+ *   for moving them out of rig->state.
+ * See https://github.com/Hamlib/Hamlib/issues/1445
+ */
+// Note: Experimental, and subject to change!!
+#define RIGPORT(r) (&r->state.rigport)
+#define PTTPORT(r) (&r->state.pttport)
+#define DCDPORT(r) (&r->state.dcdport)
+/* Then when the rigport address is stored as a pointer somewhere else(say,
+ *  in the rig structure itself), the definition could be changed to
+ *  #define RIGPORT(r) r->somewhereelse
+ *  and every reference is updated.
+ */
+
 #define HAMLIB_ELAPSED_GET 0
 #define HAMLIB_ELAPSED_SET 1
 #define HAMLIB_ELAPSED_INVALIDATE 2
