@@ -135,7 +135,7 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    SNPRINTF(cmdstr, sizeof(cmdstr), "AZ EL \n");
+    SNPRINTF(cmdstr, sizeof(cmdstr), "AZ\n");
 
     retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
 
@@ -145,15 +145,36 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         return retval;
     }
 
-    /* Parse parse string to extract AZ,EL values */
+    /* Parse parse string to extract AZ values */
     rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __func__, ackbuf);
-    retval = sscanf(ackbuf, "AZ%f EL%f", az, el);
+    retval = sscanf(ackbuf, "AZ%f", az);
 
-    if (retval != 2)
+    if (retval != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unknown response (%s)\n", __func__, ackbuf);
         return -RIG_ERJCTED;
     }
+
+    SNPRINTF(cmdstr, sizeof(cmdstr), "EL\n");
+
+    retval = easycomm_transaction(rot, cmdstr, ackbuf, sizeof(ackbuf));
+
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s got error: %d\n", __func__, retval);
+        return retval;
+    }
+
+    /* Parse parse string to extract EL values */
+    rig_debug(RIG_DEBUG_TRACE, "%s got response: %s\n", __func__, ackbuf);
+    retval = sscanf(ackbuf, "EL%f", el);
+
+    if (retval != 1)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown response (%s)\n", __func__, ackbuf);
+        return -RIG_ERJCTED;
+    }
+
 
     return RIG_OK;
 }
@@ -527,7 +548,7 @@ const struct rot_caps easycomm1_rot_caps =
     ROT_MODEL(ROT_MODEL_EASYCOMM1),
     .model_name =     "EasycommI",
     .mfg_name =       "Hamlib",
-    .version =        "20231218.0",
+    .version =        "20231219.0",
     .copyright =   "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_OTHER,
