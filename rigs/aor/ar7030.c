@@ -190,7 +190,8 @@ static void Execute_Routine_2_1(RIG *rig, char mp, char ad, int numSteps)
 }
 #endif
 // Routine 3    Set passband    Setup all IF parameters from filter, pbsval and bfoval bytes.
-static void Execute_Routine_3_1(RIG *rig, char mp, char ad, unsigned int numSteps)
+static void Execute_Routine_3_1(RIG *rig, char mp, char ad,
+                                unsigned int numSteps)
 {
     setLock(rig, 1);      //Set Lock Level
     setMemPtr(rig, mp, ad);   //page, address
@@ -772,7 +773,7 @@ static int ar7030_reset(RIG *rig, reset_t reset)
 
 
 
-const struct rig_caps ar7030_caps =
+struct rig_caps ar7030_caps =
 {
     RIG_MODEL(RIG_MODEL_AR7030),
     .model_name = "AR7030",

@@ -24,6 +24,10 @@
 #ifndef _RIG_H
 #define _RIG_H 1
 
+// as of 2023-11-23 rig_caps is no longer constant
+// this #define allows clients to test which declaration to use for backwards compatibility
+#define RIGCAPS_NOT_CONST 1
+
 #define BUILTINFUNC 0
 
 // Our shared secret password 
@@ -152,6 +156,7 @@ typedef struct
 // cookie is 26-char time code plus 10-char (2^31-1) random number
 #define HAMLIB_COOKIE_SIZE 37
 extern int cookie_use;  // this is global as once one client requests it everybody needs to honor it
+extern int skip_init;  // allow rigctl to skip any radio commands at startup
 
 //! @cond Doxygen_Suppress
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
@@ -287,6 +292,8 @@ typedef unsigned int tone_t;
 
 /**
  * \brief Port type
+ * 
+ * Note: All rigs may use a network:port address ( e.g. tcp/serial adapter)
  */
 typedef enum rig_port_e {
     RIG_PORT_NONE = 0,      /*!< No port */
@@ -1642,7 +1649,9 @@ typedef enum {
     RIG_MTYPE_MEMOPAD,      /*!< Memory pad */
     RIG_MTYPE_SAT,          /*!< Satellite */
     RIG_MTYPE_BAND,         /*!< VFO/Band channel */
-    RIG_MTYPE_PRIO          /*!< Priority channel */
+    RIG_MTYPE_PRIO,         /*!< Priority channel */
+	RIG_MTYPE_VOICE,		/*!< Stored Voice Message */
+	RIG_MTYPE_MORSE			/*!< Morse Message */
 } chan_type_t;
 
 
@@ -2381,7 +2390,7 @@ typedef struct hamlib_port {
     int fd_sync_error_read;     /*!< file descriptor for reading synchronous data error codes */
 #endif
     short timeout_retry;    /*!< number of retries to make in case of read timeout errors, some serial interfaces may require this, 0 to disable */
-    int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
+// DO NOT ADD ANYTHING HERE UNTIL 5.0!!
 } hamlib_port_t;
 
  
@@ -2779,6 +2788,9 @@ struct rig_state {
     void *multicast_receiver_priv_data;
     rig_comm_status_t comm_status; /*!< Detailed rig control status */
     char device_id[HAMLIB_RIGNAMSIZ];
+    int dual_watch; /*!< Boolean DUAL_WATCH status */
+    int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
+// New rig_state items go before this line ============================================
 };
 
 /**
@@ -2791,7 +2803,7 @@ struct rig_state {
  * It is NOT fine to touch this struct AT ALL!!!
  */
 struct rig_state_deprecated {
-    /********* ENSURE YOU DO NOT EVERY MODIFY THIS STRUCTURE *********/
+    /********* ENSURE YOU DO NOT EVER MODIFY THIS STRUCTURE *********/
     /********* It will remain forever to provide DLL backwards compatiblity ******/
     /*
      * overridable fields
@@ -3592,7 +3604,7 @@ rig_set_uplink HAMLIB_PARAMS((RIG *rig,
 extern HAMLIB_EXPORT(const char *)
 rig_get_info HAMLIB_PARAMS((RIG *rig));
 
-extern HAMLIB_EXPORT(const struct rig_caps *)
+extern HAMLIB_EXPORT(struct rig_caps *)
 rig_get_caps HAMLIB_PARAMS((rig_model_t rig_model));
 
 extern HAMLIB_EXPORT(const freq_range_t *)
@@ -3673,13 +3685,13 @@ extern HAMLIB_EXPORT(FILE *)
 rig_set_debug_file HAMLIB_PARAMS((FILE *stream));
 
 extern HAMLIB_EXPORT(int)
-rig_register HAMLIB_PARAMS((const struct rig_caps *caps));
+rig_register HAMLIB_PARAMS((struct rig_caps *caps));
 
 extern HAMLIB_EXPORT(int)
 rig_unregister HAMLIB_PARAMS((rig_model_t rig_model));
 
 extern HAMLIB_EXPORT(int)
-rig_list_foreach HAMLIB_PARAMS((int (*cfunc)(const struct rig_caps *, rig_ptr_t),
+rig_list_foreach HAMLIB_PARAMS((int (*cfunc)(struct rig_caps *, rig_ptr_t),
                                 rig_ptr_t data));
 
 extern HAMLIB_EXPORT(int)

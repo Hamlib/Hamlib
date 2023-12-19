@@ -92,7 +92,7 @@ static tone_t ft736_ctcss_list[] =
  *  - AQS
  */
 
-const struct rig_caps ft736_caps =
+struct rig_caps ft736_caps =
 {
     RIG_MODEL(RIG_MODEL_FT736R),
     .model_name =         "FT-736R",

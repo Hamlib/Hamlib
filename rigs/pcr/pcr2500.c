@@ -58,7 +58,7 @@ static const struct pcr_priv_caps pcr2500_priv =
 /*
  * IC PCR2500 rigs capabilities.
  */
-const struct rig_caps pcr2500_caps =
+struct rig_caps pcr2500_caps =
 {
     RIG_MODEL(RIG_MODEL_PCR2500),
     .model_name     = "IC-PCR2500",

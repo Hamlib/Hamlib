@@ -28,6 +28,6 @@
 #define TRUE 1
 #define FALSE 0
 
-extern const struct rig_caps flrig_caps;
+extern struct rig_caps flrig_caps;
 
 #endif /* _FLRIG_H */

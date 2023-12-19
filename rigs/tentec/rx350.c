@@ -75,7 +75,7 @@
  * Only set_freq is supposed to work.
  * This is a skeleton.
  */
-const struct rig_caps rx350_caps =
+struct rig_caps rx350_caps =
 {
     RIG_MODEL(RIG_MODEL_RX350),
     .model_name = "RX-350",

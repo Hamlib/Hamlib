@@ -78,7 +78,7 @@
  *
  */
 
-const struct rig_caps r8b_caps =
+struct rig_caps r8b_caps =
 {
     RIG_MODEL(RIG_MODEL_DKR8B),
     .model_name = "R-8B",

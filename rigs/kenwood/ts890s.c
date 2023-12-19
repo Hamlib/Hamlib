@@ -50,11 +50,12 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     retval = check_level_param(rig, level, val, &level_info);
+
     if (retval != RIG_OK)
-      {
-	return retval;
-      }
-    
+    {
+        return retval;
+    }
+
     switch (level)
     {
     case RIG_LEVEL_AGC:
@@ -62,20 +63,22 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         /* possible values for TS890 0(=off), 1(=slow), 2(=mid), 3(=fast), 4(=off/Last) */
         rig_debug(RIG_DEBUG_VERBOSE, "%s TS890S RIG_LEVEL_AGC\n", __func__);
 
-	kenwood_val = -1; /* Flag invalid value */
-	for (int j = 0; j < rig->caps->agc_level_count; j++)
-	  {
-	    if (val.i == rig->caps->agc_levels[j])
-	      {
-		kenwood_val = j;
-		break;
-	      }
-	  }
-	if ( kenwood_val < 0)
-	  {
+        kenwood_val = -1; /* Flag invalid value */
+
+        for (int j = 0; j < rig->caps->agc_level_count; j++)
+        {
+            if (val.i == rig->caps->agc_levels[j])
+            {
+                kenwood_val = j;
+                break;
+            }
+        }
+
+        if (kenwood_val < 0)
+        {
             rig_debug(RIG_DEBUG_ERR, "%s: unsupported agc value:%d\n", __func__, val.i);
             return -RIG_EINVAL;
-	  }
+        }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "GC%d", kenwood_val);
         return kenwood_transaction(rig, levelbuf, NULL, 0); /* Odd man out */
@@ -189,16 +192,17 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-	levelint = ackbuf[2] - '0';  /* atoi */
-	if (levelint >= 0 && levelint < rig->caps->agc_level_count)
-	  {
-	    val->i = rig->caps->agc_levels[levelint];
-	  }
-	else
-	  {
+        levelint = ackbuf[2] - '0';  /* atoi */
+
+        if (levelint >= 0 && levelint < rig->caps->agc_level_count)
+        {
+            val->i = rig->caps->agc_levels[levelint];
+        }
+        else
+        {
             rig_debug(RIG_DEBUG_ERR, "%s: unknown agc value: %s\n", __func__, ackbuf);
             return -RIG_EPROTO;
-	  }
+        }
 
         return RIG_OK;
 
@@ -344,13 +348,17 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_USB_AF:
     case RIG_LEVEL_USB_AF_INPUT:
-        if ( level == RIG_LEVEL_USB_AF )
-          { command_string = "EX00708"; }
+        if (level == RIG_LEVEL_USB_AF)
+        { command_string = "EX00708"; }
         else
-          { command_string = "EX00706"; }
+        { command_string = "EX00706"; }
+
         len = strlen(command_string);
-        retval = kenwood_safe_transaction(rig, command_string, ackbuf, sizeof(ackbuf), len + 4);
+        retval = kenwood_safe_transaction(rig, command_string, ackbuf, sizeof(ackbuf),
+                                          len + 4);
+
         if (retval != RIG_OK) { return retval; }
+
         sscanf(&ackbuf[len + 1], "%3d", &levelint);  /* Skip the extra space */
         val->f = levelint * level_info->step.f;
         return RIG_OK;
@@ -383,7 +391,7 @@ static struct kenwood_priv_caps ts890s_priv_caps =
  * Copied from ts480_caps, many of the values have not been verified.
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps ts890s_caps =
+struct rig_caps ts890s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS890S),
     .model_name = "TS-890S",
@@ -542,8 +550,8 @@ const struct rig_caps ts890s_caps =
         [LVL_ATT]     = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1100 }, .step = { .i = 5 } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0 / 255.0 } },
-        [LVL_USB_AF] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0/100.0 } },
-        [LVL_USB_AF_INPUT] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0/100.0 } },
+        [LVL_USB_AF] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0 / 100.0 } },
+        [LVL_USB_AF_INPUT] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0 / 100.0 } },
     },
     .has_get_func = TS890_FUNC_ALL,
     .has_set_func = TS890_FUNC_ALL,

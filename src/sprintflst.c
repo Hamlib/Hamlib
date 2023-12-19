@@ -100,7 +100,8 @@ int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
         {
             continue;    /* unknown, FIXME! */
         }
-        if (i > 0) strcat(str, " ");
+
+        if (i > 0) { strcat(str, " "); }
 
         strcat(str, ms);
         len += strlen(ms) + 1;
@@ -577,9 +578,9 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
             if (gran[i].step.s)
             {
                 len += sprintf(str + len,
-                    "%s(%s) ",
-                    ms,
-                    gran[i].step.s);
+                               "%s(%s) ",
+                               ms,
+                               gran[i].step.s);
             }
         }
         else
@@ -935,7 +936,7 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
     {
         for (i = 0; i <= HAMLIB_MAX_AGC_LEVELS
                 && priv_caps->agc_levels[i].level != RIG_AGC_LAST
-                ;i++)
+                ; i++)
         {
             if (strlen(str) > 0) { strcat(str, " "); }
 

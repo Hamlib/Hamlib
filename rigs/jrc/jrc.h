@@ -64,11 +64,11 @@ int jrc_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int jrc_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 int jrc_decode_event(RIG *rig);
 
-extern const struct rig_caps nrd535_caps;
-extern const struct rig_caps nrd545_caps;
-extern const struct rig_caps nrd525_caps;
-extern const struct rig_caps jst145_caps;
-extern const struct rig_caps jst245_caps;
+extern struct rig_caps nrd535_caps;
+extern struct rig_caps nrd545_caps;
+extern struct rig_caps nrd525_caps;
+extern struct rig_caps jst145_caps;
+extern struct rig_caps jst245_caps;
 
 
 #endif /* _JRC_H */

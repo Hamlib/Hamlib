@@ -747,35 +747,35 @@ static const struct
 {
     setting_t bandselect;
     const char *str;
-    double start,stop;
+    double start, stop;
 } rig_bandselect_str[] =
 {
     { RIG_BANDSELECT_2200M, "BAND2200M", 135700, 137799 },
-    { RIG_BANDSELECT_600M,  "BAND600M" , 472000, 478999},
-    { RIG_BANDSELECT_160M,  "BAND160M" , 1800000, 1899999},
-    { RIG_BANDSELECT_80M,   "BAND80M" , 3400000, 4099999},
-    { RIG_BANDSELECT_60M,   "BAND60M" , 5250000, 5449999},
-    { RIG_BANDSELECT_40M,   "BAND40M" , 6900000, 7499999},
-    { RIG_BANDSELECT_30M,   "BAND30M" , 9900000, 10499999},
-    { RIG_BANDSELECT_20M,   "BAND20M" , 13900000, 14499999},
-    { RIG_BANDSELECT_17M,   "BAND17M" , 17900000, 18499999},
-    { RIG_BANDSELECT_15M,   "BAND15M" , 20900000, 21499999},
-    { RIG_BANDSELECT_12M,   "BAND10M" , 24400000, 25099999},
-    { RIG_BANDSELECT_10M,   "BAND10M" , 28000000, 29999999},
-    { RIG_BANDSELECT_6M,    "BAND6M"  , 50000000, 53999999},
-    { RIG_BANDSELECT_WFM,   "BANDWFM" , 74800000, 107999999},
-    { RIG_BANDSELECT_MW,    "BANDMW" , 530000000, 1700999999},
-    { RIG_BANDSELECT_AIR,   "BANDAIR" , 108000000, 136999999},
-    { RIG_BANDSELECT_2M,    "BAND2M" , 144000000, 145999999},
-    { RIG_BANDSELECT_1_25M, "BAND1_25M" , 219000000, 224999999},
-    { RIG_BANDSELECT_70CM,  "BAND70CM" , 420000000, 449999999},
-    { RIG_BANDSELECT_33CM,  "BAND33CM" , 902000000, 927999999},
-    { RIG_BANDSELECT_23CM,  "BAND23CM" , 1240000000, 1324999999},
-    { RIG_BANDSELECT_13CM,  "BAND13CM" , 2300000000, 2449999999},
-    { RIG_BANDSELECT_9CM,  "BAND9CM" , 3300000000, 3474999999},
-    { RIG_BANDSELECT_5CM,  "BAND5CM" , 5650000000, 5924999999},
+    { RIG_BANDSELECT_600M,  "BAND600M", 472000, 478999},
+    { RIG_BANDSELECT_160M,  "BAND160M", 1800000, 1899999},
+    { RIG_BANDSELECT_80M,   "BAND80M", 3400000, 4099999},
+    { RIG_BANDSELECT_60M,   "BAND60M", 5250000, 5449999},
+    { RIG_BANDSELECT_40M,   "BAND40M", 6900000, 7499999},
+    { RIG_BANDSELECT_30M,   "BAND30M", 9900000, 10499999},
+    { RIG_BANDSELECT_20M,   "BAND20M", 13900000, 14499999},
+    { RIG_BANDSELECT_17M,   "BAND17M", 17900000, 18499999},
+    { RIG_BANDSELECT_15M,   "BAND15M", 20900000, 21499999},
+    { RIG_BANDSELECT_12M,   "BAND10M", 24400000, 25099999},
+    { RIG_BANDSELECT_10M,   "BAND10M", 28000000, 29999999},
+    { RIG_BANDSELECT_6M,    "BAND6M", 50000000, 53999999},
+    { RIG_BANDSELECT_WFM,   "BANDWFM", 74800000, 107999999},
+    { RIG_BANDSELECT_MW,    "BANDMW", 530000000, 1700999999},
+    { RIG_BANDSELECT_AIR,   "BANDAIR", 108000000, 136999999},
+    { RIG_BANDSELECT_2M,    "BAND2M", 144000000, 145999999},
+    { RIG_BANDSELECT_1_25M, "BAND1_25M", 219000000, 224999999},
+    { RIG_BANDSELECT_70CM,  "BAND70CM", 420000000, 449999999},
+    { RIG_BANDSELECT_33CM,  "BAND33CM", 902000000, 927999999},
+    { RIG_BANDSELECT_23CM,  "BAND23CM", 1240000000, 1324999999},
+    { RIG_BANDSELECT_13CM,  "BAND13CM", 2300000000, 2449999999},
+    { RIG_BANDSELECT_9CM,  "BAND9CM", 3300000000, 3474999999},
+    { RIG_BANDSELECT_5CM,  "BAND5CM", 5650000000, 5924999999},
     { RIG_BANDSELECT_3CM,  "BAND3CM", 10000000000, 10499999999 },
-    { RIG_BANDSELECT_GEN,   "BANDGEN" , 0, 1000000000000},
+    { RIG_BANDSELECT_GEN,   "BANDGEN", 0, 1000000000000},
     { 0, NULL, 0, 0 }
 };
 
@@ -2009,15 +2009,18 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), split);
 
     if (rig->caps->rig_model == RIG_MODEL_ID5100
-        || rig->caps->rig_model == RIG_MODEL_IC9700)
+            || rig->caps->rig_model == RIG_MODEL_IC9700)
     {
+        struct rig_state *rs = &rig->state;
+
         // dualwatch on ID5100 is TX=Main, RX=Sub
-        struct icom_priv_data *icom_priv = (struct icom_priv_data *)rig->caps->priv;
-        if (rig->caps->rig_model == RIG_MODEL_ID5100 && icom_priv->dual_watch)
+        if (rig->caps->rig_model == RIG_MODEL_ID5100 && rs->dual_watch)
         {
-            if (vfo == RIG_VFO_TX) return RIG_VFO_MAIN;
+            if (vfo == RIG_VFO_TX || vfo == RIG_VFO_MAIN) { return RIG_VFO_MAIN; }
+
             return RIG_VFO_SUB;
         }
+
         return vfo; // no change to requested vfo
     }
 
@@ -2331,7 +2334,8 @@ void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
 
     if (caps == NULL)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: caps == null for model %d??\n", __func__, rig_model);
+        rig_debug(RIG_DEBUG_ERR, "%s: caps == null for model %d??\n", __func__,
+                  rig_model);
         return NULL;
     }
 
@@ -2616,7 +2620,7 @@ void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
  * \return the corresponding long value -- -RIG_EINVAL is the only error possible
  */
 uint64_t HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
-                                      enum rig_caps_int_e rig_caps)
+                                     enum rig_caps_int_e rig_caps)
 {
     const struct rig_caps *caps = rig_get_caps(rig_model);
 #if 0
@@ -2651,7 +2655,8 @@ uint64_t HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->port_type;
 
     case RIG_CAPS_HAS_GET_LEVEL:
-        rig_debug(RIG_DEBUG_TRACE, "%s(%d): return %08"PRIll"\n", __func__, __LINE__, caps->has_get_level);
+        rig_debug(RIG_DEBUG_TRACE, "%s(%d): return %08"PRIll"\n", __func__, __LINE__,
+                  caps->has_get_level);
         return caps->has_get_level;
 
     default:
@@ -2791,7 +2796,7 @@ char *date_strget(char *buf, int buflen, int localtime)
     struct tm *mytm;
     time_t t;
     struct timeval tv;
-    struct tm result = { 0,0,0,0,0,0,0,0,0};
+    struct tm result = { 0, 0, 0, 0, 0, 0, 0, 0, 0};
     int mytimezone;
 
     t = time(NULL);
@@ -2819,7 +2824,7 @@ char *date_strget(char *buf, int buflen, int localtime)
 
 char *rig_date_strget(char *buf, int buflen, int localtime)
 {
-    return date_strget(buf,buflen,localtime);
+    return date_strget(buf, buflen, localtime);
 }
 
 const char *spaces()
@@ -2830,50 +2835,56 @@ const char *spaces()
 
 // if which==0 rig_band_select str will be returned
 // if which!=0 the rig_parm_gran band str will be returne
-const char* rig_get_band_str(RIG *rig, hamlib_band_t band, int which)
+const char *rig_get_band_str(RIG *rig, hamlib_band_t band, int which)
 {
     int i;
 
     if (which == 0)
     {
-    for (i = 0; rig_bandselect_str[i].str[0] != '\0'; i++)
-    {
-        if (rig_bandselect_str[i].bandselect == band)
+        for (i = 0; rig_bandselect_str[i].str[0] != '\0'; i++)
         {
-            return rig_bandselect_str[i].str;
+            if (rig_bandselect_str[i].bandselect == band)
+            {
+                return rig_bandselect_str[i].str;
+            }
         }
-    }
     }
     else
     {
         char bandlist[512];
-        
-        rig_sprintf_parm_gran(bandlist, sizeof(bandlist)-1, RIG_PARM_BANDSELECT, rig->caps->parm_gran);
+
+        rig_sprintf_parm_gran(bandlist, sizeof(bandlist) - 1, RIG_PARM_BANDSELECT,
+                              rig->caps->parm_gran);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: bandlist=%s\n", __func__, bandlist);
         int n = 0;
-        char *p = strchr(bandlist,'(')+1;
+        char *p = strchr(bandlist, '(') + 1;
         char *token;
+
         if (p == NULL)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unable to find open paren in '%s'\n", __func__, bandlist);
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to find open paren in '%s'\n", __func__,
+                      bandlist);
             return 0;
         }
-        while((token = strtok_r(p, ",", &p)))
+
+        while ((token = strtok_r(p, ",", &p)))
         {
-            if (n == band) 
+            if (n == band)
             {
                 for (i = 0; rig_bandselect_str[i].str[0] != '\0'; i++)
                 {
-                    if (strcmp(rig_bandselect_str[i].str,token)==0)
+                    if (strcmp(rig_bandselect_str[i].str, token) == 0)
                     {
                         return rig_bandselect_str[i].str;
                     }
                 }
             }
+
             n++;
         }
 
     }
+
     return "BANDGEN";
 }
 // If freq==0 looks up using the band index (which is the rig's band reference index)
@@ -2886,29 +2897,36 @@ hamlib_band_t rig_get_band(RIG *rig, freq_t freq, int band)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (freq == 0) 
+    if (freq == 0)
     {
         char bandlist[512];
-        
-        rig_sprintf_parm_gran(bandlist, sizeof(bandlist)-1, RIG_PARM_BANDSELECT, rig->caps->parm_gran);
+
+        rig_sprintf_parm_gran(bandlist, sizeof(bandlist) - 1, RIG_PARM_BANDSELECT,
+                              rig->caps->parm_gran);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: bandlist=%s\n", __func__, bandlist);
         // e.g. BANDSELECT(BAND160M,BAND80M,BANDUNUSED,BAND40M)
-        char *p = strchr(bandlist,'(')+1;
+        char *p = strchr(bandlist, '(') + 1;
         char *token;
+
         if (p == NULL)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unable to find open paren in '%s'\n", __func__, bandlist);
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to find open paren in '%s'\n", __func__,
+                      bandlist);
             return 0;
         }
+
         int n = 0;
-        while((token = strtok_r(p, ",", &p)))
+
+        while ((token = strtok_r(p, ",", &p)))
         {
-            if (n == band) return rig_bandselect_str[n].bandselect;
+            if (n == band) { return rig_bandselect_str[n].bandselect; }
+
             n++;
         }
 
-        return RIG_BANDSELECT_UNUSED;
+        return RIG_BAND_UNUSED;
     }
+
     for (i = 0 ; rig_bandselect_str[i].str[0] != '\0'; i++)
     {
         if (freq >= rig_bandselect_str[i].start && freq <= rig_bandselect_str[i].stop)
@@ -2917,7 +2935,7 @@ hamlib_band_t rig_get_band(RIG *rig, freq_t freq, int band)
         }
     }
 
-    return RIG_BANDSELECT_GEN;
+    return RIG_BAND_UNUSED;
 }
 
 // Gets the rig's band index from the hamlib_band_t
@@ -2925,28 +2943,36 @@ int rig_get_band_rig(RIG *rig, freq_t freq, const char *band)
 {
     char bandlist[512];
     int i;
-        
+
     if (freq == 0)
     {
-        rig_sprintf_parm_gran(bandlist, sizeof(bandlist)-1, RIG_PARM_BANDSELECT, rig->caps->parm_gran);
+        rig_sprintf_parm_gran(bandlist, sizeof(bandlist) - 1, RIG_PARM_BANDSELECT,
+                              rig->caps->parm_gran);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: bandlist=%s\n", __func__, bandlist);
         // e.g. BANDSELECT(BAND160M,BAND80M,BANDUNUSED,BAND40M)
-        char *p = strchr(bandlist,'(')+1;
+        char *p = strchr(bandlist, '(') + 1;
         char *token;
+
         if (p == NULL)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unable to find open paren in '%s'\n", __func__, bandlist);
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to find open paren in '%s'\n", __func__,
+                      bandlist);
             return 0;
         }
+
         int n = 0;
-        while((token = strtok_r(p, ",", &p)))
+
+        while ((token = strtok_r(p, ",", &p)))
         {
-            if (strcmp(token,band)==0) return n;
+            if (strcmp(token, band) == 0) { return n; }
+
             n++;
         }
+
         rig_debug(RIG_DEBUG_ERR, "%s: unknown band %s\n", __func__, band);
         return 0;
     }
+
     for (i = 0 ; rig_bandselect_str[i].str[0] != '\0'; i++)
     {
         if (freq >= rig_bandselect_str[i].start && freq <= rig_bandselect_str[i].stop)
@@ -2956,7 +2982,9 @@ int rig_get_band_rig(RIG *rig, freq_t freq, const char *band)
             return rig_get_band_rig(rig, 0.0, rig_bandselect_str[i].str);
         }
     }
-    rig_debug(RIG_DEBUG_ERR, "%s: unable to find band=%s, freq=%f\n", __func__, band, freq);
+
+    rig_debug(RIG_DEBUG_ERR, "%s: unable to find band=%s, freq=%f\n", __func__,
+              band, freq);
     return 0; // just give a value for now of the 1st band -- this should be an error
 }
 

@@ -34,8 +34,10 @@
 #include "bandplan.h"
 #include "ic7300.h"
 
-int ic7800_set_clock(RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset);
-int ic7800_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset);
+int ic7800_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+                     int sec, double msec, int utc_offset);
+int ic7800_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+                     int *min, int *sec, double *msec, int *utc_offset);
 
 #define IC7800_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_PSK|RIG_MODE_PSKR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM|RIG_MODE_PKTFM)
 #define IC7800_1HZ_TS_MODES IC7800_ALL_RX_MODES
@@ -160,7 +162,7 @@ static const struct icom_priv_caps ic7800_priv_caps =
     .data_mode_supported = 1
 };
 
-const struct rig_caps ic7800_caps =
+struct rig_caps ic7800_caps =
 {
     RIG_MODEL(RIG_MODEL_IC7800),
     .model_name = "IC-7800",
@@ -191,8 +193,6 @@ const struct rig_caps ic7800_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
@@ -501,10 +501,12 @@ int ic7800_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
         prmbuf[0] = 0x00;
         prmbuf[1] = 0x60;
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
+
         if (retval != RIG_OK)
         {
             return retval;
         }
+
         *hour = from_bcd(&respbuf[4], 2);
         *min = from_bcd(&respbuf[5], 2);
         *sec = 0;
@@ -513,10 +515,12 @@ int ic7800_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
         prmbuf[0] = 0x00;
         prmbuf[1] = 0x62;
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
+
         if (retval != RIG_OK)
         {
             return retval;
         }
+
         *utc_offset = from_bcd(&respbuf[4], 2) * 100;
         *utc_offset += from_bcd(&respbuf[5], 2);
 

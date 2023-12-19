@@ -43,6 +43,6 @@ int gp2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int gp2000_reset(RIG *rig, reset_t reset);
 const char * gp2000_get_info(RIG *rig);
 
-extern const struct rig_caps xk2100_caps;
+extern struct rig_caps xk2100_caps;
 
 #endif /* XK2000_H */

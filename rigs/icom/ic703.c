@@ -81,7 +81,7 @@ static const struct icom_priv_caps ic703_priv_caps =
     ic706_ts_sc_list
 };
 
-const struct rig_caps ic703_caps =
+struct rig_caps ic703_caps =
 {
     RIG_MODEL(RIG_MODEL_IC703),
     .model_name = "IC-703",
@@ -112,7 +112,6 @@ const struct rig_caps ic703_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,

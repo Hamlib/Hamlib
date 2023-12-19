@@ -51,7 +51,7 @@ static struct icom_priv_caps icr7000_priv_caps =
 /*
  * ICR7000 rigs capabilities.
  */
-const struct rig_caps icr7000_caps =
+struct rig_caps icr7000_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR7000),
     .model_name = "IC-R7000",
@@ -174,7 +174,7 @@ static struct icom_priv_caps icr7100_priv_caps =
 /*
  * ICR7100A rig capabilities.
  */
-const struct rig_caps icr7100_caps =
+struct rig_caps icr7100_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR7100),
     .model_name = "IC-R7100",

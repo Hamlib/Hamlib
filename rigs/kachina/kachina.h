@@ -30,7 +30,7 @@ int kachina_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kachina_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
-extern const struct rig_caps k505dsp_caps;
+extern struct rig_caps k505dsp_caps;
 
 
 #endif /* _KACHINA_H */

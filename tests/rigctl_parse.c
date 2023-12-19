@@ -391,8 +391,8 @@ static struct test_table test_list[] =
     { 0xa7, "test",    ACTION(test), ARG_NOVFO | ARG_IN, "routine" },
     { 0xa8, "hamlib_version",    ACTION(hamlib_version), ARG_NOVFO },
     { 0xa9, "get_gpio",    ACTION(cm108_get_bit), ARG_NOVFO | ARG_IN1 | ARG_OUT1, "GPIO#", "0/1" },
-    { 0xaa, "set_gpio",    ACTION(cm108_set_bit), ARG_NOVFO | ARG_IN , "GPIO#", "0/1" },
-    { 0xac, "set_conf",    ACTION(set_conf), ARG_NOVFO | ARG_IN , "Token", "Token Value" },
+    { 0xaa, "set_gpio",    ACTION(cm108_set_bit), ARG_NOVFO | ARG_IN, "GPIO#", "0/1" },
+    { 0xac, "set_conf",    ACTION(set_conf), ARG_NOVFO | ARG_IN, "Token", "Token Value" },
     { 0xad, "get_conf",    ACTION(get_conf), ARG_NOVFO | ARG_IN1 | ARG_OUT2, "Token", "Value"},
     { 0x00, "", NULL },
 };
@@ -566,9 +566,9 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
             if (!feof(fin))
             {
-                rig_debug(RIG_DEBUG_TRACE,"%s fscanf of:", __func__);
+                rig_debug(RIG_DEBUG_TRACE, "%s fscanf of:", __func__);
                 dump_hex((unsigned char *)p, strlen(p));
-                rig_debug(RIG_DEBUG_TRACE," failed with format '%s'\n", format);
+                rig_debug(RIG_DEBUG_TRACE, " failed with format '%s'\n", format);
                 ret = 0x0a;
             }
         }
@@ -720,18 +720,20 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             {
                 if ((retcode = scanfc(fin, "%c", &cmd)) < 1)
                 {
-                    if (last_cmd==0)
+                    if (last_cmd == 0)
                     {
-                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d, last_cmd=[empty]\n",
-                              __func__,
-                              retcode);
+                        rig_debug(RIG_DEBUG_WARN,
+                                  "%s: nothing to scan#1? retcode=%d, last_cmd=[empty]\n",
+                                  __func__,
+                                  retcode);
                     }
                     else
                     {
-                    rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d, last_cmd=%c\n",
-                              __func__,
-                              retcode, last_cmd);
+                        rig_debug(RIG_DEBUG_WARN, "%s: nothing to scan#1? retcode=%d, last_cmd=%c\n",
+                                  __func__,
+                                  retcode, last_cmd);
                     }
+
                     return (RIGCTL_PARSE_ERROR);
                 }
 
@@ -1713,11 +1715,12 @@ readline_repeat:
                                      " %s",
                                      rig_strvfo(vfo));
 
-        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), "%c%s", *vfo_opt?',':' ',p1);
+        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), "%c%s",
+                                             *vfo_opt ? ',' : ' ', p1);
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
         p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
 
-        if (cmd == 'b') strtok(a1,"\r\n");
+        if (cmd == 'b') { strtok(a1, "\r\n"); }
 
         fprintf(fout,
                 "%s:%s%s%s%s%c",
@@ -1760,7 +1763,8 @@ readline_repeat:
     else
     {
         // Allow only certain commands when the rig is powered off
-        if (my_rig->state.powerstat == RIG_POWER_OFF && (rig_powerstat == RIG_POWER_OFF || rig_powerstat == RIG_POWER_STANDBY)
+        if (my_rig->state.powerstat == RIG_POWER_OFF && (rig_powerstat == RIG_POWER_OFF
+                || rig_powerstat == RIG_POWER_STANDBY)
                 && cmd_entry->cmd != '1' // dump_caps
                 && cmd_entry->cmd != '3' // dump_conf
                 && cmd_entry->cmd != 0x8f // dump_state
@@ -1961,6 +1965,7 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
                cfp->u.n.max,
                cfp->u.n.step);
         break;
+
     case RIG_CONF_NUMERIC:
         printf("\tRange: %g..%g, step %.1f\n",
                cfp->u.n.min,
@@ -2010,16 +2015,16 @@ int print_conf_list2(const struct confparams *cfp, rig_ptr_t data)
     char buf[128] = "";
 
     rig_get_conf(rig, cfp->token, buf);
-    fprintf(stdout,"%s: \"%s\"\n" "\t" "Default: %s, Value: %s\n",
-           cfp->name,
-           cfp->tooltip,
-           cfp->dflt,
-           buf);
+    fprintf(stdout, "%s: \"%s\"\n" "\t" "Default: %s, Value: %s\n",
+            cfp->name,
+            cfp->tooltip,
+            cfp->dflt,
+            buf);
 
     return 1;  /* !=0, we want them all ! */
 }
 
-static int hash_model_list(const struct rig_caps *caps, void *data)
+static int hash_model_list(struct rig_caps *caps, void *data)
 {
     hash_add_model(caps->rig_model,
                    caps->mfg_name,
@@ -2440,12 +2445,14 @@ declare_proto_rig(get_vfo_list)
 declare_proto_rig(test)
 {
     ENTERFUNC2;
+
     if (!strcmp(arg1, "?"))
     {
         fprintf(fout, "cw\n");
         RETURNFUNC2(RIG_OK);
     }
-    if (strcmp(arg1, "cw")==0) rig_test_cw(rig);
+
+    if (strcmp(arg1, "cw") == 0) { rig_test_cw(rig); }
 
     RETURNFUNC2(RIG_OK);
 }
@@ -3256,7 +3263,7 @@ declare_proto_rig(set_level)
 
     level = rig_parse_level(arg1);
 
-    if ((!strcmp(arg2, "?") || arg2[0]==0) && level == RIG_LEVEL_METER)
+    if ((!strcmp(arg2, "?") || arg2[0] == 0) && level == RIG_LEVEL_METER)
     {
         fprintf(fout, "COMP ALC SWR ID/IC VDD DB PO TEMP%c", resp_sep);
         RETURNFUNC2(RIG_OK);
@@ -3312,22 +3319,26 @@ declare_proto_rig(set_level)
     }
 
     int dummy;
-    if (level == RIG_LEVEL_METER && sscanf(arg2,"%d",&dummy)==0)
+
+    if (level == RIG_LEVEL_METER && sscanf(arg2, "%d", &dummy) == 0)
     {
-        if (strcmp(arg2,"COMP")==0) arg2 = "2";
-        else if (strcmp(arg2,"ALC")==0) arg2 = "4";
-        else if (strcmp(arg2,"SWR")==0) arg2 = "1";
-        else if (strcmp(arg2,"ID")==0 || strcmp(arg2,"IC")==0) arg2 = "8";
-        else if (strcmp(arg2,"VDD")==0) arg2 = "64";
-        else if (strcmp(arg2, "DB")==0) arg2 = "16";
-        else if (strcmp(arg2, "PO")==0) arg2 = "32";
-        else if (strcmp(arg2, "TEMP")==0) arg2 = "128";
+        if (strcmp(arg2, "COMP") == 0) { arg2 = "2"; }
+        else if (strcmp(arg2, "ALC") == 0) { arg2 = "4"; }
+        else if (strcmp(arg2, "SWR") == 0) { arg2 = "1"; }
+        else if (strcmp(arg2, "ID") == 0 || strcmp(arg2, "IC") == 0) { arg2 = "8"; }
+        else if (strcmp(arg2, "VDD") == 0) { arg2 = "64"; }
+        else if (strcmp(arg2, "DB") == 0) { arg2 = "16"; }
+        else if (strcmp(arg2, "PO") == 0) { arg2 = "32"; }
+        else if (strcmp(arg2, "TEMP") == 0) { arg2 = "128"; }
         else
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unknown meter=%s, only know COMP,ALC,SWR,ID/IC,VDD,DB,PO,TEMP\n", __func__, arg2);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: unknown meter=%s, only know COMP,ALC,SWR,ID/IC,VDD,DB,PO,TEMP\n", __func__,
+                      arg2);
             RETURNFUNC2(-RIG_EINVAL);
         }
     }
+
     if (RIG_LEVEL_IS_FLOAT(level))
     {
         CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
@@ -3365,6 +3376,7 @@ declare_proto_rig(get_level)
         fputc('\n', fout);
         RETURNFUNC2(RIG_OK);
     }
+
     level = rig_parse_level(arg1);
 
     if (!rig_has_get_level(rig, level))
@@ -3432,25 +3444,37 @@ declare_proto_rig(get_level)
     {
         fprintf(fout, "%s: ", cmd->arg2);
     }
-        if (level == RIG_LEVEL_METER && interactive && prompt)
+
+    if (level == RIG_LEVEL_METER && interactive && prompt)
+    {
+        // we will show text answers as they make morse sense for rigtl
+        switch (val.i)
         {
-            // we will show text answers as they make morse sense for rigtl
-            switch(val.i)
-            {
-                case RIG_METER_COMP: fprintf(fout, "%d=%s%c", val.i, "COMP", resp_sep);break;
-                case RIG_METER_ALC: fprintf(fout, "%d=%s%c", val.i, "ALC", resp_sep);break;
-                case RIG_METER_SWR: fprintf(fout, "%d=%s%c", val.i, "SWR", resp_sep);break;
-                case RIG_METER_IC: fprintf(fout, "%d=%s%c", val.i, "IC", resp_sep);break;
-                case RIG_METER_VDD: fprintf(fout, "%d=%s%c", val.i, "VDD", resp_sep);break;
-                case RIG_METER_DB: fprintf(fout, "%d=%s%c", val.i, "DB", resp_sep);break;
-                case RIG_METER_PO: fprintf(fout, "%d=%s%c", val.i, "PO", resp_sep);break;
-                case RIG_METER_TEMP: fprintf(fout, "%d=%s%c", val.i, "TEMP", resp_sep);break;
-                default:
-                rig_debug(RIG_DEBUG_ERR, "%s: unknown meter=%d, only know COMP,ALC,SWR,ID/IC,VDD,DB,PO,TEMP\n", __func__, val.i);
-                RETURNFUNC2(-RIG_EINVAL);
-            }
-            RETURNFUNC(RIG_OK);
+        case RIG_METER_COMP: fprintf(fout, "%d=%s%c", val.i, "COMP", resp_sep); break;
+
+        case RIG_METER_ALC: fprintf(fout, "%d=%s%c", val.i, "ALC", resp_sep); break;
+
+        case RIG_METER_SWR: fprintf(fout, "%d=%s%c", val.i, "SWR", resp_sep); break;
+
+        case RIG_METER_IC: fprintf(fout, "%d=%s%c", val.i, "IC", resp_sep); break;
+
+        case RIG_METER_VDD: fprintf(fout, "%d=%s%c", val.i, "VDD", resp_sep); break;
+
+        case RIG_METER_DB: fprintf(fout, "%d=%s%c", val.i, "DB", resp_sep); break;
+
+        case RIG_METER_PO: fprintf(fout, "%d=%s%c", val.i, "PO", resp_sep); break;
+
+        case RIG_METER_TEMP: fprintf(fout, "%d=%s%c", val.i, "TEMP", resp_sep); break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: unknown meter=%d, only know COMP,ALC,SWR,ID/IC,VDD,DB,PO,TEMP\n", __func__,
+                      val.i);
+            RETURNFUNC2(-RIG_EINVAL);
         }
+
+        RETURNFUNC(RIG_OK);
+    }
 
 
     if (RIG_LEVEL_IS_FLOAT(level))
@@ -3563,6 +3587,7 @@ declare_proto_rig(get_func)
     {
         fprintf(fout, "%s: ", cmd->arg1);
     }
+
     fprintf(fout, "%d%c", func_stat, resp_sep);
 
     RETURNFUNC2(status);
@@ -3584,29 +3609,35 @@ declare_proto_rig(set_parm)
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
-    if (strcmp(arg1,"BANDSELECT")==0 && !strcmp(arg2,"?"))
+
+    if (strcmp(arg1, "BANDSELECT") == 0 && !strcmp(arg2, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_parm_gran(s, sizeof(s)-1, RIG_PARM_BANDSELECT, rig->caps->parm_gran);
-        char *p = strchr(s,')');
-        if (p) *p = 0;
-        p = strchr(s,'(');
+        rig_sprintf_parm_gran(s, sizeof(s) - 1, RIG_PARM_BANDSELECT,
+                              rig->caps->parm_gran);
+        char *p = strchr(s, ')');
+
+        if (p) { *p = 0; }
+
+        p = strchr(s, '(');
 
         if (p)
         {
             char *comma;
-            while((comma=strchr(p,','))) *comma=' ';
-            fprintf(fout, "%s\n", p+1);
+
+            while ((comma = strchr(p, ','))) { *comma = ' '; }
+
+            fprintf(fout, "%s\n", p + 1);
             RETURNFUNC2(RIG_OK);
         }
-        else RETURNFUNC2(-RIG_EINTERNAL);
+        else { RETURNFUNC2(-RIG_EINTERNAL); }
     }
 
-    if (strcmp(arg1,"KEYERTYPE")==0 && strcmp(arg2,"?") != 0)
+    if (strcmp(arg1, "KEYERTYPE") == 0 && strcmp(arg2, "?") != 0)
     {
-        if (strcmp(arg2,"STRAIGHT")==0) {arg2 = "0";}
-        else if (strcmp(arg2,"BUG")==0) {arg2 = "1";}
-        else if (strcmp(arg2,"PADDLE")==0) {arg2 = "2";}
+        if (strcmp(arg2, "STRAIGHT") == 0) {arg2 = "0";}
+        else if (strcmp(arg2, "BUG") == 0) {arg2 = "1";}
+        else if (strcmp(arg2, "PADDLE") == 0) {arg2 = "2";}
     }
 
     parm = rig_parse_parm(arg1);
@@ -3644,9 +3675,14 @@ declare_proto_rig(set_parm)
 
         case RIG_CONF_STRING:
             if (parm == RIG_PARM_KEYERTYPE)
-            val.i = atoi(arg2);
+            {
+                val.i = atoi(arg2);
+            }
             else
-            val.cs = arg2;
+            {
+                val.cs = arg2;
+            }
+
             break;
 
         case RIG_CONF_BINARY:
@@ -3667,9 +3703,13 @@ declare_proto_rig(set_parm)
     else if (RIG_PARM_IS_STRING(parm))
     {
         if (parm == RIG_PARM_KEYERTYPE)
-        val.i = atoi(arg2);
+        {
+            val.i = atoi(arg2);
+        }
         else
-        val.cs = arg2;
+        {
+            val.cs = arg2;
+        }
     }
     else
     {
@@ -3791,8 +3831,10 @@ declare_proto_rig(get_parm)
     if (parm == RIG_PARM_KEYERTYPE)
     {
         char *s = "STRAIGHT";
-        if (val.i == 1) s = "BUG";
-        else if (val.i == 2) s = "PADDLE";
+
+        if (val.i == 1) { s = "BUG"; }
+        else if (val.i == 2) { s = "PADDLE"; }
+
         fprintf(fout, "%s%cv", s, resp_sep);
     }
     else if (RIG_PARM_IS_FLOAT(parm))
@@ -4481,6 +4523,7 @@ declare_proto_rig(dump_caps)
     ENTERFUNC2;
 
 #if 1
+
     if (rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
     {
         char cmd[32];
@@ -4604,7 +4647,9 @@ declare_proto_rig(dump_state)
     // protocol 1 allows fields can be listed/processed in any order
     // protocol 1 fields can be multi-line -- just write the thing to allow for it
     // backward compatible as new values will just generate warnings
-    rig_debug(RIG_DEBUG_ERR, "%s: chk_vfo_executed=%d\n", __func__, chk_vfo_executed);
+    rig_debug(RIG_DEBUG_ERR, "%s: chk_vfo_executed=%d\n", __func__,
+              chk_vfo_executed);
+
     if (chk_vfo_executed) // for 3.3 compatiblility
     {
         fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
@@ -4693,8 +4738,9 @@ declare_proto_rig(dump_state)
                         rig->state.level_gran[i].max.i, rig->state.level_gran[i].step.i);
             }
         }
+
         fprintf(fout, "\n");
-        
+
         rig->state.rig_model = rig->caps->rig_model;
         fprintf(fout, "rig_model=%d\n", rig->state.rig_model);
         fprintf(fout, "hamlib_version=%s\n", hamlib_version2);
@@ -5119,14 +5165,15 @@ declare_proto_rig(send_cmd)
         }
 
         int hexval;
+
         if (arg2[0] == ';') { eom_buf[0] = ';'; }
-        else if (strstr(arg2,"fd")) eom_buf[0] = 0xfd; // ICOM answer terminator
+        else if (strstr(arg2, "fd")) { eom_buf[0] = 0xfd; } // ICOM answer terminator
         else
-        { 
-            sscanf(arg2,"\\0x%2x", &hexval);
+        {
+            sscanf(arg2, "\\0x%2x", &hexval);
             eom_buf[0] = hexval;
         }
-        
+
 
         if (simulate)
         {
@@ -5238,7 +5285,8 @@ declare_proto_rig(chk_vfo)
 {
     ENTERFUNC2;
 
-rig_debug(RIG_DEBUG_ERR, "%s: **********************************\n", __func__);
+    rig_debug(RIG_DEBUG_ERR, "%s: **********************************\n", __func__);
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);    /* i.e. "Frequency" */
@@ -5727,21 +5775,30 @@ declare_proto_rig(cm108_get_bit)
     int gpio = -1;
     int bit = -1;
     // try GPIO format first
-    int n = sscanf(arg1,"GPIO%d", &gpio);
+    int n = sscanf(arg1, "GPIO%d", &gpio);
+
     if (n == 0)
-        n = sscanf(arg1,"%d", &gpio);
-    if  (n != 1) return -RIG_EINVAL;
+    {
+        n = sscanf(arg1, "%d", &gpio);
+    }
+
+    if (n != 1) { return -RIG_EINVAL; }
+
     int retval = rig_cm108_get_bit(&rig->state.pttport, gpio, &bit);
+
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, strerror(retval));
         return retval;
     }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: gpio=%d\n", __func__, gpio);
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg2);
     }
+
     fprintf(fout, "%d (simulated)\n", 1);
 
 
@@ -5751,20 +5808,29 @@ declare_proto_rig(cm108_get_bit)
 declare_proto_rig(cm108_set_bit)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
-    int gpio, bit=-1;
+    int gpio, bit = -1;
     // try GPIO format first
-    int n = sscanf(arg1,"GPIO%d", &gpio);
+    int n = sscanf(arg1, "GPIO%d", &gpio);
+
     if (n == 0)
-        n = sscanf(arg1,"%d", &gpio);
-    if  (n != 1) return -RIG_EINVAL;
+    {
+        n = sscanf(arg1, "%d", &gpio);
+    }
+
+    if (n != 1) { return -RIG_EINVAL; }
+
     n = sscanf(arg2, "%d", &bit);
-    if  (n != 1) return -RIG_EINVAL;
+
+    if (n != 1) { return -RIG_EINVAL; }
+
     rig_debug(RIG_DEBUG_TRACE, "%s: set gpio=%d, bit=%d\n", __func__, gpio, bit);
     int retval = rig_cm108_set_bit(&rig->state.pttport, gpio, bit);
+
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, strerror(retval));
     }
+
     return retval;
 }
 
@@ -5772,6 +5838,7 @@ declare_proto_rig(get_conf)
 {
     int ret;
     rig_debug(RIG_DEBUG_ERR, "%s: \n", __func__);
+
     if (arg1 == NULL || arg1[0] == '?')
     {
         dumpconf_list(rig, stdout);
@@ -5779,20 +5846,25 @@ declare_proto_rig(get_conf)
         debugmsgsave2[0] = 0;
         return RIG_OK;
     }
+
     token_t mytoken = rig_token_lookup(rig, arg1);
+
     if (mytoken == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rig\n", __func__, arg1);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rig\n", __func__,
+                  arg1);
         ret = -RIG_EINVAL;
     }
     else
     {
         char value[4096]; // no max value known -- should we limit it?
         ret = rig_get_conf(rig, mytoken, value);
+
         if (ret != RIG_OK)
         {
             return ret;
         }
+
         fprintf(fout, "%s=%s\n", arg1, value);
     }
 
@@ -5812,10 +5884,13 @@ declare_proto_rig(set_conf)
         debugmsgsave2[0] = 0;
         return RIG_OK;
     }
+
     token_t mytoken = rig_token_lookup(rig, arg1);
+
     if (mytoken == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rig\n", __func__, arg1);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown token '%s' for this rig\n", __func__,
+                  arg1);
         ret = -RIG_EINVAL;
     }
     else

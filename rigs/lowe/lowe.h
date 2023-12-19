@@ -34,6 +34,6 @@ int lowe_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int lowe_reset(RIG *rig, reset_t reset);
 const char *lowe_get_info(RIG *rig);
 
-extern const struct rig_caps hf235_caps;
+extern struct rig_caps hf235_caps;
 
 #endif /* _LOWE_H */

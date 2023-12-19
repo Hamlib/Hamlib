@@ -64,6 +64,8 @@ getmyline(int fd, char *buf)
         if (c == ';') { return strlen(buf); }
     }
 
+    if (strlen(buf) == 0) { hl_usleep(10 * 1000); }
+
     return strlen(buf);
 }
 
@@ -138,10 +140,11 @@ int main(int argc, char *argv[])
 
             if (n <= 0) { perror("RM5"); }
         }
-        else if (strcmp(buf,"MR118;") == 0)
+        else if (strcmp(buf, "MR118;") == 0)
         {
             pbuf = "?;";
             n = write(fd, pbuf, strlen(pbuf));
+
             if (n <= 0) { perror("MR118"); }
         }
 

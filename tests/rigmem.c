@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_XML2
 
         case 'x':
-        printf("xml\n");
+            printf("xml\n");
             xml++;
             break;
 #endif

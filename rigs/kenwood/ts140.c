@@ -76,7 +76,7 @@ static int ts140_set_vfo(RIG *rig, vfo_t vfo)
  *  GW0VNR 09042006
  */
 
-const struct rig_caps ts140_caps =
+struct rig_caps ts140_caps =
 {
     RIG_MODEL(RIG_MODEL_TS140S),
     .model_name = "TS-140S",

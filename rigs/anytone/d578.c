@@ -26,7 +26,7 @@
 #define D578_VFO (RIG_VFO_A|RIG_VFO_B)
 #define D578_MODES (RIG_MODE_USB|RIG_MODE_AM)
 
-const struct rig_caps anytone_d578_caps =
+struct rig_caps anytone_d578_caps =
 {
     RIG_MODEL(RIG_MODEL_ATD578UVIII),
     .model_name         =  "D578A",

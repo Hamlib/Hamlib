@@ -24,9 +24,9 @@
 
 #include "hamlib/rig.h"
 
-extern const struct rig_caps sdr1k_rig_caps;
-extern const struct rig_caps sdr1krfe_rig_caps;
-extern const struct rig_caps dttsp_rig_caps;
-extern const struct rig_caps dttsp_udp_rig_caps;
+extern struct rig_caps sdr1k_rig_caps;
+extern struct rig_caps sdr1krfe_rig_caps;
+extern struct rig_caps dttsp_rig_caps;
+extern struct rig_caps dttsp_udp_rig_caps;
 
 #endif /* _FLEXRADIO_H */

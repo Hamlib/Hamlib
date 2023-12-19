@@ -69,7 +69,7 @@ frameGet(int fd, unsigned char *buf)
         }
     }
 
-    printf("Error???\n");
+    printf("Error %s\n", strerror(errno));
 
     return 0;
 }
@@ -77,6 +77,12 @@ frameGet(int fd, unsigned char *buf)
 void frameParse(int fd, unsigned char *frame, int len)
 {
     double freq;
+
+    if (len == 0)
+    {
+        printf("%s: len==0\n", __func__);
+        return;
+    }
 
     dumphex(frame, len);
 

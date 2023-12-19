@@ -67,7 +67,7 @@ static tone_t bc898_ctcss_list[] =
  * TODO: check this with manual or web site.
  * http://www.uniden.com/products/productdetail.cfm?product=BC898T&filter=Mobile
  */
-const struct rig_caps bc898_caps =
+struct rig_caps bc898_caps =
 {
     RIG_MODEL(RIG_MODEL_BC898),
     .model_name = "BC898T",

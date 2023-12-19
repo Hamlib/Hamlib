@@ -13,6 +13,15 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Add -# --skip_init option to rigctl to skip rig initialization -- useful for executing commands quickly
+        * rig_caps is no longer constant -- this may break some 3rd party relying on the "const" declaration.  Here's an example of how to handle compatiblity.
+#ifdef RIGCAPS_NOT_CONST
+static int add_to_list(struct rig_caps* rc, void*)
+#else
+static int add_to_list(const struct rig_caps* rc, void*)
+#endif
+
+        * IC7610 now has IPP, DPP, and TX_INHIBIT functions set/get
         * Hamlib now starts a multicast server that sends out rig information.  Does not receive commands yet.
           See README.multicast
 

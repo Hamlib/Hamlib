@@ -244,7 +244,7 @@ static struct icom_priv_caps ic785x_priv_caps =
     .data_mode_supported = 1
 };
 
-const struct rig_caps ic785x_caps =
+struct rig_caps ic785x_caps =
 {
     RIG_MODEL(RIG_MODEL_IC785x),
     .model_name = "IC-7850/7851",

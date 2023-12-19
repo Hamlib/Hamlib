@@ -93,7 +93,7 @@ ts711_set_vfo(RIG *rig, vfo_t vfo)
 /*
  * ts711 rig capabilities.
  */
-const struct rig_caps ts711_caps =
+struct rig_caps ts711_caps =
 {
     RIG_MODEL(RIG_MODEL_TS711),
     .model_name = "TS-711",

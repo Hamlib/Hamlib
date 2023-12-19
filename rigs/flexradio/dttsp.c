@@ -155,7 +155,7 @@ static const struct hamlib_vs_dttsp
             {  50, 40 }, /* +40 */ \
     } }
 
-const struct rig_caps dttsp_rig_caps =
+struct rig_caps dttsp_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_DTTSP),
     .model_name =     "DttSP IPC",
@@ -241,7 +241,7 @@ const struct rig_caps dttsp_rig_caps =
 /*
  * The same as the previous IPC, but of type RIG_PORT_UDP_NETWORK
  */
-const struct rig_caps dttsp_udp_rig_caps =
+struct rig_caps dttsp_udp_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_DTTSP_UDP),
     .model_name =     "DttSP UDP",

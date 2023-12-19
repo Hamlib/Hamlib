@@ -49,7 +49,7 @@
  *
  * TODO: BFO
  */
-const struct rig_caps wj8888_caps =
+struct rig_caps wj8888_caps =
 {
     RIG_MODEL(RIG_MODEL_WJ8888),
     .model_name = "WJ-8888",

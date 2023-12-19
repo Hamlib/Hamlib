@@ -53,7 +53,7 @@
  * TODO:
  *  - so many ...
  */
-const struct rig_caps k505dsp_caps =
+struct rig_caps k505dsp_caps =
 {
     RIG_MODEL(RIG_MODEL_505DSP),
     .model_name = "505DSP",

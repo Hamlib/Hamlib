@@ -239,7 +239,7 @@ enum ft857_digi
 
 static int ft857_send_icmd(RIG *rig, int index, const unsigned char *data);
 
-const struct rig_caps ft857_caps =
+struct rig_caps ft857_caps =
 {
     RIG_MODEL(RIG_MODEL_FT857),
     .model_name =     "FT-857",
@@ -431,7 +431,8 @@ int ft857_close(RIG *rig)
 
 /* ---------------------------------------------------------------------- */
 
-static inline long timediff(const struct timeval *tv1, const struct timeval *tv2)
+static inline long timediff(const struct timeval *tv1,
+                            const struct timeval *tv2)
 {
     struct timeval tv;
 
@@ -635,14 +636,7 @@ int ft857_set_vfo(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    int retval =  ft857_get_vfo(rig, &curvfo);
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: error get_vfo '%s'\n", __func__,
-                  rigerror(retval));
-        return retval;
-    }
+    ft857_get_vfo(rig, &curvfo); // retval is always RIG_OK so ignore it
 
     if (curvfo == vfo)
     {
@@ -673,7 +667,8 @@ int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     return -RIG_OK;
 }
 
-static void get_mode(RIG *rig, const struct ft857_priv_data *priv, rmode_t *mode,
+static void get_mode(RIG *rig, const struct ft857_priv_data *priv,
+                     rmode_t *mode,
                      pbwidth_t *width)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);

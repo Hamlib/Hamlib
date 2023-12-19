@@ -80,7 +80,7 @@ static int elektor304_get_conf(RIG *rig, token_t token, char *val);
  * The receiver is controlled via the TX, RTS and DTR pins of the serial port.
  */
 
-const struct rig_caps elektor304_caps =
+struct rig_caps elektor304_caps =
 {
     RIG_MODEL(RIG_MODEL_ELEKTOR304),
     .model_name = "Elektor 3/04",

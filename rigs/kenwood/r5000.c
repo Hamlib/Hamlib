@@ -53,7 +53,7 @@ static struct kenwood_priv_caps  r5000_priv_caps  =
  *
  * TODO: scan, get/set_channel, RIT
  */
-const struct rig_caps r5000_caps =
+struct rig_caps r5000_caps =
 {
     RIG_MODEL(RIG_MODEL_R5000),
     .model_name = "R-5000",

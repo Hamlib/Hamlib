@@ -88,7 +88,7 @@ static int drt1_get_conf(RIG *rig, token_t token, char *val);
  * The receiver is controlled via the TX, RTS and DTR pins of the serial port.
  */
 
-const struct rig_caps drt1_caps =
+struct rig_caps drt1_caps =
 {
     RIG_MODEL(RIG_MODEL_DRT1),
     .model_name = "DRT1",

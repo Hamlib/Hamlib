@@ -90,7 +90,7 @@ again:
         }
     }
 
-    printf("Error???\n");
+    printf("Error %s\n", strerror(errno));
 
     return 0;
 }

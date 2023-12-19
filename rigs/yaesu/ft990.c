@@ -230,7 +230,7 @@ struct ft990_priv_data
                 .flags = 1,      \
 }
 
-const struct rig_caps ft990_caps =
+struct rig_caps ft990_caps =
 {
     RIG_MODEL(RIG_MODEL_FT990),
     .model_name =         "FT-990",

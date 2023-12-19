@@ -94,7 +94,7 @@ struct funcube_priv_data
  *
  */
 
-const struct rig_caps funcube_caps =
+struct rig_caps funcube_caps =
 {
     RIG_MODEL(RIG_MODEL_FUNCUBEDONGLE),
     .model_name =       "FUNcube Dongle",
@@ -159,7 +159,7 @@ const struct rig_caps funcube_caps =
 };
 
 
-const struct rig_caps funcubeplus_caps =
+struct rig_caps funcubeplus_caps =
 {
     RIG_MODEL(RIG_MODEL_FUNCUBEDONGLEPLUS),
     .model_name =       "FUNcube Dongle Pro+",
@@ -447,7 +447,8 @@ int funcube_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int get_freq_v0(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    const struct funcube_priv_data *priv = (struct funcube_priv_data *)rig->state.priv;
+    const struct funcube_priv_data *priv = (struct funcube_priv_data *)
+                                           rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE,
               "%s: frequency is not read from the device, the value shown is the last successfully set.\n",

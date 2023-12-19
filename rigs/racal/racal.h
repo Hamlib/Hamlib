@@ -53,8 +53,8 @@ int racal_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int racal_reset(RIG *rig, reset_t reset);
 const char* racal_get_info(RIG *rig);
 
-extern const struct rig_caps ra6790_caps;
-extern const struct rig_caps ra3702_caps;
+extern struct rig_caps ra6790_caps;
+extern struct rig_caps ra3702_caps;
 
 
 #endif	/* _RACAL_H */

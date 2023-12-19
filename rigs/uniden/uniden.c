@@ -692,7 +692,8 @@ int uniden_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     }
 
     /* PM089T08511625 */
-    SNPRINTF(cmdbuf, sizeof(cmdbuf), "PM%03d%c%08u" EOM, chan->channel_num, ' ', (unsigned)(chan->freq / 100));
+    SNPRINTF(cmdbuf, sizeof(cmdbuf), "PM%03d%c%08u" EOM, chan->channel_num, ' ',
+             (unsigned)(chan->freq / 100));
 
     ret = uniden_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, membuf, &mem_len);
 
@@ -790,7 +791,8 @@ DECLARE_PROBERIG_BACKEND(uniden)
     int rates[] = { 9600, 19200, 0 };   /* possible baud rates */
     int rates_idx;
 
-    memset(idbuf,0,IDBUFSZ);
+    memset(idbuf, 0, IDBUFSZ);
+
     if (!port)
     {
         return RIG_MODEL_NONE;

@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
 
     vfo_t vfo;
     retcode = rig_get_vfo(my_rig, &vfo);
+
     if (retcode != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig_get_vfo: %s\n", __func__, rigerror(retcode));
