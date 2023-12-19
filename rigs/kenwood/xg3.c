@@ -198,7 +198,7 @@ int xg3_init(RIG *rig)
     }
 
     rig->state.priv = (void *)priv;
-    rig->state.rigport.type.rig = RIG_PORT_SERIAL;
+    RIGPORT(rig)->type.rig = RIG_PORT_SERIAL;
 // Tried set_trn to turn transceiver on/off but turning it on isn't enabled in hamlib for some reason
 // So we use PTT instead
 //  rig->state.transceive = RIG_TRN_RIG; // this allows xg3_set_trn to be called
@@ -280,7 +280,7 @@ int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char cmdbuf[32], replybuf[32];
     int retval;
     size_t replysize = sizeof(replybuf);
-    struct rig_state *rs = &rig->state;
+    struct hamlib_port *rp = RIGPORT(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -288,7 +288,7 @@ int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     {
     case RIG_LEVEL_RFPOWER:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "L;");
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval != RIG_OK)
         {
@@ -297,7 +297,7 @@ int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return retval;
         }
 
-        retval = read_string(&rs->rigport, (unsigned char *) replybuf, replysize,
+        retval = read_string(rp, (unsigned char *) replybuf, replysize,
                              ";", 1, 0, 1);
 
         if (retval < 0)
@@ -424,7 +424,7 @@ int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct rig_state *rs;
+    struct hamlib_port *rp;
     char freqbuf[50];
     int freqsize = sizeof(freqbuf);
     char cmdbuf[16];
@@ -441,7 +441,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     tvfo = (vfo == RIG_VFO_CURR ||
             vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
-    rs = &rig->state;
+    rp = RIGPORT(rig);
 
     switch (tvfo)
     {
@@ -467,7 +467,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "F;");
     }
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+    retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
     if (retval != RIG_OK)
     {
@@ -475,7 +475,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) freqbuf, freqsize,
+    retval = read_string(rp, (unsigned char *) freqbuf, freqsize,
                          ";", 1, 0, 1);
 
     if (retval < 0)
@@ -574,7 +574,7 @@ int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
     char cmdbuf[32];
     char reply[32];
     int retval;
-    struct rig_state *rs = &rig->state;
+    struct hamlib_port *rp = RIGPORT(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -586,7 +586,7 @@ int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
         return retval;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) reply, sizeof(reply),
+    retval = read_string(rp, (unsigned char *) reply, sizeof(reply),
                          ";", 1, 0, 1);
 
     if (retval < 0)

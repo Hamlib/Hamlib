@@ -99,7 +99,7 @@ int elecraft_open(RIG *rig)
     struct kenwood_priv_data *priv = rig->state.priv;
     char *model = "Unknown";
     struct rig_state *rs = &rig->state;
-
+    struct hamlib_port *rp = RIGPORT(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,
               rig->caps->version);
@@ -135,7 +135,7 @@ int elecraft_open(RIG *rig)
 
         strcpy(data, "EMPTY");
         // Not going to get carried away with retries and such
-        err = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
+        err = write_block(rp, (unsigned char *) cmd, strlen(cmd));
 
         if (err != RIG_OK)
         {
@@ -143,7 +143,7 @@ int elecraft_open(RIG *rig)
             return err;
         }
 
-        err = read_string(&rs->rigport, (unsigned char *) buf, sizeof(buf),
+        err = read_string(rp, (unsigned char *) buf, sizeof(buf),
                           ";", 1, 0, 1);
 
         if (err < 0)
