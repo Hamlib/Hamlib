@@ -72,7 +72,7 @@ again:
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
-        //printf("i=%d, c=0x%02x\n",i,c);
+        printf("i=%d, c=0x%02x\n", i, c);
 
         if (c == 0xfd)
         {
@@ -96,7 +96,7 @@ again:
         }
     }
 
-    printf("Error??? c=x%02x\n", c);
+    printf("Error %s\n", strerror(errno));
 
     return 0;
 }
@@ -105,6 +105,12 @@ void frameParse(int fd, unsigned char *frame, int len)
 {
     double freq;
     int n = 0;
+
+    if (len == 0)
+    {
+        printf("%s: len==0\n", __func__);
+        return;
+    }
 
     dumphex(frame, len);
 
@@ -135,6 +141,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (powerstat)
         {
+            dump_hex(frame, 11);
             n = write(fd, frame, 11);
 
             if (n <= 0) { fprintf(stderr, "%s(%d) write error %s\n", __func__, __LINE__, strerror(errno)); }

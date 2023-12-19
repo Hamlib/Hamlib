@@ -41,8 +41,8 @@ int usrp_get_conf(RIG *rig, token_t token, char *val);
 
 const char * usrp_get_info(RIG *rig);
 
-extern const struct rig_caps usrp0_caps;
-extern const struct rig_caps usrp_caps;
+extern struct rig_caps usrp0_caps;
+extern struct rig_caps usrp_caps;
 
 __END_DECLS
 

@@ -308,7 +308,7 @@ struct ft1000mp_priv_data
  *
  */
 
-const struct rig_caps ft1000mp_caps =
+struct rig_caps ft1000mp_caps =
 {
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
@@ -451,7 +451,7 @@ const struct rig_caps ft1000mp_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps ft1000mpmkv_caps =
+struct rig_caps ft1000mpmkv_caps =
 {
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
@@ -594,7 +594,7 @@ const struct rig_caps ft1000mpmkv_caps =
     /* TODO: the remaining ... */
 };
 
-const struct rig_caps ft1000mpmkvfld_caps =
+struct rig_caps ft1000mpmkvfld_caps =
 {
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",

@@ -58,7 +58,7 @@
  * http://www2.rohde-schwarz.com/file/ESMC_25.pdf
  */
 
-const struct rig_caps esmc_caps =
+struct rig_caps esmc_caps =
 {
     RIG_MODEL(RIG_MODEL_ESMC),
     .model_name = "ESMC",

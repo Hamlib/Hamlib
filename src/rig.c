@@ -60,7 +60,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
 #include <pthread.h>
 #endif
 
@@ -100,8 +100,10 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " "
                               ARCHBITS;
 HAMLIB_EXPORT_VAR(int) cookie_use;
+HAMLIB_EXPORT_VAR(int) skip_init;
 HAMLIB_EXPORT_VAR(int) lock_mode; // for use by rigctld
-HAMLIB_EXPORT_VAR(powerstat_t) rig_powerstat; // for use by both rigctld and rigctl
+HAMLIB_EXPORT_VAR(powerstat_t)
+rig_powerstat; // for use by both rigctld and rigctl
 //! @endcond
 
 struct rig_caps caps_test;
@@ -224,7 +226,7 @@ static const char *const rigerror_table[] =
 
 #define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
 typedef struct async_data_handler_args_s
 {
     RIG *rig;
@@ -241,6 +243,7 @@ static int async_data_handler_stop(RIG *rig);
 void *async_data_handler(void *arg);
 #endif
 
+#if defined(HAVE_PTHREAD)
 typedef struct morse_data_handler_args_s
 {
     RIG *rig;
@@ -258,6 +261,7 @@ static int morse_data_handler_start(RIG *rig);
 static int morse_data_handler_stop(RIG *rig);
 int morse_data_handler_set_keyspd(RIG *rig, int keyspd);
 void *morse_data_handler(void *arg);
+#endif
 
 /*
  * track which rig is opened (with rig_open)
@@ -380,8 +384,8 @@ void add2debugmsgsave(const char *s)
 
         if (p && strlen(p + 1) > 0)
         {
-                strcpy(stmp, p + 1);
-                strcpy(debugmsgsave, stmp);
+            strcpy(stmp, p + 1);
+            strcpy(debugmsgsave, stmp);
         }
         else
         {
@@ -573,7 +577,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      * TODO: read the Preferences here!
      */
     rs = &rig->state;
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
 #endif
 
@@ -673,9 +677,11 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->rx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
     rs->tx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
     rs->poll_interval = 1000; // enable polling by default
-    rs->multicast_data_addr = "224.0.0.1"; // enable multicast data publishing by default
+    rs->multicast_data_addr =
+        "224.0.0.1"; // enable multicast data publishing by default
     rs->multicast_data_port = 4532;
-    rs->multicast_cmd_addr = "224.0.0.2"; // enable multicast command server by default
+    rs->multicast_cmd_addr =
+        "224.0.0.2"; // enable multicast command server by default
     rs->multicast_cmd_port = 4532;
     rs->lo_freq = 0;
     rs->cache.timeout_ms = 500;  // 500ms cache timeout by default
@@ -881,7 +887,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
  */
 int HAMLIB_API rig_open(RIG *rig)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     struct rig_state *rs;
     int status = RIG_OK;
     value_t parm_value;
@@ -1321,6 +1327,9 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC2(status);
     }
 
+#if defined(HAVE_PTHREAD)
+    if (!skip_init)
+    {
     status = async_data_handler_start(rig);
 
     if (status < 0)
@@ -1329,12 +1338,15 @@ int HAMLIB_API rig_open(RIG *rig)
         rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
+    }
+#endif
 
     rs->comm_state = 1;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %p rs->comm_state==1?=%d\n", __func__,
               &rs->comm_state,
               rs->comm_state);
-    hl_usleep(100 * 1000); // wait a bit after opening to give some serial ports time
+    hl_usleep(100 *
+              1000); // wait a bit after opening to give some serial ports time
 
 
     /*
@@ -1346,12 +1358,13 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (caps->rig_open != NULL)
     {
-        if (caps->get_powerstat != NULL)
+        if (caps->get_powerstat != NULL && !skip_init)
         {
             powerstat_t powerflag;
             status = rig_get_powerstat(rig, &powerflag);
 
-            if (status == RIG_OK && (powerflag == RIG_POWER_OFF || powerflag == RIG_POWER_STANDBY)
+            if (status == RIG_OK && (powerflag == RIG_POWER_OFF
+                                     || powerflag == RIG_POWER_STANDBY)
                     && rig->state.auto_power_on == 0)
             {
                 // rig_open() should succeed even if the rig is powered off, so simply log power status
@@ -1367,7 +1380,8 @@ int HAMLIB_API rig_open(RIG *rig)
             {
                 // rig_open() should succeed even if get_powerstat() fails,
                 // as many rigs cannot get power status while powered off
-                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n", __func__);
+                rig_debug(RIG_DEBUG_ERR, "%s: Some rigs cannot get_powerstat while off\n",
+                          __func__);
                 rig_debug(RIG_DEBUG_ERR, "%s: Known rigs: K3, K3S\n", __func__);
             }
         }
@@ -1377,8 +1391,13 @@ int HAMLIB_API rig_open(RIG *rig)
         if (status != RIG_OK)
         {
             remove_opened_rig(rig);
+#if defined(HAVE_PTHREAD)
+            if (!skip_init)
+            { 
             async_data_handler_stop(rig);
             morse_data_handler_stop(rig);
+            }
+#endif
             port_close(&rs->rigport, rs->rigport.type.rig);
             memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
@@ -1419,15 +1438,20 @@ int HAMLIB_API rig_open(RIG *rig)
                       rig_strvfo(rs->current_vfo));
         }
     }
+    if (skip_init) return RIG_OK;
 
+#if defined(HAVE_PTHREAD)
     status = morse_data_handler_start(rig);
 
     if (status < 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %s\n", __func__, rigerror(status));
+        rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %s\n", __func__,
+                  rigerror(status));
         port_close(&rs->rigport, rs->rigport.type.rig);
         RETURNFUNC2(status);
     }
+
+#endif
 
     if (rs->auto_disable_screensaver)
     {
@@ -1478,34 +1502,41 @@ int HAMLIB_API rig_open(RIG *rig)
     memcpy(&rs->dcdport_deprecated, &rs->dcdport, sizeof(hamlib_port_t_deprecated));
     rig_flush_force(&rs->rigport, 1);
 
+#if defined(HAVE_PTHREAD)
     enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE
-            | RIG_MULTICAST_SPECTRUM;
+                                  | RIG_MULTICAST_SPECTRUM;
     retval = network_multicast_publisher_start(rig, rs->multicast_data_addr,
-              rs->multicast_data_port, items);
+             rs->multicast_data_port, items);
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_publisher_start failed: %s\n", __FILE__,
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_publisher_start failed: %s\n",
+                  __FILE__,
                   rigerror(retval));
         // we will consider this non-fatal for now
     }
 
-    retval = network_multicast_receiver_start(rig, rs->multicast_cmd_addr, rs->multicast_cmd_port);
+    retval = network_multicast_receiver_start(rig, rs->multicast_cmd_addr,
+             rs->multicast_cmd_port);
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_receiver_start failed: %s\n", __FILE__,
-                rigerror(retval));
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_receiver_start failed: %s\n",
+                  __FILE__,
+                  rigerror(retval));
         // we will consider this non-fatal for now
     }
 
     retval = rig_poll_routine_start(rig);
+
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig_poll_routine_start failed: %s\n", __FILE__,
-                rigerror(retval));
+                  rigerror(retval));
         // we will consider this non-fatal for now
     }
+
+#endif
 
     rig->state.comm_status = RIG_COMM_STATUS_OK;
 
@@ -1535,7 +1566,7 @@ int HAMLIB_API rig_close(RIG *rig)
 
     if (!rig || !rig->caps)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -1554,11 +1585,16 @@ int HAMLIB_API rig_close(RIG *rig)
 
     rig->state.comm_status = RIG_COMM_STATUS_DISCONNECTED;
 
+#if defined(HAVE_PTHREAD)
+    if (!skip_init)
+    {
     morse_data_handler_stop(rig);
     async_data_handler_stop(rig);
     rig_poll_routine_stop(rig);
     network_multicast_receiver_stop(rig);
     network_multicast_publisher_stop(rig);
+    }
+#endif
 
     /*
      * Let the backend say 73s to the rig.
@@ -1743,7 +1779,7 @@ int HAMLIB_API rig_set_twiddle(RIG *rig, int seconds)
 {
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -1767,7 +1803,7 @@ int HAMLIB_API rig_set_uplink(RIG *rig, int val)
 {
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -1794,7 +1830,7 @@ int HAMLIB_API rig_get_twiddle(RIG *rig, int *seconds)
 {
     if (CHECK_RIG_ARG(rig) || !seconds)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps or seconds is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps or seconds is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -1884,7 +1920,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -1902,22 +1938,30 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (rig->state.doppler == 0)
     {
-        if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_A))
+        if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || (vfo == RIG_VFO_CURR
+                && rig->state.current_vfo == RIG_VFO_A))
         {
             if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0))
             {
                 rig->state.doppler = 1;
-                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainA);
+                rig_debug(RIG_DEBUG_VERBOSE,
+                          "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n",
+                          __func__, __LINE__, rig->state.cache.freqMainA);
             }
+
             freq += rig->state.offset_vfoa;
         }
-        else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || (vfo == RIG_VFO_CURR && rig->state.current_vfo == RIG_VFO_B))
+        else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || (vfo == RIG_VFO_CURR
+                 && rig->state.current_vfo == RIG_VFO_B))
         {
             if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0)
             {
                 rig->state.doppler = 1;
-                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n", __func__, __LINE__, rig->state.cache.freqMainB);
+                rig_debug(RIG_DEBUG_VERBOSE,
+                          "%s(%d): potential doppler detected because old freq %f != new && new freq has 1Hz or such values\n",
+                          __func__, __LINE__, rig->state.cache.freqMainB);
             }
+
             freq += rig->state.offset_vfob;
         }
     }
@@ -2042,6 +2086,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 }
             }
             else { retry = 0; }
+
             tfreq = freq;
 #endif
         }
@@ -2118,6 +2163,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                 LOCK(0);
                 RETURNFUNC(RIG_OK);
             }
+
             // Unidirectional rigs do not reset cache
             if (rig->caps->rig_model != RIG_MODEL_FT736R)
             {
@@ -2194,7 +2240,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -2300,11 +2346,12 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_cache_show(rig, __func__, __LINE__);
 
     // WSJT-X senses rig precision with 55 and 56 Hz values
-    // We do not want to allow cache response with these values 
-    int wsjtx_special = ((long)*freq % 100)==55 || ((long)*freq % 100)==56;
+    // We do not want to allow cache response with these values
+    int wsjtx_special = ((long) * freq % 100) == 55 || ((long) * freq % 100) == 56;
+
     if (!wsjtx_special && *freq != 0 && (cache_ms_freq < rig->state.cache.timeout_ms
-                       || (rig->state.cache.timeout_ms == HAMLIB_CACHE_ALWAYS
-                           || rig->state.use_cached_freq)))
+                                         || (rig->state.cache.timeout_ms == HAMLIB_CACHE_ALWAYS
+                                                 || rig->state.use_cached_freq)))
     {
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: %s cache hit age=%dms, freq=%.0f, use_cached_freq=%d\n", __func__,
@@ -2339,7 +2386,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
             || vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo
             || (rig->state.vfo_opt == 1 && rig->caps->rig_model == RIG_MODEL_NETRIGCTL
-            && rig->state.doppler == 0))
+                && rig->state.doppler == 0))
     {
         // If rig does not have set_vfo we need to change vfo
         if (vfo == RIG_VFO_CURR && caps->set_vfo == NULL)
@@ -2378,6 +2425,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             RETURNFUNC(-RIG_ENAVAIL);
         }
 
+#if 1 // this seems redundant as we ask for freq a few lines below
         HAMLIB_TRACE;
         retcode = caps->get_freq(rig, vfo, freq);
 
@@ -2387,6 +2435,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             LOCK(0);
             RETURNFUNC(retcode);
         }
+
+#endif
 
         retcode = caps->set_vfo(rig, vfo);
 
@@ -2505,7 +2555,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -2691,7 +2741,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -2843,8 +2893,8 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
 
     if (!rig)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
-        return(RIG_PASSBAND_NORMAL);    /* huhu! */
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
+        return (RIG_PASSBAND_NORMAL);   /* huhu! */
     }
 
     ENTERFUNC;
@@ -2896,8 +2946,8 @@ pbwidth_t HAMLIB_API rig_passband_narrow(RIG *rig, rmode_t mode)
 
     if (!rig)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
-        return(0);   /* huhu! */
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
+        return (0);  /* huhu! */
     }
 
     ENTERFUNC;
@@ -2949,7 +2999,7 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
 
     if (!rig)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return 0 ;   /* huhu! */
     }
 
@@ -3010,7 +3060,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -3150,7 +3200,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (CHECK_RIG_ARG(rig) || !vfo)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or *vfo is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or *vfo is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -3231,7 +3281,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -3502,7 +3552,8 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_WARN, "%s: unknown PTT type=%d\n", __func__, rig->state.pttport.type.ptt);
+        rig_debug(RIG_DEBUG_WARN, "%s: unknown PTT type=%d\n", __func__,
+                  rig->state.pttport.type.ptt);
         ELAPSED2;
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -3524,7 +3575,9 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     memcpy(&rig->state.pttport_deprecated, &rig->state.pttport,
            sizeof(rig->state.pttport_deprecated));
-    if (rig->state.rigport.post_ptt_delay > 0) hl_usleep(rig->state.rigport.post_ptt_delay*1000);
+
+    if (rig->state.post_ptt_delay > 0) { hl_usleep(rig->state.post_ptt_delay * 1000); }
+
     ELAPSED2;
 
     RETURNFUNC(retcode);
@@ -3558,7 +3611,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -3871,7 +3924,7 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -4012,7 +4065,7 @@ int HAMLIB_API rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -4090,7 +4143,7 @@ int HAMLIB_API rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -4174,7 +4227,7 @@ int HAMLIB_API rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -4252,7 +4305,7 @@ int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -4339,7 +4392,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -4519,7 +4572,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -4696,7 +4749,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -4912,7 +4965,7 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5072,7 +5125,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5206,7 +5259,7 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5288,7 +5341,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5534,7 +5587,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5622,7 +5675,7 @@ int HAMLIB_API rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5694,7 +5747,7 @@ int HAMLIB_API rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5772,7 +5825,7 @@ int HAMLIB_API rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5844,7 +5897,7 @@ int HAMLIB_API rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5922,7 +5975,7 @@ int HAMLIB_API rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -5994,7 +6047,7 @@ int HAMLIB_API rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -6076,7 +6129,7 @@ int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -6157,7 +6210,7 @@ int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -6252,7 +6305,8 @@ int HAMLIB_API rig_power2mW(RIG *rig,
 
     if (!rig || !rig->caps || !mwpower || power < 0.0 || power > 1.0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps or mwpower or power is funky\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps or mwpower or power is funky\n",
+                  __func__);
         return -RIG_EINVAL;
     }
 
@@ -6384,7 +6438,7 @@ shortfreq_t HAMLIB_API rig_get_resolution(RIG *rig, rmode_t mode)
 
     if (!rig || !rig->caps || !mode)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps or mode is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps or mode is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -6427,16 +6481,18 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
+
     ENTERFUNC;
     ELAPSED1;
 
     if (rig->caps->set_powerstat == NULL)
     {
         rig_debug(RIG_DEBUG_WARN, "%s set_powerstat not implemented\n", __func__);
-        rig->state.powerstat = RIG_POWER_ON;  // assume we are on if we can't set_powerstat
+        rig->state.powerstat =
+            RIG_POWER_ON;  // assume we are on if we can't set_powerstat
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
@@ -6530,7 +6586,7 @@ int HAMLIB_API rig_reset(RIG *rig, reset_t reset)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -6632,7 +6688,7 @@ vfo_op_t HAMLIB_API rig_has_vfo_op(RIG *rig, vfo_op_t op)
 
     if (!rig || !rig->caps)
     {
-        return(0);
+        return (0);
     }
 
     ENTERFUNC;
@@ -6665,7 +6721,7 @@ int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -6747,7 +6803,7 @@ scan_t HAMLIB_API rig_has_scan(RIG *rig, scan_t scan)
     if (!rig || !rig->caps)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is NULL\n", __func__);
-        return(0);
+        return (0);
     }
 
     ENTERFUNC;
@@ -6781,7 +6837,7 @@ int HAMLIB_API rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -6853,7 +6909,7 @@ int HAMLIB_API rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -6930,7 +6986,7 @@ int HAMLIB_API rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -7001,12 +7057,12 @@ int HAMLIB_API rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     const struct rig_caps *caps;
-    int retcode=RIG_EINTERNAL, rc2;
+    int retcode = RIG_EINTERNAL, rc2;
     vfo_t curr_vfo;
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -7029,12 +7085,15 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         rig_debug(RIG_DEBUG_ERR, "%s: rig does not have get_mode\n", __func__);
         RETURNFUNC(-RIG_EINVAL);
     }
+
     rmode_t mode;
     pbwidth_t width;
     rig_get_mode(rig, RIG_VFO_CURR, &mode, &width);
+
     if ((mode & (RIG_MODE_CW | RIG_MODE_CWR)) == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig is in mode %s, not in CW/CWR mode\n", __func__, rig_strrmode(mode));
+        rig_debug(RIG_DEBUG_ERR, "%s: rig is in mode %s, not in CW/CWR mode\n",
+                  __func__, rig_strrmode(mode));
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -7097,7 +7156,7 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -7111,6 +7170,7 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
     }
 
     resetFIFO(rig->state.fifo_morse); // clear out the CW queue
+
     if (vfo == RIG_VFO_CURR
             || vfo == rig->state.current_vfo)
     {
@@ -7203,7 +7263,7 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -7268,7 +7328,7 @@ int HAMLIB_API rig_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 
     if CHECK_RIG_ARG(rig)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -7336,7 +7396,7 @@ int HAMLIB_API rig_stop_voice_mem(RIG *rig, vfo_t vfo)
 
     if CHECK_RIG_ARG(rig)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -7348,6 +7408,7 @@ int HAMLIB_API rig_stop_voice_mem(RIG *rig, vfo_t vfo)
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
+
     retcode = caps->stop_voice_mem(rig, vfo);
     RETURNFUNC(retcode);
 }
@@ -7408,7 +7469,7 @@ int HAMLIB_API rig_set_vfo_opt(RIG *rig, int status)
 
     if CHECK_RIG_ARG(rig)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -7520,7 +7581,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
 
     if (CHECK_RIG_ARG(rig) || !response)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
 
@@ -7617,9 +7678,10 @@ int HAMLIB_API rig_get_vfo_info(RIG *rig, vfo_t vfo, freq_t *freq,
 
     if (CHECK_RIG_ARG(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
+
     ELAPSED1;
     ENTERFUNC;
 
@@ -7689,9 +7751,10 @@ int HAMLIB_API rig_get_vfo_list(RIG *rig, char *buf, int buflen)
 {
     if (CHECK_RIG_CAPS(rig))
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n",__func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: rig or rig->caps is null\n", __func__);
         return -RIG_EINVAL;
     }
+
     ENTERFUNC;
 
     rig_sprintf_vfo(buf, buflen - 1, rig->state.vfo_list);
@@ -7913,11 +7976,13 @@ int HAMLIB_API rig_cookie(RIG *rig, enum cookie_e cookie_cmd, char *cookie,
     return ret;
 }
 
+#if defined(HAVE_PTHREAD)
 static pthread_mutex_t initializer = PTHREAD_MUTEX_INITIALIZER;
+#endif
 
 HAMLIB_EXPORT(void) sync_callback(int lock)
 {
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
     pthread_mutex_t client_lock = initializer;
 
     if (lock)
@@ -7936,7 +8001,7 @@ HAMLIB_EXPORT(void) sync_callback(int lock)
 
 void rig_lock(RIG *rig, int lock)
 {
-#ifdef HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
 
     if (rig->state.multicast == NULL) { return; } // not initialized yet
 
@@ -7964,10 +8029,10 @@ void rig_lock(RIG *rig, int lock)
 
 /*! @} */
 
-#ifdef HAVE_PTHREAD
 
 #define MAX_FRAME_LENGTH 1024
 
+#if defined(HAVE_PTHREAD)
 static int async_data_handler_start(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -7982,9 +8047,8 @@ static int async_data_handler_start(RIG *rig)
                   rs->async_data_enabled);
         RETURNFUNC(RIG_OK);
     }
-    sleep(2);  // give other things a chance to finish opening up the rig
 
-#ifdef HAVE_PTHREAD
+    sleep(2);  // give other things a chance to finish opening up the rig
 
     rs->async_data_handler_thread_run = 1;
     rs->async_data_handler_priv_data = calloc(1,
@@ -8008,11 +8072,11 @@ static int async_data_handler_start(RIG *rig)
         RETURNFUNC(-RIG_EINTERNAL);
     }
 
-#endif // HAVE_PTHREAD
-
     RETURNFUNC(RIG_OK);
 }
+#endif
 
+#if defined(HAVE_PTHREAD)
 static int morse_data_handler_start(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -8036,7 +8100,8 @@ static int morse_data_handler_start(RIG *rig)
     keyspd.i = 25; // default value if KEYSPD doesn't work
     rig_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD, &keyspd);
     morse_data_handler_priv->keyspd = keyspd.i;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__,
+              keyspd.i);
     int err = pthread_create(&morse_data_handler_priv->thread_id, NULL,
                              morse_data_handler, &morse_data_handler_priv->args);
 
@@ -8049,8 +8114,10 @@ static int morse_data_handler_start(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 static int async_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -8058,7 +8125,6 @@ static int async_data_handler_stop(RIG *rig)
 
     ENTERFUNC;
 
-#ifdef HAVE_PTHREAD
     rs->async_data_handler_thread_run = 0;
 
     async_data_handler_priv = (async_data_handler_priv_data *)
@@ -8087,11 +8153,12 @@ static int async_data_handler_stop(RIG *rig)
         rs->async_data_handler_priv_data = NULL;
     }
 
-#endif
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
+#if defined(HAVE_PTHREAD)
 static int morse_data_handler_stop(RIG *rig)
 {
     struct rig_state *rs = &rig->state;
@@ -8106,16 +8173,19 @@ static int morse_data_handler_stop(RIG *rig)
 
     // wait until fifo queue is flushed
     //HAMLIB_TRACE;
-    hl_usleep(100*1000);
+    hl_usleep(100 * 1000);
+
     //HAMLIB_TRACE;
-    while(peek(rig->state.fifo_morse) >= 0)
+    while (peek(rig->state.fifo_morse) >= 0)
     {
         HAMLIB_TRACE;
         rig_debug(RIG_DEBUG_TRACE, "%s: waiting for fifo queue to flush\n", __func__);
-        hl_usleep(100*1000);
+        hl_usleep(100 * 1000);
     }
+
     //HAMLIB_TRACE;
-    hl_usleep(100*1000);
+    hl_usleep(100 * 1000);
+
     //HAMLIB_TRACE;
     if (morse_data_handler_priv != NULL)
     {
@@ -8142,8 +8212,9 @@ static int morse_data_handler_stop(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
-
+#if defined(HAVE_PTHREAD)
 void *async_data_handler(void *arg)
 {
     struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)
@@ -8184,7 +8255,8 @@ void *async_data_handler(void *arg)
                           __func__, result);
                 hl_usleep(500 * 1000);
             }
-            hl_usleep(20*1000);
+
+            hl_usleep(20 * 1000);
             continue;
         }
 
@@ -8229,10 +8301,11 @@ void *async_data_handler(void *arg)
 }
 #endif
 
+#if defined(HAVE_PTHREAD)
 void *morse_data_handler(void *arg)
 {
     struct morse_data_handler_args_s *args =
-            (struct morse_data_handler_args_s *) arg;
+        (struct morse_data_handler_args_s *) arg;
     RIG *rig = args->rig;
     const struct rig_state *rs = &rig->state;
     int result;
@@ -8242,26 +8315,32 @@ void *morse_data_handler(void *arg)
 
     if (rig->state.fifo_morse == NULL)
     {
-        rig->state.fifo_morse = calloc(1,sizeof(FIFO_RIG));
+        rig->state.fifo_morse = calloc(1, sizeof(FIFO_RIG));
     }
 
     initFIFO(rig->state.fifo_morse);
 
     char *c;
     int qsize = rig->caps->morse_qsize; // if backend overrides qsize
-    if (qsize == 0) qsize = 20; // shortest length of any rig's CW morse capability
-    c = calloc(1,qsize+1);
+
+    if (qsize == 0) { qsize = 20; } // shortest length of any rig's CW morse capability
+
+    c = calloc(1, qsize + 1);
+
     while (rs->morse_data_handler_thread_run || (peek(rig->state.fifo_morse) >= 0))
     {
         int n = 0;
-        memset(c,0,qsize);
+        memset(c, 0, qsize);
+
         for (n = 0; n < qsize; n++)
         {
             int d = peek(rig->state.fifo_morse);
+
             if (d < 0)
             {
                 break;
             }
+
             d = pop(rig->state.fifo_morse);
             c[n] = (char) d;
         }
@@ -8274,53 +8353,74 @@ void *morse_data_handler(void *arg)
             char *p;
             // if we have + or - we will adjust speed and send before/speed/after which hopefully works
             // I suspect some rigs will change speed immediately and not wait for queued character to flush
-            morse_data_handler_priv_data *morse_data_handler_priv = (morse_data_handler_priv_data *) rs->morse_data_handler_priv_data;
+            morse_data_handler_priv_data *morse_data_handler_priv =
+                (morse_data_handler_priv_data *) rs->morse_data_handler_priv_data;
             value_t keyspd;
             keyspd.i = morse_data_handler_priv->keyspd;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
-            if ((p=strchr(c,'+')) || (p=strchr(c,'-')))
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__,
+                      keyspd.i);
+
+            if ((p = strchr(c, '+')) || (p = strchr(c, '-')))
             {
                 HAMLIB_TRACE;
                 char spdchg = *p;
                 *p = 0;
-                if (strlen(c) > 0) rig->caps->send_morse(rig, RIG_VFO_CURR, c);
-                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
-                keyspd.i+=spdchg=='+'?5:-5;
-                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
-                while(p[1] == '+' || p[1] == '-') {
+
+                if (strlen(c) > 0) { rig->caps->send_morse(rig, RIG_VFO_CURR, c); }
+
+                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__,
+                          keyspd.i);
+                keyspd.i += spdchg == '+' ? 5 : -5;
+                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__,
+                          keyspd.i);
+
+                while (p[1] == '+' || p[1] == '-')
+                {
                     HAMLIB_TRACE;
-                    keyspd.i+=p[1]=='+'?5:-5;
-                    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
+                    keyspd.i += p[1] == '+' ? 5 : -5;
+                    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__,
+                              keyspd.i);
                     p++;
                 }
+
                 p++;
-                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__, keyspd.i);
+                rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): keyspd=%d\n", __func__, __LINE__,
+                          keyspd.i);
                 rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_KEYSPD,  keyspd);
                 morse_data_handler_priv->keyspd = keyspd.i;
-                memmove(c,p,p-c+1);
+                memmove(c, p, p - c + 1);
             }
+
 #endif
+
             if (strlen(c) > 0)
             {
-                int nloops=10;
-                do 
+                int nloops = 10;
+
+                do
                 {
                     result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
+
                     if (result != RIG_OK)
                     {
                         rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
-                        if (result == -RIG_EINVAL) 
+
+                        if (result == -RIG_EINVAL)
                         {
                             // severe error -- so flush it and stop
                             resetFIFO(rig->state.fifo_morse);
                             nloops = 0;
                         }
+
                         hl_usleep(100 * 1000);
                     }
+
                     //wait_morse_ptt(rig, RIG_VFO_CURR);
                     nloops--;
-                    
-                } while (result != RIG_OK && rig->state.fifo_morse->flush == 0 && --nloops > 0);
+
+                }
+                while (result != RIG_OK && rig->state.fifo_morse->flush == 0 && --nloops > 0);
+
                 if (nloops == 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: send_morse failed\n", __func__);
@@ -8329,7 +8429,7 @@ void *morse_data_handler(void *arg)
         }
 
         rig->state.fifo_morse->flush = 0; // reset flush flag
-        hl_usleep(100*1000);
+        hl_usleep(100 * 1000);
     }
 
     free(rig->state.fifo_morse);
@@ -8338,6 +8438,7 @@ void *morse_data_handler(void *arg)
     pthread_exit(NULL);
     return NULL;
 }
+#endif
 
 
 HAMLIB_EXPORT(int) rig_password(RIG *rig, const char *key1)
@@ -8399,6 +8500,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     if (reply)
     {
         unsigned char buf[200];
+
         if (simulate)
         {
             // Simulate a response by copying the command
@@ -8508,11 +8610,14 @@ HAMLIB_EXPORT(int) rig_is_model(RIG *rig, rig_model_t model)
 }
 
 
+#if defined(HAVE_PTHREAD)
 int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
 {
     struct rig_state *rs = &rig->state;
-    morse_data_handler_priv_data *morse_data_handler_priv = (morse_data_handler_priv_data *) rs->morse_data_handler_priv_data;
+    morse_data_handler_priv_data *morse_data_handler_priv =
+        (morse_data_handler_priv_data *) rs->morse_data_handler_priv_data;
     morse_data_handler_priv->keyspd = keyspd;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: keyspd=%d\n", __func__, keyspd);
     return RIG_OK;
 }
+#endif

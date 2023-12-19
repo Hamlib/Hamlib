@@ -95,7 +95,7 @@ again:
         }
     }
 
-    printf("Error??? c=x%02x\n", c);
+    printf("Error %s\n", strerror(errno));
 
     return 0;
 }
@@ -103,6 +103,12 @@ again:
 void frameParse(int fd, unsigned char *frame, int len)
 {
     double freq;
+
+    if (len == 0)
+    {
+        printf("%s: len==0\n", __func__);
+        return;
+    }
 
     dumphex(frame, len);
 
@@ -527,6 +533,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     default: printf("cmd 0x%02x unknown\n", frame[4]);
     }
+
 // don't care about the rig type yet
 }
 

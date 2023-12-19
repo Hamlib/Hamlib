@@ -462,6 +462,10 @@ const struct confparams icom_cfg_params[] =
 const struct confparams icom_ext_funcs[] =
 {
     { TOK_DIGI_SEL_FUNC, "digi_sel", "DIGI-SEL enable", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_IPP_FUNC, "IPP", "IP Plus", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_TX_INHIBIT_FUNC, "TX_INHIBIT", "TX Inhibit", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_DPP_FUNC, "DPP", "Digital Pre Distortion-SEL enable", "", "", RIG_CONF_CHECKBUTTON, {} },
+    { TOK_ICPW2_FUNC, "ICPW2", "Icom PW2 enable", "", "", RIG_CONF_CHECKBUTTON, {} },
     { RIG_CONF_END, NULL, }
 };
 
@@ -521,6 +525,10 @@ const struct cmdparams icom_ext_cmd[] =
     { {.t = TOK_DRIVE_GAIN}, CMD_PARAM_TYPE_TOKEN, C_CTL_LVL, S_LVL_DRIVE, SC_MOD_RW, 0, {0}, CMD_DAT_FLT, 2 },
     { {.t = TOK_DIGI_SEL_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_FUNC, S_FUNC_DIGISEL, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
     { {.t = TOK_DIGI_SEL_LEVEL}, CMD_PARAM_TYPE_TOKEN, C_CTL_LVL, S_LVL_DIGI, SC_MOD_RW, 0, {0}, CMD_DAT_FLT, 2 },
+    { {.t = TOK_IPP_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_FUNC, S_FUNC_IPP, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t = TOK_TX_INHIBIT_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_FUNC, S_FUNC_TX_INHIBIT, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t = TOK_DPP_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_FUNC, S_FUNC_DPP, SC_MOD_RW, 0, {0}, CMD_DAT_BOL, 1 },
+    { {.t = TOK_ICPW2_FUNC}, CMD_PARAM_TYPE_TOKEN, C_CTL_MEM, 0x05, SC_MOD_RW, 2, {0x03, 0x10}, CMD_DAT_BOL, 1 },
     { {0} }
 };
 
@@ -1010,6 +1018,12 @@ static vfo_t icom_current_vfo(RIG *rig)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_current=%s\n", __func__, rig_strvfo(vfo_current));
+
+    if (vfo_current == RIG_VFO_NONE && rs->current_vfo != RIG_VFO_NONE)
+    {
+        vfo_current = rs->current_vfo;
+    }
+
     return vfo_current;
 }
 
@@ -1039,7 +1053,7 @@ static void icom_satmode_fix(RIG *rig, int satmode)
  */
 int icom_rig_open(RIG *rig)
 {
-    int retval, retval_echo;
+    int retval, retval_echo, value;
     int satmode = 0;
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
@@ -1083,6 +1097,16 @@ retry_open:
 
     if (retval == RIG_OK) // then we know our echo status
     {
+        // we need to know about dual watch for later use
+        rs->dual_watch = 0;
+        retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH, &value);
+
+        if (retval == RIG_OK)
+        {
+            rs->dual_watch = value;
+        }
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: dual_watch=%d\n", __func__, rs->dual_watch);
         rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting frequency\n",
                   __func__);
         rs->rigport.retry = 0;
@@ -1170,6 +1194,7 @@ retry_open:
 #endif
 
     rs->rigport.retry = retry_save;
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -1222,6 +1247,7 @@ static int icom_set_default_vfo(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: called, curr_vfo=%s\n", __func__,
               rig_strvfo(rig->state.current_vfo));
 
+    // we need to know if dual watch is on
     if (VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: setting default as MAIN/VFOA\n",
@@ -1487,21 +1513,28 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         cmd = C_SET_FREQ;
         subcmd = -1;
 
-        if (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31 || ICOM_IS_ID51)
+#if 0
+        if (rig->state.cache.ptt && (ICOM_IS_ID5100 || ICOM_IS_ID4100 || ICOM_IS_ID31
+                                     || ICOM_IS_ID51))
         {
-            // for these rigs C_SND_FREQ (0x00) is setting the freq and 0x03 is just for reading
-            cmd = C_SND_FREQ;
+            rig_debug(RIG_DEBUG_TRACE, "%s(%d): ID55100 0x00\n", __func__, __LINE__);
+            // for these rigs 0x00 is setting the freq and 0x03 is just for reading
+            cmd = 0x00;
             // temporary fix for ID5100 not giving ACK/NAK on 0x00 freq on E8 firmware
             retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, NULL,
                                       NULL);
+
             if (retval != RIG_OK)
             {
-                rig_debug(RIG_DEBUG_ERR, "%s: set_freq failed: %s\n", __func__, rigerror(retval));
-                RETURNFUNC2(retval);
+                rig_debug(RIG_DEBUG_ERR, "%s: set_freq failed: %s\n", __func__,
+                          rigerror(retval));
+                return retval;
             }
-            RETURNFUNC2(RIG_OK);
+
+            return RIG_OK;
         }
         else
+#endif
         {
             retval = icom_transaction(rig, cmd, subcmd, freqbuf, freq_len, ackbuf,
                                       &ack_len);
@@ -1726,7 +1759,15 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
         if (vfo == RIG_VFO_MEM && civ_731_mode_save) { priv->civ_731_mode = 1; }
 
-        RETURNFUNC(-RIG_ERJCTED);
+        if (freq_len == 1 && vfo == RIG_VFO_MEM)
+        {
+            *freq = 0;
+            rig_debug(RIG_DEBUG_ERR, "%s: Rig is in MEM mode and MEM channel is empty\n",
+                      __func__);
+            return -RIG_ETRUNC;
+        }
+
+        RETURNFUNC(-RIG_ENAVAIL);
     }
 
     if (freq_len != 3 && freq_len != 6 && freq_len != (priv->civ_731_mode ? 4 : 5))
@@ -2143,15 +2184,16 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
 
     buf[0] = mode;
     buf[1] = datamode;
-    // filter fixed to filter 1 due to IC7300 bug defaulting to filter 2 on mode changed -- yuck!!
-    // buf[2] = filter // if Icom ever fixed this
-    buf[2] = 1;
+    // Skip filter selection, because at least IC-7300 has a bug defaulting to filter 2 when changing mode
+    // Tested on IC-7300 and IC-9700
+    // buf[2] = filter
+    // buf[2] = 1;
 
     int vfo_number = icom_get_vfo_number_x25x26(rig, vfo);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_number=%d\n", __func__, rig_strvfo(vfo), vfo_number);
 
-    retval = icom_transaction(rig, C_SEND_SEL_MODE, vfo_number, buf, 3, ackbuf, &ack_len);
+    retval = icom_transaction(rig, C_SEND_SEL_MODE, vfo_number, buf, 2, ackbuf, &ack_len);
 
     if (priv->x26cmdfails < 0 || priv_caps->x25x26_always)
     {
@@ -2459,7 +2501,8 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidt
         if (mode_len == 2) { priv_data->filter = modebuf[2]; }
 
         rig_debug(RIG_DEBUG_TRACE,
-                  "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__, __LINE__, modebuf[0],
+                  "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__,
+                  __LINE__, modebuf[0],
                   modebuf[1], mode_len);
     }
 
@@ -3462,7 +3505,8 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             int found = 0;
 
             for (i = 0;
-                    i <= HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level != RIG_AGC_LAST; i++)
+                    i <= HAMLIB_MAX_AGC_LEVELS
+                    && priv_caps->agc_levels[i].level != RIG_AGC_LAST; i++)
             {
                 if (priv_caps->agc_levels[i].level == val.i)
                 {
@@ -6959,8 +7003,8 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     case RIG_FUNC_DUAL_WATCH:
         if ((RIG_IS_IC9100) ||
-            (RIG_IS_IC9700) ||
-            (RIG_IS_ID5100))
+                (RIG_IS_IC9700) ||
+                (RIG_IS_ID5100))
         {
             fct_cn = C_CTL_FUNC;
             fct_sc = S_MEM_DUALMODE;
@@ -7120,10 +7164,10 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
     RETURNFUNC(-RIG_EINVAL);
 }
 
-const char * icom_get_band(RIG *rig, int band)
+const char *icom_get_band(RIG *rig, int band)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-    
+
     const char *s = rig_get_band_str(rig, band, 1);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %d=%s\n", __func__, band, s);
@@ -7154,11 +7198,13 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
         if (cmd[i].cmdparamtype == CMD_PARAM_TYPE_PARM && cmd[i].id.s == parm)
         {
             int retval = icom_get_cmd(rig, RIG_VFO_NONE, (struct cmdparams *)&cmd[i], val);
+
             if (parm == RIG_PARM_BANDSELECT)
             {
-                char *s = (char*)icom_get_band(rig, val->i);
+                char *s = (char *)icom_get_band(rig, val->i);
                 val->s = s;
             }
+
             RETURNFUNC(retval);
         }
     }
@@ -7597,29 +7643,36 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     switch (status)
     {
     case RIG_POWER_ON:
+
         // ic7300 manual says ~150 for 115,200
         // we'll just send a few more to be sure for all speeds
-        switch(rs->rigport.parm.serial.rate)
+        switch (rs->rigport.parm.serial.rate)
         {
-            case 4800:
-                fe_max = 7;
-                break;
-            case 9600:
-                fe_max = 13;
-                break;
-            case 19200:
-                fe_max = 25;
-                break;
-            case 38400:
-                fe_max = 50;
-                break;
-            case 57600:
-                fe_max = 75;
-                break;
-            case 115200:
-            default:
-                fe_max = 150;
+        case 4800:
+            fe_max = 7;
+            break;
+
+        case 9600:
+            fe_max = 13;
+            break;
+
+        case 19200:
+            fe_max = 25;
+            break;
+
+        case 38400:
+            fe_max = 50;
+            break;
+
+        case 57600:
+            fe_max = 75;
+            break;
+
+        case 115200:
+        default:
+            fe_max = 150;
         }
+
         memset(fe_buf, 0xfe, fe_max);
         // sending more than enough 0xfe's to wake up the rs232
         write_block(&rs->rigport, fe_buf, fe_max);
@@ -7633,11 +7686,15 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
         retval =
             icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
 
-        float sec_wait = 5.5; // 5.5 worked for IC-9700 -- we default to worst-case-found
-        if (RIG_IS_IC7300) sec_wait = 3.8;
+        float sec_wait =
+            5.5; // 5.5 worked for IC-9700 -- we default to worst-case-found
+
+        if (RIG_IS_IC7300) { sec_wait = 3.8; }
+
         rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting %g seconds for rig to wake up\n",
                   __func__, sec_wait);
-        hl_usleep(sec_wait * 1000 * 1000);  // some are slow to start up -- may need to add more rigs
+        hl_usleep(sec_wait * 1000 *
+                  1000);  // some are slow to start up -- may need to add more rigs
 
         // poweron == 0 means never powered -- == 2 means CAT turned off
         if (priv->poweron == 0 || priv->poweron == 2)
@@ -7646,13 +7703,14 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
             for (i = 0; i < 10 && echo_status < 0; ++i)
             {
-                echo_status = icom_get_usb_echo_off(rig); 
+                echo_status = icom_get_usb_echo_off(rig);
 
                 if (echo_status < 0)
                 {
-                    hl_usleep(500*1000);
+                    hl_usleep(500 * 1000);
                 }
             }
+
             if (echo_status >= 0)
             {
                 priv->poweron = 1;
@@ -7784,6 +7842,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
     }
 
     HAMLIB_TRACE;
+
     if (RIG_IS_IC2730
             || RIG_IS_IC705
             || RIG_IS_IC7100
@@ -8455,6 +8514,8 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     RETURNFUNC(RIG_OK);
 }
 
+
+#if defined(HAVE_PTHREAD)
 static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                                      const unsigned char *frame_data)
 {
@@ -8592,13 +8653,16 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
             .spectrum_data = cache->spectrum_data,
         };
 
+#if defined(HAVE_PTHREAD)
         rig_fire_spectrum_event(rig, &spectrum_line);
+#endif
 
         cache->spectrum_metadata_valid = 0;
     }
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
 int icom_is_async_frame(RIG *rig, size_t frame_length,
                         const unsigned char *frame)
@@ -8639,7 +8703,9 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         // TODO: Disable cache timeout for frequency after first transceive packet once we figure out how to get active VFO reliably with transceive updates
         // TODO: rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_FREQ, HAMLIB_CACHE_ALWAYS);
         freq_t freq = (freq_t) from_bcd(frame + 5, (priv->civ_731_mode ? 4 : 5) * 2);
+#if defined(HAVE_PTHREAD)
         rig_fire_freq_event(rig, RIG_VFO_CURR, freq);
+#endif
 
 #if 0
 
@@ -8659,7 +8725,9 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         // TODO: Disable cache timeout for frequency after first transceive packet once we figure out how to get active VFO reliably with transceive updates
         // TODO: rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_MODE, HAMLIB_CACHE_ALWAYS);
         icom2rig_mode(rig, frame[5], frame[6], &mode, &width);
+#if defined(HAVE_PTHREAD)
         rig_fire_mode_event(rig, RIG_VFO_CURR, mode, width);
+#endif
 
         if (rs->use_cached_mode != 1)
         {
@@ -8670,6 +8738,8 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
 
         break;
 
+#if defined(HAVE_PTHREAD)
+
     case C_CTL_SCP:
         if (frame[5] == S_SCP_DAT)
         {
@@ -8677,6 +8747,7 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
         }
 
         break;
+#endif
 
     default:
         rig_debug(RIG_DEBUG_VERBOSE, "%s: transceive cmd unsupported %#2.2x\n",

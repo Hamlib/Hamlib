@@ -79,7 +79,7 @@ static void usage(void);
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "+m:r:p:d:P:D:s:c:t:lC:LuonvhVYZ!"
+#define SHORT_OPTIONS "+m:r:p:d:P:D:s:c:t:lC:LuonvhVYZ!#"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -107,6 +107,7 @@ static struct option long_options[] =
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
     {"cookie",          0, 0, '!'},
+    {"skipinit",        0, 0, '#'},
     {0, 0, 0, 0}
 
 };
@@ -145,17 +146,17 @@ static void signal_handler(int sig)
 {
     switch (sig)
     {
-        case SIGINT:
-        case SIGTERM:
-            fprintf(stderr, "\nTerminating application, caught signal %d\n", sig);
-            // Close stdin to stop reading input
-            fclose(stdin);
-            ctrl_c = 1;
-            break;
+    case SIGINT:
+    case SIGTERM:
+        fprintf(stderr, "\nTerminating application, caught signal %d\n", sig);
+        // Close stdin to stop reading input
+        fclose(stdin);
+        ctrl_c = 1;
+        break;
 
-        default:
-            /* do nothing */
-            break;
+    default:
+        /* do nothing */
+        break;
     }
 }
 #endif
@@ -255,6 +256,9 @@ int main(int argc, char *argv[])
 
         switch (c)
         {
+        case '#':
+            skip_init = 1;
+            break;
         case '!':
             cookie_use = 1;
             break;
@@ -556,27 +560,31 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    char *token=strtok(conf_parms,",");
-    
-    while(token)
+    char *token = strtok(conf_parms, ",");
+
+    while (token)
     {
         char mytoken[100], myvalue[100];
         token_t lookup;
-        sscanf(token,"%99[^=]=%99s", mytoken, myvalue);
+        sscanf(token, "%99[^=]=%99s", mytoken, myvalue);
         //printf("mytoken=%s,myvalue=%s\n",mytoken, myvalue);
-        lookup = rig_token_lookup(my_rig,mytoken);
+        lookup = rig_token_lookup(my_rig, mytoken);
+
         if (lookup == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: no such token as '%s'\n", __func__, mytoken);
             token = strtok(NULL, ",");
             continue;
         }
-        retcode = rig_set_conf(my_rig, rig_token_lookup(my_rig,mytoken), myvalue);
+
+        retcode = rig_set_conf(my_rig, rig_token_lookup(my_rig, mytoken), myvalue);
+
         if (retcode != RIG_OK)
         {
             fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
             exit(2);
         }
+
         token = strtok(NULL, ",");
     }
 
@@ -676,7 +684,7 @@ int main(int argc, char *argv[])
                my_rig->caps->model_name);
     }
 
-    if (my_rig->caps->get_powerstat)
+    if (!skip_init && my_rig->caps->get_powerstat)
     {
         rig_get_powerstat(my_rig, &rig_powerstat);
         my_rig->state.powerstat = rig_powerstat;

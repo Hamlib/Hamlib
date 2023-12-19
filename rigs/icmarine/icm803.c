@@ -50,7 +50,7 @@ static const struct icmarine_priv_caps icm803_priv_caps =
 };
 
 
-const struct rig_caps icm803_caps =
+struct rig_caps icm803_caps =
 {
     RIG_MODEL(RIG_MODEL_IC_M803),
     .model_name = "IC-M803",

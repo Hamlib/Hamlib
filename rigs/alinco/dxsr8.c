@@ -75,7 +75,7 @@ int dxsr8_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
  *      https://yo5ptd.wordpress.com/2017/02/12/alinco-dx-sr8/
  * for a partially documented protocol
  */
-const struct rig_caps dxsr8_caps =
+struct rig_caps dxsr8_caps =
 {
     RIG_MODEL(RIG_MODEL_DXSR8),
     .model_name =       "DX-SR8",

@@ -1644,7 +1644,7 @@ int thd74_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 /*
  * th-d74 rig capabilities.
  */
-const struct rig_caps thd74_caps =
+struct rig_caps thd74_caps =
 {
     RIG_MODEL(RIG_MODEL_THD74),
     .model_name = "TH-D74",

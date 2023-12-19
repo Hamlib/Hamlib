@@ -861,6 +861,7 @@ static int netrigctl_open(RIG *rig)
             else if (strcmp(setting, "parm_gran") == 0)
             {
                 char *p = strtok(value, ";");
+
                 for (i = 0; p != NULL && i < RIG_SETTING_MAX; ++i)
                 {
                     int level;
@@ -882,6 +883,7 @@ static int netrigctl_open(RIG *rig)
                         rig->caps->parm_gran[i].max.i = rs->parm_gran[i].max.i = max;
                         rig->caps->parm_gran[i].step.i = rs->parm_gran[i].step.i = step;
                     }
+
                     p = strtok(NULL, ";");
                 }
             }
@@ -2577,7 +2579,7 @@ static int netrigctl_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     int ret, len;
-    char *cmdp; 
+    char *cmdp;
     const char cmd[] = "\\send_morse ";
     char buf[BUF_MAX];
 

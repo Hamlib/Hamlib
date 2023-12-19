@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20231116"
+#define BACKEND_VER "20231209"
 
 #define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
 #define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
@@ -291,7 +291,7 @@ struct icom_priv_data
     struct icom_spectrum_scope_cache spectrum_scope_cache[HAMLIB_MAX_SPECTRUM_SCOPES]; /*!< Cached Icom spectrum scope data used during reception of the data. The array index must match the scope ID. */
     freq_t other_freq_deprecated; /*!< @deprecated Use rig_cache.freqOther - Our other freq depending on which vfo is selected */
     int vfo_flag; // used to skip vfo check when frequencies are equal
-    int dual_watch; // dual watch mode on status
+    int dual_watch_main_sub; // 0=main, 1=sub
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
@@ -427,94 +427,94 @@ extern const struct confparams icom_ext_funcs[];
 extern const struct confparams icom_ext_parms[];
 extern const struct cmdparams icom_ext_cmds[];
 
-extern const struct rig_caps ic703_caps;
-extern const struct rig_caps ic705_caps;
-extern const struct rig_caps ic706_caps;
-extern const struct rig_caps ic706mkii_caps;
-extern const struct rig_caps ic706mkiig_caps;
-extern const struct rig_caps ic707_caps;
-extern const struct rig_caps ic718_caps;
-extern const struct rig_caps ic725_caps;
-extern const struct rig_caps ic726_caps;
-extern const struct rig_caps ic728_caps;
-extern const struct rig_caps ic729_caps;
-extern const struct rig_caps ic735_caps;
-extern const struct rig_caps ic736_caps;
-extern const struct rig_caps ic737_caps;
-extern const struct rig_caps ic738_caps;
-extern const struct rig_caps ic746_caps;
-extern const struct rig_caps ic7410_caps;
-extern const struct rig_caps ic746pro_caps;
-extern const struct rig_caps ic756_caps;
-extern const struct rig_caps ic756pro_caps;
-extern const struct rig_caps ic756pro2_caps;
-extern const struct rig_caps ic756pro3_caps;
-extern const struct rig_caps ic751_caps;
+extern struct rig_caps ic703_caps;
+extern struct rig_caps ic705_caps;
+extern struct rig_caps ic706_caps;
+extern struct rig_caps ic706mkii_caps;
+extern struct rig_caps ic706mkiig_caps;
+extern struct rig_caps ic707_caps;
+extern struct rig_caps ic718_caps;
+extern struct rig_caps ic725_caps;
+extern struct rig_caps ic726_caps;
+extern struct rig_caps ic728_caps;
+extern struct rig_caps ic729_caps;
+extern struct rig_caps ic735_caps;
+extern struct rig_caps ic736_caps;
+extern struct rig_caps ic737_caps;
+extern struct rig_caps ic738_caps;
+extern struct rig_caps ic746_caps;
+extern struct rig_caps ic7410_caps;
+extern struct rig_caps ic746pro_caps;
+extern struct rig_caps ic756_caps;
+extern struct rig_caps ic756pro_caps;
+extern struct rig_caps ic756pro2_caps;
+extern struct rig_caps ic756pro3_caps;
+extern struct rig_caps ic751_caps;
 extern struct rig_caps ic7600_caps; // need to modify targetable_vfo depending on response to 0x25 cmd
 extern struct rig_caps ic7610_caps;
-extern const struct rig_caps ic761_caps;
-extern const struct rig_caps ic765_caps;
-extern const struct rig_caps ic7700_caps;
-extern const struct rig_caps ic775_caps;
-extern const struct rig_caps ic78_caps;
-extern const struct rig_caps ic7800_caps;
-extern const struct rig_caps ic785x_caps;
-extern const struct rig_caps ic7000_caps;
-extern const struct rig_caps ic7100_caps;
-extern const struct rig_caps ic7200_caps;
-extern const struct rig_caps ic7300_caps;
-extern const struct rig_caps ic781_caps;
-extern const struct rig_caps ic820h_caps;
-extern const struct rig_caps ic821h_caps;
-extern const struct rig_caps ic905_caps;
-extern const struct rig_caps ic910_caps;
-extern const struct rig_caps ic9100_caps;
-extern const struct rig_caps ic970_caps;
+extern struct rig_caps ic761_caps;
+extern struct rig_caps ic765_caps;
+extern struct rig_caps ic7700_caps;
+extern struct rig_caps ic775_caps;
+extern struct rig_caps ic78_caps;
+extern struct rig_caps ic7800_caps;
+extern struct rig_caps ic785x_caps;
+extern struct rig_caps ic7000_caps;
+extern struct rig_caps ic7100_caps;
+extern struct rig_caps ic7200_caps;
+extern struct rig_caps ic7300_caps;
+extern struct rig_caps ic781_caps;
+extern struct rig_caps ic820h_caps;
+extern struct rig_caps ic821h_caps;
+extern struct rig_caps ic905_caps;
+extern struct rig_caps ic910_caps;
+extern struct rig_caps ic9100_caps;
+extern struct rig_caps ic970_caps;
 extern struct rig_caps ic9700_caps;
-extern const struct rig_caps icrx7_caps;
-extern const struct rig_caps icr10_caps;
-extern const struct rig_caps icr20_caps;
-extern const struct rig_caps icr6_caps;
-extern const struct rig_caps icr71_caps;
-extern const struct rig_caps icr72_caps;
-extern const struct rig_caps icr75_caps;
-extern const struct rig_caps icr7000_caps;
-extern const struct rig_caps icr7100_caps;
-extern const struct rig_caps icr8500_caps;
-extern const struct rig_caps icr9000_caps;
-extern const struct rig_caps icr9500_caps;
-extern const struct rig_caps ic271_caps;
-extern const struct rig_caps ic275_caps;
-extern const struct rig_caps ic375_caps;
-extern const struct rig_caps ic471_caps;
-extern const struct rig_caps ic475_caps;
-extern const struct rig_caps ic575_caps;
-extern const struct rig_caps ic1275_caps;
-extern const struct rig_caps icf8101_caps;
+extern struct rig_caps icrx7_caps;
+extern struct rig_caps icr10_caps;
+extern struct rig_caps icr20_caps;
+extern struct rig_caps icr6_caps;
+extern struct rig_caps icr71_caps;
+extern struct rig_caps icr72_caps;
+extern struct rig_caps icr75_caps;
+extern struct rig_caps icr7000_caps;
+extern struct rig_caps icr7100_caps;
+extern struct rig_caps icr8500_caps;
+extern struct rig_caps icr9000_caps;
+extern struct rig_caps icr9500_caps;
+extern struct rig_caps ic271_caps;
+extern struct rig_caps ic275_caps;
+extern struct rig_caps ic375_caps;
+extern struct rig_caps ic471_caps;
+extern struct rig_caps ic475_caps;
+extern struct rig_caps ic575_caps;
+extern struct rig_caps ic1275_caps;
+extern struct rig_caps icf8101_caps;
 
-extern const struct rig_caps omnivip_caps;
-extern const struct rig_caps delta2_caps;
+extern struct rig_caps omnivip_caps;
+extern struct rig_caps delta2_caps;
 
-extern const struct rig_caps os456_caps;
-extern const struct rig_caps os535_caps;
+extern struct rig_caps os456_caps;
+extern struct rig_caps os535_caps;
 
-extern const struct rig_caps ic92d_caps;
-extern const struct rig_caps id1_caps;
-extern const struct rig_caps id31_caps;
-extern const struct rig_caps id51_caps;
-extern const struct rig_caps id4100_caps;
-extern const struct rig_caps id5100_caps;
-extern const struct rig_caps ic2730_caps;
+extern struct rig_caps ic92d_caps;
+extern struct rig_caps id1_caps;
+extern struct rig_caps id31_caps;
+extern struct rig_caps id51_caps;
+extern struct rig_caps id4100_caps;
+extern struct rig_caps id5100_caps;
+extern struct rig_caps ic2730_caps;
 
-extern const struct rig_caps perseus_caps;
+extern struct rig_caps perseus_caps;
 
-extern const struct rig_caps x108g_caps;
-extern const struct rig_caps x6100_caps;
-extern const struct rig_caps g90_caps;
-extern const struct rig_caps x5105_caps;
+extern struct rig_caps x108g_caps;
+extern struct rig_caps x6100_caps;
+extern struct rig_caps g90_caps;
+extern struct rig_caps x5105_caps;
 
-extern const struct rig_caps icr8600_caps;
-extern const struct rig_caps icr30_caps;
+extern struct rig_caps icr8600_caps;
+extern struct rig_caps icr30_caps;
 
 #define RIG_IS_IC1271 (rig->state.rig_model == RIG_MODEL_IC1271)
 #define RIG_IS_IC1275 (rig->state.rig_model == RIG_MODEL_IC1275)

@@ -50,6 +50,7 @@ easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
 {
     struct rot_state *rs;
     int retval;
+    int retry = rot->caps->retry;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %s\n", __func__, cmdstr);
 
@@ -59,33 +60,39 @@ easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
     }
 
     rs = &rot->state;
-    rig_flush(&rs->rotport);
-    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
 
-    if (retval != RIG_OK)
+    do
     {
-        goto transaction_quit;
-    }
+        rig_flush(&rs->rotport);
+        retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
 
-    if (data == NULL)
-    {
-        return RIG_OK;    /* don't want a reply */
-    }
+        if (retval != RIG_OK)
+        {
+            goto transaction_quit;
+        }
 
-    retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
-                         "\n", 1, 0, 1);
+        if (data == NULL)
+        {
+            return RIG_OK;    /* don't want a reply */
+        }
 
-    if (retval < 0)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s read_string failed with status %d\n", __func__,
-                  retval);
-        goto transaction_quit;
+        retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
+                             "\n", 1, 0, 1);
+
+        if (retval < 0)
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s read_string failed with status %d:%s\n",
+                      __func__,
+                      retval, strerror(retval));
+            goto transaction_quit;
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_TRACE, "%s read_string: %s\n", __func__, data);
+            retval = RIG_OK;
+        }
     }
-    else
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s read_string: %s\n", __func__, data);
-        retval = RIG_OK;
-    }
+    while (--retry && retval != RIG_OK);
 
 transaction_quit:
     return retval;
@@ -520,7 +527,7 @@ const struct rot_caps easycomm1_rot_caps =
     ROT_MODEL(ROT_MODEL_EASYCOMM1),
     .model_name =     "EasycommI",
     .mfg_name =       "Hamlib",
-    .version =        "20220109.0",
+    .version =        "20231218.0",
     .copyright =   "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_OTHER,
@@ -556,7 +563,7 @@ const struct rot_caps easycomm2_rot_caps =
     ROT_MODEL(ROT_MODEL_EASYCOMM2),
     .model_name =     "EasycommII",
     .mfg_name =       "Hamlib",
-    .version =        "20191206.0",
+    .version =        "20231218.0",
     .copyright =   "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_OTHER,
@@ -602,7 +609,7 @@ const struct rot_caps easycomm3_rot_caps =
     ROT_MODEL(ROT_MODEL_EASYCOMM3),
     .model_name =     "EasycommIII",
     .mfg_name =       "Hamlib",
-    .version =        "20201203.0",
+    .version =        "2022312180",
     .copyright =   "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_OTHER,

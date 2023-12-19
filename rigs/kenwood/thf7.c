@@ -106,7 +106,7 @@ static int thf7e_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
  * - set/get_ctcss_tone/sql through set/get_channel() and VR/VW
  * - emulate RIG_FUNC_TONE|RIG_FUNC_TSQL by setting ctcss_tone/sql to 0/non zero?
  */
-const struct rig_caps thf7e_caps =
+struct rig_caps thf7e_caps =
 {
     RIG_MODEL(RIG_MODEL_THF7E),
     .model_name = "TH-F7E",

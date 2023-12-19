@@ -61,7 +61,7 @@ static struct kenwood_priv_caps  ts950_priv_caps  =
  *
  * Reference: TS-950 series External Control Instruction Manual (1992)
  */
-const struct rig_caps ts950s_caps =
+struct rig_caps ts950s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS950S),
     .model_name = "TS-950S",
@@ -208,7 +208,7 @@ const struct rig_caps ts950s_caps =
 };
 
 
-const struct rig_caps ts950sdx_caps =
+struct rig_caps ts950sdx_caps =
 {
     RIG_MODEL(RIG_MODEL_TS950SDX),
     .model_name = "TS-950SDX",

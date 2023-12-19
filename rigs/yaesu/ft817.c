@@ -289,7 +289,7 @@ enum ft817_digi
                 } }
 
 
-const struct rig_caps ft817_caps =
+struct rig_caps ft817_caps =
 {
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
@@ -439,7 +439,7 @@ const struct rig_caps ft817_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps ft818_caps =
+struct rig_caps ft818_caps =
 {
     RIG_MODEL(RIG_MODEL_FT818),
     .model_name =          "FT-818",
@@ -640,7 +640,8 @@ static int ft817_close(RIG *rig)
 
 /* ---------------------------------------------------------------------- */
 
-static inline long timediff(const struct timeval *tv1, const struct timeval *tv2)
+static inline long timediff(const struct timeval *tv1,
+                            const struct timeval *tv2)
 {
     struct timeval tv;
 

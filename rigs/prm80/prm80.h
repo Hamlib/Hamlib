@@ -65,6 +65,6 @@ int prm80_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 const char *prm80_get_info(RIG *rig);
 
-extern const struct rig_caps prm8060_caps;
+extern struct rig_caps prm8060_caps;
 
 #endif /* _PRM80_H */

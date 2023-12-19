@@ -99,7 +99,7 @@ static const struct aor_priv_caps ar5k_priv_caps =
  *
  * TODO: retrieve BW info, and rest of commands
  */
-const struct rig_caps ar5000_caps =
+struct rig_caps ar5000_caps =
 {
     RIG_MODEL(RIG_MODEL_AR5000),
     .model_name = "AR5000",
@@ -245,7 +245,7 @@ const struct rig_caps ar5000_caps =
  *
  * TODO: retrieve BW info, and rest of commands
  */
-const struct rig_caps ar5000a_caps =
+struct rig_caps ar5000a_caps =
 {
     RIG_MODEL(RIG_MODEL_AR5000A),
     .model_name = "AR5000A",

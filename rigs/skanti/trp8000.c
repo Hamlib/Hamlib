@@ -44,7 +44,7 @@
  *
  * TODO: TUNING, BFO, SENSITIVITY(RF gain?)
  */
-const struct rig_caps trp8000_caps =
+struct rig_caps trp8000_caps =
 {
     RIG_MODEL(RIG_MODEL_TRP8000),
     .model_name = "TRP8000",

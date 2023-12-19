@@ -79,7 +79,7 @@ static struct icom_priv_caps id4100_priv_caps =
     1,      /* no XCHG */
 };
 
-const struct rig_caps id4100_caps =
+struct rig_caps id4100_caps =
 {
     RIG_MODEL(RIG_MODEL_ID4100),
     .model_name = "ID-4100",

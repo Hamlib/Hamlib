@@ -73,7 +73,7 @@ struct jst145_priv_data
  * JST-145 rig capabilities.
  *
  */
-const struct rig_caps jst145_caps =
+struct rig_caps jst145_caps =
 {
     RIG_MODEL(RIG_MODEL_JST145),
     .model_name = "JST-145",
@@ -174,7 +174,7 @@ const struct rig_caps jst145_caps =
  * JST-245 rig capabilities.
  *
  */
-const struct rig_caps jst245_caps =
+struct rig_caps jst245_caps =
 {
     RIG_MODEL(RIG_MODEL_JST245),
     .model_name = "JST-245",

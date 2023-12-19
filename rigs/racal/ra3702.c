@@ -44,7 +44,7 @@
  * Required A6A1 serial asynchronous interface
  *
  */
-const struct rig_caps ra3702_caps =
+struct rig_caps ra3702_caps =
 {
     RIG_MODEL(RIG_MODEL_RA3702),
     .model_name = "RA3702",

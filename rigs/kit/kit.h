@@ -25,24 +25,24 @@
 #include "hamlib/rig.h"
 #include "rotator.h"
 
-extern const struct rig_caps elektor304_caps;
-extern const struct rig_caps elektor507_caps;
-extern const struct rig_caps si570avrusb_caps;
-extern const struct rig_caps si570picusb_caps;
-extern const struct rig_caps si570peaberry1_caps;
-extern const struct rig_caps si570peaberry2_caps;
-extern const struct rig_caps drt1_caps;
-extern const struct rig_caps dwt_caps;
-extern const struct rig_caps usrp0_caps;
-extern const struct rig_caps usrp_caps;
-extern const struct rig_caps dds60_caps;
-extern const struct rig_caps miniVNA_caps;
-extern const struct rig_caps funcube_caps;
-extern const struct rig_caps funcubeplus_caps;
-extern const struct rig_caps fifisdr_caps;
-extern const struct rig_caps hiqsdr_caps;
-extern const struct rig_caps fasdr_caps;
-extern const struct rig_caps rshfiq_caps;
+extern struct rig_caps elektor304_caps;
+extern struct rig_caps elektor507_caps;
+extern struct rig_caps si570avrusb_caps;
+extern struct rig_caps si570picusb_caps;
+extern struct rig_caps si570peaberry1_caps;
+extern struct rig_caps si570peaberry2_caps;
+extern struct rig_caps drt1_caps;
+extern struct rig_caps dwt_caps;
+extern struct rig_caps usrp0_caps;
+extern struct rig_caps usrp_caps;
+extern struct rig_caps dds60_caps;
+extern struct rig_caps miniVNA_caps;
+extern struct rig_caps funcube_caps;
+extern struct rig_caps funcubeplus_caps;
+extern struct rig_caps fifisdr_caps;
+extern struct rig_caps hiqsdr_caps;
+extern struct rig_caps fasdr_caps;
+extern struct rig_caps rshfiq_caps;
 
 extern const struct rot_caps pcrotor_caps;
 

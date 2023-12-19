@@ -1416,7 +1416,12 @@ void *handle_socket(void *arg)
 
 client_done:
 
+#if defined(HAVE_PTHREAD)
+
     if (rigctld_idle && client_count == 1)
+#else
+    if (rigctld_idle)
+#endif
     {
         rig_close(my_rig);
 

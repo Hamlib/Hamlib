@@ -64,16 +64,16 @@ int aor_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
 int aor_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 int aor_get_chan_all_cb (RIG * rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t);
 
-extern const struct rig_caps ar2700_caps;
-extern const struct rig_caps ar8200_caps;
-extern const struct rig_caps ar8000_caps;
-extern const struct rig_caps ar8600_caps;
-extern const struct rig_caps ar5000_caps;
-extern const struct rig_caps ar3000a_caps;
-extern const struct rig_caps ar7030_caps;
-extern const struct rig_caps ar3030_caps;
-extern const struct rig_caps ar5000a_caps;
-extern const struct rig_caps ar7030p_caps;
-extern const struct rig_caps sr2200_caps;
+extern struct rig_caps ar2700_caps;
+extern struct rig_caps ar8200_caps;
+extern struct rig_caps ar8000_caps;
+extern struct rig_caps ar8600_caps;
+extern struct rig_caps ar5000_caps;
+extern struct rig_caps ar3000a_caps;
+extern struct rig_caps ar7030_caps;
+extern struct rig_caps ar3030_caps;
+extern struct rig_caps ar5000a_caps;
+extern struct rig_caps ar7030p_caps;
+extern struct rig_caps sr2200_caps;
 
 #endif /* _AOR_H */

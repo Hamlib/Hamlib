@@ -144,7 +144,7 @@ struct cmdparams ic7610_extcmds[] =
 int ic7610_ext_tokens[] =
 {
     TOK_DRIVE_GAIN, TOK_DIGI_SEL_FUNC, TOK_DIGI_SEL_LEVEL,
-    TOK_SCOPE_MSS, TOK_SCOPE_SDS, TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_SCOPE_RBW, TOK_SCOPE_MKP,
+    TOK_SCOPE_MSS, TOK_SCOPE_SDS, TOK_SCOPE_STX, TOK_SCOPE_CFQ, TOK_SCOPE_EDG, TOK_SCOPE_VBW, TOK_SCOPE_RBW, TOK_SCOPE_MKP, TOK_IPP_FUNC, TOK_TX_INHIBIT_FUNC, TOK_DPP_FUNC, TOK_ICPW2_FUNC,
     TOK_BACKEND_NONE
 };
 
@@ -330,10 +330,12 @@ int ic7610_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
         prmbuf[0] = 0x00;
         prmbuf[1] = 0x59;
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
+
         if (retval != RIG_OK)
         {
             return retval;
         }
+
         *hour = from_bcd(&respbuf[4], 2);
         *min = from_bcd(&respbuf[5], 2);
         *sec = 0;
@@ -342,10 +344,12 @@ int ic7610_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
         prmbuf[0] = 0x00;
         prmbuf[1] = 0x62;
         retval = icom_transaction(rig, cmd, subcmd, prmbuf, 2, respbuf, &resplen);
+
         if (retval != RIG_OK)
         {
             return retval;
         }
+
         *utc_offset = from_bcd(&respbuf[4], 2) * 100;
         *utc_offset += from_bcd(&respbuf[5], 2);
 
@@ -408,6 +412,7 @@ struct rig_caps ic7610_caps =
     },
 
     .ext_tokens = ic7610_ext_tokens,
+    .extfuncs = icom_ext_funcs,
     .extlevels = icom_ext_levels,
     .ctcss_list =  common_ctcss_list,
     .dcs_list =  NULL,
@@ -583,6 +588,8 @@ struct rig_caps ic7610_caps =
     .get_ext_level =  icom_get_ext_level,
     .set_func =  icom_set_func,
     .get_func =  icom_get_func,
+    .set_ext_func =  icom_set_ext_func,
+    .get_ext_func =  icom_get_ext_func,
     .set_parm =  icom_set_parm,
     .get_parm =  icom_get_parm,
     .set_mem =  icom_set_mem,

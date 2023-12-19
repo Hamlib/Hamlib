@@ -51,7 +51,7 @@ static struct icom_priv_caps icr20_priv_caps =
     r8500_ts_sc_list  /* wrong, but don't have set_ts anyway */
 };
 
-const struct rig_caps icr20_caps =
+struct rig_caps icr20_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR20),
     .model_name = "IC-R20",
@@ -82,7 +82,6 @@ const struct rig_caps icr20_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
     .ctcss_list =  NULL,

@@ -73,7 +73,7 @@ static struct kenwood_priv_caps  ts940_priv_caps  =
  *
  * TODO: protocol to be check with manual!
  */
-const struct rig_caps ts940_caps =
+struct rig_caps ts940_caps =
 {
     RIG_MODEL(RIG_MODEL_TS940),
     .model_name = "TS-940S",

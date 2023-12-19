@@ -73,7 +73,7 @@ th_decode_event(RIG *rig)
 
         retval = num_sscanf(asyncbuf,
                             "BUF %u,%"SCNfreq",%X,%d,%d,%d,%d,,%d,,%d,%"SCNfreq",%d",
-                            &vfo, &freq, (unsigned int*)&step, &shift, &rev, &tone,
+                            &vfo, &freq, (unsigned int *)&step, &shift, &rev, &tone,
                             &ctcss, &tonefq, &ctcssfq, &offset, &mode);
 
         if (retval != 11)
@@ -268,7 +268,7 @@ th_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
-    retval = num_sscanf(buf, "FQ %"SCNfreq",%x", freq, (unsigned*)&step);
+    retval = num_sscanf(buf, "FQ %"SCNfreq",%x", freq, (unsigned *)&step);
 
     if (retval != 2)
     {
@@ -1392,7 +1392,7 @@ int th_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int
 th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     char tonebuf[16];
     int i;
 
@@ -1470,7 +1470,7 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 int
 th_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     char tonebuf[16];
     int i;
 
@@ -1552,7 +1552,7 @@ th_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 int
 th_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     char codebuf[16];
     int i, retval;
 

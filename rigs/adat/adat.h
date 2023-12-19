@@ -610,7 +610,7 @@ int adat_power2mW(RIG *, unsigned int *, float, freq_t, rmode_t);
 
 int adat_get_powerstat(RIG *, powerstat_t *);
 
-extern const struct rig_caps adt_200a_caps;
+extern struct rig_caps adt_200a_caps;
 
 // ---------------------------------------------------------------------------
 //    END OF FILE

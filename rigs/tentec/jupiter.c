@@ -123,7 +123,7 @@ static int tt538_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
  * Protocol is documented at
  *      http://www.rfsquared.com/
  */
-const struct rig_caps tt538_caps =
+struct rig_caps tt538_caps =
 {
     RIG_MODEL(RIG_MODEL_TT538),
     .model_name = "TT-538 Jupiter",

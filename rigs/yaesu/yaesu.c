@@ -73,7 +73,7 @@ DECLARE_INITRIG_BACKEND(yaesu)
     ft450d_caps.rig_model = RIG_MODEL_FT450D;
     ft450d_caps.model_name = "FT-450D";
     ft450d_caps.level_gran[LVL_RFPOWER].min.f = .05;
-    ft450d_caps.level_gran[LVL_RFPOWER].step.f = 1.0f/100.0f;
+    ft450d_caps.level_gran[LVL_RFPOWER].step.f = 1.0f / 100.0f;
     rig_register(&ft100_caps);
     rig_register(&ft450_caps);
     rig_register(&ft450d_caps);
@@ -95,6 +95,7 @@ DECLARE_INITRIG_BACKEND(yaesu)
     rig_register(&ft980_caps);
     rig_register(&ft990_caps);
     rig_register(&ft990uni_caps);
+    rig_register(&ft1000_caps);
     rig_register(&ft1000d_caps);
     rig_register(&ft1000mp_caps);
     rig_register(&ft1000mpmkv_caps);
