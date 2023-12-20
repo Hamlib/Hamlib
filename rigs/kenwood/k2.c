@@ -160,7 +160,9 @@ const struct rig_caps k2_caps =
     .bank_qty =     0,
     .chan_desc_sz =     0,
 
-    .chan_list =        { RIG_CHAN_END },
+    .chan_list =        {
+            {   1, 8, RIG_MTYPE_MORSE },
+            RIG_CHAN_END },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K2_MODES, -1, -1, K2_VFO, K2_ANTS},
