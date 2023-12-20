@@ -142,7 +142,7 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC2(retval);
     }
 
-    return retval;
+    RETURNFUNC(retval);
 }
 
 
