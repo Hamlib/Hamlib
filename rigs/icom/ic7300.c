@@ -755,11 +755,10 @@ const struct rig_caps ic7300_caps =
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   1,
     .chan_desc_sz =  0,
-
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
-		{	1,	8,	RIG_MTYPE_VOICE },
-		{	1,	8,	RIG_MTYPE_MORSE },
+        {   1,	8, RIG_MTYPE_VOICE },
+        {   1,	8, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -1324,11 +1323,10 @@ const struct rig_caps ic705_caps =
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   5,
     .chan_desc_sz =  0,
-
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
-		{	1,	8,	RIG_MTYPE_VOICE },
-		{	1,	8,	RIG_MTYPE_MORSE },
+        {   1,	8,  RIG_MTYPE_VOICE },
+        {   1,	8,  RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -1600,11 +1598,10 @@ const struct rig_caps ic905_caps =
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   5,
     .chan_desc_sz =  0,
-
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
-		{	1,	8,	RIG_MTYPE_VOICE },
-		{	1,	8,	RIG_MTYPE_MORSE },
+        {   1,	8,  RIG_MTYPE_VOICE },
+        {   1,	8, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

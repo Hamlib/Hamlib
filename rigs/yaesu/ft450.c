@@ -94,7 +94,8 @@ const struct rig_caps ft450_caps =
     .chan_list =          {
         {   1, 500, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         { 501, 504, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
-        RIG_CHAN_END,
+        {   1,	 1, RIG_MTYPE_MORSE },
+            RIG_CHAN_END,
     },
 
     .rx_range_list1 =     {
