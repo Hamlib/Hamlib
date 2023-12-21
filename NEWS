@@ -13,6 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Added VOICE/CW memory capability to many rigs -- thanks to David Balharrie M0DGB/G8FKH
         * Add -# --skip_init option to rigctl to skip rig initialization -- useful for executing commands quickly
         * rig_caps is no longer constant -- this may break some 3rd party relying on the "const" declaration.  Here's an example of how to handle compatiblity.
 #ifdef RIGCAPS_NOT_CONST
