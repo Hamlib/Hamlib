@@ -144,7 +144,7 @@ static const struct icom_priv_caps ic706_priv_caps =
     .r2i_mode = ic706_r2i_mode
 };
 
-const struct rig_caps ic706_caps =
+struct rig_caps ic706_caps =
 {
     RIG_MODEL(RIG_MODEL_IC706),
     .model_name = "IC-706",
@@ -292,7 +292,7 @@ static const struct icom_priv_caps ic706mkii_priv_caps =
     .r2i_mode = ic706_r2i_mode
 };
 
-const struct rig_caps ic706mkii_caps =
+struct rig_caps ic706mkii_caps =
 {
     RIG_MODEL(RIG_MODEL_IC706MKII),
     .model_name = "IC-706MkII",
@@ -463,7 +463,7 @@ static const struct icom_priv_caps ic706mkiig_priv_caps =
     .r2i_mode = ic706_r2i_mode
 };
 
-const struct rig_caps ic706mkiig_caps =
+struct rig_caps ic706mkiig_caps =
 {
     RIG_MODEL(RIG_MODEL_IC706MKIIG),
     .model_name = "IC-706MkIIG",

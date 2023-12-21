@@ -86,7 +86,7 @@ static const struct aor_priv_caps ar8600_priv_caps =
  *
  * part of info from http://www.aoruk.com/8600.htm
  */
-const struct rig_caps ar8600_caps =
+struct rig_caps ar8600_caps =
 {
     RIG_MODEL(RIG_MODEL_AR8600),
     .model_name = "AR8600",

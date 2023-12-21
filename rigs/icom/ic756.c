@@ -135,7 +135,7 @@ static const struct icom_priv_caps ic756_priv_caps =
     },
 };
 
-const struct rig_caps ic756_caps =
+struct rig_caps ic756_caps =
 {
     RIG_MODEL(RIG_MODEL_IC756),
     .model_name = "IC-756",
@@ -166,7 +166,6 @@ const struct rig_caps ic756_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,
@@ -300,7 +299,7 @@ static const struct icom_priv_caps ic756pro_priv_caps =
     },
 };
 
-const struct rig_caps ic756pro_caps =
+struct rig_caps ic756pro_caps =
 {
     RIG_MODEL(RIG_MODEL_IC756PRO),
     .model_name = "IC-756PRO",
@@ -331,7 +330,6 @@ const struct rig_caps ic756pro_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
@@ -541,7 +539,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val);
 
 #define IC756PROII_PARMS (RIG_PARM_ANN|RIG_PARM_BEEP|RIG_PARM_BACKLIGHT|RIG_PARM_TIME)
 
-const struct rig_caps ic756pro2_caps =
+struct rig_caps ic756pro2_caps =
 {
     RIG_MODEL(RIG_MODEL_IC756PROII),
     .model_name = "IC-756PROII",
@@ -572,8 +570,6 @@ const struct rig_caps ic756pro2_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },
@@ -977,7 +973,7 @@ static const struct icom_priv_caps ic756pro3_priv_caps =
          { 241, 30.0f } \
     } }
 
-const struct rig_caps ic756pro3_caps =
+struct rig_caps ic756pro3_caps =
 {
     RIG_MODEL(RIG_MODEL_IC756PROIII),
     .model_name = "IC-756PROIII",
@@ -1008,8 +1004,6 @@ const struct rig_caps ic756pro3_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },

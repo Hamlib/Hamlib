@@ -1244,7 +1244,7 @@ int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  * TS-480 rig capabilities
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps ts480_caps =
+struct rig_caps ts480_caps =
 {
     RIG_MODEL(RIG_MODEL_TS480),
     .model_name = "TS-480",
@@ -1378,7 +1378,6 @@ const struct rig_caps ts480_caps =
     .level_gran =
     {
 #include "level_gran_kenwood.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 10}, .max = {.i = 60}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
@@ -1443,7 +1442,7 @@ const struct rig_caps ts480_caps =
  * QRPLabs TS-480 emulation rig capabilities
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps qrplabs_caps =
+struct rig_caps qrplabs_caps =
 {
     RIG_MODEL(RIG_MODEL_QRPLABS),
     .model_name = "QCX/QDX",
@@ -1577,7 +1576,6 @@ const struct rig_caps qrplabs_caps =
     .level_gran =
     {
 #include "level_gran_kenwood.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 10}, .max = {.i = 60}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
@@ -1635,7 +1633,7 @@ const struct rig_caps qrplabs_caps =
  * Hilberling PS8000A TS480 emulation
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps pt8000a_caps =
+struct rig_caps pt8000a_caps =
 {
     RIG_MODEL(RIG_MODEL_PT8000A),
     .model_name = "PT-8000A",
@@ -1757,7 +1755,6 @@ const struct rig_caps pt8000a_caps =
     .level_gran =
     {
 #include "level_gran_kenwood.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 10}, .max = {.i = 60}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
@@ -1806,7 +1803,7 @@ const struct rig_caps pt8000a_caps =
  * SDRPlay SDRUno rig capabilities
  * Notice that some rigs share the same functions.
  */
-const struct rig_caps sdruno_caps =
+struct rig_caps sdruno_caps =
 {
     RIG_MODEL(RIG_MODEL_SDRUNO),
     .model_name = "SDRUno",
@@ -1938,7 +1935,6 @@ const struct rig_caps sdruno_caps =
     .vfo_ops = TS480_VFO_OPS,
     .level_gran = {
 #include "level_gran_kenwood.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 10}, .max = {.i = 60}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
@@ -2079,7 +2075,7 @@ int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
  */
-const struct rig_caps malachite_caps =
+struct rig_caps malachite_caps =
 {
     RIG_MODEL(RIG_MODEL_MALACHITE),
     .model_name = "DSP",

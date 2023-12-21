@@ -24,7 +24,7 @@
 
 #include "hamlib/rig.h"
 
-extern const struct rig_caps dra818u_caps;
-extern const struct rig_caps dra818v_caps;
+extern struct rig_caps dra818u_caps;
+extern struct rig_caps dra818v_caps;
 
 #endif /* _DORJI_H */

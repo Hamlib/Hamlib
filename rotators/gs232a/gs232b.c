@@ -294,7 +294,8 @@ static int gs232b_rot_set_level(ROT *rot, setting_t level, value_t val)
 
     switch (level)
     {
-    int retval;
+        int retval;
+
     case ROT_LEVEL_SPEED:
     {
         int speed = val.i;

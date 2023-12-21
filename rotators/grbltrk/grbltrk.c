@@ -376,7 +376,7 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
         /* grbl 1.3a esp32 */
         //<Idle|MPos:0.000,0.000,0.000|FS:0,0|Pn:P|WCO:5.000,0.000,0.000>
-        sscanf(rsp, "%[^'|']|MPos:%f,%f,%256s", dummy0, &mpos[0], &mpos[1], dummy1);
+        sscanf(rsp, "%[^'|']|MPos:%f,%f,%255s", dummy0, &mpos[0], &mpos[1], dummy1);
 
         //rot_debug(RIG_DEBUG_ERR, "%s: (%.3f, %.3f) (%.3f, %.3f)\n", __func__, mpos[0], mpos[1], wpos[0], wpos[1]);
 

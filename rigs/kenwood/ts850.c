@@ -96,7 +96,7 @@ static const struct confparams ts850_ext_parms[] =
 * Notice that some rigs share the same functions.
 * Also this struct is READONLY!
 */
-const struct rig_caps ts850_caps =
+struct rig_caps ts850_caps =
 {
     RIG_MODEL(RIG_MODEL_TS850),
     .model_name = "TS-850",

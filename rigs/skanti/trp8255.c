@@ -79,7 +79,7 @@ static int cu_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
  * because the TRP8255 has the "CU" (Control Unit).
  *
  */
-const struct rig_caps trp8255_caps =
+struct rig_caps trp8255_caps =
 {
     RIG_MODEL(RIG_MODEL_TRP8255),
     .model_name = "TRP 8255 S R",

@@ -52,7 +52,7 @@
  *
  *
  */
-const struct rig_caps dsp10_caps =
+struct rig_caps dsp10_caps =
 {
     RIG_MODEL(RIG_MODEL_DSP10),
     .model_name = "DSP-10",

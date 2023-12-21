@@ -33,7 +33,7 @@
 
 #include "hamlib/rig.h"
 
-extern const struct rig_caps v4l_caps;
-extern const struct rig_caps v4l2_caps;
+extern struct rig_caps v4l_caps;
+extern struct rig_caps v4l2_caps;
 
 #endif /* _TUNER_H */

@@ -268,7 +268,16 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         }
 
         rs->rigport.post_write_delay = val_i;
-        rs->rigport_deprecated.timeout = val_i;
+        rs->rigport_deprecated.post_write_delay = val_i;
+        break;
+
+    case TOK_POST_PTT_DELAY:
+        if (1 != sscanf(val, "%ld", &val_i))
+        {
+            return -RIG_EINVAL;
+        }
+
+        rs->post_ptt_delay = val_i;
         break;
 
     case TOK_TIMEOUT:
@@ -519,27 +528,27 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         else if (!strcmp(val, "RIGMICDATA"))
         {
             rs->pttport.type.ptt = RIG_PTT_RIG_MICDATA;
-            rig->caps->ptt_type = RIG_PTT_RIG_MICDATA;
+            caps->ptt_type = RIG_PTT_RIG_MICDATA;
         }
         else if (!strcmp(val, "DTR"))
         {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_DTR;
-            rig->caps->ptt_type = RIG_PTT_SERIAL_DTR;
+            caps->ptt_type = RIG_PTT_SERIAL_DTR;
         }
         else if (!strcmp(val, "RTS"))
         {
             rs->pttport.type.ptt = RIG_PTT_SERIAL_RTS;
-            rig->caps->ptt_type = RIG_PTT_SERIAL_RTS;
+            caps->ptt_type = RIG_PTT_SERIAL_RTS;
         }
         else if (!strcmp(val, "Parallel"))
         {
             rs->pttport.type.ptt = RIG_PTT_PARALLEL;
-            rig->caps->ptt_type = RIG_PTT_PARALLEL;
+            caps->ptt_type = RIG_PTT_PARALLEL;
         }
         else if (!strcmp(val, "CM108"))
         {
             rs->pttport.type.ptt = RIG_PTT_CM108;
-            rig->caps->ptt_type = RIG_PTT_CM108;
+            caps->ptt_type = RIG_PTT_CM108;
         }
         else if (!strcmp(val, "GPIO"))
         {
@@ -548,11 +557,12 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         else if (!strcmp(val, "GPION"))
         {
             rs->pttport.type.ptt = RIG_PTT_GPION;
-            rig->caps->ptt_type = RIG_PTT_GPION;
+            caps->ptt_type = RIG_PTT_GPION;
         }
         else if (!strcmp(val, "None"))
         {
             rs->pttport.type.ptt = RIG_PTT_NONE;
+            caps->ptt_type = RIG_PTT_NONE;
         }
         else
         {
@@ -653,6 +663,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         {
             return -RIG_EINVAL;
         }
+
         rs->poll_interval = val_i;
         // Make sure cache times out before next poll cycle
         rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, atol(val));
@@ -840,7 +851,7 @@ static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
         break;
 
     case TOK_POST_PTT_DELAY:
-        SNPRINTF(val, val_len, "%d", rs->rigport.post_ptt_delay);
+        SNPRINTF(val, val_len, "%d", rs->post_ptt_delay);
         break;
 
     case TOK_TIMEOUT:

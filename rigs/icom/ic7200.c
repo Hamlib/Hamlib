@@ -118,7 +118,7 @@ static const struct icom_priv_caps IC7200_priv_caps =
     },
 };
 
-const struct rig_caps ic7200_caps =
+struct rig_caps ic7200_caps =
 {
     RIG_MODEL(RIG_MODEL_IC7200),
     .model_name = "IC-7200",
@@ -149,8 +149,6 @@ const struct rig_caps ic7200_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = { .min = { .i = 6 }, .max = { .i = 48 }, .step = { .i = 1 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 1 } },
     },

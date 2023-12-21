@@ -100,7 +100,7 @@ int xg3_get_parm(RIG *rig, setting_t parm, value_t *val);
  * Part of info comes from http://www.elecraft.com/K2_Manual_Download_Page.htm#K2
  * look for KIO2 Programmer's Reference PDF
  */
-const struct rig_caps xg3_caps =
+struct rig_caps xg3_caps =
 {
     RIG_MODEL(RIG_MODEL_XG3),
     .model_name = "XG3",

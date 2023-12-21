@@ -103,8 +103,9 @@ int gemini_transaction(AMP *amp, const char *cmd, char *response,
     if (response) // if response expected get it
     {
         response[0] = 0;
-        int len = read_string(&rs->ampport, (unsigned char *) response, response_len, "\n",
-                          1, 0, 1);
+        int len = read_string(&rs->ampport, (unsigned char *) response, response_len,
+                              "\n",
+                              1, 0, 1);
 
         if (len < 0)
         {

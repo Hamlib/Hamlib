@@ -57,7 +57,7 @@ static const struct icm710_priv_caps icm710_priv_caps =
 };
 
 
-const struct rig_caps icm710_caps =
+struct rig_caps icm710_caps =
 {
     RIG_MODEL(RIG_MODEL_IC_M710),
     .model_name = "IC-M710",
@@ -251,7 +251,7 @@ int icm710_init(RIG *rig)
 {
     struct icm710_priv_data *priv;
     const struct icm710_priv_caps *priv_caps;
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
 
     if (!rig || !rig->caps)
     {

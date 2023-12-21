@@ -342,6 +342,7 @@ int main(int argc, const char *argv[])
     else
     {
         FILE *f;
+
         if (!(f = fopen(argv[1], "rb")))
         {
             perror("fopen");

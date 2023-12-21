@@ -513,7 +513,7 @@ ek89x_get_info(RIG *rig)
  *  - set/get_channels
  */
 
-const struct rig_caps ek89x_caps =
+struct rig_caps ek89x_caps =
 {
     RIG_MODEL(RIG_MODEL_EK89X),
     .model_name = "EK895/6",

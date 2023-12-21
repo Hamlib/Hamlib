@@ -34,7 +34,7 @@ int skanti_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int skanti_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int skanti_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
-extern const struct rig_caps trp8000_caps;
-extern const struct rig_caps trp8255_caps;
+extern struct rig_caps trp8000_caps;
+extern struct rig_caps trp8255_caps;
 
 #endif /* _SKANTI_H */

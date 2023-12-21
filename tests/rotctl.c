@@ -339,27 +339,32 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
-    char *token=strtok(conf_parms,",");
+    char *token = strtok(conf_parms, ",");
 
-    while(token)
+    while (token)
     {
         char mytoken[100], myvalue[100];
         token_t lookup;
-        sscanf(token,"%99[^=]=%99s", mytoken, myvalue);
+        sscanf(token, "%99[^=]=%99s", mytoken, myvalue);
         //printf("mytoken=%s,myvalue=%s\n",mytoken, myvalue);
-        lookup = rot_token_lookup(my_rot,mytoken);
+        lookup = rot_token_lookup(my_rot, mytoken);
+
         if (lookup == 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: no such token as '%s', use -L switch to see\n", __func__, mytoken);
+            rig_debug(RIG_DEBUG_ERR, "%s: no such token as '%s', use -L switch to see\n",
+                      __func__, mytoken);
             token = strtok(NULL, ",");
             continue;
         }
-        retcode = rot_set_conf(my_rot, rot_token_lookup(my_rot,mytoken), myvalue);
+
+        retcode = rot_set_conf(my_rot, rot_token_lookup(my_rot, mytoken), myvalue);
+
         if (retcode != RIG_OK)
         {
             fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
             exit(2);
         }
+
         token = strtok(NULL, ",");
     }
 
@@ -479,7 +484,7 @@ int main(int argc, char *argv[])
 
     do
     {
-        retcode = rotctl_parse(my_rot, stdin, stdout, (const char**)argv, argc,
+        retcode = rotctl_parse(my_rot, stdin, stdout, (const char **)argv, argc,
                                interactive, prompt, send_cmd_term);
 
         if (retcode == 2)
@@ -487,6 +492,7 @@ int main(int argc, char *argv[])
             exitcode = 2;
         }
     }
+
     // cppcheck-suppress knownConditionTrueFalse
     while (retcode == 0 || retcode == 2);
 

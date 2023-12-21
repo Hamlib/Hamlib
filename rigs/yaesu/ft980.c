@@ -755,7 +755,7 @@ int ft980_open(RIG *rig)
 
         write_block(&rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
         read_block(&rig->state.rigport, (unsigned char *) &priv->update_data,
-                            FT980_ALL_STATUS_LENGTH);
+                   FT980_ALL_STATUS_LENGTH);
     }
     while (!priv->update_data.ext_ctl_flag
             && retry_count1++ < rig->state.rigport.retry);
@@ -801,7 +801,7 @@ int ft980_close(RIG *rig)
 
         write_block(&rig->state.rigport, cmd_OK, YAESU_CMD_LENGTH);
         read_block(&rig->state.rigport, (unsigned char *) &priv->update_data,
-                            FT980_ALL_STATUS_LENGTH);
+                   FT980_ALL_STATUS_LENGTH);
     }
     while (priv->update_data.ext_ctl_flag
             && retry_count1++ < rig->state.rigport.retry);

@@ -64,7 +64,7 @@
  *  - set_ant
  */
 
-const struct rig_caps eb200_caps =
+struct rig_caps eb200_caps =
 {
     RIG_MODEL(RIG_MODEL_EB200),
     .model_name = "EB200",

@@ -3,7 +3,7 @@
 char *make_digest(const unsigned char *digest, int len) /* {{{ */
 {
     int md5len = sizeof(char) * (len * 2 + 1);
-    char *md5str = (char *) calloc(1, md5len); 
+    char *md5str = (char *) calloc(1, md5len);
     static const char hexits[17] = "0123456789abcdef";
     int i;
 

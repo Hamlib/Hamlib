@@ -62,7 +62,7 @@ static struct icom_priv_caps icr9000_priv_caps =
 /*
  * ICR9000A rig capabilities.
  */
-const struct rig_caps icr9000_caps =
+struct rig_caps icr9000_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR9000),
     .model_name = "IC-R9000",
@@ -94,7 +94,6 @@ const struct rig_caps icr9000_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {
         [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND160M,BAND80M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDGEN"}},

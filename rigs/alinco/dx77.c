@@ -150,7 +150,7 @@ int dx77_get_mem(RIG *rig, vfo_t vfo, int *ch);
  *  - up/down
  *  - scan
  */
-const struct rig_caps dx77_caps =
+struct rig_caps dx77_caps =
 {
     RIG_MODEL(RIG_MODEL_DX77),
     .model_name =       "DX-77",
@@ -1260,7 +1260,7 @@ int dx77_set_parm(RIG *rig, setting_t parm, value_t val)
  */
 int dx77_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
     unsigned char tonebuf[BUFSZ];
     int i;
 

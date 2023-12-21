@@ -553,7 +553,7 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf,
  * http://www.b-kainka.de/sdrusb.html
  */
 
-const struct rig_caps elektor507_caps =
+struct rig_caps elektor507_caps =
 {
     RIG_MODEL(RIG_MODEL_ELEKTOR507),
     .model_name =       "Elektor SDR-USB",
@@ -1120,7 +1120,7 @@ int elektor507_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int elektor507_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     const struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+            rig->state.priv;
     int ret = 0;
 
     switch (level)
@@ -1197,7 +1197,7 @@ int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
                        ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     const struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+            rig->state.priv;
 
     *ant_curr = priv->ant;
 
@@ -1211,7 +1211,7 @@ int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
 static int cy_update_pll(RIG *rig, unsigned char IICadr)
 {
     const struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+            rig->state.priv;
     int P0, R40, R41, R42;
     unsigned char Div1N;
     unsigned char Clk3_src;

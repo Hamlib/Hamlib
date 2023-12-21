@@ -354,7 +354,7 @@ static void dummy_rot_simulate_rotation(ROT *rot)
 static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     const struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+            rot->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -416,7 +416,7 @@ static int dummy_rot_reset(ROT *rot, rot_reset_t reset)
 static int dummy_rot_move(ROT *rot, int direction, int speed)
 {
     const struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+            rot->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: Direction = %d, Speed = %d\n", __func__,
@@ -474,7 +474,7 @@ static int dummy_set_func(ROT *rot, setting_t func, int status)
 static int dummy_get_func(ROT *rot, setting_t func, int *status)
 {
     const struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+            rot->state.priv;
 
     *status = (priv->funcs & func) ? 1 : 0;
 
@@ -904,7 +904,7 @@ static int dummy_get_ext_parm(ROT *rot, token_t token, value_t *val)
 static int dummy_rot_get_status(ROT *rot, rot_status_t *status)
 {
     const struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+            rot->state.priv;
 
     if (simulating)
     {

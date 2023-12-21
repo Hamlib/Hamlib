@@ -94,7 +94,7 @@ static struct kenwood_priv_caps  ts2000_priv_caps  =
 /*
  * PiHPSDR rig capabilities. (Emulates Kenwood TS-2000)
  */
-const struct rig_caps pihpsdr_caps =
+struct rig_caps pihpsdr_caps =
 {
     RIG_MODEL(RIG_MODEL_HPSDR),
     .model_name = "PiHPSDR",
@@ -122,7 +122,6 @@ const struct rig_caps pihpsdr_caps =
     .has_set_level =  RIG_LEVEL_SET(PIHPSDR_LEVEL_ALL),
     .has_get_parm =  RIG_PARM_NONE,
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-    .level_gran =  {},                 /* FIXME: granularity */
     .parm_gran =  {},
     .vfo_ops =  PIHPSDR_VFO_OP,
     .scan_ops =  PIHPSDR_SCAN_OP,
@@ -833,7 +832,9 @@ int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         else if (kenwood_val == RIG_AGC_SLOW) { kenwood_val = 20; }
         else if (kenwood_val != RIG_AGC_OFF)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unknown AGC level, expect OFF,SLOW,MEDIUM,FAST,SUPERFAST, got %d\n", __func__, kenwood_val);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: unknown AGC level, expect OFF,SLOW,MEDIUM,FAST,SUPERFAST, got %d\n",
+                      __func__, kenwood_val);
             return -RIG_EINVAL;
         }
 

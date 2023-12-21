@@ -113,7 +113,7 @@ int icmarine_init(RIG *rig)
 {
     struct icmarine_priv_data *priv;
     const struct icmarine_priv_caps *priv_caps;
-    const struct rig_caps *caps;
+    struct rig_caps *caps;
 
     if (!rig || !rig->caps)
     {

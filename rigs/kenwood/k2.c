@@ -113,7 +113,7 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd);
  * Part of info comes from http://www.elecraft.com/K2_Manual_Download_Page.htm#K2
  * look for KIO2 Programmer's Reference PDF
  */
-const struct rig_caps k2_caps =
+struct rig_caps k2_caps =
 {
     RIG_MODEL(RIG_MODEL_K2),
     .model_name =       "K2",

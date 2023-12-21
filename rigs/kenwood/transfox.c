@@ -63,7 +63,7 @@ static int transfox_get_level(RIG *rig, vfo_t vfo, setting_t level,
  *
  * Part of info comes from http://www.sigfox-system.com/TransFox-FE?lang=en
  */
-const struct rig_caps transfox_caps =
+struct rig_caps transfox_caps =
 {
     RIG_MODEL(RIG_MODEL_TRANSFOX),
     .model_name =       "Transfox",

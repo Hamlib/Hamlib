@@ -40,7 +40,7 @@ static const struct icom_priv_caps ic1275_priv_caps =
     ic737_ts_sc_list
 };
 
-const struct rig_caps ic1275_caps =
+struct rig_caps ic1275_caps =
 {
     RIG_MODEL(RIG_MODEL_IC1275),
     .model_name = "IC-1275",

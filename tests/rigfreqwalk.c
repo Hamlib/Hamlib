@@ -17,23 +17,28 @@ double history[HISTORYSIZE];
 int nhistory;
 int historyinit = 1;
 
-double compute_mean(const double arr[], int length) 
+double compute_mean(const double arr[], int length)
 {
     double sum = 0.0;
-    for (int i = 0; i < length; i++) {
+
+    for (int i = 0; i < length; i++)
+    {
         sum += arr[i];
     }
+
     return sum / length;
 }
 
-double sigma(double arr[], int length) {
+double sigma(double arr[], int length)
+{
     double mean = compute_mean(arr, length);
     double sum_of_squares = 0.0;
-    
-    for (int i = 0; i < length; i++) {
+
+    for (int i = 0; i < length; i++)
+    {
         sum_of_squares += pow(arr[i] - mean, 2);
     }
-    
+
     return sqrt(sum_of_squares / length);
 }
 
@@ -49,9 +54,10 @@ int main(int argc, const char *argv[])
 
     if (argc != 8)
     {
-        fprintf(stderr,"%s: version 1.0\n", argv[0]);
-        fprintf(stderr,"Usage: %s [model#] [comport] [baud] [start freq] [stop_freq] [stepsize] [seconds/step]\n",
-               argv[0]);
+        fprintf(stderr, "%s: version 1.0\n", argv[0]);
+        fprintf(stderr,
+                "Usage: %s [model#] [comport] [baud] [start freq] [stop_freq] [stepsize] [seconds/step]\n",
+                argv[0]);
         return 1;
     }
 
@@ -109,30 +115,38 @@ int main(int argc, const char *argv[])
         for (long f = freq1; f <= freq2; f += stepsize)
         {
             retcode = rig_set_freq(my_rig, RIG_VFO_CURR, (freq_t)f);
+
             if (retcode != RIG_OK)
             {
                 fprintf(stderr, "%s: Error rig_set_freq: %s\n", __func__, rigerror(retcode));
                 return 1;
             }
+
             sleep(seconds);
             retcode = rig_get_strength(my_rig, RIG_VFO_CURR, &strength);
 
             if (retcode != RIG_OK)
             {
-                int static  once=1;
+                int static  once = 1;
+
                 if (once)
                 {
                     once = 0;
-                    fprintf(stderr,"rig_get_strength error: %s\n", rigerror(retcode));
+                    fprintf(stderr, "rig_get_strength error: %s\n", rigerror(retcode));
                 }
+
                 strength = 1;
             }
+
             history[nhistory++] = strength;
+
             if (historyinit)
             {
-                for(int i=0;i<HISTORYSIZE;++i) history[i] = strength;
+                for (int i = 0; i < HISTORYSIZE; ++i) { history[i] = strength; }
+
                 historyinit = 0;
             }
+
             nhistory %= HISTORYSIZE;
             double s = sigma(history, HISTORYSIZE);
             char timebuf[64];

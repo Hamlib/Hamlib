@@ -519,7 +519,7 @@ int dra818_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     return RIG_OK;
 }
 
-const struct rig_caps dra818u_caps =
+struct rig_caps dra818u_caps =
 {
     RIG_MODEL(RIG_MODEL_DORJI_DRA818U),
     .model_name =       "DRA818U",
@@ -623,7 +623,7 @@ const struct rig_caps dra818u_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps dra818v_caps =
+struct rig_caps dra818v_caps =
 {
     RIG_MODEL(RIG_MODEL_DORJI_DRA818V),
     .model_name =       "DRA818V",

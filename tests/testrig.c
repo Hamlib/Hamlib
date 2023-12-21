@@ -38,7 +38,8 @@ int main(int argc, const char *argv[])
      * allocate memory, setup & open port
      */
 
-        hamlib_port_t myport;
+    hamlib_port_t myport;
+
     if (argc < 2)
     {
         /* may be overridden by backend probe */
@@ -77,16 +78,21 @@ int main(int argc, const char *argv[])
         exit(2);
     }
 
-    uint64_t levels = rig_get_caps_int(my_rig->caps->rig_model, RIG_CAPS_HAS_GET_LEVEL);
-    printf("HAS_GET_LEVEL=0x%8lx, SWR=%8llx,true=%d\n", levels, levels & RIG_LEVEL_SWR, (levels & RIG_LEVEL_SWR) == RIG_LEVEL_SWR);
+    uint64_t levels = rig_get_caps_int(my_rig->caps->rig_model,
+                                       RIG_CAPS_HAS_GET_LEVEL);
+    printf("HAS_GET_LEVEL=0x%8llx, SWR=%8llx,true=%d\n", levels,
+           levels & RIG_LEVEL_SWR, (levels & RIG_LEVEL_SWR) == RIG_LEVEL_SWR);
 
     char val[256];
     retcode = rig_get_conf2(my_rig, rig_token_lookup(my_rig, "write_delay"), val,
                             sizeof(val));
+
     if (retcode != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig_get_conf2: %s\n", __func__, rigerror(retcode));
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_get_conf2: %s\n", __func__,
+                  rigerror(retcode));
     }
+
     printf("write_delay=%s\n", val);
 
 //    printf("Port %s opened ok\n", SERIAL_PORT);

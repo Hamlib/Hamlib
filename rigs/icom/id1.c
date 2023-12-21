@@ -67,7 +67,7 @@ static struct icom_priv_caps id1_priv_caps =
     id1_ts_sc_list
 };
 
-const struct rig_caps id1_caps =
+struct rig_caps id1_caps =
 {
     RIG_MODEL(RIG_MODEL_ICID1),
     .model_name = "IC ID-1",
@@ -98,7 +98,6 @@ const struct rig_caps id1_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,

@@ -48,17 +48,17 @@ int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 const char *wr_get_info(RIG *rig);
 
-extern const struct rig_caps wr1000_caps;
-extern const struct rig_caps wr1500_caps;
-extern const struct rig_caps wr1550_caps;
-extern const struct rig_caps wr3100_caps;
-extern const struct rig_caps wr3150_caps;
-extern const struct rig_caps wr3500_caps;
-extern const struct rig_caps wr3700_caps;
-extern const struct rig_caps g303_caps;
-extern const struct rig_caps g305_caps;
+extern struct rig_caps wr1000_caps;
+extern struct rig_caps wr1500_caps;
+extern struct rig_caps wr1550_caps;
+extern struct rig_caps wr3100_caps;
+extern struct rig_caps wr3150_caps;
+extern struct rig_caps wr3500_caps;
+extern struct rig_caps wr3700_caps;
+extern struct rig_caps g303_caps;
+extern struct rig_caps g305_caps;
 #if defined( _WIN32) || !defined(OTHER_POSIX)
-extern const struct rig_caps g313_caps;
+extern struct rig_caps g313_caps;
 #endif
 
 #endif /* _WINRADIO_H */

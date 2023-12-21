@@ -50,7 +50,7 @@
                     RIG_MODE_PKTLSB | RIG_MODE_PKTUSB |\
                     RIG_MODE_SSB | RIG_MODE_LSB | RIG_MODE_USB |\
                     RIG_MODE_FM | RIG_MODE_WFM | RIG_MODE_FMN | RIG_MODE_PKTFM |\
-                    RIG_MODE_C4FM)
+                    RIG_MODE_C4FM | RIG_MODE_DSTAR)
 
 #define FLRIG_LEVELS (RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_MICGAIN | RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER_METER | RIG_LEVEL_RFPOWER_METER_WATTS | RIG_LEVEL_RFPOWER | RIG_LEVEL_SWR)
 
@@ -138,12 +138,12 @@ static const struct confparams flrig_ext_parms[] =
     { RIG_CONF_END, NULL, }
 };
 
-const struct rig_caps flrig_caps =
+struct rig_caps flrig_caps =
 {
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "FLRig",
     .mfg_name = "FLRig",
-    .version = "20231113.0",
+    .version = "20231216.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -242,6 +242,7 @@ static struct s_modeMap modeMap[] =
     {RIG_MODE_RTTY, NULL},
     {RIG_MODE_RTTYR, NULL},
     {RIG_MODE_C4FM, NULL},
+    {RIG_MODE_DSTAR, NULL},
     {0, NULL}
 };
 
@@ -894,11 +895,15 @@ static int flrig_open(RIG *rig)
 
     /* see if get_bwA is available */
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
+    int dummy;
 
-    if (retval == RIG_ENAVAIL) // must not have it
+    if (retval == RIG_ENAVAIL || value[0] == 0
+            || sscanf(value, "%d", &dummy) == 0) // must not have it
     {
         priv->has_get_bwA = 0;
         priv->has_get_bwB = 0; // if we don't have A then surely we don't have B either
+        priv->has_set_bwA = 0; // and we don't have set functions either
+        priv->has_set_bwB = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwA/B is not available=%s\n", __func__,
                   value);
     }
@@ -1088,6 +1093,7 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "UCW")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
         else if (streq(p, "C4FM")) { modeMapAdd(&modes, RIG_MODE_C4FM, p); }
         else if (streq(p, "SPEC")) { modeMapAdd(&modes, RIG_MODE_SPEC, p); }
+        else if (streq(p, "DV")) { modeMapAdd(&modes, RIG_MODE_DSTAR, p); }
         else if (streq(p, "DRM")) // we don't support DRM yet (or maybe ever)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: no mapping for mode %s\n", __func__, p);
@@ -1209,6 +1215,9 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     *freq = atof(value);
 
+
+#if 0 // zero is actually valid for PowerSDR
+
     if (*freq == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: freq==0??\nvalue=%s\n", __func__,
@@ -1216,6 +1225,7 @@ static int flrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         RETURNFUNC(-RIG_EPROTO);
     }
     else
+#endif
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: freq=%.0f\n", __func__, *freq);
     }
@@ -1750,14 +1760,15 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         /* so we may not be 100% accurate if op is twiddling knobs */
         cmdp = "rig.get_bwA";
         retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
-        if (retval == RIG_OK && strstr(value,"NONE"))
+
+        if (retval == RIG_OK && strstr(value, "NONE"))
         {
             priv->has_get_bwA = priv->has_get_bwB = 0;
             *width = 0;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: does not have rig.get_bwA/B\n", __func__);
         }
 
-        if (retval != RIG_OK || strstr(value,"NONE"))
+        if (retval != RIG_OK || strstr(value, "NONE"))
         {
             RETURNFUNC(retval);
         }
@@ -1767,7 +1778,8 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         {
             cmdp = "rig.get_bwB";
             retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
-            if (retval == RIG_OK && strlen(value)==0)
+
+            if (retval == RIG_OK && strlen(value) == 0)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: does not have rig.get_bwB\n", __func__);
                 priv->has_get_bwB = 0;
@@ -2515,8 +2527,8 @@ HAMLIB_EXPORT(int) flrig_cat_string(RIG *rig, const char *arg)
     return retval;
 }
 
-HAMLIB_EXPORT(int) flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
-                                  int status)
+int flrig_set_func(RIG *rig, vfo_t vfo, setting_t func,
+                   int status)
 {
     int retval;
     char cmd_arg[MAXARGLEN];

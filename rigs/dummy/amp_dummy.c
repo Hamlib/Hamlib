@@ -143,7 +143,7 @@ Also a way to display faults (there are commands)
 static int dummy_amp_get_freq(AMP *amp, freq_t *freq)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-                                       amp->state.priv;
+            amp->state.priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     *freq = priv->freq;
     return RIG_OK;
@@ -267,7 +267,7 @@ static int dummy_amp_set_powerstat(AMP *amp, powerstat_t status)
 static int dummy_amp_get_powerstat(AMP *amp, powerstat_t *status)
 {
     const struct dummy_amp_priv_data *priv = (struct dummy_amp_priv_data *)
-                                       amp->state.priv;
+            amp->state.priv;
 
     *status = priv->powerstat;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);

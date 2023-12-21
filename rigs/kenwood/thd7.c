@@ -77,7 +77,7 @@ static struct kenwood_priv_caps  thd7_priv_caps  =
  *
  * http://www.qsl.net/ta1dx/kenwood/thd7kom.htm
  */
-const struct rig_caps thd7a_caps =
+struct rig_caps thd7a_caps =
 {
     RIG_MODEL(RIG_MODEL_THD7A),
     .model_name = "TH-D7A",

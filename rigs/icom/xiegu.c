@@ -145,7 +145,7 @@ static struct icom_priv_caps x108g_priv_caps =
 };
 
 
-const struct rig_caps x108g_caps =
+struct rig_caps x108g_caps =
 {
     RIG_MODEL(RIG_MODEL_X108G),
     .model_name = "X108G",
@@ -321,7 +321,7 @@ const struct rig_caps x108g_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps x6100_caps =
+struct rig_caps x6100_caps =
 {
     RIG_MODEL(RIG_MODEL_X6100),
     .model_name = "X6100",
@@ -497,12 +497,12 @@ const struct rig_caps x6100_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps g90_caps =
+struct rig_caps g90_caps =
 {
     RIG_MODEL(RIG_MODEL_G90),
     .model_name = "G90",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".5",
+    .version =  BACKEND_VER ".6",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -536,7 +536,6 @@ const struct rig_caps g90_caps =
     .max_rit =  Hz(9999),
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0), /* TODO */
-    .targetable_vfo =  0,
     .vfo_ops =  X108G_VFO_OPS,
     .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .scan_ops =  X108G_SCAN_OPS,
@@ -673,7 +672,7 @@ const struct rig_caps g90_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-const struct rig_caps x5105_caps =
+struct rig_caps x5105_caps =
 {
     RIG_MODEL(RIG_MODEL_X5105),
     .model_name = "X5105",

@@ -83,7 +83,8 @@ static int gomx_set(RIG *rig, int table, char *varname, char *varvalue);
 /**
  * Get variable from the GS100 configuration table
  */
-static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue, int varvalue_len);
+static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue,
+                    int varvalue_len);
 
 /**
  * Sends a message to the GS100 and parses response lines
@@ -217,8 +218,9 @@ static int gs100_get_conf(RIG *rig, token_t token, char *val)
 static int gs100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 #ifdef _LOCAL_SIMULATION_
-    __attribute__((unused)) const struct gs100_priv_data *priv = (struct gs100_priv_data
-            *)rig->state.priv;
+    __attribute__((unused)) const struct gs100_priv_data *priv =
+        (struct gs100_priv_data
+         *)rig->state.priv;
 #endif
     char fstr[20], value[20];
     int retval;
@@ -251,8 +253,9 @@ static int gs100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int gs100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 #ifdef _LOCAL_SIMULATION_
-    __attribute__((unused)) const struct gs100_priv_data *priv = (struct gs100_priv_data
-            *)rig->state.priv;
+    __attribute__((unused)) const struct gs100_priv_data *priv =
+        (struct gs100_priv_data
+         *)rig->state.priv;
 #endif
     char resp[20];
     int retval;
@@ -287,8 +290,9 @@ static int gs100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 static int gs100_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 #ifdef _LOCAL_SIMULATION_
-    __attribute__((unused)) const struct gs100_priv_data *priv = (struct gs100_priv_data
-            *)rig->state.priv;
+    __attribute__((unused)) const struct gs100_priv_data *priv =
+        (struct gs100_priv_data
+         *)rig->state.priv;
 #endif
     char fstr[20], value[20];
     int retval;
@@ -321,8 +325,9 @@ static int gs100_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int gs100_get_tx_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 #ifdef _LOCAL_SIMULATION_
-    __attribute__((unused)) const struct gs100_priv_data *priv = (struct gs100_priv_data
-            *)rig->state.priv;
+    __attribute__((unused)) const struct gs100_priv_data *priv =
+        (struct gs100_priv_data
+         *)rig->state.priv;
 #endif
     char resp[20];
     int retval;
@@ -470,7 +475,8 @@ static int gomx_set(RIG *rig, int table, char *varname, char *varvalue)
 
 
 /* Get variable from the GS100 configuration table */
-static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue, int varvalue_len)
+static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue,
+                    int varvalue_len)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
             *)rig->state.priv;
@@ -504,6 +510,7 @@ static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue, in
     if ((c = strchr(resp, '=')) == NULL) { return (-RIG_EPROTO); }
 
     snprintf(fmt, sizeof(fmt), "%%%ds", varvalue_len);
+
     if (sscanf(c + 1, fmt, varvalue_len) != 1) { return (-RIG_EPROTO); }
 
     return (RIG_OK);

@@ -56,7 +56,7 @@
  *
  * TODO: check this with manual or web site.
  */
-const struct rig_caps bc895_caps =
+struct rig_caps bc895_caps =
 {
     RIG_MODEL(RIG_MODEL_BC895),
     .model_name = "BC895xlt",

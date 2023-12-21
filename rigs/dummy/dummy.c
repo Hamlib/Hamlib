@@ -423,7 +423,9 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig_debug(RIG_DEBUG_ERR, "%s: rig is NULL!!!\n", __func__);
         return -RIG_EINVAL;
     }
+
     priv = (struct dummy_priv_data *)rig->state.priv;
+
     if (priv == NULL)
     {
         RETURNFUNC(-RIG_EINTERNAL);
@@ -1533,9 +1535,10 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
     {
         SNPRINTF(pstr, sizeof(pstr), "%f", val.f);
     }
+
     if (RIG_PARM_IS_STRING(parm))
     {
-        strcpy(pstr,val.cs);
+        strcpy(pstr, val.cs);
     }
     else
     {
@@ -2302,10 +2305,10 @@ struct rig_caps dummy_caps =
     .has_get_parm =    DUMMY_PARM,
     .has_set_parm =    RIG_PARM_SET(DUMMY_PARM),
     .level_gran =      {
-        [LVL_RF]            = { .min = { .f = 0 },     .max = { .f = 1.0f },  .step = { .f = 1.0f/255.0f } },
-        [LVL_RFPOWER]       = { .min = { .f = .05f },   .max = { .f = 1 },    .step = { .f = 1.0f/511.0f } },
-        [LVL_RFPOWER_METER] = { .min = { .f = .0f },    .max = { .f = 1 },    .step = { .f = 1.0f/255.0f } },
-        [LVL_RFPOWER_METER_WATTS] = { .min = { .f = .0f },    .max = { .f = 100 },    .step = { .f = 1.0f/255.0f } },
+        [LVL_RF]            = { .min = { .f = 0 },     .max = { .f = 1.0f },  .step = { .f = 1.0f / 255.0f } },
+        [LVL_RFPOWER]       = { .min = { .f = .05f },   .max = { .f = 1 },    .step = { .f = 1.0f / 511.0f } },
+        [LVL_RFPOWER_METER] = { .min = { .f = .0f },    .max = { .f = 1 },    .step = { .f = 1.0f / 255.0f } },
+        [LVL_RFPOWER_METER_WATTS] = { .min = { .f = .0f },    .max = { .f = 100 },    .step = { .f = 1.0f / 255.0f } },
         [LVL_CWPITCH] = { .step = { .i = 10 } },
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
         [LVL_SPECTRUM_REF] = {.min = {.f = -30.0f}, .max = {.f = 10.0f}, .step = {.f = 0.5f}},

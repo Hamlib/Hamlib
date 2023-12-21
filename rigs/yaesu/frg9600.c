@@ -44,7 +44,7 @@ static int frg9600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
  *
  */
 
-const struct rig_caps frg9600_caps =
+struct rig_caps frg9600_caps =
 {
     RIG_MODEL(RIG_MODEL_FRG9600),
     .model_name =         "FRG-9600",

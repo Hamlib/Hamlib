@@ -117,7 +117,7 @@ int ts450_open(RIG *rig)
  * specs: http://www.qsl.net/sm7vhs/radio/kenwood/ts450/specs.htm
  * infos comes from http://www.cnham.com/ts450/ts_450_ex_control.pdf
  */
-const struct rig_caps ts450s_caps =
+struct rig_caps ts450s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS450S),
     .model_name = "TS-450S",

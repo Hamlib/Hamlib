@@ -54,7 +54,7 @@ static int miniVNA_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return RIG_OK;
 }
 
-const struct rig_caps miniVNA_caps =
+struct rig_caps miniVNA_caps =
 {
     RIG_MODEL(RIG_MODEL_MINIVNA),
     .model_name =     "miniVNA",

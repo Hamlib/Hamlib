@@ -533,7 +533,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  *
  * part of infos comes from .http = //www.kenwood.net/
  */
-const struct rig_caps ts870s_caps =
+struct rig_caps ts870s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS870S),
     .model_name = "TS-870S",
@@ -565,7 +565,7 @@ const struct rig_caps ts870s_caps =
     .level_gran =
     {
 #include "level_gran_kenwood.h"
-     [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
+        [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
     },
     .parm_gran =  {},
     .ctcss_list =  kenwood38_ctcss_list,
