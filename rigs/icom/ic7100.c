@@ -384,6 +384,7 @@ struct rig_caps ic7100_caps =
         {   1, 396, RIG_MTYPE_MEM  },
         { 397, 400, RIG_MTYPE_CALL },
         { 401, 424, RIG_MTYPE_EDGE },
+        {   1,	4, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
