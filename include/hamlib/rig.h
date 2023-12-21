@@ -1670,11 +1670,10 @@ typedef enum {
 \endcode
  */
 struct chan_list {
-    int startc;          /*!< Starting memory channel \b number */
-    int endc;            /*!< Ending memory channel \b number */
-    chan_type_t type;   /*!< Memory type. see chan_type_t */
-    channel_cap_t
-    mem_caps;           /*!< Definition of attributes that can be stored/retrieved */
+    int startc;              /*!< Starting memory channel \b number */
+    int endc;                /*!< Ending memory channel \b number */
+    chan_type_t type;        /*!< Memory type. see chan_type_t */
+    channel_cap_t mem_caps;  /*!< Definition of attributes that can be stored/retrieved */
 };
 
 //! @cond Doxygen_Suppress

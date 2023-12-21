@@ -422,7 +422,11 @@ struct rig_caps ts890s_caps =
     .transceive = RIG_TRN_RIG,
     .agc_level_count = 5,
     .agc_levels = { RIG_AGC_OFF, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_ON },
-
+	.chan_list =  {
+        { 1,   6, RIG_MTYPE_VOICE },
+        { 1,   8, RIG_MTYPE_MORSE },
+        RIG_CHAN_END,
+    },
     .rx_range_list1 = {
         {kHz(100),   Hz(59999999), TS890_ALL_MODES, -1, -1, TS890_VFO},
         RIG_FRNG_END,

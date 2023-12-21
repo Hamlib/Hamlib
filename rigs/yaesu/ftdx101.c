@@ -232,6 +232,7 @@ struct rig_caps ftdx101d_caps =
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         {   100,  117, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // P1L-P9U PMS channels
         {   501,  510, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP }, // 5xx 5MHz band
+        {   1,	  5,   RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
