@@ -238,7 +238,10 @@ struct rig_caps k3_caps =
     .bank_qty =     0,
     .chan_desc_sz =     0,
 
-    .chan_list =        { RIG_CHAN_END },
+    .chan_list =    {
+           {   1, 4, RIG_MTYPE_VOICE },
+           {   1, 4, RIG_MTYPE_MORSE },
+           RIG_CHAN_END },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K3_ANTS},
@@ -394,7 +397,10 @@ struct rig_caps k3s_caps =
     .bank_qty =     0,
     .chan_desc_sz =     0,
 
-    .chan_list =        { RIG_CHAN_END },
+    .chan_list =    {
+            {   1, 4, RIG_MTYPE_VOICE },
+            {   1, 4, RIG_MTYPE_MORSE },
+            RIG_CHAN_END },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K3_ANTS},
@@ -556,7 +562,10 @@ struct rig_caps k4_caps =
     .bank_qty =     0,
     .chan_desc_sz =     0,
 
-    .chan_list =        { RIG_CHAN_END },
+    .chan_list =    {
+            {   1,  4, RIG_MTYPE_VOICE },
+            {   1,  4, RIG_MTYPE_MORSE },
+            RIG_CHAN_END },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K4_ANTS},
@@ -711,7 +720,10 @@ struct rig_caps kx3_caps =
     .bank_qty =     0,
     .chan_desc_sz =     0,
 
-    .chan_list =        { RIG_CHAN_END },
+    .chan_list =    {
+           {   1, 4, RIG_MTYPE_VOICE },
+           {   1, 4, RIG_MTYPE_MORSE },
+           RIG_CHAN_END },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K3_ANTS},
@@ -866,7 +878,9 @@ struct rig_caps kx2_caps =
     .bank_qty =     0,
     .chan_desc_sz =     0,
 
-    .chan_list =        { RIG_CHAN_END },
+    .chan_list =    {
+            {   1, 4, RIG_MTYPE_MORSE },
+            RIG_CHAN_END },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K3_ANTS},

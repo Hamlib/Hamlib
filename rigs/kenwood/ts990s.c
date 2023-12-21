@@ -181,6 +181,8 @@ struct rig_caps ts990s_caps =
 
     .chan_list =  {
         { 0, 299, RIG_MTYPE_MEM, TS990S_MEM_CAP  },
+		{ 1,   6, RIG_MTYPE_VOICE },
+        { 1,   8, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

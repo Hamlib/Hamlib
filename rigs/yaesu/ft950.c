@@ -140,7 +140,7 @@ struct rig_caps ft950_caps =
         { 125, 128, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* 60M Channels U51-U54 or US1-US4, if available */
         { 130, 130, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* 60M Channel U55 or US5, if available */
         { 131, 131, RIG_MTYPE_BAND, NEWCAT_MEM_CAP },    /* EU5, 5167.5 KHz Alaska Emergency Freq, if available */
-
+        {   1,	5, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
