@@ -104,7 +104,7 @@ static const struct icom_priv_caps ic9100_priv_caps =
     .extcmds = ic9100_extcmds,
 };
 
-const struct rig_caps ic9100_caps =
+struct rig_caps ic9100_caps =
 {
     RIG_MODEL(RIG_MODEL_IC9100),
     .model_name = "IC-9100",
@@ -135,8 +135,6 @@ const struct rig_caps ic9100_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
     },
     .parm_gran =  {
         [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},

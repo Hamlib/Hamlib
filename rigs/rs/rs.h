@@ -37,7 +37,7 @@ int rs_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int rs_reset(RIG *rig, reset_t reset);
 const char * rs_get_info(RIG *rig);
 
-extern const struct rig_caps esmc_caps;
-extern const struct rig_caps eb200_caps;
+extern struct rig_caps esmc_caps;
+extern struct rig_caps eb200_caps;
 
 #endif /* _RS_H */

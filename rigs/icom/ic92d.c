@@ -93,7 +93,7 @@ static const struct icom_priv_caps ic92d_priv_caps =
     .serial_full_duplex = 1
 };
 
-const struct rig_caps ic92d_caps =
+struct rig_caps ic92d_caps =
 {
     RIG_MODEL(RIG_MODEL_IC92D),
     .model_name = "IC-92D", /* IC-E92D/IC-92AD */
@@ -124,7 +124,6 @@ const struct rig_caps ic92d_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
     },
     .parm_gran =  {},
     .ctcss_list =  common_ctcss_list,

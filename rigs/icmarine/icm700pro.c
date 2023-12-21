@@ -49,7 +49,7 @@ static const struct icmarine_priv_caps icm700pro_priv_caps =
     .default_remote_id = 2,
 };
 
-const struct rig_caps icm700pro_caps =
+struct rig_caps icm700pro_caps =
 {
     RIG_MODEL(RIG_MODEL_IC_M700PRO),
     .model_name = "IC-M700PRO",

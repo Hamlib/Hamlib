@@ -80,7 +80,7 @@ static const struct aor_priv_caps ar2700_priv_caps =
  * part of info from http://www.aoruk.com/2700.htm
  * Interface unit: CU-8232 (or equivalent)
  */
-const struct rig_caps ar2700_caps =
+struct rig_caps ar2700_caps =
 {
     RIG_MODEL(RIG_MODEL_AR2700),
     .model_name = "AR2700",

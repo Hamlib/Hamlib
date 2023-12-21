@@ -41,13 +41,16 @@ getmyline(int fd, char *buf)
     int i = 0;
     memset(buf, 0, BUFSIZE);
 
-    hl_usleep(5*1000);
+    hl_usleep(5 * 1000);
+
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
 
         if (c == ';') { return strlen(buf); }
     }
+
+    if (strlen(buf) == 0) { hl_usleep(10 * 1000); }
 
     return strlen(buf);
 }
@@ -159,20 +162,20 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "MG", 2) == 0)
         {
-            sscanf(buf,"MG%d", &mic_gain);
+            sscanf(buf, "MG%d", &mic_gain);
         }
         else if (strcmp(buf, "AG0;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "AG0%03d;", afgain);
             WRITE(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "AG0",3) == 0)
+        else if (strncmp(buf, "AG0", 3) == 0)
         {
-            sscanf(buf,"AG0%d",&afgain);
+            sscanf(buf, "AG0%d", &afgain);
         }
-        else if (strncmp(buf,"AG",2) == 0)
+        else if (strncmp(buf, "AG", 2) == 0)
         {
-            WRITE(fd,"?;",2);
+            WRITE(fd, "?;", 2);
         }
         else if (strcmp(buf, "FV;") == 0)
         {
@@ -416,7 +419,7 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "SH", 2) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "SH%02d;", width_high);
-            WRITE(fd,buf,strlen(buf));
+            WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "SL", 2) == 0 && strlen(buf) > 4)
         {
@@ -426,7 +429,7 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "SL", 2) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "SL%02d;", width_low);
-            WRITE(fd,buf,strlen(buf));
+            WRITE(fd, buf, strlen(buf));
         }
 
         else if (strlen(buf) > 0)

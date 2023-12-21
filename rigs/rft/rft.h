@@ -28,6 +28,6 @@
 
 int rft_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 
-extern const struct rig_caps ekd500_caps;
+extern struct rig_caps ekd500_caps;
 
 #endif /* _RFT_H */

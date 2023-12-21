@@ -41,6 +41,6 @@ int ek89x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int ek89x_reset(RIG *rig, reset_t reset);
 const char * gek89x_get_info(RIG *rig);
 
-extern const struct rig_caps ek89x_caps;
+extern struct rig_caps ek89x_caps;
 
 #endif /* EK89X_H */

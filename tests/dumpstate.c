@@ -302,7 +302,8 @@ int dumpstate(RIG *rig, FILE *fout)
     if (priv_caps && RIG_BACKEND_NUM(rig->state.rig_model) == RIG_ICOM
             && priv_caps->agc_levels_present)
     {
-        for (i = 0; i < HAMLIB_MAX_AGC_LEVELS && priv_caps->agc_levels[i].level != RIG_AGC_LAST; i++)
+        for (i = 0; i < HAMLIB_MAX_AGC_LEVELS
+                && priv_caps->agc_levels[i].level != RIG_AGC_LAST; i++)
         {
             fprintf(fout, " %d=%s", priv_caps->agc_levels[i].level,
                     rig_stragclevel(priv_caps->agc_levels[i].level));
@@ -326,7 +327,8 @@ int dumpstate(RIG *rig, FILE *fout)
 
     fprintf(fout, "CTCSS:");
 
-    for (i = 0; rig->state.ctcss_list && i < 60 && rig->state.ctcss_list[i] != 0; i++)
+    for (i = 0; rig->state.ctcss_list && i < 60
+            && rig->state.ctcss_list[i] != 0; i++)
     {
         fprintf(fout,
                 " %u.%1u",
@@ -648,7 +650,8 @@ int dumpstate(RIG *rig, FILE *fout)
 
     fprintf(fout, "Tuning steps:");
 
-    for (i = 0; i < HAMLIB_TSLSTSIZ && !RIG_IS_TS_END(rig->state.tuning_steps[i]); i++)
+    for (i = 0; i < HAMLIB_TSLSTSIZ
+            && !RIG_IS_TS_END(rig->state.tuning_steps[i]); i++)
     {
         if (rig->state.tuning_steps[i].ts == RIG_TS_ANY)
         {
@@ -757,7 +760,8 @@ int dumpstate(RIG *rig, FILE *fout)
 
     fprintf(fout, "Spectrum attenuator:");
 
-    for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.spectrum_attenuator[i] != 0; i++)
+    for (i = 0; i < HAMLIB_MAXDBLSTSIZ
+            && rig->state.spectrum_attenuator[i] != 0; i++)
     {
         fprintf(fout, " %ddB", rig->state.spectrum_attenuator[i]);
     }
@@ -781,8 +785,10 @@ int dumpstate(RIG *rig, FILE *fout)
     fprintf(fout, "Has Close:\t%c\n", rig->caps->rig_close != NULL ? 'Y' : 'N');
     fprintf(fout, "Can set Conf:\t%c\n", rig->caps->set_conf != NULL ? 'Y' : 'N');
     fprintf(fout, "Can get Conf:\t%c\n", rig->caps->get_conf != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can set Frequency:\t%c\n", rig->caps->set_freq != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can get Frequency:\t%c\n", rig->caps->get_freq != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can set Frequency:\t%c\n",
+            rig->caps->set_freq != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can get Frequency:\t%c\n",
+            rig->caps->get_freq != NULL ? 'Y' : 'N');
     fprintf(fout, "Can set Mode:\t%c\n", rig->caps->set_mode != NULL ? 'Y' : 'N');
     fprintf(fout, "Can get Mode:\t%c\n", rig->caps->get_mode != NULL ? 'Y' : 'N');
     fprintf(fout, "Can set VFO:\t%c\n", rig->caps->set_vfo != NULL ? 'Y' : 'N');
@@ -835,16 +841,22 @@ int dumpstate(RIG *rig, FILE *fout)
             "Can get Split VFO:\t%c\n",
             rig->caps->get_split_vfo != NULL ? 'Y' : 'N');
 
-    fprintf(fout, "Can set Tuning Step:\t%c\n", rig->caps->set_ts != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can get Tuning Step:\t%c\n", rig->caps->get_ts != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can set Tuning Step:\t%c\n",
+            rig->caps->set_ts != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can get Tuning Step:\t%c\n",
+            rig->caps->get_ts != NULL ? 'Y' : 'N');
     fprintf(fout, "Can set RIT:\t%c\n", rig->caps->set_rit != NULL ? 'Y' : 'N');
     fprintf(fout, "Can get RIT:\t%c\n", rig->caps->get_rit != NULL ? 'Y' : 'N');
     fprintf(fout, "Can set XIT:\t%c\n", rig->caps->set_xit != NULL ? 'Y' : 'N');
     fprintf(fout, "Can get XIT:\t%c\n", rig->caps->get_xit != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can set CTCSS:\t%c\n", rig->caps->set_ctcss_tone != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can get CTCSS:\t%c\n", rig->caps->get_ctcss_tone != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can set DCS:\t%c\n", rig->caps->set_dcs_code != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can get DCS:\t%c\n", rig->caps->get_dcs_code != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can set CTCSS:\t%c\n",
+            rig->caps->set_ctcss_tone != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can get CTCSS:\t%c\n",
+            rig->caps->get_ctcss_tone != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can set DCS:\t%c\n",
+            rig->caps->set_dcs_code != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can get DCS:\t%c\n",
+            rig->caps->get_dcs_code != NULL ? 'Y' : 'N');
 
     fprintf(fout,
             "Can set CTCSS Squelch:\t%c\n",
@@ -876,9 +888,11 @@ int dumpstate(RIG *rig, FILE *fout)
 
     fprintf(fout,
             "Can set Transceive:\t%c\n",
-            rig->caps->set_trn != NULL ? 'Y' : rig->caps->transceive == RIG_TRN_RIG ? 'E' : 'N');
+            rig->caps->set_trn != NULL ? 'Y' : rig->caps->transceive == RIG_TRN_RIG ? 'E' :
+            'N');
 
-    fprintf(fout, "Can get Transceive:\t%c\n", rig->caps->get_trn != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can get Transceive:\t%c\n",
+            rig->caps->get_trn != NULL ? 'Y' : 'N');
     fprintf(fout, "Can set Func:\t%c\n", rig->caps->set_func != NULL ? 'Y' : 'N');
     fprintf(fout, "Can get Func:\t%c\n", rig->caps->get_func != NULL ? 'Y' : 'N');
     fprintf(fout, "Can set Level:\t%c\n", rig->caps->set_level != NULL ? 'Y' : 'N');
@@ -887,9 +901,12 @@ int dumpstate(RIG *rig, FILE *fout)
     fprintf(fout, "Can get Param:\t%c\n", rig->caps->get_parm != NULL ? 'Y' : 'N');
     fprintf(fout, "Can send DTMF:\t%c\n", rig->caps->send_dtmf != NULL ? 'Y' : 'N');
     fprintf(fout, "Can recv DTMF:\t%c\n", rig->caps->recv_dtmf != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can send Morse:\t%c\n", rig->caps->send_morse != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can stop Morse:\t%c\n", rig->caps->stop_morse != NULL ? 'Y' : 'N');
-    fprintf(fout, "Can wait Morse:\t%c\n", rig->caps->wait_morse != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can send Morse:\t%c\n",
+            rig->caps->send_morse != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can stop Morse:\t%c\n",
+            rig->caps->stop_morse != NULL ? 'Y' : 'N');
+    fprintf(fout, "Can wait Morse:\t%c\n",
+            rig->caps->wait_morse != NULL ? 'Y' : 'N');
     fprintf(fout, "Can send Voice:\t%c\n",
             rig->caps->send_voice_mem != NULL ? 'Y' : 'N');
 

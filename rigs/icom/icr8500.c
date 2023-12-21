@@ -70,7 +70,7 @@ static struct icom_priv_caps icr8500_priv_caps =
 /*
  * IC-R8500 rig capabilities.
  */
-const struct rig_caps icr8500_caps =
+struct rig_caps icr8500_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR8500),
     .model_name = "ICR-8500",
@@ -102,8 +102,6 @@ const struct rig_caps icr8500_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_IF] = { .min = { .i = 0 }, .max = { .i = 255 }, .step = { .i = 1 } },
     },
     .parm_gran =  {},
     .ctcss_list =  NULL,    /* FIXME: CTCSS/DCS list */

@@ -121,9 +121,9 @@ int pcr_get_dcd(RIG * rig, vfo_t vfo, dcd_t *dcd);
 // int pcr_get_param(RIG *rig, setting_t parm, value_t *val);
 // int pcr_set_param(RIG *rig, setting_t parm, value_t *val);
 
-extern const struct rig_caps pcr1000_caps;
-extern const struct rig_caps pcr100_caps;
-extern const struct rig_caps pcr1500_caps;
-extern const struct rig_caps pcr2500_caps;
+extern struct rig_caps pcr1000_caps;
+extern struct rig_caps pcr100_caps;
+extern struct rig_caps pcr1500_caps;
+extern struct rig_caps pcr2500_caps;
 
 #endif /* _PCR_H */

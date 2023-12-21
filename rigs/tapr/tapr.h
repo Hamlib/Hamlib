@@ -28,6 +28,6 @@
 int tapr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int tapr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 
-extern const struct rig_caps dsp10_caps;
+extern struct rig_caps dsp10_caps;
 
 #endif /* _TAPR_H */

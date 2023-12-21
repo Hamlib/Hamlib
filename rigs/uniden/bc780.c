@@ -50,7 +50,7 @@
  *
  * TODO: check this with manual or web site.
  */
-const struct rig_caps bc780_caps =
+struct rig_caps bc780_caps =
 {
     RIG_MODEL(RIG_MODEL_BC780),
     .model_name = "BC780xlt",

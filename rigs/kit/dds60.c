@@ -93,7 +93,7 @@ static int dds60_get_conf(RIG *rig, token_t token, char *val);
  * The receiver is controlled via the parallel port (D0,D1,D2).
  */
 
-const struct rig_caps dds60_caps =
+struct rig_caps dds60_caps =
 {
     RIG_MODEL(RIG_MODEL_DDS60),
     .model_name = "DDS-60",

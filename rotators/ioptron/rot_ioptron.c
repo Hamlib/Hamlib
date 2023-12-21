@@ -38,10 +38,9 @@
  * ioptron_transaction
  *
  * cmdstr - Command to be sent to the rig.
- * data - Buffer for reply string.  Can be NULL, indicating that no reply is
- *        is needed, but answer will still be read.
- * data_len - in: Size of buffer. It is the caller's responsibily to provide
- *            a large enough buffer for all possible replies for a command.
+ * data - Buffer for reply string.
+ * resp_len - in: Expected length of response. It is the caller's responsibily to
+ *            provide a buffer at least 1 byte larger than this for null terminator.
  *
  *  COMMANDS  note: as of 12/2018 a mixture of V2 and V3
  * | TTTTTTTT(T) .01 arc seconds
@@ -62,136 +61,106 @@
  */
 
 static int
-ioptron_transaction(ROT *rot, const char *cmdstr,
-                    char *data, size_t data_len)
+ioptron_transaction(ROT *rot, const char *cmdstr, char *data, size_t resp_len)
 {
     struct rot_state *rs;
-    int retval;
-    int retry_read = 0;
-    char replybuf[BUFSZ];
+    int retval = 0;
+    int retry_read;
 
     rs = &rot->state;
 
-transaction_write:
-
-    rig_flush(&rs->rotport);
-
-    if (cmdstr)
+    for (retry_read = 0; retry_read <= rot->state.rotport.retry; retry_read++)
     {
-        retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
+        rig_flush(&rs->rotport);
 
-        if (retval != RIG_OK)
+        if (cmdstr)
         {
-            goto transaction_quit;
+            retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
+
+            if (retval != RIG_OK)
+            {
+                return retval;
+            }
+        }
+
+        /** the answer */
+        memset(data, 0, resp_len + 1);
+        retval = read_block(&rs->rotport, (unsigned char *) data, resp_len);
+
+        /** if expected number of bytes received, return OK status */
+        if (retval == resp_len)
+        {
+            return RIG_OK;
         }
     }
 
-    /** Always read the reply to know whether the cmd went OK */
-    if (!data)
-    {
-        data = replybuf;
-    }
+    /** if got here, retry loop failed */
+    rig_debug(RIG_DEBUG_ERR, "%s: unexpected response, len %d: '%s'\n", __func__,
+              retval, data);
 
-    if (!data_len)
-    {
-        data_len = BUFSZ;
-    }
+    return -RIG_EPROTO;
+}
 
-    /** the answer */
-    memset(data, 0, data_len);
-    retval = read_string(&rs->rotport, (unsigned char *) data, data_len, ACK,
-                         strlen(ACK), 0, 1);
+/** get mount type code, initializes mount */
+static const char *
+ioptron_get_info(ROT *rot)
+{
+    static char info[32];
+    char str[6];
+    int retval;
 
-    if (retval < 0)
-    {
-        if (retry_read++ < rot->state.rotport.retry)
-        {
-            goto transaction_write;
-        }
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-        goto transaction_quit;
-    }
+    retval = ioptron_transaction(rot, ":MountInfo#", str, 4);
 
-    /** check for acknowledge */
-    if (retval < 1)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: unexpected response, len %d: '%s'\n", __func__,
-                  retval, data);
-        return -RIG_EPROTO;
-    }
+    rig_debug(RIG_DEBUG_TRACE, "retval, RIG_OK str %d  %d  %str\n", retval, RIG_OK,
+              str);
 
-    retval = RIG_OK;
-transaction_quit:
-    return retval;
+    SNPRINTF(info, sizeof(info), "MountInfo %s", str);
+
+    return info;
 }
 
 /**
  * Opens the Port and sets all needed parameters for operation
  * as of 12/2018 initiates mount with V3 :MountInfo#
  */
-static int ioptron_open(ROT *rot)
+static int
+ioptron_open(ROT *rot)
 {
+    const char *info;
+    int retval;
+    char retbuf[10];
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return ioptron_transaction(rot, ":Mountinfo#", NULL, 0);
-}
+    info = ioptron_get_info(rot);
 
-/** sets mount position, requires 4 steps
- * set azmiuth
- * set altitude
- * goto set
- * stop tracking - mount starts tracking after goto
- */
-static int
-ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
-{
-    char cmdstr[32];
-    char retbuf[10];
-    int retval;
-    float faz, fel;
+    /* ioptron_get_info returns "MountInfo xxxx", check model number from string */
+    /* string of 4 numeric digits is likely model number */
+    if ((strlen(&info[10]) != 4) || (strspn(&info[10], "1234567890") != 4))
+    {
+        return -RIG_ETIMEOUT;
+    }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
-
-    /* units .01 arc sec */
-    faz = az * 360000;
-    fel = el * 360000;
-    /* set azmiuth, returns '1" if OK */
-    SNPRINTF(cmdstr, sizeof(cmdstr), ":Sz%09.0f#", faz);
-    retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
+    /** stops tracking, returns "1" if OK */
+    retval = ioptron_transaction(rot, ":ST0#", retbuf, 1);
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
     {
         return  -RIG_EPROTO;
     }
 
-    /* set altitude, returns '1" if OK */
-    SNPRINTF(cmdstr, sizeof(cmdstr), ":Sa+%08.0f#", fel);
-    retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
+    /** set alt limit to -1 since firmware bug sometimes doesn't allow alt of 0 when limit is 0 */
+    /** returns "1" if OK */
+    retval = ioptron_transaction(rot, ":SAL-01#", retbuf, 1);
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
     {
         return  -RIG_EPROTO;
     }
 
-    /* move to set target, V2 command, returns '1" if OK */
-    SNPRINTF(cmdstr, sizeof(cmdstr), ":MS#"); //
-    retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
-
-    if (retval != RIG_OK || retbuf[0] != ACK1)
-    {
-        return  -RIG_EPROTO;
-    }
-
-    /* stop tracking, V2 command, returns '1" if OK */
-    SNPRINTF(cmdstr, sizeof(cmdstr), ":ST0#");
-    retval = ioptron_transaction(rot, cmdstr, retbuf, sizeof(retbuf));
-
-    if (retval != RIG_OK || retbuf[0] != ACK1)
-    {
-        return  -RIG_EPROTO;
-    }
-
-    return retval;
+    return RIG_OK;
 }
 
 /**  gets current position  */
@@ -205,9 +174,9 @@ ioptron_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     /** Get Az-Alt */
-    retval = ioptron_transaction(rot, ":GAC#", posbuf, sizeof(posbuf));
+    retval = ioptron_transaction(rot, ":GAC#", posbuf, 19);
 
-    if (retval != RIG_OK || strlen(posbuf) < 18)
+    if (retval != RIG_OK || strlen(posbuf) < 19)
     {
         return retval < 0 ? retval : -RIG_EPROTO;
     }
@@ -218,6 +187,8 @@ ioptron_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     }
 
     /** convert from .01 arc sec to degrees  */
+    /** note that firmware only reports alt between -90 and +90 */
+    /** e.g. both 80 and 100 degrees are read as 80 degrees */
     *el = ((elevation_t)w / 360000.);
 
     if (sscanf(posbuf + 9, "%9f", &w) != 1)
@@ -243,7 +214,7 @@ ioptron_stop(ROT *rot)
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     /** stop slew, returns "1" if OK */
-    retval = ioptron_transaction(rot, ":Q#", retbuf, 10);
+    retval = ioptron_transaction(rot, ":Q#", retbuf, 1);
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
     {
@@ -251,7 +222,110 @@ ioptron_stop(ROT *rot)
     }
 
     /** stops tracking returns "1" if OK */
-    retval = ioptron_transaction(rot, ":ST0#", retbuf, 10);
+    retval = ioptron_transaction(rot, ":ST0#", retbuf, 1);
+
+    if (retval != RIG_OK || retbuf[0] != ACK1)
+    {
+        return  -RIG_EPROTO;
+    }
+
+    return RIG_OK;
+}
+
+/** sets mount position, requires 4 steps
+ * set azmiuth
+ * set altitude
+ * goto set
+ * stop tracking - mount starts tracking after goto
+ */
+static int
+ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
+{
+    char cmdstr[32];
+    char retbuf[10];
+    int retval;
+    double faz, fel;
+    azimuth_t curr_az;
+    elevation_t curr_el;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
+
+    /* units .01 arc sec */
+    faz = az * 360000;
+    fel = el * 360000;
+
+    /** Firmware bug: (at least for AZ Mount Pro as of FW 20200305)
+     * azimuth has problems going to 0
+     * going to 0 from <=180 causes it to overshoot 0 and never stop
+     * going to 0 from >180 causes it to make a hard stop at 0 and a following
+     *   command to <= 180 will make it rotate forever until manually stopped,
+     *   and require resetting the mount for azimuth to work correctly again
+     * similar behavior is seen the other direction (>180 to 360 goes past 360,
+     *   <=180 to 360 makes a hard stop with the possibility of loss of
+     *   azimuth control)
+     * Workaround:
+     * get current position, if 0 is requested, go to 0.01 arcseconds away from
+     * 0 from the same direction (e.g. go to 0.01 arcseconds if currently <= 180,
+     * 129599999 arcseconds if currently > 180)
+     */
+    if (faz == 0)
+    {
+        /* make sure stopped */
+        retval = ioptron_stop(rot);
+
+        if (retval != RIG_OK)
+        {
+            return  -RIG_EPROTO;
+        }
+
+        /* get current position */
+        retval = ioptron_get_position(rot, &curr_az, &curr_el);
+
+        if (retval != RIG_OK)
+        {
+            return  -RIG_EPROTO;
+        }
+
+        if (curr_az <= 180)
+        {
+            faz = 1;
+        }
+        else
+        {
+            faz = 129599999; /* needs double precision float */
+        }
+    }
+
+    /* set azmiuth, returns '1" if OK */
+    SNPRINTF(cmdstr, sizeof(cmdstr), ":Sz%09.0f#", faz);
+    retval = ioptron_transaction(rot, cmdstr, retbuf, 1);
+
+    if (retval != RIG_OK || retbuf[0] != ACK1)
+    {
+        return  -RIG_EPROTO;
+    }
+
+    /* set altitude, returns '1" if OK */
+    SNPRINTF(cmdstr, sizeof(cmdstr), ":Sa+%08.0f#", fel);
+    retval = ioptron_transaction(rot, cmdstr, retbuf, 1);
+
+    if (retval != RIG_OK || retbuf[0] != ACK1)
+    {
+        return  -RIG_EPROTO;
+    }
+
+    /* move to set target, V2 command, returns '1" if OK */
+    SNPRINTF(cmdstr, sizeof(cmdstr), ":MS#"); //
+    retval = ioptron_transaction(rot, cmdstr, retbuf, 1);
+
+    if (retval != RIG_OK || retbuf[0] != ACK1)
+    {
+        return  -RIG_EPROTO;
+    }
+
+    /* stop tracking, V2 command, returns '1" if OK */
+    SNPRINTF(cmdstr, sizeof(cmdstr), ":ST0#");
+    retval = ioptron_transaction(rot, cmdstr, retbuf, 1);
 
     if (retval != RIG_OK || retbuf[0] != ACK1)
     {
@@ -261,25 +335,6 @@ ioptron_stop(ROT *rot)
     return retval;
 }
 
-/** get mount type code, initializes mount */
-static const char *
-ioptron_get_info(ROT *rot)
-{
-    static char info[32];
-    char str[6];
-    int retval;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
-
-    retval = ioptron_transaction(rot, ":MountInfo#", str, sizeof(str));
-
-    rig_debug(RIG_DEBUG_TRACE, "retval, RIG_OK str %d  %d  %str\n", retval, RIG_OK,
-              str);
-
-    SNPRINTF(info, sizeof(info), "MountInfo %s", str);
-
-    return info;
-}
 
 
 
@@ -304,7 +359,7 @@ const struct rot_caps ioptron_rot_caps =
     .rot_type =       ROT_TYPE_AZEL,
     .port_type =      RIG_PORT_SERIAL,
     .serial_rate_min  = 9600,
-    .serial_rate_max  = 9600,
+    .serial_rate_max  = 115200,
     .serial_data_bits = 8,
     .serial_stop_bits = 1,
     .serial_parity    = RIG_PARITY_NONE,

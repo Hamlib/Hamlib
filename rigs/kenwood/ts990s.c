@@ -128,7 +128,7 @@ static struct kenwood_priv_caps  ts990s_priv_caps  =
  *
  * part of infos comes from http://www.kenwood.net/
  */
-const struct rig_caps ts990s_caps =
+struct rig_caps ts990s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS990S),
     .model_name = "TS-990S",
@@ -162,7 +162,7 @@ const struct rig_caps ts990s_caps =
 #include "level_gran_kenwood.h"
         [LVL_ATT]     = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1100 }, .step = { .i = 10 } },
-        [LVL_COMP]    = { .min = { .f = 0.0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f/255.0f } },
+        [LVL_COMP]    = { .min = { .f = 0.0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 255.0f } },
     },
     .parm_gran =  {},
     .vfo_ops =  TS990S_VFO_OP,
@@ -650,13 +650,14 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_SWR:
         retval = get_kenwood_meter_reading(rig, '2', &lvl);
+
         if (retval != RIG_OK)
         {
             return retval;
         }
 
         val->f = rig_raw2val_float(lvl, &rig->caps->swr_cal);
-        val->f = round(val->f*10)/10.0;  // 1 decimal place precision 
+        val->f = round(val->f * 10) / 10.0; // 1 decimal place precision
         break;
 
     case RIG_LEVEL_METER:
@@ -741,7 +742,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
     }
     break;
-    
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
                   rig_strlevel(level));

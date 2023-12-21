@@ -71,14 +71,14 @@ int uniden_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only);
 int uniden_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 const char* uniden_get_info(RIG *rig);
 
-extern const struct rig_caps bc895_caps;
-extern const struct rig_caps bc898_caps;
-extern const struct rig_caps bc245_caps;
-extern const struct rig_caps bc780_caps;
-extern const struct rig_caps bc250_caps;
-extern const struct rig_caps pro2052_caps;
+extern struct rig_caps bc895_caps;
+extern struct rig_caps bc898_caps;
+extern struct rig_caps bc245_caps;
+extern struct rig_caps bc780_caps;
+extern struct rig_caps bc250_caps;
+extern struct rig_caps pro2052_caps;
 
-extern const struct rig_caps bcd396t_caps;
-extern const struct rig_caps bcd996t_caps;
+extern struct rig_caps bcd396t_caps;
+extern struct rig_caps bcd996t_caps;
 
 #endif /* _UNIDEN_H */

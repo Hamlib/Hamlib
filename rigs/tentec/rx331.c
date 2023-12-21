@@ -88,7 +88,7 @@ static const char *rx331_get_info(RIG *rig);
  *
  * TODO: from/to memory
  */
-const struct rig_caps rx331_caps =
+struct rig_caps rx331_caps =
 {
     RIG_MODEL(RIG_MODEL_RX331),
     .model_name = "RX-331",

@@ -47,8 +47,8 @@
 /* RIG capabilities descriptions */
 extern struct rig_caps gs100_caps;
 extern struct rig_caps netrigctl_caps;
-extern const struct rig_caps flrig_caps;
-extern const struct rig_caps trxmanager_caps;
+extern struct rig_caps flrig_caps;
+extern struct rig_caps trxmanager_caps;
 
 /*----------------------------------------------------------------------------*/
 

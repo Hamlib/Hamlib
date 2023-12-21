@@ -683,11 +683,13 @@ int barrett_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
-        case RIG_LEVEL_AGC:
-            sprintf(cmd_buf,"EG%c%s", val.i==0?'N':'H' , EOM);
-            break;
-        default: return -RIG_ENIMPL;
+    case RIG_LEVEL_AGC:
+        sprintf(cmd_buf, "EG%c%s", val.i == 0 ? 'N' : 'H', EOM);
+        break;
+
+    default: return -RIG_ENIMPL;
     }
+
     rig_flush(&rs->rigport);
     retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));
 
@@ -695,6 +697,7 @@ int barrett_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     {
         return retval;
     }
+
     return RIG_OK;
 }
 
@@ -756,7 +759,7 @@ int barrett_open(RIG *rig)
 }
 
 
-const struct rig_caps barrett_caps =
+struct rig_caps barrett_caps =
 {
     RIG_MODEL(RIG_MODEL_BARRETT_2050),
     .model_name =       "2050",

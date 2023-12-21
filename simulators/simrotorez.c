@@ -40,6 +40,8 @@ getmyline(int fd, char *buf)
         printf("\n");
     }
 
+    if (strlen(buf) == 0) { hl_usleep(10 * 1000); }
+
     return n;
 }
 

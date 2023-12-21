@@ -69,7 +69,7 @@ frameGet(int fd, unsigned char *buf)
 {
     int i = 0;
     memset(buf, 0, BUFSIZE);
-    unsigned char c;
+    unsigned char c = 0xff;
 
 again:
 
@@ -101,7 +101,7 @@ again:
         }
     }
 
-    printf("Error??? c=x%02x\n", c);
+    printf("Error %s\n", strerror(errno));
 
     return 0;
 }
@@ -111,7 +111,18 @@ void frameParse(int fd, unsigned char *frame, int len)
     double freq;
     int n = 0;
 
+    if (len == 0)
+    {
+        printf("%s: len==0\n", __func__);
+        return;
+    }
+
     //dumphex(frame, len);
+    if (len == 0)
+    {
+        printf("%s: len==0\n", __func__);
+        return;
+    }
 
     if (frame[0] != 0xfe && frame[1] != 0xfe)
     {

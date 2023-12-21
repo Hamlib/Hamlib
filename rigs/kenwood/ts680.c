@@ -76,7 +76,7 @@ static int ts680_set_vfo(RIG *rig, vfo_t vfo)
  *  GW0VNR 09042006
  */
 
-const struct rig_caps ts680s_caps =
+struct rig_caps ts680s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS680S),
     .model_name = "TS-680S",

@@ -306,7 +306,7 @@ static int multicast_send_json(RIG *rig)
     json_add_int(msg, "PTT", rig->state.cache.ptt, 1);
     json_add_int(msg, "Split", rig->state.cache.split, 1);
     rig_sprintf_mode(buf, sizeof(buf), rig->state.mode_list);
-    json_add_string(msg, "ModeList", buf,1);
+    json_add_string(msg, "ModeList", buf, 1);
     strcat(msg, "\"VFOs\": [\n");
     json_add_vfoA(rig, msg);
     json_add_vfoB(rig, msg);
@@ -339,7 +339,8 @@ void *multicast_thread_rx(void *vrig)
     while (rig->state.multicast->runflag)
     {
 #if 0
-        ret = read_string(&rig->state.rigport, (unsigned char *) buf, sizeof(buf), "\n", 1,
+        ret = read_string(&rig->state.rigport, (unsigned char *) buf, sizeof(buf), "\n",
+                          1,
                           0, 1);
 #endif
 
@@ -405,11 +406,13 @@ void *multicast_thread(void *vrig)
                 || loopcount-- <= 0)
         {
 #if 0
+
             if (loopcount <= 0)
             {
                 rig_debug(RIG_DEBUG_CACHE, "%s: sending multicast packet timeout\n", __func__);
             }
             else { rig_debug(RIG_DEBUG_ERR, "%s: sending multicast packet due to change\n", __func__); }
+
 #endif
 
 //            multicast_status_changed(rig);
@@ -582,8 +585,8 @@ void multicast_close(RIG *rig)
 {
     // Leave the multicast group
     if (setsockopt(rig->state.multicast->sock, IPPROTO_IP,
-                             IP_DROP_MEMBERSHIP, (char *)&rig->state.multicast->mreq,
-                             sizeof(rig->state.multicast->mreq)) < 0)
+                   IP_DROP_MEMBERSHIP, (char *)&rig->state.multicast->mreq,
+                   sizeof(rig->state.multicast->mreq)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
         return;

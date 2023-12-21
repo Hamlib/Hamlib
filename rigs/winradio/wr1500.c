@@ -37,7 +37,7 @@
 #define WR1500_MODES (RIG_MODE_AM | RIG_MODE_CW | \
                      RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_FM)
 
-const struct rig_caps wr1500_caps =
+struct rig_caps wr1500_caps =
 {
     RIG_MODEL(RIG_MODEL_WR1500),
     .model_name =     "WR-1500",

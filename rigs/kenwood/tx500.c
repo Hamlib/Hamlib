@@ -121,7 +121,7 @@ static struct kenwood_priv_caps  tx500_priv_caps  =
  * TX-500 rig capabilities.
  *
  */
-const struct rig_caps tx500_caps =
+struct rig_caps tx500_caps =
 {
     RIG_MODEL(RIG_MODEL_LAB599_TX500),
     .model_name = "TX-500",

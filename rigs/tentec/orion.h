@@ -196,7 +196,7 @@ struct tt565_priv_data {
  * Protocol is documented at Tentec's firmware site
  *		http://www.rfsquared.com/
  */
-const struct rig_caps tt565_caps = {
+struct rig_caps tt565_caps = {
 RIG_MODEL(RIG_MODEL_TT565),
 .model_name = "TT-565 Orion",
 .mfg_name =  "Ten-Tec",
@@ -414,7 +414,7 @@ RIG_MODEL(RIG_MODEL_TT565),
  *		http://www.tentec.com/index.php?id=360#down
  *
  */
-const struct rig_caps tt599_caps = {
+struct rig_caps tt599_caps = {
 RIG_MODEL(RIG_MODEL_TT599),
 .model_name = "TT-599 Eagle",
 .mfg_name =  "Ten-Tec",

@@ -896,7 +896,7 @@ int ts570_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
  *
  * part of infos comes from .http = //www.kenwood.net/
  */
-const struct rig_caps ts570s_caps =
+struct rig_caps ts570s_caps =
 {
     RIG_MODEL(RIG_MODEL_TS570S),
     .model_name = "TS-570S",
@@ -1083,7 +1083,7 @@ const struct rig_caps ts570s_caps =
  *
  * part of infos comes from .http = //www.kenwood.net/
  */
-const struct rig_caps ts570d_caps =
+struct rig_caps ts570d_caps =
 {
     RIG_MODEL(RIG_MODEL_TS570D),
     .model_name = "TS-570D",

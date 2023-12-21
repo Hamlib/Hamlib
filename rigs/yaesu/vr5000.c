@@ -122,7 +122,7 @@ static int  check_tuning_step(RIG *rig, vfo_t vfo, rmode_t mode,
  * vr5000 rigs capabilities.
  */
 
-const struct rig_caps vr5000_caps =
+struct rig_caps vr5000_caps =
 {
     RIG_MODEL(RIG_MODEL_VR5000),
     .model_name =         "VR-5000",

@@ -516,7 +516,8 @@ int HAMLIB_API rot_open(ROT *rot)
             return status;
         }
     }
-    if(rs->rotport.parm.serial.dtr_state == RIG_SIGNAL_ON)
+
+    if (rs->rotport.parm.serial.dtr_state == RIG_SIGNAL_ON)
     {
         ser_set_dtr(&rs->rotport, 1);
     }
@@ -524,7 +525,8 @@ int HAMLIB_API rot_open(ROT *rot)
     {
         ser_set_dtr(&rs->rotport, 0);
     }
-    if(rs->rotport.parm.serial.rts_state == RIG_SIGNAL_ON)
+
+    if (rs->rotport.parm.serial.rts_state == RIG_SIGNAL_ON)
     {
         ser_set_rts(&rs->rotport, 1);
     }

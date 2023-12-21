@@ -60,7 +60,7 @@ static struct kenwood_priv_caps trc80_priv_caps  =
 /*
  * TRC-80/TK-80 rig capabilities.
  */
-const struct rig_caps trc80_caps =
+struct rig_caps trc80_caps =
 {
     RIG_MODEL(RIG_MODEL_TRC80),
     .model_name = "TRC-80",

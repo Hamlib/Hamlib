@@ -63,7 +63,7 @@ static const char *v4l_get_info(RIG *rig);
  *
  *
  */
-const struct rig_caps v4l_caps =
+struct rig_caps v4l_caps =
 {
     RIG_MODEL(RIG_MODEL_V4L),
     .model_name = "SW/FM radio",

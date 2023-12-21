@@ -7,7 +7,7 @@
 
 #define ANYTONE_RESPSZ 64
 
-extern const struct rig_caps anytone_d578_caps;
+extern struct rig_caps anytone_d578_caps;
 
 #ifdef PTHREAD
 #include <pthread.h>

@@ -164,7 +164,7 @@ int elad_get_trn(RIG *rig, int *trn);
 int get_elad_level(RIG *rig, const char *cmd, float *f);
 int get_elad_func(RIG *rig, const char *cmd, int *status);
 
-extern const struct rig_caps fdm_duo_caps;
+extern struct rig_caps fdm_duo_caps;
 
 #if 0
 /* use when not interested in the answer, but want to check its len */

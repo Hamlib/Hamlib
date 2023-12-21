@@ -124,7 +124,7 @@ static struct icom_priv_caps icr30_priv_caps =
     .extcmds = icr30_extcmds      /* Custom ext_parm parameters */
 };
 
-const struct rig_caps icr30_caps =
+struct rig_caps icr30_caps =
 {
     RIG_MODEL(RIG_MODEL_ICR30),
     .model_name = "IC-R30",

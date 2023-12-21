@@ -65,9 +65,9 @@ int icmarine_set_conf(RIG *rig, token_t token, const char *val);
 int icmarine_get_conf(RIG *rig, token_t token, char *val);
 int icmarine_get_conf2(RIG *rig, token_t token, char *val, int val_len);
 
-extern const struct rig_caps icm700pro_caps;
-extern const struct rig_caps icm710_caps;
-extern const struct rig_caps icm802_caps;
-extern const struct rig_caps icm803_caps;
+extern struct rig_caps icm700pro_caps;
+extern struct rig_caps icm710_caps;
+extern struct rig_caps icm802_caps;
+extern struct rig_caps icm803_caps;
 
 #endif /* _ICMARINE_H */

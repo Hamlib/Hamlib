@@ -24,6 +24,6 @@
 
 #include "hamlib/rig.h"
 
-extern const struct rig_caps ts990s_caps;
+extern struct rig_caps ts990s_caps;
 
 #endif

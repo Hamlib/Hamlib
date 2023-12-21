@@ -72,9 +72,12 @@ void *rig_poll_routine(void *arg)
     int update_occurred;
 
     vfo_t vfo = RIG_VFO_NONE, tx_vfo = RIG_VFO_NONE;
-    freq_t freq_main_a = 0, freq_main_b = 0, freq_main_c = 0, freq_sub_a = 0, freq_sub_b = 0, freq_sub_c = 0;
-    rmode_t mode_main_a = 0, mode_main_b = 0, mode_main_c = 0, mode_sub_a = 0, mode_sub_b = 0, mode_sub_c = 0;
-    pbwidth_t width_main_a = 0, width_main_b = 0, width_main_c = 0, width_sub_a = 0, width_sub_b = 0, width_sub_c = 0;
+    freq_t freq_main_a = 0, freq_main_b = 0, freq_main_c = 0, freq_sub_a = 0,
+           freq_sub_b = 0, freq_sub_c = 0;
+    rmode_t mode_main_a = 0, mode_main_b = 0, mode_main_c = 0, mode_sub_a = 0,
+            mode_sub_b = 0, mode_sub_c = 0;
+    pbwidth_t width_main_a = 0, width_main_b = 0, width_main_c = 0, width_sub_a = 0,
+              width_sub_b = 0, width_sub_c = 0;
     ptt_t ptt = RIG_PTT_OFF;
     split_t split = RIG_SPLIT_OFF;
 
@@ -99,106 +102,127 @@ void *rig_poll_routine(void *arg)
             vfo = rig->state.current_vfo;
             update_occurred = 1;
         }
+
         if (rig->state.tx_vfo != tx_vfo)
         {
             tx_vfo = rig->state.tx_vfo;
             update_occurred = 1;
         }
+
         if (rig->state.cache.freqMainA != freq_main_a)
         {
             freq_main_a = rig->state.cache.freqMainA;
             update_occurred = 1;
         }
+
         if (rig->state.cache.freqMainB != freq_main_b)
         {
             freq_main_b = rig->state.cache.freqMainB;
             update_occurred = 1;
         }
+
         if (rig->state.cache.freqMainC != freq_main_c)
         {
             freq_main_b = rig->state.cache.freqMainC;
             update_occurred = 1;
         }
+
         if (rig->state.cache.freqSubA != freq_sub_a)
         {
             freq_sub_a = rig->state.cache.freqSubA;
             update_occurred = 1;
         }
+
         if (rig->state.cache.freqSubB != freq_sub_b)
         {
             freq_sub_b = rig->state.cache.freqSubB;
             update_occurred = 1;
         }
+
         if (rig->state.cache.freqSubC != freq_sub_c)
         {
             freq_sub_c = rig->state.cache.freqSubC;
             update_occurred = 1;
         }
+
         if (rig->state.cache.ptt != ptt)
         {
             ptt = rig->state.cache.ptt;
             update_occurred = 1;
         }
+
         if (rig->state.cache.split != split)
         {
             split = rig->state.cache.split;
             update_occurred = 1;
         }
+
         if (rig->state.cache.modeMainA != mode_main_a)
         {
             mode_main_a = rig->state.cache.modeMainA;
             update_occurred = 1;
         }
+
         if (rig->state.cache.modeMainB != mode_main_b)
         {
             mode_main_b = rig->state.cache.modeMainB;
             update_occurred = 1;
         }
+
         if (rig->state.cache.modeMainC != mode_main_c)
         {
             mode_main_c = rig->state.cache.modeMainC;
             update_occurred = 1;
         }
+
         if (rig->state.cache.modeSubA != mode_sub_a)
         {
             mode_sub_a = rig->state.cache.modeSubA;
             update_occurred = 1;
         }
+
         if (rig->state.cache.modeSubB != mode_sub_b)
         {
             mode_sub_b = rig->state.cache.modeSubB;
             update_occurred = 1;
         }
+
         if (rig->state.cache.modeSubC != mode_sub_c)
         {
             mode_sub_c = rig->state.cache.modeSubC;
             update_occurred = 1;
         }
+
         if (rig->state.cache.widthMainA != width_main_a)
         {
             width_main_a = rig->state.cache.widthMainA;
             update_occurred = 1;
         }
+
         if (rig->state.cache.widthMainB != width_main_b)
         {
             width_main_b = rig->state.cache.widthMainB;
             update_occurred = 1;
         }
+
         if (rig->state.cache.widthMainC != width_main_c)
         {
             width_main_c = rig->state.cache.widthMainC;
             update_occurred = 1;
         }
+
         if (rig->state.cache.widthSubA != width_sub_a)
         {
             width_sub_a = rig->state.cache.widthSubA;
             update_occurred = 1;
         }
+
         if (rig->state.cache.widthSubB != width_sub_b)
         {
             width_sub_b = rig->state.cache.widthSubB;
             update_occurred = 1;
         }
+
         if (rig->state.cache.widthSubC != width_sub_c)
         {
             width_sub_c = rig->state.cache.widthSubC;
@@ -584,13 +608,16 @@ int HAMLIB_API rig_get_trn(RIG *rig, int *trn)
     RETURNFUNC(-RIG_EDEPRECATED);
 }
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
 {
     ENTERFUNC;
 
-    rig_debug(RIG_DEBUG_TRACE, "Event: freq changed to %"PRIll"Hz on %s\n", (int64_t)freq, rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_TRACE, "Event: freq changed to %"PRIll"Hz on %s\n",
+              (int64_t)freq, rig_strvfo(vfo));
 
     rig_set_cache_freq(rig, vfo, freq);
+
     // This doesn't work well for Icom rigs -- no way to tell which VFO we're on
     // Should work for most other rigs using AI1; mode
     if (RIG_BACKEND_NUM(rig->caps->rig_model) != RIG_ICOM)
@@ -608,8 +635,9 @@ int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
 
     RETURNFUNC(0);
 }
+#endif
 
-
+#if defined(HAVE_PTHREAD)
 int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     ENTERFUNC;
@@ -618,6 +646,7 @@ int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               rig_strrmode(mode), width, rig_strvfo(vfo));
 
     rig_set_cache_mode(rig, vfo, mode, width);
+
     // This doesn't work well for Icom rigs -- no way to tell which VFO we're on
     // Should work for most other rigs using AI1; mode
     if (RIG_BACKEND_NUM(rig->caps->rig_model) != RIG_ICOM)
@@ -634,8 +663,10 @@ int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     RETURNFUNC(0);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_vfo_event(RIG *rig, vfo_t vfo)
 {
     ENTERFUNC;
@@ -654,8 +685,10 @@ int rig_fire_vfo_event(RIG *rig, vfo_t vfo)
 
     RETURNFUNC(0);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_ptt_event(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     ENTERFUNC;
@@ -675,8 +708,10 @@ int rig_fire_ptt_event(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     RETURNFUNC(0);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_dcd_event(RIG *rig, vfo_t vfo, dcd_t dcd)
 {
     ENTERFUNC;
@@ -693,8 +728,10 @@ int rig_fire_dcd_event(RIG *rig, vfo_t vfo, dcd_t dcd)
 
     RETURNFUNC(0);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_pltune_event(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
                           pbwidth_t *width)
 {
@@ -712,8 +749,10 @@ int rig_fire_pltune_event(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 static int print_spectrum_line(char *str, size_t length,
                                struct rig_spectrum_line *line)
 {
@@ -771,8 +810,10 @@ static int print_spectrum_line(char *str, size_t length,
 
     return c;
 }
+#endif
 
 
+#if defined(HAVE_PTHREAD)
 int rig_fire_spectrum_event(RIG *rig, struct rig_spectrum_line *line)
 {
     ENTERFUNC;
@@ -794,5 +835,6 @@ int rig_fire_spectrum_event(RIG *rig, struct rig_spectrum_line *line)
 
     RETURNFUNC(RIG_OK);
 }
+#endif
 
 /** @} */

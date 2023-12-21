@@ -700,10 +700,15 @@ int dump_csv_chan(RIG *rig,
     if (mem_caps->flags)
     {
         if (chan.tag[0] != 0)  // then we need the seperator
+        {
             fprintf(f, "%x%c", chan.flags, csv_sep);
+        }
         else
+        {
             fprintf(f, "%x", chan.flags);
+        }
     }
+
     if (chan.tag[0] != 0)
     {
         fprintf(f, "%s", chan.tag);

@@ -196,7 +196,7 @@ int ic910_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 }
 
-const struct rig_caps ic910_caps =
+struct rig_caps ic910_caps =
 {
     RIG_MODEL(RIG_MODEL_IC910),
     .model_name =   "IC-910",
@@ -227,8 +227,6 @@ const struct rig_caps ic910_caps =
     .level_gran =
     {
 #include "level_gran_icom.h"
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-        [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 20 }, .step = { .i = 1 } },
     },
     .parm_gran =    {},
     .ctcss_list =  common_ctcss_list,
