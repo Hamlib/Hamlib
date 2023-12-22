@@ -1524,8 +1524,8 @@ struct rig_caps powersdr_caps =
 struct rig_caps thetis_caps =
 {
     RIG_MODEL(RIG_MODEL_THETIS),
-    .model_name =   "Thetis",
-    .mfg_name =     "Apache",
+    .model_name =   "",
+    .mfg_name =     "Thetis",
     .version =      "20231222.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
