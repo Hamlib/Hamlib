@@ -1063,8 +1063,8 @@ static int is_networked(char *address, int address_length)
                         addr = &(sa_in6->sin6_addr);
                     }
 
-                    // Convert IP address to string
-                    if (addr)
+                    // Convert IP address to string and ignore bad ones
+                    if (addr && strncmp(addr, "169", 3) != 0)
                     {
                         count++;
 
@@ -1247,6 +1247,7 @@ void *multicast_receiver(void *arg)
                   strerror(errno));
         return NULL;
     }
+
 
 #endif
 
