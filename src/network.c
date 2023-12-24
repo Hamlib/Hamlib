@@ -1288,9 +1288,23 @@ void *multicast_receiver(void *arg)
 
     mreq.imr_multiaddr.s_addr = inet_addr(args->multicast_addr);
 
-    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+#ifdef __MINGW32__
+
+    // we're not worrying about IPV6 right now as that will likely never occur on home network
+    if (strlen(ip4) > 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: multicast binding to %s\n", __func__, ip4);
+        mreq.imr_interface.s_addr = inet_addr(ip4);
+    }
+    else
+#endif
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: multicast binding to INADDR_ANY\n", __func__);
+        mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    }
 
 #ifdef __MINGW32__
+
     if (setsockopt(socket_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (PCHAR)&mreq,
                    sizeof(mreq)) < 0)
 #else
