@@ -1064,7 +1064,7 @@ static int is_networked(char *address, int address_length)
                     }
 
                     // Convert IP address to string and ignore bad ones
-                    if (addr && strncmp(addr, "169", 3) != 0)
+                    if (addr)
                     {
                         count++;
 
@@ -1077,8 +1077,12 @@ static int is_networked(char *address, int address_length)
                         if (inet_ntop(pUnicast->Address.lpSockaddr->sa_family, addr, ipString,
                                       sizeof(ipString)) != NULL)
                         {
-                            rig_debug(RIG_DEBUG_VERBOSE, "%s: Address: %s\n", ipString, ipString);
-                            strncpy(address, ipString, address_length);
+                            // Use IP address if not 169.x.x.x
+                            if (strncmp(address,"169",3) != 0)
+                            {
+                                rig_debug(RIG_DEBUG_VERBOSE, "%s: Address: %s\n", ipString, ipString);
+                                strncpy(address, ipString, address_length);
+                            }
                         }
                     }
                 }
