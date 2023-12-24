@@ -1066,20 +1066,21 @@ static int is_networked(char *address, int address_length)
                     // Convert IP address to string and ignore bad ones
                     if (addr)
                     {
-                        count++;
-
-                        if (count > 1)
-                        {
-                            rig_debug(RIG_DEBUG_WARN,
-                                      "%s: more than 1 address found...multicast may not work\n", __func__);
-                        }
 
                         if (inet_ntop(pUnicast->Address.lpSockaddr->sa_family, addr, ipString,
                                       sizeof(ipString)) != NULL)
                         {
                             // Use IP address if not 169.x.x.x
-                            if (strncmp(address,"169",3) != 0)
+                            if (strncmp(address, "169", 3) != 0)
                             {
+                                count++;
+
+                                if (count > 1)
+                                {
+                                    rig_debug(RIG_DEBUG_WARN,
+                                              "%s: more than 1 address found...multicast may not work\n", __func__);
+                                }
+
                                 rig_debug(RIG_DEBUG_VERBOSE, "%s: Address: %s\n", ipString, ipString);
                                 strncpy(address, ipString, address_length);
                             }
