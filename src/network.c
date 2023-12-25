@@ -1056,12 +1056,16 @@ static int is_networked(char *address, int address_length)
                         struct sockaddr_in *sa_in = (struct sockaddr_in *)pUnicast->Address.lpSockaddr;
                         addr = &(sa_in->sin_addr);
                     }
+
+#if 0 // going to skip IPV6 for now -- should never need it on a local network
                     else if (pUnicast->Address.lpSockaddr->sa_family == AF_INET6) // IPv6 address
                     {
                         struct sockaddr_in6 *sa_in6 = (struct sockaddr_in6 *)
                                                       pUnicast->Address.lpSockaddr;
                         addr = &(sa_in6->sin6_addr);
                     }
+
+#endif
 
                     // Convert IP address to string and ignore bad ones
                     if (addr)
@@ -1156,6 +1160,46 @@ int is_wireless()
 #include <linux/wireless.h>
 #include <ifaddrs.h>
 
+int is_networked(char *ipv4, int ipv4_length)
+{
+    struct ifaddrs *interfaces, *iface;
+    char addr_str[INET_ADDRSTRLEN];
+
+    // Get a list of all network interfaces
+    if (getifaddrs(&interfaces) == -1)
+    {
+        perror("getifaddrs");
+        exit(EXIT_FAILURE);
+    }
+
+    // Iterate through the list of interfaces
+    for (iface = interfaces; iface != NULL; iface = iface->ifa_next)
+    {
+        if (iface->ifa_addr
+                && iface->ifa_addr->sa_family == AF_INET)   // Check it is IP4
+        {
+            // Convert the linked list of interfaces to a human readable string
+            struct sockaddr_in *sa = (struct sockaddr_in *) iface->ifa_addr;
+            inet_ntop(AF_INET, &(sa->sin_addr), addr_str, INET_ADDRSTRLEN);
+
+            if (strncmp(addr_str, "127", 3) == 0 && ipv4[0] == 0)
+            {
+                strncpy(ipv4, addr_str, ipv4_length);
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: Can use %s\n", __func__, ipv4);
+            }
+            else if (strncmp(addr_str, "127", 3) != 0)
+            {
+                strncpy(ipv4, addr_str, ipv4_length);
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: Will use %s\n", __func__, ipv4);
+            }
+        }
+    }
+
+    freeifaddrs(interfaces); // Free the linked list
+    return strlen(ipv4) > 0 ;
+}
+
+
 int is_wireless_linux(const char *ifname)
 {
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -1205,9 +1249,7 @@ int is_wireless()
 void *multicast_receiver(void *arg)
 {
     char data[4096];
-#ifdef __MINGW32__
     char ip4[INET6_ADDRSTRLEN];
-#endif
 
     struct multicast_receiver_args_s *args = (struct multicast_receiver_args_s *)
             arg;
@@ -1219,16 +1261,17 @@ void *multicast_receiver(void *arg)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast receiver\n", __FILE__,
               __LINE__);
-    int optval = 1;
-
-#ifdef __MINGW32__
 
     if (!is_networked(ip4, sizeof(ip4)))
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: No network found...multicast disabled\n",
-                  __func__);
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: no network detected...disabling multicast receive\n", __func__);
         return NULL;
     }
+
+    int optval = 1;
+
+#ifdef __MINGW32__
 
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (PCHAR)&optval,
                    sizeof(optval)) < 0)
@@ -1265,7 +1308,7 @@ void *multicast_receiver(void *arg)
     if (is_wireless())
     {
         rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: wireless detected so INADDR_ANY is being used\n", __func__);
+                  "%s: wireless detected\n", __func__);
 
 //        dest_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     }
@@ -1276,6 +1319,7 @@ void *multicast_receiver(void *arg)
     }
 
 #else
+//    dest_addr.sin_addr.s_addr = inet_addr(args->multicast_addr);
     dest_addr.sin_addr.s_addr = inet_addr(args->multicast_addr);
 #endif
     dest_addr.sin_port = htons(args->multicast_port);
@@ -1321,7 +1365,11 @@ void *multicast_receiver(void *arg)
         rig_debug(RIG_DEBUG_ERR, "%s: error joining multicast group %s:%d: %s\n",
                   __func__,
                   args->multicast_addr, args->multicast_port, strerror(errno));
-        return NULL;
+        if (errno != 0)
+        {
+            return NULL;
+        }
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: errno==0 so trying to continue\n", __func__);
     }
 
     rs->multicast_receiver_run = 1;
