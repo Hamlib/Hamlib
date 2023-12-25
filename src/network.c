@@ -1071,7 +1071,7 @@ static int is_networked(char *address, int address_length)
                                       sizeof(ipString)) != NULL)
                         {
                             // Use IP address if not 169.x.x.x
-                            if (strncmp(address, "169", 3) != 0)
+                            if (strncmp(ipString, "169", 3) != 0)
                             {
                                 count++;
 
