@@ -1153,11 +1153,9 @@ int is_wireless()
     return 0;
 }
 #else
-#ifndef __APPLE__
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <linux/wireless.h>
 #include <ifaddrs.h>
 
 int is_networked(char *ipv4, int ipv4_length)
@@ -1200,6 +1198,8 @@ int is_networked(char *ipv4, int ipv4_length)
 }
 
 
+#ifdef __linux__
+#include <linux/wireless.h>
 int is_wireless_linux(const char *ifname)
 {
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -1365,10 +1365,12 @@ void *multicast_receiver(void *arg)
         rig_debug(RIG_DEBUG_ERR, "%s: error joining multicast group %s:%d: %s\n",
                   __func__,
                   args->multicast_addr, args->multicast_port, strerror(errno));
+
         if (errno != 0)
         {
             return NULL;
         }
+
         rig_debug(RIG_DEBUG_VERBOSE, "%s: errno==0 so trying to continue\n", __func__);
     }
 
