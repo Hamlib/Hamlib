@@ -135,6 +135,7 @@ int flexradio_open(RIG *rig)
         break;
 
     case RIG_MODEL_POWERSDR:
+    case RIG_MODEL_THETIS:
         break;
 
     default:
