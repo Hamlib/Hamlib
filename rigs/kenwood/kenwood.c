@@ -5018,6 +5018,7 @@ int kenwood_set_trn(RIG *rig, int trn)
         char buf[5];
 
     case RIG_MODEL_POWERSDR: // powersdr doesn't have AI command
+    case RIG_MODEL_THETIS: // powersdr doesn't have AI command
         RETURNFUNC(-RIG_ENAVAIL);
 
     case RIG_MODEL_TS990S:
