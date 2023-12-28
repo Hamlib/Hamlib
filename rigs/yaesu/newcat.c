@@ -852,7 +852,7 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
     }
 
     // some rigs need to skip freq/mode settings as 60M only operates in memory mode
-    if (is_ft991 || is_ft897 || is_ft897d || is_ftdx5000) { return 1; }
+    if (is_ft991 || is_ft897 || is_ft897d || is_ftdx5000 || is_ftdx10) { return 1; }
 
     if (!is_ftdx10 && !is_ft710 && !is_ftdx101d && !is_ftdx101mp) { return 0; }
 
