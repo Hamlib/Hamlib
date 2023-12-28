@@ -1168,7 +1168,7 @@ VFO reset, \(oq4\(cq = Memory Clear reset, \(oq8\(cq = Master reset.
 .IP
 Since these values are defined as a bitmask in
 .IR include/hamlib/rig.h ,
-it should be possible to AND these values together to do multiple resets at
+it should be possible to OR these values together to do multiple resets at
 once, if the backend supports it or supports a reset action via rig control at
 all.
 .
