@@ -736,6 +736,18 @@ static int netrigctl_open(RIG *rig)
 
                 if (!has) { rig->caps->get_conf = NULL; }
             }
+            else if (strcmp(setting, "has_get_ant") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+
+                if (!has) { rig->caps->get_ant = NULL; }
+            }
+            else if (strcmp(setting, "has_set_ant") == 0)
+            {
+                int has = strtol(value, NULL, 0);
+
+                if (!has) { rig->caps->set_ant = NULL; }
+            }
 
 #if 0 // for the future
             else if (strcmp(setting, "has_set_trn") == 0)
@@ -2811,7 +2823,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20231004.0",
+    .version =        "20231229.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
