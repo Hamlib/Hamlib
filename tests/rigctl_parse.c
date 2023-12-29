@@ -4671,6 +4671,8 @@ declare_proto_rig(dump_state)
 //        fprintf(fout, "has_get_trn=%d\n", rig->caps->get_trn != NULL);
         fprintf(fout, "has_power2mW=%d\n", rig->caps->power2mW != NULL);
         fprintf(fout, "has_mW2power=%d\n", rig->caps->mW2power != NULL);
+        fprintf(fout, "has_get_ant=%d\n", rig->caps->get_ant != NULL);
+        fprintf(fout, "has_set_ant=%d\n", rig->caps->set_ant != NULL);
         fprintf(fout, "timeout=%d\n", rig->caps->timeout);
         fprintf(fout, "rig_model=%d\n", rig->caps->rig_model);
         fprintf(fout, "rigctld_version=%s\n", hamlib_version2);
