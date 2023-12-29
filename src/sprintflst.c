@@ -566,7 +566,7 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
 
         if (RIG_PARM_IS_FLOAT(rig_idx2setting(i)))
         {
-            len += sprintf(str + len,
+            len += snprintf(str + len, nlen,
                            "%s(%.g..%.g/%.g) ",
                            ms,
                            gran[i].min.f,
@@ -578,10 +578,13 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
             if (gran[i].step.s)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: BAND_SELECT?\n", __func__);
+                if (strcmp(ms,"BANDSELECT")!=0)
+                {
                 len += sprintf(str + len,
                                "%s(%s) ",
                                ms,
                                gran[i].step.s);
+                }
             }
         }
         else
