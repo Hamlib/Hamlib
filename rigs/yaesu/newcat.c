@@ -2732,8 +2732,9 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     }
     if (newcat_60m_exception(rig, rig->state.cache.freqMainA, rig->state.cache.modeMainA))
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: ignoring set_split since we're on 60M exception\n", __func__);
-        return RIG_OK; // fake the return code to make things happy
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: force set_split off since we're on 60M exception\n", __func__);
+        split = RIG_SPLIT_OFF;
+        //return RIG_OK; // fake the return code to make things happy
     }
 
     if (is_ft991)
