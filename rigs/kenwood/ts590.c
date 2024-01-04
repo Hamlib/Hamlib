@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "hamlib/rig.h"
 #include "kenwood.h"
@@ -467,7 +468,7 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_USB_AF:
-        kenwood_val = val.f * 9;
+        kenwood_val = roundl((val.f + .045) * 9);
         cmd = 65; // TS-590S
 
         if (rig->caps->rig_model == RIG_MODEL_TS590SG) { cmd = 72; }
@@ -476,7 +477,7 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_USB_AF_INPUT:
-        kenwood_val = val.f * 9;
+        kenwood_val = roundl((val.f + .045) * 9);
         cmd = 64; // TS-590S
 
         if (rig->caps->rig_model == RIG_MODEL_TS590SG) { cmd = 71; }
@@ -663,16 +664,34 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if (rig->caps->rig_model == RIG_MODEL_TS590SG) { cmd = 72; }
 
         retval = ts590_get_ex_menu(rig, cmd, 1, &levelint);
-        val->f = levelint / 9.0;
+
+        if (levelint == 9)
+        {
+            val->f = 1.0;
+        }
+        else
+        {
+            val->f = roundl(levelint * 10 / 10.0 + .04) / 10.0;
+        }
+
         return retval;
 
     case RIG_LEVEL_USB_AF_INPUT:
-        cmd = 65; // TS-590S
+        cmd = 64; // TS-590S
 
         if (rig->caps->rig_model == RIG_MODEL_TS590SG) { cmd = 71; }
 
         retval = ts590_get_ex_menu(rig, cmd, 1, &levelint);
-        val->f = levelint / 9.0;
+
+        if (levelint == 9)
+        {
+            val->f = 1.0;
+        }
+        else
+        {
+            val->f = roundl(levelint * 10 / 10.0) / 10.0;
+        }
+
         return retval;
 
     case RIG_LEVEL_AF:
@@ -1593,7 +1612,7 @@ struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".11",
+    .version = BACKEND_VER ".12",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -2015,7 +2034,7 @@ struct rig_caps ts590sg_caps =
     .chan_list =  { /* TBC */
         {  0, 89, RIG_MTYPE_MEM,  TS590_CHANNEL_CAPS },
         { 90, 99, RIG_MTYPE_EDGE, TS590_CHANNEL_CAPS },
-		{  1,  3, RIG_MTYPE_MORSE },
+        {  1,  3, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
