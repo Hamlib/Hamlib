@@ -1372,9 +1372,161 @@ struct rig_caps f6k_caps =
 struct rig_caps powersdr_caps =
 {
     RIG_MODEL(RIG_MODEL_POWERSDR),
-    .model_name =       "PowerSDR/Thetis",
-    .mfg_name =     "FlexRadio/ANAN",
+    .model_name =       "PowerSDR",
+    .mfg_name =     "FlexRadio/Apache",
     .version =      "20231107.0",
+    .copyright =        "LGPL",
+    .status =       RIG_STATUS_STABLE,
+    .rig_type =     RIG_TYPE_TRANSCEIVER,
+    .ptt_type =     RIG_PTT_RIG,
+    .dcd_type =     RIG_DCD_NONE,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  300,
+    .serial_rate_max =  115200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =  RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =  0,
+    .post_write_delay = 0,
+    // The combination of timeout and retry is important
+    // We need at least 3 seconds to do profile switches
+    // Hitting the timeout is OK as long as we retry
+    // Previous note showed FA/FB may take up to 500ms on band change
+    // Flex 1500 needs about 6 seconds for a band change in PowerSDR
+    .timeout =      800, // some band transitions can take 600ms
+    .retry =        10,
+
+    .has_get_func =     POWERSDR_FUNC_ALL,
+    .has_set_func =     POWERSDR_FUNC_ALL,
+    .has_get_level =    POWERSDR_LEVEL_ALL,
+    .has_set_level =    POWERSDR_LEVEL_SET,
+    .has_get_parm =     RIG_PARM_BANDSELECT,
+    .has_set_parm =     RIG_PARM_BANDSELECT,
+    .level_gran =       {
+#include "level_gran_kenwood.h"
+        [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
+    },     /* FIXME: granularity */
+    .parm_gran =  {
+        // there  are V00 thru V13 but we don't cover them as of yet -- what rig?
+        [PARM_BANDSELECT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.s = "BAND160M,BAND80M,BAND60M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BAND2M,BANDWWV,BANDGEN"}}
+    },
+
+    //.extlevels =      elecraft_ext_levels,
+    //.extparms =       kenwood_cfg_params,
+    .preamp =       { RIG_DBLST_END, },
+    .attenuator =       { RIG_DBLST_END, },
+    .max_rit =      Hz(0),
+    .max_xit =      Hz(0),
+    .max_ifshift =      Hz(0),
+    .vfo_op =      kenwood_vfo_op,
+    .vfo_ops =      POWERSDR_VFO_OP,
+    .targetable_vfo =   RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .transceive =       RIG_TRN_RIG,
+    .agc_level_count = 6,
+    .agc_levels = { RIG_AGC_OFF, RIG_AGC_LONG, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_USER },
+    .bank_qty =     0,
+    .chan_desc_sz =     0,
+
+    .chan_list =        { RIG_CHAN_END },
+
+    .rx_range_list1 =  {
+        {kHz(30), MHz(77), POWERSDR_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        {MHz(135), MHz(165), POWERSDR_MODES, -1, - 1, F6K_VFO, F6K_ANTS},
+        RIG_FRNG_END,
+    }, /* rx range */
+    .tx_range_list1 =  {
+        FRQ_RNG_HF(1, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_6m(1, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_2m(1, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        RIG_FRNG_END,
+    }, /* tx range */
+
+    .rx_range_list2 =  {
+        {kHz(30), MHz(77), POWERSDR_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        { MHz(135), MHz(165), POWERSDR_MODES, -1, -1, F6K_VFO, F6K_ANTS},
+        RIG_FRNG_END,
+    }, /* rx range */
+    .tx_range_list2 =  {
+        FRQ_RNG_HF(2, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_6m(2, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        FRQ_RNG_2m(2, POWERSDR_MODES, mW(10), W(100), F6K_VFO, F6K_ANTS),
+        RIG_FRNG_END,
+    }, /* tx range */
+
+    .tuning_steps =  {
+        {POWERSDR_MODES, 1},
+        RIG_TS_END,
+    },
+
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_SSB, kHz(2.7)},
+        {RIG_MODE_SSB, kHz(3.3)},
+        {RIG_MODE_SSB, kHz(1.8)},
+        {RIG_MODE_SSB, kHz(1.6)},
+        {RIG_MODE_SSB, kHz(4.0)},
+        {RIG_MODE_SSB, RIG_FLT_ANY},
+        {RIG_MODE_CW, kHz(0.4)},
+        {RIG_MODE_CW, kHz(1.5)},
+        {RIG_MODE_CW, Hz(50)},
+        {RIG_MODE_CW, kHz(3.0)},
+        {RIG_MODE_CW, RIG_FLT_ANY},
+        {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(1.5)},
+        {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(3.0)},
+        {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(0.1)},
+        {RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, RIG_FLT_ANY},
+        {RIG_MODE_AM, kHz(6)},
+        {RIG_MODE_AM, kHz(14)},
+        {RIG_MODE_AM, kHz(5.6)},
+        {RIG_MODE_AM, kHz(20.0)},
+        {RIG_MODE_AM, RIG_FLT_ANY},
+        {RIG_MODE_FM, kHz(13)}, /* TBC */
+        RIG_FLT_END,
+    },
+    .priv = (void *)& powersdr_priv_caps,
+
+    .rig_init =     kenwood_init,
+    .rig_cleanup =      kenwood_cleanup,
+    .rig_open =     flexradio_open,
+    .rig_close =        kenwood_close,
+    .set_freq =     kenwood_set_freq,
+    .get_freq =     kenwood_get_freq,
+    .set_mode =     powersdr_set_mode,
+    .get_mode =     powersdr_get_mode,
+    .set_vfo =      kenwood_set_vfo,
+    .get_vfo =      kenwood_get_vfo_if,
+    .set_split_vfo =    kenwood_set_split_vfo,
+    .get_split_vfo =    kenwood_get_split_vfo_if,
+    .get_ptt =      flex6k_get_ptt,
+    .set_ptt =      flex6k_set_ptt,
+    .get_powerstat = kenwood_get_powerstat,
+    .set_powerstat = kenwood_set_powerstat,
+    // TODO copy over kenwood_[set|get]_level and modify to handle DSP filter values
+    // correctly - use actual values instead of indices
+    .set_level =        powersdr_set_level,
+    .get_level =        powersdr_get_level,
+    .get_func =         powersdr_get_func,
+    .set_func =         powersdr_set_func,
+    .get_parm =         powersdr_get_parm,
+    .set_parm =         powersdr_set_parm,
+    //.set_ant =       kenwood_set_ant_no_ack,
+    //.get_ant =       kenwood_get_ant,
+    .send_morse =  kenwood_send_morse,
+    .stop_morse =  kenwood_stop_morse,
+    .wait_morse =  rig_wait_morse,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
+};
+
+/*
+ * Thetis rig capabilities.  Same as PowerSDR for now but may get new functions
+ */
+struct rig_caps thetis_caps =
+{
+    RIG_MODEL(RIG_MODEL_THETIS),
+    .model_name =   "",
+    .mfg_name =     "Thetis",
+    .version =      "20231222.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,

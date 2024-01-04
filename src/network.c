@@ -85,7 +85,11 @@
 #endif
 
 #ifdef __MINGW32__
+#include <winsock2.h>
+#include <windows.h>
+#include <iphlpapi.h>
 static int wsstarted;
+static int is_networked(char *address, int address_length);
 #endif
 
 //! @cond Doxygen_Suppress
@@ -963,6 +967,9 @@ void *multicast_publisher(void *arg)
 {
     unsigned char spectrum_data[HAMLIB_MAX_SPECTRUM_DATA];
     char snapshot_buffer[HAMLIB_MAX_SNAPSHOT_PACKET_SIZE];
+#ifdef __MINGW32__
+    char ip4[32];
+#endif
 
     struct multicast_publisher_args_s *args = (struct multicast_publisher_args_s *)
             arg;
@@ -980,6 +987,17 @@ void *multicast_publisher(void *arg)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast publisher\n", __FILE__,
               __LINE__);
+
+#ifdef __MINGW32__
+
+    if (!is_networked(ip4, sizeof(ip4)))
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: no IPV4 network detected...multicast disabled\n",
+                  __func__);
+        return NULL;
+    }
+
+#endif
 
     snapshot_init();
 
@@ -1050,8 +1068,99 @@ void *multicast_publisher(void *arg)
 
 
 #ifdef __MINGW32__
-#include <winsock2.h>
-#include <iphlpapi.h>
+
+static int is_networked(char *address, int address_length)
+{
+    int count = 0;
+
+    DWORD dwSize = 0;
+    DWORD dwRetVal = 0;
+    ULONG flags = GAA_FLAG_INCLUDE_PREFIX;
+    PIP_ADAPTER_ADDRESSES pAddresses = NULL;
+    PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+    PIP_ADAPTER_UNICAST_ADDRESS pUnicast = NULL;
+    char ipString[INET6_ADDRSTRLEN]; // large enough for both IPv4 and IPv6
+    address[0] = 0;
+
+    // First call to determine actual memory size needed
+    GetAdaptersAddresses(AF_UNSPEC, flags, NULL, NULL, &dwSize);
+    pAddresses = (IP_ADAPTER_ADDRESSES *)malloc(dwSize);
+
+    // Second call to get the actual data
+    dwRetVal = GetAdaptersAddresses(AF_UNSPEC, flags, NULL, pAddresses, &dwSize);
+
+    if (dwRetVal == NO_ERROR)
+    {
+        for (pCurrAddresses = pAddresses; pCurrAddresses != NULL;
+                pCurrAddresses = pCurrAddresses->Next)
+        {
+//            if (pCurrAddresses->IfType == IF_TYPE_IEEE80211) // Wireless adapter
+            {
+                char friendlyName[256];
+                wcstombs(friendlyName, pCurrAddresses->FriendlyName, sizeof(friendlyName));
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: network IfType = %d, name=%s\n", __func__,
+                          (int)pCurrAddresses->IfType, friendlyName);
+
+                for (pUnicast = pCurrAddresses->FirstUnicastAddress; pUnicast != NULL;
+                        pUnicast = pUnicast->Next)
+                {
+                    void *addr = NULL;
+
+                    if (pUnicast->Address.lpSockaddr->sa_family == AF_INET) // IPv4 address
+                    {
+                        struct sockaddr_in *sa_in = (struct sockaddr_in *)pUnicast->Address.lpSockaddr;
+                        addr = &(sa_in->sin_addr);
+                    }
+
+#if 0 // going to skip IPV6 for now -- should never need it on a local network
+                    else if (pUnicast->Address.lpSockaddr->sa_family == AF_INET6) // IPv6 address
+                    {
+                        struct sockaddr_in6 *sa_in6 = (struct sockaddr_in6 *)
+                                                      pUnicast->Address.lpSockaddr;
+                        addr = &(sa_in6->sin6_addr);
+                    }
+
+#endif
+
+                    // Convert IP address to string and ignore bad ones
+                    if (addr)
+                    {
+
+                        if (inet_ntop(pUnicast->Address.lpSockaddr->sa_family, addr, ipString,
+                                      sizeof(ipString)) != NULL)
+                        {
+                            // Use IP address if not 169.x.x.x
+                            if (strncmp(ipString, "169", 3) != 0)
+                            {
+                                count++;
+
+                                if (count > 1)
+                                {
+                                    rig_debug(RIG_DEBUG_WARN,
+                                              "%s: more than 1 address found...multicast may not work\n", __func__);
+                                }
+
+                                rig_debug(RIG_DEBUG_VERBOSE, "%s: Address: %s\n", ipString, ipString);
+                                strncpy(address, ipString, address_length);
+                            }
+                        }
+                    }
+                }
+
+                free(pAddresses);
+                return 1; // Wireless and addresses printed
+            }
+        }
+    }
+
+    if (pAddresses)
+    {
+        free(pAddresses);
+    }
+
+    return 0; // Not wireless or no addresses found
+}
+
 int is_wireless()
 {
     DWORD dwSize = 0;
@@ -1099,13 +1208,53 @@ int is_wireless()
     return 0;
 }
 #else
-#ifndef __APPLE__
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <linux/wireless.h>
 #include <ifaddrs.h>
 
+int is_networked(char *ipv4, int ipv4_length)
+{
+    struct ifaddrs *interfaces, *iface;
+    char addr_str[INET_ADDRSTRLEN];
+
+    // Get a list of all network interfaces
+    if (getifaddrs(&interfaces) == -1)
+    {
+        perror("getifaddrs");
+        exit(EXIT_FAILURE);
+    }
+
+    // Iterate through the list of interfaces
+    for (iface = interfaces; iface != NULL; iface = iface->ifa_next)
+    {
+        if (iface->ifa_addr
+                && iface->ifa_addr->sa_family == AF_INET)   // Check it is IP4
+        {
+            // Convert the linked list of interfaces to a human readable string
+            struct sockaddr_in *sa = (struct sockaddr_in *) iface->ifa_addr;
+            inet_ntop(AF_INET, &(sa->sin_addr), addr_str, INET_ADDRSTRLEN);
+
+            if (strncmp(addr_str, "127", 3) == 0 && ipv4[0] == 0)
+            {
+                strncpy(ipv4, addr_str, ipv4_length);
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: Can use %s\n", __func__, ipv4);
+            }
+            else if (strncmp(addr_str, "127", 3) != 0)
+            {
+                strncpy(ipv4, addr_str, ipv4_length);
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: Will use %s\n", __func__, ipv4);
+            }
+        }
+    }
+
+    freeifaddrs(interfaces); // Free the linked list
+    return strlen(ipv4) > 0 ;
+}
+
+
+#ifdef __linux__
+#include <linux/wireless.h>
 int is_wireless_linux(const char *ifname)
 {
     int sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -1155,6 +1304,7 @@ int is_wireless()
 void *multicast_receiver(void *arg)
 {
     char data[4096];
+    char ip4[INET6_ADDRSTRLEN];
 
     struct multicast_receiver_args_s *args = (struct multicast_receiver_args_s *)
             arg;
@@ -1170,7 +1320,15 @@ void *multicast_receiver(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast receiver\n", __FILE__,
               __LINE__);
 
+    if (!is_networked(ip4, sizeof(ip4)))
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: no network detected...disabling multicast receive\n", __func__);
+        return NULL;
+    }
+
     int optval = 1;
+
 #ifdef __MINGW32__
 
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (PCHAR)&optval,
@@ -1196,6 +1354,7 @@ void *multicast_receiver(void *arg)
         return NULL;
     }
 
+
 #endif
 
     memset(&dest_addr, 0, sizeof(dest_addr));
@@ -1203,19 +1362,22 @@ void *multicast_receiver(void *arg)
 #ifdef __MINGW32__
 
     // Windows wireless cannot bind to multicast group addresses for some unknown reason
+    // Update: it's not wireless causing the error we see but we'll leave the detection in place
     if (is_wireless())
     {
         rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: wireless detected so localhost is being used\n", __func__);
-        dest_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+                  "%s: wireless detected\n", __func__);
+
+//        dest_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     }
     else
     {
         rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: no wireless detect so INADDR_ANY is being used\n", __func__);
+                  "%s: no wireless detected so INADDR_ANY is being used\n", __func__);
     }
 
 #else
+//    dest_addr.sin_addr.s_addr = inet_addr(args->multicast_addr);
     dest_addr.sin_addr.s_addr = inet_addr(args->multicast_addr);
 #endif
     dest_addr.sin_port = htons(args->multicast_port);
@@ -1234,9 +1396,23 @@ void *multicast_receiver(void *arg)
 
     mreq.imr_multiaddr.s_addr = inet_addr(args->multicast_addr);
 
-    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+#ifdef __MINGW32__
+
+    // we're not worrying about IPV6 right now as that will likely never occur on home network
+    if (strlen(ip4) > 0)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: multicast binding to %s\n", __func__, ip4);
+        mreq.imr_interface.s_addr = inet_addr(ip4);
+    }
+    else
+#endif
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: multicast binding to INADDR_ANY\n", __func__);
+        mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    }
 
 #ifdef __MINGW32__
+
     if (setsockopt(socket_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (PCHAR)&mreq,
                    sizeof(mreq)) < 0)
 #else
@@ -1247,7 +1423,13 @@ void *multicast_receiver(void *arg)
         rig_debug(RIG_DEBUG_ERR, "%s: error joining multicast group %s:%d: %s\n",
                   __func__,
                   args->multicast_addr, args->multicast_port, strerror(errno));
-        return NULL;
+
+        if (errno != 0)
+        {
+            return NULL;
+        }
+
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: errno==0 so trying to continue\n", __func__);
     }
 
     rs->multicast_receiver_run = 1;
@@ -1356,6 +1538,9 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     int socket_fd;
     int status;
     int mutex_status;
+#ifdef __MINGW32__
+    char ip4[32];
+#endif
 
     ENTERFUNC;
 
@@ -1370,6 +1555,17 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
               "%s(%d): multicast publisher address=%s, port=%d\n", __FILE__,
               __LINE__,
               multicast_addr, multicast_port);
+
+#ifdef __MINGW32__
+
+    if (!is_networked(ip4, sizeof(ip4)))
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: No network found...multicast disabled\n",
+                  __func__);
+        return RIG_OK;
+    }
+
+#endif
 
     if (multicast_addr == NULL || strcmp(multicast_addr, "0.0.0.0") == 0)
     {

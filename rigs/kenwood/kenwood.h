@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20231112"
+#define BACKEND_VER "20231226"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -109,6 +109,7 @@ extern struct confparams kenwood_cfg_params[];
 #define RIG_IS_XG3       (rig->caps->rig_model == RIG_MODEL_XG3)
 #define RIG_IS_PT8000A   (rig->caps->rig_model == RIG_MODEL_PT8000A)
 #define RIG_IS_POWERSDR  (rig->caps->rig_model == RIG_MODEL_POWERSDR)
+#define RIG_IS_THETIS  (rig->caps->rig_model == RIG_MODEL_THETIS)
 #define RIG_IS_MALACHITE (rig->caps->rig_model == RIG_MODEL_MALACHITE)
 #define RIG_IS_QRPLABS (rig->caps->rig_model == RIG_MODEL_QRPLABS)
 
@@ -323,6 +324,7 @@ extern struct rig_caps tx500_caps;
 extern struct rig_caps sdruno_caps;
 extern struct rig_caps qrplabs_caps;
 extern struct rig_caps fx4_caps;
+extern struct rig_caps thetis_caps;
 
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd,

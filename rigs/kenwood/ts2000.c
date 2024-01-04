@@ -1729,6 +1729,7 @@ struct rig_caps ts2000_caps =
 
     .chan_list =  {
         { 0, 299, RIG_MTYPE_MEM, TS2000_MEM_CAP  },
+		{ 1,   3, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

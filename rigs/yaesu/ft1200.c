@@ -202,6 +202,7 @@ struct rig_caps ftdx1200_caps =
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
+        {   1,	5,  RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

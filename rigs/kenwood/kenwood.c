@@ -710,7 +710,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
     {
         size_t length;
         // some PowerSDR commands have variable len
-        int checklen =  !RIG_IS_POWERSDR;
+        int checklen =  !RIG_IS_POWERSDR && !RIG_IS_THETIS;
         err = kenwood_transaction(rig, cmd, buf, buf_size);
 
         if (err != RIG_OK)        /* return immediately on error as any
@@ -5018,6 +5018,7 @@ int kenwood_set_trn(RIG *rig, int trn)
         char buf[5];
 
     case RIG_MODEL_POWERSDR: // powersdr doesn't have AI command
+    case RIG_MODEL_THETIS: // powersdr doesn't have AI command
         RETURNFUNC(-RIG_ENAVAIL);
 
     case RIG_MODEL_TS990S:
@@ -5052,7 +5053,7 @@ int kenwood_get_trn(RIG *rig, int *trn)
 
     /* these rigs only have AI[0|1] set commands and no AI query */
     if (RIG_IS_TS450S || RIG_IS_TS690S || RIG_IS_TS790 || RIG_IS_TS850
-            || RIG_IS_TS950S || RIG_IS_TS950SDX || RIG_IS_POWERSDR)
+            || RIG_IS_TS950S || RIG_IS_TS950SDX || RIG_IS_POWERSDR || RIG_IS_THETIS)
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
@@ -6187,6 +6188,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&sdruno_caps);
     rig_register(&qrplabs_caps);
     rig_register(&fx4_caps);
+    rig_register(&thetis_caps);
 
     return (RIG_OK);
 }

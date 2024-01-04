@@ -853,7 +853,7 @@ int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
     }
 
     // some rigs need to skip freq/mode settings as 60M only operates in memory mode
-    if (is_ft991 || is_ft897 || is_ft897d || is_ftdx5000) { return 1; }
+    if (is_ft991 || is_ft897 || is_ft897d || is_ftdx5000 || is_ftdx10) { return 1; }
 
     if (!is_ftdx10 && !is_ft710 && !is_ftdx101d && !is_ftdx101mp) { return 0; }
 
@@ -2728,6 +2728,12 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     if (err < 0)
     {
         RETURNFUNC(err);
+    }
+    if (newcat_60m_exception(rig, rig->state.cache.freqMainA, rig->state.cache.modeMainA))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: force set_split off since we're on 60M exception\n", __func__);
+        split = RIG_SPLIT_OFF;
+        //return RIG_OK; // fake the return code to make things happy
     }
 
     if (is_ft991)

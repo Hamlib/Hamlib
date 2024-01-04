@@ -152,6 +152,23 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo);
 #define IC705_OTHER_TX_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_DSTAR)
 #define IC705_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF_RAW|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_COMP_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_SPECTRUM_MODE|RIG_LEVEL_SPECTRUM_SPAN|RIG_LEVEL_SPECTRUM_SPEED|RIG_LEVEL_SPECTRUM_REF|RIG_LEVEL_SPECTRUM_AVG|RIG_LEVEL_SPECTRUM_EDGE_LOW|RIG_LEVEL_SPECTRUM_EDGE_HIGH)
 
+#define IC705_RFPOWER_METER_CAL { 13, \
+    { \
+         { 0, 0.0f }, \
+         { 21, 0.50f }, \
+         { 43, 1.00f }, \
+         { 65, 1.50f }, \
+         { 83, 2.00f }, \
+         { 95, 2.50f }, \
+         { 105, 3.00f }, \
+         { 114, 3.50f }, \
+         { 124, 4.00f }, \
+         { 143, 5.00f }, \
+         { 183, 7.50f }, \
+         { 213, 10.0f }, \
+         { 255, 12.0f } \
+    } }
+
 /*
  * IC9700 items that differ from IC7300
  */
@@ -779,11 +796,10 @@ struct rig_caps ic7300_caps =
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   1,
     .chan_desc_sz =  0,
-
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
-        {   1,  8,  RIG_MTYPE_VOICE },
-        {   1,  8,  RIG_MTYPE_MORSE },
+        {   1,   8, RIG_MTYPE_VOICE },
+        {   1,   8, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -1345,11 +1361,10 @@ struct rig_caps ic705_caps =
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   5,
     .chan_desc_sz =  0,
-
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
-        {   1,  8,  RIG_MTYPE_VOICE },
-        {   1,  8,  RIG_MTYPE_MORSE },
+        {   1,   8, RIG_MTYPE_VOICE },
+        {   1,   8, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -1434,7 +1449,7 @@ struct rig_caps ic705_caps =
     .str_cal = IC7300_STR_CAL,
     .swr_cal = IC7300_SWR_CAL,
     .alc_cal = IC7300_ALC_CAL,
-    .rfpower_meter_cal = IC7300_RFPOWER_METER_CAL,
+    .rfpower_meter_cal = IC705_RFPOWER_METER_CAL,
     .comp_meter_cal = IC7300_COMP_METER_CAL,
     .vd_meter_cal = IC7300_VD_METER_CAL,
     .id_meter_cal = IC7300_ID_METER_CAL,
@@ -1619,11 +1634,10 @@ struct rig_caps ic905_caps =
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   5,
     .chan_desc_sz =  0,
-
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
-        {   1,  8,  RIG_MTYPE_VOICE },
-        {   1,  8,  RIG_MTYPE_MORSE },
+        {   1,   8, RIG_MTYPE_VOICE },
+        {   1,   8, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -1705,7 +1719,7 @@ struct rig_caps ic905_caps =
     .str_cal = IC7300_STR_CAL,
     .swr_cal = IC7300_SWR_CAL,
     .alc_cal = IC7300_ALC_CAL,
-    .rfpower_meter_cal = IC7300_RFPOWER_METER_CAL,
+    .rfpower_meter_cal = IC705_RFPOWER_METER_CAL,
     .comp_meter_cal = IC7300_COMP_METER_CAL,
     .vd_meter_cal = IC7300_VD_METER_CAL,
     .id_meter_cal = IC7300_ID_METER_CAL,
