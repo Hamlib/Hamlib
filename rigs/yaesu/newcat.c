@@ -11410,7 +11410,7 @@ int newcat_set_cmd_validate(RIG *rig)
     }
     else if (strncmp(priv->cmd_str, "ST", 2) == 0)
     {
-        strcpy(valcmd, ";");
+        strcpy(valcmd, "ST;");
     }
     else if (strncmp(priv->cmd_str, "KM", 2) == 0)
     {
