@@ -8475,6 +8475,10 @@ int icom_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
 
     switch (rig_id)
     {
+    case RIG_MODEL_IC705:
+    case RIG_MODEL_IC905:
+        *mwpower = power * 10000;
+        break;
     default:
         /* Normal 100 Watts */
         *mwpower = power * 100000;

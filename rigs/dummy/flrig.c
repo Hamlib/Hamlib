@@ -141,7 +141,7 @@ static const struct confparams flrig_ext_parms[] =
 struct rig_caps flrig_caps =
 {
     RIG_MODEL(RIG_MODEL_FLRIG),
-    .model_name = "FLRig",
+    .model_name = "",
     .mfg_name = "FLRig",
     .version = "20231216.0",
     .copyright = "LGPL",

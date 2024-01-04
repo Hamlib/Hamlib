@@ -2015,6 +2015,7 @@ struct rig_caps ts590sg_caps =
     .chan_list =  { /* TBC */
         {  0, 89, RIG_MTYPE_MEM,  TS590_CHANNEL_CAPS },
         { 90, 99, RIG_MTYPE_EDGE, TS590_CHANNEL_CAPS },
+		{  1,  3, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

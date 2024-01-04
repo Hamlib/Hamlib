@@ -350,6 +350,7 @@ struct rig_caps ic7600_caps =
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
         { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+        {   1,	4, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -426,7 +427,7 @@ struct rig_caps ic7600_caps =
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
     .rig_open =  icom_rig_open,
-    .rig_close =  icom_rig_open,
+    .rig_close =  icom_rig_close,
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,

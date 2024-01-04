@@ -1134,6 +1134,7 @@ struct rig_caps ts570d_caps =
     .chan_list =  {
         {  0, 89, RIG_MTYPE_MEM,  TS570_MEM_CAP  },
         { 90, 99, RIG_MTYPE_EDGE, TS570_MEM_CAP  },
+		{  1,	3, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
     .rx_range_list1 =  {
