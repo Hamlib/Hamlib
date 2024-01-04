@@ -159,7 +159,7 @@ struct rig_caps omnivip_caps =
     .rig_cleanup =   icom_cleanup,
 
     .rig_open =  icom_rig_open,
-    .rig_close =  icom_rig_open,
+    .rig_close =  icom_rig_close,
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode,
