@@ -19,7 +19,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #ifndef _RIG_H
 #define _RIG_H 1
@@ -2463,10 +2463,14 @@ typedef hamlib_port_t_deprecated port_t_deprecated;
 typedef hamlib_port_t port_t;
 #endif
 
-/* Macros to access port structures/pointers
+/* Macros to access data structures/pointers
  * Make it easier to change location in preparation
  *   for moving them out of rig->state.
  * See https://github.com/Hamlib/Hamlib/issues/1445
+ *     https://github.com/Hamlib/Hamlib/issues/1452
+ *     https://github.com/Hamlib/Hamlib/issues/1420
+ *     https://github.com/Hamlib/Hamlib/issues/536
+ *     https://github.com/Hamlib/Hamlib/issues/487
  */
 // Note: Experimental, and subject to change!!
 #if defined(IN_HAMLIB)
@@ -2474,18 +2478,20 @@ typedef hamlib_port_t port_t;
 #define RIGPORT(r) (&r->state.rigport)
 #define PTTPORT(r) (&r->state.pttport)
 #define DCDPORT(r) (&r->state.dcdport)
+#define CACHE(r) (&r->state.cache)
+/* Then when the rigport address is stored as a pointer somewhere else(say,
+ *  in the rig structure itself), the definition could be changed to
+ *  #define RIGPORT(r) r->somewhereelse
+ *  and every reference is updated.
+ */
 #else
 /* Define external unique names */
 /* These will be changed to a function call before release */
 #define HAMLIB_RIGPORT(r) (&r->state.rigport)
 #define HAMLIB_PTTPORT(r) (&r->state.pttport)
 #define HAMLIB_DCDPORT(r) (&r->state.dcdport)
+//#define HAMLIB_CACHE(r) (&r->state.cache)
 #endif
-/* Then when the rigport address is stored as a pointer somewhere else(say,
- *  in the rig structure itself), the definition could be changed to
- *  #define RIGPORT(r) r->somewhereelse
- *  and every reference is updated.
- */
 
 #define HAMLIB_ELAPSED_GET 0
 #define HAMLIB_ELAPSED_SET 1

@@ -1576,9 +1576,9 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     tsplit = RIG_SPLIT_OFF; // default in case rig does not set split status
     retval = rig_get_split_vfo(rig, vfo, &tsplit, &tx_vfo);
 
-    priv->split = rig->state.cache.split = split;
-    rig->state.cache.split_vfo = txvfo;
-    elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
+    priv->split = CACHE(rig)->split = split;
+    CACHE(rig)->split_vfo = txvfo;
+    elapsed_ms(&CACHE(rig)->time_split, HAMLIB_ELAPSED_SET);
 
     // and it should be OK to do a SPLIT_OFF at any time so we won's skip that
     if (retval == RIG_OK && split == RIG_SPLIT_ON && tsplit == RIG_SPLIT_ON)
@@ -1598,7 +1598,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
             || rig->caps->rig_model == RIG_MODEL_KX2
             || rig->caps->rig_model == RIG_MODEL_KX3)
     {
-        rig_set_freq(rig, RIG_VFO_B, rig->state.cache.freqMainA);
+        rig_set_freq(rig, RIG_VFO_B, CACHE(rig)->freqMainA);
     }
 
     if (retval != RIG_OK)
@@ -1607,8 +1607,8 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     }
 
     /* Remember whether split is on, for kenwood_set_vfo */
-    priv->split = rig->state.cache.split = split;
-    elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_SET);
+    priv->split = CACHE(rig)->split = split;
+    elapsed_ms(&CACHE(rig)->time_split, HAMLIB_ELAPSED_SET);
 
     RETURNFUNC2(RIG_OK);
 }
@@ -2964,7 +2964,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     }
 
     // Don't do this if PTT is on...don't want to max out power!!
-    if (rs->cache.ptt == RIG_PTT_ON)
+    if (CACHE(rig)->ptt == RIG_PTT_ON)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: ptt on so not checking min/max power levels\n",
                   __func__);
