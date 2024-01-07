@@ -20,6 +20,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /**
  * \addtogroup rig
@@ -8614,3 +8615,36 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
     return RIG_OK;
 }
 #endif
+
+/*
+ * \brief Get the address of a Hamlib data structure
+ * \param rig Pointer to main data anchor
+ * \param idx enum for which pointer requested
+ *
+ * Get the address of a structure without relying on changeable
+ *   internal data organization.
+ *
+ * \retval The address of the enumed structure
+ *
+ * Note: This is meant for use by the HAMLIB_???PORT macros mostly. Only
+ *  compatiblity with them is supported.
+ *
+ * \sa amp_data_pointer, rot_data_pointer
+ */
+HAMLIB_EXPORT(void *) rig_data_pointer(RIG *rig, rig_ptrx_t idx)
+{
+  switch(idx)
+    {
+    case RIG_PTRX_RIGPORT:
+      return RIGPORT(rig);
+    case RIG_PTRX_PTTPORT:
+      return PTTPORT(rig);
+    case RIG_PTRX_DCDPORT:
+      return DCDPORT(rig);
+    case RIG_PTRX_CACHE:
+      return CACHE(rig);
+    default:
+      rig_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
+      return NULL;
+    }
+}
