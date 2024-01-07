@@ -44,7 +44,6 @@ static struct kenwood_priv_caps  ts930_priv_caps  =
 /*
  * ts930 rig capabilities.
  * Notice that some rigs share the same functions.
- * Also this struct is READONLY!
  *
  * part of infos comes from .http = //www.kenwood.net/
  */

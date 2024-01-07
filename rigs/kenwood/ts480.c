@@ -2073,7 +2073,6 @@ int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 /*
  * Malachite SDR rig capabilities.
  * Notice that some rigs share the same functions.
- * Also this struct is READONLY!
  */
 struct rig_caps malachite_caps =
 {

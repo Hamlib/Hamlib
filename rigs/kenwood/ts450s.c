@@ -106,7 +106,6 @@ int ts450_open(RIG *rig)
 /*
  * ts450s rig capabilities.
  * Notice that some rigs share the same functions.
- * Also this struct is READONLY!
  * RIT: Variable Range ±9.99 kHz
  *
  * TODO: protocol to be checked with manual (identical to TS690)
