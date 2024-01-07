@@ -2479,6 +2479,8 @@ typedef hamlib_port_t port_t;
 #define PTTPORT(r) (&r->state.pttport)
 #define DCDPORT(r) (&r->state.dcdport)
 #define CACHE(r) (&r->state.cache)
+#define AMPPORT(a) (&a->state.ampport)
+#define ROTPORT(r) (&r->state.rotport)
 /* Then when the rigport address is stored as a pointer somewhere else(say,
  *  in the rig structure itself), the definition could be changed to
  *  #define RIGPORT(r) r->somewhereelse
@@ -2486,12 +2488,25 @@ typedef hamlib_port_t port_t;
  */
 #else
 /* Define external unique names */
-/* These will be changed to a function call before release */
-#define HAMLIB_RIGPORT(r) (&r->state.rigport)
-#define HAMLIB_PTTPORT(r) (&r->state.pttport)
-#define HAMLIB_DCDPORT(r) (&r->state.dcdport)
-//#define HAMLIB_CACHE(r) (&r->state.cache)
+#define HAMLIB_RIGPORT(r) (hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_RIGPORT)
+#define HAMLIB_PTTPORT(r) (hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_PTTPORT)
+#define HAMLIB_DCDPORT(r) (hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_DCDPORT)
+//#define HAMLIB_CACHE(r) (struct rig_cache *)rig_data_pointer(r, RIG_PTRX_CACHE)
+#define HAMLIB_AMPPORT(a) (hamlib_port_t *)amp_data_pointer(a, RIG_PTRX_AMPPORT)
+#define HAMLIB_ROTPORT(r) (hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT)
 #endif
+
+typedef enum {
+    RIG_PTRX_NONE=0,
+    RIG_PTRX_RIGPORT,
+    RIG_PTRX_PTTPORT,
+    RIG_PTRX_DCDPORT,
+    RIG_PTRX_CACHE,
+    RIG_PTRX_AMPPORT,
+    RIG_PTRX_ROTPORT,
+// New entries go directly above this line====================
+    RIG_PTRX_MAXIMUM
+} rig_ptrx_t;
 
 #define HAMLIB_ELAPSED_GET 0
 #define HAMLIB_ELAPSED_SET 1
@@ -3829,6 +3844,7 @@ enum GPIO { GPIO1, GPIO2, GPIO3, GPIO4 };
 extern HAMLIB_EXPORT(int) rig_cm108_get_bit(hamlib_port_t *p, enum GPIO gpio, int *bit);
 extern HAMLIB_EXPORT(int) rig_cm108_set_bit(hamlib_port_t *p, enum GPIO gpio, int bit);
 
+extern HAMLIB_EXPORT(void *) rig_data_pointer(RIG *rig, rig_ptrx_t idx);
 
 //! @endcond
 
