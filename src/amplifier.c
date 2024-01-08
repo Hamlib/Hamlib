@@ -20,6 +20,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /**
  * \addtogroup amplifier
@@ -185,6 +186,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
     AMP *amp;
     const struct amp_caps *caps;
     struct amp_state *rs;
+    hamlib_port_t *ap;
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -224,37 +226,41 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
      */
     rs = &amp->state;
 
-    rs->comm_state = 0;
-    rs->ampport.type.rig = caps->port_type; /* default from caps */
+    //TODO allocate and link new ampport
+    // For now, use the embedded one
+    ap = AMPPORT(amp);
 
-    rs->ampport.write_delay = caps->write_delay;
-    rs->ampport.post_write_delay = caps->post_write_delay;
-    rs->ampport.timeout = caps->timeout;
-    rs->ampport.retry = caps->retry;
+    rs->comm_state = 0;
+    ap->type.rig = caps->port_type; /* default from caps */
+
+    ap->write_delay = caps->write_delay;
+    ap->post_write_delay = caps->post_write_delay;
+    ap->timeout = caps->timeout;
+    ap->retry = caps->retry;
     rs->has_get_level = caps->has_get_level;
 
     switch (caps->port_type)
     {
     case RIG_PORT_SERIAL:
         // Don't think we need a default port here
-        //strncpy(rs->ampport.pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
-        rs->ampport.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
-        rs->ampport.parm.serial.data_bits = caps->serial_data_bits;
-        rs->ampport.parm.serial.stop_bits = caps->serial_stop_bits;
-        rs->ampport.parm.serial.parity = caps->serial_parity;
-        rs->ampport.parm.serial.handshake = caps->serial_handshake;
+        //strncpy(ap->pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
+        ap->parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
+        ap->parm.serial.data_bits = caps->serial_data_bits;
+        ap->parm.serial.stop_bits = caps->serial_stop_bits;
+        ap->parm.serial.parity = caps->serial_parity;
+        ap->parm.serial.handshake = caps->serial_handshake;
         break;
 
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
-        strncpy(rs->ampport.pathname, "127.0.0.1:4531", HAMLIB_FILPATHLEN - 1);
+        strncpy(ap->pathname, "127.0.0.1:4531", HAMLIB_FILPATHLEN - 1);
         break;
 
     default:
-        strncpy(rs->ampport.pathname, "", HAMLIB_FILPATHLEN - 1);
+        strncpy(ap->pathname, "", HAMLIB_FILPATHLEN - 1);
     }
 
-    rs->ampport.fd = -1;
+    ap->fd = -1;
 
     /*
      * let the backend a chance to setup his private data
@@ -279,7 +285,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
     // Now we have to copy our new rig state hamlib_port structure to the deprecated one
     // Clients built on older 4.X versions will use the old structure
     // Clients built on newer 4.5 versions will use the new structure
-    memcpy(&amp->state.ampport_deprecated, &amp->state.ampport,
+    memcpy(&amp->state.ampport_deprecated, ap,
            sizeof(amp->state.ampport_deprecated));
 
     return amp;
@@ -306,6 +312,7 @@ int HAMLIB_API amp_open(AMP *amp)
 {
     const struct amp_caps *caps;
     struct amp_state *rs;
+    hamlib_port_t *ap = AMPPORT(amp);
     int status;
     int net1, net2, net3, net4, port;
 
@@ -324,21 +331,21 @@ int HAMLIB_API amp_open(AMP *amp)
         return -RIG_EINVAL;
     }
 
-    rs->ampport.fd = -1;
+    ap->fd = -1;
 
     // determine if we have a network address
-    if (sscanf(rs->ampport.pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
+    if (sscanf(ap->pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
                &port) == 5)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
-                  rs->ampport.pathname);
-        rs->ampport.type.rig = RIG_PORT_NETWORK;
+                  ap->pathname);
+        ap->type.rig = RIG_PORT_NETWORK;
     }
 
-    switch (rs->ampport.type.rig)
+    switch (ap->type.rig)
     {
     case RIG_PORT_SERIAL:
-        status = serial_open(&rs->ampport);
+        status = serial_open(ap);
 
         if (status != 0)
         {
@@ -348,7 +355,7 @@ int HAMLIB_API amp_open(AMP *amp)
         break;
 
     case RIG_PORT_PARALLEL:
-        status = par_open(&rs->ampport);
+        status = par_open(ap);
 
         if (status < 0)
         {
@@ -358,18 +365,18 @@ int HAMLIB_API amp_open(AMP *amp)
         break;
 
     case RIG_PORT_DEVICE:
-        status = open(rs->ampport.pathname, O_RDWR, 0);
+        status = open(ap->pathname, O_RDWR, 0);
 
         if (status < 0)
         {
             return -RIG_EIO;
         }
 
-        rs->ampport.fd = status;
+        ap->fd = status;
         break;
 
     case RIG_PORT_USB:
-        status = usb_port_open(&rs->ampport);
+        status = usb_port_open(ap);
 
         if (status < 0)
         {
@@ -385,7 +392,7 @@ int HAMLIB_API amp_open(AMP *amp)
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
         /* FIXME: default port */
-        status = network_open(&rs->ampport, 4531);
+        status = network_open(ap, 4531);
 
         if (status < 0)
         {
@@ -412,31 +419,31 @@ int HAMLIB_API amp_open(AMP *amp)
 
         if (status != RIG_OK)
         {
-            memcpy(&amp->state.ampport_deprecated, &amp->state.ampport,
+	    memcpy(&amp->state.ampport_deprecated, ap,
                    sizeof(amp->state.ampport_deprecated));
             return status;
         }
     }
 
-    if (rs->ampport.parm.serial.dtr_state == RIG_SIGNAL_ON)
+    if (ap->parm.serial.dtr_state == RIG_SIGNAL_ON)
     {
-        ser_set_dtr(&rs->ampport, 1);
+        ser_set_dtr(ap, 1);
     }
     else
     {
-        ser_set_dtr(&rs->ampport, 0);
+        ser_set_dtr(ap, 0);
     }
 
-    if (rs->ampport.parm.serial.rts_state == RIG_SIGNAL_ON)
+    if (ap->parm.serial.rts_state == RIG_SIGNAL_ON)
     {
-        ser_set_rts(&rs->ampport, 1);
+        ser_set_rts(ap, 1);
     }
     else
     {
-        ser_set_rts(&rs->ampport, 0);
+        ser_set_rts(ap, 0);
     }
 
-    memcpy(&amp->state.ampport_deprecated, &amp->state.ampport,
+    memcpy(&amp->state.ampport_deprecated, ap,
            sizeof(amp->state.ampport_deprecated));
 
     return RIG_OK;
@@ -464,6 +471,7 @@ int HAMLIB_API amp_close(AMP *amp)
 {
     const struct amp_caps *caps;
     struct amp_state *rs;
+    hamlib_port_t *ap = AMPPORT(amp);
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -499,32 +507,32 @@ int HAMLIB_API amp_close(AMP *amp)
     }
 
 
-    if (rs->ampport.fd != -1)
+    if (ap->fd != -1)
     {
-        switch (rs->ampport.type.rig)
+        switch (ap->type.rig)
         {
         case RIG_PORT_SERIAL:
-            ser_close(&rs->ampport);
+            ser_close(ap);
             break;
 
         case RIG_PORT_PARALLEL:
-            par_close(&rs->ampport);
+            par_close(ap);
             break;
 
         case RIG_PORT_USB:
-            usb_port_close(&rs->ampport);
+            usb_port_close(ap);
             break;
 
         case RIG_PORT_NETWORK:
         case RIG_PORT_UDP_NETWORK:
-            network_close(&rs->ampport);
+            network_close(ap);
             break;
 
         default:
-            close(rs->ampport.fd);
+            close(ap->fd);
         }
 
-        rs->ampport.fd = -1;
+        ap->fd = -1;
     }
 
     remove_opened_amp(amp);
@@ -949,5 +957,21 @@ int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
     return amp->caps->get_powerstat(amp, status);
 }
 
-
+/**
+ * \brief Get the address of amplifier data structure(s)
+ *
+ * \sa rig_data_pointer
+ *
+ */
+void * HAMLIB_API amp_data_pointer(AMP *amp, rig_ptrx_t idx)
+{
+  switch(idx)
+    {
+    case RIG_PTRX_AMPPORT:
+      return AMPPORT(amp);
+    default:
+      amp_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
+      return NULL;
+    }
+}
 /*! @} */
