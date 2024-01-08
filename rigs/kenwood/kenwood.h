@@ -325,6 +325,7 @@ extern struct rig_caps sdruno_caps;
 extern struct rig_caps qrplabs_caps;
 extern struct rig_caps fx4_caps;
 extern struct rig_caps thetis_caps;
+extern struct rig_caps trudx_caps;
 
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd,
