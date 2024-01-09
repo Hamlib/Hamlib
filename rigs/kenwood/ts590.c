@@ -218,6 +218,8 @@ static int ts590_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char kmode = rmode2kenwood(mode, caps->mode_table);
     char cmd[32], c;
     int retval = -RIG_EINTERNAL;
+    int hwidth;
+    // int lwidth; // not implemented yet until new API is created
 
     if (kmode < 0)
     {
@@ -247,6 +249,70 @@ static int ts590_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         return kenwood_set_mode(rig, vfo, mode, width);
     }
+
+    if (mode == RIG_MODE_CW || mode == RIG_MODE_CWR)
+    {
+        const int cw_table[] = { 50, 80, 100, 150, 200, 250, 300, 400, 500, 600, 1000, 1500, 2000, 2500 };
+        int twidth = 2500;  // maximum
+
+        for (int i = 0; i < sizeof(cw_table) / sizeof(int); ++i)
+        {
+            if (cw_table[i] >= width) { twidth = cw_table[i]; break; }
+        }
+
+        SNPRINTF(cmd, sizeof(cmd), "FW%04d;", twidth);
+        retval = kenwood_transaction(rig, cmd, NULL, 0);
+        return retval;
+    }
+    else if (mode == RIG_MODE_RTTY || mode == RIG_MODE_RTTYR)
+    {
+        const int cw_table[] = { 250, 500, 1000, 1500 };
+        int twidth = 1500;  // maximum
+
+        for (int i = 0; i < sizeof(cw_table) / sizeof(int); ++i)
+        {
+            if (cw_table[i] >= width) { twidth = cw_table[i]; break; }
+        }
+
+        SNPRINTF(cmd, sizeof(cmd), "FW%04d;", twidth);
+        retval = kenwood_transaction(rig, cmd, NULL, 0);
+        return retval;
+    }
+    else if (mode == RIG_MODE_PKTUSB || mode == RIG_MODE_PKTLSB)
+    {
+        const int pkt_htable[] = { 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3400, 4000, 5000 };
+
+        // not setting SL since no API for it yet
+        // we will just set SH based on requested bandwidth not taking SL into account
+        //const int ssb_ltable[] = { 0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+        for (int i = 0; i < sizeof(pkt_htable) / sizeof(int); ++i)
+        {
+            if (pkt_htable[i] >= width) { hwidth = i; break; }
+        }
+    }
+    else if (mode == RIG_MODE_AM || mode == RIG_MODE_PKTAM)
+    {
+        const int am_htable[] = { 2500, 3000, 4000, 5000 };
+
+        //const int am_ltable[] = { 0, 100, 200, 300 };
+        for (int i = 0; i < sizeof(am_htable) / sizeof(int); ++i)
+        {
+            if (am_htable[i] >= width) { hwidth = i; break; }
+        }
+    }
+    else if (mode == RIG_MODE_SSB || mode == RIG_MODE_LSB || mode == RIG_MODE_USB)
+    {
+        const int ssb_htable[] = { 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3400, 4000, 5000 };
+
+        //const int ssb_ltable[] = { 0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+        for (int i = 0; i < sizeof(ssb_htable) / sizeof(int); ++i)
+        {
+            if (ssb_htable[i] >= width) { hwidth = i; break; }
+        }
+    }
+
+    SNPRINTF(cmd, sizeof(cmd), "SH%02d;", hwidth);
+    retval = kenwood_transaction(rig, cmd, NULL, 0);
 
     return retval;
 }
@@ -284,6 +350,23 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     *mode = kenwood2rmode(*mode, caps->mode_table);
 
     // now let's get our widths
+    // CW is different then other modes
+    if (*mode == RIG_MODE_CW || *mode == RIG_MODE_CWR || *mode == RIG_MODE_RTTY
+            || *mode == RIG_MODE_RTTYR)
+    {
+        SNPRINTF(cmd, sizeof(cmd), "FW");
+        retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 6);
+
+        if (retval == RIG_OK)
+        {
+            int twidth;
+            sscanf(ackbuf, "FW%d", &twidth);
+            *width = twidth;
+        }
+
+        return retval;
+    }
+
     SNPRINTF(cmd, sizeof(cmd), "SH");
     retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 4);
 
@@ -295,12 +378,12 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     int hwidth;
-    sscanf(cmd, "SH%d", &hwidth);
+    sscanf(ackbuf, "SH%d", &hwidth);
     int lwidth;
     int shift = 0;
     SNPRINTF(cmd, sizeof(cmd), "SL");
-    sscanf(cmd, "SH%d", &lwidth);
     retval = kenwood_safe_transaction(rig, cmd, ackbuf, sizeof(ackbuf), 4);
+    sscanf(ackbuf, "SL%d", &lwidth);
 
     if (retval != RIG_OK)
     {
@@ -309,9 +392,7 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return retval;
     }
 
-    if (*mode == RIG_MODE_PKTUSB || *mode == RIG_MODE_PKTLSB
-            || *mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM || *mode == RIG_MODE_USB
-            || *mode == RIG_MODE_LSB)
+    if (*mode == RIG_MODE_PKTUSB || *mode == RIG_MODE_PKTLSB)
     {
         const int ssb_htable[] = { 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3400, 4000, 5000 };
         const int ssb_ltable[] = { 0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
@@ -326,14 +407,14 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         *width = am_htable[hwidth] - am_ltable[lwidth];
     }
 
-#if 0 // is this different?  Manual is confusing
-    else if (*mode == RIG_MODE_SSB || *mode == RIG_MODE_LSB)
+    else if (*mode == RIG_MODE_SSB || *mode == RIG_MODE_LSB
+             || *mode == RIG_MODE_USB)
     {
         const int ssb_htable[] = { 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3400, 4000, 5000 };
-        //const int ssb_ltable[] = { 0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+        const int ssb_ltable[] = { 0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+        *width = ssb_htable[hwidth] - ssb_ltable[lwidth];
     }
 
-#endif
     rig_debug(RIG_DEBUG_VERBOSE, "%s: width=%ld, shift=%d, lwidth=%d, hwidth=%d\n",
               __func__, *width, shift, lwidth, hwidth);
 
@@ -1612,7 +1693,7 @@ struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".12",
+    .version = BACKEND_VER ".13",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1812,7 +1893,7 @@ struct rig_caps fx4_caps =
     RIG_MODEL(RIG_MODEL_FX4),
     .model_name = "FX4/C/CR/L",
     .mfg_name = "BG2FX",
-    .version = BACKEND_VER ".9",
+    .version = BACKEND_VER ".10",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -2006,7 +2087,7 @@ struct rig_caps ts590sg_caps =
     RIG_MODEL(RIG_MODEL_TS590SG),
     .model_name = "TS-590SG",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".8",
+    .version = BACKEND_VER ".9",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
