@@ -1040,6 +1040,7 @@ int HAMLIB_API rig_open(RIG *rig)
                           __LINE__);
                 rs->rigport.type.rig = RIG_PORT_UDP_NETWORK;
             }
+
 #endif
         }
     }
@@ -1328,17 +1329,19 @@ int HAMLIB_API rig_open(RIG *rig)
     }
 
 #if defined(HAVE_PTHREAD)
+
     if (!skip_init)
     {
-    status = async_data_handler_start(rig);
+        status = async_data_handler_start(rig);
 
-    if (status < 0)
-    {
-        port_close(&rs->rigport, rs->rigport.type.rig);
-        rig->state.comm_status = RIG_COMM_STATUS_ERROR;
-        RETURNFUNC2(status);
+        if (status < 0)
+        {
+            port_close(&rs->rigport, rs->rigport.type.rig);
+            rig->state.comm_status = RIG_COMM_STATUS_ERROR;
+            RETURNFUNC2(status);
+        }
     }
-    }
+
 #endif
 
     rs->comm_state = 1;
@@ -1392,11 +1395,13 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             remove_opened_rig(rig);
 #if defined(HAVE_PTHREAD)
+
             if (!skip_init)
-            { 
-            async_data_handler_stop(rig);
-            morse_data_handler_stop(rig);
+            {
+                async_data_handler_stop(rig);
+                morse_data_handler_stop(rig);
             }
+
 #endif
             port_close(&rs->rigport, rs->rigport.type.rig);
             memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
@@ -1450,7 +1455,8 @@ int HAMLIB_API rig_open(RIG *rig)
                       rig_strvfo(rs->current_vfo));
         }
     }
-    if (skip_init) return RIG_OK;
+
+    if (skip_init) { return RIG_OK; }
 
 #if defined(HAVE_PTHREAD)
     status = morse_data_handler_start(rig);
@@ -1486,7 +1492,9 @@ int HAMLIB_API rig_open(RIG *rig)
     if (rig->caps->get_freq)
     {
         vfo_t myvfo = RIG_VFO_A;
-        if (rig->caps->rig_model == RIG_MODEL_IC9700) myvfo = RIG_VFO_MAIN_A;
+
+        if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_A; }
+
         retval = rig_get_freq(rig, myvfo, &freq);
 
         if (retval == RIG_OK && rig->caps->rig_model != RIG_MODEL_F6K)
@@ -1494,7 +1502,9 @@ int HAMLIB_API rig_open(RIG *rig)
             split_t split = RIG_SPLIT_OFF;
             vfo_t tx_vfo = RIG_VFO_NONE;
             myvfo = RIG_VFO_B;
-            if (rig->caps->rig_model == RIG_MODEL_IC9700) myvfo = RIG_VFO_MAIN_B;
+
+            if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_B; }
+
             rig_get_freq(rig, myvfo, &freq);
             rig_get_split_vfo(rig, RIG_VFO_RX, &split, &tx_vfo);
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Current split=%d, tx_vfo=%s\n", __func__,
@@ -1505,13 +1515,17 @@ int HAMLIB_API rig_open(RIG *rig)
             if (rig->caps->get_mode)
             {
                 myvfo = RIG_VFO_A;
-                if (rig->caps->rig_model == RIG_MODEL_IC9700) myvfo = RIG_VFO_MAIN_A;
+
+                if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_A; }
+
                 rig_get_mode(rig, myvfo, &mode, &width);
 
                 if (split)
                 {
                     myvfo = RIG_VFO_B;
-                    if (rig->caps->rig_model == RIG_MODEL_IC9700) myvfo = RIG_VFO_MAIN_A;
+
+                    if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_A; }
+
                     rig_debug(RIG_DEBUG_VERBOSE, "xxxsplit=%d\n", split);
                     HAMLIB_TRACE;
                     rig_get_mode(rig, myvfo, &mode, &width);
@@ -1611,14 +1625,16 @@ int HAMLIB_API rig_close(RIG *rig)
     rig->state.comm_status = RIG_COMM_STATUS_DISCONNECTED;
 
 #if defined(HAVE_PTHREAD)
+
     if (!skip_init)
     {
-    morse_data_handler_stop(rig);
-    async_data_handler_stop(rig);
-    rig_poll_routine_stop(rig);
-    network_multicast_receiver_stop(rig);
-    network_multicast_publisher_stop(rig);
+        morse_data_handler_stop(rig);
+        async_data_handler_stop(rig);
+        rig_poll_routine_stop(rig);
+        network_multicast_receiver_stop(rig);
+        network_multicast_publisher_stop(rig);
     }
+
 #endif
 
     /*
@@ -1966,7 +1982,8 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || (vfo == RIG_VFO_CURR
                 && rig->state.current_vfo == RIG_VFO_A))
         {
-            if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0) && (((int)freq %100) != 55))
+            if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0)
+                    && (((int)freq % 100) != 55))
             {
                 rig->state.doppler = 1;
                 rig_debug(RIG_DEBUG_VERBOSE,
@@ -1979,7 +1996,8 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || (vfo == RIG_VFO_CURR
                  && rig->state.current_vfo == RIG_VFO_B))
         {
-            if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0 && (((int)freq %100) != 55))
+            if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0
+                    && (((int)freq % 100) != 55))
             {
                 rig->state.doppler = 1;
                 rig_debug(RIG_DEBUG_VERBOSE,
