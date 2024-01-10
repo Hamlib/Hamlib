@@ -1033,13 +1033,14 @@ int HAMLIB_API rig_open(RIG *rig)
         if (RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM)
         {
             // Xiegu X6100 does TCP and does not support UDP spectrum that I know of
+#if 0
             if (rig->caps->rig_model != RIG_MODEL_X6100)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s(%d): Icom rig UDP network enabled\n", __FILE__,
                           __LINE__);
                 rs->rigport.type.rig = RIG_PORT_UDP_NETWORK;
             }
-
+#endif
         }
     }
 
@@ -1484,13 +1485,17 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (rig->caps->get_freq)
     {
-        retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+        vfo_t myvfo = RIG_VFO_A;
+        if (rig->caps->rig_model == RIG_MODEL_IC9700) myvfo = RIG_VFO_MAIN_A;
+        retval = rig_get_freq(rig, myvfo, &freq);
 
         if (retval == RIG_OK && rig->caps->rig_model != RIG_MODEL_F6K)
         {
             split_t split = RIG_SPLIT_OFF;
             vfo_t tx_vfo = RIG_VFO_NONE;
-            rig_get_freq(rig, RIG_VFO_B, &freq);
+            myvfo = RIG_VFO_B;
+            if (rig->caps->rig_model == RIG_MODEL_IC9700) myvfo = RIG_VFO_MAIN_B;
+            rig_get_freq(rig, myvfo, &freq);
             rig_get_split_vfo(rig, RIG_VFO_RX, &split, &tx_vfo);
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Current split=%d, tx_vfo=%s\n", __func__,
                       __LINE__, split, rig_strvfo(tx_vfo));
@@ -1499,13 +1504,17 @@ int HAMLIB_API rig_open(RIG *rig)
 
             if (rig->caps->get_mode)
             {
-                rig_get_mode(rig, RIG_VFO_A, &mode, &width);
+                myvfo = RIG_VFO_A;
+                if (rig->caps->rig_model == RIG_MODEL_IC9700) myvfo = RIG_VFO_MAIN_A;
+                rig_get_mode(rig, myvfo, &mode, &width);
 
                 if (split)
                 {
+                    myvfo = RIG_VFO_B;
+                    if (rig->caps->rig_model == RIG_MODEL_IC9700) myvfo = RIG_VFO_MAIN_A;
                     rig_debug(RIG_DEBUG_VERBOSE, "xxxsplit=%d\n", split);
                     HAMLIB_TRACE;
-                    rig_get_mode(rig, RIG_VFO_B, &mode, &width);
+                    rig_get_mode(rig, myvfo, &mode, &width);
                 }
             }
         }
@@ -1957,7 +1966,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || (vfo == RIG_VFO_CURR
                 && rig->state.current_vfo == RIG_VFO_A))
         {
-            if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0))
+            if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0) && (((int)freq %100) != 55))
             {
                 rig->state.doppler = 1;
                 rig_debug(RIG_DEBUG_VERBOSE,
@@ -1970,7 +1979,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || (vfo == RIG_VFO_CURR
                  && rig->state.current_vfo == RIG_VFO_B))
         {
-            if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0)
+            if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0 && (((int)freq %100) != 55))
             {
                 rig->state.doppler = 1;
                 rig_debug(RIG_DEBUG_VERBOSE,
@@ -2925,8 +2934,7 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
     {
         if (rs->filters[i].modes & mode)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%.*s%d:%s: return filter#%d, width=%d\n",
-                      rig->state.depth, spaces(), rig->state.depth, __func__, i,
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: return filter#%d, width=%d\n", __func__, i,
                       (int)rs->filters[i].width);
             RETURNFUNC(rs->filters[i].width);
         }
@@ -3090,7 +3098,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s ********************** called vfo=%s\n",
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
 
