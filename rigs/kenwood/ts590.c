@@ -218,7 +218,7 @@ static int ts590_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char kmode = rmode2kenwood(mode, caps->mode_table);
     char cmd[32], c;
     int retval = -RIG_EINTERNAL;
-    int hwidth;
+    int hwidth = 0;
     // int lwidth; // not implemented yet until new API is created
 
     if (kmode < 0)
