@@ -1973,7 +1973,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (curr_band != last_band)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: band changing to %s\n", __func__,
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: band changing to %s\n", __func__,
                   rig_get_band_str(rig, curr_band, 0));
         rig_band_changed(rig, curr_band);
         last_band = curr_band;
