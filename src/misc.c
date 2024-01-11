@@ -3025,7 +3025,7 @@ int rig_get_band_rig(RIG *rig, freq_t freq, const char *band)
         if (strlen(bandlist) == 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: rig does not have bandlist\n", __func__);
-
+            return RIG_BAND_GEN;
         }
 
         char *p = strchr(bandlist, '(') + 1;
