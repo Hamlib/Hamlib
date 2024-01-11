@@ -837,7 +837,7 @@ setting_t HAMLIB_API rig_parse_band(const char *s)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    for (i = 0 ; rig_bandselect_str[i].str[0] != '\0'; i++)
+    for (i = 0 ; rig_bandselect_str[i].str != NULL; i++)
     {
         if (!strcmp(s, rig_bandselect_str[i].str))
         {
@@ -2004,9 +2004,10 @@ vfo_t HAMLIB_API vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split,
 // We need to add some exceptions to this like the ID-5100
 vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
 {
+    vfo_t currvfo = rig->state.current_vfo;
     rig_debug(RIG_DEBUG_TRACE, "%s:(from %s:%d) vfo=%s, vfo_curr=%s, split=%d\n",
               __func__, funcname, linenum,
-              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), split);
+              rig_strvfo(vfo), rig_strvfo(currvfo), split);
 
     if (rig->caps->rig_model == RIG_MODEL_ID5100
             || rig->caps->rig_model == RIG_MODEL_IC9700)
@@ -2022,6 +2023,28 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         }
 
         return vfo; // no change to requested vfo
+    }
+    else if (RIG_IS_IC9700)
+    {
+        if (vfo == RIG_VFO_A && (currvfo == RIG_VFO_MAIN || currvfo == RIG_VFO_MAIN_A))
+        {
+            vfo = RIG_VFO_MAIN_A;
+        }
+        else if (vfo == RIG_VFO_B && (currvfo == RIG_VFO_MAIN
+                                      || currvfo == RIG_VFO_MAIN_A))
+        {
+            vfo = RIG_VFO_MAIN_B;
+        }
+        else if (vfo == RIG_VFO_A && (currvfo == RIG_VFO_SUB
+                                      || currvfo == RIG_VFO_SUB_A || currvfo == RIG_VFO_SUB_B))
+        {
+            vfo = RIG_VFO_SUB_A;
+        }
+        else if (vfo == RIG_VFO_B && (currvfo == RIG_VFO_SUB
+                                      || currvfo == RIG_VFO_SUB_A || currvfo == RIG_VFO_SUB_B))
+        {
+            vfo = RIG_VFO_SUB_B;
+        }
     }
 
     if (vfo == RIG_VFO_NONE) { vfo = RIG_VFO_A; }
@@ -2852,9 +2875,25 @@ char *rig_date_strget(char *buf, int buflen, int localtime)
     return date_strget(buf, buflen, localtime);
 }
 
-const char *spaces()
+const char *spaces(int len)
 {
-    static char *s = "                     ";
+    static char s[256];
+    memset(s, '*', sizeof(s));
+
+    if (len > 255)
+    {
+        len = 0;
+    }
+
+    if (len > 0)
+    {
+        s[len + 1] = 0;
+    }
+    else
+    {
+        s[1] = 0;
+    }
+
     return s;
 }
 
@@ -2866,7 +2905,7 @@ const char *rig_get_band_str(RIG *rig, hamlib_band_t band, int which)
 
     if (which == 0)
     {
-        for (i = 0; rig_bandselect_str[i].str[0] != '\0'; i++)
+        for (i = 0; rig_bandselect_str[i].str != NULL; i++)
         {
             if (rig_bandselect_str[i].bandselect == band)
             {
@@ -2896,7 +2935,7 @@ const char *rig_get_band_str(RIG *rig, hamlib_band_t band, int which)
         {
             if (n == band)
             {
-                for (i = 0; rig_bandselect_str[i].str[0] != '\0'; i++)
+                for (i = 0; rig_bandselect_str[i].str != NULL; i++)
                 {
                     if (strcmp(rig_bandselect_str[i].str, token) == 0)
                     {
@@ -2952,7 +2991,7 @@ hamlib_band_t rig_get_band(RIG *rig, freq_t freq, int band)
         return RIG_BAND_UNUSED;
     }
 
-    for (i = 0 ; rig_bandselect_str[i].str[0] != '\0'; i++)
+    for (i = 0 ; rig_bandselect_str[i].str != NULL; i++)
     {
         if (freq >= rig_bandselect_str[i].start && freq <= rig_bandselect_str[i].stop)
         {
@@ -2969,12 +3008,26 @@ int rig_get_band_rig(RIG *rig, freq_t freq, const char *band)
     char bandlist[512];
     int i;
 
+    if (freq == 0 && band == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: bad combo of freq==0 && band==NULL\n", __func__);
+        return RIG_BAND_GEN;
+    }
+
     if (freq == 0)
     {
         rig_sprintf_parm_gran(bandlist, sizeof(bandlist) - 1, RIG_PARM_BANDSELECT,
                               rig->caps->parm_gran);
+        bandlist[0] = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: bandlist=%s\n", __func__, bandlist);
+
         // e.g. BANDSELECT(BAND160M,BAND80M,BANDUNUSED,BAND40M)
+        if (strlen(bandlist) == 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: rig does not have bandlist\n", __func__);
+
+        }
+
         char *p = strchr(bandlist, '(') + 1;
         char *token;
 
@@ -2998,7 +3051,7 @@ int rig_get_band_rig(RIG *rig, freq_t freq, const char *band)
         return 0;
     }
 
-    for (i = 0 ; rig_bandselect_str[i].str[0] != '\0'; i++)
+    for (i = 0 ; rig_bandselect_str[i].str != NULL; i++)
     {
         if (freq >= rig_bandselect_str[i].start && freq <= rig_bandselect_str[i].stop)
         {
