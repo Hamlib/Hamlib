@@ -522,6 +522,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
      * Set stop bits to requested values.
      *
      */
+    rig_debug(RIG_DEBUG_TRACE, "%s: stopbits=%d\n", __func__, rp->parm.serial.stop_bits);
     switch (rp->parm.serial.stop_bits)
     {
     case 1:
