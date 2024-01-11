@@ -1971,7 +1971,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     curr_band = rig_get_band(rig, freq, -1);
 
-    if (rig->state.tx_vfo == vfo && curr_band != last_band )
+    if (rig->state.tx_vfo == vfo && curr_band != last_band)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: band changing to %s\n", __func__,
                   rig_get_band_str(rig, curr_band, 0));
@@ -2555,8 +2555,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     // we only want to look for band change on main vfo for now
-    if (rig->state.current_vfo == RIG_VFO_A
-            || rig->state.current_vfo == RIG_VFO_MAIN)
+    if (*freq != 0 && (rig->state.current_vfo == RIG_VFO_A
+                       || rig->state.current_vfo == RIG_VFO_MAIN))
     {
         curr_band = rig_get_band(rig, *freq, -1);
 
