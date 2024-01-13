@@ -1456,7 +1456,7 @@ static int thd72_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
 
 static int thd72_get_block(RIG *rig, int block_num, char *block)
 {
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = RIGPORT(rig);
     char cmd[CMD_SZ] = "R\0\0\0\0";
     char resp[CMD_SZ];
     int ret;
@@ -1518,7 +1518,7 @@ static int thd72_get_block(RIG *rig, int block_num, char *block)
 int thd72_get_chan_all_cb(RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 {
     int i, j, ret;
-    hamlib_port_t *rp = &rig->state.rigport;
+    hamlib_port_t *rp = RIGPORT(rig);
     channel_t *chan;
     chan_t *chan_list = rig->state.chan_list;
     int chan_next = chan_list[0].start;
