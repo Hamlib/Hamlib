@@ -252,7 +252,7 @@ const struct confparams tmd710_ext_levels[] =
 
 struct rig_caps tmd710_caps =
 {
-    .rig_model =  RIG_MODEL_TMD710,
+    RIG_MODEL(RIG_MODEL_TMD710),
     .model_name = "TM-D710(G)",
     .mfg_name =  "Kenwood",
     .version =  BACKEND_VER ".6",
