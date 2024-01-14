@@ -2489,13 +2489,13 @@ typedef hamlib_port_t port_t;
  */
 #else
 /* Define external unique names */
-#define HAMLIB_RIGPORT(r) (hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_RIGPORT)
-#define HAMLIB_PTTPORT(r) (hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_PTTPORT)
-#define HAMLIB_DCDPORT(r) (hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_DCDPORT)
-//#define HAMLIB_CACHE(r) (struct rig_cache *)rig_data_pointer(r, RIG_PTRX_CACHE)
-#define HAMLIB_AMPPORT(a) (hamlib_port_t *)amp_data_pointer(a, RIG_PTRX_AMPPORT)
-#define HAMLIB_ROTPORT(r) (hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT)
-#define HAMLIB_ROTPORT2(r) (hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT2)
+#define HAMLIB_RIGPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_RIGPORT))
+#define HAMLIB_PTTPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_PTTPORT))
+#define HAMLIB_DCDPORT(r) ((hamlib_port_t *)rig_data_pointer(r, RIG_PTRX_DCDPORT))
+#define HAMLIB_CACHE(r) ((struct rig_cache *)rig_data_pointer(r, RIG_PTRX_CACHE))
+#define HAMLIB_AMPPORT(a) ((hamlib_port_t *)amp_data_pointer(a, RIG_PTRX_AMPPORT))
+#define HAMLIB_ROTPORT(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT))
+#define HAMLIB_ROTPORT2(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT2))
 #endif
 
 typedef enum {
