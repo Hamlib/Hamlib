@@ -2,7 +2,7 @@
 // Can customize during build
 // Eventually should improved this for external actions when
 // rigctld gets integrated as a service within Hamlib
-static int rig_band_changed(RIG *rig, hamlib_bandselect_t band)
+int rig_band_changed(RIG *rig, hamlib_bandselect_t band)
 {
     // See band_changed.c
     // Examples:
