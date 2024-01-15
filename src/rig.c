@@ -588,7 +588,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rp = RIGPORT(rig);
     pttp = PTTPORT(rig);
     dcdp = DCDPORT(rig);
-    
+
     rs->rig_model = caps->rig_model;
     rs->priv = NULL;
     rs->async_data_enabled = 0;
@@ -1310,7 +1310,7 @@ int HAMLIB_API rig_open(RIG *rig)
     case RIG_DCD_GPIO:
     case RIG_DCD_GPION:
         dcdp->fd = gpio_open(dcdp, 0,
-                                   RIG_DCD_GPION == dcdp->type.dcd ? 0 : 1);
+                             RIG_DCD_GPION == dcdp->type.dcd ? 0 : 1);
 
         if (dcdp->fd < 0)
         {
@@ -1977,6 +1977,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     vfo_t vfo_save;
     static int last_band = -1;
     int curr_band;
+    int band_changing = 0;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -1990,7 +1991,8 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: band changing to %s\n", __func__,
                   rig_get_band_str(rig, curr_band, 0));
-        rig_band_changed(rig, curr_band);
+        band_changing = 1;
+        //rig_band_changed(rig, curr_band);
         last_band = curr_band;
     }
 
@@ -2117,8 +2119,13 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         do
         {
-            HAMLIB_TRACE;
             retcode = caps->set_freq(rig, vfo, freq);
+
+            if (band_changing)
+            {
+                rig_band_changed(rig, curr_band);
+            }
+
             // disabling the freq check as of 2023-06-02
             // seems unnecessary and slows down rigs unnecessarily
             tfreq = freq;
@@ -2207,6 +2214,9 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
 
         HAMLIB_TRACE;
+
+        if (band_changing) { rig_band_changed(rig, curr_band); }
+
         retcode = caps->set_freq(rig, vfo, freq);
     }
 
@@ -4521,10 +4531,8 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     {
         tx_vfo = rig->state.tx_vfo;
     }
-    else
-    {
-        tx_vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
-    }
+
+    tx_vfo = vfo_fixup(rig, tx_vfo, rig->state.cache.split);
 
     rig_get_freq(rig, tx_vfo, &tfreq);
 
@@ -8652,18 +8660,22 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
  */
 HAMLIB_EXPORT(void *) rig_data_pointer(RIG *rig, rig_ptrx_t idx)
 {
-  switch(idx)
+    switch (idx)
     {
     case RIG_PTRX_RIGPORT:
-      return RIGPORT(rig);
+        return RIGPORT(rig);
+
     case RIG_PTRX_PTTPORT:
-      return PTTPORT(rig);
+        return PTTPORT(rig);
+
     case RIG_PTRX_DCDPORT:
-      return DCDPORT(rig);
+        return DCDPORT(rig);
+
     case RIG_PTRX_CACHE:
-      return CACHE(rig);
+        return CACHE(rig);
+
     default:
-      rig_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
-      return NULL;
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
+        return NULL;
     }
 }
