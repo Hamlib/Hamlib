@@ -18,6 +18,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #ifndef _AMPLIFIER_H
 #define _AMPLIFIER_H 1
@@ -444,6 +445,8 @@ rig_ext_lookup HAMLIB_PARAMS((RIG *rig,
 
 extern HAMLIB_EXPORT(setting_t) amp_parse_level(const char *s);
 extern HAMLIB_EXPORT(const char *) amp_strlevel(setting_t);
+
+extern HAMLIB_EXPORT(void *) amp_data_pointer(AMP *amp, rig_ptrx_t idx);
 
 //! @endcond
 

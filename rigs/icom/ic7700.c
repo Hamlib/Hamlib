@@ -264,6 +264,14 @@ int ic7700_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     return retval;
 }
 
+static int ic7700_rig_open(RIG *rig)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: enter\n", __func__);
+    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+    priv->x26cmdfails = priv->x25cmdfails = 1;
+    return icom_rig_open(rig);
+}
+
 struct rig_caps ic7700_caps =
 {
     RIG_MODEL(RIG_MODEL_IC7700),
@@ -401,7 +409,7 @@ struct rig_caps ic7700_caps =
     .priv = (void *)& ic7700_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
-    .rig_open =  icom_rig_open,
+    .rig_open =  ic7700_rig_open,
     .rig_close =  icom_rig_close,
 
     .set_freq =  icom_set_freq,

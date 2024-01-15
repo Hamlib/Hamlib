@@ -13,6 +13,8 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Added Barrett 4100
+        * Added DL2MAN (tr)uSDX -- needs refinement
         * Added Thetis entry -- derived from FlexRadio/Apache PowerSDR
         * Added VOICE/CW memory capability to many rigs -- thanks to David Balharrie M0DGB/G8FKH
         * Add -# --skip_init option to rigctl to skip rig initialization -- useful for executing commands quickly

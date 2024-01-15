@@ -94,7 +94,6 @@ static const struct confparams ts850_ext_parms[] =
 /*
 * ts850 rig capabilities.
 * Notice that some rigs share the same functions.
-* Also this struct is READONLY!
 */
 struct rig_caps ts850_caps =
 {

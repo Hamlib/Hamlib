@@ -20,6 +20,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /**
  * \addtogroup rig
@@ -517,6 +518,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     RIG *rig;
     const struct rig_caps *caps;
     struct rig_state *rs;
+    hamlib_port_t *rp, *pttp, *dcdp;
     int i;
 
     rig_check_rig_caps();
@@ -581,11 +583,17 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
 #endif
 
+    //TODO Allocate and link ports
+    // For now, use the embedded ones
+    rp = RIGPORT(rig);
+    pttp = PTTPORT(rig);
+    dcdp = DCDPORT(rig);
+    
     rs->rig_model = caps->rig_model;
     rs->priv = NULL;
     rs->async_data_enabled = 0;
-    rs->rigport.fd = -1;
-    rs->pttport.fd = -1;
+    rp->fd = -1;
+    pttp->fd = -1;
     rs->comm_state = 0;
     rig->state.depth = 1;
 #if 0 // extra debug if needed
@@ -593,9 +601,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
               __LINE__, &rs->comm_state,
               rs->comm_state);
 #endif
-    rs->rigport.type.rig = caps->port_type; /* default from caps */
+    rp->type.rig = caps->port_type; /* default from caps */
 #if defined(HAVE_PTHREAD)
-    rs->rigport.asyncio = 0;
+    rp->asyncio = 0;
 #endif
     rig->state.comm_status = RIG_COMM_STATUS_CONNECTING;
 
@@ -604,73 +612,73 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     switch (caps->port_type)
     {
     case RIG_PORT_SERIAL:
-        strncpy(rs->rigport.pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
-        rs->rigport.parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
-        rs->rigport.parm.serial.data_bits = caps->serial_data_bits;
-        rs->rigport.parm.serial.stop_bits = caps->serial_stop_bits;
-        rs->rigport.parm.serial.parity = caps->serial_parity;
-        rs->rigport.parm.serial.handshake = caps->serial_handshake;
+        strncpy(rp->pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
+        rp->parm.serial.rate = caps->serial_rate_max;   /* fastest ! */
+        rp->parm.serial.data_bits = caps->serial_data_bits;
+        rp->parm.serial.stop_bits = caps->serial_stop_bits;
+        rp->parm.serial.parity = caps->serial_parity;
+        rp->parm.serial.handshake = caps->serial_handshake;
         break;
 
     case RIG_PORT_PARALLEL:
-        strncpy(rs->rigport.pathname, DEFAULT_PARALLEL_PORT, HAMLIB_FILPATHLEN - 1);
+        strncpy(rp->pathname, DEFAULT_PARALLEL_PORT, HAMLIB_FILPATHLEN - 1);
         break;
 
     /* Adding support for CM108 GPIO.  This is compatible with CM108 series
      * USB audio chips from CMedia and SSS1623 series USB audio chips from 3S
      */
     case RIG_PORT_CM108:
-        strncpy(rs->rigport.pathname, DEFAULT_CM108_PORT, HAMLIB_FILPATHLEN);
+        strncpy(rp->pathname, DEFAULT_CM108_PORT, HAMLIB_FILPATHLEN);
 
-        if (rs->rigport.parm.cm108.ptt_bitnum == 0)
+        if (rp->parm.cm108.ptt_bitnum == 0)
         {
-            rs->rigport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
-            rs->pttport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+            rp->parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+            pttp->parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
         }
 
         break;
 
     case RIG_PORT_GPIO:
-        strncpy(rs->rigport.pathname, DEFAULT_GPIO_PORT, HAMLIB_FILPATHLEN);
+        strncpy(rp->pathname, DEFAULT_GPIO_PORT, HAMLIB_FILPATHLEN);
         break;
 
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
-        strncpy(rs->rigport.pathname, "127.0.0.1:4532", HAMLIB_FILPATHLEN - 1);
+        strncpy(rp->pathname, "127.0.0.1:4532", HAMLIB_FILPATHLEN - 1);
         break;
 
     default:
-        strncpy(rs->rigport.pathname, "", HAMLIB_FILPATHLEN - 1);
+        strncpy(rp->pathname, "", HAMLIB_FILPATHLEN - 1);
     }
 
-    rs->rigport.write_delay = caps->write_delay;
-    rs->rigport.post_write_delay = caps->post_write_delay;
+    rp->write_delay = caps->write_delay;
+    rp->post_write_delay = caps->post_write_delay;
 
     // since we do two timeouts now we can cut the timeout in half for serial
     if (caps->port_type == RIG_PORT_SERIAL && caps->timeout_retry >= 0)
     {
-        rs->rigport.timeout = caps->timeout / 2;
+        rp->timeout = caps->timeout / 2;
     }
 
-    rs->rigport.retry = caps->retry;
+    rp->retry = caps->retry;
 
     if (caps->timeout_retry < 0)
     {
         // Rigs may disable read timeout retries
-        rs->rigport.timeout_retry = 0;
+        rp->timeout_retry = 0;
     }
     else if (caps->timeout_retry == 0)
     {
         // Default to 1 retry for read timeouts
-        rs->rigport.timeout_retry = 1;
+        rp->timeout_retry = 1;
     }
     else
     {
-        rs->rigport.timeout_retry = caps->timeout_retry;
+        rp->timeout_retry = caps->timeout_retry;
     }
 
-    rs->pttport.type.ptt = caps->ptt_type;
-    rs->dcdport.type.dcd = caps->dcd_type;
+    pttp->type.ptt = caps->ptt_type;
+    dcdp->type.dcd = caps->dcd_type;
 
     rs->vfo_comp = 0.0; /* override it with preferences */
     rs->current_vfo = RIG_VFO_CURR; /* we don't know yet! */
@@ -837,7 +845,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->max_ifshift = caps->max_ifshift;
     rs->announces = caps->announces;
 
-    rs->rigport.fd = rs->pttport.fd = rs->dcdport.fd = -1;
+    rp->fd = pttp->fd = dcdp->fd = -1;
     // some rigs (like SDR) behave differnt when checking for power on
     // So we assume power is on until one of the backends KNOWS it is off
     rs->powerstat = RIG_POWER_ON; // default to power on until proven otherwise
@@ -889,6 +897,9 @@ int HAMLIB_API rig_open(RIG *rig)
 {
     struct rig_caps *caps;
     struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
+    hamlib_port_t *pttp = PTTPORT(rig);
+    hamlib_port_t *dcdp = DCDPORT(rig);
     int status = RIG_OK;
     value_t parm_value;
     //unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
@@ -904,10 +915,10 @@ int HAMLIB_API rig_open(RIG *rig)
 
     caps = rig->caps;
     rs = &rig->state;
-    rs->rigport.rig = rig;
+    rp->rig = rig;
     rs->rigport_deprecated.rig = rig;
 
-    if (strcmp(rs->rigport.pathname, "USB") == 0)
+    if (strcmp(rp->pathname, "USB") == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: 'USB' is not a valid COM port name\n", __func__);
         errno = 2;
@@ -917,27 +928,27 @@ int HAMLIB_API rig_open(RIG *rig)
     // rigctl/rigctld may have deprecated values -- backwards compatibility
     if (rs->rigport_deprecated.pathname[0] != 0)
     {
-        strcpy(rs->rigport.pathname, rs->rigport_deprecated.pathname);
+        strcpy(rp->pathname, rs->rigport_deprecated.pathname);
     }
 
     if (rs->pttport_deprecated.type.ptt != RIG_PTT_NONE)
     {
-        rs->pttport.type.ptt = rs->pttport_deprecated.type.ptt;
+        pttp->type.ptt = rs->pttport_deprecated.type.ptt;
     }
 
     if (rs->dcdport_deprecated.type.dcd != RIG_DCD_NONE)
     {
-        rs->dcdport.type.dcd = rs->dcdport_deprecated.type.dcd;
+        dcdp->type.dcd = rs->dcdport_deprecated.type.dcd;
     }
 
     if (rs->pttport_deprecated.pathname[0] != 0)
     {
-        strcpy(rs->pttport.pathname, rs->pttport_deprecated.pathname);
+        strcpy(pttp->pathname, rs->pttport_deprecated.pathname);
     }
 
     if (rs->dcdport_deprecated.pathname[0] != 0)
     {
-        strcpy(rs->dcdport.pathname, rs->dcdport_deprecated.pathname);
+        strcpy(dcdp->pathname, rs->dcdport_deprecated.pathname);
     }
 
     rig_settings_load_all(NULL); // load default .hamlib_settings
@@ -987,12 +998,12 @@ int HAMLIB_API rig_open(RIG *rig)
               "%s: async_data_enable=%d, async_data_supported=%d\n", __func__,
               rs->async_data_enabled, caps->async_data_supported);
     rs->async_data_enabled = rs->async_data_enabled && caps->async_data_supported;
-    rs->rigport.asyncio = rs->async_data_enabled;
+    rp->asyncio = rs->async_data_enabled;
 
-    if (strlen(rs->rigport.pathname) > 0)
+    if (strlen(rp->pathname) > 0)
     {
         char hoststr[256], portstr[6];
-        status = parse_hoststr(rs->rigport.pathname, sizeof(rs->rigport.pathname),
+        status = parse_hoststr(rp->pathname, sizeof(rp->pathname),
                                hoststr, portstr);
 
         if (status == RIG_OK) { is_network = 1; }
@@ -1001,16 +1012,16 @@ int HAMLIB_API rig_open(RIG *rig)
 #if 0
     // determine if we have a network address
     //
-    is_network |= sscanf(rs->rigport.pathname, "%u.%u.%u.%u:%u", &net1, &net2,
+    is_network |= sscanf(rp->pathname, "%u.%u.%u.%u:%u", &net1, &net2,
                          &net3, &net4, &port) == 5;
-    is_network |= sscanf(rs->rigport.pathname, ":%u", &port) == 1;
-    is_network |= sscanf(rs->rigport.pathname, "%u::%u:%u:%u:%u:%u", &net1, &net2,
+    is_network |= sscanf(rp->pathname, ":%u", &port) == 1;
+    is_network |= sscanf(rp->pathname, "%u::%u:%u:%u:%u:%u", &net1, &net2,
                          &net3, &net4, &net5, &port) == 6;
-    is_network |= sscanf(rs->rigport.pathname, "%u:%u:%u:%u:%u:%u:%u:%u:%u", &net1,
+    is_network |= sscanf(rp->pathname, "%u:%u:%u:%u:%u:%u:%u:%u:%u", &net1,
                          &net2, &net3, &net4, &net5, &net6, &net7, &net8, &port) == 9;
 
     // if we haven't met one of the condition above then we must have a hostname
-    if (!is_network && (token = strtok_r(rs->rigport.pathname, ":", &strtokp)))
+    if (!is_network && (token = strtok_r(rp->pathname, ":", &strtokp)))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: token1=%s\n", __func__, token);
         token = strtok_r(strtokp, ":", &strtokp);
@@ -1028,19 +1039,21 @@ int HAMLIB_API rig_open(RIG *rig)
     if (is_network)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
-                  rs->rigport.pathname);
-        rs->rigport.type.rig = RIG_PORT_NETWORK;
+                  rp->pathname);
+        rp->type.rig = RIG_PORT_NETWORK;
 
         if (RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM)
         {
             // Xiegu X6100 does TCP and does not support UDP spectrum that I know of
+#if 0
             if (rig->caps->rig_model != RIG_MODEL_X6100)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s(%d): Icom rig UDP network enabled\n", __FILE__,
                           __LINE__);
-                rs->rigport.type.rig = RIG_PORT_UDP_NETWORK;
+                rp->type.rig = RIG_PORT_UDP_NETWORK;
             }
 
+#endif
         }
     }
 
@@ -1049,55 +1062,55 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==1?=%d\n", __func__,
                   __LINE__, &rs->comm_state,
                   rs->comm_state);
-        port_close(&rs->rigport, rs->rigport.type.rig);
+        port_close(rp, rp->type.rig);
         rs->comm_state = 0;
         RETURNFUNC2(-RIG_EINVAL);
     }
 
     rs->comm_status = RIG_COMM_STATUS_CONNECTING;
 
-    rs->rigport.fd = -1;
+    rp->fd = -1;
 
-    if (rs->rigport.type.rig == RIG_PORT_SERIAL)
+    if (rp->type.rig == RIG_PORT_SERIAL)
     {
-        if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET
-                && rs->rigport.parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)
+        if (rp->parm.serial.rts_state != RIG_SIGNAL_UNSET
+                && rp->parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: cannot set RTS with hardware handshake \"%s\"\n",
                       __func__,
-                      rs->rigport.pathname);
+                      rp->pathname);
             RETURNFUNC2(-RIG_ECONF);
         }
 
-        if ('\0' == rs->pttport.pathname[0]
-                || !strcmp(rs->pttport.pathname, rs->rigport.pathname))
+        if ('\0' == pttp->pathname[0]
+                || !strcmp(pttp->pathname, rp->pathname))
         {
             /* check for control line conflicts */
-            if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET
-                    && rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
+            if (rp->parm.serial.rts_state != RIG_SIGNAL_UNSET
+                    && pttp->type.ptt == RIG_PTT_SERIAL_RTS)
             {
                 rig_debug(RIG_DEBUG_ERR,
                           "%s: cannot set RTS with PTT by RTS \"%s\"\n",
                           __func__,
-                          rs->rigport.pathname);
+                          rp->pathname);
                 RETURNFUNC2(-RIG_ECONF);
             }
 
-            if (rs->rigport.parm.serial.dtr_state != RIG_SIGNAL_UNSET
-                    && rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
+            if (rp->parm.serial.dtr_state != RIG_SIGNAL_UNSET
+                    && pttp->type.ptt == RIG_PTT_SERIAL_DTR)
             {
                 rig_debug(RIG_DEBUG_ERR,
                           "%s: cannot set DTR with PTT by DTR \"%s\"\n",
                           __func__,
-                          rs->rigport.pathname);
+                          rp->pathname);
                 RETURNFUNC2(-RIG_ECONF);
             }
         }
     }
 
-    rs->rigport.timeout = caps->timeout;
-    status = port_open(&rs->rigport);
+    rp->timeout = caps->timeout;
+    status = port_open(rp);
 
     if (status < 0)
     {
@@ -1108,7 +1121,7 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC2(status);
     }
 
-    switch (rs->pttport.type.ptt)
+    switch (pttp->type.ptt)
     {
     case RIG_PTT_NONE:
     case RIG_PTT_RIG:
@@ -1117,124 +1130,123 @@ int HAMLIB_API rig_open(RIG *rig)
 
     case RIG_PTT_SERIAL_RTS:
     case RIG_PTT_SERIAL_DTR:
-        if (rs->pttport.pathname[0] == '\0'
-                && rs->rigport.type.rig == RIG_PORT_SERIAL)
+        if (pttp->pathname[0] == '\0'
+                && rp->type.rig == RIG_PORT_SERIAL)
         {
-            strcpy(rs->pttport.pathname, rs->rigport.pathname);
+            strcpy(pttp->pathname, rp->pathname);
         }
 
-        if (!strcmp(rs->pttport.pathname, rs->rigport.pathname))
+        if (!strcmp(pttp->pathname, rp->pathname))
         {
-            rs->pttport.fd = rs->rigport.fd;
+            pttp->fd = rp->fd;
 
             /* Needed on Linux because the serial port driver sets RTS/DTR
                on open - only need to address the PTT line as we offer
                config parameters to control the other (dtr_state &
                rts_state) */
-            if (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR)
+            if (pttp->type.ptt == RIG_PTT_SERIAL_DTR)
             {
-                status = ser_set_dtr(&rs->pttport, 0);
+                status = ser_set_dtr(pttp, 0);
             }
 
-            if (rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS)
+            if (pttp->type.ptt == RIG_PTT_SERIAL_RTS)
             {
-                status = ser_set_rts(&rs->pttport, 0);
+                status = ser_set_rts(pttp, 0);
             }
         }
         else
         {
-            rs->pttport.fd = ser_open(&rs->pttport);
+            pttp->fd = ser_open(pttp);
 
-            if (rs->pttport.fd < 0)
+            if (pttp->fd < 0)
             {
                 rig_debug(RIG_DEBUG_ERR,
                           "%s: cannot open PTT device \"%s\"\n",
                           __func__,
-                          rs->pttport.pathname);
+                          pttp->pathname);
                 status = -RIG_EIO;
             }
 
             if (RIG_OK == status
-                    && (rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR
-                        || rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS))
+                    && (pttp->type.ptt == RIG_PTT_SERIAL_DTR
+                        || pttp->type.ptt == RIG_PTT_SERIAL_RTS))
             {
                 /* Needed on Linux because the serial port driver sets
                    RTS/DTR high on open - set both low since we offer no
                    control of the non-PTT line and low is better than
                    high */
-                status = ser_set_dtr(&rs->pttport, 0);
+                status = ser_set_dtr(pttp, 0);
 
                 if (RIG_OK == status)
                 {
-                    status = ser_set_rts(&rs->pttport, 0);
+                    status = ser_set_rts(pttp, 0);
                 }
             }
 
-            ser_close(&rs->pttport);
+            ser_close(pttp);
         }
 
         break;
 
     case RIG_PTT_PARALLEL:
-        rs->pttport.fd = par_open(&rs->pttport);
+        pttp->fd = par_open(pttp);
 
-        if (rs->pttport.fd < 0)
+        if (pttp->fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: cannot open PTT device \"%s\"\n",
                       __func__,
-                      rs->pttport.pathname);
+                      pttp->pathname);
             status = -RIG_EIO;
         }
         else
         {
-            par_ptt_set(&rs->pttport, RIG_PTT_OFF);
+            par_ptt_set(pttp, RIG_PTT_OFF);
         }
 
         break;
 
     case RIG_PTT_CM108:
-        rs->pttport.fd = cm108_open(&rs->pttport);
+        pttp->fd = cm108_open(pttp);
 
-        strncpy(rs->rigport.pathname, DEFAULT_CM108_PORT, HAMLIB_FILPATHLEN);
+        strncpy(rp->pathname, DEFAULT_CM108_PORT, HAMLIB_FILPATHLEN);
 
-        if (rs->rigport.parm.cm108.ptt_bitnum == 0)
+        if (rp->parm.cm108.ptt_bitnum == 0)
         {
-            rs->rigport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
-            rs->pttport.parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+            rp->parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
+            pttp->parm.cm108.ptt_bitnum = DEFAULT_CM108_PTT_BITNUM;
         }
 
-        if (rs->pttport.fd < 0)
+        if (pttp->fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: cannot open PTT device \"%s\"\n",
                       __func__,
-                      rs->pttport.pathname);
+                      pttp->pathname);
             status = -RIG_EIO;
         }
         else
         {
-            cm108_ptt_set(&rs->pttport, RIG_PTT_OFF);
+            cm108_ptt_set(pttp, RIG_PTT_OFF);
         }
 
         break;
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
-        rs->pttport.fd = gpio_open(&rs->pttport, 1,
-                                   RIG_PTT_GPION == rs->pttport.type.ptt ? 0 : 1);
+        pttp->fd = gpio_open(pttp, 1, RIG_PTT_GPION == pttp->type.ptt ? 0 : 1);
 
-        if (rs->pttport.fd < 0)
+        if (pttp->fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: cannot open PTT device \"GPIO%s\"\n",
                       __func__,
-                      rs->pttport.pathname);
+                      pttp->pathname);
             status = -RIG_EIO;
         }
         else
         {
-            gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
+            gpio_ptt_set(pttp, RIG_PTT_OFF);
         }
 
         break;
@@ -1243,11 +1255,11 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_ERR,
                   "%s: unsupported PTT type %d\n",
                   __func__,
-                  rs->pttport.type.ptt);
+                  pttp->type.ptt);
         status = -RIG_ECONF;
     }
 
-    switch (rs->dcdport.type.dcd)
+    switch (dcdp->type.dcd)
     {
     case RIG_DCD_NONE:
     case RIG_DCD_RIG:
@@ -1256,41 +1268,41 @@ int HAMLIB_API rig_open(RIG *rig)
     case RIG_DCD_SERIAL_DSR:
     case RIG_DCD_SERIAL_CTS:
     case RIG_DCD_SERIAL_CAR:
-        if (rs->dcdport.pathname[0] == '\0'
-                && rs->rigport.type.rig == RIG_PORT_SERIAL)
+        if (dcdp->pathname[0] == '\0'
+                && rp->type.rig == RIG_PORT_SERIAL)
         {
-            strcpy(rs->dcdport.pathname, rs->rigport.pathname);
+            strcpy(dcdp->pathname, rp->pathname);
         }
 
-        if (strcmp(rs->dcdport.pathname, rs->rigport.pathname) == 0)
+        if (strcmp(dcdp->pathname, rp->pathname) == 0)
         {
-            rs->dcdport.fd = rs->rigport.fd;
+            dcdp->fd = rp->fd;
         }
         else
         {
-            rs->dcdport.fd = ser_open(&rs->dcdport);
+            dcdp->fd = ser_open(dcdp);
         }
 
-        if (rs->dcdport.fd < 0)
+        if (dcdp->fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: cannot open DCD device \"%s\"\n",
                       __func__,
-                      rs->dcdport.pathname);
+                      dcdp->pathname);
             status = -RIG_EIO;
         }
 
         break;
 
     case RIG_DCD_PARALLEL:
-        rs->dcdport.fd = par_open(&rs->dcdport);
+        dcdp->fd = par_open(dcdp);
 
-        if (rs->dcdport.fd < 0)
+        if (dcdp->fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: cannot open DCD device \"%s\"\n",
                       __func__,
-                      rs->dcdport.pathname);
+                      dcdp->pathname);
             status = -RIG_EIO;
         }
 
@@ -1298,15 +1310,15 @@ int HAMLIB_API rig_open(RIG *rig)
 
     case RIG_DCD_GPIO:
     case RIG_DCD_GPION:
-        rs->dcdport.fd = gpio_open(&rs->dcdport, 0,
-                                   RIG_DCD_GPION == rs->dcdport.type.dcd ? 0 : 1);
+        dcdp->fd = gpio_open(dcdp, 0,
+                                   RIG_DCD_GPION == dcdp->type.dcd ? 0 : 1);
 
-        if (rs->dcdport.fd < 0)
+        if (dcdp->fd < 0)
         {
             rig_debug(RIG_DEBUG_ERR,
                       "%s: cannot open DCD device \"GPIO%s\"\n",
                       __func__,
-                      rs->dcdport.pathname);
+                      dcdp->pathname);
             status = -RIG_EIO;
         }
 
@@ -1316,29 +1328,31 @@ int HAMLIB_API rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_ERR,
                   "%s: unsupported DCD type %d\n",
                   __func__,
-                  rs->dcdport.type.dcd);
+                  dcdp->type.dcd);
         status = -RIG_ECONF;
     }
 
     if (status < 0)
     {
-        port_close(&rs->rigport, rs->rigport.type.rig);
+        port_close(rp, rp->type.rig);
         rig->state.comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
     }
 
 #if defined(HAVE_PTHREAD)
+
     if (!skip_init)
     {
-    status = async_data_handler_start(rig);
+        status = async_data_handler_start(rig);
 
-    if (status < 0)
-    {
-        port_close(&rs->rigport, rs->rigport.type.rig);
-        rig->state.comm_status = RIG_COMM_STATUS_ERROR;
-        RETURNFUNC2(status);
+        if (status < 0)
+        {
+            port_close(rp, rp->type.rig);
+            rig->state.comm_status = RIG_COMM_STATUS_ERROR;
+            RETURNFUNC2(status);
+        }
     }
-    }
+
 #endif
 
     rs->comm_state = 1;
@@ -1353,8 +1367,8 @@ int HAMLIB_API rig_open(RIG *rig)
      * Maybe the backend has something to initialize
      * In case of failure, just close down and report error code.
      */
-    short retry_save = rs->rigport.retry;
-    rs->rigport.retry = 0;
+    int retry_save = rp->retry;
+    rp->retry = 0;
 
     if (caps->rig_open != NULL)
     {
@@ -1392,14 +1406,16 @@ int HAMLIB_API rig_open(RIG *rig)
         {
             remove_opened_rig(rig);
 #if defined(HAVE_PTHREAD)
+
             if (!skip_init)
-            { 
-            async_data_handler_stop(rig);
-            morse_data_handler_stop(rig);
+            {
+                async_data_handler_stop(rig);
+                morse_data_handler_stop(rig);
             }
+
 #endif
-            port_close(&rs->rigport, rs->rigport.type.rig);
-            memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
+            port_close(rp, rp->type.rig);
+            memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
             rig->state.comm_status = RIG_COMM_STATUS_ERROR;
             RETURNFUNC2(status);
@@ -1438,7 +1454,8 @@ int HAMLIB_API rig_open(RIG *rig)
                       rig_strvfo(rs->current_vfo));
         }
     }
-    if (skip_init) return RIG_OK;
+
+    if (skip_init) { return RIG_OK; }
 
 #if defined(HAVE_PTHREAD)
     status = morse_data_handler_start(rig);
@@ -1447,7 +1464,7 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %s\n", __func__,
                   rigerror(status));
-        port_close(&rs->rigport, rs->rigport.type.rig);
+        port_close(rp, rp->type.rig);
         RETURNFUNC2(status);
     }
 
@@ -1468,13 +1485,21 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (rig->caps->get_freq)
     {
-        retval = rig_get_freq(rig, RIG_VFO_A, &freq);
+        vfo_t myvfo = RIG_VFO_A;
+
+        if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_A; }
+
+        retval = rig_get_freq(rig, myvfo, &freq);
 
         if (retval == RIG_OK && rig->caps->rig_model != RIG_MODEL_F6K)
         {
             split_t split = RIG_SPLIT_OFF;
             vfo_t tx_vfo = RIG_VFO_NONE;
-            rig_get_freq(rig, RIG_VFO_B, &freq);
+            myvfo = RIG_VFO_B;
+
+            if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_B; }
+
+            rig_get_freq(rig, myvfo, &freq);
             rig_get_split_vfo(rig, RIG_VFO_RX, &split, &tx_vfo);
             rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Current split=%d, tx_vfo=%s\n", __func__,
                       __LINE__, split, rig_strvfo(tx_vfo));
@@ -1483,24 +1508,32 @@ int HAMLIB_API rig_open(RIG *rig)
 
             if (rig->caps->get_mode)
             {
-                rig_get_mode(rig, RIG_VFO_A, &mode, &width);
+                myvfo = RIG_VFO_A;
+
+                if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_A; }
+
+                rig_get_mode(rig, myvfo, &mode, &width);
 
                 if (split)
                 {
+                    myvfo = RIG_VFO_B;
+
+                    if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_A; }
+
                     rig_debug(RIG_DEBUG_VERBOSE, "xxxsplit=%d\n", split);
                     HAMLIB_TRACE;
-                    rig_get_mode(rig, RIG_VFO_B, &mode, &width);
+                    rig_get_mode(rig, myvfo, &mode, &width);
                 }
             }
         }
     }
 
-    rs->rigport.retry = retry_save;
+    rp->retry = retry_save;
 
-    memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
-    memcpy(&rs->pttport_deprecated, &rs->pttport, sizeof(hamlib_port_t_deprecated));
-    memcpy(&rs->dcdport_deprecated, &rs->dcdport, sizeof(hamlib_port_t_deprecated));
-    rig_flush_force(&rs->rigport, 1);
+    memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
+    memcpy(&rs->pttport_deprecated, pttp, sizeof(hamlib_port_t_deprecated));
+    memcpy(&rs->dcdport_deprecated, dcdp, sizeof(hamlib_port_t_deprecated));
+    rig_flush_force(rp, 1);
 
 #if defined(HAVE_PTHREAD)
     enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE
@@ -1562,6 +1595,9 @@ int HAMLIB_API rig_open(RIG *rig)
 int HAMLIB_API rig_close(RIG *rig)
 {
     const struct rig_caps *caps;
+    hamlib_port_t *rp = RIGPORT(rig);
+    hamlib_port_t *pttp = PTTPORT(rig);
+    hamlib_port_t *dcdp = DCDPORT(rig);
     struct rig_state *rs;
 
     if (!rig || !rig->caps)
@@ -1586,14 +1622,16 @@ int HAMLIB_API rig_close(RIG *rig)
     rig->state.comm_status = RIG_COMM_STATUS_DISCONNECTED;
 
 #if defined(HAVE_PTHREAD)
+
     if (!skip_init)
     {
-    morse_data_handler_stop(rig);
-    async_data_handler_stop(rig);
-    rig_poll_routine_stop(rig);
-    network_multicast_receiver_stop(rig);
-    network_multicast_publisher_stop(rig);
+        morse_data_handler_stop(rig);
+        async_data_handler_stop(rig);
+        rig_poll_routine_stop(rig);
+        network_multicast_receiver_stop(rig);
+        network_multicast_publisher_stop(rig);
     }
+
 #endif
 
     /*
@@ -1610,7 +1648,7 @@ int HAMLIB_API rig_close(RIG *rig)
      * FIXME: what happens if PTT and rig ports are the same?
      *          (eg. ptt_type = RIG_PTT_SERIAL)
      */
-    switch (rs->pttport.type.ptt)
+    switch (pttp->type.ptt)
     {
     case RIG_PTT_NONE:
     case RIG_PTT_RIG:
@@ -1620,14 +1658,14 @@ int HAMLIB_API rig_close(RIG *rig)
     case RIG_PTT_SERIAL_RTS:
 
         // If port is already closed, do nothing
-        if (rs->pttport.fd > -1)
+        if (pttp->fd > -1)
         {
-            ser_set_rts(&rs->pttport, 0);
+            ser_set_rts(pttp, 0);
 
-            if (rs->pttport.fd != rs->rigport.fd)
+            if (pttp->fd != rp->fd)
             {
-                port_close(&rs->pttport, RIG_PORT_SERIAL);
-                memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
+                port_close(pttp, RIG_PORT_SERIAL);
+                memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
             }
         }
 
@@ -1636,43 +1674,43 @@ int HAMLIB_API rig_close(RIG *rig)
     case RIG_PTT_SERIAL_DTR:
 
         // If port is already closed, do nothing
-        if (rs->pttport.fd > -1)
+        if (pttp->fd > -1)
         {
-            ser_set_dtr(&rs->pttport, 0);
+            ser_set_dtr(pttp, 0);
 
-            if (rs->pttport.fd != rs->rigport.fd)
+            if (pttp->fd != rp->fd)
             {
-                port_close(&rs->pttport, RIG_PORT_SERIAL);
-                memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
+                port_close(pttp, RIG_PORT_SERIAL);
+                memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
             }
         }
 
         break;
 
     case RIG_PTT_PARALLEL:
-        par_ptt_set(&rs->pttport, RIG_PTT_OFF);
-        par_close(&rs->pttport);
+        par_ptt_set(pttp, RIG_PTT_OFF);
+        par_close(pttp);
         break;
 
     case RIG_PTT_CM108:
-        cm108_ptt_set(&rs->pttport, RIG_PTT_OFF);
-        cm108_close(&rs->pttport);
+        cm108_ptt_set(pttp, RIG_PTT_OFF);
+        cm108_close(pttp);
         break;
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
-        gpio_ptt_set(&rs->pttport, RIG_PTT_OFF);
-        gpio_close(&rs->pttport);
+        gpio_ptt_set(pttp, RIG_PTT_OFF);
+        gpio_close(pttp);
         break;
 
     default:
         rig_debug(RIG_DEBUG_ERR,
                   "%s: unsupported PTT type %d\n",
                   __func__,
-                  rs->pttport.type.ptt);
+                  pttp->type.ptt);
     }
 
-    switch (rs->dcdport.type.dcd)
+    switch (dcdp->type.dcd)
     {
     case RIG_DCD_NONE:
     case RIG_DCD_RIG:
@@ -1681,33 +1719,33 @@ int HAMLIB_API rig_close(RIG *rig)
     case RIG_DCD_SERIAL_DSR:
     case RIG_DCD_SERIAL_CTS:
     case RIG_DCD_SERIAL_CAR:
-        if (rs->dcdport.fd != rs->rigport.fd)
+        if (dcdp->fd != rp->fd)
         {
-            port_close(&rs->dcdport, RIG_PORT_SERIAL);
-            memcpy(&rs->rigport_deprecated, &rs->rigport, sizeof(hamlib_port_t_deprecated));
+            port_close(dcdp, RIG_PORT_SERIAL);
+            memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
         }
 
         break;
 
     case RIG_DCD_PARALLEL:
-        par_close(&rs->dcdport);
+        par_close(dcdp);
         break;
 
     case RIG_DCD_GPIO:
     case RIG_DCD_GPION:
-        gpio_close(&rs->dcdport);
+        gpio_close(dcdp);
         break;
 
     default:
         rig_debug(RIG_DEBUG_ERR,
                   "%s: unsupported DCD type %d\n",
                   __func__,
-                  rs->dcdport.type.dcd);
+                  dcdp->type.dcd);
     }
 
-    rs->dcdport.fd = rs->pttport.fd = -1;
+    dcdp->fd = pttp->fd = -1;
 
-    port_close(&rs->rigport, rs->rigport.type.rig);
+    port_close(rp, rp->type.rig);
 
     // zero split so it will allow it to be set again on open for rigctld
     rig->state.cache.split = 0;
@@ -1755,6 +1793,8 @@ int HAMLIB_API rig_cleanup(RIG *rig)
     {
         rig->caps->rig_cleanup(rig);
     }
+
+    //TODO Release and null any allocated port structures
 
     free(rig);
 
@@ -1891,6 +1931,8 @@ static int twiddling(RIG *rig)
     RETURNFUNC2(0);
 }
 
+#include "band_changed.c"
+
 /**
  * \brief set the frequency of the target VFO
  * \param rig   The rig handle
@@ -1917,6 +1959,8 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int retcode;
     freq_t freq_new = freq;
     vfo_t vfo_save;
+    static int last_band = -1;
+    int curr_band;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -1924,9 +1968,21 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
+    curr_band = rig_get_band(rig, freq, -1);
+
+    if (rig->state.tx_vfo == vfo && curr_band != last_band)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: band changing to %s\n", __func__,
+                  rig_get_band_str(rig, curr_band, 0));
+        rig_band_changed(rig, curr_band);
+        last_band = curr_band;
+    }
+
     ELAPSED1;
     ENTERFUNC;
     LOCK(1);
+
+
 #if BUILTINFUNC
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, freq=%.0f, called from %s\n",
               __func__,
@@ -1941,7 +1997,8 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN || (vfo == RIG_VFO_CURR
                 && rig->state.current_vfo == RIG_VFO_A))
         {
-            if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0))
+            if (rig->state.cache.freqMainA != freq && (((int)freq % 10) != 0)
+                    && (((int)freq % 100) != 55))
             {
                 rig->state.doppler = 1;
                 rig_debug(RIG_DEBUG_VERBOSE,
@@ -1954,7 +2011,8 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         else if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB || (vfo == RIG_VFO_CURR
                  && rig->state.current_vfo == RIG_VFO_B))
         {
-            if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0)
+            if (rig->state.cache.freqMainB != freq && ((int)freq % 10) != 0
+                    && (((int)freq % 100) != 55))
             {
                 rig->state.doppler = 1;
                 rig_debug(RIG_DEBUG_VERBOSE,
@@ -2237,6 +2295,8 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     vfo_t curr_vfo;
     rmode_t mode;
     pbwidth_t width;
+    int curr_band;
+    static int last_band = -1;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -2496,6 +2556,21 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (retcode == RIG_OK)
     {
         rig_cache_show(rig, __func__, __LINE__);
+    }
+
+    // we only want to look for band change on main vfo for now
+    if (*freq != 0 && (rig->state.current_vfo == RIG_VFO_A
+                       || rig->state.current_vfo == RIG_VFO_MAIN))
+    {
+        curr_band = rig_get_band(rig, *freq, -1);
+
+        if (rig->state.tx_vfo == vfo && curr_band != last_band)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: band changing to %s\n", __func__,
+                      rig_get_band_str(rig, curr_band, 0));
+            rig_band_changed(rig, curr_band);
+            last_band = curr_band;
+        }
     }
 
     ELAPSED2;
@@ -2910,8 +2985,7 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
     {
         if (rs->filters[i].modes & mode)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%.*s%d:%s: return filter#%d, width=%d\n",
-                      rig->state.depth, spaces(), rig->state.depth, __func__, i,
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: return filter#%d, width=%d\n", __func__, i,
                       (int)rs->filters[i].width);
             RETURNFUNC(rs->filters[i].width);
         }
@@ -3075,7 +3149,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_B || vfo == RIG_VFO_SUB)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s ********************** called vfo=%s\n",
+        rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
 
@@ -3277,6 +3351,8 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     const struct rig_caps *caps;
     struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
+    hamlib_port_t *pttp = PTTPORT(rig);
     int retcode = RIG_OK;
 
     if (CHECK_RIG_ARG(rig))
@@ -3292,7 +3368,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     LOCK(1);
 
-    switch (rig->state.pttport.type.ptt)
+    switch (pttp->type.ptt)
     {
     case RIG_PTT_RIG:
         if (ptt == RIG_PTT_ON_MIC || ptt == RIG_PTT_ON_DATA)
@@ -3440,19 +3516,19 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
            port when PTT is reset and seize the port when PTT is set,
            this allows limited sharing of the PTT port between
            applications so long as there is no contention */
-        if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
-                && rs->pttport.fd < 0
+        if (strcmp(pttp->pathname, rp->pathname)
+                && pttp->fd < 0
                 && RIG_PTT_OFF != ptt)
         {
 
-            rs->pttport.fd = ser_open(&rs->pttport);
+            pttp->fd = ser_open(pttp);
 
-            if (rs->pttport.fd < 0)
+            if (pttp->fd < 0)
             {
                 rig_debug(RIG_DEBUG_ERR,
                           "%s: cannot open PTT device \"%s\"\n",
                           __func__,
-                          rs->pttport.pathname);
+                          pttp->pathname);
                 ELAPSED2;
                 RETURNFUNC(-RIG_EIO);
             }
@@ -3460,7 +3536,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             /* Needed on Linux because the serial port driver sets RTS/DTR
                high on open - set both since we offer no control of
                the non-PTT line and low is better than high */
-            retcode = ser_set_rts(&rs->pttport, 0);
+            retcode = ser_set_rts(pttp, 0);
 
             if (RIG_OK != retcode)
             {
@@ -3469,16 +3545,16 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             }
         }
 
-        retcode = ser_set_dtr(&rig->state.pttport, ptt != RIG_PTT_OFF);
+        retcode = ser_set_dtr(pttp, ptt != RIG_PTT_OFF);
 
         rig_debug(RIG_DEBUG_TRACE, "%s:  rigport=%s, pttport=%s, ptt_share=%d\n",
-                  __func__, rs->pttport.pathname, rs->rigport.pathname, rs->ptt_share);
+                  __func__, rp->pathname, pttp->pathname, rs->ptt_share);
 
-        if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
+        if (strcmp(pttp->pathname, rp->pathname)
                 && ptt == RIG_PTT_OFF && rs->ptt_share != 0)
         {
             /* free the port */
-            ser_close(&rs->pttport);
+            ser_close(pttp);
         }
 
         break;
@@ -3489,20 +3565,20 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
            port when PTT is reset and seize the port when PTT is set,
            this allows limited sharing of the PTT port between
            applications so long as there is no contention */
-        if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
-                && rs->pttport.fd < 0
+        if (strcmp(pttp->pathname, rp->pathname)
+                && pttp->fd < 0
                 && RIG_PTT_OFF != ptt)
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: PTT RTS debug#1\n", __func__);
 
-            rs->pttport.fd = ser_open(&rs->pttport);
+            pttp->fd = ser_open(pttp);
 
-            if (rs->pttport.fd < 0)
+            if (pttp->fd < 0)
             {
                 rig_debug(RIG_DEBUG_ERR,
                           "%s: cannot open PTT device \"%s\"\n",
                           __func__,
-                          rs->pttport.pathname);
+                          pttp->pathname);
                 ELAPSED2;
                 RETURNFUNC(-RIG_EIO);
             }
@@ -3510,7 +3586,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             /* Needed on Linux because the serial port driver sets RTS/DTR
                high on open - set both since we offer no control of the
                non-PTT line and low is better than high */
-            retcode = ser_set_dtr(&rs->pttport, 0);
+            retcode = ser_set_dtr(pttp, 0);
 
             if (RIG_OK != retcode)
             {
@@ -3520,31 +3596,31 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
             }
         }
 
-        retcode = ser_set_rts(&rig->state.pttport, ptt != RIG_PTT_OFF);
+        retcode = ser_set_rts(pttp, ptt != RIG_PTT_OFF);
 
         rig_debug(RIG_DEBUG_TRACE, "%s:  rigport=%s, pttport=%s, ptt_share=%d\n",
-                  __func__, rs->pttport.pathname, rs->rigport.pathname, rs->ptt_share);
+                  __func__, rp->pathname, pttp->pathname, rs->ptt_share);
 
-        if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
+        if (strcmp(pttp->pathname, rp->pathname)
                 && ptt == RIG_PTT_OFF && rs->ptt_share != 0)
         {
             /* free the port */
-            ser_close(&rs->pttport);
+            ser_close(pttp);
         }
 
         break;
 
     case RIG_PTT_PARALLEL:
-        retcode = par_ptt_set(&rig->state.pttport, ptt);
+        retcode = par_ptt_set(pttp, ptt);
         break;
 
     case RIG_PTT_CM108:
-        retcode = cm108_ptt_set(&rig->state.pttport, ptt);
+        retcode = cm108_ptt_set(pttp, ptt);
         break;
 
     case RIG_PTT_GPIO:
     case RIG_PTT_GPION:
-        retcode = gpio_ptt_set(&rig->state.pttport, ptt);
+        retcode = gpio_ptt_set(pttp, ptt);
         break;
 
     case RIG_PTT_NONE:
@@ -3553,7 +3629,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     default:
         rig_debug(RIG_DEBUG_WARN, "%s: unknown PTT type=%d\n", __func__,
-                  rig->state.pttport.type.ptt);
+                  pttp->type.ptt);
         ELAPSED2;
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -3573,7 +3649,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     if (retcode != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: return code=%d\n", __func__, retcode); }
 
-    memcpy(&rig->state.pttport_deprecated, &rig->state.pttport,
+    memcpy(&rig->state.pttport_deprecated, pttp,
            sizeof(rig->state.pttport_deprecated));
 
     if (rig->state.post_ptt_delay > 0) { hl_usleep(rig->state.post_ptt_delay * 1000); }
@@ -3602,6 +3678,8 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     const struct rig_caps *caps;
     struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
+    hamlib_port_t *pttp = PTTPORT(rig);
     int retcode = RIG_OK;
     int status;
     vfo_t curr_vfo;
@@ -3643,7 +3721,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     LOCK(1);
 
-    switch (rig->state.pttport.type.ptt)
+    switch (pttp->type.ptt)
     {
     case RIG_PTT_RIG:
     case RIG_PTT_RIG_MICDATA:
@@ -3747,15 +3825,15 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 #endif
 
-        if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
-                && rs->pttport.fd < 0)
+        if (strcmp(pttp->pathname, rp->pathname)
+                && pttp->fd < 0)
         {
             /* port is closed so assume PTT off */
             *ptt = RIG_PTT_OFF;
         }
         else
         {
-            retcode = ser_get_rts(&rig->state.pttport, &status);
+            retcode = ser_get_rts(pttp, &status);
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
 
@@ -3785,15 +3863,15 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 #endif
 
-        if (strcmp(rs->pttport.pathname, rs->rigport.pathname)
-                && rs->pttport.fd < 0)
+        if (strcmp(pttp->pathname, rp->pathname)
+                && pttp->fd < 0)
         {
             /* port is closed so assume PTT off */
             *ptt = RIG_PTT_OFF;
         }
         else
         {
-            retcode = ser_get_dtr(&rig->state.pttport, &status);
+            retcode = ser_get_dtr(pttp, &status);
             *ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
         }
 
@@ -3820,7 +3898,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             RETURNFUNC(retcode);
         }
 
-        retcode = par_ptt_get(&rig->state.pttport, ptt);
+        retcode = par_ptt_get(pttp, ptt);
 
         if (retcode == RIG_OK)
         {
@@ -3849,7 +3927,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
             RETURNFUNC(retcode);
         }
 
-        retcode = cm108_ptt_get(&rig->state.pttport, ptt);
+        retcode = cm108_ptt_get(pttp, ptt);
 
         if (retcode == RIG_OK)
         {
@@ -3880,7 +3958,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         }
 
         elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
-        retcode = gpio_ptt_get(&rig->state.pttport, ptt);
+        retcode = gpio_ptt_get(pttp, ptt);
         ELAPSED2;
         LOCK(0);
         RETURNFUNC(retcode);
@@ -3919,6 +3997,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     const struct rig_caps *caps;
+    hamlib_port_t *dcdp = DCDPORT(rig);
     int retcode, rc2, status;
     vfo_t curr_vfo;
 
@@ -3939,7 +4018,7 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
     caps = rig->caps;
 
-    switch (rig->state.dcdport.type.dcd)
+    switch (dcdp->type.dcd)
     {
     case RIG_DCD_RIG:
         if (caps->get_dcd == NULL)
@@ -3990,24 +4069,24 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
         break;
 
     case RIG_DCD_SERIAL_CTS:
-        retcode = ser_get_cts(&rig->state.dcdport, &status);
-        memcpy(&rig->state.dcdport_deprecated, &rig->state.dcdport,
+        retcode = ser_get_cts(dcdp, &status);
+        memcpy(&rig->state.dcdport_deprecated, dcdp,
                sizeof(rig->state.dcdport_deprecated));
         *dcd = status ? RIG_DCD_ON : RIG_DCD_OFF;
         ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_DCD_SERIAL_DSR:
-        retcode = ser_get_dsr(&rig->state.dcdport, &status);
-        memcpy(&rig->state.dcdport_deprecated, &rig->state.dcdport,
+        retcode = ser_get_dsr(dcdp, &status);
+        memcpy(&rig->state.dcdport_deprecated, dcdp,
                sizeof(rig->state.dcdport_deprecated));
         *dcd = status ? RIG_DCD_ON : RIG_DCD_OFF;
         ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_DCD_SERIAL_CAR:
-        retcode = ser_get_car(&rig->state.dcdport, &status);
-        memcpy(&rig->state.dcdport_deprecated, &rig->state.dcdport,
+        retcode = ser_get_car(dcdp, &status);
+        memcpy(&rig->state.dcdport_deprecated, dcdp,
                sizeof(rig->state.dcdport_deprecated));
         *dcd = status ? RIG_DCD_ON : RIG_DCD_OFF;
         ELAPSED2;
@@ -4015,16 +4094,16 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 
     case RIG_DCD_PARALLEL:
-        retcode = par_dcd_get(&rig->state.dcdport, dcd);
-        memcpy(&rig->state.dcdport_deprecated, &rig->state.dcdport,
+        retcode = par_dcd_get(dcdp, dcd);
+        memcpy(&rig->state.dcdport_deprecated, dcdp,
                sizeof(rig->state.dcdport_deprecated));
         ELAPSED2;
         RETURNFUNC(retcode);
 
     case RIG_DCD_GPIO:
     case RIG_DCD_GPION:
-        retcode = gpio_dcd_get(&rig->state.dcdport, dcd);
-        memcpy(&rig->state.dcdport_deprecated, &rig->state.dcdport,
+        retcode = gpio_dcd_get(dcdp, dcd);
+        memcpy(&rig->state.dcdport_deprecated, dcdp,
                sizeof(rig->state.dcdport_deprecated));
         ELAPSED2;
         RETURNFUNC(retcode);
@@ -6505,7 +6584,7 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
     }
 
     // if anything is queued up flush it
-    rig_flush_force(&rig->state.rigport, 1);
+    rig_flush_force(RIGPORT(rig), 1);
     ELAPSED2;
     RETURNFUNC(retcode);
 }
@@ -8247,7 +8326,7 @@ void *async_data_handler(void *arg)
                 if (rs->transaction_active)
                 {
                     unsigned char data = (unsigned char) result;
-                    write_block_sync_error(&rs->rigport, &data, 1);
+                    write_block_sync_error(RIGPORT(rig), &data, 1);
                 }
 
                 // TODO: error handling -> store errors in rig state -> to be exposed in async snapshot packets
@@ -8281,7 +8360,7 @@ void *async_data_handler(void *arg)
         }
         else
         {
-            result = write_block_sync(&rs->rigport, frame, frame_length);
+            result = write_block_sync(RIGPORT(rig), frame, frame_length);
 
             if (result < 0)
             {
@@ -8465,12 +8544,12 @@ extern int read_icom_frame(hamlib_port_t *p, const unsigned char rxbuffer[],
 HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
                                 int send_len, unsigned char *reply, int reply_len, unsigned char *term)
 {
-    struct rig_state *rs = &rig->state;
     int nbytes;
     int retval;
+    hamlib_port_t *rp = RIGPORT(rig);
     int simulate = rig->caps->rig_model == RIG_MODEL_DUMMY ||
                    rig->caps->rig_model == RIG_MODEL_NONE ||
-                   rs->rigport.rig == RIG_PORT_NONE;
+                   rp->rig == RIG_PORT_NONE;
     ENTERFUNC;
 
     ELAPSED1;
@@ -8487,7 +8566,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     }
     else
     {
-        retval = write_block(&rs->rigport, send, send_len);
+        retval = write_block(rp, send, send_len);
 
         if (retval < 0)
         {
@@ -8512,25 +8591,25 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
             if (term == NULL)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading binary frame\n", __func__);
-                retval = read_string(&rs->rigport, buf, reply_len, NULL, 0, 0, 1);
+                retval = read_string(rp, buf, reply_len, NULL, 0, 0, 1);
             }
             else if (*term == 0xfd) // then we want an Icom frame
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading icom frame\n", __func__);
-                retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+                retval = read_icom_frame(rp, buf, sizeof(buf));
             }
             else // we'll assume the provided terminator works
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: reading frame terminated by 0x%x\n", __func__,
                           *term);
-                retval = read_string(&rs->rigport, buf, sizeof(buf), (const char *)term,
+                retval = read_string(rp, buf, sizeof(buf), (const char *)term,
                                      1, 0, 1);
             }
 
             if (retval < RIG_OK)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: read_string, result=%d\n", __func__, retval);
-                rig_flush_force(&rs->rigport, 1);
+                rig_flush_force(rp, 1);
                 set_transaction_inactive(rig);
                 RETURNFUNC(retval);
             }
@@ -8541,7 +8620,7 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: reply_len(%d) less than reply from rig(%d)\n",
                           __func__, reply_len, nbytes);
-                rig_flush_force(&rs->rigport, 1);
+                rig_flush_force(rp, 1);
                 set_transaction_inactive(rig);
                 return -RIG_EINVAL;
             }
@@ -8551,12 +8630,12 @@ HAMLIB_EXPORT(int) rig_send_raw(RIG *rig, const unsigned char *send,
     }
     else
     {
-        rig_flush_force(&rs->rigport, 1);
+        rig_flush_force(rp, 1);
         set_transaction_inactive(rig);
         RETURNFUNC(retval);
     }
 
-    rig_flush_force(&rs->rigport, 1);
+    rig_flush_force(rp, 1);
     set_transaction_inactive(rig);
 
     ELAPSED2;
@@ -8621,3 +8700,36 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
     return RIG_OK;
 }
 #endif
+
+/*
+ * \brief Get the address of a Hamlib data structure
+ * \param rig Pointer to main data anchor
+ * \param idx enum for which pointer requested
+ *
+ * Get the address of a structure without relying on changeable
+ *   internal data organization.
+ *
+ * \retval The address of the enumed structure
+ *
+ * Note: This is meant for use by the HAMLIB_???PORT macros mostly. Only
+ *  compatiblity with them is supported.
+ *
+ * \sa amp_data_pointer, rot_data_pointer
+ */
+HAMLIB_EXPORT(void *) rig_data_pointer(RIG *rig, rig_ptrx_t idx)
+{
+  switch(idx)
+    {
+    case RIG_PTRX_RIGPORT:
+      return RIGPORT(rig);
+    case RIG_PTRX_PTTPORT:
+      return PTTPORT(rig);
+    case RIG_PTRX_DCDPORT:
+      return DCDPORT(rig);
+    case RIG_PTRX_CACHE:
+      return CACHE(rig);
+    default:
+      rig_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
+      return NULL;
+    }
+}

@@ -22,7 +22,7 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
 
     cJSON *id_node = cJSON_CreateObject();
     cJSON_AddStringToObject(id_node, "model", rig->caps->model_name);
-    cJSON_AddStringToObject(id_node, "endpoint", rig->state.rigport.pathname);
+    cJSON_AddStringToObject(id_node, "endpoint", RIGPORT(rig)->pathname);
     cJSON_AddStringToObject(id_node, "process", snapshot_data_pid);
     cJSON_AddStringToObject(id_node, "deviceId", rig->state.device_id);
     cJSON_AddItemToObject(rig_node, "id", id_node);

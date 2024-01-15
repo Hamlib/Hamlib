@@ -85,9 +85,9 @@ int ts450_open(RIG *rig)
         return err;
     }
 
-    maxtries = rig->state.rigport.retry;
+    maxtries = RIGPORT(rig)->retry;
     /* no retry for this command that may be missing */
-    rig->state.rigport.retry = 0;
+    RIGPORT(rig)->retry = 0;
 
     err = kenwood_simple_transaction(rig, "TO", 3);
 
@@ -98,7 +98,7 @@ int ts450_open(RIG *rig)
         rig->state.has_get_func &= ~RIG_FUNC_TONE;
     }
 
-    rig->state.rigport.retry = maxtries;
+    RIGPORT(rig)->retry = maxtries;
 
     return RIG_OK;
 }
@@ -106,7 +106,6 @@ int ts450_open(RIG *rig)
 /*
  * ts450s rig capabilities.
  * Notice that some rigs share the same functions.
- * Also this struct is READONLY!
  * RIT: Variable Range ±9.99 kHz
  *
  * TODO: protocol to be checked with manual (identical to TS690)

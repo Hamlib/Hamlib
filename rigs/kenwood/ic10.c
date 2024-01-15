@@ -74,7 +74,7 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 {
     int retval;
     int retry_cmd = 0;
-    struct rig_state *rs;
+    struct hamlib_port *rp = RIGPORT(rig);
 
     if (cmd == NULL)
     {
@@ -86,12 +86,10 @@ int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
               "%s: called cmd='%s', len=%d, data=%p, data_len=%p\n", __func__, cmd, cmd_len,
               data, data_len);
 
-    rs = &rig->state;
-
 transaction:
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(rp, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -103,18 +101,18 @@ transaction:
         char buffer[50];
         const struct kenwood_priv_data *priv = rig->state.priv;
 
-        if (RIG_OK != (retval = write_block(&rs->rigport,
+        if (RIG_OK != (retval = write_block(rp,
                                             (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
         {
             return retval;
         }
 
         // this should be the ID response
-        retval = read_string(&rs->rigport, (unsigned char *) buffer, sizeof(buffer),
+        retval = read_string(rp, (unsigned char *) buffer, sizeof(buffer),
                              ";", 1, 0, 1);
 
         // might be ?; too
-        if (buffer[0] == '?' && retry_cmd++ < rs->rigport.retry)
+        if (buffer[0] == '?' && retry_cmd++ < rp->retry)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: retrying cmd #%d\n", __func__, retry_cmd);
             goto transaction;
@@ -130,7 +128,7 @@ transaction:
         return RIG_OK;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, 50, ";", 1, 0, 1);
+    retval = read_string(rp, (unsigned char *) data, 50, ";", 1, 0, 1);
 
     if (retval == -RIG_ETIMEOUT)
     {
@@ -158,7 +156,7 @@ static int get_ic10_if(RIG *rig, char *data)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    for (i = 0; retval != RIG_OK && i < rig->state.rigport.retry; i++)
+    for (i = 0; retval != RIG_OK && i < RIGPORT(rig)->retry; i++)
     {
         data_len = 37;
         retval = ic10_transaction(rig, "IF;", 3, data, &data_len);

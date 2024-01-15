@@ -43,9 +43,9 @@ int main()
     /* Instantiate a rig */
     my_rig = rig_init(MODEL); // your rig model.
 
-    strncpy(my_rig->state.rigport.pathname, PATH, HAMLIB_FILPATHLEN - 1);
+    rig_set_conf(my_rig, rig_token_lookup(my_rig, "rig_pathname"), PATH);
 
-    my_rig->state.rigport.parm.serial.rate = BAUD; // your baud rate
+    HAMLIB_RIGPORT(my_rig)->parm.serial.rate = BAUD; // your baud rate
 
     /* Open my rig */
     retcode = rig_open(my_rig);
@@ -131,7 +131,7 @@ int main()
     if (range)
     {
         char vfolist[256];
-        rig_sprintf_vfo(vfolist, sizeof(vfo_list), my_rig->state.vfo_list);
+        rig_sprintf_vfo(vfolist, sizeof(vfolist), my_rig->state.vfo_list);
         printf("Range start=%"PRIfreq", end=%"PRIfreq", low_power=%d, high_power=%d, vfos=%s\n",
                range->startf, range->endf, range->low_power, range->high_power, vfolist);
     }

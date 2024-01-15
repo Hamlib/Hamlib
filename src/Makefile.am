@@ -27,7 +27,7 @@ libhamlib_la_LIBADD = $(top_builddir)/lib/libmisc.la $(top_builddir)/security/li
 
 libhamlib_la_DEPENDENCIES = $(top_builddir)/lib/libmisc.la $(top_builddir)/security/libsecurity.la $(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS) 
 
-EXTRA_DIST = Android.mk hamlibdatetime.h.in
+EXTRA_DIST = Android.mk hamlibdatetime.h.in band_changed.c
 
 
 # If we have  a .git directory then we will  generate the hamlibdate.h
