@@ -39,6 +39,7 @@
 extern struct rig_caps barrett_caps;
 extern struct rig_caps barrett950_caps;
 extern struct rig_caps barrett4050_caps;
+extern struct rig_caps barrett4100_caps;
 
 struct barrett_priv_data {
     char cmd_str[BARRETT_DATA_LEN];       /* command string buffer */
@@ -48,6 +49,7 @@ struct barrett_priv_data {
 };
 
 extern int barrett_transaction(RIG *rig, char *cmd, int expected, char **result);
+extern int barrett_transaction2(RIG *rig, char *cmd, int expected, char **result);
 
 extern int barrett_init(RIG *rig);
 extern int barrett_cleanup(RIG *rig);

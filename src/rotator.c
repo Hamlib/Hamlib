@@ -19,6 +19,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /**
  * \addtogroup rotator
@@ -219,6 +220,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     ROT *rot;
     const struct rot_caps *caps;
     struct rot_state *rs;
+    hamlib_port_t *rotp, *rotp2;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -258,41 +260,46 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
      */
     rs = &rot->state;
 
+    //TODO Allocate new rotport[2]
+    // For now, use the embedded ones
+    rotp = ROTPORT(rot);
+    rotp2 = ROTPORT2(rot);
+    
     rs->comm_state = 0;
-    rs->rotport.type.rig = caps->port_type; /* default from caps */
+    rotp->type.rig = caps->port_type; /* default from caps */
 
-    rs->rotport.write_delay = caps->write_delay;
-    rs->rotport.post_write_delay = caps->post_write_delay;
-    rs->rotport.timeout = caps->timeout;
-    rs->rotport.retry = caps->retry;
+    rotp->write_delay = caps->write_delay;
+    rotp->post_write_delay = caps->post_write_delay;
+    rotp->timeout = caps->timeout;
+    rotp->retry = caps->retry;
 
     switch (caps->port_type)
     {
     case RIG_PORT_SERIAL:
-        strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
-        rs->rotport.parm.serial.rate = rs->rotport2.parm.serial.rate =
+        strncpy(rotp->pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
+        rotp->parm.serial.rate = rotp2->parm.serial.rate =
                                            caps->serial_rate_max;   /* fastest ! */
-        rs->rotport.parm.serial.data_bits = rs->rotport2.parm.serial.data_bits =
+        rotp->parm.serial.data_bits = rotp2->parm.serial.data_bits =
                                                 caps->serial_data_bits;
-        rs->rotport.parm.serial.stop_bits = rs->rotport2.parm.serial.stop_bits =
+        rotp->parm.serial.stop_bits = rotp2->parm.serial.stop_bits =
                                                 caps->serial_stop_bits;
-        rs->rotport.parm.serial.parity = rs->rotport2.parm.serial.parity =
+        rotp->parm.serial.parity = rotp2->parm.serial.parity =
                                              caps->serial_parity;
-        rs->rotport.parm.serial.handshake = rs->rotport2.parm.serial.handshake =
+        rotp->parm.serial.handshake = rotp2->parm.serial.handshake =
                                                 caps->serial_handshake;
         break;
 
     case RIG_PORT_PARALLEL:
-        strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, HAMLIB_FILPATHLEN - 1);
+        strncpy(rotp->pathname, DEFAULT_PARALLEL_PORT, HAMLIB_FILPATHLEN - 1);
         break;
 
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
-        strncpy(rs->rotport.pathname, "127.0.0.1:4533", HAMLIB_FILPATHLEN - 1);
+        strncpy(rotp->pathname, "127.0.0.1:4533", HAMLIB_FILPATHLEN - 1);
         break;
 
     default:
-        strncpy(rs->rotport.pathname, "", HAMLIB_FILPATHLEN - 1);
+        strncpy(rotp->pathname, "", HAMLIB_FILPATHLEN - 1);
     }
 
     rs->min_el = caps->min_el;
@@ -301,7 +308,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     rs->max_az = caps->max_az;
     rs->current_speed = 50; // Set default speed to 50%
 
-    rs->rotport.fd = -1;
+    rotp->fd = -1;
 
     rs->has_get_func = caps->has_get_func;
     rs->has_set_func = caps->has_set_func;
@@ -338,7 +345,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     // Now we have to copy our new rig state hamlib_port structure to the deprecated one
     // Clients built on older 4.X versions will use the old structure
     // Clients built on newer 4.5 versions will use the new structure
-    memcpy(&rot->state.rotport_deprecated, &rot->state.rotport,
+    memcpy(&rot->state.rotport_deprecated, rotp,
            sizeof(rot->state.rotport_deprecated));
 
     return rot;
@@ -366,6 +373,8 @@ int HAMLIB_API rot_open(ROT *rot)
 {
     const struct rot_caps *caps;
     struct rot_state *rs;
+    hamlib_port_t *rotp = ROTPORT(rot);
+    hamlib_port_t *rotp2 = ROTPORT2(rot);
     int status;
     int net1, net2, net3, net4, port;
 
@@ -384,30 +393,30 @@ int HAMLIB_API rot_open(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    rs->rotport.fd = -1;
-    rs->rotport2.fd = -1;
+    rotp->fd = -1;
+    rotp2->fd = -1;
 
     // determine if we have a network address
-    if (sscanf(rs->rotport.pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
+    if (sscanf(rotp->pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
                &port) == 5)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
-                  rs->rotport.pathname);
-        rs->rotport.type.rig = RIG_PORT_NETWORK;
+                  rotp->pathname);
+        rotp->type.rig = RIG_PORT_NETWORK;
     }
 
-    if (sscanf(rs->rotport2.pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
+    if (sscanf(rotp2->pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
                &port) == 5)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
-                  rs->rotport2.pathname);
-        rs->rotport2.type.rig = RIG_PORT_NETWORK;
+                  rotp2->pathname);
+        rotp2->type.rig = RIG_PORT_NETWORK;
     }
 
-    switch (rs->rotport.type.rig)
+    switch (rotp->type.rig)
     {
     case RIG_PORT_SERIAL:
-        status = serial_open(&rs->rotport);
+        status = serial_open(rotp);
 
         if (status != 0)
         {
@@ -416,9 +425,9 @@ int HAMLIB_API rot_open(ROT *rot)
 
         // RT21 has 2nd serial port elevation
         // so if a 2nd pathname is provided we'll open it
-        if (rot->caps->rot_model == ROT_MODEL_RT21 && rs->rotport2.pathname[0] != 0)
+        if (rot->caps->rot_model == ROT_MODEL_RT21 && rotp2->pathname[0] != 0)
         {
-            status = serial_open(&rs->rotport2);
+            status = serial_open(rotp2);
 
             if (status != 0)
             {
@@ -429,7 +438,7 @@ int HAMLIB_API rot_open(ROT *rot)
         break;
 
     case RIG_PORT_PARALLEL:
-        status = par_open(&rs->rotport);
+        status = par_open(rotp);
 
         if (status < 0)
         {
@@ -439,27 +448,27 @@ int HAMLIB_API rot_open(ROT *rot)
         break;
 
     case RIG_PORT_DEVICE:
-        status = open(rs->rotport.pathname, O_RDWR, 0);
+        status = open(rotp->pathname, O_RDWR, 0);
 
         if (status < 0)
         {
             return -RIG_EIO;
         }
 
-        rs->rotport.fd = status;
+        rotp->fd = status;
 
         // RT21 has 2nd serial port elevation
         // so if a 2nd pathname is provided we'll open it
-        if (rot->caps->rot_model == ROT_MODEL_RT21 && rs->rotport2.pathname[0] != 0)
+        if (rot->caps->rot_model == ROT_MODEL_RT21 && rotp2->pathname[0] != 0)
         {
-            status = open(rs->rotport2.pathname, O_RDWR, 0);
+            status = open(rotp2->pathname, O_RDWR, 0);
 
             if (status < 0)
             {
                 return -RIG_EIO;
             }
 
-            rs->rotport2.fd = status;
+            rotp2->fd = status;
         }
 
         break;
@@ -467,7 +476,7 @@ int HAMLIB_API rot_open(ROT *rot)
 #if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)
 
     case RIG_PORT_USB:
-        status = usb_port_open(&rs->rotport);
+        status = usb_port_open(rotp);
 
         if (status < 0)
         {
@@ -484,7 +493,7 @@ int HAMLIB_API rot_open(ROT *rot)
     case RIG_PORT_NETWORK:
     case RIG_PORT_UDP_NETWORK:
         /* FIXME: default port */
-        status = network_open(&rs->rotport, 4533);
+        status = network_open(rotp, 4533);
 
         if (status < 0)
         {
@@ -511,31 +520,31 @@ int HAMLIB_API rot_open(ROT *rot)
 
         if (status != RIG_OK)
         {
-            memcpy(&rot->state.rotport_deprecated, &rot->state.rotport,
+            memcpy(&rot->state.rotport_deprecated, rotp,
                    sizeof(rot->state.rotport_deprecated));
             return status;
         }
     }
 
-    if (rs->rotport.parm.serial.dtr_state == RIG_SIGNAL_ON)
+    if (rotp->parm.serial.dtr_state == RIG_SIGNAL_ON)
     {
-        ser_set_dtr(&rs->rotport, 1);
+        ser_set_dtr(rotp, 1);
     }
     else
     {
-        ser_set_dtr(&rs->rotport, 0);
+        ser_set_dtr(rotp, 0);
     }
 
-    if (rs->rotport.parm.serial.rts_state == RIG_SIGNAL_ON)
+    if (rotp->parm.serial.rts_state == RIG_SIGNAL_ON)
     {
-        ser_set_rts(&rs->rotport, 1);
+        ser_set_rts(rotp, 1);
     }
     else
     {
-        ser_set_rts(&rs->rotport, 0);
+        ser_set_rts(rotp, 0);
     }
 
-    memcpy(&rot->state.rotport_deprecated, &rot->state.rotport,
+    memcpy(&rot->state.rotport_deprecated, rotp,
            sizeof(rot->state.rotport_deprecated));
 
     return RIG_OK;
@@ -561,6 +570,7 @@ int HAMLIB_API rot_close(ROT *rot)
 {
     const struct rot_caps *caps;
     struct rot_state *rs;
+    hamlib_port_t *rotp = ROTPORT(rot);
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -587,42 +597,42 @@ int HAMLIB_API rot_close(ROT *rot)
     }
 
 
-    if (rs->rotport.fd != -1)
+    if (rotp->fd != -1)
     {
-        switch (rs->rotport.type.rig)
+        switch (rotp->type.rig)
         {
         case RIG_PORT_SERIAL:
-            ser_close(&rs->rotport);
+            ser_close(rotp);
             break;
 
         case RIG_PORT_PARALLEL:
-            par_close(&rs->rotport);
+            par_close(rotp);
             break;
 
 #if defined(HAVE_LIB_USB_H) || defined(HAMB_LIBUSB_1_0_LIBUSB_H)
 
         case RIG_PORT_USB:
-            usb_port_close(&rs->rotport);
+            usb_port_close(rotp);
             break;
 #endif
 
         case RIG_PORT_NETWORK:
         case RIG_PORT_UDP_NETWORK:
-            network_close(&rs->rotport);
+            network_close(rotp);
             break;
 
         default:
-            close(rs->rotport.fd);
+            close(rotp->fd);
         }
 
-        rs->rotport.fd = -1;
+        rotp->fd = -1;
     }
 
     remove_opened_rot(rot);
 
     rs->comm_state = 0;
 
-    memcpy(&rot->state.rotport_deprecated, &rot->state.rotport,
+    memcpy(&rot->state.rotport_deprecated, rotp,
            sizeof(rot->state.rotport_deprecated));
 
     return RIG_OK;
@@ -670,6 +680,8 @@ int HAMLIB_API rot_cleanup(ROT *rot)
         rot->caps->rot_cleanup(rot);
     }
 
+    //TODO Release any allocated port structures
+    
     free(rot);
 
     return RIG_OK;
@@ -1031,4 +1043,23 @@ int HAMLIB_API rot_get_status(ROT *rot, rot_status_t *status)
     return rot->caps->get_status(rot, status);
 }
 
+/**
+ * \brief Get the address of rotator data structure(s)
+ *
+ * \sa rig_data_pointer
+ *
+ */
+void * HAMLIB_API rot_data_pointer(ROT *rot, rig_ptrx_t idx)
+{
+  switch(idx)
+    {
+    case RIG_PTRX_ROTPORT:
+      return ROTPORT(rot);
+    case RIG_PTRX_ROTPORT2:
+      return ROTPORT2(rot);
+    default:
+      rot_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
+      return NULL;
+    }
+}
 /*! @} */

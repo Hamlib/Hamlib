@@ -522,6 +522,7 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
      * Set stop bits to requested values.
      *
      */
+    rig_debug(RIG_DEBUG_TRACE, "%s: stopbits=%d\n", __func__, rp->parm.serial.stop_bits);
     switch (rp->parm.serial.stop_bits)
     {
     case 1:
@@ -1050,7 +1051,7 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
 
 /**
  * \brief Get RTS bit
- * \param p supposed to be &rig->state.rigport
+ * \param p supposed to be RIGPORT(rig)
  * \param state non-NULL
  */
 int HAMLIB_API ser_get_rts(hamlib_port_t *p, int *state)
@@ -1133,7 +1134,7 @@ int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
 
 /**
  * \brief Get DTR bit
- * \param p supposed to be &rig->state.rigport
+ * \param p supposed to be RIGPORT(rig)
  * \param state non-NULL
  */
 int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
@@ -1185,7 +1186,7 @@ int HAMLIB_API ser_set_brk(const hamlib_port_t *p, int state)
 
 /**
  * \brief Get Carrier (CI?) bit
- * \param p supposed to be &rig->state.rigport
+ * \param p supposed to be RIGPORT(rig)
  * \param state non-NULL
  */
 int HAMLIB_API ser_get_car(hamlib_port_t *p, int *state)
@@ -1208,7 +1209,7 @@ int HAMLIB_API ser_get_car(hamlib_port_t *p, int *state)
 
 /**
  * \brief Get Clear to Send (CTS) bit
- * \param p supposed to be &rig->state.rigport
+ * \param p supposed to be RIGPORT(rig)
  * \param state non-NULL
  */
 int HAMLIB_API ser_get_cts(hamlib_port_t *p, int *state)
@@ -1231,7 +1232,7 @@ int HAMLIB_API ser_get_cts(hamlib_port_t *p, int *state)
 
 /**
  * \brief Get Data Set Ready (DSR) bit
- * \param p supposed to be &rig->state.rigport
+ * \param p supposed to be RIGPORT(rig)
  * \param state non-NULL
  */
 int HAMLIB_API ser_get_dsr(hamlib_port_t *p, int *state)

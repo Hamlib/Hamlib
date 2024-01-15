@@ -1053,8 +1053,15 @@ void *multicast_publisher(void *arg)
 
         if (send_result < 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: error sending UDP packet: %s\n", __func__,
-                      strerror(errno));
+            static int flag = 0;
+
+            if (errno != 0 || flag == 0)
+            {
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: error sending UDP packet: %s\n", __func__,
+                          strerror(errno));
+                flag = 1;
+            }
         }
     }
 

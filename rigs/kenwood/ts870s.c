@@ -528,7 +528,6 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 /*
  * ts870s rig capabilities.
  * Notice that some rigs share the same functions.
- * Also this struct is READONLY!
  * RIT: Variable Range ±9.99 kHz
  *
  * part of infos comes from .http = //www.kenwood.net/

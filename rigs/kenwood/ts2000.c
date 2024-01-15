@@ -519,7 +519,7 @@ static int ts2000_read_meter(RIG *rig, int expected_meter, int *value)
 {
     int retval;
     char cmdbuf[8];
-    struct rig_state *rs = &rig->state;
+    struct hamlib_port *rp = RIGPORT(rig);
     char ackbuf[32];
     int expected_len = 8;
     int read_meter;
@@ -529,7 +529,7 @@ static int ts2000_read_meter(RIG *rig, int expected_meter, int *value)
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "RM;");
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+    retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_block retval=%d\n", __func__, retval);
 
@@ -540,7 +540,7 @@ static int ts2000_read_meter(RIG *rig, int expected_meter, int *value)
 
     // TS-2000 returns values for a single meter at the same time, for example: RM10000;
 
-    retval = read_string(&rs->rigport, (unsigned char *) ackbuf, expected_len + 1,
+    retval = read_string(rp, (unsigned char *) ackbuf, expected_len + 1,
                          NULL, 0, 0, 1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string retval=%d\n", __func__, retval);

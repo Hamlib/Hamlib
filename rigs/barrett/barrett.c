@@ -47,11 +47,31 @@ DECLARE_INITRIG_BACKEND(barrett)
     rig_register(&barrett_caps);
     rig_register(&barrett950_caps);
     rig_register(&barrett4050_caps);
+    rig_register(&barrett4100_caps);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init back from rig_register\n", __func__);
 
     return RIG_OK;
 }
 
+
+// this version is for 4100
+int barrett_transaction2(RIG *rig, char *cmd, int expected, char **result)
+{
+    char cmd_buf[MAXCMDLEN];
+    struct rig_state *rs = &rig->state;
+    struct barrett_priv_data *priv = rig->state.priv;
+    int retval;
+
+    SNPRINTF(cmd_buf, sizeof(cmd_buf), "%c%s%s", 0x0a, cmd, EOM);
+    retval = read_block(&rs->rigport, (unsigned char *) priv->ret_data, expected);
+
+    if (retval < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): error in read_block\n", __func__, __LINE__);
+        return retval;
+    }
+    return retval;
+}
 
 int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 {
@@ -65,7 +85,13 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
 
-    SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
+    if (rig->caps->rig_model == RIG_MODEL_BARRETT_4100)
+    {
+    }
+    else
+    {
+        SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
+    }
 
     rig_flush(&rs->rigport);
     retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));

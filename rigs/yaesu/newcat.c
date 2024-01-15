@@ -7262,7 +7262,7 @@ int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg)
     {
         if (strlen(msg2) > 50)
         {
-            msg2[50] = 0; // truncate if too long
+            msg2[51] = 0; // truncate if too long
             rig_debug(RIG_DEBUG_ERR, "%s: msg length of %d truncated to 50\n", __func__,
                       (int)strlen(msg));
         }
@@ -11429,6 +11429,10 @@ int newcat_set_cmd_validate(RIG *rig)
     else if (strncmp(priv->cmd_str, "PC", 2) == 0)
     {
         strcpy(valcmd, "PC;");
+    }
+    else if (strncmp(priv->cmd_str, "AC", 2) == 0)
+    {
+        strcpy(valcmd, "");
     }
     else
     {
