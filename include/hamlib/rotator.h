@@ -18,6 +18,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #ifndef _ROTATOR_H
 #define _ROTATOR_H 1
@@ -796,6 +797,8 @@ extern HAMLIB_EXPORT(const char *) rot_strfunc(setting_t);
 extern HAMLIB_EXPORT(const char *) rot_strlevel(setting_t);
 extern HAMLIB_EXPORT(const char *) rot_strparm(setting_t);
 extern HAMLIB_EXPORT(const char *) rot_strstatus(rot_status_t);
+
+extern HAMLIB_EXPORT(void *) rot_data_pointer(ROT *rot, rig_ptrx_t idx);
 
 //! @endcond
 
