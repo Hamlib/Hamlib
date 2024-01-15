@@ -297,7 +297,7 @@ static int multicast_send_json(RIG *rig)
 //    sprintf(msg,"%s:f=%.1f", date_strget(msg, (int)sizeof(msg), 0), f);
     msg[0] = 0;
     snprintf(buf, sizeof(buf), "%s:%s", rig->caps->model_name,
-             rig->state.rigport.pathname);
+             RIGPORT(rig)->pathname);
     strcat(msg, "{\n");
     json_add_string(msg, "ID", buf, 1);
     json_add_time(msg, 1);
@@ -339,7 +339,7 @@ void *multicast_thread_rx(void *vrig)
     while (rig->state.multicast->runflag)
     {
 #if 0
-        ret = read_string(&rig->state.rigport, (unsigned char *) buf, sizeof(buf), "\n",
+        ret = read_string(RIGPORT(rig), (unsigned char *) buf, sizeof(buf), "\n",
                           1,
                           0, 1);
 #endif
@@ -652,8 +652,8 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    strncpy(rig->state.rigport.pathname, "/dev/ttyUSB0", HAMLIB_FILPATHLEN - 1);
-    rig->state.rigport.parm.serial.rate = 38400;
+    strncpy(RIGPORT(rig)->pathname, "/dev/ttyUSB0", HAMLIB_FILPATHLEN - 1);
+    RIGPORT(rig)->parm.serial.rate = 38400;
     rig_open(rig);
     multicast_init(rig, "224.0.0.1", 4532);
     pthread_join(rig->state.multicast->threadid, NULL);
