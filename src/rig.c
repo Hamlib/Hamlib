@@ -4509,7 +4509,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     const struct rig_caps *caps;
     int retcode, rc2;
-    vfo_t curr_vfo, tx_vfo;
+    vfo_t curr_vfo, tx_vfo = RIG_VFO_CURR;
     freq_t tfreq = 0;
 
     if (CHECK_RIG_ARG(rig))
