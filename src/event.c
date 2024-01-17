@@ -69,6 +69,7 @@ void *rig_poll_routine(void *arg)
     rig_poll_routine_args *args = (rig_poll_routine_args *)arg;
     RIG *rig = args->rig;
     struct rig_state *rs = &rig->state;
+    struct rig_cache *cachep = CACHE(rig);
     int update_occurred;
 
     vfo_t vfo = RIG_VFO_NONE, tx_vfo = RIG_VFO_NONE;
@@ -109,123 +110,123 @@ void *rig_poll_routine(void *arg)
             update_occurred = 1;
         }
 
-        if (rig->state.cache.freqMainA != freq_main_a)
+        if (cachep->freqMainA != freq_main_a)
         {
-            freq_main_a = rig->state.cache.freqMainA;
+            freq_main_a = cachep->freqMainA;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.freqMainB != freq_main_b)
+        if (cachep->freqMainB != freq_main_b)
         {
-            freq_main_b = rig->state.cache.freqMainB;
+            freq_main_b = cachep->freqMainB;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.freqMainC != freq_main_c)
+        if (cachep->freqMainC != freq_main_c)
         {
-            freq_main_b = rig->state.cache.freqMainC;
+            freq_main_b = cachep->freqMainC;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.freqSubA != freq_sub_a)
+        if (cachep->freqSubA != freq_sub_a)
         {
-            freq_sub_a = rig->state.cache.freqSubA;
+            freq_sub_a = cachep->freqSubA;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.freqSubB != freq_sub_b)
+        if (cachep->freqSubB != freq_sub_b)
         {
-            freq_sub_b = rig->state.cache.freqSubB;
+            freq_sub_b = cachep->freqSubB;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.freqSubC != freq_sub_c)
+        if (cachep->freqSubC != freq_sub_c)
         {
-            freq_sub_c = rig->state.cache.freqSubC;
+            freq_sub_c = cachep->freqSubC;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.ptt != ptt)
+        if (cachep->ptt != ptt)
         {
-            ptt = rig->state.cache.ptt;
+            ptt = cachep->ptt;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.split != split)
+        if (cachep->split != split)
         {
-            split = rig->state.cache.split;
+            split = cachep->split;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.modeMainA != mode_main_a)
+        if (cachep->modeMainA != mode_main_a)
         {
-            mode_main_a = rig->state.cache.modeMainA;
+            mode_main_a = cachep->modeMainA;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.modeMainB != mode_main_b)
+        if (cachep->modeMainB != mode_main_b)
         {
-            mode_main_b = rig->state.cache.modeMainB;
+            mode_main_b = cachep->modeMainB;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.modeMainC != mode_main_c)
+        if (cachep->modeMainC != mode_main_c)
         {
-            mode_main_c = rig->state.cache.modeMainC;
+            mode_main_c = cachep->modeMainC;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.modeSubA != mode_sub_a)
+        if (cachep->modeSubA != mode_sub_a)
         {
-            mode_sub_a = rig->state.cache.modeSubA;
+            mode_sub_a = cachep->modeSubA;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.modeSubB != mode_sub_b)
+        if (cachep->modeSubB != mode_sub_b)
         {
-            mode_sub_b = rig->state.cache.modeSubB;
+            mode_sub_b = cachep->modeSubB;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.modeSubC != mode_sub_c)
+        if (cachep->modeSubC != mode_sub_c)
         {
-            mode_sub_c = rig->state.cache.modeSubC;
+            mode_sub_c = cachep->modeSubC;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.widthMainA != width_main_a)
+        if (cachep->widthMainA != width_main_a)
         {
-            width_main_a = rig->state.cache.widthMainA;
+            width_main_a = cachep->widthMainA;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.widthMainB != width_main_b)
+        if (cachep->widthMainB != width_main_b)
         {
-            width_main_b = rig->state.cache.widthMainB;
+            width_main_b = cachep->widthMainB;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.widthMainC != width_main_c)
+        if (cachep->widthMainC != width_main_c)
         {
-            width_main_c = rig->state.cache.widthMainC;
+            width_main_c = cachep->widthMainC;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.widthSubA != width_sub_a)
+        if (cachep->widthSubA != width_sub_a)
         {
-            width_sub_a = rig->state.cache.widthSubA;
+            width_sub_a = cachep->widthSubA;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.widthSubB != width_sub_b)
+        if (cachep->widthSubB != width_sub_b)
         {
-            width_sub_b = rig->state.cache.widthSubB;
+            width_sub_b = cachep->widthSubB;
             update_occurred = 1;
         }
 
-        if (rig->state.cache.widthSubC != width_sub_c)
+        if (cachep->widthSubC != width_sub_c)
         {
-            width_sub_c = rig->state.cache.widthSubC;
+            width_sub_c = cachep->widthSubC;
             update_occurred = 1;
         }
 
@@ -669,12 +670,13 @@ int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 #if defined(HAVE_PTHREAD)
 int rig_fire_vfo_event(RIG *rig, vfo_t vfo)
 {
+    struct rig_cache *cachep = CACHE(rig);
     ENTERFUNC;
 
     rig_debug(RIG_DEBUG_TRACE, "Event: vfo changed to %s\n", rig_strvfo(vfo));
 
-    rig->state.cache.vfo = vfo;
-    elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_SET);
+    cachep->vfo = vfo;
+    elapsed_ms(&cachep->time_vfo, HAMLIB_ELAPSED_SET);
 
     network_publish_rig_transceive_data(rig);
 
@@ -691,13 +693,14 @@ int rig_fire_vfo_event(RIG *rig, vfo_t vfo)
 #if defined(HAVE_PTHREAD)
 int rig_fire_ptt_event(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
+    struct rig_cache *cachep = CACHE(rig);
     ENTERFUNC;
 
     rig_debug(RIG_DEBUG_TRACE, "Event: PTT changed to %i on %s\n", ptt,
               rig_strvfo(vfo));
 
-    rig->state.cache.ptt = ptt;
-    elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_SET);
+    cachep->ptt = ptt;
+    elapsed_ms(&cachep->time_ptt, HAMLIB_ELAPSED_SET);
 
     network_publish_rig_transceive_data(rig);
 
