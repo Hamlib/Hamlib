@@ -6401,6 +6401,16 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         break;
 
+    case RIG_FUNC_SYNC:
+        if (!newcat_valid_command(rig, "SY"))
+        {
+            RETURNFUNC(-RIG_ENAVAIL);
+        }
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SY%d%c", status ? 1 : 0,
+                 cat_term);
+        break;
+
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -6694,6 +6704,15 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
         break;
 
+    case RIG_FUNC_SYNC:
+        if (!newcat_valid_command(rig, "SY"))
+        {
+            RETURNFUNC(-RIG_ENAVAIL);
+        }
+
+        SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SY%c", cat_term);
+        break;
+
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -6806,6 +6825,10 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             RETURNFUNC(-RIG_ENIMPL);
         }
 
+        break;
+
+    case RIG_FUNC_SYNC:
+        *status = (retfunc[0] == '1') ? 1 : 0;
         break;
 
     default:

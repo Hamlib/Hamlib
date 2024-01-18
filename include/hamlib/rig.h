@@ -1273,7 +1273,7 @@ typedef uint64_t setting_t;
 #define RIG_FUNC_SEND_MORSE CONSTANT_64BIT_FLAG (45)   /*!< \c SEND_MORSE -- Send specified characters using CW */
 #define RIG_FUNC_SEND_VOICE_MEM CONSTANT_64BIT_FLAG (46)   /*!< \c SEND_VOICE_MEM -- Transmit in SSB message stored in memory */
 #define RIG_FUNC_OVF_STATUS CONSTANT_64BIT_FLAG (47)   /*!< \c OVF -- Read overflow status 0=Off, 1=On */
-#define RIG_FUNC_BIT48      CONSTANT_64BIT_FLAG (48)   /*!< \c available for future RIG_FUNC items */
+#define RIG_FUNC_SYNC       CONSTANT_64BIT_FLAG (48)   /*!< \c Synchronize VFOS -- FTDX101D/MP for now SY command  */
 #define RIG_FUNC_BIT49      CONSTANT_64BIT_FLAG (49)   /*!< \c available for future RIG_FUNC items */
 #define RIG_FUNC_BIT50      CONSTANT_64BIT_FLAG (50)   /*!< \c available for future RIG_FUNC items */
 #define RIG_FUNC_BIT51      CONSTANT_64BIT_FLAG (51)   /*!< \c available for future RIG_FUNC items */
