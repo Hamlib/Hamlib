@@ -740,6 +740,7 @@ static const struct
     { RIG_FUNC_SEND_MORSE, "SEND_MORSE" },
     { RIG_FUNC_SEND_VOICE_MEM, "SEND_VOICE_MEM" },
     { RIG_FUNC_OVF_STATUS, "OVF_STATUS" },
+    { RIG_FUNC_SYNC, "SYNC" },
     { RIG_FUNC_NONE, "" },
 };
 
