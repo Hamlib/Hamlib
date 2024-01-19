@@ -4845,7 +4845,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     ENTERFUNC;
 
     // we check both VFOs are in the same tx mode -- then we can ignore
-    // this could be make more intelligent but this should cover all cases where we can skip this
+    // this could be made more intelligent but this should cover all cases where we can skip this
     if (tx_mode == rig->state.cache.modeMainA
             && tx_mode == rig->state.cache.modeMainB)
     {
@@ -5216,6 +5216,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 
     caps = rig->caps;
 
+#if 0
     // if split is off we'll turn it on
     if (rig->state.cache.split == 0)
     {
@@ -5228,8 +5229,10 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
             rig_set_split_vfo(rig, RIG_VFO_B, 1, RIG_VFO_A);
         }
     }
+#endif
 
     vfo = vfo_fixup(rig, RIG_VFO_TX, rig->state.cache.split); // get the TX VFO
+    rig_set_split_vfo(rig, vfo, 1, RIG_VFO_CURR);
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: vfo=%s, tx_freq=%.0f, tx_mode=%s, tx_width=%d\n", __func__,
               rig_strvfo(vfo), tx_freq, rig_strrmode(tx_mode), (int)tx_width);
