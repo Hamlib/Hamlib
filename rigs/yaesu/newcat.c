@@ -8218,7 +8218,6 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
             newcat_is_rig(rig, RIG_MODEL_FT2000) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX5000) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX1200) ||
-            newcat_is_rig(rig, RIG_MODEL_FT991) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX10) ||
             newcat_is_rig(rig, RIG_MODEL_FTDX3000))
     {
@@ -11292,6 +11291,10 @@ int newcat_set_cmd_validate(RIG *rig)
     else if (strncmp(priv->cmd_str, "AC", 2) == 0)
     {
         strcpy(valcmd, "");
+    }
+    else if (strncmp(priv->cmd_str, "SY", 2) == 0)
+    {
+        strcpy(valcmd, "SY;");
     }
     else
     {
