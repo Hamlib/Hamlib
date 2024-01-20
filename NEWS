@@ -13,6 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Added RIG_FUNC_SYNC for FTDX101D/MP
         * Added Barrett 4100
         * Added DL2MAN (tr)uSDX -- needs refinement
         * Added Thetis entry -- derived from FlexRadio/Apache PowerSDR
