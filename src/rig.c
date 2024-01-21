@@ -3293,7 +3293,8 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     caps = rig->caps;
 
-    if (caps->get_vfo == NULL && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
+//    if (caps->get_vfo == NULL && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
+    if (caps->get_vfo == NULL)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: no get_vfo\n", __func__);
         ELAPSED2;
@@ -3318,17 +3319,21 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     HAMLIB_TRACE;
     LOCK(1);
-    retcode = caps->get_vfo(rig, vfo);
 
-    if (retcode == RIG_OK)
+    if (caps->get_vfo)
     {
-        rig->state.current_vfo = *vfo;
-        rig->state.cache.vfo = *vfo;
-        //cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_SET);
-    }
-    else
-    {
-        //cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_INVALIDATE);
+        retcode = caps->get_vfo(rig, vfo);
+
+        if (retcode == RIG_OK)
+        {
+            rig->state.current_vfo = *vfo;
+            rig->state.cache.vfo = *vfo;
+            //cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_SET);
+        }
+        else
+        {
+            //cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_INVALIDATE);
+        }
     }
 
     if (retcode != RIG_OK)

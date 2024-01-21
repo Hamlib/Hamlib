@@ -11457,6 +11457,10 @@ int newcat_set_cmd_validate(RIG *rig)
     {
         strcpy(valcmd, "");
     }
+    else if (strncmp(priv->cmd_str, "SY", 2) == 0)
+    {
+        strcpy(valcmd, "SY;");
+    }
     else
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: %s not implemented\n", __func__, priv->cmd_str);
