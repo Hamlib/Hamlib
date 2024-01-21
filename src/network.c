@@ -659,22 +659,6 @@ static int multicast_publisher_write_data(const multicast_publisher_args
     return (RIG_OK);
 }
 
-static void multicast_publisher_write_lock(RIG *rig)
-{
-    struct rig_state *rs = &rig->state;
-    multicast_publisher_priv_data *priv_data = (multicast_publisher_priv_data *)
-            rs->multicast_publisher_priv_data;
-    pthread_mutex_lock(&priv_data->args.write_lock);
-}
-
-static void multicast_publisher_write_unlock(RIG *rig)
-{
-    struct rig_state *rs = &rig->state;
-    multicast_publisher_priv_data *priv_data = (multicast_publisher_priv_data *)
-            rs->multicast_publisher_priv_data;
-    pthread_mutex_unlock(&priv_data->args.write_lock);
-}
-
 static int multicast_publisher_read_data(const multicast_publisher_args
         *mcast_publisher_args, size_t length, unsigned char *data)
 {
@@ -762,6 +746,22 @@ retry:
 }
 
 #endif
+
+static void multicast_publisher_write_lock(RIG *rig)
+{
+    struct rig_state *rs = &rig->state;
+    multicast_publisher_priv_data *priv_data = (multicast_publisher_priv_data *)
+            rs->multicast_publisher_priv_data;
+    pthread_mutex_lock(&priv_data->args.write_lock);
+}
+
+static void multicast_publisher_write_unlock(RIG *rig)
+{
+    struct rig_state *rs = &rig->state;
+    multicast_publisher_priv_data *priv_data = (multicast_publisher_priv_data *)
+            rs->multicast_publisher_priv_data;
+    pthread_mutex_unlock(&priv_data->args.write_lock);
+}
 
 static int multicast_publisher_write_packet_header(RIG *rig,
         multicast_publisher_data_packet *packet)
