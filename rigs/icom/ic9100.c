@@ -102,6 +102,13 @@ static const struct icom_priv_caps ic9100_priv_caps =
     .antack_len = 2,
     .ant_count = 2,
     .extcmds = ic9100_extcmds,
+    .x25x26_always = 0,
+    .x25x26_possibly = 0,
+    .x1cx03_always = 0,
+    .x1cx03_possibly = 0,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 struct rig_caps ic9100_caps =
@@ -140,7 +147,7 @@ struct rig_caps ic9100_caps =
         [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
         [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND160M,BAND80M,BAND40M,BAND30M,BAND20M,BAND17M,BAND15M,BAND12M,BAND10M,BAND6M,BANDGEN"}},
         [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
-        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT, BUG, PADDLE"}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
     },
 
     .ctcss_list =  common_ctcss_list,
@@ -241,8 +248,8 @@ struct rig_caps ic9100_caps =
     .get_freq =  icom_get_freq,
     .set_freq =  icom_set_freq,
 
-    .get_mode =  icom_get_mode_with_data,
-    .set_mode =  icom_set_mode_with_data,
+    .get_mode =  icom_get_mode,
+    .set_mode =  icom_set_mode,
 
     .set_vfo =  icom_set_vfo,
 //    .get_vfo =  icom_get_vfo,

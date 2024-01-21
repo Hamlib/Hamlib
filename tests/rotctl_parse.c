@@ -417,7 +417,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
         }
 
         if (ferror(fin)) { rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); clearerr(fin); }
-        if (errno == 22) // invalid arg we will continue
+        if (errno == EINVAL) // invalid arg we will continue
         {
             continue;
         }

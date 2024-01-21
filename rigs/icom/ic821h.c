@@ -56,7 +56,6 @@ static const struct icom_priv_caps ic821h_priv_caps =
 // If Main/Sub we assume we're doing satmode
 int ic821h_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
     int retval = -RIG_EINTERNAL;
 
     ENTERFUNC;
@@ -69,14 +68,14 @@ int ic821h_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             split;  // we emulate satmode of other rigs since we apparently can't query
         rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo==MAIN so assuming sat mode=%d\n",
                   __func__, rig->state.cache.satmode);
-        priv->tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_SUB : RIG_VFO_MAIN;
+        rig->state.tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_SUB : RIG_VFO_MAIN;
         // the IC821 seems to be backwards in satmode -- setting Main select Sub and vice versa
         retval = rig_set_vfo(rig, RIG_VFO_SUB);
     }
     else if (tx_vfo == RIG_VFO_A)
     {
         retval = rig_set_vfo(rig, RIG_VFO_A);
-        priv->tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
+        rig->state.tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
     }
     else
     {

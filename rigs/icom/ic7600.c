@@ -161,6 +161,13 @@ static const struct icom_priv_caps ic7600_priv_caps =
         { .level = RIG_AGC_LAST, .icom_level = -1 },
     },
     .extcmds = ic7600_extcmds,   /* Custom op parameters */
+    .x25x26_always = 0,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 0,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 
@@ -317,7 +324,7 @@ struct rig_caps ic7600_caps =
         [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86399}, .step = {.i = 1}},
         [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
         [PARM_APO] = { .min = { .i = 1 }, .max = { .i = 1439} },
-        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT, BUG, PADDLE"}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
     },
 
     .ext_tokens = ic7600_ext_tokens,
@@ -333,7 +340,7 @@ struct rig_caps ic7600_caps =
     .max_ifshift =  Hz(0),
     .agc_level_count = 3,
     .agc_levels = { RIG_AGC_FAST, RIG_AGC_MEDIUM, RIG_AGC_SLOW },
-    .targetable_vfo =  0,
+    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .vfo_ops =  IC7600_VFO_OPS,
     .scan_ops =  IC7600_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
@@ -424,10 +431,10 @@ struct rig_caps ic7600_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
-//    .get_vfo =  icom_get_vfo,
+    .get_vfo =  icom_get_vfo,
     .set_ant =  icom_set_ant,
     .get_ant =  icom_get_ant,
 

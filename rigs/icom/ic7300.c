@@ -409,7 +409,13 @@ static const struct icom_priv_caps IC7300_priv_caps =
         },
     },
     .extcmds = ic7300_extcmds,   /* Custom op parameters */
-    .x25_always = 1
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 static const struct icom_priv_caps IC9700_priv_caps =
@@ -458,7 +464,13 @@ static const struct icom_priv_caps IC9700_priv_caps =
         },
     },
     .extcmds = ic9700_extcmds,   /* Custom op parameters */
-    // .x25_always = 1 // except when in satellite mode so can't do this
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 static const struct icom_priv_caps IC705_priv_caps =
@@ -582,6 +594,13 @@ static const struct icom_priv_caps IC705_priv_caps =
         },
     },
     .extcmds = ic705_extcmds,     /* Custom parameters */
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 static const struct icom_priv_caps IC905_priv_caps =
@@ -704,6 +723,13 @@ static const struct icom_priv_caps IC905_priv_caps =
         },
     },
     .extcmds = ic705_extcmds,     /* Custom parameters */
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 struct rig_caps ic7300_caps =
@@ -750,7 +776,7 @@ struct rig_caps ic7300_caps =
         [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}, .step = {.i = 1}},
         [PARM_SCREENSAVER] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
         [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86399}, .step = {.i = 1}},
-        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT, BUG, PADDLE"}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
 
     },
     .ext_tokens = ic7300_ext_tokens,
@@ -894,8 +920,8 @@ struct rig_caps ic7300_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
@@ -993,7 +1019,7 @@ struct rig_caps ic9700_caps =
         [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND70CM,BAND33CM,BAND23CM"}},
         [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}},
         [PARM_SCREENSAVER] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
-        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT, BUG, PADDLE"}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
     },
     .ext_tokens = ic9700_ext_tokens,
     .extlevels = icom_ext_levels,
@@ -1219,8 +1245,9 @@ struct rig_caps ic9700_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
+    // IC-9700 can indicate Main/Sub band selection, but not VFO A/B, so leave get_vfo not implemented
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  ic9700_set_vfo,
     .set_ant =  NULL,
@@ -1491,8 +1518,8 @@ struct rig_caps ic705_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
@@ -1588,7 +1615,7 @@ struct rig_caps ic905_caps =
         [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND70CM,BAND33CM,BAND23CM,BAND23CM,BAND13CM,BAND3CM"}},
         [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}},
         [PARM_SCREENSAVER] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
-        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT, BUG, PADDLE"}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
     },
     .ext_tokens = ic705_ext_tokens,
     .extlevels = icom_ext_levels,
@@ -1761,8 +1788,8 @@ struct rig_caps ic905_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  icom_set_vfo,
     .set_ant =  NULL,
@@ -2187,48 +2214,38 @@ int ic9700_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
 
 int ic9700_set_vfo(RIG *rig, vfo_t vfo)
 {
-    ENTERFUNC;
     unsigned char ackbuf[MAXFRAMELEN];
-    int ack_len = sizeof(ackbuf), retval = -RIG_EINTERNAL;
+    int ack_len = sizeof(ackbuf);
+    int retval;
+    int vfo_is_main_or_sub = (vfo == RIG_VFO_MAIN) || (vfo == RIG_VFO_SUB);
+
+    ENTERFUNC;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    if (rig->state.cache.satmode)
+    if (rig->state.cache.satmode && !vfo_is_main_or_sub)
     {
-        if (vfo == RIG_VFO_A) { vfo = RIG_VFO_MAIN; }
-        else if (vfo == RIG_VFO_B) { vfo = RIG_VFO_SUB; }
+        // Translate VFO A/B to Main/Sub in satellite mode
+        if (vfo == RIG_VFO_A)
+        {
+            vfo = RIG_VFO_MAIN;
+        }
+        else if (vfo == RIG_VFO_B)
+        {
+            vfo = RIG_VFO_SUB;
+        }
         else
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo %s\n", __func__, rig_strvfo(vfo));
+            rig_debug(RIG_DEBUG_ERR, "%s: Invalid VFO %s in satellite mode\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
     }
 
     if (vfo == RIG_VFO_A)
     {
-        retval = icom_transaction(rig, 0x07, 0x00, NULL, 0, ackbuf, &ack_len);
+        retval = icom_transaction(rig, C_SET_VFO, S_VFOA, NULL, 0, ackbuf, &ack_len);
     }
     else if (vfo == RIG_VFO_B)
-    {
-        retval = icom_transaction(rig, 0x07, 0x01, NULL, 0, ackbuf, &ack_len);
-    }
-    else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
-    {
-        retval = icom_transaction(rig, 0x07, 0xd0, NULL, 0, ackbuf, &ack_len);
-
-        if (retval != RIG_OK)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-            return -retval;
-        }
-
-        if (vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
-        {
-            int subcmd =  vfo == RIG_VFO_MAIN_A ? 0x00 : 0x01;
-            retval = icom_transaction(rig, 0x07, subcmd, NULL, 0, ackbuf, &ack_len);
-        }
-    }
-    else if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_SUB_A || vfo == RIG_VFO_SUB_B)
     {
         if (rig->state.cache.satmode)
         {
@@ -2238,31 +2255,69 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
             return RIG_OK;
         }
 
-        // first switch to sub
-        retval = icom_transaction(rig, 0x07, 0xd1, NULL, 0, ackbuf, &ack_len);
-
+        retval = icom_transaction(rig, C_SET_VFO, S_VFOB, NULL, 0, ackbuf, &ack_len);
+    }
+    else if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
+    {
+        // First switch to Main receiver
+        retval = icom_transaction(rig, C_SET_VFO, S_MAIN, NULL, 0, ackbuf, &ack_len);
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-            return -retval;
+            return retval;
+        }
+
+        if (rig->state.cache.satmode && vfo == RIG_VFO_MAIN_B)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
+            // we return RIG_OK anyways as this should just be a bad request
+            return RIG_OK;
+        }
+
+        if (vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
+        {
+            int subcmd = vfo == RIG_VFO_MAIN_A ? S_VFOA : S_VFOB;
+            retval = icom_transaction(rig, C_SET_VFO, subcmd, NULL, 0, ackbuf, &ack_len);
+        }
+    }
+    else if (vfo == RIG_VFO_SUB || vfo == RIG_VFO_SUB_A || vfo == RIG_VFO_SUB_B)
+    {
+        // First switch to Sub receiver
+        retval = icom_transaction(rig, C_SET_VFO, S_SUB, NULL, 0, ackbuf, &ack_len);
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
+            return retval;
+        }
+
+        if (rig->state.cache.satmode && vfo == RIG_VFO_SUB_B)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
+            // we return RIG_OK anyways as this should just be a bad request
+            return RIG_OK;
         }
 
         if (vfo == RIG_VFO_SUB_A || vfo == RIG_VFO_SUB_B)
         {
             HAMLIB_TRACE;
-            int subcmd =  vfo == RIG_VFO_SUB_A ? 0x00 : 0x01;
-            retval = icom_transaction(rig, 0x07, subcmd, NULL, 0, ackbuf, &ack_len);
+            int subcmd = vfo == RIG_VFO_SUB_A ? S_VFOA : S_VFOB;
+            retval = icom_transaction(rig, C_SET_VFO, subcmd, NULL, 0, ackbuf, &ack_len);
         }
     }
     else if (vfo == RIG_VFO_MEM)
     {
         return icom_set_vfo(rig, vfo);
     }
+    else
+    {
+        // Unsupported VFO
+        RETURNFUNC(-RIG_EINVAL);
+    }
 
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-        return -retval;
+        return retval;
     }
 
     RETURNFUNC(retval);

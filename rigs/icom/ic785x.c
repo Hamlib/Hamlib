@@ -235,7 +235,13 @@ static struct icom_priv_caps ic785x_priv_caps =
         },
     },
     .extcmds = ic785x_extcmds,
-    .x25_always = 1,
+    .x25x26_always = 1,
+    .x25x26_possibly = 1,
+    .x1cx03_always = 1,
+    .x1cx03_possibly = 1,
+    .x1ax03_supported = 1,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
 };
 
 struct rig_caps ic785x_caps =
@@ -282,7 +288,7 @@ struct rig_caps ic785x_caps =
         [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}, .step = {.i = 1}},
         [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86399}, .step = {.i = 1}},
         [PARM_ANN] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
-        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT, BUG, PADDLE"}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
     },
 
     .ext_tokens = ic785x_ext_tokens,
@@ -443,10 +449,10 @@ struct rig_caps ic785x_caps =
 
     .set_freq =  icom_set_freq,
     .get_freq =  icom_get_freq,
-    .set_mode =  icom_set_mode_with_data,
-    .get_mode =  icom_get_mode_with_data,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
     .set_vfo =  icom_set_vfo,
-//    .get_vfo =  icom_get_vfo,
+    .get_vfo =  icom_get_vfo,
     .set_ant =  icom_set_ant,
     .get_ant =  icom_get_ant,
 
