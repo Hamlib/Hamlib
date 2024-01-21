@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
     rig_get_split_vfo(my_rig, RIG_VFO_A, &split, &tx_vfo);
     printf("split=%d, tx_vfo=%s\n", split, rig_strvfo(tx_vfo));
 
-    if (split != 0 || tx_vfo != RIG_VFO_A) { printf("split#1 failed\n"); exit(1); }
+    if (split != 0 || tx_vfo != RIG_VFO_NONE) { printf("split#1 failed\n"); exit(1); }
 
     rig_set_split_vfo(my_rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
     hl_usleep(1000 * 1000);
