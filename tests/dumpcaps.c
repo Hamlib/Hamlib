@@ -248,6 +248,23 @@ int dumpcaps(RIG *rig, FILE *fout)
             "Has targetable VFO: %s\n",
             caps->targetable_vfo ? "Y" : "N");
 
+    fprintf(fout, "Targetable features:");
+    if (caps->targetable_vfo & RIG_TARGETABLE_FREQ) { fprintf(fout, " FREQ"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_MODE) { fprintf(fout, " MODE"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_TONE) { fprintf(fout, " TONE"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_FUNC) { fprintf(fout, " FUNC"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_LEVEL) { fprintf(fout, " LEVEL"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_RITXIT) { fprintf(fout, " RITXIT"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_PTT) { fprintf(fout, " PTT"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_MEM) { fprintf(fout, " MEM"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_BANK) { fprintf(fout, " BANK"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_ANT) { fprintf(fout, " ANT"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_ROOFING) { fprintf(fout, " ROOFING"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_SPECTRUM) { fprintf(fout, " SPECTRUM"); }
+    if (caps->targetable_vfo & RIG_TARGETABLE_BAND) { fprintf(fout, " BAND"); }
+    if (caps->targetable_vfo == 0) { fprintf(fout, " None"); }
+    fprintf(fout, "\n");
+
     fprintf(fout,
             "Has async data support: %s\n",
             caps->async_data_supported ? "Y" : "N");

@@ -60,15 +60,31 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_OTHER) { vfo = vfo_fixup(rig, vfo, rig->state.cache.split); }
 
+    if (vfo == rig->state.current_vfo)
+    {
+        rig->state.cache.modeCurr = mode;
+        if (width > 0)
+        {
+            rig->state.cache.widthCurr = width;
+        }
+        elapsed_ms(&rig->state.cache.time_modeCurr, HAMLIB_ELAPSED_SET);
+    }
+
     switch (vfo)
     {
     case RIG_VFO_ALL: // we'll use NONE to reset all VFO caches
         elapsed_ms(&rig->state.cache.time_modeMainA, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_modeMainB, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_modeMainC, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_modeSubA, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_modeSubB, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_modeSubC, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_widthMainA, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_widthMainB, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_widthSubA, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_widthSubB, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_widthSubC, HAMLIB_ELAPSED_INVALIDATE);
         break;
 
     case RIG_VFO_A:
@@ -102,6 +118,21 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         elapsed_ms(&rig->state.cache.time_modeMainC, HAMLIB_ELAPSED_SET);
         elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_SET);
+        break;
+
+    case RIG_VFO_SUB_A:
+        rig->state.cache.modeSubA = mode;
+        elapsed_ms(&rig->state.cache.time_modeSubA, HAMLIB_ELAPSED_SET);
+        break;
+
+    case RIG_VFO_SUB_B:
+        rig->state.cache.modeSubB = mode;
+        elapsed_ms(&rig->state.cache.time_modeSubB, HAMLIB_ELAPSED_SET);
+        break;
+
+    case RIG_VFO_SUB_C:
+        rig->state.cache.modeSubC = mode;
+        elapsed_ms(&rig->state.cache.time_modeSubC, HAMLIB_ELAPSED_SET);
         break;
 
     case RIG_VFO_MEM:
@@ -153,6 +184,12 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
                   rig_strvfo(vfo), freq);
     }
 
+    if (vfo == rig->state.current_vfo)
+    {
+        rig->state.cache.freqCurr = freq;
+        elapsed_ms(&rig->state.cache.time_freqCurr, flag);
+    }
+
     switch (vfo)
     {
     case RIG_VFO_ALL: // we'll use NONE to reset all VFO caches
@@ -167,9 +204,15 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
         elapsed_ms(&rig->state.cache.time_modeMainA, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_modeMainB, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_modeMainC, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_modeSubA, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_modeSubB, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_modeSubC, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_widthMainA, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_widthMainB, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_widthMainC, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_widthSubA, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_widthSubB, HAMLIB_ELAPSED_INVALIDATE);
+        elapsed_ms(&rig->state.cache.time_widthSubC, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_ptt, HAMLIB_ELAPSED_INVALIDATE);
         elapsed_ms(&rig->state.cache.time_split, HAMLIB_ELAPSED_INVALIDATE);
         break;
@@ -328,7 +371,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
             break;
 
         case RIG_VFO_NONE:
-            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): ignoring VFO_OTHER\n", __func__,
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): ignoring VFO_NONE\n", __func__,
                       __LINE__);
             break;
 

@@ -1341,16 +1341,11 @@ static int read_string_generic(hamlib_port_t *p,
 
     short timeout_retries = p->timeout_retry;
 
-    //HAMLIB_TRACE2;
     while (total_count < rxmax - 1) // allow 1 byte for end-of-string
     {
         ssize_t rd_count = 0;
         int result;
-        int timeout_save = p->timeout;
-//        p->timeout = 2;
         result = port_wait_for_data(p, direct);
-        //HAMLIB_TRACE2;
-        p->timeout = timeout_save;
 
         if (result == -RIG_ETIMEOUT)
         {
@@ -1361,7 +1356,6 @@ static int read_string_generic(hamlib_port_t *p,
                           __func__, __LINE__,
                           p->timeout_retry - timeout_retries, p->timeout_retry, p->timeout);
                 hl_usleep(10 * 1000);
-                //HAMLIB_TRACE2;
                 continue;
             }
 
@@ -1420,11 +1414,9 @@ static int read_string_generic(hamlib_port_t *p,
             //rig_debug(RIG_DEBUG_ERR, "xs: avail=%d expected_len=%d, minlen=%d, direct=%d\n", __func__, avail, expected_len, minlen, direct);
 #endif
 #endif
-            //HAMLIB_TRACE2;
 shortcut:
             rd_count = port_read_generic(p, &rxbuffer[total_count],
                                          expected_len == 1 ? 1 : minlen, direct);
-            //HAMLIB_TRACE2;
 //            rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes tot=%d\n", __func__, (int)rd_count, total_count);
             minlen -= rd_count;
 
@@ -1453,8 +1445,6 @@ shortcut:
         }
 
         while (++i < 10 && errno == EBUSY);   // 50ms should be enough
-
-        //HAMLIB_TRACE2;
 
         /* if we get 0 bytes or an error something is wrong */
         if (rd_count <= 0)
