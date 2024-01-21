@@ -1554,8 +1554,10 @@ int HAMLIB_API rig_open(RIG *rig)
 #if defined(HAVE_PTHREAD)
     enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE
                                   | RIG_MULTICAST_SPECTRUM;
+#if 1
     retval = network_multicast_publisher_start(rig, rs->multicast_data_addr,
              rs->multicast_data_port, items);
+#endif
 
     if (retval != RIG_OK)
     {
@@ -3329,7 +3331,8 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     caps = rig->caps;
 
-    if (caps->get_vfo == NULL && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
+//    if (caps->get_vfo == NULL && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
+    if (caps->get_vfo == NULL)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: no get_vfo\n", __func__);
         ELAPSED2;
@@ -3354,17 +3357,21 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 
     HAMLIB_TRACE;
     LOCK(1);
-    retcode = caps->get_vfo(rig, vfo);
 
-    if (retcode == RIG_OK)
+    if (caps->get_vfo)
     {
-        rig->state.current_vfo = *vfo;
-        rig->state.cache.vfo = *vfo;
-        //cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_SET);
-    }
-    else
-    {
-        //cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_INVALIDATE);
+        retcode = caps->get_vfo(rig, vfo);
+
+        if (retcode == RIG_OK)
+        {
+            rig->state.current_vfo = *vfo;
+            rig->state.cache.vfo = *vfo;
+            //cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_SET);
+        }
+        else
+        {
+            //cache_ms = elapsed_ms(&rig->state.cache.time_vfo, HAMLIB_ELAPSED_INVALIDATE);
+        }
     }
 
     if (retcode != RIG_OK)
@@ -5217,6 +5224,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
     caps = rig->caps;
 
 #if 0
+
     // if split is off we'll turn it on
     if (rig->state.cache.split == 0)
     {
@@ -5229,6 +5237,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
             rig_set_split_vfo(rig, RIG_VFO_B, 1, RIG_VFO_A);
         }
     }
+
 #endif
 
     vfo = vfo_fixup(rig, RIG_VFO_TX, rig->state.cache.split); // get the TX VFO
