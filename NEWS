@@ -13,6 +13,15 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * 2024-XX-XX -- Planned for xxx 2024?
+        * Unify behavior of all rigctl split commands
+          * Make the set_split_* commands modify the state of the specified split VFO -- the current or targeted VFO do not have any effect
+          * Make the set_split_* commands enable split automatically if not enabled
+          * Make the get_split_* commands return frequency of 0 Hz, mode NONE and filter of 0 Hz if split is not enabled
+          * Allow all split commands to avoid VFO swapping if supported by the rig model
+        * Improve Icom backend to set/get frequency, mode and filter without VFO swapping if supported by the rig model
+        * Improve Yaesu newcat backend split handling
+        * Expose "Targetable features" (RIG_TARGETABLE_*) in dump_caps output to allow clients to determine which commands can be executed without VFO swapping
         * Added RIG_FUNC_SYNC for FTDX101D/MP
         * Added Barrett 4100
         * Added DL2MAN (tr)uSDX -- needs refinement
@@ -49,7 +58,6 @@ static int add_to_list(const struct rig_caps* rc, void*)
         * Add saebrtrack rotor https://sites.google.com/site/marklhammond/saebrtrack
         * Add offset_vfoa and offset_vfob applying to rig_set_freq
         * Fix K4 to put it in K40 mode when requesting ID
-        * 2023-11-XX -- Planned for Nov 2023
         * Fixes for M2 Rotors
         * Add rigctlsync utility to synchronize frequency from a rig to SDR# (or others)
         * Add SDR# rig for use with SDR#'s gpredict plugin -- can only get/set freq 
