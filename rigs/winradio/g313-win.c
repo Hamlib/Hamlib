@@ -70,8 +70,8 @@ static int g313_get_powerstat(RIG *rig, powerstat_t *status);
 static int g313_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static const char *g313_get_info(RIG *rig);
-int g313_set_conf(RIG *rig, token_t token, const char *val);
-int g313_get_conf(RIG *rig, token_t token, char *val);
+int g313_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+int g313_get_conf(RIG *rig, hamlib_token_t token, char *val);
 
 /* #pragma pack(1)       // set byte packing */
 typedef struct
@@ -640,7 +640,7 @@ static const char *g313_get_info(RIG *rig)
 }
 
 
-int g313_set_conf(RIG *rig, token_t token, const char *val)
+int g313_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
     int id;
@@ -695,7 +695,7 @@ int g313_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int g313_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int g313_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     const struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 
@@ -712,7 +712,7 @@ int g313_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int g313_get_conf(RIG *rig, token_t token, char *val)
+int g313_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return g313_get_conf2(rig, token, val, 128);
 }
