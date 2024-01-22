@@ -847,6 +847,7 @@ typedef enum {
  * \brief configuration token
  */
 typedef long hamlib_token_t;
+#define token_t hamlib_token_t
 
 
 //! @cond Doxygen_Suppress
