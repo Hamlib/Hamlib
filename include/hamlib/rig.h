@@ -51,8 +51,12 @@
 #include <arpa/inet.h>
 #endif
 
+// mingw64 still shows __TIMESIZE != 64
+// need to do more testing
+#if 0
 #if __TIMESIZE != 64
 #warning TIMESIZE != 64 -- Please report your OS system to hamlib-developer@lists.sourceforge.net
+#endif
 #endif
 
 // For MSVC install the NUGet pthread package
