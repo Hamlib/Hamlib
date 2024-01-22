@@ -51,6 +51,10 @@
 #include <arpa/inet.h>
 #endif
 
+#if __TIMESIZE != 64
+#warn TIMESIZE != 64 -- Please report your OS system to hamlib-developer@lists.sourceforge.net
+#endif
+
 // For MSVC install the NUGet pthread package
 #if defined(_MSC_VER)
 #define HAVE_STRUCT_TIMESPEC
