@@ -88,23 +88,23 @@ typedef struct Rot {
 	ROTMETHOD1(token_lookup, const_char_string)	/* conf */
 
 	void set_conf(const char *name, const char *val) {
-		token_t tok = rot_token_lookup(self->rot, name);
+		hamlib_token_t tok = rot_token_lookup(self->rot, name);
 		if (tok == RIG_CONF_END)
 			self->error_status = -RIG_EINVAL;
 		else
 			self->error_status = rot_set_conf(self->rot, tok, val);
 	}
 
-	ROTMETHOD2(set_conf, token_t, const_char_string)
+	ROTMETHOD2(set_conf, hamlib_token_t, const_char_string)
 
-        const char *get_conf(token_t tok) {
+        const char *get_conf(hamlib_token_t tok) {
                 static char s[128] = "";
                 self->error_status = rot_get_conf(self->rot, tok, s);
                 return s;
         }
 
         const char *get_conf(const char *name) {
-                token_t tok = rot_token_lookup(self->rot, name);
+                hamlib_token_t tok = rot_token_lookup(self->rot, name);
                 static char s[128] = "";
                 if (tok == RIG_CONF_END)
                         self->error_status = -RIG_EINVAL;
