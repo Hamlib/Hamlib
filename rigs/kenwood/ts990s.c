@@ -19,6 +19,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <stdlib.h>
 #include <string.h>
@@ -120,6 +121,7 @@ static struct kenwood_priv_caps  ts990s_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
     .mode_table = ts990s_mode_table,
+    .tone_table_base = 0,
 };
 
 
