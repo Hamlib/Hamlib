@@ -228,7 +228,7 @@ static struct ext_list *alloc_init_ext(const struct confparams *cfp)
 }
 
 #if 0 /* unused; re-enabled as needed. */
-static struct ext_list *find_ext(struct ext_list *elp, token_t token)
+static struct ext_list *find_ext(struct ext_list *elp, hamlib_token_t token)
 {
     int i;
 

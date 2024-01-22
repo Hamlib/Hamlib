@@ -44,8 +44,8 @@ int gr_get_vfo(RIG *rig, vfo_t *vfo);
 int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int gr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
-int gnuradio_set_conf(RIG *rig, token_t token, const char *val);
-int gnuradio_get_conf(RIG *rig, token_t token, char *val);
+int gnuradio_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+int gnuradio_get_conf(RIG *rig, hamlib_token_t token, char *val);
 int gnuradio_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int gnuradio_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
