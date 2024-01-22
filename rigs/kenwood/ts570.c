@@ -18,6 +18,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +44,7 @@
 static struct kenwood_priv_caps ts570_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
+    .tone_table_base = 1,
 };
 
 static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)

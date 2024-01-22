@@ -18,6 +18,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -232,6 +233,7 @@ static struct kenwood_priv_caps  ts2000_priv_caps  =
     .filter_width = ts2000_filter_width,
     .slope_filter_high = ts2000_slope_filter_high,
     .slope_filter_low = ts2000_slope_filter_low,
+    .tone_table_base = 1,
 };
 
 /* memory capabilities */

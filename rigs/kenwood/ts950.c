@@ -18,6 +18,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /*
  * Edited by Martin Ewing AA6E, March, 2012
@@ -52,6 +53,7 @@
 static struct kenwood_priv_caps  ts950_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
+    .tone_table_base = 1,
 };
 
 /*

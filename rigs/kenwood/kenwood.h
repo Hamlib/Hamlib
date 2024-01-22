@@ -137,6 +137,7 @@ struct kenwood_priv_caps
     struct kenwood_slope_filter *slope_filter_high; /* Last entry should have value == -1 and frequency_hz == -1 */
     struct kenwood_slope_filter *slope_filter_low; /* Last entry should have value == -1 and frequency_hz == -1 */
     double swr;
+    int tone_table_base; /* Offset of first value in rigs tone tables, default=0 */
 };
 
 struct kenwood_priv_data
