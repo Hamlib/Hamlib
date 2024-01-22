@@ -359,7 +359,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD3(set_ts, shortfreq_t)
 	METHOD2(set_ant, ant_t, value_t)
 	METHOD2(set_func, setting_t, int)
-	METHOD2(set_ext_func, token_t, int)
+	METHOD2(set_ext_func, hamlib_token_t, int)
 	METHOD3(set_bank, int)
 	METHOD3(set_mem, int)
 	METHOD3(send_dtmf, const_char_string)
@@ -371,7 +371,7 @@ typedef channel_t * const_channel_t_p;
 	METHODSUPERSET(level, int, i, RIG_LEVEL_IS_FLOAT(stg))
 	METHODSUPERSET(level, float, f, !RIG_LEVEL_IS_FLOAT(stg))
 	METHODSTRSET(level)
-	METHOD2(set_ext_level, token_t, value_t)
+	METHOD2(set_ext_level, hamlib_token_t, value_t)
 
 	METHODSIMPLEGET(level, int, i, RIG_LEVEL_IS_FLOAT(stg))
 	METHODSIMPLEGET(level, float, f, !RIG_LEVEL_IS_FLOAT(stg))
@@ -403,8 +403,8 @@ typedef channel_t * const_channel_t_p;
 	METHOD1(ext_token_lookup, const_char_string)	/* level & parm */
 	METHOD1(token_lookup, const_char_string)	/* conf */
 
-	METHOD2(set_conf, token_t, const_char_string)
-	METHOD2(set_ext_parm, token_t, value_t)
+	METHOD2(set_conf, hamlib_token_t, const_char_string)
+	METHOD2(set_ext_parm, hamlib_token_t, value_t)
 
 	METHODSIMPLESET(parm, int, i, RIG_PARM_IS_FLOAT(stg))
 	METHODSIMPLESET(parm, float, f, !RIG_PARM_IS_FLOAT(stg))
@@ -420,7 +420,7 @@ typedef channel_t * const_channel_t_p;
 
 
 	void set_conf(const char *name, const char *val) {
-		token_t tok = rig_token_lookup(self->rig, name);
+		hamlib_token_t tok = rig_token_lookup(self->rig, name);
 		if (tok == RIG_CONF_END)
 			self->error_status = -RIG_EINVAL;
 		else
@@ -508,14 +508,14 @@ typedef channel_t * const_channel_t_p;
 		return chan;
 	}
 
-	void get_conf(token_t tok, char *returnstr) {
+	void get_conf(hamlib_token_t tok, char *returnstr) {
 		returnstr[0] = '\0';
 		self->error_status = rig_get_conf(self->rig, tok, returnstr);
 	}
 
 	void get_conf(const char *name, char *returnstr) {
 		returnstr[0] = '\0';
-		token_t tok = rig_token_lookup(self->rig, name);
+		hamlib_token_t tok = rig_token_lookup(self->rig, name);
 		if (tok == RIG_CONF_END)
 			self->error_status = -RIG_EINVAL;
 		else
@@ -540,7 +540,7 @@ typedef channel_t * const_channel_t_p;
 		return status;
 	}
 
-	int get_ext_func(token_t func, vfo_t vfo = RIG_VFO_CURR) {
+	int get_ext_func(hamlib_token_t func, vfo_t vfo = RIG_VFO_CURR) {
 		int status;
 		self->error_status = rig_get_ext_func(self->rig, vfo, func, &status);
 		return status;
@@ -554,7 +554,7 @@ typedef channel_t * const_channel_t_p;
 			/* TODO: dynamic casting */
 		}
 
-	void get_ext_level(token_t token, vfo_t vfo = RIG_VFO_CURR)
+	void get_ext_level(hamlib_token_t token, vfo_t vfo = RIG_VFO_CURR)
 		{ value_t val = {0}; self->error_status = rig_get_level(self->rig, vfo, token, &val);
 			//if (RIG_LEVEL_IS_FLOAT(level))
 			/* TODO: dynamic casting */
@@ -566,7 +566,7 @@ typedef channel_t * const_channel_t_p;
 			/* TODO: dynamic casting */
 		}
 
-	void get_ext_parm(token_t parm)
+	void get_ext_parm(hamlib_token_t parm)
 		{ value_t val = {0}; self->error_status = rig_get_parm(self->rig, parm, &val);
 			//if (RIG_LEVEL_IS_FLOAT(parm))
 			/* TODO: dynamic casting */

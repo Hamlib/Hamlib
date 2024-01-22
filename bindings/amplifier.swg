@@ -92,14 +92,14 @@ typedef struct Amp {
   AMPMETHOD1(set_powerstat, powerstat_t)
 
 	void set_conf(const char *name, const char *val) {
-		token_t tok = amp_token_lookup(self->amp, name);
+		hamlib_token_t tok = amp_token_lookup(self->amp, name);
 		if (tok == RIG_CONF_END)
 			self->error_status = -RIG_EINVAL;
 		else
 			self->error_status = amp_set_conf(self->amp, tok, val);
 	}
 
-	AMPMETHOD2(set_conf, token_t, const_char_string)
+	AMPMETHOD2(set_conf, hamlib_token_t, const_char_string)
 
 /*
  * declare wrapper method with one output argument besides AMP* 
@@ -110,14 +110,14 @@ typedef struct Amp {
 
   /* get functions */
 
-  const char *get_conf(token_t tok) {
+  const char *get_conf(hamlib_token_t tok) {
           static char s[128] = "";
           self->error_status = amp_get_conf(self->amp, tok, s);
           return s;
   }
 
   const char *get_conf(const char *name) {
-          token_t tok = amp_token_lookup(self->amp, name);
+          hamlib_token_t tok = amp_token_lookup(self->amp, name);
           static char s[128] = "";
           if (tok == RIG_CONF_END)
                   self->error_status = -RIG_EINVAL;
