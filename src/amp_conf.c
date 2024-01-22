@@ -105,7 +105,7 @@ static const struct confparams ampfrontend_serial_cfg_params[] =
  *
  * \sa frontamp_get_conf()
  */
-int frontamp_set_conf(AMP *amp, token_t token, const char *val)
+int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
 {
     struct amp_state *rs;
     int val_i;
@@ -371,7 +371,7 @@ int frontamp_set_conf(AMP *amp, token_t token, const char *val)
  *
  * \sa frontamp_set_conf()
  */
-int frontamp_get_conf2(AMP *amp, token_t token, char *val, int val_len)
+int frontamp_get_conf2(AMP *amp, hamlib_token_t token, char *val, int val_len)
 {
     struct amp_state *rs;
     const char *s;
@@ -590,7 +590,7 @@ const struct confparams *HAMLIB_API amp_confparam_lookup(AMP *amp,
         const char *name)
 {
     const struct confparams *cfp;
-    token_t token;
+    hamlib_token_t token;
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -647,7 +647,7 @@ const struct confparams *HAMLIB_API amp_confparam_lookup(AMP *amp,
  *
  * \sa amp_confparam_lookup()
  */
-token_t HAMLIB_API amp_token_lookup(AMP *amp, const char *name)
+hamlib_token_t HAMLIB_API amp_token_lookup(AMP *amp, const char *name)
 {
     const struct confparams *cfp;
 
@@ -682,7 +682,7 @@ token_t HAMLIB_API amp_token_lookup(AMP *amp, const char *name)
  *
  * \sa amp_get_conf()
  */
-int HAMLIB_API amp_set_conf(AMP *amp, token_t token, const char *val)
+int HAMLIB_API amp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -738,7 +738,7 @@ int HAMLIB_API amp_set_conf(AMP *amp, token_t token, const char *val)
  *
  * \sa amp_set_conf()
  */
-int HAMLIB_API amp_get_conf2(AMP *amp, token_t token, char *val, int val_len)
+int HAMLIB_API amp_get_conf2(AMP *amp, hamlib_token_t token, char *val, int val_len)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -760,7 +760,7 @@ int HAMLIB_API amp_get_conf2(AMP *amp, token_t token, char *val, int val_len)
     return amp->caps->get_conf(amp, token, val);
 }
 
-int HAMLIB_API amp_get_conf(AMP *amp, token_t token, char *val)
+int HAMLIB_API amp_get_conf(AMP *amp, hamlib_token_t token, char *val)
 {
     return amp_get_conf2(amp, token, val, 128);
 }

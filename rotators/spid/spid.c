@@ -238,7 +238,7 @@ static int spid_rot_cleanup(ROT *rot)
     return RIG_OK;
 }
 
-static int spid_get_conf2(ROT *rot, token_t token, char *val, int val_len)
+static int spid_get_conf2(ROT *rot, hamlib_token_t token, char *val, int val_len)
 {
     const  struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
             rot->state.priv;
@@ -268,12 +268,12 @@ static int spid_get_conf2(ROT *rot, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-static int spid_get_conf(ROT *rot, token_t token, char *val)
+static int spid_get_conf(ROT *rot, hamlib_token_t token, char *val)
 {
     return spid_get_conf2(rot, token, val, 128);
 }
 
-static int spid_set_conf(ROT *rot, token_t token, const char *val)
+static int spid_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
                                            rot->state.priv;

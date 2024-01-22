@@ -743,7 +743,7 @@ int newcat_close(RIG *rig)
  * Set Configuration Token for Yaesu Radios
  */
 
-int newcat_set_conf(RIG *rig, token_t token, const char *val)
+int newcat_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     int ret = RIG_OK;
     struct newcat_priv_data *priv;
@@ -796,7 +796,7 @@ int newcat_set_conf(RIG *rig, token_t token, const char *val)
  * Get Configuration Token for Yaesu Radios
  */
 
-int newcat_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int newcat_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     int ret = RIG_OK;
     struct newcat_priv_data *priv;
@@ -6940,12 +6940,12 @@ int newcat_get_parm(RIG *rig, setting_t parm, value_t *val)
     RETURNFUNC(-RIG_ENAVAIL);
 }
 
-static int newcat_set_maxpower(RIG *rig, vfo_t vfo, token_t token, float val)
+static int newcat_set_maxpower(RIG *rig, vfo_t vfo, hamlib_token_t token, float val)
 {
     return -RIG_ENIMPL;
 }
 
-static int newcat_get_maxpower(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+static int newcat_get_maxpower(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int retval;
@@ -7007,7 +7007,7 @@ static int newcat_get_maxpower(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 }
 
 
-int newcat_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+int newcat_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
 
@@ -7060,7 +7060,7 @@ int newcat_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     }
 }
 
-int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+int newcat_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char *result;
@@ -7189,7 +7189,7 @@ int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
-int newcat_set_ext_parm(RIG *rig, token_t token, value_t val)
+int newcat_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     ENTERFUNC;
 
@@ -7197,7 +7197,7 @@ int newcat_set_ext_parm(RIG *rig, token_t token, value_t val)
 }
 
 
-int newcat_get_ext_parm(RIG *rig, token_t token, value_t *val)
+int newcat_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     ENTERFUNC;
 

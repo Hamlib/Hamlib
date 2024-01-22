@@ -87,9 +87,9 @@ static int tmd710_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 static int tmd710_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 static int tmd710_get_parm(RIG *rig, setting_t parm, value_t *val);
 static int tmd710_set_parm(RIG *rig, setting_t parm, value_t val);
-static int tmd710_get_ext_level(RIG *rig, vfo_t vfo, token_t token,
+static int tmd710_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
                                 value_t *val);
-static int tmd710_set_ext_level(RIG *rig, vfo_t vfo, token_t token,
+static int tmd710_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
                                 value_t val);
 
 #define TMD710_MODES     (RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_AM)
@@ -2907,7 +2907,7 @@ int tmd710_set_parm(RIG *rig, setting_t parm, value_t val)
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
  *
  */
-int tmd710_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+int tmd710_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     int retval;
     tmd710_mu mu_struct;
@@ -2941,7 +2941,7 @@ int tmd710_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  */
-int tmd710_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+int tmd710_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
     int retval;
     tmd710_mu mu_struct;

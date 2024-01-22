@@ -294,7 +294,7 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int optoscan_set_ext_parm(RIG *rig, token_t token, value_t val)
+int optoscan_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int ack_len;
@@ -367,7 +367,7 @@ int optoscan_set_ext_parm(RIG *rig, token_t token, value_t val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int optoscan_get_ext_parm(RIG *rig, token_t token, value_t *val)
+int optoscan_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     struct optostat status_block;
     int retval;

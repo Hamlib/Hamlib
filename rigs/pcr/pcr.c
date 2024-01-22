@@ -1354,7 +1354,7 @@ pcr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 
 int
-pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+pcr_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tok = %s\n", __func__, rig_strlevel(token));
 

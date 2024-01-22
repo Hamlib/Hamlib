@@ -3254,7 +3254,7 @@ int adat_get_powerstat(RIG *pRig, powerstat_t *status)
 // Function adat_set_conf
 // ---------------------------------------------------------------------------
 // Status: IN WORK
-int adat_set_conf(RIG *pRig, token_t token, const char *val)
+int adat_set_conf(RIG *pRig, hamlib_token_t token, const char *val)
 {
     int nRC = RIG_OK;
 
@@ -3300,7 +3300,7 @@ int adat_set_conf(RIG *pRig, token_t token, const char *val)
 // Function adat_get_conf
 // ---------------------------------------------------------------------------
 // Status: IN WORK
-int adat_get_conf(RIG *pRig, token_t token, char *val)
+int adat_get_conf(RIG *pRig, hamlib_token_t token, char *val)
 {
     int nRC = RIG_OK;
 

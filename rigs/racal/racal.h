@@ -37,8 +37,8 @@ struct racal_priv_data {
 	float threshold;	/* attenuation */
 };
 
-int racal_set_conf(RIG *rig, token_t token, const char *val);
-int racal_get_conf(RIG *rig, token_t token, char *val);
+int racal_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+int racal_get_conf(RIG *rig, hamlib_token_t token, char *val);
 int racal_init(RIG *rig);
 int racal_cleanup(RIG *rig);
 int racal_open(RIG *rig);

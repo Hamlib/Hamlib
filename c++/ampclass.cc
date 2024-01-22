@@ -65,7 +65,7 @@ void Amplifier::close(void) {
 	CHECK_AMP( amp_close(theAmp) );
 }
 
-void Amplifier::setConf(token_t token, const char *val)
+void Amplifier::setConf(hamlib_token_t token, const char *val)
 {
 	CHECK_AMP( amp_set_conf(theAmp, token, val) );
 }
@@ -74,7 +74,7 @@ void Amplifier::setConf(const char *name, const char *val)
 	CHECK_AMP( amp_set_conf(theAmp, tokenLookup(name), val) );
 }
 
-void Amplifier::getConf(token_t token, char *val)
+void Amplifier::getConf(hamlib_token_t token, char *val)
 {
 	CHECK_AMP( amp_get_conf(theAmp, token, val) );
 }
@@ -83,7 +83,7 @@ void Amplifier::getConf(const char *name, char *val)
 	CHECK_AMP( amp_get_conf(theAmp, tokenLookup(name), val) );
 }
 
-token_t Amplifier::tokenLookup(const char *name)
+hamlib_token_t Amplifier::tokenLookup(const char *name)
 {
 	return amp_token_lookup(theAmp, name);
 }

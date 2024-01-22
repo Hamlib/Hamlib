@@ -404,7 +404,7 @@ grbltrk_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 }
 
 static int
-grbltrk_rot_set_conf(ROT *rot, token_t token, const char *val)
+grbltrk_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     uint32_t resp_size, len;
 

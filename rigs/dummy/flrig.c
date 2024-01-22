@@ -87,8 +87,8 @@ static int flrig_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
 static int flrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
-static int flrig_set_ext_parm(RIG *rig, token_t token, value_t val);
-static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val);
+static int flrig_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val);
+static int flrig_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val);
 
 static const char *flrig_get_info(RIG *rig);
 static int flrig_power2mW(RIG *rig, unsigned int *mwpower, float power,
@@ -2397,7 +2397,7 @@ static int flrig_mW2power(RIG *rig, float *power, unsigned int mwpower,
 
 }
 
-static int flrig_set_ext_parm(RIG *rig, token_t token, value_t val)
+static int flrig_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     struct flrig_priv_data *priv = (struct flrig_priv_data *)rig->state.priv;
     char lstr[64];
@@ -2474,7 +2474,7 @@ static int flrig_set_ext_parm(RIG *rig, token_t token, value_t val)
     RETURNFUNC(RIG_OK);
 }
 
-static int flrig_get_ext_parm(RIG *rig, token_t token, value_t *val)
+static int flrig_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     struct flrig_priv_data *priv = (struct flrig_priv_data *)rig->state.priv;
     const struct confparams *cfp;

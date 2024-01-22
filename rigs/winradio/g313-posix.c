@@ -542,7 +542,7 @@ static const char *g313_get_info(RIG *rig)
     return info.SerNum;
 }
 
-int g313_set_conf(RIG *rig, token_t token, const char *val)
+int g313_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 
@@ -593,7 +593,7 @@ int g313_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int g313_get_conf(RIG *rig, token_t token, char *val)
+int g313_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
 

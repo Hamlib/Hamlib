@@ -136,7 +136,7 @@ static const struct confparams rotfrontend_serial_cfg_params[] =
  *
  * \sa frontrot_get_conf()
  */
-int frontrot_set_conf(ROT *rot, token_t token, const char *val)
+int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     struct rot_state *rs;
     int val_i;
@@ -410,7 +410,7 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
  *
  * \sa frontrot_set_conf()
  */
-int frontrot_get_conf(ROT *rot, token_t token, char *val, int val_len)
+int frontrot_get_conf(ROT *rot, hamlib_token_t token, char *val, int val_len)
 {
     struct rot_state *rs;
     const char *s;
@@ -650,7 +650,7 @@ const struct confparams *HAMLIB_API rot_confparam_lookup(ROT *rot,
         const char *name)
 {
     const struct confparams *cfp;
-    token_t token;
+    hamlib_token_t token;
 
     //rot_debug(RIG_DEBUG_VERBOSE, "%s called lookup=%s\n", __func__, name);
 
@@ -711,7 +711,7 @@ const struct confparams *HAMLIB_API rot_confparam_lookup(ROT *rot,
  *
  * \sa rot_confparam_lookup()
  */
-token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
+hamlib_token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 {
     const struct confparams *cfp;
 
@@ -746,7 +746,7 @@ token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
  *
  * \sa rot_get_conf()
  */
-int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
+int HAMLIB_API rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -803,15 +803,15 @@ int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
  * \sa rot_set_conf()
  */
 // This call will change in Hamlib 5.0 to pass val_len in
-//int HAMLIB_API rot_get_conf(ROT *rot, token_t token, char *val, int val_len)
+//int HAMLIB_API rot_get_conf(ROT *rot, hamlib_token_t token, char *val, int val_len)
 
-int HAMLIB_API rot_get_conf(ROT *rot, token_t token, char *val)
+int HAMLIB_API rot_get_conf(ROT *rot, hamlib_token_t token, char *val)
 {
     // 128 is the default size we are called with
     return rot_get_conf2(rot, token, val, 128);
 }
 
-int HAMLIB_API rot_get_conf2(ROT *rot, token_t token, char *val, int val_len)
+int HAMLIB_API rot_get_conf2(ROT *rot, hamlib_token_t token, char *val, int val_len)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

@@ -580,8 +580,8 @@ int adat_reset(RIG *, reset_t);
 int adat_open(RIG *);
 int adat_close(RIG *);
 
-int adat_set_conf(RIG *, token_t, const char *val);
-int adat_get_conf(RIG *, token_t, char *val);
+int adat_set_conf(RIG *, hamlib_token_t, const char *val);
+int adat_get_conf(RIG *, hamlib_token_t, char *val);
 
 int adat_set_freq(RIG *, vfo_t, freq_t);
 int adat_get_freq(RIG *, vfo_t, freq_t *);

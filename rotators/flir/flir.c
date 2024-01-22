@@ -238,12 +238,12 @@ static int flir_close(ROT *rot)
     return RIG_OK;
 }
 
-static int flir_set_conf(ROT *rot, token_t token, const char *val)
+static int flir_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     return -RIG_ENIMPL;
 }
 
-static int flir_get_conf(ROT *rot, token_t token, char *val)
+static int flir_get_conf(ROT *rot, hamlib_token_t token, char *val)
 {
     return -RIG_ENIMPL;
 }
@@ -459,22 +459,22 @@ static int flir_get_level(ROT *rot, setting_t level, value_t *val)
     return -RIG_ENIMPL;
 }
 
-static int flir_set_ext_level(ROT *rot, token_t token, value_t val)
+static int flir_set_ext_level(ROT *rot, hamlib_token_t token, value_t val)
 {
     return -RIG_ENIMPL;
 }
 
-static int flir_get_ext_level(ROT *rot, token_t token, value_t *val)
+static int flir_get_ext_level(ROT *rot, hamlib_token_t token, value_t *val)
 {
     return -RIG_ENIMPL;
 }
 
-static int flir_set_ext_func(ROT *rot, token_t token, int status)
+static int flir_set_ext_func(ROT *rot, hamlib_token_t token, int status)
 {
     return -RIG_ENIMPL;
 }
 
-static int flir_get_ext_func(ROT *rot, token_t token, int *status)
+static int flir_get_ext_func(ROT *rot, hamlib_token_t token, int *status)
 {
     return -RIG_ENIMPL;
 }
@@ -489,12 +489,12 @@ static int flir_get_parm(ROT *rot, setting_t parm, value_t *val)
     return -RIG_ENIMPL;
 }
 
-static int flir_set_ext_parm(ROT *rot, token_t token, value_t val)
+static int flir_set_ext_parm(ROT *rot, hamlib_token_t token, value_t val)
 {
     return -RIG_ENIMPL;
 }
 
-static int flir_get_ext_parm(ROT *rot, token_t token, value_t *val)
+static int flir_get_ext_parm(ROT *rot, hamlib_token_t token, value_t *val)
 {
     return -RIG_ENIMPL;
 }

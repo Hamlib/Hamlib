@@ -414,8 +414,8 @@ struct rot_caps {
     int (*rot_open)(ROT *rot);     /*!< Pointer to backend implementation of ::rot_open(). */
     int (*rot_close)(ROT *rot);    /*!< Pointer to backend implementation of ::rot_close(). */
 
-    int (*set_conf)(ROT *rot, token_t token, const char *val); /*!< Pointer to backend implementation of ::rot_set_conf(). */
-    int (*get_conf)(ROT *rot, token_t token, char *val);       /*!< Pointer to backend implementation of ::rot_get_conf(). */
+    int (*set_conf)(ROT *rot, hamlib_token_t token, const char *val); /*!< Pointer to backend implementation of ::rot_set_conf(). */
+    int (*get_conf)(ROT *rot, hamlib_token_t token, char *val);       /*!< Pointer to backend implementation of ::rot_get_conf(). */
 
     /*
      *  General API commands, from most primitive to least.. :()
@@ -442,19 +442,19 @@ struct rot_caps {
     int (*set_parm)(ROT *rot, setting_t parm, value_t val);    /*!< Pointer to backend implementation of ::rot_set_parm(). */
     int (*get_parm)(ROT *rot, setting_t parm, value_t *val);   /*!< Pointer to backend implementation of ::rot_get_parm(). */
 
-    int (*set_ext_level)(ROT *rot, token_t token, value_t val);    /*!< Pointer to backend implementation of ::rot_set_ext_level(). */
-    int (*get_ext_level)(ROT *rot, token_t token, value_t *val);   /*!< Pointer to backend implementation of ::rot_get_ext_level(). */
+    int (*set_ext_level)(ROT *rot, hamlib_token_t token, value_t val);    /*!< Pointer to backend implementation of ::rot_set_ext_level(). */
+    int (*get_ext_level)(ROT *rot, hamlib_token_t token, value_t *val);   /*!< Pointer to backend implementation of ::rot_get_ext_level(). */
 
-    int (*set_ext_func)(ROT *rot, token_t token, int status);  /*!< Pointer to backend implementation of ::rot_set_ext_func(). */
-    int (*get_ext_func)(ROT *rot, token_t token, int *status); /*!< Pointer to backend implementation of ::rot_get_ext_func(). */
+    int (*set_ext_func)(ROT *rot, hamlib_token_t token, int status);  /*!< Pointer to backend implementation of ::rot_set_ext_func(). */
+    int (*get_ext_func)(ROT *rot, hamlib_token_t token, int *status); /*!< Pointer to backend implementation of ::rot_get_ext_func(). */
 
-    int (*set_ext_parm)(ROT *rot, token_t token, value_t val);     /*!< Pointer to backend implementation of ::rot_set_ext_parm(). */
-    int (*get_ext_parm)(ROT *rot, token_t token, value_t *val);    /*!< Pointer to backend implementation of ::rot_get_ext_parm(). */
+    int (*set_ext_parm)(ROT *rot, hamlib_token_t token, value_t val);     /*!< Pointer to backend implementation of ::rot_set_ext_parm(). */
+    int (*get_ext_parm)(ROT *rot, hamlib_token_t token, value_t *val);    /*!< Pointer to backend implementation of ::rot_get_ext_parm(). */
 
     int (*get_status)(ROT *rot, rot_status_t *status); /*!< Pointer to backend implementation of ::rot_get_status(). */
 
     const char *macro_name;                    /*!< Rotator model macro name. */
-    int (*get_conf2)(ROT *rot, token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of ::rot_get_conf2(). */
+    int (*get_conf2)(ROT *rot, hamlib_token_t token, char *val, int val_len);       /*!< Pointer to backend implementation of ::rot_get_conf2(). */
 };
 //! @cond Doxygen_Suppress
 #define ROT_MODEL(arg) .rot_model=arg,.macro_name=#arg
@@ -545,16 +545,16 @@ rot_cleanup HAMLIB_PARAMS((ROT *rot));
 
 extern HAMLIB_EXPORT(int)
 rot_set_conf HAMLIB_PARAMS((ROT *rot,
-                            token_t token,
+                            hamlib_token_t token,
                             const char *val));
 extern HAMLIB_EXPORT(int)
 rot_get_conf HAMLIB_PARAMS((ROT *rot,
-                            token_t token,
+                            hamlib_token_t token,
                             char *val));
 
 extern HAMLIB_EXPORT(int)
 rot_get_conf2 HAMLIB_PARAMS((ROT *rot,
-                            token_t token,
+                            hamlib_token_t token,
                             char *val,
                             int val_len));
 
@@ -636,29 +636,29 @@ rot_get_parm HAMLIB_PARAMS((ROT *rig,
 
 extern HAMLIB_EXPORT(int)
 rot_set_ext_level HAMLIB_PARAMS((ROT *rig,
-                                 token_t token,
+                                 hamlib_token_t token,
                                  value_t val));
 extern HAMLIB_EXPORT(int)
 rot_get_ext_level HAMLIB_PARAMS((ROT *rig,
-                                 token_t token,
+                                 hamlib_token_t token,
                                  value_t *val));
 
 extern HAMLIB_EXPORT(int)
 rot_set_ext_func HAMLIB_PARAMS((ROT *rig,
-                                 token_t token,
+                                 hamlib_token_t token,
                                  int status));
 extern HAMLIB_EXPORT(int)
 rot_get_ext_func HAMLIB_PARAMS((ROT *rig,
-                                 token_t token,
+                                 hamlib_token_t token,
                                  int *status));
 
 extern HAMLIB_EXPORT(int)
 rot_set_ext_parm HAMLIB_PARAMS((ROT *rig,
-                                token_t token,
+                                hamlib_token_t token,
                                 value_t val));
 extern HAMLIB_EXPORT(int)
 rot_get_ext_parm HAMLIB_PARAMS((ROT *rig,
-                                token_t token,
+                                hamlib_token_t token,
                                 value_t *val));
 
 extern HAMLIB_EXPORT(const char *)
@@ -701,7 +701,7 @@ extern HAMLIB_EXPORT(const struct confparams *)
 rot_confparam_lookup HAMLIB_PARAMS((ROT *rot,
                                    const char *name));
 
-extern HAMLIB_EXPORT(token_t)
+extern HAMLIB_EXPORT(hamlib_token_t)
 rot_token_lookup HAMLIB_PARAMS((ROT *rot,
                                 const char *name));
 
@@ -730,8 +730,8 @@ rot_ext_lookup HAMLIB_PARAMS((ROT *rot,
 
 extern HAMLIB_EXPORT(const struct confparams *)
 rot_ext_lookup_tok HAMLIB_PARAMS((ROT *rot,
-                                  token_t token));
-extern HAMLIB_EXPORT(token_t)
+                                  hamlib_token_t token));
+extern HAMLIB_EXPORT(hamlib_token_t)
 rot_ext_token_lookup HAMLIB_PARAMS((ROT *rot,
                                     const char *name));
 

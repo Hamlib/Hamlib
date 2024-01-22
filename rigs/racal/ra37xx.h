@@ -64,8 +64,8 @@ struct ra37xx_priv_data {
 	int receiver_id;
 };
 
-int ra37xx_set_conf(RIG *rig, token_t token, const char *val);
-int ra37xx_get_conf(RIG *rig, token_t token, char *val);
+int ra37xx_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+int ra37xx_get_conf(RIG *rig, hamlib_token_t token, char *val);
 int ra37xx_init(RIG *rig);
 int ra37xx_cleanup(RIG *rig);
 int ra37xx_open(RIG *rig);

@@ -64,8 +64,8 @@ static int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq);
 static int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq);
 static int si570xxxusb_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-static int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val);
-static int si570xxxusb_get_conf(RIG *rig, token_t token, char *val);
+static int si570xxxusb_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+static int si570xxxusb_get_conf(RIG *rig, hamlib_token_t token, char *val);
 static const char *si570xxxusb_get_info(RIG *rig);
 
 
@@ -862,7 +862,7 @@ int si570xxxusb_cleanup(RIG *rig)
     return RIG_OK;
 }
 
-int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val)
+int si570xxxusb_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct si570xxxusb_priv_data *priv;
     freq_t freq;
@@ -925,7 +925,7 @@ int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int si570xxxusb_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int si570xxxusb_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct si570xxxusb_priv_data *priv;
     priv = (struct si570xxxusb_priv_data *)rig->state.priv;
@@ -955,7 +955,7 @@ int si570xxxusb_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int si570xxxusb_get_conf(RIG *rig, token_t token, char *val)
+int si570xxxusb_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return si570xxxusb_get_conf2(rig, token, val, 128);
 }

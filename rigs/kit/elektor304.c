@@ -65,8 +65,8 @@ static const struct confparams elektor304_cfg_params[] =
 static int elektor304_init(RIG *rig);
 static int elektor304_cleanup(RIG *rig);
 static int elektor304_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int elektor304_set_conf(RIG *rig, token_t token, const char *val);
-static int elektor304_get_conf(RIG *rig, token_t token, char *val);
+static int elektor304_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+static int elektor304_get_conf(RIG *rig, hamlib_token_t token, char *val);
 
 /*
  * The Elektor DRM Receiver 3/04 COM interface is based on the Visual Basic
@@ -198,7 +198,7 @@ int elektor304_cleanup(RIG *rig)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int elektor304_set_conf(RIG *rig, token_t token, const char *val)
+int elektor304_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct elektor304_priv_data *priv;
 
@@ -226,7 +226,7 @@ int elektor304_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int elektor304_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int elektor304_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct elektor304_priv_data *priv;
 
@@ -249,7 +249,7 @@ int elektor304_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int elektor304_get_conf(RIG *rig, token_t token, char *val)
+int elektor304_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return elektor304_get_conf2(rig, token, val, 128);
 }

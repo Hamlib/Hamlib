@@ -253,7 +253,7 @@ int wj_cleanup(RIG *rig)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int wj_set_conf(RIG *rig, token_t token, const char *val)
+int wj_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
@@ -275,7 +275,7 @@ int wj_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int wj_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int wj_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     const struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
 
@@ -292,7 +292,7 @@ int wj_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int wj_get_conf(RIG *rig, token_t token, char *val)
+int wj_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return wj_get_conf2(rig, token, val, 128);
 }

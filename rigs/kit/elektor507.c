@@ -52,8 +52,8 @@ static int elektor507_get_level(RIG *rig, vfo_t vfo, setting_t level,
 static int elektor507_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
 static int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
                               ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx);
-static int elektor507_set_conf(RIG *rig, token_t token, const char *val);
-static int elektor507_get_conf(RIG *rig, token_t token, char *val);
+static int elektor507_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+static int elektor507_get_conf(RIG *rig, hamlib_token_t token, char *val);
 
 
 static const char *elektor507_get_info(RIG *rig);
@@ -641,7 +641,7 @@ struct rig_caps elektor507_caps =
 };
 
 
-int elektor507_set_conf(RIG *rig, token_t token, const char *val)
+int elektor507_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct elektor507_priv_data *priv;
     freq_t freq;
@@ -666,7 +666,7 @@ int elektor507_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int elektor507_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int elektor507_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct elektor507_priv_data *priv;
 
@@ -689,7 +689,7 @@ int elektor507_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int elektor507_get_conf(RIG *rig, token_t token, char *val)
+int elektor507_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return elektor507_get_conf2(rig, token, val, 128);
 }

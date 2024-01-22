@@ -3583,7 +3583,7 @@ int elad_set_channel(RIG *rig, const channel_t *chan)
     return elad_transaction(rig, buf, NULL, 0);
 }
 
-int elad_set_ext_parm(RIG *rig, token_t token, value_t val)
+int elad_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     char buf[4];
 
@@ -3610,7 +3610,7 @@ int elad_set_ext_parm(RIG *rig, token_t token, value_t val)
     return -RIG_EINVAL;
 }
 
-int elad_get_ext_parm(RIG *rig, token_t token, value_t *val)
+int elad_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     int err;
     struct elad_priv_data *priv = rig->state.priv;

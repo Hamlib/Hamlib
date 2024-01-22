@@ -830,7 +830,7 @@ int HAMLIB_API amp_get_level(AMP *amp, setting_t level, value_t *val)
  *
  * \sa amp_set_level()
  */
-int HAMLIB_API amp_set_ext_level(AMP *amp, token_t level, value_t val)
+int HAMLIB_API amp_set_ext_level(AMP *amp, hamlib_token_t level, value_t val)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -865,7 +865,7 @@ int HAMLIB_API amp_set_ext_level(AMP *amp, token_t level, value_t val)
  *
  * \sa amp_get_level()
  */
-int HAMLIB_API amp_get_ext_level(AMP *amp, token_t level, value_t *val)
+int HAMLIB_API amp_get_ext_level(AMP *amp, hamlib_token_t level, value_t *val)
 {
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

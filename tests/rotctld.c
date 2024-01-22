@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
     while (token)
     {
         char mytoken[100], myvalue[100];
-        token_t lookup;
+        hamlib_token_t lookup;
         sscanf(token, "%99[^=]=%99s", mytoken, myvalue);
         //printf("mytoken=%s,myvalue=%s\n",mytoken, myvalue);
         lookup = rot_token_lookup(my_rot, mytoken);

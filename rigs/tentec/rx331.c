@@ -67,8 +67,8 @@ static const struct confparams rx331_cfg_params[] =
 
 static int rx331_init(RIG *rig);
 static int rx331_cleanup(RIG *rig);
-static int rx331_set_conf(RIG *rig, token_t token, const char *val);
-static int rx331_get_conf(RIG *rig, token_t token, char *val);
+static int rx331_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+static int rx331_get_conf(RIG *rig, hamlib_token_t token, char *val);
 static int rx331_open(RIG *rig);
 static int rx331_close(RIG *rig);
 static int rx331_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -323,7 +323,7 @@ int rx331_cleanup(RIG *rig)
     return RIG_OK;
 }
 
-int rx331_set_conf(RIG *rig, token_t token, const char *val)
+int rx331_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
 
@@ -340,7 +340,7 @@ int rx331_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int rx331_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int rx331_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
 
@@ -357,7 +357,7 @@ int rx331_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int rx331_get_conf(RIG *rig, token_t token, char *val)
+int rx331_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return rx331_get_conf2(rig, token, val, 128);
 }

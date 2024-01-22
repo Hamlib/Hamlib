@@ -98,7 +98,7 @@ struct k2_filt_lst_s k2_fwmd_rtty;
 int k2_open(RIG *rig);
 int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
+int k2_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val);
 
 /* Private function declarations */
 int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv);
@@ -489,7 +489,7 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  *      STRING: val.cs for set, val.s for get
  *      CHECKBUTTON: val.i 0/1
  */
-int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+int k2_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     char buf[KENWOOD_MAX_BUF_LEN];
     int err;

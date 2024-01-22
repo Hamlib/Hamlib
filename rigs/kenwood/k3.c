@@ -147,8 +147,8 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int k3_get_vfo(RIG *rig, vfo_t *vfo);
 int k3_set_vfo(RIG *rig, vfo_t vfo);
-int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
-int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
+int k3_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val);
+int k3_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val);
 int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
@@ -1386,7 +1386,7 @@ int k3_get_vfo(RIG *rig, vfo_t *vfo)
  * See Private Elecraft extra levels definitions in elecraft.c and
  * private token #define in elecraft.h
  */
-int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+int k3_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
     char buf[10];
 
@@ -1435,7 +1435,7 @@ int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
  *      STRING: val.cs for set, val.s for get
  *      CHECKBUTTON: val.i 0/1
  */
-int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+int k3_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     char buf[KENWOOD_MAX_BUF_LEN];
     int err;

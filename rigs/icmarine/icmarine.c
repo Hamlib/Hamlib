@@ -183,7 +183,7 @@ int icmarine_open(RIG *rig)
 #endif
 
 
-int icmarine_set_conf(RIG *rig, token_t token, const char *val)
+int icmarine_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct icmarine_priv_data *priv;
 
@@ -202,7 +202,7 @@ int icmarine_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int icmarine_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int icmarine_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct icmarine_priv_data *priv;
 
@@ -221,7 +221,7 @@ int icmarine_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int icmarine_get_conf(RIG *rig, token_t token, char *val)
+int icmarine_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return icmarine_get_conf2(rig, token, val, 128);
 }

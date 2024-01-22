@@ -76,7 +76,7 @@ void Rig::close(void) {
 	CHECK_RIG( rig_close(theRig) );
 }
 
-void Rig::setConf(token_t token, const char *val)
+void Rig::setConf(hamlib_token_t token, const char *val)
 {
 	CHECK_RIG( rig_set_conf(theRig, token, val) );
 }
@@ -85,7 +85,7 @@ void Rig::setConf(const char *name, const char *val)
 	CHECK_RIG( rig_set_conf(theRig, tokenLookup(name), val) );
 }
 
-void Rig::getConf(token_t token, char *val)
+void Rig::getConf(hamlib_token_t token, char *val)
 {
 	CHECK_RIG( rig_get_conf(theRig, token, val) );
 }
@@ -94,7 +94,7 @@ void Rig::getConf(const char *name, char *val)
 	CHECK_RIG( rig_get_conf(theRig, tokenLookup(name), val) );
 }
 
-token_t Rig::tokenLookup(const char *name)
+hamlib_token_t Rig::tokenLookup(const char *name)
 {
 	return rig_token_lookup(theRig, name);
 }

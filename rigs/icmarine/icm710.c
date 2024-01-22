@@ -327,7 +327,7 @@ int icm710_cleanup(RIG *rig)
     return RIG_OK;
 }
 
-int icm710_set_conf(RIG *rig, token_t token, const char *val)
+int icm710_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct icm710_priv_data *priv;
 
@@ -346,7 +346,7 @@ int icm710_set_conf(RIG *rig, token_t token, const char *val)
     return RIG_OK;
 }
 
-int icm710_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int icm710_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct icm710_priv_data *priv;
 
@@ -365,7 +365,7 @@ int icm710_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int icm710_get_conf(RIG *rig, token_t token, char *val)
+int icm710_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return icm710_get_conf2(rig, token, val, 128);
 }
