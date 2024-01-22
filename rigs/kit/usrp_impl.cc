@@ -99,7 +99,7 @@ int usrp_close(RIG *rig)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int usrp_set_conf(RIG *rig, token_t token, const char *val)
+int usrp_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
 	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 
@@ -124,7 +124,7 @@ int usrp_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int usrp_get_conf(RIG *rig, token_t token, char *val)
+int usrp_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
 	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
 

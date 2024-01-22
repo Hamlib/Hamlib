@@ -160,7 +160,7 @@ int gr_init(RIG *rig)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int gnuradio_set_conf(RIG *rig, token_t token, const char *val)
+int gnuradio_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
 	struct gnuradio_priv_data *priv;
 	struct rig_state *rs;
@@ -184,7 +184,7 @@ int gnuradio_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int gnuradio_get_conf(RIG *rig, token_t token, char *val)
+int gnuradio_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
 	struct gnuradio_priv_data *priv;
 	struct rig_state *rs;
