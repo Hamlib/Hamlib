@@ -235,7 +235,7 @@ static const struct confparams frontend_serial_cfg_params[] =
  * frontend_set_conf
  * assumes rig!=NULL, val!=NULL
  */
-static int frontend_set_conf(RIG *rig, token_t token, const char *val)
+static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct rig_caps *caps;
     struct rig_state *rs;
@@ -832,7 +832,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
  * frontend_get_conf
  * assumes rig!=NULL, val!=NULL
  */
-static int frontend_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct rig_state *rs;
     const char *s = "";
@@ -1292,7 +1292,7 @@ const struct confparams *HAMLIB_API rig_confparam_lookup(RIG *rig,
         const char *name)
 {
     const struct confparams *cfp;
-    token_t token;
+    hamlib_token_t token;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called for %s\n", __func__, name);
 
@@ -1344,7 +1344,7 @@ const struct confparams *HAMLIB_API rig_confparam_lookup(RIG *rig,
  *
  * \return the token id if found, otherwise RIG_CONF_END
  */
-token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
+hamlib_token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
 {
     const struct confparams *cfp;
 
@@ -1375,7 +1375,7 @@ token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
  *
  * \sa rig_get_conf()
  */
-int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
+int HAMLIB_API rig_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1436,12 +1436,12 @@ int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
  *
  * \sa rig_set_conf()
  */
-int HAMLIB_API rig_get_conf(RIG *rig, token_t token, char *val)
+int HAMLIB_API rig_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return rig_get_conf2(rig, token, val, 128);
 }
 
-int HAMLIB_API rig_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int HAMLIB_API rig_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

@@ -92,7 +92,7 @@ static int fifisdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 static int fifisdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int fifisdr_get_level(RIG *rig, vfo_t vfo, setting_t level,
                              value_t *val);
-static int fifisdr_get_ext_level(RIG *rig, vfo_t vfo, token_t token,
+static int fifisdr_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
                                  value_t *val);
 
 
@@ -807,7 +807,7 @@ static int fifisdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 
 
-static int fifisdr_get_ext_level(RIG *rig, vfo_t vfo, token_t token,
+static int fifisdr_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
                                  value_t *val)
 {
     int ret = RIG_OK;

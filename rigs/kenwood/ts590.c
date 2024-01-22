@@ -1157,7 +1157,7 @@ static int ts590_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     RETURNFUNC(RIG_OK);
 }
 
-static int ts590_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
+static int ts590_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int status)
 {
     char cmdbuf[20];
     int retval;
@@ -1183,7 +1183,7 @@ static int ts590_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
     RETURNFUNC(retval);
 }
 
-static int ts590_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
+static int ts590_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *status)
 {
     int retval;
 
@@ -1216,7 +1216,7 @@ static int ts590_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
     RETURNFUNC(retval);
 }
 
-static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+static int ts590_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
     int retval;
 
@@ -1435,7 +1435,7 @@ static int ts590_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     RETURNFUNC(retval);
 }
 
-static int ts590_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+static int ts590_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     int retval;
     int value;

@@ -139,7 +139,7 @@ struct cmdparams
     union
     {
         setting_t s;    /*!< Level or parm */
-        token_t t;      /*!< TOKEN_BACKEND */
+        hamlib_token_t t;      /*!< TOKEN_BACKEND */
     } id;
     cmd_param_t cmdparamtype;  /*!< CMD_PARAM_TYPE_LEVEL or CMD_PARAM_TYPE_PARM */
     int command;        /*!< CI-V command */
@@ -368,20 +368,20 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
-int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
+int icom_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val);
+int icom_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val);
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status);
-int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status);
+int icom_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int status);
+int icom_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *status);
 int icom_set_parm(RIG *rig, setting_t parm, value_t val);
 int icom_get_parm(RIG *rig, setting_t parm, value_t *val);
-int icom_set_ext_parm(RIG *rig, token_t token, value_t val);
-int icom_get_ext_parm(RIG *rig, token_t token, value_t *val);
-int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val);
-int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val);
-int icom_set_conf(RIG *rig, token_t token, const char *val);
-int icom_get_conf(RIG *rig, token_t token, char *val);
+int icom_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val);
+int icom_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val);
+int icom_set_ext_cmd(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val);
+int icom_get_ext_cmd(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val);
+int icom_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+int icom_get_conf(RIG *rig, hamlib_token_t token, char *val);
 int icom_set_powerstat(RIG *rig, powerstat_t status);
 int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);

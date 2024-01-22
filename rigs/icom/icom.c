@@ -4460,7 +4460,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
-int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+int icom_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
     const struct confparams *cfp = rig->caps->extlevels;
     unsigned char cmdbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
@@ -4600,7 +4600,7 @@ int icom_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     RETURNFUNC2(RIG_OK);
 }
 
-int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+int icom_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     const struct confparams *cfp = rig->caps->extlevels;
     unsigned char cmdbuf[MAXFRAMELEN], respbuf[MAXFRAMELEN];
@@ -4720,7 +4720,7 @@ int icom_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
-int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
+int icom_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int status)
 {
     ENTERFUNC;
 
@@ -4746,7 +4746,7 @@ int icom_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
     RETURNFUNC(-RIG_EINVAL);
 }
 
-int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
+int icom_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *status)
 {
     ENTERFUNC;
 
@@ -4779,7 +4779,7 @@ int icom_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
     RETURNFUNC(-RIG_EINVAL);
 }
 
-int icom_set_ext_parm(RIG *rig, token_t token, value_t val)
+int icom_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     ENTERFUNC;
 
@@ -4804,7 +4804,7 @@ int icom_set_ext_parm(RIG *rig, token_t token, value_t val)
     RETURNFUNC(-RIG_EINVAL);
 }
 
-int icom_get_ext_parm(RIG *rig, token_t token, value_t *val)
+int icom_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     ENTERFUNC;
 
@@ -4829,7 +4829,7 @@ int icom_get_ext_parm(RIG *rig, token_t token, value_t *val)
     RETURNFUNC(-RIG_EINVAL);
 }
 
-int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+int icom_get_ext_cmd(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     int i;
 
@@ -4864,7 +4864,7 @@ int icom_get_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t *val)
     RETURNFUNC(-RIG_EINVAL);
 }
 
-int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
+int icom_set_ext_cmd(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
     int i;
 
@@ -4902,7 +4902,7 @@ int icom_set_ext_cmd(RIG *rig, vfo_t vfo, token_t token, value_t val)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_conf(RIG *rig, token_t token, const char *val)
+int icom_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
@@ -4945,7 +4945,7 @@ int icom_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int icom_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int icom_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
@@ -4972,7 +4972,7 @@ int icom_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     RETURNFUNC(RIG_OK);
 }
 
-int icom_get_conf(RIG *rig, token_t token, char *val)
+int icom_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return icom_get_conf2(rig, token, val, 128);
 }

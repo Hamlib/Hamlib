@@ -51,11 +51,11 @@ public:
     // This method closes the communication port to the rot
     void close(void);
 
-    void setConf(token_t token, const char *val);
+    void setConf(hamlib_token_t token, const char *val);
     void setConf(const char *name, const char *val);
-    void getConf(token_t token, char *val);
+    void getConf(hamlib_token_t token, char *val);
     void getConf(const char *name, char *val);
-    token_t tokenLookup(const char *name);
+    hamlib_token_t tokenLookup(const char *name);
 
     void setPosition(azimuth_t az, elevation_t el);
     void getPosition(azimuth_t& az, elevation_t& el);

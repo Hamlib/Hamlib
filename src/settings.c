@@ -646,7 +646,7 @@ int HAMLIB_API rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int HAMLIB_API rig_set_ext_level(RIG *rig,
                                  vfo_t vfo,
-                                 token_t token,
+                                 hamlib_token_t token,
                                  value_t val)
 {
     const struct rig_caps *caps;
@@ -712,7 +712,7 @@ int HAMLIB_API rig_set_ext_level(RIG *rig,
  */
 int HAMLIB_API rig_get_ext_level(RIG *rig,
                                  vfo_t vfo,
-                                 token_t token,
+                                 hamlib_token_t token,
                                  value_t *val)
 {
     const struct rig_caps *caps;
@@ -777,7 +777,7 @@ int HAMLIB_API rig_get_ext_level(RIG *rig,
  */
 int HAMLIB_API rig_set_ext_func(RIG *rig,
                                 vfo_t vfo,
-                                token_t token,
+                                hamlib_token_t token,
                                 int status)
 {
     const struct rig_caps *caps;
@@ -843,7 +843,7 @@ int HAMLIB_API rig_set_ext_func(RIG *rig,
  */
 int HAMLIB_API rig_get_ext_func(RIG *rig,
                                 vfo_t vfo,
-                                token_t token,
+                                hamlib_token_t token,
                                 int *status)
 {
     const struct rig_caps *caps;
@@ -906,7 +906,7 @@ int HAMLIB_API rig_get_ext_func(RIG *rig,
  *
  * \sa rig_get_ext_parm()
  */
-int HAMLIB_API rig_set_ext_parm(RIG *rig, token_t token, value_t val)
+int HAMLIB_API rig_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -938,7 +938,7 @@ int HAMLIB_API rig_set_ext_parm(RIG *rig, token_t token, value_t val)
  *
  * \sa rig_set_ext_parm()
  */
-int HAMLIB_API rig_get_ext_parm(RIG *rig, token_t token, value_t *val)
+int HAMLIB_API rig_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

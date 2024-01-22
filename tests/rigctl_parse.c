@@ -5849,7 +5849,7 @@ declare_proto_rig(get_conf)
         return RIG_OK;
     }
 
-    token_t mytoken = rig_token_lookup(rig, arg1);
+    hamlib_token_t mytoken = rig_token_lookup(rig, arg1);
 
     if (mytoken == 0)
     {
@@ -5887,7 +5887,7 @@ declare_proto_rig(set_conf)
         return RIG_OK;
     }
 
-    token_t mytoken = rig_token_lookup(rig, arg1);
+    hamlib_token_t mytoken = rig_token_lookup(rig, arg1);
 
     if (mytoken == 0)
     {

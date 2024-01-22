@@ -61,9 +61,9 @@ int icmarine_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icmarine_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int icmarine_set_parm(RIG *rig, setting_t parm, value_t val);
 int icmarine_get_parm(RIG *rig, setting_t parm, value_t *val);
-int icmarine_set_conf(RIG *rig, token_t token, const char *val);
-int icmarine_get_conf(RIG *rig, token_t token, char *val);
-int icmarine_get_conf2(RIG *rig, token_t token, char *val, int val_len);
+int icmarine_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+int icmarine_get_conf(RIG *rig, hamlib_token_t token, char *val);
+int icmarine_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len);
 
 extern struct rig_caps icm700pro_caps;
 extern struct rig_caps icm710_caps;

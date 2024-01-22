@@ -528,8 +528,8 @@ static const struct confparams ic756pro2_ext_parms[] =
 #define S_MEM_RTTY_TWNPK    0x562   /* rtty twin peak filter off/on */
 
 
-static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val);
-static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val);
+static int ic756pro2_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val);
+static int ic756pro2_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val);
 
 #define IC756PROII_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756PROII_1HZ_TS_MODES IC756PROII_ALL_RX_MODES
@@ -699,7 +699,7 @@ struct rig_caps ic756pro2_caps =
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val)
+static int ic756pro2_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int ack_len, ep_len, val_len;
@@ -780,7 +780,7 @@ static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
+static int ic756pro2_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     const struct confparams *cfp;
 

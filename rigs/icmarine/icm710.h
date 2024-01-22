@@ -71,9 +71,9 @@ int icm710_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icm710_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int icm710_set_parm(RIG *rig, setting_t parm, value_t val);
 int icm710_get_parm(RIG *rig, setting_t parm, value_t *val);
-int icm710_set_conf(RIG *rig, token_t token, const char *val);
-int icm710_get_conf(RIG *rig, token_t token, char *val);
-int icm710_get_conf2(RIG *rig, token_t token, char *val, int val_len);
+int icm710_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+int icm710_get_conf(RIG *rig, hamlib_token_t token, char *val);
+int icm710_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len);
 
 extern struct rig_caps icm700pro_caps;
 extern struct rig_caps icm710_caps;

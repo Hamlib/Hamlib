@@ -375,7 +375,7 @@ static int dummy_close(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-static int dummy_set_conf(RIG *rig, token_t token, const char *val)
+static int dummy_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct dummy_priv_data *priv;
 
@@ -404,7 +404,7 @@ static int dummy_set_conf(RIG *rig, token_t token, const char *val)
     RETURNFUNC(RIG_OK);
 }
 
-static int dummy_get_conf(RIG *rig, token_t token, char *val)
+static int dummy_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     struct dummy_priv_data *priv;
 
@@ -1374,7 +1374,7 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
-static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+static int dummy_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
@@ -1444,7 +1444,7 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
     RETURNFUNC(RIG_OK);
 }
 
-static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+static int dummy_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
@@ -1488,7 +1488,7 @@ static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 }
 
 
-static int dummy_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
+static int dummy_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int status)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     const struct confparams *cfp;
@@ -1540,7 +1540,7 @@ static int dummy_set_ext_func(RIG *rig, vfo_t vfo, token_t token, int status)
 }
 
 
-static int dummy_get_ext_func(RIG *rig, vfo_t vfo, token_t token, int *status)
+static int dummy_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *status)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     const struct confparams *cfp;
@@ -1658,7 +1658,7 @@ static int dummy_get_parm(RIG *rig, setting_t parm, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
-static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
+static int dummy_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     char lstr[64];
@@ -1725,7 +1725,7 @@ static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
     RETURNFUNC(RIG_OK);
 }
 
-static int dummy_get_ext_parm(RIG *rig, token_t token, value_t *val)
+static int dummy_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     const struct confparams *cfp;

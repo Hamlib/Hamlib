@@ -151,8 +151,8 @@ static int ic746_get_parm(RIG *rig, setting_t parm, value_t *val);
 static int ic746pro_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
                                 int read_only);
 static int ic746pro_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
-static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val);
-static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val);
+static int ic746pro_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val);
+static int ic746pro_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val);
 
 
 /*
@@ -603,7 +603,7 @@ struct rig_caps ic746pro_caps =
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val)
+static int ic746pro_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int ack_len, ep_len, val_len;
@@ -667,7 +667,7 @@ static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
+static int ic746pro_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     const struct confparams *cfp;
 

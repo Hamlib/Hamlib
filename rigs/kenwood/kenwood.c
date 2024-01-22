@@ -5851,7 +5851,7 @@ int kenwood_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 }
 
-int kenwood_set_ext_parm(RIG *rig, token_t token, value_t val)
+int kenwood_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
     struct kenwood_priv_data *priv = rig->state.priv;
     char buf[4];
@@ -5883,7 +5883,7 @@ int kenwood_set_ext_parm(RIG *rig, token_t token, value_t val)
     RETURNFUNC(-RIG_EINVAL);
 }
 
-int kenwood_get_ext_parm(RIG *rig, token_t token, value_t *val)
+int kenwood_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     int err;
     struct kenwood_priv_data *priv = rig->state.priv;

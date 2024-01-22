@@ -51,8 +51,8 @@ static int ft757_init(RIG *rig);
 static int ft757_cleanup(RIG *rig);
 static int ft757_open(RIG *rig);
 
-static int ft757gx_get_conf(RIG *rig, token_t token, char *val);
-static int ft757gx_set_conf(RIG *rig, token_t token, const char *val);
+static int ft757gx_get_conf(RIG *rig, hamlib_token_t token, char *val);
+static int ft757gx_set_conf(RIG *rig, hamlib_token_t token, const char *val);
 
 static int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
@@ -898,7 +898,7 @@ static int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-static int ft757gx_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+static int ft757gx_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct ft757_priv_data *priv;
     struct rig_state *rs;
@@ -924,7 +924,7 @@ static int ft757gx_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-static int ft757gx_get_conf(RIG *rig, token_t token, char *val)
+static int ft757gx_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return ft757gx_get_conf2(rig, token, val, 128);
 }
@@ -932,7 +932,7 @@ static int ft757gx_get_conf(RIG *rig, token_t token, char *val)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-static int ft757gx_set_conf(RIG *rig, token_t token, const char *val)
+static int ft757gx_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct ft757_priv_data *priv;
     struct rig_state *rs;

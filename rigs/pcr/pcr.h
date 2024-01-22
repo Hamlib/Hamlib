@@ -104,7 +104,7 @@ int pcr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 int pcr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int pcr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-int pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
+int pcr_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val);
 
 int pcr_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
 int pcr_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);

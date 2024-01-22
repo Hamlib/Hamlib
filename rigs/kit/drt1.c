@@ -79,8 +79,8 @@ static const struct confparams drt1_cfg_params[] =
 static int drt1_init(RIG *rig);
 static int drt1_cleanup(RIG *rig);
 static int drt1_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int drt1_set_conf(RIG *rig, token_t token, const char *val);
-static int drt1_get_conf(RIG *rig, token_t token, char *val);
+static int drt1_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+static int drt1_get_conf(RIG *rig, hamlib_token_t token, char *val);
 
 /*
  * SAT-Service Schneider DRM tuner.
@@ -208,7 +208,7 @@ int drt1_cleanup(RIG *rig)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int drt1_set_conf(RIG *rig, token_t token, const char *val)
+int drt1_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct drt1_priv_data *priv;
 
@@ -244,7 +244,7 @@ int drt1_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int drt1_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int drt1_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct drt1_priv_data *priv;
 
@@ -275,7 +275,7 @@ int drt1_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int drt1_get_conf(RIG *rig, token_t token, char *val)
+int drt1_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return drt1_get_conf2(rig, token, val, 128);
 }

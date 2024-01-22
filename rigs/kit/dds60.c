@@ -80,8 +80,8 @@ static int dds60_init(RIG *rig);
 static int dds60_cleanup(RIG *rig);
 static int dds60_open(RIG *rig);
 static int dds60_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int dds60_set_conf(RIG *rig, token_t token, const char *val);
-static int dds60_get_conf(RIG *rig, token_t token, char *val);
+static int dds60_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+static int dds60_get_conf(RIG *rig, hamlib_token_t token, char *val);
 
 /*
  * The DDS-60 kit exists with a AD9851 chip (60 MHz),
@@ -208,7 +208,7 @@ int dds60_cleanup(RIG *rig)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int dds60_set_conf(RIG *rig, token_t token, const char *val)
+int dds60_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct dds60_priv_data *priv;
     float phase;
@@ -246,7 +246,7 @@ int dds60_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int dds60_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int dds60_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct dds60_priv_data *priv;
 
@@ -277,7 +277,7 @@ int dds60_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int dds60_get_conf(RIG *rig, token_t token, char *val)
+int dds60_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return dds60_get_conf2(rig, token, val, 128);
 }

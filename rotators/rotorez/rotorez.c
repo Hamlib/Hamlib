@@ -67,7 +67,7 @@ static int rotorez_rot_reset(ROT *rot, rot_reset_t reset);
 static int rotorez_rot_stop(ROT *rot);
 static int dcu1_rot_stop(ROT *rot);
 
-static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val);
+static int rotorez_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val);
 
 static const char *rotorez_rot_get_info(ROT *rot);
 
@@ -1016,7 +1016,7 @@ static int dcu1_rot_stop(ROT *rot)
  * define in rotorez.h and *val of '1' or '0' (enable/disable).
  */
 
-static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val)
+static int rotorez_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     char cmdstr[2];
     char c;

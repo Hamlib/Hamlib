@@ -25,6 +25,6 @@
 #include "hamlib/rig.h"
 
 struct ext_list *alloc_init_ext(const struct confparams *cfp);
-struct ext_list *find_ext(struct ext_list *elp, token_t token);
+struct ext_list *find_ext(struct ext_list *elp, hamlib_token_t token);
 
 #endif /* _DUMMY_H */

@@ -71,7 +71,7 @@ struct gs100_priv_data
 /* Imported Functions --------------------------------------------------------*/
 
 struct ext_list *alloc_init_ext(const struct confparams *cfp);
-struct ext_list *find_ext(struct ext_list *elp, token_t token);
+struct ext_list *find_ext(struct ext_list *elp, hamlib_token_t token);
 
 /* Private function prototypes -----------------------------------------------*/
 
@@ -166,7 +166,7 @@ static int gs100_close(RIG *rig)
 
 
 /* GS100 transceiver set configuration */
-static int gs100_set_conf(RIG *rig, token_t token, const char *val)
+static int gs100_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
             *)rig->state.priv;
@@ -192,7 +192,7 @@ static int gs100_set_conf(RIG *rig, token_t token, const char *val)
 
 
 /* GS100 transceiver get configuration */
-static int gs100_get_conf(RIG *rig, token_t token, char *val)
+static int gs100_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
             *)rig->state.priv;

@@ -1686,7 +1686,7 @@ declare_proto_rot(get_conf)
         return RIG_OK;
     }
 
-    token_t mytoken = rot_token_lookup(rot, arg1);
+    hamlib_token_t mytoken = rot_token_lookup(rot, arg1);
 
     if (mytoken == 0)
     {
@@ -1725,7 +1725,7 @@ declare_proto_rot(set_conf)
         return RIG_OK;
     }
 
-    token_t mytoken = rot_token_lookup(rot, arg1);
+    hamlib_token_t mytoken = rot_token_lookup(rot, arg1);
 
     if (mytoken == 0)
     {

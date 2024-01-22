@@ -81,8 +81,8 @@ static int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int dttsp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 
-static int dttsp_set_conf(RIG *rig, token_t token, const char *val);
-static int dttsp_get_conf(RIG *rig, token_t token, char *val);
+static int dttsp_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+static int dttsp_get_conf(RIG *rig, hamlib_token_t token, char *val);
 static int dttsp_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int dttsp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int dttsp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
@@ -400,7 +400,7 @@ static int fetch_meter(RIG *rig, int *label, float *data, int npts)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int dttsp_set_conf(RIG *rig, token_t token, const char *val)
+int dttsp_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct dttsp_priv_data *priv;
     struct rig_state *rs;
@@ -439,7 +439,7 @@ int dttsp_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int dttsp_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int dttsp_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct dttsp_priv_data *priv;
     struct rig_state *rs;
@@ -473,7 +473,7 @@ int dttsp_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int dttsp_get_conf(RIG *rig, token_t token, char *val)
+int dttsp_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return dttsp_get_conf2(rig, token, val, 128);
 }

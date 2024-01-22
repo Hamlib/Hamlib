@@ -253,7 +253,7 @@ int ra37xx_cleanup(RIG *rig)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int ra37xx_set_conf2(RIG *rig, token_t token, const char *val, int val_len)
+int ra37xx_set_conf2(RIG *rig, hamlib_token_t token, const char *val, int val_len)
 {
     struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)rig->state.priv;
     int receiver_id;
@@ -278,7 +278,7 @@ int ra37xx_set_conf2(RIG *rig, token_t token, const char *val, int val_len)
     return RIG_OK;
 }
 
-int ra37xx_set_conf(RIG *rig, token_t token, const char *val)
+int ra37xx_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     return ra37xx_set_conf2(rig, token, val, 128);
 }
@@ -288,7 +288,7 @@ int ra37xx_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int ra37xx_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int ra37xx_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     const struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)
                                           rig->state.priv;
@@ -306,7 +306,7 @@ int ra37xx_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int ra37xx_get_conf(RIG *rig, token_t token, char *val)
+int ra37xx_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return ra37xx_get_conf2(rig, token, val, 128);
 }

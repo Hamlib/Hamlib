@@ -412,7 +412,7 @@ static const char *easycomm_rot_get_info(ROT *rot)
  * For configuration registers, *val must contain string of register e.g. '0'-'f'
  */
 
-static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val)
+static int easycomm_rot_get_conf(ROT *rot, hamlib_token_t token, char *val)
 {
     char cmdstr[16], ackbuf[32];
     int retval;
@@ -484,7 +484,7 @@ static int easycomm_rot_get_conf(ROT *rot, token_t token, char *val)
  * e.g. x,yyyyy
  */
 
-static int easycomm_rot_set_conf(ROT *rot, token_t token, const char *val)
+static int easycomm_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     char cmdstr[16];
     int retval;

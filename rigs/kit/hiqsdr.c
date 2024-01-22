@@ -60,8 +60,8 @@ static int hiqsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int hiqsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option);
 
-static int hiqsdr_set_conf(RIG *rig, token_t token, const char *val);
-static int hiqsdr_get_conf(RIG *rig, token_t token, char *val);
+static int hiqsdr_set_conf(RIG *rig, hamlib_token_t token, const char *val);
+static int hiqsdr_get_conf(RIG *rig, hamlib_token_t token, char *val);
 static int hiqsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 static int hiqsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
@@ -225,7 +225,7 @@ static unsigned compute_sample_rate(const struct hiqsdr_priv_data *priv)
 /*
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int hiqsdr_set_conf(RIG *rig, token_t token, const char *val)
+int hiqsdr_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct hiqsdr_priv_data *priv;
     struct rig_state *rs;
@@ -257,7 +257,7 @@ int hiqsdr_set_conf(RIG *rig, token_t token, const char *val)
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int hiqsdr_get_conf2(RIG *rig, token_t token, char *val, int val_len)
+int hiqsdr_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct hiqsdr_priv_data *priv;
     struct rig_state *rs;
@@ -282,7 +282,7 @@ int hiqsdr_get_conf2(RIG *rig, token_t token, char *val, int val_len)
     return RIG_OK;
 }
 
-int hiqsdr_get_conf(RIG *rig, token_t token, char *val)
+int hiqsdr_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     return hiqsdr_get_conf2(rig, token, val, 128);
 }
