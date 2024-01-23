@@ -37,6 +37,7 @@ int rport_gain_ssb = 50;
 int rport_gain_am = 50;
 int rport_gain_fm = 50;
 int rport_gain_psk = 50;
+int syncvfo=0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -340,6 +341,15 @@ int main(int argc, char *argv[])
         {
             printf("Here#1");
             sscanf(buf, "EX010415%d", &rport_gain_psk);
+        }
+        else if (strcmp(buf, "SY;") == 0)
+        {
+            sprintf(buf, "SY%d;", syncvfo);
+            n = write(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "SY", 2) == 0)
+        {
+            sscanf(buf, "SY%d", &syncvfo);
         }
 
         else if (strlen(buf) > 0)
