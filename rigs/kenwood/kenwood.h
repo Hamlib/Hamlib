@@ -137,6 +137,7 @@ struct kenwood_priv_caps
     struct kenwood_slope_filter *slope_filter_high; /* Last entry should have value == -1 and frequency_hz == -1 */
     struct kenwood_slope_filter *slope_filter_low; /* Last entry should have value == -1 and frequency_hz == -1 */
     double swr;
+    int tone_table_base; /* Offset of first value in rigs tone tables, default=0 */
 };
 
 struct kenwood_priv_data
@@ -191,6 +192,7 @@ extern rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX];
 
 extern tone_t kenwood38_ctcss_list[];
 extern tone_t kenwood42_ctcss_list[];
+extern tone_t kenwood51_ctcss_list[];
 
 int kenwood_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize);
 int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,

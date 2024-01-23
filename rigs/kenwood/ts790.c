@@ -53,6 +53,7 @@
 static struct kenwood_priv_caps  ts790_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
+    .tone_table_base = 1,
 };
 
 /*

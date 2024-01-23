@@ -181,6 +181,18 @@ tone_t kenwood42_ctcss_list[] =
     0,
 };
 
+/*
+ * 51 CTCSS sub-audible tones
+ */
+tone_t kenwood51_ctcss_list[] =
+{
+   670 ,  693,  719,  744,  770,  797,  825,  854,  885,  915, /*  0- 9 */
+   948 ,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, /* 10-19 */
+   1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679, /* 20-29 */
+   1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995, /* 30-39 */
+   2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541, /* 40-49 */
+   17500, 0 /* 50-99 */
+};
 
 /* Token definitions for .cfgparams in rig_caps
  *
@@ -4410,7 +4422,7 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     }
 
     /* TODO: replace menu no 57 by a define */
-    SNPRINTF(tonebuf, sizeof(tonebuf), "EX%03d%04d", 57, i + 1);
+    SNPRINTF(tonebuf, sizeof(tonebuf), "EX%03d%04d", 57, i + kenwood_caps(rig)->tone_table_base);
 
     RETURNFUNC(kenwood_transaction(rig, tonebuf, NULL, 0));
 }
@@ -4461,11 +4473,11 @@ int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        SNPRINTF(buf, sizeof(buf), "TN%c%02d", c, i + 1);
+        SNPRINTF(buf, sizeof(buf), "TN%c%02d", c, i + kenwood_caps(rig)->tone_table_base);
     }
     else
     {
-        SNPRINTF(buf, sizeof(buf), "TN%02d", i + 1);
+        SNPRINTF(buf, sizeof(buf), "TN%02d", i + kenwood_caps(rig)->tone_table_base);
     }
 
     RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
@@ -4492,7 +4504,14 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
     caps = rig->caps;
 
-    if (RIG_IS_TS990S)
+    if (RIG_IS_TS890S)
+      {
+	char buf[5];
+	
+	retval = kenwood_safe_transaction(rig, "TN", buf, sizeof(buf), 4);
+	memcpy(tonebuf, buf + 2, 2);
+      }
+    else if (RIG_IS_TS990S)
     {
         char cmd[4];
         char buf[6];
@@ -4535,7 +4554,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     tonebuf[2] = '\0';
     tone_idx = atoi(tonebuf);
 
-    if (tone_idx == 0)
+    if (tone_idx < kenwood_caps(rig)->tone_table_base)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: CTCSS tone is zero (%s)\n",
                   __func__, tonebuf);
@@ -4553,7 +4572,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
         }
     }
 
-    *tone = caps->ctcss_list[tone_idx - 1];
+    *tone = caps->ctcss_list[tone_idx] - kenwood_caps(rig)->tone_table_base;
 
     RETURNFUNC(RIG_OK);
 }
@@ -4604,11 +4623,11 @@ int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        SNPRINTF(buf, sizeof(buf), "CN%c%02d", c, i + 1);
+        SNPRINTF(buf, sizeof(buf), "CN%c%02d", c, i + kenwood_caps(rig)->tone_table_base);
     }
     else
     {
-        SNPRINTF(buf, sizeof(buf), "CN%02d", i + 1);
+        SNPRINTF(buf, sizeof(buf), "CN%02d", i + kenwood_caps(rig)->tone_table_base);
     }
 
     RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
@@ -4673,7 +4692,7 @@ int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
     tone_idx = atoi(tonebuf + offs);
 
-    if (tone_idx == 0)
+    if (tone_idx < kenwood_caps(rig)->tone_table_base)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: CTCSS is zero (%s)\n",
                   __func__, tonebuf);
@@ -4691,7 +4710,7 @@ int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
         }
     }
 
-    *tone = caps->ctcss_list[tone_idx - 1];
+    *tone = caps->ctcss_list[tone_idx] - kenwood_caps(rig)->tone_table_base;
 
     RETURNFUNC(RIG_OK);
 }
