@@ -4572,7 +4572,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
         }
     }
 
-    *tone = caps->ctcss_list[tone_idx] - kenwood_caps(rig)->tone_table_base;
+    *tone = caps->ctcss_list[tone_idx - kenwood_caps(rig)->tone_table_base];
 
     RETURNFUNC(RIG_OK);
 }
@@ -4710,7 +4710,7 @@ int kenwood_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
         }
     }
 
-    *tone = caps->ctcss_list[tone_idx] - kenwood_caps(rig)->tone_table_base;
+    *tone = caps->ctcss_list[tone_idx - kenwood_caps(rig)->tone_table_base];
 
     RETURNFUNC(RIG_OK);
 }
