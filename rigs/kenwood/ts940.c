@@ -63,7 +63,8 @@ static rmode_t ts940_mode_table[KENWOOD_MODE_TABLE_MAX] =
 static struct kenwood_priv_caps  ts940_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
-    .mode_table = ts940_mode_table
+    .mode_table = ts940_mode_table,
+    .tone_table_base = 1,
 };
 
 /*

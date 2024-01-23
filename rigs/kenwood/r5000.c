@@ -46,6 +46,7 @@ static struct kenwood_priv_caps  r5000_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
     .if_len =  32,
+    .tone_table_base = 1,
 };
 
 /*

@@ -52,6 +52,7 @@
 static struct kenwood_priv_caps  ts711_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
+    .tone_table_base = 1,
 };
 
 /*
