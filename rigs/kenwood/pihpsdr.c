@@ -68,6 +68,7 @@ static int pihspdr_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan);
 static struct kenwood_priv_caps  ts2000_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
+    .tone_table_base = 1,
 };
 
 /* memory capabilities */

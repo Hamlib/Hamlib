@@ -37,7 +37,7 @@
 
 #define TS890_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH|RIG_LEVEL_ATT|RIG_LEVEL_USB_AF|RIG_LEVEL_USB_AF_INPUT)
 #define TS890_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_KEYSPD|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ID_METER|RIG_LEVEL_VD_METER|RIG_LEVEL_TEMP_METER|RIG_LEVEL_CWPITCH|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_USB_AF|RIG_LEVEL_USB_AF_INPUT)
-#define TS890_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_NB2|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_SEND_MORSE)
+#define TS890_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_NB2|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_BC2|RIG_FUNC_RIT|RIG_FUNC_XIT|RIG_FUNC_TUNER|RIG_FUNC_SEND_MORSE|RIG_FUNC_TONE|RIG_FUNC_TSQL)
 
 #define TS890_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_CPY|RIG_OP_TUNE)
 
@@ -370,9 +370,64 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return -RIG_EINTERNAL;
 }
 
+int ts890_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+    int mask, retval;
+    char current[4];
+
+    switch (func)
+      {
+      case RIG_FUNC_TONE:
+	mask = 1;
+	break;
+      case RIG_FUNC_TSQL:
+	mask = 2;
+	break;
+      default:
+	  return (kenwood_set_func(rig, vfo, func, status));
+      }
+
+    retval = kenwood_safe_transaction(rig, "TO", current, sizeof(current), 3);
+    if (retval != RIG_OK)
+	{
+	  return (retval);
+	}
+    current[2] &= ~mask;
+    current[2] |= status == 0 ? 0 : mask;
+    return kenwood_transaction(rig, current, NULL, 0);
+}
+
+int ts890_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+    int mask, retval;
+    char current[4];
+    
+    switch (func)
+      {
+      case RIG_FUNC_TONE:
+	mask = 1;
+	break;
+      case RIG_FUNC_TSQL:
+	mask = 2;
+	break;
+      default:
+	return (kenwood_get_func(rig, vfo, func, status));
+      }
+
+    retval = kenwood_safe_transaction(rig, "TO", current, sizeof(current), 3);
+    if (retval != RIG_OK)
+      {
+	return retval;
+      }
+    *status = current[2] & mask ? 1 : 0;
+    return RIG_OK;
+}
+
+
 static struct kenwood_priv_caps ts890s_priv_caps =
 {
     .cmdtrm = EOM_KEN,
+    .tone_table_base = 0,
 };
 
 /* SWR meter calibration table */
@@ -510,6 +565,7 @@ struct rig_caps ts890s_caps =
         RIG_FLT_END,
     },
     .vfo_ops = TS890_VFO_OPS,
+    .ctcss_list = kenwood51_ctcss_list,
 
     .swr_cal = TS890_SWR_CAL,
 
@@ -529,6 +585,10 @@ struct rig_caps ts890s_caps =
     .get_vfo = kenwood_get_vfo_if,
     .set_split_vfo = kenwood_set_split_vfo,
     .get_split_vfo = kenwood_get_split_vfo_if,
+    .set_ctcss_tone = kenwood_set_ctcss_tone_tn,
+    .get_ctcss_tone = kenwood_get_ctcss_tone,
+    .set_ctcss_sql = kenwood_set_ctcss_sql,
+    .get_ctcss_sql = kenwood_get_ctcss_sql,
     .get_ptt = kenwood_get_ptt,
     .set_ptt = kenwood_set_ptt,
     .get_dcd = kenwood_get_dcd,
@@ -559,7 +619,7 @@ struct rig_caps ts890s_caps =
     },
     .has_get_func = TS890_FUNC_ALL,
     .has_set_func = TS890_FUNC_ALL,
-    .set_func = kenwood_set_func,
-    .get_func = kenwood_get_func,
+    .set_func = ts890_set_func,
+    .get_func = ts890_get_func,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };

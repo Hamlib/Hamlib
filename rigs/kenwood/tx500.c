@@ -94,6 +94,7 @@ tone_t tx500_dcs_list[] =
 static struct kenwood_priv_caps  tx500_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
+    .tone_table_base = 1,     /* TS-2000 compatible ??? */
 };
 
 /* memory capabilities */
