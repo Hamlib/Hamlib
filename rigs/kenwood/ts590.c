@@ -1683,6 +1683,7 @@ static struct kenwood_priv_caps ts590_priv_caps =
     .filter_width = ts590_filter_width,
     .slope_filter_high = ts590_slope_filter_high,
     .slope_filter_low = ts590_slope_filter_low,
+    .tone_table_base = 0,
 };
 
 /**

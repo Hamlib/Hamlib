@@ -4623,11 +4623,11 @@ int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        SNPRINTF(buf, sizeof(buf), "CN%c%02d", c, i - kenwood_caps(rig)->tone_table_base);
+        SNPRINTF(buf, sizeof(buf), "CN%c%02d", c, i + kenwood_caps(rig)->tone_table_base);
     }
     else
     {
-        SNPRINTF(buf, sizeof(buf), "CN%02d", i - kenwood_caps(rig)->tone_table_base);
+        SNPRINTF(buf, sizeof(buf), "CN%02d", i + kenwood_caps(rig)->tone_table_base);
     }
 
     RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
