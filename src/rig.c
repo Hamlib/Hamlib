@@ -521,6 +521,16 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     hamlib_port_t *rp, *pttp, *dcdp;
     int i;
 
+    if (rig_test_2038(NULL))
+    {
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: 2038 time test failed....some time values may be incorrect\n", __func__);
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: 2038 time test passed\n", __func__);
+    }
+
     rig_check_rig_caps();
 
     rig_check_backend(rig_model);
@@ -2732,18 +2742,21 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             pbwidth_t cache_width;
             int cache_ms_freq, cache_ms_mode, cache_ms_width;
 
-            rig_get_cache(rig, vfo, &cache_freq, &cache_ms_freq, &cache_mode, &cache_ms_mode, &cache_width, &cache_ms_width);
+            rig_get_cache(rig, vfo, &cache_freq, &cache_ms_freq, &cache_mode,
+                          &cache_ms_mode, &cache_width, &cache_ms_width);
+
             if (cache_mode == mode)
             {
                 rig_debug(RIG_DEBUG_TRACE, "%s: mode not changing, so ignoring\n",
-                        __func__);
+                          __func__);
                 ELAPSED2;
                 LOCK(0);
                 RETURNFUNC(RIG_OK);
             }
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: mode is not targetable, VFO swapping needed\n", __func__);
+        rig_debug(RIG_DEBUG_TRACE, "%s: mode is not targetable, VFO swapping needed\n",
+                  __func__);
 
         if (!caps->set_vfo)
         {
@@ -2849,6 +2862,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     curr_vfo = rig->state.current_vfo;
     vfo = vfo_fixup(rig, vfo, rig->state.cache.split);
+
     if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
     *mode = RIG_MODE_NONE;
@@ -4502,13 +4516,17 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Turn split on if not enabled already
-        retcode = rig_set_split_vfo(rig, rs->current_vfo, RIG_SPLIT_ON, vfo_fixup(rig, RIG_VFO_OTHER, RIG_SPLIT_OFF));
+        retcode = rig_set_split_vfo(rig, rs->current_vfo, RIG_SPLIT_ON, vfo_fixup(rig,
+                                    RIG_VFO_OTHER, RIG_SPLIT_OFF));
+
         if (retcode != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: error turning split on: result=%d\n", __func__, retcode);
+            rig_debug(RIG_DEBUG_ERR, "%s: error turning split on: result=%d\n", __func__,
+                      retcode);
             ELAPSED2;
             RETURNFUNC2(retcode);
         }
@@ -4532,10 +4550,12 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         HAMLIB_TRACE;
         retcode = caps->set_split_freq(rig, tx_vfo, tx_freq);
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_freq(rig, tx_vfo, tx_freq);
         }
+
         RETURNFUNC2(retcode);
     }
 
@@ -4685,7 +4705,8 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Split frequency not available if split is off
         *tx_freq = 0;
@@ -4699,10 +4720,12 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         HAMLIB_TRACE;
         retcode = caps->get_split_freq(rig, tx_vfo, tx_freq);
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_freq(rig, tx_vfo, *tx_freq);
         }
+
         RETURNFUNC(retcode);
     }
 
@@ -4712,10 +4735,12 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         HAMLIB_TRACE;
         retcode = caps->get_freq(rig, tx_vfo, tx_freq);
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_freq(rig, tx_vfo, *tx_freq);
         }
+
         RETURNFUNC(retcode);
     }
 
@@ -4856,13 +4881,17 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Turn split on if not enabled already
-        retcode = rig_set_split_vfo(rig, rs->current_vfo, RIG_SPLIT_ON, vfo_fixup(rig, RIG_VFO_OTHER, RIG_SPLIT_OFF));
+        retcode = rig_set_split_vfo(rig, rs->current_vfo, RIG_SPLIT_ON, vfo_fixup(rig,
+                                    RIG_VFO_OTHER, RIG_SPLIT_OFF));
+
         if (retcode != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: error turning split on: result=%d\n", __func__, retcode);
+            rig_debug(RIG_DEBUG_ERR, "%s: error turning split on: result=%d\n", __func__,
+                      retcode);
             ELAPSED2;
             RETURNFUNC(retcode);
         }
@@ -4882,7 +4911,8 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     if (tx_mode == RIG_MODE_NONE)
     {
         // Get TX VFO mode from cache to avoid extra VFO swapping
-        rig_get_cache(rig, tx_vfo, &cache_freq, &cache_ms_freq, &cache_mode, &cache_ms_mode, &cache_width, &cache_ms_width);
+        rig_get_cache(rig, tx_vfo, &cache_freq, &cache_ms_freq, &cache_mode,
+                      &cache_ms_mode, &cache_width, &cache_ms_width);
         tx_mode = cache_mode;
     }
 
@@ -4892,10 +4922,12 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         HAMLIB_TRACE;
         retcode = caps->set_split_mode(rig, tx_vfo, tx_mode, tx_width);
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_mode(rig, tx_vfo, tx_mode, tx_width);
         }
+
         RETURNFUNC(retcode);
     }
 
@@ -4911,10 +4943,12 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         HAMLIB_TRACE;
         retcode = caps->set_mode(rig, tx_vfo, tx_mode, tx_width);
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_mode(rig, tx_vfo, tx_mode, tx_width);
         }
+
         RETURNFUNC(retcode);
     }
 
@@ -4933,12 +4967,15 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
               __LINE__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
 
     // If mode is not targetable, we will reuse cached mode/passband instead of trying to set them again
-    rig_get_cache(rig, tx_vfo, &cache_freq, &cache_ms_freq, &cache_mode, &cache_ms_mode, &cache_width, &cache_ms_width);
+    rig_get_cache(rig, tx_vfo, &cache_freq, &cache_ms_freq, &cache_mode,
+                  &cache_ms_mode, &cache_width, &cache_ms_width);
 
-    if ((tx_mode == cache_mode || tx_mode == RIG_MODE_NONE) && (tx_width == cache_width || tx_width == RIG_PASSBAND_NOCHANGE))
+    if ((tx_mode == cache_mode || tx_mode == RIG_MODE_NONE)
+            && (tx_width == cache_width || tx_width == RIG_PASSBAND_NOCHANGE))
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): mode=%s and width=%ld already set for vfo=%s, ignoring\n",
-                __func__, __LINE__, rig_strrmode(tx_mode), tx_width, rig_strvfo(tx_vfo));
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s(%d): mode=%s and width=%ld already set for vfo=%s, ignoring\n",
+                  __func__, __LINE__, rig_strrmode(tx_mode), tx_width, rig_strvfo(tx_vfo));
         ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
@@ -4955,10 +4992,12 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
         // special handling for netrigctl to avoid set_vfo
         retcode = caps->set_split_mode(rig, tx_vfo, tx_mode, tx_width);
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_mode(rig, tx_vfo, tx_mode, tx_width);
         }
+
         RETURNFUNC(retcode);
     }
 
@@ -5078,7 +5117,8 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Split mode and filter width are not available if split is off
         *tx_mode = RIG_MODE_NONE;
@@ -5093,10 +5133,12 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         HAMLIB_TRACE;
         retcode = caps->get_split_mode(rig, tx_vfo, tx_mode, tx_width);
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_mode(rig, tx_vfo, *tx_mode, *tx_width);
         }
+
         RETURNFUNC(retcode);
     }
 
@@ -5106,10 +5148,12 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         HAMLIB_TRACE;
         retcode = caps->get_mode(rig, tx_vfo, tx_mode, tx_width);
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_mode(rig, tx_vfo, *tx_mode, *tx_width);
         }
+
         RETURNFUNC(retcode);
     }
 
@@ -5232,13 +5276,17 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Turn split on if not enabled already
-        retcode = rig_set_split_vfo(rig, rs->current_vfo, RIG_SPLIT_ON, vfo_fixup(rig, RIG_VFO_OTHER, RIG_SPLIT_OFF));
+        retcode = rig_set_split_vfo(rig, rs->current_vfo, RIG_SPLIT_ON, vfo_fixup(rig,
+                                    RIG_VFO_OTHER, RIG_SPLIT_OFF));
+
         if (retcode != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: error turning split on: result=%d\n", __func__, retcode);
+            rig_debug(RIG_DEBUG_ERR, "%s: error turning split on: result=%d\n", __func__,
+                      retcode);
             ELAPSED2;
             RETURNFUNC(retcode);
         }
@@ -5289,11 +5337,13 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
 #endif
 
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_freq(rig, tx_vfo, tx_freq);
             rig_set_cache_mode(rig, tx_vfo, tx_mode, tx_width);
         }
+
         RETURNFUNC(retcode);
     }
     else
@@ -5372,7 +5422,8 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (rs->cache.split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Split frequency, mode and filter width are not available if split is off
         *tx_freq = 0;
@@ -5386,11 +5437,13 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
     {
         retcode = caps->get_split_freq_mode(rig, tx_vfo, tx_freq, tx_mode, tx_width);
         ELAPSED2;
+
         if (retcode == RIG_OK)
         {
             rig_set_cache_freq(rig, tx_vfo, *tx_freq);
             rig_set_cache_mode(rig, tx_vfo, *tx_mode, *tx_width);
         }
+
         RETURNFUNC(retcode);
     }
 
@@ -5504,8 +5557,9 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
             }
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: rig supports satmode, not fixing up vfos: rx=%s tx=%s\n",
-                __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: rig supports satmode, not fixing up vfos: rx=%s tx=%s\n",
+                  __func__, rig_strvfo(rx_vfo), rig_strvfo(tx_vfo));
     }
     else
     {
@@ -5567,6 +5621,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
             // Only update cache on success
             rs->rx_vfo = rs->current_vfo;
             rs->cache.split = split;
+
             if (split == RIG_SPLIT_OFF)
             {
                 rs->tx_vfo = rs->current_vfo;
@@ -5625,6 +5680,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {
         // Only update cache on success
         rs->cache.split = split;
+
         if (split == RIG_SPLIT_OFF)
         {
             if (caps->targetable_vfo & RIG_TARGETABLE_FREQ)
