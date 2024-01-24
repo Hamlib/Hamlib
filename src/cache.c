@@ -65,12 +65,12 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == rig->state.current_vfo)
     {
-        rig->state.cache.modeCurr = mode;
+        cachep->modeCurr = mode;
         if (width > 0)
         {
-            rig->state.cache.widthCurr = width;
+            cachep->widthCurr = width;
         }
-        elapsed_ms(&rig->state.cache.time_modeCurr, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&cachep->time_modeCurr, HAMLIB_ELAPSED_SET);
     }
 
     switch (vfo)
