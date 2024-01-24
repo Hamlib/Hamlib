@@ -3042,6 +3042,30 @@ int rig_get_band_rig(RIG *rig, freq_t freq, const char *band)
     return 0; // just give a value for now of the 1st band -- this should be an error
 }
 
+// Returns RIG_OK if 2038 time routines pass tests
+int rig_test_2038(RIG *rig)
+{
+    time_t x;
+
+    x = (time_t)((1U << 31) - 1);
+    char *s = ctime(&x);
+
+    if (!strstr(s, "2038")) { return 1; }
+
+    x += 1;
+    s = ctime(&x);
+
+    if (!strstr(s, "2038")) { return 1; }
+
+    x += 1;
+    s = ctime(&x);
+
+    if (!strstr(s, "2038")) { return 1; }
+
+    return 0;
+}
+
+
 //! @endcond
 
 /** @} */

@@ -216,6 +216,8 @@ extern HAMLIB_EXPORT(hamlib_band_t) rig_get_band(RIG *rig, freq_t freq, int band
 extern HAMLIB_EXPORT(const char*) rig_get_band_str(RIG *rig, hamlib_band_t band, int which);
 extern HAMLIB_EXPORT(int) rig_get_band_rig(RIG *rig, freq_t freq, const char *band);
 
+extern HAMLIB_EXPORT(int) rig_test_2038(RIG *rig);
+
 __END_DECLS
 
 #endif /* _MISC_H */
