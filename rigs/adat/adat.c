@@ -1233,7 +1233,7 @@ int adat_send(RIG  *pRig,
               char *pcData)
 {
     int               nRC       = RIG_OK;
-    struct rig_state *pRigState = &pRig->state;
+    hamlib_port_t *pRigPort = RIGPORT(pRig);
 
     gFnLevel++;
 
@@ -1241,9 +1241,9 @@ int adat_send(RIG  *pRig,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = %p, pcData = %s\n",
               gFnLevel, __func__, __FILE__, __LINE__, pRig, pcData);
 
-    rig_flush(&pRigState->rigport);
+    rig_flush(pRigPort);
 
-    nRC = write_block(&pRigState->rigport, (unsigned char *) pcData,
+    nRC = write_block(pRigPort, (unsigned char *) pcData,
                       strlen(pcData));
 
     rig_debug(RIG_DEBUG_TRACE,
@@ -1264,7 +1264,6 @@ int adat_receive(RIG  *pRig,
                  char *pcData)
 {
     int               nRC       = RIG_OK;
-    struct rig_state *pRigState = &pRig->state;
 
     gFnLevel++;
 
@@ -1272,7 +1271,7 @@ int adat_receive(RIG  *pRig,
               "*** ADAT: %d %s (%s:%d): ENTRY. Params: pRig = %p\n",
               gFnLevel, __func__, __FILE__, __LINE__, pRig);
 
-    nRC = read_string(&pRigState->rigport, (unsigned char *) pcData, ADAT_RESPSZ,
+    nRC = read_string(RIGPORT(pRig), (unsigned char *) pcData, ADAT_RESPSZ,
                       ADAT_EOL, 1, 0, 1);
 
     if (nRC > 0)
@@ -1428,7 +1427,6 @@ int adat_get_single_cmd_result(RIG *pRig)
     else
     {
         adat_priv_data_ptr   pPriv     = (adat_priv_data_ptr) pRig->state.priv;
-        struct rig_state    *pRigState = &pRig->state;
 
         nRC = adat_send(pRig, pPriv->acCmd);
 
@@ -1526,7 +1524,7 @@ int adat_get_single_cmd_result(RIG *pRig)
             }
         }
 
-        rig_flush(&pRigState->rigport);
+        rig_flush(RIGPORT(pRig));
 
         pPriv->nRC = nRC;
     }
