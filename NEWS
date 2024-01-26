@@ -13,6 +13,8 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Added macros for applications to obtain pointers to Hamlib structures(issues #1445, #1420, #487).
+          Internal conversion is still a WIP, but use of these macros will make the final cutover transparent to applications. 
         * Added Guohe Q900 entry 
         * Unify behavior of all rigctl split commands
           * Make the set_split_* commands modify the state of the specified split VFO -- the current or targeted VFO do not have any effect
