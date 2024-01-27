@@ -387,7 +387,8 @@ const struct confparams newcat_cfg_params[] =
 /* NewCAT Internal Functions */
 static ncboolean newcat_is_rig(RIG *rig, rig_model_t model);
 
-static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo, vfo_t *tx_vfo);
+static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo,
+                            vfo_t *tx_vfo);
 static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo);
 static int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo);
 static int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode,
@@ -1328,7 +1329,26 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // just drop through
     }
 
-    if (RIG_MODEL_FT450 == caps->rig_model)
+    rig_debug(RIG_DEBUG_ERR, "%s: is_ft991=%d, rig->state.cache.split=%d, vfo=%s\n",
+              __func__, is_ft991, rig->state.cache.split, rig_strvfo(vfo));
+
+    if (is_ft991 && vfo == RIG_VFO_A)
+    {
+        if (rig->state.cache.split)
+        {
+            // FT991/991A bandstack does not work in split mode
+            // so for a VFOA change we stop split, change bands, change freq, enable split
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "FT2;BS%02d;FA%09.0f;FT3;",
+                     newcat_band_index(freq), freq);
+        }
+        else  // in non-split us BS to get bandstack info
+        {
+            SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d;FA%09.0f;",
+                     newcat_band_index(freq), freq);
+        }
+    }
+
+    else if (RIG_MODEL_FT450 == caps->rig_model)
     {
         if (c == 'B')
         {
@@ -2729,9 +2749,12 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     {
         RETURNFUNC(err);
     }
-    if (newcat_60m_exception(rig, rig->state.cache.freqMainA, rig->state.cache.modeMainA))
+
+    if (newcat_60m_exception(rig, rig->state.cache.freqMainA,
+                             rig->state.cache.modeMainA))
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: force set_split off since we're on 60M exception\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: force set_split off since we're on 60M exception\n", __func__);
         split = RIG_SPLIT_OFF;
         //return RIG_OK; // fake the return code to make things happy
     }
@@ -2848,6 +2871,7 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     }
 
     err = -RIG_ENAVAIL;
+
     if (newcat_valid_command(rig, "ST"))
     {
         err = newcat_get_split(rig, split, tx_vfo);
@@ -2863,7 +2887,7 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s, curr_vfo=%s\n", __func__,
-                rig_strvfo(*tx_vfo), rig_strvfo(rig->state.current_vfo));
+                  rig_strvfo(*tx_vfo), rig_strvfo(rig->state.current_vfo));
 
         if (*tx_vfo != rig->state.current_vfo)
         {
@@ -6940,12 +6964,14 @@ int newcat_get_parm(RIG *rig, setting_t parm, value_t *val)
     RETURNFUNC(-RIG_ENAVAIL);
 }
 
-static int newcat_set_maxpower(RIG *rig, vfo_t vfo, hamlib_token_t token, float val)
+static int newcat_set_maxpower(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                               float val)
 {
     return -RIG_ENIMPL;
 }
 
-static int newcat_get_maxpower(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
+static int newcat_get_maxpower(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                               value_t *val)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int retval;
@@ -7060,7 +7086,8 @@ int newcat_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
     }
 }
 
-int newcat_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
+int newcat_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                         value_t *val)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     char *result;
@@ -8242,8 +8269,9 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
     }
 
     // NOTE: FT-450 only has toggle command so not sure how to definitively set the TX VFO (VS; doesn't seem to help either)
-    if (is_ft950 || is_ft2000 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx1200 || is_ft991 ||
-             is_ftdx10 || is_ftdx101d || is_ftdx101mp)
+    if (is_ft950 || is_ft2000 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000
+            || is_ftdx1200 || is_ft991 ||
+            is_ftdx10 || is_ftdx101d || is_ftdx101mp)
     {
         // These rigs use numbers 2 and 3 to denote A/B or Main/Sub VFOs - 0 and 1 are for toggling TX function
         p1 = p1 + 2;
@@ -8302,6 +8330,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
         {
             *tx_vfo = RIG_VFO_A;
         }
+
         break;
 
     case '1' :
@@ -8313,6 +8342,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
         {
             *tx_vfo = RIG_VFO_B;
         }
+
         break;
 
     default:
@@ -8340,7 +8370,8 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
 }
 
 
-static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo, vfo_t *tx_vfo)
+static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo,
+                            vfo_t *tx_vfo)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
     char *command = "ST";
@@ -8349,7 +8380,8 @@ static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo, vfo_t *tx_vf
 
     ENTERFUNC;
 
-    if (!newcat_valid_command(rig, "ST") || is_ft450 || priv->split_st_command_missing)
+    if (!newcat_valid_command(rig, "ST") || is_ft450
+            || priv->split_st_command_missing)
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
@@ -8366,9 +8398,11 @@ static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo, vfo_t *tx_vf
     case RIG_SPLIT_OFF:
         p1 = '0';
         break;
+
     case RIG_SPLIT_ON:
         p1 = '1';
         break;
+
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -8392,7 +8426,9 @@ static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo, vfo_t *tx_vf
         *rx_vfo = rig->state.current_vfo;
         *tx_vfo = rig->state.current_vfo;
         break;
+
     case RIG_SPLIT_ON:
+
         // These rigs have fixed RX and TX VFOs when using the ST split command
         if (is_ftdx101d || is_ftdx101mp)
         {
@@ -8409,12 +8445,15 @@ static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo, vfo_t *tx_vf
             *rx_vfo = rig->state.current_vfo;
 
             result = newcat_get_tx_vfo(rig, tx_vfo);
+
             if (result != RIG_OK)
             {
                 RETURNFUNC(result);
             }
         }
+
         break;
+
     default:
         RETURNFUNC(-RIG_EINVAL);
     }
@@ -8432,7 +8471,8 @@ static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo)
 
     ENTERFUNC;
 
-    if (!newcat_valid_command(rig, "ST") || is_ft450 || priv->split_st_command_missing)
+    if (!newcat_valid_command(rig, "ST") || is_ft450
+            || priv->split_st_command_missing)
     {
         RETURNFUNC(-RIG_ENAVAIL);
     }
@@ -8440,6 +8480,7 @@ static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo)
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
 
     result = newcat_get_cmd(rig);
+
     if (result != RIG_OK)
     {
         priv->split_st_command_missing = 1;
@@ -8454,10 +8495,12 @@ static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo)
         *split = RIG_SPLIT_OFF;
 
         result = newcat_get_tx_vfo(rig, tx_vfo);
+
         if (result != RIG_OK)
         {
             RETURNFUNC(result);
         }
+
         break;
 
     case '1' :
@@ -8475,11 +8518,13 @@ static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo)
         else
         {
             result = newcat_get_tx_vfo(rig, tx_vfo);
+
             if (result != RIG_OK)
             {
                 RETURNFUNC(result);
             }
         }
+
         break;
 
     default:
