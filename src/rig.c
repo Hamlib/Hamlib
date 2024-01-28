@@ -3293,7 +3293,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 {
     const struct rig_caps *caps;
-    int retcode;
+    int retcode = -RIG_EINTERNAL;
     int cache_ms;
 
     if (CHECK_RIG_ARG(rig) || !vfo)
