@@ -51,6 +51,7 @@ int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
+int keyspd = 90;
 
 void dumphex(const unsigned char *buf, int n)
 {
@@ -281,6 +282,25 @@ void frameParse(int fd, unsigned char *frame, int len)
             WRITE(fd, frame, 9);
             break;
         }
+
+    case 0x0c:
+        if (frame[6] != 0xfd)
+        {
+            frame[6] = 0xfb;
+            dumphex(frame, 7);
+            WRITE(fd, frame, 7);
+            printf("ACK x14 x0c\n");
+        }
+        else
+        {
+            frame[6] = 0;
+            frame[7] = keyspd;
+            frame[8] = 0xfd;
+            dumphex(frame, 9);
+            WRITE(fd, frame, 9);
+            printf("SEND x14 x0c\n");
+        }
+
 
         break;
 
