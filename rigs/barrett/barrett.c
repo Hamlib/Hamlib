@@ -58,12 +58,11 @@ DECLARE_INITRIG_BACKEND(barrett)
 int barrett_transaction2(RIG *rig, char *cmd, int expected, char **result)
 {
     char cmd_buf[MAXCMDLEN];
-    struct rig_state *rs = &rig->state;
     struct barrett_priv_data *priv = rig->state.priv;
     int retval;
 
     SNPRINTF(cmd_buf, sizeof(cmd_buf), "%c%s%s", 0x0a, cmd, EOM);
-    retval = read_block(&rs->rigport, (unsigned char *) priv->ret_data, expected);
+    retval = read_block(RIGPORT(rig), (unsigned char *) priv->ret_data, expected);
 
     if (retval < 0)
     {
@@ -80,7 +79,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     char *p;
     char xon;
     char xoff;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     struct barrett_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
@@ -93,8 +92,8 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
         SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
     }
 
-    rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));
+    rig_flush(rp);
+    retval = write_block(rp, (unsigned char *) cmd_buf, strlen(cmd_buf));
 
     if (retval < 0)
     {
@@ -104,7 +103,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     if (expected == 0)
     {
         // response format is 0x11,data...,0x0d,0x0a,0x13
-        retval = read_string(&rs->rigport, (unsigned char *) priv->ret_data,
+        retval = read_string(rp, (unsigned char *) priv->ret_data,
                              sizeof(priv->ret_data),
                              "\x11", 1, 0, 1);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: resultlen=%d\n", __func__,
@@ -118,7 +117,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     }
     else
     {
-        retval = read_block(&rs->rigport, (unsigned char *) priv->ret_data, expected);
+        retval = read_block(rp, (unsigned char *) priv->ret_data, expected);
 
         if (retval < 0)
         {
@@ -704,7 +703,7 @@ int barrett_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int barrett_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char cmd_buf[MAXCMDLEN];
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     int retval;
 
     switch (level)
@@ -716,8 +715,8 @@ int barrett_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     default: return -RIG_ENIMPL;
     }
 
-    rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));
+    rig_flush(rp);
+    retval = write_block(rp, (unsigned char *) cmd_buf, strlen(cmd_buf));
 
     if (retval < 0)
     {
