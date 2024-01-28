@@ -3047,9 +3047,15 @@ int rig_test_2038(RIG *rig)
 {
     time_t x;
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: enter\n", __func__);
     x = (time_t)((1U << 31) - 1);
     char *s = ctime(&x);
 
+    if (s == NULL)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: ctime is null, 2038 test failed\n", __func__);
+        return 1;
+    }
     if (!strstr(s, "2038")) { return 1; }
 
     x += 1;
