@@ -97,6 +97,7 @@ DECLARE_PROBERIG_BACKEND(anytone)
 void *anytone_thread(void *vrig)
 {
     RIG *rig = (RIG *)vrig;
+    hamlib_port_t *rp = RIGPORT(rig);
     anytone_priv_data_t *p = rig->state.priv;
     rig_debug(RIG_DEBUG_TRACE, "%s: anytone_thread started\n", __func__);
     p->runflag = 1;
@@ -115,9 +116,9 @@ void *anytone_thread(void *vrig)
             rig_set_debug(RIG_DEBUG_WARN);    // only show WARN debug otherwise too verbose
         }
 
-        write_block(&rig->state.rigport, (unsigned char *)c, strlen(c));
+        write_block(rp, (unsigned char *)c, strlen(c));
         char buf[32];
-        read_block(&rig->state.rigport, (unsigned char *)buf, 22);
+        read_block(rp, (unsigned char *)buf, 22);
 
         if (rig_need_debug(RIG_DEBUG_CACHE) == 0)
         {
@@ -138,13 +139,13 @@ int anytone_send(RIG  *rig,
                  unsigned char *cmd, int cmd_len)
 {
     int               retval       = RIG_OK;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     ENTERFUNC;
 
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmd,
+    retval = write_block(rp, (unsigned char *) cmd,
                          cmd_len);
 
     RETURNFUNC(retval);
@@ -156,13 +157,13 @@ int anytone_send(RIG  *rig,
 int anytone_receive(RIG  *rig, unsigned char *buf, int buf_len, int expected)
 {
     int               retval       = RIG_OK;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     ENTERFUNC;
 
-//    retval = read_string(&rs->rigport, (unsigned char *) buf, buf_len,
+//    retval = read_string(rp, (unsigned char *) buf, buf_len,
 //                         NULL, 0, 0, expected);
-    retval = read_block(&rs->rigport, buf, expected);
+    retval = read_block(rp, buf, expected);
 
     if (retval > 0)
     {
@@ -257,15 +258,16 @@ int anytone_cleanup(RIG *rig)
 int anytone_open(RIG *rig)
 {
     int retval = RIG_OK;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     ENTERFUNC;
 
     unsigned char cmd[] = { 0x2B, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3A, 0x30, 0x30, 0x2C, 0x30, 0x30, 0x31, 0x0d, 0x0a, 'a', 0x0d, 0x0a };
-    write_block(&rig->state.rigport, cmd, sizeof(cmd));
+    write_block(rp, cmd, sizeof(cmd));
     hl_usleep(500 * 1000);
     char cmd2[64];
     SNPRINTF(cmd2, sizeof(cmd2), "+ADATA:00,016\r\n%cD578UV COM MODE\r\n", 0x01);
-    write_block(&rig->state.rigport, (unsigned char *)cmd2, strlen(cmd2));
+    write_block(rp, (unsigned char *)cmd2, strlen(cmd2));
     SNPRINTF(cmd2, sizeof(cmd2), "+ADATA:00,000\r\n");
     unsigned char reply[512];
     anytone_transaction(rig, (unsigned char *)cmd2, strlen(cmd2), reply,
@@ -382,6 +384,7 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char cmd[32];
     int retval;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     SNPRINTF(cmd, sizeof(cmd), "+ADATA:00,006\r\n");
     cmd[15] = 0x04;
@@ -398,13 +401,13 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     int retry = 2;
     MUTEX_LOCK(p->priv.mutex);
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
     do
     {
-        write_block(&rig->state.rigport, (unsigned char *)cmd, 25);
+        write_block(rp, (unsigned char *)cmd, 25);
         unsigned char buf[512];
-        retval = read_block(&rig->state.rigport, buf, 138);
+        retval = read_block(rp, buf, 138);
 
         if (retval == 138)
         {
@@ -423,6 +426,7 @@ int anytone_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char cmd[64];
+    hamlib_port_t *rp = RIGPORT(rig);
 
     if (vfo == RIG_VFO_A)
     {
@@ -434,14 +438,14 @@ int anytone_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     MUTEX_LOCK(p->priv.mutex);
-    rig_flush(&rig->state.rigport);
-    write_block(&rig->state.rigport, (unsigned char *) cmd, 20);
+    rig_flush(rp);
+    write_block(rp, (unsigned char *) cmd, 20);
     unsigned char backend[] = { 0x2f, 0x03, 0x00, 0xff, 0xff, 0xff, 0xff, 0x15, 0x50, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xcf, 0x09, 0x00, 0x00, 0x0d, 0x0a};
     snprintf(cmd, sizeof(cmd), "ADATA:00,023\r\n");
     int bytes = strlen(cmd) + sizeof(backend);
     memcpy(&cmd[15], backend, sizeof(backend));
     hl_usleep(10 * 1000);
-    write_block(&rig->state.rigport, (unsigned char *)cmd, bytes);
+    write_block(rp, (unsigned char *)cmd, bytes);
     MUTEX_UNLOCK(p->priv.mutex);
 
     return -RIG_ENIMPL;
