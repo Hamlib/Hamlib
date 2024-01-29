@@ -52,7 +52,7 @@ struct dra818_priv
 static int dra818_response(RIG *rig, const char *expected)
 {
     char response[80];
-    int r = read_string(&rig->state.rigport, (unsigned char *) response,
+    int r = read_string(RIGPORT(rig), (unsigned char *) response,
                         sizeof(response),
                         "\n", 1, 0, 1);
 
@@ -114,7 +114,7 @@ static int dra818_setgroup(RIG *rig)
              (int)(priv->tx_freq / 1000000), (int)((priv->tx_freq % 1000000) / 100),
              (int)(priv->rx_freq / 1000000), (int)((priv->rx_freq % 1000000) / 100),
              subtx, priv->sql, subrx);
-    write_block(&rig->state.rigport, (unsigned char *) cmd, strlen(cmd));
+    write_block(RIGPORT(rig), (unsigned char *) cmd, strlen(cmd));
 
     return dra818_response(rig, dra818_setgroup_res);
 }
@@ -125,7 +125,7 @@ static int dra818_setvolume(RIG *rig)
     char cmd[80];
 
     SNPRINTF(cmd, sizeof(cmd), "AT+DMOSETVOLUME=%1d\r\n", priv->vol);
-    write_block(&rig->state.rigport, (unsigned char *) cmd, strlen(cmd));
+    write_block(RIGPORT(rig), (unsigned char *) cmd, strlen(cmd));
 
     return dra818_response(rig, dra818_setvolume_res);
 }
@@ -186,7 +186,7 @@ int dra818_open(RIG *rig)
 
     for (i = 0; i < 3; i++)
     {
-        write_block(&rig->state.rigport, (unsigned char *) dra818_handshake_cmd,
+        write_block(RIGPORT(rig), (unsigned char *) dra818_handshake_cmd,
                     strlen(dra818_handshake_cmd));
 
         r = dra818_response(rig, dra818_handshake_res);
@@ -281,15 +281,16 @@ int dra818_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int dra818_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
     const struct dra818_priv *priv = rig->state.priv;
+    hamlib_port_t *rp = RIGPORT(rig);
     char cmd[80];
     char response[8];
     int r;
 
     SNPRINTF(cmd, sizeof(cmd), "S+%03d.%04d\r\n",
              (int)(priv->rx_freq / 1000000), (int)((priv->rx_freq % 1000000) / 100));
-    write_block(&rig->state.rigport, (unsigned char *) cmd, strlen(cmd));
+    write_block(rp, (unsigned char *) cmd, strlen(cmd));
 
-    r = read_string(&rig->state.rigport, (unsigned char *) response,
+    r = read_string(rp, (unsigned char *) response,
                     sizeof(response),
                     "\n", 1, 0, 1);
 
