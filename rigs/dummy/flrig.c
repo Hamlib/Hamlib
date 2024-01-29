@@ -297,7 +297,7 @@ static char *xml_build(RIG *rig, char *cmd, char *value, char *xmlbuf,
 
     SNPRINTF(xml, sizeof(xml),
              "<?xml version=\"1.0\"?>\r\n<?clientid=\"hamlib(%d)\"?>\r\n",
-             rig->state.rigport.client_port);
+             RIGPORT(rig)->client_port);
 
     strncat(xml, "<methodCall><methodName>", sizeof(xml) - 1);
     strncat(xml, cmd, sizeof(xml) - strlen(xml) - 1);
@@ -430,7 +430,6 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
     int retry;
     char *delims;
     char *terminator = "</methodResponse>";
-    struct rig_state *rs = &rig->state;
 
     ENTERFUNC;
 
@@ -448,7 +447,7 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: before read_string\n", __func__);
-        int len = read_string(&rs->rigport, (unsigned char *) tmp_buf, sizeof(tmp_buf),
+        int len = read_string(RIGPORT(rig), (unsigned char *) tmp_buf, sizeof(tmp_buf),
                               delims,
                               strlen(delims), 0, 1);
 //                              "</methodResponse>", 17,0,1);
@@ -517,7 +516,7 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
 
     int retval = -RIG_EPROTO;
 
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     ENTERFUNC;
 
@@ -531,11 +530,11 @@ static int write_transaction(RIG *rig, char *xml, int xml_len)
 
     // appears we can lose sync if we don't clear things out
     // shouldn't be anything for us now anyways
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
     while (try-- >= 0 && retval != RIG_OK)
         {
-            retval = write_block(&rs->rigport, (unsigned char *) xml, strlen(xml));
+            retval = write_block(rp, (unsigned char *) xml, strlen(xml));
 
             if (retval  < 0)
             {
@@ -619,6 +618,7 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
 static int flrig_init(RIG *rig)
 {
     struct flrig_priv_data *priv;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
@@ -653,8 +653,7 @@ static int flrig_init(RIG *rig)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    strncpy(rig->state.rigport.pathname, DEFAULTPATH,
-            sizeof(rig->state.rigport.pathname));
+    strncpy(rp->pathname, DEFAULTPATH, sizeof(rp->pathname));
 
     priv->ext_parms = alloc_init_ext(flrig_ext_parms);
 

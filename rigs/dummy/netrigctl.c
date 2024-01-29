@@ -58,21 +58,21 @@ int netrigctl_get_vfo_mode(RIG *rig)
 static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
 {
     int ret;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called len=%d\n", __func__, len);
 
     /* flush anything in the read buffer before command is sent */
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
-    ret = write_block(&rig->state.rigport, (unsigned char *) cmd, len);
+    ret = write_block(rp, (unsigned char *) cmd, len);
 
     if (ret != RIG_OK)
     {
         return ret;
     }
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
@@ -248,6 +248,7 @@ static int netrigctl_open(RIG *rig)
 {
     int ret, i;
     struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     int prot_ver;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
@@ -303,16 +304,14 @@ static int netrigctl_open(RIG *rig)
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
         RETURNFUNC((ret < 0) ? ret : -RIG_EPROTO);
     }
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -323,8 +322,7 @@ static int netrigctl_open(RIG *rig)
 
     for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
-        ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                          0, 1);
+        ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
         if (ret <= 0)
         {
@@ -354,8 +352,7 @@ static int netrigctl_open(RIG *rig)
 
     for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
-        ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                          0, 1);
+        ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
         if (ret <= 0)
         {
@@ -397,8 +394,7 @@ static int netrigctl_open(RIG *rig)
 
     for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
-        ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                          0, 1);
+        ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
         if (ret <= 0)
         {
@@ -422,8 +418,7 @@ static int netrigctl_open(RIG *rig)
 
     for (i = 0; i < HAMLIB_FLTLSTSIZ; i++)
     {
-        ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                          0, 1);
+        ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
         if (ret <= 0)
         {
@@ -450,8 +445,7 @@ static int netrigctl_open(RIG *rig)
     chan_t chan_list[HAMLIB_CHANLSTSIZ]; /*!< Channel list, zero ended */
 #endif
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -460,8 +454,7 @@ static int netrigctl_open(RIG *rig)
 
     rig->caps->max_rit = rs->max_rit = atol(buf);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -470,8 +463,7 @@ static int netrigctl_open(RIG *rig)
 
     rig->caps->max_xit = rs->max_xit = atol(buf);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -480,8 +472,7 @@ static int netrigctl_open(RIG *rig)
 
     rig->caps->max_ifshift = rs->max_ifshift = atol(buf);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -490,8 +481,7 @@ static int netrigctl_open(RIG *rig)
 
     rs->announces = atoi(buf);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -518,8 +508,7 @@ static int netrigctl_open(RIG *rig)
 
     rig->caps->preamp[ret] = rs->preamp[ret] = RIG_DBLST_END;
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -546,8 +535,7 @@ static int netrigctl_open(RIG *rig)
 
     rig->caps->attenuator[ret] = rs->attenuator[ret] = RIG_DBLST_END;
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -556,8 +544,7 @@ static int netrigctl_open(RIG *rig)
 
     rig->caps->has_get_func = rs->has_get_func = strtoll(buf, NULL, 0);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -566,8 +553,7 @@ static int netrigctl_open(RIG *rig)
 
     rig->caps->has_set_func = rs->has_set_func = strtoll(buf, NULL, 0);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -589,8 +575,7 @@ static int netrigctl_open(RIG *rig)
 
 #endif
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -599,8 +584,7 @@ static int netrigctl_open(RIG *rig)
 
     rig->caps->has_set_level = rs->has_set_level = strtoll(buf, NULL, 0);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -609,8 +593,7 @@ static int netrigctl_open(RIG *rig)
 
     rs->has_get_parm = strtoll(buf, NULL, 0);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                      0, 1);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -648,8 +631,8 @@ static int netrigctl_open(RIG *rig)
     do
     {
         char setting[32], value[1024];
-        ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
-                          0, 1);
+	hamlib_port_t *pttp = PTTPORT(rig);
+        ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
         strtok(buf, "\r\n"); // chop the EOL
 
         if (ret <= 0)
@@ -672,7 +655,7 @@ static int netrigctl_open(RIG *rig)
                 ptt_type_t temp = (ptt_type_t)strtol(value, NULL, 0);
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt_type='%s'(%d)\n", __func__, value, temp);
 
-                if (RIG_PTT_RIG_MICDATA == rig->state.pttport.type.ptt
+                if (RIG_PTT_RIG_MICDATA == pttp->type.ptt
                         || temp == RIG_PTT_RIG_MICDATA)
                 {
                     /*
@@ -680,15 +663,15 @@ static int netrigctl_open(RIG *rig)
                      * if there is any PTT capability and we have not
                      * locally overridden it
                      */
-                    rig->state.pttport.type.ptt = RIG_PTT_RIG_MICDATA;
+                    pttp->type.ptt = RIG_PTT_RIG_MICDATA;
                     rig->caps->ptt_type = RIG_PTT_RIG_MICDATA;
                     rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting,
-                              rig->state.pttport.type.ptt);
+                              pttp->type.ptt);
                 }
                 else
                 {
                     rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt_type= %d\n", __func__, temp);
-                    rig->state.pttport.type.ptt = temp;
+                    pttp->type.ptt = temp;
                     rig->caps->ptt_type = temp;
                 }
             }
@@ -1016,7 +999,7 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     CHKSCN1ARG(num_sscanf(buf, "%"SCNfreq, freq));
 
 #if 0 // implement set_freq VFO later if it can be detected
-    ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", 1, 0, 1);
+    ret = read_string(RIGPORT(rig), buf, BUF_MAX, "\n", 1, 0, 1);
 
     if (ret <= 0)
     {
@@ -1087,7 +1070,7 @@ static int netrigctl_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     *mode = rig_parse_mode(buf);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
+    ret = read_string(RIGPORT(rig), (unsigned char *) buf, BUF_MAX, "\n", 1,
                       0, 1);
 
     if (ret <= 0)
@@ -1170,12 +1153,13 @@ static int netrigctl_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
     char vfostr[16] = "";
+    hamlib_port_t *pttp = PTTPORT(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s, ptt=%d, ptt_type=%d\n",
               __func__,
-              rig_strvfo(vfo), ptt, rig->state.pttport.type.ptt);
+              rig_strvfo(vfo), ptt, pttp->type.ptt);
 
-    if (rig->state.pttport.type.ptt == RIG_PTT_NONE) { return RIG_OK; }
+    if (pttp->type.ptt == RIG_PTT_NONE) { return RIG_OK; }
 
     ret = netrigctl_vfostr(rig, vfostr, sizeof(vfostr), RIG_VFO_A);
 
@@ -1703,7 +1687,7 @@ static int netrigctl_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
     *tx_mode = rig_parse_mode(buf);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
+    ret = read_string(RIGPORT(rig), (unsigned char *) buf, BUF_MAX, "\n", 1,
                       0, 1);
 
     if (ret <= 0)
@@ -1771,7 +1755,7 @@ static int netrigctl_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
     *split = atoi(buf);
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
+    ret = read_string(RIGPORT(rig), (unsigned char *) buf, BUF_MAX, "\n", 1,
                       0, 1);
 
     if (ret <= 0)
@@ -2318,7 +2302,7 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
                   ret);
     }
 
-    ret = read_string(&rig->state.rigport, (unsigned char *) buf, BUF_MAX, "\n", 1,
+    ret = read_string(RIGPORT(rig), (unsigned char *) buf, BUF_MAX, "\n", 1,
                       0, 1);
 
     if (ret <= 0)
