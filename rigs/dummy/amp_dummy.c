@@ -62,7 +62,7 @@ static int dummy_amp_init(AMP *amp)
 
     priv = amp->state.priv;
 
-    amp->state.ampport.type.rig = RIG_PORT_NONE;
+    AMPPORT(amp)->type.rig = RIG_PORT_NONE;
 
     priv->freq = 0;
 
