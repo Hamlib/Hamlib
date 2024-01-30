@@ -328,7 +328,7 @@ static int send_command(RIG *rig, const char *cmdstr, size_t buflen)
 {
     int ret;
 
-    ret = write_block(&rig->state.rigport, (unsigned char *) cmdstr, buflen);
+    ret = write_block(RIGPORT(rig), (unsigned char *) cmdstr, buflen);
 
     return ret;
 }
@@ -481,6 +481,7 @@ int dttsp_get_conf(RIG *rig, hamlib_token_t token, char *val)
 int dttsp_init(RIG *rig)
 {
     struct dttsp_priv_data *priv;
+    hamlib_port_t *rp = RIGPORT(rig);
     const char *cmdpath;
     char *p;
 
@@ -515,10 +516,10 @@ int dttsp_init(RIG *rig)
     cmdpath = getenv("SDR_PARMPATH");
 
     if (!cmdpath)
-        cmdpath = rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK ?
+        cmdpath = rp->type.rig == RIG_PORT_UDP_NETWORK ?
                   DEFAULT_DTTSP_CMD_NET_ADDR : DEFAULT_DTTSP_CMD_PATH;
 
-    strncpy(rig->state.rigport.pathname, cmdpath, HAMLIB_FILPATHLEN - 1);
+    strncpy(rp->pathname, cmdpath, HAMLIB_FILPATHLEN - 1);
 
     return RIG_OK;
 }
@@ -530,6 +531,7 @@ int dttsp_open(RIG *rig)
     int ret;
     char *p;
     char *meterpath;
+    hamlib_port_t *rp = RIGPORT(rig);
 
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
@@ -561,18 +563,18 @@ int dttsp_open(RIG *rig)
     }
 
     /* open DttSP meter pipe */
-    priv->meter_port.post_write_delay = rig->state.rigport.post_write_delay;
-    priv->meter_port.timeout = rig->state.rigport.timeout;
-    priv->meter_port.retry = rig->state.rigport.retry;
+    priv->meter_port.post_write_delay = rp->post_write_delay;
+    priv->meter_port.timeout = rp->timeout;
+    priv->meter_port.retry = rp->retry;
 
     p = getenv("SDR_METERPATH");
 
     if (!p)
     {
         meterpath = priv->meter_port.pathname;
-        SNPRINTF(meterpath, HAMLIB_FILPATHLEN, "%s", rig->state.rigport.pathname);
+        SNPRINTF(meterpath, HAMLIB_FILPATHLEN, "%s", rp->pathname);
 
-        if (rig->state.rigport.type.rig == RIG_PORT_UDP_NETWORK)
+        if (rp->type.rig == RIG_PORT_UDP_NETWORK)
         {
             p = strrchr(meterpath, ':');
 
@@ -605,7 +607,7 @@ int dttsp_open(RIG *rig)
     }
     else
     {
-        priv->meter_port.type.rig = rig->state.rigport.type.rig;
+        priv->meter_port.type.rig = rp->type.rig;
         ret = port_open(&priv->meter_port);
 
         if (ret < 0)

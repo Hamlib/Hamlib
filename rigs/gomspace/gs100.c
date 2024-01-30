@@ -110,7 +110,7 @@ static int gs100_init(RIG *rig)
     rig->state.priv = (void *)priv;
 
 #ifdef _LOCAL_SIMULATION_
-    rig->state.rigport.type.rig = RIG_PORT_NONE;  // just simulation
+    RIGPORT(rig)->type.rig = RIG_PORT_NONE;  // just simulation
     priv->freq_rx = rig->caps->rx_range_list1->startf;
     priv->freq_tx = rig->caps->tx_range_list1->startf;
 #endif
@@ -520,7 +520,7 @@ static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue,
 /* Sends a message to the GS100 and parses response lines */
 static int gomx_transaction(RIG *rig, char *message, char *response)
 {
-    struct rig_state *rs;
+    hamlib_port_t *rp;
     int retval, n = 0;
     char buf[BUFSZ];
 
@@ -531,18 +531,18 @@ static int gomx_transaction(RIG *rig, char *message, char *response)
     rig_debug(RIG_DEBUG_TRACE, "%s: msg='%s'\n", __func__,
               message == NULL ? "NULL" : message);
 
-    rs = &rig->state;
+    rp = RIGPORT(rig);
 
     // send message to the transceiver
-    rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, (uint8_t *)message, strlen(message));
+    rig_flush(rp);
+    retval = write_block(rp, (uint8_t *)message, strlen(message));
 
     if (retval != RIG_OK) { return (retval); }
 
     while (1)
     {
         // read the response line
-        retval = read_string(&rs->rigport, (unsigned char *)buf, BUFSZ,
+        retval = read_string(rp, (unsigned char *)buf, BUFSZ,
                              (const char *)GOM_STOPSET, 0, strlen(GOM_STOPSET), 0);
 
         if (retval < 0) { return (retval); }
