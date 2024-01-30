@@ -739,6 +739,45 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 }
 
 /*
+ * flek6k_set_level
+ */
+int flex6k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    char cmd[KENWOOD_MAX_BUF_LEN];
+    int retval;
+    int ival;
+    rmode_t mode;
+    pbwidth_t width;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (level)
+    {
+        case RIG_LEVEL_RFPOWER:
+            if (val.f > 1.0) { return -RIG_EINVAL; }
+
+            ival = val.f * 100;
+            SNPRINTF(cmd, sizeof(cmd) - 1, "ZZPC%03d", ival);
+
+            break;
+
+        default:
+            return kenwood_set_level(rig, vfo, level, val);
+    }
+
+    retval = kenwood_transaction(rig, cmd, NULL, 0);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s exiting\n", __func__);
+
+    return RIG_OK;
+}
+
+/*
  * flex6k_get_level
  */
 int flex6k_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
@@ -1425,7 +1464,7 @@ struct rig_caps f6k_caps =
     .set_ptt =      kenwood_set_ptt,
     // TODO copy over kenwood_[set|get]_level and modify to handle DSP filter values
     // correctly - use actual values instead of indices
-    .set_level =        kenwood_set_level,
+    .set_level =        flex6k_set_level,
     .get_level =        flex6k_get_level,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
