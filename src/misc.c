@@ -3052,7 +3052,7 @@ int rig_test_2038(RIG *rig)
     if (sizeof(time_t) == 4)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: ctime is null, 2038 test failed\n", __func__);
-        return 0;
+        return 1;
     }
 
     x = (time_t)((1U << 31) - 1);
