@@ -37,7 +37,7 @@
 
 #define F6K_FUNC_ALL (RIG_FUNC_VOX|RIG_FUNC_TUNER)
 
-#define F6K_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD)
+#define F6K_LEVEL_ALL (RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER)
 
 #define F6K_VFO (RIG_VFO_A|RIG_VFO_B)
 #define POWERSDR_VFO_OP (RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_UP|RIG_OP_DOWN)
@@ -739,6 +739,111 @@ int powersdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 }
 
 /*
+ * flek6k_set_level
+ */
+int flex6k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    char cmd[KENWOOD_MAX_BUF_LEN];
+    int retval;
+    int ival;
+    rmode_t mode;
+    pbwidth_t width;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    switch (level)
+    {
+        case RIG_LEVEL_RFPOWER:
+            if (val.f > 1.0) { return -RIG_EINVAL; }
+
+            ival = val.f * 100;
+            SNPRINTF(cmd, sizeof(cmd) - 1, "ZZPC%03d", ival);
+
+            break;
+
+        default:
+            return kenwood_set_level(rig, vfo, level, val);
+    }
+
+    retval = kenwood_transaction(rig, cmd, NULL, 0);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s exiting\n", __func__);
+
+    return RIG_OK;
+}
+
+/*
+ * flex6k_get_level
+ */
+int flex6k_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    char lvlbuf[KENWOOD_MAX_BUF_LEN];
+    char *cmd;
+    int retval;
+    int len, ans;
+    rmode_t mode;
+    pbwidth_t width;
+    ptt_t ptt;
+    double dval;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!val)
+    {
+        return -RIG_EINVAL;
+    }
+
+    switch (level)
+    {
+        case RIG_LEVEL_RFPOWER:
+            cmd = "ZZPC";
+            len = 4;
+            ans = 3;
+            break;
+
+        default:
+            return kenwood_get_level(rig, vfo, level, val);
+    }
+
+    retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), len + ans);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    int n;
+
+    switch (level)
+    {
+        case RIG_LEVEL_RFPOWER:
+            n = sscanf(lvlbuf, "ZZPC%f", &val->f);
+
+            if (n != 1)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                        __func__, lvlbuf);
+                val->f = 0;
+                return -RIG_EPROTO;
+            }
+
+            val->f /= 100;
+
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: should never get here\n", __func__);
+    }
+
+    return RIG_OK;
+}
+
+/*
  * powersdr_get_level
  */
 int powersdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
@@ -1241,7 +1346,7 @@ struct rig_caps f6k_caps =
     RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
     .mfg_name =     "FlexRadio",
-    .version =      "20230606.0",
+    .version =      "20240129.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1359,8 +1464,8 @@ struct rig_caps f6k_caps =
     .set_ptt =      kenwood_set_ptt,
     // TODO copy over kenwood_[set|get]_level and modify to handle DSP filter values
     // correctly - use actual values instead of indices
-    .set_level =        kenwood_set_level,
-    .get_level =        kenwood_get_level,
+    .set_level =        flex6k_set_level,
+    .get_level =        flex6k_get_level,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
