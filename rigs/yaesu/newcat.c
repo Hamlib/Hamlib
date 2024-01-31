@@ -688,6 +688,7 @@ int newcat_open(RIG *rig)
     }
 
 #endif
+    priv->band_index = -1;
 
     RETURNFUNC(RIG_OK);
 }
@@ -1332,7 +1333,10 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_ERR, "%s: is_ft991=%d, rig->state.cache.split=%d, vfo=%s\n",
               __func__, is_ft991, rig->state.cache.split, rig_strvfo(vfo));
 
-    if (is_ft991 && vfo == RIG_VFO_A)
+    if (priv->band_index < 0) priv->band_index = newcat_band_index(freq);
+    // only use bandstack method when actually changing bands
+    // there are multiple bandstacks so we just use the 1st one
+    if (is_ft991 && vfo == RIG_VFO_A && priv->band_index != newcat_band_index(freq))
     {
         if (rig->state.cache.split)
         {
