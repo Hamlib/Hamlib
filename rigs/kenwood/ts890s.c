@@ -312,18 +312,18 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             }
         };
         /* Find out which meter type is in use */
-        retval = kenwood_safe_transaction(rig, "EX00011", ackbuf, sizeof(ackbuf), 10);
+        retval = kenwood_safe_transaction(rig, "EX00011", ackbuf, sizeof(ackbuf), 11);
 
         if (retval != RIG_OK)
         {
             return retval;
         }
 
-        if (strncmp(ackbuf + 7, "000", 3) == 0)
+        if (strncmp(ackbuf + 8, "000", 3) == 0)
         {
             table = &meter_type1;
         }
-        else if (strncmp(ackbuf + 7, "001", 3) == 0)
+        else if (strncmp(ackbuf + 8, "001", 3) == 0)
         {
             table = &meter_type2;
         }
