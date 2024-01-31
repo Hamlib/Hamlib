@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "20240127"
+#define NEWCAT_VER "20240131"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -130,6 +130,7 @@ struct newcat_priv_data
     int question_mark_response_means_rejected; /* the question mark response has multiple meanings */
     char front_rear_status; /* e.g. FTDX5000 EX103 status */
     int split_st_command_missing; /* is ST command gone?  assume not until proven otherwise */
+    int band_index;
 };
 
 /*
