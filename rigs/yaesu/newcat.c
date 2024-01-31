@@ -1350,6 +1350,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d;FA%09.0f;",
                      newcat_band_index(freq), freq);
         }
+        priv->band_index = newcat_band_index(freq);
     }
 
     else if (RIG_MODEL_FT450 == caps->rig_model)
