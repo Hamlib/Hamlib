@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "EX00011;") == 0)
         {
-            pbuf = "EX00011001;";
+            pbuf = "EX00011 001;";
             write(fd, pbuf, strlen(pbuf));
             continue;
         }
