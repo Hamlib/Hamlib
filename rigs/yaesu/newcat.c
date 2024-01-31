@@ -4865,6 +4865,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             }
 
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c", band, cat_term);
+            priv->band_index = band;
         }
 
         break;
@@ -6928,6 +6929,7 @@ int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
         {
             RETURNFUNC(retval);
         }
+        priv->band_index = band;
 
         RETURNFUNC(RIG_OK);
     }
@@ -6938,6 +6940,7 @@ int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
 
 int newcat_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int retval;
     ENTERFUNC;
 
@@ -6959,6 +6962,7 @@ int newcat_get_parm(RIG *rig, setting_t parm, value_t *val)
 
         hamlib_band_t band = rig_get_band(rig, freq, 0);
         val->cs = rig_get_band_str(rig, band, 0);
+        priv->band_index = band;
 
         RETURNFUNC(RIG_OK);
 
