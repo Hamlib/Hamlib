@@ -746,8 +746,6 @@ int flex6k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     char cmd[KENWOOD_MAX_BUF_LEN];
     int retval;
     int ival;
-    rmode_t mode;
-    pbwidth_t width;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -786,10 +784,6 @@ int flex6k_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char *cmd;
     int retval;
     int len, ans;
-    rmode_t mode;
-    pbwidth_t width;
-    ptt_t ptt;
-    double dval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
