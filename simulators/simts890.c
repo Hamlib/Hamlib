@@ -1,5 +1,5 @@
 // can run this using rigctl/rigctld and socat pty devices
-// gcc -o simyaesu simyaesu.c
+// gcc -o simts890 -l hamlib simts890.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 #if  0
@@ -149,24 +149,24 @@ int main(int argc, char *argv[])
             write(fd, ifbuf, strlen(ifbuf));
             continue;
         }
-        else if (strcmp(buf, "NB;") == 0)
+        else if (strcmp(buf, "NB1;") == 0)
         {
             hl_usleep(mysleep * 1000);
-            pbuf = "NB0;";
+            pbuf = "NB10;";
             write(fd, pbuf, strlen(pbuf));
             continue;
         }
         else if (strcmp(buf, "RA;") == 0)
         {
             hl_usleep(mysleep * 1000);
-            pbuf = "RA01;";
+            pbuf = "RA1;";   /* -6dB */
             write(fd, pbuf, strlen(pbuf));
             continue;
         }
         else if (strcmp(buf, "RG;") == 0)
         {
             hl_usleep(mysleep * 1000);
-            pbuf = "RG055;";
+            pbuf = "RG255;";
             write(fd, pbuf, strlen(pbuf));
             continue;
         }
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FV;") == 0)
         {
             hl_usleep(mysleep * 1000);
-            pbuf = "FV1.2;";
+            pbuf = "FV1.04;";
             write(fd, pbuf, strlen(pbuf));
             continue;
         }
@@ -216,14 +216,12 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             continue;
         }
-        else if (strcmp(buf, "FW;") == 0)
+        else if (strcmp(buf, "FW1;") == 0)
         {
             //usleep(mysleep * 1000);
-            pbuf = "FW240";
+            pbuf = "FW10;";
             write(fd, pbuf, strlen(pbuf));
             hl_usleep(20 * 1000);
-            pbuf = "0;";
-            write(fd, pbuf, strlen(pbuf));
             continue;
         }
         else if (strncmp(buf, "FW", 2) == 0)
@@ -252,28 +250,10 @@ int main(int argc, char *argv[])
         }
 
 #endif
-        else if (strcmp(buf, "VS;") == 0)
-        {
-            printf("%s\n", buf);
-            hl_usleep(mysleep * 1000);
-            pbuf = "VS0;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
-        }
         else if (strcmp(buf, "EX00011;") == 0)
         {
             pbuf = "EX00011 001;";
             write(fd, pbuf, strlen(pbuf));
-            continue;
-        }
-        else if (strcmp(buf, "EX032;") == 0)
-        {
-            static int ant = 0;
-            ant = (ant + 1) % 3;
-            printf("%s\n", buf);
-            hl_usleep(mysleep * 1000);
-            SNPRINTF(buf, sizeof(buf), "EX032%1d;", ant);
-            write(fd, buf, strlen(buf));
             continue;
         }
         else if (strncmp(buf, "EX", 2) == 0)
@@ -314,11 +294,6 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "PS1;");
             write(fd, buf, strlen(buf));
             continue;
-        }
-        else if (strncmp(buf, "SA;", 3) == 0)
-        {
-            SNPRINTF(buf, sizeof(buf), "SA0;");
-            write(fd, buf, strlen(buf));
         }
         else if (buf[3] == ';' && strncmp(buf, "SF", 2) == 0)
         {
@@ -413,13 +388,13 @@ int main(int argc, char *argv[])
 
             switch (buf[2])
             {
-            case ';': ptt = 1;
-
-            case '0': ptt_mic = 1;
-
+            case ';':
+            case '0': ptt = ptt_mic = 1;
+	      break;
             case '1': ptt_data = 1;
-
+	      break;
             case '2': ptt_tune = 1;
+	      break;
             }
 
             continue;
