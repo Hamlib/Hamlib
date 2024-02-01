@@ -292,6 +292,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
         cal_table_float_t *table;
+        ptt_t ptt;
         /* Values taken from the TS-890S In-Depth Manual (IDM), p. 8
          * 0.03 - 21.5 MHz, Preamp 1
          */
@@ -311,6 +312,20 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 {48, 20}, {59, 40}, {70, 60}
             }
         };
+        static cal_table_t power_meter =
+        {
+	    7, { { 0, 0}, { 5, 5}, { 10, 10}, {19, 25},
+	         { 35, 50}, { 59, 100}, { 70, 150}
+	    }
+        };
+
+        /* Make sure we're asking the right question */
+        kenwood_get_ptt(rig, vfo, &ptt);
+        if ((ptt == RIG_PTT_OFF) != (level == RIG_LEVEL_STRENGTH))
+          {
+            /* We're sorry, the number you have dialed is not in service */
+            return -RIG_ENAVAIL;
+          }
         /* Find out which meter type is in use */
         retval = kenwood_safe_transaction(rig, "EX00011", ackbuf, sizeof(ackbuf), 11);
 
@@ -345,7 +360,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
         {
-            val->f = round(val->i / 70.0 * 150);
+            val->f = rig_raw2val(val->i, &power_meter);
         }
         else
         {
