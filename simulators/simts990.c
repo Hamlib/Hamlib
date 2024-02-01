@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "KS;", 3) == 0)
         {
-            sprintf(buf, "KS%d;", keyspd);
+            sprintf(buf, "KS%03d;", keyspd);
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "KS", 2) == 0)

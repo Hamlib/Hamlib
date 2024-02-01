@@ -453,7 +453,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             }
 
             frame[11] = 0xfd;
-#if 1
+#if 0
             unsigned char frame2[11];
 
             frame2[0] = 0xfe;
@@ -509,7 +509,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             frame[6] = frame[5] == 0 ? modeA : modeB;
             frame[7] = frame[5] == 0 ? datamodeA : datamodeB;
-            frame[8] = 0xfb;
+            frame[8] = 0x01;
             frame[9] = 0xfd;
             n = write(fd, frame, 10);
         }
