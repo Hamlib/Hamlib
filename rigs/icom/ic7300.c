@@ -1306,7 +1306,7 @@ struct rig_caps ic705_caps =
     RIG_MODEL(RIG_MODEL_IC705),
     .model_name = "IC-705",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".9",
+    .version =  BACKEND_VER ".10",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -1562,7 +1562,7 @@ struct rig_caps ic705_caps =
     .set_split_vfo =  icom_set_split_vfo,
     .get_split_vfo =  icom_get_split_vfo,
     .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
+//    .get_powerstat = icom_get_powerstat, // powerstat is write only
     .power2mW = icom_power2mW,
     .mW2power = icom_mW2power,
     .send_morse = icom_send_morse,
