@@ -436,6 +436,7 @@ struct icom_addr
 #define TOK_CIVADDR TOKEN_BACKEND(1)
 #define TOK_MODE731 TOKEN_BACKEND(2)
 #define TOK_NOXCHG TOKEN_BACKEND(3)
+#define TOK_TONE_ENABLE TOKEN_BACKEND(4)
 
 const struct confparams icom_cfg_params[] =
 {
@@ -451,6 +452,11 @@ const struct confparams icom_cfg_params[] =
     {
         TOK_NOXCHG, "no_xchg", "No VFO XCHG",
         "Don't Use VFO XCHG to set other VFO mode and Frequency",
+        "0", RIG_CONF_CHECKBUTTON
+    },
+    {
+        TOK_TONE_ENABLE, "tone_enable", "Turn tone on",
+        "Overcome a bug in IC-705 to enable tone after frequency change",
         "0", RIG_CONF_CHECKBUTTON
     },
     {RIG_CONF_END, NULL,}
@@ -1606,6 +1612,11 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     {
         RETURNFUNC2(retval);
     }
+    if (priv->tone_enable)
+    {
+        // IC-705 as of 2024-02-01 turn off TONE on freq change so we turn it back on if enabled
+        rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_TONE,1);
+    }
 
     RETURNFUNC2(RIG_OK);
 }
@@ -1908,7 +1919,8 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     }
 
     // TODO: Skip for Xiegu G90 too????
-    if (RIG_MODEL_X108G == rig->caps->rig_model
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN 
+            || RIG_MODEL_X108G == rig->caps->rig_model
             || RIG_MODEL_X5105 == rig->caps->rig_model)
     {
         priv->no_1a_03_cmd = ENUM_1A_03_NO;
@@ -4931,6 +4943,10 @@ int icom_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
     case TOK_NOXCHG:
         priv->no_xchg = atoi(val) ? 1 : 0;
+        break;
+
+    case TOK_TONE_ENABLE:
+        priv->tone_enable = atoi(val) ? 1 : 0;
         break;
 
     default:
