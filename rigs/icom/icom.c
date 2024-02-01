@@ -5462,6 +5462,10 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
             if (retval == RIG_OK)
             {
+                if (priv->tone_enable)
+                {
+                    rig_set_func(rig, RIG_VFO_CURR, RIG_FUNC_TONE, 1);
+                }
                 RETURNFUNC2(retval);
             }
         }
