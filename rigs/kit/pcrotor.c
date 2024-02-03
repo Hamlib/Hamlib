@@ -54,7 +54,7 @@ static int
 pcrotor_stop(ROT *rot)
 {
     /* CW=0, CCW=0, Power-up=0 */
-    return setDirection(&rot->state.rotport, 0);
+    return setDirection(ROTPORT(rot), 0);
 }
 
 static int
@@ -83,7 +83,7 @@ pcrotor_move(ROT *rot, int direction, int speed)
         return -RIG_EINVAL;
     }
 
-    return setDirection(&rot->state.rotport, outputvalue);
+    return setDirection(ROTPORT(rot), outputvalue);
 }
 
 

@@ -348,7 +348,7 @@ int dds60_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned long frg;
     unsigned char control;
     struct dds60_priv_data *priv;
-    hamlib_port_t *port = &rig->state.rigport;
+    hamlib_port_t *port = RIGPORT(rig);
     freq_t osc_ref;
 
     priv = (struct dds60_priv_data *)rig->state.priv;
@@ -379,7 +379,7 @@ int dds60_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int dds60_open(RIG *rig)
 {
-    hamlib_port_t *port = &rig->state.rigport;
+    hamlib_port_t *port = RIGPORT(rig);
 
     /* lock the parallel port */
     par_lock(port);

@@ -33,18 +33,18 @@ static int miniVNA_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char fstr[20];
     char cmdstr[40];
     int retval;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     sprintf_freq(fstr, sizeof(fstr), freq);
     rig_debug(RIG_DEBUG_TRACE, "%s called: %s %s\n", __func__,
               rig_strvfo(vfo), fstr);
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
     SNPRINTF(cmdstr, sizeof(cmdstr), "0\r%lu\r1\r0\r",
              (unsigned long int)(freq * DDS_RATIO));
 
-    retval = write_block(&rig->state.rigport, (unsigned char *) cmdstr,
-                         strlen(cmdstr));
+    retval = write_block(rp, (unsigned char *) cmdstr, strlen(cmdstr));
 
     if (retval != RIG_OK)
     {
