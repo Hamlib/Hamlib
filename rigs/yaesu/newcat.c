@@ -1333,7 +1333,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_ERR, "%s: is_ft991=%d, rig->state.cache.split=%d, vfo=%s\n",
               __func__, is_ft991, rig->state.cache.split, rig_strvfo(vfo));
 
-    if (priv->band_index < 0) priv->band_index = newcat_band_index(freq);
+    if (priv->band_index < 0) { priv->band_index = newcat_band_index(freq); }
+
     // only use bandstack method when actually changing bands
     // there are multiple bandstacks so we just use the 1st one
     if (is_ft991 && vfo == RIG_VFO_A && priv->band_index != newcat_band_index(freq))
@@ -1350,6 +1351,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d;FA%09.0f;",
                      newcat_band_index(freq), freq);
         }
+
         priv->band_index = newcat_band_index(freq);
     }
 
@@ -6907,6 +6909,7 @@ int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
     int retval;
+    int rigband = 0;
     int band = 0;
     ENTERFUNC;
 
@@ -6919,7 +6922,40 @@ int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
         }
 
         // we should have a string for the desired band
-        band = rig_get_band_rig(rig, 0.0, val.s);
+        rigband = rig_get_band_rig(rig, 0.0, val.s);
+
+        //rigband = band2rig(rigband);
+
+        switch (rigband)
+        {
+        case RIG_BAND_160M: band = 0; break;
+
+        case RIG_BAND_80M: band = 1; break;
+
+        case RIG_BAND_40M: band = 3; break;
+
+        case RIG_BAND_30M: band = 4; break;
+
+        case RIG_BAND_20M: band = 5; break;
+
+        case RIG_BAND_17M: band = 6; break;
+
+        case RIG_BAND_15M: band = 7; break;
+
+        case RIG_BAND_12M: band = 8; break;
+
+        case RIG_BAND_10M: band = 9; break;
+
+        case RIG_BAND_6M: band = 10; break;
+
+        case RIG_BAND_144MHZ: band = 15; break;
+
+        case RIG_BAND_430MHZ: band = 16; break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unknown band %s=%d\n", __func__, val.s, rigband);
+            return -RIG_EINVAL;
+        }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c", band, cat_term);
 
@@ -6929,6 +6965,7 @@ int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
         {
             RETURNFUNC(retval);
         }
+
         priv->band_index = band;
 
         RETURNFUNC(RIG_OK);
