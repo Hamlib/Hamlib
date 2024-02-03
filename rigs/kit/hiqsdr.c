@@ -192,10 +192,10 @@ static int send_command(RIG *rig)
                                           rig->state.priv;
     int ret;
 
-    ret = write_block(&rig->state.rigport, (unsigned char *) priv->control_frame,
+    ret = write_block(RIGPORT(rig), (unsigned char *) priv->control_frame,
                       CTRL_FRAME_LEN);
 #if 0
-    ret = read_block(&rig->state.rigport, (unsigned char *) priv->control_frame,
+    ret = read_block(RIGPORT(rig), (unsigned char *) priv->control_frame,
                      CTRL_FRAME_LEN);
 
     if (ret != CTRL_FRAME_LEN)
@@ -306,7 +306,7 @@ int hiqsdr_init(RIG *rig)
     priv->split = RIG_SPLIT_OFF;
     priv->ref_clock = REFCLOCK;
     priv->sample_rate = DEFAULT_SAMPLE_RATE;
-    strncpy(rig->state.rigport.pathname, "192.168.2.196:48248",
+    strncpy(RIGPORT(rig)->pathname, "192.168.2.196:48248",
             HAMLIB_FILPATHLEN - 1);
 
     return RIG_OK;
@@ -347,7 +347,7 @@ int hiqsdr_open(RIG *rig)
 
 #if 0
     /* Send the samples to me. FIXME: send to port 48247 */
-    ret = write_block(&rig->state.rigport, buf_send_to_me, sizeof(buf_send_to_me));
+    ret = write_block(RIGPORT(rig), buf_send_to_me, sizeof(buf_send_to_me));
 
     if (ret != RIG_OK)
     {

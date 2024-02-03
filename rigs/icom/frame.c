@@ -131,6 +131,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
     struct icom_priv_data *priv;
     const struct icom_priv_caps *priv_caps;
     struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     struct timeval start_time, current_time, elapsed_time;
     // this buf needs to be large enough for 0xfe strings for power up
     // at 115,200 this is now at least 150
@@ -158,11 +159,11 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
     set_transaction_active(rig);
 
 collision_retry:
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
     if (data_len) { *data_len = 0; }
 
-    retval = write_block(&rs->rigport, sendbuf, frm_len);
+    retval = write_block(rp, sendbuf, frm_len);
 
     if (retval != RIG_OK)
     {
@@ -182,7 +183,7 @@ collision_retry:
          *          up to rs->retry times.
          */
 
-        retval = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+        retval = read_icom_frame(rp, buf, sizeof(buf));
 
         if (retval == -RIG_ETIMEOUT || retval == 0)
         {
@@ -289,7 +290,7 @@ read_another_frame:
      * ACKFRMLEN is the smallest frame we can expect from the rig
      */
     buf[0] = 0;
-    frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+    frm_len = read_icom_frame(rp, buf, sizeof(buf));
 
     if (frm_len > 4 && memcmp(buf, sendbuf, frm_len) == 0)
     {
@@ -305,7 +306,7 @@ read_another_frame:
         // Hmmm -- got an echo back when not expected so let's change
         priv->serial_USB_echo_off = 0;
         // And try again
-        frm_len = read_icom_frame(&rs->rigport, buf, sizeof(buf));
+        frm_len = read_icom_frame(rp, buf, sizeof(buf));
     }
 
 #endif
@@ -412,7 +413,7 @@ read_another_frame:
 
         elapsedms = (int)(elapsed_time.tv_sec * 1000 + elapsed_time.tv_usec / 1000);
 
-        if (elapsedms > rs->rigport.timeout)
+        if (elapsedms > rp->timeout)
         {
             set_transaction_inactive(rig);
             RETURNFUNC(-RIG_ETIMEOUT);
@@ -458,7 +459,7 @@ int icom_transaction(RIG *rig, int cmd, int subcmd,
               "%s: cmd=0x%02x, subcmd=0x%02x, payload_len=%d\n", __func__,
               cmd, subcmd, payload_len);
 
-    retry = rig->state.rigport.retry;
+    retry = RIGPORT(rig)->retry;
 
     do
     {
