@@ -781,7 +781,7 @@ typedef enum { // numbers here reflect the Yaesu values
     RIG_BAND_430MHZ = 16,   /*!< \c 430MHz */
 } hamlib_band_t;
 
-typedef enum { // numbers here reflect the Yaesu values
+typedef enum { // numbers here reflect generic values -- need to map to rig values
     RIG_BANDSELECT_UNUSED = CONSTANT_64BIT_FLAG(0),      /*!< \c Unused */
     RIG_BANDSELECT_2200M  = CONSTANT_64BIT_FLAG(1),      /*!< \c 160M */
     RIG_BANDSELECT_600M   = CONSTANT_64BIT_FLAG(2),      /*!< \c 160M */
