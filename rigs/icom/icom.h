@@ -293,6 +293,7 @@ struct icom_priv_data
     int vfo_flag; // used to skip vfo check when frequencies are equal
     int dual_watch_main_sub; // 0=main, 1=sub
     int tone_enable;         /*!< Re-enable tone after freq change -- IC-705 bug with gpredict */
+    int filternum;           /*!< Filter number to use when setting mode */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];

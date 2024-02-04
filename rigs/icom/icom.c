@@ -437,6 +437,7 @@ struct icom_addr
 #define TOK_MODE731 TOKEN_BACKEND(2)
 #define TOK_NOXCHG TOKEN_BACKEND(3)
 #define TOK_TONE_ENABLE TOKEN_BACKEND(4)
+#define TOK_FILTERNUM TOKEN_BACKEND(5)
 
 const struct confparams icom_cfg_params[] =
 {
@@ -458,6 +459,10 @@ const struct confparams icom_cfg_params[] =
         TOK_TONE_ENABLE, "tone_enable", "Turn tone on",
         "Overcome a bug in IC-705 to enable tone after frequency change",
         "0", RIG_CONF_CHECKBUTTON
+    },
+    {
+        TOK_FILTERNUM, "filternum", "Filter to use", "Filter to use when setting mode",
+        "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
     },
     {RIG_CONF_END, NULL,}
 };
@@ -2274,6 +2279,7 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     // Skip filter selection, because at least IC-7300 has a bug defaulting to filter 2 when changing mode
     // Tested on IC-7300 and IC-9700
     buf[2] = priv->filter;
+    if (priv->filternum > 0) buf[2] = priv->filternum; // override with requested filternum
     // buf[2] = 1;
 
     int vfo_number = icom_get_vfo_number_x25x26(rig, vfo);
@@ -5012,6 +5018,12 @@ int icom_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
     case TOK_TONE_ENABLE:
         priv->tone_enable = atoi(val) ? 1 : 0;
+        break;
+
+    case TOK_FILTERNUM:
+        priv->filternum = atoi(val);
+        if (priv->filternum > 3) priv->filternum = 3;
+        if (priv->filternum < 1) priv->filternum = 1;
         break;
 
     default:
