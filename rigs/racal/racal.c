@@ -69,15 +69,15 @@ static int racal_transaction(RIG *rig, const char *cmd, char *data,
                              int *data_len)
 {
     const struct racal_priv_data *priv = (struct racal_priv_data *)rig->state.priv;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     char cmdbuf[BUFSZ + 1];
     int retval;
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), SOM "%u%s" EOM, priv->receiver_id, cmd);
 
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+    retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
     if (retval != RIG_OK)
     {
@@ -91,7 +91,7 @@ static int racal_transaction(RIG *rig, const char *cmd, char *data,
         return retval;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM,
+    retval = read_string(rp, (unsigned char *) data, BUFSZ, EOM,
                          strlen(EOM), 0, 1);
 
     if (retval <= 0)
