@@ -28,4 +28,4 @@ DIST_SUBDIRS = macros include lib src c++ bindings tests doc android scripts rot
 	security $(BACKEND_LIST) $(RIG_BACKEND_LIST) $(ROT_BACKEND_LIST) $(AMP_BACKEND_LIST)
 
 # Install any third party macros into our tree for distribution
-ACLOCAL_AMFLAGS = -I macros --install
+ACLOCAL_AMFLAGS = -I macros --install -D_TIME_BITS=64
