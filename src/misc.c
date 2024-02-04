@@ -2992,9 +2992,9 @@ int rig_get_band_rig(RIG *rig, freq_t freq, const char *band)
 
     if (freq == 0)
     {
+        bandlist[0] = 0;
         rig_sprintf_parm_gran(bandlist, sizeof(bandlist) - 1, RIG_PARM_BANDSELECT,
                               rig->caps->parm_gran);
-        bandlist[0] = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: bandlist=%s\n", __func__, bandlist);
 
         // e.g. BANDSELECT(BAND160M,BAND80M,BANDUNUSED,BAND40M)
