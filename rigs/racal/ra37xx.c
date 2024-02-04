@@ -70,7 +70,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
 {
     const struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)
                                           rig->state.priv;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     char cmdbuf[BUFSZ];
     char respbuf[BUFSZ];
     int retval;
@@ -95,9 +95,9 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
         SNPRINTF(cmdbuf, sizeof(cmdbuf), SOM "%s" EOM, cmd);
     }
 
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+    retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
     if (retval != RIG_OK)
     {
@@ -113,7 +113,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
 
     do
     {
-        retval = read_string(&rs->rigport, (unsigned char *) respbuf, BUFSZ, EOM,
+        retval = read_string(rp, (unsigned char *) respbuf, BUFSZ, EOM,
                              strlen(EOM), 0, 1);
 
         if (retval < 0)
@@ -124,7 +124,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
         /* drop short/invalid packets */
         if (retval <= pkt_header_len + 1 || respbuf[0] != '\x0a')
         {
-            if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
+            if (!rig_check_cache_timeout(&tv, rp->timeout))
             {
                 continue;
             }
@@ -137,7 +137,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
         /* drop other receiver id, and "pause" (empty) packets */
         if ((priv->receiver_id != -1 && (respbuf[1] - '0') != priv->receiver_id))
         {
-            if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
+            if (!rig_check_cache_timeout(&tv, rp->timeout))
             {
                 continue;
             }
@@ -165,7 +165,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
             rig_debug(RIG_DEBUG_WARN, "%s: unexpected revertive frame\n",
                       __func__);
 
-            if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
+            if (!rig_check_cache_timeout(&tv, rp->timeout))
             {
                 continue;
             }
@@ -189,7 +189,7 @@ static int ra37xx_transaction(RIG *rig, const char *cmd, char *data,
 {
     int retval, retry;
 
-    retry = rig->state.rigport.retry;
+    retry = RIGPORT(rig)->retry;
 
     do
     {

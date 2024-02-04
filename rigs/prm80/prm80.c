@@ -245,13 +245,13 @@ static int prm80_transaction(RIG *rig, const char *cmd,
                              const char *arg1, int wait_prompt)
 {
     int retval;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     // Get rid of possible prompt sent by the rig
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
     // Start with the command
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
+    retval = write_block(rp, (unsigned char *) cmd, strlen(cmd));
 
     if (retval != RIG_OK)
     {
@@ -260,7 +260,7 @@ static int prm80_transaction(RIG *rig, const char *cmd,
 
     if (arg1 != NULL)
     {
-        retval = read_colon_prompt_and_send(&rs->rigport, NULL, NULL, arg1);
+        retval = read_colon_prompt_and_send(rp, NULL, NULL, arg1);
 
         if (retval < 0)
         {
@@ -270,7 +270,7 @@ static int prm80_transaction(RIG *rig, const char *cmd,
 
     if (wait_prompt)
     {
-        prm80_wait_for_prompt(&rs->rigport);
+        prm80_wait_for_prompt(rp);
     }
 
     return RIG_OK;
@@ -374,7 +374,7 @@ static freq_t pll_value_to_rx_freq(unsigned pll_value)
  */
 int prm80_set_rx_tx_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
 {
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     char rx_freq_buf[BUFSZ];
     char tx_freq_buf[BUFSZ];
     int rc;
@@ -397,7 +397,7 @@ int prm80_set_rx_tx_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
     }
 
     // There's a second line to process after prm80_transaction()
-    rc = read_colon_prompt_and_send(&rs->rigport, NULL, NULL, tx_freq_buf);
+    rc = read_colon_prompt_and_send(rp, NULL, NULL, tx_freq_buf);
 
     if (rc != RIG_OK)
     {
@@ -408,7 +408,7 @@ int prm80_set_rx_tx_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
 
     // NB: the [R] command does not update the checksum of the RAM!
 
-    prm80_wait_for_prompt(&rs->rigport);
+    prm80_wait_for_prompt(rp);
 
     return rc;
 }
@@ -699,7 +699,7 @@ static int prm80_read_system_state(RIG *rig, char *statebuf)
 
     if (rig_check_cache_timeout(&priv->status_tv, PRM80_CACHE_TIMEOUT))
     {
-        ret = prm80_do_read_system_state(&rig->state.rigport, statebuf);
+        ret = prm80_do_read_system_state(RIGPORT(rig), statebuf);
 
         if (ret == RIG_OK)
         {
@@ -822,7 +822,7 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     char buf[BUFSZ];
     int ret, chanstate;
     freq_t tx_freq;
@@ -859,7 +859,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         SNPRINTF(buf, sizeof(buf), "%04X", rx_freq_to_pll_value(chan->freq));
 
         // "PLL value to load : $"
-        ret = read_dollar_prompt_and_send(&rs->rigport, NULL, NULL, buf);
+        ret = read_dollar_prompt_and_send(rp, NULL, NULL, buf);
 
         if (ret != RIG_OK)
         {
@@ -883,7 +883,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         SNPRINTF(buf, sizeof(buf), "%02X", chanstate);
 
         // "Channel state : $"
-        ret = read_dollar_prompt_and_send(&rs->rigport, NULL, NULL, buf);
+        ret = read_dollar_prompt_and_send(rp, NULL, NULL, buf);
 
         if (ret != RIG_OK)
         {
@@ -893,7 +893,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         // Determine if prompt came back (CRLF'>') or have to
         // handle the possible query from the rig:
         // "This channel number doesn't exist. Add new channel (Y/N) ? "
-        ret = read_block(&rs->rigport, (unsigned char *) buf, 3);
+        ret = read_block(rp, (unsigned char *) buf, 3);
 
         if (ret < 0)
         {
@@ -903,7 +903,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         if (ret == 3 && buf[2] == 'T')
         {
             // Read the question
-            ret = read_string(&rs->rigport, (unsigned char *) buf, sizeof(buf), "?", 1, 0,
+            ret = read_string(rp, (unsigned char *) buf, sizeof(buf), "?", 1, 0,
                               1);
 
             if (ret < 0)
@@ -912,7 +912,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
             }
 
             // Read extra space
-            ret = read_block(&rs->rigport, (unsigned char *) buf, 1);
+            ret = read_block(rp, (unsigned char *) buf, 1);
 
             if (ret < 0)
             {
@@ -920,7 +920,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
             }
 
             // Send confirmation
-            ret = write_block(&rs->rigport, (unsigned char *) "Y", 1);
+            ret = write_block(rp, (unsigned char *) "Y", 1);
 
             if (ret < 0)
             {
@@ -928,7 +928,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
             }
         }
 
-        prm80_wait_for_prompt(&rs->rigport);
+        prm80_wait_for_prompt(rp);
     }
     else
     {
@@ -1108,6 +1108,7 @@ static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
 {
     char buf[BUFSZ];
     struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     int ret, i;
 
     /* [U] = Print 80c552 internal RAM. */
@@ -1121,7 +1122,7 @@ static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
     }
 
     // Read CRLF
-    ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1, 0, 1);
+    ret = read_string(rp, buf, BUFSZ, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
@@ -1137,7 +1138,7 @@ static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
 
     for (i = 0; i < (RSSI_HOLD_ADDR / 16) + 1; i++)
     {
-        ret = read_string(&rs->rigport, buf, BUFSZ, "\n", 1, 0, 1);
+        ret = read_string(rp, buf, BUFSZ, "\n", 1, 0, 1);
 
         if (ret < 0)
         {
@@ -1153,10 +1154,10 @@ static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
     // discard the remaining content of RAM print
     for (i = 0; i < (16 - RSSI_HOLD_ADDR / 16) - 1; i++)
     {
-        read_string(&rs->rigport, buf, BUFSZ, "\n", 1, 0, 1);
+        read_string(rp, buf, BUFSZ, "\n", 1, 0, 1);
     }
 
-    prm80_wait_for_prompt(&rs->rigport);
+    prm80_wait_for_prompt(rp);
 
     return RIG_OK;
 }
@@ -1261,22 +1262,22 @@ int prm80_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 const char *prm80_get_info(RIG *rig)
 {
     static char s_buf[BUFSZ];
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     char *p;
     int ret;
 
     // Get rid of possible prompt sent by the rig
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
     /* [V] = Print firmware version. */
-    ret = write_block(&rs->rigport, (unsigned char *) "V", 1);
+    ret = write_block(rp, (unsigned char *) "V", 1);
 
     if (ret < 0)
     {
         return NULL;
     }
 
-    ret = read_string(&rs->rigport, (unsigned char *) s_buf, BUFSZ, ">", 1, 0, 1);
+    ret = read_string(rp, (unsigned char *) s_buf, BUFSZ, ">", 1, 0, 1);
 
     if (ret < 0)
     {
