@@ -2213,49 +2213,6 @@ static int icom_set_mode_without_data(RIG *rig, vfo_t vfo, rmode_t mode,
     RETURNFUNC2(RIG_OK);
 }
 
-static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
-                             int filter)
-{
-    struct icom_priv_data *priv = rig->state.priv;
-    const struct icom_priv_caps *priv_caps = rig->caps->priv;
-    int retval;
-    unsigned char buf[3];
-    unsigned char ackbuf[MAXFRAMELEN];
-    int ack_len = sizeof(ackbuf);
-
-    if (priv->x26cmdfails > 0 && !priv_caps->x25x26_always)
-    {
-        return -RIG_ENAVAIL;
-    }
-
-    buf[0] = mode;
-    buf[1] = datamode;
-    // Skip filter selection, because at least IC-7300 has a bug defaulting to filter 2 when changing mode
-    // Tested on IC-7300 and IC-9700
-    buf[2] = priv->filter;
-    // buf[2] = 1;
-
-    int vfo_number = icom_get_vfo_number_x25x26(rig, vfo);
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_number=%d\n", __func__,
-              rig_strvfo(vfo), vfo_number);
-
-    retval = icom_transaction(rig, C_SEND_SEL_MODE, vfo_number, buf, 3, ackbuf,
-                              &ack_len);
-
-    if (priv->x26cmdfails < 0 || priv_caps->x25x26_always)
-    {
-        priv->x26cmdfails = (retval == RIG_OK) ? 0 : 1;
-    }
-
-    if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
-    {
-        return retval;
-    }
-
-    return RIG_OK;
-}
-
 static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len,
                              unsigned char *modebuf)
 {
@@ -2291,6 +2248,52 @@ static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len,
               modebuf[0], modebuf[1], modebuf[2], modebuf[3], modebuf[4]);
 
     priv->filter = modebuf[4];
+    return RIG_OK;
+}
+
+static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
+                             int filter)
+{
+    struct icom_priv_data *priv = rig->state.priv;
+    const struct icom_priv_caps *priv_caps = rig->caps->priv;
+    int retval;
+    unsigned char buf[3];
+    unsigned char ackbuf[MAXFRAMELEN];
+    int ack_len = sizeof(ackbuf);
+    int mode_len;
+    unsigned char mode_buf[4];
+
+    if (priv->x26cmdfails > 0 && !priv_caps->x25x26_always)
+    {
+        return -RIG_ENAVAIL;
+    }
+
+    icom_get_mode_x26(rig, vfo, &mode_len, mode_buf);
+    buf[0] = mode;
+    buf[1] = datamode;
+    // Skip filter selection, because at least IC-7300 has a bug defaulting to filter 2 when changing mode
+    // Tested on IC-7300 and IC-9700
+    buf[2] = priv->filter;
+    // buf[2] = 1;
+
+    int vfo_number = icom_get_vfo_number_x25x26(rig, vfo);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_number=%d\n", __func__,
+              rig_strvfo(vfo), vfo_number);
+
+    retval = icom_transaction(rig, C_SEND_SEL_MODE, vfo_number, buf, 3, ackbuf,
+                              &ack_len);
+
+    if (priv->x26cmdfails < 0 || priv_caps->x25x26_always)
+    {
+        priv->x26cmdfails = (retval == RIG_OK) ? 0 : 1;
+    }
+
+    if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
+    {
+        return retval;
+    }
+
     return RIG_OK;
 }
 
