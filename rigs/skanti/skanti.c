@@ -59,13 +59,11 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
                               char *data, int *data_len)
 {
     int retval;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
 
-    rs = &rig->state;
+    rig_flush(rp);
 
-    rig_flush(&rs->rigport);
-
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(rp, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -80,7 +78,7 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
         * Transceiver sends back ">"
         */
         char retbuf[BUFSZ + 1];
-        retval = read_string(&rs->rigport, (unsigned char *) retbuf, BUFSZ, PROMPT,
+        retval = read_string(rp, (unsigned char *) retbuf, BUFSZ, PROMPT,
                              strlen(PROMPT), 0, 1);
 
         if (retval < 0)
@@ -100,7 +98,7 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len,
         }
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, LF,
+    retval = read_string(rp, (unsigned char *) data, BUFSZ, LF,
                          strlen(LF), 0, 1);
 
     if (retval == -RIG_ETIMEOUT)

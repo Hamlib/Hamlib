@@ -66,9 +66,7 @@ tt550_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                   int *data_len)
 {
     int retval;
-    struct rig_state *rs;
-
-    rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     /*
      * set_transaction_active keeps the asynchronous decode routine from being called
@@ -76,9 +74,9 @@ tt550_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
      */
     set_transaction_active(rig);
 
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, strlen(cmd));
+    retval = write_block(rp, (unsigned char *) cmd, strlen(cmd));
 
     if (retval != RIG_OK)
     {
@@ -95,7 +93,7 @@ tt550_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return 0;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, *data_len, NULL, 0,
+    retval = read_string(rp, (unsigned char *) data, *data_len, NULL, 0,
                          0, 1);
 
     if (retval == -RIG_ETIMEOUT)
@@ -126,12 +124,11 @@ tt550_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int
 tt550_tx_control(RIG *rig, char oper)
 {
-    struct rig_state *rs = &rig->state;
     int retval;
     char cmdbuf[4];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "#%c" EOM, oper);
-    retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+    retval = write_block(RIGPORT(rig), (unsigned char *) cmdbuf, strlen(cmdbuf));
     /*
      * if (retval == RIG_OK) not currently saving the state of these operations I'm
      * not sure we need to, but if so, this is where it would go.
@@ -598,7 +595,6 @@ int
 tt550_set_rx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct tt550_priv_data *priv;
-    struct rig_state *rs = &rig->state;
     int retval;
     char freqbuf[16];
 
@@ -612,7 +608,7 @@ tt550_set_rx_freq(RIG *rig, vfo_t vfo, freq_t freq)
              priv->ctf >> 8, priv->ctf & 0xff, priv->ftf >> 8,
              priv->ftf & 0xff, priv->btf >> 8, priv->btf & 0xff);
 
-    retval = write_block(&rs->rigport, (unsigned char *) freqbuf, strlen(freqbuf));
+    retval = write_block(RIGPORT(rig), (unsigned char *) freqbuf, strlen(freqbuf));
 
     if (retval != RIG_OK)
     {
@@ -632,7 +628,6 @@ int
 tt550_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct tt550_priv_data *priv;
-    struct rig_state *rs = &rig->state;
     int retval;
     char freqbuf[16];
 
@@ -646,7 +641,7 @@ tt550_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
              priv->ctf >> 8, priv->ctf & 0xff, priv->ftf >> 8,
              priv->ftf & 0xff, priv->btf >> 8, priv->btf & 0xff);
 
-    retval = write_block(&rs->rigport, (unsigned char *) freqbuf, strlen(freqbuf));
+    retval = write_block(RIGPORT(rig), (unsigned char *) freqbuf, strlen(freqbuf));
 
     if (retval != RIG_OK)
     {
@@ -681,7 +676,7 @@ int
 tt550_set_rx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     char ttmode;
     rmode_t saved_mode;
     pbwidth_t saved_width;
@@ -756,7 +751,7 @@ tt550_set_rx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     tt550_tuning_factor_calc(rig, RECEIVE);
 
     SNPRINTF(mdbuf, sizeof(mdbuf), "M%c%c" EOM, ttmode, ttmode);
-    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
+    retval = write_block(rp, (unsigned char *) mdbuf, strlen(mdbuf));
 
     if (retval != RIG_OK)
     {
@@ -772,7 +767,7 @@ tt550_set_rx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                  ttfilter,
                  priv->ctf >> 8, priv->ctf & 0xff, priv->ftf >> 8,
                  priv->ftf & 0xff, priv->btf >> 8, priv->btf & 0xff);
-        retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
+        retval = write_block(rp, (unsigned char *) mdbuf, strlen(mdbuf));
 
         if (retval != RIG_OK)
         {
@@ -796,7 +791,7 @@ int
 tt550_set_tx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     char ttmode;
     rmode_t saved_mode;
     pbwidth_t saved_width;
@@ -889,7 +884,7 @@ tt550_set_tx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     tt550_tuning_factor_calc(rig, TRANSMIT);
 
     SNPRINTF(mdbuf, sizeof(mdbuf), "M%c%c" EOM, ttmode, ttmode);
-    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
+    retval = write_block(rp, (unsigned char *) mdbuf, strlen(mdbuf));
 
     if (retval != RIG_OK)
     {
@@ -905,7 +900,7 @@ tt550_set_tx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                  ttfilter,
                  priv->ctf >> 8, priv->ctf & 0xff, priv->ftf >> 8,
                  priv->ftf & 0xff, priv->btf >> 8, priv->btf & 0xff);
-        retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
+        retval = write_block(rp, (unsigned char *) mdbuf, strlen(mdbuf));
 
         if (retval != RIG_OK)
         {
@@ -994,7 +989,7 @@ int
 tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     int retval, ditfactor, dahfactor, spcfactor;
     char cmdbuf[32];
 
@@ -1003,7 +998,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_AGC:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "G%c" EOM,
                  val.i >= 3 ? '3' : (val.i < 2 ? '1' : '2'));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1014,7 +1009,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_AF:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "V%c" EOM, (int)(val.f * 255));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1026,7 +1021,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_LINEOUT:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "L%c" EOM, (int)(val.f * 63));
-        retval = write_block(&rs->rigport, cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1038,7 +1033,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_RF:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "A%c" EOM, (int)(val.f * 255));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1049,7 +1044,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_SQL:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "S%c" EOM, (int)(val.f * 19));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1060,7 +1055,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_NR:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "D%c" EOM, (int)(val.f * 7));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1074,7 +1069,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
          * attenuator is either on or off
          */
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "B%c" EOM, val.i < 15 ? '0' : '1');
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1093,7 +1088,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
                  ditfactor >> 8, ditfactor & 0xff, dahfactor >> 8,
                  dahfactor & 0xff, spcfactor >> 8,
                  spcfactor & 0xff);
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1104,7 +1099,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_RFPOWER:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "P%c" EOM, (int)(val.f * 255));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1115,7 +1110,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_VOXGAIN:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "UG%c" EOM, (int)(val.f * 255));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1126,7 +1121,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_VOXDELAY:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "UH%c" EOM, (int)(val.f * 255));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1137,7 +1132,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_ANTIVOX:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "UA%c" EOM, (int)(val.f * 255));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1148,7 +1143,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_COMP:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "Y%c" EOM, (int)(val.f * 127));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1159,7 +1154,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_MICGAIN:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "O1%c%c" EOM, 0, (int)(val.f * 15));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1170,7 +1165,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_BKINDL:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "UQ%c" EOM, (int)(val.f * 255));
-        retval = write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf));
+        retval = write_block(rp, (unsigned char *) cmdbuf, strlen(cmdbuf));
 
         if (retval == RIG_OK)
         {
@@ -1368,11 +1363,10 @@ tt550_get_info(RIG *rig)
 int
 tt550_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    struct rig_state *rs = &rig->state;
     char cmdbuf[16];
 
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "Q%c" EOM, ptt == 0 ? '0' : '1');
-    return (write_block(&rs->rigport, (unsigned char *) cmdbuf, strlen(cmdbuf)));
+    return (write_block(RIGPORT(rig), (unsigned char *) cmdbuf, strlen(cmdbuf)));
 
 }
 
@@ -1442,7 +1436,7 @@ tt550_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     unsigned char fctbuf[16];
     struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     /* Optimize:
      *   sort the switch cases with the most frequent first
@@ -1452,20 +1446,20 @@ tt550_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     case RIG_FUNC_VOX:
         SNPRINTF((char *) fctbuf, sizeof(fctbuf), "U%c" EOM, status == 0 ? '0' : '1');
         priv->vox = status;
-        return write_block(&rs->rigport, fctbuf, strlen((char *)fctbuf));
+        return write_block(rp, fctbuf, strlen((char *)fctbuf));
 
     case RIG_FUNC_NR:
         SNPRINTF((char *) fctbuf, sizeof(fctbuf), "K%c%c" EOM, status == 0 ? '0' : '1',
                  priv->anf == 0 ? '0' : '1');
         priv->en_nr = status;
-        return write_block(&rs->rigport, fctbuf, strlen((char *)fctbuf));
+        return write_block(rp, fctbuf, strlen((char *)fctbuf));
 
     case RIG_FUNC_ANF:
         SNPRINTF((char *) fctbuf, sizeof(fctbuf), "K%c%c" EOM,
                  priv->en_nr == 0 ? '0' : '1',
                  status == 0 ? '0' : '1');
         priv->anf = status;
-        return write_block(&rs->rigport, fctbuf, strlen((char *)fctbuf));
+        return write_block(rp, fctbuf, strlen((char *)fctbuf));
 
 
     case RIG_FUNC_TUNER:
@@ -1681,8 +1675,7 @@ tt550_decode_event(RIG *rig)
     rs = &rig->state;
     priv = (struct tt550_priv_data *) rs->priv;
 
-
-    data_len = read_string(&rs->rigport, buf, MAXFRAMELEN, "\n\r", 2, 0,
+    data_len = read_string(RIGPORT(rig), buf, MAXFRAMELEN, "\n\r", 2, 0,
                            1);
 
 
