@@ -243,7 +243,7 @@ int g3_open(RIG *rig)
     struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
     int device_num;
 
-    device_num = atoi(rig->state.rigport.pathname);
+    device_num = atoi(RIGPORT(rig)->pathname);
 
     /* Open Winradio receiver handle */
     priv->hRadio = priv->OpenRadioDevice(device_num);

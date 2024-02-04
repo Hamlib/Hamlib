@@ -178,9 +178,9 @@ int g313_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: found %d rigs 0 is %s\n", __func__, Count,
               List[0].Path);
 
-    if (rig->state.rigport.pathname[0])
+    if (RIGPORT(rig)->pathname[0])
     {
-        priv->hRadio = OpenDevice(rig->state.rigport.pathname);
+        priv->hRadio = OpenDevice(RIGPORT(rig)->pathname);
     }
     else
     {
