@@ -109,7 +109,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                              int *data_len)
 {
     int data_len_init, itry;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     static int passcount = 0;
 #ifdef TT565_TIME
     double ft1, ft2;
@@ -122,9 +122,8 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     for (itry = 0; itry < rig->caps->retry; itry++)
     {
         int retval;
-        rs = &rig->state;
-        rig_flush(&rs->rigport); /* discard pending i/p */
-        retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+        rig_flush(rp); /* discard pending i/p */
+        retval = write_block(rp, (unsigned char *) cmd, cmd_len);
 
         if (retval != RIG_OK)
         {
@@ -148,7 +147,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         ft1 = tt565_timenow();
 #endif
         *data_len = data_len_init;  /* restore orig. buffer length */
-        *data_len = read_string(&rs->rigport, (unsigned char *) data, *data_len,
+        *data_len = read_string(rp, (unsigned char *) data, *data_len,
                                 EOM, strlen(EOM), 0, 1);
 
         if (!strncmp(data, "Z!", 2))     // command unrecognized??
@@ -189,7 +188,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                           "** retry after delay (io=%d, retry=%d) **\n",
                           passcount, itry);
                 *data_len = data_len_init;  /* restore orig. buffer length */
-                read_string(&rs->rigport, (unsigned char *) data, *data_len,
+                read_string(rp, (unsigned char *) data, *data_len,
                             EOM, strlen(EOM), 0, 1);      // purge the input stream...
                 continue;                   // now go retry the full command
             }
@@ -618,7 +617,6 @@ int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
  */
 int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct rig_state *rs = &rig->state;
     char ttmode, ttreceiver;
     int retval;
     char mdbuf[TT565_BUFSIZE];
@@ -674,7 +672,7 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 );
     }
 
-    retval = write_block(&rs->rigport, (unsigned char *) mdbuf, strlen(mdbuf));
+    retval = write_block(RIGPORT(rig), (unsigned char *) mdbuf, strlen(mdbuf));
 
     return retval;
 }
@@ -943,9 +941,7 @@ int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
  */
 int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    struct rig_state *rs = &rig->state;
-
-    return write_block(&rs->rigport,
+    return write_block(RIGPORT(rig),
                        (unsigned char *)(ptt == RIG_PTT_ON ? "*TK" EOM : "*TU" EOM), 4);
 }
 

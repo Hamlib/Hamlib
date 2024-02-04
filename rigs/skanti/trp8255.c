@@ -180,18 +180,19 @@ static int cu_transaction(RIG *rig, const char *cmd, int cmd_len)
 {
     int i;
     char retchar;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     for (i = 0; i < cmd_len; i++)
     {
 
-        int ret = write_block(&rig->state.rigport, (unsigned char *) &cmd[i], 1);
+        int ret = write_block(rp, (unsigned char *) &cmd[i], 1);
 
         if (ret != RIG_OK)
         {
             return ret;
         }
 
-        ret = read_block(&rig->state.rigport, (unsigned char *) &retchar, 1);
+        ret = read_block(rp, (unsigned char *) &retchar, 1);
 
         switch (retchar)
         {

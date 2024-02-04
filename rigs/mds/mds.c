@@ -50,15 +50,15 @@ int mds_transaction(RIG *rig, char *cmd, int expected, char **result)
 {
     char cmd_buf[MAXCMDLEN];
     int retval;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     struct mds_priv_data *priv = rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
 
     SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s\n", cmd);
 
-    rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, (unsigned char *) cmd_buf, strlen(cmd_buf));
+    rig_flush(rp);
+    retval = write_block(rp, (unsigned char *) cmd_buf, strlen(cmd_buf));
 
     if (retval < 0)
     {
@@ -74,7 +74,7 @@ int mds_transaction(RIG *rig, char *cmd, int expected, char **result)
         char cmdtrm_str[2];   /* Default Command/Reply termination char */
         cmdtrm_str[0] = 0x0d;
         cmdtrm_str[1] = 0x00;
-        retval = read_string(&rs->rigport, (unsigned char *) priv->ret_data,
+        retval = read_string(rp, (unsigned char *) priv->ret_data,
                              sizeof(priv->ret_data), cmdtrm_str, strlen(cmdtrm_str), 0, expected);
 
         if (retval < 0)
