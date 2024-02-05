@@ -470,6 +470,7 @@ static int check_cache_timeout(struct timeval *tv)
 static int ft857_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
 {
     unsigned char data[YAESU_CMD_LENGTH];
+    hamlib_port_t *rp = RIGPORT(rig);
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
@@ -479,9 +480,9 @@ static int ft857_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
     data[0] = addr >> 8;
     data[1] = addr & 0xfe;
 
-    write_block(&rig->state.rigport, data, YAESU_CMD_LENGTH);
+    write_block(rp, data, YAESU_CMD_LENGTH);
 
-    if ((n = read_block(&rig->state.rigport, data, 2)) < 0)
+    if ((n = read_block(rp, data, 2)) < 0)
     {
         return n;
     }
@@ -499,6 +500,7 @@ static int ft857_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
 static int ft857_get_status(RIG *rig, int status)
 {
     struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+    hamlib_port_t *rp = RIGPORT(rig);
     struct timeval *tv;
     unsigned char *data;
     int len;
@@ -531,12 +533,11 @@ static int ft857_get_status(RIG *rig, int status)
         return -RIG_EINTERNAL;
     }
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
-    write_block(&rig->state.rigport, ncmd[status].nseq,
-                YAESU_CMD_LENGTH);
+    write_block(rp, ncmd[status].nseq, YAESU_CMD_LENGTH);
 
-    if ((n = read_block(&rig->state.rigport, data, len)) < 0)
+    if ((n = read_block(rp, data, len)) < 0)
     {
         return n;
     }
@@ -575,7 +576,7 @@ static int ft857_send_cmd(RIG *rig, int index)
         return -RIG_EINTERNAL;
     }
 
-    write_block(&rig->state.rigport, ncmd[index].nseq, YAESU_CMD_LENGTH);
+    write_block(RIGPORT(rig), ncmd[index].nseq, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
 
@@ -597,7 +598,7 @@ static int ft857_send_icmd(RIG *rig, int index, const unsigned char *data)
     cmd[YAESU_CMD_LENGTH - 1] = ncmd[index].nseq[YAESU_CMD_LENGTH - 1];
     memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
 
-    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
 

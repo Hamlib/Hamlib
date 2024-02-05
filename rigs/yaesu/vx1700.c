@@ -336,7 +336,7 @@ static int vx1700_do_transaction(RIG *rig,
                                  const unsigned char cmd[YAESU_CMD_LENGTH],
                                  unsigned char *retbuf, size_t retbuf_len)
 {
-    struct rig_state    *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     unsigned char   default_retbuf[1];
     int         retval;
 
@@ -346,15 +346,14 @@ static int vx1700_do_transaction(RIG *rig,
         retbuf_len = sizeof(default_retbuf);
     }
 
-    rs = &rig->state;
     memset(retbuf, 0, retbuf_len);
 
-    rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+    rig_flush(rp);
+    retval = write_block(rp, cmd, YAESU_CMD_LENGTH);
 
     if (retval != RIG_OK) { return retval; }
 
-    retval = read_block(&rs->rigport, retbuf, retbuf_len);
+    retval = read_block(rp, retbuf, retbuf_len);
 
     if (retval != retbuf_len)
     {

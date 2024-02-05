@@ -483,17 +483,17 @@ int ft747_cleanup(RIG *rig)
 int ft747_open(RIG *rig)
 {
     struct rig_state *rig_s;
+    hamlib_port_t *rp = RIGPORT(rig);
     struct ft747_priv_data *p;
     int ret;
-
 
     rig_s = &rig->state;
     p = (struct ft747_priv_data *)rig_s->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "ft747:rig_open: write_delay = %i msec \n",
-              rig_s->rigport.write_delay);
+              rp->write_delay);
     rig_debug(RIG_DEBUG_VERBOSE, "ft747:rig_open: post_write_delay = %i msec \n",
-              rig_s->rigport.post_write_delay);
+              rp->post_write_delay);
 
     /*
     * Copy native cmd PACING  to private cmd storage area
@@ -507,7 +507,7 @@ int ft747_open(RIG *rig)
 
     /* send PACING cmd to rig, once for all */
 
-    ret = write_block(&rig->state.rigport, p->p_cmd, YAESU_CMD_LENGTH);
+    ret = write_block(rp, p->p_cmd, YAESU_CMD_LENGTH);
 
     if (ret < 0)
     {
@@ -568,7 +568,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_force_cache_timeout(&p->status_tv);
 
     cmd = p->p_cmd; /* get native sequence */
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -958,7 +958,7 @@ int ft747_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     rig_force_cache_timeout(&p->status_tv);
 
-    return write_block(&rig->state.rigport, p->p_cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), p->p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft747_get_mem(RIG *rig, vfo_t vfo, int *ch)
@@ -1003,7 +1003,7 @@ static int ft747_get_update_data(RIG *rig)
     //unsigned char last_byte;
 
     p = (struct ft747_priv_data *)rig->state.priv;
-    rigport = &rig->state.rigport;
+    rigport = RIGPORT(rig);
 
     if (rig->state.cache.ptt == RIG_PTT_ON
             || !rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
@@ -1064,7 +1064,7 @@ static int ft747_send_priv_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    return write_block(&rig->state.rigport, ft747_ncmd[ci].nseq, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), ft747_ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
 }
 
