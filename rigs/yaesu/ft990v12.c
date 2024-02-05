@@ -461,7 +461,6 @@ int ft990v12_cleanup(RIG *rig)
  */
 int  ft990v12_open(RIG *rig)
 {
-    struct rig_state *rig_s;
     struct ft990v12_priv_data *priv;
     int err;
 
@@ -473,12 +472,11 @@ int  ft990v12_open(RIG *rig)
     }
 
     priv = (struct ft990v12_priv_data *)rig->state.priv;
-    rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
-              __func__, rig_s->rigport.write_delay);
+              __func__, RIGPORT(rig)->write_delay);
     rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay = %i msec\n",
-              __func__, rig_s->rigport.post_write_delay);
+              __func__, RIGPORT(rig)->post_write_delay);
     rig_debug(RIG_DEBUG_TRACE,
               "%s: read pacing = %i\n", __func__, priv->pacing);
 
@@ -2462,7 +2460,7 @@ int ft990v12_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
         return err;
     }
 
-    err = read_block(&rig->state.rigport, mdata, FT990_READ_METER_LENGTH);
+    err = read_block(RIGPORT(rig), mdata, FT990_READ_METER_LENGTH);
 
     if (err < 0)
     {
@@ -3318,7 +3316,7 @@ int ft990v12_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
                 p = (unsigned char *)
                     &priv->update_data; // K1MMI: This seems like 1492 will be saved here
 
-                n = read_block(&rig->state.rigport, p, rl); /* M0EZP: copied here from below */
+                n = read_block(RIGPORT(rig), p, rl); /* M0EZP: copied here from below */
                 return RIG_OK;
                 break;
 
@@ -3382,7 +3380,7 @@ int ft990v12_get_update_data(RIG *rig, unsigned char ci, unsigned short ch)
 
         p = (unsigned char *)&priv->update_data;
         rl = FT990_STATUS_FLAGS_LENGTH; // 5
-        n = read_block(&rig->state.rigport, (unsigned char *)&temp,
+        n = read_block(RIGPORT(rig), (unsigned char *)&temp,
                        rl); /* M0EZP: copied here from below */
 
         if (n < 0)
@@ -3437,7 +3435,7 @@ int ft990v12_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    err = write_block(&rig->state.rigport, ncmd[ci].nseq, YAESU_CMD_LENGTH);
+    err = write_block(RIGPORT(rig), ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
@@ -3495,7 +3493,7 @@ int ft990v12_send_dynamic_cmd(RIG *rig, unsigned char ci,
     priv->p_cmd[1] = p3;
     priv->p_cmd[0] = p4;
 
-    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd,
+    err = write_block(RIGPORT(rig), (unsigned char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -3554,7 +3552,7 @@ int ft990v12_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(priv->p_cmd,
               FT990_BCD_DIAL) * 10);
 
-    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd,
+    err = write_block(RIGPORT(rig), (unsigned char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -3619,7 +3617,7 @@ int ft990v12_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     // Store bcd format into privat command storage area
     to_bcd(priv->p_cmd, labs(rit) / 10, FT990_BCD_RIT);
 
-    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd,
+    err = write_block(RIGPORT(rig), (unsigned char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
