@@ -995,7 +995,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (fp == NULL)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: %s does not exist\n", __func__, path);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: %s %s\n", __func__, path, strerror(errno));
         }
         else
         {
@@ -2716,7 +2716,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         pbwidth_t width_curr;
         retcode = caps->get_mode(rig, vfo, &mode_curr, &width_curr);
 
-        if (retcode == RIG_OK && mode == mode_curr)
+        // For Icom rigs we may need to force the filter so we always set mode
+        if (retcode == RIG_OK && mode == mode_curr && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
         {
             rig_debug(RIG_DEBUG_VERBOSE,
                       "%s: mode already %s and bw change not requested\n", __func__,
