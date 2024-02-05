@@ -1975,7 +1975,7 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
 int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t selection)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d\n", __func__, selection);
-    return rig->state.cache.timeout_ms;
+    return CACHE(rig)->timeout_ms;
 }
 
 int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
@@ -1983,7 +1983,7 @@ int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d, ms=%d\n", __func__,
               selection, ms);
-    rig->state.cache.timeout_ms = ms;
+    CACHE(rig)->timeout_ms = ms;
     return RIG_OK;
 }
 
@@ -2092,7 +2092,7 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
     }
     else if (vfo == RIG_VFO_TX)
     {
-        int satmode = rig->state.cache.satmode;
+        int satmode = CACHE(rig)->satmode;
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): split=%d, vfo==%s tx_vfo=%s\n", __func__,
                   __LINE__, split, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));

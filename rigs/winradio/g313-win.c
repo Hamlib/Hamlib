@@ -379,7 +379,7 @@ int g313_open(RIG *rig)
     int Count;
     int id;
 
-    device_num = atoi(rig->state.rigport.pathname);
+    device_num = atoi(RIGPORT(rig)->pathname);
 
     Count = priv->waveOutGetNumDevs();
 

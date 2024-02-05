@@ -829,6 +829,7 @@ static int check_cache_timeout(struct timeval *tv)
 static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
 {
     unsigned char data[YAESU_CMD_LENGTH];
+    hamlib_port_t *rp = RIGPORT(rig);
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -838,9 +839,9 @@ static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
     data[0] = addr >> 8;
     data[1] = addr & 0xff;
 
-    write_block(&rig->state.rigport, data, YAESU_CMD_LENGTH);
+    write_block(rp, data, YAESU_CMD_LENGTH);
 
-    if ((n = read_block(&rig->state.rigport, data, 2)) < 0)
+    if ((n = read_block(rp, data, 2)) < 0)
     {
         return n;
     }
@@ -869,11 +870,12 @@ static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
 static int ft817_get_status(RIG *rig, int status)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    hamlib_port_t *rp = RIGPORT(rig);
     struct timeval *tv;
     unsigned char *data;
     int len;
     int n;
-    int retries = rig->state.rigport.retry;
+    int retries = rp->retry;
     unsigned char result[2];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -913,10 +915,9 @@ static int ft817_get_status(RIG *rig, int status)
 
     do
     {
-        rig_flush(&rig->state.rigport);
-        write_block(&rig->state.rigport, ncmd[status].nseq,
-                    YAESU_CMD_LENGTH);
-        n = read_block(&rig->state.rigport, data, len);
+        rig_flush(rp);
+        write_block(rp, ncmd[status].nseq, YAESU_CMD_LENGTH);
+        n = read_block(rp, data, len);
     }
     while (retries-- && n < 0);
 
@@ -987,7 +988,7 @@ static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     freq_t f1 = 0, f2 = 0;
-    int retries = rig->state.rigport.retry +
+    int retries = RIGPORT(rig)->retry +
                   1; // +1 because, because 2 steps are needed even in best scenario
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called, vfo=%s, ptt=%d, split=%d\n", __func__,
@@ -1488,16 +1489,17 @@ static int ft818_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 int ft817_read_ack(RIG *rig)
 {
     unsigned char dummy;
+    hamlib_port_t *rp = RIGPORT(rig);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (rig->state.rigport.post_write_delay == 0)
+    if (rp->post_write_delay == 0)
     {
-        if (read_block(&rig->state.rigport, &dummy, 1) < 0)
+        if (read_block(rp, &dummy, 1) < 0)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: error reading ack\n", __func__);
             rig_debug(RIG_DEBUG_ERR, "%s: adjusting post_write_delay to avoid ack\n",
                       __func__);
-            rig->state.rigport.post_write_delay =
+            rp->post_write_delay =
                 10; // arbitrary choice right now of max 100 cmds/sec
             return RIG_OK; // let it continue without checking for ack now
         }
@@ -1519,6 +1521,7 @@ int ft817_read_ack(RIG *rig)
  */
 static int ft817_send_cmd(RIG *rig, int index)
 {
+    hamlib_port_t *rp = RIGPORT(rig);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
     if (ncmd[index].ncomp == 0)
@@ -1527,8 +1530,8 @@ static int ft817_send_cmd(RIG *rig, int index)
         return -RIG_EINTERNAL;
     }
 
-    rig_flush(&rig->state.rigport);
-    write_block(&rig->state.rigport, ncmd[index].nseq, YAESU_CMD_LENGTH);
+    rig_flush(rp);
+    write_block(rp, ncmd[index].nseq, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
 
@@ -1550,7 +1553,7 @@ static int ft817_send_icmd(RIG *rig, int index, const unsigned char *data)
     cmd[YAESU_CMD_LENGTH - 1] = ncmd[index].nseq[YAESU_CMD_LENGTH - 1];
     memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
 
-    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
     return ft817_read_ack(rig);
 }
 
@@ -1746,7 +1749,7 @@ static int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int index;
     ptt_t ptt_response = -1;
-    int retries = rig->state.rigport.retry;
+    int retries = RIGPORT(rig)->retry;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -2059,10 +2062,10 @@ int ft817_set_powerstat(RIG *rig, powerstat_t status)
 
     case RIG_POWER_ON:
         // send 5 bytes first, snooze a bit, then PWR_ON
-        write_block(&rig->state.rigport,
+        write_block(RIGPORT(rig),
                     ncmd[FT817_NATIVE_CAT_PWR_WAKE].nseq, YAESU_CMD_LENGTH);
         hl_usleep(200 * 1000);
-        write_block(&rig->state.rigport, ncmd[FT817_NATIVE_CAT_PWR_ON].nseq,
+        write_block(RIGPORT(rig), ncmd[FT817_NATIVE_CAT_PWR_ON].nseq,
                     YAESU_CMD_LENGTH);
         return RIG_OK;
 

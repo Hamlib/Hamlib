@@ -59,18 +59,16 @@ gp2000_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                    int *data_len)
 {
     int retval;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: len=%d,cmd=%s\n", __func__, cmd_len,
               cmd);
 
-    rs = &rig->state;
-
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
     rig_debug(RIG_DEBUG_VERBOSE, "gp2000_transaction: len=%d,cmd=%s\n",
               cmd_len, cmd);
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(rp, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -84,7 +82,7 @@ gp2000_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return RIG_OK;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, RESPSZ,
+    retval = read_string(rp, (unsigned char *) data, RESPSZ,
                          CR, 1, 0, 1);
 
     if (retval < 0)

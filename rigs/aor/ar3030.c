@@ -216,22 +216,20 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
                               char *data, int *data_len)
 {
     int retval;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     int retry = 3;
     char tmpdata[BUFSZ];
-
-    rs = &rig->state;
 
     if (data == NULL)
     {
         data = tmpdata;
     }
 
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
     do
     {
-        retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+        retval = write_block(rp, (unsigned char *) cmd, cmd_len);
 
         if (retval != RIG_OK)
         {
@@ -242,7 +240,7 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
         if (data)
         {
             /* expecting 0x0d0x0a on all commands so wait for the 0x0a */
-            retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ,
+            retval = read_string(rp, (unsigned char *) data, BUFSZ,
                                  "\x0a", 1, 0, 1);
 
             if (retval == -RIG_ETIMEOUT)
@@ -307,12 +305,10 @@ int ar3030_cleanup(RIG *rig)
 int ar3030_close(RIG *rig)
 {
     int retval;
-    struct rig_state *rs;
 
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
-    rs = &rig->state;
-    rig_flush(&rs->rigport);
+    rig_flush(RIGPORT(rig));
 
     retval = ar3030_transaction(rig, "Q" CR, strlen("Q" CR), NULL, NULL);
     rig_debug(RIG_DEBUG_TRACE, "%s: retval=%d\n", __func__, retval);

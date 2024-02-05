@@ -301,7 +301,7 @@ int dx77_transaction(RIG *rig,
 {
 
     int retval;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     char echobuf[BUFSZ + 1];
 
     if (cmd == NULL)
@@ -311,11 +311,9 @@ int dx77_transaction(RIG *rig,
         return -RIG_EINTERNAL;
     }
 
-    rs = &rig->state;
+    rig_flush(rp);
 
-    rig_flush(&rs->rigport);
-
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(rp, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -326,7 +324,7 @@ int dx77_transaction(RIG *rig,
      * Transceiver sends an echo of cmd followed by a CR/LF
      * TODO: check whether cmd and echobuf match (optional)
      */
-    retval = read_string(&rs->rigport, (unsigned char *) echobuf, BUFSZ,
+    retval = read_string(rp, (unsigned char *) echobuf, BUFSZ,
                          LF, strlen(LF), 0, 1);
 
     if (retval < 0)
@@ -343,7 +341,7 @@ int dx77_transaction(RIG *rig,
     /* no data expected, check for OK returned */
     if (data == NULL)
     {
-        retval = read_string(&rs->rigport, (unsigned char *) echobuf, BUFSZ,
+        retval = read_string(rp, (unsigned char *) echobuf, BUFSZ,
                              LF, strlen(LF), 0, 1);
 
         if (retval < 0)
@@ -365,7 +363,7 @@ int dx77_transaction(RIG *rig,
         }
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ,
+    retval = read_string(rp, (unsigned char *) data, BUFSZ,
                          LF, strlen(LF), 0, 1);
 
     if (retval < 0)

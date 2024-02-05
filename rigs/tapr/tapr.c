@@ -45,12 +45,10 @@ static int tapr_cmd(RIG *rig, unsigned char cmd, unsigned char c1,
                     unsigned char c2, unsigned char c3, unsigned char c4)
 {
     int retval;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     unsigned char cmdbuf[CMD_LEN];
 
-    rs = &rig->state;
-
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
     cmdbuf[0] = ESC;
     cmdbuf[1] = cmd;
@@ -59,7 +57,7 @@ static int tapr_cmd(RIG *rig, unsigned char cmd, unsigned char c1,
     cmdbuf[4] = c3;
     cmdbuf[5] = c4;
 
-    retval = write_block(&rs->rigport, cmdbuf, 6);
+    retval = write_block(rp, cmdbuf, 6);
 
     if (retval != RIG_OK)
     {

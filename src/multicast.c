@@ -43,8 +43,9 @@ int multicast_stop(RIG *rig)
 static int multicast_status_changed(RIG *rig)
 {
     int retval;
+    struct rig_cache *cachep = CACHE(rig);
 #if 0
-    freq_t freq, freqsave = rig->state.cache.freqMainA;
+    freq_t freq, freqsave = cachep->freqMainA;
 
     if ((retval = rig_get_freq(rig, RIG_VFO_A, &freq)) != RIG_OK)
     {
@@ -55,10 +56,10 @@ static int multicast_status_changed(RIG *rig)
 
 #endif
 
-    rmode_t modeA, modeAsave = rig->state.cache.modeMainA;
-    rmode_t modeB, modeBsave = rig->state.cache.modeMainB;
-    pbwidth_t widthA, widthAsave = rig->state.cache.widthMainA;
-    pbwidth_t widthB, widthBsave = rig->state.cache.widthMainB;
+    rmode_t modeA, modeAsave = cachep->modeMainA;
+    rmode_t modeB, modeBsave = cachep->modeMainB;
+    pbwidth_t widthA, widthAsave = cachep->widthMainA;
+    pbwidth_t widthB, widthBsave = cachep->widthMainB;
 
 #if  0
 
@@ -89,7 +90,7 @@ static int multicast_status_changed(RIG *rig)
 
     if (widthB != widthBsave) { return 1; }
 
-    ptt_t ptt, pttsave = rig->state.cache.ptt;
+    ptt_t ptt, pttsave = cachep->ptt;
 
 #if 0
 
@@ -97,7 +98,7 @@ static int multicast_status_changed(RIG *rig)
             && (retval = rig_get_ptt(rig, RIG_VFO_CURR, &ptt)) != RIG_OK)
         if (ptt != pttsave) { return 1; }
 
-    split_t split, splitsave = rig->state.cache.split;
+    split_t split, splitsave = cachep->split;
     vfo_t txvfo;
 
     if (rig->state.multicast->seqnumber % 2 == 0
@@ -190,47 +191,49 @@ void json_add_time(char *msg, int addComma)
 
 void json_add_vfoA(RIG *rig, char *msg)
 {
+    struct rig_cache *cachep = CACHE(rig);
+  
     strcat(msg, "{\n");
     json_add_string(msg, "Name", "VFOA", 1);
-    json_add_int(msg, "Freq", rig->state.cache.freqMainA, 1);
+    json_add_int(msg, "Freq", cachep->freqMainA, 1);
 
-    if (strlen(rig_strrmode(rig->state.cache.modeMainA)) > 0)
+    if (strlen(rig_strrmode(cachep->modeMainA)) > 0)
     {
-        json_add_string(msg, "Mode", rig_strrmode(rig->state.cache.modeMainA), 1);
+        json_add_string(msg, "Mode", rig_strrmode(cachep->modeMainA), 1);
     }
     else
     {
         json_add_string(msg, "Mode", "None", 1);
     }
 
-    json_add_int(msg, "Width", rig->state.cache.widthMainA, 0);
+    json_add_int(msg, "Width", cachep->widthMainA, 0);
 
 #if 0 // not working quite yet
     // what about full duplex? rx_vfo would be in rx all the time?
     rig_debug(RIG_DEBUG_ERR, "%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__,
               rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo),
-              rig->state.cache.split);
+              cachep->split);
     printf("%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__,
            rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo),
-           rig->state.cache.split);
+           cachep->split);
 
-    if (rig->state.cache.split)
+    if (cachep->split)
     {
         if (rig->state.tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
         {
-            json_add_boolean(msg, "RX", !rig->state.cache.ptt, 1);
+            json_add_boolean(msg, "RX", !cachep->ptt, 1);
             json_add_boolean(msg, "TX", 0, 0);
         }
         else // we must be in reverse split
         {
             json_add_boolean(msg, "RX", 0, 1);
-            json_add_boolean(msg, "TX", rig->state.cache.ptt, 0);
+            json_add_boolean(msg, "TX", cachep->ptt, 0);
         }
     }
     else if (rig->state.current_vfo && (RIG_VFO_A | RIG_VFO_MAIN_A))
     {
-        json_add_boolean(msg, "RX", !rig->state.cache.ptt, 1);
-        json_add_boolean(msg, "TX", rig->state.cache.ptt, 0);
+        json_add_boolean(msg, "RX", !cachep->ptt, 1);
+        json_add_boolean(msg, "TX", cachep->ptt, 0);
     }
     else // VFOB must be active so never RX or TX
     {
@@ -244,40 +247,42 @@ void json_add_vfoA(RIG *rig, char *msg)
 
 void json_add_vfoB(RIG *rig, char *msg)
 {
+    struct rig_cache *cachep = CACHE(rig);
+  
     strcat(msg, ",\n{\n");
     json_add_string(msg, "Name", "VFOB", 1);
-    json_add_int(msg, "Freq", rig->state.cache.freqMainB, 1);
+    json_add_int(msg, "Freq", cachep->freqMainB, 1);
 
-    if (strlen(rig_strrmode(rig->state.cache.modeMainB)) > 0)
+    if (strlen(rig_strrmode(cachep->modeMainB)) > 0)
     {
-        json_add_string(msg, "Mode", rig_strrmode(rig->state.cache.modeMainB), 1);
+        json_add_string(msg, "Mode", rig_strrmode(cachep->modeMainB), 1);
     }
     else
     {
         json_add_string(msg, "Mode", "None", 1);
     }
 
-    json_add_int(msg, "Width", rig->state.cache.widthMainB, 0);
+    json_add_int(msg, "Width", cachep->widthMainB, 0);
 
 #if 0 // not working yet
 
-    if (rig->state.rx_vfo != rig->state.tx_vfo && rig->state.cache.split)
+    if (rig->state.rx_vfo != rig->state.tx_vfo && cachep->split)
     {
         if (rig->state.tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
         {
             json_add_boolean(msg, "RX", 0, 1);
-            json_add_boolean(msg, "TX", rig->state.cache.ptt, 0);
+            json_add_boolean(msg, "TX", cachep->ptt, 0);
         }
         else // we must be in reverse split
         {
-            json_add_boolean(msg, "RX", rig->state.cache.ptt, 1);
+            json_add_boolean(msg, "RX", cachep->ptt, 1);
             json_add_boolean(msg, "TX", 0, 0);
         }
     }
     else if (rig->state.current_vfo && (RIG_VFO_A | RIG_VFO_MAIN_A))
     {
-        json_add_boolean(msg, "RX", !rig->state.cache.ptt, 1);
-        json_add_boolean(msg, "TX", rig->state.cache.ptt, 0);
+        json_add_boolean(msg, "RX", !cachep->ptt, 1);
+        json_add_boolean(msg, "TX", cachep->ptt, 0);
     }
     else // VFOB must be active so always RX or TX
     {
@@ -294,6 +299,8 @@ static int multicast_send_json(RIG *rig)
 {
     char msg[8192]; // could be pretty big
     char buf[4096];
+    struct rig_cache *cachep = CACHE(rig);
+    
 //    sprintf(msg,"%s:f=%.1f", date_strget(msg, (int)sizeof(msg), 0), f);
     msg[0] = 0;
     snprintf(buf, sizeof(buf), "%s:%s", rig->caps->model_name,
@@ -303,8 +310,8 @@ static int multicast_send_json(RIG *rig)
     json_add_time(msg, 1);
     json_add_int(msg, "Sequence", rig->state.multicast->seqnumber++, 1);
     json_add_string(msg, "VFOCurr", rig_strvfo(rig->state.current_vfo), 1);
-    json_add_int(msg, "PTT", rig->state.cache.ptt, 1);
-    json_add_int(msg, "Split", rig->state.cache.split, 1);
+    json_add_int(msg, "PTT", cachep->ptt, 1);
+    json_add_int(msg, "Split", cachep->split, 1);
     rig_sprintf_mode(buf, sizeof(buf), rig->state.mode_list);
     json_add_string(msg, "ModeList", buf, 1);
     strcat(msg, "\"VFOs\": [\n");
@@ -369,6 +376,8 @@ void *multicast_thread(void *vrig)
     mode_t modeA, modeAsave = 0;
     mode_t modeB, modeBsave = 0;
     ptt_t ptt, pttsave = 0;
+    struct rig_cache *cachep = CACHE(rig);
+    
     rig->state.multicast->runflag = 1;
 
     while (rig->state.multicast->runflag)
@@ -387,15 +396,15 @@ void *multicast_thread(void *vrig)
         }
         else
         {
-            freqB = rig->state.cache.freqMainB;
+            freqB = cachep->freqMainB;
         }
 
 #else
-        freqA = rig->state.cache.freqMainA;
-        freqB = rig->state.cache.freqMainB;
-        modeA = rig->state.cache.modeMainA;
-        modeB = rig->state.cache.modeMainB;
-        ptt = rig->state.cache.ptt;
+        freqA = cachep->freqMainA;
+        freqB = cachep->freqMainB;
+        modeA = cachep->modeMainA;
+        modeB = cachep->modeMainB;
+        ptt = cachep->ptt;
 #endif
 
         if (freqA != freqAsave

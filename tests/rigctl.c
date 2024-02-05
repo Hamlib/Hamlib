@@ -23,6 +23,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include <hamlib/config.h>
 
 #include <stdio.h>
@@ -603,7 +605,7 @@ int main(int argc, char *argv[])
 
     if (dcd_type != RIG_DCD_NONE)
     {
-        my_rig->state.dcdport.type.dcd = dcd_type;
+        DCDPORT(my_rig)->type.dcd = dcd_type;
     }
 
     if (ptt_file)
@@ -613,7 +615,7 @@ int main(int argc, char *argv[])
 
     if (dcd_file)
     {
-        strncpy(my_rig->state.dcdport.pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(DCDPORT(my_rig)->pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */

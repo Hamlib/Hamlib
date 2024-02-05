@@ -357,7 +357,6 @@ struct rig_caps ft891_caps =
 static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct newcat_priv_data *priv;
-    struct rig_state *state;
     unsigned char ci;
     int err;
 
@@ -373,7 +372,6 @@ static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed tx_vfo = 0x%02x\n", __func__, tx_vfo);
 
     priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
 
     // RX VFO and TX VFO cannot be the same, no support for MEM as TX VFO
     if (vfo == tx_vfo || tx_vfo == RIG_VFO_MEM)
@@ -397,7 +395,7 @@ static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ST%c;", ci);
 
-    if (RIG_OK != (err = write_block(&state->rigport,
+    if (RIG_OK != (err = write_block(RIGPORT(rig),
                                      (unsigned char *) priv->cmd_str, strlen(priv->cmd_str))))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: write_block err = %d\n", __func__, err);
@@ -533,7 +531,6 @@ static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                                 pbwidth_t tx_width)
 {
     struct newcat_priv_data *priv;
-    struct rig_state *state;
     freq_t b_freq;
     int err;
 
@@ -543,8 +540,6 @@ static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     {
         return -RIG_EINVAL;
     }
-
-    state = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
     rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %s\n", __func__,
@@ -569,7 +564,7 @@ static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     // Copy A to B
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
 
-    if (RIG_OK != (err = write_block(&state->rigport,
+    if (RIG_OK != (err = write_block(RIGPORT(rig),
                                      (unsigned char *) priv->cmd_str, strlen(priv->cmd_str))))
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s:%d write_block err = %d\n", __func__, __LINE__,

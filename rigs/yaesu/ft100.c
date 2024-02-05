@@ -526,20 +526,21 @@ static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index)
 
     if (!rig) { return -RIG_EINVAL; }
 
-    return write_block(&rig->state.rigport, (unsigned char *) &ncmd[cmd_index].nseq,
+    return write_block(RIGPORT(rig), (unsigned char *) &ncmd[cmd_index].nseq,
                        YAESU_CMD_LENGTH);
 }
 
 static int ft100_read_status(RIG *rig)
 {
     struct ft100_priv_data *priv;
+    hamlib_port_t *rp = RIGPORT(rig);
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     priv = (struct ft100_priv_data *)rig->state.priv;
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
     ret = ft100_send_priv_cmd(rig, FT100_NATIVE_CAT_READ_STATUS);
 
@@ -548,7 +549,7 @@ static int ft100_read_status(RIG *rig)
         return ret;
     }
 
-    ret = read_block(&rig->state.rigport, (unsigned char *) &priv->status,
+    ret = read_block(rp, (unsigned char *) &priv->status,
                      sizeof(FT100_STATUS_INFO));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read status=%i \n", __func__, ret);
 
@@ -564,10 +565,11 @@ static int ft100_read_flags(RIG *rig)
 {
     struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
     int ret;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
     ret = ft100_send_priv_cmd(rig, FT100_NATIVE_CAT_READ_FLAGS);
 
@@ -576,7 +578,7 @@ static int ft100_read_flags(RIG *rig)
         return ret;
     }
 
-    ret = read_block(&rig->state.rigport, (unsigned char *) &priv->flags,
+    ret = read_block(rp, (unsigned char *) &priv->flags,
                      sizeof(FT100_FLAG_INFO));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read flags=%i \n", __func__, ret);
 
@@ -605,7 +607,7 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     freq = (int) freq / 10;
     to_bcd(p_cmd, freq, 8); /* store bcd format in in p_cmd */
 
-    return write_block(&rig->state.rigport, p_cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -731,7 +733,7 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         else if (width <= 2400) { p_cmd[3] = 0x00; }
         else { p_cmd[3] = 0x01; }
 
-        ret = write_block(&rig->state.rigport, p_cmd, YAESU_CMD_LENGTH);
+        ret = write_block(RIGPORT(rig), p_cmd, YAESU_CMD_LENGTH);
 
         if (ret != RIG_OK)
         {
@@ -992,7 +994,7 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return ret;
     }
 
-    ret = read_block(&rig->state.rigport, (unsigned char *) &ft100_meter,
+    ret = read_block(RIGPORT(rig), (unsigned char *) &ft100_meter,
                      sizeof(FT100_METER_INFO));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read meters=%d\n", __func__, ret);
 
@@ -1209,7 +1211,7 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
     p_cmd[3] = (char)pcode;
 
-    return write_block(&rig->state.rigport, p_cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
@@ -1263,7 +1265,7 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     p_cmd[3] = (char)ptone;
 
-    return write_block(&rig->state.rigport, p_cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)

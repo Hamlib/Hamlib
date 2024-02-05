@@ -686,7 +686,7 @@ static int ft920_cleanup(RIG *rig)
 
 static int ft920_open(RIG *rig)
 {
-    struct rig_state *rig_s;
+    hamlib_port_t *rp = RIGPORT(rig);
     struct ft920_priv_data *priv;
     int err;
 
@@ -698,12 +698,11 @@ static int ft920_open(RIG *rig)
     }
 
     priv = (struct ft920_priv_data *)rig->state.priv;
-    rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
-              __func__, rig_s->rigport.write_delay);
+              __func__, rp->write_delay);
     rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay = %i msec\n",
-              __func__, rig_s->rigport.post_write_delay);
+              __func__, rp->post_write_delay);
 
     /* Copy native cmd PACING to private cmd storage area */
     memcpy(&priv->p_cmd, &ncmd[FT920_NATIVE_PACING].nseq, YAESU_CMD_LENGTH);
@@ -713,7 +712,7 @@ static int ft920_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: read pacing = %i\n", __func__, priv->pacing);
 
-    err = write_block(&rig->state.rigport, priv->p_cmd, YAESU_CMD_LENGTH);
+    err = write_block(rp, priv->p_cmd, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
@@ -2632,7 +2631,7 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
         return err;
     }
 
-    n = read_block(&rig->state.rigport, priv->update_data, rl);
+    n = read_block(RIGPORT(rig), priv->update_data, rl);
 
     if (n < 0)
     {
@@ -2679,7 +2678,7 @@ static int ft920_send_static_cmd(RIG *rig, unsigned char ci)
         return -RIG_EINVAL;
     }
 
-    err = write_block(&rig->state.rigport, ncmd[ci].nseq, YAESU_CMD_LENGTH);
+    err = write_block(RIGPORT(rig), ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
     {
@@ -2744,7 +2743,7 @@ static int ft920_send_dynamic_cmd(RIG *rig, unsigned char ci,
     priv->p_cmd[P3] = p3;
     priv->p_cmd[P4] = p4;
 
-    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd,
+    err = write_block(RIGPORT(rig), (unsigned char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -2809,7 +2808,7 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, fmt, __func__, (int64_t)from_bcd(priv->p_cmd,
               FT920_BCD_DIAL) * 10);
 
-    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd,
+    err = write_block(RIGPORT(rig), (unsigned char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)
@@ -2893,7 +2892,7 @@ static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     priv->p_cmd[P1] = p1;               /* ick */
     priv->p_cmd[P2] = p2;
 
-    err = write_block(&rig->state.rigport, (unsigned char *) &priv->p_cmd,
+    err = write_block(RIGPORT(rig), (unsigned char *) &priv->p_cmd,
                       YAESU_CMD_LENGTH);
 
     if (err != RIG_OK)

@@ -19,6 +19,7 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
 {
     cJSON *node;
     char buf[1024];
+    struct rig_cache *cachep = CACHE(rig);
 
     cJSON *id_node = cJSON_CreateObject();
     cJSON_AddStringToObject(id_node, "model", rig->caps->model_name);
@@ -51,7 +52,7 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     }
 
     node = cJSON_AddBoolToObject(rig_node, "split",
-                                 rig->state.cache.split == RIG_SPLIT_ON ? 1 : 0);
+                                 cachep->split == RIG_SPLIT_ON ? 1 : 0);
 
     if (node == NULL)
     {
@@ -59,7 +60,7 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     }
 
     node = cJSON_AddStringToObject(rig_node, "splitVfo",
-                                   rig_strvfo(rig->state.cache.split_vfo));
+                                   rig_strvfo(cachep->split_vfo));
 
     if (node == NULL)
     {
@@ -67,7 +68,7 @@ static int snapshot_serialize_rig(cJSON *rig_node, RIG *rig)
     }
 
     node = cJSON_AddBoolToObject(rig_node, "satMode",
-                                 rig->state.cache.satmode ? 1 : 0);
+                                 cachep->satmode ? 1 : 0);
 
     if (node == NULL)
     {
@@ -111,6 +112,7 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
     int result;
     int is_rx, is_tx;
     cJSON *node;
+    struct rig_cache *cachep = CACHE(rig);
 
     // TODO: This data should match rig_get_info command response
 
@@ -148,14 +150,14 @@ static int snapshot_serialize_vfo(cJSON *vfo_node, RIG *rig, vfo_t vfo)
         }
     }
 
-    split = rig->state.cache.split;
-    split_vfo = rig->state.cache.split_vfo;
+    split = cachep->split;
+    split_vfo = cachep->split_vfo;
 
     is_rx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
             || (split == RIG_SPLIT_ON && vfo != split_vfo);
     is_tx = (split == RIG_SPLIT_OFF && vfo == rig->state.current_vfo)
             || (split == RIG_SPLIT_ON && vfo == split_vfo);
-    ptt = rig->state.cache.ptt && is_tx;
+    ptt = cachep->ptt && is_tx;
 
     if (is_tx)
     {
