@@ -456,7 +456,7 @@ int ft767_open(RIG *rig)
     struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
     int retval;
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(RIGPORT(rig));
 
     /* send 0 delay PACING cmd to rig  */
     retval = ft767_enter_CAT(rig);
@@ -1232,7 +1232,7 @@ int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             return -RIG_EINVAL;       /* sorry, wrong VFO */
         }
 
-        rig_flush(&rig->state.rigport);
+        rig_flush(RIGPORT(rig));
 
         retval = ft767_enter_CAT(rig);
 
@@ -1407,6 +1407,7 @@ int ft767_leave_CAT(RIG *rig)
 int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
 {
     struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    hamlib_port_t *rp = RIGPORT(rig);
     size_t replylen, cpycnt;
     unsigned char cmd_echo_buf[5];
     int retval;
@@ -1480,12 +1481,10 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
     }
 
     /* send the command block */
-    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    write_block(rp, cmd, YAESU_CMD_LENGTH);
 
     /* read back the command block echo */
-    retval = read_block(&rig->state.rigport,
-                        cmd_echo_buf,
-                        YAESU_CMD_LENGTH);
+    retval = read_block(rp, cmd_echo_buf, YAESU_CMD_LENGTH);
 
     if (retval < 0)
     {
@@ -1503,12 +1502,10 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
     }
 
     /* send the ACK */
-    write_block(&rig->state.rigport, priv->ack_cmd, YAESU_CMD_LENGTH);
+    write_block(rp, priv->ack_cmd, YAESU_CMD_LENGTH);
 
     /* read back the response (status bytes) */
-    retval = read_block(&rig->state.rigport,
-                        priv->rx_data,
-                        replylen);
+    retval = read_block(rp, priv->rx_data, replylen);
 
     // update data
     if (retval != replylen)
@@ -1545,7 +1542,7 @@ int ft767_get_update_data(RIG *rig)
     struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
     int retval;
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(RIGPORT(rig));
 
     /* Entering CAT updates our data structures */
     retval = ft767_enter_CAT(rig);
@@ -1576,7 +1573,7 @@ int ft767_set_split(RIG *rig, unsigned int split)
     int retval;
     unsigned int curr_split;
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(RIGPORT(rig));
 
     /* Entering CAT updates our data structures */
     retval = ft767_enter_CAT(rig);

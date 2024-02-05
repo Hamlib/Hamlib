@@ -35,18 +35,19 @@
 static int netrotctl_transaction(ROT *rot, char *cmd, int len, char *buf)
 {
     int ret;
+    hamlib_port_t *rotp = ROTPORT(rot);
 
     /* flush anything in the read buffer before command is sent */
-    rig_flush(&rot->state.rotport);
+    rig_flush(rotp);
 
-    ret = write_block(&rot->state.rotport, (unsigned char *) cmd, len);
+    ret = write_block(rotp, (unsigned char *) cmd, len);
 
     if (ret != RIG_OK)
     {
         return ret;
     }
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+    ret = read_string(rotp, (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
 
     if (ret < 0)
@@ -66,6 +67,7 @@ static int netrotctl_open(ROT *rot)
 {
     int ret;
     struct rot_state *rs = &rot->state;
+    hamlib_port_t *rotp = ROTPORT(rot);
     int prot_ver;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
@@ -85,7 +87,7 @@ static int netrotctl_open(ROT *rot)
     prot_ver = atoi(buf);
 #define ROTCTLD_PROT_VER 1
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+    ret = read_string(rotp, (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
 
     if (ret <= 0)
@@ -100,7 +102,7 @@ static int netrotctl_open(ROT *rot)
     {
         char setting[32], value[1024];
 
-        ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+        ret = read_string(rotp, (unsigned char *) buf, BUF_MAX, "\n",
                           sizeof("\n"), 0, 1);
 
         if (ret <= 0)
@@ -158,7 +160,7 @@ static int netrotctl_close(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* clean signoff, no read back */
-    write_block(&rot->state.rotport, (unsigned char *) "q\n", 2);
+    write_block(ROTPORT(rot), (unsigned char *) "q\n", 2);
 
     return RIG_OK;
 }
@@ -205,7 +207,7 @@ static int netrotctl_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     *az = atof(buf);
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX, "\n",
+    ret = read_string(ROTPORT(rot), (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
 
     if (ret <= 0)

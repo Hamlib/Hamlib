@@ -67,6 +67,7 @@ const struct confparams wj_cfg_params[] =
 static int wj_transaction(RIG *rig, int monitor)
 {
     struct wj_priv_data *priv = (struct wj_priv_data *)rig->state.priv;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     unsigned char buf[CMDSZ] = { 0x8, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     unsigned char rxbuf[CMDSZ];
@@ -169,9 +170,9 @@ static int wj_transaction(RIG *rig, int monitor)
 
     /* buf[9]: not used if command byte, but must be transmitted */
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
-    retval = write_block(&rig->state.rigport, buf, CMDSZ);
+    retval = write_block(rp, buf, CMDSZ);
 
     if (retval != RIG_OK)
     {
@@ -183,7 +184,7 @@ static int wj_transaction(RIG *rig, int monitor)
         /*
         * Transceiver sends back ">"
         */
-        retval = read_block(&rig->state.rigport, rxbuf, CMDSZ);
+        retval = read_block(rp, rxbuf, CMDSZ);
 
         if (retval < 0 || retval > CMDSZ)
         {

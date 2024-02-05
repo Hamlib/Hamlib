@@ -151,7 +151,7 @@ static int dummy_rot_init(ROT *rot)
         return -RIG_ENOMEM;
     }
 
-    rot->state.rotport.type.rig = RIG_PORT_NONE;
+    ROTPORT(rot)->type.rig = RIG_PORT_NONE;
 
     priv->az = priv->el = 0;
 

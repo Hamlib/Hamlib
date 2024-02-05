@@ -796,6 +796,7 @@ static int ft1000mp_cleanup(RIG *rig)
 static int ft1000mp_open(RIG *rig)
 {
     struct rig_state *rig_s;
+    hamlib_port_t *rp = RIGPORT(rig);
     struct ft1000mp_priv_data *p;
     unsigned char *cmd;           /* points to sequence to send */
 
@@ -805,10 +806,10 @@ static int ft1000mp_open(RIG *rig)
     p = (struct ft1000mp_priv_data *)rig_s->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rig_open: write_delay = %i msec \n", __func__,
-              rig_s->rigport.write_delay);
+              rp->write_delay);
     rig_debug(RIG_DEBUG_TRACE, "%s: rig_open: post_write_delay = %i msec \n",
               __func__,
-              rig_s->rigport.post_write_delay);
+              rp->post_write_delay);
 
     /*
      * Copy native cmd PACING  to private cmd storage area
@@ -819,7 +820,7 @@ static int ft1000mp_open(RIG *rig)
 
     /* send PACING cmd to rig  */
     cmd = p->p_cmd;
-    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    write_block(rp, cmd, YAESU_CMD_LENGTH);
 
     ft1000mp_get_vfo(rig, &rig->state.current_vfo);
     /* TODO */
@@ -881,7 +882,7 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
               (freq_t)from_bcd(p->p_cmd, 8) * 10);
 
     cmd = p->p_cmd;               /* get native sequence */
-    write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
 
     RETURNFUNC(RIG_OK);
 }
@@ -1308,11 +1309,10 @@ static int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
 static int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     struct ft1000mp_priv_data *priv;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     unsigned char *cmd;
 
     ENTERFUNC;
-    rs = &rig->state;
     priv = (struct ft1000mp_priv_data *)rig->state.priv;
 
     switch (func)
@@ -1329,7 +1329,7 @@ static int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         cmd = priv->p_cmd;
 
-        write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+        write_block(rp, cmd, YAESU_CMD_LENGTH);
         RETURNFUNC(RIG_OK);
 
     case RIG_FUNC_XIT:
@@ -1344,7 +1344,7 @@ static int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
         cmd = priv->p_cmd;
 
-        write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+        write_block(rp, cmd, YAESU_CMD_LENGTH);
         RETURNFUNC(RIG_OK);
 
     default:
@@ -1486,7 +1486,7 @@ static int ft1000mp_set_rxit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     priv->p_cmd[2] = direction;
 
     cmd = priv->p_cmd;               /* get native sequence */
-    write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+    write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
 
     RETURNFUNC(RIG_OK);
 }
@@ -1548,10 +1548,11 @@ static int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level,
 {
     struct ft1000mp_priv_data *priv;
     struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     unsigned char lvl_data[YAESU_CMD_LENGTH];
     int m;
     int retval;
-    int retry = rig->state.rigport.retry;
+    int retry = rp->retry;
 
     ENTERFUNC;
     rs = &rig->state;
@@ -1611,9 +1612,9 @@ static int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level,
 
     do
     {
-        write_block(&rs->rigport, priv->p_cmd, YAESU_CMD_LENGTH);
+        write_block(rp, priv->p_cmd, YAESU_CMD_LENGTH);
 
-        retval = read_block(&rs->rigport, lvl_data, YAESU_CMD_LENGTH);
+        retval = read_block(rp, lvl_data, YAESU_CMD_LENGTH);
     }
     while (retry-- && retval == -RIG_ETIMEOUT);
 
@@ -1688,7 +1689,7 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
     /* send UPDATE command to fetch data*/
     ft1000mp_send_priv_cmd(rig, ci);
 
-    n = read_block(&rig->state.rigport, p->update_data, rl);
+    n = read_block(RIGPORT(rig), p->update_data, rl);
 
     if (n == -RIG_ETIMEOUT)
     {
@@ -1717,7 +1718,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    write_block(&rig->state.rigport, ncmd[ci].nseq, YAESU_CMD_LENGTH);
+    write_block(RIGPORT(rig), ncmd[ci].nseq, YAESU_CMD_LENGTH);
 
     RETURNFUNC(RIG_OK);
 

@@ -67,15 +67,13 @@ int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                     int *data_len)
 {
     int retval;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
 
-    rs = &rig->state;
-
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
     set_transaction_active(rig);
 
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(rp, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -89,7 +87,7 @@ int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         return 0;
     }
 
-    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM,
+    retval = read_string(rp, (unsigned char *) data, BUFSZ, EOM,
                          strlen(EOM), 0, 1);
 
     set_transaction_inactive(rig);
@@ -1612,7 +1610,6 @@ int jrc_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 int jrc_decode_event(RIG *rig)
 {
     const struct jrc_priv_caps *priv = (struct jrc_priv_caps *)rig->caps->priv;
-    struct rig_state *rs;
     freq_t freq;
     rmode_t mode;
     pbwidth_t width;
@@ -1621,13 +1618,11 @@ int jrc_decode_event(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: jrc_decode called\n", __func__);
 
-    rs = &rig->state;
-
     /* "Iabdfg"CR */
     //#define SETUP_STATUS_LEN 17
 
-    //count = read_string(&rs->rigport, buf, SETUP_STATUS_LEN, "", 0);
-    count = read_string(&rs->rigport, (unsigned char *) buf, priv->info_len, "", 0,
+    //count = read_string(RIGPORT(rig), buf, SETUP_STATUS_LEN, "", 0);
+    count = read_string(RIGPORT(rig), (unsigned char *) buf, priv->info_len, "", 0,
                         0, 1);
 
     if (count < 0)

@@ -274,15 +274,13 @@ static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len,
                               char *data, int *data_len)
 {
     int retval;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     char ackbuf[BUFSZ];
     int ack_len;
 
-    rs = &rig->state;
+    rig_flush(rp);
 
-    rig_flush(&rs->rigport);
-
-    retval = write_block(&rs->rigport, (unsigned char *) cmd, cmd_len);
+    retval = write_block(rp, (unsigned char *) cmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -302,7 +300,7 @@ static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len,
     /*
      * Do wait for a reply
      */
-    retval = read_string(&rs->rigport, (unsigned char *) data, BUFSZ, EOM,
+    retval = read_string(rp, (unsigned char *) data, BUFSZ, EOM,
                          strlen(EOM), 0, 1);
 
     if (retval < 0)
@@ -324,7 +322,7 @@ static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len,
     if (data[0] == '?')
     {
         /* command failed? resync with radio */
-        write_block(&rs->rigport, (unsigned char *) EOM, 1);
+        write_block(rp, (unsigned char *) EOM, 1);
 
         return -RIG_EPROTO;
     }

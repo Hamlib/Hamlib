@@ -253,7 +253,7 @@ static int frg100_do_transaction(RIG *rig,
                                  const unsigned char cmd[YAESU_CMD_LENGTH],
                                  unsigned char *retbuf, size_t retbuf_len)
 {
-    struct rig_state    *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     unsigned char       default_retbuf[1];
     int                 retval;
 
@@ -263,15 +263,14 @@ static int frg100_do_transaction(RIG *rig,
         retbuf_len = sizeof(default_retbuf);
     }
 
-    rs = &rig->state;
     memset(retbuf, 0, retbuf_len);
 
-    rig_flush(&rs->rigport);
-    retval = write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+    rig_flush(rp);
+    retval = write_block(rp, cmd, YAESU_CMD_LENGTH);
 
     if (retval != RIG_OK) { return retval; }
 
-    retval = read_block(&rs->rigport, retbuf, retbuf_len);
+    retval = read_block(rp, retbuf, retbuf_len);
 
     if (retval != retbuf_len)
     {
@@ -353,7 +352,7 @@ int frg100_open(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     /* send 0 delay pacing */
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
 
 }
 
@@ -372,7 +371,7 @@ int frg100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd(cmd, freq / 10, 8);
 
     /* Frequency set */
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -384,7 +383,7 @@ int frg100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     /* fill in p1 */
     cmd[3] = mode2rig(rig, mode, width);
 
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -400,7 +399,7 @@ int frg100_set_powerstat(RIG *rig, powerstat_t status)
     cmd[3] = status == RIG_POWER_OFF ? 0x00 : 0x01;
 
     /* Frequency set */
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -428,7 +427,7 @@ int frg100_set_vfo(RIG *rig, vfo_t vfo)
         return -RIG_EINVAL;     /* sorry, wrong VFO */
     }
 
-    return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    return write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -436,16 +435,17 @@ int frg100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xf7};
     int retval;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     if (level != RIG_LEVEL_RAWSTR)
     {
         return -RIG_EINVAL;
     }
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
     /* send READ STATUS(Meter only) cmd to rig  */
-    retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+    retval = write_block(rp, cmd, YAESU_CMD_LENGTH);
 
     if (retval < 0)
     {
@@ -453,7 +453,7 @@ int frg100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     /* read back the 1 byte */
-    retval = read_block(&rig->state.rigport, cmd, 5);
+    retval = read_block(rp, cmd, 5);
 
     if (retval < 1)
     {

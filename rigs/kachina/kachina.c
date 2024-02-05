@@ -65,26 +65,24 @@
 static int kachina_transaction(RIG *rig, unsigned char cmd1, unsigned char cmd2)
 {
     int count, retval;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     unsigned char buf4[4];
-
-    rs = &rig->state;
 
     buf4[0] = STX;
     buf4[1] = cmd1;
     buf4[2] = cmd2;
     buf4[3] = ETX;
 
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
-    retval = write_block(&rs->rigport, buf4, 4);
+    retval = write_block(rp, buf4, 4);
 
     if (retval != RIG_OK)
     {
         return retval;
     }
 
-    count = read_string(&rs->rigport, buf4, 1, "", 0, 0, 1);
+    count = read_string(rp, buf4, 1, "", 0, 0, 1);
 
     if (count != 1)
     {
@@ -98,10 +96,8 @@ static int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data,
                            int data_len)
 {
     int cmd_len, count, retval;
-    struct rig_state *rs;
+    hamlib_port_t *rp = RIGPORT(rig);
     unsigned char buf[16];
-
-    rs = &rig->state;
 
     buf[0] = STX;
     buf[1] = cmd1;
@@ -110,16 +106,16 @@ static int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data,
 
     cmd_len = data_len + 3;
 
-    rig_flush(&rs->rigport);
+    rig_flush(rp);
 
-    retval = write_block(&rs->rigport, buf, cmd_len);
+    retval = write_block(rp, buf, cmd_len);
 
     if (retval != RIG_OK)
     {
         return retval;
     }
 
-    count = read_string(&rs->rigport, buf, 1, "", 0, 0, 1);
+    count = read_string(rp, buf, 1, "", 0, 0, 1);
 
     if (count != 1)
     {
@@ -229,6 +225,7 @@ int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int i, count;
     unsigned char buf[32];
+    hamlib_port_t *rp = RIGPORT(rig);
 
     static const char rcv_signal_range[128] =
     {
@@ -261,9 +258,9 @@ int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     /* telemetry sent to the PC automatically at a 50msec rate */
 
-    rig_flush(&rig->state.rigport);
+    rig_flush(rp);
 
-    count = read_string(&rig->state.rigport, buf, 31, rcv_signal_range,
+    count = read_string(rp, buf, 31, rcv_signal_range,
                         128, 0, 1);
 
     if (count < 1)

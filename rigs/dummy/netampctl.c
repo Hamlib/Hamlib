@@ -34,15 +34,16 @@
 static int netampctl_transaction(AMP *amp, char *cmd, int len, char *buf)
 {
     int ret;
+    hamlib_port_t *ampp = AMPPORT(amp);
 
-    ret = write_block(&amp->state.ampport, (unsigned char *) cmd, len);
+    ret = write_block(ampp, (unsigned char *) cmd, len);
 
     if (ret != RIG_OK)
     {
         return ret;
     }
 
-    ret = read_string(&amp->state.ampport, (unsigned char *) buf, BUF_MAX, "\n",
+    ret = read_string(ampp, (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
 
     if (ret < 0)
@@ -62,6 +63,7 @@ static int netampctl_open(AMP *amp)
 {
     int ret;
     //struct amp_state *rs = &amp->state;
+    hamlib_port_t *ampp = AMPPORT(amp);
     int pamp_ver;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
@@ -86,9 +88,10 @@ static int netampctl_open(AMP *amp)
         return -RIG_EPROTO;
     }
 
-    ret = read_string(&amp->state.ampport, (unsigned char *) buf, BUF_MAX, "\n",
+    ret = read_string(ampp, (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
 
+    
     if (ret <= 0)
     {
         return (ret < 0) ? ret : -RIG_EPROTO;
@@ -96,7 +99,7 @@ static int netampctl_open(AMP *amp)
 
     do
     {
-        ret = read_string(&amp->state.ampport, (unsigned char *) buf, BUF_MAX, "\n",
+        ret = read_string(ampp, (unsigned char *) buf, BUF_MAX, "\n",
                           sizeof("\n"), 0, 1);
 
         if (ret > 0)
@@ -120,7 +123,7 @@ static int netampctl_close(AMP *amp)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* clean signoff, no read back */
-    write_block(&amp->state.ampport, (unsigned char *) "q\n", 2);
+    write_block(AMPPORT(amp), (unsigned char *) "q\n", 2);
 
     return RIG_OK;
 }

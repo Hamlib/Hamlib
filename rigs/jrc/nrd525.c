@@ -151,12 +151,12 @@ struct rig_caps nrd525_caps =
 
 static int nrd525_open(RIG *rig)
 {
-    return write_block(&rig->state.rigport, (unsigned char *) "H1", 2);
+    return write_block(RIGPORT(rig), (unsigned char *) "H1", 2);
 }
 
 static int nrd525_close(RIG *rig)
 {
-    return write_block(&rig->state.rigport, (unsigned char *) "H0", 2);
+    return write_block(RIGPORT(rig), (unsigned char *) "H0", 2);
 }
 
 static int nrd525_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
@@ -165,7 +165,7 @@ static int nrd525_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     SNPRINTF(freqbuf, sizeof(freqbuf), "F%08u", (unsigned)(freq / 10));
 
-    return write_block(&rig->state.rigport, (unsigned char *) freqbuf,
+    return write_block(RIGPORT(rig), (unsigned char *) freqbuf,
                        strlen(freqbuf));
 }
 
@@ -194,7 +194,7 @@ static int nrd525_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return -RIG_EINVAL;
     }
 
-    retval = write_block(&rig->state.rigport, (unsigned char *) modestr,
+    retval = write_block(RIGPORT(rig), (unsigned char *) modestr,
                          strlen(modestr));
 
     if (retval != RIG_OK)
@@ -219,11 +219,11 @@ static int nrd525_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_ATT:
-        return write_block(&rig->state.rigport,
+        return write_block(RIGPORT(rig),
                            (unsigned char *)(val.i != 0 ? "A1" : "A0"), 2);
 
     case RIG_LEVEL_AGC:
-        return write_block(&rig->state.rigport,
+        return write_block(RIGPORT(rig),
                            (unsigned char *)(val.i == RIG_AGC_SLOW ? "G0" :
                                              (val.i == RIG_AGC_FAST ? "G1" : "G2")), 2);
 
@@ -238,7 +238,7 @@ static int nrd525_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     SNPRINTF(membuf, sizeof(membuf), "C%03d", ch);
 
-    return write_block(&rig->state.rigport, (unsigned char *) membuf,
+    return write_block(RIGPORT(rig), (unsigned char *) membuf,
                        strlen(membuf));
 }
 
@@ -247,7 +247,7 @@ static int nrd525_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     switch (op)
     {
     case RIG_OP_FROM_VFO:
-        return write_block(&rig->state.rigport, (unsigned char *) "E1", 2);
+        return write_block(RIGPORT(rig), (unsigned char *) "E1", 2);
 
     default:
         return -RIG_EINVAL;
