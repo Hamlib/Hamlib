@@ -2030,6 +2030,8 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         if (vfo == RIG_VFO_A && (currvfo == RIG_VFO_MAIN || currvfo == RIG_VFO_MAIN_A))
         {
             vfo = RIG_VFO_MAIN_A;
+            // only have Main/Sub when in satmode
+            if (rig->state.cache.satmode) vfo = RIG_VFO_MAIN;
         }
         else if (vfo == RIG_VFO_B && (currvfo == RIG_VFO_MAIN
                                       || currvfo == RIG_VFO_MAIN_A))
@@ -3047,7 +3049,11 @@ int rig_test_2038(RIG *rig)
 {
     time_t x;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: enter\n", __func__);
+#if defined(_TIME_BITS)
+    rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=64 testing enabled\n", __func__);
+#else
+    rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=64 testing not enabled\n", __func__);
+#endif
 
     if (sizeof(time_t) == 4)
     {
