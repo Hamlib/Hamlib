@@ -67,7 +67,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
     char    string[256];
     int i, r;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called LIBUSB_API_VERSION=%x\n", __func__, LIBUSB_API_VERSION);
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: looking for device %04x:%04x...",
