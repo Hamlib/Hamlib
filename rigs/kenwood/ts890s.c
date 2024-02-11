@@ -194,16 +194,13 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         levelint = ackbuf[2] - '0';  /* atoi */
 
-        if (levelint >= 0 && levelint < rig->caps->agc_level_count)
-        {
-            val->i = rig->caps->agc_levels[levelint];
-        }
-        else
+        if (levelint < 0 || levelint >= rig->caps->agc_level_count)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unknown agc value: %s\n", __func__, ackbuf);
             return -RIG_EPROTO;
         }
 
+        val->i = rig->caps->agc_levels[levelint];
         return RIG_OK;
 
     case RIG_LEVEL_ALC:
@@ -292,7 +289,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
         cal_table_float_t *table;
-        ptt_t ptt;
+        ptt_t ptt = RIG_PTT_OFF;
         /* Values taken from the TS-890S In-Depth Manual (IDM), p. 8
          * 0.03 - 21.5 MHz, Preamp 1
          */
@@ -360,7 +357,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
         {
-            val->f = rig_raw2val(val->i, &power_meter);
+            val->f = roundf(rig_raw2val(val->i, &power_meter));
         }
         else
         {
@@ -476,7 +473,6 @@ static struct kenwood_priv_caps ts890s_priv_caps =
 
 /*
  * TS-890S rig capabilities
- * Copied from ts480_caps, many of the values have not been verified.
  * Notice that some rigs share the same functions.
  */
 struct rig_caps ts890s_caps =
