@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20240204"
+#define BACKEND_VER "20240211"
 
 #define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
 #define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
@@ -293,7 +293,9 @@ struct icom_priv_data
     int vfo_flag; // used to skip vfo check when frequencies are equal
     int dual_watch_main_sub; // 0=main, 1=sub
     int tone_enable;         /*!< Re-enable tone after freq change -- IC-705 bug with gpredict */
-    int filternum;           /*!< Filter number to use when setting mode */
+    int filter_usbd;         /*!< Filter number to use for USBD/LSBD when setting mode */
+    int filter_usb;          /*!< Filter number to use for USB/LSB when setting mode */
+    int filter_cw;           /*!< Filter number to use for CW/CWR when setting mode */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];

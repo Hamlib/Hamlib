@@ -437,7 +437,9 @@ struct icom_addr
 #define TOK_MODE731 TOKEN_BACKEND(2)
 #define TOK_NOXCHG TOKEN_BACKEND(3)
 #define TOK_TONE_ENABLE TOKEN_BACKEND(4)
-#define TOK_FILTERNUM TOKEN_BACKEND(5)
+#define TOK_FILTER_USBD TOKEN_BACKEND(5)
+#define TOK_FILTER_USB TOKEN_BACKEND(6)
+#define TOK_FILTER_CW TOKEN_BACKEND(7)
 
 const struct confparams icom_cfg_params[] =
 {
@@ -461,7 +463,15 @@ const struct confparams icom_cfg_params[] =
         "0", RIG_CONF_CHECKBUTTON
     },
     {
-        TOK_FILTERNUM, "filternum", "Filter to use", "Filter to use when setting mode",
+        TOK_FILTER_USBD, "filter_usbd", "Filter to use USBD", "Filter to use for USBD/LSBD when setting mode",
+        "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
+    },
+    {
+        TOK_FILTER_USB, "filter_usb", "Filter to use USB", "Filter to use when for USB/LSB setting mode",
+        "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
+    },
+    {
+        TOK_FILTER_CW, "filter_cw", "Filter to use CW", "Filter to use for CW/CWR when setting mode",
         "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
     },
     {RIG_CONF_END, NULL,}
@@ -2256,7 +2266,8 @@ static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len,
     return RIG_OK;
 }
 
-static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
+static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
+                             rmode_t icom_mode, int datamode,
                              int filter)
 {
     struct icom_priv_data *priv = rig->state.priv;
@@ -2274,13 +2285,32 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode, int datamode,
     }
 
     icom_get_mode_x26(rig, vfo, &mode_len, mode_buf);
-    buf[0] = mode;
+    buf[0] = icom_mode;
     buf[1] = datamode;
     // Skip filter selection, because at least IC-7300 has a bug defaulting to filter 2 when changing mode
     // Tested on IC-7300 and IC-9700
     buf[2] = priv->filter;
-    if (priv->filternum > 0) buf[2] = priv->filternum; // override with requested filternum
-    // buf[2] = 1;
+    rig_debug(RIG_DEBUG_TRACE, "%s: mode=%ld, filters usbd=%d, usb=%d, cw=%d\n",
+              __func__, mode, priv->filter_usbd, priv->filter_usb, priv->filter_cw);
+
+    if (priv->filter_usbd > 0 && (mode == RIG_MODE_PKTUSB
+                                  || mode == RIG_MODE_PKTLSB))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: filter usbd=%d\n", __func__, priv->filter_usbd);
+        buf[2] = priv->filter_usbd;
+    }
+
+    if (priv->filter_usb > 0 && (mode == RIG_MODE_USB || mode == RIG_MODE_LSB))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: filter usb=%d\n", __func__, priv->filter_usb);
+        buf[2] = priv->filter_usb;
+    }
+
+    if (priv->filter_cw > 0 && (mode == RIG_MODE_CW || mode == RIG_MODE_CWR))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: filter cw=%d\n", __func__, priv->filter_cw);
+        buf[2] = priv->filter_cw;
+    }
 
     int vfo_number = icom_get_vfo_number_x25x26(rig, vfo);
 
@@ -2457,7 +2487,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             }
             else
             {
-                retval = icom_set_mode_x26(rig, vfo, mode_icom, datamode[0], datamode[1]);
+                retval = icom_set_mode_x26(rig, vfo, mode, mode_icom, datamode[0], datamode[1]);
             }
 
             if (retval != RIG_OK)
@@ -2490,7 +2520,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
     }
 
-    if ((width != RIG_PASSBAND_NOCHANGE) && (width != current_width))
+    if (((width != RIG_PASSBAND_NOCHANGE) && (width != current_width))
+            || (priv->filter_usbd > 0 || priv->filter_usb > 0 || priv->filter_cw > 0))
     {
         icom_set_dsp_flt(rig, mode, width);
     }
@@ -5020,10 +5051,31 @@ int icom_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         priv->tone_enable = atoi(val) ? 1 : 0;
         break;
 
-    case TOK_FILTERNUM:
-        priv->filternum = atoi(val);
-        if (priv->filternum > 3) priv->filternum = 3;
-        if (priv->filternum < 1) priv->filternum = 1;
+    case TOK_FILTER_USBD:
+        priv->filter_usbd = atoi(val);
+
+        if (priv->filter_usbd > 3) { priv->filter_usbd = 3; }
+
+        if (priv->filter_usbd < 1) { priv->filter_usbd = 1; }
+
+        break;
+
+    case TOK_FILTER_USB:
+        priv->filter_usb = atoi(val);
+
+        if (priv->filter_usb > 3) { priv->filter_usb = 3; }
+
+        if (priv->filter_usb < 1) { priv->filter_usb = 1; }
+
+        break;
+
+    case TOK_FILTER_CW:
+        priv->filter_cw = atoi(val);
+
+        if (priv->filter_cw > 3) { priv->filter_cw = 3; }
+
+        if (priv->filter_cw < 1) { priv->filter_cw = 1; }
+
         break;
 
     default:
