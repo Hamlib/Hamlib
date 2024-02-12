@@ -3049,8 +3049,12 @@ int rig_test_2038(RIG *rig)
 {
     time_t x;
 
-#if defined(_TIME_BITS)
-    rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=64 testing enabled\n", __func__);
+#if defined(_TIME_BITS) 
+#if defined(__GLIBC_MINOR__)
+    rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=%d, __TIMESIZE=%d testing enabled for GLIBC %d.%d\n", __func__, _TIME_BITS, __TIMESIZE, __GLIBC__, __GLIBC_MINOR__);
+#else
+    rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=64 testing enabled for unknown libc\n", __func__);
+#endif
 #else
     rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=64 testing not enabled\n", __func__);
 #endif
