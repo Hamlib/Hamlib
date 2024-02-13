@@ -1035,6 +1035,8 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
         {
             val->f *= 100;
+            if (val->f >= 10) val->f = roundf(val->f);
+            else val->f = roundf(val->f*10.0)/10.0;
         }
 
         break;
@@ -1701,7 +1703,7 @@ struct rig_caps ts590_caps =
     RIG_MODEL(RIG_MODEL_TS590S),
     .model_name = "TS-590S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".14",
+    .version = BACKEND_VER ".15",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
