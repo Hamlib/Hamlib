@@ -21,8 +21,6 @@ struct ip_mreq
 
 int mysleep = 20;
 
-float freqA = 14074000;
-float freqB = 14074500;
 int filternum1 = 7;
 int filternum2 = 8;
 int datamode = 0;
@@ -108,11 +106,44 @@ int main(int argc, char *argv[])
     int fd = openPort(argv[1]);
     int freqa = 14074000, freqb = 140735000;
     int modeA = 1, modeB = 2;
+    int cmd_err = 0;
+    char *err_txt[] = { "?;", "E;", "O;" };
+    /* The IF command is not documented for the TS-890S, and is supposed
+     *  to be supplanted by SF. However, it is still there for legacy S/W.
+     *  This description is taken from the TS-590S/SG manual, with values
+     *  reflecting a real TS-890S.
+     */
+    char IFformat[] = "IF" // Output only
+      "%011d"       // P1 freq(Hz)
+      "     "       // P2 ??
+      " 0000"       // P3 RIT/XIT freq(Hz)
+      "0"           // P4 RIT on/off
+      "0"           // P5 XIT on/off
+      "000"         // P6,P7 mem channel
+      "%1d"         // P8 RX/TX
+      "%1X"         // P9 Operating mode (See MD command)
+      "0"           // P10 Function?
+      "0"           // P11 Scan status?
+      "0"           // P12 Simplex/Split
+      "0"           // P13 Tone/CTCSS (not on TS-890S)
+      "00"          // P14 Tone/CTCSS freq (not on TS-890S)
+      "0;";         // P15 Always zero
+    char SFformat[] = "SF" // Input/Output
+      "%1d"         // P1 VFOA/VFOB
+      "%011d"       // P2 Freq(Hz)
+      "%1X;";       // P3 Mode
 
     while (1)
     {
         hl_usleep(10);
         buf[0] = 0;
+
+        /* Clean up from last continue - pass along any errors found */
+        if (cmd_err != 0)
+        {
+            write(fd, err_txt[cmd_err - 1], strlen(err_txt[cmd_err - 1]));
+            cmd_err = 0;
+        }
 
         if (getmyline(fd, buf) > 0) { printf("Cmd:%s\n", buf); }
 
@@ -144,7 +175,9 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             hl_usleep(mysleep * 1000);
 //            pbuf = "IF000503130001000+0000000000030000000;"
-            sprintf(ifbuf, "IF%011d1000+0000002000000000000;", freqa);
+//            sprintf(ifbuf, "IF%011d1000+0000002000000000000;", freqa);
+            sprintf(ifbuf, IFformat, freqa,
+		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, modeA);
             //pbuf = "IF00010138698     +00000000002000000 ;
             write(fd, ifbuf, strlen(ifbuf));
             continue;
@@ -297,21 +330,38 @@ int main(int argc, char *argv[])
         }
         else if (buf[3] == ';' && strncmp(buf, "SF", 2) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "SF%c%011.0f%c;", buf[2],
-                     buf[2] == '0' ? freqA : freqB,
-                     buf[2] == '0' ? modeA + '0' : modeB + '0');
+            int tmpvfo = buf[2] - '0';
+            SNPRINTF(buf, sizeof(buf), SFformat, tmpvfo,
+                     tmpvfo == 0 ? freqa : freqb,
+                     tmpvfo == 0 ? modeA : modeB);
             write(fd, buf, strlen(buf));
             continue;
         }
         else if (strncmp(buf, "SF", 2) == 0)
         {
-            mode_t tmpmode = buf[14];
+            int tmpvfo, tmpfreq;
+            mode_t tmpmode;
 
-            if (buf[2] == '0') { modeA = tmpmode - '0'; }
-            else { modeB = tmpmode - '0'; }
+            if (sscanf(buf, SFformat, &tmpvfo, &tmpfreq, &tmpmode) != 3)
+            {
+                printf("Error decoding SF:%s\n", buf);
+                cmd_err = 1;
+                continue;
+            }
 
-            printf("modeA=%c, modeB=%c\n", modeA, modeB);
+            //printf("tmpvfo=%d, tmpfreq=%d, tmpmode=%d\n", tmpvfo, tmpfreq, tmpmode);
+            if (tmpvfo == 0)
+            {
+                modeA = tmpmode;
+                freqa = tmpfreq;
+            }
+	    else
+            {
+                modeB = tmpmode;
+                freqb = tmpfreq;
+            }
 
+            printf("modeA=%X, modeB=%X\n", modeA, modeB);
             continue;
         }
         else if (strncmp(buf, "MD;", 3) == 0)
@@ -453,7 +503,6 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
         }
-
 
     }
 
