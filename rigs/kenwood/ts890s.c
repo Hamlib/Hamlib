@@ -311,18 +311,20 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         };
         static cal_table_t power_meter =
         {
-	    7, { { 0, 0}, { 5, 5}, { 10, 10}, {19, 25},
-	         { 35, 50}, { 59, 100}, { 70, 150}
-	    }
+            7, { { 0, 0}, { 5, 5}, { 10, 10}, {19, 25},
+                { 35, 50}, { 59, 100}, { 70, 150}
+            }
         };
 
         /* Make sure we're asking the right question */
         kenwood_get_ptt(rig, vfo, &ptt);
+
         if ((ptt == RIG_PTT_OFF) != (level == RIG_LEVEL_STRENGTH))
-          {
+        {
             /* We're sorry, the number you have dialed is not in service */
             return -RIG_ENAVAIL;
-          }
+        }
+
         /* Find out which meter type is in use */
         retval = kenwood_safe_transaction(rig, "EX00011", ackbuf, sizeof(ackbuf), 11);
 
@@ -357,7 +359,14 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
         {
-            val->f = roundf(rig_raw2val(val->i, &power_meter));
+            if (val->f >= 10)
+            {
+                val->f = roundf(rig_raw2val(val->i, &power_meter));
+            }
+            else
+            {
+                val->f = roundf(rig_raw2val(val->i, &power_meter) * 10.0) / 10.0;
+            }
         }
         else
         {
@@ -480,7 +489,7 @@ struct rig_caps ts890s_caps =
     RIG_MODEL(RIG_MODEL_TS890S),
     .model_name = "TS-890S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".13",
+    .version = BACKEND_VER ".14",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
