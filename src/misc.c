@@ -2030,8 +2030,9 @@ vfo_t HAMLIB_API vfo_fixup(RIG *rig, vfo_t vfo, split_t split)
         if (vfo == RIG_VFO_A && (currvfo == RIG_VFO_MAIN || currvfo == RIG_VFO_MAIN_A))
         {
             vfo = RIG_VFO_MAIN_A;
+
             // only have Main/Sub when in satmode
-            if (rig->state.cache.satmode) vfo = RIG_VFO_MAIN;
+            if (rig->state.cache.satmode) { vfo = RIG_VFO_MAIN; }
         }
         else if (vfo == RIG_VFO_B && (currvfo == RIG_VFO_MAIN
                                       || currvfo == RIG_VFO_MAIN_A))
@@ -3049,14 +3050,22 @@ int rig_test_2038(RIG *rig)
 {
     time_t x;
 
-#if defined(_TIME_BITS) 
+#if defined(_TIME_BITS)
 #if defined(__GLIBC_MINOR__)
-    rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=%d, __TIMESIZE=%d testing enabled for GLIBC %d.%d\n", __func__, _TIME_BITS, __TIMESIZE, __GLIBC__, __GLIBC_MINOR__);
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: enter _TIME_BITS=%d, __TIMESIZE=%d testing enabled for GLIBC %d.%d\n",
+              __func__, _TIME_BITS, __TIMESIZE, __GLIBC__, __GLIBC_MINOR__);
 #else
-    rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=64 testing enabled for unknown libc\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: enter _TIME_BITS=64 testing enabled for unknown libc\n", __func__);
 #endif
 #else
-    rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=64 testing not enabled\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: enter _TIME_BITS=64 testing not enabled\n",
+              __func__);
+#endif
+#if defined(__MSVCRT_VERSION__)
+    rig_debug(RIG_DEBUG_ERR, "%s: __MSVCRT_VERSION__=0x%04x\n", __func__,
+              __MSVCRT_VERSION__);
 #endif
 
     if (sizeof(time_t) == 4)
@@ -3065,10 +3074,23 @@ int rig_test_2038(RIG *rig)
         return 1;
     }
 
+    int failed = 0;
+#if defined(__MSVCRT_VERSION__)
+    x = (__time64_t)((1U << 31) - 1);
+    char s[64];
+    _ctime64_s(s, sizeof(s), &x);
+
+    if (strlen(s) == 0) { failed = 1; }
+
+#else
     x = (time_t)((1U << 31) - 1);
     char *s = ctime(&x);
 
-    if (s == NULL)
+    if (s == NULL) { failed = 1; }
+
+#endif
+
+    if (failed)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: ctime is null, 2038 test failed\n", __func__);
         return 1;
@@ -3077,12 +3099,20 @@ int rig_test_2038(RIG *rig)
     if (!strstr(s, "2038")) { return 1; }
 
     x += 1;
+#if defined(__MSVCRT_VERSION__)
+    _ctime64_s(s, sizeof(s), &x);
+#else
     s = ctime(&x);
+#endif
 
     if (!strstr(s, "2038")) { return 1; }
 
     x += 1;
+#if defined(__MSVCRT_VERSION__)
+    _ctime64_s(s, sizeof(s), &x);
+#else
     s = ctime(&x);
+#endif
 
     if (!strstr(s, "2038")) { return 1; }
 
