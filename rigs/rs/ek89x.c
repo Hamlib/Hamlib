@@ -518,7 +518,7 @@ struct rig_caps ek89x_caps =
     .mfg_name = "Rohde&Schwarz",
     .version = "20220813.0",
     .copyright = "LGPL",
-    .status = RIG_STATUS_BETA,
+    .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_RECEIVER,
     .ptt_type = RIG_PTT_NONE,
     // Need to set RTS on for some reason
