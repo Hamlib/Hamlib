@@ -3076,7 +3076,7 @@ int rig_test_2038(RIG *rig)
 
     int failed = 0;
 #if defined(__MSVCRT_VERSION__)
-    x = (__time64_t)((1U << 31) - 1);
+    x = (__time64_t)((1UL << 31) - 1);
     char s[64];
     _ctime64_s(s, sizeof(s), &x);
 
