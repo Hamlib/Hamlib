@@ -3064,7 +3064,7 @@ int rig_test_2038(RIG *rig)
               __func__);
 #endif
 #if defined(__MSVCRT_VERSION__)
-    rig_debug(RIG_DEBUG_ERR, "%s: __MSVCRT_VERSION__=0x%04x\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: __MSVCRT_VERSION__=0x%04x\n", __func__,
               __MSVCRT_VERSION__);
 #endif
 
