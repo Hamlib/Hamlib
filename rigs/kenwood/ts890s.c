@@ -359,14 +359,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
         {
-            if (val->f >= 10)
-            {
-                val->f = roundf(rig_raw2val(val->i, &power_meter));
-            }
-            else
-            {
-                val->f = roundf(rig_raw2val(val->i, &power_meter) * 10.0) / 10.0;
-            }
+            val->f = roundf(rig_raw2val(val->i, &power_meter));
         }
         else
         {
