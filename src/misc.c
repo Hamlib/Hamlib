@@ -2826,6 +2826,7 @@ char *date_strget(char *buf, int buflen, int localtime)
     struct tm result = { 0, 0, 0, 0, 0, 0, 0, 0, 0};
     int mytimezone;
 
+    // 2038 failure here for 32-bit time_t
     t = time(NULL);
 
     if (localtime)
@@ -3068,12 +3069,6 @@ int rig_test_2038(RIG *rig)
               __MSVCRT_VERSION__);
 #endif
 
-    if (sizeof(time_t) == 4)
-    {
-        rig_debug(RIG_DEBUG_TRACE, "%s: ctime is null, 2038 test failed\n", __func__);
-        return 1;
-    }
-
     int failed = 0;
 #if defined(__MSVCRT_VERSION__)
     x = (__time64_t)((1UL << 31) - 1);
@@ -3082,11 +3077,25 @@ int rig_test_2038(RIG *rig)
 
     if (strlen(s) == 0) { failed = 1; }
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: MSVCRT 2038 test = 0x%08lx:%s\n", __func__, x,
+              s);
+
 #else
-    x = (time_t)((1U << 31) - 1);
+
+    if (sizeof(time_t) == 4)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: time_t is 4 bytes, 2038 test failed\n",
+                  __func__);
+        return 1;
+    }
+
+    x = (time_t)((1U << 63) - 1);
     char *s = ctime(&x);
 
     if (s == NULL) { failed = 1; }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: time_t 2038 test = 0x%08lx:%s", __func__, x,
+              s);
 
 #endif
 
