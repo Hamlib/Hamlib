@@ -85,6 +85,8 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
         }
     }
 
+    if (rawval == cal->table[i - 1].raw)
+        return cal->table[i-1].val;
     if (i == 0)
     {
         return cal->table[0].val;
