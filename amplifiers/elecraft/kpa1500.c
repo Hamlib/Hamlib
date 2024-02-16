@@ -109,7 +109,6 @@ const struct amp_caps kpa1500_amp_caps =
 
 static int kpa1500_send_priv_cmd(AMP *amp, const char *cmdstr)
 {
-    struct amp_state *rs;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -119,8 +118,7 @@ static int kpa1500_send_priv_cmd(AMP *amp, const char *cmdstr)
         return -RIG_EINVAL;
     }
 
-    rs = &amp->state;
-    err = write_block(&rs->ampport, cmdstr, strlen(cmdstr));
+    err = write_block(AMPPORT(amp), cmdstr, strlen(cmdstr));
 
     if (err != RIG_OK)
     {
