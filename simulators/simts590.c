@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
         {
             printf("%s\n", buf);
             hl_usleep(mysleep * 1000);
-            pbuf = "RM5100000;";
+            pbuf = "RM50005;";
             WRITE(fd, pbuf, strlen(pbuf));
         }
 
