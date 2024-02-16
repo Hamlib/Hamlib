@@ -33,7 +33,7 @@
 static int
 if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    hamlib_port_t *port = &rot->state.rotport;
+    hamlib_port_t *port = ROTPORT(rot);
     int retval;
     int az_i;
     int el_i;
