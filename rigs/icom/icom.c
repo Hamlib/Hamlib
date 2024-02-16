@@ -2290,8 +2290,8 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
     // Skip filter selection, because at least IC-7300 has a bug defaulting to filter 2 when changing mode
     // Tested on IC-7300 and IC-9700
     buf[2] = priv->filter;
-    rig_debug(RIG_DEBUG_TRACE, "%s: mode=%ld, filters usbd=%d, usb=%d, cw=%d\n",
-              __func__, mode, priv->filter_usbd, priv->filter_usb, priv->filter_cw);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: mode=%ld, filters usbd=%d, usb=%d, cw=%d\n",
+    //          __func__, mode, priv->filter_usbd, priv->filter_usb, priv->filter_cw);
 
     if (priv->filter_usbd > 0 && (mode == RIG_MODE_PKTUSB
                                   || mode == RIG_MODE_PKTLSB))
