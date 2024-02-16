@@ -71,7 +71,7 @@
  */
 #define CHKPPRET(a) \
     do { int _retval = a; if (_retval != RIG_OK) \
-        {par_unlock (&rot->state.rotport);return _retval; }} while(0)
+        {par_unlock (ROTPORT(rot));return _retval; }} while(0)
 
 static int ars_init(ROT *rot);
 static int ars_cleanup(ROT *rot);
@@ -91,7 +91,7 @@ static void *handle_set_position(void *);
 
 static int ars_clear_ctrl_pin(ROT *rot, unsigned char pin)
 {
-    hamlib_port_t *pport = &rot->state.rotport;
+    hamlib_port_t *pport = ROTPORT(rot);
     struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
 
     priv->pp_control &= ~pin;
@@ -101,7 +101,7 @@ static int ars_clear_ctrl_pin(ROT *rot, unsigned char pin)
 
 static int ars_set_ctrl_pin(ROT *rot, unsigned char pin)
 {
-    hamlib_port_t *pport = &rot->state.rotport;
+    hamlib_port_t *pport = ROTPORT(rot);
     struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
 
     priv->pp_control |= pin;
@@ -111,7 +111,7 @@ static int ars_set_ctrl_pin(ROT *rot, unsigned char pin)
 
 static int ars_clear_data_pin(ROT *rot, unsigned char pin)
 {
-    hamlib_port_t *pport = &rot->state.rotport;
+    hamlib_port_t *pport = ROTPORT(rot);
     struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
 
     priv->pp_data &= ~pin;
@@ -121,7 +121,7 @@ static int ars_clear_data_pin(ROT *rot, unsigned char pin)
 
 static int ars_set_data_pin(ROT *rot, unsigned char pin)
 {
-    hamlib_port_t *pport = &rot->state.rotport;
+    hamlib_port_t *pport = ROTPORT(rot);
     struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
 
     priv->pp_data |= pin;
@@ -235,7 +235,7 @@ int
 ars_stop(ROT *rot)
 {
     struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
-    hamlib_port_t *pport = &rot->state.rotport;
+    hamlib_port_t *pport = ROTPORT(rot);
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, brake was %s\n", __func__,
               priv->brake_off ? "OFF" : "ON");
@@ -265,7 +265,7 @@ int
 ars_move(ROT *rot, int direction, int speed)
 {
     struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
-    hamlib_port_t *pport = &rot->state.rotport;
+    hamlib_port_t *pport = ROTPORT(rot);
     int need_settle_delay = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called%s%s%s%s%s\n", __func__,
@@ -608,7 +608,7 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     const struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
     struct rot_state *rs = &rot->state;
-    hamlib_port_t *pport = &rs->rotport;
+    hamlib_port_t *pport = ROTPORT(rot);
     int i, num_sample;
     unsigned az_samples[NUM_SAMPLES], az_value;
     unsigned el_samples[NUM_SAMPLES], el_value;

@@ -50,20 +50,18 @@ static int
 celestron_transaction(ROT *rot, const char *cmdstr,
                       char *data, size_t data_len)
 {
-    struct rot_state *rs;
+    hamlib_port_t *rotp = ROTPORT(rot);
     int retval;
     int retry_read = 0;
     char replybuf[BUFSZ];
 
-    rs = &rot->state;
-
 transaction_write:
 
-    rig_flush(&rs->rotport);
+    rig_flush(rotp);
 
     if (cmdstr)
     {
-        retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
+        retval = write_block(rotp, (unsigned char *) cmdstr, strlen(cmdstr));
 
         if (retval != RIG_OK)
         {
@@ -84,12 +82,12 @@ transaction_write:
 
     /* the answer */
     memset(data, 0, data_len);
-    retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
+    retval = read_string(rotp, (unsigned char *) data, data_len,
                          ACK, strlen(ACK), 0, 1);
 
     if (retval < 0)
     {
-        if (retry_read++ < rot->state.rotport.retry)
+        if (retry_read++ < rotp->retry)
         {
             goto transaction_write;
         }

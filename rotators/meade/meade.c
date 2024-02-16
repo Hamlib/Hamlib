@@ -96,20 +96,18 @@ struct meade_priv_data
 static int meade_transaction(ROT *rot, const char *cmdstr,
                              char *data, size_t *data_len, size_t expected_return_length)
 {
-    struct rot_state *rs;
+    hamlib_port_t *rotp = ROTPORT(rot);
     int return_value;
     int retry_read = 0;
-
-    rs = &rot->state;
 
     while (1)
     {
 transaction:
-        rig_flush(&rs->rotport);
+        rig_flush(rotp);
 
         if (cmdstr)
         {
-            return_value = write_block(&rs->rotport, (unsigned char *) cmdstr,
+            return_value = write_block(rotp, (unsigned char *) cmdstr,
                                        strlen(cmdstr));
 
             if (return_value != RIG_OK)
@@ -123,7 +121,7 @@ transaction:
            return value is expected, Strings end with '#' */
         if (data != NULL)
         {
-            return_value = read_string(&rs->rotport, (unsigned char *) data,
+            return_value = read_string(rotp, (unsigned char *) data,
                                        expected_return_length + 1,
                                        "\r\n", strlen("\r\n"), 0, 1);
 
@@ -134,7 +132,7 @@ transaction:
             }
             else
             {
-                if (retry_read++ >= rot->state.rotport.retry)
+                if (retry_read++ >= rotp->retry)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: read_string error %s\n", __func__,
                               rigerror(return_value));
@@ -173,7 +171,7 @@ static int meade_init(ROT *rot)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called version %s\n", __func__,
               rot->caps->version);
-    rot->state.rotport.type.rig = RIG_PORT_SERIAL;
+    ROTPORT(rot)->type.rig = RIG_PORT_SERIAL;
 
     priv->az = priv->el = 0;
 
