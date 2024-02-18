@@ -306,7 +306,6 @@ static int spid_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 static int spid_rot1prog_rot_set_position(ROT *rot, azimuth_t az,
         elevation_t el)
 {
-    struct rot_state *rs = &rot->state;
     int retval;
     char cmdstr[13];
     unsigned int u_az;
@@ -329,7 +328,7 @@ static int spid_rot1prog_rot_set_position(ROT *rot, azimuth_t az,
     cmdstr[11] = 0x2F;                      /* K   */
     cmdstr[12] = 0x20;                      /* END */
 
-    retval = spid_write(&rs->rotport, (unsigned char *) cmdstr, 13);
+    retval = spid_write(ROTPORT(rot), (unsigned char *) cmdstr, 13);
 
     if (retval != RIG_OK)
     {
@@ -343,6 +342,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
         elevation_t el)
 {
     struct rot_state *rs = &rot->state;
+    hamlib_port_t *rotp = ROTPORT(rot);
     const  struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
             rs->priv;
     int retval;
@@ -356,7 +356,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
     {
         do
         {
-            retval = spid_write(&rs->rotport,
+            retval = spid_write(rotp,
                                 (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
             if (retval != RIG_OK)
@@ -365,9 +365,9 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
             }
 
             memset(cmdstr, 0, 12);
-            retval = read_r2p_frame(&rs->rotport, (unsigned char *) cmdstr, 12);
+            retval = read_r2p_frame(rotp, (unsigned char *) cmdstr, 12);
         }
-        while (retval < 0 && retry_read++ < rot->state.rotport.retry);
+        while (retval < 0 && retry_read++ < rotp->retry);
 
         if (retval < 0)
         {
@@ -397,7 +397,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
     cmdstr[11] = 0x2F;                      /* K   */
     cmdstr[12] = 0x20;                      /* END */
 
-    retval = spid_write(&rs->rotport, (unsigned char *) cmdstr, 13);
+    retval = spid_write(rotp, (unsigned char *) cmdstr, 13);
 
     if (retval != RIG_OK)
     {
@@ -412,9 +412,9 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
 
         do
         {
-            retval = read_r2p_frame(&rs->rotport, (unsigned char *) cmdstr, 12);
+            retval = read_r2p_frame(rotp, (unsigned char *) cmdstr, 12);
         }
-        while ((retval < 0) && (retry_read++ < rot->state.rotport.retry));
+        while ((retval < 0) && (retry_read++ < rotp->retry));
     }
 
     return RIG_OK;
@@ -422,7 +422,7 @@ static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
 
 static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    struct rot_state *rs = &rot->state;
+    hamlib_port_t *rotp = ROTPORT(rot);
     int retval;
     int retry_read = 0;
     char posbuf[12];
@@ -431,7 +431,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     do
     {
-        retval = spid_write(&rs->rotport,
+        retval = spid_write(rotp,
                             (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x1F\x20", 13);
 
         if (retval != RIG_OK)
@@ -443,19 +443,19 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
         if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
         {
-            retval = read_r2p_frame(&rs->rotport, (unsigned char *) posbuf, 5);
+            retval = read_r2p_frame(rotp, (unsigned char *) posbuf, 5);
         }
         else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
                  rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
         {
-            retval = read_r2p_frame(&rs->rotport, (unsigned char *) posbuf, 12);
+            retval = read_r2p_frame(rotp, (unsigned char *) posbuf, 12);
         }
         else
         {
             retval = -RIG_EINVAL;
         }
     }
-    while (retval < 0 && retry_read++ < rot->state.rotport.retry);
+    while (retval < 0 && retry_read++ < rotp->retry);
 
     if (retval < 0)
     {
@@ -494,7 +494,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
 static int spid_rot_stop(ROT *rot)
 {
-    struct rot_state *rs = &rot->state;
+    hamlib_port_t *rotp = ROTPORT(rot);
     int retval;
     int retry_read = 0;
     char posbuf[12];
@@ -503,7 +503,7 @@ static int spid_rot_stop(ROT *rot)
 
     do
     {
-        retval = spid_write(&rs->rotport,
+        retval = spid_write(rotp,
                             (unsigned char *) "\x57\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0F\x20", 13);
 
         if (retval != RIG_OK)
@@ -515,15 +515,15 @@ static int spid_rot_stop(ROT *rot)
 
         if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
         {
-            retval = read_r2p_frame(&rs->rotport, (unsigned char *) posbuf, 5);
+            retval = read_r2p_frame(rotp, (unsigned char *) posbuf, 5);
         }
         else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
                  rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
         {
-            retval = read_r2p_frame(&rs->rotport, (unsigned char *) posbuf, 12);
+            retval = read_r2p_frame(rotp, (unsigned char *) posbuf, 12);
         }
     }
-    while (retval < 0 && retry_read++ < rot->state.rotport.retry);
+    while (retval < 0 && retry_read++ < rotp->retry);
 
     if (retval < 0)
     {
@@ -535,7 +535,6 @@ static int spid_rot_stop(ROT *rot)
 
 static int spid_md01_rot2prog_rot_move(ROT *rot, int direction, int speed)
 {
-    struct rot_state *rs = &rot->state;
     char dir = 0x00;
     int retval;
     char cmdstr[13];
@@ -578,7 +577,7 @@ static int spid_md01_rot2prog_rot_move(ROT *rot, int direction, int speed)
        moving at all), always send the stop command first. */
     spid_rot_stop(rot);
 
-    retval = spid_write(&rs->rotport, (unsigned char *) cmdstr, 13);
+    retval = spid_write(ROTPORT(rot), (unsigned char *) cmdstr, 13);
     return retval;
 }
 

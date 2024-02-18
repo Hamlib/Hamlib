@@ -71,14 +71,15 @@ static int flir_request(ROT *rot, char *request, char *response,
                         int resp_size)
 {
     int return_value = -RIG_EINVAL;
+    hamlib_port_t *rotp = ROTPORT(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig_flush(&rot->state.rotport);
+    rig_flush(rotp);
 
     if (request)
     {
-        return_value = write_block(&rot->state.rotport, (unsigned char *)request,
+        return_value = write_block(rotp, (unsigned char *)request,
                                    strlen(request));
 
         if (return_value != RIG_OK)
@@ -94,10 +95,10 @@ static int flir_request(ROT *rot, char *request, char *response,
         int retry_read = 0;
         int read_char;
 
-        while (retry_read < rot->state.rotport.retry)
+        while (retry_read < rotp->retry)
         {
             memset(response, 0, (size_t)resp_size);
-            read_char = read_string(&rot->state.rotport, (unsigned char *)response,
+            read_char = read_string(rotp, (unsigned char *)response,
                                     resp_size,
                                     "\r\n", sizeof("\r\n"), 0, 1);
 
