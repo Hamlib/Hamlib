@@ -59,7 +59,7 @@ static int ts7400_rot_init(ROT *rot)
 
     priv = rot->state.priv;
 
-    rot->state.rotport.type.rig = RIG_PORT_NONE;
+    ROTPORT(rot)->type.rig = RIG_PORT_NONE;
 
     priv->az = priv->el = 0;
 
