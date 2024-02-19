@@ -493,14 +493,16 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
+#if 0
     retcode = -RIG_ENIMPL;
-//    retcode = set_conf(my_rig, conf_parms);
+    retcode = set_conf(my_rig, conf_parms);
 
     if (retcode != RIG_OK)
     {
         fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
         exit(2);
     }
+#endif
 
     if (my_model > 5 && !rig_file)
     {
