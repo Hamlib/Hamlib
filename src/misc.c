@@ -3089,7 +3089,7 @@ int rig_test_2038(RIG *rig)
         return 1;
     }
 
-    x = (time_t)((1U << 63) - 1);
+    x = (time_t)(((unsigned long long)1U << 63) - 1);
     char *s = ctime(&x);
 
     if (s == NULL) { failed = 1; }
