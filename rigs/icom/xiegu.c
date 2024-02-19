@@ -131,6 +131,32 @@ static int x108g_rig_open(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
+int xiegu_rig_open(RIG *rig)
+{
+    int retval;
+    unsigned char id[4];
+    int id_len = 2;
+    int cmd = 0x19;
+    int subcmd = 0x00;
+    unsigned short iid;
+    retval = icom_transaction(rig, cmd, subcmd, NULL, 0, id, &id_len);
+
+    if (retval == RIG_OK)
+    {
+        iid = (((int)id[2]) << 8) + id[3];
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu Radio ID=0x%04x\n", __func__, iid);
+        switch(iid)
+        {
+            case 0x0090: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G90/G90S");break;
+            case 0x0106: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G106/G106C");break;
+            case 0x6100: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "X6100");break;
+            default: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "Unknown");break;
+        }
+    }
+
+    return icom_rig_open(rig);
+}
+
 /*
  * taken from IC-7000 rig capabilities.
  *
@@ -328,7 +354,7 @@ static struct icom_priv_caps x6100_priv_caps =
     0,    /* no XCHG */
     ic7200_ts_sc_list,
     .x25x26_always = 0,
-    .x25x26_possibly = 0,
+    .x25x26_possibly = 1,
     .x1cx03_always = 0,
     .x1cx03_possibly = 0,
     .x1ax03_supported = 0,
@@ -341,7 +367,7 @@ struct rig_caps x6100_caps =
     RIG_MODEL(RIG_MODEL_X6100),
     .model_name = "X6100",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".4",
+    .version =  BACKEND_VER ".5",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -463,7 +489,7 @@ struct rig_caps x6100_caps =
     .priv = (void *) &x6100_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
-    .rig_open =  icom_rig_open,
+    .rig_open =  xiegu_rig_open,
     .rig_close =  icom_rig_close,
 
     .set_freq =  icom_set_freq,
@@ -511,25 +537,6 @@ struct rig_caps x6100_caps =
     //.get_powerstat = icom_get_powerstat,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
-
-int g90_rig_open(RIG *rig)
-{
-    int retval;
-    unsigned char id[2];
-    int id_len = 2;
-    int cmd = 0x19;
-    int subcmd = 0x1d;
-    short iid;
-    retval = icom_transaction(rig, cmd, subcmd, NULL, 0, id, &id_len);
-
-    if (retval == RIG_OK)
-    {
-        memcpy(&iid, id, 2);
-        rig_debug(RIG_DEBUG_VERBOSE, "Xiegu Radio ID=0x%04x\n", iid);
-    }
-
-    return icom_rig_open(rig);
-}
 
 struct rig_caps g90_caps =
 {
@@ -658,7 +665,7 @@ struct rig_caps g90_caps =
     .priv = (void *)& x108g_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
-    .rig_open =  g90_rig_open,
+    .rig_open =  xiegu_rig_open,
     .rig_close =  icom_rig_close,
 
     .set_freq =  icom_set_freq,
@@ -833,7 +840,7 @@ struct rig_caps x5105_caps =
     .priv = (void *)& x108g_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
-    .rig_open =  icom_rig_open,
+    .rig_open =  xiegu_rig_open,
     .rig_close =  icom_rig_close,
 
     .set_freq =  icom_set_freq,
