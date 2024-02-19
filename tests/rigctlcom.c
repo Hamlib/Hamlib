@@ -962,9 +962,12 @@ static int handle_ts2000(void *arg)
 
         if (retval != RIG_OK)
         {
+            vfo = RIG_VFO_A;
+#if 0 // so we work with rigs (like Icom) that have no get_vfo
             rig_debug(RIG_DEBUG_ERR, "%s: get vfo failed: %s\n", __func__,
                       rigerror(retval));
             return retval;
+#endif
         }
 
 
