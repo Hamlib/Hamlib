@@ -667,7 +667,9 @@ static rmode_t ts2000_get_mode()
     pbwidth_t width;
     rig_get_mode(my_rig, vfo_fixup(my_rig, RIG_VFO_A, my_rig->state.cache.split),
                  &mode, &width);
-
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): width=%ld\n", __func__, __LINE__, width);
+    kwidth = width;
+#if 0
     // Perhaps we should emulate a rig that has PKT modes instead??
     int kwidth_ssb[] = { 10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
     int kwidth_am[] = { 10, 100, 200, 500 };
@@ -704,6 +706,7 @@ static rmode_t ts2000_get_mode()
 
     default: mode = 0; break;
     }
+#endif
 
     return mode;
 }
@@ -765,6 +768,7 @@ static int handle_ts2000(void *arg)
         int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
                                   my_rig->state.cache.split), &freq);
         char response[64];
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         char *fmt =
             // cppcheck-suppress *
             "IF%011"PRIll"%04d+%05d%1d%1d%1d%02d%1d%1"PRIll"%1d%1d%1d%1d%02d%1d;";
@@ -774,15 +778,19 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         mode = ts2000_get_mode();
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         retval = rig_get_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
                                                my_rig->state.cache.split), &ptt);
 
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         if (retval != RIG_OK)
         {
             return retval;
         }
 
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         // we need to know split status -- don't care about the vfo
         retval = rig_get_split_vfo(my_rig, RIG_VFO_CURR, &split, &vfo);
 
@@ -791,13 +799,19 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         retval = rig_get_vfo(my_rig, &vfo);
 
         if (retval != RIG_OK)
         {
+            vfo = RIG_VFO_A;
+#if 0 // so we work with rigs (like Icom) that have no get_vfo
+            rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
             return retval;
+#endif
         }
 
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         switch (vfo)
         {
         case RIG_VFO_A:
@@ -818,6 +832,7 @@ static int handle_ts2000(void *arg)
             rig_debug(RIG_DEBUG_ERR, "%s: unexpected vfo=%d\n", __func__, vfo);
         }
 
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         SNPRINTF(response,
                  sizeof(response),
                  fmt,
@@ -836,10 +851,12 @@ static int handle_ts2000(void *arg)
                  p14,
                  p15);
 
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strcmp(arg, "MD;") == 0)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         rmode_t mode = ts2000_get_mode();
         char response[32];
 
