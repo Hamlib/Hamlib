@@ -667,7 +667,6 @@ static rmode_t ts2000_get_mode()
     pbwidth_t width;
     rig_get_mode(my_rig, vfo_fixup(my_rig, RIG_VFO_A, my_rig->state.cache.split),
                  &mode, &width);
-        rig_debug(RIG_DEBUG_ERR, "%s(%d): width=%ld\n", __func__, __LINE__, width);
     kwidth = width;
 #if 0
     // Perhaps we should emulate a rig that has PKT modes instead??
@@ -706,7 +705,45 @@ static rmode_t ts2000_get_mode()
 
     default: mode = 0; break;
     }
+#else
+    // Perhaps we should emulate a rig that has PKT modes instead??
+    //int kwidth_ssb[] = { 10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+    //int kwidth_am[] = { 10, 100, 200, 500 };
+
+    // still need to cover packet filter 00=wide, 01=nar
+    switch (mode)
+    {
+    case RIG_MODE_LSB:   mode = 1; break;
+
+    case RIG_MODE_USB:   mode = 2; break;
+
+    case RIG_MODE_CW:    mode = 3; 
+        break; // is this correct?
+
+    case RIG_MODE_FM:    mode = 4; break;
+
+    case RIG_MODE_AM:    mode = 5; break;
+
+    case RIG_MODE_RTTY:  mode = 6; break;
+
+    case RIG_MODE_CWR:   mode = 7;
+        break; // is this correct?
+
+    case RIG_MODE_NONE:  mode = 8;
+        break; // is this correct?
+
+    case RIG_MODE_RTTYR: mode = 9; break;
+
+    case RIG_MODE_PKTUSB: mode = 2;
+        break; // need to change to a TS_2000 mode
+
+    case RIG_MODE_PKTLSB: mode = 1;;
+        break; // need to change to a TS_2000 mode
+
+    default: mode = 0; break;
+    }
 #endif
+
 
     return mode;
 }
@@ -750,47 +787,42 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "IF;") == 0)
     {
-        freq_t freq;            // P1
-        int freq_step = 10;     // P2 just use default value for now
-        int rit_xit_freq = 0;   // P3 dummy value for now
-        int rit = 0;            // P4 dummy value for now
-        int xit = 0;            // P5 dummy value for now
-        int bank1 = 0;          // P6 dummy value for now
-        int bank2 = 0;          // P7 dummy value for now
-        ptt_t ptt;              // P8
-        rmode_t mode;           // P9
-        vfo_t vfo;              // P10
-        int scan = 0;           // P11 dummy value for now
-        split_t split = 0;      // P1 2
-        int p13 = 0;            // P13 Tone dummy value for now
-        int p14 = 0;            // P14 Tone Freq dummy value for now
-        int p15 = 0;            // P15 Shift status dummy value for now
+        freq_t freq;            // P1(11)
+        int freq_step = 10;     // P2(4) just use default value for now
+        //int rit_xit_freq = 0; // P3(6) dummy value for now
+        int rit = 0;            // P4(1) dummy value for now
+        int xit = 0;            // P5(1) dummy value for now
+        int bank1 = 0;          // P6(1) dummy value for now
+        int bank2 = 0;          // P7(2) dummy value for now
+        ptt_t ptt;              // P8(1)
+        rmode_t mode;           // P9(1)
+        vfo_t vfo;              // P10(1)
+        int scan = 0;           // P11(1) dummy value for now
+        split_t split = 0;      // P12(1)
+        int p13 = 0;            // P13(1) Tone dummy value for now
+        int p14 = 0;            // P14(2) Tone Freq dummy value for now
+        int p15 = 0;            // P15(1) Shift status dummy value for now
         int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
                                   my_rig->state.cache.split), &freq);
         char response[64];
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         char *fmt =
             // cppcheck-suppress *
-            "IF%011"PRIll"%04d+%05d%1d%1d%1d%02d%1d%1"PRIll"%1d%1d%1d%1d%02d%1d;";
+            "IF%011"PRIll"      %1d%1d%1d%02d%1d%1"PRIll"%1d%1d%1d%1d%02d%1d;";
 
         if (retval != RIG_OK)
         {
             return retval;
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         mode = ts2000_get_mode();
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         retval = rig_get_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
                                                my_rig->state.cache.split), &ptt);
 
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         if (retval != RIG_OK)
         {
             return retval;
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         // we need to know split status -- don't care about the vfo
         retval = rig_get_split_vfo(my_rig, RIG_VFO_CURR, &split, &vfo);
 
@@ -799,19 +831,16 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         retval = rig_get_vfo(my_rig, &vfo);
 
         if (retval != RIG_OK)
         {
             vfo = RIG_VFO_A;
 #if 0 // so we work with rigs (like Icom) that have no get_vfo
-            rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
             return retval;
 #endif
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         switch (vfo)
         {
         case RIG_VFO_A:
@@ -832,13 +861,11 @@ static int handle_ts2000(void *arg)
             rig_debug(RIG_DEBUG_ERR, "%s: unexpected vfo=%d\n", __func__, vfo);
         }
 
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         SNPRINTF(response,
                  sizeof(response),
                  fmt,
                  (uint64_t)freq,
                  freq_step,
-                 rit_xit_freq,
                  rit, xit,
                  bank1,
                  bank2,
@@ -851,12 +878,10 @@ static int handle_ts2000(void *arg)
                  p14,
                  p15);
 
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         return write_block2((void *)__func__, &my_com, response, strlen(response));
     }
     else if (strcmp(arg, "MD;") == 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s(%d):\n", __func__, __LINE__);
         rmode_t mode = ts2000_get_mode();
         char response[32];
 
