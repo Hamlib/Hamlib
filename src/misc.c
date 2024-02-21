@@ -498,7 +498,7 @@ static const struct
     { RIG_MODE_IQ, "IQ"},
     { RIG_MODE_ISBUSB, "ISBUSB"},
     { RIG_MODE_ISBLSB, "ISBLSB"},
-    { RIG_MODE_NONE, "None" }, // so we can reutnr None when NONE is requested
+    { RIG_MODE_NONE, "None" }, // so we can return None when NONE is requested
     { -1, "" }, // need to end list
 };
 
@@ -3049,7 +3049,6 @@ int rig_get_band_rig(RIG *rig, freq_t freq, const char *band)
 // Returns RIG_OK if 2038 time routines pass tests
 int rig_test_2038(RIG *rig)
 {
-    time_t x;
 
 #if defined(_TIME_BITS)
 #if defined(__GLIBC_MINOR__)
@@ -3071,7 +3070,7 @@ int rig_test_2038(RIG *rig)
 
     int failed = 0;
 #if defined(__MSVCRT_VERSION__)
-    x = (__time64_t)((1UL << 31) - 1);
+    __time64_t x = (__time64_t)0xffffffff;
     char s[64];
     _ctime64_s(s, sizeof(s), &x);
 
@@ -3089,7 +3088,7 @@ int rig_test_2038(RIG *rig)
         return 1;
     }
 
-    x = (time_t)(((unsigned long long)1U << 63) - 1);
+    time_t x = (time_t)0xF0000000;
     char *s = ctime(&x);
 
     if (s == NULL) { failed = 1; }
@@ -3105,27 +3104,17 @@ int rig_test_2038(RIG *rig)
         return 1;
     }
 
-    if (!strstr(s, "2038")) { return 1; }
+    if (strstr(s, "2097")) { return RIG_OK; }
 
-    x += 1;
 #if defined(__MSVCRT_VERSION__)
     _ctime64_s(s, sizeof(s), &x);
 #else
     s = ctime(&x);
 #endif
 
-    if (!strstr(s, "2038")) { return 1; }
+    if (strstr(s, "2097")) { return RIG_OK; }
 
-    x += 1;
-#if defined(__MSVCRT_VERSION__)
-    _ctime64_s(s, sizeof(s), &x);
-#else
-    s = ctime(&x);
-#endif
-
-    if (!strstr(s, "2038")) { return 1; }
-
-    return 0;
+    return 1;
 }
 
 
