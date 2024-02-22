@@ -25,7 +25,7 @@ int apex_shared_loop_set_position(ROT *rot, float az, float dummy)
 {
     char cmdstr[16];
     int retval;
-    struct rot_state *rs = &rot->state;
+    hamlib_port_t *rotp = ROTPORT(rot);
     int remainder = lround(az + 22.5) % 45;
     int apex_az = lround(az + 22.5) - remainder;
 
@@ -53,9 +53,9 @@ int apex_shared_loop_set_position(ROT *rot, float az, float dummy)
         return -RIG_EINTERNAL;
     }
 
-    rig_flush(&rs->rotport);
+    rig_flush(rotp);
     apex_azimuth = -1;
-    retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
+    retval = write_block(rotp, (unsigned char *) cmdstr, strlen(cmdstr));
 
     if (retval != RIG_OK)
     {

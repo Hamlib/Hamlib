@@ -144,7 +144,7 @@ fodtrack_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-    pport = &rot->state.rotport;
+    pport = ROTPORT(rot);
 
     retval = setDirection(pport, el / (float)rot->state.max_el * 255.0, 0);
 

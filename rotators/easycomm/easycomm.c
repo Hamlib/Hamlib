@@ -48,7 +48,7 @@
 static int
 easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
 {
-    struct rot_state *rs;
+    hamlib_port_t *rotp = ROTPORT(rot);
     int retval;
     int retry = rot->caps->retry;
 
@@ -59,12 +59,10 @@ easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
         return -RIG_EINVAL;
     }
 
-    rs = &rot->state;
-
     do
     {
-        rig_flush(&rs->rotport);
-        retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
+        rig_flush(rotp);
+        retval = write_block(rotp, (unsigned char *) cmdstr, strlen(cmdstr));
 
         if (retval != RIG_OK)
         {
@@ -76,7 +74,7 @@ easycomm_transaction(ROT *rot, const char *cmdstr, char *data, size_t data_len)
             return RIG_OK;    /* don't want a reply */
         }
 
-        retval = read_string(&rs->rotport, (unsigned char *) data, data_len,
+        retval = read_string(rotp, (unsigned char *) data, data_len,
                              "\n", 1, 0, 1);
 
         if (retval < 0)

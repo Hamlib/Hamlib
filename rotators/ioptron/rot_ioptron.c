@@ -63,19 +63,17 @@
 static int
 ioptron_transaction(ROT *rot, const char *cmdstr, char *data, size_t resp_len)
 {
-    struct rot_state *rs;
+    hamlib_port_t *rotp = ROTPORT(rot);
     int retval = 0;
     int retry_read;
 
-    rs = &rot->state;
-
-    for (retry_read = 0; retry_read <= rot->state.rotport.retry; retry_read++)
+    for (retry_read = 0; retry_read <= rotp->retry; retry_read++)
     {
-        rig_flush(&rs->rotport);
+        rig_flush(rotp);
 
         if (cmdstr)
         {
-            retval = write_block(&rs->rotport, (unsigned char *) cmdstr, strlen(cmdstr));
+            retval = write_block(rotp, (unsigned char *) cmdstr, strlen(cmdstr));
 
             if (retval != RIG_OK)
             {
@@ -85,7 +83,7 @@ ioptron_transaction(ROT *rot, const char *cmdstr, char *data, size_t resp_len)
 
         /** the answer */
         memset(data, 0, resp_len + 1);
-        retval = read_block(&rs->rotport, (unsigned char *) data, resp_len);
+        retval = read_block(rotp, (unsigned char *) data, resp_len);
 
         /** if expected number of bytes received, return OK status */
         if (retval == resp_len)
