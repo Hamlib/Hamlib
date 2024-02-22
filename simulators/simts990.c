@@ -21,8 +21,8 @@ struct ip_mreq
 
 int mysleep = 20;
 
-float freqA = 14074000;
-float freqB = 14074500;
+int freqA = 14074000;
+int freqB = 14074500;
 int filternum1 = 7;
 int filternum2 = 8;
 int datamode = 0;
@@ -133,7 +133,6 @@ int main(int argc, char *argv[])
     char buf[256];
     char *pbuf;
     int fd = openPort(argv[1]);
-    int freqa = 14074000, freqb = 140735000;
     char modeA = '1', modeB = '2';
 
     while (1)
@@ -173,7 +172,7 @@ int main(int argc, char *argv[])
             char ifbuf[256];
             hl_usleep(mysleep * 1000);
 //            pbuf = "IF000503130001000+0000000000030000000;"
-            sprintf(ifbuf, "IF%011d1000+0000002000000000000;", freqa);
+            sprintf(ifbuf, "IF%011d1000+0000002000000000000;", freqA);
             //pbuf = "IF00010138698     +00000000002000000 ;
             write(fd, ifbuf, strlen(ifbuf));
             continue;
@@ -302,24 +301,24 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FA%011d;", freqa);
+            SNPRINTF(buf, sizeof(buf), "FA%011d;", freqA);
             write(fd, buf, strlen(buf));
             continue;
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FB%011d;", freqb);
+            SNPRINTF(buf, sizeof(buf), "FB%011d;", freqB);
             write(fd, buf, strlen(buf));
             continue;
         }
         else if (strncmp(buf, "FA", 2) == 0)
         {
-            sscanf(buf, "FA%d", &freqa);
+            sscanf(buf, "FA%d", &freqA);
             continue;
         }
         else if (strncmp(buf, "FB", 2) == 0)
         {
-            sscanf(buf, "FB%d", &freqb);
+            sscanf(buf, "FB%d", &freqB);
             continue;
         }
         else if (strncmp(buf, "AI;", 3) == 0)
@@ -342,7 +341,7 @@ int main(int argc, char *argv[])
         }
         else if (buf[3] == ';' && strncmp(buf, "SF", 2) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "SF%c%011.0f%c;", buf[2],
+            SNPRINTF(buf, sizeof(buf), "SF%c%011d%c;", buf[2],
                      buf[2] == '0' ? freqA : freqB,
                      buf[2] == '0' ? modeA : modeB);
             write(fd, buf, strlen(buf));
@@ -743,6 +742,10 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "MO1", 3) == 0)
         {
             sscanf(buf, "MO1%d", &mo1);
+        }
+        else if (strncmp(buf, "CK0", 3) == 0)
+        {
+            continue;  // setting clock no action
         }
 
         else if (strlen(buf) > 0)
