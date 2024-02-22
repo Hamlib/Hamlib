@@ -109,17 +109,13 @@ struct satel_stat
 static int satel_cmd(ROT *rot, char *cmd, int cmdlen, char *res, int reslen)
 {
     int ret;
-    struct rot_state *rs;
-
+    hamlib_port_t *rotp = ROTPORT(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    rig_flush(rotp);
 
-    rs = &rot->state;
-
-    rig_flush(&rs->rotport);
-
-    ret = write_block(&rs->rotport, (unsigned char *) cmd, cmdlen);
+    ret = write_block(rotp, (unsigned char *) cmd, cmdlen);
 
     if (ret != RIG_OK)
     {
@@ -128,7 +124,7 @@ static int satel_cmd(ROT *rot, char *cmd, int cmdlen, char *res, int reslen)
 
     if (reslen > 0 && res != NULL)
     {
-        ret = read_string(&rs->rotport, (unsigned char *) res, reslen, "\n", 1, 0, 1);
+        ret = read_string(rotp, (unsigned char *) res, reslen, "\n", 1, 0, 1);
 
         if (ret < 0)
         {
@@ -146,16 +142,10 @@ static int satel_read_status(ROT *rot, satel_stat_t *stat)
     char resbuf[BUF_SIZE];
     char *p;
     int ret;
-    struct rot_state *rs;
-
-
-    rs = &rot->state;
-
-
+    hamlib_port_t *rotp = ROTPORT(rot);
 
     // read motion state
-    ret = read_string(&rs->rotport, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0,
-                      1);
+    ret = read_string(rotp, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
@@ -165,8 +155,7 @@ static int satel_read_status(ROT *rot, satel_stat_t *stat)
     stat->motion_enabled = strcmp(resbuf, "Motion ENABLED") == 0 ? true : false;
 
     // XXX skip mode
-    ret = read_string(&rs->rotport, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0,
-                      1);
+    ret = read_string(rotp, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
@@ -174,8 +163,7 @@ static int satel_read_status(ROT *rot, satel_stat_t *stat)
     }
 
     // XXX skip time
-    ret = read_string(&rs->rotport, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0,
-                      1);
+    ret = read_string(rotp, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
@@ -183,8 +171,7 @@ static int satel_read_status(ROT *rot, satel_stat_t *stat)
     }
 
     // read azimuth line
-    ret = read_string(&rs->rotport, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0,
-                      1);
+    ret = read_string(rotp, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
@@ -196,8 +183,7 @@ static int satel_read_status(ROT *rot, satel_stat_t *stat)
     stat->az = (int)strtof(p, NULL);
 
     // read elevation line
-    ret = read_string(&rs->rotport, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0,
-                      1);
+    ret = read_string(rotp, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
@@ -209,8 +195,7 @@ static int satel_read_status(ROT *rot, satel_stat_t *stat)
     stat->el = (int)strtof(p, NULL);
 
     // skip blank line
-    ret = read_string(&rs->rotport, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0,
-                      1);
+    ret = read_string(rotp, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
@@ -218,14 +203,12 @@ static int satel_read_status(ROT *rot, satel_stat_t *stat)
     }
 
     // XXX skip stored position count
-    ret = read_string(&rs->rotport, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0,
-                      1);
+    ret = read_string(rotp, (unsigned char *) resbuf, BUF_SIZE, "\n", 1, 0, 1);
 
     if (ret < 0)
     {
         return ret;
     }
-
 
     return RIG_OK;
 }

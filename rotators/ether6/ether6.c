@@ -42,8 +42,9 @@
 static int ether_transaction(ROT *rot, char *cmd, int len, char *buf)
 {
     int ret;
+    hamlib_port_t *rotp = ROTPORT(rot);
 
-    ret = write_block(&rot->state.rotport, (unsigned char *) cmd, len);
+    ret = write_block(rotp, (unsigned char *) cmd, len);
     rig_debug(RIG_DEBUG_VERBOSE, "function %s(1): ret=%d || send=%s\n", __func__,
               ret, cmd);
 
@@ -52,7 +53,7 @@ static int ether_transaction(ROT *rot, char *cmd, int len, char *buf)
         return ret;
     }
 
-    ret = read_string(&rot->state.rotport, (unsigned char *) buf, BUF_MAX,
+    ret = read_string(rotp, (unsigned char *) buf, BUF_MAX,
                       "\n", sizeof("\n"), 0, 1);
     rig_debug(RIG_DEBUG_VERBOSE, "function %s(2): ret=%d || receive=%s\n", __func__,
               ret, buf);
@@ -118,7 +119,7 @@ static int ether_rot_close(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     /* clean signoff, no read back */
-    write_block(&rot->state.rotport, (unsigned char *) "\n", 1);
+    write_block(ROTPORT(rot), (unsigned char *) "\n", 1);
 
     return RIG_OK;
 }
