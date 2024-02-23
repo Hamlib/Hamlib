@@ -32,7 +32,7 @@
 
 #define TS990S_AM_MODES RIG_MODE_AM
 #define TS990S_FM_MODES (RIG_MODE_FM|RIG_MODE_FMN)
-#define TS990S_OTHER_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
+#define TS990S_OTHER_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_USBD1|RIG_MODE_USBD2|RIG_MODE_USBD3|RIG_MODE_LSBD1|RIG_MODE_LSBD2|RIG_MODE_LSBD3)
 #define TS990S_HP_MODES (TS990S_OTHER_MODES|TS990S_FM_MODES)
 #define TS990S_ALL_MODES (TS990S_OTHER_MODES|TS990S_AM_MODES|TS990S_FM_MODES)
 
@@ -103,16 +103,16 @@ static rmode_t ts990s_mode_table[KENWOOD_MODE_TABLE_MAX] =
     [9] = RIG_MODE_RTTYR,
     [10] = RIG_MODE_NONE,               /* A */
     [11] = RIG_MODE_NONE,               /* B */
-    [12] = RIG_MODE_PKTLSB,         /* C */
-    [13] = RIG_MODE_PKTUSB,         /* D */
+    [12] = RIG_MODE_LSBD1,         /* C */
+    [13] = RIG_MODE_USBD1,         /* D */
     [14] = RIG_MODE_PKTFM,          /* E */
     [15] = RIG_MODE_NONE,               /* F */
-    [16] = RIG_MODE_PKTLSB,         /* G */
-    [17] = RIG_MODE_PKTUSB,         /* H */
+    [16] = RIG_MODE_LSBD2,         /* G */
+    [17] = RIG_MODE_USBD2,         /* H */
     [18] = RIG_MODE_PKTFM,          /* I */
     [19] = RIG_MODE_NONE,               /* J */
-    [20] = RIG_MODE_PKTLSB,         /* K */
-    [21] = RIG_MODE_PKTUSB,         /* L */
+    [20] = RIG_MODE_LSBD3,         /* K */
+    [21] = RIG_MODE_USBD3,         /* L */
     [22] = RIG_MODE_PKTFM,          /* M */
     [23] = RIG_MODE_NONE,               /* N */
 };

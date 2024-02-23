@@ -153,7 +153,15 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] =
     [12] = RIG_MODE_PKTLSB,
     [13] = RIG_MODE_PKTUSB,
     [14] = RIG_MODE_PKTFM,
-    [15] = RIG_MODE_PKTAM
+    [14] = RIG_MODE_PKTAM,
+    [16] = RIG_MODE_LSBD2,
+    [17] = RIG_MODE_USBD2,
+    [18] = RIG_MODE_NONE, // FM-D2 not supported yet
+    [19] = RIG_MODE_NONE, // AM-D2 not supported yet
+    [20] = RIG_MODE_LSBD3,
+    [21] = RIG_MODE_USBD3,
+    [22] = RIG_MODE_NONE, // FM-D3 not supported yet
+    [23] = RIG_MODE_NONE, // AM-D3 not supported yet
 };
 
 /*
@@ -2405,6 +2413,12 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (RIG_MODE_PKTUSB == mode) { mode = RIG_MODE_RTTYR; }
     }
 
+    if (RIG_IS_TS990S)
+    {
+        if (mode == RIG_MODE_PKTUSB) mode = RIG_MODE_USBD1;
+        if (mode == RIG_MODE_PKTLSB) mode = RIG_MODE_LSBD1;
+    }
+
     kmode = rmode2kenwood(mode, caps->mode_table);
 
     if (kmode < 0)
@@ -2455,6 +2469,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
             if (err2 != RIG_OK) { RETURNFUNC2(err2); }
         }
+        return RIG_OK;
     }
     else
     {

@@ -143,7 +143,7 @@ struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "",
     .mfg_name = "FLRig",
-    .version = "20231216.0",
+    .version = "20240222.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -243,6 +243,12 @@ static struct s_modeMap modeMap[] =
     {RIG_MODE_RTTYR, NULL},
     {RIG_MODE_C4FM, NULL},
     {RIG_MODE_DSTAR, NULL},
+    {RIG_MODE_USBD1, NULL},
+    {RIG_MODE_USBD2, NULL},
+    {RIG_MODE_USBD3, NULL},
+    {RIG_MODE_LSBD1, NULL},
+    {RIG_MODE_LSBD2, NULL},
+    {RIG_MODE_LSBD3, NULL},
     {0, NULL}
 };
 
@@ -1012,9 +1018,6 @@ static int flrig_open(RIG *rig)
         H3E
         M11
         USB-D -- doesn't appear to be read/set
-        USB-D1 -- doesn't appear to be read/set
-        USB-D2 -- doesn't appear to be read/set
-        USB-D3 -- doesn't appear to be read/set
         USER-L -- doesn't appear to be read/set
         USER-U -- doesn't appear to be read/set
     */
@@ -1057,9 +1060,9 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "LCW")) { modeMapAdd(&modes, RIG_MODE_CWR, p); }
         else if (streq(p, "LSB")) { modeMapAdd(&modes, RIG_MODE_LSB, p); }
         else if (streq(p, "LSB-D")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "LSB-D1")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "LSB-D2")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "LSB-D3")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
+        else if (streq(p, "LSB-D1")) { modeMapAdd(&modes, RIG_MODE_LSBD1, p); }
+        else if (streq(p, "LSB-D2")) { modeMapAdd(&modes, RIG_MODE_LSBD2, p); }
+        else if (streq(p, "LSB-D3")) { modeMapAdd(&modes, RIG_MODE_LSBD3, p); }
         else if (streq(p, "NFM")) { modeMapAdd(&modes, RIG_MODE_FMN, p); }
         else if (streq(p, "PKT")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "PKT-FM")) { modeMapAdd(&modes, RIG_MODE_PKTFM, p); }
@@ -1082,9 +1085,9 @@ static int flrig_open(RIG *rig)
         else if (streq(p, "SAM")) { modeMapAdd(&modes, RIG_MODE_SAM, p); }
         else if (streq(p, "USB")) { modeMapAdd(&modes, RIG_MODE_USB, p); }
         else if (streq(p, "USB-D")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "USB-D1")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "USB-D2")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "USB-D3")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
+        else if (streq(p, "USB-D1")) { modeMapAdd(&modes, RIG_MODE_USBD1, p); }
+        else if (streq(p, "USB-D2")) { modeMapAdd(&modes, RIG_MODE_USBD2, p); }
+        else if (streq(p, "USB-D3")) { modeMapAdd(&modes, RIG_MODE_USBD3, p); }
         else if (streq(p, "USER-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
         else if (streq(p, "USER-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
         else if (streq(p, "W-FM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
