@@ -3070,14 +3070,22 @@ int rig_test_2038(RIG *rig)
 
     int failed = 0;
 #if defined(__MSVCRT_VERSION__)
-    __time64_t x = (__time64_t)0xffffffff;
+    __time64_t const x = (__time64_t)0xF0000000;
     char s[64];
-    _ctime64_s(s, sizeof(s), &x);
+    struct tm mytm;
+    int timeerr = _localtime64_s(&mytm, &x);
+
+    if (timeerr)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: _localtime64_s: %s\n", __func__, strerror(errno));
+    }
+
+    strftime(s, sizeof(s), "%a %b %d %H:%M:%S %Y\n", &mytm);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: MSVCRT 2038 test = 0x%08llx:%s", __func__, x,
+              s);
 
     if (strlen(s) == 0) { failed = 1; }
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: MSVCRT 2038 test = 0x%08lx:%s\n", __func__, x,
-              s);
+    else if (strstr(s, "2097")) { return RIG_OK; }
 
 #else
 
