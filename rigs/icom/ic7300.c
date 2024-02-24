@@ -49,11 +49,6 @@ int ic9700_get_clock(RIG *rig, int *year, int *month, int *day,
 
 int ic9700_set_vfo(RIG *rig, vfo_t vfo);
 
-int ic9700_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ic9700_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int ic9700_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int ic9700_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-
 
 #define IC7300_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
 #define IC7300_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
@@ -1248,10 +1243,10 @@ struct rig_caps ic9700_caps =
     .rig_open =  icom_rig_open,
     .rig_close =  icom_rig_close,
 
-    .set_freq =  ic9700_set_freq,
-    .get_freq =  ic9700_get_freq,
-    .set_mode =  ic9700_set_mode,
-    .get_mode =  ic9700_get_mode,
+    .set_freq =  icom_set_freq,
+    .get_freq =  icom_get_freq,
+    .set_mode =  icom_set_mode,
+    .get_mode =  icom_get_mode,
     // IC-9700 can indicate Main/Sub band selection, but not VFO A/B, so leave get_vfo not implemented
 //    .get_vfo =  icom_get_vfo,
     .set_vfo =  ic9700_set_vfo,
@@ -1785,7 +1780,8 @@ struct rig_caps ic905_caps =
     .set_conf =  icom_set_conf,
     .get_conf =  icom_get_conf,
 
-    .priv = (void *)& IC905_priv_caps, .rig_init =   icom_init,
+    .priv = (void *)& IC905_priv_caps,
+    .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
     .rig_open =  icom_rig_open,
     .rig_close =  icom_rig_close,
@@ -2230,7 +2226,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     if (rig->state.cache.satmode && !vfo_is_main_or_sub)
     {
         // Translate VFO A/B to Main/Sub in satellite mode
-        if (vfo == RIG_VFO_A || vfo == RIG_VFO_MAIN_A)
+        if (vfo == RIG_VFO_A)
         {
             vfo = RIG_VFO_MAIN;
         }
@@ -2325,29 +2321,4 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     RETURNFUNC(retval);
-}
-
-int ic9700_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
-{
-    int retval = -RIG_EINTERNAL;
-    ENTERFUNC;
-    return retval;
-}
-int ic9700_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
-{
-    int retval = -RIG_EINTERNAL;
-    ENTERFUNC;
-    return retval;
-}
-int ic9700_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
-{
-    int retval = -RIG_EINTERNAL;
-    ENTERFUNC;
-    return retval;
-}
-int ic9700_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
-{
-    int retval = -RIG_EINTERNAL;
-    ENTERFUNC;
-    return retval;
 }
