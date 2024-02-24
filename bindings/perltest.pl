@@ -4,7 +4,7 @@ use Hamlib;
 
 print "Perl $] test, version: $Hamlib::hamlib_version\n\n";
 
-#Hamlib::rig_set_debug($Hamlib::RIG_DEBUG_TRACE);
+Hamlib::rig_set_debug($Hamlib::RIG_DEBUG_TRACE);
 Hamlib::rig_set_debug($Hamlib::RIG_DEBUG_NONE);
 
 $rig = new Hamlib::Rig($Hamlib::RIG_MODEL_DUMMY);
@@ -99,3 +99,16 @@ printf("Longitude:\t%9.4f, %4d° %2d' %2d\" %1s\trecoded: %9.4f\n",
 
 printf("Latitude:\t%9.4f, %4d° %2d' %2d\" %1s\trecoded: %9.4f\n",
 	$lat1, $deg2, $min2, $sec2, $sw2 ? 'S' : 'N', $lat3);
+$reply_len = 20;
+$cmd => "FA;";
+$term => ";";
+$cmd_uc => pack("C*", unpack("C*", $cmd));
+$term_uc => pack("C*", unpack("C*", $term));
+$reply_len = 64;
+$reply = "\0" x $reply_len;
+$reply_uc => pack("C*", unpack("C*", $reply));
+printf("reply, len=%d, start=%s\n", length($reply), $reply);
+$bytes = $rig->send_raw($cmd, length($cmd), $reply, $reply_len, $term_uc);
+#$newstring = unpack("A*", $reply_uc);
+#printf("send_raw bytes=%d newstring=%s\n", $bytes, $newstring);
+printf("send_raw bytes=%d reply=%s\n", $bytes, $reply);
