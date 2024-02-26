@@ -631,7 +631,7 @@ static int netrigctl_open(RIG *rig)
     do
     {
         char setting[32], value[1024];
-	hamlib_port_t *pttp = PTTPORT(rig);
+        hamlib_port_t *pttp = PTTPORT(rig);
         ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
         strtok(buf, "\r\n"); // chop the EOL
 
