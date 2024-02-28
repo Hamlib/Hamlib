@@ -2490,6 +2490,7 @@ typedef hamlib_port_t port_t;
 #define AMPPORT(a) (&a->state.ampport)
 #define ROTPORT(r) (&r->state.rotport)
 #define ROTPORT2(r) (&r->state.rotport2)
+#define STATE(r) (&r->state)
 /* Then when the rigport address is stored as a pointer somewhere else(say,
  *  in the rig structure itself), the definition could be changed to
  *  #define RIGPORT(r) r->somewhereelse
@@ -2504,6 +2505,7 @@ typedef hamlib_port_t port_t;
 #define HAMLIB_AMPPORT(a) ((hamlib_port_t *)amp_data_pointer(a, RIG_PTRX_AMPPORT))
 #define HAMLIB_ROTPORT(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT))
 #define HAMLIB_ROTPORT2(r) ((hamlib_port_t *)rot_data_pointer(r, RIG_PTRX_ROTPORT2))
+#define HAMLIB_STATE(r) ((struct rig_state *)rig_data_pointer(r, RIG_PTRX_STATE))
 #endif
 
 typedef enum {
@@ -2515,6 +2517,7 @@ typedef enum {
     RIG_PTRX_AMPPORT,
     RIG_PTRX_ROTPORT,
     RIG_PTRX_ROTPORT2,
+    RIG_PTRX_STATE,
 // New entries go directly above this line====================
     RIG_PTRX_MAXIMUM
 } rig_ptrx_t;

@@ -606,7 +606,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      * populate the rig->state
      * TODO: read the Preferences here!
      */
-    rs = &rig->state;
+    rs = STATE(rig);
 #if defined(HAVE_PTHREAD)
     pthread_mutex_init(&rs->mutex_set_transaction, NULL);
 #endif
@@ -623,10 +623,13 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->rig_model = caps->rig_model;
     rs->priv = NULL;
     rs->async_data_enabled = 0;
+    rs->depth = 1;
+    rs->comm_state = 0;
+    rs->comm_status = RIG_COMM_STATUS_CONNECTING;
+    rs->tuner_control_pathname = DEFAULT_TUNER_CONTROL_PATHNAME;
+
     rp->fd = -1;
     pttp->fd = -1;
-    rs->comm_state = 0;
-    rig->state.depth = 1;
 #if 0 // extra debug if needed
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %p rs->comm_state==0?=%d\n", __func__,
               __LINE__, &rs->comm_state,
@@ -636,9 +639,6 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 #if defined(HAVE_PTHREAD)
     rp->asyncio = 0;
 #endif
-    rig->state.comm_status = RIG_COMM_STATUS_CONNECTING;
-
-    rs->tuner_control_pathname = DEFAULT_TUNER_CONTROL_PATHNAME;
 
     switch (caps->port_type)
     {
@@ -946,7 +946,7 @@ int HAMLIB_API rig_open(RIG *rig)
     }
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
     rp->rig = rig;
     rs->rigport_deprecated.rig = rig;
 
@@ -1642,7 +1642,7 @@ int HAMLIB_API rig_close(RIG *rig)
 
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     if (!rs->comm_state)
     {
@@ -3039,7 +3039,7 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
 
     ENTERFUNC;
 
-    rs = &rig->state;
+    rs = STATE(rig);
 
     // return CW for CWR and RTTY for RTTYR
     if (mode == RIG_MODE_CWR) { mode = RIG_MODE_CW; }
@@ -3091,7 +3091,7 @@ pbwidth_t HAMLIB_API rig_passband_narrow(RIG *rig, rmode_t mode)
 
     ENTERFUNC;
 
-    rs = &rig->state;
+    rs = STATE(rig);
 
     for (i = 0; i < HAMLIB_FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
     {
@@ -3144,7 +3144,7 @@ pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
 
     ENTERFUNC;
 
-    rs = &rig->state;
+    rs = STATE(rig);
 
     for (i = 0; i < HAMLIB_FLTLSTSIZ - 1 && rs->filters[i].modes; i++)
     {
@@ -3428,7 +3428,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     const struct rig_caps *caps;
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     hamlib_port_t *rp = RIGPORT(rig);
     hamlib_port_t *pttp = PTTPORT(rig);
     struct rig_cache *cachep = CACHE(rig);
@@ -3756,7 +3756,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     const struct rig_caps *caps;
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     hamlib_port_t *rp = RIGPORT(rig);
     hamlib_port_t *pttp = PTTPORT(rig);
     struct rig_cache *cachep = CACHE(rig);
@@ -4563,7 +4563,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
               rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo), tx_freq);
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
@@ -4753,7 +4753,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     }
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
@@ -4930,7 +4930,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     ENTERFUNC;
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
@@ -5167,7 +5167,7 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     }
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
@@ -5327,7 +5327,7 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
     ENTERFUNC;
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
@@ -5474,7 +5474,7 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
     }
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
@@ -5557,7 +5557,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
               rig_strvfo(rx_vfo), split, rig_strvfo(tx_vfo), cachep->split);
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     if (caps->set_split_vfo == NULL)
     {
@@ -5813,7 +5813,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     }
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     if (MUTEX_CHECK(&morse_mutex))
     {
@@ -6656,7 +6656,7 @@ shortfreq_t HAMLIB_API rig_get_resolution(RIG *rig, rmode_t mode)
 
     ENTERFUNC;
 
-    rs = &rig->state;
+    rs = STATE(rig);
 
     for (i = 0; i < HAMLIB_TSLSTSIZ && rs->tuning_steps[i].ts; i++)
     {
@@ -8249,7 +8249,7 @@ void rig_lock(RIG *rig, int lock)
 #if defined(HAVE_PTHREAD)
 static int async_data_handler_start(RIG *rig)
 {
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     async_data_handler_priv_data *async_data_handler_priv;
 
     ENTERFUNC;
@@ -8293,7 +8293,7 @@ static int async_data_handler_start(RIG *rig)
 #if defined(HAVE_PTHREAD)
 static int morse_data_handler_start(RIG *rig)
 {
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     morse_data_handler_priv_data *morse_data_handler_priv;
 
     ENTERFUNC;
@@ -8334,7 +8334,7 @@ static int morse_data_handler_start(RIG *rig)
 #if defined(HAVE_PTHREAD)
 static int async_data_handler_stop(RIG *rig)
 {
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     async_data_handler_priv_data *async_data_handler_priv;
 
     ENTERFUNC;
@@ -8375,7 +8375,7 @@ static int async_data_handler_stop(RIG *rig)
 #if defined(HAVE_PTHREAD)
 static int morse_data_handler_stop(RIG *rig)
 {
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     morse_data_handler_priv_data *morse_data_handler_priv;
 
     ENTERFUNC;
@@ -8390,7 +8390,7 @@ static int morse_data_handler_stop(RIG *rig)
     hl_usleep(100 * 1000);
 
     //HAMLIB_TRACE;
-    while (peek(rig->state.fifo_morse) >= 0)
+    while (peek(rs->fifo_morse) >= 0)
     {
         HAMLIB_TRACE;
         rig_debug(RIG_DEBUG_TRACE, "%s: waiting for fifo queue to flush\n", __func__);
@@ -8435,7 +8435,7 @@ void *async_data_handler(void *arg)
             arg;
     RIG *rig = args->rig;
     unsigned char frame[MAX_FRAME_LENGTH];
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting async data handler thread\n",
               __func__);
@@ -8521,18 +8521,19 @@ void *morse_data_handler(void *arg)
     struct morse_data_handler_args_s *args =
         (struct morse_data_handler_args_s *) arg;
     RIG *rig = args->rig;
-    const struct rig_state *rs = &rig->state;
+    const struct rig_state *rs = STATE(rig);
     int result;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
               __func__);
 
-    if (rig->state.fifo_morse == NULL)
+    if (STATE(rig)->fifo_morse == NULL)
     {
-        rig->state.fifo_morse = calloc(1, sizeof(FIFO_RIG));
+        // Can't use rs-> 'cuz it's const
+        STATE(rig)->fifo_morse = calloc(1, sizeof(FIFO_RIG));
     }
 
-    initFIFO(rig->state.fifo_morse);
+    initFIFO(rs->fifo_morse);
 
     char *c;
     int qsize = rig->caps->morse_qsize; // if backend overrides qsize
@@ -8548,14 +8549,14 @@ void *morse_data_handler(void *arg)
 
         for (n = 0; n < qsize; n++)
         {
-            int d = peek(rig->state.fifo_morse);
+            int d = peek(rs->fifo_morse);
 
             if (d < 0)
             {
                 break;
             }
 
-            d = pop(rig->state.fifo_morse);
+            d = pop(rs->fifo_morse);
             c[n] = (char) d;
         }
 
@@ -8623,7 +8624,7 @@ void *morse_data_handler(void *arg)
                         if (result == -RIG_EINVAL)
                         {
                             // severe error -- so flush it and stop
-                            resetFIFO(rig->state.fifo_morse);
+                            resetFIFO(rs->fifo_morse);
                             nloops = 0;
                         }
 
@@ -8634,7 +8635,7 @@ void *morse_data_handler(void *arg)
                     nloops--;
 
                 }
-                while (result != RIG_OK && rig->state.fifo_morse->flush == 0 && --nloops > 0);
+                while (result != RIG_OK && STATE(rig)->fifo_morse->flush == 0 && --nloops > 0);
 
                 MUTEX_UNLOCK(morse_mutex);
 
@@ -8645,13 +8646,13 @@ void *morse_data_handler(void *arg)
             }
         }
 
-        rig->state.fifo_morse->flush = 0; // reset flush flag
+        rs->fifo_morse->flush = 0; // reset flush flag
         hl_usleep(100 * 1000);
     }
 
-    free(rig->state.fifo_morse);
+    free(STATE(rig)->fifo_morse);
     free(c);
-    rig->state.fifo_morse = NULL;
+    STATE(rig)->fifo_morse = NULL;
     pthread_exit(NULL);
     return NULL;
 }
@@ -8830,7 +8831,7 @@ HAMLIB_EXPORT(int) rig_is_model(RIG *rig, rig_model_t model)
 #if defined(HAVE_PTHREAD)
 int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
 {
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     morse_data_handler_priv_data *morse_data_handler_priv =
         (morse_data_handler_priv_data *) rs->morse_data_handler_priv_data;
     morse_data_handler_priv->keyspd = keyspd;
@@ -8869,6 +8870,9 @@ HAMLIB_EXPORT(void *) rig_data_pointer(RIG *rig, rig_ptrx_t idx)
 
     case RIG_PTRX_CACHE:
         return CACHE(rig);
+
+    case RIG_PTRX_STATE:
+        return STATE(rig);
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
