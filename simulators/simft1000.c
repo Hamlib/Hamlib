@@ -124,6 +124,10 @@ again:
             printf("Set Main freq\n");
             break;
 
+        case 0x10:
+            printf("Info\n");
+            break;
+
         case 0x0c:
             printf("Set mode\n");
             break;
