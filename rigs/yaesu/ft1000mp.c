@@ -8,7 +8,7 @@
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Lesser General Public
  *   License as published by the Free Software Foundation; either
- *   version 2.1 of the License, or (at your option) any later version.
+ *   iersion 2.1 of the License, or (at your option) any later version.
  *
  *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -313,7 +313,7 @@ struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20230104.0",
+    .version =            "20240228.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -456,7 +456,7 @@ struct rig_caps ft1000mpmkv_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKV),
     .model_name =         "MARK-V FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20230104.0",
+    .version =            "20240228.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -599,7 +599,7 @@ struct rig_caps ft1000mpmkvfld_caps =
     RIG_MODEL(RIG_MODEL_FT1000MPMKVFLD),
     .model_name =         "MARK-V Field FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20230104.0",
+    .version =            "20240228.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -919,10 +919,6 @@ static int ft1000mp_get_vfo_data(RIG *rig, vfo_t vfo)
 
 static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct ft1000mp_priv_data *priv;
-    unsigned char *p;
-    freq_t f;
-    int retval;
 
     ENTERFUNC;
 
@@ -933,33 +929,16 @@ static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         vfo = rig->state.current_vfo;
     }
 
-    retval = ft1000mp_get_vfo_data(rig, vfo);
-
-
-    if (retval < 0)
+    if (vfo == RIG_VFO_A)
     {
-        RETURNFUNC(retval);
-    }
-
-    priv = (struct ft1000mp_priv_data *)rig->state.priv;
-
-    if (vfo == RIG_VFO_B)
-    {
-        p = &priv->update_data[FT1000MP_SUMO_VFO_B_FREQ];
+        *freq = rig->state.cache.freqMainA;
     }
     else
     {
-        p = &priv->update_data[FT1000MP_SUMO_VFO_A_FREQ];    /* CURR_VFO has VFOA offset */
+        *freq = rig->state.cache.freqMainB;
     }
 
-    /* big endian integer, kinda */
-    f = ((((((p[0] << 8) + p[1]) << 8) + p[2]) << 8) + p[3]) * 10 / 16;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: freq = %"PRIfreq" Hz for VFO [%x]\n", __func__,
-              f,
-              vfo);
-
-    *freq = f;                    /* return displayed frequency */
+    return RIG_OK;
 
     RETURNFUNC(RIG_OK);
 }
