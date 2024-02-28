@@ -635,6 +635,7 @@ static int netrigctl_open(RIG *rig)
         ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
         strtok(buf, "\r\n"); // chop the EOL
 
+rig_debug(RIG_DEBUG_ERR, "## %s\n", buf);
         if (ret <= 0)
         {
             RETURNFUNC((ret < 0) ? ret : -RIG_EPROTO);
@@ -646,7 +647,7 @@ static int netrigctl_open(RIG *rig)
         {
             if (strcmp(setting, "vfo_ops") == 0)
             {
-                rig->caps->vfo_ops = strtoll(value, NULL, 0);
+                rig->caps->vfo_ops = rig->state.vfo_ops = strtoll(value, NULL, 0);
                 rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting,
                           rig->caps->vfo_ops);
             }
@@ -664,7 +665,7 @@ static int netrigctl_open(RIG *rig)
                      * locally overridden it
                      */
                     pttp->type.ptt = RIG_PTT_RIG_MICDATA;
-                    rig->caps->ptt_type = RIG_PTT_RIG_MICDATA;
+                    rig->caps->ptt_type = rig->state.ptt_type = RIG_PTT_RIG_MICDATA;
                     rig_debug(RIG_DEBUG_TRACE, "%s: %s set to %d\n", __func__, setting,
                               pttp->type.ptt);
                 }
@@ -672,13 +673,13 @@ static int netrigctl_open(RIG *rig)
                 {
                     rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt_type= %d\n", __func__, temp);
                     pttp->type.ptt = temp;
-                    rig->caps->ptt_type = temp;
+                    rig->caps->ptt_type = rig->state.ptt_type = temp;
                 }
             }
 
             else if (strcmp(setting, "targetable_vfo") == 0)
             {
-                rig->caps->targetable_vfo = strtol(value, NULL, 0);
+                rig->caps->targetable_vfo = rig->state.targetable_vfo = strtol(value, NULL, 0);
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: targetable_vfo=0x%2x\n", __func__,
                           rig->caps->targetable_vfo);
             }
@@ -862,7 +863,7 @@ static int netrigctl_open(RIG *rig)
                     int level;
                     sscanf(p, "%d", &level);
 
-                    if (RIG_LEVEL_IS_FLOAT(level))
+                    if (RIG_PARM_IS_FLOAT(level))
                     {
                         double min, max, step;
                         sscanf(p, "%*d=%lf,%lf,%lf", &min, &max, &step);
@@ -870,7 +871,11 @@ static int netrigctl_open(RIG *rig)
                         rig->caps->parm_gran[i].max.f = rs->parm_gran[i].max.f = max;
                         rig->caps->parm_gran[i].step.f = rs->parm_gran[i].step.f = step;
                     }
-                    else
+                    else if (RIG_PARM_IS_STRING(level))
+                    {
+                        rig->caps->parm_gran[i].step.s = strdup(value);
+                    }
+                    else // must be INT
                     {
                         int min, max, step;
                         sscanf(p, "%*d=%d,%d,%d", &min, &max, &step);
@@ -2807,7 +2812,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20231229.0",
+    .version =        "20240226.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,

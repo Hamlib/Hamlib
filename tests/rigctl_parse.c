@@ -3919,7 +3919,7 @@ declare_proto_rig(vfo_op)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_vfop(s, sizeof(s), rig->caps->vfo_ops);
+        rig_sprintf_vfop(s, sizeof(s), rig->state.vfo_ops);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
