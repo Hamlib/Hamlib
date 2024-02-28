@@ -1350,7 +1350,7 @@ const char *HAMLIB_API rig_strparm(setting_t parm)
 {
     int i;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+//    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (parm == RIG_PARM_NONE)
     {
