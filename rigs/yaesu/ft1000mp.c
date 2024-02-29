@@ -313,7 +313,7 @@ struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20240228.0",
+    .version =            "20240229.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -860,8 +860,9 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         break;
 
     case RIG_VFO_MEM:
-        /* TODO, hint: store current memory number */
-        RETURNFUNC(-RIG_ENIMPL);
+        // we can set VFOA when VFO MEM is selected
+        cmd_index = FT1000MP_NATIVE_FREQA_SET;
+        break;
 
     default:
         rig_debug(RIG_DEBUG_WARN, "%s: unknown VFO %0x\n", __func__, vfo);
