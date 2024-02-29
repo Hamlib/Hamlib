@@ -174,15 +174,32 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 
 #define LOCK(n) if (rig->state.depth == 1) { rig_debug(RIG_DEBUG_CACHE, "%s: %s\n", n?"lock":"unlock", __func__);  rig_lock(rig,n); }
 
-#ifdef PTHREAD
+#ifdef HAVE_PTHREAD
 #define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
-#define MUTEX_LOCK(var) pthread_mutex_lock(var)
-#define MUTEX_UNLOCK(var)  pthread_mutex_unlock(var)
+#define MUTEX_LOCK(var) pthread_mutex_lock(&var)
+#define MUTEX_UNLOCK(var)  pthread_mutex_unlock(&var)
 #else
+#warning NOT PTHREAD
 #define MUTEX(var)
 #define MUTEX_LOCK(var)
 #define MUTEX_UNLOCK(var)
 #endif
+
+MUTEX(morse_mutex);
+
+// returns true if mutex is busy
+int MUTEX_CHECK(pthread_mutex_t *m)
+{
+    int trylock = pthread_mutex_trylock(m);
+
+    if (trylock != EBUSY)
+    {
+        pthread_mutex_unlock(m);
+    }
+
+    return trylock == EBUSY;
+}
+
 
 /*
  * Data structure to track the opened rig (by rig_open)
@@ -358,7 +375,7 @@ char debugmsgsave[DEBUGMSGSAVE_SIZE] = "";
 char debugmsgsave2[DEBUGMSGSAVE_SIZE] = ""; // deprecated
 char debugmsgsave3[DEBUGMSGSAVE_SIZE] = ""; // deprecated
 
-MUTEX(debugmsgsave);
+MUTEX(mutex_debugmsgsave);
 
 void add2debugmsgsave(const char *s)
 {
@@ -366,7 +383,7 @@ void add2debugmsgsave(const char *s)
     char stmp[DEBUGMSGSAVE_SIZE];
     int i, nlines;
     int maxmsg = DEBUGMSGSAVE_SIZE / 2;
-    MUTEX_LOCK(debugmsgsave);
+    MUTEX_LOCK(mutex_debugmsgsave);
     memset(stmp, 0, sizeof(stmp));
 
     // we'll keep 20 lines including this one
@@ -409,7 +426,7 @@ void add2debugmsgsave(const char *s)
                   (int)strlen(debugmsgsave), (int)strlen(s));
     }
 
-    MUTEX_UNLOCK(debugmsgsave);
+    MUTEX_UNLOCK(mutex_debugmsgsave);
 }
 
 /**
@@ -2322,6 +2339,7 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rmode_t mode;
     pbwidth_t width;
     int curr_band;
+    int use_cache = 0;
     static int last_band = -1;
 
     if (CHECK_RIG_ARG(rig))
@@ -2360,12 +2378,18 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d) vfo=%s, curr_vfo=%s\n", __FILE__, __LINE__,
               rig_strvfo(vfo), rig_strvfo(curr_vfo));
 
+    if (MUTEX_CHECK(&morse_mutex))
+    {
+        use_cache = 1;
+    }
+
     if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
     // we ignore get_freq for the uplink VFO for gpredict to behave better
     if ((rig->state.uplink == 1 && vfo == RIG_VFO_SUB)
             || (rig->state.uplink == 2 && vfo == RIG_VFO_MAIN)
-            || (vfo == RIG_VFO_TX && cachep->ptt == 0))
+            || (vfo == RIG_VFO_TX && cachep->ptt == 0)
+            || use_cache)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: uplink=%d, ignoring get_freq\n", __func__,
                   rig->state.uplink);
@@ -2717,7 +2741,8 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         retcode = caps->get_mode(rig, vfo, &mode_curr, &width_curr);
 
         // For Icom rigs we may need to force the filter so we always set mode
-        if (retcode == RIG_OK && mode == mode_curr && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
+        if (retcode == RIG_OK && mode == mode_curr
+                && RIG_ICOM != RIG_BACKEND_NUM(rig->caps->rig_model))
         {
             rig_debug(RIG_DEBUG_VERBOSE,
                       "%s: mode already %s and bw change not requested\n", __func__,
@@ -2842,6 +2867,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 {
     const struct rig_caps *caps;
     int retcode;
+    int use_cache = 0;
     freq_t freq;
     vfo_t curr_vfo;
     struct rig_cache *cachep = CACHE(rig);
@@ -2871,6 +2897,7 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     curr_vfo = rig->state.current_vfo;
     vfo = vfo_fixup(rig, vfo, cachep->split);
+
     if (vfo == RIG_VFO_CURR) { vfo = curr_vfo; }
 
     *mode = RIG_MODE_NONE;
@@ -2883,8 +2910,13 @@ int HAMLIB_API rig_get_mode(RIG *rig,
 
     rig_cache_show(rig, __func__, __LINE__);
 
+    if (MUTEX_CHECK(&morse_mutex))
+    {
+        use_cache = 1;
+    }
+
     if (cachep->timeout_ms == HAMLIB_CACHE_ALWAYS
-            || rig->state.use_cached_mode)
+            || rig->state.use_cached_mode || use_cache)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age mode=%dms, width=%dms\n",
                   __func__, cache_ms_mode, cache_ms_width);
@@ -3305,6 +3337,7 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     struct rig_cache *cachep = CACHE(rig);
     int retcode = -RIG_EINTERNAL;
     int cache_ms;
+    int use_cache = 0;
 
     if (CHECK_RIG_ARG(rig) || !vfo)
     {
@@ -3328,7 +3361,12 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     cache_ms = elapsed_ms(&cachep->time_vfo, HAMLIB_ELAPSED_GET);
     //rig_debug(RIG_DEBUG_TRACE, "%s: cache check age=%dms\n", __func__, cache_ms);
 
-    if (cache_ms < cachep->timeout_ms)
+    if (MUTEX_CHECK(&morse_mutex))
+    {
+        use_cache = 1;
+    }
+
+    if (cache_ms < cachep->timeout_ms || use_cache)
     {
         *vfo = cachep->vfo;
         rig_debug(RIG_DEBUG_TRACE, "%s: cache hit age=%dms, vfo=%s\n", __func__,
@@ -4529,7 +4567,8 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Turn split on if not enabled already
         retcode = rig_set_split_vfo(rig, rs->current_vfo, RIG_SPLIT_ON, vfo_fixup(rig,
@@ -4718,7 +4757,8 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Split frequency not available if split is off
         *tx_freq = 0;
@@ -4894,7 +4934,8 @@ int HAMLIB_API rig_set_split_mode(RIG *rig,
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Turn split on if not enabled already
         retcode = rig_set_split_vfo(rig, rs->current_vfo, RIG_SPLIT_ON, vfo_fixup(rig,
@@ -5130,7 +5171,8 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Split mode and filter width are not available if split is off
         *tx_mode = RIG_MODE_NONE;
@@ -5289,7 +5331,8 @@ int HAMLIB_API rig_set_split_freq_mode(RIG *rig,
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Turn split on if not enabled already
         retcode = rig_set_split_vfo(rig, rs->current_vfo, RIG_SPLIT_ON, vfo_fixup(rig,
@@ -5435,7 +5478,8 @@ int HAMLIB_API rig_get_split_freq_mode(RIG *rig,
     // Always use the previously selected TX VFO for split. The targeted VFO will have no effect.
     tx_vfo = rs->tx_vfo;
 
-    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE || tx_vfo == RIG_VFO_CURR)
+    if (cachep->split == RIG_SPLIT_OFF || tx_vfo == RIG_VFO_NONE
+            || tx_vfo == RIG_VFO_CURR)
     {
         // Split frequency, mode and filter width are not available if split is off
         *tx_freq = 0;
@@ -5634,6 +5678,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
             // Only update cache on success
             rs->rx_vfo = rs->current_vfo;
             cachep->split = split;
+
             if (split == RIG_SPLIT_OFF)
             {
                 rs->tx_vfo = rs->current_vfo;
@@ -5692,6 +5737,7 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig,
     {
         // Only update cache on success
         cachep->split = split;
+
         if (split == RIG_SPLIT_OFF)
         {
             if (caps->targetable_vfo & RIG_TARGETABLE_FREQ)
@@ -5746,6 +5792,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     struct rig_cache *cachep = CACHE(rig);
     int retcode;
     int cache_ms;
+    int use_cache;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -5767,14 +5814,16 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     caps = rig->caps;
     rs = &rig->state;
 
-    if (caps->get_split_vfo == NULL)
+    if (MUTEX_CHECK(&morse_mutex))
+    {
+        use_cache = 1;
+    }
+
+    if (caps->get_split_vfo == NULL || use_cache)
     {
         // if we can't get the vfo we will return whatever we have cached
         *split = cachep->split;
         *tx_vfo = cachep->split_vfo;
-        rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: no get_split_vfo so returning split=%d, tx_vfo=%s\n", __func__, *split,
-                  rig_strvfo(*tx_vfo));
         ELAPSED2;
         RETURNFUNC(RIG_OK);
     }
@@ -8560,6 +8609,7 @@ void *morse_data_handler(void *arg)
             if (strlen(c) > 0)
             {
                 int nloops = 10;
+                MUTEX_LOCK(morse_mutex);
 
                 do
                 {
@@ -8584,6 +8634,8 @@ void *morse_data_handler(void *arg)
 
                 }
                 while (result != RIG_OK && rig->state.fifo_morse->flush == 0 && --nloops > 0);
+
+                MUTEX_UNLOCK(morse_mutex);
 
                 if (nloops == 0)
                 {
