@@ -283,13 +283,13 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(RIGPORT(rig)->pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
     if (serial_rate != 0)
     {
-        rig->state.rigport.parm.serial.rate = serial_rate;
+        RIGPORT(rig)->parm.serial.rate = serial_rate;
     }
 
     if (civaddr)

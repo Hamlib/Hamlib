@@ -25,11 +25,11 @@ int main(int argc, const char *argv[])
     }
 
 #ifdef _WIN32
-    strncpy(rig->state.rigport.pathname, "COM37", HAMLIB_FILPATHLEN - 1);
+    strncpy(RIGPORT(rig)->pathname, "COM37", HAMLIB_FILPATHLEN - 1);
 #else
-    strncpy(rig->state.rigport.pathname, "/dev/ttyUSB0", HAMLIB_FILPATHLEN - 1);
+    strncpy(RIGPORT(rig)->pathname, "/dev/ttyUSB0", HAMLIB_FILPATHLEN - 1);
 #endif
-    rig->state.rigport.parm.serial.rate = 38400;
+    RIGPORT(rig)->parm.serial.rate = 38400;
     rig_open(rig);
     // disabled until we change this to the other multicast capability
 #if 0

@@ -368,26 +368,26 @@ int main(int argc, char *argv[])
         token = strtok(NULL, ",");
     }
 
+    hamlib_port_t *rotp = ROTPORT(my_rot);
+    hamlib_port_t *rotp2 = ROTPORT2(my_rot);
     if (rot_file)
     {
-        strncpy(my_rot->state.rotport.pathname, rot_file, HAMLIB_FILPATHLEN - 1);
+        strncpy(rotp->pathname, rot_file, HAMLIB_FILPATHLEN - 1);
     }
 
     if (rot_file2)
     {
-        strncpy(my_rot->state.rotport2.pathname, rot_file2, HAMLIB_FILPATHLEN - 1);
+        strncpy(rotp2->pathname, rot_file2, HAMLIB_FILPATHLEN - 1);
     }
 
     /* FIXME: bound checking and port type == serial */
-    my_rot->state.rotport2.parm.serial.rate =
-        my_rot->state.rotport.parm.serial.rate;
-    my_rot->state.rotport2.parm.serial.data_bits =
-        my_rot->state.rotport.parm.serial.data_bits;
+    rotp2->parm.serial.rate = rotp->parm.serial.rate;
+    rotp2->parm.serial.data_bits = rotp->parm.serial.data_bits;
 
     if (serial_rate != 0)
     {
-        my_rot->state.rotport.parm.serial.rate = serial_rate;
-        my_rot->state.rotport2.parm.serial.rate = serial_rate;
+        rotp->parm.serial.rate = serial_rate;
+        rotp2->parm.serial.rate = serial_rate;
     }
 
     /*
