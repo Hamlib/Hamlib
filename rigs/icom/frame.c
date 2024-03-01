@@ -33,6 +33,7 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
+#include "cache.h"
 
 /*
  * Build a CI-V frame.
@@ -159,7 +160,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
     set_transaction_active(rig);
 
 collision_retry:
-    rig_flush(rp);
+    //rig_flush(rp);
 
     if (data_len) { *data_len = 0; }
 
@@ -206,14 +207,15 @@ again1:
             RETURNFUNC(-RIG_EPROTO);
         }
 
+        if (icom_is_async_frame(rig, frm_len, buf))
+        {
+            icom_process_async_frame(rig, frm_len, buf);
+            goto again1;
+        }
+
         // we might have 0xfe string during rig wakeup
         rig_debug(RIG_DEBUG_TRACE, "%s: DEBUG retval=%d, frm_len=%d, cmd=0x%02x\n",
                   __func__, retval, frm_len, cmd);
-
-        if (buf[1] == 0x00) // then this is a transceive frame so ignore it
-        {
-            goto again1;
-        }
 
         if (retval != frm_len && cmd == C_SET_PWR)
         {
@@ -304,8 +306,9 @@ again2:
         priv->serial_USB_echo_off = 0;
     }
 
-    if (buf[1] == 0x00) // then it's a transceive frame so ignore it
+    if (icom_is_async_frame(rig, frm_len, buf))
     {
+        icom_process_async_frame(rig, frm_len, buf);
         goto again2;
     }
 
