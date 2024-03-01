@@ -2682,8 +2682,6 @@ uint64_t HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
         return caps->port_type;
 
     case RIG_CAPS_HAS_GET_LEVEL:
-        rig_debug(RIG_DEBUG_TRACE, "%s(%d): return %08"PRIll"\n", __func__, __LINE__,
-                  caps->has_get_level);
         return caps->has_get_level;
 
     default:
