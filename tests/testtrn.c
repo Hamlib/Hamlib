@@ -52,7 +52,7 @@ int main(int argc, const  char *argv[])
         exit(1);    /* whoops! something went wrong (mem alloc?) */
     }
 
-    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
+    rig_set_conf(my_rig, rig_token_lookup(my_rig, "rig_pathname"), SERIAL_PORT);
 
     if (rig_open(my_rig))
     {
