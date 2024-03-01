@@ -44,7 +44,7 @@ int main(int argc, const char *argv[])
     /* Set up serial port, baud rate */
     rig_file = "127.0.0.1:4532";        // your serial device
 
-    strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
+    strncpy(RIGPORT(my_rig)->pathname, rig_file, HAMLIB_FILPATHLEN - 1);
 
     /* Open my rig */
     retcode = rig_open(my_rig);

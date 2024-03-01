@@ -67,12 +67,12 @@ int main(int argc, const char *argv[])
            my_rig->caps->version,
            rig_strstatus(my_rig->caps->status));
 
-    printf("Serial speed: %d baud\n", my_rig->state.rigport.parm.serial.rate);
+    printf("Serial speed: %d baud\n", RIGPORT(my_rig)->parm.serial.rate);
 #if 0 // if we want to bench serial or network I/O use this time
     rig_set_cache_timeout_ms(my_rig, HAMLIB_CACHE_ALL, 0);
 #endif
 
-    strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
+    strncpy(RIGPORT(my_rig)->pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
     retcode = rig_open(my_rig);
 

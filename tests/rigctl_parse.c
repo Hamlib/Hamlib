@@ -2576,7 +2576,7 @@ declare_proto_rig(set_ptt)
         if (rig->caps->ptt_type != RIG_PTT_RIG_MICDATA)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: pttport.type.ptt=%d\n", __func__,
-                      rig->state.pttport.type.ptt);
+                      PTTPORT(rig)->type.ptt);
             ptt = RIG_PTT_ON;
         }
 
@@ -4654,7 +4654,7 @@ declare_proto_rig(dump_state)
     {
         fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
         fprintf(fout, "ptt_type=0x%x\n",
-                rig->state.pttport.type.ptt);
+                PTTPORT(rig)->type.ptt);
         fprintf(fout, "targetable_vfo=0x%x\n", rig->caps->targetable_vfo);
         fprintf(fout, "has_set_vfo=%d\n", rig->caps->set_vfo != NULL);
         fprintf(fout, "has_get_vfo=%d\n", rig->caps->get_vfo != NULL);
@@ -5005,7 +5005,7 @@ extern int flrig_cat_string(RIG *rig, const char *arg);
 declare_proto_rig(send_cmd)
 {
     int retval;
-    struct rig_state *rs = &rig->state;
+    hamlib_port_t *rp = RIGPORT(rig);
     int backend_num, cmd_len;
 #define BUFSZ 512
     char bufcmd[BUFSZ * 5]; // allow for 5 chars for binary
@@ -5015,7 +5015,7 @@ declare_proto_rig(send_cmd)
     int rxbytes = BUFSZ;
     int simulate = rig->caps->rig_model == RIG_MODEL_DUMMY ||
                    rig->caps->rig_model == RIG_MODEL_NONE ||
-                   rs->rigport.rig == RIG_PORT_NONE;
+                   rp->rig == RIG_PORT_NONE;
 
     ENTERFUNC2;
 
@@ -5120,7 +5120,7 @@ declare_proto_rig(send_cmd)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rigport=%d, bufcmd=%s, cmd_len=%d\n", __func__,
-              rs->rigport.fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
+              rp->fd, hasbinary(bufcmd, cmd_len) ? "BINARY" : bufcmd, cmd_len);
 
     set_transaction_active(rig);
 
@@ -5131,17 +5131,17 @@ declare_proto_rig(send_cmd)
     }
     else
     {
-        rig_flush(&rs->rigport);
+        rig_flush(rp);
 
         // we don't want the 'w' command to wait too long
-        int save_retry = rs->rigport.retry;
-        rs->rigport.retry = 0;
-        retval = write_block(&rs->rigport, (unsigned char *) bufcmd, cmd_len);
-        rs->rigport.retry = save_retry;
+        int save_retry = rp->retry;
+        rp->retry = 0;
+        retval = write_block(rp, (unsigned char *) bufcmd, cmd_len);
+        rp->retry = save_retry;
 
         if (retval != RIG_OK)
         {
-            rig_flush_force(&rs->rigport, 1);
+            rig_flush_force(rp, 1);
             set_transaction_inactive(rig);
             RETURNFUNC2(retval);
         }
@@ -5193,7 +5193,7 @@ declare_proto_rig(send_cmd)
         else
         {
             /* Assumes CR or LF is end of line char for all ASCII protocols. */
-            retval = read_string(&rs->rigport, buf, rxbytes, eom_buf,
+            retval = read_string(rp, buf, rxbytes, eom_buf,
                                  strlen(eom_buf), 0, 1);
 
             if (retval < 0)
@@ -5245,7 +5245,7 @@ declare_proto_rig(send_cmd)
                 strncat(hexbuf, hex, hexbufbytes - 1);
             }
 
-            rig_flush_force(&rs->rigport, 1);
+            rig_flush_force(rp, 1);
             set_transaction_inactive(rig);
 
             rig_debug(RIG_DEBUG_TRACE, "%s: binary=%s, retval=%d\n", __func__, hexbuf,
@@ -5262,7 +5262,7 @@ declare_proto_rig(send_cmd)
     }
     while (retval > 0 && rxbytes == BUFSZ);
 
-    rig_flush_force(&rs->rigport, 1);
+    rig_flush_force(rp, 1);
     set_transaction_inactive(rig);
 
     // we use fwrite in case of any nulls in binary return
@@ -5786,7 +5786,7 @@ declare_proto_rig(cm108_get_bit)
 
     if (n != 1) { return -RIG_EINVAL; }
 
-    int retval = rig_cm108_get_bit(&rig->state.pttport, gpio, &bit);
+    int retval = rig_cm108_get_bit(PTTPORT(rig), gpio, &bit);
 
     if (retval != RIG_OK)
     {
@@ -5826,7 +5826,7 @@ declare_proto_rig(cm108_set_bit)
     if (n != 1) { return -RIG_EINVAL; }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set gpio=%d, bit=%d\n", __func__, gpio, bit);
-    int retval = rig_cm108_set_bit(&rig->state.pttport, gpio, bit);
+    int retval = rig_cm108_set_bit(PTTPORT(rig), gpio, bit);
 
     if (retval != RIG_OK)
     {

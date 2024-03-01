@@ -82,7 +82,7 @@ int main(int argc, const char *argv[])
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }
 
-    strncpy(my_rig->state.rigport.pathname, argv[2], HAMLIB_FILPATHLEN - 1);
+    rig_set_conf(my_rig, rig_token_lookup(my_rig, "rig_pathname"), argv[2]);
 
     retcode = rig_open(my_rig);
 
