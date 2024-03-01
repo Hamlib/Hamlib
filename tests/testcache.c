@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     /* Set up serial port, baud rate */
 
-    strncpy(my_rig->state.rigport.pathname, rig_file, HAMLIB_FILPATHLEN - 1);
+    rig_set_conf(my_rig, rig_token_lookup(my_rig, "rig_pathname"), rig_file);
 
     /* Open my rig */
     retcode = rig_open(my_rig);

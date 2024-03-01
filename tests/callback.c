@@ -12,7 +12,7 @@ int callback(const struct rig_caps *caps, rig_ptr_t rigp)
     }
 
     const char *port = "/dev/pts/3";
-    strcpy(rig->state.rigport.pathname, port);
+    strcpy(RIGPORT(rig)->pathname, port);
 
     printf("%20s:", caps->model_name);
     fflush(stdout);

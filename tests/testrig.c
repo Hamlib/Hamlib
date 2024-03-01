@@ -68,7 +68,7 @@ int main(int argc, const char *argv[])
         exit(1); /* whoops! something went wrong (mem alloc?) */
     }
 
-    //strncpy(my_rig->state.rigport.pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
+    //strncpy(RIGPORT(my_rig)->pathname, SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
 
     retcode = rig_open(my_rig);
 
