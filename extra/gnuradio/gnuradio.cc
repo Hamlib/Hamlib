@@ -132,7 +132,7 @@ int gr_init(RIG *rig)
   rig->state.priv = (void*)priv;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__ );
-  rig->state.rigport.type.rig = RIG_PORT_NONE;
+  RIGORT(rig)->type.rig = RIG_PORT_NONE;
 
   memset(priv->parms, 0, RIG_SETTING_MAX*sizeof(value_t));
 

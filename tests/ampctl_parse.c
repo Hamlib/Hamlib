@@ -1990,7 +1990,7 @@ declare_proto_amp(get_powerstat)
 declare_proto_amp(send_cmd)
 {
     int retval;
-    struct amp_state *rs;
+    hamlib_port_t *ampp = AMPPORT(amp);
     int backend_num, cmd_len;
 #define BUFSZ 128
     unsigned char bufcmd[BUFSZ];
@@ -2038,11 +2038,9 @@ declare_proto_amp(send_cmd)
         eom_buf[2] = send_cmd_term;
     }
 
-    rs = &amp->state;
+    rig_flush(ampp);
 
-    rig_flush(&rs->ampport);
-
-    retval = write_block(&rs->ampport, bufcmd, cmd_len);
+    retval = write_block(ampp, bufcmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -2060,7 +2058,7 @@ declare_proto_amp(send_cmd)
          * assumes CR or LF is end of line char
          * for all ascii protocols
          */
-        retval = read_string(&rs->ampport, buf, BUFSZ, eom_buf, strlen(eom_buf), 0, 1);
+        retval = read_string(ampp, buf, BUFSZ, eom_buf, strlen(eom_buf), 0, 1);
 
         if (retval < 0)
         {

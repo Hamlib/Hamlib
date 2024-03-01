@@ -2507,7 +2507,7 @@ declare_proto_rot(dump_state)
 declare_proto_rot(send_cmd)
 {
     int retval;
-    struct rot_state *rs;
+    hamlib_port_t *rotp = ROTPORT(rot);
     int backend_num, cmd_len;
 #define BUFSZ 128
     unsigned char bufcmd[BUFSZ];
@@ -2555,11 +2555,9 @@ declare_proto_rot(send_cmd)
         eom_buf[2] = send_cmd_term;
     }
 
-    rs = &rot->state;
+    rig_flush(rotp);
 
-    rig_flush(&rs->rotport);
-
-    retval = write_block(&rs->rotport, bufcmd, cmd_len);
+    retval = write_block(rotp, bufcmd, cmd_len);
 
     if (retval != RIG_OK)
     {
@@ -2577,7 +2575,7 @@ declare_proto_rot(send_cmd)
          * assumes CR or LF is end of line char
          * for all ascii protocols
          */
-        retval = read_string(&rs->rotport, buf, BUFSZ, eom_buf, strlen(eom_buf), 0, 1);
+        retval = read_string(rotp, buf, BUFSZ, eom_buf, strlen(eom_buf), 0, 1);
 
         if (retval < 0)
         {

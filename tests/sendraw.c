@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <hamlib/rig.h>
+#define PATH "/dev/pts/4"
 
 int
 main()
@@ -15,7 +16,7 @@ main()
     int retcode;
 
     my_rig = rig_init(2048);
-    strcpy(my_rig->state.rigport.pathname, "/dev/pts/4");
+    rig_set_conf(my_rig, rig_token_lookup(my_rig, "rig_pathname"), PATH);
 
     retcode = rig_open(my_rig);
 
