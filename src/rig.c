@@ -713,6 +713,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 
     rs->vfo_comp = 0.0; /* override it with preferences */
     rs->current_vfo = RIG_VFO_CURR; /* we don't know yet! */
+    rs->vfo_ops = caps->vfo_ops;
     rs->rx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
     rs->tx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
     rs->poll_interval = 1000; // enable polling by default
@@ -6904,7 +6905,7 @@ vfo_op_t HAMLIB_API rig_has_vfo_op(RIG *rig, vfo_op_t op)
 
     ENTERFUNC;
 
-    retcode = rig->caps->vfo_ops & op;
+    retcode = rig->state.vfo_ops & op;
     RETURNFUNC(retcode);
 }
 
