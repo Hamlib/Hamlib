@@ -183,6 +183,7 @@ collision_retry:
          *          up to rs->retry times.
          */
 
+again1:
         retval = read_icom_frame(rp, buf, sizeof(buf));
 
         if (retval == -RIG_ETIMEOUT || retval == 0)
@@ -208,6 +209,11 @@ collision_retry:
         // we might have 0xfe string during rig wakeup
         rig_debug(RIG_DEBUG_TRACE, "%s: DEBUG retval=%d, frm_len=%d, cmd=0x%02x\n",
                   __func__, retval, frm_len, cmd);
+
+        if (buf[1] == 0x00) // then this is a transceive frame so ignore it
+        {
+            goto again1;
+        }
 
         if (retval != frm_len && cmd == C_SET_PWR)
         {
@@ -289,12 +295,18 @@ read_another_frame:
      * FIXME: handle padding/collisions
      * ACKFRMLEN is the smallest frame we can expect from the rig
      */
+again2:
     buf[0] = 0;
     frm_len = read_icom_frame(rp, buf, sizeof(buf));
 
     if (frm_len > 4 && memcmp(buf, sendbuf, frm_len) == 0)
     {
         priv->serial_USB_echo_off = 0;
+    }
+
+    if (buf[1] == 0x00) // then it's a transceive frame so ignore it
+    {
+        goto again2;
     }
 
 #if 0
