@@ -234,7 +234,9 @@ static struct s_modeMap modeMap[] =
     {RIG_MODE_PKTUSB, NULL},
     {RIG_MODE_PKTLSB, NULL},
     {RIG_MODE_AM, NULL},
+    {RIG_MODE_PKTAM, NULL},
     {RIG_MODE_FM, NULL},
+    {RIG_MODE_PKTFM, NULL},
     {RIG_MODE_FMN, NULL},
     {RIG_MODE_WFM, NULL},
     {RIG_MODE_CW, NULL},
@@ -1811,6 +1813,9 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         {
             switch(*mode)
             {
+                case RIG_MODE_PKTAM:
+                case RIG_MODE_AM:
+                case RIG_MODE_PKTFM:
                 case RIG_MODE_FM: *width = 10000;break;
             }
         }
