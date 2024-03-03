@@ -627,12 +627,22 @@ int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
         rig->state.use_cached_freq = 1;
     }
 
-
-    network_publish_rig_transceive_data(rig);
-
-    if (rig->callbacks.freq_event)
+    if (rig->state.freq_event_elapsed.tv_sec == 0)
     {
-        rig->callbacks.freq_event(rig, vfo, freq, rig->callbacks.freq_arg);
+        elapsed_ms(&rig->state.freq_event_elapsed, HAMLIB_ELAPSED_SET);
+    }
+
+    double e = elapsed_ms(&rig->state.freq_event_elapsed, HAMLIB_ELAPSED_GET);
+
+    if (e >= 250) // throttle events to 4 per sec
+    {
+        elapsed_ms(&rig->state.freq_event_elapsed, HAMLIB_ELAPSED_SET);
+        network_publish_rig_transceive_data(rig);
+
+        if (rig->callbacks.freq_event)
+        {
+            rig->callbacks.freq_event(rig, vfo, freq, rig->callbacks.freq_arg);
+        }
     }
 
     RETURNFUNC(0);

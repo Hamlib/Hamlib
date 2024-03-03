@@ -2663,7 +2663,7 @@ typedef unsigned int rig_comm_status_t;
  * that may be updated (ie. customized)
  *
  * It is NOT fine to move fields around as it can break share library offset
- * As of 2021-03-03  vfo_list is the last known item being reference externally
+ * As of 2024-03-03  freq_event_elapsed is the last known item being reference externally
  * So any additions or changes to this structure must be at the end of the structure
  */
 struct rig_state {
@@ -2849,6 +2849,7 @@ struct rig_state {
     char device_id[HAMLIB_RIGNAMSIZ];
     int dual_watch; /*!< Boolean DUAL_WATCH status */
     int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
+    struct timespec freq_event_elapsed;
 // New rig_state items go before this line ============================================
 };
 
