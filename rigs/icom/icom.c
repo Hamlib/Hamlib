@@ -819,6 +819,8 @@ static int icom_check_ack(int ack_len, unsigned char *ackbuf)
     return RIG_OK;
 }
 
+#if 0 // this causes the rig to go into VFO mode when it is in memory mode
+// we have to give up on determining active VFO for Icom rigs
 // figure out what VFO is current for rigs with 0x25 command
 static int icom_current_vfo_x25(RIG *rig, vfo_t *vfo)
 {
@@ -884,6 +886,7 @@ static int icom_current_vfo_x25(RIG *rig, vfo_t *vfo)
     *vfo = vfo_current;
     return RIG_OK;
 }
+#endif
 
 static int icom_current_vfo_to_vfo_with_band(RIG *rig, vfo_t *vfo_current)
 {
@@ -934,6 +937,7 @@ static vfo_t icom_current_vfo(RIG *rig)
     struct rig_state *rs = &rig->state;
     struct icom_priv_data *priv = rs->priv;
 
+#if 0
     // Icom rigs with both Main/Sub receivers and A/B VFOs cannot use the 0x25 command to read Sub receiver frequency
     if (rs->targetable_vfo & RIG_TARGETABLE_FREQ && !VFO_HAS_MAIN_SUB_A_B_ONLY)
     {
@@ -950,6 +954,7 @@ static vfo_t icom_current_vfo(RIG *rig)
             return vfo_current;
         }
     }
+#endif
 
     if (rs->cache.ptt)
     {
@@ -1741,6 +1746,11 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         retval = icom_get_freq_x25(rig, vfo, &freq_len, freqbuf, &freqbuf_offset);
 
+        if (freq_len == 3 && freqbuf[2] == 0xff)
+        { // then we are in VFO mode
+            *freq = 0;
+            return RIG_OK;
+        }
         if (retval == RIG_OK)
         {
             // 0x25 cmd is 1 byte longer than 0x03 cmd
