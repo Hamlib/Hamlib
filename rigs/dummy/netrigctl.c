@@ -863,6 +863,8 @@ rig_debug(RIG_DEBUG_ERR, "## %s\n", buf);
                     int level;
                     sscanf(p, "%d", &level);
 
+                    rig->caps->parm_gran[i].step.s = 0;
+
                     if (RIG_PARM_IS_FLOAT(level))
                     {
                         double min, max, step;
@@ -2812,7 +2814,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20240226.0",
+    .version =        "20240304.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
