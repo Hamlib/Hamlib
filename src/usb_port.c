@@ -67,10 +67,11 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
     char    string[256];
     int i, r;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called LIBUSB_API_VERSION=%x\n", __func__, LIBUSB_API_VERSION);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called LIBUSB_API_VERSION=%x\n", __func__,
+              LIBUSB_API_VERSION);
 
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: looking for device %04x:%04x...",
+              "%s: looking for device %04x:%04x...\n",
               __func__,
               port->parm.usb.vid,
               port->parm.usb.pid);
@@ -93,7 +94,7 @@ static libusb_device_handle *find_and_open_device(const hamlib_port_t *port)
         libusb_get_device_descriptor(dev, &desc);
 
         rig_debug(RIG_DEBUG_VERBOSE,
-                  " %04x:%04x,",
+                  " %04x:%04x\n",
                   desc.idVendor,
                   desc.idProduct);
 
@@ -243,33 +244,50 @@ int usb_port_open(hamlib_port_t *port)
     pathname[HAMLIB_FILPATHLEN - 1] = '\0';
 
     p = pathname;
-    q = strchr(p, ':');
 
-    if (q)
+    if (strlen(pathname) == 9)
     {
-        ++q;
-        port->parm.usb.vid = strtol(q, NULL, 16);
-        p = q;
+        // then is new new libusb format with just vid:pid
+        int n = sscanf(pathname, "%x:%x", &port->parm.usb.vid, &port->parm.usb.pid);
+
+        if (n != 2)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse vid:pid from '%s'\n", __func__,
+                      pathname);
+            return -RIG_EINVAL;
+        }
+    }
+
+    else
+    {
         q = strchr(p, ':');
 
         if (q)
         {
             ++q;
-            port->parm.usb.pid = strtol(q, NULL, 16);
+            port->parm.usb.vid = strtol(q, NULL, 16);
             p = q;
             q = strchr(p, ':');
 
             if (q)
             {
                 ++q;
-                port->parm.usb.vendor_name = q;
+                port->parm.usb.pid = strtol(q, NULL, 16);
                 p = q;
                 q = strchr(p, ':');
 
                 if (q)
                 {
-                    *q++ = '\0';
-                    port->parm.usb.product = q;
+                    ++q;
+                    port->parm.usb.vendor_name = q;
+                    p = q;
+                    q = strchr(p, ':');
+
+                    if (q)
+                    {
+                        *q++ = '\0';
+                        port->parm.usb.product = q;
+                    }
                 }
             }
         }
