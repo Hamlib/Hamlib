@@ -22,8 +22,8 @@ float freqA = 14074000;
 float freqB = 14074500;
 char tx_vfo = '0';
 char rx_vfo = '0';
-char modeA = '0';
-char modeB = '0';
+char modeA = '1';
+char modeB = '1';
 int ks = 20;
 int bandselect = 5;
 int  width = 21;
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FA%09.0f;", freqA);
+            SNPRINTF(buf, sizeof(buf), "FA%08.0f;", freqA);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FA", 2) == 0)
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FB%09.0f;", freqB);
+            SNPRINTF(buf, sizeof(buf), "FB%08.0f;", freqB);
             n = write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "FB", 2) == 0)
@@ -243,6 +243,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "MD0;") == 0)
         {
+            printf("MD=%s\n", buf);
             hl_usleep(50 * 1000);
             SNPRINTF(buf, sizeof(buf), "MD0%c;", modeA);
             n = write(fd, buf, strlen(buf));
