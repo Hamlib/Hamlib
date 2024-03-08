@@ -187,6 +187,7 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 
 MUTEX(morse_mutex);
 
+#ifdef HAVE_PTHREAD
 // returns true if mutex is busy
 int MUTEX_CHECK(pthread_mutex_t *m)
 {
@@ -199,6 +200,9 @@ int MUTEX_CHECK(pthread_mutex_t *m)
 
     return trylock == EBUSY;
 }
+#else
+#define MUTEX_CHECK(var) 0
+#endif
 
 
 /*
@@ -1965,6 +1969,44 @@ static int twiddling(RIG *rig)
 
 #include "band_changed.c"
 
+// for rigs that do not have targetable VFO 
+// skip setting frequency on the non-active vfo
+// this allow gpredict to work correctly on these rigs
+// but we might have trou
+static int skip_freq(RIG *rig, vfo_t vfo)
+{
+    struct rig_cache *cachep = CACHE(rig);
+    int retval = 0;
+    // if option is not select do not skip
+    // WSJT-X needs set all the time....gpredict can skip
+    // This is due to their behavior...WSJT-X sets TX VFO before PTT
+    // gpredict needs to set Doppler all the time so causes VFO flashing on rigs without TARGETABLE_FREQ
+    if (rig->state.freq_skip == 0) 
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: not skipping set_freq on vfo %s\n", __func__, rig_strvfo(vfo));
+        return 0;
+    }
+    if (cachep->ptt && cachep->split
+            && ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) == 0)
+            && (vfo == RIG_VFO_RX || vfo == rig->state.rx_vfo))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: skip setting frequency on RX vfo when PTT is on\n", __func__);
+        retval = 1;
+    }
+
+    if ((!cachep->ptt) && cachep->split
+            && ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) == 0)
+            && (vfo == RIG_VFO_TX || vfo == rig->state.tx_vfo))
+    {
+        rig_debug(RIG_DEBUG_VERBOSE,
+                  "%s: skip setting frequency on TX vfo when PTT is not on\n", __func__);
+        retval = 1;
+    }
+    return retval;
+}
+
+
 /**
  * \brief set the frequency of the target VFO
  * \param rig   The rig handle
@@ -2070,22 +2112,6 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         rig->state.twiddle_state = TWIDDLE_OFF;
     }
 
-    if (cachep->ptt && cachep->split
-            && ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) == 0)
-            && (vfo == RIG_VFO_TX || vfo == rig->state.tx_vfo))
-    {
-        rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: skip setting frequency on RX vfo when PTT is on\n", __func__);
-    }
-
-    if ((!cachep->ptt) && cachep->split
-            && ((rig->caps->targetable_vfo & RIG_TARGETABLE_FREQ) == 0)
-            && (vfo == RIG_VFO_RX || vfo == rig->state.rx_vfo))
-    {
-        rig_debug(RIG_DEBUG_VERBOSE,
-                  "%s: skip setting frequency on TX vfo when PTT is not on\n", __func__);
-    }
-
     caps = rig->caps;
 
     if (rig->state.lo_freq != 0.0)
@@ -2112,6 +2138,12 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (vfo == RIG_VFO_CURR)
     {
         vfo = vfo_save;
+    }
+
+    if (skip_freq(rig, vfo))
+    {
+        LOCK(0);
+        RETURNFUNC(RIG_OK);
     }
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_FREQ)
