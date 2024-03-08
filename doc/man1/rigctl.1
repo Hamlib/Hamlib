@@ -1429,6 +1429,13 @@ Can also use 1,2,3,4
 .EX
 Skips rig initialization -- useful when executing commands with rigctl to speed up things
 .
+.TP
+.BR freq_skip " " 'skip'
+.EX
+When skip!=0 skips setting freq on TX_VFO when in RX and on RX_VFO when in TX -- for use with gpredict and rigs that do not have TARGETABLE_VFO
+.
+.SH READLINE
+.
 .SH READLINE
 .
 If

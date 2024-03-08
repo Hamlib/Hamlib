@@ -220,6 +220,11 @@ static const struct confparams frontend_cfg_params[] =
         "Multicast data UDP port for sending commands to rig",
         "4532", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
     },
+    {
+        TOK_FREQ_SKIP, "freq_skip", "Skip setting freq on non-active VFO",
+        "True enables skipping setting the TX_VFO when RX_VFO is receiving and skips RX_VFO when TX_VFO is transmitting",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
 
     { RIG_CONF_END, NULL, }
 };
@@ -818,6 +823,15 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         }
 
         rs->multicast_cmd_port = val_i;
+        break;
+
+    case TOK_FREQ_SKIP:
+        if (1 != sscanf(val, "%ld", &val_i))
+        {
+            return -RIG_EINVAL;
+        }
+
+        rs->freq_skip = val_i != 0;
         break;
 
     default:

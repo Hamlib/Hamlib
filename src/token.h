@@ -141,6 +141,8 @@
 #define TOK_MULTICAST_CMD_ADDR  TOKEN_FRONTEND(134)
 /** \brief rig: Multicast command server UDP port, default 4532 */
 #define TOK_MULTICAST_CMD_PORT  TOKEN_FRONTEND(135)
+/** \brief rig: Skip setting freq on opposite VFO when in split mode */
+#define TOK_FREQ_SKIP  TOKEN_FRONTEND(136)
 
 /*
  * rotator specific tokens

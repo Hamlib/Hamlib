@@ -2850,6 +2850,7 @@ struct rig_state {
     int dual_watch; /*!< Boolean DUAL_WATCH status */
     int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
     struct timespec freq_event_elapsed;
+    int freq_skip; /*!< allow frequency skip for gpredict RX/TX freq set */
 // New rig_state items go before this line ============================================
 };
 
