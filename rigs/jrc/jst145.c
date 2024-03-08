@@ -339,7 +339,7 @@ static int jst145_get_vfo(RIG *rig, vfo_t *vfo)
 
     jst145_get_ptt(rig, RIG_VFO_A,
                    &ptt); // set priv->ptt to current transmit status
-    rig->state.cache.ptt = ptt;
+    CACHE(rig)->ptt = ptt;
 
 ptt_retry:
 
@@ -609,7 +609,7 @@ static int jst145_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     if (pttstatus[1] == '1') { *ptt = RIG_PTT_ON; }
     else { *ptt = RIG_PTT_OFF; }
 
-    priv->ptt = rig->state.cache.ptt = *ptt;
+    priv->ptt = CACHE(rig)->ptt = *ptt;
 
     return RIG_OK;
 }
