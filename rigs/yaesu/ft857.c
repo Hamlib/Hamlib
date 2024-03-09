@@ -615,14 +615,14 @@ int ft857_get_vfo(RIG *rig, vfo_t *vfo)
     // Some 857's cannot read so we'll just return the cached value if we've seen an error
     if (ignore)
     {
-        *vfo = rig->state.cache.vfo;
+        *vfo = CACHE(rig)->vfo;
         return RIG_OK;
     }
 
     if (ft857_read_eeprom(rig, 0x0068, &c) < 0)   /* get vfo status */
     {
         ignore = 1;
-        *vfo = rig->state.cache.vfo;
+        *vfo = CACHE(rig)->vfo;
         return RIG_OK;
     }
 
