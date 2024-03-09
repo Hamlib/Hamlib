@@ -988,16 +988,17 @@ static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
     freq_t f1 = 0, f2 = 0;
+    struct rig_cache *cachep = CACHE(rig);
     int retries = RIGPORT(rig)->retry +
                   1; // +1 because, because 2 steps are needed even in best scenario
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called, vfo=%s, ptt=%d, split=%d\n", __func__,
-              rig_strvfo(vfo), rig->state.cache.ptt, rig->state.cache.split);
+              rig_strvfo(vfo), cachep->ptt, cachep->split);
 
     // we can't query VFOB while in transmit and split mode
-    if (rig->state.cache.ptt && vfo == RIG_VFO_B && rig->state.cache.split)
+    if (cachep->ptt && vfo == RIG_VFO_B && cachep->split)
     {
-        *freq = rig->state.cache.freqMainB;
+        *freq = cachep->freqMainB;
         return RIG_OK;
     }
 
@@ -2127,7 +2128,7 @@ static int ft817_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         return n;
     }
 
-    rig->state.cache.split = split;
+    CACHE(rig)->split = split;
 
     return RIG_OK;
 

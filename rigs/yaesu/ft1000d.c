@@ -4121,11 +4121,11 @@ static int ft1000_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_A)
     {
-        *freq = rig->state.cache.freqMainA;
+        *freq = CACHE(rig)->freqMainA;
     }
     else
     {
-        *freq = rig->state.cache.freqMainB;
+        *freq = CACHE(rig)->freqMainB;
     }
 
     return RIG_OK;
@@ -4135,11 +4135,11 @@ static int ft1000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     if (vfo == RIG_VFO_A)
     {
-        *mode = rig->state.cache.modeMainA;
+        *mode = CACHE(rig)->modeMainA;
     }
     else
     {
-        *mode = rig->state.cache.modeMainB;
+        *mode = CACHE(rig)->modeMainB;
     }
 
     return RIG_OK;
@@ -4153,7 +4153,7 @@ static int ft1000_get_vfo(RIG *rig, vfo_t *vfo)
 
 static int ft1000_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    *ptt = rig->state.cache.ptt;
+    *ptt = CACHE(rig)->ptt;
     return RIG_OK;
 }
 

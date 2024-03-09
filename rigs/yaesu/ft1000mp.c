@@ -932,11 +932,11 @@ static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_A)
     {
-        *freq = rig->state.cache.freqMainA;
+        *freq = CACHE(rig)->freqMainA;
     }
     else
     {
-        *freq = rig->state.cache.freqMainB;
+        *freq = CACHE(rig)->freqMainB;
     }
 
     return RIG_OK;
@@ -1818,8 +1818,8 @@ static int ft1000mp_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
 
     if (retval == RIG_OK)
     {
-        rig->state.cache.freqMainB = freq;
-        rig->state.cache.modeMainB = mode;
+        CACHE(rig)->freqMainB = freq;
+        CACHE(rig)->modeMainB = mode;
     }
 
     RETURNFUNC(retval);
@@ -1842,8 +1842,8 @@ static int ft1000mp_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
 
     if (retval == RIG_OK)
     {
-        rig->state.cache.freqMainB = *freq;
-        rig->state.cache.modeMainB = *mode;
+        CACHE(rig)->freqMainB = *freq;
+        CACHE(rig)->modeMainB = *mode;
     }
 
     RETURNFUNC(retval);
