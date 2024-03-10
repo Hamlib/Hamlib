@@ -914,7 +914,7 @@ int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 
     unsigned char cmd_index;
-    int split = rig->state.cache.split;
+    int split = CACHE(rig)->split;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -971,8 +971,8 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 
     int ret;
-    int split = rig->state.cache.split;
-    int ptt = rig->state.cache.ptt;
+    int split = CACHE(rig)->split;
+    int ptt = CACHE(rig)->ptt;
 
     FT100_METER_INFO ft100_meter;
 
