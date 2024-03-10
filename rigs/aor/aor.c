@@ -58,7 +58,7 @@
 
 /*
  * aor_transaction
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * return value: RIG_OK if everything's fine, negative value otherwise
  * TODO: error case handling
@@ -605,7 +605,7 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
 /*
  * aor_set_level
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
@@ -613,7 +613,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     char lvlbuf[BUFSZ];
     int agc;
 
-    rs = &rig->state;
+    rs = STATE(rig);
 
 
     switch (level)
@@ -670,15 +670,13 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 /*
  * aor_get_level
- * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
  */
 int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct rig_state *rs;
+    struct rig_state *rs = STATE(rig);
     char lvlbuf[BUFSZ], ackbuf[BUFSZ];
     int ack_len, retval;
-
-    rs = &rig->state;
 
     switch (level)
     {
@@ -820,7 +818,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 /*
  * aor_get_dcd
- * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
  */
 int aor_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
@@ -847,7 +845,7 @@ int aor_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 /*
  * aor_set_powerstat
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int aor_set_powerstat(RIG *rig, powerstat_t status)
 {
@@ -891,7 +889,7 @@ int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 /*
  * aor_scan, scan operation
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int aor_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
@@ -1344,7 +1342,7 @@ int aor_get_chan_all_cb(RIG *rig, vfo_t vfo, chan_cb_t chan_cb, rig_ptr_t arg)
 {
     const struct aor_priv_caps *priv = (struct aor_priv_caps *)rig->caps->priv;
     int i, j, retval;
-    chan_t *chan_list = rig->state.chan_list;
+    chan_t *chan_list = STATE(rig)->chan_list;
     channel_t *chan;
     int chan_count;
     char aorcmd[BUFSZ];
