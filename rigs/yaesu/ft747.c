@@ -579,18 +579,19 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft747_priv_data *p;
+    struct rig_cache *cachep = CACHE(rig);
     freq_t f;
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s: called vfo=%s, freqMainA=%.0f, freqMainB=%.0f\n", __func__,
-              rig_strvfo(vfo), rig->state.cache.freqMainA, rig->state.cache.freqMainB);
+              rig_strvfo(vfo), cachep->freqMainA, cachep->freqMainB);
 
-    if (vfo == RIG_VFO_CURR) { vfo = rig->state.cache.vfo; }
+    if (vfo == RIG_VFO_CURR) { vfo = cachep->vfo; }
 
-    if (rig->state.cache.ptt == RIG_PTT_ON)
+    if (cachep->ptt == RIG_PTT_ON)
     {
-        *freq = RIG_VFO_B ? rig->state.cache.freqMainB : rig->state.cache.freqMainA;
+        *freq = RIG_VFO_B ? cachep->freqMainB : cachep->freqMainA;
         return RIG_OK;
     }
 
@@ -1005,7 +1006,7 @@ static int ft747_get_update_data(RIG *rig)
     p = (struct ft747_priv_data *)rig->state.priv;
     rigport = RIGPORT(rig);
 
-    if (rig->state.cache.ptt == RIG_PTT_ON
+    if (CACHE(rig)->ptt == RIG_PTT_ON
             || !rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
     {
         return RIG_OK;

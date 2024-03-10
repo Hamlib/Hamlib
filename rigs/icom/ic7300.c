@@ -2218,12 +2218,13 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     int ack_len = sizeof(ackbuf);
     int retval;
     int vfo_is_main_or_sub = (vfo == RIG_VFO_MAIN) || (vfo == RIG_VFO_SUB);
+    struct rig_cache *cachep = CACHE(rig);
 
     ENTERFUNC;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    if (rig->state.cache.satmode && !vfo_is_main_or_sub)
+    if (cachep->satmode && !vfo_is_main_or_sub)
     {
         // Translate VFO A/B to Main/Sub in satellite mode
         if (vfo == RIG_VFO_A)
@@ -2247,7 +2248,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     }
     else if (vfo == RIG_VFO_B)
     {
-        if (rig->state.cache.satmode)
+        if (cachep->satmode)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n",
                       __func__);
@@ -2267,7 +2268,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
             return retval;
         }
 
-        if (rig->state.cache.satmode && vfo == RIG_VFO_MAIN_B)
+        if (cachep->satmode && vfo == RIG_VFO_MAIN_B)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
             // we return RIG_OK anyways as this should just be a bad request
@@ -2290,7 +2291,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
             return retval;
         }
 
-        if (rig->state.cache.satmode && vfo == RIG_VFO_SUB_B)
+        if (cachep->satmode && vfo == RIG_VFO_SUB_B)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
             // we return RIG_OK anyways as this should just be a bad request

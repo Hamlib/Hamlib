@@ -692,7 +692,7 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return RIG_OK;
 
     case RIG_LEVEL_STRENGTH:
-        if (rig->state.cache.ptt != RIG_PTT_OFF)
+        if (CACHE(rig)->ptt != RIG_PTT_OFF)
         {
             val->i = -9 * 6;
             break;
@@ -879,7 +879,7 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int raw_value;
         char read_vfo_num;
 
-        if (rig->state.cache.ptt == RIG_PTT_OFF)
+        if (CACHE(rig)->ptt == RIG_PTT_OFF)
         {
             val->f = 0;
             break;

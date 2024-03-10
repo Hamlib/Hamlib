@@ -701,7 +701,7 @@ int ft990v12_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else
     {
         // M0EZP: Uni use cache
-// *freq = vfo == RIG_VFO_A ? rig->state.cache.freqMainA : rig->state.cache.freqMainB;
+// *freq = vfo == RIG_VFO_A ? CACHE(rig)->freqMainA : CACHE(rig)->freqMainB;
         return (RIG_OK);
     }
 }
