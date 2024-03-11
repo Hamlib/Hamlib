@@ -194,17 +194,18 @@ struct rig_caps sdr1k_rig_caps =
 int sdr1k_init(RIG *rig)
 {
     struct sdr1k_priv_data *priv;
+    struct rig_state *rs = STATE(rig);
 
-    rig->state.priv = (struct sdr1k_priv_data *)calloc(1, sizeof(
+    rs->priv = (struct sdr1k_priv_data *)calloc(1, sizeof(
                           struct sdr1k_priv_data));
 
-    if (!rig->state.priv)
+    if (!rs->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = rs->priv;
 
     priv->dds_freq = RIG_FREQ_NONE;
     priv->xtal = DEFAULT_XTAL;
@@ -221,7 +222,7 @@ static void pdelay(RIG *rig)
 
 int sdr1k_open(RIG *rig)
 {
-    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
+    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)STATE(rig)->priv;
 
     priv->shadow[0] = 0;
     priv->shadow[1] = 0;
@@ -242,14 +243,14 @@ int sdr1k_close(RIG *rig)
 
 int sdr1k_cleanup(RIG *rig)
 {
-    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
+    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)STATE(rig)->priv;
 
     if (priv)
     {
         free(priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -299,7 +300,7 @@ static int set_band(RIG *rig, freq_t freq)
  */
 int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
+    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)STATE(rig)->priv;
     int i;
     double ftw;
     double DDS_step_size;
@@ -380,7 +381,7 @@ int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int sdr1k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
+    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)STATE(rig)->priv;
 
     *freq = priv->dds_freq;
     rig_debug(RIG_DEBUG_TRACE, "%s: %"PRIll"\n", __func__, (int64_t)priv->dds_freq);
@@ -452,7 +453,7 @@ int sdr1k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int
 write_latch(RIG *rig, latch_t which, unsigned value, unsigned mask)
 {
-    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
+    struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)STATE(rig)->priv;
     hamlib_port_t *pport = RIGPORT(rig);
 
     if (!(L_EXT <= which && which <= L_DDS1))
