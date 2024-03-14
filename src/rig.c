@@ -999,10 +999,10 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: cwd=%s\n", __func__, cwd);
         char *path = calloc(1, 4096);
-        extern char *settings_file;
+        extern char settings_file[4096];
         const char *xdgpath = getenv("XDG_CONFIG_HOME");
 
-        settings_file = "hamlib_settings";
+        strcpy(settings_file,"hamlib_settings");
 
         if (xdgpath)
         {
