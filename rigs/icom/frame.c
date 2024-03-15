@@ -301,6 +301,12 @@ again2:
     buf[0] = 0;
     frm_len = read_icom_frame(rp, buf, sizeof(buf));
 
+    if (frm_len <= 0)
+    {
+        set_transaction_inactive(rig);
+        return frm_len;
+    }
+
     if (frm_len > 4 && memcmp(buf, sendbuf, frm_len) == 0)
     {
         priv->serial_USB_echo_off = 0;
