@@ -19,14 +19,14 @@ struct ip_mreq
 
 #define BUFSIZE 256
 
-float freqA = 14074000;
-float freqB = 14074500;
+int freqA = 14074000;
+int freqB = 14074500;
 int afgain = 180;
 int rfgain = 190;
 int micgain = 30;
 int noiseblanker = 0;
-int bandwidthA = 2200;
-int bandwidthB = 2400;
+int bandwidthA = 200;
+int bandwidthB = 200;
 int ifshift = 0;
 int preampA = 0;
 int preampB = 0;
@@ -35,8 +35,9 @@ int rxattenuatorB = 0;
 int keyspd = 20;
 int ai = 0;
 int dt = 0;
-int modea = 2;
-int modeb = 2;
+int modeA = 2;
+int modeB = 2;
+//    int freqa = 14074000, freqb = 14073500;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -124,13 +125,12 @@ int main(int argc, char *argv[])
     char *pbuf;
     int n;
     int fd = openPort(argv[1]);
-    int freqa = 14074000, freqb = 14073500;
 
     while (1)
     {
         buf[0] = 0;
 
-        if ((n = getmyline(fd, buf)) > 0) { if (strstr(buf,"BW")) printf("Cmd:%s, len=%d\n", buf, n); }
+        if ((n = getmyline(fd, buf)) > 0) { if (strstr(buf,"BW0")) printf("Cmd:%s, len=%d\n", buf, n); }
         else {continue; }
 
         if (strcmp(buf, "RM5;") == 0)
@@ -318,37 +318,37 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "MD;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "MD%d;", modea);
+            SNPRINTF(buf, sizeof(buf), "MD%d;", modeA);
             WRITE(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "MD$;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "MD$%d;", modeb);
+            SNPRINTF(buf, sizeof(buf), "MD$%d;", modeB);
             WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "MD", 2) == 0)
         {
-            if (buf[2] == '$') { sscanf(buf, "MD$%d;", &modeb); }
-            else { sscanf(buf, "MD%d;", &modea); }
+            if (buf[2] == '$') { sscanf(buf, "MD$%d;", &modeB); }
+            else { sscanf(buf, "MD%d;", &modeA); }
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FA%011d;", freqa);
+            SNPRINTF(buf, sizeof(buf), "FA%011d;", freqA);
             WRITE(fd, buf, strlen(buf));
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FB%011d;", freqb);
+            SNPRINTF(buf, sizeof(buf), "FB%011d;", freqB);
             WRITE(fd, buf, strlen(buf));
         }
 
         else if (strncmp(buf, "FA", 2) == 0)
         {
-            sscanf(buf, "FA%d", &freqa);
+            sscanf(buf, "FA%d", &freqA);
         }
         else if (strncmp(buf, "FB", 2) == 0)
         {
-            sscanf(buf, "FB%d", &freqb);
+            sscanf(buf, "FB%d", &freqB);
         }
         else if (strncmp(buf, "FR;", 3) == 0)
         {

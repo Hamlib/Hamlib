@@ -28,7 +28,7 @@ struct ip_mreq
 
 
 #define BUFSIZE 256
-#define X25
+//#define X25
 
 int civ_731_mode = 0;
 vfo_t current_vfo = RIG_VFO_A;
