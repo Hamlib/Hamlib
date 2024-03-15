@@ -1175,12 +1175,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         if (!input_line)
         {
             fprintf_flush(fout, "\n");
+            free(rp_hist_buf);
             return (RIGCTL_PARSE_END);
         }
 
         /* Q or q to quit */
         if (!(strncasecmp(input_line, "q", 1)))
         {
+            free(rp_hist_buf);
             return (RIGCTL_PARSE_END);
         }
 
@@ -1189,12 +1191,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         {
             usage_rig(fout);
             fflush(fout);
+            free(rp_hist_buf);
             return (RIG_OK);
         }
 
         /* '#' for comment */
         if (!(strncmp(input_line, "#", 1)))
         {
+            free(rp_hist_buf);
             return (RIG_OK);
         }
 
@@ -1203,6 +1207,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
         {
             fprintf(fout, "? for help, q to quit.\n");
             fflush(fout);
+            free(rp_hist_buf);
             return (RIG_OK);
         }
 
@@ -1227,6 +1232,7 @@ readline_repeat:
         {
             /* Oops!  Invoke GDB!! */
             fprintf_flush(fout, "\n");
+            free(rp_hist_buf);
             return (RIGCTL_PARSE_END);
         }
 
@@ -1286,6 +1292,7 @@ readline_repeat:
                 {
                     fprintf(stderr,
                             "Valid multiple character command names contain alphanumeric characters plus '_'\n");
+                    free(rp_hist_buf);
                     return (RIG_OK);
                 }
             }
@@ -1295,12 +1302,14 @@ readline_repeat:
         /* Single '\' entered, prompt again */
         else if ((*parsed_input[0] == '\\') && (strlen(parsed_input[0]) == 1))
         {
+            free(rp_hist_buf);
             return (RIG_OK);
         }
         /* Multiple characters but no leading '\' */
         else
         {
             fprintf(stderr, "Precede multiple character command names with '\\'\n");
+            free(rp_hist_buf);
             return (RIG_OK);
         }
 
@@ -1317,6 +1326,7 @@ readline_repeat:
                 fprintf(stderr, "Command '%c' not found!\n", cmd);
             }
 
+            free(rp_hist_buf);
             return (RIG_OK);
         }
 
@@ -1342,6 +1352,7 @@ readline_repeat:
                 if (!input_line)
                 {
                     fprintf_flush(fout, "\n");
+                    free(rp_hist_buf);
                     return (RIGCTL_PARSE_END);
                 }
 
@@ -1350,6 +1361,7 @@ readline_repeat:
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
+                    free(rp_hist_buf);
                     return (RIG_OK);
                 }
 
@@ -1365,6 +1377,7 @@ readline_repeat:
                 else
                 {
                     fprintf_flush(fout, "\n");
+                    free(rp_hist_buf);
                     return (RIGCTL_PARSE_END);
                 }
             }
@@ -1444,6 +1457,7 @@ readline_repeat:
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
+                    free(rp_hist_buf);
                     return (RIG_OK);
                 }
 
@@ -1454,6 +1468,7 @@ readline_repeat:
                 else
                 {
                     fprintf_flush(fout, "\n");
+                    free(rp_hist_buf);
                     return (RIGCTL_PARSE_END);
                 }
             }
@@ -1506,6 +1521,7 @@ readline_repeat:
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
+                    free(rp_hist_buf);
                     return (RIG_OK);
                 }
 
@@ -1518,6 +1534,7 @@ readline_repeat:
                 else
                 {
                     fprintf_flush(fout, "\n");
+                    free(rp_hist_buf);
                     return (RIGCTL_PARSE_END);
                 }
             }
@@ -1572,6 +1589,7 @@ readline_repeat:
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
+                    free(rp_hist_buf);
                     return (RIG_OK);
                 }
 
@@ -1584,6 +1602,7 @@ readline_repeat:
                 else
                 {
                     fprintf_flush(fout, "\n");
+                    free(rp_hist_buf);
                     return (RIGCTL_PARSE_END);
                 }
             }
@@ -1638,6 +1657,7 @@ readline_repeat:
                 {
                     fprintf(fout, "? for help, q to quit.\n");
                     fflush(fout);
+                    free(rp_hist_buf);
                     return (RIG_OK);
                 }
 
@@ -1650,6 +1670,7 @@ readline_repeat:
                 else
                 {
                     fprintf_flush(fout, "\n");
+                    free(rp_hist_buf);
                     return (RIGCTL_PARSE_END);
                 }
             }
