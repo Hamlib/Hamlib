@@ -101,7 +101,7 @@ extern int read_history();
 #define ARG_OUT (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4|ARG_OUT5)
 
 static int chk_vfo_executed;
-char rigctld_password[64];
+char rigctld_password[65];
 int is_passwordOK;
 int is_rigctld;
 extern int lock_mode; // used by rigctld
