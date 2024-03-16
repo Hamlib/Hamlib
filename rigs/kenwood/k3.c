@@ -1007,7 +1007,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char *cmd_data = "DT";
     char *cmd_bw = "BW";
     int cmd_bw_len = 6;
-    const struct kenwood_priv_data *priv = rig->state.priv;
+    const struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -1031,7 +1031,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
 
     err = kenwood_get_mode(rig, vfo, &temp_m, &temp_w);
@@ -1159,14 +1159,14 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char buf[KENWOOD_MAX_BUF_LEN];
     char *dtcmd;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s mode=%s width=%d\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
 
     rmode_t tmodeA, tmodeB;
@@ -1361,7 +1361,7 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
     ENTERFUNC;
 
     // we emulate vfo selection for Elecraft
-    rig->state.current_vfo = vfo;
+    STATE(rig)->current_vfo = vfo;
 
     RETURNFUNC(RIG_OK);
 }
@@ -1370,7 +1370,7 @@ int k3_get_vfo(RIG *rig, vfo_t *vfo)
 {
     ENTERFUNC;
 
-    *vfo = rig->state.current_vfo;
+    *vfo = STATE(rig)->current_vfo;
 
     RETURNFUNC(RIG_OK);
 }
@@ -1552,7 +1552,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
     char kmode;
     int err;
     char cmd_m[16];
-    const struct kenwood_priv_data *priv = rig->state.priv;
+    const struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1828,7 +1828,7 @@ static int k3_get_maxpower(RIG *rig)
     //int retval;
     int maxpower = 15; // K3 default power level
     //char levelbuf[KENWOOD_MAX_BUF_LEN];
-    const struct kenwood_priv_data *priv = rig->state.priv;
+    const struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     // default range is 0-15 if there is no KPA3 installed
     if (priv->has_kpa3 || priv->has_kpa100)
@@ -1952,9 +1952,9 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             int i;
             int foundit = 0;
 
-            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && STATE(rig)->attenuator[i]; i++)
             {
-                if (val.i == rig->state.attenuator[i])
+                if (val.i == STATE(rig)->attenuator[i])
                 {
                     SNPRINTF(levelbuf, sizeof(levelbuf), "RA%02d", i + 1);
                     foundit = 1;
@@ -2019,7 +2019,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int retval;
     int lvl;
     size_t len;
-    const struct kenwood_priv_data *priv = rig->state.priv;
+    const struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2191,7 +2191,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             for (i = 0; i < lvl && i < HAMLIB_MAXDBLSTSIZ; i++)
             {
-                if (rig->state.attenuator[i] == 0)
+                if (STATE(rig)->attenuator[i] == 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: unexpected att level %d\n", __func__, lvl);
                     return -RIG_EPROTO;
@@ -2203,7 +2203,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 return -RIG_EINTERNAL;
             }
 
-            val->i = rig->state.attenuator[i - 1];
+            val->i = STATE(rig)->attenuator[i - 1];
         }
 
         break;
@@ -2432,7 +2432,7 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
-        struct kenwood_priv_data *priv = rig->state.priv;
+        struct kenwood_priv_data *priv = STATE(rig)->priv;
         char levelbuf[KENWOOD_MAX_BUF_LEN];
         int pwr;
 

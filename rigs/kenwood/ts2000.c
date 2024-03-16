@@ -275,7 +275,7 @@ int ts2000_init(RIG *rig)
         return retval;
     }
 
-    priv = (struct kenwood_priv_data *) rig->state.priv;
+    priv = (struct kenwood_priv_data *) STATE(rig)->priv;
 
     priv->ag_format = 3;
     priv->micgain_min = 0;
@@ -1004,7 +1004,7 @@ static int ts2000_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     int retval;
     char buf[7];
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 
