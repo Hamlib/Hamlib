@@ -659,14 +659,14 @@ static int tmd710_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    rig->state.tx_vfo = RIG_VFO_A;
+    STATE(rig)->tx_vfo = RIG_VFO_A;
 
     // Get current RX and TX VFO state, do not care if we succeed or not
     tmd710_get_vfo(rig, &vfo);
     tmd710_get_split_vfo(rig, RIG_VFO_CURR, &split, &vfo);
 
-    rig_debug(RIG_DEBUG_TRACE, "rig->state.tx_vfo: %s\n",
-              rig_strvfo(rig->state.tx_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "STATE(rig)->tx_vfo: %s\n",
+              rig_strvfo(STATE(rig)->tx_vfo));
 
     return 0;
 }
@@ -1288,7 +1288,7 @@ int tmd710_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     // Use the TX VFO for split
-    return tmd710_do_set_freq(rig, rig->state.tx_vfo, freq);
+    return tmd710_do_set_freq(rig, STATE(rig)->tx_vfo, freq);
 }
 
 /*
@@ -1301,7 +1301,7 @@ int tmd710_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     // Use the TX VFO for split
-    return tmd710_do_get_freq(rig, rig->state.tx_vfo, freq);
+    return tmd710_do_get_freq(rig, STATE(rig)->tx_vfo, freq);
 }
 
 static int tmd710_find_ctcss_index(RIG *rig, tone_t tone, int *ctcss_index)
@@ -1645,7 +1645,7 @@ static int tmd710_find_tuning_step_index(RIG *rig, shortfreq_t ts,
 {
     int k, stepind = -1;
 
-    for (k = 0; rig->state.tuning_steps[k].ts != 0; ++k)
+    for (k = 0; STATE(rig)->tuning_steps[k].ts != 0; ++k)
     {
 
         if ((rig->caps->tuning_steps[k].modes == RIG_MODE_NONE)
@@ -2030,7 +2030,7 @@ int tmd710_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         return retval;
     }
 
-    rig->state.tx_vfo = txvfo;
+    STATE(rig)->tx_vfo = txvfo;
 
     return RIG_OK;
 }
@@ -2062,10 +2062,10 @@ int tmd710_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
         return -RIG_EPROTO;
     }
 
-    rig->state.tx_vfo = *txvfo;
+    STATE(rig)->tx_vfo = *txvfo;
 
     // Rig is always in "split mode" and VFOs are targetable, so simply check current and TX VFOs
-    *split = rig->state.current_vfo == rig->state.tx_vfo ? RIG_SPLIT_OFF :
+    *split = STATE(rig)->current_vfo == STATE(rig)->tx_vfo ? RIG_SPLIT_OFF :
              RIG_SPLIT_ON;
 
     return RIG_OK;
@@ -2097,7 +2097,7 @@ int tmd710_get_mem(RIG *rig, vfo_t vfo, int *ch)
     }
     else
     {
-        vfonum = rig->state.current_vfo == RIG_VFO_A ? 0 : 1;
+        vfonum = STATE(rig)->current_vfo == RIG_VFO_A ? 0 : 1;
     }
 
     snprintf(cmd, sizeof(cmd), "MR %d", vfonum);
@@ -2143,7 +2143,7 @@ int tmd710_set_mem(RIG *rig, vfo_t vfo, int ch)
     }
     else
     {
-        vfonum = rig->state.current_vfo == RIG_VFO_A ? 0 : 1;
+        vfonum = STATE(rig)->current_vfo == RIG_VFO_A ? 0 : 1;
     }
 
     snprintf(cmd, sizeof(cmd), "MR %d,%03d", vfonum, ch);
@@ -2904,7 +2904,7 @@ int tmd710_set_parm(RIG *rig, setting_t parm, value_t val)
 
 /*
  * tmd710_get_ext_level
- * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
  *
  */
 int tmd710_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
@@ -2938,7 +2938,7 @@ int tmd710_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val
 
 /*
  * tmd710_set_ext_level
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  *
  */
 int tmd710_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
