@@ -80,7 +80,7 @@ int main(int argc, const char *argv[])
 
     uint64_t levels = rig_get_caps_int(my_rig->caps->rig_model,
                                        RIG_CAPS_HAS_GET_LEVEL);
-    printf("HAS_GET_LEVEL=0x%8llx, SWR=%8llx,true=%d\n", levels,
+    printf("HAS_GET_LEVEL=0x%8lx, SWR=%8llx,true=%d\n", levels,
            levels & RIG_LEVEL_SWR, (levels & RIG_LEVEL_SWR) == RIG_LEVEL_SWR);
 
     char val[256];
