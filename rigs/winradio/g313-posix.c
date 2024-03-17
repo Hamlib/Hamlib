@@ -553,7 +553,7 @@ int g313_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     case TOK_SHM_AUDIO:
         if (len > (FIFO_PATHNAME_SIZE - 1))
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: set audio_path %s is too long\n", __func__, val);
+            rig_debug(RIG_DEBUG_WARN, "%s: set audio_path %.4095s is too long\n", __func__, val);
             return -RIG_EINVAL;
         }
 
@@ -566,7 +566,7 @@ int g313_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     case TOK_SHM_IF:
         if (len > (FIFO_PATHNAME_SIZE - 1))
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: set if_path %s is too long\n", __func__, val);
+            rig_debug(RIG_DEBUG_WARN, "%s: set if_path %.4095s is too long\n", __func__, val);
             return -RIG_EINVAL;
         }
 
@@ -579,7 +579,7 @@ int g313_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     case TOK_SHM_SPECTRUM:
         if (len > (FIFO_PATHNAME_SIZE - 1))
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: set spectrum_path %s is too long\n", __func__,
+            rig_debug(RIG_DEBUG_WARN, "%s: set spectrum_path %.4095s is too long\n", __func__,
                       val);
             return -RIG_EINVAL;
         }
