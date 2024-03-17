@@ -326,7 +326,7 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char cmd[32], ackbuf[32];
     int retval;
 
-    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+    if (vfo == RIG_VFO_CURR) { vfo = STATE(rig)->current_vfo; }
 
     if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) { vfo = vfo_fixup(rig, vfo, CACHE(rig)->split); }
 
@@ -541,7 +541,7 @@ static int ts590_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     char levelbuf[16];
     int kenwood_val;
     int result;
@@ -731,7 +731,7 @@ static int ts590_read_meters(RIG *rig, int *swr, int *comp, int *alc)
 
 static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     char ackbuf[50];
     size_t ack_len, ack_len_expected;
     int levelint = 0;
@@ -1148,7 +1148,7 @@ static int ts590_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     int retval;
     char buf[7];
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 

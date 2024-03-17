@@ -234,7 +234,7 @@ struct confparams kenwood_cfg_params[] =
 
 /**
  * kenwood_transaction
- * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
+ * Assumes rig!=NULL STATE(rig)!=NULL rig->caps!=NULL
  *
  * Parameters:
  * cmdstr:    Command to be sent to the rig. cmdstr can also be NULL,
@@ -262,7 +262,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
     char *cmd;
     int len;
     int retry_read = 0;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct rig_state *rs;
     struct hamlib_port *rp;   /* Pointer to rigport structure */
@@ -285,7 +285,7 @@ int kenwood_transaction(RIG *rig, const char *cmdstr, char *data,
         RETURNFUNC2(-RIG_EINVAL);
     }
 
-    rs = &rig->state;
+    rs = STATE(rig);
     rp = RIGPORT(rig);
 
     rs->transaction_active = 1;
@@ -396,7 +396,7 @@ transaction_write:
 
     if (!datasize && strncmp(cmdstr, "KY", 2) != 0)
     {
-        rig->state.transaction_active = 0;
+        rs->transaction_active = 0;
 
         // there are some commands that have problems with immediate follow-up
         // so we'll just ignore them
@@ -749,7 +749,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
             // QRPLABS can't seem top decide if they give 37 or 38 bytes for IF command
             if (strncmp(cmd, "IF", 2) == 0 && rig->caps->rig_model == RIG_MODEL_QRPLABS) { break; }
 
-            struct kenwood_priv_data *priv = rig->state.priv;
+            struct kenwood_priv_data *priv = STATE(rig)->priv;
 
             rig_debug(RIG_DEBUG_ERR,
                       "%s: wrong answer; len for cmd %s: expected = %d, got %d\n",
@@ -809,14 +809,14 @@ int kenwood_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, version %s/%s\n", __func__,
               BACKEND_VER, rig->caps->version);
 
-    rig->state.priv = calloc(1, sizeof(struct kenwood_priv_data));
+    STATE(rig)->priv = calloc(1, sizeof(struct kenwood_priv_data));
 
-    if (rig->state.priv == NULL)
+    if (STATE(rig)->priv == NULL)
     {
         RETURNFUNC2(-RIG_ENOMEM);
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0x00, sizeof(struct kenwood_priv_data));
 
@@ -878,15 +878,15 @@ int kenwood_cleanup(RIG *rig)
 {
     ENTERFUNC;
 
-    free(rig->state.priv);
-    rig->state.priv = NULL;
+    free(STATE(rig)->priv);
+    STATE(rig)->priv = NULL;
 
     RETURNFUNC(RIG_OK);
 }
 
 int kenwood_open(RIG *rig)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     int err, i;
     char *idptr;
@@ -900,7 +900,7 @@ int kenwood_open(RIG *rig)
 
     priv->question_mark_response_means_rejected = 0;
 
-    if (rig->state.auto_power_on)
+    if (STATE(rig)->auto_power_on)
     {
         // Ensure rig is on
         rig_set_powerstat(rig, 1);
@@ -923,7 +923,7 @@ int kenwood_open(RIG *rig)
         err = rig_get_powerstat(rig, &powerstat);
 
         if (err == RIG_OK && powerstat == 0 && priv->poweron == 0
-                && rig->state.auto_power_on)
+                && STATE(rig)->auto_power_on)
         {
             priv->has_ps = 1;
             rig_debug(RIG_DEBUG_TRACE, "%s: got PS0 so powerup\n", __func__);
@@ -1074,7 +1074,7 @@ int kenwood_open(RIG *rig)
                   __func__, kenwood_id_string_list[i].id);
 
         // current vfo is rx_vfo
-        rig_get_vfo(rig, &rig->state.rx_vfo);
+        rig_get_vfo(rig, &STATE(rig)->rx_vfo);
 
         if (kenwood_id_string_list[i].model == rig->caps->rig_model)
         {
@@ -1138,7 +1138,7 @@ int kenwood_open(RIG *rig)
 
 int kenwood_close(RIG *rig)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -1151,7 +1151,7 @@ int kenwood_close(RIG *rig)
                                                  it's not supported */
     }
 
-    if (rig->state.auto_power_off)
+    if (STATE(rig)->auto_power_off)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: got PS1 so powerdown\n", __func__);
         rig_set_powerstat(rig, 0);
@@ -1186,7 +1186,7 @@ int kenwood_get_id(RIG *rig, char *buf)
  */
 int kenwood_get_if(RIG *rig)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     int retval;
     int post_write_delay_save = 0;
@@ -1196,8 +1196,8 @@ int kenwood_get_if(RIG *rig)
     // Malachite has a 400ms delay but some get commands can work with no delay
     if (RIG_IS_MALACHITE)
     {
-        post_write_delay_save = rig->state.post_write_delay;
-        rig->state.post_write_delay = 0;
+        post_write_delay_save = STATE(rig)->post_write_delay;
+        STATE(rig)->post_write_delay = 0;
     }
 
     retval = kenwood_safe_transaction(rig, "IF", priv->info,
@@ -1205,7 +1205,7 @@ int kenwood_get_if(RIG *rig)
 
     if (RIG_IS_MALACHITE)
     {
-        rig->state.post_write_delay = post_write_delay_save;
+        STATE(rig)->post_write_delay = post_write_delay_save;
     }
 
     RETURNFUNC(retval);
@@ -1222,7 +1222,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     char cmdbuf[12];
     int retval;
     char vfo_function;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE,
@@ -1243,7 +1243,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 
 #if 0
 
-    if (rig->state.current_vfo == vfo)
+    if (STATE(rig)->current_vfo == vfo)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo already is %s...skipping\n", __func__,
                   rig_strvfo(vfo));
@@ -1267,19 +1267,19 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         break;
 
     case RIG_VFO_TX:
-        vfo_function = rig->state.tx_vfo == RIG_VFO_B ? '1' : '0';
+        vfo_function = STATE(rig)->tx_vfo == RIG_VFO_B ? '1' : '0';
         break;
 
 #if 0 // VFO_RX really should NOT be VFO_CURR as VFO_CURR could be either VFO
 
     case RIG_VFO_RX:
-        vfo_function = rig->state.rx_vfo == RIG_VFO_B ? '1' : '0';
+        vfo_function = STATE(rig)->rx_vfo == RIG_VFO_B ? '1' : '0';
         break;
 #endif
 
     case RIG_VFO_CURR:
         HAMLIB_TRACE;
-        rig->state.current_vfo = RIG_VFO_CURR;
+        STATE(rig)->current_vfo = RIG_VFO_CURR;
         RETURNFUNC2(RIG_OK);
 
     default:
@@ -1344,7 +1344,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     HAMLIB_TRACE;
-    rig->state.current_vfo = vfo;
+    STATE(rig)->current_vfo = vfo;
 
     /* if FN command then there's no FT or FR */
     /* If split mode on, the don't change TxVFO */
@@ -1473,7 +1473,7 @@ int kenwood_get_vfo_main_sub(RIG *rig, vfo_t *vfo)
  */
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     char cmdbuf[12];
     int retval;
     unsigned char vfo_function;
@@ -1496,7 +1496,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
         RETURNFUNC2(kenwood_transaction(rig, cmdbuf, NULL, 0));
     }
 
-    if (vfo == RIG_VFO_CURR) { vfo = rig->state.current_vfo; }
+    if (vfo == RIG_VFO_CURR) { vfo = STATE(rig)->current_vfo; }
 
     if (vfo == RIG_VFO_TX || vfo == RIG_VFO_RX) { vfo = vfo_fixup(rig, vfo, split); }
 
@@ -1640,7 +1640,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
  */
 int kenwood_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     char cmdbuf[6];
     int retval;
 
@@ -1674,7 +1674,8 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
 {
     int transmitting;
     int retval;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct rig_state *rs = STATE(rig);
+    struct kenwood_priv_data *priv = rs->priv;
 
     ENTERFUNC;
 
@@ -1694,13 +1695,13 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
             {
                 *split = RIG_SPLIT_ON;
                 *txvfo = RIG_VFO_SUB;
-                priv->tx_vfo = rig->state.tx_vfo = *txvfo;
+                priv->tx_vfo = rs->tx_vfo = *txvfo;
             }
             else
             {
                 *split = RIG_SPLIT_OFF;
                 *txvfo = RIG_VFO_MAIN;
-                priv->tx_vfo = rig->state.tx_vfo = *txvfo;
+                priv->tx_vfo = rs->tx_vfo = *txvfo;
             }
         }
 
@@ -1740,35 +1741,35 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
     switch (priv->info[30])
     {
     case '0':
-        if (rig->state.rx_vfo == RIG_VFO_A)
+        if (rs->rx_vfo == RIG_VFO_A)
         {
             HAMLIB_TRACE;
-            *txvfo = rig->state.tx_vfo = priv->tx_vfo = (*split
+            *txvfo = rs->tx_vfo = priv->tx_vfo = (*split
                                          && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
-        else if (rig->state.rx_vfo == RIG_VFO_B)
+        else if (rs->rx_vfo == RIG_VFO_B)
         {
             HAMLIB_TRACE;
-            *txvfo = rig->state.tx_vfo = priv->tx_vfo = (*split
+            *txvfo = rs->tx_vfo = priv->tx_vfo = (*split
                                          && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else
         {
             rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown rx_vfo=%s\n", __func__, __LINE__,
-                      rig_strvfo(rig->state.rx_vfo));
+                      rig_strvfo(rs->rx_vfo));
             *txvfo = RIG_VFO_A; // pick a default
-            rig->state.rx_vfo = priv->tx_vfo = RIG_VFO_A;
+            rs->rx_vfo = priv->tx_vfo = RIG_VFO_A;
         }
 
         break;
 
     case '1':
-        if (rig->state.rx_vfo == RIG_VFO_A)
+        if (rs->rx_vfo == RIG_VFO_A)
         {
             HAMLIB_TRACE;
             *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_A : RIG_VFO_B;
         }
-        else if (rig->state.rx_vfo == RIG_VFO_B)
+        else if (rs->rx_vfo == RIG_VFO_B)
         {
             HAMLIB_TRACE;
             *txvfo = priv->tx_vfo = (*split && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
@@ -1776,9 +1777,9 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
         else
         {
             rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown rx_vfo=%s\n", __func__, __LINE__,
-                      rig_strvfo(rig->state.rx_vfo));
+                      rig_strvfo(rs->rx_vfo));
             *txvfo = RIG_VFO_A; // pick a default
-            rig->state.rx_vfo = RIG_VFO_A;
+            rs->rx_vfo = RIG_VFO_A;
         }
 
         break;
@@ -1812,7 +1813,8 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
 {
     int retval;
     int split_and_transmitting;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct rig_state *rs = STATE(rig);
+    struct kenwood_priv_data *priv = rs->priv;
 
     ENTERFUNC;
 
@@ -1838,10 +1840,10 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
     switch (priv->info[30])
     {
     case '0':
-        *vfo = rig->state.rx_vfo = rig->state.tx_vfo = priv->tx_vfo =
+        *vfo = rs->rx_vfo = rs->tx_vfo = priv->tx_vfo =
                                        split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
 
-        if (priv->info[32] == '1') { priv->tx_vfo = rig->state.tx_vfo = RIG_VFO_B; }
+        if (priv->info[32] == '1') { priv->tx_vfo = rs->tx_vfo = RIG_VFO_B; }
 
         break;
 
@@ -1876,13 +1878,13 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     vfo_t tvfo;
     freq_t tfreq = 0;
     int err;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);
 
     tvfo = (vfo == RIG_VFO_CURR
-            || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
+            || vfo == RIG_VFO_VFO) ? STATE(rig)->current_vfo : vfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: tvfo=%s\n", __func__, rig_strvfo(tvfo));
 
@@ -1897,7 +1899,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // Malchite is so slow we don't do the get_freq
     // And when we have detected Doppler operations we just set the freq all the time
     // This should provide stable timing for set_ptt operation so relay delays are consistent
-    if (!RIG_IS_MALACHITE && rig->state.doppler == 0)
+    if (!RIG_IS_MALACHITE && STATE(rig)->doppler == 0)
     {
         rig_get_freq(rig, tvfo, &tfreq);
 
@@ -1995,7 +1997,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     char freqbuf[50];
     int retval;
 
@@ -2030,7 +2032,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int retval;
     unsigned char vfo_letter = '\0';
     vfo_t tvfo;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -2040,7 +2042,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     tvfo = (vfo == RIG_VFO_CURR
-            || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
+            || vfo == RIG_VFO_VFO) ? STATE(rig)->current_vfo : vfo;
 
     if (RIG_VFO_CURR == tvfo)
     {
@@ -2109,7 +2111,7 @@ int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     int retval;
     char buf[7];
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -2145,7 +2147,7 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     int rit_enabled;
     int xit_enabled;
     shortfreq_t curr_rit;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: vfo=%s, rit=%ld\n",
               __func__,
@@ -2354,13 +2356,13 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int err;
     int datamode = 0;
     int needdata;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE,
               "%s called, vfo=%s, mode=%s, width=%d, curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), (int)width,
-              rig_strvfo(rig->state.current_vfo));
+              rig_strvfo(STATE(rig)->current_vfo));
 
     // we wont' set opposite VFO if the mode is the same as requested
     // setting VFOB mode requires split modifications which cause VFO flashing
@@ -2515,7 +2517,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (vfo == RIG_VFO_CURR)
     {
         HAMLIB_TRACE;
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
 
     if ((vfo & (RIG_VFO_A | RIG_VFO_MAIN)) && ((priv->datamodeA ==  0 && datamode)
@@ -2689,11 +2691,11 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int retval;
     int kmode;
 
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, curr_vfo=%s\n", __func__,
-              rig_strvfo(rig->state.current_vfo));
+              rig_strvfo(STATE(rig)->current_vfo));
 
     if (!mode || !width)
     {
@@ -2705,7 +2707,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* only need to get it if it has to be initialized */
     if (priv->curr_mode > 0 && priv->is_emulation && vfo == RIG_VFO_B)
     {
-        rig->state.current_vfo = RIG_VFO_A;
+        STATE(rig)->current_vfo = RIG_VFO_A;
         RETURNFUNC2(RIG_OK);
     }
 
@@ -2844,7 +2846,7 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     int err;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -2956,7 +2958,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     // we batch these commands together for speed
     char *cmd;
     int n;
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     struct hamlib_port *rp = RIGPORT(rig);
 
     ENTERFUNC;
@@ -3184,7 +3186,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
     int i, kenwood_val, len, result;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct rig_state *rs = STATE(rig);
+    struct kenwood_priv_data *priv = rs->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     gran_t *level_info;
 
@@ -3331,9 +3334,9 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             int foundit = 0;
 
-            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rs->attenuator[i]; i++)
             {
-                if (val.i == rig->state.attenuator[i])
+                if (val.i == rs->attenuator[i])
                 {
                     SNPRINTF(levelbuf, sizeof(levelbuf), "RA%0*d", len, i + 1);
                     foundit = 1;
@@ -3360,9 +3363,9 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             int foundit = 0;
 
-            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.preamp[i]; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rs->preamp[i]; i++)
             {
-                if (val.i == rig->state.preamp[i])
+                if (val.i == rs->preamp[i])
                 {
                     SNPRINTF(levelbuf, sizeof(levelbuf), "PA%01d", i + 1);
                     foundit = 1;
@@ -3565,7 +3568,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     int retval;
     int lvl;
     int i, ret, agclevel, len, value;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct rig_state *rs = STATE(rig);
+    struct kenwood_priv_data *priv = rs->priv;
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     gran_t *level_info;
 
@@ -3728,7 +3732,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             for (i = 0; i < lvl && i < HAMLIB_MAXDBLSTSIZ; i++)
             {
-                if (rig->state.attenuator[i] == 0)
+                if (rs->attenuator[i] == 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: "
                               "unexpected att level %d\n",
@@ -3742,7 +3746,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 RETURNFUNC(-RIG_EINTERNAL);
             }
 
-            val->i = rig->state.attenuator[i - 1];
+            val->i = rs->attenuator[i - 1];
         }
 
         break;
@@ -3765,7 +3769,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             for (i = 0; i < lvl && i < HAMLIB_MAXDBLSTSIZ; i++)
             {
-                if (rig->state.preamp[i] == 0)
+                if (rs->preamp[i] == 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: "
                               "unexpected preamp level %d\n",
@@ -3779,7 +3783,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 RETURNFUNC(-RIG_EINTERNAL);
             }
 
-            val->i = rig->state.preamp[i - 1];
+            val->i = rs->preamp[i - 1];
         }
         else
         {
@@ -4500,11 +4504,11 @@ int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
 
 /*
  * kenwood_get_ctcss_tone
- * Assumes rig->state.priv != NULL
+ * Assumes STATE(rig)->priv != NULL
  */
 int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     struct rig_caps *caps;
     char tonebuf[3];
     int i, retval;
@@ -4891,7 +4895,7 @@ int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
  */
 int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     int retval;
 
     ENTERFUNC;
@@ -5128,7 +5132,7 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
     int retval;
     struct hamlib_port *rp = RIGPORT(rig);
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     if ((priv->is_k3 || priv->is_k3s) && status == RIG_POWER_ON)
     {
@@ -5195,7 +5199,7 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
     char pwrbuf[6];
     int result;
     struct hamlib_port *rp = RIGPORT(rig);
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -5433,7 +5437,7 @@ int kenwood_stop_morse(RIG *rig, vfo_t vfo)
 int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
 {
     char cmd[16];
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     ENTERFUNC;
 
 #if 0 // don't really need to turn on the list
@@ -5477,7 +5481,7 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
 int kenwood_stop_voice_mem(RIG *rig, vfo_t vfo)
 {
     char cmd[16];
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     ENTERFUNC;
 
     if (rig->caps->rig_model == RIG_MODEL_TS2000
@@ -5648,7 +5652,7 @@ int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch)
 {
     int err;
     char buf[4];
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -5887,7 +5891,7 @@ int kenwood_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
 int kenwood_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     char buf[4];
 
     ENTERFUNC;
@@ -5920,7 +5924,7 @@ int kenwood_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 int kenwood_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     int err;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 

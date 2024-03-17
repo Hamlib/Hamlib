@@ -823,7 +823,7 @@ static int ts480_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     int retval;
     char buf[7];
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -1207,7 +1207,7 @@ int ts480_init(RIG *rig)
         return retval;
     }
 
-    priv = (struct kenwood_priv_data *) rig->state.priv;
+    priv = (struct kenwood_priv_data *) STATE(rig)->priv;
 
     priv->ag_format = 2;
     priv->micgain_min = 0;
@@ -2167,7 +2167,7 @@ int malachite_init(RIG *rig)
 
     retval = kenwood_init(rig);
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->no_id = 1;  // the Malchite doesn't like the ID; verify cmd
 
@@ -2178,20 +2178,20 @@ int malachite_init(RIG *rig)
 
 int malachite_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    int post_write_delay_save = rig->state.post_write_delay;
-    rig->state.post_write_delay = 0;
+    int post_write_delay_save = STATE(rig)->post_write_delay;
+    STATE(rig)->post_write_delay = 0;
     int retval = kenwood_get_mode(rig, vfo, mode, width);
-    rig->state.post_write_delay = post_write_delay_save;
+    STATE(rig)->post_write_delay = post_write_delay_save;
     return retval;
 }
 
 int malachite_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    int post_write_delay_save = rig->state.post_write_delay;
+    int post_write_delay_save = STATE(rig)->post_write_delay;
     ENTERFUNC;
-    rig->state.post_write_delay = 0;
+    STATE(rig)->post_write_delay = 0;
     int retval = kenwood_get_freq(rig, vfo, freq);
-    rig->state.post_write_delay = post_write_delay_save;
+    STATE(rig)->post_write_delay = post_write_delay_save;
     RETURNFUNC(retval);
 }
 
@@ -2212,13 +2212,13 @@ int malachite_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // Malachite has a bug where it takes two freq set to make it work
         // under band changes -- so we just do this all the time
         retval = kenwood_set_freq(rig, vfo, freq + 1);
-        rig->state.post_write_delay = 250; // need a bit more time on band  change
+        STATE(rig)->post_write_delay = 250; // need a bit more time on band  change
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
     }
     else
     {
-        rig->state.post_write_delay = 125;
+        STATE(rig)->post_write_delay = 125;
     }
 
     retval = kenwood_set_freq(rig, vfo, freq);
