@@ -94,8 +94,8 @@ int ts450_open(RIG *rig)
     if (err != RIG_OK)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: tone unit not detected\n", __func__);
-        rig->state.has_set_func &= ~RIG_FUNC_TONE;
-        rig->state.has_get_func &= ~RIG_FUNC_TONE;
+        STATE(rig)->has_set_func &= ~RIG_FUNC_TONE;
+        STATE(rig)->has_get_func &= ~RIG_FUNC_TONE;
     }
 
     RIGPORT(rig)->retry = maxtries;

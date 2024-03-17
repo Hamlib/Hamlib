@@ -351,7 +351,7 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             int i;
 
             for (i = 0; i < HAMLIB_MAXDBLSTSIZ; i++)
-                if (kenwood_val == rig->state.preamp[i])
+                if (kenwood_val == STATE(rig)->preamp[i])
                 {
                     SNPRINTF(levelbuf, sizeof(levelbuf), "PA%01d", i + 1);
                     break;  /* found - stop searching */
@@ -475,7 +475,7 @@ ts570_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             for (i = 0; i < levelint && i < HAMLIB_MAXDBLSTSIZ; i++)
             {
-                if (rig->state.preamp[i] == 0)
+                if (STATE(rig)->preamp[i] == 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: unexpected att level %d\n", __func__,
                               (int)levelint);
@@ -488,7 +488,7 @@ ts570_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 return -RIG_EINTERNAL;
             }
 
-            val->i = rig->state.preamp[i - 1];
+            val->i = STATE(rig)->preamp[i - 1];
         }
 
         break;

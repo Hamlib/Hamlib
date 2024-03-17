@@ -67,7 +67,7 @@ int ic10_cmd_trim(char *data, int data_len)
 
 /**
  * ic10_transaction
- * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
+ * Assumes rig!=NULL STATE(rig)!=NULL rig->caps!=NULL
 **/
 int ic10_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                      int *data_len)
@@ -99,7 +99,7 @@ transaction:
     if (!data)
     {
         char buffer[50];
-        const struct kenwood_priv_data *priv = rig->state.priv;
+        const struct kenwood_priv_data *priv = STATE(rig)->priv;
 
         if (RIG_OK != (retval = write_block(rp,
                                             (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
@@ -451,7 +451,7 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        tvfo = rig->state.current_vfo;
+        tvfo = STATE(rig)->current_vfo;
     }
     else
     {
