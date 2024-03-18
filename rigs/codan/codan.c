@@ -151,8 +151,8 @@ int codan_init(RIG *rig)
 int codan_open(RIG *rig)
 {
     char *results = NULL;
-    codan_transaction(rig, "scan off\r", 1, &results);
-    codan_transaction(rig, "echo off", 1, &results);
+    codan_transaction(rig, "\recho off", 1, &results);
+    codan_transaction(rig, "ver", 1, &results);
     //codan_transaction(rig, "prompt time", 1, &results);
     codan_transaction(rig, "login", 1, &results);
 
