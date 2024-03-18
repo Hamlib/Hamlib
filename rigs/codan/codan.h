@@ -24,9 +24,9 @@
 
 #include "hamlib/rig.h"
 
-#define BACKEND_VER "20211228"
+#define BACKEND_VER "20240318"
 
-#define EOM "\x0d"
+#define EOM "\x0a"
 #define TRUE 1
 #define FALSE 0
 // For the current implemented command set 64 is long enough
