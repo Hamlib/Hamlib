@@ -139,6 +139,10 @@ int xiegu_rig_open(RIG *rig)
     int cmd = 0x19;
     int subcmd = 0x00;
     unsigned short iid;
+
+    retval = icom_rig_open(rig);
+    if (retval != RIG_OK) return retval;
+
     retval = icom_transaction(rig, cmd, subcmd, NULL, 0, id, &id_len);
 
     if (retval == RIG_OK)
@@ -149,12 +153,13 @@ int xiegu_rig_open(RIG *rig)
         {
             case 0x0090: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G90/G90S");break;
             case 0x0106: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G106/G106C");break;
-            case 0x6100: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "X6100");break;
+            case 0x6100:
+            case 0xa400: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "X6100");break;
             default: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "Unknown");break;
         }
     }
 
-    return icom_rig_open(rig);
+    return retval;
 }
 
 /*
@@ -349,7 +354,7 @@ struct rig_caps x108g_caps =
 
 static struct icom_priv_caps x6100_priv_caps =
 {
-    0x70,   /* default address */
+    0xa4,   /* default address */
     0,      /* 731 mode */
     0,    /* no XCHG */
     ic7200_ts_sc_list,
