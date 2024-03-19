@@ -322,7 +322,16 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         if ((ptt == RIG_PTT_OFF) != (level == RIG_LEVEL_STRENGTH))
         {
             /* We're sorry, the number you have dialed is not in service */
-            return -RIG_ENAVAIL;
+            if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
+            {
+                val->f = 0;
+            }
+            else
+            {
+                val->i = 0;
+            }
+
+            return RIG_OK;
         }
 
         /* Find out which meter type is in use */
@@ -482,7 +491,7 @@ struct rig_caps ts890s_caps =
     RIG_MODEL(RIG_MODEL_TS890S),
     .model_name = "TS-890S",
     .mfg_name = "Kenwood",
-    .version = BACKEND_VER ".14",
+    .version = BACKEND_VER ".15",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
