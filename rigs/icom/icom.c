@@ -2578,7 +2578,7 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     // Use command 0x26 to get selected/unselected or Main/Sub VFO mode, data mode and filter width
     // IC-7800 can set, but not read with 0x26 (although manual states otherwise?)
-    if ((rs->targetable_vfo & RIG_TARGETABLE_MODE) && !RIG_IS_IC7800
+    if ((rs->targetable_vfo & RIG_TARGETABLE_MODE) && !RIG_IS_IC7800 && !RIG_IS_IC7700
             && !force_vfo_swap)
     {
         retval = icom_get_mode_x26(rig, vfo, &mode_len, modebuf);
