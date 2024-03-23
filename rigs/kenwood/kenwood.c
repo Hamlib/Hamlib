@@ -6190,6 +6190,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
     rig_register(&kx3_caps);
     rig_register(&k4_caps);
     rig_register(&xg3_caps);
+    rig_register(&sdrconsole_caps);
 
     rig_register(&ts440_caps);
     rig_register(&ts940_caps);

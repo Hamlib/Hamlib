@@ -37,8 +37,8 @@ int keyspd = 85; // 85=20WPM
 // we make B different from A to ensure we see a difference at startup
 float freqA = 14074000;
 float freqB = 14074500;
-mode_t modeA = RIG_MODE_PKTUSB;
-mode_t modeB = RIG_MODE_PKTUSB;
+mode_t modeA = RIG_MODE_FM;
+mode_t modeB = RIG_MODE_FM;
 int datamodeA = 0;
 int datamodeB = 0;
 pbwidth_t widthA = 0;
@@ -110,6 +110,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         return;
     }
 
+printf("Here#1\n");
     dumphex(frame, len);
 
     if (frame[0] != 0xfe && frame[1] != 0xfe)
