@@ -313,7 +313,7 @@ struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20240229.0",
+    .version =            "20240323.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -938,8 +938,6 @@ static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     {
         *freq = CACHE(rig)->freqMainB;
     }
-
-    return RIG_OK;
 
     RETURNFUNC(RIG_OK);
 }
