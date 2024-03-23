@@ -291,6 +291,7 @@ extern struct rig_caps kx3_caps;
 extern struct rig_caps k4_caps;
 extern struct rig_caps xg3_caps;
 extern struct rig_caps trc80_caps;
+extern struct rig_caps sdrconsole_caps;
 
 extern struct rig_caps thd7a_caps;
 extern struct rig_caps thd72a_caps;

@@ -1452,6 +1452,7 @@ int HAMLIB_API rig_set_conf(RIG *rig, hamlib_token_t token, const char *val)
  */
 int HAMLIB_API rig_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
+    printf("tokendid=%lx, %s\n", token,  val);
     return rig_get_conf2(rig, token, val, 128);
 }
 
