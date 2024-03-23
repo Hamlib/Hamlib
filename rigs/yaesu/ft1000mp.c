@@ -313,7 +313,7 @@ struct rig_caps ft1000mp_caps =
     RIG_MODEL(RIG_MODEL_FT1000MP),
     .model_name =         "FT-1000MP",
     .mfg_name =           "Yaesu",
-    .version =            "20240323.0",
+    .version =            "20240323.1",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -849,14 +849,19 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         vfo = rig->state.current_vfo;
     }
 
+    // round freq to 10Hz intervals due to rig restriction
+    freq = round(freq / 10.0) * 10.0;
+
     switch (vfo)
     {
     case RIG_VFO_A:
         cmd_index = FT1000MP_NATIVE_FREQA_SET;
+        CACHE(rig)->freqMainA = freq;
         break;
 
     case RIG_VFO_B:
         cmd_index = FT1000MP_NATIVE_FREQB_SET;
+        CACHE(rig)->freqMainB = freq;
         break;
 
     case RIG_VFO_MEM:
@@ -874,9 +879,6 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      */
     memcpy(&p->p_cmd, &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
 
-    // round freq to 10Hz intervals due to rig restriction
-    freq = round(freq / 10.0) * 10.0;
-
     to_bcd(p->p_cmd, freq / 10, 8); /* store bcd format in in p_cmd */
 
     rig_debug(RIG_DEBUG_TRACE, "%s: freq = %"PRIfreq" Hz\n", __func__,
@@ -884,6 +886,7 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     cmd = p->p_cmd;               /* get native sequence */
     write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
+
 
     RETURNFUNC(RIG_OK);
 }
