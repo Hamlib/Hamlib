@@ -63,7 +63,8 @@
 #define KX3_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
     RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|\
     RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|\
-    RIG_LEVEL_NR|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
+    RIG_LEVEL_NR|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER|\
+    RIG_LEVEL_RFPOWER_METER_WATTS|RIG_LEVEL_SWR)
 
 /*
  * Elecraft K3/K3S extra level definitions
@@ -2311,6 +2312,18 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->f = (float) lvl / k3_get_maxpower(rig);
         }
 
+        break;
+
+    case RIG_LEVEL_SWR:
+        retval = kenwood_safe_transaction(rig, "SW", levelbuf, sizeof(levelbuf), 5);
+
+        if (retval != RIG_OK)
+        {
+          return retval;
+        }
+
+        sscanf(levelbuf + 2, "%d", &val->i);
+        val->f = (float) val->i / 10.0f;
         break;
 
     default:
