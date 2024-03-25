@@ -27,4 +27,5 @@
         [LVL_COMP]          = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
         [LVL_VOXGAIN]       = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
         [LVL_ALC]           = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
+        [LVL_SWR]           = { .min = { .f = 1.0 },   .max = { .f = 99.9 }, .step = { .f = 1.0f/10.0f  } },
 
