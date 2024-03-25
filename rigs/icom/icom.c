@@ -440,6 +440,7 @@ struct icom_addr
 #define TOK_FILTER_USBD TOKEN_BACKEND(5)
 #define TOK_FILTER_USB TOKEN_BACKEND(6)
 #define TOK_FILTER_CW TOKEN_BACKEND(7)
+#define TOK_FILTER_FM TOKEN_BACKEND(8)
 
 const struct confparams icom_cfg_params[] =
 {
@@ -472,6 +473,10 @@ const struct confparams icom_cfg_params[] =
     },
     {
         TOK_FILTER_CW, "filter_cw", "Filter to use CW", "Filter to use for CW/CWR when setting mode",
+        "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
+    },
+    {
+        TOK_FILTER_FM, "filter_fm", "Filter to use FM", "Filter to use for FM/PKTFM when setting mode",
         "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
     },
     {RIG_CONF_END, NULL,}
@@ -1977,9 +1982,9 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     }
 
     // TODO: Skip for Xiegu G90 too????
-    if (mode == RIG_MODE_FM || mode == RIG_MODE_FMN
-            || RIG_MODEL_X108G == rig->caps->rig_model
-            || RIG_MODEL_X5105 == rig->caps->rig_model)
+    if (RIG_MODEL_X108G == rig->caps->rig_model
+            || RIG_MODEL_X5105 == rig->caps->rig_model
+            || RIG_MODEL_G90 == rig->caps->rig_model)
     {
         priv->no_1a_03_cmd = ENUM_1A_03_NO;
     }
@@ -1992,7 +1997,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     retval = icom_transaction(rig, C_CTL_MEM, fw_sub_cmd, 0, 0,
                               resbuf, &res_len);
 
-    if (-RIG_ERJCTED == retval)
+    if (-RIG_ERJCTED == retval && !RIG_IS_IC7300)
     {
         if (priv->no_1a_03_cmd == ENUM_1A_03_UNK)
         {
@@ -2107,6 +2112,13 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
 
         flt_idx =
             width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
+    }
+    else if (mode & (RIG_MODE_FM | RIG_MODE_PKTFM))
+    {
+        if (width <= 7000) width = 7000;
+        else if (width <= 10000) width = 10000;
+        else width=15000;
+        RETURNFUNC(RIG_OK);
     }
     else
     {
@@ -2311,16 +2323,21 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
         buf[2] = priv->filter_usbd;
     }
 
-    if (priv->filter_usb > 0 && (mode == RIG_MODE_USB || mode == RIG_MODE_LSB))
+    else if (priv->filter_usb > 0 && (mode == RIG_MODE_USB || mode == RIG_MODE_LSB))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: filter usb=%d\n", __func__, priv->filter_usb);
         buf[2] = priv->filter_usb;
     }
 
-    if (priv->filter_cw > 0 && (mode == RIG_MODE_CW || mode == RIG_MODE_CWR))
+    else if (priv->filter_cw > 0 && (mode == RIG_MODE_CW || mode == RIG_MODE_CWR))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: filter cw=%d\n", __func__, priv->filter_cw);
         buf[2] = priv->filter_cw;
+    }
+    else if (priv->filter_fm > 0 && (mode == RIG_MODE_FM || mode == RIG_MODE_PKTFM))
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: filter fm=%d\n", __func__, priv->filter_fm);
+        buf[2] = priv->filter_fm;
     }
 
     int vfo_number = icom_get_vfo_number_x25x26(rig, vfo);
@@ -2532,7 +2549,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     if (((width != RIG_PASSBAND_NOCHANGE) && (width != current_width))
-            || (priv->filter_usbd > 0 || priv->filter_usb > 0 || priv->filter_cw > 0))
+            || (priv->filter_usbd > 0 || priv->filter_usb > 0 || priv->filter_cw > 0 || priv->filter_fm > 0))
     {
         icom_set_dsp_flt(rig, mode, width);
     }
@@ -2609,7 +2626,7 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     {
         priv_data->filter = 0;
 
-        if (mode_len == 2) { priv_data->filter = modebuf[2]; }
+        if (mode_len == 1) { priv_data->filter = modebuf[2]; }
 
         rig_debug(RIG_DEBUG_TRACE,
                   "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__,
@@ -2683,7 +2700,16 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     *width = filter_width;
 
-    if (*mode == RIG_MODE_FM) { *width = 12000; }
+    if (*mode == RIG_MODE_FM) 
+    {
+        *width = 12000; // some default to 12000
+        if (RIG_IS_IC7300)
+        {
+            if (priv_data->filter == 1) *width = 15000;
+            else if (priv_data->filter == 2) *width = 10000;
+            else if (priv_data->filter == 3) *width = 7000;
+        }
+    }
 
     RETURNFUNC2(RIG_OK);
 }
@@ -5086,6 +5112,15 @@ int icom_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         if (priv->filter_cw > 3) { priv->filter_cw = 3; }
 
         if (priv->filter_cw < 1) { priv->filter_cw = 1; }
+
+        break;
+
+    case TOK_FILTER_FM:
+        priv->filter_fm = atoi(val);
+
+        if (priv->filter_fm > 3) { priv->filter_fm = 3; }
+
+        if (priv->filter_fm < 1) { priv->filter_fm = 1; }
 
         break;
 
