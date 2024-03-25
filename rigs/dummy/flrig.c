@@ -143,7 +143,7 @@ struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "",
     .mfg_name = "FLRig",
-    .version = "20240302.0",
+    .version = "20240325.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1808,15 +1808,19 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
         /* we might get two values and then we want the 2nd one */
         if (strchr(value, '|') != NULL) { p = strchr(value, '|') + 1; }
+
         *width = atoi(p);
+
+        if (strstr(p, "k")) { *width *= 10000; }
+
         if (strcmp(p, "FIXED"))
         {
-            switch(*mode)
+            switch (*mode)
             {
-                case RIG_MODE_PKTAM:
-                case RIG_MODE_AM:
-                case RIG_MODE_PKTFM:
-                case RIG_MODE_FM: *width = 10000;break;
+            case RIG_MODE_PKTAM:
+            case RIG_MODE_AM:
+            case RIG_MODE_PKTFM:
+            case RIG_MODE_FM: *width = 10000; break;
             }
         }
     }
