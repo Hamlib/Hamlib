@@ -1736,8 +1736,12 @@ readline_repeat:
                                      " %s",
                                      rig_strvfo(vfo));
 
-        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), "%c%s",
-                                             *vfo_opt ? ',' : ' ', p1);
+        // exception for get_vfo_info cmd which fails with log4om otherwise
+        if (*vfo_opt && cmd != 0xf3)
+        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), ":%s", p1);
+        else
+        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
+
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
         p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
 
