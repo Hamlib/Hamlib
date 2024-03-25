@@ -5825,7 +5825,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
     struct rig_cache *cachep = CACHE(rig);
     int retcode;
     int cache_ms;
-    int use_cache;
+    int use_cache = 0;
 
     if (CHECK_RIG_ARG(rig))
     {
@@ -5854,6 +5854,7 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig,
 
     if (caps->get_split_vfo == NULL || use_cache)
     {
+        rig_debug(RIG_DEBUG_TRACE, "%s: ?get_split_vfo=%d use_cache=%d\n", __func__, caps->get_split_vfo != NULL, use_cache);
         // if we can't get the vfo we will return whatever we have cached
         *split = cachep->split;
         *tx_vfo = cachep->split_vfo;
