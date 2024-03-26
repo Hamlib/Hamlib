@@ -1769,11 +1769,18 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         cmdp = "rig.get_bwA";
         retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
 
+        if (strlen(value) == 0)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: empty value return cached bandwidth\n", __func__);
+            *width = rig->state.cache.widthMainA;
+        }
+
         if (retval == RIG_OK && strstr(value, "NONE"))
         {
             priv->has_get_bwA = priv->has_get_bwB = 0;
             *width = 0;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: does not have rig.get_bwA/B\n", __func__);
+            RETURNFUNC(RIG_OK);
         }
 
         if (retval != RIG_OK || strstr(value, "NONE"))
@@ -1787,6 +1794,12 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             cmdp = "rig.get_bwB";
             retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
 
+            if (strlen(value) == 0)
+            {
+                rig_debug(RIG_DEBUG_WARN, "%s: empty value return cached bandwidth\n", __func__);
+                *width = rig->state.cache.widthMainA;
+                RETURNFUNC(RIG_OK);
+            }
             if (retval == RIG_OK && strlen(value) == 0)
             {
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: does not have rig.get_bwB\n", __func__);
