@@ -1602,13 +1602,17 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                  "<params><param><value><i4>%ld</i4></value></param></params>",
                  width);
 
-        if (vfo == RIG_VFO_A)
+        if (priv->has_set_bwA && vfo == RIG_VFO_A)
         {
             retval = flrig_transaction(rig, "rig.set_bwA", cmd_arg, NULL, 0);
         }
-        else
+        else if (priv->has_set_bwB && vfo == RIG_VFO_B)
         {
             retval = flrig_transaction(rig, "rig.set_bwB", cmd_arg, NULL, 0);
+        }
+        else
+        {
+            retval = flrig_transaction(rig, "rig.set_bandwidth", cmd_arg, NULL, 0);
         }
 
         if (retval < 0)
