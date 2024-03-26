@@ -89,7 +89,7 @@
 #  define DEFAULT_PARALLEL_PORT "/dev/parport0"
 #endif
 
-#define CHECK_ROT_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
+#define CHECK_ROT_ARG(r) (!(r) || !(r)->caps || !(ROTSTATE(r)->comm_state))
 
 
 /*
@@ -258,7 +258,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     /**
      * \todo Read the Preferences here!
      */
-    rs = &rot->state;
+    rs = ROTSTATE(rot);
 
     //TODO Allocate new rotport[2]
     // For now, use the embedded ones
@@ -345,8 +345,8 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     // Now we have to copy our new rig state hamlib_port structure to the deprecated one
     // Clients built on older 4.X versions will use the old structure
     // Clients built on newer 4.5 versions will use the new structure
-    memcpy(&rot->state.rotport_deprecated, rotp,
-           sizeof(rot->state.rotport_deprecated));
+    memcpy(&rs->rotport_deprecated, rotp,
+           sizeof(rs->rotport_deprecated));
 
     return rot;
 }
@@ -386,7 +386,7 @@ int HAMLIB_API rot_open(ROT *rot)
     }
 
     caps = rot->caps;
-    rs = &rot->state;
+    rs = ROTSTATE(rot);
 
     if (rs->comm_state)
     {
@@ -520,8 +520,8 @@ int HAMLIB_API rot_open(ROT *rot)
 
         if (status != RIG_OK)
         {
-            memcpy(&rot->state.rotport_deprecated, rotp,
-                   sizeof(rot->state.rotport_deprecated));
+            memcpy(&rs->rotport_deprecated, rotp,
+                   sizeof(rs->rotport_deprecated));
             return status;
         }
     }
@@ -544,8 +544,8 @@ int HAMLIB_API rot_open(ROT *rot)
         ser_set_rts(rotp, 0);
     }
 
-    memcpy(&rot->state.rotport_deprecated, rotp,
-           sizeof(rot->state.rotport_deprecated));
+    memcpy(&rs->rotport_deprecated, rotp,
+           sizeof(rs->rotport_deprecated));
 
     return RIG_OK;
 }
@@ -580,7 +580,7 @@ int HAMLIB_API rot_close(ROT *rot)
     }
 
     caps = rot->caps;
-    rs = &rot->state;
+    rs = ROTSTATE(rot);
 
     if (!rs->comm_state)
     {
@@ -632,8 +632,8 @@ int HAMLIB_API rot_close(ROT *rot)
 
     rs->comm_state = 0;
 
-    memcpy(&rot->state.rotport_deprecated, rotp,
-           sizeof(rot->state.rotport_deprecated));
+    memcpy(&rs->rotport_deprecated, rotp,
+           sizeof(rs->rotport_deprecated));
 
     return RIG_OK;
 }
@@ -667,7 +667,7 @@ int HAMLIB_API rot_cleanup(ROT *rot)
     /*
      * check if they forgot to close the rot
      */
-    if (rot->state.comm_state)
+    if (ROTSTATE(rot)->comm_state)
     {
         rot_close(rot);
     }
@@ -726,11 +726,11 @@ int HAMLIB_API rot_set_position(ROT *rot,
         return -RIG_EINVAL;
     }
 
-    azimuth += rot->state.az_offset;
-    elevation += rot->state.el_offset;
-
     caps = rot->caps;
-    rs = &rot->state;
+    rs = ROTSTATE(rot);
+
+    azimuth += rs->az_offset;
+    elevation += rs->el_offset;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s: south_zero=%d \n", __func__, rs->south_zero);
 
@@ -801,7 +801,7 @@ int HAMLIB_API rot_get_position(ROT *rot,
     }
 
     caps = rot->caps;
-    rs = &rot->state;
+    rs = ROTSTATE(rot);
 
     if (caps->get_position == NULL)
     {
@@ -820,8 +820,8 @@ int HAMLIB_API rot_get_position(ROT *rot,
         rot_debug(RIG_DEBUG_VERBOSE, "%s: south adj to az=%.2f\n", __func__, az);
     }
 
-    *azimuth = az - rot->state.az_offset;
-    *elevation = el - rot->state.el_offset;
+    *azimuth = az - rs->az_offset;
+    *elevation = el - rs->el_offset;
 
     return RIG_OK;
 }
@@ -1057,6 +1057,8 @@ void * HAMLIB_API rot_data_pointer(ROT *rot, rig_ptrx_t idx)
       return ROTPORT(rot);
     case RIG_PTRX_ROTPORT2:
       return ROTPORT2(rot);
+    case RIG_PTRX_ROTSTATE:
+      return ROTSTATE(rot);
     default:
       rot_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
       return NULL;
