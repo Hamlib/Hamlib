@@ -1769,10 +1769,11 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         cmdp = "rig.get_bwA";
         retval = flrig_transaction(rig, cmdp, NULL, value, sizeof(value));
 
-        if (strlen(value) == 0)
+        if (strlen(value) == 0) // sometimes we get a null reply here -- OK...deal with it
         {
             rig_debug(RIG_DEBUG_WARN, "%s: empty value return cached bandwidth\n", __func__);
             *width = rig->state.cache.widthMainA;
+            RETURNFUNC(RIG_OK);
         }
 
         if (retval == RIG_OK && strstr(value, "NONE"))
