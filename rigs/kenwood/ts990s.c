@@ -412,11 +412,11 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         switch (vfo)
         {
         case RIG_VFO_MAIN:
-            val->i = '1' == lvlbuf[2] ? rig->state.preamp[0] : 0;
+            val->i = '1' == lvlbuf[2] ? STATE(rig)->preamp[0] : 0;
             break;
 
         case RIG_VFO_SUB:
-            val->i = '1' == lvlbuf[3] ? rig->state.preamp[0] : 0;
+            val->i = '1' == lvlbuf[3] ? STATE(rig)->preamp[0] : 0;
             break;
 
         default:
@@ -456,7 +456,7 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         else
         {
-            val->i = rig->state.attenuator[lvlbuf[3] - '1'];
+            val->i = STATE(rig)->attenuator[lvlbuf[3] - '1'];
         }
     }
     break;
