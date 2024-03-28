@@ -137,7 +137,7 @@ struct rig_caps barrett950_caps =
 
 /*
  * barrett950_set_freq
- * assumes rig!=NULL, rig->state.priv!=NULL
+ * assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -148,8 +148,8 @@ int barrett950_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     freq_t freq_rx, freq_tx;
     freq_t freq_MHz;
     char *response = NULL;
-    const struct barrett_priv_data *priv = rig->state.priv;
-    //struct barrett_priv_data *priv = rig->state.priv;
+    const struct barrett_priv_data *priv = STATE(rig)->priv;
+    //struct barrett_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __func__,
               rig_strvfo(vfo), freq);

@@ -45,7 +45,7 @@
 
 
 /*
- * Configuration options available in the rot->state struct.
+ * Configuration options available in the rot_state struct.
  */
 static const struct confparams rotfrontend_cfg_params[] =
 {
@@ -143,7 +143,7 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
     hamlib_port_t *rotp = ROTPORT(rot);
     int val_i;
 
-    rs = &rot->state;
+    rs = ROTSTATE(rot);
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -412,7 +412,7 @@ int frontrot_get_conf(ROT *rot, hamlib_token_t token, char *val, int val_len)
     hamlib_port_t *rotp = ROTPORT(rot);
     const char *s;
 
-    rs = &rot->state;
+    rs = ROTSTATE(rot);
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

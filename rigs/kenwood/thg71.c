@@ -497,6 +497,7 @@ int thg71_open(RIG *rig)
     char ackbuf[ACKBUF_LEN];
     int retval, i;
     const freq_range_t frend = RIG_FRNG_END;
+    struct rig_state *rs = STATE(rig);
 
     /* this will check the model id */
     retval = kenwood_open(rig);
@@ -546,7 +547,7 @@ int thg71_open(RIG *rig)
         frng.high_power = -1;
         frng.low_power = -1;
         frng.label = "";
-        rig->state.rx_range_list[i] = frng;
+        rs->rx_range_list[i] = frng;
 
         if (frng.startf > MHz(200))
         {
@@ -558,12 +559,12 @@ int thg71_open(RIG *rig)
         }
 
         frng.low_power = mW(50);
-        rig->state.tx_range_list[i] = frng;
+        rs->tx_range_list[i] = frng;
     }
 
-    rig->state.rx_range_list[i] = frend;
-    rig->state.tx_range_list[i] = frend;
-    rig->state.vfo_list = RIG_VFO_A | RIG_VFO_MEM ;
+    rs->rx_range_list[i] = frend;
+    rs->tx_range_list[i] = frend;
+    rs->vfo_list = RIG_VFO_A | RIG_VFO_MEM ;
 
     return RIG_OK;
 }

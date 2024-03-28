@@ -264,7 +264,7 @@ static int ar7030p_init(RIG *rig)
     {
         int i;
 
-        rig->state.priv = (void *) priv;
+        STATE(rig)->priv = (void *) priv;
 
         RIGPORT(rig)->type.rig = RIG_PORT_SERIAL;
 
@@ -327,7 +327,7 @@ static int ar7030p_init(RIG *rig)
 
 static int ar7030p_cleanup(RIG *rig)
 {
-    struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
+    struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) STATE(rig)->priv;
     int rc = RIG_OK;
     int i;
 
@@ -345,9 +345,9 @@ static int ar7030p_cleanup(RIG *rig)
 
     free(priv->ext_parms);
 
-    free(rig->state.priv);
+    free(STATE(rig)->priv);
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return (rc);
 }
@@ -363,8 +363,10 @@ static int ar7030p_open(RIG *rig)
 {
     int rc = RIG_OK;
     unsigned char v;
+    struct rig_state *rs;
 
     assert(NULL != rig);
+    rs = STATE(rig);
 
     rc = lockRx(rig, LOCK_1);
 
@@ -373,9 +375,9 @@ static int ar7030p_open(RIG *rig)
         int i;
 
         /* Load calibration table */
-        rig->state.str_cal.size = rig->caps->str_cal.size;
+        rs->str_cal.size = rig->caps->str_cal.size;
 
-        for (i = 0; i < rig->state.str_cal.size; i++)
+        for (i = 0; i < rs->str_cal.size; i++)
         {
             rc = readByte(rig, EEPROM1, SM_CAL + i, &v);
 
@@ -384,12 +386,12 @@ static int ar7030p_open(RIG *rig)
                 break;
             }
 
-            rig->state.str_cal.table[ i ].val = rig->caps->str_cal.table[ i ].val;
-            rig->state.str_cal.table[ i ].raw = (int) v;
+            rs->str_cal.table[ i ].val = rig->caps->str_cal.table[ i ].val;
+            rs->str_cal.table[ i ].raw = (int) v;
 
             rig_debug(RIG_DEBUG_VERBOSE, "%s: index %d, val %d, raw %d\n",
-                      __func__, i, rig->state.str_cal.table[ i ].val,
-                      rig->state.str_cal.table[ i ].raw);
+                      __func__, i, rs->str_cal.table[ i ].val,
+                      rs->str_cal.table[ i ].raw);
         }
 
         if (RIG_OK == rc)
@@ -1220,7 +1222,7 @@ static int ar7030p_get_level(RIG *rig, vfo_t vfo, setting_t level,
 static int ar7030p_set_vfo(RIG *rig, vfo_t vfo)
 {
     int rc = RIG_OK;
-    struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
+    struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) STATE(rig)->priv;
 
     switch (vfo)
     {
@@ -1265,7 +1267,7 @@ static int ar7030p_get_vfo(RIG *rig, vfo_t *vfo)
 {
     int rc = RIG_OK;
     struct ar7030p_priv_data const *priv = (struct ar7030p_priv_data *)
-                                           rig->state.priv;
+                                           STATE(rig)->priv;
 
     assert(NULL != vfo);
 
@@ -1329,7 +1331,7 @@ static int ar7030p_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     int rc = RIG_OK;
 
-    struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
+    struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) STATE(rig)->priv;
 
     if (RIG_VFO_MEM == priv->curr_vfo)
     {
@@ -1350,7 +1352,7 @@ static int ar7030p_get_mem(RIG *rig, vfo_t vfo, int *ch)
     int rc = RIG_OK;
 
     struct ar7030p_priv_data const *priv = (struct ar7030p_priv_data *)
-                                           rig->state.priv;
+                                           STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     assert(NULL != ch);
@@ -1651,7 +1653,7 @@ static int ar7030p_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
     unsigned char *p = NULL;
     int ch;
     const struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *)
-                                           rig->state.priv;
+                                           STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     assert(NULL != chan);

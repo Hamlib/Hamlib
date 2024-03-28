@@ -97,14 +97,14 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int drake_init(RIG *rig)
 {
     struct drake_priv_data *priv;
-    rig->state.priv = calloc(1, sizeof(struct drake_priv_data));
+    STATE(rig)->priv = calloc(1, sizeof(struct drake_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->curr_ch = 0;
 
@@ -113,7 +113,7 @@ int drake_init(RIG *rig)
 
 int drake_cleanup(RIG *rig)
 {
-    struct drake_priv_data *priv = rig->state.priv;
+    struct drake_priv_data *priv = STATE(rig)->priv;
 
     free(priv);
 
@@ -552,7 +552,7 @@ int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     int ack_len, retval;
     char buf[16], ackbuf[16];
-    struct drake_priv_data *priv = rig->state.priv;
+    struct drake_priv_data *priv = STATE(rig)->priv;
 
     priv->curr_ch = ch;
 
@@ -576,7 +576,7 @@ int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int drake_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct drake_priv_data *priv = rig->state.priv;
+    struct drake_priv_data *priv = STATE(rig)->priv;
     int mdbuf_len, retval;
     char mdbuf[BUFSZ];
     int chan;
@@ -612,7 +612,7 @@ int drake_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int drake_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
-    const struct drake_priv_data *priv = rig->state.priv;
+    const struct drake_priv_data *priv = STATE(rig)->priv;
     vfo_t   old_vfo;
     int     old_chan;
     char    mdbuf[16], ackbuf[16];
@@ -668,7 +668,7 @@ int drake_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
  */
 int drake_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    const struct drake_priv_data *priv = rig->state.priv;
+    const struct drake_priv_data *priv = STATE(rig)->priv;
     vfo_t   old_vfo;
     int     old_chan;
     char    mdbuf[BUFSZ], freqstr[BUFSZ];
@@ -880,7 +880,7 @@ int drake_get_chan(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
  */
 int drake_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    const struct drake_priv_data *priv = rig->state.priv;
+    const struct drake_priv_data *priv = STATE(rig)->priv;
     char buf[16], ackbuf[16];
     int len, ack_len, retval;
 

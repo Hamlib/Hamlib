@@ -1309,7 +1309,7 @@ int adat_priv_set_cmd(RIG *pRig, char *pcCmd, int nCmdKind)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         memset(pPriv->acCmd, 0, ADAT_PRIV_DATA_CMD_LENGTH + 1);
         snprintf(pPriv->acCmd, ADAT_PRIV_DATA_CMD_LENGTH + 1, "%s", pcCmd);
@@ -1348,7 +1348,7 @@ int adat_priv_set_result(RIG *pRig, char *pcResult)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         memset(pPriv->acResult, 0, ADAT_PRIV_DATA_RESULT_LENGTH + 1);
         snprintf(pPriv->acResult, ADAT_PRIV_DATA_RESULT_LENGTH + 1, "%s", pcResult);
@@ -1390,7 +1390,7 @@ int adat_priv_clear_result(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
         memset(pPriv->acResult, 0, ADAT_PRIV_DATA_RESULT_LENGTH + 1);
     }
 
@@ -1426,7 +1426,7 @@ int adat_get_single_cmd_result(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr   pPriv     = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr   pPriv     = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_send(pRig, pPriv->acCmd);
 
@@ -1561,7 +1561,7 @@ int adat_cmd_recover_from_error(RIG *pRig, int nError)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         // Recover from communication error
 
@@ -1617,7 +1617,7 @@ int adat_cmd_fn_get_callsign(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_CALLSIGN,
@@ -1671,7 +1671,7 @@ int adat_cmd_fn_get_serial_nr(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_SERIAL_NR,
@@ -1725,7 +1725,7 @@ int adat_cmd_fn_get_fw_version(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_FW_VERSION,
@@ -1780,7 +1780,7 @@ int adat_cmd_fn_get_hw_version(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_HW_VERSION,
@@ -1834,7 +1834,7 @@ int adat_cmd_fn_get_gui_fw_version(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_GUI_FW_VERSION,
@@ -1889,7 +1889,7 @@ int adat_cmd_fn_get_id_code(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_ID_CODE,
@@ -1943,7 +1943,7 @@ int adat_cmd_fn_get_options(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_OPTIONS,
@@ -1997,7 +1997,7 @@ int adat_cmd_fn_get_mode(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_MODE,
@@ -2047,7 +2047,7 @@ int adat_cmd_fn_set_mode(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         // Translate Mode from RIG Mode Nr to ADAT Mode Nr
 
@@ -2109,7 +2109,7 @@ int adat_cmd_fn_get_freq(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_FREQ,
@@ -2171,7 +2171,7 @@ int adat_cmd_fn_set_freq(RIG *pRig)
     else
     {
         // cppcheck-suppress constVariablePointer
-        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
         char acBuf[ ADAT_BUFSZ + 1 ];
 
         // Get frequency of selected VFO
@@ -2227,7 +2227,7 @@ int adat_cmd_fn_set_vfo(RIG *pRig)
     else
     {
         // cppcheck-suppress constVariablePointer
-        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
         char acBuf[ ADAT_BUFSZ + 1 ];
 
         // Switch on VFO
@@ -2294,7 +2294,7 @@ int adat_cmd_fn_get_ptt(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_priv_set_cmd(pRig,
                                 ADAT_CMD_DEF_STRING_GET_PTT,
@@ -2349,7 +2349,7 @@ int adat_cmd_fn_set_ptt(RIG *pRig)
     }
     else
     {
-        adat_priv_data_ptr  pPriv    = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr  pPriv    = (adat_priv_data_ptr) STATE(pRig)->priv;
         char *pcPTTStr = NULL;
 
         // Switch PTT
@@ -2430,7 +2430,7 @@ int adat_transaction(RIG                *pRig,
     {
         int nI    = 0;
         int nFini = 0;  // = 1 -> Stop executing commands
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         rig_debug(RIG_DEBUG_TRACE,
                   "*** ADAT: %d %s (%s:%d): Nr of commands = %d\n",
@@ -2552,7 +2552,7 @@ int adat_init(RIG *pRig)
         // Set Rig Priv data
 
         memset(&gsADATPrivData, 0, sizeof(adat_priv_data_t));
-        pRig->state.priv = &gsADATPrivData;
+        STATE(pRig)->priv = &gsADATPrivData;
     }
 
     // Done !
@@ -2586,7 +2586,7 @@ int adat_cleanup(RIG *pRig)
     }
     else
     {
-        pRig->state.priv = NULL;
+        STATE(pRig)->priv = NULL;
     }
 
     rig_debug(RIG_DEBUG_TRACE,
@@ -2691,7 +2691,7 @@ const char *adat_get_info(RIG *pRig)
         if (nRC == RIG_OK)
         {
             // cppcheck-suppress constVariablePointer
-            const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+            const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
             snprintf(acBuf, 2048,
                      "ADAT ADT-200A, Callsign: %s, S/N: %s, ID Code: %s, Options: %s, FW: %s, GUI FW: %s, HW: %s",
@@ -2736,7 +2736,7 @@ int adat_set_freq(RIG *pRig, vfo_t vfo, freq_t freq)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         pPriv->nFreq = freq;
 
@@ -2775,7 +2775,7 @@ int adat_get_freq(RIG *pRig, vfo_t vfo, freq_t *freq)
     else
     {
         // cppcheck-suppress constVariablePointer
-        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_transaction(pRig, &adat_cmd_list_get_freq);
 
@@ -2813,7 +2813,7 @@ int adat_set_level(RIG *pRig, vfo_t vfo, setting_t level, value_t val)
     }
     else
     {
-        //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
     }
 
@@ -2848,7 +2848,7 @@ int adat_get_level(RIG *pRig, vfo_t vfo, setting_t level, value_t *val)
     }
     else
     {
-        //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
     }
 
@@ -2883,7 +2883,7 @@ int adat_set_mode(RIG *pRig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         pPriv->nRIGMode    = mode;
         adat_vfo_rnr2anr(vfo, &(pPriv->nCurrentVFO));
@@ -2933,7 +2933,7 @@ int adat_get_mode(RIG *pRig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     else
     {
         // cppcheck-suppress constVariablePointer
-        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC =  adat_transaction(pRig, &adat_cmd_list_get_mode);
 
@@ -2976,7 +2976,7 @@ int adat_get_vfo(RIG *pRig, vfo_t *vfo)
     else
     {
         // cppcheck-suppress constVariablePointer
-        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_transaction(pRig, &adat_cmd_list_get_vfo);
 
@@ -3014,7 +3014,7 @@ int adat_set_vfo(RIG *pRig, vfo_t vfo)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_vfo_rnr2anr(vfo, &(pPriv->nCurrentVFO));
 
@@ -3056,7 +3056,7 @@ int adat_get_ptt(RIG *pRig, vfo_t vfo, ptt_t *ptt)
     else
     {
         // cppcheck-suppress constVariablePointer
-        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_transaction(pRig, &adat_cmd_list_get_ptt);
 
@@ -3094,7 +3094,7 @@ int adat_set_ptt(RIG *pRig, vfo_t vfo, ptt_t ptt)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         switch (ptt)
         {
@@ -3270,7 +3270,7 @@ int adat_set_conf(RIG *pRig, hamlib_token_t token, const char *val)
     }
     else
     {
-        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         switch (token)
         {
@@ -3317,7 +3317,7 @@ int adat_get_conf(RIG *pRig, hamlib_token_t token, char *val)
     else
     {
         // cppcheck-suppress constVariablePointer
-        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         switch (token)
         {
@@ -3369,7 +3369,7 @@ int adat_reset(RIG *pRig, reset_t reset)
     }
     else
     {
-        //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
     }
 
@@ -3404,7 +3404,7 @@ int adat_handle_event(RIG *pRig)
     }
     else
     {
-        //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) pRig->state.priv;
+        //adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
         char               acBuf[ ADAT_RESPSZ + 1 ];
 
         memset(acBuf, 0, ADAT_RESPSZ + 1);
