@@ -266,12 +266,12 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     rotp2 = ROTPORT2(rot);
     
     rs->comm_state = 0;
-    rotp->type.rig = caps->port_type; /* default from caps */
+    rotp->type.rig = rotp2->type.rig = caps->port_type; /* default from caps */
 
-    rotp->write_delay = caps->write_delay;
-    rotp->post_write_delay = caps->post_write_delay;
-    rotp->timeout = caps->timeout;
-    rotp->retry = caps->retry;
+    rotp->write_delay = rotp2->write_delay = caps->write_delay;
+    rotp->post_write_delay = rotp2->post_write_delay = caps->post_write_delay;
+    rotp->timeout = rotp2->timeout = caps->timeout;
+    rotp->retry = rotp2->retry = caps->retry;
 
     switch (caps->port_type)
     {

@@ -667,7 +667,7 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth,
 
             //TODO: Should this be rotp or rotp2????
             //err = read_block(&rs->rotport, (unsigned char *) az, AZ_READ_LEN);
-            err = read_block(rotp, (unsigned char *) az, AZ_READ_LEN);
+            err = read_block(rotp2, (unsigned char *) az, AZ_READ_LEN);
 
             if (err != AZ_READ_LEN)
             {
