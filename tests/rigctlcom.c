@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
     char conf_parms[MAXCONFLEN] = "";
     int status;
 
-    printf("rigctlcom Version 1.4\n");
+    printf("rigctlcom Version 1.5\n");
 
     while (1)
     {
@@ -807,7 +807,7 @@ static int handle_ts2000(void *arg)
         char response[64];
         char *fmt =
             // cppcheck-suppress *
-            "IF%011"PRIll"      %1d%1d%1d%02d%1d%1"PRIll"%1d%1d%1d%1d%02d%1d;";
+            "IF%011"PRIll"%04d      %1d%1d%1d%02d%1d%1"PRIll"%1d%1d%1d%1d%02d%1d;";
 
         if (retval != RIG_OK)
         {
