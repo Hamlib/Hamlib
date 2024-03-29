@@ -334,7 +334,7 @@ extern struct rig_caps trudx_caps;
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd,
         size_t expected)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     return kenwood_safe_transaction(rig, cmd, priv->info, KENWOOD_MAX_BUF_LEN,
                                     expected);
 }

@@ -178,7 +178,7 @@ static int flex6k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
     }
 
@@ -275,7 +275,7 @@ static int powersdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
     }
 
@@ -451,7 +451,7 @@ static int flex6k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
     }
 
@@ -523,7 +523,7 @@ static int powersdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if ((vfo == RIG_VFO_VFO) || (vfo == RIG_VFO_CURR))
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: setting VFO to current\n", __func__);
     }
 

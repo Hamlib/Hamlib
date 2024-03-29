@@ -58,7 +58,7 @@ DECLARE_INITRIG_BACKEND(barrett)
 int barrett_transaction2(RIG *rig, char *cmd, int expected, char **result)
 {
     char cmd_buf[MAXCMDLEN];
-    struct barrett_priv_data *priv = rig->state.priv;
+    struct barrett_priv_data *priv = STATE(rig)->priv;
     int retval;
 
     SNPRINTF(cmd_buf, sizeof(cmd_buf), "%c%s%s", 0x0a, cmd, EOM);
@@ -80,7 +80,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
     char xon;
     char xoff;
     hamlib_port_t *rp = RIGPORT(rig);
-    struct barrett_priv_data *priv = rig->state.priv;
+    struct barrett_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
 
@@ -200,10 +200,10 @@ int barrett_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__,
               rig->caps->version);
     // cppcheck claims leak here but it's freed in cleanup
-    rig->state.priv = (struct barrett_priv_data *)calloc(1,
+    STATE(rig)->priv = (struct barrett_priv_data *)calloc(1,
                       sizeof(struct barrett_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
@@ -227,12 +227,12 @@ int barrett_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -240,7 +240,7 @@ int barrett_cleanup(RIG *rig)
 
 /*
  * barrett_get_freq
- * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, freq!=NULL
  */
 int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
@@ -280,13 +280,13 @@ int barrett_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 // TC command does not work on 4050 -- not implemented as of 2022-01-12
 /*
  * barrett_set_freq
- * assumes rig!=NULL, rig->state.priv!=NULL
+ * assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int barrett_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char cmd_buf[MAXCMDLEN];
     int retval;
-    const struct barrett_priv_data *priv = rig->state.priv;
+    const struct barrett_priv_data *priv = STATE(rig)->priv;
     freq_t tfreq;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __func__,
@@ -438,7 +438,7 @@ int barrett_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rmode_t tmode;
     pbwidth_t twidth;
 
-    //struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
+    //struct tt588_priv_data *priv = (struct tt588_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), (int)width);
@@ -604,7 +604,7 @@ int barrett_set_split_vfo(RIG *rig, vfo_t rxvfo, split_t split, vfo_t txvfo)
 {
     struct barrett_priv_data *priv;
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called rxvfo=%s, txvfo=%s, split=%d\n",
               __func__, rig_strvfo(rxvfo), rig_strvfo(txvfo), split);
@@ -618,7 +618,7 @@ int barrett_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
 {
     struct barrett_priv_data *priv;
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     *split = priv->split;
     *txvfo = RIG_VFO_B; // constant

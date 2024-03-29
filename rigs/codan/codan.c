@@ -47,7 +47,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
     char cmd_buf[MAXCMDLEN];
     int retval;
     hamlib_port_t *rp = RIGPORT(rig);
-    struct codan_priv_data *priv = rig->state.priv;
+    struct codan_priv_data *priv = STATE(rig)->priv;
     //int retry = 3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
@@ -137,10 +137,10 @@ int codan_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__,
               rig->caps->version);
     // cppcheck claims leak here but it's freed in cleanup
-    rig->state.priv = (struct codan_priv_data *)calloc(1,
+    STATE(rig)->priv = (struct codan_priv_data *)calloc(1,
                       sizeof(struct codan_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
@@ -184,12 +184,12 @@ int codan_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -286,7 +286,7 @@ int codan_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 /*
  * codan_set_freq
- * assumes rig!=NULL, rig->state.priv!=NULL
+ * assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int codan_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -313,7 +313,7 @@ int codan_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 /*
  * codan_get_freq
- * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, freq!=NULL
  */
 int codan_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {

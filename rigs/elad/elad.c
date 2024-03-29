@@ -145,7 +145,7 @@ const struct confparams elad_cfg_params[] =
 
 /**
  * elad_transaction
- * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
+ * Assumes rig!=NULL STATE(rig)!=NULL rig->caps!=NULL
  *
  * Parameters:
  * cmdstr:    Command to be sent to the rig. cmdstr can also be NULL,
@@ -164,7 +164,7 @@ const struct confparams elad_cfg_params[] =
  */
 int elad_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
     const struct elad_priv_caps *caps = elad_caps(rig);
     struct rig_state *rs;
     hamlib_port_t *rp = RIGPORT(rig);
@@ -185,7 +185,7 @@ int elad_transaction(RIG *rig, const char *cmdstr, char *data, size_t datasize)
         return -RIG_EINVAL;
     }
 
-    rs = &rig->state;
+    rs = STATE(rig);
 
     rs->transaction_active = 1;
 
@@ -235,13 +235,13 @@ transaction_write:
 
     if (!datasize)
     {
-        rig->state.transaction_active = 0;
+        rs->transaction_active = 0;
 
         /* no reply expected so we need to write a command that always
            gives a reply so we can read any error replies from the actual
            command being sent without blocking */
-        if (RIG_OK != (retval = write_block(rp,
-                                            (unsigned char *) priv->verify_cmd, strlen(priv->verify_cmd))))
+        if (RIG_OK != (retval = write_block(rp, (unsigned char *) priv->verify_cmd,
+					    strlen(priv->verify_cmd))))
         {
             goto transaction_quit;
         }
@@ -515,14 +515,14 @@ int elad_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = calloc(1, sizeof(struct elad_priv_data));
+    STATE(rig)->priv = calloc(1, sizeof(struct elad_priv_data));
 
-    if (rig->state.priv == NULL)
+    if (STATE(rig)->priv == NULL)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0x00, sizeof(struct elad_priv_data));
     strcpy(priv->verify_cmd, RIG_MODEL_XG3 == rig->caps->rig_model ? ";" : "ID;");
@@ -551,15 +551,15 @@ int elad_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    free(rig->state.priv);
-    rig->state.priv = NULL;
+    free(STATE(rig)->priv);
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
 
 int elad_open(RIG *rig)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
     int err, i;
     char *idptr;
     char id[ELAD_MAX_BUF_LEN];
@@ -699,7 +699,7 @@ int elad_open(RIG *rig)
 
 int elad_close(RIG *rig)
 {
-    const struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -734,7 +734,7 @@ int elad_get_id(RIG *rig, char *buf)
  */
 static int elad_get_if(RIG *rig)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
     const struct elad_priv_caps *caps = elad_caps(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -754,7 +754,7 @@ int elad_set_vfo(RIG *rig, vfo_t vfo)
     char cmdbuf[6];
     int retval;
     char vfo_function;
-    const struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -906,7 +906,7 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
     // this is a bogus suppress which complains priv is not used -- but it is 20231012
     // cppcheck-suppress unreadVariable
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
     char cmdbuf[6];
     int retval;
     unsigned char vfo_function;
@@ -1004,7 +1004,7 @@ int elad_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
  */
 int elad_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
     char cmdbuf[6];
     int retval;
 
@@ -1033,7 +1033,7 @@ int elad_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
  */
 int elad_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
     int retval;
     int transmitting;
 
@@ -1132,7 +1132,7 @@ int elad_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
 int elad_get_vfo_if(RIG *rig, vfo_t *vfo)
 {
     int retval;
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
     int split_and_transmitting;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1184,13 +1184,13 @@ int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned char vfo_letter = '\0';
     vfo_t tvfo;
     int err;
-    const struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = STATE(rig)->priv;
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     tvfo = (vfo == RIG_VFO_CURR
-            || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
+            || vfo == RIG_VFO_VFO) ? STATE(rig)->current_vfo : vfo;
 
     if (RIG_VFO_CURR == tvfo)
     {
@@ -1270,7 +1270,7 @@ int elad_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int elad_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    const struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = STATE(rig)->priv;
     char freqbuf[50];
     int retval;
 
@@ -1314,7 +1314,7 @@ int elad_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     tvfo = (vfo == RIG_VFO_CURR
-            || vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
+            || vfo == RIG_VFO_VFO) ? STATE(rig)->current_vfo : vfo;
 
     if (RIG_VFO_CURR == tvfo)
     {
@@ -1370,7 +1370,7 @@ int elad_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     int retval;
     char buf[6];
-    const struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1503,7 +1503,7 @@ static int elad_set_filter(RIG *rig, pbwidth_t width)
  */
 int elad_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    const struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = STATE(rig)->priv;
     struct elad_priv_caps *caps = elad_caps(rig);
     char buf[6];
     char kmode;
@@ -1705,7 +1705,7 @@ static int elad_get_filter(RIG *rig, pbwidth_t *width)
  */
 int elad_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
     struct elad_priv_caps *caps = elad_caps(rig);
     char cmd[4];
     char modebuf[10];
@@ -1824,7 +1824,7 @@ int elad_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     int err;
     struct elad_priv_caps *caps = elad_caps(rig);
-    const struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1919,9 +1919,9 @@ int elad_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             int foundit = 0;
 
-            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && STATE(rig)->attenuator[i]; i++)
             {
-                if (val.i == rig->state.attenuator[i])
+                if (val.i == STATE(rig)->attenuator[i])
                 {
                     SNPRINTF(levelbuf, sizeof(levelbuf), "RA%02d", i + 1);
                     foundit = 1;
@@ -1948,9 +1948,9 @@ int elad_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             int foundit = 0;
 
-            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.preamp[i]; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && STATE(rig)->preamp[i]; i++)
             {
-                if (val.i == rig->state.preamp[i])
+                if (val.i == STATE(rig)->preamp[i])
                 {
                     SNPRINTF(levelbuf, sizeof(levelbuf), "PA%01d", i + 1);
                     foundit = 1;
@@ -2133,7 +2133,7 @@ int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             for (i = 0; i < lvl && i < HAMLIB_MAXDBLSTSIZ; i++)
             {
-                if (rig->state.attenuator[i] == 0)
+                if (STATE(rig)->attenuator[i] == 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: "
                               "unexpected att level %d\n",
@@ -2147,7 +2147,7 @@ int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 return -RIG_EINTERNAL;
             }
 
-            val->i = rig->state.attenuator[i - 1];
+            val->i = STATE(rig)->attenuator[i - 1];
         }
 
         break;
@@ -2170,7 +2170,7 @@ int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             for (i = 0; i < lvl && i < HAMLIB_MAXDBLSTSIZ; i++)
             {
-                if (rig->state.preamp[i] == 0)
+                if (STATE(rig)->preamp[i] == 0)
                 {
                     rig_debug(RIG_DEBUG_ERR, "%s: "
                               "unexpected preamp level %d\n",
@@ -2184,7 +2184,7 @@ int elad_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 return -RIG_EINTERNAL;
             }
 
-            val->i = rig->state.preamp[i - 1];
+            val->i = STATE(rig)->preamp[i - 1];
         }
         else
         {
@@ -2559,11 +2559,11 @@ int elad_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
 
 /*
  * elad_get_ctcss_tone
- * Assumes rig->state.priv != NULL
+ * Assumes STATE(rig)->priv != NULL
  */
 int elad_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    const struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = STATE(rig)->priv;
     struct rig_caps *caps;
     char tonebuf[3];
     int i, retval;
@@ -2908,7 +2908,7 @@ int elad_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
  */
 int elad_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -3367,7 +3367,7 @@ int elad_get_mem_if(RIG *rig, vfo_t vfo, int *ch)
 {
     int err;
     char buf[4];
-    const struct elad_priv_data *priv = rig->state.priv;
+    const struct elad_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -3614,7 +3614,7 @@ int elad_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 int elad_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     int err;
-    struct elad_priv_data *priv = rig->state.priv;
+    struct elad_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

@@ -277,15 +277,16 @@ static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len,
 int ar3030_init(RIG *rig)
 {
     struct ar3030_priv_data *priv;
+    struct rig_state *rs = STATE(rig);
 
-    rig->state.priv = calloc(1, sizeof(struct ar3030_priv_data));
+    rs->priv = calloc(1, sizeof(struct ar3030_priv_data));
 
-    if (!rig->state.priv)
+    if (!rs->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = rs->priv;
 
     priv->curr_ch = 99; /* huh! FIXME: get_mem in open() ? */
     priv->curr_vfo = RIG_VFO_A;
@@ -295,7 +296,7 @@ int ar3030_init(RIG *rig)
 
 int ar3030_cleanup(RIG *rig)
 {
-    struct ar3030_priv_data *priv = rig->state.priv;
+    struct ar3030_priv_data *priv = STATE(rig)->priv;
 
     free(priv);
 
@@ -318,7 +319,7 @@ int ar3030_close(RIG *rig)
 
 int ar3030_set_vfo(RIG *rig, vfo_t vfo)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)STATE(rig)->priv;
     char *cmd = "";
     int retval;
 
@@ -353,7 +354,7 @@ int ar3030_set_vfo(RIG *rig, vfo_t vfo)
 int ar3030_get_vfo(RIG *rig, vfo_t *vfo)
 {
     const struct ar3030_priv_data *priv = (struct ar3030_priv_data *)
-                                          rig->state.priv;
+                                          STATE(rig)->priv;
 
     *vfo = priv->curr_vfo;
 
@@ -367,7 +368,7 @@ int ar3030_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int ar3030_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)STATE(rig)->priv;
     char freqbuf[BUFSZ];
     int retval;
 
@@ -391,7 +392,7 @@ int ar3030_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)STATE(rig)->priv;
     char *rfp;
     int freq_len, retval;
     char freqbuf[BUFSZ];
@@ -491,7 +492,7 @@ int ar3030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)STATE(rig)->priv;
     int buf_len, retval;
     char buf[BUFSZ];
 
@@ -553,7 +554,7 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int ar3030_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)STATE(rig)->priv;
     int retval = RIG_OK;
 
     if (priv->curr_vfo == RIG_VFO_MEM)
@@ -573,7 +574,7 @@ int ar3030_set_mem(RIG *rig, vfo_t vfo, int ch)
 
 int ar3030_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)STATE(rig)->priv;
     char infobuf[BUFSZ];
     int info_len, retval;
 
@@ -646,7 +647,7 @@ int ar3030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int ar3030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)STATE(rig)->priv;
     int info_len, retval;
     char infobuf[BUFSZ], *p;
 
@@ -717,7 +718,7 @@ int ar3030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int ar3030_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)STATE(rig)->priv;
     char cmdbuf[BUFSZ], infobuf[BUFSZ];
     int info_len, retval;
 
@@ -814,7 +815,7 @@ int ar3030_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
 int ar3030_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
+    struct ar3030_priv_data *priv = (struct ar3030_priv_data *)STATE(rig)->priv;
     char buf[16];
     int retval;
 

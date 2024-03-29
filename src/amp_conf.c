@@ -44,7 +44,7 @@
 
 
 /*
- * Configuration options available in the amp->state struct.
+ * Configuration options available in the amp_state struct.
  */
 static const struct confparams ampfrontend_cfg_params[] =
 {
@@ -112,7 +112,7 @@ int frontamp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
     hamlib_port_t *ampp = AMPPORT(amp);
     int val_i;
 
-    rs = &amp->state;
+    rs = AMPSTATE(amp);
 
     amp_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
