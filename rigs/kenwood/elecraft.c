@@ -96,10 +96,10 @@ int elecraft_open(RIG *rig)
 {
     int err;
     char buf[KENWOOD_MAX_BUF_LEN];
-    struct kenwood_priv_data *priv = rig->state.priv;
     char *model = "Unknown";
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     struct hamlib_port *rp = RIGPORT(rig);
+    struct kenwood_priv_data *priv = rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, rig version=%s\n", __func__,
               rig->caps->version);
@@ -395,7 +395,7 @@ int elecraft_open(RIG *rig)
 
 int elecraft_close(RIG *rig)
 {
-    const struct kenwood_priv_data *priv = rig->state.priv;
+    const struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     if (priv->save_k2_ext_lvl >= 0)
     {
@@ -622,12 +622,12 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ '%s'\n", __func__, splitbuf);
     }
 
-    *vfo = rig->state.tx_vfo = RIG_VFO_A;
+    *vfo = STATE(rig)->tx_vfo = RIG_VFO_A;
 
-    if (tq && ft == 1) { *vfo = rig->state.tx_vfo = RIG_VFO_B; }
-    else if (tq && ft == 0) { *vfo = rig->state.tx_vfo = RIG_VFO_A; }
+    if (tq && ft == 1) { *vfo = STATE(rig)->tx_vfo = RIG_VFO_B; }
+    else if (tq && ft == 0) { *vfo = STATE(rig)->tx_vfo = RIG_VFO_A; }
 
-    if (!tq && fr == 1) { *vfo = rig->state.rx_vfo = rig->state.tx_vfo = RIG_VFO_B; }
+    if (!tq && fr == 1) { *vfo = STATE(rig)->rx_vfo = STATE(rig)->tx_vfo = RIG_VFO_B; }
 
     RETURNFUNC2(RIG_OK);
 }

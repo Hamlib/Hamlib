@@ -197,12 +197,12 @@ int xg3_init(RIG *rig)
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
+    STATE(rig)->priv = (void *)priv;
     RIGPORT(rig)->type.rig = RIG_PORT_SERIAL;
 // Tried set_trn to turn transceiver on/off but turning it on isn't enabled in hamlib for some reason
 // So we use PTT instead
-//  rig->state.transceive = RIG_TRN_RIG; // this allows xg3_set_trn to be called
-    rig->state.current_vfo = RIG_VFO_A;
+//  STATE(rig)->transceive = RIG_TRN_RIG; // this allows xg3_set_trn to be called
+    STATE(rig)->current_vfo = RIG_VFO_A;
 //    priv->last_vfo = RIG_VFO_A;
 //    priv->ptt = RIG_PTT_ON;
 //    priv->powerstat = RIG_POWER_ON;
@@ -352,7 +352,7 @@ int xg3_get_vfo(RIG *rig, vfo_t *vfo)
         return -RIG_EINVAL;
     }
 
-    *vfo = rig->state.current_vfo;      // VFOA or MEM
+    *vfo = STATE(rig)->current_vfo;      // VFOA or MEM
     return RIG_OK;
 }
 
@@ -372,7 +372,7 @@ int xg3_set_vfo(RIG *rig, vfo_t vfo)
 
     // We don't actually set the vfo on the XG3
     // But we need this so we can set frequencies on the band buttons
-    rig->state.current_vfo = vfo;
+    STATE(rig)->current_vfo = vfo;
     return RIG_OK;
 }
 
@@ -388,7 +388,7 @@ int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     tvfo = (vfo == RIG_VFO_CURR ||
-            vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
+            vfo == RIG_VFO_VFO) ? STATE(rig)->current_vfo : vfo;
 
     switch (tvfo)
     {
@@ -440,7 +440,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
 
     tvfo = (vfo == RIG_VFO_CURR ||
-            vfo == RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
+            vfo == RIG_VFO_VFO) ? STATE(rig)->current_vfo : vfo;
     rp = RIGPORT(rig);
 
     switch (tvfo)

@@ -75,7 +75,7 @@ setting_t HAMLIB_API amp_has_set_level(AMP *amp, setting_t level)
         return 0;
     }
 
-    return (amp->state.has_set_level & level);
+    return (AMPSTATE(amp)->has_set_level & level);
 }
 
 /**
@@ -108,7 +108,7 @@ setting_t HAMLIB_API amp_has_get_level(AMP *amp, setting_t level)
         return 0;
     }
 
-    return (amp->state.has_get_level & level);
+    return (AMPSTATE(amp)->has_get_level & level);
 }
 
 /*! @} */

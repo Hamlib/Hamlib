@@ -987,27 +987,29 @@ int getCalLevel(RIG *rig, unsigned char rawAgc, int *dbm)
     int raw = (int) rawAgc;
     int step;
     unsigned char v;
+    struct rig_state *rs;
 
     assert(NULL != rig);
     assert(NULL != dbm);
+    rs = STATE(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: raw AGC %03d\n", __func__, rawAgc);
 
-    for (i = 0; i < rig->state.str_cal.size; i++)
+    for (i = 0; i < rs->str_cal.size; i++)
     {
-        *dbm = rig->state.str_cal.table[ i ].val;
+        *dbm = rs->str_cal.table[ i ].val;
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: got cal table[ %d ] dBm value %d\n", __func__,
                   i, *dbm);
 
         /* if the remaining difference in the raw value is negative */
-        if (0 > (raw - rig->state.str_cal.table[ i ].raw))
+        if (0 > (raw - rs->str_cal.table[ i ].raw))
         {
             /* calculate step size */
             if (0 < i)
             {
-                step = rig->state.str_cal.table[ i ].val -
-                       rig->state.str_cal.table[ i - 1 ].val;
+                step = rs->str_cal.table[ i ].val -
+                       rs->str_cal.table[ i - 1 ].val;
             }
             else
             {
@@ -1018,7 +1020,7 @@ int getCalLevel(RIG *rig, unsigned char rawAgc, int *dbm)
 
             /* interpolate the final value */
             *dbm -= step; /* HACK - table seems to be off by one index */
-            *dbm += (int)(((double) raw / (double) rig->state.str_cal.table[ i ].raw) *
+            *dbm += (int)(((double) raw / (double) rs->str_cal.table[ i ].raw) *
                           (double) step);
 
             rig_debug(RIG_DEBUG_VERBOSE, "%s: interpolated dBm value %d\n", __func__, *dbm);
@@ -1029,7 +1031,7 @@ int getCalLevel(RIG *rig, unsigned char rawAgc, int *dbm)
         else
         {
             /* calculate the remaining raw value */
-            raw = raw - rig->state.str_cal.table[ i ].raw;
+            raw = raw - rs->str_cal.table[ i ].raw;
 
             rig_debug(RIG_DEBUG_VERBOSE, "%s: residual raw value %d\n", __func__, raw);
         }

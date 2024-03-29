@@ -259,7 +259,7 @@ struct rig_caps k2_caps =
 int k2_open(RIG *rig)
 {
     int err;
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -293,7 +293,7 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     int err;
     char f = '*';
     struct k2_filt_lst_s *flt;
-    const struct kenwood_priv_data *priv = rig->state.priv;
+    const struct kenwood_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

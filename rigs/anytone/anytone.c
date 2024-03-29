@@ -98,7 +98,7 @@ void *anytone_thread(void *vrig)
 {
     RIG *rig = (RIG *)vrig;
     hamlib_port_t *rp = RIGPORT(rig);
-    anytone_priv_data_t *p = rig->state.priv;
+    anytone_priv_data_t *p = STATE(rig)->priv;
     rig_debug(RIG_DEBUG_TRACE, "%s: anytone_thread started\n", __func__);
     p->runflag = 1;
 
@@ -182,7 +182,7 @@ int anytone_transaction(RIG *rig, unsigned char *cmd, int cmd_len,
                         unsigned char *reply, int reply_len, int expected_len)
 {
     int retval   = RIG_OK;
-    //anytone_priv_data_t *p = rig->state.priv;
+    //anytone_priv_data_t *p = STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -221,7 +221,7 @@ int anytone_init(RIG *rig)
         }
         else
         {
-            rig->state.priv = p;
+            STATE(rig)->priv = p;
             p->vfo_curr = RIG_VFO_NONE;
 #ifdef HAVE_PTHREAD
             pthread_mutex_init(&p->mutex, NULL);
@@ -246,8 +246,8 @@ int anytone_cleanup(RIG *rig)
 
     ENTERFUNC;
 
-    free(rig->state.priv);
-    rig->state.priv = NULL;
+    free(STATE(rig)->priv);
+    STATE(rig)->priv = NULL;
 
     RETURNFUNC(retval);
 }
@@ -312,7 +312,7 @@ int anytone_get_vfo(RIG *rig, vfo_t *vfo)
 
     ENTERFUNC;
 
-    const anytone_priv_data_ptr p = (anytone_priv_data_ptr) rig->state.priv;
+    const anytone_priv_data_ptr p = (anytone_priv_data_ptr) STATE(rig)->priv;
     unsigned char reply[512];
     unsigned char cmd[] = { 0x2b, 0x41, 0x44, 0x41, 0x54, 0x41, 0x3a, 0x30, 0x30, 0x2c, 0x30, 0x30, 0x36, 0x0d, 0x0a, 0x04, 0x05, 0x00, 0x00, 0x00, 0x00, 0x0d, 0x0a };
     anytone_transaction(rig, cmd, sizeof(cmd), reply, sizeof(reply), 114);
@@ -348,7 +348,7 @@ int anytone_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     ENTERFUNC;
 
-    anytone_priv_data_t *p = rig->state.priv;
+    anytone_priv_data_t *p = STATE(rig)->priv;
     *ptt = p->ptt;
 
     RETURNFUNC(retval);
@@ -373,7 +373,7 @@ int anytone_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     MUTEX_LOCK(p->mutex);
     anytone_transaction(rig, pttcmd, sizeof(ptton), NULL, 0, 0);
-    anytone_priv_data_t *p = rig->state.priv;
+    anytone_priv_data_t *p = STATE(rig)->priv;
     p->ptt = ptt;
     MUTEX_UNLOCK(p->mutex);
 

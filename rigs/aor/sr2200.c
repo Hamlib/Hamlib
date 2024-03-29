@@ -603,7 +603,7 @@ int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     int agc;
     unsigned att = 0;
 
-    rs = &rig->state;
+    rs = STATE(rig);
 
     switch (level)
     {
@@ -685,7 +685,7 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char lvlbuf[BUFSZ], ackbuf[BUFSZ];
     int ack_len, retval;
 
-    rs = &rig->state;
+    rs = STATE(rig);
 
     switch (level)
     {

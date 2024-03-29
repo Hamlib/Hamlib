@@ -793,6 +793,7 @@ int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
     int i, kenwood_val;
+    struct rig_state *rs = STATE(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -853,9 +854,9 @@ int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             int foundit = 0;
 
-            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.attenuator[i]; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rs->attenuator[i]; i++)
             {
-                if (val.i == rig->state.attenuator[i])
+                if (val.i == rs->attenuator[i])
                 {
                     SNPRINTF(levelbuf, sizeof(levelbuf), "RA%02d", i + 1);
                     foundit = 1;
@@ -882,9 +883,9 @@ int pihpsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             int foundit = 0;
 
-            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rig->state.preamp[i]; i++)
+            for (i = 0; i < HAMLIB_MAXDBLSTSIZ && rs->preamp[i]; i++)
             {
-                if (val.i == rig->state.preamp[i])
+                if (val.i == rs->preamp[i])
                 {
                     SNPRINTF(levelbuf, sizeof(levelbuf), "PA%01d", i + 1);
                     foundit = 1;
@@ -987,7 +988,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (lvl > 9)
         {
-            val->i = rig->state.preamp[0];
+            val->i = STATE(rig)->preamp[0];
         }
 
         break;
@@ -1018,7 +1019,7 @@ int pihpsdr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (lvl > 99)
         {
-            val->i = rig->state.attenuator[0];    /* Since the TS-2000 only has one step on the attenuator */
+            val->i = STATE(rig)->attenuator[0];    /* Since the TS-2000 only has one step on the attenuator */
         }
 
         break;

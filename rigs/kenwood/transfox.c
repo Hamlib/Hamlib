@@ -170,7 +170,7 @@ int transfox_open(RIG *rig)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    rig->state.current_vfo = RIG_VFO_A;
+    STATE(rig)->current_vfo = RIG_VFO_A;
 
     /* do not call kenwood_open(rig), rig has no "ID" command */
 

@@ -100,7 +100,7 @@ static void dra818_subaudio(RIG *rig, char *subaudio, int subaudio_len,
 
 static int dra818_setgroup(RIG *rig)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
     char cmd[80];
     char subtx[8] = { 0 };
     char subrx[8] = { 0 };
@@ -121,7 +121,7 @@ static int dra818_setgroup(RIG *rig)
 
 static int dra818_setvolume(RIG *rig)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
     char cmd[80];
 
     SNPRINTF(cmd, sizeof(cmd), "AT+DMOSETVOLUME=%1d\r\n", priv->vol);
@@ -136,14 +136,14 @@ int dra818_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: dra818_init called\n", __func__);
 
-    rig->state.priv = calloc(sizeof(*priv), 1);
+    STATE(rig)->priv = calloc(sizeof(*priv), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     switch (rig->caps->rig_model)
     {
@@ -174,7 +174,7 @@ int dra818_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: dra818_cleanup called\n", __func__);
 
-    free(rig->state.priv);
+    free(STATE(rig)->priv);
 
     return RIG_OK;
 }
@@ -214,7 +214,7 @@ int dra818_open(RIG *rig)
 
 int dra818_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct dra818_priv *priv = rig->state.priv;
+    struct dra818_priv *priv = STATE(rig)->priv;
 
     /* Nearest channel */
     shortfreq_t sfreq = ((freq + priv->bw / 2) / priv->bw);
@@ -252,7 +252,7 @@ int dra818_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int dra818_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct dra818_priv *priv = rig->state.priv;
+    struct dra818_priv *priv = STATE(rig)->priv;
 
     if (width > 12500)
     {
@@ -270,7 +270,7 @@ int dra818_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int dra818_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
 
     *mode = RIG_MODE_FM;
     *width = priv->bw;
@@ -280,7 +280,7 @@ int dra818_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int dra818_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     char cmd[80];
     char response[8];
@@ -313,7 +313,7 @@ int dra818_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 int dra818_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
 
     switch (vfo)
     {
@@ -334,7 +334,7 @@ int dra818_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int dra818_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct dra818_priv *priv = rig->state.priv;
+    struct dra818_priv *priv = STATE(rig)->priv;
 
     priv->split = split;
 
@@ -348,7 +348,7 @@ int dra818_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 int dra818_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
 
     *split = priv->split;
 
@@ -366,7 +366,7 @@ int dra818_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
 int dra818_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
 
     switch (level)
     {
@@ -389,7 +389,7 @@ int dra818_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int dra818_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct dra818_priv *priv = rig->state.priv;
+    struct dra818_priv *priv = STATE(rig)->priv;
 
     switch (level)
     {
@@ -434,7 +434,7 @@ int dra818_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int dra818_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
-    struct dra818_priv *priv = rig->state.priv;
+    struct dra818_priv *priv = STATE(rig)->priv;
 
     priv->dcs_code = code;
 
@@ -448,7 +448,7 @@ int dra818_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
 int dra818_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    struct dra818_priv *priv = rig->state.priv;
+    struct dra818_priv *priv = STATE(rig)->priv;
 
     priv->ctcss_tone = tone;
 
@@ -462,7 +462,7 @@ int dra818_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 int dra818_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
-    struct dra818_priv *priv = rig->state.priv;
+    struct dra818_priv *priv = STATE(rig)->priv;
 
     priv->dcs_sql = code;
 
@@ -476,7 +476,7 @@ int dra818_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
 int dra818_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    struct dra818_priv *priv = rig->state.priv;
+    struct dra818_priv *priv = STATE(rig)->priv;
 
     priv->ctcss_sql = tone;
 
@@ -490,7 +490,7 @@ int dra818_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
 int dra818_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
 
     *tone = priv->ctcss_sql;
     return RIG_OK;
@@ -498,7 +498,7 @@ int dra818_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
 int dra818_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
 
     *code = priv->dcs_sql;
     return RIG_OK;
@@ -506,7 +506,7 @@ int dra818_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 
 int dra818_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
 
     *code = priv->dcs_code;
     return RIG_OK;
@@ -514,7 +514,7 @@ int dra818_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 
 int dra818_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    const struct dra818_priv *priv = rig->state.priv;
+    const struct dra818_priv *priv = STATE(rig)->priv;
 
     *tone = priv->ctcss_tone;
     return RIG_OK;

@@ -214,7 +214,7 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
 
-    if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }
@@ -254,7 +254,7 @@ th_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }
@@ -292,7 +292,7 @@ th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }
@@ -348,7 +348,7 @@ th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }
@@ -624,7 +624,8 @@ th_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int tm_set_vfo_bc2(RIG *rig, vfo_t vfo)
 {
-    const struct kenwood_priv_data *priv = rig->state.priv;
+    struct rig_state *rs = STATE(rig);
+    const struct kenwood_priv_data *priv = rs->priv;
     char cmd[16];
     int vfonum, txvfonum, vfomode = 0;
     int retval;
@@ -638,14 +639,14 @@ int tm_set_vfo_bc2(RIG *rig, vfo_t vfo)
         vfonum = 0;
         /* put back split mode when toggling */
         txvfonum = (priv->split == RIG_SPLIT_ON &&
-                    rig->state.tx_vfo == RIG_VFO_B) ? 1 : vfonum;
+                    rs->tx_vfo == RIG_VFO_B) ? 1 : vfonum;
         break;
 
     case RIG_VFO_B:
         vfonum = 1;
         /* put back split mode when toggling */
         txvfonum = (priv->split == RIG_SPLIT_ON &&
-                    rig->state.tx_vfo == RIG_VFO_A) ? 0 : vfonum;
+                    rs->tx_vfo == RIG_VFO_A) ? 0 : vfonum;
         break;
 
     case RIG_VFO_MEM:
@@ -687,7 +688,7 @@ int tm_set_vfo_bc2(RIG *rig, vfo_t vfo)
 
 int th_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     char vfobuf[16];
     int vfonum, txvfonum;
     int retval;
@@ -758,7 +759,7 @@ int th_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
 int th_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
 {
-    struct kenwood_priv_data *priv = rig->state.priv;
+    struct kenwood_priv_data *priv = STATE(rig)->priv;
     char buf[10];
     int retval;
 
@@ -1125,12 +1126,13 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char vch, buf[10], ackbuf[20];
     int retval, v;
     unsigned int l;
+    struct rig_state *rs = STATE(rig);
 
     vfo_t tvfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    tvfo = (vfo == RIG_VFO_CURR) ? rig->state.current_vfo : vfo;
+    tvfo = (vfo == RIG_VFO_CURR) ? rs->current_vfo : vfo;
 
     switch (tvfo)
     {
@@ -1277,7 +1279,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         else
         {
-            val->i = rig->state.attenuator[ackbuf[4] - '1'];
+            val->i = rs->attenuator[ackbuf[4] - '1'];
         }
 
         break;
@@ -1318,7 +1320,7 @@ int th_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    tvfo = (vfo == RIG_VFO_CURR) ? rig->state.current_vfo : vfo;
+    tvfo = (vfo == RIG_VFO_CURR) ? STATE(rig)->current_vfo : vfo;
 
     switch (tvfo)
     {
@@ -1700,7 +1702,7 @@ th_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    tvfo = (vfo == RIG_VFO_CURR) ? rig->state.current_vfo : vfo;
+    tvfo = (vfo == RIG_VFO_CURR) ? STATE(rig)->current_vfo : vfo;
 
     switch (tvfo)
     {
@@ -1741,7 +1743,7 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     /* store current VFO */
-    cvfo = rig->state.current_vfo;
+    cvfo = STATE(rig)->current_vfo;
 
     /* check if we should switch VFO */
     if (cvfo != RIG_VFO_MEM)
@@ -1866,7 +1868,7 @@ int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
+    if (vfo != RIG_VFO_CURR && vfo != STATE(rig)->current_vfo)
     {
         return kenwood_wrong_vfo(__func__, vfo);
     }
@@ -2053,7 +2055,7 @@ int th_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     chan->flags = lockout ? RIG_CHFLAG_SKIP : 0;
     chan->freq = freq;
     chan->vfo = RIG_VFO_MEM;
-    chan->tuning_step = rig->state.tuning_steps[step].ts;
+    chan->tuning_step = STATE(rig)->tuning_steps[step].ts;
 
     if (priv->mode_table)
     {
@@ -2228,8 +2230,8 @@ int th_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
     channel_num = chan->channel_num;
 
-    for (step = 0; rig->state.tuning_steps[step].ts != 0; step++)
-        if (chan->tuning_step <= rig->state.tuning_steps[step].ts)
+    for (step = 0; STATE(rig)->tuning_steps[step].ts != 0; step++)
+        if (chan->tuning_step <= STATE(rig)->tuning_steps[step].ts)
         {
             break;
         }

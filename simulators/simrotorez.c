@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     int flag = 0;
 
     while (1)
-    {
+    {
         int bytes;
         if (!flag) bytes = getmyline(fd, buf);
         else bytes = getmyline(fd2, buf);
