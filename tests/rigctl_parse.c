@@ -575,6 +575,8 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
         if (ret < 1) { rig_debug(RIG_DEBUG_TRACE, "%s: ret=%d\n", __func__, ret); }
 
+        if (errno == 22) return  -22;
+
         if (ferror(fin)) { rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); }
 
         return ret;
