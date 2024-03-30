@@ -635,7 +635,7 @@ static int netrigctl_open(RIG *rig)
         ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
         strtok(buf, "\r\n"); // chop the EOL
 
-rig_debug(RIG_DEBUG_ERR, "## %s\n", buf);
+        rig_debug(RIG_DEBUG_VERBOSE, "## %s\n", buf);
         if (ret <= 0)
         {
             RETURNFUNC((ret < 0) ? ret : -RIG_EPROTO);
