@@ -1831,7 +1831,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
         if (strstr(p, "k")) { *width = *width * 1000; }
 
-        rig_debug(RIG_DEBUG_ERR, "%s: p=%s, *width=%d\n", __func__, p, (int)(*width));
+        rig_debug(RIG_DEBUG_TRACE, "%s: p=%s, *width=%d\n", __func__, p, (int)(*width));
 
         if (strcmp(p, "FIXED") == 0)
         {
