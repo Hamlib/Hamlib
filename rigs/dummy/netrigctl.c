@@ -889,6 +889,11 @@ static int netrigctl_open(RIG *rig)
                     p = strtok(NULL, ";");
                 }
             }
+            else if (strcmp(setting, "hamlib_version") == 0)
+            {
+                printf("rigctld: %s\n", value);
+            }
+
 
             else
             {
