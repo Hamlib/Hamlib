@@ -132,6 +132,8 @@ void frameParse(int fd, unsigned char *frame, int len)
     {
     case 0x03:
 
+        if (frame[5] != 0xfd)
+        {
         //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
         if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
         {
@@ -149,6 +151,18 @@ void frameParse(int fd, unsigned char *frame, int len)
         if (powerstat)
         {
             n = write(fd, frame, 11);
+            dump_hex(frame, 11);
+        }
+        else
+        {
+            if (current_vfo==RIG_VFO_A)
+            freqA = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
+            else
+            freqB = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
+            frame[4] = 0xfb;
+            frame[5] = 0xfd;
+            n = write(fd, frame, 6);
+        }
         }
 
         break;
@@ -410,8 +424,8 @@ void frameParse(int fd, unsigned char *frame, int len)
                 {
                     printf("0x05 0x00 0x92 received\n");
                     transceive = frame[8];
-                    frame[6] = 0xfb;
-                    frame[7] = 0xfd;
+                    frame[4] = 0xfb;
+                    frame[5] = 0xfd;
                     n = write(fd, frame, 8);
                 }
                 else
