@@ -575,7 +575,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
         if (ret < 1) { rig_debug(RIG_DEBUG_TRACE, "%s: ret=%d\n", __func__, ret); }
 
-        if (errno == 22) return  -22;
+        if (errno == 22) { return  -22; }
 
         if (ferror(fin)) { rig_debug(RIG_DEBUG_ERR, "%s: errno=%d, %s\n", __func__, errno, strerror(errno)); }
 
@@ -1740,9 +1740,13 @@ readline_repeat:
 
         // exception for get_vfo_info cmd which fails with log4om otherwise
         if (*vfo_opt && cmd != 0xf3)
-        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), ":%s", p1);
+        {
+            p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), ":%s", p1);
+        }
         else
-        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
+        {
+            p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
+        }
 
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
         p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
@@ -4705,7 +4709,8 @@ declare_proto_rig(dump_state)
         fprintf(fout, "rig_model=%d\n", rig->caps->rig_model);
         fprintf(fout, "rigctld_version=%s\n", hamlib_version2);
         rig_sprintf_agc_levels(rig, buf, sizeof(buf));
-        if (strlen(buf) > 0) fprintf(fout, "agc_levels=%s\n", buf);
+
+        if (strlen(buf) > 0) { fprintf(fout, "agc_levels=%s\n", buf); }
 
         if (rig->caps->ctcss_list)
         {
@@ -5027,19 +5032,34 @@ static int hasbinary(char *s, int len)
  *
  * 'w' and 'W'
  */
+extern int flrig_cat_string2(RIG *rig, const char *arg, char *value,
+                             int value_size);
 extern int flrig_cat_string(RIG *rig, const char *arg);
+
+static void toLowerCase(char *s)
+{
+    if (s == NULL) { return; } // Check if the pointer is NULL
+
+    while (*s)   // Iterate until we hit the null terminator of the string
+    {
+        *s = tolower((unsigned char) * s); // Convert each character to lowercase
+        s++; // Move to the next character
+    }
+}
 
 declare_proto_rig(send_cmd)
 {
     int retval;
+    char flrig_value[16384]; // allow for large returns in the future
     hamlib_port_t *rp = RIGPORT(rig);
     int backend_num, cmd_len;
 #define BUFSZ 512
-    char bufcmd[BUFSZ * 5]; // allow for 5 chars for binary
+    char bufcmd[BUFSZ * 5]; // allow for 5 chars for each binary
     unsigned char buf[BUFSZ];
     char eom_buf[4] = { 0xa, 0xd, 0, 0 };
     int binary = 0;
     int rxbytes = BUFSZ;
+    int cmdcount = 1;
     int simulate = rig->caps->rig_model == RIG_MODEL_DUMMY ||
                    rig->caps->rig_model == RIG_MODEL_NONE ||
                    rp->rig == RIG_PORT_NONE;
@@ -5056,7 +5076,10 @@ declare_proto_rig(send_cmd)
     if (rig->caps->rig_model == RIG_MODEL_FLRIG)
     {
         // call flrig raw send function cat_string or cat_priority_string
-        flrig_cat_string(rig, arg1);
+        flrig_cat_string2(rig, arg1, flrig_value, sizeof(flrig_value));
+        rig_debug(RIG_DEBUG_ERR, "flrig#1: %s\n", flrig_value);
+        fprintf(fout, "flrig#2: %s\n", flrig_value);
+//        RETURNFUNC(RIG_OK);
     }
 
     // need to move the eom_buf to rig-specifc backends
@@ -5070,11 +5093,17 @@ declare_proto_rig(send_cmd)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: arg1=%s\n", __func__, arg1);
 
+    // note that hex sscanf expectes at least 2 values to pass this check
+    // is there any situation where only one x00 value would be written?
+    unsigned int n, i1, i2;
+    n = sscanf(arg1, "x%x x%x", &i1, &i2);
+
     if (send_cmd_term == -1
             || backend_num == RIG_ICOM
             || backend_num == RIG_KACHINA
             || backend_num == RIG_MICROTUNE
-            || (strstr(arg1, "\\0x") && (rig->caps->rig_model != RIG_MODEL_NETRIGCTL))
+            || ((strstr(arg1, "\\0x") || n == 2)
+                && (rig->caps->rig_model != RIG_MODEL_NETRIGCTL))
        )
     {
 
@@ -5082,14 +5111,18 @@ declare_proto_rig(send_cmd)
         int i;
         rig_debug(RIG_DEBUG_TRACE, "%s: send_cmd_term==-1, arg1=%s\n", __func__, arg1);
 
-        if (arg1[strlen(arg1) - 1] != ';' && strstr(arg1, "\\0x") == NULL)
+        if (arg1[strlen(arg1) - 1] != ';' && strstr(arg1, "\\0x") == NULL
+                && sscanf(arg1, "x%x x%x", &i1, &i2) != 2)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: expecting binary hex string here\n", __func__);
+            rig_debug(RIG_DEBUG_ERR,
+                      "%s: expecting binary hex string here, either x00 xff or \\0x00 \\0xff or x00xff\n",
+                      __func__);
             RETURNFUNC2(-RIG_EINVAL);
         }
 
         for (i = 0; i < BUFSZ - 1 && p != pp; i++)
         {
+            rig_debug(RIG_DEBUG_ERR, "%s: p=%s\n", __func__, p);
             pp = p + 1;
             bufcmd[i] = strtol(p + 1, (char **) &p, 0);
         }
@@ -5183,26 +5216,58 @@ declare_proto_rig(send_cmd)
 
     retval = 0;
 
+    if (strstr(arg1, ";") || arg2[0] == ';')
+    {
+        char *p = strchr(arg1, ';');
+
+        while (p)
+        {
+            cmdcount++;
+            p = strchr(p + 1, ';');
+        }
+
+        // Kenwood, Yaeus, and similar
+        eom_buf[0] = ';';
+        eom_buf[1] = 0;
+    }
+    else if (strstr(arg1, "xfd") || strstr(arg2, "xfd"))
+    {
+        char *s = strdup(arg1);
+        toLowerCase(s);
+        // ICOM answer terminator
+        eom_buf[0] = 0xfd;
+        eom_buf[1] = 0;
+        char *p = strstr(s, "xfd");
+
+        while (p)
+        {
+            cmdcount++;
+            p = strstr(p + 1, "xfd");
+        }
+
+        free(s);
+    }
+
     do
     {
-        if (arg2) { sscanf(arg2, "%d", &rxbytes); }
+        int hexval;
+        rxbytes = BUFSZ; // leave room for CR
 
-        if (rxbytes > 0)
+        if (arg2) // see if we have bytes or a hexval for terminating the 'W' command
+        {
+            sscanf(arg2, "%d", &rxbytes);
+
+            if (sscanf(arg2, "\\0x%2x", &hexval) == 1)
+            {
+                eom_buf[0] = hexval;
+            }
+        }
+
+        if (rxbytes > 0 && rxbytes != BUFSZ)
         {
             ++rxbytes;  // need length + 1 for end of string
             eom_buf[0] = 0;
         }
-
-        int hexval;
-
-        if (arg2[0] == ';') { eom_buf[0] = ';'; }
-        else if (strstr(arg2, "fd")) { eom_buf[0] = 0xfd; } // ICOM answer terminator
-        else
-        {
-            sscanf(arg2, "\\0x%2x", &hexval);
-            eom_buf[0] = hexval;
-        }
-
 
         if (simulate)
         {
@@ -5284,10 +5349,11 @@ declare_proto_rig(send_cmd)
         else
         {
             // we should be in printable ASCII here
-            fprintf(fout, "%s\n", buf);
+            fprintf(fout, "%s%c", buf, cmdcount == 1 ? '\n' : '\0');
         }
     }
-    while (retval > 0 && rxbytes == BUFSZ);
+    while ((retval > 0 && rxbytes == BUFSZ && eom_buf[0] != ';'
+            && eom_buf[0] != 0xfd) || --cmdcount > 1);
 
     rig_flush_force(rp, 1);
     set_transaction_inactive(rig);
