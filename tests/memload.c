@@ -18,6 +18,8 @@
  *
  */
 
+#include <stdlib.h>
+
 #include <hamlib/rig.h>
 
 #ifdef HAVE_XML2
