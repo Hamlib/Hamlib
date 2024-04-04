@@ -5050,7 +5050,6 @@ static void toLowerCase(char *s)
 declare_proto_rig(send_cmd)
 {
     int retval;
-    char flrig_value[16384]; // allow for large returns in the future
     hamlib_port_t *rp = RIGPORT(rig);
     int backend_num, cmd_len;
 #define BUFSZ 512
@@ -5076,10 +5075,10 @@ declare_proto_rig(send_cmd)
     if (rig->caps->rig_model == RIG_MODEL_FLRIG)
     {
         // call flrig raw send function cat_string or cat_priority_string
-        flrig_cat_string2(rig, arg1, flrig_value, sizeof(flrig_value));
-        rig_debug(RIG_DEBUG_ERR, "flrig#1: %s\n", flrig_value);
-        fprintf(fout, "flrig#2: %s\n", flrig_value);
-//        RETURNFUNC(RIG_OK);
+        flrig_cat_string2(rig, arg1, (char*)buf, sizeof(buf));
+        fwrite(cmd->arg2, 1, strlen(cmd->arg2), fout); /* i.e. "Frequency" */
+        fprintf(fout, ": %s\n", buf);
+        RETURNFUNC(RIG_OK);
     }
 
     // need to move the eom_buf to rig-specifc backends
