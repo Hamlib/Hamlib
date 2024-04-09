@@ -2442,7 +2442,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c, datamode=%c\n", __func__,
               kmode, c, data_mode);
 
-    if (RIG_IS_TS990S)
+    if (RIG_IS_TS990S || RIG_IS_TS890S)
     {
         /* The TS990s has targetable read mode but can only set the mode
            of the current VFO :( So we need to toggle the operating VFO
@@ -2711,7 +2711,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         RETURNFUNC2(RIG_OK);
     }
 
-    if (RIG_IS_TS990S)
+    if (RIG_IS_TS990S || RIG_IS_TS890S)
     {
         char c;
 
@@ -2725,8 +2725,10 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
         switch (vfo)
         {
+        case RIG_VFO_A:
         case RIG_VFO_MAIN: c = '0'; break;
 
+        case RIG_VFO_B:
         case RIG_VFO_SUB: c = '1'; break;
 
         default:
