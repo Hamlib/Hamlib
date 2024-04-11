@@ -65,6 +65,7 @@ jobs:
 
     - run: |
        sudo apt install libusb-1.0-0-dev
+       sudo apt install libgpiod-dev
        ./bootstrap
        ./configure
        make

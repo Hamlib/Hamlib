@@ -16,6 +16,7 @@ jobs:
     - name: bootstrap
       run: |
         sudo apt install libusb-1.0-0-dev
+        sudo apt install libgpiod-dev
         sudo apt install grep
         ./bootstrap
     - name: README Debug

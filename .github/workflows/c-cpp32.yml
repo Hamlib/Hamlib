@@ -16,6 +16,7 @@ jobs:
     - name: bootstrap
       run: |
         sudo apt install libusb-1.0-0-dev
+        sudo apt install libgpiod-dev
         ./bootstrap
     - name: configure
       run: ./configure --without-cxx-binding
