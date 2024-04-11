@@ -529,6 +529,9 @@ AS_IF([test x"${cf_with_xml_support}" = "xyes"], [
 AC_SUBST([LIBXML2_LIBS])
 AC_SUBST([LIBXML2_CFLAGS])
 
+# TODO: I don't know how to use autoconf
+LIBS="$LIBS -lgpiod"
+
 
 ## ----------------- ##
 ## Language bindings ##
