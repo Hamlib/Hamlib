@@ -194,12 +194,12 @@ tone_t kenwood42_ctcss_list[] =
  */
 tone_t kenwood51_ctcss_list[] =
 {
-   670 ,  693,  719,  744,  770,  797,  825,  854,  885,  915, /*  0- 9 */
-   948 ,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, /* 10-19 */
-   1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679, /* 20-29 */
-   1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995, /* 30-39 */
-   2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541, /* 40-49 */
-   17500, 0 /* 50-99 */
+    670,  693,  719,  744,  770,  797,  825,  854,  885,  915,  /*  0- 9 */
+    948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,  /* 10-19 */
+    1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679, /* 20-29 */
+    1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995, /* 30-39 */
+    2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541, /* 40-49 */
+    17500, 0 /* 50-99 */
 };
 
 /* Token definitions for .cfgparams in rig_caps
@@ -1745,13 +1745,13 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
         {
             HAMLIB_TRACE;
             *txvfo = rs->tx_vfo = priv->tx_vfo = (*split
-                                         && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
+                                                  && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else if (rs->rx_vfo == RIG_VFO_B)
         {
             HAMLIB_TRACE;
             *txvfo = rs->tx_vfo = priv->tx_vfo = (*split
-                                         && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
+                                                  && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else
         {
@@ -1841,7 +1841,7 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
     {
     case '0':
         *vfo = rs->rx_vfo = rs->tx_vfo = priv->tx_vfo =
-                                       split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
+                                             split_and_transmitting ? RIG_VFO_B : RIG_VFO_A;
 
         if (priv->info[32] == '1') { priv->tx_vfo = rs->tx_vfo = RIG_VFO_B; }
 
@@ -2417,8 +2417,9 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (RIG_IS_TS990S)
     {
-        if (mode == RIG_MODE_PKTUSB) mode = RIG_MODE_USBD1;
-        if (mode == RIG_MODE_PKTLSB) mode = RIG_MODE_LSBD1;
+        if (mode == RIG_MODE_PKTUSB) { mode = RIG_MODE_USBD1; }
+
+        if (mode == RIG_MODE_PKTLSB) { mode = RIG_MODE_LSBD1; }
     }
 
     kmode = rmode2kenwood(mode, caps->mode_table);
@@ -2451,19 +2452,28 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
            RIG_TARGETABLE_MODE since the toggle is not required for
            reading the mode. */
         vfo_t curr_vfo;
-		if (RIG_IS_TS990S)
+
+        if (RIG_IS_TS990S)
+        {
             err = kenwood_get_vfo_main_sub(rig, &curr_vfo);
-		else // RIG_IS_TS890
+        }
+        else // RIG_IS_TS890
+        {
             err = kenwood_get_vfo_if(rig, &curr_vfo);
+        }
 
         if (err != RIG_OK) { RETURNFUNC2(err); }
 
         if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
-			if (RIG_IS_TS990S)
-   	         err = kenwood_set_vfo_main_sub(rig, vfo);
-			else // RIG_IS_TS890
-				err = kenwood_set_vfo(rig, curr_vfo);
+            if (RIG_IS_TS990S)
+            {
+                err = kenwood_set_vfo_main_sub(rig, vfo);
+            }
+            else // RIG_IS_TS890
+            {
+                err = kenwood_set_vfo(rig, curr_vfo);
+            }
 
             if (err != RIG_OK) { RETURNFUNC2(err); }
         }
@@ -2474,13 +2484,19 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (err == RIG_OK && vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
             int err2;
-			if (RIG_IS_TS990S)
-            	err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
-			else // RIG_IS_TS890
-				err2 = kenwood_set_vfo(rig, curr_vfo);
+
+            if (RIG_IS_TS990S)
+            {
+                err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
+            }
+            else // RIG_IS_TS890
+            {
+                err2 = kenwood_set_vfo(rig, curr_vfo);
+            }
 
             if (err2 != RIG_OK) { RETURNFUNC2(err2); }
         }
+
         return RIG_OK;
     }
     else
@@ -4453,7 +4469,8 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
     }
 
     /* TODO: replace menu no 57 by a define */
-    SNPRINTF(tonebuf, sizeof(tonebuf), "EX%03d%04d", 57, i + kenwood_caps(rig)->tone_table_base);
+    SNPRINTF(tonebuf, sizeof(tonebuf), "EX%03d%04d", 57,
+             i + kenwood_caps(rig)->tone_table_base);
 
     RETURNFUNC(kenwood_transaction(rig, tonebuf, NULL, 0));
 }
@@ -4504,7 +4521,8 @@ int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        SNPRINTF(buf, sizeof(buf), "TN%c%02d", c, i + kenwood_caps(rig)->tone_table_base);
+        SNPRINTF(buf, sizeof(buf), "TN%c%02d", c,
+                 i + kenwood_caps(rig)->tone_table_base);
     }
     else
     {
@@ -4536,12 +4554,12 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     caps = rig->caps;
 
     if (RIG_IS_TS890S)
-      {
-	char buf[5];
-	
-	retval = kenwood_safe_transaction(rig, "TN", buf, sizeof(buf), 4);
-	memcpy(tonebuf, buf + 2, 2);
-      }
+    {
+        char buf[5];
+
+        retval = kenwood_safe_transaction(rig, "TN", buf, sizeof(buf), 4);
+        memcpy(tonebuf, buf + 2, 2);
+    }
     else if (RIG_IS_TS990S)
     {
         char cmd[4];
@@ -4654,7 +4672,8 @@ int kenwood_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
             RETURNFUNC(-RIG_EINVAL);
         }
 
-        SNPRINTF(buf, sizeof(buf), "CN%c%02d", c, i + kenwood_caps(rig)->tone_table_base);
+        SNPRINTF(buf, sizeof(buf), "CN%c%02d", c,
+                 i + kenwood_caps(rig)->tone_table_base);
     }
     else
     {
