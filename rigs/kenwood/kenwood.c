@@ -1684,7 +1684,7 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    if (RIG_IS_TS990S)
+    if (RIG_IS_TS990S || RIG_IS_TS890S)
     {
         char buf[4];
 
@@ -2451,13 +2451,19 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
            RIG_TARGETABLE_MODE since the toggle is not required for
            reading the mode. */
         vfo_t curr_vfo;
-        err = kenwood_get_vfo_main_sub(rig, &curr_vfo);
+		if (RIG_IS_TS990S)
+            err = kenwood_get_vfo_main_sub(rig, &curr_vfo);
+		else // RIG_IS_TS890
+            err = kenwood_get_vfo_if(rig, &curr_vfo);
 
         if (err != RIG_OK) { RETURNFUNC2(err); }
 
         if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
-            err = kenwood_set_vfo_main_sub(rig, vfo);
+			if (RIG_IS_TS990S)
+   	         err = kenwood_set_vfo_main_sub(rig, vfo);
+			else // RIG_IS_TS890
+				err = kenwood_set_vfo(rig, curr_vfo);
 
             if (err != RIG_OK) { RETURNFUNC2(err); }
         }
@@ -2467,7 +2473,11 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         if (err == RIG_OK && vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
-            int err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
+            int err2;
+			if (RIG_IS_TS990S)
+            	err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
+			else // RIG_IS_TS890
+				err2 = kenwood_set_vfo(rig, curr_vfo);
 
             if (err2 != RIG_OK) { RETURNFUNC2(err2); }
         }

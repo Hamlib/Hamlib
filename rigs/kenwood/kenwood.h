@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20240405"
+#define BACKEND_VER "20240413"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -211,6 +211,7 @@ int kenwood_set_vfo_main_sub(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo);
 int kenwood_get_vfo_main_sub(RIG *rig, vfo_t *vfo);
 int kenwood_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo);
+int kenwood_get_vfo_frft(RIG *rig, vfo_t *vfo);
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo);
 int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
                              vfo_t *txvfo);
