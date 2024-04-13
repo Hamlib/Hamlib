@@ -2472,7 +2472,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             }
             else // RIG_IS_TS890
             {
-                err = kenwood_set_vfo(rig, curr_vfo);
+                err = kenwood_set_vfo(rig, vfo);
             }
 
             if (err != RIG_OK) { RETURNFUNC2(err); }
