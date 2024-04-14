@@ -2443,7 +2443,47 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: kmode=%d, cmode=%c, datamode=%c\n", __func__,
               kmode, c, data_mode);
 
-    if (RIG_IS_TS990S || RIG_IS_TS890S)
+    if (RIG_IS_TS890S)
+    {
+        char sf[20];
+        // TS890 has SF command -- unique so far
+        if (vfo == RIG_VFO_A)
+        {
+            err = kenwood_transaction(rig, "SF0;", sf, sizeof(sf));
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: SF0; failed: %s\n", __func__, rigerror(err));
+                return err;
+            }
+            sf[14] = c;
+            err = kenwood_transaction(rig, sf, NULL, 0);
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sf, rigerror(err));
+                return err;
+            }
+            return RIG_OK;
+        }
+        else
+        {
+            err = kenwood_transaction(rig, "SF1;", sf, sizeof(sf));
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: SF0; failed: %s\n", __func__, rigerror(err));
+                return err;
+            }
+            sf[14] = c;
+            err = kenwood_transaction(rig, sf, NULL, 0);
+            if (err != RIG_OK)
+            {
+                rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sf, rigerror(err));
+                return err;
+            }
+            return RIG_OK;  
+        }
+
+    }
+    else if (RIG_IS_TS990S)
     {
         /* The TS990s has targetable read mode but can only set the mode
            of the current VFO :( So we need to toggle the operating VFO
@@ -2711,9 +2751,10 @@ static int kenwood_get_filter_width(RIG *rig, rmode_t mode, pbwidth_t *width)
  */
 int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    char cmd[4];
-    char modebuf[10];
+    char cmd[5];
+    char modebuf[20];
     int offs;
+    int len = 6;
     int retval;
     int kmode;
 
@@ -2736,8 +2777,22 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         STATE(rig)->current_vfo = RIG_VFO_A;
         RETURNFUNC2(RIG_OK);
     }
-
-    if (RIG_IS_TS990S || RIG_IS_TS890S)
+    if (RIG_IS_TS890S)
+    {
+        len = 16;
+        // TS890 has SF command -- unique so far
+        if (vfo == RIG_VFO_A)
+        {
+            strcpy(cmd,"SF0;");
+            offs = 14;
+        }
+        else
+        {
+            strcpy(cmd,"SF1;");
+            offs = 14;
+        }
+    }
+    else if (RIG_IS_TS990S)
     {
         char c;
 
@@ -2780,7 +2835,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         }
     }
 
-    retval = kenwood_safe_transaction(rig, cmd, modebuf, 6, offs + 1);
+    retval = kenwood_safe_transaction(rig, cmd, modebuf, len, offs + 1);
 
     if (retval != RIG_OK)
     {
