@@ -1305,6 +1305,8 @@ static int flrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     retval = flrig_transaction(rig, cmd, cmd_arg, NULL, 0);
 
+    hl_usleep(100*1000); // FLRig needs a moment to update the active VFO
+
     if (retval != RIG_OK)
     {
         RETURNFUNC2(retval);
