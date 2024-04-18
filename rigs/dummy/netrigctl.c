@@ -2790,6 +2790,8 @@ int netrigctl_get_lock_mode(RIG *rig, int *lock)
     char cmdbuf[256];
     char buf[BUF_MAX];
     int ret;
+    hamlib_port_t *rp = RIGPORT(rig);
+
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "\\get_lock_mode\n");
     ret = netrigctl_transaction(rig, cmdbuf, strlen(cmdbuf), buf);
 
@@ -2799,6 +2801,7 @@ int netrigctl_get_lock_mode(RIG *rig, int *lock)
     }
 
     sscanf(buf, "%d", lock);
+    ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
     return (RIG_OK);
 }
 
@@ -2819,7 +2822,7 @@ struct rig_caps netrigctl_caps =
     RIG_MODEL(RIG_MODEL_NETRIGCTL),
     .model_name =     "NET rigctl",
     .mfg_name =       "Hamlib",
-    .version =        "20240304.0",
+    .version =        "20240418.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
