@@ -108,7 +108,7 @@ static int barrett4100_open(RIG *rig)
     int retval;
     char *response;
     ENTERFUNC;
-    retval = barrett_transaction2(rig, "M:REMOTE SENTER2", 0, &response);
+    retval = barrett_transaction2(rig, "M:REMOTE SENTER2,1", 0, &response);
 
     if (retval != RIG_OK || response[0] != 's')
     {
@@ -193,7 +193,13 @@ int barrett4100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     }
     else
     {
-        sscanf(response, "gRFA1,%*d,%lf,%*d", freq);
+        int n = sscanf(response, "gRF%lf", freq);
+        //int n = sscanf(response, "gRFA1,%*d,%lf,%*d", freq);
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): unable to parse freq from '%s'\n", __func__, __LINE__, response);
+            return -RIG_EPROTO;
+        }
     }
 
     return retval;
@@ -233,7 +239,7 @@ struct rig_caps barrett4100_caps =
     RIG_MODEL(RIG_MODEL_BARRETT_4100),
     .model_name =       "4100",
     .mfg_name =         "Barrett",
-    .version =          BACKEND_VER ".0",
+    .version =          BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
