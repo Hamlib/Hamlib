@@ -2564,7 +2564,6 @@ struct rig_caps dummy_caps =
 
     .get_info =      dummy_get_info,
 
-
     .set_ptt =    dummy_set_ptt,
     .get_ptt =    dummy_get_ptt,
     .get_dcd =    dummy_get_dcd,
@@ -2620,12 +2619,12 @@ struct rig_caps dummy_no_vfo_caps =
     RIG_MODEL(RIG_MODEL_DUMMY_NOVFO),
     .model_name =     "Dummy No VFO",
     .mfg_name =       "Hamlib",
-    .version =        "20220510.0",
+    .version =        "20240409.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
-    .targetable_vfo =      RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
-    .ptt_type =       RIG_PTT_RIG,
+    .targetable_vfo = RIG_TARGETABLE_PTT | RIG_TARGETABLE_RITXIT | RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE | RIG_TARGETABLE_SPECTRUM,
+    .ptt_type =       RIG_PTT_NONE,
     .dcd_type =       RIG_DCD_RIG,
     .port_type =      RIG_PORT_NONE,
     .has_get_func =   DUMMY_FUNC,
@@ -2733,7 +2732,6 @@ struct rig_caps dummy_no_vfo_caps =
     .get_ext_parm =  dummy_get_ext_parm,
 
     .get_info =      dummy_get_info,
-
 
     .set_ptt =    dummy_set_ptt,
     .get_ptt =    dummy_get_ptt,
