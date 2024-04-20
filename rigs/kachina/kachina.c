@@ -169,12 +169,16 @@ int kachina_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* transmit frequency */
     retval = kachina_trans_n(rig, 'T', (char *) freqbuf, 4);
 
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
+    return retval;
+}
 
-    return RIG_OK;
+int kachina_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+    char c = ptt == 0 ? 0x00 : 0x01;
+
+    int retval = kachina_trans_n(rig, 'X', &c , 1);
+
+    return retval;
 }
 
 /*

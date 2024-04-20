@@ -62,7 +62,7 @@ struct rig_caps k505dsp_caps =
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_COMPUTER,
-    .ptt_type =  RIG_PTT_NONE,
+    .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
     .port_type =  RIG_PORT_SERIAL,
     .serial_rate_min =  9600,
@@ -151,6 +151,7 @@ struct rig_caps k505dsp_caps =
 
     .set_freq =  kachina_set_freq,
     .set_mode =  kachina_set_mode,
+    .set_ptt = kachina_set_ptt,
 
     .get_level =  kachina_get_level,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
