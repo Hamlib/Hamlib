@@ -24,10 +24,11 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "20061007"
+#define BACKEND_VER "20240420"
 
 int kachina_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kachina_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int kachina_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 extern struct rig_caps k505dsp_caps;
