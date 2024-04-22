@@ -53,6 +53,15 @@ DECLARE_INITRIG_BACKEND(barrett)
     return RIG_OK;
 }
 
+void barrett_flush(RIG *rig)
+{
+    hamlib_port_t *rp = RIGPORT(rig);
+    int timesave = rig->state.timeout;
+    rig->state.timeout = 0;
+    rig_flush(rp);
+    rig->state.timeout = timesave;
+}
+
 
 // this version is for 4100
 int barrett_transaction2(RIG *rig, char *cmd, int expected, char **result)
@@ -60,8 +69,16 @@ int barrett_transaction2(RIG *rig, char *cmd, int expected, char **result)
     char cmd_buf[MAXCMDLEN];
     struct barrett_priv_data *priv = STATE(rig)->priv;
     int retval;
+    hamlib_port_t *rp = RIGPORT(rig);
 
     SNPRINTF(cmd_buf, sizeof(cmd_buf), "%c%s%s", 0x0a, cmd, EOM);
+    barrett_flush(rig);
+    retval = write_block(rp, (unsigned char *) cmd_buf, strlen(cmd_buf));
+    if (retval < 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s(%d): error in write_block\n", __func__, __LINE__);
+        return retval;
+    }
     retval = read_block(RIGPORT(rig), (unsigned char *) priv->ret_data, expected);
 
     if (retval < 0)
@@ -69,6 +86,15 @@ int barrett_transaction2(RIG *rig, char *cmd, int expected, char **result)
         rig_debug(RIG_DEBUG_ERR, "%s(%d): error in read_block\n", __func__, __LINE__);
         return retval;
     }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %d bytes read\n", __func__, __LINE__, retval);
+        if (priv->ret_data[0] == 0x13)   // we'll return from the 1st good char
+        {
+            *result = &(priv->ret_data[1]);
+        }
+        else     // some commands like IAL don't give XOFF but XON is there -- is this a bug?
+        {
+            *result = &(priv->ret_data[0]);
+        }
     return retval;
 }
 
@@ -92,7 +118,7 @@ int barrett_transaction(RIG *rig, char *cmd, int expected, char **result)
         SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
     }
 
-    rig_flush(rp);
+    barrett_flush(rig);
     retval = write_block(rp, (unsigned char *) cmd_buf, strlen(cmd_buf));
 
     if (retval < 0)
@@ -715,7 +741,7 @@ int barrett_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     default: return -RIG_ENIMPL;
     }
 
-    rig_flush(rp);
+    barrett_flush(rig);
     retval = write_block(rp, (unsigned char *) cmd_buf, strlen(cmd_buf));
 
     if (retval < 0)

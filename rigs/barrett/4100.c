@@ -47,12 +47,12 @@ extern int barret950_get_freq(RIG *rig, vfo_t vfo, freq_t freq);
  */
 static const char *barrett4100_get_info(RIG *rig)
 {
-    char *response = NULL;
+    static char *response;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    retval = barrett_transaction(rig, "M:MIB GM", 0, &response);
+    retval = barrett_transaction2(rig, "M:MIB GM", 64, &response);
 
     if (retval == RIG_OK)
     {
@@ -64,7 +64,7 @@ static const char *barrett4100_get_info(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "MIB GM: %s\n", response);
     }
 
-    retval = barrett_transaction(rig, "M:FF GM", 0, &response);
+    retval = barrett_transaction2(rig, "M:FF GM", 0, &response);
 
     if (retval == RIG_OK)
     {
@@ -73,10 +73,10 @@ static const char *barrett4100_get_info(RIG *rig)
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "FF GM: %s\n", response);
+        rig_debug(RIG_DEBUG_VERBOSE, "M:MIB GM: %s\n", response);
     }
 
-    retval = barrett_transaction(rig, "M:FF BWA", 0, &response);
+    retval = barrett_transaction2(rig, "M:FF BWA", 0, &response);
 
     if (retval == RIG_OK)
     {
@@ -88,7 +88,7 @@ static const char *barrett4100_get_info(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "FF BWA: %s\n", response);
     }
 
-    retval = barrett_transaction(rig, "M:FF GRFA", 0, &response);
+    retval = barrett_transaction2(rig, "M:FF GRFA", 0, &response);
 
     if (retval == RIG_OK)
     {
@@ -108,22 +108,24 @@ static int barrett4100_open(RIG *rig)
     int retval;
     char *response;
     ENTERFUNC;
-    retval = barrett_transaction2(rig, "M:REMOTE SENTER2,1", 0, &response);
+    retval = barrett_transaction2(rig, "M:REMOTE SENTER2,1", 3, &response);
 
-    if (retval != RIG_OK || response[0] != 's')
+    rig_debug(RIG_DEBUG_ERR, "%s: back from REMOTE SENTER2: got %d\n", __func__, retval);
+    if (response[0] != 's')
     {
         rig_debug(RIG_DEBUG_ERR, "%s: REMOTE SENTER2 error: got %s\n", __func__,
                   response);
     }
 
-    barrett4100_get_info(rig);
+    //barrett4100_get_info(rig);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: success, ret=%d\n", __func__, retval);
     RETURNFUNC(RIG_OK);
 }
 
 static int barrett4100_close(RIG *rig)
 {
     char *response;
-    int retval = barrett_transaction2(rig, "M:REMOTE SENTER0", 0, &response);
+    int retval = barrett_transaction2(rig, "M:REMOTE SENTER0", 18, &response);
 
     if (retval != RIG_OK)
     {
@@ -231,6 +233,7 @@ int barrett4100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d); response=%s\n", __func__, __LINE__,
               response);
+
     return retval;
 }
 
@@ -238,7 +241,7 @@ struct rig_caps barrett4100_caps =
 {
     RIG_MODEL(RIG_MODEL_BARRETT_4100),
     .model_name =       "4100",
-    .mfg_name =         "Barrett",
+    .mfg_name =         "Rhode&Schwarz",
     .version =          BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_BETA,
