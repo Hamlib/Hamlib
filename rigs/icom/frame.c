@@ -765,6 +765,17 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode,
                    pbwidth_t *width)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s: mode=0x%02x, pd=%d\n", __func__, md, pd);
+
+    // Some rigs return fixed with for FM mode
+    if ((RIG_IS_IC7300 || RIG_IS_IC9700) && (md == S_FM || md == S_WFM))
+    {
+        *mode = RIG_MODE_FM;
+        if (*width == 1) *width = 15000;
+        else if (*width == 2) *width = 10000;
+        else *width = 7000;
+        return;
+    }
+
     *width = RIG_PASSBAND_NORMAL;
 
     switch (md)

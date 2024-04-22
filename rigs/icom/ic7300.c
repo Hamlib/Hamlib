@@ -37,21 +37,21 @@
 static int ic7300_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
 int ic7300_set_clock(RIG *rig, int year, int month, int day, int hour,
-                     int min, int sec, double msec, int utc_offset);
+        int min, int sec, double msec, int utc_offset);
 int ic7300_get_clock(RIG *rig, int *year, int *month, int *day,
-                     int *hour,
-                     int *min, int *sec, double *msec, int *utc_offset);
+        int *hour,
+        int *min, int *sec, double *msec, int *utc_offset);
 int ic9700_set_clock(RIG *rig, int year, int month, int day, int hour,
-                     int min, int sec, double msec, int utc_offset);
+        int min, int sec, double msec, int utc_offset);
 int ic9700_get_clock(RIG *rig, int *year, int *month, int *day,
-                     int *hour,
-                     int *min, int *sec, double *msec, int *utc_offset);
+        int *hour,
+        int *min, int *sec, double *msec, int *utc_offset);
 
 int ic9700_set_vfo(RIG *rig, vfo_t vfo);
 
 
 #define IC7300_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_PKTFM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
-#define IC7300_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
+#define IC7300_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTAM)
 #define IC7300_NOT_TS_MODES (IC7300_ALL_RX_MODES &~IC7300_1HZ_TS_MODES)
 
 #define IC7300_OTHER_TX_MODES (RIG_MODE_FM|RIG_MODE_PKTFM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
