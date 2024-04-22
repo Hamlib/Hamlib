@@ -1569,7 +1569,10 @@ int HAMLIB_API rig_open(RIG *rig)
     memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->pttport_deprecated, pttp, sizeof(hamlib_port_t_deprecated));
     memcpy(&rs->dcdport_deprecated, dcdp, sizeof(hamlib_port_t_deprecated));
+    int timesave = rig->state.timeout;
+    rig->state.timeout = 0;
     rig_flush_force(rp, 1);
+    rig->state.timeout = timesave;
 
 #if defined(HAVE_PTHREAD)
     enum multicast_item_e items = RIG_MULTICAST_POLL | RIG_MULTICAST_TRANSCEIVE
