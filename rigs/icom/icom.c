@@ -2048,7 +2048,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
     RETURNFUNC2(RIG_OK);
 }
 
-int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
+int icom_set_dsp_flt(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int retval, rfstatus;
     unsigned char ackbuf[MAXFRAMELEN];
@@ -2112,13 +2112,6 @@ int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width)
 
         flt_idx =
             width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
-    }
-    else if (mode & (RIG_MODE_FM | RIG_MODE_PKTFM))
-    {
-        if (width <= 7000) width = 7000;
-        else if (width <= 10000) width = 10000;
-        else width=15000;
-        RETURNFUNC(RIG_OK);
     }
     else
     {
@@ -2249,7 +2242,7 @@ static int icom_set_mode_without_data(RIG *rig, vfo_t vfo, rmode_t mode,
         RETURNFUNC2(retval);
     }
 
-    icom_set_dsp_flt(rig, mode, width);
+    icom_set_dsp_flt(rig, vfo, mode, width);
 
     RETURNFUNC2(RIG_OK);
 }
@@ -2316,6 +2309,12 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
     // Skip filter selection, because at least IC-7300 has a bug defaulting to filter 2 when changing mode
     // Tested on IC-7300 and IC-9700
     buf[2] = priv->filter;
+    if (mode == RIG_MODE_FM || mode == RIG_MODE_WFM)
+    {
+        // we use the passed in filter for FM mode widths
+        buf[2] = filter;
+    }
+    
     //rig_debug(RIG_DEBUG_TRACE, "%s: mode=%ld, filters usbd=%d, usb=%d, cw=%d\n",
     //          __func__, mode, priv->filter_usbd, priv->filter_usb, priv->filter_cw);
 
@@ -2474,7 +2473,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         retval = RIG_OK;
     }
 
-    if (retval == RIG_OK && mode != current_mode)
+    if (retval == RIG_OK && (mode != current_mode || width != RIG_PASSBAND_NOCHANGE))
     {
         unsigned char datamode[2];
         unsigned char mode_icom; // Not used, we only need the width
@@ -2508,6 +2507,14 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             HAMLIB_TRACE;
 
             if (datamode[0] == 0) { datamode[1] = 0; } // the only good combo possible according to manual
+
+            // we need to let FM mode widths through here with datamode[1] set to FM width
+            if((RIG_IS_IC7300 || RIG_IS_IC9700) && (mode == RIG_MODE_FM || mode == RIG_MODE_WFM))
+            {
+                if (width <= 7000) datamode[1] = 3;
+                else if (width <= 10000) datamode[1] = 2;
+                else datamode[1] = 1;
+            }
 
             rig_debug(RIG_DEBUG_TRACE, "%s(%d) mode_icom=%d, datamode=%d, filter=%d\n",
                       __func__, __LINE__, mode_icom, datamode[0], datamode[1]);
@@ -2554,7 +2561,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (((width != RIG_PASSBAND_NOCHANGE) && (width != current_width))
             || (priv->filter_usbd > 0 || priv->filter_usb > 0 || priv->filter_cw > 0 || priv->filter_fm > 0))
     {
-        icom_set_dsp_flt(rig, mode, width);
+            icom_set_dsp_flt(rig, vfo, mode, width);
     }
     else
     {
@@ -2606,7 +2613,7 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
         // mode_len=5, modebuf=26 01 01 01 01
         // last 3 bytes are mode, datamode, filter (1-3)
         priv_data->datamode = modebuf[3];
-        priv_data->filter = modebuf[4];
+        *width = priv_data->filter = modebuf[4];
         modebuf[1] = modebuf[2]; // copy mode to 2-byte format
         modebuf[2] = modebuf[4]; // copy filter to 2-byte format
         mode_len = 2;
@@ -2660,8 +2667,14 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     }
     else
     {
+        // we use width to pass in FM width for some rigs to i2r_mode
         icom2rig_mode(rig, modebuf[1],
                       mode_len == 2 ? modebuf[2] : -1, mode, width);
+    }
+    if  ((RIG_IS_IC7300 || RIG_IS_IC9700) && (*mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM)) 
+    {
+        // we already have width from icom2rig_mode
+        RETURNFUNC2(RIG_OK);
     }
 
     // The following rigs do not support querying filter width
@@ -2690,7 +2703,8 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     if (vfo == rig->state.current_vfo)
     {
-        filter_width = icom_get_dsp_flt(rig, *mode);
+        if (!((RIG_IS_IC7300 || RIG_IS_IC9700) && (*mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM))) // can't do this in FM mode
+            filter_width = icom_get_dsp_flt(rig, *mode);
     }
     else
     {
@@ -2705,10 +2719,10 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     *width = filter_width;
 
-    if (*mode == RIG_MODE_FM) 
+    if (*mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM) 
     {
         *width = 12000; // some default to 12000
-        if (RIG_IS_IC7300)
+        if (RIG_IS_IC7300 || RIG_IS_IC9700)
         {
             if (priv_data->filter == 1) *width = 15000;
             else if (priv_data->filter == 2) *width = 10000;
