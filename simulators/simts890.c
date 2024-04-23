@@ -28,7 +28,7 @@ int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
 int operatingband;
 int split;
 int modeMain = 2;
-int modeSub = 2;
+int modeSub = 1;
 int keyspd = 20;
 int sl=3, sh=3;
 int nr=0;
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 
         if (getmyline(fd, buf) > 0) 
         {
-            // printf("Cmd:\"%s\"\n", buf);
+//             printf("Cmd:\"%s\"\n", buf);
         }
 
 
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "NB1;") == 0)
         {
-            hl_usleep(mysleep * 100);
+            hl_usleep(mysleep * 20);
             sprintf(buf,"NB1%d;", nb1);
             write(fd, buf, strlen(buf));
         }
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "NB2;") == 0)
         {
-            hl_usleep(mysleep * 100);
+            hl_usleep(mysleep * 20);
             sprintf(buf,"NB2%d;", nb2);
             write(fd, buf, strlen(buf));
         }
@@ -351,6 +351,7 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), SFformat, tmpvfo,
                      tmpvfo == 0 ? freqa : freqb,
                      tmpvfo == 0 ? modeA : modeB);
+            printf("SF buf=%s\n", buf);
             write(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "SF", 2) == 0)
@@ -455,6 +456,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "CB;", 3) == 0)
         {
+            printf("No CB command!\n");
             sprintf(buf, "CB%d;", operatingband);
             write(fd, buf, strlen(buf));
         }
@@ -503,23 +505,27 @@ int main(int argc, char *argv[])
             sprintf(buf, "RM2%04d;", 10);
             write(fd, buf, strlen(buf));
         }
-        else if (strcmp(buf, "SL;") == 0)
+        else if (strcmp(buf, "SL0;") == 0)
         {
             sprintf(buf,"SL0%02d;", sl);
+			printf("R: %s\n", buf);
             write(fd, buf, strlen(buf));
         }
-        else if (strcmp(buf, "SH;") == 0)
+        else if (strcmp(buf, "SH0;") == 0)
         {
-            sprintf(buf,"SH0%02d;", sh);
+            sprintf(buf,"SH0%03d;", sh);
+			printf("R: %s\n", buf);
             write(fd, buf, strlen(buf));
         }
-        else if (strncmp(buf, "SL", 2) == 0)
+        else if (strncmp(buf, "SL0", 3) == 0)
         {
-            sscanf(&buf[3],"%d", &sl);
+			printf("Cmd: %s\n", buf);
+            sscanf(buf,"SL0%3d", &sl);
         }
-        else if (strncmp(buf, "SH", 2) == 0)
+        else if (strncmp(buf, "SH0", 3) == 0)
         {
-            sscanf(&buf[3],"%d", &sh);
+			printf("Cmd: %s\n", buf);
+            sscanf("SH0%3d","%d", &sh);
         }
         else if (strcmp(buf, "NR;") == 0)
         {
