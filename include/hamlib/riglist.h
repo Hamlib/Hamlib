@@ -672,6 +672,13 @@
 #define RIG_BACKEND_ANYTONE "AnyTone"
 #define RIG_MODEL_ATD578UVIII RIG_MAKE_MODEL(RIG_ANYTONE, 1)
 
+/*
+ * Motorola rigs
+ */
+#define RIG_MOTOROLA 38
+#define RIG_BACKEND_MOTOROLA "Motorola"
+#define RIG_MODEL_MICOM2 RIG_MAKE_MODEL(RIG_MOTOROLA, 1)
+
 
 //! @endcond
 
