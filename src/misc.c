@@ -3104,7 +3104,7 @@ int rig_test_2038(RIG *rig)
     if (s == NULL) { failed = 1; }
 
     else rig_debug(RIG_DEBUG_VERBOSE, "%s: time_t 2038 test = 0x%08lx:%s", __func__, x,
-              s);
+              s == NULL ? "NULL" : s);
 
 #endif
 
