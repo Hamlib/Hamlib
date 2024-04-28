@@ -14,13 +14,16 @@
 BUILD_DIR=~/builds
 
 # Set this to LibUSB archive extracted in $BUILD_DIR
-LIBUSB_VER=libusb-1.0.22
+LIBUSB_VER=libusb-1.0.24
 
-# Set to the correct HOST_ARCH= line for your minGW installation
+# Set to the correct HOST_ARCH= line for your MinGW installation
 HOST_ARCH=x86_64-w64-mingw32
 
-# Set to the strip name for your version of minGW
+# Set to the strip name for your version of MinGW
 HOST_ARCH_STRIP=x86_64-w64-mingw32-strip
+
+# Set to the dlltool name for your version of MinGW
+HOST_ARCH_DLLTOOL=x86_64-w64-mingw32-dlltool
 
 # Error return codes.  See /usr/include/sysexits.h
 EX_USAGE=64
@@ -176,6 +179,10 @@ program is not considered a "derivative work" when using the published Hamlib
 API and normal linking to the front-end library, and may be of a license of
 your choosing.
 
+As of 08 Sep 2022 a .lib file is generated using the MinGW dlltool utility.
+If this file does not work for your project, follow the steps in the following
+section:
+
 For linking the library with MS Visual C++ 2003, from the directory you
 installed Hamlib run the following commands to generate the libhamlib-4.lib
 file needed for linking with your MSVC project:
@@ -196,6 +203,11 @@ c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.2
 NOTE: feedback is requested on the previous two command examples as these do
 not appear to be correct to generate a 64 bit libhamlib-4.lib file!
 
+For VS 2022:
+
+cd lib/msvc
+c:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.32.31326\bin\Hostx64\x86\link.exe /lib /machine:i386 /def:libhamlib-4.def
+
 The published Hamlib API may be found at:
 
 http://hamlib.sourceforge.net/manuals/4.1/index.html
@@ -210,6 +222,7 @@ Please report problems or success to hamlib-developer@lists.sourceforge.net
 
 Cheers,
 Stephane Fillod - F8CFE
+Mike Black - W9MDB
 Nate Bargmann - N0NB
 http://www.hamlib.org
 
@@ -284,5 +297,22 @@ if test -f "$FILE"
 then
     cp -a ${FILE} ${ZIP_DIR}/bin/.
 fi
+
+# Required for MinGW with GCC 10 (Debian 11)
+FILE="/usr/lib/gcc/i686-w64-mingw32/10-posix/libgcc_s_dw2-1.dll"
+if test -f "$FILE"
+then
+    cp -a ${FILE} ${ZIP_DIR}/bin/.
+fi
+
+# Required for MinGW with GCC 12 (Debian 12)
+FILE="/usr/lib/gcc/i686-w64-mingw32/12-posix/libgcc_s_dw2-1.dll"
+if test -f "$FILE"
+then
+    cp -a ${FILE} ${ZIP_DIR}/bin/.
+fi
+
+# Generate .lib file for MSVC
+${HOST_ARCH_DLLTOOL} --input-def ${ZIP_DIR}/lib/msvc/libhamlib-4.def --output-lib ${ZIP_DIR}/lib/msvc/libhamlib-4.lib
 
 /usr/bin/zip -r ${HL_FILENAME}.zip $(basename ${ZIP_DIR})
