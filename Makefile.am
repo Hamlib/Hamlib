@@ -11,7 +11,7 @@ EXTRA_DIST = PLAN LICENSE hamlib.m4 hamlib.pc.in README.developer \
 	Android.mk
 
 doc_DATA = ChangeLog COPYING COPYING.LIB LICENSE \
-	README README.betatester README.developer
+	README.md README.betatester README.developer
 
 SUBDIRS = macros include lib security \
 	$(BACKEND_LIST) \
