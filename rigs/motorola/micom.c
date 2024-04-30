@@ -81,7 +81,7 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     txcmd[5] = (ifreq >> 16) & 0xff;
     txcmd[6] = (ifreq >> 8) & 0xff;
     txcmd[7] = ifreq & 0xff;
-    rxcmd[8] = checksum(txcmd, 8);
+    txcmd[8] = checksum(txcmd, 8);
     retval = write_block(rp, txcmd, sizeof(txcmd));
     micom_read_frame(rig, reply, sizeof(reply));
 
