@@ -106,6 +106,7 @@ static int micom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int retval;
     int ifreq;
 
+    cmd[4] = checksum(cmd,4);
     set_transaction_active(rig);
     retval = write_block(rp, cmd, sizeof(cmd));
 
@@ -149,7 +150,7 @@ struct rig_caps micom_caps =
     .version            = "20240429.0",
     .copyright          = "LGPL",
     .status             = RIG_STATUS_ALPHA,
-    .rig_type           = RIG_TYPE_OTHER,
+    .rig_type           = RIG_TYPE_TRANSCEIVER,
     .targetable_vfo     = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .ptt_type           = RIG_PTT_RIG,
     .port_type          = RIG_PORT_SERIAL,
@@ -158,8 +159,10 @@ struct rig_caps micom_caps =
     .serial_data_bits   = 8,
     .serial_stop_bits   = 2,
     .serial_parity      = RIG_PARITY_EVEN,
+    .serial_handshake   =  RIG_HANDSHAKE_NONE,
     .rig_open           = micom_open,
     .set_freq           = micom_set_freq,
     .get_freq           = micom_get_freq,
-    .set_ptt            = micom_set_ptt
+    .set_ptt            = micom_set_ptt,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
