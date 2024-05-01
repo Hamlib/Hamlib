@@ -120,6 +120,7 @@ static int micom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     cmd[4] = checksum(cmd,4);
     set_transaction_active(rig);
+    rig_flush(rp);
     retval = write_block(rp, cmd, sizeof(cmd));
 
     if (retval != RIG_OK)
@@ -172,6 +173,7 @@ struct rig_caps micom_caps =
     .serial_stop_bits   = 2,
     .serial_parity      = RIG_PARITY_ODD,
     .serial_handshake   =  RIG_HANDSHAKE_NONE,
+    .timeout            = 500,
     .rig_open           = micom_open,
     .set_freq           = micom_set_freq,
     .get_freq           = micom_get_freq,
