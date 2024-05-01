@@ -46,8 +46,10 @@ static int micom_read_frame(RIG *rig, unsigned char *buf, int maxlen)
     hamlib_port_t *rp = RIGPORT(rig);
     int retval;
     const char stopset[1] = {0x03};
+    ENTERFUNC;
     retval = read_string_direct(rp, buf, maxlen, stopset, 1, 0, 12);
-    return retval;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: retval=%d\n", __func__, retval);
+    RETURNFUNC(retval);
 }
 
 static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
@@ -161,7 +163,7 @@ struct rig_caps micom_caps =
     .serial_rate_max    = 9600,
     .serial_data_bits   = 8,
     .serial_stop_bits   = 2,
-    .serial_parity      = RIG_PARITY_EVEN,
+    .serial_parity      = RIG_PARITY_ODD,
     .serial_handshake   =  RIG_HANDSHAKE_NONE,
     .rig_open           = micom_open,
     .set_freq           = micom_set_freq,
