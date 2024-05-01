@@ -57,6 +57,7 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     unsigned char txcmd[10] = { 0x24, 0x05, 0x18, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00, 0x03 };
     unsigned int ifreq = freq / 1000;
     unsigned char reply[11];
+    int retval;
 
     rxcmd[5] = (ifreq >> 24) & 0xff;
     rxcmd[6] = (ifreq >> 16) & 0xff;
@@ -66,7 +67,8 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     set_transaction_active(rig);
     rig_flush(rp);
-    int retval = write_block(rp, rxcmd, sizeof(rxcmd));
+#if 0
+    retval = write_block(rp, rxcmd, sizeof(rxcmd));
 
     if (retval != RIG_OK)
     {
@@ -78,6 +80,7 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     micom_read_frame(rig, reply, sizeof(reply));
 
+#endif
     txcmd[5] = (ifreq >> 16) & 0xff;
     txcmd[6] = (ifreq >> 8) & 0xff;
     txcmd[7] = ifreq & 0xff;
