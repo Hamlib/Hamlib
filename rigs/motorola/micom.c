@@ -56,8 +56,8 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     unsigned char rxcmd[11] = { 0x24, 0x06, 0x18, 0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03 };
-    unsigned char txcmd[10] = { 0x24, 0x05, 0x18, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00, 0x03 };
-    unsigned int ifreq = freq / 1000;
+    unsigned char txcmd[11] = { 0x24, 0x05, 0x81, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03 };
+    unsigned int ifreq = freq;
     unsigned char reply[11];
     int retval;
 
@@ -83,10 +83,17 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     micom_read_frame(rig, reply, sizeof(reply));
 
 #endif
+#if 0
     txcmd[5] = (ifreq >> 16) & 0xff;
     txcmd[6] = (ifreq >> 8) & 0xff;
     txcmd[7] = ifreq & 0xff;
     txcmd[8] = checksum(txcmd, 8);
+#endif
+    txcmd[5] = (ifreq >> 24) & 0xff;
+    txcmd[6] = (ifreq >> 16) & 0xff;
+    txcmd[7] = (ifreq >> 8) & 0xff;
+    txcmd[8] = ifreq & 0xff;
+    txcmd[9] = checksum(rxcmd, 9);
     retval = write_block(rp, txcmd, sizeof(txcmd));
     micom_read_frame(rig, reply, sizeof(reply));
 
