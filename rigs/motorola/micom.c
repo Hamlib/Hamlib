@@ -45,18 +45,30 @@ static int micom_read_frame(RIG *rig, unsigned char *buf, int maxlen)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     int retval;
-    const char stopset[1] = {0x03};
+    //const char stopset[1] = {0x03};
     ENTERFUNC;
-    retval = read_string_direct(rp, buf, maxlen, stopset, 1, 0, 12);
+    retval = read_block(rp, buf, 4);
+    retval = read_block(rp, buf, buf[1]+1);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: retval=%d\n", __func__, retval);
     RETURNFUNC(retval);
 }
 
+/* Example of set of commands that works
+24 06 18 05 01 00 38 ea 50 ba 03 15
+24 05 18 36 fe 7b ef 01 e0 03 15
+24 05 18 36 ff 7b ef 01 e1 03 15
+24 05 18 36 df 7b ef 01 c1 03 15
+24 05 18 36 ff 7b ef 01 e1 03
+*/
 static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     hamlib_port_t *rp = RIGPORT(rig);
-    unsigned char rxcmd[11] = { 0x24, 0x06, 0x18, 0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03 };
-    unsigned char txcmd[11] = { 0x24, 0x05, 0x81, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03 };
+    unsigned char rxcmd[12] = { 0x24, 0x06, 0x18, 0x05, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x15 };
+    unsigned char cmd2[11] = { 0x24, 0x05, 0x18, 0x36, 0xfe, 0x7b, 0xef, 0x01, 0xe0, 0x03, 0x15 };
+    unsigned char cmd3[11] = { 0x24, 0x05, 0x18, 0x36, 0xfe, 0x7b, 0xef, 0x01, 0xe1, 0x03, 0x15 };
+    unsigned char cmd4[11] = { 0x24, 0x05, 0x18, 0x36, 0xdf, 0x7b, 0xef, 0x01, 0xc1, 0x03, 0x15 };
+    unsigned char cmd5[10] = { 0x24, 0x05, 0x18, 0x36, 0xff, 0x7b, 0xef, 0x01, 0xe1, 0x03 };
+    //unsigned char txcmd[11] = { 0x24, 0x05, 0x81, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03 };
     unsigned int ifreq = freq;
     unsigned char reply[11];
     int retval;
@@ -69,8 +81,11 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     set_transaction_active(rig);
     rig_flush(rp);
-#if 0
     retval = write_block(rp, rxcmd, sizeof(rxcmd));
+    if (retval == RIG_OK) retval = write_block(rp, cmd2, sizeof(cmd2));
+    if (retval == RIG_OK) retval = write_block(rp, cmd3, sizeof(cmd3));
+    if (retval == RIG_OK) retval = write_block(rp, cmd4, sizeof(cmd4));
+    if (retval == RIG_OK) retval = write_block(rp, cmd5, sizeof(cmd5));
 
     if (retval != RIG_OK)
     {
@@ -82,13 +97,11 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     micom_read_frame(rig, reply, sizeof(reply));
 
-#endif
-#if 0
+#if 0 // this method doesn't work
     txcmd[5] = (ifreq >> 16) & 0xff;
     txcmd[6] = (ifreq >> 8) & 0xff;
     txcmd[7] = ifreq & 0xff;
     txcmd[8] = checksum(txcmd, 8);
-#endif
     txcmd[5] = (ifreq >> 24) & 0xff;
     txcmd[6] = (ifreq >> 16) & 0xff;
     txcmd[7] = (ifreq >> 8) & 0xff;
@@ -105,7 +118,7 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return retval;
     }
 
-    micom_read_frame(rig, reply, sizeof(reply));
+#endif
     set_transaction_inactive(rig);
     return retval;
 }
@@ -160,7 +173,7 @@ struct rig_caps micom_caps =
     RIG_MODEL(RIG_MODEL_MICOM2),
     .model_name         = "Micom 2/3",
     .mfg_name           = "Micom",
-    .version            = "20240429.0",
+    .version            = "20240502.0",
     .copyright          = "LGPL",
     .status             = RIG_STATUS_ALPHA,
     .rig_type           = RIG_TYPE_TRANSCEIVER,
