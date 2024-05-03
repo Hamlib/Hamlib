@@ -41,16 +41,26 @@ static int micom_open(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
+// returns bytes read
+// format has length in byte[1] plus 5 bytes 0x24/len/cmd at start and checksum+0x03 at end
+// So a data "length" of 5 is 10 bytes for example 
 static int micom_read_frame(RIG *rig, unsigned char *buf, int maxlen)
 {
     hamlib_port_t *rp = RIGPORT(rig);
-    int retval;
+    int bytes;
     //const char stopset[1] = {0x03};
     ENTERFUNC;
-    retval = read_block(rp, buf, 4);
-    retval = read_block(rp, buf, buf[1]+1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: retval=%d\n", __func__, retval);
-    RETURNFUNC(retval);
+    bytes = read_block(rp, buf, 3);
+    if (bytes+buf[1]+2 > maxlen)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: buffer overrun...expected max of %d, got %d\n",
+            __func__, maxlen, bytes+buf[1]+2);
+        dump_hex(buf,bytes);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+    bytes += read_block(rp, &buf[3], buf[1]+2);
+    dump_hex(buf,bytes);
+    RETURNFUNC(bytes);
 }
 
 /* Example of set of commands that works
@@ -129,7 +139,6 @@ static int micom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     unsigned char cmd[6] = { 0x24, 0x01, 0x18, 0x06, 0x06, 0x03 };
     unsigned char reply[11];
     int retval;
-    int ifreq;
 
     cmd[4] = checksum(cmd,4);
     set_transaction_active(rig);
@@ -146,8 +155,7 @@ static int micom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     micom_read_frame(rig, reply, sizeof(reply));
     set_transaction_inactive(rig);
-    ifreq = (reply[5] << 24) | (reply[6] << 16) | (reply[7] << 8) | reply[8];
-    *freq = ifreq * 1000;
+    *freq = (reply[5] << 24) | (reply[6] << 16) | (reply[7] << 8) | reply[8];
     RETURNFUNC(RIG_OK);
 }
 
@@ -173,7 +181,7 @@ struct rig_caps micom_caps =
     RIG_MODEL(RIG_MODEL_MICOM2),
     .model_name         = "Micom 2/3",
     .mfg_name           = "Micom",
-    .version            = "20240502.0",
+    .version            = "20240503.0",
     .copyright          = "LGPL",
     .status             = RIG_STATUS_ALPHA,
     .rig_type           = RIG_TYPE_TRANSCEIVER,
