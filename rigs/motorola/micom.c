@@ -137,6 +137,7 @@ static int micom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     unsigned char cmd[6] = { 0x24, 0x01, 0x18, 0x06, 0x06, 0x03 };
+    unsigned char ack[6] = { 0x24, 0x01, 0x18, 0xf3, 0xff, 0x03 };
     unsigned char reply[11];
     int retval;
 
@@ -153,7 +154,14 @@ static int micom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return retval;
     }
 
+    // expecting 24 01 80 fe 98 03 -- an ack packet?
     micom_read_frame(rig, reply, sizeof(reply));
+    if (reply[3] != 0xfe)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown packet...expected byte 4 = 0xfe\n", __func__);
+    }
+    micom_read_frame(rig, reply, sizeof(reply));
+    write_block(rp, ack, sizeof(ack));
     set_transaction_inactive(rig);
     *freq = (reply[5] << 24) | (reply[6] << 16) | (reply[7] << 8) | reply[8];
     RETURNFUNC(RIG_OK);
@@ -181,7 +189,7 @@ struct rig_caps micom_caps =
     RIG_MODEL(RIG_MODEL_MICOM2),
     .model_name         = "Micom 2/3",
     .mfg_name           = "Micom",
-    .version            = "20240503.0",
+    .version            = "20240503.1",
     .copyright          = "LGPL",
     .status             = RIG_STATUS_ALPHA,
     .rig_type           = RIG_TYPE_TRANSCEIVER,
