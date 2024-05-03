@@ -15,6 +15,7 @@ struct ip_mreq
 #include <string.h>
 #include <unistd.h>
 #include "../include/hamlib/rig.h"
+#include "../src/misc.h"
 
 #define BUFSIZE 256
 
@@ -114,12 +115,19 @@ again:
         {
         case 0x06:
             printf("Report receiver freq\n");
+            unsigned char cmd[11] = { 0x24,0x06,0x18,0x05,0x01,0x00,0x38,0xea,0x50,0xba,0x03};
+            dump_hex(cmd, 11);
+            int n = write(fd, cmd, sizeof(cmd));
+            printf("%d bytes sent\n", n);
             break;
         case 0x13:
             printf("PTT On\n");
             break;
         case 0x14:
             printf("PTT Off\n");
+            break;
+        case 0x36:
+            printf("Key request\n");
             break;
 
         default: printf("Unknown cmd=%02x\n", buf[3]);
