@@ -92,10 +92,16 @@ static int micom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     set_transaction_active(rig);
     rig_flush(rp);
     retval = write_block(rp, rxcmd, sizeof(rxcmd));
+    micom_read_frame(rig, reply, sizeof(reply));
     if (retval == RIG_OK) retval = write_block(rp, cmd2, sizeof(cmd2));
+    micom_read_frame(rig, reply, sizeof(reply));
     if (retval == RIG_OK) retval = write_block(rp, cmd3, sizeof(cmd3));
+    micom_read_frame(rig, reply, sizeof(reply));
     if (retval == RIG_OK) retval = write_block(rp, cmd4, sizeof(cmd4));
+    micom_read_frame(rig, reply, sizeof(reply));
     if (retval == RIG_OK) retval = write_block(rp, cmd5, sizeof(cmd5));
+    micom_read_frame(rig, reply, sizeof(reply));
+    micom_read_frame(rig, reply, sizeof(reply));
 
     if (retval != RIG_OK)
     {
@@ -163,7 +169,7 @@ static int micom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     micom_read_frame(rig, reply, sizeof(reply));
     write_block(rp, ack, sizeof(ack));
     set_transaction_inactive(rig);
-    *freq = (reply[5] << 24) | (reply[6] << 16) | (reply[7] << 8) | reply[8];
+    *freq = (reply[4] << 24) | (reply[5] << 16) | (reply[6] << 8) | reply[7];
     RETURNFUNC(RIG_OK);
 }
 
@@ -189,7 +195,7 @@ struct rig_caps micom_caps =
     RIG_MODEL(RIG_MODEL_MICOM2),
     .model_name         = "Micom 2/3",
     .mfg_name           = "Micom",
-    .version            = "20240503.1",
+    .version            = "20240504.0",
     .copyright          = "LGPL",
     .status             = RIG_STATUS_ALPHA,
     .rig_type           = RIG_TYPE_TRANSCEIVER,
