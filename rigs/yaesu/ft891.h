@@ -69,13 +69,18 @@
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO)
 
-// Borrowed from FLRig -- Thanks to Dave W1HKJ
+// borrowed from FT991
 #define FT891_RFPOWER_METER_CAL \
     { \
-        2, \
+        7, \
         { \
             {0, 0.0f}, \
-            {100, 100.0f}, \
+            {10, 0.8f}, \
+            {50, 8.0f}, \
+            {100, 26.0f}, \
+            {150, 54.0f}, \
+            {200, 92.0f}, \
+            {250, 140.0f}, \
         } \
     }
 
