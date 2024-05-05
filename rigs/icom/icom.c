@@ -2699,7 +2699,7 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
      * The DSP filter width can be read only for the selected VFO, so use cached width for other VFOs.
      */
 
-    pbwidth_t filter_width;
+    pbwidth_t filter_width = 1;
 
     if (vfo == rig->state.current_vfo)
     {
