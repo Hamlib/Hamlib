@@ -1115,11 +1115,15 @@ int kenwood_open(RIG *rig)
         }
 
         /* driver mismatch */
-        rig_debug(RIG_DEBUG_VERBOSE,
+        // SDRCONSOLE identifies as TS-2000 -- even though it's a sub/superset
+        if (rig->caps->rig_model == RIG_MODEL_SDRCONSOLE && kenwood_id_string_list[i].model != 2014)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: not the right driver apparently (found %u, asked for %d, checked %s)\n",
                   __func__, rig->caps->rig_model,
                   kenwood_id_string_list[i].model,
                   rig->caps->model_name);
+        }
 
         // we continue to search for other matching IDs/models
     }

@@ -1494,14 +1494,18 @@ int HAMLIB_API rig_open(RIG *rig)
     if (skip_init) { return RIG_OK; }
 
 #if defined(HAVE_PTHREAD)
-    status = morse_data_handler_start(rig);
-
-    if (status < 0)
+    // Some models don't support CW
+    if (rig->caps->rig_model != RIG_MODEL_SDRCONSOLE)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %s\n", __func__,
+        status = morse_data_handler_start(rig);
+
+        if (status < 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %s\n", __func__,
                   rigerror(status));
-        port_close(rp, rp->type.rig);
-        RETURNFUNC2(status);
+            port_close(rp, rp->type.rig);
+            RETURNFUNC2(status);
+        }
     }
 
 #endif
