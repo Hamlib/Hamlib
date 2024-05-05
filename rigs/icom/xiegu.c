@@ -543,12 +543,27 @@ struct rig_caps x6100_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
+static struct icom_priv_caps g90_priv_caps =
+{
+    0xa4,   /* default address */
+    0,      /* 731 mode */
+    0,    /* no XCHG */
+    ic7200_ts_sc_list,
+    .x25x26_always = 0,
+    .x25x26_possibly = 0, // Firmware G90 v20240504.8 doesn't work well -- see https://github.com/Hamlib/Hamlib/issues/1547
+    .x1cx03_always = 0,
+    .x1cx03_possibly = 0,
+    .x1ax03_supported = 0,
+    .mode_with_filter = 1,
+    .data_mode_supported = 1
+};
+
 struct rig_caps g90_caps =
 {
     RIG_MODEL(RIG_MODEL_G90),
     .model_name = "G90",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".7",
+    .version =  BACKEND_VER ".9",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -667,7 +682,7 @@ struct rig_caps g90_caps =
     .set_conf =  icom_set_conf,
     .get_conf =  icom_get_conf,
 
-    .priv = (void *)& x108g_priv_caps,
+    .priv = (void *)& g90_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
     .rig_open =  xiegu_rig_open,
