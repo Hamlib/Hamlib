@@ -2254,8 +2254,9 @@ static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len,
     const struct icom_priv_caps *priv_caps = rig->caps->priv;
     int retval;
 
-    if (priv->x26cmdfails > 0 && !priv_caps->x25x26_always)
+    if (priv->x26cmdfails != 0 && priv_caps->x25x26_always==0)
     {
+        rig_debug(RIG_DEBUG_WARN, "%s: x26cmdfails=%d, x25x26_always=%d\n", __func__, priv->x26cmdfails, priv_caps->x25x26_always);
         return -RIG_ENAVAIL;
     }
 
@@ -2610,13 +2611,20 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     {
         retval = icom_get_mode_x26(rig, vfo, &mode_len, modebuf);
 
-        // mode_len=5, modebuf=26 01 01 01 01
-        // last 3 bytes are mode, datamode, filter (1-3)
-        priv_data->datamode = modebuf[3];
-        *width = priv_data->filter = modebuf[4];
-        modebuf[1] = modebuf[2]; // copy mode to 2-byte format
-        modebuf[2] = modebuf[4]; // copy filter to 2-byte format
-        mode_len = 2;
+        if (retval == RIG_OK)
+        {
+            // mode_len=5, modebuf=26 01 01 01 01
+            // last 3 bytes are mode, datamode, filter (1-3)
+            priv_data->datamode = modebuf[3];
+            *width = priv_data->filter = modebuf[4];
+            modebuf[1] = modebuf[2]; // copy mode to 2-byte format
+            modebuf[2] = modebuf[4]; // copy filter to 2-byte format
+            mode_len = 2;
+        }
+        else if (retval == -RIG_ENAVAIL) // In case it's been disabled
+        {
+            retval = icom_transaction(rig, C_RD_MODE, -1, NULL, 0, modebuf, &mode_len);
+        }
     }
     else
     {
