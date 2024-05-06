@@ -1494,8 +1494,8 @@ int HAMLIB_API rig_open(RIG *rig)
     if (skip_init) { return RIG_OK; }
 
 #if defined(HAVE_PTHREAD)
-    // Some models don't support CW
-    if (rig->caps->rig_model != RIG_MODEL_SDRCONSOLE)
+    // Some models don't support CW so don't need morse handler
+    if (rig->caps->send_morse)
     {
         status = morse_data_handler_start(rig);
 
