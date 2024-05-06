@@ -598,7 +598,8 @@ struct rig_caps g90_caps =
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0), /* TODO */
     .vfo_ops =  X108G_VFO_OPS,
-    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+//  Disabling targetable_vfo as G90 firmare update has brokne it see https://github.com/Hamlib/Hamlib/issues/1547
+//    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .scan_ops =  X108G_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   5,
