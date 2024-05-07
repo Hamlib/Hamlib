@@ -151,7 +151,8 @@ int xiegu_rig_open(RIG *rig)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu Radio ID=0x%04x\n", __func__, iid);
         switch(iid)
         {
-            case 0x0090: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G90/G90S");break;
+            case 0x0070: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G90");break;
+            case 0x0090: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G90S");break;
             case 0x0106: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G106/G106C");break;
             case 0x6100:
             case 0xa400: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "X6100");break;
@@ -181,7 +182,7 @@ struct rig_caps x108g_caps =
     RIG_MODEL(RIG_MODEL_X108G),
     .model_name = "X108G",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -570,7 +571,7 @@ struct rig_caps g90_caps =
     .ptt_type =  RIG_PTT_RIG,
     .dcd_type =  RIG_DCD_RIG,
     .port_type =  RIG_PORT_SERIAL,
-    .serial_rate_min =  300,
+    .serial_rate_min =  19200,
     .serial_rate_max =  19200,
     .serial_data_bits =  8,
     .serial_stop_bits =  1,
