@@ -1835,15 +1835,12 @@ static int k3_get_maxpower(RIG *rig)
     {
         maxpower = 110;
     }
-
-// Elecraft makes max power pretty variable
-// So we will stick with 15W or 110W and scale everything to that
-#if 0
     else if (RIG_IS_KX2 || RIG_IS_KX3)
     {
 
         int bandnum = -1;
-        retval = kenwood_safe_transaction(rig, "BN", levelbuf, KENWOOD_MAX_BUF_LEN, 4);
+        char levelbuf[KENWOOD_MAX_BUF_LEN];
+        int retval = kenwood_safe_transaction(rig, "BN", levelbuf, KENWOOD_MAX_BUF_LEN, 4);
 
         if (retval != RIG_OK) { return retval; }
 
@@ -1877,8 +1874,6 @@ static int k3_get_maxpower(RIG *rig)
         }
     }
 
-#endif
-
     rig_debug(RIG_DEBUG_TRACE, "%s: maxpower=%d\n", __func__, maxpower);
     return maxpower;
 }
@@ -1899,6 +1894,7 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
     int kenwood_val;
+    float pwr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1998,9 +1994,9 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-        kenwood_val = (int)(val.f * k3_get_maxpower(rig));
-        SNPRINTF(levelbuf, sizeof(levelbuf), "PC%03d%s", kenwood_val,
-                 kenwood_val > 15 ? "1" : "0");
+        pwr = val.f * k3_get_maxpower(rig);
+        SNPRINTF(levelbuf, sizeof(levelbuf), "PC%03.f%c", pwr > 15.0 ? pwr : 10.0 * pwr,
+                 pwr > 15.0 ? '1' : '0');
         break;
 
     default:
