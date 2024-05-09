@@ -147,6 +147,7 @@ int xiegu_rig_open(RIG *rig)
 
     if (retval == RIG_OK)
     {
+        dump_hex(id,id_len);
         iid = (((int)id[2]) << 8) + id[3];
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu Radio ID=0x%04x\n", __func__, iid);
         switch(iid)
@@ -551,7 +552,7 @@ static struct icom_priv_caps g90_priv_caps =
     0,    /* no XCHG */
     ic7200_ts_sc_list,
     .x25x26_always = 0,
-    .x25x26_possibly = 0, // Firmware G90 v20240504.8 doesn't work well -- see https://github.com/Hamlib/Hamlib/issues/1547
+    .x25x26_possibly = 1, // Firmware G90 v20240504.8 doesn't work well -- see https://github.com/Hamlib/Hamlib/issues/1547
     .x1cx03_always = 0,
     .x1cx03_possibly = 0,
     .x1ax03_supported = 0,
@@ -564,7 +565,7 @@ struct rig_caps g90_caps =
     RIG_MODEL(RIG_MODEL_G90),
     .model_name = "G90",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".9",
+    .version =  BACKEND_VER ".10",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -599,8 +600,7 @@ struct rig_caps g90_caps =
     .max_xit =  Hz(9999),
     .max_ifshift =  Hz(0), /* TODO */
     .vfo_ops =  X108G_VFO_OPS,
-//  Disabling targetable_vfo as G90 firmare update has brokne it see https://github.com/Hamlib/Hamlib/issues/1547
-//    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
+    .targetable_vfo =  RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
     .scan_ops =  X108G_SCAN_OPS,
     .transceive =  RIG_TRN_RIG,
     .bank_qty =   5,
