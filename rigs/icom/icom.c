@@ -9751,6 +9751,7 @@ static void icom_set_x25x26_ability(RIG *rig, int status)
     if (!icom_is_x25x26_potentially_supported(rig))
     {
         // No change for rigs that don't support these commands anyway
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Hamlib thinks rig does not support x25/x26 command\n", __func__);
         return;
     }
 
