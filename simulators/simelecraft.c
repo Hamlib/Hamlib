@@ -37,6 +37,7 @@ int ai = 0;
 int dt = 0;
 int modea = 2;
 int modeb = 2;
+int ptt = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -162,8 +163,10 @@ int main(int argc, char *argv[])
             printf("%s\n", buf);
             hl_usleep(50 * 1000);
             //pbuf = "IF059014200000+000000700000;";
-            pbuf = "IF00007230000     -000000 0001000001 ;" ;
+            pbuf = strdup("IF00007230000     -000000 00?1000001 ;") ;
+            pbuf[28] = ptt == 0 ? '0' : '1';
             WRITE(fd, pbuf, strlen(pbuf));
+            free(pbuf);
         }
         else if (strcmp(buf, "ID;") == 0)
         {
@@ -312,9 +315,13 @@ int main(int argc, char *argv[])
         {
             WRITE(fd, "K30;", 4);
         }
+        else if (strcmp(buf, "RVD;") == 0)
+        {
+            WRITE(fd, "RVD02.36;", 9);
+        }
         else if (strcmp(buf, "RVM;") == 0)
         {
-            WRITE(fd, "RV02.37;", 8);
+            WRITE(fd, "RVM02.37;", 9);
         }
         else if (strcmp(buf, "MD;") == 0)
         {
@@ -429,6 +436,14 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "KY", 2) == 0)
         {
             printf("Morse: %s\n", buf);
+        }
+        else if (strncmp(buf, "TX", 2) == 0)
+        {
+            ptt = 1;
+        }
+        else if (strncmp(buf, "RX", 2) == 0)
+        {
+            ptt = 0;
         }
         else if (strlen(buf) > 0)
         {
