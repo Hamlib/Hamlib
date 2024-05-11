@@ -2495,7 +2495,7 @@ int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     char buf[32];
     switch (op)
     {
-        case RIG_OP_TUNE: // K2 KX2 K3 KX3 K4
+        case RIG_OP_TUNE: // KX2 K3 KX3 K4 -- K2 needs SWH20 to it's in k2.c
             SNPRINTF(buf, sizeof(buf), "SWH16");
             break;
         default: return kenwood_vfo_op(rig, vfo, op);

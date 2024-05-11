@@ -38,7 +38,7 @@
     RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD)
 
 #define K2_VFO (RIG_VFO_A|RIG_VFO_B)
-#define K2_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+#define K2_VFO_OP (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_TUNE)
 
 #define K2_ANTS (RIG_ANT_1|RIG_ANT_2)
 
@@ -99,6 +99,7 @@ int k2_open(RIG *rig);
 int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int k2_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val);
+int k2_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 /* Private function declarations */
 int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv);
@@ -118,7 +119,7 @@ struct rig_caps k2_caps =
     RIG_MODEL(RIG_MODEL_K2),
     .model_name =       "K2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".0",
+    .version =      BACKEND_VER ".2",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -237,7 +238,7 @@ struct rig_caps k2_caps =
     .set_level =        kenwood_set_level,
     .get_level =        kenwood_get_level,
     .get_ext_level =    k2_get_ext_level,
-    .vfo_op =       kenwood_vfo_op,
+    .vfo_op =       k2_vfo_op,
     .set_trn =      kenwood_set_trn,
     .get_powerstat =    kenwood_get_powerstat,
     .get_trn =      kenwood_get_trn,
@@ -803,4 +804,18 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
 
     return RIG_OK;
 }
+
+int k2_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+    char buf[32];
+    switch (op)
+    {
+        case RIG_OP_TUNE: // K2
+            SNPRINTF(buf, sizeof(buf), "SWH20");
+            break;
+        default: return kenwood_vfo_op(rig, vfo, op);
+    }
+    return kenwood_transaction(rig, buf, NULL, 0);
+}
+
 
