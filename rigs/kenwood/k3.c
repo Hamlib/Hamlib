@@ -52,7 +52,7 @@
     RIG_LEVEL_NR|RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_RFPOWER_METER_WATTS)
 
 #define K3_VFO (RIG_VFO_A|RIG_VFO_B)
-#define K3_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+#define K3_VFO_OP (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_TUNE)
 
 #define K3_ANTS (RIG_ANT_1|RIG_ANT_2)
 #define K4_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3|RIG_ANT_4)
@@ -161,6 +161,7 @@ int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int k3_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                 rmode_t mode);
 
@@ -197,7 +198,7 @@ struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".27",
+    .version =      BACKEND_VER ".28",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -334,7 +335,7 @@ struct rig_caps k3_caps =
     .get_level =        k3_get_level,
     .set_ext_level =    k3_set_ext_level,
     .get_ext_level =    k3_get_ext_level,
-    .vfo_op =       kenwood_vfo_op,
+    .vfo_op =       k3_vfo_op,
     .set_trn =      kenwood_set_trn,
     .get_trn =      kenwood_get_trn,
     .set_powerstat =    kenwood_set_powerstat,
@@ -356,7 +357,7 @@ struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".21",
+    .version =      BACKEND_VER ".22",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -493,7 +494,7 @@ struct rig_caps k3s_caps =
     .get_level =        k3_get_level,
     .set_ext_level =    k3_set_ext_level,
     .get_ext_level =    k3_get_ext_level,
-    .vfo_op =       kenwood_vfo_op,
+    .vfo_op =       k3_vfo_op,
     .set_trn =      kenwood_set_trn,
     .get_trn =      kenwood_get_trn,
     .set_powerstat =    kenwood_set_powerstat,
@@ -516,7 +517,7 @@ struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".28",
+    .version =      BACKEND_VER ".29",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -658,7 +659,7 @@ struct rig_caps k4_caps =
     .get_level =        k3_get_level,
     .set_ext_level =    k3_set_ext_level,
     .get_ext_level =    k3_get_ext_level,
-    .vfo_op =       kenwood_vfo_op,
+    .vfo_op =       k3_vfo_op,
     .set_trn =      kenwood_set_trn,
     .get_trn =      kenwood_get_trn,
     .set_powerstat =    kenwood_set_powerstat,
@@ -680,7 +681,7 @@ struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".19",
+    .version =      BACKEND_VER ".20",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -816,7 +817,7 @@ struct rig_caps kx3_caps =
     .get_level =        kx3_get_level,
     .set_ext_level =    k3_set_ext_level,
     .get_ext_level =    k3_get_ext_level,
-    .vfo_op =       kenwood_vfo_op,
+    .vfo_op =       k3_vfo_op,
     .set_trn =      kenwood_set_trn,
     .get_trn =      kenwood_get_trn,
     .set_powerstat =    kenwood_set_powerstat,
@@ -838,7 +839,7 @@ struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".18",
+    .version =      BACKEND_VER ".19",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -973,7 +974,7 @@ struct rig_caps kx2_caps =
     .get_level =        kx3_get_level,
     .set_ext_level =    k3_set_ext_level,
     .get_ext_level =    k3_get_ext_level,
-    .vfo_op =       kenwood_vfo_op,
+    .vfo_op =       k3_vfo_op,
     .set_trn =      kenwood_set_trn,
     .get_trn =      kenwood_get_trn,
     .set_powerstat =    kenwood_set_powerstat,
@@ -2478,10 +2479,27 @@ int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         SNPRINTF(buf, sizeof(buf), "AG%c", (status == 0) ? '/' : '0');
         break;
 
+    case RIG_FUNC_TUNER: // K2 KX2 K3 KX3 K4
+        SNPRINTF(buf, sizeof(buf), "SWH16");
+        break;
+
     default:
         return kenwood_set_func(rig, vfo, func, status);
     }
 
+    return kenwood_transaction(rig, buf, NULL, 0);
+}
+
+int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+    char buf[32];
+    switch (op)
+    {
+        case RIG_OP_TUNE: // K2 KX2 K3 KX3 K4
+            SNPRINTF(buf, sizeof(buf), "SWH16");
+            break;
+        default: return kenwood_vfo_op(rig, vfo, op);
+    }
     return kenwood_transaction(rig, buf, NULL, 0);
 }
 
