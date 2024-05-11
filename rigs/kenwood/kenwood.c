@@ -1745,6 +1745,7 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
     switch (priv->info[30])
     {
     case '0':
+        rs->rx_vfo = STATE(rig)->current_vfo; 
         if (rs->rx_vfo == RIG_VFO_A)
         {
             HAMLIB_TRACE;
@@ -1752,6 +1753,12 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
                                                   && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
         }
         else if (rs->rx_vfo == RIG_VFO_B)
+        {
+            HAMLIB_TRACE;
+            *txvfo = rs->tx_vfo = priv->tx_vfo = (*split
+                                                  && !transmitting) ? RIG_VFO_B : RIG_VFO_A;
+        }
+        else if (rs->rx_vfo == RIG_VFO_CURR)
         {
             HAMLIB_TRACE;
             *txvfo = rs->tx_vfo = priv->tx_vfo = (*split
