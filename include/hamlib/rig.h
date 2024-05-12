@@ -2340,6 +2340,7 @@ typedef struct hamlib_port {
 
     int fd;                 /*!< File descriptor */
     void *handle;           /*!< handle for USB */
+    void *gpio;             /*!< handle for GPIO */
 
     int write_delay;        /*!< Delay between each byte sent out, in mS */
     int post_write_delay;   /*!< Delay between each commands send out, in mS */
