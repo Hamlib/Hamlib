@@ -19,90 +19,134 @@
  *
  */
 
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "gpio.h"
 
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <gpiod.h>
-
-#ifndef GPIOD_PATH
-// This is what's used on the Raspberry Pi 4; I'm not sure about others
-#define GPIO_CHIP_NAME "gpiochip0"
-#endif
-
-#define GPIO_CHIP_CONSUMER "Hamlib"
 
 int gpio_open(hamlib_port_t *port, int output, int on_value)
 {
-    struct gpiod_chip *chip;
-    struct gpiod_line *line;
+    char pathname[HAMLIB_FILPATHLEN * 2];
+    FILE *fexp, *fdir;
+    int fd;
+    char *dir;
 
     port->parm.gpio.on_value = on_value;
 
-    chip = gpiod_chip_open_by_name(GPIO_CHIP_NAME);
+    SNPRINTF(pathname, HAMLIB_FILPATHLEN, "/sys/class/gpio/export");
+    fexp = fopen(pathname, "w");
 
-    if (!chip)
+    if (!fexp)
     {
-        rig_debug(RIG_DEBUG_ERR, "Failed to open GPIO chip %s: %s\n", GPIO_CHIP_NAME, strerror(errno));
+        rig_debug(RIG_DEBUG_ERR,
+                  "Export GPIO%s (using %s): %s\n",
+                  port->pathname,
+                  pathname,
+                  strerror(errno));
         return -RIG_EIO;
     }
 
-    line = gpiod_chip_get_line(chip, atoi(port->pathname));
-    if (!line)
+    fprintf(fexp, "%s\n", port->pathname);
+    fclose(fexp);
+
+    SNPRINTF(pathname,
+             sizeof(pathname),
+             "/sys/class/gpio/gpio%s/direction",
+             port->pathname);
+    fdir = fopen(pathname, "w");
+
+    if (!fdir)
     {
-        rig_debug(RIG_DEBUG_ERR, "Failed to acquire GPIO%s: %s\n", port->pathname, strerror(errno));
-        gpiod_chip_close(chip);
+        rig_debug(RIG_DEBUG_ERR,
+                  "GPIO%s direction (using %s): %s\n",
+                  port->pathname,
+                  pathname,
+                  strerror(errno));
         return -RIG_EIO;
     }
 
-    if ((output && gpiod_line_request_output(line, GPIO_CHIP_CONSUMER, 0) < 0) ||
-        (!output && gpiod_line_request_input(line, GPIO_CHIP_CONSUMER) < 0))
+    dir = output ? "out" : "in";
+    rig_debug(RIG_DEBUG_VERBOSE, "Setting direction of GPIO%s to %s\n",
+              port->pathname, dir);
+    fprintf(fdir, "%s\n", dir);
+    fclose(fdir);
+
+    SNPRINTF(pathname,
+             sizeof(pathname),
+             "/sys/class/gpio/gpio%s/value",
+             port->pathname);
+    fd = open(pathname, O_RDWR);
+
+    if (fd < 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "Failed to set GPIO%s to %s mode: %s\n",
-                port->pathname, (output ? "OUTPUT" : "INPUT"), strerror(errno));
-        gpiod_line_release(line);
-        gpiod_chip_close(chip);
+        rig_debug(RIG_DEBUG_ERR,
+                  "GPIO%s opening value file %s: %s\n",
+                  port->pathname,
+                  pathname,
+                  strerror(errno));
         return -RIG_EIO;
     }
 
-    port->gpio = line;
-
-    return RIG_OK;
+    port->fd = fd;
+    return fd;
 }
+
 
 int gpio_close(hamlib_port_t *port)
 {
-    gpiod_line_close_chip((struct gpiod_line*)port->gpio);
-    return RIG_OK;
+    int retval;
+    char pathname[HAMLIB_FILPATHLEN * 2];
+    FILE *fexp;
+
+    retval = close(port->fd);
+
+    SNPRINTF(pathname, HAMLIB_FILPATHLEN, "/sys/class/gpio/unexport");
+    fexp = fopen(pathname, "w");
+
+    if (!fexp)
+    {
+        rig_debug(RIG_DEBUG_ERR,
+                  "Export GPIO%s (using %s): %s\n",
+                  port->pathname,
+                  pathname,
+                  strerror(errno));
+        return -RIG_EIO;
+    }
+
+    fprintf(fexp, "%s\n", port->pathname);
+    fclose(fexp);
+    return retval;
 }
+
 
 int gpio_ptt_set(hamlib_port_t *port, ptt_t pttx)
 {
-    int result = 0;
+    char *val;
     port->parm.gpio.value = pttx != RIG_PTT_OFF;
 
-    if ((port->parm.gpio.value && port->parm.gpio.on_value) ||
-      (!port->parm.gpio.value && !port->parm.gpio.on_value))
+    if ((port->parm.gpio.value && port->parm.gpio.on_value)
+            || (!port->parm.gpio.value && !port->parm.gpio.on_value))
     {
-        result = gpiod_line_set_value((struct gpiod_line*)port->gpio, 1);
+        val = "1\n";
     }
     else
     {
-        result = gpiod_line_set_value((struct gpiod_line*)port->gpio, 0);
+        val = "0\n";
     }
 
-    if (result)
+    if (write(port->fd, val, strlen(val)) <= 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "Failed to set the value of GPIO%s: %s\n", port->pathname, strerror(errno));
         return -RIG_EIO;
     }
 
     return RIG_OK;
 }
+
 
 int gpio_ptt_get(hamlib_port_t *port, ptt_t *pttx)
 {
@@ -120,15 +164,21 @@ int gpio_ptt_get(hamlib_port_t *port, ptt_t *pttx)
 
 int gpio_dcd_get(hamlib_port_t *port, dcd_t *dcdx)
 {
-    int val = gpiod_line_get_value((struct gpiod_line*)port->gpio);
-    if (val < 0)
+    char val;
+    int port_value;
+
+    lseek(port->fd, 0, SEEK_SET);
+
+    if (read(port->fd, &val, sizeof(val)) <= 0)
     {
-        rig_debug(RIG_DEBUG_ERR, "Failed to read the value of GPIO%s: %s\n", port->pathname, strerror(errno));
+        return -RIG_EIO;
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "DCD GPIO pin value: %c\n", val);
 
-    if (val == port->parm.gpio.on_value)
+    port_value = val - '0';
+
+    if (port_value == port->parm.gpio.on_value)
     {
         *dcdx = RIG_DCD_ON;
     }
