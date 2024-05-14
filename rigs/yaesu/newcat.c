@@ -1332,7 +1332,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // just drop through
     }
 
-    rig_debug(RIG_DEBUG_ERR, "%s: is_ft991=%d, CACHE(rig)->split=%d, vfo=%s\n",
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: is_ft991=%d, CACHE(rig)->split=%d, vfo=%s\n",
               __func__, is_ft991, cachep->split, rig_strvfo(vfo));
 
     if (priv->band_index < 0) { priv->band_index = newcat_band_index(freq); }
