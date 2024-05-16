@@ -198,7 +198,7 @@ struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".28",
+    .version =      BACKEND_VER ".29",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -241,9 +241,10 @@ struct rig_caps k3_caps =
     .chan_desc_sz =     0,
 
     .chan_list =    {
-           {   1, 4, RIG_MTYPE_VOICE },
-           {   1, 4, RIG_MTYPE_MORSE },
-           RIG_CHAN_END },
+        {   1, 4, RIG_MTYPE_VOICE },
+        {   1, 4, RIG_MTYPE_MORSE },
+        RIG_CHAN_END
+    },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K3_ANTS},
@@ -357,7 +358,7 @@ struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".22",
+    .version =      BACKEND_VER ".23",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -400,9 +401,10 @@ struct rig_caps k3s_caps =
     .chan_desc_sz =     0,
 
     .chan_list =    {
-            {   1, 4, RIG_MTYPE_VOICE },
-            {   1, 4, RIG_MTYPE_MORSE },
-            RIG_CHAN_END },
+        {   1, 4, RIG_MTYPE_VOICE },
+        {   1, 4, RIG_MTYPE_MORSE },
+        RIG_CHAN_END
+    },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K3_ANTS},
@@ -517,7 +519,7 @@ struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".29",
+    .version =      BACKEND_VER ".30",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -565,9 +567,10 @@ struct rig_caps k4_caps =
     .chan_desc_sz =     0,
 
     .chan_list =    {
-            {   1,  4, RIG_MTYPE_VOICE },
-            {   1,  4, RIG_MTYPE_MORSE },
-            RIG_CHAN_END },
+        {   1,  4, RIG_MTYPE_VOICE },
+        {   1,  4, RIG_MTYPE_MORSE },
+        RIG_CHAN_END
+    },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K4_ANTS},
@@ -681,7 +684,7 @@ struct rig_caps kx3_caps =
     RIG_MODEL(RIG_MODEL_KX3),
     .model_name =       "KX3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".20",
+    .version =      BACKEND_VER ".21",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -723,9 +726,10 @@ struct rig_caps kx3_caps =
     .chan_desc_sz =     0,
 
     .chan_list =    {
-           {   1, 4, RIG_MTYPE_VOICE },
-           {   1, 4, RIG_MTYPE_MORSE },
-           RIG_CHAN_END },
+        {   1, 4, RIG_MTYPE_VOICE },
+        {   1, 4, RIG_MTYPE_MORSE },
+        RIG_CHAN_END
+    },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K3_ANTS},
@@ -839,7 +843,7 @@ struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".19",
+    .version =      BACKEND_VER ".20",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -881,8 +885,9 @@ struct rig_caps kx2_caps =
     .chan_desc_sz =     0,
 
     .chan_list =    {
-            {   1, 4, RIG_MTYPE_MORSE },
-            RIG_CHAN_END },
+        {   1, 4, RIG_MTYPE_MORSE },
+        RIG_CHAN_END
+    },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K3_ANTS},
@@ -1841,7 +1846,8 @@ static int k3_get_maxpower(RIG *rig)
 
         int bandnum = -1;
         char levelbuf[KENWOOD_MAX_BUF_LEN];
-        int retval = kenwood_safe_transaction(rig, "BN", levelbuf, KENWOOD_MAX_BUF_LEN, 4);
+        int retval = kenwood_safe_transaction(rig, "BN", levelbuf, KENWOOD_MAX_BUF_LEN,
+                                              4);
 
         if (retval != RIG_OK) { return retval; }
 
@@ -2316,7 +2322,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (retval != RIG_OK)
         {
-          return retval;
+            return retval;
         }
 
         sscanf(levelbuf + 2, "%d", &val->i);
@@ -2479,8 +2485,8 @@ int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         SNPRINTF(buf, sizeof(buf), "AG%c", (status == 0) ? '/' : '0');
         break;
 
-    case RIG_FUNC_TUNER: // K2 KX2 K3 KX3 K4
-        SNPRINTF(buf, sizeof(buf), "SWH16");
+    case RIG_FUNC_TUNER: // K2 KX2 K3 K3S KX3 K4
+        SNPRINTF(buf, sizeof(buf), "SWT16");
         break;
 
     default:
@@ -2493,13 +2499,30 @@ int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     char buf[32];
+
     switch (op)
     {
-        case RIG_OP_TUNE: // KX2 K3 KX3 K4 -- K2 needs SWH20 to it's in k2.c
-            SNPRINTF(buf, sizeof(buf), "SWH16");
-            break;
-        default: return kenwood_vfo_op(rig, vfo, op);
+    case RIG_OP_TUNE: // KX2 K3 K3S KX3 K4 -- K2 needs SWH20 to it's in k2.c
+        switch (rig->caps->rig_model)
+        {
+        case RIG_MODEL_KX2: SNPRINTF(buf, sizeof(buf), "SWT20"); break;
+
+        case RIG_MODEL_K3S:
+        case RIG_MODEL_K3:  SNPRINTF(buf, sizeof(buf), "SWT19"); break;
+
+        case RIG_MODEL_KX3: SNPRINTF(buf, sizeof(buf), "SWT44"); break;
+
+        case RIG_MODEL_K4:  SNPRINTF(buf, sizeof(buf), "SW40"); break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown rig=%d\n", __func__,
+                      rig->caps->rig_model);
+            return -RIG_EINVAL;
+        }
+
+    default: return kenwood_vfo_op(rig, vfo, op);
     }
+
     return kenwood_transaction(rig, buf, NULL, 0);
 }
 
@@ -2679,7 +2702,7 @@ int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    // Determine transmit metering mode: 0 = RF POWER, 1 = ALC
+// Determine transmit metering mode: 0 = RF POWER, 1 = ALC
     retval = get_kenwood_func(rig, "TM", &tm_raw);
 
     if (retval != RIG_OK)
