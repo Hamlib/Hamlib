@@ -198,7 +198,7 @@ struct rig_caps k3_caps =
     RIG_MODEL(RIG_MODEL_K3),
     .model_name =       "K3",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".29",
+    .version =      BACKEND_VER ".30",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -358,7 +358,7 @@ struct rig_caps k3s_caps =
     RIG_MODEL(RIG_MODEL_K3S),
     .model_name =       "K3S",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".23",
+    .version =      BACKEND_VER ".24",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -519,7 +519,7 @@ struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".30",
+    .version =      BACKEND_VER ".31",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -843,7 +843,7 @@ struct rig_caps kx2_caps =
     RIG_MODEL(RIG_MODEL_KX2),
     .model_name =       "KX2",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".20",
+    .version =      BACKEND_VER ".21",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1167,6 +1167,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     struct kenwood_priv_data *priv = STATE(rig)->priv;
 
+    ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called vfo=%s mode=%s width=%d\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), (int)width);
 
@@ -1187,7 +1188,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s(%d): mode/width no change, skipping\n", __FILE__,
                   __LINE__);
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
     else
     {
@@ -1337,7 +1338,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         if (err != RIG_OK)
         {
-            return err;
+            RETURNFUNC(err);
         }
     }
 
@@ -1351,11 +1352,11 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         if (err != RIG_OK)
         {
-            return err;
+            RETURNFUNC(err);
         }
     }
 
-    return RIG_OK;
+    RETURNFUNC(RIG_OK);
 }
 
 /* Elecraft rigs don't really know about swappings vfos.
@@ -2499,6 +2500,7 @@ int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     char buf[32];
+    ENTERFUNC;
 
     switch (op)
     {
@@ -2517,13 +2519,14 @@ int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: unknown rig=%d\n", __func__,
                       rig->caps->rig_model);
-            return -RIG_EINVAL;
+            RETURNFUNC(-RIG_EINVAL);
         }
+        break;
 
-    default: return kenwood_vfo_op(rig, vfo, op);
+    default: RETURNFUNC(kenwood_vfo_op(rig, vfo, op));
     }
 
-    return kenwood_transaction(rig, buf, NULL, 0);
+    RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 }
 
 /*
