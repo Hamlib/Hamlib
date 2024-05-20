@@ -13,6 +13,8 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Added Flex SmartSDR slices
+        * Added Motorola Micom M2/M3
         * Added SDR Radio SDRConsole -- TS-2000 is now hardware flow control so need separate entry
         * Added --set-conf=filter_usb, filter_usbd, and filter_cw to allow Icom rigs set mode to set filter number too
         * Added macros for applications to obtain pointers to Hamlib structures(issues #1445, #1420, #487).
