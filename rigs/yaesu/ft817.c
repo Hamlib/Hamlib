@@ -294,7 +294,7 @@ struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20230607.0",
+    .version =             "20240520.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1505,12 +1505,14 @@ int ft817_read_ack(RIG *rig)
             return RIG_OK; // let it continue without checking for ack now
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: ack received (%d)\n", __func__, dummy);
+        rig_debug(RIG_DEBUG_TRACE, "%s: ack value=0x%x\n", __func__, dummy);
 
+#if 0 // don't know of any reject codes -- none documented
         if (dummy != 0)
         {
             return -RIG_ERJCTED;
         }
+#endif
     }
 
     return RIG_OK;
