@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := flexradio.c sdr1k.c dttsp.c smartsdr.c
+LOCAL_SRC_FILES := flexradio.c sdr1k.c dttsp.c smartsdr.c smartsdr_caps.h
 LOCAL_MODULE := flexradio
 
 LOCAL_CFLAGS := 

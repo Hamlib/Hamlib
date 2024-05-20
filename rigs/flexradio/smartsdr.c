@@ -64,56 +64,56 @@ struct rig_caps smartsdr_a_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SMARTSDR_A),
     .model_name =     "SmartSDR Slice A",
-#include "smartsdr_caps.c"
+#include "smartsdr_caps.h"
 };
 
 struct rig_caps smartsdr_b_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SMARTSDR_B),
     .model_name =     "SmartSDR Slice B",
-#include "smartsdr_caps.c"
+#include "smartsdr_caps.h"
 };
 
 struct rig_caps smartsdr_c_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SMARTSDR_C),
     .model_name =     "SmartSDR Slice C",
-#include "smartsdr_caps.c"
+#include "smartsdr_caps.h"
 };
 
 struct rig_caps smartsdr_d_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SMARTSDR_D),
     .model_name =     "SmartSDR Slice D",
-#include "smartsdr_caps.c"
+#include "smartsdr_caps.h"
 };
 
 struct rig_caps smartsdr_e_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SMARTSDR_E),
     .model_name =     "SmartSDR Slice E",
-#include "smartsdr_caps.c"
+#include "smartsdr_caps.h"
 };
 
 struct rig_caps smartsdr_f_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SMARTSDR_F),
     .model_name =     "SmartSDR Slice F",
-#include "smartsdr_caps.c"
+#include "smartsdr_caps.h"
 };
 
 struct rig_caps smartsdr_g_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SMARTSDR_G),
     .model_name =     "SmartSDR Slice G",
-#include "smartsdr_caps.c"
+#include "smartsdr_caps.h"
 };
 
 struct rig_caps smartsdr_h_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SMARTSDR_H),
     .model_name =     "SmartSDR Slice H",
-#include "smartsdr_caps.c"
+#include "smartsdr_caps.h"
 };
 
 
@@ -306,7 +306,7 @@ int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     hamlib_port_t *rp = RIGPORT(rig);
     char buf[4096];
     char stopset[1] = { 0x0a };
-    char *rmode;
+    char *rmode=RIG_MODE_NONE;
     ENTERFUNC;
 
     switch (mode)
