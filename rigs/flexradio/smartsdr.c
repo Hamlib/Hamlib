@@ -49,7 +49,7 @@ struct smartsdr_priv_data
 };
 
 
-#define DEFAULTPATH "127.0.0.1:4952"
+#define DEFAULTPATH "127.0.0.1:4992"
 
 #define SMARTSDR_FUNC  RIG_FUNC_MUTE
 #define SMARTSDR_LEVEL RIG_LEVEL_PREAMP
