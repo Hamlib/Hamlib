@@ -37,19 +37,17 @@
 static int ic7300_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
 int ic7300_set_clock(RIG *rig, int year, int month, int day, int hour,
-                     int min, int sec, double msec, int utc_offset);
+        int min, int sec, double msec, int utc_offset);
 int ic7300_get_clock(RIG *rig, int *year, int *month, int *day,
-                     int *hour,
-                     int *min, int *sec, double *msec, int *utc_offset);
+        int *hour,
+        int *min, int *sec, double *msec, int *utc_offset);
 int ic9700_set_clock(RIG *rig, int year, int month, int day, int hour,
-                     int min, int sec, double msec, int utc_offset);
+        int min, int sec, double msec, int utc_offset);
 int ic9700_get_clock(RIG *rig, int *year, int *month, int *day,
-                     int *hour,
-                     int *min, int *sec, double *msec, int *utc_offset);
+        int *hour,
+        int *min, int *sec, double *msec, int *utc_offset);
 
 int ic9700_set_vfo(RIG *rig, vfo_t vfo);
-int ic9700_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ic9700_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
 
 #define IC7300_ALL_RX_MODES (RIG_MODE_FM|RIG_MODE_PKTFM|RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_PKTAM)
@@ -1249,8 +1247,8 @@ struct rig_caps ic9700_caps =
     .rig_open =  icom_rig_open,
     .rig_close =  icom_rig_close,
 
-    .set_freq =  ic9700_set_freq,
-    .get_freq =  ic9700_get_freq,
+    .set_freq =  icom_set_freq,
+    .get_freq =  icom_get_freq,
     .set_mode =  icom_set_mode,
     .get_mode =  icom_get_mode,
     // IC-9700 can indicate Main/Sub band selection, but not VFO A/B, so leave get_vfo not implemented
@@ -2227,15 +2225,6 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     struct rig_cache *cachep = CACHE(rig);
 
     ENTERFUNC;
-    int satmode;
-    retval = rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: get satmode error: %s\n", __func__,
-                  rigerror(retval));
-        return retval;
-    }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -2252,13 +2241,12 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
         }
         else
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: Invalid VFO %s in satellite mode\n", __func__,
-                      rig_strvfo(vfo));
+            rig_debug(RIG_DEBUG_ERR, "%s: Invalid VFO %s in satellite mode\n", __func__, rig_strvfo(vfo));
             return -RIG_EINVAL;
         }
     }
 
-    if (vfo == RIG_VFO_A || vfo == RIG_VFO_CURR)
+    if (vfo == RIG_VFO_A)
     {
         retval = icom_transaction(rig, C_SET_VFO, S_VFOA, NULL, 0, ackbuf, &ack_len);
     }
@@ -2278,7 +2266,6 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     {
         // First switch to Main receiver
         retval = icom_transaction(rig, C_SET_VFO, S_MAIN, NULL, 0, ackbuf, &ack_len);
-
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
@@ -2287,8 +2274,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
 
         if (cachep->satmode && vfo == RIG_VFO_MAIN_B)
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n",
-                      __func__);
+            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
             // we return RIG_OK anyways as this should just be a bad request
             return RIG_OK;
         }
@@ -2303,7 +2289,6 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     {
         // First switch to Sub receiver
         retval = icom_transaction(rig, C_SET_VFO, S_SUB, NULL, 0, ackbuf, &ack_len);
-
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
@@ -2312,8 +2297,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
 
         if (cachep->satmode && vfo == RIG_VFO_SUB_B)
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n",
-                      __func__);
+            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
             // we return RIG_OK anyways as this should just be a bad request
             return RIG_OK;
         }
@@ -2342,92 +2326,4 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     RETURNFUNC(retval);
-}
-
-int ic9700_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
-{
-    ENTERFUNC;
-    int satmode;
-    int retval = icom_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: get satmode error: %s\n", __func__,
-                  rigerror(retval));
-        return retval;
-    }
-
-    if (vfo & (RIG_VFO_A | RIG_VFO_B | RIG_VFO_MAIN_A | RIG_VFO_MAIN_B |
-               RIG_VFO_CURR))
-    {
-        return icom_set_freq(rig, vfo, freq);
-    }
-    else if (vfo & (RIG_VFO_SUB | RIG_VFO_SUB_A | RIG_VFO_SUB_B))
-    {
-        icom_set_vfo(rig, RIG_VFO_SUB_A);
-        return icom_set_freq(rig, vfo == RIG_VFO_SUB_B ? RIG_VFO_B : RIG_VFO_A, freq);
-        icom_set_vfo(rig, RIG_VFO_SUB_A);
-    }
-
-    RETURNFUNC(-RIG_ENIMPL);
-}
-
-int ic9700_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
-{
-    struct rig_state *rs = &rig->state;
-    ENTERFUNC;
-    int satmode;
-    int retval = icom_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
-
-    if (retval != RIG_OK)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: get satmode error: %s\n", __func__,
-                  rigerror(retval));
-        RETURNFUNC(retval);
-    }
-
-    if (vfo & (RIG_VFO_A | RIG_VFO_B | RIG_VFO_MAIN_A | RIG_VFO_MAIN_B |
-               RIG_VFO_CURR))
-    {
-        int ack_len;
-        int freqbuf_offset;
-        unsigned char ackbuf[16];
-
-        if (satmode)
-        {
-            int save = rs->targetable_vfo;
-            rs->targetable_vfo = 0;
-    //        retval = icom_get_freq(rig, vfo, &ack_len, ackbuf, &freqbuf_offset);
-            rs->targetable_vfo = save;
-        }
-        else
-        {
-            retval = icom_get_freq_x25(rig, vfo, &ack_len, ackbuf, &freqbuf_offset);
-        }
-
-        if (retval == RIG_OK)
-        {
-            *freq = from_bcd(&ackbuf[freqbuf_offset], 5 * 2);
-            RETURNFUNC2(retval);
-        }
-
-        RETURNFUNC(retval);
-    }
-    else if (vfo & (RIG_VFO_SUB | RIG_VFO_SUB_A | RIG_VFO_SUB_B))
-    {
-        icom_set_vfo(rig, RIG_VFO_SUB_A);
-        int save = rs->targetable_vfo;
-        rs->targetable_vfo = 0;
-        retval = icom_get_freq(rig, vfo == RIG_VFO_SUB_B ? RIG_VFO_B : RIG_VFO_A, freq);
-        rs->targetable_vfo = save;
-        icom_set_vfo(rig, RIG_VFO_MAIN_A);
-        RETURNFUNC(retval);
-    }
-    else
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: unknown vfo=%s\n", __func__, rig_strvfo(vfo));
-        RETURNFUNC(-RIG_EPROTO);
-    }
-
-    RETURNFUNC(-RIG_ENIMPL);
 }
