@@ -1425,7 +1425,7 @@ static int icom_set_freq_x25(RIG *rig, vfo_t vfo, freq_t freq, int freq_len,
     return retval;
 }
 
-static int icom_get_freq_x25(RIG *rig, vfo_t vfo, int *ack_len,
+int icom_get_freq_x25(RIG *rig, vfo_t vfo, int *ack_len,
                              unsigned char *ackbuf, int *freqbuf_offset)
 {
     struct rig_state *rs = &rig->state;
@@ -2254,7 +2254,7 @@ static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len,
     const struct icom_priv_caps *priv_caps = rig->caps->priv;
     int retval;
 
-    if (priv->x26cmdfails != 0 && priv_caps->x25x26_always==0)
+    if (priv->x26cmdfails > 0 && priv_caps->x25x26_always==0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: x26cmdfails=%d, x25x26_always=%d\n", __func__, priv->x26cmdfails, priv_caps->x25x26_always);
         return -RIG_ENAVAIL;
