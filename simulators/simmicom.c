@@ -28,10 +28,6 @@ char modeB = '1';
 int width_main = 500;
 int width_sub = 700;
 
-#define ACK  {\
-    unsigned char ack[6] = { 0x24, 0x01, 0x18, 0xf3, 0xff, 0x03 };\
-    write(fd, ack, sizeof(ack));\
-}
 
 int
 getmyline(int fd, unsigned char *buf)
@@ -121,28 +117,17 @@ again:
             printf("Report receiver freq\n");
             unsigned char cmd[11] = { 0x24,0x06,0x18,0x05,0x01,0x00,0x38,0xea,0x50,0xba,0x03};
             dump_hex(cmd, 11);
-            ACK;
             int n = write(fd, cmd, sizeof(cmd));
             printf("%d bytes sent\n", n);
-            getmyline(fd, buf);
             break;
         case 0x13:
             printf("PTT On\n");
-            ACK;
             break;
         case 0x14:
             printf("PTT Off\n");
-            ACK;
-            break;
-        case 0x03:
-            ACK;
-            break;
-        case 0x04:
-            ACK;
             break;
         case 0x36:
             printf("Key request\n");
-            ACK;
             break;
 
         default: printf("Unknown cmd=%02x\n", buf[3]);

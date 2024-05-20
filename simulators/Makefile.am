@@ -21,7 +21,7 @@ simid5100_SOURCES = simid5100.c
 # all the programs need this
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS)
 
-simelecraft_CFLAGS = -g $(AM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_builddir)/src
+simelecraft_CFLAGS = $(AM_CFLAGS) $(LIBXML2_CFLAGS) -I$(top_builddir)/src
 simkenwood_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 simyaesu_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
 simid5100_CFLAGS = $(AM_CFLAGS) $(PTHREAD_CFLAGS) -I$(top_builddir)/src
