@@ -37,6 +37,8 @@ static int smartsdr_open(RIG *rig);
 static int smartsdr_close(RIG *rig);
 static int smartsdr_cleanup(RIG *rig);
 static int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int smartsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int smartsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 //static int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 
 struct smartsdr_priv_data
@@ -300,7 +302,7 @@ int smartsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     RETURNFUNC(RIG_OK);
 }
 
-int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+int smartsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
