@@ -350,7 +350,7 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         smartsdr_transaction(rig, cmd, buf, sizeof(buf));
         rig_debug(RIG_DEBUG_VERBOSE, "%s: slice set answer: %s", __func__, buf);
     }
-    sprintf(cmd, "slice set %d tx=%d", priv->slicenum);
+    sprintf(cmd, "slice set %d tx=1", priv->slicenum);
     smartsdr_transaction(rig, cmd, buf, sizeof(buf));
     sprintf(cmd, "xmit %d", ptt);
     smartsdr_transaction(rig, cmd, buf, sizeof(buf));
