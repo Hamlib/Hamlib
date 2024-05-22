@@ -256,7 +256,22 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     {
     case TOK_PATHNAME:
         strncpy(rp->pathname, val, HAMLIB_FILPATHLEN - 1);
-        strncpy(rs->rigport_deprecated.pathname, val, HAMLIB_FILPATHLEN - 1);
+        if (strstr(rig->caps->model_name,"SmartSDR Slice"))
+        {
+            // override any port selection to prevent user errors/questions
+            char *val2 = strdup(val);
+            char *p = strchr(val2,':');  // port in here?
+            if (p) {
+                p = 0;  // terminate it
+                rig_debug(RIG_DEBUG_WARN, "%s: overriding port and changing to 4992\n", __func__);
+            }
+            sprintf(rs->rigport_deprecated.pathname, "%s:%s", val2, "4992");
+            free(val2);
+        }
+        else
+        {
+            strncpy(rs->rigport_deprecated.pathname, val, HAMLIB_FILPATHLEN - 1);
+        }
         break;
 
     case TOK_WRITE_DELAY:
