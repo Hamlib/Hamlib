@@ -1273,7 +1273,8 @@ For binary protocols enter values as \\0xAA\\0xBB.  Expect a
 .RI \(aq Reply \(aq
 from the radio which will likely be a binary block or an ASCII string
 depending on the radio's protocol (see your radio's computer control
-documentation).
+documentation). If you are testing a protocol like SmartSDR where there
+are spaces in the commands use quote, e.g.  w "C0|set slice 0 tx=1"
 .IP
 The command terminator, set by the
 .B send-cmd-term

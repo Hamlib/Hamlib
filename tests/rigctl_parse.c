@@ -495,6 +495,19 @@ void hash_delete_all()
     }
 }
 
+
+// modifies s to remove quotes
+void strip_quotes(char *s)
+{   
+    char *s2 = strdup(s);
+    char *p;
+    if (s[0] != '\"') return; // no quotes
+    s2 = strdup(&s[1]);
+    p = strrchr(s2,'"');
+    if (p) *p = 0;
+    strcpy(s,s2);
+}
+
 #ifdef HAVE_LIBREADLINE
 /* Frees allocated memory and sets pointers to NULL before calling readline
  * and then parses the input into space separated tokens.
@@ -1726,6 +1739,7 @@ readline_repeat:
      * Extended Response protocol: output received command name and arguments
      * response.  Don't send command header on '\chk_vfo' command.
      */
+    if (p1) strip_quotes(p1);
     if (interactive && *ext_resp_ptr && !prompt && cmd != 0xf0)
     {
         char a1[MAXARGSZ + 2];
