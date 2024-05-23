@@ -1225,9 +1225,13 @@ HAMLIB_EXPORT(int) rig_settings_load_all(char *settings_file)
 
     if (fp == NULL)
     {
+#if 0 // until we actually implement this
         rig_debug(RIG_DEBUG_VERBOSE, "%s: settings_file (%s): %s\n", __func__,
                   settings_file, strerror(errno));
         return -RIG_EINVAL;
+#else
+        return RIG_OK;
+#endif
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: opened %s\n", __func__, settings_file);
