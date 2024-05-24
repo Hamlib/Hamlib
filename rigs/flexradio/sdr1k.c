@@ -197,7 +197,7 @@ int sdr1k_init(RIG *rig)
     struct rig_state *rs = STATE(rig);
 
     rs->priv = (struct sdr1k_priv_data *)calloc(1, sizeof(
-                          struct sdr1k_priv_data));
+                   struct sdr1k_priv_data));
 
     if (!rs->priv)
     {

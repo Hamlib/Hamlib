@@ -266,6 +266,8 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
                 rig_debug(RIG_DEBUG_WARN, "%s: overriding port and changing to 4992\n", __func__);
             }
             sprintf(rs->rigport_deprecated.pathname, "%s:%s", val2, "4992");
+            strcpy(rs->rigport.pathname,rs->rigport_deprecated.pathname);
+            rig_debug(RIG_DEBUG_WARN, "%s: pathname=%s\n", __func__, rs->rigport.pathname);
             free(val2);
         }
         else
