@@ -488,7 +488,7 @@ int dttsp_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     STATE(rig)->priv = (struct dttsp_priv_data *)calloc(1,
-                      sizeof(struct dttsp_priv_data));
+                       sizeof(struct dttsp_priv_data));
 
     if (!STATE(rig)->priv)
     {
