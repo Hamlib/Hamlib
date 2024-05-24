@@ -69,6 +69,7 @@ struct smartsdr_priv_data
 
 #define SMARTSDR_ANTS 3
 
+static int smartsdr_parse_S(RIG *rig, char *s);
 
 struct rig_caps smartsdr_a_rig_caps =
 {
@@ -176,6 +177,35 @@ int smartsdr_init(RIG *rig)
 
     RETURNFUNC(RIG_OK);
 }
+
+#if 0
+// Flush network by 0x0a line and return the line
+static int smartsdr_flush(RIG *rig, char *buf, int buf_len)
+{
+    char stopset[1] = { 0x0a };
+    for(;;)
+    {
+        int len = 0;
+#ifdef __MINGW32__
+        int ret = ioctlsocket(rp->fd, FIONREAD, &len);
+#else
+        int ret = ioctl(rp->fd, FIONREAD, &len);
+#endif
+        if (ret != 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: ioctl err '%s'\n", __func__, strerror(errno));
+            break;
+        }
+
+
+    if (len > 0) {
+        buf[0] = 0;
+        read_string(RIGPORT(rig), (unsigned char *)reply, reply_len, stopset, 1, 0, 1);
+        if (buf[0] == 'S') smartsdr_parse_S(rig, buf);
+    }
+    }
+}
+#endif
 
 static int smartsdr_transaction(RIG *rig, char *buf, char *reply, int reply_len)
 {
@@ -462,6 +492,7 @@ int smartsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     retval = RIG_OK;
 
+    // why don't these lines work?
     if (gotS != 1) { retval = -RIG_EPROTO; rig_debug(RIG_DEBUG_ERR, "%s: no slice status?\n", __func__); }
 
     if (gotR != 1) { retval = -RIG_EPROTO; rig_debug(RIG_DEBUG_ERR, "%s: no return code?\n", __func__); }
