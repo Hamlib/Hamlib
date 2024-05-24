@@ -74,6 +74,7 @@
 
 #include "rigctl_parse.h"
 #include "riglist.h"
+#include "token.h"
 
 /*
  * Reminder: when adding long options,
@@ -691,7 +692,7 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(RIGPORT(my_rig)->pathname, rig_file, HAMLIB_FILPATHLEN - 1);
+        rig_set_conf(my_rig, TOK_PATHNAME, rig_file);
     }
 
     my_rig->state.twiddle_timeout = twiddle_timeout;

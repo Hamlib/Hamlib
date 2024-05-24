@@ -68,6 +68,7 @@ extern int read_history();
 #include "misc.h"
 #include "rigctl_parse.h"
 #include "riglist.h"
+#include "token.h"
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100    /* max number of different options */
@@ -592,7 +593,7 @@ int main(int argc, char *argv[])
 
     if (rig_file)
     {
-        strncpy(RIGPORT(my_rig)->pathname, rig_file, HAMLIB_FILPATHLEN - 1);
+        rig_set_conf(my_rig, TOK_PATHNAME, rig_file);
     }
 
     /*
