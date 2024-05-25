@@ -262,7 +262,7 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
             char *val2 = strdup(val);
             char *p = strchr(val2,':');  // port in here?
             if (p) {
-                p = 0;  // terminate it
+                *p = 0;  // terminate it
                 rig_debug(RIG_DEBUG_WARN, "%s: overriding port and changing to 4992\n", __func__);
             }
             sprintf(rs->rigport_deprecated.pathname, "%s:%s", val2, "4992");
