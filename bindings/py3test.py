@@ -73,6 +73,8 @@ def StartUp():
                                     Hamlib.rigerror(my_rig.error_status)))
 
     print("AF level:\t\t%0.2f" % my_rig.get_level_f(Hamlib.RIG_LEVEL_AF))
+    print("Power level:\t\t%0.2f" % my_rig.get_level_f(Hamlib.RIG_LEVEL_RFPOWER_METER))
+    print("Power level Watts:\t\t%0.2f" % my_rig.get_level_f(Hamlib.RIG_LEVEL_RFPOWER_METER_WATTS))
     print("strength:\t\t%s" % my_rig.get_level_i(Hamlib.RIG_LEVEL_STRENGTH))
     print("status:\t\t\t%s" % my_rig.error_status)
     print("status(str):\t\t%s" % Hamlib.rigerror(my_rig.error_status))
