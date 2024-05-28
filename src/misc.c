@@ -2857,26 +2857,21 @@ char *rig_date_strget(char *buf, int buflen, int localtime)
     return date_strget(buf, buflen, localtime);
 }
 
+#define MAX_SPACES 256
 const char *spaces(int len)
 {
-    static char s[256];
-    memset(s, '*', sizeof(s));
+    static const char s[MAX_SPACES + 1] =
+      "****************************************************************"
+      "****************************************************************"
+      "****************************************************************"
+      "****************************************************************";
 
-    if (len > 255)
+    if (len < 0 || len > MAX_SPACES)
     {
         len = 0;
     }
 
-    if (len > 0)
-    {
-        s[len + 1] = 0;
-    }
-    else
-    {
-        s[1] = 0;
-    }
-
-    return s;
+    return &s[MAX_SPACES - len];
 }
 
 // if which==0 rig_band_select str will be returned
