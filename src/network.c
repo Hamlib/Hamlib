@@ -379,6 +379,31 @@ int network_open(hamlib_port_t *rp, int default_port)
 }
 
 
+// flush and keep what gets flushed based on stopset
+// Used by SmartSDR backend for example
+// return # of bytes read
+int network_flush2(hamlib_port_t *rp, unsigned char *stopset, char *buf, int buf_len)
+{
+    unsigned int len = 0;
+#ifdef __MINGW32__
+    int ret = ioctlsocket(rp->fd, FIONREAD, &len);
+#else
+    int ret = ioctl(rp->fd, FIONREAD, &len);
+#endif
+    if (ret != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: ioctl err '%s'\n", __func__, strerror(errno));
+        return 0;
+    }
+
+    if (len > 0) {
+        buf[0] = 0;
+        if (len > buf_len) len = buf_len-1;
+        read_string(rp, (unsigned char *)buf, len+1, (char*)stopset, 1, 0, 1);
+    }
+
+    return len;
+}
 /**
  * \brief Clears any data in the read buffer of the socket
  *
