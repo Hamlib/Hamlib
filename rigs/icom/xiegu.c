@@ -148,10 +148,10 @@ int xiegu_rig_open(RIG *rig)
     if (retval == RIG_OK)
     {
         dump_hex(id,id_len);
-        iid = (int)id[2];
-        if (id[3] != 0xfd)
+        iid = (int)id[1];
+        if (id_len > 2)
         {
-            iid = (iid << 8) + id[3];
+            iid = (iid << 8) + id[2];
         }
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu Radio ID=0x%04x\n", __func__, iid);
         switch(iid)
@@ -160,7 +160,7 @@ int xiegu_rig_open(RIG *rig)
             case 0x0090: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G90S");break;
             case 0x0106: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G106/G106C");break;
             case 0x6100:
-            case 0xa400: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "X6100");break;
+            case 0x00a4: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "X6100");break;
             default: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "Unknown");break;
         }
     }
