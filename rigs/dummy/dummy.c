@@ -1258,6 +1258,7 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
     channel_t *curr = priv->curr;
     int idx;
+    static float rfpower = 0;
 
     ENTERFUNC;
     idx = rig_setting2idx(level);
@@ -1311,6 +1312,7 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             curr->levels[idx].f = (float)(time(NULL) % 32) / 64.0f + (float)(
                                       rand() % 4) / 8.0f;
+            rfpower = curr->levels[idx].f;
         }
 
         break;
@@ -1322,9 +1324,11 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         else
         {
+#if 0
             curr->levels[idx].f = (float)(time(NULL) % 32) / 64.0f + (float)(
                                       rand() % 4) / 8.0f;
-            curr->levels[idx].f *= 100.0f;
+#endif
+            curr->levels[idx].f = 100.0f * rfpower;
         }
 
         break;
@@ -2377,7 +2381,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20230611.0",
+    .version =        "20240529.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
