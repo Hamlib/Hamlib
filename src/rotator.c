@@ -748,7 +748,7 @@ int HAMLIB_API rot_set_position(ROT *rot,
         rot_debug(RIG_DEBUG_TRACE,
                   "%s: range problem az=%.02f(min=%.02f,max=%.02f), el=%02f(min=%.02f,max=%02f)\n",
                   __func__, azimuth, rs->min_az, rs->max_az, elevation, rs->min_el, rs->max_el);
-        return -RIG_LIMIT;
+        return -RIG_ELIMIT;
     }
 
     if (caps->set_position == NULL)
