@@ -148,7 +148,11 @@ int xiegu_rig_open(RIG *rig)
     if (retval == RIG_OK)
     {
         dump_hex(id,id_len);
-        iid = (((int)id[2]) << 8) + id[3];
+        iid = (int)id[2];
+        if (id[3] != 0xfd)
+        {
+            iid = (iid << 8) + id[3];
+        }
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu Radio ID=0x%04x\n", __func__, iid);
         switch(iid)
         {
@@ -374,7 +378,7 @@ struct rig_caps x6100_caps =
     RIG_MODEL(RIG_MODEL_X6100),
     .model_name = "X6100",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".5",
+    .version =  BACKEND_VER ".6",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -565,7 +569,7 @@ struct rig_caps g90_caps =
     RIG_MODEL(RIG_MODEL_G90),
     .model_name = "G90",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".10",
+    .version =  BACKEND_VER ".11",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -740,7 +744,7 @@ struct rig_caps x5105_caps =
     RIG_MODEL(RIG_MODEL_X5105),
     .model_name = "X5105",
     .mfg_name =  "Xiegu",
-    .version =  BACKEND_VER ".1",
+    .version =  BACKEND_VER ".2",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
