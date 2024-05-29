@@ -242,7 +242,8 @@ static const char *const rigerror_table[] =
     "Argument out of domain of func",
     "Function deprecated",
     "Security error password not provided or crypto failure",
-    "Rig is not powered on"
+    "Rig is not powered on",
+    "Limit exceeded"
 };
 
 
