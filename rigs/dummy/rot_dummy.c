@@ -436,6 +436,22 @@ static int dummy_rot_move(ROT *rot, int direction, int speed)
     case ROT_MOVE_CW:
         return dummy_rot_set_position(rot, 180, priv->target_el);
 
+    case ROT_MOVE_UP_LEFT:
+        dummy_rot_set_position(rot, priv->target_az, 90);
+        return dummy_rot_set_position(rot, -180, priv->target_el);
+
+    case ROT_MOVE_UP_RIGHT:
+        dummy_rot_set_position(rot, priv->target_az, 90);
+        return dummy_rot_set_position(rot, 180, priv->target_el);
+
+    case ROT_MOVE_DOWN_LEFT:
+        dummy_rot_set_position(rot, priv->target_az, 0);
+        return dummy_rot_set_position(rot, -180, priv->target_el);
+
+    case ROT_MOVE_DOWN_RIGHT:
+        dummy_rot_set_position(rot, priv->target_az, 0);
+        return dummy_rot_set_position(rot, 180, priv->target_el);
+
     default:
         return -RIG_EINVAL;
     }

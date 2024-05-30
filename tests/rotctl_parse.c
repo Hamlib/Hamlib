@@ -1897,6 +1897,22 @@ declare_proto_rot(move)
     {
         direction = ROT_MOVE_DOWN;
     }
+    else if (!strcmp(arg1, "DOWN_RIGHT") || !strcmp(arg1, "DOWN_CW"))
+    {
+        direction = ROT_MOVE_DOWN_CW;
+    }
+    else if (!strcmp(arg1, "DOWN_LEFT") || !strcmp(arg1, "DOWN_CCW"))
+    {
+        direction = ROT_MOVE_DOWN_CCW;
+    }
+    else if (!strcmp(arg1, "UP_RIGHT") || !strcmp(arg1, "UP_CW"))
+    {
+        direction = ROT_MOVE_UP_CW;
+    }
+    else if (!strcmp(arg1, "UP_LEFT") || !strcmp(arg1, "UP_CCW"))
+    {
+        direction = ROT_MOVE_UP_CCW;
+    }
     else
     {
         CHKSCN1ARG(sscanf(arg1, "%d", &direction));
