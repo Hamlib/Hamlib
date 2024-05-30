@@ -93,6 +93,7 @@ int main() {
 
     printf("Server is listening on port %d\n", PORT);
 
+    while (1) {
     // Accept incoming connection
     if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
         perror("accept");
@@ -154,6 +155,7 @@ int main() {
     }
 
     close(new_socket);
+    }
     close(server_fd);
 #if defined(WIN32) || defined(_WIN32)
     WSACleanup();
