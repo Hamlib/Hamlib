@@ -502,6 +502,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
         exit(2);
     }
+
 #endif
 
     if (my_model > 5 && !rig_file)
@@ -654,6 +655,9 @@ int main(int argc, char *argv[])
     }
     while (retcode == 0 && !ctrl_c);
 
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctlcom exiting, retcode=%d, ctrl_c=%d\n",
+              __func__, retcode, ctrl_c);
+
     rig_close(my_rig);          /* close port */
     rig_cleanup(my_rig);        /* if you care about memory */
 
@@ -705,6 +709,7 @@ static rmode_t ts2000_get_mode()
 
     default: mode = 0; break;
     }
+
 #else
     // Perhaps we should emulate a rig that has PKT modes instead??
     //int kwidth_ssb[] = { 10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
@@ -717,7 +722,7 @@ static rmode_t ts2000_get_mode()
 
     case RIG_MODE_USB:   mode = 2; break;
 
-    case RIG_MODE_CW:    mode = 3; 
+    case RIG_MODE_CW:    mode = 3;
         break; // is this correct?
 
     case RIG_MODE_FM:    mode = 4; break;
@@ -742,6 +747,7 @@ static rmode_t ts2000_get_mode()
 
     default: mode = 0; break;
     }
+
 #endif
 
 
@@ -802,8 +808,9 @@ static int handle_ts2000(void *arg)
         int p13 = 0;            // P13(1) Tone dummy value for now
         int p14 = 0;            // P14(2) Tone Freq dummy value for now
         int p15 = 0;            // P15(1) Shift status dummy value for now
-        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
-				  &freq);
+        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
+                                  CACHE(my_rig)->split),
+                                  &freq);
         char response[64];
         char *fmt =
             // cppcheck-suppress *
@@ -816,7 +823,7 @@ static int handle_ts2000(void *arg)
 
         mode = ts2000_get_mode();
         retval = rig_get_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
-			     &ptt);
+                             &ptt);
 
         if (retval != RIG_OK)
         {
@@ -900,8 +907,9 @@ static int handle_ts2000(void *arg)
         freq_t freq = 0;
         char response[32];
 
-        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
-				  &freq);
+        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
+                                  CACHE(my_rig)->split),
+                                  &freq);
 
         if (retval != RIG_OK)
         {
@@ -917,8 +925,9 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
         freq_t freq = 0;
-        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split),
-				  &freq);
+        int retval = rig_get_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_B,
+                                  CACHE(my_rig)->split),
+                                  &freq);
 
         if (retval != RIG_OK)
         {
@@ -972,7 +981,8 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "TX;") == 0)
     {
-        return rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split), 1);
+        return rig_set_ptt(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
+                           1);
     }
     else if (strcmp(arg, "AI0;") == 0)
     {
@@ -1089,8 +1099,9 @@ static int handle_ts2000(void *arg)
     {
         char response[32];
         int valA;
-        int retval = rig_get_func(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
-				  RIG_FUNC_AIP, &valA);
+        int retval = rig_get_func(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
+                                  CACHE(my_rig)->split),
+                                  RIG_FUNC_AIP, &valA);
         int valB;
 
         if (retval != RIG_OK)
@@ -1108,8 +1119,9 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        retval = rig_get_func(my_rig, vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split),
-			      RIG_FUNC_AIP, &valB);
+        retval = rig_get_func(my_rig, vfo_fixup(my_rig, RIG_VFO_B,
+                                                CACHE(my_rig)->split),
+                              RIG_FUNC_AIP, &valB);
 
         if (retval != RIG_OK)
         {
@@ -1134,8 +1146,9 @@ static int handle_ts2000(void *arg)
                       (char *)arg);
         }
 
-        retval = rig_set_func(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
-			      RIG_FUNC_AIP, valA);
+        retval = rig_set_func(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
+                                                CACHE(my_rig)->split),
+                              RIG_FUNC_AIP, valA);
 
         if (retval != RIG_OK)
         {
@@ -1144,8 +1157,9 @@ static int handle_ts2000(void *arg)
             return retval;
         }
 
-        retval = rig_set_func(my_rig, vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split),
-			      RIG_FUNC_AIP, valB);
+        retval = rig_set_func(my_rig, vfo_fixup(my_rig, RIG_VFO_B,
+                                                CACHE(my_rig)->split),
+                              RIG_FUNC_AIP, valB);
 
         if (retval != RIG_OK)
         {
@@ -1560,13 +1574,15 @@ static int handle_ts2000(void *arg)
     }
     else if (strcmp(arg, "FT0;") == 0)
     {
-        return rig_set_split_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split),
-				 vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split), 0);
+        return rig_set_split_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_A,
+                                 CACHE(my_rig)->split),
+                                 vfo_fixup(my_rig, RIG_VFO_A, CACHE(my_rig)->split), 0);
     }
     else if (strcmp(arg, "FT1;") == 0)
     {
-        return rig_set_split_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split),
-				 vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split), 0);
+        return rig_set_split_vfo(my_rig, vfo_fixup(my_rig, RIG_VFO_B,
+                                 CACHE(my_rig)->split),
+                                 vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split), 0);
     }
     else if (strncmp(arg, "FA0", 3) == 0)
     {
@@ -1583,7 +1599,8 @@ static int handle_ts2000(void *arg)
         freq_t freq;
 
         sscanf((char *)arg + 2, "%"SCNfreq, &freq);
-        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split), freq);
+        return rig_set_freq(my_rig, vfo_fixup(my_rig, RIG_VFO_B, CACHE(my_rig)->split),
+                            freq);
     }
     else if (strncmp(arg, "MD", 2) == 0)
     {
