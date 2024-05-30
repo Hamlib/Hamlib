@@ -949,8 +949,9 @@ int HAMLIB_API rot_reset(ROT *rot, rot_reset_t reset)
  *
  * Move the rotator in the specified direction.  The \a direction is one of
  * #ROT_MOVE_CCW, #ROT_MOVE_CW, #ROT_MOVE_LEFT, #ROT_MOVE_RIGHT, #ROT_MOVE_UP,
- * or #ROT_MOVE_DOWN.  The \a speed is a value between 1 and 100 or
- * #ROT_SPEED_NOCHANGE.
+ * #ROT_MOVE_DOWN, #ROT_MOVE_UP_LEFT, #ROT_MOVE_CCW, #ROT_MOVE_UP_RIGHT, #ROT_MOVE_UP_CW,
+ * #ROT_MOVE_DOWN_LEFT, #ROT_MOVE_DOWN_CCW, #ROT_MOVE_DOWN_RIGHT, #ROT_MOVE_DOWN_CW.
+ * The \a speed is a value between 1 and 100 or #ROT_SPEED_NOCHANGE.
  *
  * \retval RIG_OK The rotator move was successful.
  * \retval RIG_EINVAL \a rot is NULL or inconsistent.

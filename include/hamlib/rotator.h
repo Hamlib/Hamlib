@@ -215,6 +215,126 @@ typedef enum {
  */
 #define ROT_MOVE_CW         ROT_MOVE_RIGHT
 
+/**
+ * \def ROT_MOVE_UP_LEFT
+ * \brief A macro that returns the flag for the \b clockwise direction.
+ *
+ * This macro defines the value of the \b clockwise direction which can be
+ * used with the rot_move() function. This value is equivalent to
+ * ROT_MOVE_UP_CCW.
+ *
+ * \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, 
+ * ROT_MOVE_RIGHT, ROT_MOVE_CW, ROT_MOVE_UP_CCW, 
+ * ROT_MOVE_UP_RIGHT, ROT_MOVE_UP_CW, ROT_MOVE_DOWN_LEFT, ROT_MOVE_DOWN_CCW,
+ * ROT_MOVE_DOWN_RIGHT, ROT_MOVE_DOWN_CW
+ */
+#define ROT_MOVE_UP_LEFT         (1<<5)
+
+/**
+ * \def ROT_MOVE_UP_CCW
+ * \brief A macro that returns the flag for the \b clockwise direction.
+ *
+ * This macro defines the value of the \b clockwise direction which can be
+ * used with the rot_move() function. This value is equivalent to
+ * ROT_MOVE_UP_LEFT.
+ *
+ * \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, 
+ * ROT_MOVE_RIGHT, ROT_MOVE_CW, ROT_MOVE_UP_LEFT,
+ * ROT_MOVE_UP_RIGHT, ROT_MOVE_UP_CW, ROT_MOVE_DOWN_LEFT, ROT_MOVE_DOWN_CCW,
+ * ROT_MOVE_DOWN_RIGHT, ROT_MOVE_DOWN_CW
+ */
+#define ROT_MOVE_UP_CCW         ROT_MOVE_UP_LEFT
+
+/**
+ * \def ROT_MOVE_UP_RIGHT
+ * \brief A macro that returns the flag for the \b clockwise direction.
+ *
+ * This macro defines the value of the \b clockwise direction which can be
+ * used with the rot_move() function. This value is equivalent to
+ * ROT_MOVE_UP_CW.
+ *
+ * \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, 
+ * ROT_MOVE_RIGHT, ROT_MOVE_CW, ROT_MOVE_UP_LEFT, ROT_MOVE_UP_CCW, 
+ * ROT_MOVE_UP_CW, ROT_MOVE_DOWN_LEFT, ROT_MOVE_DOWN_CCW,
+ * ROT_MOVE_DOWN_RIGHT, ROT_MOVE_DOWN_CW
+ */
+#define ROT_MOVE_UP_RIGHT         (1<<6)
+
+/**
+ * \def ROT_MOVE_UP_CW
+ * \brief A macro that returns the flag for the \b clockwise direction.
+ *
+ * This macro defines the value of the \b clockwise direction which can be
+ * used with the rot_move() function. This value is equivalent to
+ * ROT_MOVE_UP_RIGHT.
+ *
+ * \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, 
+ * ROT_MOVE_RIGHT, ROT_MOVE_CW, ROT_MOVE_UP_LEFT, ROT_MOVE_UP_CCW, 
+ * ROT_MOVE_UP_RIGHT, ROT_MOVE_DOWN_LEFT, ROT_MOVE_DOWN_CCW,
+ * ROT_MOVE_DOWN_RIGHT, ROT_MOVE_DOWN_CW
+ */
+#define ROT_MOVE_UP_CW       ROT_MOVE_UP_RIGHT
+
+/**
+ * \def ROT_MOVE_DOWN_LEFT
+ * \brief A macro that returns the flag for the \b clockwise direction.
+ *
+ * This macro defines the value of the \b clockwise direction which can be
+ * used with the rot_move() function. This value is equivalent to
+ * ROT_MOVE_DOWN_CCW.
+ *
+ * \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, 
+ * ROT_MOVE_RIGHT, ROT_MOVE_CW, ROT_MOVE_UP_LEFT, ROT_MOVE_UP_CCW, 
+ * ROT_MOVE_UP_RIGHT, ROT_MOVE_UP_CW, ROT_MOVE_DOWN_CCW,
+ * ROT_MOVE_DOWN_RIGHT, ROT_MOVE_DOWN_CW
+ */
+#define ROT_MOVE_DOWN_LEFT         (1 << 7)
+
+
+/**
+ * \def ROT_MOVE_DOWN_CCW
+ * \brief A macro that returns the flag for the \b clockwise direction.
+ *
+ * This macro defines the value of the \b clockwise direction which can be
+ * used with the rot_move() function. This value is equivalent to
+ * ROT_MOVE_DOWN_LEFT.
+ *
+ * \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, 
+ * ROT_MOVE_RIGHT, ROT_MOVE_CW, ROT_MOVE_UP_LEFT, ROT_MOVE_UP_CCW, 
+ * ROT_MOVE_UP_RIGHT, ROT_MOVE_UP_CW, ROT_MOVE_DOWN_LEFT,
+ * ROT_MOVE_DOWN_RIGHT, ROT_MOVE_DOWN_CW
+ */
+#define ROT_MOVE_DOWN_CCW         ROT_MOVE_DOWN_LEFT
+
+/**
+ * \def ROT_MOVE_DOWN_RIGHT
+ * \brief A macro that returns the flag for the \b clockwise direction.
+ *
+ * This macro defines the value of the \b clockwise direction which can be
+ * used with the rot_move() function. This value is equivalent to
+ * ROT_MOVE_DOWN_CW.
+ *
+ * \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, 
+ * ROT_MOVE_RIGHT, ROT_MOVE_CW, ROT_MOVE_UP_LEFT, ROT_MOVE_UP_CCW, 
+ * ROT_MOVE_UP_RIGHT, ROT_MOVE_UP_CW, ROT_MOVE_DOWN_LEFT, ROT_MOVE_DOWN_CCW,
+ * ROT_MOVE_DOWN_CW
+ */
+#define ROT_MOVE_DOWN_RIGHT         (1 << 8)
+
+/**
+ * \def ROT_MOVE_DOWN_CW
+ * \brief A macro that returns the flag for the \b clockwise direction.
+ *
+ * This macro defines the value of the \b clockwise direction which can be
+ * used with the rot_move() function. This value is equivalent to
+ * ROT_MOVE_DOWN_RIGHT.
+ *
+ * \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, 
+ * ROT_MOVE_RIGHT, ROT_MOVE_CW, ROT_MOVE_UP_LEFT, ROT_MOVE_UP_CCW, 
+ * ROT_MOVE_UP_RIGHT, ROT_MOVE_UP_CW, ROT_MOVE_DOWN_LEFT, ROT_MOVE_DOWN_CCW,
+ * ROT_MOVE_DOWN_RIGHT,
+ */
+#define ROT_MOVE_DOWN_CW         ROT_MOVE_DOWN_RIGHT
 
 /**
  * \brief Rotator status flags

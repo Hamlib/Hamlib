@@ -322,8 +322,9 @@ are returned as double precision floating point values.
 Move the rotator in a specific direction at the given rate.
 .IP
 .RI \(aq Direction \(aq
-is an integer defined as \(oq2\(cq = Up, \(oq4\(cq = Down, \(oq8\(cq = Left,
-and \(oq16\(cq = Right.
+is an integer or keyword defined as \(oq2\(cq = UP, \(oq4\(cq = DOWN, \(oq8\(cq = LEFT or CCW,
+\(oq16\(cq = RIGHT or CW, \(oq32\(cq = UP_LEFT or UP_CCW, \(oqR64\(cq = UP_RIGHT = UP_CW,
+\(oq128\(cq = DOWN_LEFT or DOWN_CCW, \(oq256\(cq = DOWN_RIGHT or DOWN_CW
 .IP
 .RI \(aq Speed \(aq
 is an integer between 1 and 100. Use -1 for no change to current speed.
