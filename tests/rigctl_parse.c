@@ -706,6 +706,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
     int retcode = -RIG_EINTERNAL;        /* generic return code from functions */
     unsigned char cmd;
     struct test_table *cmd_entry = NULL;
+    struct rig_state *rs = STATE(my_rig);
 
     char command[MAXARGSZ + 1];
     char arg1[MAXARGSZ + 1], *p1 = NULL;
@@ -868,7 +869,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
                 return (RIG_OK);
             }
 
-            my_rig->state.vfo_opt = *vfo_opt;
+            rs->vfo_opt = *vfo_opt;
 
             if (cmd == 'Q' || cmd == 'q')
             {
@@ -1779,10 +1780,10 @@ readline_repeat:
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, *vfo_opt);
 
-    if (my_rig->state.comm_state == 0)
+    if (rs->comm_state == 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: %p rig not open...trying to reopen\n", __func__,
-                  &my_rig->state.comm_state);
+                  &rs->comm_state);
         rig_open(my_rig);
     }
 
@@ -1808,7 +1809,7 @@ readline_repeat:
     else
     {
         // Allow only certain commands when the rig is powered off
-        if (my_rig->state.powerstat == RIG_POWER_OFF && (rig_powerstat == RIG_POWER_OFF
+        if (rs->powerstat == RIG_POWER_OFF && (rig_powerstat == RIG_POWER_OFF
                 || rig_powerstat == RIG_POWER_STANDBY)
                 && cmd_entry->cmd != '1' // dump_caps
                 && cmd_entry->cmd != '3' // dump_conf
@@ -1846,7 +1847,7 @@ readline_repeat:
 
         // we need to copy client_version to our thread in case there are multiple client versions
         // client_version is used to determine any backward compatibility requirements or problems
-        strncpy(client_version, my_rig->state.client_version, sizeof(client_version));
+        strncpy(client_version, rs->client_version, sizeof(client_version));
     }
 
 
@@ -1927,15 +1928,16 @@ declare_proto_rig(hamlib_version)
 
 declare_proto_rig(client_version)
 {
+    struct rig_state *rs = STATE(rig);
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);
     }
 
     fprintf(fout, "%s%c", arg1, resp_sep);
-    strncpy(rig->state.client_version, arg1, sizeof(rig->state.client_version) - 1);
+    strncpy(rs->client_version, arg1, sizeof(rs->client_version) - 1);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: client_version=%s\n", __func__,
-              rig->state.client_version);
+              rs->client_version);
     return RIG_OK;
 }
 
@@ -2270,15 +2272,16 @@ declare_proto_rig(set_mode)
 {
     rmode_t mode;
     pbwidth_t width;
+    struct rig_state *rs = STATE(rig);
 
     ENTERFUNC2;
 
-    if (rig->state.lock_mode || lock_mode) { RETURNFUNC2(RIG_OK); }
+    if (rs->lock_mode || lock_mode) { RETURNFUNC2(RIG_OK); }
 
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_mode(s, sizeof(s), rig->state.mode_list);
+        rig_sprintf_mode(s, sizeof(s), rs->mode_list);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -2286,7 +2289,7 @@ declare_proto_rig(set_mode)
     mode = rig_parse_mode(arg1);
     CHKSCN1ARG(sscanf(arg2, "%ld", &width));
 
-    if (rig->state.lock_mode) { RETURNFUNC2(RIG_OK); }
+    if (rs->lock_mode) { RETURNFUNC2(RIG_OK); }
 
     RETURNFUNC2(rig_set_mode(rig, vfo, mode, width));
 }
@@ -2336,7 +2339,7 @@ declare_proto_rig(set_vfo)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_vfo(s, sizeof(s), rig->state.vfo_list);
+        rig_sprintf_vfo(s, sizeof(s), STATE(rig)->vfo_list);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -2426,7 +2429,7 @@ declare_proto_rig(get_vfo_info)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_vfo(s, sizeof(s), rig->state.vfo_list);
+        rig_sprintf_vfo(s, sizeof(s), STATE(rig)->vfo_list);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -2474,7 +2477,7 @@ declare_proto_rig(get_vfo_list)
 
     ENTERFUNC2;
 
-    rig_sprintf_vfo(prntbuf, sizeof(prntbuf), rig->state.vfo_list);
+    rig_sprintf_vfo(prntbuf, sizeof(prntbuf), STATE(rig)->vfo_list);
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
@@ -2511,7 +2514,7 @@ declare_proto_rig(get_modes)
 
     ENTERFUNC2;
 
-    rig_strrmodes(rig->state.mode_list, prntbuf, sizeof(prntbuf));
+    rig_strrmodes(STATE(rig)->mode_list, prntbuf, sizeof(prntbuf));
 
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
@@ -2986,7 +2989,7 @@ declare_proto_rig(set_split_mode)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_mode(s, sizeof(s), rig->state.mode_list);
+        rig_sprintf_mode(s, sizeof(s), STATE(rig)->mode_list);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -3048,7 +3051,7 @@ declare_proto_rig(set_split_freq_mode)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_mode(s, sizeof(s), rig->state.mode_list);
+        rig_sprintf_mode(s, sizeof(s), STATE(rig)->mode_list);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -3116,7 +3119,7 @@ declare_proto_rig(set_split_vfo)
     if (!strcmp(arg2, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_vfo(s, sizeof(s), rig->state.vfo_list);
+        rig_sprintf_vfo(s, sizeof(s), STATE(rig)->vfo_list);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -3293,7 +3296,7 @@ declare_proto_rig(set_level)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_level(s, sizeof(s), rig->state.has_set_level);
+        rig_sprintf_level(s, sizeof(s), STATE(rig)->has_set_level);
         fputs(s, fout);
 
         if (rig->caps->set_ext_level)
@@ -3409,7 +3412,7 @@ declare_proto_rig(get_level)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_level(s, sizeof(s), rig->state.has_get_level);
+        rig_sprintf_level(s, sizeof(s), STATE(rig)->has_get_level);
         fputs(s, fout);
 
         if (rig->caps->get_ext_level)
@@ -3546,7 +3549,7 @@ declare_proto_rig(set_func)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_func(s, sizeof(s), rig->state.has_set_func);
+        rig_sprintf_func(s, sizeof(s), STATE(rig)->has_set_func);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -3586,7 +3589,7 @@ declare_proto_rig(get_func)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_func(s, sizeof(s), rig->state.has_get_func);
+        rig_sprintf_func(s, sizeof(s), STATE(rig)->has_get_func);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -3650,7 +3653,7 @@ declare_proto_rig(set_parm)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_parm(s, sizeof(s), rig->state.has_set_parm);
+        rig_sprintf_parm(s, sizeof(s), STATE(rig)->has_set_parm);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -3778,7 +3781,7 @@ declare_proto_rig(get_parm)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_parm(s, sizeof(s), rig->state.has_get_parm);
+        rig_sprintf_parm(s, sizeof(s), STATE(rig)->has_get_parm);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -3964,7 +3967,7 @@ declare_proto_rig(vfo_op)
     if (!strcmp(arg1, "?"))
     {
         char s[SPRINTF_MAX_SIZE];
-        rig_sprintf_vfop(s, sizeof(s), rig->state.vfo_ops);
+        rig_sprintf_vfop(s, sizeof(s), STATE(rig)->vfo_ops);
         fprintf(fout, "%s\n", s);
         RETURNFUNC2(RIG_OK);
     }
@@ -4589,7 +4592,7 @@ declare_proto_rig(dump_caps)
 declare_proto_rig(dump_state)
 {
     int i;
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     char buf[1024];
 
     ENTERFUNC2;
@@ -4761,13 +4764,13 @@ declare_proto_rig(dump_state)
         {
             if (RIG_LEVEL_IS_FLOAT(i))
             {
-                fprintf(fout, "%d=%g,%g,%g;", i, rig->state.level_gran[i].min.f,
-                        rig->state.level_gran[i].max.f, rig->state.level_gran[i].step.f);
+                fprintf(fout, "%d=%g,%g,%g;", i, rs->level_gran[i].min.f,
+                        rs->level_gran[i].max.f, rs->level_gran[i].step.f);
             }
             else
             {
-                fprintf(fout, "%d=%d,%d,%d;", i, rig->state.level_gran[i].min.i,
-                        rig->state.level_gran[i].max.i, rig->state.level_gran[i].step.i);
+                fprintf(fout, "%d=%d,%d,%d;", i, rs->level_gran[i].min.i,
+                        rs->level_gran[i].max.i, rs->level_gran[i].step.i);
             }
         }
 
@@ -4777,20 +4780,20 @@ declare_proto_rig(dump_state)
         {
             if (RIG_LEVEL_IS_FLOAT(i))
             {
-                fprintf(fout, "%d=%g,%g,%g;", i, rig->state.parm_gran[i].min.f,
-                        rig->state.parm_gran[i].max.f, rig->state.parm_gran[i].step.f);
+                fprintf(fout, "%d=%g,%g,%g;", i, rs->parm_gran[i].min.f,
+                        rs->parm_gran[i].max.f, rs->parm_gran[i].step.f);
             }
             else
             {
-                fprintf(fout, "%d=%d,%d,%d;", i, rig->state.level_gran[i].min.i,
-                        rig->state.level_gran[i].max.i, rig->state.level_gran[i].step.i);
+                fprintf(fout, "%d=%d,%d,%d;", i, rs->level_gran[i].min.i,
+                        rs->level_gran[i].max.i, rs->level_gran[i].step.i);
             }
         }
 
         fprintf(fout, "\n");
 
-        rig->state.rig_model = rig->caps->rig_model;
-        fprintf(fout, "rig_model=%d\n", rig->state.rig_model);
+        rs->rig_model = rig->caps->rig_model;
+        fprintf(fout, "rig_model=%d\n", rs->rig_model);
         fprintf(fout, "hamlib_version=%s\n", hamlib_version2);
         fprintf(fout, "done\n");
     }
@@ -5400,7 +5403,7 @@ declare_proto_rig(chk_vfo)
         fprintf(fout, "%s: ", cmd->arg1);    /* i.e. "Frequency" */
     }
 
-    fprintf(fout, "%d\n", rig->state.vfo_opt);
+    fprintf(fout, "%d\n", STATE(rig)->vfo_opt);
 
     chk_vfo_executed = 1; // this allows us to control dump_state version
 
@@ -5414,7 +5417,7 @@ declare_proto_rig(set_vfo_opt)
     ENTERFUNC2;
 
     CHKSCN1ARG(sscanf(arg1, "%d", &opt));
-    *vfo_opt = rig->state.vfo_opt = opt;
+    *vfo_opt = STATE(rig)->vfo_opt = opt;
     RETURNFUNC2(rig_set_vfo_opt(rig, opt));
 }
 
