@@ -1,7 +1,7 @@
     .mfg_name =       "Flex-radio",
-    .version =        "20240523.1",
+    .version =        "20240529.0",
     .copyright =      "LGPL",
-    .status =         RIG_STATUS_BETA,
+    .status =         RIG_STATUS_ALPHA,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
     .targetable_vfo =      0,
     .ptt_type =       RIG_PTT_RIG,
@@ -68,6 +68,8 @@
 
     .set_freq =     smartsdr_set_freq,
     .get_freq =     smartsdr_get_freq,
+    .get_mode=      smartsdr_get_mode,
+    .set_mode=      smartsdr_set_mode,
     .set_ptt  =     smartsdr_set_ptt,
     .get_ptt  =     smartsdr_get_ptt,
     .set_mode  =    smartsdr_set_mode,
