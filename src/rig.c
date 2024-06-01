@@ -2056,11 +2056,16 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (rig->state.tx_vfo == vfo && curr_band != last_band)
     {
+        struct rig_cache *cachep = CACHE(rig);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: band changing to %s\n", __func__,
                   rig_get_band_str(rig, curr_band, 0));
         band_changing = 1;
         //rig_band_changed(rig, curr_band);
         last_band = curr_band;
+        if (cachep->ptt) {
+            rig_set_ptt(rig, RIG_VFO_CURR, RIG_PTT_OFF);
+            hl_usleep(200); // make sure PTT is off
+        }
     }
 
     ELAPSED1;
