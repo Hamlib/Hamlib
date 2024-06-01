@@ -382,40 +382,40 @@ int main(int argc, char *argv[])
 
             if (!strcmp(optarg, "RIG"))
             {
-                ptt_type = RIG_PTT_RIG;
+                my_rig->caps->ptt_type = ptt_type = RIG_PTT_RIG;
             }
             else if (!strcmp(optarg, "DTR"))
             {
-                ptt_type = RIG_PTT_SERIAL_DTR;
+                my_rig->caps->ptt_type = ptt_type = RIG_PTT_SERIAL_DTR;
             }
             else if (!strcmp(optarg, "RTS"))
             {
-                ptt_type = RIG_PTT_SERIAL_RTS;
+                my_rig->caps->ptt_type = ptt_type = RIG_PTT_SERIAL_RTS;
             }
             else if (!strcmp(optarg, "PARALLEL"))
             {
-                ptt_type = RIG_PTT_PARALLEL;
+                my_rig->caps->ptt_type = ptt_type = RIG_PTT_PARALLEL;
             }
             else if (!strcmp(optarg, "CM108"))
             {
-                ptt_type = RIG_PTT_CM108;
+                my_rig->caps->ptt_type = ptt_type = RIG_PTT_CM108;
             }
             else if (!strcmp(optarg, "GPIO"))
             {
-                ptt_type = RIG_PTT_GPIO;
+                my_rig->caps->ptt_type = ptt_type = RIG_PTT_GPIO;
             }
             else if (!strcmp(optarg, "GPION"))
             {
-                ptt_type = RIG_PTT_GPION;
+                my_rig->caps->ptt_type = ptt_type = RIG_PTT_GPION;
             }
             else if (!strcmp(optarg, "NONE"))
             {
-                ptt_type = RIG_PTT_NONE;
+                my_rig->caps->ptt_type = ptt_type = RIG_PTT_NONE;
             }
             else
             {
                 puts("Unrecognised PTT type, using NONE");
-                ptt_type = RIG_PTT_NONE;
+                my_rig->caps->ptt_type = ptt_type = RIG_PTT_NONE;
             }
 
             break;
@@ -688,6 +688,7 @@ int main(int argc, char *argv[])
         }
 
         token = strtok(NULL, ",");
+        ptt_type = my_rig->caps->ptt_type; // in case we set the ptt_type with set_conf
     }
 
     if (rig_file)
@@ -725,6 +726,12 @@ int main(int argc, char *argv[])
         strncpy(PTTPORT(my_rig)->pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
         strncpy(my_rig->state.pttport_deprecated.pathname, ptt_file,
                 HAMLIB_FILPATHLEN - 1);
+        // default to RTS when ptt_type is not specified
+        if (ptt_type == RIG_PTT_NONE) 
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: defaulting to RTS PTT\n", __func__);
+            my_rig->caps->ptt_type = ptt_type = RIG_PTT_SERIAL_RTS;
+        }
     }
 
     if (dcd_file)

@@ -1,5 +1,6 @@
 /*
  *  Hamlib backend - SmartSDR TCP on port 4952
+ *  See https://github.com/flexradio/smartsdr-api-docs/wiki/SmartSDR-TCPIP-API
  *  Copyright (c) 2024 by Michael Black W9MDB
  *
  *
@@ -29,6 +30,7 @@
 #include "misc.h"
 #include "bandplan.h"
 #include "cache.h"
+#include "network.h"
 
 static int smartsdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int smartsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
@@ -41,6 +43,8 @@ static int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int smartsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int smartsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
                              pbwidth_t width);
+static int smartsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
+                             pbwidth_t *width);
 //static int smartsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 
 struct smartsdr_priv_data
@@ -178,100 +182,77 @@ int smartsdr_init(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-#if 0
-// Flush network by 0x0a line and return the line
-static int smartsdr_flush(RIG *rig, char *buf, int buf_len)
+// flush any messages in the queue and process them too
+// return 0 if OK, otherwise SMARTSDR error code
+static int smartsdr_flush(RIG *rig)
 {
+    char buf[8192];
+    int buf_len = 8192;
     char stopset[1] = { 0x0a };
-    for(;;)
+    int len = 0;
+    int retval = RIG_OK;
+    ENTERFUNC;
+    // for this flush routine we expect at least one message for sure -- might be more
+    len = read_string(RIGPORT(rig), (unsigned char *)buf, buf_len, stopset, 1, 0,
+                      1);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes\n", __func__, len);
+    do
     {
-        int len = 0;
-#ifdef __MINGW32__
-        int ret = ioctlsocket(rp->fd, FIONREAD, &len);
-#else
-        int ret = ioctl(rp->fd, FIONREAD, &len);
-#endif
-        if (ret != 0)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: ioctl err '%s'\n", __func__, strerror(errno));
-            break;
-        }
-
-
-    if (len > 0) {
         buf[0] = 0;
-        read_string(RIGPORT(rig), (unsigned char *)reply, reply_len, stopset, 1, 0, 1);
-        if (buf[0] == 'S') smartsdr_parse_S(rig, buf);
-    }
-    }
-}
-#endif
+        len = network_flush2(RIGPORT(rig), (unsigned char *)stopset, buf, buf_len);
 
-static int smartsdr_transaction(RIG *rig, char *buf, char *reply, int reply_len)
+        if (buf[0] == 'S') { smartsdr_parse_S(rig, buf); }
+
+        else if (buf[0] == 'R') { sscanf(buf, "R%d", &retval); }
+        
+        else if (strlen(buf)>0) rig_debug(RIG_DEBUG_WARN, "%s: Unknown packet type=%s\n", __func__, buf);
+    }
+    while (len > 0);
+
+    RETURNFUNC(retval);
+}
+
+static int smartsdr_transaction(RIG *rig, char *buf)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-    char stopset[1] = { 0x0a };
     char cmd[4096];
     int retval;
-    int nbytes;
 
-    if (priv->seqnum > 10000) { priv->seqnum = 0; }
+    if (priv->seqnum > 999999) { priv->seqnum = 0; }
 
-    sprintf(cmd, "C%d|%s%c", priv->seqnum++, buf, 0x0a);
-    rig_flush(RIGPORT(rig));
-    retval = write_block(RIGPORT(rig), (unsigned char *) cmd, strlen(cmd));
-    nbytes = read_string(RIGPORT(rig), (unsigned char *)reply, reply_len, stopset,
-                         1, 0, 1);
-    retval = nbytes > 0 ? RIG_OK : retval;
+    if (buf)
+    {
+        sprintf(cmd, "C%d|%s%c", priv->seqnum++, buf, 0x0a);
+        retval = write_block(RIGPORT(rig), (unsigned char *) cmd, strlen(cmd));
+        if (retval != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: SmartSDR write_block err=0x%x\n", __func__, retval);
+        }
+    }
+    retval = smartsdr_flush(rig);
+
+    if (retval != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: SmartSDR flush err=0x%x\n", __func__, retval);
+        retval = -RIG_EPROTO;
+    }
+
     return retval;
 }
 
 int smartsdr_open(RIG *rig)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-    hamlib_port_t *rp = RIGPORT(rig);
-    char buf[4096];
     char cmd[64];
-    char *p;
-    int nslices = -1;
-    char stopset[1] = { 0x0a };
     ENTERFUNC;
     // Once we've connected and hit here we should have two messages queued from the intial connect
 
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#1: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#2: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#3: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#4: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#5: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#6: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#7: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#8: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#9: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#10: %s", __func__, buf);
-    read_string(rp, (unsigned char *)buf, sizeof(buf), stopset, 1, 0, 1);
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: Flex msg#11: %s", __func__, buf);
-
-    if ((p = strstr(buf, "radio slices")))
-    {
-        sscanf(p, "radio slices=%d", &nslices);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: radio_slices=%d", __func__, nslices);
-    }
-
     sprintf(cmd, "sub slice %d", priv->slicenum);
     //sprintf(cmd, "sub slice all");
-    smartsdr_transaction(rig, cmd, buf, sizeof(buf));
-    smartsdr_transaction(rig, "info", buf, sizeof(buf));
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: info=%s", __func__, buf);
+    smartsdr_transaction(rig, cmd);
+    //smartsdr_transaction(rig, "info", buf, sizeof(buf));
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s: info=%s", __func__, buf);
 
     RETURNFUNC(RIG_OK);
 }
@@ -385,8 +366,8 @@ int smartsdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char buf[4096];
     char cmd[64];
     ENTERFUNC;
-    sprintf(cmd, "slice tune %d %.6f", priv->slicenum, freq / 1e6);
-    smartsdr_transaction(rig, cmd, buf, sizeof(buf));
+    sprintf(cmd, "slice tune %d %.6f autopan=1", priv->slicenum, freq / 1e6);
+    smartsdr_transaction(rig, cmd);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: set_freq answer: %s", __func__, buf);
     rig_set_cache_freq(rig, vfo, freq);
     RETURNFUNC(RIG_OK);
@@ -397,6 +378,7 @@ static int smartsdr_parse_S(RIG *rig, char *s)
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     freq_t freq;
     char mode[16];
+    char state[16];
     char *s2 = strdup(s);
     char *sep = "| \n";
     char *p = strtok(s2, sep);
@@ -404,10 +386,11 @@ static int smartsdr_parse_S(RIG *rig, char *s)
 
     do
     {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: parsing '%s'\n", __func__, p);
         if (sscanf(p, "RF_frequency=%lf", &freq) == 1)
         {
             priv->freqA = freq * 1e6;
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: got freq=%g\n", __func__, freq);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: got freq=%.0f\n", __func__, priv->freqA);
             gotFreq = 1;
             rig_set_cache_freq(rig, RIG_VFO_A, priv->freqA);
         }
@@ -444,6 +427,11 @@ static int smartsdr_parse_S(RIG *rig, char *s)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: got mode=%s\n", __func__,
                       rig_strrmode(priv->modeA));
         }
+        else if (sscanf(p, "state=%s\n", state) == 1)
+        {
+            if (strcmp(state,"TRANSMITTING")==0) priv->ptt = 1;
+            else priv->ptt = 0;
+        }
     }
     while ((p = strtok(NULL, sep)));
 
@@ -457,45 +445,15 @@ static int smartsdr_parse_S(RIG *rig, char *s)
 int smartsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-    char buf[4096];
-    char cmd[64];
+    //char cmd[64];
     ENTERFUNC;
-    // we expect two specific responses -- could be interlaces with other messages
-    int gotS = 0;
-    int gotR = 0;
-    int retval = -RIG_EINTERNAL;
-    int maxloop = 5;
-    sprintf(cmd, "sub slice %d", priv->slicenum);
-    smartsdr_transaction(rig, cmd, buf, sizeof(buf));
-
-    do
-    {
-        if (buf[0] == 'S')
-        {
-            if (smartsdr_parse_S(rig, buf) == RIG_OK)
-            {
-                gotS = 1;
-                *freq = priv->freqA;
-            }
-        }
-        else if (buf[0] == 'R')
-        {
-            if (strncmp(buf, "R0|", 3))
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: error returned %s\n", __func__, buf);
-            }
-
-            gotR = 1;
-        }
-    }
-    while (gotS == 0 && gotR == 0 && strlen(buf) > 0 && --maxloop > 0);
-
-    retval = RIG_OK;
-
-    // why don't these lines work?
-    if (gotS != 1) { retval = -RIG_EPROTO; rig_debug(RIG_DEBUG_ERR, "%s: no slice status?\n", __func__); }
-
-    if (gotR != 1) { retval = -RIG_EPROTO; rig_debug(RIG_DEBUG_ERR, "%s: no return code?\n", __func__); }
+    //int retval = -RIG_EINTERNAL;
+    //sprintf(cmd, "sub slice %d", priv->slicenum);
+    smartsdr_transaction(rig, NULL);
+    if (vfo == RIG_VFO_A)
+    *freq = priv->freqA;
+    else
+    *freq = priv->freqB;
 
     RETURNFUNC(RIG_OK);
 }
@@ -508,23 +466,20 @@ int smartsdr_reset(RIG *rig, reset_t reset)
 int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-    char buf[4096];
     char cmd[64];
     ENTERFUNC;
 
     if (ptt)
     {
         sprintf(cmd, "dax audio set %d tx=1", priv->slicenum + 1);
-        smartsdr_transaction(rig, cmd, buf, sizeof(buf));
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: slice set answer: %s", __func__, buf);
+        smartsdr_transaction(rig, cmd);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: slice set answer: %s", __func__, cmd);
     }
 
     sprintf(cmd, "slice set %d tx=1", priv->slicenum);
-    smartsdr_transaction(rig, cmd, buf, sizeof(buf));
+    smartsdr_transaction(rig, cmd);
     sprintf(cmd, "xmit %d", ptt);
-    smartsdr_transaction(rig, cmd, buf, sizeof(buf));
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: xmit answer: %s", __func__, buf);
-    priv->ptt = ptt;
+    smartsdr_transaction(rig, cmd);
     RETURNFUNC(RIG_OK);
 }
 
@@ -532,6 +487,7 @@ int smartsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     ENTERFUNC;
+    smartsdr_transaction(rig, NULL);
     *ptt = priv->ptt;
     RETURNFUNC(RIG_OK);
 }
@@ -539,7 +495,6 @@ int smartsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int smartsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
-    char buf[4096];
     char cmd[64];
     char *rmode = RIG_MODE_NONE;
     ENTERFUNC;
@@ -569,7 +524,7 @@ int smartsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     sprintf(cmd, "slice set %d mode=%s", priv->slicenum, rmode);
-    smartsdr_transaction(rig, cmd, buf, sizeof(buf));
+    smartsdr_transaction(rig, cmd);
 
     if (width != RIG_PASSBAND_NOCHANGE)
     {
@@ -579,6 +534,14 @@ int smartsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     RETURNFUNC(RIG_OK);
 }
 
+int smartsdr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+    struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
+    ENTERFUNC;
+    *mode = priv->modeA;
+    *width = priv->widthA;
+    RETURNFUNC(RIG_OK);
+}
 
 #if 0
 int sdr1k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
