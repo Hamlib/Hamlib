@@ -83,11 +83,12 @@ int main(int argc, const char *argv[])
      *      RIG_CHAN_END
      *  }
      */
+    struct rig_state *rs = STATE(my_rig);
 
-    for (i = 0; my_rig->state.chan_list[i].type; i++)
+    for (i = 0; rs->chan_list[i].type; i++)
     {
-        for (j = my_rig->state.chan_list[i].startc;
-                j <= my_rig->state.chan_list[i].endc; j++)
+        for (j = rs->chan_list[i].startc;
+                j <= rs->chan_list[i].endc; j++)
         {
             dump_chan(my_rig, j);
         }
