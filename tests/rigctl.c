@@ -564,6 +564,7 @@ int main(int argc, char *argv[])
     }
 
     char *token = strtok(conf_parms, ",");
+    struct rig_state *rs = STATE(my_rig);
 
     while (token)
     {
@@ -630,7 +631,7 @@ int main(int argc, char *argv[])
     if (serial_rate != 0)
     {
         RIGPORT(my_rig)->parm.serial.rate = serial_rate;
-        my_rig->state.rigport_deprecated.parm.serial.rate = serial_rate;
+        rs->rigport_deprecated.parm.serial.rate = serial_rate;
     }
 
     if (civaddr)
@@ -697,14 +698,14 @@ int main(int argc, char *argv[])
     if (!skip_init && my_rig->caps->get_powerstat)
     {
         rig_get_powerstat(my_rig, &rig_powerstat);
-        my_rig->state.powerstat = rig_powerstat;
+        rs->powerstat = rig_powerstat;
     }
 
     if (my_rig->caps->rig_model == RIG_MODEL_NETRIGCTL)
     {
         /* We automatically detect if we need to be in vfo mode or not */
         int rigctld_vfo_opt = netrigctl_get_vfo_mode(my_rig);
-        vfo_opt = my_rig->state.vfo_opt = rigctld_vfo_opt;
+        vfo_opt = rs->vfo_opt = rigctld_vfo_opt;
         rig_debug(RIG_DEBUG_TRACE, "%s vfo_opt=%d\n", __func__, vfo_opt);
     }
 

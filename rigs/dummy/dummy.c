@@ -228,7 +228,7 @@ static int dummy_init(RIG *rig)
         RETURNFUNC(-RIG_ENOMEM);
     }
 
-    rig->state.priv = (void *)priv;
+    STATE(rig)->priv = (void *)priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     RIGPORT(rig)->type.rig = RIG_PORT_NONE;
@@ -236,7 +236,7 @@ static int dummy_init(RIG *rig)
     priv->split = RIG_SPLIT_OFF;
     priv->ptt = RIG_PTT_OFF;
     priv->powerstat = RIG_POWER_ON;
-    rig->state.powerstat = priv->powerstat;
+    STATE(rig)->powerstat = priv->powerstat;
     priv->bank = 0;
     memset(priv->parms, 0, RIG_SETTING_MAX * sizeof(value_t));
 
@@ -319,7 +319,8 @@ static int dummy_init(RIG *rig)
 
 static int dummy_cleanup(RIG *rig)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct rig_state *rs = STATE(rig);
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)rs->priv;
     int i;
 
     ENTERFUNC;
@@ -338,12 +339,12 @@ static int dummy_cleanup(RIG *rig)
     free(priv->ext_parms);
     free(priv->magic_conf);
 
-    if (rig->state.priv)
+    if (rs->priv)
     {
-        free(rig->state.priv);
+        free(rs->priv);
     }
 
-    rig->state.priv = NULL;
+    rs->priv = NULL;
 
     RETURNFUNC(RIG_OK);
 }
@@ -380,7 +381,7 @@ static int dummy_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     struct dummy_priv_data *priv;
 
     ENTERFUNC;
-    priv = (struct dummy_priv_data *)rig->state.priv;
+    priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -409,7 +410,7 @@ static int dummy_get_conf(RIG *rig, hamlib_token_t token, char *val)
     struct dummy_priv_data *priv;
 
     ENTERFUNC;
-    priv = (struct dummy_priv_data *)rig->state.priv;
+    priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -437,7 +438,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
-    priv = (struct dummy_priv_data *)rig->state.priv;
+    priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     if (priv == NULL)
     {
@@ -489,17 +490,18 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct rig_state *rs = STATE(rig);
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)rs->priv;
 
     ENTERFUNC;
 
     if (vfo == RIG_VFO_CURR && rig->caps->rig_model != RIG_MODEL_DUMMY_NOVFO) { vfo = priv->curr_vfo; }
 
-    if ((vfo == RIG_VFO_SUB && rig->state.uplink == 1)
-            || (vfo == RIG_VFO_MAIN && rig->state.uplink == 2))
+    if ((vfo == RIG_VFO_SUB && rs->uplink == 1)
+            || (vfo == RIG_VFO_MAIN && rs->uplink == 2))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: uplink=%d, ignoring get_freq\n", __func__,
-                  rig->state.uplink);
+                  rs->uplink);
         RETURNFUNC(RIG_OK);
     }
 
@@ -532,7 +534,7 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
     struct rig_cache *cachep = CACHE(rig);
     char buf[16];
@@ -620,7 +622,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
     usleep(CMDSLEEP);
@@ -661,7 +663,7 @@ static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -712,7 +714,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 
     priv->last_vfo = priv->curr_vfo;
     priv->curr_vfo = vfo;
-    rig->state.current_vfo = vfo;
+    STATE(rig)->current_vfo = vfo;
 
     RETURNFUNC(RIG_OK);
 }
@@ -720,7 +722,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 
 static int dummy_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    const struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    const struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
     usleep(CMDSLEEP);
@@ -732,7 +734,7 @@ static int dummy_get_vfo(RIG *rig, vfo_t *vfo)
 
 static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
     priv->ptt = ptt;
@@ -743,7 +745,7 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    const struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    const struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     hamlib_port_t *pttp = PTTPORT(rig);
     int rc;
     int status = 0;
@@ -831,7 +833,7 @@ static int dummy_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 static int dummy_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -844,7 +846,7 @@ static int dummy_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 
 static int dummy_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -857,7 +859,7 @@ static int dummy_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 
 static int dummy_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -870,7 +872,7 @@ static int dummy_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 
 static int dummy_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -882,7 +884,7 @@ static int dummy_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 
 static int dummy_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -895,7 +897,7 @@ static int dummy_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 static int dummy_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -908,7 +910,7 @@ static int dummy_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 static int dummy_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -921,7 +923,7 @@ static int dummy_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
 static int dummy_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -934,7 +936,7 @@ static int dummy_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 
 static int dummy_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -947,7 +949,7 @@ static int dummy_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
 static int dummy_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -959,7 +961,7 @@ static int dummy_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
 static int dummy_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -971,7 +973,7 @@ static int dummy_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
 
 static int dummy_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -983,7 +985,7 @@ static int dummy_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 
 static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     int retval;
 
     ENTERFUNC;
@@ -1005,7 +1007,7 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
 static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     int retval;
 
     ENTERFUNC;
@@ -1026,7 +1028,7 @@ static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                                 pbwidth_t tx_width)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
     int retval;
 
@@ -1056,7 +1058,7 @@ static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                                 pbwidth_t *tx_width)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     int retval;
 
     ENTERFUNC;
@@ -1078,7 +1080,7 @@ static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
 static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: split=%d, vfo=%s, tx_vfo=%s\n",
@@ -1098,7 +1100,7 @@ static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 static int dummy_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                vfo_t *tx_vfo)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -1113,7 +1115,7 @@ static int dummy_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
 static int dummy_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -1125,7 +1127,7 @@ static int dummy_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 static int dummy_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -1137,7 +1139,7 @@ static int dummy_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
 static int dummy_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -1149,7 +1151,7 @@ static int dummy_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 
 static int dummy_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -1161,7 +1163,7 @@ static int dummy_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 
 static int dummy_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -1173,7 +1175,7 @@ static int dummy_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
 static int dummy_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -1185,7 +1187,7 @@ static int dummy_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 
 static int dummy_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -1207,7 +1209,7 @@ static int dummy_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 static int dummy_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -1222,7 +1224,7 @@ static int dummy_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
     int idx;
     char lstr[32];
@@ -1255,7 +1257,7 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
     int idx;
     static float rfpower = 0;
@@ -1382,7 +1384,7 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 static int dummy_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
     char lstr[64];
     const struct confparams *cfp;
@@ -1452,7 +1454,7 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_
 
 static int dummy_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
     const struct confparams *cfp;
     struct ext_list *elp;
@@ -1496,7 +1498,7 @@ static int dummy_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_
 
 static int dummy_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int status)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const struct confparams *cfp;
     struct ext_list *elp;
 
@@ -1548,7 +1550,7 @@ static int dummy_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int sta
 
 static int dummy_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *status)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const struct confparams *cfp;
     struct ext_list *elp;
 
@@ -1588,7 +1590,7 @@ static int dummy_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *st
 
 static int dummy_set_powerstat(RIG *rig, powerstat_t status)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
     priv->powerstat = status;
@@ -1599,7 +1601,7 @@ static int dummy_set_powerstat(RIG *rig, powerstat_t status)
 
 static int dummy_get_powerstat(RIG *rig, powerstat_t *status)
 {
-    const struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    const struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
     *status = priv->powerstat;
@@ -1610,7 +1612,7 @@ static int dummy_get_powerstat(RIG *rig, powerstat_t *status)
 
 static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     int idx;
     char pstr[32];
 
@@ -1646,7 +1648,7 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
 
 static int dummy_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     int idx;
 
     ENTERFUNC;
@@ -1666,7 +1668,7 @@ static int dummy_get_parm(RIG *rig, setting_t parm, value_t *val)
 
 static int dummy_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     char lstr[64];
     const struct confparams *cfp;
     struct ext_list *epp;
@@ -1733,7 +1735,7 @@ static int dummy_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 
 static int dummy_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const struct confparams *cfp;
     struct ext_list *epp;
 
@@ -1776,7 +1778,7 @@ static int dummy_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 
 static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
     ENTERFUNC;
 
@@ -1810,7 +1812,7 @@ static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
                          ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
     ENTERFUNC;
 
@@ -1845,7 +1847,7 @@ static int dummy_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
 
 static int dummy_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
     priv->bank = bank;
@@ -1856,7 +1858,7 @@ static int dummy_set_bank(RIG *rig, vfo_t vfo, int bank)
 
 static int dummy_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -1880,7 +1882,7 @@ static int dummy_set_mem(RIG *rig, vfo_t vfo, int ch)
 
 static int dummy_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const channel_t *curr = priv->curr;
 
     ENTERFUNC;
@@ -1906,7 +1908,7 @@ static void chan_vfo(channel_t *chan, vfo_t vfo)
 
 static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
     int ret;
     freq_t freq;
@@ -2084,7 +2086,7 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 static int dummy_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -2130,7 +2132,7 @@ static int dummy_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 static int dummy_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
                              int read_only)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -2180,7 +2182,7 @@ static int dummy_get_channel(RIG *rig, vfo_t vfo, channel_t *chan,
 
 static int dummy_set_trn(RIG *rig, int trn)
 {
-    struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     priv->trn = trn;
 
@@ -2190,7 +2192,7 @@ static int dummy_set_trn(RIG *rig, int trn)
 
 static int dummy_get_trn(RIG *rig, int *trn)
 {
-    const struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+    const struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
 
     *trn = priv->trn;
 
