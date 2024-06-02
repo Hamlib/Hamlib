@@ -25,7 +25,7 @@
 #include <sys/time.h>
 
 #include "hamlib/rotator.h"
-#include "../../rigs/dummy/dummy_common.h"
+#include "dummy_common.h"
 #include "rig.h"
 #include "register.h"
 #include "idx_builtin.h"
