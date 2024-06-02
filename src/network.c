@@ -384,7 +384,12 @@ int network_open(hamlib_port_t *rp, int default_port)
 // return # of bytes read
 int network_flush2(hamlib_port_t *rp, unsigned char *stopset, char *buf, int buf_len)
 {
-    unsigned int len = 0;
+#ifdef __MINGW32__
+    ULONG len;
+#else
+    uint len;
+#endif
+
 #ifdef __MINGW32__
     int ret = ioctlsocket(rp->fd, FIONREAD, &len);
 #else
