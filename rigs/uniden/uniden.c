@@ -91,7 +91,7 @@ tone_t uniden_dcs_list[] =
 
 /**
  * uniden_transaction
- * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
+ * Assumes rig!=NULL STATE(rig)!=NULL rig->caps!=NULL
  *
  * cmdstr - Command to be sent to the rig. Cmdstr can also be NULL, indicating
  *          that only a reply is needed (nothing will be send).
@@ -122,7 +122,7 @@ uniden_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     char replybuf[BUFSZ];
     size_t reply_len = BUFSZ;
 
-    rs = &rig->state;
+    rs = STATE(rig);
     rs->transaction_active = 1;
 
 transaction_write:
@@ -429,7 +429,7 @@ int uniden_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_ATT:
-        if (rig->state.attenuator[0] == 0)
+      if (STATE(rig)->attenuator[0] == 0)
         {
             return -RIG_EINVAL;
         }
@@ -500,7 +500,7 @@ int uniden_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             return -RIG_ERJCTED;
         }
 
-        val->i = lvlbuf[2] == 'N' ? rig->state.attenuator[0] : 0;
+        val->i = lvlbuf[2] == 'N' ? STATE(rig)->attenuator[0] : 0;
         break;
 
     default:
@@ -630,7 +630,7 @@ int uniden_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     /* TODO: Trunk, Delay, Recording */
 
     chan->flags = (membuf[22] == 'N') ? RIG_CHFLAG_SKIP : 0;
-    chan->levels[LVL_ATT].i = (membuf[25] == 'N') ? rig->state.attenuator[0] : 0;
+    chan->levels[LVL_ATT].i = (membuf[25] == 'N') ? STATE(rig)->attenuator[0] : 0;
     sscanf(membuf + 41, "%d", &tone);
 
     if (tone >= 1 && tone <= 38)
