@@ -284,7 +284,7 @@ int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (ioctl(rp->fd, RADIO_GET_VOL, &v)) { return -RIG_EINVAL; }
 
-        val->i = v ? rig->state.attenuator[0] : 0;
+        val->i = v ? STATE(rig)->attenuator[0] : 0;
         return RIG_OK;
     }
 
