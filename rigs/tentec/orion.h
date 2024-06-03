@@ -199,7 +199,7 @@ struct tt565_priv_data {
  */
 struct rig_caps tt565_caps = {
 RIG_MODEL(RIG_MODEL_TT565),
-.model_name = "TT-565 Orion 1",
+.model_name = "TT-565/566 Orion I/II",
 .mfg_name =  "Ten-Tec",
 .version =  BACKEND_VER ".0",
 .copyright =  "LGPL",
