@@ -36,7 +36,7 @@
 #include "rig.h"
 #include "riglist.h"
 
-#define BACKEND_VER "20220614"
+#define BACKEND_VER "20240602"
 
 #define TRUE	1
 #define FALSE	0
@@ -91,6 +91,7 @@ static int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option, ant_
 struct tt565_priv_data {
 	int ch;		/*!< memory channel */
 	vfo_t vfo_curr; /*!< Currently selected VFO */
+    int ptt;
 };
 
 /** \brief Orion Supported Modes */
@@ -198,7 +199,7 @@ struct tt565_priv_data {
  */
 struct rig_caps tt565_caps = {
 RIG_MODEL(RIG_MODEL_TT565),
-.model_name = "TT-565 Orion",
+.model_name = "TT-565 Orion 1",
 .mfg_name =  "Ten-Tec",
 .version =  BACKEND_VER ".0",
 .copyright =  "LGPL",
