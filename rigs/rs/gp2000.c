@@ -52,7 +52,7 @@
 
 /*
  * gp2000
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL, data_len!=NULL
  */
 int
 gp2000_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,

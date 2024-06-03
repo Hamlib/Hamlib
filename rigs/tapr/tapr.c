@@ -37,7 +37,7 @@
 
 /*
  * tapr_cmd
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
