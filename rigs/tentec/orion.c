@@ -101,7 +101,7 @@ double tt565_timenow()  /* returns current time in secs+microsecs */
  *
  * This is the basic I/O transaction to/from the Orion.
  * \n Read variable number of bytes, up to buffer size, if data & data_len != NULL.
- * \n We assume that rig!=NULL, rig->state!= NULL.
+ * \n We assume that rig!=NULL, STATE(rig)!= NULL.
  * Otherwise, you'll get a nice seg fault. You've been warned!
  */
 
@@ -221,12 +221,12 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int tt565_init(RIG *rig)
 {
     struct tt565_priv_data *priv;
-    rig->state.priv = (struct tt565_priv_data *)calloc(1, sizeof(
+    STATE(rig)->priv = (struct tt565_priv_data *)calloc(1, sizeof(
                           struct tt565_priv_data));
 
-    if (!rig->state.priv) { return -RIG_ENOMEM; } /* no memory available */
+    if (!STATE(rig)->priv) { return -RIG_ENOMEM; } /* no memory available */
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct tt565_priv_data));
     priv->ch = 0; /* set arbitrary initial status */
@@ -242,12 +242,12 @@ int tt565_init(RIG *rig)
  */
 int tt565_cleanup(RIG *rig)
 {
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -274,11 +274,11 @@ int tt565_open(RIG *rig)
     if (!strstr(buf, "1."))
     {
         /* Not v1 means probably v2 */
-        memcpy(&rig->state.str_cal, &cal2, sizeof(cal_table_t));
+        memcpy(&STATE(rig)->str_cal, &cal2, sizeof(cal_table_t));
     }
     else
     {
-        memcpy(&rig->state.str_cal, &cal1, sizeof(cal_table_t));
+        memcpy(&STATE(rig)->str_cal, &cal1, sizeof(cal_table_t));
     }
 
     return RIG_OK;
@@ -296,7 +296,7 @@ int tt565_open(RIG *rig)
  */
 static char which_receiver(const RIG *rig, vfo_t vfo)
 {
-    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -325,7 +325,7 @@ static char which_receiver(const RIG *rig, vfo_t vfo)
  */
 static char which_vfo(const RIG *rig, vfo_t vfo)
 {
-    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -353,7 +353,7 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
  * \param freq
  * \brief Set a frequence into the specified VFO
  *
- * assumes rig->state.priv!=NULL
+ * assumes STATE(rig)->priv!=NULL
  * \n assumes priv->mode in AM,CW,LSB or USB.
  */
 
@@ -373,7 +373,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     for (i = 0; i < HAMLIB_FRQRANGESIZ; i++)
     {
-        this_range = rig->state.rx_range_list[i];
+        this_range = STATE(rig)->rx_range_list[i];
 
         if (this_range.startf == 0 && this_range.endf == 0)
         {
@@ -382,7 +382,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         /* We don't care about mode setting, but vfo must match. */
         if (freq >= this_range.startf && freq <= this_range.endf &&
-                (this_range.vfo == rig->state.current_vfo))
+                (this_range.vfo == STATE(rig)->current_vfo))
         {
             in_range = TRUE;
             break;
@@ -481,7 +481,7 @@ int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int tt565_set_vfo(RIG *rig, vfo_t vfo)
 {
-    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -510,7 +510,7 @@ int tt565_set_vfo(RIG *rig, vfo_t vfo)
  */
 int tt565_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
 
     *vfo = priv->vfo_curr;
 
@@ -1783,7 +1783,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int tt565_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
 
     priv->ch = ch;  /* See RIG_OP_TO/FROM_VFO */
     return RIG_OK;
@@ -1798,7 +1798,7 @@ int tt565_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int tt565_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
 
     *ch = priv->ch;
     return RIG_OK;
@@ -1820,7 +1820,7 @@ int tt565_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int tt565_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    const struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    const struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
     char cmdbuf[TT565_BUFSIZE];
     int retval;
 

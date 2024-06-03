@@ -232,7 +232,7 @@ struct rig_caps rx331_caps =
 /*
  * rx331_transaction
  * read exactly data_len bytes
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  */
 static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
@@ -243,7 +243,7 @@ static int rx331_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
     char str[BUFSZ];
     char fmt[16];
     hamlib_port_t *rp = RIGPORT(rig);
-    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)STATE(rig)->priv;
 
     rig_flush(rp);
 
@@ -289,16 +289,16 @@ int rx331_init(RIG *rig)
 {
     struct rx331_priv_data *priv;
 
-    rig->state.priv = (struct rx331_priv_data *)calloc(1, sizeof(
+    STATE(rig)->priv = (struct rx331_priv_data *)calloc(1, sizeof(
                           struct rx331_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct rx331_priv_data));
 
@@ -311,19 +311,19 @@ int rx331_init(RIG *rig)
  */
 int rx331_cleanup(RIG *rig)
 {
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
 
 int rx331_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
-    struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    struct rx331_priv_data *priv = (struct rx331_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -340,7 +340,7 @@ int rx331_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
 int rx331_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
-    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -391,7 +391,7 @@ int rx331_close(RIG *rig)
 
 int rx331_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)STATE(rig)->priv;
 
     int freq_len, retval;
     char freqbuf[16];
@@ -439,7 +439,7 @@ int rx331_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int rx331_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)STATE(rig)->priv;
     char dmode;
     int mdbuf_len, retval;
     char mdbuf[32];
@@ -560,7 +560,7 @@ int rx331_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int rx331_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    const struct rx331_priv_data *priv = (struct rx331_priv_data *)rig->state.priv;
+    const struct rx331_priv_data *priv = (struct rx331_priv_data *)STATE(rig)->priv;
     int retval = RIG_OK;
     char cmdbuf[32];
 
