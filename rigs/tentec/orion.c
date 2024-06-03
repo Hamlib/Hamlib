@@ -941,8 +941,12 @@ int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
  */
 int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    return write_block(RIGPORT(rig),
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    int retval = write_block(RIGPORT(rig),
                        (unsigned char *)(ptt == RIG_PTT_ON ? "*TK" EOM : "*TU" EOM), 4);
+    if (retval == RIG_OK)
+        priv->ptt = ptt;
+    return retval;
 }
 
 /**
@@ -954,25 +958,9 @@ int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 int tt565_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    int resp_len, retval;
-    char respbuf[TT565_BUFSIZE];
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
 
-    resp_len = sizeof(respbuf);
-    retval = tt565_transaction(rig, "?S" EOM, 3, respbuf, &resp_len);
-
-    if (retval != RIG_OK)
-    {
-        return retval;
-    }
-
-    if (respbuf[1] != 'S' || resp_len < 5)
-    {
-        rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
-                  __func__, respbuf);
-        return -RIG_EPROTO;
-    }
-
-    *ptt = respbuf[2] == 'T' ? RIG_PTT_ON : RIG_PTT_OFF ;
+    *ptt = priv->ptt;
 
     return RIG_OK;
 }
