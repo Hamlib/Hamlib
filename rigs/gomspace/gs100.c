@@ -107,7 +107,7 @@ static int gs100_init(RIG *rig)
         RETURNFUNC(-RIG_ENOMEM);
     }
 
-    rig->state.priv = (void *)priv;
+    STATE(rig)->priv = (void *)priv;
 
 #ifdef _LOCAL_SIMULATION_
     RIGPORT(rig)->type.rig = RIG_PORT_NONE;  // just simulation
@@ -126,12 +126,12 @@ static int gs100_cleanup(RIG *rig)
 {
     ENTERFUNC;
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     RETURNFUNC(RIG_OK);
 }
@@ -169,11 +169,11 @@ static int gs100_close(RIG *rig)
 static int gs100_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
-            *)rig->state.priv;
+            *)STATE(rig)->priv;
 
     ENTERFUNC;
 
-    priv = (struct gs100_priv_data *)rig->state.priv;
+    priv = (struct gs100_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -195,11 +195,11 @@ static int gs100_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 static int gs100_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
-            *)rig->state.priv;
+            *)STATE(rig)->priv;
 
     ENTERFUNC;
 
-    priv = (struct gs100_priv_data *)rig->state.priv;
+    priv = (struct gs100_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -220,7 +220,7 @@ static int gs100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #ifdef _LOCAL_SIMULATION_
     __attribute__((unused)) const struct gs100_priv_data *priv =
         (struct gs100_priv_data
-         *)rig->state.priv;
+         *)STATE(rig)->priv;
 #endif
     char fstr[20], value[20];
     int retval;
@@ -255,7 +255,7 @@ static int gs100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #ifdef _LOCAL_SIMULATION_
     __attribute__((unused)) const struct gs100_priv_data *priv =
         (struct gs100_priv_data
-         *)rig->state.priv;
+         *)STATE(rig)->priv;
 #endif
     char resp[20];
     int retval;
@@ -292,7 +292,7 @@ static int gs100_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #ifdef _LOCAL_SIMULATION_
     __attribute__((unused)) const struct gs100_priv_data *priv =
         (struct gs100_priv_data
-         *)rig->state.priv;
+         *)STATE(rig)->priv;
 #endif
     char fstr[20], value[20];
     int retval;
@@ -327,7 +327,7 @@ static int gs100_get_tx_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #ifdef _LOCAL_SIMULATION_
     __attribute__((unused)) const struct gs100_priv_data *priv =
         (struct gs100_priv_data
-         *)rig->state.priv;
+         *)STATE(rig)->priv;
 #endif
     char resp[20];
     int retval;
@@ -440,7 +440,7 @@ struct rig_caps GS100_caps =
 static int gomx_set(RIG *rig, int table, char *varname, char *varvalue)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
-            *)rig->state.priv;
+            *)STATE(rig)->priv;
     int retval;
     char msg[BUFSZ], resp[BUFSZ];
 
@@ -479,7 +479,7 @@ static int gomx_get(RIG *rig, int table, char *varname, const char *varvalue,
                     int varvalue_len)
 {
     __attribute__((unused)) struct gs100_priv_data *priv = (struct gs100_priv_data
-            *)rig->state.priv;
+            *)STATE(rig)->priv;
     int retval;
     char msg[BUFSZ], resp[BUFSZ], *c;
     char fmt[32];

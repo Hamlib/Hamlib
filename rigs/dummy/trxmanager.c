@@ -208,7 +208,7 @@ static int vfo_curr(RIG *rig, vfo_t vfo)
     int retval = 0;
     vfo_t vfocurr;
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
 
     // get the current VFO from trxmanager in case user changed it
     if ((retval = trxmanager_get_vfo(rig, &vfocurr)) != RIG_OK)
@@ -257,15 +257,15 @@ static int trxmanager_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
-    rig->state.priv = (struct trxmanager_priv_data *)calloc(1,
+    STATE(rig)->priv = (struct trxmanager_priv_data *)calloc(1,
                       sizeof(struct trxmanager_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct trxmanager_priv_data));
 
@@ -287,7 +287,7 @@ static int trxmanager_init(RIG *rig)
 
 /*
  * trxmanager_open
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 static int trxmanager_open(RIG *rig)
 {
@@ -297,7 +297,7 @@ static int trxmanager_open(RIG *rig)
     char response[MAXCMDLEN] = "";
     hamlib_port_t *rp = RIGPORT(rig);
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__, BACKEND_VER);
 
@@ -377,7 +377,7 @@ static int trxmanager_close(RIG *rig)
 
 /*
  * trxmanager_cleanup
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 static int trxmanager_cleanup(RIG *rig)
 {
@@ -387,15 +387,15 @@ static int trxmanager_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    free(rig->state.priv);
-    rig->state.priv = NULL;
+    free(STATE(rig)->priv);
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
 
 /*
  * trxmanager_get_freq
- * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, freq!=NULL
  */
 static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
@@ -405,7 +405,7 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN] = "";
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
@@ -465,7 +465,7 @@ static int trxmanager_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 /*
  * trxmanager_set_freq
- * assumes rig!=NULL, rig->state.priv!=NULL
+ * assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -474,7 +474,7 @@ static int trxmanager_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN] = "";
     const struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
 
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __func__,
@@ -725,7 +725,7 @@ static int trxmanager_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 
 /*
  * trxmanager_get_mode
- * Assumes rig!=NULL, rig->state.priv!=NULL, mode!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, mode!=NULL
  */
 static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
                                pbwidth_t *width)
@@ -738,7 +738,7 @@ static int trxmanager_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
     char response[MAXCMDLEN] = "";
     hamlib_port_t *rp = RIGPORT(rig);
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(vfo));
@@ -877,9 +877,9 @@ static int trxmanager_set_vfo(RIG *rig, vfo_t vfo)
     int retval;
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN] = "";
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-                                        rig->state.priv;
+                                        rs->priv;
 
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -929,7 +929,7 @@ static int trxmanager_get_vfo(RIG *rig, vfo_t *vfo)
     // So we maintain our own internal state during set_vfo
     // This keeps the hamlib interface consistent with other rigs
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
     char vfoab;
 
 
@@ -1092,7 +1092,7 @@ static int trxmanager_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN] = "";
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
     SNPRINTF(cmd, sizeof(cmd), "SP;");
@@ -1136,7 +1136,7 @@ static int trxmanager_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
     char cmd[MAXCMDLEN];
     char response[MAXCMDLEN] = "";
     struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
@@ -1205,7 +1205,7 @@ static int trxmanager_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
 static const char *trxmanager_get_info(RIG *rig)
 {
     const struct trxmanager_priv_data *priv = (struct trxmanager_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     return priv->info;
