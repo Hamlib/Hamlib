@@ -228,16 +228,16 @@ int funcube_init(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct funcube_priv_data *priv;
 
-    rig->state.priv = (struct funcube_priv_data *)calloc(sizeof(
+    STATE(rig)->priv = (struct funcube_priv_data *)calloc(sizeof(
                           struct funcube_priv_data), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->freq = 0;
 
@@ -258,16 +258,16 @@ int funcubeplus_init(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct funcube_priv_data *priv;
 
-    rig->state.priv = (struct funcube_priv_data *)calloc(sizeof(
+    STATE(rig)->priv = (struct funcube_priv_data *)calloc(sizeof(
                           struct funcube_priv_data), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->freq = 0;
 
@@ -290,12 +290,12 @@ int funcube_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -426,7 +426,7 @@ int set_freq_v1(libusb_device_handle *udh, unsigned int f, int timeout)
 
 int funcube_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct funcube_priv_data *priv = (struct funcube_priv_data *)rig->state.priv;
+    struct funcube_priv_data *priv = (struct funcube_priv_data *)STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     libusb_device_handle *udh = rp->handle;
 
@@ -450,7 +450,7 @@ int funcube_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int get_freq_v0(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     const struct funcube_priv_data *priv = (struct funcube_priv_data *)
-                                           rig->state.priv;
+                                           STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE,
               "%s: frequency is not read from the device, the value shown is the last successfully set.\n",
