@@ -212,6 +212,11 @@
 %ignore hamlib_copyright2;
 %ignore hamlib_version2;
 %ignore macro_name;
+%ignore fd_sync_write;
+%ignore fd_sync_read;
+%ignore fd_sync_error_write;
+%ignore fd_sync_error_read;
+
 
 %ignore FIFO_RIG;
 
