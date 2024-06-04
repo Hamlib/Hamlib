@@ -286,7 +286,7 @@ static int jst145_init(RIG *rig)
         return -RIG_ENOMEM;
     }
 
-    rig->state.priv = (void *)priv;
+    STATE(rig)->priv = (void *)priv;
     return RIG_OK;
 }
 
@@ -296,7 +296,7 @@ static int jst145_open(RIG *rig)
     freq_t freq;
     rmode_t mode;
     pbwidth_t width;
-    struct jst145_priv_data *priv = rig->state.priv;
+    struct jst145_priv_data *priv = STATE(rig)->priv;
 
     retval = write_block(RIGPORT(rig), (unsigned char *) "H1\r", 3);
 
@@ -345,7 +345,7 @@ ptt_retry:
 
     if (ptt)  // can't get vfo while transmitting
     {
-        *vfo = rig->state.current_vfo;
+        *vfo = STATE(rig)->current_vfo;
         return RIG_OK;
     }
 
@@ -371,8 +371,8 @@ static int jst145_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[MAX_LEN];
     int retval;
-    struct jst145_priv_data *priv = rig->state.priv;
-    vfo_t save_vfo = rig->state.current_vfo;
+    struct jst145_priv_data *priv = STATE(rig)->priv;
+    vfo_t save_vfo = STATE(rig)->current_vfo;
 
     if (vfo == RIG_VFO_CURR) { vfo = save_vfo; }
 
@@ -414,9 +414,9 @@ static int jst145_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     int freqbuf_size = sizeof(freqbuf);
     int retval;
     int n;
-    vfo_t save_vfo = rig->state.current_vfo;
+    vfo_t save_vfo = STATE(rig)->current_vfo;
 
-    //struct jst145_priv_data *priv = rig->state.priv;
+    //struct jst145_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s curr_vfo=%s\n", __func__,
               rig_strvfo(vfo), rig_strvfo(save_vfo));
@@ -455,7 +455,7 @@ static int jst145_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int retval;
     char *modestr;
-    struct jst145_priv_data *priv = rig->state.priv;
+    struct jst145_priv_data *priv = STATE(rig)->priv;
 
     switch (mode)
     {
@@ -579,7 +579,7 @@ static int jst145_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 static int jst145_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char cmd[MAX_LEN];
-    struct jst145_priv_data *priv = rig->state.priv;
+    struct jst145_priv_data *priv = STATE(rig)->priv;
     rig_debug(RIG_DEBUG_TRACE, "%s: entered\n", __func__);
     SNPRINTF(cmd, sizeof(cmd), "X%c\r", ptt ? '1' : '0');
     priv->ptt = ptt;
@@ -592,7 +592,7 @@ static int jst145_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     char pttstatus[MAX_LEN];
     int pttstatus_size = sizeof(pttstatus);
     int retval;
-    struct jst145_priv_data *priv = rig->state.priv;
+    struct jst145_priv_data *priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: entered\n", __func__);
 

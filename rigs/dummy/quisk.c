@@ -50,7 +50,7 @@ struct quisk_priv_data
 int quisk_get_vfo_mode(RIG *rig)
 {
     struct quisk_priv_data *priv;
-    priv = (struct quisk_priv_data *)rig->state.priv;
+    priv = (struct quisk_priv_data *)STATE(rig)->priv;
     return priv->rigctld_vfo_mode;
 }
 #endif
@@ -109,7 +109,7 @@ static int quisk_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
 
     vfostr[0] = 0;
 
-    priv = (struct quisk_priv_data *)rig->state.priv;
+    priv = (struct quisk_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -122,9 +122,9 @@ static int quisk_vfostr(RIG *rig, char *vfostr, int len, vfo_t vfo)
     else if (vfo == RIG_VFO_RX) { vfo = priv->rx_vfo; }
     else if (vfo == RIG_VFO_TX) { vfo = priv->tx_vfo; }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, rig->state.vfo_opt);
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt=%d\n", __func__, STATE(rig)->vfo_opt);
 
-    if (rig->state.vfo_opt || priv->rigctld_vfo_mode)
+    if (STATE(rig)->vfo_opt || priv->rigctld_vfo_mode)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo_opt vfo=%u\n", __func__, vfo);
         char *myvfo;
@@ -168,15 +168,15 @@ static int quisk_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct quisk_priv_data *)calloc(1, sizeof(
+    STATE(rig)->priv = (struct quisk_priv_data *)calloc(1, sizeof(
                           struct quisk_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
     memset(priv, 0, sizeof(struct quisk_priv_data));
 
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
@@ -193,9 +193,9 @@ static int quisk_init(RIG *rig)
 
 static int quisk_cleanup(RIG *rig)
 {
-    if (rig->state.priv) { free(rig->state.priv); }
+    if (STATE(rig)->priv) { free(STATE(rig)->priv); }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
     return RIG_OK;
 }
 
@@ -208,7 +208,7 @@ extern int parse_array_double(const char *s, const char *delim, double *array,
 static int quisk_open(RIG *rig)
 {
     int ret, i;
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     int prot_ver;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
@@ -218,7 +218,7 @@ static int quisk_open(RIG *rig)
 
     ENTERFUNC;
 
-    priv = (struct quisk_priv_data *)rig->state.priv;
+    priv = (struct quisk_priv_data *)rs->priv;
     priv->rx_vfo = RIG_VFO_A;
     priv->tx_vfo = RIG_VFO_A;
 
@@ -850,7 +850,7 @@ static int quisk_open(RIG *rig)
 
 static int quisk_close(RIG *rig)
 {
-    const struct rig_state *rs = &rig->state;
+    const struct rig_state *rs = STATE(rig);
     int ret;
     char buf[BUF_MAX];
 
@@ -1035,7 +1035,7 @@ static int quisk_set_vfo(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct quisk_priv_data *)rig->state.priv;
+    priv = (struct quisk_priv_data *)STATE(rig)->priv;
 
     SNPRINTF(cmd, sizeof(cmd), "V%s %s\n", vfostr, rig_strvfo(vfo));
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd='%s'\n", __func__, cmd);
@@ -1047,7 +1047,7 @@ static int quisk_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     priv->vfo_curr = vfo; // remember our vfo
-    rig->state.current_vfo = vfo;
+    STATE(rig)->current_vfo = vfo;
     return ret;
 }
 
@@ -1061,7 +1061,7 @@ static int quisk_get_vfo(RIG *rig, vfo_t *vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct quisk_priv_data *)rig->state.priv;
+    priv = (struct quisk_priv_data *)STATE(rig)->priv;
 
     SNPRINTF(cmd, sizeof(cmd), "v\n");
 
@@ -2582,7 +2582,7 @@ static int quisk_set_vfo_opt(RIG *rig, int status)
         return -RIG_EPROTO;
     }
 
-    rig->state.vfo_opt = status;
+    STATE(rig)->vfo_opt = status;
     return RIG_OK;
 }
 
