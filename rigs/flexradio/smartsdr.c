@@ -370,6 +370,10 @@ int smartsdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     smartsdr_transaction(rig, cmd);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: set_freq answer: %s", __func__, buf);
     rig_set_cache_freq(rig, vfo, freq);
+    if (vfo == RIG_VFO_A)
+    priv->freqA = freq;
+    else
+    priv->freqB = freq;
     RETURNFUNC(RIG_OK);
 }
 
@@ -448,8 +452,10 @@ int smartsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     //char cmd[64];
     ENTERFUNC;
     //int retval = -RIG_EINTERNAL;
+    // doing the sub slice causes audio problems
     //sprintf(cmd, "sub slice %d", priv->slicenum);
-    smartsdr_transaction(rig, NULL);
+    //sprintf(cmd, "info");
+    //smartsdr_transaction(rig, cmd);
     if (vfo == RIG_VFO_A)
     *freq = priv->freqA;
     else
@@ -480,6 +486,7 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     smartsdr_transaction(rig, cmd);
     sprintf(cmd, "xmit %d", ptt);
     smartsdr_transaction(rig, cmd);
+    priv->ptt = ptt;
     RETURNFUNC(RIG_OK);
 }
 
@@ -487,7 +494,7 @@ int smartsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     ENTERFUNC;
-    smartsdr_transaction(rig, NULL);
+//    smartsdr_transaction(rig, NULL);
     *ptt = priv->ptt;
     RETURNFUNC(RIG_OK);
 }
