@@ -168,16 +168,16 @@ int drt1_init(RIG *rig)
 {
     struct drt1_priv_data *priv;
 
-    rig->state.priv = (struct drt1_priv_data *)calloc(1, sizeof(
+    STATE(rig)->priv = (struct drt1_priv_data *)calloc(1, sizeof(
                           struct drt1_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->osc_freq = OSCFREQ;
     priv->ref_mult = REFMULT;
@@ -194,25 +194,25 @@ int drt1_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
 
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int drt1_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct drt1_priv_data *priv;
 
-    priv = (struct drt1_priv_data *)rig->state.priv;
+    priv = (struct drt1_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -241,14 +241,14 @@ int drt1_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
 /*
  * assumes rig!=NULL,
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
 int drt1_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct drt1_priv_data *priv;
 
-    priv = (struct drt1_priv_data *)rig->state.priv;
+    priv = (struct drt1_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -414,7 +414,7 @@ int drt1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct drt1_priv_data *priv;
     hamlib_port_t *port = RIGPORT(rig);
 
-    priv = (struct drt1_priv_data *)rig->state.priv;
+    priv = (struct drt1_priv_data *)STATE(rig)->priv;
 
     rig_flush(port);
 

@@ -569,16 +569,16 @@ int si570avrusb_init(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct si570xxxusb_priv_data *priv;
 
-    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    STATE(rig)->priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
                       si570xxxusb_priv_data), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -610,16 +610,16 @@ int si570peaberry1_init(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct si570xxxusb_priv_data *priv;
 
-    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    STATE(rig)->priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
                       si570xxxusb_priv_data), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -651,16 +651,16 @@ int si570peaberry2_init(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct si570xxxusb_priv_data *priv;
 
-    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    STATE(rig)->priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
                       si570xxxusb_priv_data), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -692,16 +692,16 @@ int si570picusb_init(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct si570xxxusb_priv_data *priv;
 
-    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    STATE(rig)->priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
                       si570xxxusb_priv_data), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -733,16 +733,16 @@ int fasdr_init(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct si570xxxusb_priv_data *priv;
 
-    rig->state.priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
+    STATE(rig)->priv = (struct si570xxxusb_priv_data *)calloc(sizeof(struct
                       si570xxxusb_priv_data), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
     /* QSD/QSE */
@@ -770,7 +770,7 @@ int fasdr_init(RIG *rig)
 int fasdr_open(RIG *rig)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
-                                         rig->state.priv;
+                                         STATE(rig)->priv;
     libusb_device_handle *udh = RIGPORT(rig)->handle;
     int ret, i;
     double f;
@@ -852,12 +852,12 @@ int si570xxxusb_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -869,7 +869,7 @@ int si570xxxusb_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     double multiplier;
     unsigned int i2c_addr;
 
-    priv = (struct si570xxxusb_priv_data *)rig->state.priv;
+    priv = (struct si570xxxusb_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -928,7 +928,7 @@ int si570xxxusb_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 int si570xxxusb_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct si570xxxusb_priv_data *priv;
-    priv = (struct si570xxxusb_priv_data *)rig->state.priv;
+    priv = (struct si570xxxusb_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -1014,7 +1014,7 @@ static int setBPF(RIG *rig, int enable)
 int si570xxxusb_open(RIG *rig)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
-                                         rig->state.priv;
+                                         STATE(rig)->priv;
     libusb_device_handle *udh = RIGPORT(rig)->handle;
     int ret;
     unsigned char buffer[4];
@@ -1112,7 +1112,7 @@ static const int HS_DIV_MAP[] = {4, 5, 6, 7, -1, 9, -1, 11};
 static int calcDividers(RIG *rig, double f, struct solution *solution)
 {
     const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
     struct solution sols[8];
     int i;
     int imin;
@@ -1194,7 +1194,7 @@ static int calcDividers(RIG *rig, double f, struct solution *solution)
 int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
     libusb_device_handle *udh = RIGPORT(rig)->handle;
     int ret;
     unsigned char buffer[6];
@@ -1260,7 +1260,7 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 {
     const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
     libusb_device_handle *udh = RIGPORT(rig)->handle;
     int ret;
 
@@ -1299,7 +1299,7 @@ int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 static double calculateFrequency(RIG *rig, const unsigned char *buffer)
 {
     const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
 
     int RFREQ_int = ((buffer[2] & 0xf0) >> 4) + ((buffer[1] & 0x3f) * 16);
     int RFREQ_frac = (256 * 256 * 256 * (buffer[2] & 0xf)) +
@@ -1330,7 +1330,7 @@ static double calculateFrequency(RIG *rig, const unsigned char *buffer)
 int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
-                                         rig->state.priv;
+                                         STATE(rig)->priv;
     libusb_device_handle *udh = RIGPORT(rig)->handle;
     unsigned char buffer[6];
     int ret;
@@ -1362,7 +1362,7 @@ int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     const struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
     libusb_device_handle *udh = RIGPORT(rig)->handle;
     int ret;
     unsigned char buffer[4];

@@ -329,16 +329,16 @@ int fifisdr_init(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct fifisdr_priv_instance_data *priv;
 
-    rig->state.priv = (struct fifisdr_priv_instance_data *)calloc(sizeof(
+    STATE(rig)->priv = (struct fifisdr_priv_instance_data *)calloc(sizeof(
                           struct fifisdr_priv_instance_data), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->multiplier = 4;
 
@@ -365,12 +365,12 @@ int fifisdr_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -384,7 +384,7 @@ int fifisdr_open(RIG *rig)
     struct fifisdr_priv_instance_data *priv;
 
 
-    priv = (struct fifisdr_priv_instance_data *)rig->state.priv;
+    priv = (struct fifisdr_priv_instance_data *)STATE(rig)->priv;
 
     /* The VCO is a multiple of the RX frequency. Typically 4 */
     ret = fifisdr_usb_read(rig, REQUEST_FIFISDR_READ, 0,
@@ -426,7 +426,7 @@ int fifisdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     const struct fifisdr_priv_instance_data *priv = (struct
             fifisdr_priv_instance_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
     int ret;
     double mhz;
     uint32_t freq1121;
@@ -453,7 +453,7 @@ int fifisdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     const struct fifisdr_priv_instance_data *priv = (struct
             fifisdr_priv_instance_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
     int ret;
     uint32_t freq1121;
 
