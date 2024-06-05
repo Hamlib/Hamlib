@@ -3,7 +3,7 @@
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
-    .targetable_vfo =      0,
+    .targetable_vfo = RIG_TARGETABLE_FREQ,
     .ptt_type =       RIG_PTT_RIG,
     .port_type =      RIG_PORT_NETWORK,
     .write_delay = 0,
