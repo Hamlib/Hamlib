@@ -196,10 +196,12 @@ static int smartsdr_flush(RIG *rig)
     // for this flush routine we expect at least one message for sure -- might be more
     len = read_string(RIGPORT(rig), (unsigned char *)buf, buf_len, stopset, 1, 0,
                       1);
+
     if (buf[0] == 'S') { smartsdr_parse_S(rig, buf); }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes\n", __func__, len);
 #endif
+
     do
     {
         buf[0] = 0;
@@ -208,8 +210,8 @@ static int smartsdr_flush(RIG *rig)
         if (buf[0] == 'S') { smartsdr_parse_S(rig, buf); }
 
         else if (buf[0] == 'R') { sscanf(buf, "R%d", &retval); }
-        
-        else if (strlen(buf)>0) rig_debug(RIG_DEBUG_WARN, "%s: Unknown packet type=%s\n", __func__, buf);
+
+        else if (strlen(buf) > 0) { rig_debug(RIG_DEBUG_WARN, "%s: Unknown packet type=%s\n", __func__, buf); }
     }
     while (len > 0);
 
@@ -228,11 +230,14 @@ static int smartsdr_transaction(RIG *rig, char *buf)
     {
         sprintf(cmd, "C%d|%s%c", priv->seqnum++, buf, 0x0a);
         retval = write_block(RIGPORT(rig), (unsigned char *) cmd, strlen(cmd));
+
         if (retval != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: SmartSDR write_block err=0x%x\n", __func__, retval);
+            rig_debug(RIG_DEBUG_ERR, "%s: SmartSDR write_block err=0x%x\n", __func__,
+                      retval);
         }
     }
+
     retval = smartsdr_flush(rig);
 
     if (retval != 0)
@@ -373,10 +378,16 @@ int smartsdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     smartsdr_transaction(rig, cmd);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: set_freq answer: %s", __func__, buf);
     rig_set_cache_freq(rig, vfo, freq);
+
     if (vfo == RIG_VFO_A)
-    priv->freqA = freq;
+    {
+        priv->freqA = freq;
+    }
     else
-    priv->freqB = freq;
+    {
+        priv->freqB = freq;
+    }
+
     RETURNFUNC(RIG_OK);
 }
 
@@ -394,6 +405,7 @@ static int smartsdr_parse_S(RIG *rig, char *s)
     do
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: parsing '%s'\n", __func__, p);
+
         if (sscanf(p, "RF_frequency=%lf", &freq) == 1)
         {
             priv->freqA = freq * 1e6;
@@ -436,8 +448,8 @@ static int smartsdr_parse_S(RIG *rig, char *s)
         }
         else if (sscanf(p, "state=%s\n", state) == 1)
         {
-            if (strcmp(state,"TRANSMITTING")==0) priv->ptt = 1;
-            else priv->ptt = 0;
+            if (strcmp(state, "TRANSMITTING") == 0) { priv->ptt = 1; }
+            else { priv->ptt = 0; }
         }
     }
     while ((p = strtok(NULL, sep)));
@@ -459,10 +471,15 @@ int smartsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     //sprintf(cmd, "sub slice %d", priv->slicenum);
     //sprintf(cmd, "info");
     smartsdr_transaction(rig, NULL);
+
     if (vfo == RIG_VFO_A)
-    *freq = priv->freqA;
+    {
+        *freq = priv->freqA;
+    }
     else
-    *freq = priv->freqB;
+    {
+        *freq = priv->freqB;
+    }
 
     RETURNFUNC(RIG_OK);
 }
