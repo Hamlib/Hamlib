@@ -192,11 +192,14 @@ static int smartsdr_flush(RIG *rig)
     int len = 0;
     int retval = RIG_OK;
     ENTERFUNC;
+#if 0
     // for this flush routine we expect at least one message for sure -- might be more
     len = read_string(RIGPORT(rig), (unsigned char *)buf, buf_len, stopset, 1, 0,
                       1);
+    if (buf[0] == 'S') { smartsdr_parse_S(rig, buf); }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read %d bytes\n", __func__, len);
+#endif
     do
     {
         buf[0] = 0;
@@ -455,7 +458,7 @@ int smartsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // doing the sub slice causes audio problems
     //sprintf(cmd, "sub slice %d", priv->slicenum);
     //sprintf(cmd, "info");
-    //smartsdr_transaction(rig, cmd);
+    smartsdr_transaction(rig, NULL);
     if (vfo == RIG_VFO_A)
     *freq = priv->freqA;
     else
