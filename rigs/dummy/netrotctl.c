@@ -66,7 +66,7 @@ static int netrotctl_transaction(ROT *rot, char *cmd, int len, char *buf)
 static int netrotctl_open(ROT *rot)
 {
     int ret;
-    struct rot_state *rs = &rot->state;
+    struct rot_state *rs = ROTSTATE(rot);
     hamlib_port_t *rotp = ROTPORT(rot);
     int prot_ver;
     char cmd[CMD_MAX];

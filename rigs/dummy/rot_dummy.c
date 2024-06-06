@@ -120,15 +120,15 @@ static int dummy_rot_init(ROT *rot)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rot->state.priv = (struct dummy_rot_priv_data *)
+    ROTSTATE(rot)->priv = (struct dummy_rot_priv_data *)
                       calloc(1, sizeof(struct dummy_rot_priv_data));
 
-    if (!rot->state.priv)
+    if (!ROTSTATE(rot)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rot->state.priv;
+    priv = ROTSTATE(rot)->priv;
 
     priv->ext_funcs = alloc_init_ext(dummy_ext_funcs);
 
@@ -165,7 +165,7 @@ static int dummy_rot_init(ROT *rot)
 static int dummy_rot_cleanup(ROT *rot)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -173,9 +173,9 @@ static int dummy_rot_cleanup(ROT *rot)
     free(priv->ext_levels);
     free(priv->ext_parms);
     free(priv->magic_conf);
-    free(rot->state.priv);
+    free(ROTSTATE(rot)->priv);
 
-    rot->state.priv = NULL;
+    ROTSTATE(rot)->priv = NULL;
 
     return RIG_OK;
 }
@@ -205,7 +205,7 @@ static int dummy_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     struct dummy_rot_priv_data *priv;
 
-    priv = (struct dummy_rot_priv_data *)rot->state.priv;
+    priv = (struct dummy_rot_priv_data *)ROTSTATE(rot)->priv;
 
     switch (token)
     {
@@ -230,7 +230,7 @@ static int dummy_get_conf2(ROT *rot, hamlib_token_t token, char *val, int val_le
 {
     struct dummy_rot_priv_data *priv;
 
-    priv = (struct dummy_rot_priv_data *)rot->state.priv;
+    priv = (struct dummy_rot_priv_data *)ROTSTATE(rot)->priv;
 
     switch (token)
     {
@@ -255,7 +255,7 @@ static int dummy_get_conf(ROT *rot, hamlib_token_t token, char *val)
 static int dummy_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
               az, el);
@@ -279,7 +279,7 @@ static int dummy_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 static void dummy_rot_simulate_rotation(ROT *rot)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     struct timeval tv;
     unsigned elapsed; /* ms */
 
@@ -354,7 +354,7 @@ static void dummy_rot_simulate_rotation(ROT *rot)
 static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     const struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-            rot->state.priv;
+            ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -381,7 +381,7 @@ static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 static int dummy_rot_stop(ROT *rot)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     azimuth_t az;
     elevation_t el;
 
@@ -416,7 +416,7 @@ static int dummy_rot_reset(ROT *rot, rot_reset_t reset)
 static int dummy_rot_move(ROT *rot, int direction, int speed)
 {
     const struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-            rot->state.priv;
+            ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: Direction = %d, Speed = %d\n", __func__,
@@ -469,7 +469,7 @@ static const char *dummy_rot_get_info(ROT *rot)
 static int dummy_set_func(ROT *rot, setting_t func, int status)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s %d\n", __func__,
               rot_strfunc(func), status);
@@ -490,7 +490,7 @@ static int dummy_set_func(ROT *rot, setting_t func, int status)
 static int dummy_get_func(ROT *rot, setting_t func, int *status)
 {
     const struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-            rot->state.priv;
+            ROTSTATE(rot)->priv;
 
     *status = (priv->funcs & func) ? 1 : 0;
 
@@ -504,7 +504,7 @@ static int dummy_get_func(ROT *rot, setting_t func, int *status)
 static int dummy_set_level(ROT *rot, setting_t level, value_t val)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     int idx;
     char lstr[32];
 
@@ -536,7 +536,7 @@ static int dummy_set_level(ROT *rot, setting_t level, value_t val)
 static int dummy_get_level(ROT *rot, setting_t level, value_t *val)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     int idx;
 
     idx = rig_setting2idx(level);
@@ -557,7 +557,7 @@ static int dummy_get_level(ROT *rot, setting_t level, value_t *val)
 static int dummy_set_ext_level(ROT *rot, hamlib_token_t token, value_t val)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     char lstr[64];
     const struct confparams *cfp;
     struct ext_list *elp;
@@ -626,7 +626,7 @@ static int dummy_set_ext_level(ROT *rot, hamlib_token_t token, value_t val)
 static int dummy_get_ext_level(ROT *rot, hamlib_token_t token, value_t *val)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     const struct confparams *cfp;
     struct ext_list *elp;
 
@@ -669,7 +669,7 @@ static int dummy_get_ext_level(ROT *rot, hamlib_token_t token, value_t *val)
 static int dummy_set_ext_func(ROT *rot, hamlib_token_t token, int status)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     const struct confparams *cfp;
     struct ext_list *elp;
 
@@ -721,7 +721,7 @@ static int dummy_set_ext_func(ROT *rot, hamlib_token_t token, int status)
 static int dummy_get_ext_func(ROT *rot, hamlib_token_t token, int *status)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     const struct confparams *cfp;
     struct ext_list *elp;
 
@@ -761,7 +761,7 @@ static int dummy_get_ext_func(ROT *rot, hamlib_token_t token, int *status)
 static int dummy_set_parm(ROT *rot, setting_t parm, value_t val)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     int idx;
     char pstr[32];
 
@@ -793,7 +793,7 @@ static int dummy_set_parm(ROT *rot, setting_t parm, value_t val)
 static int dummy_get_parm(ROT *rot, setting_t parm, value_t *val)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     int idx;
 
     idx = rig_setting2idx(parm);
@@ -814,7 +814,7 @@ static int dummy_get_parm(ROT *rot, setting_t parm, value_t *val)
 static int dummy_set_ext_parm(ROT *rot, hamlib_token_t token, value_t val)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     char lstr[64];
     const struct confparams *cfp;
     struct ext_list *epp;
@@ -880,7 +880,7 @@ static int dummy_set_ext_parm(ROT *rot, hamlib_token_t token, value_t val)
 static int dummy_get_ext_parm(ROT *rot, hamlib_token_t token, value_t *val)
 {
     struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-                                       rot->state.priv;
+                                       ROTSTATE(rot)->priv;
     const struct confparams *cfp;
     struct ext_list *epp;
 
@@ -920,7 +920,7 @@ static int dummy_get_ext_parm(ROT *rot, hamlib_token_t token, value_t *val)
 static int dummy_rot_get_status(ROT *rot, rot_status_t *status)
 {
     const struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)
-            rot->state.priv;
+            ROTSTATE(rot)->priv;
 
     if (simulating)
     {

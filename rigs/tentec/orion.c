@@ -941,7 +941,7 @@ int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
  */
 int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
     int retval = write_block(RIGPORT(rig),
                        (unsigned char *)(ptt == RIG_PTT_ON ? "*TK" EOM : "*TU" EOM), 4);
     if (retval == RIG_OK)
@@ -958,7 +958,7 @@ int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 int tt565_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
 
     *ptt = priv->ptt;
 
