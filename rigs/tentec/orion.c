@@ -692,6 +692,8 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int resp_len, retval;
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
     char ttmode, ttreceiver;
+    int retry;
+    int timeout;
 
     ttreceiver = which_receiver(rig, vfo);
 
@@ -737,11 +739,19 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     /* Orion may need some time to "recover" from ?RxM before ?RxF */
-    hl_usleep(80000);      // try 80 ms
+    hl_usleep(100*1000);      // was 80, now 100 -- still seeing infrequent failure
     /* Query passband width (filter) */
+    // since this fails at 80ms sometimes we won't retry and will reduce the timeout
+    // Normally this comes back in about 30ms
+    retry = rig->state.retry; 
+    timeout = rig->state.timeout;
+    rig->state.retry = 0;
+    rig->state.timeout = 100;
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cF" EOM, ttreceiver);
     resp_len = sizeof(respbuf);
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
+    rig->state.retry = retry;
+    rig->state.timeout = timeout;
 
     if (retval != RIG_OK)
     {
