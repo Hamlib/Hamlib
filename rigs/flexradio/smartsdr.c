@@ -69,7 +69,7 @@ struct smartsdr_priv_data
 
 #define SMARTSDR_MODES (RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_CW|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_SAM)
 
-#define SMARTSDR_VFO (RIG_VFO_A|RIG_VFO_B)
+#define SMARTSDR_VFO (RIG_VFO_A)
 
 #define SMARTSDR_ANTS 3
 
@@ -178,6 +178,7 @@ int smartsdr_init(RIG *rig)
                   rs->model_name);
         RETURNFUNC(-RIG_ENIMPL);
     }
+    priv->ptt = 0;
 
     RETURNFUNC(RIG_OK);
 }
@@ -253,12 +254,18 @@ int smartsdr_open(RIG *rig)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     char cmd[64];
+    int loops = 20;
     ENTERFUNC;
     // Once we've connected and hit here we should have two messages queued from the intial connect
 
     sprintf(cmd, "sub slice %d", priv->slicenum);
     //sprintf(cmd, "sub slice all");
     smartsdr_transaction(rig, cmd);
+    do 
+    {
+    hl_usleep(100*1000);
+    smartsdr_transaction(rig, NULL);
+    } while (priv->freqA == 0 && --loops > 0);
     //smartsdr_transaction(rig, "info", buf, sizeof(buf));
     //rig_debug(RIG_DEBUG_VERBOSE, "%s: info=%s", __func__, buf);
 
@@ -418,10 +425,6 @@ static int smartsdr_parse_S(RIG *rig, char *s)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: got width=%d\n", __func__, priv->widthA);
             rig_set_cache_mode(rig, RIG_VFO_A, priv->modeA, priv->widthA);
         }
-        else if (sscanf(p, "tx=%d\n", &priv->ptt) == 1)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: got ptt=%d\n", __func__, priv->ptt);
-        }
         else if (sscanf(p, "mode=%s\n", mode) == 1)
         {
             if (strcmp(mode, "USB") == 0) { priv->modeA = RIG_MODE_USB; }
@@ -450,6 +453,7 @@ static int smartsdr_parse_S(RIG *rig, char *s)
         {
             if (strcmp(state, "TRANSMITTING") == 0) { priv->ptt = 1; }
             else { priv->ptt = 0; }
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: PTT state=%s, ptt=%d\n", __func__, state, priv->ptt);
         }
     }
     while ((p = strtok(NULL, sep)));
@@ -472,7 +476,7 @@ int smartsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     //sprintf(cmd, "info");
     smartsdr_transaction(rig, NULL);
 
-    if (vfo == RIG_VFO_A)
+    if (vfo == RIG_VFO_A || vfo == RIG_VFO_CURR)
     {
         *freq = priv->freqA;
     }
@@ -514,8 +518,9 @@ int smartsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     ENTERFUNC;
-//    smartsdr_transaction(rig, NULL);
+    smartsdr_transaction(rig, NULL);
     *ptt = priv->ptt;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d\n", __func__, *ptt);
     RETURNFUNC(RIG_OK);
 }
 
