@@ -280,7 +280,7 @@ int elektor507_init(RIG *rig)
     extra_priv->FT_Write =
         (FNCFT_Write) GetProcAddress(extra_priv->dll, "FT_Write");
 
-    rig->state.priv = (void *)priv;
+    STATE(rig)->priv = (void *)priv;
 
     return RIG_OK;
 }
@@ -289,7 +289,7 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf,
                                unsigned long BufferSize)
 {
     struct elektor507_extra_priv_data *extra_priv =
-        &((struct elektor507_priv_data *)rig->state.priv)->extra_priv;
+        &((struct elektor507_priv_data *)STATE(rig)->priv)->extra_priv;
     FT_Result ret;
     int Result;
 
@@ -338,17 +338,17 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf,
 int elektor507_cleanup(RIG *rig)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
 
     /* Clean up the dll access */
     if (priv) { FreeLibrary(priv->extra_priv.dll); }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -376,16 +376,16 @@ int elektor507_init(RIG *rig)
     hamlib_port_t *rp = RIGPORT(rig);
     struct elektor507_priv_data *priv;
 
-    rig->state.priv = (struct elektor507_priv_data *)calloc(sizeof(struct
+    STATE(rig)->priv = (struct elektor507_priv_data *)calloc(sizeof(struct
                       elektor507_priv_data), 1);
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->xtal_cal = XTAL_CAL;
     priv->osc_freq = OSCFREQ;
@@ -412,12 +412,12 @@ int elektor507_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -646,7 +646,7 @@ int elektor507_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     struct elektor507_priv_data *priv;
     freq_t freq;
 
-    priv = (struct elektor507_priv_data *)rig->state.priv;
+    priv = (struct elektor507_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -670,7 +670,7 @@ int elektor507_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct elektor507_priv_data *priv;
 
-    priv = (struct elektor507_priv_data *)rig->state.priv;
+    priv = (struct elektor507_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -699,7 +699,7 @@ int elektor507_get_conf(RIG *rig, hamlib_token_t token, char *val)
 int elektor507_open(RIG *rig)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
     int ret;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
@@ -1022,7 +1022,7 @@ static void find_P_Q_DIV1N(
 int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
     freq_t final_freq;
     int ret = 0;
 
@@ -1067,7 +1067,7 @@ int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int elektor507_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
     double VCO;
 
     VCO = ((double)priv->osc_freq * kHz(1)) / priv->Q * priv->P;
@@ -1081,7 +1081,7 @@ int elektor507_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int elektor507_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
     int ret = 0;
     int att = 0;
 
@@ -1120,7 +1120,7 @@ int elektor507_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int elektor507_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     const struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
     int ret = 0;
 
     switch (level)
@@ -1152,7 +1152,7 @@ int elektor507_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int elektor507_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
     int ret, Mux;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
@@ -1197,7 +1197,7 @@ int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
                        ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     const struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
 
     *ant_curr = priv->ant;
 
@@ -1211,7 +1211,7 @@ int elektor507_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
 static int cy_update_pll(RIG *rig, unsigned char IICadr)
 {
     const struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
     int P0, R40, R41, R42;
     unsigned char Div1N;
     unsigned char Clk3_src;
@@ -1297,7 +1297,7 @@ static int cy_update_pll(RIG *rig, unsigned char IICadr)
 static void ftdi_SCL(RIG *rig, int d)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
 
     if (priv->Buf_adr >= FT_OUT_BUFFER_MAX)
     {
@@ -1323,7 +1323,7 @@ static void ftdi_SCL(RIG *rig, int d)
 static void ftdi_SDA(RIG *rig, int d)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
 
     if (priv->Buf_adr >= FT_OUT_BUFFER_MAX)
     {
@@ -1399,7 +1399,7 @@ int i2c_write_regs(RIG *rig, unsigned char IICadr, int reg_count,
                    unsigned char reg_val1, unsigned char reg_val2, unsigned char reg_val3)
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
     int ret;
 
     /* Start with a new buffer */
@@ -1461,7 +1461,7 @@ static const unsigned char ftdi_code[256] =
 int load_ftdi_code(RIG *rig, unsigned char IICadr, const unsigned char code[])
 {
     struct elektor507_priv_data *priv = (struct elektor507_priv_data *)
-                                        rig->state.priv;
+                                        STATE(rig)->priv;
     int ret;
     int i, j;
 

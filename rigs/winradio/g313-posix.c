@@ -131,7 +131,7 @@ int g313_init(RIG *rig)
 
     /* otherwise try again when open rig */
 
-    rig->state.priv = (void *)priv;
+    STATE(rig)->priv = (void *)priv;
 
     return RIG_OK;
 }
@@ -139,7 +139,7 @@ int g313_init(RIG *rig)
 int g313_open(RIG *rig)
 {
     int ret;
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
     RADIO_DESC *List;
     int Count;
 
@@ -247,7 +247,7 @@ int g313_open(RIG *rig)
 
 int g313_close(RIG *rig)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
 
     if (!priv->Opened)
     {
@@ -279,7 +279,7 @@ int g313_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    priv = (struct g313_priv_data *)rig->state.priv;
+    priv = (struct g313_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: close fifos\n", __func__);
 
@@ -305,15 +305,15 @@ int g313_cleanup(RIG *rig)
         dlclose(priv->hWRAPI);
     }
 
-    free(rig->state.priv);
+    free(STATE(rig)->priv);
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
     return RIG_OK;
 }
 
 int g313_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %u\n", __func__, (unsigned int)freq);
@@ -325,7 +325,7 @@ int g313_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int g313_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
 
     unsigned int f;
     int ret = GetFrequency(priv->hRadio, &f);
@@ -342,7 +342,7 @@ int g313_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int g313_set_powerstat(RIG *rig, powerstat_t status)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
 
     int p = status == RIG_POWER_ON ? 1 : 0;
     int ret = SetPower(priv->hRadio, p);
@@ -353,7 +353,7 @@ int g313_set_powerstat(RIG *rig, powerstat_t status)
 
 int g313_get_powerstat(RIG *rig, powerstat_t *status)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
 
     int p;
     int ret = GetPower(priv->hRadio, &p);
@@ -371,7 +371,7 @@ int g313_get_powerstat(RIG *rig, powerstat_t *status)
 
 int g313_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
     int ret, agc;
 
     switch (level)
@@ -423,7 +423,7 @@ int g313_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
     int ret;
     int value;
     unsigned int uvalue;
@@ -524,7 +524,7 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 static const char *g313_get_info(RIG *rig)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
     static RADIO_INFO info;
     int ret;
 
@@ -544,7 +544,7 @@ static const char *g313_get_info(RIG *rig)
 
 int g313_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
 
     size_t len = strlen(val);
 
@@ -595,7 +595,7 @@ int g313_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
 int g313_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
-    struct g313_priv_data *priv = (struct g313_priv_data *)rig->state.priv;
+    struct g313_priv_data *priv = (struct g313_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {

@@ -330,16 +330,16 @@ int tt588_init(RIG *rig)
     struct tt588_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s:\n", __func__);
-    rig->state.priv = (struct tt588_priv_data *) calloc(1, sizeof(
+    STATE(rig)->priv = (struct tt588_priv_data *) calloc(1, sizeof(
                           struct tt588_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct tt588_priv_data));
 
@@ -380,7 +380,7 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 int tt588_get_vfo(RIG *rig, vfo_t *vfo)
 {
     static int getinfo = TRUE;
-    const struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
+    const struct tt588_priv_data *priv = (struct tt588_priv_data *) STATE(rig)->priv;
 
     if (getinfo)   // this is the first call to this package so we do this here
     {
@@ -407,7 +407,7 @@ int tt588_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int tt588_set_vfo(RIG *rig, vfo_t vfo)
 {
-    struct tt588_priv_data *priv = (struct tt588_priv_data *)rig->state.priv;
+    struct tt588_priv_data *priv = (struct tt588_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
@@ -461,7 +461,7 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     int resp_len, retval;
     unsigned char cmdbuf[16], respbuf[32];
-    const struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
+    const struct tt588_priv_data *priv = (struct tt588_priv_data *) STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -504,7 +504,7 @@ int tt588_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 /*
  * tt588_set_freq
- * assumes rig!=NULL, rig->state.priv!=NULL
+ * assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int tt588_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -597,7 +597,7 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int resp_len, retval;
     unsigned char cmdbuf[16], respbuf[32];
     char ttmode;
-    const struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
+    const struct tt588_priv_data *priv = (struct tt588_priv_data *) STATE(rig)->priv;
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
@@ -798,7 +798,7 @@ int tt588_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     unsigned char cmdbuf[32], respbuf[32], ttmode;
     int resp_len, retval;
 
-    const struct tt588_priv_data *priv = (struct tt588_priv_data *) rig->state.priv;
+    const struct tt588_priv_data *priv = (struct tt588_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s mode=%s width=%d\n", __func__,
               rig_strvfo(vfo), rig_strrmode(mode), (int)width);

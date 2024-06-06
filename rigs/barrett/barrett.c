@@ -56,10 +56,10 @@ DECLARE_INITRIG_BACKEND(barrett)
 void barrett_flush(RIG *rig)
 {
     hamlib_port_t *rp = RIGPORT(rig);
-    int timesave = rig->state.timeout;
-    rig->state.timeout = 0;
+    int timesave = STATE(rig)->timeout;
+    STATE(rig)->timeout = 0;
     rig_flush(rp);
-    rig->state.timeout = timesave;
+    STATE(rig)->timeout = timesave;
 }
 
 

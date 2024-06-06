@@ -209,16 +209,16 @@ int tt585_init(RIG *rig)
 {
     struct tt585_priv_data *priv;
 
-    rig->state.priv = (struct tt585_priv_data *) calloc(1, sizeof(
+    STATE(rig)->priv = (struct tt585_priv_data *) calloc(1, sizeof(
                           struct tt585_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct tt585_priv_data));
 
@@ -227,10 +227,10 @@ int tt585_init(RIG *rig)
 
 int tt585_cleanup(RIG *rig)
 {
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
-        rig->state.priv = NULL;
+        free(STATE(rig)->priv);
+        STATE(rig)->priv = NULL;
     }
 
     return RIG_OK;
@@ -238,7 +238,7 @@ int tt585_cleanup(RIG *rig)
 
 int tt585_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *) rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *) STATE(rig)->priv;
     int ret;
 
     ret = tt585_get_status_data(rig);
@@ -302,7 +302,7 @@ int tt585_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 
 int tt585_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)STATE(rig)->priv;
     int ret;
 
     ret = tt585_get_status_data(rig);
@@ -325,7 +325,7 @@ int tt585_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
  */
 int tt585_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)STATE(rig)->priv;
     int ret;
     unsigned char *p;
 
@@ -351,13 +351,13 @@ int tt585_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 /*
  * tt585_set_freq
- * assumes rig!=NULL, rig->state.priv!=NULL
+ * assumes rig!=NULL, STATE(rig)->priv!=NULL
  * assumes priv->mode in AM,CW,LSB or USB.
  */
 
 int tt585_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)STATE(rig)->priv;
 #define FREQBUFSZ 16
     char buf[FREQBUFSZ], *p;
 
@@ -379,7 +379,7 @@ int tt585_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int tt585_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    const struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    const struct tt585_priv_data *priv = (struct tt585_priv_data *)STATE(rig)->priv;
     int ret;
 
     ret = tt585_get_status_data(rig);
@@ -452,7 +452,7 @@ int tt585_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)STATE(rig)->priv;
     const char *mcmd, *wcmd;
     int ret;
     hamlib_port_t *rp = RIGPORT(rig);
@@ -517,7 +517,7 @@ int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int tt585_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)STATE(rig)->priv;
     char buf[16];
 
     if (ch < 0 || ch > 61)
@@ -535,7 +535,7 @@ int tt585_set_mem(RIG *rig, vfo_t vfo, int ch)
 
 int tt585_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *) rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *) STATE(rig)->priv;
     int ret;
 
     ret = tt585_get_status_data(rig);
@@ -565,7 +565,7 @@ int tt585_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int tt585_get_status_data(RIG *rig)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)STATE(rig)->priv;
     hamlib_port_t *rigport;
     int ret;
 
@@ -637,7 +637,7 @@ int tt585_set_parm(RIG *rig, setting_t parm, value_t val)
  */
 int tt585_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    struct tt585_priv_data *priv = (struct tt585_priv_data *)rig->state.priv;
+    struct tt585_priv_data *priv = (struct tt585_priv_data *)STATE(rig)->priv;
     const char *cmd;
     char buf[16];
 

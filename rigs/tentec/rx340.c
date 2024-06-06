@@ -187,7 +187,7 @@ struct rig_caps rx340_caps =
 /*
  * rx340_transaction
  * read exactly data_len bytes
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  */
 static int rx340_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
@@ -247,7 +247,7 @@ int rx340_init(RIG *rig)
      * set arbitrary initial status
      */
 
-    rig->state.priv = (rig_ptr_t)priv;
+    STATE(rig)->priv = (rig_ptr_t)priv;
 
     return RIG_OK;
 }
@@ -258,12 +258,12 @@ int rx340_init(RIG *rig)
  */
 int rx340_cleanup(RIG *rig)
 {
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }

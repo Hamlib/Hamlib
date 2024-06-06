@@ -62,7 +62,7 @@ static int netampctl_transaction(AMP *amp, char *cmd, int len, char *buf)
 static int netampctl_open(AMP *amp)
 {
     int ret;
-    //struct amp_state *rs = &amp->state;
+    //struct amp_state *rs = AMPSTATE(amp);
     hamlib_port_t *ampp = AMPPORT(amp);
     int pamp_ver;
     char cmd[CMD_MAX];

@@ -46,8 +46,8 @@ struct usrp_priv_data {
 int usrp_init(RIG *rig)
 {
     // cppcheck-suppress leakReturnValNotUsed
-	rig->state.priv = static_cast<struct usrp_priv_data*>malloc(sizeof(struct usrp_priv_data));
-	if (!rig->state.priv) {
+	STATE(rig)->priv = static_cast<struct usrp_priv_data*>malloc(sizeof(struct usrp_priv_data));
+	if (!STATE(rig)->priv) {
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
 	}
@@ -60,16 +60,16 @@ int usrp_cleanup(RIG *rig)
 	if (!rig)
 		return -RIG_EINVAL;
 
-	if (rig->state.priv)
-		free(rig->state.priv);
-	rig->state.priv = NULL;
+	if (STATE(rig)->priv)
+		free(STATE(rig)->priv);
+	STATE(rig)->priv = NULL;
 
 	return RIG_OK;
 }
 
 int usrp_open(RIG *rig)
 {
-	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
+	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>STATE(rig)->priv;
 
 	int which_board = 0;
 	int decim = 125;
@@ -83,7 +83,7 @@ int usrp_open(RIG *rig)
 
 int usrp_close(RIG *rig)
 {
-	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
+	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>STATE(rig)->priv;
 
     if (!priv)
     {
@@ -97,11 +97,11 @@ int usrp_close(RIG *rig)
 }
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int usrp_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
-	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
+	struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>STATE(rig)->priv;
 
     if (!priv)
     {
@@ -121,12 +121,12 @@ int usrp_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
 /*
  * assumes rig!=NULL,
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
 int usrp_get_conf(RIG *rig, hamlib_token_t token, char *val)
 {
-	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
+	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>STATE(rig)->priv;
 
     if (!priv)
     {
@@ -148,7 +148,7 @@ int usrp_get_conf(RIG *rig, hamlib_token_t token, char *val)
 
 int usrp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
+	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>STATE(rig)->priv;
 	int chan = 0;
 
     if (!priv)
@@ -166,7 +166,7 @@ int usrp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int usrp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>rig->state.priv;
+	const struct usrp_priv_data *priv = static_cast<struct usrp_priv_data*>STATE(rig)->priv;
 	int chan = 0;
 
     if (!priv)

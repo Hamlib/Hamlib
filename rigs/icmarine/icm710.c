@@ -267,16 +267,16 @@ int icm710_init(RIG *rig)
 
     priv_caps = (const struct icm710_priv_caps *) caps->priv;
 
-    rig->state.priv = (struct icm710_priv_data *)calloc(1,
+    STATE(rig)->priv = (struct icm710_priv_data *)calloc(1,
                       sizeof(struct icm710_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->remote_id = priv_caps->default_remote_id;
     priv->split = RIG_SPLIT_OFF;
@@ -317,12 +317,12 @@ int icm710_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -331,7 +331,7 @@ int icm710_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct icm710_priv_data *priv;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -350,7 +350,7 @@ int icm710_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct icm710_priv_data *priv;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -376,7 +376,7 @@ int icm710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     struct icm710_priv_data *priv;
     int retval;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
 
     SNPRINTF(freqbuf, sizeof(freqbuf), "%.6f", freq / MHz(1));
 
@@ -412,7 +412,7 @@ int icm710_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int icm710_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    *freq = ((struct icm710_priv_data *)rig->state.priv)->rxfreq;
+    *freq = ((struct icm710_priv_data *)STATE(rig)->priv)->rxfreq;
 
     return RIG_OK;
 }
@@ -423,7 +423,7 @@ int icm710_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int retval;
     struct icm710_priv_data *priv;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
 
     SNPRINTF(freqbuf, sizeof(freqbuf), "%.6f", freq / MHz(1));
 
@@ -442,7 +442,7 @@ int icm710_get_tx_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct icm710_priv_data *priv;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
 
     *freq = priv->txfreq;
     return RIG_OK;
@@ -452,7 +452,7 @@ int icm710_set_split_vfo(RIG *rig, vfo_t rx_vfo, split_t split, vfo_t tx_vfo)
 {
     struct icm710_priv_data *priv;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
 
 
     /* when disabling split mode */
@@ -475,7 +475,7 @@ int icm710_get_split_vfo(RIG *rig, vfo_t rx_vfo, split_t *split, vfo_t *tx_vfo)
 {
     struct icm710_priv_data *priv;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
 
     *split = priv->split;
     *tx_vfo = rx_vfo;
@@ -522,7 +522,7 @@ int icm710_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int icm710_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    *mode = ((struct icm710_priv_data *)rig->state.priv)->mode;
+    *mode = ((struct icm710_priv_data *)STATE(rig)->priv)->mode;
     *width = 2200;
 
     return RIG_OK;
@@ -536,7 +536,7 @@ int icm710_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     int retval;
     struct icm710_priv_data *priv;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
     retval = icmarine_transaction(rig, CMD_PTT,
                                   ptt == RIG_PTT_ON ? "TX" : "RX", NULL);
 
@@ -552,7 +552,7 @@ int icm710_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 int icm710_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    *ptt = ((struct icm710_priv_data *)rig->state.priv)->ptt;
+    *ptt = ((struct icm710_priv_data *)STATE(rig)->priv)->ptt;
 
     return RIG_OK;
 }
@@ -613,7 +613,7 @@ int icm710_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     unsigned value;
     struct icm710_priv_data *priv;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
 
 
     switch (level)
@@ -676,7 +676,7 @@ int icm710_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     struct icm710_priv_data *priv;
 
-    priv = (struct icm710_priv_data *)rig->state.priv;
+    priv = (struct icm710_priv_data *)STATE(rig)->priv;
 
 
     switch (level)

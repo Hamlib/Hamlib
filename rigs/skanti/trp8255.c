@@ -215,14 +215,14 @@ static int cu_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    rig->state.priv = calloc(1, sizeof(struct cu_priv_data));
+    STATE(rig)->priv = calloc(1, sizeof(struct cu_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = (struct cu_priv_data *)rig->state.priv;
+    priv = (struct cu_priv_data *)STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct cu_priv_data));
     priv->split = RIG_SPLIT_OFF;
@@ -234,7 +234,7 @@ static int cu_open(RIG *rig)
 static int cu_close(RIG *rig)
 {
     const char cmd[] = { 0x16 }; /* DLE */
-    struct cu_priv_data *priv = (struct cu_priv_data *)rig->state.priv;
+    struct cu_priv_data *priv = (struct cu_priv_data *)STATE(rig)->priv;
 
     free(priv);
 
@@ -243,7 +243,7 @@ static int cu_close(RIG *rig)
 
 int cu_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    const struct cu_priv_data *priv = (struct cu_priv_data *)rig->state.priv;
+    const struct cu_priv_data *priv = (struct cu_priv_data *)STATE(rig)->priv;
     char cmdbuf[16];
     int ret;
 
@@ -272,7 +272,7 @@ int cu_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 static int cu_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct cu_priv_data *priv = (struct cu_priv_data *)rig->state.priv;
+    struct cu_priv_data *priv = (struct cu_priv_data *)STATE(rig)->priv;
 
     priv->split = split;
 
@@ -478,7 +478,7 @@ int cu_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 static int cu_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    struct cu_priv_data *priv = (struct cu_priv_data *)rig->state.priv;
+    struct cu_priv_data *priv = (struct cu_priv_data *)STATE(rig)->priv;
 
     /* memorize channel for RIG_OP_TO_VFO & RIG_OP_FROM_VFO */
     priv->ch = ch;
@@ -489,7 +489,7 @@ static int cu_set_mem(RIG *rig, vfo_t vfo, int ch)
 
 int cu_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    const struct cu_priv_data *priv = (struct cu_priv_data *)rig->state.priv;
+    const struct cu_priv_data *priv = (struct cu_priv_data *)STATE(rig)->priv;
     char cmdbuf[16];
 
     switch (op)

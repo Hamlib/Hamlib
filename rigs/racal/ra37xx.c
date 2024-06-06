@@ -69,7 +69,7 @@ static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data,
                                   int *data_len)
 {
     const struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)
-                                          rig->state.priv;
+                                          STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     char cmdbuf[BUFSZ];
     char respbuf[BUFSZ];
@@ -215,16 +215,16 @@ int ra37xx_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ra37xx_priv_data *)calloc(1, sizeof(
+    STATE(rig)->priv = (struct ra37xx_priv_data *)calloc(1, sizeof(
                           struct ra37xx_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->receiver_id = -1;
 
@@ -240,22 +240,22 @@ int ra37xx_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int ra37xx_set_conf2(RIG *rig, hamlib_token_t token, const char *val, int val_len)
 {
-    struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)rig->state.priv;
+    struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)STATE(rig)->priv;
     int receiver_id;
 
     switch (token)
@@ -285,13 +285,13 @@ int ra37xx_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
 /*
  * assumes rig!=NULL,
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
 int ra37xx_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     const struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)
-                                          rig->state.priv;
+                                          STATE(rig)->priv;
 
     switch (token)
     {
@@ -371,7 +371,7 @@ int ra37xx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    //struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)rig->state.priv;
+    //struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)STATE(rig)->priv;
     int ra_mode, widthtype, widthnum = 0;
     char buf[BUFSZ];
 
@@ -631,7 +631,7 @@ int ra37xx_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         sscanf(resbuf + 5, "%d", &i);
-        val->i = i ? rig->state.preamp[0] : 0;
+        val->i = i ? STATE(rig)->preamp[0] : 0;
         break;
 
     case RIG_LEVEL_RAWSTR:

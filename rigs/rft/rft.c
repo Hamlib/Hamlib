@@ -36,7 +36,7 @@
 
 /*
  * rft_transaction
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, RIGPORT(rig)!= NULL, data!=NULL, data_len!=NULL
  */
 int rft_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                     int *data_len)
