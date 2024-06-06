@@ -424,15 +424,15 @@ static int tci1x_init(RIG *rig)
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
-    rig->state.priv  = (struct tci1x_priv_data *)calloc(1, sizeof(
+    STATE(rig)->priv  = (struct tci1x_priv_data *)calloc(1, sizeof(
                            struct tci1x_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct tci1x_priv_data));
     memset(priv->parms, 0, RIG_SETTING_MAX * sizeof(value_t));
@@ -440,7 +440,7 @@ static int tci1x_init(RIG *rig)
     /*
      * set arbitrary initial status
      */
-    rig->state.current_vfo = RIG_VFO_A;
+    STATE(rig)->current_vfo = RIG_VFO_A;
     priv->split = 0;
     priv->ptt = 0;
     priv->curr_modeA = -1;
@@ -583,7 +583,7 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_tci1x)
 
 /*
 * tci1x_open
-* Assumes rig!=NULL, rig->state.priv!=NULL
+* Assumes rig!=NULL, STATE(rig)->priv!=NULL
 */
 static int tci1x_open(RIG *rig)
 {
@@ -594,7 +594,7 @@ static int tci1x_open(RIG *rig)
     rmode_t modes;
     char *p;
     char *pr;
-    //struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    //struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
     arg[0] = '?';
     arg[1] = 0;
 
@@ -657,9 +657,9 @@ static int tci1x_open(RIG *rig)
         rig_debug(RIG_DEBUG_ERR, "%s: tci1x_get_freq not working!!\n", __func__);
     }
 
-    rig->state.current_vfo = RIG_VFO_A;
+    STATE(rig)->current_vfo = RIG_VFO_A;
     rig_debug(RIG_DEBUG_TRACE, "%s: currvfo=%s value=%s\n", __func__,
-              rig_strvfo(rig->state.current_vfo), value);
+              rig_strvfo(STATE(rig)->current_vfo), value);
     //tci1x_get_split_vfo(rig, vfo, &priv->split, &vfo_tx);
     RETURNFUNC2(RIG_OK);
 
@@ -784,7 +784,7 @@ static int tci1x_open(RIG *rig)
         else { rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode (new?) for this rig='%s'\n", __func__, p); }
     }
 
-    rig->state.mode_list = modes;
+    STATE(rig)->mode_list = modes;
 
     retval = rig_strrmodes(modes, value, sizeof(value));
 
@@ -811,7 +811,7 @@ static int tci1x_close(RIG *rig)
 
 /*
 * tci1x_cleanup
-* Assumes rig!=NULL, rig->state.priv!=NULL
+* Assumes rig!=NULL, STATE(rig)->priv!=NULL
 */
 static int tci1x_cleanup(RIG *rig)
 {
@@ -819,24 +819,24 @@ static int tci1x_cleanup(RIG *rig)
 
     ENTERFUNC;
 
-    priv = (struct tci1x_priv_data *)rig->state.priv;
+    priv = (struct tci1x_priv_data *)STATE(rig)->priv;
 
     free(priv->ext_parms);
-    free(rig->state.priv);
+    free(STATE(rig)->priv);
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     RETURNFUNC(RIG_OK);
 }
 
 /*
 * tci1x_get_freq
-* Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
+* Assumes rig!=NULL, STATE(rig)->priv!=NULL, freq!=NULL
 */
 static int tci1x_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char value[MAXARGLEN];
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -852,7 +852,7 @@ static int tci1x_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
         rig_debug(RIG_DEBUG_TRACE, "%s: get_freq2 vfo=%s\n",
                   __func__, rig_strvfo(vfo));
     }
@@ -899,14 +899,14 @@ static int tci1x_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 /*
 * tci1x_set_freq
-* assumes rig!=NULL, rig->state.priv!=NULL
+* assumes rig!=NULL, STATE(rig)->priv!=NULL
 */
 static int tci1x_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
     char cmd_arg[MAXARGLEN];
     char *cmd;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.0f\n", __func__,
@@ -921,7 +921,7 @@ static int tci1x_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
     else if (vfo == RIG_VFO_TX && priv->split)
     {
@@ -972,7 +972,7 @@ static int tci1x_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int retval;
     char cmd_arg[MAXARGLEN];
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: ptt=%d\n", __func__, ptt);
@@ -1015,7 +1015,7 @@ static int tci1x_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 static int tci1x_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     char value[MAXCMDLEN];
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1046,7 +1046,7 @@ static int tci1x_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
                                 pbwidth_t width)
 {
     int retval;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
@@ -1055,7 +1055,7 @@ static int tci1x_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode,
     switch (vfo)
     {
     case RIG_VFO_CURR:
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
         break;
 
     case RIG_VFO_TX:
@@ -1094,7 +1094,7 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char *p;
     char *pttmode;
     char *ttmode = NULL;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s mode=%s width=%d\n",
@@ -1111,7 +1111,7 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
 
     if (check_vfo(vfo) == FALSE)
@@ -1131,11 +1131,11 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // MDB
     vfoSwitched = 0;
     rig_debug(RIG_DEBUG_TRACE, "%s: curr_vfo = %s\n", __func__,
-              rig_strvfo(rig->state.current_vfo));
+              rig_strvfo(STATE(rig)->current_vfo));
 
     // If we don't have the get_bwA call we have to switch VFOs ourself
     if (!priv->has_get_bwA && vfo == RIG_VFO_B
-            && rig->state.current_vfo != RIG_VFO_B)
+            && STATE(rig)->current_vfo != RIG_VFO_B)
     {
         vfoSwitched = 1;
         rig_debug(RIG_DEBUG_TRACE, "%s: switch to VFOB = %d\n", __func__,
@@ -1289,7 +1289,7 @@ static int tci1x_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 /*
 * tci1x_get_mode
-* Assumes rig!=NULL, rig->state.priv!=NULL, mode!=NULL
+* Assumes rig!=NULL, STATE(rig)->priv!=NULL, mode!=NULL
 */
 static int tci1x_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
@@ -1299,7 +1299,7 @@ static int tci1x_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char *cmdp;
     vfo_t curr_vfo;
     rmode_t my_mode;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1312,11 +1312,11 @@ static int tci1x_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    curr_vfo = rig->state.current_vfo;
+    curr_vfo = STATE(rig)->current_vfo;
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: using vfo=%s\n", __func__,
@@ -1454,8 +1454,8 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
 {
     int retval;
     char cmd_arg[MAXBUFLEN];
-    struct rig_state *rs = &rig->state;
-    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct rig_state *rs = STATE(rig);
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1477,7 +1477,7 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
 
     SNPRINTF(cmd_arg, sizeof(cmd_arg),
@@ -1492,7 +1492,7 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
         RETURNFUNC(retval);
     }
 
-    rig->state.current_vfo = vfo;
+    STATE(rig)->current_vfo = vfo;
     rs->tx_vfo = RIG_VFO_B; // always VFOB
 
     /* for some rigs TCI turns off split when VFOA is selected */
@@ -1556,7 +1556,7 @@ static int tci1x_get_vfo(RIG *rig, vfo_t *vfo)
         RETURNFUNC(-RIG_EINVAL);
     }
 
-    rig->state.current_vfo = *vfo;
+    STATE(rig)->current_vfo = *vfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
               rig_strvfo(*vfo));
@@ -1573,7 +1573,7 @@ static int tci1x_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     int retval;
     char cmd_arg[MAXBUFLEN];
     freq_t qtx_freq;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s freq=%.1f\n", __func__,
@@ -1615,7 +1615,7 @@ static int tci1x_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 static int tci1x_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     int retval;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1635,7 +1635,7 @@ static int tci1x_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     int retval;
     vfo_t qtx_vfo;
     split_t qsplit;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
     char cmd_arg[MAXBUFLEN];
 
     ENTERFUNC;
@@ -1677,7 +1677,7 @@ static int tci1x_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                vfo_t *tx_vfo)
 {
     char value[MAXCMDLEN];
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -1707,7 +1707,7 @@ static int tci1x_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
     int retval;
     rmode_t qmode;
     pbwidth_t qwidth;
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -1823,14 +1823,14 @@ static int tci1x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 /*
 * tci1x_get_level
-* Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+* Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
 */
 static int tci1x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char value[MAXARGLEN];
     char *cmd;
     int retval;
-    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1906,7 +1906,7 @@ static int tci1x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 */
 static const char *tci1x_get_info(RIG *rig)
 {
-    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
 
     return (priv->info);
 }
@@ -1914,7 +1914,7 @@ static const char *tci1x_get_info(RIG *rig)
 static int tci1x_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode)
 {
-    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) rig->state.priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, power);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
@@ -1945,7 +1945,7 @@ static int tci1x_mW2power(RIG *rig, float *power, unsigned int mwpower,
 #ifdef XXNOTIMPLEMENTED
 static int tci1x_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *)rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *)STATE(rig)->priv;
     char lstr[64];
     const struct confparams *cfp;
     struct ext_list *epp;
@@ -2022,7 +2022,7 @@ static int tci1x_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 
 static int tci1x_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *)rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *)STATE(rig)->priv;
     const struct confparams *cfp;
     struct ext_list *epp;
 
@@ -2065,7 +2065,7 @@ static int tci1x_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 
 static int tci1x_set_ext_parm(RIG *rig, setting_t parm, value_t val)
 {
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *)rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *)STATE(rig)->priv;
     int idx;
     char pstr[32];
 
@@ -2095,7 +2095,7 @@ static int tci1x_set_ext_parm(RIG *rig, setting_t parm, value_t val)
 
 static int tci1x_get_ext_parm(RIG *rig, setting_t parm, value_t *val)
 {
-    struct tci1x_priv_data *priv = (struct tci1x_priv_data *)rig->state.priv;
+    struct tci1x_priv_data *priv = (struct tci1x_priv_data *)STATE(rig)->priv;
     int idx;
 
     ENTERFUNC;

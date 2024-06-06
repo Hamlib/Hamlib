@@ -189,7 +189,7 @@ struct rig_caps hiqsdr_caps =
 static int send_command(RIG *rig)
 {
     const struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)
-                                          rig->state.priv;
+                                          STATE(rig)->priv;
     int ret;
 
     ret = write_block(RIGPORT(rig), (unsigned char *) priv->control_frame,
@@ -223,14 +223,14 @@ static unsigned compute_sample_rate(const struct hiqsdr_priv_data *priv)
 }
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int hiqsdr_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct hiqsdr_priv_data *priv;
     struct rig_state *rs;
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct hiqsdr_priv_data *)rs->priv;
 
     switch (token)
@@ -254,7 +254,7 @@ int hiqsdr_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
 /*
  * assumes rig!=NULL,
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
 int hiqsdr_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
@@ -262,7 +262,7 @@ int hiqsdr_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
     struct hiqsdr_priv_data *priv;
     struct rig_state *rs;
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct hiqsdr_priv_data *)rs->priv;
 
     switch (token)
@@ -293,15 +293,15 @@ int hiqsdr_init(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = (struct hiqsdr_priv_data *)calloc(1, sizeof(
+    STATE(rig)->priv = (struct hiqsdr_priv_data *)calloc(1, sizeof(
                           struct hiqsdr_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->split = RIG_SPLIT_OFF;
     priv->ref_clock = REFCLOCK;
@@ -314,7 +314,7 @@ int hiqsdr_init(RIG *rig)
 
 int hiqsdr_open(RIG *rig)
 {
-    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)STATE(rig)->priv;
 #if 0
     const char buf_send_to_me[] = { 0x72, 0x72 };
     int ret;
@@ -371,12 +371,12 @@ int hiqsdr_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -386,7 +386,7 @@ int hiqsdr_cleanup(RIG *rig)
  */
 int hiqsdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)STATE(rig)->priv;
     int ret;
     double rxphase;
     uint32_t rxphase32;
@@ -417,7 +417,7 @@ int hiqsdr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int hiqsdr_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                 vfo_t tx_vfo)
 {
-    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)STATE(rig)->priv;
 
     priv->split = split;
 
@@ -426,7 +426,7 @@ static int hiqsdr_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
 
 int hiqsdr_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
-    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)STATE(rig)->priv;
     int ret;
     double rxphase;
     uint32_t rxphase32;
@@ -454,7 +454,7 @@ int hiqsdr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int hiqsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)STATE(rig)->priv;
     int ret = RIG_OK;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n",
@@ -477,7 +477,7 @@ int hiqsdr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int hiqsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)STATE(rig)->priv;
     int ret = RIG_OK;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %d\n",
@@ -505,7 +505,7 @@ int hiqsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
-    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)STATE(rig)->priv;
     int ret = RIG_OK;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %u\n",
@@ -528,7 +528,7 @@ int hiqsdr_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
 int hiqsdr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)rig->state.priv;
+    struct hiqsdr_priv_data *priv = (struct hiqsdr_priv_data *)STATE(rig)->priv;
     int ret = RIG_OK;
 
     switch (level)

@@ -129,16 +129,16 @@ int icmarine_init(RIG *rig)
 
     priv_caps = (const struct icmarine_priv_caps *) caps->priv;
 
-    rig->state.priv = (struct icmarine_priv_data *)calloc(1, sizeof(
+    STATE(rig)->priv = (struct icmarine_priv_data *)calloc(1, sizeof(
                           struct icmarine_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->remote_id = priv_caps->default_remote_id;
     priv->split = RIG_SPLIT_OFF;
@@ -153,12 +153,12 @@ int icmarine_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -187,7 +187,7 @@ int icmarine_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
     struct icmarine_priv_data *priv;
 
-    priv = (struct icmarine_priv_data *)rig->state.priv;
+    priv = (struct icmarine_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -206,7 +206,7 @@ int icmarine_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct icmarine_priv_data *priv;
 
-    priv = (struct icmarine_priv_data *)rig->state.priv;
+    priv = (struct icmarine_priv_data *)STATE(rig)->priv;
 
     switch (token)
     {
@@ -229,7 +229,7 @@ int icmarine_get_conf(RIG *rig, hamlib_token_t token, char *val)
 
 /*
  * icmarine_transaction
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL, data_len!=NULL
  *
  * cmd: mandatory
  * param: only 1 optional NMEA parameter, NULL for none (=query)
@@ -252,7 +252,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd='%s', param=%s\n", __func__, cmd,
               param == NULL ? "NULL" : param);
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct icmarine_priv_data *)rs->priv;
 
     rig_flush(rp);
@@ -362,7 +362,7 @@ int icmarine_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
-    priv = (struct icmarine_priv_data *)rig->state.priv;
+    priv = (struct icmarine_priv_data *)STATE(rig)->priv;
 
     SNPRINTF(freqbuf, sizeof(freqbuf), "%.6f", freq / MHz(1));
 
@@ -461,7 +461,7 @@ int icmarine_set_split_vfo(RIG *rig, vfo_t rx_vfo, split_t split, vfo_t tx_vfo)
 
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
-    priv = (struct icmarine_priv_data *)rig->state.priv;
+    priv = (struct icmarine_priv_data *)STATE(rig)->priv;
 
     /* when disabling split mode */
     if (RIG_SPLIT_ON == priv->split &&
@@ -487,7 +487,7 @@ int icmarine_get_split_vfo(RIG *rig, vfo_t rx_vfo, split_t *split,
 
     rig_debug(RIG_DEBUG_TRACE, "%s:\n", __func__);
 
-    priv = (struct icmarine_priv_data *)rig->state.priv;
+    priv = (struct icmarine_priv_data *)STATE(rig)->priv;
 
     *split = priv->split;
     *tx_vfo = rx_vfo;

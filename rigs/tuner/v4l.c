@@ -161,7 +161,7 @@ int v4l_open(RIG *rig)
 {
     int i;
     struct video_tuner vt;
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
 
     for (i = 0; i < 8; i++)
     {
@@ -190,7 +190,7 @@ int v4l_open(RIG *rig)
 
 int v4l_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    const struct rig_state *rs = &rig->state;
+    const struct rig_state *rs = STATE(rig);
     hamlib_port_t *rp = RIGPORT(rig);
     struct      video_tuner vt;
     const freq_range_t *range;
@@ -237,7 +237,7 @@ int v4l_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int v4l_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    const struct rig_state *rs = &rig->state;
+    const struct rig_state *rs = STATE(rig);
     const freq_range_t *range;
     unsigned long f;
     double fact;

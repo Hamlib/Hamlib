@@ -140,7 +140,7 @@ MessageAide:  DB   "H",0Dh,0Ah
 
 static void prm80_force_cache_timeout(RIG *rig)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
 
     rig_force_cache_timeout(&priv->status_tv);
 }
@@ -283,9 +283,9 @@ int prm80_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (void *)calloc(1, sizeof(struct prm80_priv_data));
+    STATE(rig)->priv = (void *)calloc(1, sizeof(struct prm80_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
@@ -301,8 +301,8 @@ int prm80_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    free(rig->state.priv);
-    rig->state.priv = NULL;
+    free(STATE(rig)->priv);
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -418,7 +418,7 @@ int prm80_set_rx_tx_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
  */
 int prm80_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     freq_t tx_freq;
     int rc;
 
@@ -448,7 +448,7 @@ int prm80_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int prm80_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     freq_t rx_freq;
     int rc;
 
@@ -471,7 +471,7 @@ int prm80_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
  */
 int prm80_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     int ret;
     channel_t chan;
 
@@ -498,7 +498,7 @@ int prm80_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int prm80_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
 
     priv->split = split;
 
@@ -510,7 +510,7 @@ int prm80_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  */
 int prm80_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    const struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    const struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
 
     *split = priv->split;
     *tx_vfo = RIG_VFO_CURR;
@@ -523,7 +523,7 @@ int prm80_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
  */
 int prm80_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     int ret;
     channel_t chan;
 
@@ -694,7 +694,7 @@ static int prm80_do_read_system_state(hamlib_port_t *rigport, char *statebuf)
  */
 static int prm80_read_system_state(RIG *rig, char *statebuf)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     int ret = RIG_OK;
 
     if (rig_check_cache_timeout(&priv->status_tv, PRM80_CACHE_TIMEOUT))
@@ -723,7 +723,7 @@ static int prm80_read_system_state(RIG *rig, char *statebuf)
  */
 int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    const struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    const struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     char statebuf[BUFSZ];
     int ret, chanstate, mode_byte, lock_byte;
 
@@ -821,7 +821,7 @@ int prm80_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
  */
 int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
-    struct prm80_priv_data *priv = (struct prm80_priv_data *)rig->state.priv;
+    struct prm80_priv_data *priv = (struct prm80_priv_data *)STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     char buf[BUFSZ];
     int ret, chanstate;
@@ -1107,7 +1107,7 @@ int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 static int prm80_get_rawstr_RAM(RIG *rig, value_t *val)
 {
     char buf[BUFSZ];
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     hamlib_port_t *rp = RIGPORT(rig);
     int ret, i;
 

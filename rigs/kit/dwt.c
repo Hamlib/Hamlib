@@ -226,16 +226,16 @@ int dwtdll_init(RIG *rig)
 {
     struct dwtdll_priv_data *priv;
 
-    rig->state.priv = (struct dwtdll_priv_data *)calloc(1, sizeof(
+    STATE(rig)->priv = (struct dwtdll_priv_data *)calloc(1, sizeof(
                           struct dwtdll_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     /* Try to load required dll */
     priv->dll = LoadLibrary(DWTDLL);
@@ -244,7 +244,7 @@ int dwtdll_init(RIG *rig)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: Unable to LoadLibrary %s\n",
                   __func__, DWTDLL);
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
         return -RIG_EIO;    /* huh! */
     }
 
@@ -295,7 +295,7 @@ int dwtdll_init(RIG *rig)
 
 int dwtdll_open(RIG *rig)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
     short ret;
 
     /* Open DWT receiver */
@@ -319,7 +319,7 @@ int dwtdll_open(RIG *rig)
 
 int dwtdll_close(RIG *rig)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
     short ret;
 
     /* Open DWT receiver */
@@ -335,24 +335,24 @@ int dwtdll_close(RIG *rig)
 
 int dwtdll_cleanup(RIG *rig)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
 
     /* Clean up the dll access */
     if (priv) { FreeLibrary(priv->dll); }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
 
 int dwtdll_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
     short ret;
 
     ret = priv->FrontendSetFrequency((double) freq);
@@ -362,7 +362,7 @@ int dwtdll_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int dwtdll_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
 
     *freq = (freq_t) priv->FrontendGetFrequency();
 
@@ -371,7 +371,7 @@ int dwtdll_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int dwtdll_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
     tFrontendMode dwtmode;
     short ret;
 
@@ -394,7 +394,7 @@ int dwtdll_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int dwtdll_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
     tFrontendMode dwtmode;
 
     dwtmode = priv->FrontendGetMode();
@@ -419,7 +419,7 @@ int dwtdll_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int dwtdll_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
     short ret = 0;
 
     switch (level)
@@ -437,7 +437,7 @@ int dwtdll_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int dwtdll_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
     signed short ret = 0;
 
     switch (level)
@@ -489,7 +489,7 @@ int dwtdll_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 static const char *dwtdll_get_info(RIG *rig)
 {
-    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
+    struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)STATE(rig)->priv;
     static char info[22];
 
     if (priv->FrontendGetId(info) < 0)

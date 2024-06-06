@@ -50,7 +50,7 @@
 
 /*
  * rs_transaction
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL, data_len!=NULL
  */
 int rs_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                    int *data_len)
@@ -334,7 +334,7 @@ int rs_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_ATT:
         val->i = (!memcmp(buf, "ON", 2)
-                  || !memcmp(buf, "1", 1)) ? rig->state.attenuator[0] : 0;
+                  || !memcmp(buf, "1", 1)) ? STATE(rig)->attenuator[0] : 0;
         break;
 
     case RIG_LEVEL_AF:

@@ -208,7 +208,7 @@ struct rig_caps ar3030_caps =
 
 /*
  * ar3030_transaction
- * We assume that rig!=NULL, rig->state!= NULL
+ * We assume that rig!=NULL, RIGPORT(rig)!= NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * return value: RIG_OK if everything's fine, negative value otherwise
  */

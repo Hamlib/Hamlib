@@ -58,7 +58,7 @@
 
 /*
  * kachina_transaction
- * We assume that rig!=NULL, rig->state!= NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */

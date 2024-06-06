@@ -72,7 +72,7 @@ uniden_id_string_list[] =
 /**
  * uniden_transaction
  * uniden_digital_transaction
- * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
+ * Assumes rig!=NULL STATE(rig)!=NULL rig->caps!=NULL
  *
  * cmdstr - Command to be sent to the rig. Cmdstr can also be NULL, indicating
  *          that only a reply is needed (nothing will be send).
@@ -103,7 +103,7 @@ uniden_digital_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     char replybuf[BUFSZ];
     size_t reply_len = BUFSZ;
 
-    rs = &rig->state;
+    rs = STATE(rig);
     rs->transaction_active = 1;
 
 transaction_write:

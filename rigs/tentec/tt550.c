@@ -58,7 +58,7 @@ static int tt550_tx_filters[] =
 /*
  * tt550_transaction
  * read exactly data_len bytes
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  */
 int
@@ -201,7 +201,7 @@ tt550_tuning_factor_calc(RIG *rig, int tx)
     int FilterBw;         // Filter Bandwidth determined from table
     int Mode, PbtAdj, RitAdj, XitAdj;
 
-    priv = (struct tt550_priv_data *) rig->state.priv;
+    priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     Mode = (tx ? priv->tx_mode : priv->rx_mode);
     radio_freq = ((tx ? priv->tx_freq : priv->rx_freq)) / (double) MHz(1);
@@ -352,10 +352,10 @@ tt550_init(RIG *rig)
 {
     struct tt550_priv_data *priv;
 
-    rig->state.priv = (struct tt550_priv_data *) calloc(1, sizeof(
+    STATE(rig)->priv = (struct tt550_priv_data *) calloc(1, sizeof(
                           struct tt550_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /*
          * whoops! memory shortage!
@@ -363,7 +363,7 @@ tt550_init(RIG *rig)
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct tt550_priv_data));
 
@@ -393,12 +393,12 @@ tt550_init(RIG *rig)
 int
 tt550_cleanup(RIG *rig)
 {
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -454,7 +454,7 @@ tt550_trx_open(RIG *rig)
 
     struct tt550_priv_data *priv;
 
-    priv = (struct tt550_priv_data *) rig->state.priv;
+    priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     /*
      * Reset the radio and start its program running
@@ -510,7 +510,7 @@ int
 tt550_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     retval = tt550_set_rx_freq(rig, vfo, freq);
 
@@ -535,7 +535,7 @@ tt550_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int
 tt550_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     *freq = priv->rx_freq;
 
@@ -552,7 +552,7 @@ int
 tt550_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int retval;
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     retval = tt550_set_rx_mode(rig, vfo, mode, width);
 
@@ -577,7 +577,7 @@ tt550_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int
 tt550_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     *mode = priv->rx_mode;
     *width = priv->width;
@@ -598,7 +598,7 @@ tt550_set_rx_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int retval;
     char freqbuf[16];
 
-    priv = (struct tt550_priv_data *) rig->state.priv;
+    priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     priv->rx_freq = freq;
 
@@ -631,7 +631,7 @@ tt550_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int retval;
     char freqbuf[16];
 
-    priv = (struct tt550_priv_data *) rig->state.priv;
+    priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     priv->tx_freq = freq;
 
@@ -660,7 +660,7 @@ tt550_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int
 tt550_get_tx_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     *freq = priv->tx_freq;
 
@@ -675,7 +675,7 @@ tt550_get_tx_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int
 tt550_set_rx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     char ttmode;
     rmode_t saved_mode;
@@ -790,7 +790,7 @@ tt550_set_rx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int
 tt550_set_tx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     char ttmode;
     rmode_t saved_mode;
@@ -919,7 +919,7 @@ tt550_set_tx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int
 tt550_get_tx_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     *mode = priv->tx_mode;
     *width = priv->tx_width;
@@ -933,7 +933,7 @@ tt550_get_tx_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int
 tt550_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     priv->rit = rit;
     tt550_set_rx_freq(rig, vfo, priv->rx_freq);
@@ -947,7 +947,7 @@ tt550_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 int
 tt550_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     *rit = priv->rit;
 
@@ -960,7 +960,7 @@ tt550_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 int
 tt550_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     priv->xit = xit;
     tt550_set_tx_freq(rig, vfo, priv->tx_freq);
@@ -974,7 +974,7 @@ tt550_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 int
 tt550_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     *xit = priv->xit;
 
@@ -988,7 +988,7 @@ tt550_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 int
 tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     int retval, ditfactor, dahfactor, spcfactor;
     char cmdbuf[32];
@@ -1195,7 +1195,7 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int
 tt550_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
     int retval, lvl_len;
     char lvlbuf[32];
 
@@ -1409,7 +1409,7 @@ tt550_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int
 tt550_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     priv->split = split;
 
@@ -1423,7 +1423,7 @@ tt550_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 int
 tt550_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     *split = priv->split;
 
@@ -1435,7 +1435,7 @@ int
 tt550_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     unsigned char fctbuf[16];
-    struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
 
     /* Optimize:
@@ -1484,7 +1484,7 @@ tt550_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int
 tt550_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     /* Optimize:
      *   sort the switch cases with the most frequent first
@@ -1526,7 +1526,7 @@ tt550_set_tuning_step(RIG *rig, vfo_t vfo, shortfreq_t stepsize)
     struct tt550_priv_data *priv;
     struct rig_state *rs;
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct tt550_priv_data *) rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tt550_set_tuning_step - %d\n",
@@ -1547,7 +1547,7 @@ tt550_get_tuning_step(RIG *rig, vfo_t vfo, shortfreq_t *stepsize)
     struct tt550_priv_data *priv;
     struct rig_state *rs;
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct tt550_priv_data *) rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: tt550_get_tuning_step - %d\n",
@@ -1568,7 +1568,7 @@ tt550_tune(RIG *rig)
     value_t current_power;
     rmode_t current_mode;
     value_t lowpower;
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
 
     /* Set our lowpower level to about 10 Watts */
     lowpower.f = 0.12;
@@ -1672,7 +1672,7 @@ tt550_decode_event(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s/tt: tt550_decode_event called\n", __func__);
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct tt550_priv_data *) rs->priv;
 
     data_len = read_string(RIGPORT(rig), buf, MAXFRAMELEN, "\n\r", 2, 0,

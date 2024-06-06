@@ -191,15 +191,15 @@ int g3_init(RIG *rig)
 {
     struct g3_priv_data *priv;
 
-    rig->state.priv = (struct g3_priv_data *)calloc(1, sizeof(struct g3_priv_data));
+    STATE(rig)->priv = (struct g3_priv_data *)calloc(1, sizeof(struct g3_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     /* Try to load required dll */
     priv->dll = LoadLibrary(WRG3DLL);
@@ -240,7 +240,7 @@ int g3_init(RIG *rig)
 
 int g3_open(RIG *rig)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
     int device_num;
 
     device_num = atoi(RIGPORT(rig)->pathname);
@@ -261,7 +261,7 @@ int g3_open(RIG *rig)
 
 int g3_close(RIG *rig)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
 
     priv->CloseRadioDevice(priv->hRadio);
 
@@ -270,24 +270,24 @@ int g3_close(RIG *rig)
 
 int g3_cleanup(RIG *rig)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
 
     /* Clean up the dll access */
     if (priv) { FreeLibrary(priv->dll); }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
 
 int g3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
     int ret;
 
     ret = priv->G3SetFrequency(priv->hRadio, (DWORD)(freq));
@@ -298,7 +298,7 @@ int g3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int g3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
 
     *freq = (freq_t) priv->G3GetFrequency(priv->hRadio);
 
@@ -307,7 +307,7 @@ int g3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int g3_set_powerstat(RIG *rig, powerstat_t status)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
     int ret;
 
     ret = priv->SetPower(priv->hRadio, status == RIG_POWER_ON ? TRUE : FALSE);
@@ -318,7 +318,7 @@ int g3_set_powerstat(RIG *rig, powerstat_t status)
 
 int g3_get_powerstat(RIG *rig, powerstat_t *status)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
     int ret;
 
     ret = priv->GetPower(priv->hRadio);
@@ -329,7 +329,7 @@ int g3_get_powerstat(RIG *rig, powerstat_t *status)
 
 int g3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
     int ret, agc;
 
     switch (level)
@@ -370,7 +370,7 @@ int g3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int g3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
     int ret;
 
     ret = RIG_OK;
@@ -418,7 +418,7 @@ int g3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 static const char *g3_get_info(RIG *rig)
 {
-    struct g3_priv_data *priv = (struct g3_priv_data *)rig->state.priv;
+    struct g3_priv_data *priv = (struct g3_priv_data *)STATE(rig)->priv;
     static RADIO_INFO info;
 
     info.bLength = sizeof(RADIO_INFO);

@@ -291,16 +291,16 @@ int tt538_init(RIG *rig)
 {
     struct tt538_priv_data *priv;
 
-    rig->state.priv = (struct tt538_priv_data *) calloc(1, sizeof(
+    STATE(rig)->priv = (struct tt538_priv_data *) calloc(1, sizeof(
                           struct tt538_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct tt538_priv_data));
 
@@ -315,7 +315,7 @@ int tt538_init(RIG *rig)
 
 static char which_vfo(const RIG *rig, vfo_t vfo)
 {
-    const struct tt538_priv_data *priv = (struct tt538_priv_data *)rig->state.priv;
+    const struct tt538_priv_data *priv = (struct tt538_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -340,7 +340,7 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 int tt538_get_vfo(RIG *rig, vfo_t *vfo)
 {
 
-    const struct tt538_priv_data *priv = (struct tt538_priv_data *) rig->state.priv;
+    const struct tt538_priv_data *priv = (struct tt538_priv_data *) STATE(rig)->priv;
     *vfo = priv->vfo_curr;
     return RIG_OK;
 }
@@ -351,7 +351,7 @@ int tt538_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int tt538_set_vfo(RIG *rig, vfo_t vfo)
 {
-    struct tt538_priv_data *priv = (struct tt538_priv_data *)rig->state.priv;
+    struct tt538_priv_data *priv = (struct tt538_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -436,7 +436,7 @@ int tt538_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 /*
  * tt538_set_freq
- * assumes rig!=NULL, rig->state.priv!=NULL
+ * assumes rig!=NULL, STATE(rig)->priv!=NULL
  * assumes priv->mode in AM,CW,LSB or USB.
  */
 
@@ -634,7 +634,7 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     unsigned char cmdbuf[32], respbuf[32], ttmode;
     int resp_len, retval;
 
-    const struct tt538_priv_data *priv = (struct tt538_priv_data *) rig->state.priv;
+    const struct tt538_priv_data *priv = (struct tt538_priv_data *) STATE(rig)->priv;
 
     /* Query mode for both VFOs. */
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?M" EOM);
