@@ -256,10 +256,12 @@ int network_open(hamlib_port_t *rp, int default_port)
     if (rp->type.rig == RIG_PORT_UDP_NETWORK)
     {
         hints.ai_socktype = SOCK_DGRAM;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: UDP connect\n", __func__);
     }
     else
     {
         hints.ai_socktype = SOCK_STREAM;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: TCP connect\n", __func__);
     }
 
     if (rp->pathname[0] == ':' && rp->pathname[1] != ':')
