@@ -265,7 +265,7 @@ struct rig_caps sr2200_caps =
 
 /*
  * sr2200_transaction
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, RIGPORT(rig)!= NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * return value: RIG_OK if everything's fine, negative value otherwise
  * TODO: error case handling
@@ -593,7 +593,7 @@ int sr2200_get_vfo(RIG *rig, vfo_t *vfo)
 
 /*
  * sr2200_set_level
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
@@ -677,7 +677,7 @@ int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 /*
  * sr2200_get_level
- * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
  */
 int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
