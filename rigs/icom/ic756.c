@@ -697,7 +697,7 @@ struct rig_caps ic756pro2_caps =
 
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 static int ic756pro2_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
@@ -777,7 +777,7 @@ static int ic756pro2_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 }
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
 static int ic756pro2_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)

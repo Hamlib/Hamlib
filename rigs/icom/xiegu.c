@@ -917,7 +917,7 @@ struct rig_caps x5105_caps =
 
 /*
  * x108g_set_ptt
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  * The response from the x108g isn't quite right at this time
  * Eventually they may fix their firmware and we can use the icom_set_split_vfo
  */
@@ -953,7 +953,7 @@ int x108g_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  * The response from the x108g isn't quite right at this time
  * Eventually they may fix their firmware and we can use the icom_set_split_vfo
  * x108g_set_split
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
@@ -976,7 +976,7 @@ static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         if (cachep->split == RIG_SPLIT_OFF)
         {
             /* ensure VFO A is Rx and VFO B is Tx as we assume that elsewhere */
-            if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B))
+            if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B))
             {
                 if (RIG_OK != (rc = icom_set_vfo(rig, RIG_VFO_A))) { return rc; }
             }
@@ -1006,7 +1006,7 @@ static int x108g_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 /*
  * x108g_set_split_freq
- * Assumes rig!=NULL, rig->state.priv!=NULL,
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL,
  *
  * Assumes also that the current VFO is the rx VFO.
  */
@@ -1040,7 +1040,7 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
              assumptions allow us to deal with the lack of VFO and split
              queries */
     /* broken if user changes split on rig :( */
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+    if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
             && cachep->split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
@@ -1067,7 +1067,7 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+    if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
             && cachep->split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */
@@ -1083,7 +1083,7 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
 /*
  * x108g_set_split_mode
- * Assumes rig!=NULL, rig->state.priv!=NULL,
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL,
  */
 static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                                 pbwidth_t tx_width)
@@ -1117,7 +1117,7 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
              assumptions allow us to deal with the lack of VFO and split
              queries */
     /* broken if user changes split on rig :( */
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+    if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
             && cachep->split != RIG_SPLIT_OFF)
     {
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
@@ -1145,7 +1145,7 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 
     if (RIG_OK != (rc = icom_set_vfo(rig, rx_vfo))) { return rc; }
 
-    if ((rig->state.vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
+    if ((STATE(rig)->vfo_list & (RIG_VFO_A | RIG_VFO_B)) == (RIG_VFO_A | RIG_VFO_B)
             && cachep->split != RIG_SPLIT_OFF)
     {
         /* Re-enable split */

@@ -601,7 +601,7 @@ struct rig_caps ic746pro_caps =
 
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 static int ic746pro_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
@@ -664,7 +664,7 @@ static int ic746pro_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 }
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
 static int ic746pro_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
@@ -918,7 +918,7 @@ int ic746_get_parm(RIG *rig, setting_t parm, value_t *val)
 
 /*
  * ic746pro_get_channel
- * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, chan!=NULL
  *
  * If memory is empty it will return RIG_OK,but every thing will be null. Where do we boundary check?
  */
@@ -929,7 +929,7 @@ int ic746pro_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     unsigned char chanbuf[MAXFRAMELEN];
     int chan_len, freq_len, retval, data_len;
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct icom_priv_data *)rs->priv;
 
     to_bcd_be(chanbuf, chan->channel_num, 4);
@@ -1086,7 +1086,7 @@ int ic746pro_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
 /*
  * ic746pro_set_channel
- * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, chan!=NULL
  */
 int ic746pro_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
@@ -1096,7 +1096,7 @@ int ic746pro_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     unsigned char chanbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
     int chan_len, ack_len, freq_len, retval;
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct icom_priv_data *)rs->priv;
 
     freq_len = priv->civ_731_mode ? 4 : 5;

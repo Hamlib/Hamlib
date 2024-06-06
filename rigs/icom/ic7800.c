@@ -371,7 +371,7 @@ int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
             for (i = 0; i < 7; i++)
             {
-                if (val.i == rig->state.attenuator[i])
+                if (val.i == STATE(rig)->attenuator[i])
                 {
                     val.i = i + 1;
                     break;
@@ -412,7 +412,7 @@ int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
          */
         if (val->i > 0 && val->i <= 7)
         {
-            val->i = rig->state.attenuator[val->i - 1];
+            val->i = STATE(rig)->attenuator[val->i - 1];
         }
 
         break;

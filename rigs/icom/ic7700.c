@@ -267,7 +267,7 @@ int ic7700_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
 static int ic7700_rig_open(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: enter\n", __func__);
-    struct icom_priv_data *priv = (struct icom_priv_data *) rig->state.priv;
+    struct icom_priv_data *priv = (struct icom_priv_data *) STATE(rig)->priv;
     priv->x26cmdfails = priv->x25cmdfails = 1;
     return icom_rig_open(rig);
 }
