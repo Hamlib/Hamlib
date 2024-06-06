@@ -179,7 +179,7 @@ struct rig_caps omnivip_caps =
 
 /*
  * omni6_set_ptt based on icom_set_ptt
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {

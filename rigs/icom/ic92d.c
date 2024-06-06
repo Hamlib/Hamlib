@@ -225,7 +225,7 @@ const char *ic92d_get_info(RIG *rig)
     int ack_len, retval;
     static char info[64];
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct icom_priv_data *)rs->priv;
 
     // 018019fd
