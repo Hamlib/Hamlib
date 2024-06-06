@@ -400,9 +400,18 @@ int HAMLIB_API rot_open(ROT *rot)
     if (sscanf(rotp->pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
                &port) == 5)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
-                  rotp->pathname);
-        rotp->type.rig = RIG_PORT_NETWORK;
+        char *type = "TCP";
+        if (rot->caps->port_type == RIG_PORT_UDP_NETWORK) 
+        {
+            rotp->type.rig = RIG_PORT_UDP_NETWORK;
+            type = "UDP";
+        }
+        else
+        {
+            rotp->type.rig = RIG_PORT_NETWORK;
+        }
+        rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s:%s\n", __func__,
+                  rotp->pathname, type);
     }
 
     if (sscanf(rotp2->pathname, "%d.%d.%d.%d:%d", &net1, &net2, &net3, &net4,
@@ -410,7 +419,10 @@ int HAMLIB_API rot_open(ROT *rot)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rotp2->pathname);
-        rotp2->type.rig = RIG_PORT_NETWORK;
+        if (rot->caps->port_type == RIG_PORT_UDP_NETWORK) 
+            rotp->type.rig = RIG_PORT_UDP_NETWORK;
+        else
+            rotp->type.rig = RIG_PORT_NETWORK;
     }
 
     switch (rotp->type.rig)
@@ -526,6 +538,8 @@ int HAMLIB_API rot_open(ROT *rot)
         }
     }
 
+    if (rotp->type.rig != RIG_PORT_NETWORK && rotp->type.rig != RIG_PORT_UDP_NETWORK)
+    {
     if (rotp->parm.serial.dtr_state == RIG_SIGNAL_ON)
     {
         ser_set_dtr(rotp, 1);
@@ -542,6 +556,7 @@ int HAMLIB_API rot_open(ROT *rot)
     else
     {
         ser_set_rts(rotp, 0);
+    }
     }
 
     memcpy(&rs->rotport_deprecated, rotp,
