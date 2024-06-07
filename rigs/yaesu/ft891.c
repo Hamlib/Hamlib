@@ -371,7 +371,7 @@ static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed split = 0x%02x\n", __func__, split);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed tx_vfo = 0x%02x\n", __func__, tx_vfo);
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     // RX VFO and TX VFO cannot be the same, no support for MEM as TX VFO
     if (vfo == tx_vfo || tx_vfo == RIG_VFO_MEM)
@@ -436,7 +436,7 @@ static int ft891_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "ST;");
 
@@ -493,7 +493,7 @@ static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         return -RIG_EINVAL;
     }
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
 
@@ -547,7 +547,7 @@ static int ft891_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__,
               (int)tx_width);
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     // Remember VFOB frequency
     if (RIG_OK != (err = newcat_get_freq(rig, RIG_VFO_B, &b_freq)))
@@ -599,7 +599,7 @@ static int ft891_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // We will always make VFOB match VFOA mode
     newcat_set_mode(rig, RIG_VFO_A, mode, width);
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     // Copy A to B
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "AB;");
@@ -621,6 +621,6 @@ static int ft891_init(RIG *rig)
 
     if (ret != RIG_OK) { return ret; }
 
-    rig->state.current_vfo = RIG_VFO_A;
+    STATE(rig)->current_vfo = RIG_VFO_A;
     return RIG_OK;
 }
