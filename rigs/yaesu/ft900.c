@@ -559,15 +559,15 @@ static int ft900_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft900_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft900_priv_data *) calloc(1,
                       sizeof(struct ft900_priv_data));
 
-    if (!rig->state.priv)                       /* whoops! memory shortage! */
+    if (!STATE(rig)->priv)                       /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     /* TODO: read pacing from preferences */
     priv->pacing = FT900_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
@@ -594,12 +594,12 @@ static int ft900_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -622,7 +622,7 @@ static int ft900_open(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
               __func__, RIGPORT(rig)->write_delay);
@@ -685,7 +685,7 @@ static int ft900_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
@@ -741,7 +741,7 @@ static int ft900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -833,7 +833,7 @@ static int ft900_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
     rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %li Hz\n",
               __func__, width);
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -970,7 +970,7 @@ static int ft900_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1114,7 +1114,7 @@ static int ft900_set_vfo(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1194,7 +1194,7 @@ static int ft900_get_vfo(RIG *rig, vfo_t *vfo)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     /* Get flags for VFO status */
     err = ft900_get_update_data(rig, FT900_NATIVE_READ_FLAGS,
@@ -1300,7 +1300,7 @@ static int ft900_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed ptt = 0x%02x\n", __func__, ptt);
@@ -1364,7 +1364,7 @@ static int ft900_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     /* Get flags for VFO status */
     err = ft900_get_update_data(rig, FT900_NATIVE_READ_FLAGS,
@@ -1478,7 +1478,7 @@ static int ft900_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     /* Get flags for VFO split status */
     err = ft900_get_update_data(rig, FT900_NATIVE_READ_FLAGS,
@@ -1543,7 +1543,7 @@ static int ft900_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed rit = %li\n", __func__, rit);
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     /*
      * The assumption here is that the user hasn't changed
@@ -1629,7 +1629,7 @@ static int ft900_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1782,7 +1782,7 @@ static int ft900_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed level = %s\n", __func__,
               rig_strlevel(level));
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     switch (level)
     {
@@ -1910,7 +1910,7 @@ static int ft900_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     err = ft900_send_static_cmd(rig, ci);
 
@@ -2006,7 +2006,7 @@ static int ft900_send_dynamic_cmd(RIG *rig, unsigned char ci,
               "%s: passed p1 = 0x%02x, p2 = 0x%02x, p3 = 0x%02x, p4 = 0x%02x,\n",
               __func__, p1, p2, p3, p4);
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     if (ncmd[ci].ncomp)
     {
@@ -2065,7 +2065,7 @@ static int ft900_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed ci = %i\n", __func__, ci);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     if (ncmd[ci].ncomp)
     {
@@ -2130,7 +2130,7 @@ static int ft900_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed ci = %i\n", __func__, ci);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed rit = %li Hz\n", __func__, rit);
 
-    priv = (struct ft900_priv_data *)rig->state.priv;
+    priv = (struct ft900_priv_data *)STATE(rig)->priv;
 
     if (ncmd[ci].ncomp)
     {

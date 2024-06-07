@@ -633,15 +633,15 @@ static int ft920_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft920_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft920_priv_data *) calloc(1,
                       sizeof(struct ft920_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;    /* whoops! memory shortage! */
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     /* TODO: read pacing from preferences */
     priv->pacing =
@@ -668,12 +668,12 @@ static int ft920_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -697,7 +697,7 @@ static int ft920_open(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
               __func__, rp->write_delay);
@@ -773,7 +773,7 @@ static int ft920_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
@@ -853,7 +853,7 @@ static int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -945,7 +945,7 @@ static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               rig_strrmode(mode));
     rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__, (int)width);
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1183,7 +1183,7 @@ static int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1371,7 +1371,7 @@ static int ft920_set_vfo(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -1443,7 +1443,7 @@ static int ft920_get_vfo(RIG *rig, vfo_t *vfo)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     /* Get flags for VFO status */
     err = ft920_get_update_data(rig, FT920_NATIVE_STATUS_FLAGS,
@@ -1632,7 +1632,7 @@ static int ft920_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     /* Get flags for VFO split status */
     err = ft920_get_update_data(rig, FT920_NATIVE_STATUS_FLAGS,
@@ -1717,7 +1717,7 @@ static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     if (err != RIG_OK) { RETURNFUNC(err); }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     err = ft920_get_split_vfo(rig, vfo, &priv->split, &priv->split_vfo);
 
@@ -1778,7 +1778,7 @@ static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     err = ft920_get_split_vfo(rig, vfo, &priv->split, &priv->split_vfo);
 
@@ -1847,7 +1847,7 @@ static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %d Hz\n", __func__,
               (int)tx_width);
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     err = ft920_get_split_vfo(rig, vfo, &priv->split, &priv->split_vfo);
 
@@ -1911,7 +1911,7 @@ static int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     err = ft920_get_split_vfo(rig, vfo, &priv->split, &priv->split_vfo);
 
@@ -2056,7 +2056,7 @@ static int ft920_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_CURR)
     {
@@ -2259,7 +2259,7 @@ static int ft920_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed ptt = 0x%02x\n", __func__, ptt);
@@ -2331,7 +2331,7 @@ static int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     /* Get flags for VFO status */
     err = ft920_get_update_data(rig, FT920_NATIVE_STATUS_FLAGS,
@@ -2403,7 +2403,7 @@ static int ft920_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s, func = %s, status = %d\n",
               __func__, rig_strvfo(vfo), rig_strfunc(func), status);
@@ -2487,7 +2487,7 @@ static int ft920_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s, func = %s\n",
               __func__, rig_strvfo(vfo), rig_strfunc(func));
@@ -2622,7 +2622,7 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
         return -RIG_EINVAL;
     }
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     err = ft920_send_static_cmd(rig, ci);
 
@@ -2722,7 +2722,7 @@ static int ft920_send_dynamic_cmd(RIG *rig, unsigned char ci,
               "%s: passed p1 = 0x%02x, p2 = 0x%02x, p3 = 0x%02x, p4 = 0x%02x,\n",
               __func__, p1, p2, p3, p4);
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     /*
      * If we've been passed a command index (ci) that is marked
@@ -2786,7 +2786,7 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed ci = %i\n", __func__, ci);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     /*
      * If we've been passed a command index (ci) that is marked
@@ -2855,7 +2855,7 @@ static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
     rig_debug(RIG_DEBUG_TRACE, "%s: passed ci = %i\n", __func__, ci);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed rit = %li Hz\n", __func__, rit);
 
-    priv = (struct ft920_priv_data *)rig->state.priv;
+    priv = (struct ft920_priv_data *)STATE(rig)->priv;
 
     /*
      * If we've been passed a command index (ci) that is marked

@@ -365,15 +365,15 @@ static int ft757_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft757_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft757_priv_data *) calloc(1,
                       sizeof(struct ft757_priv_data));
 
-    if (!rig->state.priv)     /* whoops! memory shortage! */
+    if (!STATE(rig)->priv)     /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->curfreq = 1e6;
 
@@ -396,12 +396,12 @@ static int ft757_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -413,7 +413,7 @@ static int ft757_cleanup(RIG *rig)
 
 static int ft757_open(RIG *rig)
 {
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
@@ -456,7 +456,7 @@ static int ft757_open(RIG *rig)
 
 static int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0a};
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called. Freq=%"PRIfreq"\n", __func__, freq);
@@ -497,7 +497,7 @@ static int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called. fakefreq=%d\n", __func__,
               priv->fakefreq);
@@ -517,7 +517,7 @@ static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
@@ -556,7 +556,7 @@ static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    const struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    const struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
@@ -599,7 +599,7 @@ static int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 static int ft757_set_vfo(RIG *rig, vfo_t vfo)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x05};
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -627,7 +627,7 @@ static int ft757_set_vfo(RIG *rig, vfo_t vfo)
 
 static int ft757gx_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    const struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    const struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
     // we'll just use the cached vfo for the 757GX since we can't read it
     *vfo = priv->current_vfo;
     return RIG_OK;
@@ -635,7 +635,7 @@ static int ft757gx_get_vfo(RIG *rig, vfo_t *vfo)
 
 static int ft757_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    const struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    const struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
@@ -666,7 +666,7 @@ static int ft757_get_vfo(RIG *rig, vfo_t *vfo)
 
 static int ft757_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
@@ -738,7 +738,7 @@ static int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 static int ft757_get_update_data(RIG *rig)
 {
     const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x10};
-    struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
+    struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     int retval = 0;
     long nbtries;
@@ -897,7 +897,7 @@ static int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
 }
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 static int ft757gx_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
@@ -907,7 +907,7 @@ static int ft757gx_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct ft757_priv_data *)rs->priv;
 
 
@@ -931,7 +931,7 @@ static int ft757gx_get_conf(RIG *rig, hamlib_token_t token, char *val)
 }
 
 /*
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
 static int ft757gx_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 {
@@ -941,7 +941,7 @@ static int ft757gx_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called. val=%s\n", __func__, val);
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct ft757_priv_data *)rs->priv;
 
     switch (token)

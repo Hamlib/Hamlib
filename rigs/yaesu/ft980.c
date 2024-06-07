@@ -612,7 +612,7 @@ int ft980_transaction(RIG *rig, const unsigned char *cmd, unsigned char *data,
 int ft980_get_status_data(RIG *rig)
 {
     const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01 };
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv = (struct ft980_priv_data *)STATE(rig)->priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -663,15 +663,15 @@ int ft980_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft980_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft980_priv_data *) calloc(1,
                       sizeof(struct ft980_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = (struct ft980_priv_data *)rig->state.priv;
+    priv = (struct ft980_priv_data *)STATE(rig)->priv;
 
     memset(priv, 0, sizeof(struct ft980_priv_data));
 
@@ -705,12 +705,12 @@ int ft980_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -739,7 +739,7 @@ int ft980_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct ft980_priv_data *)rig->state.priv;
+    priv = (struct ft980_priv_data *)STATE(rig)->priv;
 
     /* send Ext Cntl ON: Activate CAT */
     do
@@ -782,7 +782,7 @@ int ft980_open(RIG *rig)
 int ft980_close(RIG *rig)
 {
     unsigned char echo_back[YAESU_CMD_LENGTH];
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv = (struct ft980_priv_data *)STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     int retry_count1 = 0;
 
@@ -842,7 +842,7 @@ int ft980_close(RIG *rig)
 int ft980_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x08};
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv = (struct ft980_priv_data *)STATE(rig)->priv;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -903,7 +903,7 @@ int ft980_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int ft980_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv = (struct ft980_priv_data *)STATE(rig)->priv;
     int retval;
     freq_t f;
 
@@ -977,7 +977,7 @@ int ft980_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0A};
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv = (struct ft980_priv_data *)STATE(rig)->priv;
     unsigned char md;
     int err;
 
@@ -1094,7 +1094,7 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int ft980_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     unsigned char my_mode;              /* ft890 mode, mode offset */
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv = (struct ft980_priv_data *)STATE(rig)->priv;
     int retval, norm;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -1236,7 +1236,7 @@ int ft980_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int ft980_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0A };
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv = (struct ft980_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1269,7 +1269,7 @@ int ft980_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int ft980_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
+    struct ft980_priv_data *priv = (struct ft980_priv_data *)STATE(rig)->priv;
     int retval;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1321,7 +1321,7 @@ int ft980_set_vfo(RIG *rig, vfo_t vfo)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__, rig_strvfo(vfo));
 
-    priv = (struct ft980_priv_data *)rig->state.priv;
+    priv = (struct ft980_priv_data *)STATE(rig)->priv;
 
     switch (vfo)
     {
@@ -1407,7 +1407,7 @@ int ft980_get_vfo(RIG *rig, vfo_t *vfo)
         return -RIG_EARG;
     }
 
-    priv = (struct ft980_priv_data *)rig->state.priv;
+    priv = (struct ft980_priv_data *)STATE(rig)->priv;
 
     /* Get flags for VFO status */
     err = ft980_get_status_data(rig);

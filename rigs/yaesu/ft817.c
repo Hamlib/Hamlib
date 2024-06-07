@@ -753,7 +753,7 @@ static int ft817_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called, version %s\n", __func__,
               rig->caps->version);
 
-    if ((rig->state.priv = calloc(1, sizeof(struct ft817_priv_data))) == NULL)
+    if ((STATE(rig)->priv = calloc(1, sizeof(struct ft817_priv_data))) == NULL)
     {
         return -RIG_ENOMEM;
     }
@@ -765,9 +765,9 @@ static int ft817_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    free(rig->state.priv);
+    free(STATE(rig)->priv);
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -869,7 +869,7 @@ static int ft817_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
 
 static int ft817_get_status(RIG *rig, int status)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     struct timeval *tv;
     unsigned char *data;
@@ -986,7 +986,7 @@ static int ft817_get_status(RIG *rig, int status)
 
 static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
     freq_t f1 = 0, f2 = 0;
     struct rig_cache *cachep = CACHE(rig);
     int retries = RIGPORT(rig)->retry +
@@ -1039,7 +1039,7 @@ static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1125,7 +1125,7 @@ static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                vfo_t *tx_vfo)
 {
-    const struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    const struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
     ptt_t ptt;
     int n;
 
@@ -1164,7 +1164,7 @@ static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
 static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1186,7 +1186,7 @@ static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
                               const cal_table_float_t *cal)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1233,7 +1233,7 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
 /* frontend will always use RAWSTR+cal_table */
 static int ft817_get_smeter_level(RIG *rig, value_t *val)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -1274,7 +1274,7 @@ static int ft817_get_smeter_level(RIG *rig, value_t *val)
 
 static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1296,7 +1296,7 @@ static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 
 static int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
 
     switch (level)
     {
@@ -1327,7 +1327,7 @@ static int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 static int ft817_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-    struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
+    struct ft817_priv_data *p = (struct ft817_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1383,7 +1383,7 @@ static int ft818_817_get_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t *option,
     /* if CURR then get real VFO before parsing EEPROM */
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
 
     /* band info is 4 bit per VFO, for A lower nibble, B is upper nible */
@@ -1623,7 +1623,7 @@ static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd_be(data, (freq + 5) / 10, 8);
 
     rig_force_cache_timeout(
-        &((struct ft817_priv_data *)rig->state.priv)->fm_status_tv);
+        &((struct ft817_priv_data *)STATE(rig)->priv)->fm_status_tv);
 
     retval = ft817_send_icmd(rig, FT817_NATIVE_CAT_SET_FREQ, data);
     hl_usleep(50 * 1000); // FT817 needs a little time after setting freq
@@ -1743,7 +1743,7 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     /*      return -RIG_EINVAL; */
 
     rig_force_cache_timeout(
-        &((struct ft817_priv_data *)rig->state.priv)->fm_status_tv);
+        &((struct ft817_priv_data *)STATE(rig)->priv)->fm_status_tv);
 
     return ft817_send_cmd(rig, index);
 }
@@ -2088,7 +2088,7 @@ static int ft817_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
     case RIG_OP_TOGGLE:
         rig_force_cache_timeout(&((struct ft817_priv_data *)
-                                  rig->state.priv)->fm_status_tv);
+                                  STATE(rig)->priv)->fm_status_tv);
         n = ft817_send_cmd(rig, FT817_NATIVE_CAT_SET_VFOAB);
         hl_usleep(100 * 1000); // rig needs a little time to do this
         return n;
