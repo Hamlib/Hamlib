@@ -31,6 +31,7 @@
 #include "idx_builtin.h"
 
 #include "rot_dummy.h"
+#include "rot_pstrotator.h"
 #include "rotlist.h"
 
 #define DUMMY_ROT_FUNC 0
@@ -1009,6 +1010,7 @@ DECLARE_INITROT_BACKEND(dummy)
 
     rot_register(&dummy_rot_caps);
     rot_register(&netrotctl_caps);
+    rot_register(&pstrotator_caps);
 
     return RIG_OK;
 }
