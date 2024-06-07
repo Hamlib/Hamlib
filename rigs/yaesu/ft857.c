@@ -393,7 +393,7 @@ int ft857_init(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
-    if ((rig->state.priv = calloc(1, sizeof(struct ft857_priv_data))) == NULL)
+    if ((STATE(rig)->priv = calloc(1, sizeof(struct ft857_priv_data))) == NULL)
     {
         return -RIG_ENOMEM;
     }
@@ -405,12 +405,12 @@ int ft857_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -499,7 +499,7 @@ static int ft857_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
 
 static int ft857_get_status(RIG *rig, int status)
 {
-    struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+    struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     struct timeval *tv;
     unsigned char *data;
@@ -649,7 +649,7 @@ int ft857_set_vfo(RIG *rig, vfo_t vfo)
 
 int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+    struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
@@ -742,7 +742,7 @@ static void get_mode(RIG *rig, const struct ft857_priv_data *priv,
 
 int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+    struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
@@ -779,7 +779,7 @@ int ft857_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
     if (RIG_OK == retcode)
     {
-        get_mode(rig, (struct ft857_priv_data *)rig->state.priv, mode, width);
+        get_mode(rig, (struct ft857_priv_data *)STATE(rig)->priv, mode, width);
     }
 
     ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB); /* always try and
@@ -789,7 +789,7 @@ int ft857_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
 int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+    struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
@@ -822,7 +822,7 @@ int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
 int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+    struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
@@ -843,7 +843,7 @@ int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 static int ft857_get_pometer_level(RIG *rig, value_t *val)
 {
-    struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+    struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
     if (check_cache_timeout(&p->tx_status_tv))
@@ -873,7 +873,7 @@ static int ft857_get_pometer_level(RIG *rig, value_t *val)
 
 static int ft857_get_smeter_level(RIG *rig, value_t *val)
 {
-    struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+    struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
@@ -913,7 +913,7 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-    struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+    struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
@@ -964,7 +964,7 @@ int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     to_bcd_be(data, (freq + 5) / 10, 8);
 
     rig_force_cache_timeout(&((struct ft857_priv_data *)
-                              rig->state.priv)->fm_status_tv);
+                              STATE(rig)->priv)->fm_status_tv);
 
     return ft857_send_icmd(rig, FT857_NATIVE_CAT_SET_FREQ, data);
 }
@@ -1028,7 +1028,7 @@ int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     rig_force_cache_timeout(&((struct ft857_priv_data *)
-                              rig->state.priv)->fm_status_tv);
+                              STATE(rig)->priv)->fm_status_tv);
 
     return ft857_send_cmd(rig, index);
 }
@@ -1087,7 +1087,7 @@ int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     n = ft857_send_cmd(rig, index);
 
     rig_force_cache_timeout(&((struct ft857_priv_data *)
-                              rig->state.priv)->tx_status_tv);
+                              STATE(rig)->priv)->tx_status_tv);
 
     if (n < 0 && n != -RIG_ERJCTED)
     {
@@ -1122,7 +1122,7 @@ int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     if (ptt == RIG_PTT_OFF) { hl_usleep(200 * 1000); } // FT857 takes a bit to come out of PTT
 
     rig_force_cache_timeout(&((struct ft857_priv_data *)
-                              rig->state.priv)->tx_status_tv);
+                              STATE(rig)->priv)->tx_status_tv);
 
     if (n < 0 && n != -RIG_ERJCTED)
     {

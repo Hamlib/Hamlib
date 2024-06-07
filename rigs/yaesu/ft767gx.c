@@ -396,15 +396,15 @@ int ft767_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft767_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft767_priv_data *) calloc(1,
                       sizeof(struct ft767_priv_data));
 
-    if (!rig->state.priv)           /* whoops! memory shortage! */
+    if (!STATE(rig)->priv)           /* whoops! memory shortage! */
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
@@ -436,12 +436,12 @@ int ft767_cleanup(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -453,7 +453,7 @@ int ft767_cleanup(RIG *rig)
 
 int ft767_open(RIG *rig)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
 
     rig_flush(RIGPORT(rig));
@@ -477,7 +477,7 @@ int ft767_open(RIG *rig)
         return retval;
     }
 
-    rig->state.vfo_list = RIG_VFO_A | RIG_VFO_B;
+    STATE(rig)->vfo_list = RIG_VFO_A | RIG_VFO_B;
     return RIG_OK;
 }
 
@@ -581,7 +581,7 @@ int ft767_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int ft767_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
 
     retval = ft767_get_update_data(rig);  /* get whole shebang from rig */
@@ -620,7 +620,7 @@ int ft767_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int ft767_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
 
     retval = ft767_get_update_data(rig);  /* get whole shebang from rig */
@@ -659,7 +659,7 @@ int ft767_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int ft767_set_vfo(RIG *rig, vfo_t vfo)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, CMD_VFOMR};
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
 
     switch (vfo)
@@ -710,7 +710,7 @@ int ft767_set_vfo(RIG *rig, vfo_t vfo)
 
 int ft767_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    const struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    const struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
 
     retval = ft767_get_update_data(rig);  /* get whole shebang from rig */
@@ -727,7 +727,7 @@ int ft767_get_vfo(RIG *rig, vfo_t *vfo)
 
 int ft767_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
 
     retval = ft767_get_update_data(rig);  /* get whole shebang from rig */
@@ -797,7 +797,7 @@ int ft767_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 int ft767_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    const struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    const struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
 
     retval = ft767_get_update_data(rig);  /* get whole shebang from rig */
@@ -827,7 +827,7 @@ int ft767_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
 int ft767_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     unsigned char freq_cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, CMD_FREQ_SET};
     unsigned char vfo_cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, CMD_VFOMR};
     vfo_t curr_vfo;
@@ -938,7 +938,7 @@ int ft767_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
 int ft767_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
     unsigned int offset;
     vfo_t curr_vfo;
@@ -994,7 +994,7 @@ int ft767_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 int ft767_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                          pbwidth_t tx_width)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     unsigned char mode_cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, CMD_MULTICMD};
     unsigned char vfo_cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, CMD_VFOMR};
     vfo_t curr_vfo;
@@ -1102,7 +1102,7 @@ int ft767_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 int ft767_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                          pbwidth_t *tx_width)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
     unsigned int offset;
     vfo_t curr_vfo;
@@ -1157,7 +1157,7 @@ int ft767_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
 int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
     int retval;
     vfo_t curr_vfo;
@@ -1310,7 +1310,7 @@ int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 int ft767_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
     vfo_t curr_vfo;
 
@@ -1406,7 +1406,7 @@ int ft767_leave_CAT(RIG *rig)
 
 int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     size_t replylen, cpycnt;
     unsigned char cmd_echo_buf[5];
@@ -1539,7 +1539,7 @@ int ft767_send_block_and_ack(RIG *rig, unsigned char *cmd, size_t length)
 int ft767_get_update_data(RIG *rig)
 {
     /*  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x01, CMD_CHECK}; */
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
 
     rig_flush(RIGPORT(rig));
@@ -1569,7 +1569,7 @@ int ft767_get_update_data(RIG *rig)
 
 int ft767_set_split(RIG *rig, unsigned int split)
 {
-    struct ft767_priv_data *priv = (struct ft767_priv_data *)rig->state.priv;
+    struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
     int retval;
     unsigned int curr_split;
 
