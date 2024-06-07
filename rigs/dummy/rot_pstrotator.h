@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef _ROT_DUMMY_H
-#define _ROT_DUMMY_H 1
+#ifndef _ROT_PSTROTATOR_H
+#define _ROT_PSTROTATOR_H 1
 
 #include "rotator.h"
 #include "token.h"
@@ -37,8 +37,7 @@
 #define TOK_EL_ROT_MAGICCOMBO    TOKEN_BACKEND(5)
 #define TOK_EL_ROT_MAGICEXTFUNC  TOKEN_BACKEND(6)
 
-extern struct rot_caps dummy_rot_caps;
+extern struct rot_caps pstrotator_caps;
 extern struct rot_caps netrotctl_caps;
-extern struct rot_caps pstrotator;
 
-#endif /* _ROT_DUMMY_H */
+#endif /* _ROT_PSTROTATOR_H */
