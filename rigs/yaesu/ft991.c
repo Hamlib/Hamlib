@@ -547,7 +547,7 @@ static int ft991_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
         return -RIG_EINVAL;
     }
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)STATE(rig)->priv;
     rdata = (ft991info *)priv->ret_data;
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "OI;");
@@ -660,7 +660,7 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     }
 
 
-    state = &rig->state;
+    state = STATE(rig);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = %s\n", __func__,
               rig_strvfo(vfo));
@@ -719,14 +719,14 @@ static int ft991_init(RIG *rig)
 
     if (ret != RIG_OK) { return ret; }
 
-    rig->state.current_vfo = RIG_VFO_A;
+    STATE(rig)->current_vfo = RIG_VFO_A;
     return RIG_OK;
 }
 
 static int ft991_find_current_vfo(RIG *rig, vfo_t *vfo, tone_t *enc_dec_mode,
                                   rmode_t *mode)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     ft991info *info = (ft991info *)priv->ret_data;
     int err;
 
@@ -776,7 +776,7 @@ static int ft991_find_current_vfo(RIG *rig, vfo_t *vfo, tone_t *enc_dec_mode,
 
 static int ft991_get_enabled_ctcss_dcs_mode(RIG *rig)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
@@ -794,7 +794,7 @@ static int ft991_get_enabled_ctcss_dcs_mode(RIG *rig)
 
 static int ft991_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int i;
     ncboolean tone_match;
 
@@ -831,7 +831,7 @@ static int ft991_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 static int ft991_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int ret;
     int t;
     int ret_data_len;
@@ -897,7 +897,7 @@ static int ft991_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     rmode_t rmode;
 
@@ -946,7 +946,7 @@ static int ft991_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
 static int ft991_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int ret;
     int t;
     int ret_data_len;
@@ -999,7 +999,7 @@ static int ft991_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
 static int ft991_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int t;
     tone_t enc_dec_mode;
@@ -1064,7 +1064,7 @@ static int ft991_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 
 static int ft991_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int i;
     ncboolean code_match;
 
@@ -1101,7 +1101,7 @@ static int ft991_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
 static int ft991_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int i;
     ncboolean code_match;
 
@@ -1138,7 +1138,7 @@ static int ft991_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
 static int ft991_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int codeindex;
     int ret;
     int ret_data_len;
@@ -1192,12 +1192,12 @@ static int ft991_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 // VFO functions so rigctld can be used without --vfo argument
 static int ft991_set_vfo(RIG *rig, vfo_t vfo)
 {
-    rig->state.current_vfo = vfo;
+    STATE(rig)->current_vfo = vfo;
     RETURNFUNC2(RIG_OK);
 }
 
 static int ft991_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    *vfo = rig->state.current_vfo;
+    *vfo = STATE(rig)->current_vfo;
     RETURNFUNC2(RIG_OK);
 }

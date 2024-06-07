@@ -545,7 +545,7 @@ int ft897_init(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if ((rig->state.priv = calloc(1, sizeof(struct ft897_priv_data))) == NULL)
+    if ((STATE(rig)->priv = calloc(1, sizeof(struct ft897_priv_data))) == NULL)
     {
         return -RIG_ENOMEM;
     }
@@ -557,12 +557,12 @@ int ft897_cleanup(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -651,7 +651,7 @@ static int ft897_read_eeprom(RIG *rig, unsigned short addr, unsigned char *out)
 
 static int ft897_get_status(RIG *rig, int status)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     struct timeval *tv;
     unsigned char *data;
@@ -725,7 +725,7 @@ static int ft897_get_status(RIG *rig, int status)
 
 int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -746,7 +746,7 @@ int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -830,7 +830,7 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int ft897_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -851,7 +851,7 @@ int ft897_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 static int ft897_get_pometer_level(RIG *rig, value_t *val)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -880,7 +880,7 @@ static int ft897_get_pometer_level(RIG *rig, value_t *val)
 
 static int ft897_get_swr_level(RIG *rig, value_t *val)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -909,7 +909,7 @@ static int ft897_get_swr_level(RIG *rig, value_t *val)
 
 static int ft897_get_smeter_level(RIG *rig, value_t *val)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
@@ -929,7 +929,7 @@ static int ft897_get_smeter_level(RIG *rig, value_t *val)
 
 static int ft897_get_rawstr_level(RIG *rig, value_t *val)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -950,7 +950,7 @@ static int ft897_get_rawstr_level(RIG *rig, value_t *val)
 
 static int ft897_get_alc_level(RIG *rig, value_t *val)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1014,7 +1014,7 @@ int ft897_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -1097,7 +1097,7 @@ int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     /*invalidate frequency cache*/
     rig_force_cache_timeout(&((struct ft897_priv_data *)
-                              rig->state.priv)->fm_status_tv);
+                              STATE(rig)->priv)->fm_status_tv);
 
     return ft897_send_icmd(rig, FT897_NATIVE_CAT_SET_FREQ, data);
 }
@@ -1157,7 +1157,7 @@ int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     rig_force_cache_timeout(&((struct ft897_priv_data *)
-                              rig->state.priv)->fm_status_tv);
+                              STATE(rig)->priv)->fm_status_tv);
 
     return ft897_send_cmd(rig, index);
 }
@@ -1185,7 +1185,7 @@ int ft897_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     n = ft897_send_cmd(rig, index);
 
     rig_force_cache_timeout(&((struct ft897_priv_data *)
-                              rig->state.priv)->tx_status_tv);
+                              STATE(rig)->priv)->tx_status_tv);
 
     if (n < 0 && n != -RIG_ERJCTED)
     {
@@ -1205,7 +1205,7 @@ int ft897_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
     {
     case RIG_OP_TOGGLE:
         rig_force_cache_timeout(&((struct ft897_priv_data *)
-                                  rig->state.priv)->tx_status_tv);
+                                  STATE(rig)->priv)->tx_status_tv);
         index = FT897_NATIVE_CAT_SET_VFOAB;
         break;
 
@@ -1246,7 +1246,7 @@ int ft897_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     n = ft897_send_cmd(rig, index);
 
     rig_force_cache_timeout(&((struct ft897_priv_data *)
-                              rig->state.priv)->tx_status_tv);
+                              STATE(rig)->priv)->tx_status_tv);
 
     if (n < 0 && n != -RIG_ERJCTED)
     {
@@ -1258,7 +1258,7 @@ int ft897_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 int ft897_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+    struct ft897_priv_data *p = (struct ft897_priv_data *) STATE(rig)->priv;
     int n;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);

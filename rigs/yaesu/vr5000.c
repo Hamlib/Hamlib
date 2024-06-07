@@ -246,10 +246,10 @@ struct vr5000_priv_data
 
 int vr5000_init(RIG *rig)
 {
-    rig->state.priv = (struct vr5000_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct vr5000_priv_data *) calloc(1,
                       sizeof(struct vr5000_priv_data));
 
-    if (!rig->state.priv) { return -RIG_ENOMEM; }
+    if (!STATE(rig)->priv) { return -RIG_ENOMEM; }
 
     return RIG_OK;
 }
@@ -262,12 +262,12 @@ int vr5000_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     return RIG_OK;
 }
@@ -278,7 +278,7 @@ int vr5000_cleanup(RIG *rig)
  */
 int vr5000_open(RIG *rig)
 {
-    struct vr5000_priv_data *priv = rig->state.priv;
+    struct vr5000_priv_data *priv = STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     const unsigned char cmd[YAESU_CMD_LENGTH]   = { 0x00, 0x00, 0x00, 0x00, 0x00};
     const unsigned char b_off[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x31};
@@ -331,7 +331,7 @@ int vr5000_close(RIG *rig)
 
 int vr5000_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    struct vr5000_priv_data *priv = rig->state.priv;
+    struct vr5000_priv_data *priv = STATE(rig)->priv;
 
     return set_vr5000(rig, vfo, freq, priv->curr_mode, priv->curr_width,
                       priv->curr_ts);
@@ -341,7 +341,7 @@ int vr5000_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int vr5000_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 
-    const struct vr5000_priv_data *priv = rig->state.priv;
+    const struct vr5000_priv_data *priv = STATE(rig)->priv;
     *freq = priv->curr_freq;
 
     return RIG_OK;
@@ -350,7 +350,7 @@ int vr5000_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int vr5000_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct vr5000_priv_data *priv = rig->state.priv;
+    struct vr5000_priv_data *priv = STATE(rig)->priv;
 
     if (check_tuning_step(rig, vfo, mode, priv->curr_ts) != RIG_OK)
     {
@@ -364,7 +364,7 @@ int vr5000_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int vr5000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    const struct vr5000_priv_data *priv = rig->state.priv;
+    const struct vr5000_priv_data *priv = STATE(rig)->priv;
     *mode = priv->curr_mode;
     *width = priv->curr_width;
 
@@ -374,7 +374,7 @@ int vr5000_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int vr5000_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-    struct vr5000_priv_data *priv = rig->state.priv;
+    struct vr5000_priv_data *priv = STATE(rig)->priv;
     int retval;
 
     retval = check_tuning_step(rig, vfo, priv->curr_mode, ts);
@@ -392,7 +392,7 @@ int vr5000_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
 int vr5000_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
-    const struct vr5000_priv_data *priv = rig->state.priv;
+    const struct vr5000_priv_data *priv = STATE(rig)->priv;
     *ts = priv->curr_ts;
 
     return RIG_OK;
@@ -523,7 +523,7 @@ int mode2rig(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 void correct_frequency(RIG *rig, vfo_t vfo, freq_t curr_freq, freq_t *freq)
 {
 
-    const struct vr5000_priv_data *priv = rig->state.priv;
+    const struct vr5000_priv_data *priv = STATE(rig)->priv;
     shortfreq_t ts = priv->curr_ts;
     unsigned long long correct_freq = (unsigned long long)curr_freq;
 
@@ -572,7 +572,7 @@ void correct_frequency(RIG *rig, vfo_t vfo, freq_t curr_freq, freq_t *freq)
 int set_vr5000(RIG *rig, vfo_t vfo, freq_t freq, rmode_t mode, pbwidth_t width,
                shortfreq_t ts)
 {
-    struct vr5000_priv_data *priv = rig->state.priv;
+    struct vr5000_priv_data *priv = STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     unsigned char cmd_mode_ts[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x07};
     unsigned char cmd_freq[YAESU_CMD_LENGTH]    = { 0x00, 0x00, 0x00, 0x00, 0x01};
