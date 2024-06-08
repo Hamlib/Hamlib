@@ -476,15 +476,15 @@ int newcat_init(RIG *rig)
 
     ENTERFUNC;
 
-    rig->state.priv = (struct newcat_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct newcat_priv_data *) calloc(1,
                       sizeof(struct newcat_priv_data));
 
-    if (!rig->state.priv)                                  /* whoops! memory shortage! */
+    if (!STATE(rig)->priv)                                  /* whoops! memory shortage! */
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     //    priv->current_vfo =  RIG_VFO_MAIN;          /* default to whatever */
 //    priv->current_vfo = RIG_VFO_A;
@@ -534,12 +534,12 @@ int newcat_cleanup(RIG *rig)
 
     ENTERFUNC;
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     RETURNFUNC(RIG_OK);
 }
@@ -554,8 +554,8 @@ int newcat_cleanup(RIG *rig)
 
 int newcat_open(RIG *rig)
 {
-    struct newcat_priv_data *priv = rig->state.priv;
-    struct rig_state *rig_s = &rig->state;
+    struct rig_state *rig_s = STATE(rig);
+    struct newcat_priv_data *priv = rig_s->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     const char *handshake[3] = {"None", "Xon/Xoff", "Hardware"};
     int err;
@@ -659,7 +659,7 @@ int newcat_open(RIG *rig)
 
     if (priv->rig_id == NC_RIGID_FTDX3000 || priv->rig_id == NC_RIGID_FTDX3000DM)
     {
-        rig->state.disable_yaesu_bandselect = 1;
+        rig_s->disable_yaesu_bandselect = 1;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: disabling FTDX3000 band select\n", __func__);
     }
 
@@ -703,8 +703,8 @@ int newcat_open(RIG *rig)
 int newcat_close(RIG *rig)
 {
 
-    struct newcat_priv_data *priv = rig->state.priv;
-    struct rig_state *rig_s = &rig->state;
+    struct rig_state *rig_s = STATE(rig);
+    struct newcat_priv_data *priv = rig_s->priv;
 
     ENTERFUNC;
 
@@ -753,7 +753,7 @@ int newcat_set_conf(RIG *rig, hamlib_token_t token, const char *val)
 
     ENTERFUNC;
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     if (priv == NULL)
     {
@@ -806,7 +806,7 @@ int newcat_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 
     ENTERFUNC;
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     if (priv == NULL)
     {
@@ -836,7 +836,7 @@ static int freq_60m[] = { 5332000, 5348000, 5358500, 5373000, 5405000 };
 /* returns 0 if no exception or 1 if rig needs special handling */
 int newcat_60m_exception(RIG *rig, freq_t freq, mode_t mode)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int channel = -1;
     int i;
@@ -937,6 +937,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int err;
     struct rig_caps *caps;
     struct rig_cache *cachep = CACHE(rig);
+    struct rig_state *rig_s = STATE(rig);
     struct newcat_priv_data *priv;
     int special_60m = 0;
     vfo_t vfo_mode;
@@ -965,7 +966,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)rig_s->priv;
     caps = rig->caps;
 
     newcat_get_vfo_mode(rig, RIG_VFO_A, &vfo_mode);
@@ -1033,7 +1034,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if ((is_ftdx101d || is_ftdx101mp) && cachep->ptt == RIG_PTT_ON)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: ftdx101 check vfo OK, vfo=%s, tx_vfo=%s\n",
-                  __func__, rig_strvfo(vfo), rig_strvfo(rig->state.tx_vfo));
+                  __func__, rig_strvfo(vfo), rig_strvfo(rig_s->tx_vfo));
 
         // when in split we can change VFOB but not VFOA
         if (cachep->split == RIG_SPLIT_ON && target_vfo == '0') { return -RIG_ENTARGET; }
@@ -1041,7 +1042,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         // when not in split we can't change VFOA at all
         if (cachep->split == RIG_SPLIT_OFF && target_vfo == '0') { return -RIG_ENTARGET; }
 
-        if (vfo != rig->state.tx_vfo) { return -RIG_ENTARGET; }
+        if (vfo != rig_s->tx_vfo) { return -RIG_ENTARGET; }
     }
 
     if (is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx1200)
@@ -1119,8 +1120,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     // And only when not in split mode (note this check has been removed for testing)
     int changing;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: rig->state.current_vfo=%s\n", __FILE__,
-              __LINE__, __func__, rig_strvfo(rig->state.current_vfo));
+    rig_debug(RIG_DEBUG_TRACE, "%s(%d)%s: STATE(rig)->current_vfo=%s\n", __FILE__,
+              __LINE__, __func__, rig_strvfo(rig_s->current_vfo));
 
     CACHE_RESET;
 
@@ -1146,7 +1147,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     if (newcat_valid_command(rig, "BS") && changing
-            && !rig->state.disable_yaesu_bandselect
+            && !rig_s->disable_yaesu_bandselect
             // remove the split check here -- hopefully works OK
             //&& !cachep->split
             // seems some rigs are problematic
@@ -1161,7 +1162,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             && rig->caps->set_vfo != NULL) // gotta' have get_vfo too
     {
 
-        if (rig->state.current_vfo != vfo)
+        if (rig_s->current_vfo != vfo)
         {
             int vfo1 = 1, vfo2 = 0;
 
@@ -1229,7 +1230,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
             if (err != RIG_OK) { RETURNFUNC(err); }
 
-            if (rig->state.vfo_list & RIG_VFO_MAIN)
+            if (rig_s->vfo_list & RIG_VFO_MAIN)
             {
                 err = rig_set_vfo(rig, vfotmp == RIG_VFO_MAIN ? RIG_VFO_SUB : RIG_VFO_MAIN);
             }
@@ -1263,7 +1264,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             }
 
             // switch back to the starting vfo
-            if (rig->state.vfo_list & RIG_VFO_MAIN)
+            if (rig_s->vfo_list & RIG_VFO_MAIN)
             {
                 err = rig_set_vfo(rig, vfotmp == RIG_VFO_MAIN ? RIG_VFO_MAIN : RIG_VFO_SUB);
             }
@@ -1387,7 +1388,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: band changing? old=%d, new=%d\n", __func__,
-              newcat_band_index(freq), newcat_band_index(rig->state.current_freq));
+              newcat_band_index(freq), newcat_band_index(rig_s->current_freq));
 
     if (RIG_MODEL_FT450 == caps->rig_model && priv->ret_data[2] != target_vfo)
     {
@@ -1418,7 +1419,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char command[3];
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char c;
     int err;
 
@@ -1500,7 +1501,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     pbwidth_t twidth;
     split_t split_save = cachep->split;
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -1611,7 +1612,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char c;
     int err;
     char main_sub_vfo = '0';
@@ -1623,7 +1624,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
-    if (rig->state.powerstat == 0)
+    if (STATE(rig)->powerstat == 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n",
                   __func__);
@@ -1697,8 +1698,8 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
     vfo_t vfo_mode;
     char command[] = "VS";
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
+    state = STATE(rig);
+    priv = (struct newcat_priv_data *)state->priv;
     priv->cache_start.tv_sec = 0; // invalidate the cache
 
 
@@ -1805,7 +1806,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
 
     state->current_vfo = vfo;    /* if set_vfo worked, set current_vfo */
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo = %s\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: STATE(rig)->current_vfo = %s\n", __func__,
               rig_strvfo(vfo));
 
     RETURNFUNC(RIG_OK);
@@ -1814,7 +1815,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo)
 // Either returns a valid RIG_VFO* or if < 0 an error code
 static vfo_t newcat_set_vfo_if_needed(RIG *rig, vfo_t vfo)
 {
-    vfo_t oldvfo = rig->state.current_vfo;
+    vfo_t oldvfo = STATE(rig)->current_vfo;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, oldvfo=%s\n", __func__, rig_strvfo(vfo),
@@ -1847,8 +1848,8 @@ static vfo_t newcat_set_vfo_if_needed(RIG *rig, vfo_t vfo)
 
 int newcat_get_vfo(RIG *rig, vfo_t *vfo)
 {
-    struct rig_state *state = &rig->state;
-    struct newcat_priv_data *priv  = (struct newcat_priv_data *)rig->state.priv;
+    struct rig_state *state = STATE(rig);
+    struct newcat_priv_data *priv  = (struct newcat_priv_data *)state->priv;
     int err;
     vfo_t vfo_mode;
     char const *command = "VS";
@@ -1882,13 +1883,13 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
     switch (priv->ret_data[2])
     {
     case '0':
-        if (rig->state.vfo_list & RIG_VFO_MAIN) { *vfo = RIG_VFO_MAIN; }
+        if (state->vfo_list & RIG_VFO_MAIN) { *vfo = RIG_VFO_MAIN; }
         else { *vfo = RIG_VFO_A; }
 
         break;
 
     case '1':
-        if (rig->state.vfo_list & RIG_VFO_SUB) { *vfo = RIG_VFO_SUB; }
+        if (state->vfo_list & RIG_VFO_SUB) { *vfo = RIG_VFO_SUB; }
         else { *vfo = RIG_VFO_B; }
 
         break;
@@ -1912,7 +1913,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
 
     state->current_vfo = *vfo;       /* set now */
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: rig->state.current_vfo = %s\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: STATE(rig)->current_vfo = %s\n", __func__,
               rig_strvfo(state->current_vfo));
 
     RETURNFUNC(RIG_OK);
@@ -1921,7 +1922,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo)
 
 int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-    struct newcat_priv_data *priv  = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv  = (struct newcat_priv_data *)STATE(rig)->priv;
     int err = -RIG_EPROTO;
     char txon[] = "TX1;";
 
@@ -1986,9 +1987,9 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
         // some rigs like the FT991 need time before doing anything else like set_freq
         // We won't mess with CW mode -- no freq change expected hopefully
-        if (rig->state.current_mode != RIG_MODE_CW
-                && rig->state.current_mode != RIG_MODE_CWR
-                && rig->state.current_mode != RIG_MODE_CWN
+        if (STATE(rig)->current_mode != RIG_MODE_CW
+                && STATE(rig)->current_mode != RIG_MODE_CWR
+                && STATE(rig)->current_mode != RIG_MODE_CWN
                 && (is_ftdx3000 || is_ftdx3000dm)
            )
         {
@@ -2010,7 +2011,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 int newcat_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char c;
     int err;
 
@@ -2063,7 +2064,7 @@ int newcat_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 int newcat_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char c;
     char command[] = "OS";
@@ -2116,7 +2117,7 @@ int newcat_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 
 int newcat_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char c;
     char command[] = "OS";
@@ -2177,7 +2178,7 @@ int newcat_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 
 int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char command[32];
     freq_t freq = 0;
@@ -2422,7 +2423,7 @@ int newcat_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 
 int newcat_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *offs)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int ret_data_len;
     char *retoffs;
@@ -2897,9 +2898,9 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
         }
 
         rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo=%s, curr_vfo=%s\n", __func__,
-                  rig_strvfo(*tx_vfo), rig_strvfo(rig->state.current_vfo));
+                  rig_strvfo(*tx_vfo), rig_strvfo(STATE(rig)->current_vfo));
 
-        if (*tx_vfo != rig->state.current_vfo)
+        if (*tx_vfo != STATE(rig)->current_vfo)
         {
             *split = RIG_SPLIT_ON;
         }
@@ -2918,7 +2919,7 @@ int newcat_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
 int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int oldvfo;
     int ret;
 
@@ -2970,7 +2971,7 @@ int newcat_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char *retval;
     int err;
     int offset = 0;
@@ -3034,7 +3035,7 @@ int newcat_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
 int newcat_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int oldvfo;
     int ret;
 
@@ -3087,7 +3088,7 @@ int newcat_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 
 int newcat_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char *retval;
     int err;
     int offset = 0;
@@ -3293,7 +3294,7 @@ int newcat_get_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int i;
     ncboolean tone_match;
@@ -3363,7 +3364,7 @@ int newcat_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 int newcat_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int t;
     int ret_data_len;
@@ -3675,7 +3676,7 @@ int newcat_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
 int newcat_set_powerstat(RIG *rig, powerstat_t status)
 {
     hamlib_port_t *rp = RIGPORT(rig);
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int retval;
     int i = 0;
     int retry_save;
@@ -3768,7 +3769,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
  */
 int newcat_get_powerstat(RIG *rig, powerstat_t *status)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     int result;
     char ps;
@@ -3881,7 +3882,7 @@ EX0301033   => RX-ANT       => MONITOR [RANT]
 */
 int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char which_ant;
     char command[] = "AN";
@@ -3973,7 +3974,7 @@ int newcat_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 int newcat_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
                    ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char c;
     char command[] = "AN";
@@ -4092,7 +4093,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     struct rig_state *state = STATE(rig);
     struct rig_cache *cachep = CACHE(rig);
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int i;
     int fpf;
@@ -4303,9 +4304,9 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         rmode_t exclude = RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR;
 
-        if ((rig->state.tx_vfo == RIG_VFO_A && (cachep->modeMainA & exclude))
-                || (rig->state.tx_vfo == RIG_VFO_B && (cachep->modeMainB & exclude))
-                || (rig->state.tx_vfo == RIG_VFO_C && (cachep->modeMainC & exclude)))
+        if ((STATE(rig)->tx_vfo == RIG_VFO_A && (cachep->modeMainA & exclude))
+                || (STATE(rig)->tx_vfo == RIG_VFO_B && (cachep->modeMainB & exclude))
+                || (STATE(rig)->tx_vfo == RIG_VFO_C && (cachep->modeMainC & exclude)))
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot set MG in CW/RTTY modes\n",
                       __func__);
@@ -4908,7 +4909,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_USB_AF:
         if (is_ftdx101d || is_ftdx101mp)
         {
-            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A ?
+            rmode_t curmode = STATE(rig)->current_vfo == RIG_VFO_A ?
                               cachep->modeMainA : cachep->modeMainB;
             float valf = val.f / level_info->step.f;
 
@@ -4965,7 +4966,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     struct rig_state *state = STATE(rig);
     struct rig_cache *cachep = CACHE(rig);
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int ret_data_len;
     char *retlvl;
@@ -5121,9 +5122,9 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         rmode_t exclude = RIG_MODE_CW | RIG_MODE_CWR | RIG_MODE_RTTY | RIG_MODE_RTTYR;
 
-        if ((rig->state.tx_vfo == RIG_VFO_A && (cachep->modeMainA & exclude))
-                || (rig->state.tx_vfo == RIG_VFO_B && (cachep->modeMainB & exclude))
-                || (rig->state.tx_vfo == RIG_VFO_C && (cachep->modeMainC & exclude)))
+        if ((STATE(rig)->tx_vfo == RIG_VFO_A && (cachep->modeMainA & exclude))
+                || (STATE(rig)->tx_vfo == RIG_VFO_B && (cachep->modeMainB & exclude))
+                || (STATE(rig)->tx_vfo == RIG_VFO_C && (cachep->modeMainC & exclude)))
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot read MG in CW/RTTY modes\n",
                       __func__);
@@ -5505,7 +5506,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_USB_AF_INPUT:
         if (is_ftdx101d || is_ftdx101mp)
         {
-            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A ?
+            rmode_t curmode = STATE(rig)->current_vfo == RIG_VFO_A ?
                               cachep->modeMainA : cachep->modeMainB;
 
             switch (curmode)
@@ -5547,7 +5548,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_USB_AF:
         if (is_ftdx101d || is_ftdx101mp)
         {
-            rmode_t curmode = rig->state.current_vfo == RIG_VFO_A ?
+            rmode_t curmode = STATE(rig)->current_vfo == RIG_VFO_A ?
                               cachep->modeMainA : cachep->modeMainB;
 
             switch (curmode)
@@ -6058,7 +6059,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char main_sub_vfo = '0';
 
@@ -6497,7 +6498,7 @@ int newcat_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int ret_data_len;
     int last_char_index;
@@ -6912,7 +6913,7 @@ int newcat_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int retval;
     int rigband = 0;
     int band = 0;
@@ -6982,7 +6983,7 @@ int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
 
 int newcat_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int retval;
     ENTERFUNC;
 
@@ -7024,7 +7025,7 @@ static int newcat_set_maxpower(RIG *rig, vfo_t vfo, hamlib_token_t token,
 static int newcat_get_maxpower(RIG *rig, vfo_t vfo, hamlib_token_t token,
                                value_t *val)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int retval;
     int code = 0;
     int offset = 0;
@@ -7086,7 +7087,7 @@ static int newcat_get_maxpower(RIG *rig, vfo_t vfo, hamlib_token_t token,
 
 int newcat_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     ENTERFUNC;
 
@@ -7140,7 +7141,7 @@ int newcat_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 int newcat_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
                          value_t *val)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char *result;
     int retval;
     int value;
@@ -7301,7 +7302,7 @@ int newcat_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 
 int newcat_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int rc;
 
     ENTERFUNC;
@@ -7398,7 +7399,7 @@ int newcat_set_bank(RIG *rig, vfo_t vfo, int bank)
 
 int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err, i;
     ncboolean restore_vfo;
     chan_t *chan_list;
@@ -7510,7 +7511,7 @@ int newcat_set_mem(RIG *rig, vfo_t vfo, int ch)
 
 int newcat_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
 
     ENTERFUNC;
@@ -7537,7 +7538,7 @@ int newcat_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 int newcat_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char main_sub_vfo = '0';
 
@@ -7639,7 +7640,7 @@ int newcat_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int retval;
 
     ENTERFUNC;
@@ -7662,7 +7663,7 @@ int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
 int newcat_set_trn(RIG *rig, int trn)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char c;
 
     ENTERFUNC;
@@ -7691,7 +7692,7 @@ int newcat_set_trn(RIG *rig, int trn)
 
 int newcat_get_trn(RIG *rig, int *trn)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char c;
     char command[] = "AI";
@@ -7742,8 +7743,8 @@ int newcat_decode_event(RIG *rig)
 
 int newcat_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
-    struct rig_state *state = &rig->state;
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct rig_state *state = STATE(rig);
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)state->priv;
     int err, i;
     int rxit;
     char c_rit, c_xit, c_mode, c_vfo, c_tone, c_rptr_shift;
@@ -7910,7 +7911,7 @@ int newcat_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
 int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char *retval;
     char c, c2;
     int err, i;
@@ -8102,7 +8103,7 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
 
 const char *newcat_get_info(RIG *rig)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     static char idbuf[129]; /* extra large static string array */
 
     /* Build the command string */
@@ -8270,7 +8271,7 @@ ncboolean newcat_is_rig(RIG *rig, rig_model_t model)
 
 int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *) STATE(rig)->priv;
     char *command = "FT";
     int result;
     char p1;
@@ -8340,7 +8341,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
         RETURNFUNC(result);
     }
 
-    rig->state.tx_vfo = tx_vfo;
+    STATE(rig)->tx_vfo = tx_vfo;
 
     RETURNFUNC(result);
 }
@@ -8348,7 +8349,7 @@ int newcat_set_tx_vfo(RIG *rig, vfo_t tx_vfo)
 
 int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *) STATE(rig)->priv;
     char const *command = "FT";
     vfo_t vfo_mode;
     int result;
@@ -8373,7 +8374,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
     switch (c)
     {
     case '0':
-        if (rig->state.vfo_list & RIG_VFO_MAIN)
+        if (STATE(rig)->vfo_list & RIG_VFO_MAIN)
         {
             *tx_vfo = RIG_VFO_MAIN;
         }
@@ -8385,7 +8386,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
         break;
 
     case '1' :
-        if (rig->state.vfo_list & RIG_VFO_SUB)
+        if (STATE(rig)->vfo_list & RIG_VFO_SUB)
         {
             *tx_vfo = RIG_VFO_SUB;
         }
@@ -8424,7 +8425,7 @@ int newcat_get_tx_vfo(RIG *rig, vfo_t *tx_vfo)
 static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo,
                             vfo_t *tx_vfo)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *) STATE(rig)->priv;
     char *command = "ST";
     char p1;
     int result;
@@ -8474,8 +8475,8 @@ static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo,
     switch (split)
     {
     case RIG_SPLIT_OFF:
-        *rx_vfo = rig->state.current_vfo;
-        *tx_vfo = rig->state.current_vfo;
+        *rx_vfo = STATE(rig)->current_vfo;
+        *tx_vfo = STATE(rig)->current_vfo;
         break;
 
     case RIG_SPLIT_ON:
@@ -8493,7 +8494,7 @@ static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo,
         }
         else
         {
-            *rx_vfo = rig->state.current_vfo;
+            *rx_vfo = STATE(rig)->current_vfo;
 
             result = newcat_get_tx_vfo(rig, tx_vfo);
 
@@ -8515,7 +8516,7 @@ static int newcat_set_split(RIG *rig, split_t split, vfo_t *rx_vfo,
 
 static int newcat_get_split(RIG *rig, split_t *split, vfo_t *tx_vfo)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *) rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *) STATE(rig)->priv;
     char const *command = "ST";
     int result;
     char c;
@@ -8621,19 +8622,19 @@ int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo)
 
     case RIG_VFO_CURR:  /* RIG_VFO_RX == RIG_VFO_CURR */
     case RIG_VFO_VFO:
-        *vfo = rig->state.current_vfo;
+        *vfo = STATE(rig)->current_vfo;
         break;
 
     case RIG_VFO_TX:
 
         /* set to another vfo for split or uplink */
-        if (rig->state.vfo_list & RIG_VFO_MAIN)
+        if (STATE(rig)->vfo_list & RIG_VFO_MAIN)
         {
-            *vfo = (rig->state.current_vfo == RIG_VFO_SUB) ? RIG_VFO_MAIN : RIG_VFO_SUB;
+            *vfo = (STATE(rig)->current_vfo == RIG_VFO_SUB) ? RIG_VFO_MAIN : RIG_VFO_SUB;
         }
         else
         {
-            *vfo = (rig->state.current_vfo == RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_B;
+            *vfo = (STATE(rig)->current_vfo == RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_B;
         }
 
         break;
@@ -8656,7 +8657,7 @@ int newcat_set_vfo_from_alias(RIG *rig, vfo_t *vfo)
 
 int newcat_set_narrow(RIG *rig, vfo_t vfo, ncboolean narrow)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char c;
     char main_sub_vfo = '0';
@@ -8700,7 +8701,7 @@ int newcat_set_narrow(RIG *rig, vfo_t vfo, ncboolean narrow)
 
 int newcat_get_narrow(RIG *rig, vfo_t vfo, ncboolean *narrow)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char c;
     char command[] = "NA";
@@ -8752,7 +8753,7 @@ int newcat_get_narrow(RIG *rig, vfo_t vfo, ncboolean *narrow)
 // if vfo != RIG_VFO_NONE then will use NA0 or NA1 depending on vfo Main or Sub
 static int get_narrow(RIG *rig, vfo_t vfo)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int narrow = 0;
     int err;
 
@@ -8779,7 +8780,7 @@ static int get_narrow(RIG *rig, vfo_t vfo)
 
 int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int w = 0;
     char main_sub_vfo = '0';
@@ -9642,7 +9643,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 static int set_roofing_filter(RIG *rig, vfo_t vfo, int index)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
     struct newcat_roofing_filter *roofing_filters;
     char main_sub_vfo = '0';
@@ -9747,7 +9748,7 @@ static int set_roofing_filter_for_width(RIG *rig, vfo_t vfo, int width)
 static int get_roofing_filter(RIG *rig, vfo_t vfo,
                               struct newcat_roofing_filter **roofing_filter)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     struct newcat_priv_caps *priv_caps = (struct newcat_priv_caps *)rig->caps->priv;
     struct newcat_roofing_filter *roofing_filters;
     char roofing_filter_choice;
@@ -9809,7 +9810,7 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo,
 
 int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int w;
     int sh_command_valid = 1;
@@ -10946,7 +10947,7 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
 int newcat_set_faststep(RIG *rig, ncboolean fast_step)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char c;
 
     ENTERFUNC;
@@ -10975,7 +10976,7 @@ int newcat_set_faststep(RIG *rig, ncboolean fast_step)
 
 int newcat_get_faststep(RIG *rig, ncboolean *fast_step)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     char c;
     char command[] = "FS";
@@ -11012,7 +11013,7 @@ int newcat_get_faststep(RIG *rig, ncboolean *fast_step)
 
 int newcat_get_rigid(RIG *rig)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     const char *s = NULL;
 
     ENTERFUNC;
@@ -11050,7 +11051,7 @@ int newcat_get_rigid(RIG *rig)
  */
 int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int offset = 0;
     char *cmd = "IF";
@@ -11076,7 +11077,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
         RETURNFUNC(err);
     }
 
-    if (rig->state.powerstat == 0)
+    if (STATE(rig)->powerstat == 0)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n",
                   __func__);
@@ -11132,7 +11133,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
 
 int newcat_vfomem_toggle(RIG *rig)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char command[] = "VM";
 
     ENTERFUNC;
@@ -11163,9 +11164,9 @@ int newcat_vfomem_toggle(RIG *rig)
  */
 int newcat_get_cmd(RIG *rig)
 {
-    struct rig_state *state = &rig->state;
+    struct rig_state *state = STATE(rig);
     hamlib_port_t *rp = RIGPORT(rig);
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int retry_count = 0;
     int rc = -RIG_EPROTO;
     int is_read_cmd = 0;
@@ -11413,7 +11414,7 @@ int newcat_get_cmd(RIG *rig)
  */
 int newcat_set_cmd_validate(RIG *rig)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char valcmd[16];
     int retries = 8;
     int retry = 0;
@@ -11659,7 +11660,7 @@ repeat:
 int newcat_set_cmd(RIG *rig)
 {
     hamlib_port_t *rp = RIGPORT(rig);
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int retry_count = 0;
     int rc = -RIG_EPROTO;
 
@@ -11956,7 +11957,7 @@ rmode_t newcat_rmode_width(RIG *rig, vfo_t vfo, char mode, pbwidth_t *width)
 int newcat_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 {
     char *p1 = "0";  // newer rigs have 2 bytes where is fixed at zero e.g. FT991
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     if (!newcat_valid_command(rig, "PB"))
     {
@@ -11971,7 +11972,7 @@ int newcat_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 
 static int newcat_set_clarifier(RIG *rig, vfo_t vfo, int rx, int tx)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = '0';
 
     if (!newcat_valid_command(rig, "CF"))
@@ -12024,7 +12025,7 @@ static int newcat_set_clarifier(RIG *rig, vfo_t vfo, int rx, int tx)
 
 static int newcat_get_clarifier(RIG *rig, vfo_t vfo, int *rx, int *tx)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = '0';
     int err;
     int ret_data_len;
@@ -12071,7 +12072,7 @@ static int newcat_get_clarifier(RIG *rig, vfo_t vfo, int *rx, int *tx)
 
 int newcat_set_clarifier_frequency(RIG *rig, vfo_t vfo, shortfreq_t freq)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = '0';
 
     if (!newcat_valid_command(rig, "CF"))
@@ -12092,7 +12093,7 @@ int newcat_set_clarifier_frequency(RIG *rig, vfo_t vfo, shortfreq_t freq)
 
 int newcat_get_clarifier_frequency(RIG *rig, vfo_t vfo, shortfreq_t *freq)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = '0';
     int err;
     int ret_data_len;
@@ -12142,7 +12143,7 @@ int newcat_get_clarifier_frequency(RIG *rig, vfo_t vfo, shortfreq_t *freq)
 
 static int newcat_set_apf_frequency(RIG *rig, vfo_t vfo, int freq)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
 
     if (!newcat_valid_command(rig, "CO"))
@@ -12176,7 +12177,7 @@ static int newcat_set_apf_frequency(RIG *rig, vfo_t vfo, int freq)
 
 static int newcat_get_apf_frequency(RIG *rig, vfo_t vfo, int *freq)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     int err;
     int ret_data_len;
@@ -12228,7 +12229,7 @@ static int newcat_get_apf_frequency(RIG *rig, vfo_t vfo, int *freq)
 
 static int newcat_set_apf_width(RIG *rig, vfo_t vfo, int choice)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     if (!newcat_valid_command(rig, "EX"))
     {
@@ -12271,7 +12272,7 @@ static int newcat_set_apf_width(RIG *rig, vfo_t vfo, int choice)
 
 static int newcat_get_apf_width(RIG *rig, vfo_t vfo, int *choice)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int ret_data_len;
     char *ret_data;
@@ -12330,7 +12331,7 @@ static int newcat_get_apf_width(RIG *rig, vfo_t vfo, int *choice)
 
 static int newcat_set_contour(RIG *rig, vfo_t vfo, int status)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
 
     if (!newcat_valid_command(rig, "CO"))
@@ -12368,7 +12369,7 @@ static int newcat_set_contour(RIG *rig, vfo_t vfo, int status)
 
 static int newcat_get_contour(RIG *rig, vfo_t vfo, int *status)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     int err;
     int ret_data_len;
@@ -12425,7 +12426,7 @@ static int newcat_get_contour(RIG *rig, vfo_t vfo, int *status)
 
 static int newcat_set_contour_frequency(RIG *rig, vfo_t vfo, int freq)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
 
     if (!newcat_valid_command(rig, "CO"))
@@ -12466,7 +12467,7 @@ static int newcat_set_contour_frequency(RIG *rig, vfo_t vfo, int freq)
 
 static int newcat_get_contour_frequency(RIG *rig, vfo_t vfo, int *freq)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     char main_sub_vfo = (RIG_VFO_B == vfo || RIG_VFO_SUB == vfo) ? '1' : '0';
     int err;
     int ret_data_len;
@@ -12533,7 +12534,7 @@ static int newcat_get_contour_frequency(RIG *rig, vfo_t vfo, int *freq)
 
 static int newcat_set_contour_level(RIG *rig, vfo_t vfo, int level)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     if (!newcat_valid_command(rig, "EX"))
     {
@@ -12577,7 +12578,7 @@ static int newcat_set_contour_level(RIG *rig, vfo_t vfo, int level)
 
 static int newcat_get_contour_level(RIG *rig, vfo_t vfo, int *level)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int ret_data_len;
     char *ret_data;
@@ -12636,7 +12637,7 @@ static int newcat_get_contour_level(RIG *rig, vfo_t vfo, int *level)
 
 static int newcat_set_contour_width(RIG *rig, vfo_t vfo, int width)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     if (!newcat_valid_command(rig, "EX"))
     {
@@ -12679,7 +12680,7 @@ static int newcat_set_contour_width(RIG *rig, vfo_t vfo, int width)
 
 static int newcat_get_contour_width(RIG *rig, vfo_t vfo, int *width)
 {
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
     int err;
     int ret_data_len;
     char *ret_data;
@@ -12741,7 +12742,7 @@ int newcat_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
 {
     int retval = RIG_OK;
     int err;
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     if (!newcat_valid_command(rig, "DT"))
     {
@@ -12789,7 +12790,7 @@ int newcat_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
     int retval = RIG_OK;
     int err;
     int n;
-    struct newcat_priv_data *priv = (struct newcat_priv_data *)rig->state.priv;
+    struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     if (!newcat_valid_command(rig, "DT"))
     {
