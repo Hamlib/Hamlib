@@ -116,7 +116,7 @@ int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
 /*
  * icom_one_transaction
  *
- * We assume that rig!=NULL, rig->state!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * payload can be NULL if payload_len == 0
  * subcmd can be equal to -1 (no subcmd wanted)
@@ -131,7 +131,7 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
 {
     struct icom_priv_data *priv;
     const struct icom_priv_caps *priv_caps;
-    struct rig_state *rs;
+    struct rig_state *rs = STATE(rig);
     hamlib_port_t *rp = RIGPORT(rig);
     struct timeval start_time, current_time, elapsed_time;
     // this buf needs to be large enough for 0xfe strings for power up
@@ -145,7 +145,6 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
     ENTERFUNC;
     memset(buf, 0, 200);
     memset(sendbuf, 0, MAXFRAMELEN);
-    rs = &rig->state;
     priv = (struct icom_priv_data *)rs->priv;
     priv_caps = (struct icom_priv_caps *)rig->caps->priv;
 
@@ -461,7 +460,7 @@ again2:
  *
  * This function honors rigport.retry count.
  *
- * We assume that rig!=NULL, rig->state!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
+ * We assume that rig!=NULL, STATE(rig)!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * payload can be NULL if payload_len == 0
  * subcmd can be equal to -1 (no subcmd wanted)
@@ -613,7 +612,7 @@ int rig2icom_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
     signed char icmode_ext;
     pbwidth_t width_tmp = width;
     const struct icom_priv_data *priv_data = (struct icom_priv_data *)
-            rig->state.priv;
+            STATE(rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: mode=%d, width=%d\n", __func__, (int)mode,

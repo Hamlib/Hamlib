@@ -42,7 +42,7 @@ static int icf8101_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     int freq_len = 5;
     int ack_len;
     unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-    vfo_t vfo_save = rig->state.current_vfo;
+    vfo_t vfo_save = STATE(rig)->current_vfo;
 
     if (vfo != vfo_save)
     {
@@ -348,7 +348,7 @@ int icf8101_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 /*
  * icf8101_get_ptt
- * Assumes rig!=NULL, rig->state.priv!=NULL, ptt!=NULL
+ * Assumes rig!=NULL, STATE(rig)->priv!=NULL, ptt!=NULL
  */
 int icf8101_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {

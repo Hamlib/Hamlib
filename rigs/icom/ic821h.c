@@ -68,14 +68,14 @@ int ic821h_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
             split;  // we emulate satmode of other rigs since we apparently can't query
         rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo==MAIN so assuming sat mode=%d\n",
                   __func__, CACHE(rig)->satmode);
-        rig->state.tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_SUB : RIG_VFO_MAIN;
+        STATE(rig)->tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_SUB : RIG_VFO_MAIN;
         // the IC821 seems to be backwards in satmode -- setting Main select Sub and vice versa
         retval = rig_set_vfo(rig, RIG_VFO_SUB);
     }
     else if (tx_vfo == RIG_VFO_A)
     {
         retval = rig_set_vfo(rig, RIG_VFO_A);
-        rig->state.tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
+        STATE(rig)->tx_vfo = split == RIG_SPLIT_ON ? RIG_VFO_B : RIG_VFO_A;
     }
     else
     {

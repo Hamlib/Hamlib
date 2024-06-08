@@ -163,18 +163,19 @@ static int write_transaction(ROT *rot, char *cmd)
 static int pstrotator_rot_init(ROT *rot)
 {
     struct pstrotator_rot_priv_data *priv;
+    struct rot_state *rs = ROTSTATE(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rot->state.priv = (struct pstrotator_rot_priv_data *)
+    rs->priv = (struct pstrotator_rot_priv_data *)
                       calloc(1, sizeof(struct pstrotator_rot_priv_data));
 
-    if (!rot->state.priv)
+    if (!rs->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rot->state.priv;
+    priv = rs->priv;
 
     priv->ext_funcs = alloc_init_ext(pstrotator_ext_funcs);
 
@@ -212,8 +213,9 @@ static int pstrotator_rot_init(ROT *rot)
 
 static int pstrotator_rot_cleanup(ROT *rot)
 {
+    struct rot_state *rs = ROTSTATE(rot);
     struct pstrotator_rot_priv_data *priv = (struct pstrotator_rot_priv_data *)
-                                            rot->state.priv;
+                                            rs->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -221,9 +223,9 @@ static int pstrotator_rot_cleanup(ROT *rot)
     free(priv->ext_levels);
     free(priv->ext_parms);
     free(priv->magic_conf);
-    free(rot->state.priv);
+    free(rs->priv);
 
-    rot->state.priv = NULL;
+    rs->priv = NULL;
 
     return RIG_OK;
 }
@@ -251,11 +253,12 @@ static int pstrotator_rot_open(ROT *rot)
     int n1, n2, n3, n4;
     int sockfd;
     struct sockaddr_in clientAddr;
+    struct rot_state *rs = ROTSTATE(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct pstrotator_rot_priv_data *)rot->state.priv;
-    //priv->port2 = rot->state.rotport;
+    priv = (struct pstrotator_rot_priv_data *)rs->priv;
+    //priv->port2 = rs->rotport;
     //priv->port2.type.rig = RIG_PORT_UDP_NETWORK;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: pathname=%s\n", __func__,
@@ -300,7 +303,7 @@ static int pstrotator_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     struct pstrotator_rot_priv_data *priv;
 
-    priv = (struct pstrotator_rot_priv_data *)rot->state.priv;
+    priv = (struct pstrotator_rot_priv_data *)ROTSTATE(rot)->priv;
 
     switch (token)
     {
@@ -326,7 +329,7 @@ static int pstrotator_get_conf2(ROT *rot, hamlib_token_t token, char *val,
 {
     struct pstrotator_rot_priv_data *priv;
 
-    priv = (struct pstrotator_rot_priv_data *)rot->state.priv;
+    priv = (struct pstrotator_rot_priv_data *)ROTSTATE(rot)->priv;
 
     switch (token)
     {
@@ -351,7 +354,7 @@ static int pstrotator_get_conf(ROT *rot, hamlib_token_t token, char *val)
 static int pstrotator_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     struct pstrotator_rot_priv_data *priv = (struct pstrotator_rot_priv_data *)
-                                            rot->state.priv;
+                                            ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
               az, el);
@@ -442,7 +445,7 @@ void readPacket(int sockfd, char *buf, int buf_len, int expected)
 static int pstrotator_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     struct pstrotator_rot_priv_data *priv = (struct pstrotator_rot_priv_data *)
-                                            rot->state.priv;
+                                            ROTSTATE(rot)->priv;
     char buf[64];
     int n = 0;
     fd_set rfds, efds;
@@ -519,7 +522,7 @@ static int pstrotator_rot_get_status(ROT *rot, rot_status_t *status)
 {
     const struct pstrotator_rot_priv_data *priv = (struct pstrotator_rot_priv_data
             *)
-            rot->state.priv;
+            ROTSTATE(rot)->priv;
 
     *status = priv->status;
 
