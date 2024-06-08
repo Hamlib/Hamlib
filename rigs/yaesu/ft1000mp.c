@@ -749,15 +749,15 @@ static int ft1000mp_init(RIG *rig)
 
     ENTERFUNC;
 
-    rig->state.priv = (struct ft1000mp_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft1000mp_priv_data *) calloc(1,
                       sizeof(struct ft1000mp_priv_data));
 
-    if (!rig->state.priv)                       /* whoops! memory shortage! */
+    if (!STATE(rig)->priv)                       /* whoops! memory shortage! */
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     /* TODO: read pacing from preferences */
     priv->pacing =
@@ -777,12 +777,12 @@ static int ft1000mp_cleanup(RIG *rig)
 {
     ENTERFUNC;
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     RETURNFUNC(RIG_OK);
 }
@@ -802,7 +802,7 @@ static int ft1000mp_open(RIG *rig)
 
     ENTERFUNC;
 
-    rig_s = &rig->state;
+    rig_s = STATE(rig);
     p = (struct ft1000mp_priv_data *)rig_s->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: rig_open: write_delay = %i msec \n", __func__,
@@ -822,7 +822,7 @@ static int ft1000mp_open(RIG *rig)
     cmd = p->p_cmd;
     write_block(rp, cmd, YAESU_CMD_LENGTH);
 
-    ft1000mp_get_vfo(rig, &rig->state.current_vfo);
+    ft1000mp_get_vfo(rig, &rig_s->current_vfo);
     /* TODO */
 
     RETURNFUNC(RIG_OK);
@@ -838,7 +838,7 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     ENTERFUNC;
 
-    p = (struct ft1000mp_priv_data *)rig->state.priv;
+    p = (struct ft1000mp_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: requested freq on %s = %"PRIfreq" Hz \n",
               __func__,
@@ -846,7 +846,7 @@ static int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
 
     // round freq to 10Hz intervals due to rig restriction
@@ -929,8 +929,8 @@ static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     if (vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
-                  rig_strvfo(rig->state.current_vfo));
-        vfo = rig->state.current_vfo;
+                  rig_strvfo(STATE(rig)->current_vfo));
+        vfo = STATE(rig)->current_vfo;
     }
 
     if (vfo == RIG_VFO_A)
@@ -966,8 +966,8 @@ static int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
-                  rig_strvfo(rig->state.current_vfo));
-        vfo = rig->state.current_vfo;
+                  rig_strvfo(STATE(rig)->current_vfo));
+        vfo = STATE(rig)->current_vfo;
     }
 
     /*
@@ -1081,14 +1081,15 @@ static int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
     unsigned char mymode;         /* ft1000mp mode */
     unsigned char mymode_ext; /* ft1000mp extra mode bit mode */
     int retval;
+    struct rig_state *rs = STATE(rig);
 
     ENTERFUNC;
 
     if (vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: current_vfo=%s\n", __func__,
-                  rig_strvfo(rig->state.current_vfo));
-        vfo = rig->state.current_vfo;
+                  rig_strvfo(rs->current_vfo));
+        vfo = rs->current_vfo;
     }
 
     retval = ft1000mp_get_vfo_data(rig, vfo);
@@ -1098,7 +1099,7 @@ static int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
         RETURNFUNC(retval);
     }
 
-    priv = (struct ft1000mp_priv_data *)rig->state.priv;
+    priv = (struct ft1000mp_priv_data *)rs->priv;
 
     if (vfo == RIG_VFO_B)
     {
@@ -1188,7 +1189,7 @@ static int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
 
     if (vfo == RIG_VFO_VFO)
     {
-        vfo = rig->state.current_vfo;
+        vfo = STATE(rig)->current_vfo;
     }
 
 #if 0 // seems switching VFOs like this changes the frequencies in the response
@@ -1197,13 +1198,13 @@ static int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
     {
     case RIG_VFO_A:
         cmd_index = FT1000MP_NATIVE_VFO_A;
-        rig->state.current_vfo = vfo;       /* update active VFO */
+        STATE(rig)->current_vfo = vfo;       /* update active VFO */
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo == RIG_VFO_A\n", __func__);
         break;
 
     case RIG_VFO_B:
         cmd_index = FT1000MP_NATIVE_VFO_B;
-        rig->state.current_vfo = vfo;       /* update active VFO */
+        STATE(rig)->current_vfo = vfo;       /* update active VFO */
         rig_debug(RIG_DEBUG_TRACE, "%s: vfo == RIG_VFO_B\n", __func__);
         break;
 
@@ -1223,7 +1224,7 @@ static int ft1000mp_set_vfo(RIG *rig, vfo_t vfo)
 #endif
 
     // we just store the requested vfo in our internal state
-    rig->state.current_vfo = vfo;
+    STATE(rig)->current_vfo = vfo;
 
     RETURNFUNC(RIG_OK);
 
@@ -1243,7 +1244,7 @@ static int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
 
     ENTERFUNC;
 
-    p = (struct ft1000mp_priv_data *)rig->state.priv;
+    p = (struct ft1000mp_priv_data *)STATE(rig)->priv;
 
     /* Get flags for VFO status */
     retval = ft1000mp_get_update_data(rig, FT1000MP_NATIVE_UPDATE,
@@ -1260,7 +1261,7 @@ static int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
     }
     else // we are emulating vfo status
     {
-        *vfo = rig->state.current_vfo;
+        *vfo = STATE(rig)->current_vfo;
 
         if (*vfo == RIG_VFO_CURR)
         {
@@ -1272,11 +1273,11 @@ static int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo)
 #if 0
     else if (p->update_data[FT1000MP_SUMO_DISPLAYED_STATUS] & SF_VFOAB)
     {
-        *vfo = rig->state.current_vfo = RIG_VFO_B;
+        *vfo = STATE(rig)->current_vfo = RIG_VFO_B;
     }
     else
     {
-        *vfo = rig->state.current_vfo = RIG_VFO_A;
+        *vfo = STATE(rig)->current_vfo = RIG_VFO_A;
     }
 
 #endif
@@ -1294,7 +1295,7 @@ static int ft1000mp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     unsigned char *cmd;
 
     ENTERFUNC;
-    priv = (struct ft1000mp_priv_data *)rig->state.priv;
+    priv = (struct ft1000mp_priv_data *)STATE(rig)->priv;
 
     switch (func)
     {
@@ -1343,7 +1344,7 @@ static int ft1000mp_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     unsigned char *p;
 
     ENTERFUNC;
-    priv = (struct ft1000mp_priv_data *)rig->state.priv;
+    priv = (struct ft1000mp_priv_data *)STATE(rig)->priv;
 
     if (!status)
     {
@@ -1438,7 +1439,7 @@ static int ft1000mp_set_rxit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
     ENTERFUNC;
 
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct ft1000mp_priv_data *)rs->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: requested freq = %d Hz\n", __func__, (int)rit);
@@ -1487,7 +1488,7 @@ static int ft1000mp_get_rxit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
     ENTERFUNC;
 
-    priv = (struct ft1000mp_priv_data *)rig->state.priv;
+    priv = (struct ft1000mp_priv_data *)STATE(rig)->priv;
 
     retval = ft1000mp_get_vfo_data(rig, vfo);
 
@@ -1536,7 +1537,7 @@ static int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level,
     int retry = rp->retry;
 
     ENTERFUNC;
-    rs = &rig->state;
+    rs = STATE(rig);
     priv = (struct ft1000mp_priv_data *)rs->priv;
 
 
@@ -1548,7 +1549,7 @@ static int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level,
     case RIG_LEVEL_RAWSTR:
         if (vfo == RIG_VFO_CURR)
         {
-            vfo = rig->state.current_vfo;
+            vfo = rs->current_vfo;
         }
 
         m = vfo == RIG_VFO_B ? 0x01 : 0x00;
@@ -1663,7 +1664,7 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci,
 
     ENTERFUNC;
 
-    p = (struct ft1000mp_priv_data *)rig->state.priv;
+    p = (struct ft1000mp_priv_data *)STATE(rig)->priv;
 
     // timeout retries are done in read_block now
     // based on rig backed retry value
@@ -1709,6 +1710,7 @@ static int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                   vfo_t tx_vfo)
 {
     unsigned char cmd_index = 0;      /* index of sequence to send */
+    struct rig_state *rs = STATE(rig);
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s called rx_vfo=%s, tx_vfo=%s\n", __func__,
@@ -1730,9 +1732,9 @@ static int ft1000mp_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
     }
 
     // manual says VFO_A=Tx and VFO_B=Rx but testing shows otherwise
-    rig->state.current_vfo = RIG_VFO_A;
-    rig->state.rx_vfo = RIG_VFO_B;
-    rig->state.tx_vfo = RIG_VFO_B;
+    rs->current_vfo = RIG_VFO_A;
+    rs->rx_vfo = RIG_VFO_B;
+    rs->tx_vfo = RIG_VFO_B;
     ft1000mp_send_priv_cmd(rig, cmd_index);
 
     RETURNFUNC(RIG_OK);
@@ -1751,7 +1753,7 @@ static int ft1000mp_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
 
     ENTERFUNC;
 
-    p = (struct ft1000mp_priv_data *)rig->state.priv;
+    p = (struct ft1000mp_priv_data *)STATE(rig)->priv;
 
     /* Get flags for split status */
     retval = ft1000mp_get_update_data(rig, FT1000MP_NATIVE_UPDATE,

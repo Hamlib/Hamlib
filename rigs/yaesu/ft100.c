@@ -471,10 +471,10 @@ int ft100_init(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = (struct ft100_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft100_priv_data *) calloc(1,
                       sizeof(struct ft100_priv_data));
 
-    if (!rig->state.priv) { return -RIG_ENOMEM; }
+    if (!STATE(rig)->priv) { return -RIG_ENOMEM; }
 
     return RIG_OK;
 }
@@ -486,12 +486,12 @@ int ft100_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -538,7 +538,7 @@ static int ft100_read_status(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct ft100_priv_data *)rig->state.priv;
+    priv = (struct ft100_priv_data *)STATE(rig)->priv;
 
     rig_flush(rp);
 
@@ -563,7 +563,7 @@ static int ft100_read_status(RIG *rig)
 
 static int ft100_read_flags(RIG *rig)
 {
-    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)STATE(rig)->priv;
     int ret;
     hamlib_port_t *rp = RIGPORT(rig);
 
@@ -613,7 +613,7 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 
-    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)STATE(rig)->priv;
     freq_t d1, d2;
     char freq_str[10];
     int ret;
@@ -757,7 +757,7 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 
-    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)STATE(rig)->priv;
     int ret;
 
     if (!mode || !width) { return -RIG_EINVAL; }
@@ -883,7 +883,7 @@ int ft100_set_vfo(RIG *rig, vfo_t vfo)
 int ft100_get_vfo(RIG *rig, vfo_t *vfo)
 {
 
-    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)STATE(rig)->priv;
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -947,7 +947,7 @@ int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 
-    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)STATE(rig)->priv;
     int ret;
 
     if (!ptt) { return -RIG_EINVAL; }
@@ -1104,7 +1104,7 @@ int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 int ft100_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
 
-    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)STATE(rig)->priv;
     int ret;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1158,7 +1158,7 @@ int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
 int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift)
 {
     int ret;
-    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)STATE(rig)->priv;
 
     ret = ft100_read_status(rig);
 
@@ -1217,7 +1217,7 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
     int ret;
-    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)STATE(rig)->priv;
 
     ret = ft100_read_status(rig);
 
@@ -1271,7 +1271,7 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
     int ret;
-    struct ft100_priv_data *priv = (struct ft100_priv_data *)rig->state.priv;
+    struct ft100_priv_data *priv = (struct ft100_priv_data *)STATE(rig)->priv;
 
     ret = ft100_read_status(rig);
 

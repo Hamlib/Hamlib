@@ -340,10 +340,10 @@ static int ft600_init(RIG *rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rig->state.priv = (struct ft600_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft600_priv_data *) calloc(1,
                       sizeof(struct ft600_priv_data));
 
-    if (!rig->state.priv) { return -RIG_ENOMEM; }
+    if (!STATE(rig)->priv) { return -RIG_ENOMEM; }
 
     return RIG_OK;
 }
@@ -355,12 +355,12 @@ static int ft600_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
@@ -401,7 +401,7 @@ static int ft600_read_status(RIG *rig)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct ft600_priv_data *)rig->state.priv;
+    priv = (struct ft600_priv_data *)STATE(rig)->priv;
 
     rig_flush(rp);
 
@@ -434,7 +434,7 @@ static int ft600_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = (struct ft600_priv_data *)rig->state.priv;
+    priv = (struct ft600_priv_data *)STATE(rig)->priv;
 
     ret = ft600_send_priv_cmd(rig, FT600_NATIVE_CAT_READ_METERS);
 
@@ -482,7 +482,7 @@ static int ft600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int ft600_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 
-    struct ft600_priv_data *priv = (struct ft600_priv_data *)rig->state.priv;
+    struct ft600_priv_data *priv = (struct ft600_priv_data *)STATE(rig)->priv;
     freq_t f;
     int ret;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: get_freq\n", __func__);
@@ -533,7 +533,7 @@ static int ft600_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 static int ft600_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 
-    struct ft600_priv_data *priv = (struct ft600_priv_data *)rig->state.priv;
+    struct ft600_priv_data *priv = (struct ft600_priv_data *)STATE(rig)->priv;
     int ret;
 
     if (!mode)

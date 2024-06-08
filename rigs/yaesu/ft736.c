@@ -226,15 +226,15 @@ int ft736_open(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    rig->state.priv = (struct ft736_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft736_priv_data *) calloc(1,
                       sizeof(struct ft736_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
     priv->split = RIG_SPLIT_OFF;
 
@@ -256,7 +256,7 @@ int ft736_close(RIG *rig)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    free(rig->state.priv);
+    free(STATE(rig)->priv);
 
     /* send Ext Cntl OFF: Deactivate CAT */
     return write_block(RIGPORT(rig), cmd, YAESU_CMD_LENGTH);
@@ -267,7 +267,7 @@ int ft736_close(RIG *rig)
 int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
-    const struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+    const struct ft736_priv_data *priv = (struct ft736_priv_data *)STATE(rig)->priv;
     int retval;
 
     // we will assume requesting to set VFOB is split mode
@@ -318,7 +318,7 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x07};
     unsigned char md;
-    const struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+    const struct ft736_priv_data *priv = (struct ft736_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_B) { return ft736_set_split_mode(rig, vfo, mode, width); }
 
@@ -366,7 +366,7 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x8e};
-    struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+    struct ft736_priv_data *priv = (struct ft736_priv_data *)STATE(rig)->priv;
     int ret;
 
     /*

@@ -1005,7 +1005,7 @@ struct rig_caps ft847uni_caps =
 
 /*
  * setup *priv
- * serial port is already open (rig->state->fd)
+ * serial port is already open (STATE(rig)->fd)
  */
 
 static int ft847_init(RIG *rig)
@@ -1019,16 +1019,16 @@ static int ft847_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    rig->state.priv = (struct ft847_priv_data *) calloc(1,
+    STATE(rig)->priv = (struct ft847_priv_data *) calloc(1,
                       sizeof(struct ft847_priv_data));
 
-    if (!rig->state.priv)
+    if (!STATE(rig)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rig->state.priv;
+    priv = STATE(rig)->priv;
 
 
     priv->sat_mode = RIG_SPLIT_OFF;
@@ -1057,12 +1057,12 @@ static int ft847_cleanup(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    if (rig->state.priv)
+    if (STATE(rig)->priv)
     {
-        free(rig->state.priv);
+        free(STATE(rig)->priv);
     }
 
-    rig->state.priv = NULL;
+    STATE(rig)->priv = NULL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
 
@@ -1130,7 +1130,7 @@ static int ft847_send_priv_cmd(RIG *rig, int cmd_index)
  */
 static int opcode_vfo(RIG *rig, unsigned char *cmd, int cmd_index, vfo_t vfo)
 {
-    struct ft847_priv_data *p = (struct ft847_priv_data *)rig->state.priv;
+    struct ft847_priv_data *p = (struct ft847_priv_data *)STATE(rig)->priv;
 
     memcpy(cmd, &ncmd[cmd_index].nseq, YAESU_CMD_LENGTH);
 
@@ -1199,7 +1199,7 @@ static int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (UNIDIRECTIONAL)
     {
-        struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
+        struct ft847_priv_data *priv = (struct ft847_priv_data *)STATE(rig)->priv;
 
         if (vfo == RIG_VFO_MAIN)
         {
@@ -1235,7 +1235,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
     unsigned char cmd_index;  /* index of sequence to send */
     unsigned char data[8];
     int n;
-    struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
+    struct ft847_priv_data *priv = (struct ft847_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo =%s \n",
               __func__, rig_strvfo(vfo));
@@ -1370,7 +1370,7 @@ static int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (UNIDIRECTIONAL)
     {
-        struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
+        struct ft847_priv_data *priv = (struct ft847_priv_data *)STATE(rig)->priv;
         priv->mode = mode;
         priv->width = width;
     }
@@ -1482,7 +1482,7 @@ static int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 static int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-    struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
+    struct ft847_priv_data *priv = (struct ft847_priv_data *)STATE(rig)->priv;
     unsigned char cmd_index;  /* index of sequence to send */
     int ret;
 
@@ -1515,7 +1515,7 @@ static int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 static int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
                                vfo_t *tx_vfo)
 {
-    struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
+    struct ft847_priv_data *priv = (struct ft847_priv_data *)STATE(rig)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1565,7 +1565,7 @@ static int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     if (UNIDIRECTIONAL)
     {
-        struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
+        struct ft847_priv_data *priv = (struct ft847_priv_data *)STATE(rig)->priv;
         priv->ptt = ptt;
     }
 
@@ -1593,7 +1593,7 @@ static int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 static int ft847_get_status(RIG *rig, int status_ci)
 {
-    struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
+    struct ft847_priv_data *p = (struct ft847_priv_data *) STATE(rig)->priv;
     hamlib_port_t *rp = RIGPORT(rig);
     unsigned char *data;
     int len;
@@ -1648,12 +1648,12 @@ static int ft847_get_status(RIG *rig, int status_ci)
 static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 
-    struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
+    struct ft847_priv_data *p = (struct ft847_priv_data *) STATE(rig)->priv;
     int n;
 
     if (UNIDIRECTIONAL)
     {
-        struct ft847_priv_data *priv = (struct ft847_priv_data *)rig->state.priv;
+        struct ft847_priv_data *priv = (struct ft847_priv_data *)STATE(rig)->priv;
         *ptt = priv->ptt;
         return RIG_OK;
     }
@@ -1673,7 +1673,7 @@ static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
        socket DTR or RTS PTT on the rear PACKET PTT pin is likely. So we
        override if we know PTT was asserted via rig_set_ptt for any type
        of PTT */
-    if (RIG_PTT_OFF == *ptt && rig->state.transmit) { *ptt = RIG_PTT_ON; }
+    if (RIG_PTT_OFF == *ptt && STATE(rig)->transmit) { *ptt = RIG_PTT_ON; }
 
     return RIG_OK;
 }
@@ -1682,7 +1682,7 @@ static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 static int ft847_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
 
-    struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
+    struct ft847_priv_data *p = (struct ft847_priv_data *) STATE(rig)->priv;
     int n;
 
     if (UNIDIRECTIONAL)
@@ -1711,7 +1711,7 @@ static int ft847_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 static int ft847_get_rawstr_level(RIG *rig, value_t *val)
 {
-    struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
+    struct ft847_priv_data *p = (struct ft847_priv_data *) STATE(rig)->priv;
     int n;
 
     if (UNIDIRECTIONAL)
@@ -1783,7 +1783,7 @@ static int ft847_get_smeter_level(RIG *rig, value_t *val)
  */
 static int ft847_get_alc_level(RIG *rig, value_t *val)
 {
-    struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
+    struct ft847_priv_data *p = (struct ft847_priv_data *) STATE(rig)->priv;
     int n;
 
     if (UNIDIRECTIONAL)
