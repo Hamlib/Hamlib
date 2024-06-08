@@ -694,6 +694,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char ttmode, ttreceiver;
     int retry;
     int timeout;
+    struct rig_state *rs = STATE(rig);
 
     ttreceiver = which_receiver(rig, vfo);
 
@@ -743,15 +744,15 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* Query passband width (filter) */
     // since this fails at 80ms sometimes we won't retry and will reduce the timeout
     // Normally this comes back in about 30ms
-    retry = rig->state.retry; 
-    timeout = rig->state.timeout;
-    rig->state.retry = 0;
-    rig->state.timeout = 100;
+    retry = rs->retry; 
+    timeout = rs->timeout;
+    rs->retry = 0;
+    rs->timeout = 100;
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "?R%cF" EOM, ttreceiver);
     resp_len = sizeof(respbuf);
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), respbuf, &resp_len);
-    rig->state.retry = retry;
-    rig->state.timeout = timeout;
+    rs->retry = retry;
+    rs->timeout = timeout;
 
     if (retval != RIG_OK)
     {

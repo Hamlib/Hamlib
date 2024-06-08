@@ -1005,7 +1005,7 @@ struct rig_caps ft847uni_caps =
 
 /*
  * setup *priv
- * serial port is already open (rig->state->fd)
+ * serial port is already open (STATE(rig)->fd)
  */
 
 static int ft847_init(RIG *rig)
