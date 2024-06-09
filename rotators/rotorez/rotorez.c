@@ -49,6 +49,7 @@
  */
 
 static int rotorez_rot_init(ROT *rot);
+static int rotorez_rot_open(ROT *rot);
 static int rotorez_rot_cleanup(ROT *rot);
 
 static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth,
@@ -78,6 +79,7 @@ static const char *rotorez_rot_get_info(ROT *rot);
 struct rotorez_rot_priv_data
 {
     azimuth_t az;
+    char conf_chars[ROTOREZ_CONF_CHARS + 1];
 };
 
 /*
@@ -130,7 +132,7 @@ const struct rot_caps rotorez_rot_caps =
     ROT_MODEL(ROT_MODEL_ROTOREZ),
     .model_name =       "Rotor-EZ",
     .mfg_name =         "Idiom Press",
-    .version =          "20230328.0",
+    .version =          "20240609.0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_OTHER,
@@ -155,6 +157,7 @@ const struct rot_caps rotorez_rot_caps =
     .cfgparams =        rotorez_cfg_params,
 
     .rot_init =         rotorez_rot_init,
+    .rot_open =         rotorez_rot_open,
     .rot_cleanup =      rotorez_rot_cleanup,
     .set_position =     rotorez_rot_set_position,
     .get_position =     rotorez_rot_get_position,
@@ -176,7 +179,7 @@ const struct rot_caps rotorcard_rot_caps =
     ROT_MODEL(ROT_MODEL_ROTORCARD),
     .model_name =       "RotorCard",
     .mfg_name =         "Idiom Press",
-    .version =          "20230328.0",
+    .version =          "20240609.0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rot_type =         ROT_TYPE_OTHER,
@@ -201,6 +204,7 @@ const struct rot_caps rotorcard_rot_caps =
     .cfgparams =        rotorez_cfg_params,
 
     .rot_init =         rotorez_rot_init,
+    .rot_open =         rotorez_rot_open,
     .rot_cleanup =      rotorez_rot_cleanup,
     .set_position =     rotorez_rot_set_position,
     .get_position =     rotorez_rot_get_position,
@@ -413,19 +417,57 @@ static int rotorez_rot_init(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    rot->state.priv = (struct rotorez_rot_priv_data *)
+    ROTSTATE(rot)->priv = (struct rotorez_rot_priv_data *)
                       calloc(1, sizeof(struct rotorez_rot_priv_data));
 
-    if (!rot->state.priv)
+    if (!ROTSTATE(rot)->priv)
     {
         return -RIG_ENOMEM;
     }
 
     ROTPORT(rot)->type.rig = RIG_PORT_SERIAL;
 
-    ((struct rotorez_rot_priv_data *)rot->state.priv)->az = 0;
+    ((struct rotorez_rot_priv_data *)ROTSTATE(rot)->priv)->az = 0;
 
     return RIG_OK;
+}
+
+/*
+ * Send any queued config commands, now that the port is open
+ */
+
+static int rotorez_rot_open(ROT *rot)
+{
+
+    struct rotorez_rot_priv_data *priv = ROTSTATE(rot)->priv;
+    int len, err = 0;
+    char cmd[2] = " ";
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if ((len = strlen(priv->conf_chars)) == 0)
+    {
+        return RIG_OK;
+    }
+    // This can probably be sent as one string, but I'm not sure
+#define CAN_DO_MULTI 0
+#if CAN_DO_MULTI
+    err = rotorez_send_priv_cmd(rot, priv->conf_chars);
+#else
+    // Unpack and send each individually
+    for (int i = 0; i < len; i++)
+    {
+        cmd[0] = priv->conf_chars[i];
+        err = rotorez_send_priv_cmd(rot, cmd);
+        if (err != RIG_OK)
+        {
+            return err;
+        }
+    }
+#endif
+    priv->conf_chars[0] = '\0';
+
+    return err;
 }
 
 /*
@@ -442,13 +484,12 @@ static int rotorez_rot_cleanup(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    if (rot->state.priv)
+    if (ROTSTATE(rot)->priv)
     {
-        free(rot->state.priv);
+        free(ROTSTATE(rot)->priv);
+        ROTSTATE(rot)->priv = NULL;
     }
-
-    rot->state.priv = NULL;
-
+    
     return RIG_OK;
 }
 
@@ -1017,7 +1058,8 @@ static int rotorez_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     char cmdstr[2];
     char c;
-    int err;
+    int err, len;
+    struct rot_state *rs = ROTSTATE(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: token = %d, *val = %c\n", __func__, (int)token,
@@ -1088,6 +1130,20 @@ static int rotorez_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: c = %c, *val = %c\n", __func__, c, *val);
+
+    // Check if port is open - if not, queue for processing when it is
+    if (!rs->comm_state)
+    {
+	struct rotorez_rot_priv_data *priv = rs->priv;
+	if ((len = strlen(priv->conf_chars)) >= ROTOREZ_CONF_CHARS)
+        {
+	    return -RIG_ENOMEM;
+        }
+	priv->conf_chars[len] = c;
+	priv->conf_chars[len + 1] = '\0';
+	return RIG_OK;
+    }
+    
     SNPRINTF(cmdstr, sizeof(cmdstr), "%c", c);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n",
@@ -1095,12 +1151,8 @@ static int rotorez_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 
     err = rotorez_send_priv_cmd(rot, cmdstr);
 
-    if (err != RIG_OK)
-    {
-        return err;
-    }
+    return err;
 
-    return RIG_OK;
 }
 
 

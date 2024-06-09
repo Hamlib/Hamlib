@@ -50,6 +50,10 @@ extern const struct rot_caps yrc1_rot_caps;
 #define TOK_JAM     TOKEN_BACKEND(2)
 #define TOK_OVRSHT  TOKEN_BACKEND(3)
 #define TOK_UNSTICK TOKEN_BACKEND(4)
+/*
+ * Maximum number of configuration changes allowed between rot_init and _open
+ */
+#define ROTOREZ_CONF_CHARS 8
 
 #endif  /* _ROT_ROTOREZ_H */
 
