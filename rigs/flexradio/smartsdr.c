@@ -52,6 +52,7 @@ struct smartsdr_priv_data
     int slicenum; // slice 0-7 maps to A-H
     int seqnum;
     int ptt;
+    int tx; // when 1 this slice has PTT control
     double freqA;
     double freqB;
     rmode_t modeA;
@@ -178,6 +179,7 @@ int smartsdr_init(RIG *rig)
                   rs->model_name);
         RETURNFUNC(-RIG_ENIMPL);
     }
+
     priv->ptt = 0;
 
     RETURNFUNC(RIG_OK);
@@ -261,11 +263,14 @@ int smartsdr_open(RIG *rig)
     sprintf(cmd, "sub slice %d", priv->slicenum);
     //sprintf(cmd, "sub slice all");
     smartsdr_transaction(rig, cmd);
-    do 
+
+    do
     {
-    hl_usleep(100*1000);
-    smartsdr_transaction(rig, NULL);
-    } while (priv->freqA == 0 && --loops > 0);
+        hl_usleep(100 * 1000);
+        smartsdr_transaction(rig, NULL);
+    }
+    while (priv->freqA == 0 && --loops > 0);
+
     //smartsdr_transaction(rig, "info", buf, sizeof(buf));
     //rig_debug(RIG_DEBUG_VERBOSE, "%s: info=%s", __func__, buf);
 
@@ -453,7 +458,13 @@ static int smartsdr_parse_S(RIG *rig, char *s)
         {
             if (strcmp(state, "TRANSMITTING") == 0) { priv->ptt = 1; }
             else { priv->ptt = 0; }
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: PTT state=%s, ptt=%d\n", __func__, state, priv->ptt);
+
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: PTT state=%s, ptt=%d\n", __func__, state,
+                      priv->ptt);
+        }
+        else if (sscanf(p, "tx=%d\n", &priv->tx))
+        {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: tx=%d\n", __func__, priv->tx);
         }
     }
     while ((p = strtok(NULL, sep)));
@@ -519,7 +530,13 @@ int smartsdr_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     ENTERFUNC;
     smartsdr_transaction(rig, NULL);
-    *ptt = priv->ptt;
+    *ptt = 0;
+
+    if (priv->tx)
+    {
+        *ptt = priv->ptt;
+    }
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d\n", __func__, *ptt);
     RETURNFUNC(RIG_OK);
 }
