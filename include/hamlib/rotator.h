@@ -628,6 +628,7 @@ struct rot_state {
     int current_speed;      /*!< Current speed 1-100, to be used when no change to speed is requested. */
     hamlib_port_t rotport;  /*!< Rotator port (internal use). */
     hamlib_port_t rotport2;  /*!< 2nd Rotator port (internal use). */
+    rig_ptr_t *pstrotator_handler_priv_data;
 };
 
 

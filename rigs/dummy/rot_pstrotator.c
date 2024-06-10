@@ -44,8 +44,6 @@
         ROT_STATUS_MOVING_EL | ROT_STATUS_MOVING_UP | ROT_STATUS_MOVING_DOWN | \
         ROT_STATUS_LIMIT_UP | ROT_STATUS_LIMIT_DOWN | ROT_STATUS_LIMIT_LEFT | ROT_STATUS_LIMIT_RIGHT)
 
-static int simulating = 0;  // do we need rotator emulation for debug?
-
 struct pstrotator_rot_priv_data
 {
     azimuth_t az;
@@ -56,67 +54,9 @@ struct pstrotator_rot_priv_data
     elevation_t target_el;
     rot_status_t status;
 
-    setting_t funcs;
-    value_t levels[RIG_SETTING_MAX];
-    value_t parms[RIG_SETTING_MAX];
-
-    struct ext_list *ext_funcs;
-    struct ext_list *ext_levels;
-    struct ext_list *ext_parms;
-
-    char *magic_conf;
-
-//    hamlib_port_t port2; // the reply port for PSTRotator which is port+1
     int sockfd2; // the reply port for PSTRotator which is port+1
-};
 
-static const struct confparams pstrotator_ext_levels[] =
-{
-    {
-        TOK_EL_ROT_MAGICLEVEL, "MGL", "Magic level", "Magic level, as an example",
-        NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
-    },
-    {
-        TOK_EL_ROT_MAGICFUNC, "MGF", "Magic func", "Magic function, as an example",
-        NULL, RIG_CONF_CHECKBUTTON
-    },
-    {
-        TOK_EL_ROT_MAGICOP, "MGO", "Magic Op", "Magic Op, as an example",
-        NULL, RIG_CONF_BUTTON
-    },
-    {
-        TOK_EL_ROT_MAGICCOMBO, "MGC", "Magic combo", "Magic combo, as an example",
-        "VALUE1", RIG_CONF_COMBO, { .c = { .combostr = { "VALUE1", "VALUE2", "NONE", NULL } } }
-    },
-    { RIG_CONF_END, NULL, }
-};
-
-static const struct confparams pstrotator_ext_funcs[] =
-{
-    {
-        TOK_EL_ROT_MAGICEXTFUNC, "MGEF", "Magic ext func", "Magic ext function, as an example",
-        NULL, RIG_CONF_CHECKBUTTON
-    },
-    { RIG_CONF_END, NULL, }
-};
-
-static const struct confparams pstrotator_ext_parms[] =
-{
-    {
-        TOK_EP_ROT_MAGICPARM, "MGP", "Magic parm", "Magic parameter, as an example",
-        NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
-    },
-    { RIG_CONF_END, NULL, }
-};
-
-/* cfgparams are configuration item generally used by the backend's open() method */
-static const struct confparams pstrotator_cfg_params[] =
-{
-    {
-        TOK_CFG_ROT_MAGICCONF, "mcfg", "Magic conf", "Magic parameter, as an example",
-        "ROTATOR", RIG_CONF_STRING, { }
-    },
-    { RIG_CONF_END, NULL, }
+    pthread_t threadid;
 };
 
 static int write_transaction(ROT *rot, char *cmd)
@@ -160,83 +100,13 @@ static int write_transaction(ROT *rot, char *cmd)
     return RIG_OK;
 }
 
-static int pstrotator_rot_init(ROT *rot)
-{
-    struct pstrotator_rot_priv_data *priv;
-    struct rot_state *rs = ROTSTATE(rot);
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    rs->priv = (struct pstrotator_rot_priv_data *)
-                      calloc(1, sizeof(struct pstrotator_rot_priv_data));
-
-    if (!rs->priv)
-    {
-        return -RIG_ENOMEM;
-    }
-
-    priv = rs->priv;
-
-    priv->ext_funcs = alloc_init_ext(pstrotator_ext_funcs);
-
-    if (!priv->ext_funcs)
-    {
-        return -RIG_ENOMEM;
-    }
-
-    priv->ext_levels = alloc_init_ext(pstrotator_ext_levels);
-
-    if (!priv->ext_levels)
-    {
-        return -RIG_ENOMEM;
-    }
-
-    priv->ext_parms = alloc_init_ext(pstrotator_ext_parms);
-
-    if (!priv->ext_parms)
-    {
-        return -RIG_ENOMEM;
-    }
-
-    ROTPORT(rot)->type.rig = RIG_PORT_UDP_NETWORK;
-
-    priv->az = priv->el = 0;
-
-    priv->target_az = priv->target_el = 0;
-
-    priv->magic_conf = strdup("ROTATOR");
-
-    strcpy(ROTPORT(rot)->pathname, "192.0.0.1:12000");
-
-    return RIG_OK;
-}
-
-static int pstrotator_rot_cleanup(ROT *rot)
-{
-    struct rot_state *rs = ROTSTATE(rot);
-    struct pstrotator_rot_priv_data *priv = (struct pstrotator_rot_priv_data *)
-                                            rs->priv;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    free(priv->ext_funcs);
-    free(priv->ext_levels);
-    free(priv->ext_parms);
-    free(priv->magic_conf);
-    free(rs->priv);
-
-    rs->priv = NULL;
-
-    return RIG_OK;
-}
-
 static void set_timeout(int fd, int sec, int usec)
 {
     struct timeval timeout;
     timeout.tv_sec = sec;
     timeout.tv_usec = usec;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: sec=%d, usec=%d, timeout = %.6lf\n", __func__,
-              sec, usec, sec + usec / 1e6);
+    //rig_debug(RIG_DEBUG_VERBOSE, "%s: sec=%d, usec=%d, timeout = %.6lf\n", __func__,
+    //          sec, usec, sec + usec / 1e6);
 
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout,
                    sizeof(timeout)) < 0)
@@ -246,14 +116,181 @@ static void set_timeout(int fd, int sec, int usec)
     }
 }
 
+void readPacket(int sockfd, char *buf, int buf_len, int expected)
+{
+    struct sockaddr_in serverAddr;
+    socklen_t addrLen = sizeof(serverAddr);
+
+    buf[0] = 0;
+
+    if (expected)
+    {
+        set_timeout(sockfd, 1, 0);
+    }
+    else
+    {
+        set_timeout(sockfd, 0, 0);
+    }
+
+    ssize_t n = recvfrom(sockfd, buf, buf_len, 0, (struct sockaddr *)&serverAddr,
+                         &addrLen);
+
+    if (n < 0)
+    {
+#ifdef _WIN32
+        int err = WSAGetLastError();
+
+        if (err == WSAEWOULDBLOCK || err == WSAETIMEDOUT)
+        {
+#if 0
+
+            if (expected)
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: recvfrom timed out. Is PSTRotator Setup/UDP Control enabled?\n", __func__);
+
+#endif
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: recvfrom error %d: %s\n", __func__, err,
+                      strerror(errno));
+        }
+
+#else
+
+        if (errno == EWOULDBLOCK || errno == EAGAIN)
+        {
+            if (expected)
+                rig_debug(RIG_DEBUG_ERR,
+                          "%s: recvfrom timed out. Is PSTRotator Setup/UDP Control checked?\n", __func__);
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: recvfrom error: %s\n", __func__, strerror(errno));
+        }
+
+#endif
+        n = 0;
+    }
+
+    buf[n] = '\0'; // Null-terminate the received data
+    strtok(buf, "\r\n"); // get rid of CRs and such
+
+    //if (n > 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: buf=%s\n", __func__, buf); }
+}
+
+#if defined(HAVE_PTHREAD)
+#if 0
+typedef struct pstrotator_handler_args_sw
+{
+    int port; // port for reading PstRotator messages -- always +1 from base port
+} pstrotator_handler_args;
+
+typedef struct pstrotator_handler_priv_data_s
+{
+    pthread_t thread_id;
+    pstrotator_handler_args args;
+} pstrotator_handler_priv_data;
+#endif
+
+static void *pstrotator_handler_start(void *arg)
+{
+    ROT *rot = (ROT *)arg;
+    struct rot_state *rs = STATE(rot);
+    struct pstrotator_rot_priv_data *priv = rs->priv;
+    pstrotator_handler_priv_data *pstrotator_handler_priv;
+
+    rs->pstrotator_handler_priv_data = calloc(1,
+                                       sizeof(pstrotator_handler_priv_data));
+
+    if (rs->pstrotator_handler_priv_data == NULL)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: priv is NULL?\n", __func__);
+        return NULL;
+    }
+
+    pstrotator_handler_priv = (pstrotator_handler_priv_data *)
+                              rs->pstrotator_handler_priv_data;
+    pstrotator_handler_priv->args.rot = rot;
+    pstrotator_handler_priv->pstrotator_handler_thread_run = 1;
+
+    while (pstrotator_handler_priv->pstrotator_handler_thread_run)
+    {
+        char buf[256];
+        readPacket(priv->sockfd2, buf, sizeof(buf), 1);
+
+        if (strlen(buf) == 0)
+        {
+            hl_usleep(20 * 1000);
+            continue;
+        }
+
+        //dump_hex((unsigned char *)buf, strlen(buf));
+        int n = sscanf(buf, "AZ:%g", &priv->az);
+        n += sscanf(buf, "EL:%g", &priv->el);
+        //if (n > 0) rig_debug(RIG_DEBUG_CACHE, "%s: az=%.1f, el=%.1f\n", __func__, priv->az, priv->el);
+    }
+
+    return RIG_OK;
+}
+
+#endif
+
+static int pstrotator_rot_init(ROT *rot)
+{
+    struct pstrotator_rot_priv_data *priv;
+    struct rot_state *rs = ROTSTATE(rot);
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    rs->priv = (struct pstrotator_rot_priv_data *)
+               calloc(1, sizeof(struct pstrotator_rot_priv_data));
+
+    if (!rs->priv)
+    {
+        return -RIG_ENOMEM;
+    }
+
+    priv = rs->priv;
+
+    ROTPORT(rot)->type.rig = RIG_PORT_UDP_NETWORK;
+
+    priv->az = priv->el = 0;
+
+    priv->target_az = priv->target_el = 0;
+
+    strcpy(ROTPORT(rot)->pathname, "192.168.56.1:12000");
+
+    return RIG_OK;
+}
+
+static int pstrotator_rot_cleanup(ROT *rot)
+{
+    struct rot_state *rs = ROTSTATE(rot);
+#if 0
+    struct pstrotator_rot_priv_data *priv = (struct pstrotator_rot_priv_data *)
+                                            rs->priv;
+#endif
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    free(rs->priv);
+
+    rs->priv = NULL;
+
+    return RIG_OK;
+}
+
 static int pstrotator_rot_open(ROT *rot)
 {
     struct pstrotator_rot_priv_data *priv;
     int port = 0;
     int n1, n2, n3, n4;
     int sockfd;
+    int retval;
     struct sockaddr_in clientAddr;
     struct rot_state *rs = ROTSTATE(rot);
+    pthread_attr_t attr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -289,6 +326,16 @@ static int pstrotator_rot_open(ROT *rot)
     priv->sockfd2 = sockfd;
     set_timeout(priv->sockfd2, 1, 0);
 
+    pthread_attr_init(&attr);
+    retval = pthread_create(&priv->threadid, &attr, pstrotator_handler_start, rot);
+
+    if (retval != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s; pthread_create error: %s\n", __func__,
+                  strerror(errno));
+        return -RIG_EINTERNAL;
+    }
+
     return RIG_OK;
 }
 
@@ -301,6 +348,7 @@ static int pstrotator_rot_close(ROT *rot)
 
 static int pstrotator_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
+#if 0
     struct pstrotator_rot_priv_data *priv;
 
     priv = (struct pstrotator_rot_priv_data *)ROTSTATE(rot)->priv;
@@ -321,12 +369,16 @@ static int pstrotator_set_conf(ROT *rot, hamlib_token_t token, const char *val)
     }
 
     return RIG_OK;
+#else
+    return -RIG_ENIMPL;
+#endif
 }
 
 
 static int pstrotator_get_conf2(ROT *rot, hamlib_token_t token, char *val,
                                 int val_len)
 {
+#if 0
     struct pstrotator_rot_priv_data *priv;
 
     priv = (struct pstrotator_rot_priv_data *)ROTSTATE(rot)->priv;
@@ -342,6 +394,9 @@ static int pstrotator_get_conf2(ROT *rot, hamlib_token_t token, char *val,
     }
 
     return RIG_OK;
+#else
+    return -RIG_ENIMPL;
+#endif
 }
 
 static int pstrotator_get_conf(ROT *rot, hamlib_token_t token, char *val)
@@ -359,85 +414,17 @@ static int pstrotator_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
               az, el);
 
-    if (simulating)
-    {
-        priv->target_az = az;
-        priv->target_el = el;
-        gettimeofday(&priv->tv, NULL);
-    }
-    else
-    {
-        char cmd[64];
-        sprintf(cmd, "<PST><AZIMUTH>%f.2</AZIMUTH></PST>", az);
-        write_transaction(rot, cmd);
-        sprintf(cmd, "<PST><ELEVATION>%f.2</ELEVATION></PST>", el);
-        write_transaction(rot, cmd);
-        priv->az = az;
-        priv->el = el;
-    }
-
+    char cmd[64];
+    sprintf(cmd, "<PST><AZIMUTH>%f.2</AZIMUTH></PST>", az);
+    write_transaction(rot, cmd);
+    sprintf(cmd, "<PST><ELEVATION>%f.2</ELEVATION></PST>", el);
+    write_transaction(rot, cmd);
+    priv->az = az;
+    priv->el = el;
 
     return RIG_OK;
 }
 
-void readPacket(int sockfd, char *buf, int buf_len, int expected)
-{
-    struct sockaddr_in serverAddr;
-    socklen_t addrLen = sizeof(serverAddr);
-
-    buf[0] = 0;
-
-    if (expected)
-    {
-        set_timeout(sockfd, 1, 0);
-    }
-    else
-    {
-        set_timeout(sockfd, 0, 0);
-    }
-
-    ssize_t n = recvfrom(sockfd, buf, buf_len, 0, (struct sockaddr *)&serverAddr,
-                         &addrLen);
-
-    if (n < 0)
-    {
-#ifdef _WIN32
-        int err = WSAGetLastError();
-
-        if (err == WSAEWOULDBLOCK || err == WSAETIMEDOUT)
-        {
-            if (expected)
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: recvfrom timed out. Is PSTRotator Setup/UDP Control enabled?\n", __func__);
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: recvfrom error %d: %s\n", __func__, err,
-                      strerror(errno));
-        }
-
-#else
-
-        if (errno == EWOULDBLOCK || errno == EAGAIN)
-        {
-            if (expected)
-                rig_debug(RIG_DEBUG_ERR,
-                          "%s: recvfrom timed out. Is PSTRotator Setup/UDP Control checked?\n", __func__);
-        }
-        else
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: recvfrom error: %s\n", __func__, strerror(errno));
-        }
-
-#endif
-        n = 0;
-    }
-
-    buf[n] = '\0'; // Null-terminate the received data
-    strtok(buf, "\r\n"); // get rid of CRs and such
-
-    if (n > 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: buf=%s\n", __func__, buf); }
-}
 
 /*
  * Get position of rotor, simulating slow rotation
@@ -446,15 +433,19 @@ static int pstrotator_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     struct pstrotator_rot_priv_data *priv = (struct pstrotator_rot_priv_data *)
                                             ROTSTATE(rot)->priv;
+#if 0
     char buf[64];
     int n = 0;
     fd_set rfds, efds;
     int select_result;
     struct timeval timeout;
+#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     write_transaction(rot, "<PST>AZ?</PST>");
     write_transaction(rot, "<PST>EL?</PST>");
+
+#if 0
 
     do
     {
@@ -491,9 +482,12 @@ static int pstrotator_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         dump_hex((unsigned char *)buf, strlen(buf));
         n += sscanf(buf, "AZ:%g", &priv->az);
         n += sscanf(buf, "EL:%g", &priv->el);
-        if (n > 2) n = 2;
+
+        if (n > 2) { n = 2; }
     }
     while (strlen(buf) > 0);
+
+#endif
 
     *az = priv->az;
     *el = priv->el;
@@ -559,12 +553,7 @@ struct rot_caps pstrotator_caps =
     .has_get_parm =    PSTROTATOR_ROT_PARM,
     .has_set_parm =    ROT_PARM_SET(PSTROTATOR_ROT_PARM),
 
-    .level_gran =      { [ROT_LVL_SPEED] = { .min = { .i = 1 }, .max = { .i = 4 }, .step = { .i = 1 } } },
-
-    .extlevels =    pstrotator_ext_levels,
-    .extfuncs =     pstrotator_ext_funcs,
-    .extparms =     pstrotator_ext_parms,
-    .cfgparams =    pstrotator_cfg_params,
+    //.level_gran =      { [ROT_LVL_SPEED] = { .min = { .i = 1 }, .max = { .i = 4 }, .step = { .i = 1 } } },
 
     .has_status = PSTROTATOR_ROT_STATUS,
 
