@@ -373,3 +373,39 @@ struct rot_caps netrotctl_caps =
     .get_info =      netrotctl_get_info,
 };
 
+/*
+ * S.A.T. rotator mimics net rotor but only minimal capabilities.
+ * Fails to work with net rotor since it fails dump_state.
+ */
+
+static int satrotcrl_rot_init(ROT *rot)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_OK;
+}
+
+struct rot_caps satrotctl_caps =
+{
+    ROT_MODEL(ROT_MODEL_SATROTCTL),
+    .model_name =     "S.A.T. Satellite ctl",
+    .mfg_name =       "csntechnologies.net",
+    .version =        "20240609.0",
+    .copyright =      "LGPL",
+    .status =         RIG_STATUS_UNTESTED,
+    .rot_type =       ROT_TYPE_AZEL,
+    .port_type =      RIG_PORT_NETWORK,
+    .timeout =        400,
+
+    .min_az =     -180.,
+    .max_az =     450.,
+    .min_el =     0.,
+    .max_el =     90.,
+
+    .priv =  NULL,    /* priv */
+
+    .rot_init =         satrotcrl_rot_init,
+    .set_position =     netrotctl_set_position,
+    .get_position =     netrotctl_get_position,
+};
+

@@ -13,6 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Added csntechnoligies.net S.A.T Satellite rotor control
         * Added PSTRotator control
         * Added Flex SmartSDR slices A-H
         * Added Motorola Micom M2/M3
