@@ -1011,6 +1011,7 @@ DECLARE_INITROT_BACKEND(dummy)
     rot_register(&dummy_rot_caps);
     rot_register(&netrotctl_caps);
     rot_register(&pstrotator_caps);
+    rot_register(&satrotctl_caps);
 
     return RIG_OK;
 }

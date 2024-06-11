@@ -40,5 +40,6 @@
 extern struct rot_caps dummy_rot_caps;
 extern struct rot_caps netrotctl_caps;
 extern struct rot_caps pstrotator;
+extern struct rot_caps satrotctl_caps;
 
 #endif /* _ROT_DUMMY_H */
