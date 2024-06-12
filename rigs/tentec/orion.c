@@ -694,6 +694,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char ttmode, ttreceiver;
     int retry;
     int timeout;
+    int widthOld = rig->state.cache.widthMainA;
     struct rig_state *rs = STATE(rig);
 
     ttreceiver = which_receiver(rig, vfo);
@@ -739,8 +740,6 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_EPROTO;
     }
 
-    /* Orion may need some time to "recover" from ?RxM before ?RxF */
-    hl_usleep(100*1000);      // was 80, now 100 -- still seeing infrequent failure
     /* Query passband width (filter) */
     // since this fails at 80ms sometimes we won't retry and will reduce the timeout
     // Normally this comes back in about 30ms
@@ -756,7 +755,9 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (retval != RIG_OK)
     {
-        return retval;
+        // if the width call fails we will just reuse the old width
+        *width = widthOld;
+        return RIG_OK;
     }
 
     if (respbuf[1] != 'R' || respbuf[3] != 'F' || resp_len <= 4)
