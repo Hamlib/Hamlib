@@ -36,7 +36,7 @@
 #include "rig.h"
 #include "riglist.h"
 
-#define BACKEND_VER "20240606"
+#define BACKEND_VER "20240612"
 
 #define TRUE	1
 #define FALSE	0
