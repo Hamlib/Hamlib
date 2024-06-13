@@ -1,7 +1,6 @@
 /*
- i  Hamlib Dummy backend - main file
- *  Copyright (c) 2001-2009 by Stephane Fillod
- *
+ i  Hamlib PSTRotator backend
+ *  Copyright (c) 2024 Michael Black W9MDB
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Lesser General Public
@@ -41,8 +40,7 @@
 #define PSTROTATOR_ROT_PARM 0
 
 #define PSTROTATOR_ROT_STATUS (ROT_STATUS_MOVING | ROT_STATUS_MOVING_AZ | ROT_STATUS_MOVING_LEFT | ROT_STATUS_MOVING_RIGHT | \
-        ROT_STATUS_MOVING_EL | ROT_STATUS_MOVING_UP | ROT_STATUS_MOVING_DOWN | \
-        ROT_STATUS_LIMIT_UP | ROT_STATUS_LIMIT_DOWN | ROT_STATUS_LIMIT_LEFT | ROT_STATUS_LIMIT_RIGHT)
+        ROT_STATUS_MOVING_EL | ROT_STATUS_MOVING_UP | ROT_STATUS_MOVING_DOWN )
 
 struct pstrotator_rot_priv_data
 {
@@ -57,6 +55,8 @@ struct pstrotator_rot_priv_data
     int sockfd2; // the reply port for PSTRotator which is port+1
 
     pthread_t threadid;
+
+    int receiving; // true if we are receiving az/el data
 };
 
 static int write_transaction(ROT *rot, char *cmd)
@@ -213,9 +213,11 @@ static void *pstrotator_handler_start(void *arg)
                               rs->pstrotator_handler_priv_data;
     pstrotator_handler_priv->args.rot = rot;
     pstrotator_handler_priv->pstrotator_handler_thread_run = 1;
+    priv->receiving = 0;
 
     while (pstrotator_handler_priv->pstrotator_handler_thread_run)
     {
+        int az = 0, el = 0;
         char buf[256];
         readPacket(priv->sockfd2, buf, sizeof(buf), 1);
 
@@ -228,6 +230,16 @@ static void *pstrotator_handler_start(void *arg)
         //dump_hex((unsigned char *)buf, strlen(buf));
         int n = sscanf(buf, "AZ:%g", &priv->az);
         n += sscanf(buf, "EL:%g", &priv->el);
+
+        if (n > 0) { priv->receiving = 1; }
+
+        if (priv->az != az && priv->el != el) { priv->status = ROT_STATUS_MOVING; }
+        else if (priv->az <  az) { priv->status = ROT_STATUS_MOVING_LEFT; }
+        else if (priv->az >  az) { priv->status = ROT_STATUS_MOVING_RIGHT; }
+        else if (priv->el <  el) { priv->status = ROT_STATUS_MOVING_DOWN; }
+        else if (priv->el >  el) { priv->status = ROT_STATUS_MOVING_UP; }
+        else { priv->status = ROT_STATUS_NONE; }
+
         //if (n > 0) rig_debug(RIG_DEBUG_CACHE, "%s: az=%.1f, el=%.1f\n", __func__, priv->az, priv->el);
     }
 
@@ -267,10 +279,6 @@ static int pstrotator_rot_init(ROT *rot)
 static int pstrotator_rot_cleanup(ROT *rot)
 {
     struct rot_state *rs = ROTSTATE(rot);
-#if 0
-    struct pstrotator_rot_priv_data *priv = (struct pstrotator_rot_priv_data *)
-                                            rs->priv;
-#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -341,14 +349,26 @@ static int pstrotator_rot_open(ROT *rot)
 
 static int pstrotator_rot_close(ROT *rot)
 {
+    struct pstrotator_rot_priv_data *priv;
+    priv = (struct pstrotator_rot_priv_data *)ROTSTATE(rot)->priv;
+    pstrotator_handler_priv_data *pstrotator_handler_priv;
+    pstrotator_handler_priv = (pstrotator_handler_priv_data *)
+                              rot->state.pstrotator_handler_priv_data;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    pstrotator_handler_priv->pstrotator_handler_thread_run = 0;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting for thread to stop\n", __func__);
+    pthread_join(priv->threadid, NULL);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: thread stopped\n", __func__);
+    priv->threadid = 0;
 
     return RIG_OK;
 }
 
+#if 0
 static int pstrotator_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
-#if 0
     struct pstrotator_rot_priv_data *priv;
 
     priv = (struct pstrotator_rot_priv_data *)ROTSTATE(rot)->priv;
@@ -369,16 +389,14 @@ static int pstrotator_set_conf(ROT *rot, hamlib_token_t token, const char *val)
     }
 
     return RIG_OK;
-#else
-    return -RIG_ENIMPL;
-#endif
 }
+#endif
 
 
+#if 0
 static int pstrotator_get_conf2(ROT *rot, hamlib_token_t token, char *val,
                                 int val_len)
 {
-#if 0
     struct pstrotator_rot_priv_data *priv;
 
     priv = (struct pstrotator_rot_priv_data *)ROTSTATE(rot)->priv;
@@ -394,15 +412,15 @@ static int pstrotator_get_conf2(ROT *rot, hamlib_token_t token, char *val,
     }
 
     return RIG_OK;
-#else
-    return -RIG_ENIMPL;
-#endif
 }
+#endif
 
+#if 0
 static int pstrotator_get_conf(ROT *rot, hamlib_token_t token, char *val)
 {
     return pstrotator_get_conf2(rot, token, val, 128);
 }
+#endif
 
 
 
@@ -433,62 +451,12 @@ static int pstrotator_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     struct pstrotator_rot_priv_data *priv = (struct pstrotator_rot_priv_data *)
                                             ROTSTATE(rot)->priv;
-#if 0
-    char buf[64];
-    int n = 0;
-    fd_set rfds, efds;
-    int select_result;
-    struct timeval timeout;
-#endif
-
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
     write_transaction(rot, "<PST>AZ?</PST>");
     write_transaction(rot, "<PST>EL?</PST>");
 
-#if 0
-
-    do
-    {
-        //read_string(&priv->port2, (unsigned char*)buf, sizeof(buf), stopset, stopset_len, 1, 1);
-        buf[0] = 0;
-
-        // if moving we need to keep polling for updates until there are none
-        if (n == 2)
-        {
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 0;
-
-            FD_ZERO(&rfds);
-            FD_SET(priv->sockfd2, &rfds);
-            efds = rfds;
-            select_result = select(priv->sockfd2, &rfds, NULL, &efds, &timeout);
-
-            if (select_result == 0)
-            {
-                //rig_debug(RIG_DEBUG_VERBOSE, "%s: timeout\n", __func__);
-                break;
-            }
-            else
-            {
-                rig_debug(RIG_DEBUG_VERBOSE, "%s: select_result=%d\n", __func__, select_result);
-                readPacket(priv->sockfd2, buf, sizeof(buf), 0);
-            }
-        }
-        else
-        {
-            readPacket(priv->sockfd2, buf, sizeof(buf), 1);
-        }
-
-        dump_hex((unsigned char *)buf, strlen(buf));
-        n += sscanf(buf, "AZ:%g", &priv->az);
-        n += sscanf(buf, "EL:%g", &priv->el);
-
-        if (n > 2) { n = 2; }
-    }
-    while (strlen(buf) > 0);
-
-#endif
-
+    hl_usleep(10 * 1000);
     *az = priv->az;
     *el = priv->el;
 
@@ -532,7 +500,7 @@ struct rot_caps pstrotator_caps =
     ROT_MODEL(ROT_MODEL_PSTROTATOR),
     .model_name =     "PstRotator",
     .mfg_name =       "YO3DMU",
-    .version =        "20240607.0",
+    .version =        "20240613.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -561,9 +529,6 @@ struct rot_caps pstrotator_caps =
     .rot_cleanup =  pstrotator_rot_cleanup,
     .rot_open =     pstrotator_rot_open,
     .rot_close =    pstrotator_rot_close,
-
-    .set_conf =     pstrotator_set_conf,
-    .get_conf =     pstrotator_get_conf,
 
     .set_position =     pstrotator_rot_set_position,
     .get_position =     pstrotator_rot_get_position,
