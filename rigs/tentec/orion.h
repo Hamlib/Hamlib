@@ -36,7 +36,7 @@
 #include "rig.h"
 #include "riglist.h"
 
-#define BACKEND_VER "20240612"
+#define BACKEND_VER "20240613"
 
 #define TRUE	1
 #define FALSE	0
@@ -214,10 +214,10 @@ RIG_MODEL(RIG_MODEL_TT565),
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
-.write_delay =  0,          /* no delay between characters written */
+.write_delay =  1,          /* no delay between characters written */
 .post_write_delay =  0,		  /* ms delay between writes DEBUGGING HERE */
-.timeout =  2000,						/* ms */
-.retry =  4,
+.timeout =  200,						/* ms */
+.retry =  1,
 
 .has_get_func =  TT565_FUNCS,
 .has_set_func =  TT565_FUNCS,
