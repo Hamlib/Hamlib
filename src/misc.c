@@ -3125,4 +3125,38 @@ int rig_test_2038(RIG *rig)
 
 //! @endcond
 
+/**
+ * Add item to be sent to device after it is opened
+ * (currently only used by rotators)
+ **/
+int queue_deferred_config(deferred_config_header_t *head, hamlib_token_t token, const char *val)
+{
+    deferred_config_item_t *item;
+
+    if (!(item = malloc(sizeof(deferred_config_item_t))))
+    {
+	return -RIG_ENOMEM;
+    }
+    if (!(item->value = strdup(val)))
+    {
+        free(item);
+	return -RIG_ENOMEM;
+    }
+
+    item->token = token;
+    item->next = NULL;
+
+    if (!head->first)
+      {
+	head->first = item;
+      }
+    else
+      {
+	head->last->next = item;
+      }
+
+    head->last = item;
+
+    return RIG_OK;
+}
 /** @} */

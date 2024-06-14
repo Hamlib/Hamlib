@@ -211,6 +211,8 @@ extern HAMLIB_EXPORT(int) rig_settings_load_all(char *settings_file);
 
 extern int check_level_param(RIG *rig, setting_t level, value_t val, gran_t **gran);
 
+extern int queue_deferred_config(deferred_config_header_t *head, hamlib_token_t token, const char *val);
+
 // Takes rig-specific band result and maps it the bandlist int the rig's backend
 extern HAMLIB_EXPORT(hamlib_band_t) rig_get_band(RIG *rig, freq_t freq, int band);
 extern HAMLIB_EXPORT(const char*) rig_get_band_str(RIG *rig, hamlib_band_t band, int which);
