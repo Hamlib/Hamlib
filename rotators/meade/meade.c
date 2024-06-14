@@ -493,9 +493,6 @@ const struct rot_caps meade_caps =
     .move =             meade_move,
 
     .get_info =         meade_get_info,
-
-    .get_conf =         rot_get_conf,
-    .set_conf =         rot_set_conf,
 };
 
 DECLARE_INITROT_BACKEND(meade)

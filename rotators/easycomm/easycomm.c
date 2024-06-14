@@ -29,6 +29,7 @@
 #include "serial.h"
 #include "register.h"
 #include "idx_builtin.h"
+#include "misc.h"
 
 #include "easycomm.h"
 
@@ -507,6 +508,11 @@ static int easycomm_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n", __func__, cmdstr,
               *val);
+
+    if (!ROTSTATE(rot)->comm_state)
+    {
+        return queue_deferred_config(&ROTSTATE(rot)->config_queue, token, val);
+    }
 
     retval = easycomm_transaction(rot, cmdstr, NULL, 0);
 
