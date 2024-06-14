@@ -377,6 +377,7 @@ int HAMLIB_API rot_open(ROT *rot)
     hamlib_port_t *rotp2 = ROTPORT2(rot);
     int status;
     int net1, net2, net3, net4, port;
+    deferred_config_item_t *item;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -522,6 +523,22 @@ int HAMLIB_API rot_open(ROT *rot)
 
     rs->comm_state = 1;
 
+    /*
+     * Now that the rotator port is officially opened, we can
+     *  send the deferred configuration info.
+     */
+    while ((item = rs->config_queue.first))
+      {
+	rs->config_queue.first = item->next;
+	status = rot_set_conf(rot, item->token, item->value);
+	free(item->value);
+	free(item);
+	if (status != RIG_OK)
+	{
+	  return status;
+	}
+      }
+    
     /*
      * Maybe the backend has something to initialize
      * In case of failure, just close down and report error code.
