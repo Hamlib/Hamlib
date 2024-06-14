@@ -143,7 +143,7 @@ struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "",
     .mfg_name = "FLRig",
-    .version = "20240418.0",
+    .version = "20240612.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1118,6 +1118,13 @@ static int flrig_open(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: hamlib modes=%s\n", __func__, value);
 
     rig_get_split_vfo(rig, RIG_VFO_A, &split, &tx_vfo);
+
+    retval = flrig_transaction(rig, "rig.get_agc_labels", NULL, value, sizeof(value));
+
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+
+    rig_debug(RIG_DEBUG_ERR, "%s: agc_labels=%s\n", __func__, value);
+
 
     RETURNFUNC(retval);
 }
