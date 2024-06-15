@@ -629,6 +629,7 @@ struct rot_state {
     hamlib_port_t rotport;  /*!< Rotator port (internal use). */
     hamlib_port_t rotport2;  /*!< 2nd Rotator port (internal use). */
     rig_ptr_t *pstrotator_handler_priv_data;
+    deferred_config_header_t config_queue;
 };
 
 

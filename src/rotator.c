@@ -377,6 +377,7 @@ int HAMLIB_API rot_open(ROT *rot)
     hamlib_port_t *rotp2 = ROTPORT2(rot);
     int status;
     int net1, net2, net3, net4, port;
+    deferred_config_item_t *item;
 
     rot_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -520,24 +521,6 @@ int HAMLIB_API rot_open(ROT *rot)
 
     add_opened_rot(rot);
 
-    rs->comm_state = 1;
-
-    /*
-     * Maybe the backend has something to initialize
-     * In case of failure, just close down and report error code.
-     */
-    if (caps->rot_open != NULL)
-    {
-        status = caps->rot_open(rot);
-
-        if (status != RIG_OK)
-        {
-            memcpy(&rs->rotport_deprecated, rotp,
-                   sizeof(rs->rotport_deprecated));
-            return status;
-        }
-    }
-
     if (rotp->type.rig != RIG_PORT_NETWORK && rotp->type.rig != RIG_PORT_UDP_NETWORK)
     {
     if (rotp->parm.serial.dtr_state == RIG_SIGNAL_ON)
@@ -557,6 +540,40 @@ int HAMLIB_API rot_open(ROT *rot)
     {
         ser_set_rts(rotp, 0);
     }
+    }
+
+    rs->comm_state = 1;
+
+    /*
+     * Now that the rotator port is officially opened, we can
+     *  send the deferred configuration info.
+     */
+    while ((item = rs->config_queue.first))
+      {
+	rs->config_queue.first = item->next;
+	status = rot_set_conf(rot, item->token, item->value);
+	free(item->value);
+	free(item);
+	if (status != RIG_OK)
+	{
+	  return status;
+	}
+      }
+    
+    /*
+     * Maybe the backend has something to initialize
+     * In case of failure, just close down and report error code.
+     */
+    if (caps->rot_open != NULL)
+    {
+        status = caps->rot_open(rot);
+
+        if (status != RIG_OK)
+        {
+            memcpy(&rs->rotport_deprecated, rotp,
+                   sizeof(rs->rotport_deprecated));
+            return status;
+        }
     }
 
     memcpy(&rs->rotport_deprecated, rotp,

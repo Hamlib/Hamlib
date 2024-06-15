@@ -347,8 +347,7 @@ int main(int argc, char *argv[])
 
     char *token = strtok(conf_parms, ",");
 
-    // ROTOREZ set_conf needs to be done after rot_open
-    while (token && my_rot->caps->rot_model != ROT_MODEL_ROTOREZ)
+    while (token)
     {
         char mytoken[100], myvalue[100];
         hamlib_token_t lookup;
@@ -417,35 +416,6 @@ int main(int argc, char *argv[])
         fprintf(stderr, "rot_open: error = %s \n", rigerror(retcode));
         exit(2);
     }
-
-    // ROTOREZ set_conf needs to be done after rot_open
-    while (token && my_rot->caps->rot_model == ROT_MODEL_ROTOREZ)
-    {
-        char mytoken[100], myvalue[100];
-        hamlib_token_t lookup;
-        sscanf(token, "%99[^=]=%99s", mytoken, myvalue);
-        //printf("mytoken=%s,myvalue=%s\n",mytoken, myvalue);
-        lookup = rot_token_lookup(my_rot, mytoken);
-
-        if (lookup == 0)
-        {
-            rig_debug(RIG_DEBUG_ERR, "%s: no such token as '%s', use -L switch to see\n",
-                      __func__, mytoken);
-            token = strtok(NULL, ",");
-            continue;
-        }
-
-        retcode = rot_set_conf(my_rot, rot_token_lookup(my_rot, mytoken), myvalue);
-
-        if (retcode != RIG_OK)
-        {
-            fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
-            exit(2);
-        }
-
-        token = strtok(NULL, ",");
-    }
-
 
     my_rot->state.az_offset = az_offset;
     my_rot->state.el_offset = el_offset;
