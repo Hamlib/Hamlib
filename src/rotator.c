@@ -521,6 +521,27 @@ int HAMLIB_API rot_open(ROT *rot)
 
     add_opened_rot(rot);
 
+    if (rotp->type.rig != RIG_PORT_NETWORK && rotp->type.rig != RIG_PORT_UDP_NETWORK)
+    {
+    if (rotp->parm.serial.dtr_state == RIG_SIGNAL_ON)
+    {
+        ser_set_dtr(rotp, 1);
+    }
+    else
+    {
+        ser_set_dtr(rotp, 0);
+    }
+
+    if (rotp->parm.serial.rts_state == RIG_SIGNAL_ON)
+    {
+        ser_set_rts(rotp, 1);
+    }
+    else
+    {
+        ser_set_rts(rotp, 0);
+    }
+    }
+
     rs->comm_state = 1;
 
     /*
@@ -553,27 +574,6 @@ int HAMLIB_API rot_open(ROT *rot)
                    sizeof(rs->rotport_deprecated));
             return status;
         }
-    }
-
-    if (rotp->type.rig != RIG_PORT_NETWORK && rotp->type.rig != RIG_PORT_UDP_NETWORK)
-    {
-    if (rotp->parm.serial.dtr_state == RIG_SIGNAL_ON)
-    {
-        ser_set_dtr(rotp, 1);
-    }
-    else
-    {
-        ser_set_dtr(rotp, 0);
-    }
-
-    if (rotp->parm.serial.rts_state == RIG_SIGNAL_ON)
-    {
-        ser_set_rts(rotp, 1);
-    }
-    else
-    {
-        ser_set_rts(rotp, 0);
-    }
     }
 
     memcpy(&rs->rotport_deprecated, rotp,
