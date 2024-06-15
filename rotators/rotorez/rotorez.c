@@ -29,6 +29,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <stdio.h>
 #include <stdlib.h>          /* Standard library definitions */
@@ -39,6 +40,7 @@
 #include "serial.h"
 #include "register.h"
 #include "iofunc.h"
+#include "misc.h"
 
 #include "rotorez.h"
 
@@ -1087,12 +1089,21 @@ static int rotorez_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         return -RIG_EINVAL;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: c = %c, *val = %c\n", __func__, c, *val);
     SNPRINTF(cmdstr, sizeof(cmdstr), "%c", c);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n",
               __func__, cmdstr, *val);
 
+    /*
+     * We cannot send anything to the rotator if it isn't open yet.
+     * Queue any set_conf commands and let rot_open reprocess them
+     *  after it has done it's job.
+     */
+    if (!ROTSTATE(rot)->comm_state)
+    {
+	err = queue_deferred_config(&ROTSTATE(rot)->config_queue, token, val);
+	return err;
+    }
     err = rotorez_send_priv_cmd(rot, cmdstr);
 
     if (err != RIG_OK)
