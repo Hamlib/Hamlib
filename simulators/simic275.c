@@ -219,13 +219,13 @@ void frameParse(int fd, unsigned char *frame, int len)
     case 0x0f:
         if (frame[5] == 0) { split = 0; }
         else if (frame[5] == 1) { split = 1; }
-        else { frame[6] = split; }
 
         if (frame[5] == 0xfd)
         {
+            frame[5] = split; 
             printf("get split %d\n", 1);
-            frame[7] = 0xfd;
-            n = write(fd, frame, 8);
+            frame[6] = 0xfd;
+            n = write(fd, frame, 7);
         }
         else
         {
