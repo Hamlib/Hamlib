@@ -61,10 +61,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#if defined(HAVE_PTHREAD)
-#include <pthread.h>
-#endif
-
+#include "mutex.h"
 
 #include <hamlib/rig.h>
 #include "serial.h"
@@ -173,17 +170,6 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_CAPS(r) (!(r) || !(r)->caps)
 
 #define LOCK(n) if (rig->state.depth == 1) { rig_debug(RIG_DEBUG_CACHE, "%s: %s\n", n?"lock":"unlock", __func__);  rig_lock(rig,n); }
-
-#ifdef HAVE_PTHREAD
-#define MUTEX(var) static pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
-#define MUTEX_LOCK(var) pthread_mutex_lock(&var)
-#define MUTEX_UNLOCK(var)  pthread_mutex_unlock(&var)
-#else
-#warning NOT PTHREAD
-#define MUTEX(var)
-#define MUTEX_LOCK(var)
-#define MUTEX_UNLOCK(var)
-#endif
 
 MUTEX(morse_mutex);
 
