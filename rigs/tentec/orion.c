@@ -1,5 +1,6 @@
 /*
  *  Hamlib TenTenc backend - TT-565 description
+ *  Copyright (c) 2024      by Michael Black W9MDB
  *  Copyright (c) 2004-2011 by Martin Ewing
  *  Copyright (c) 2004-2010 by Stephane Fillod
  *
