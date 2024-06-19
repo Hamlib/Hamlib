@@ -35,6 +35,7 @@
 #include "bandplan.h"
 #include "rig.h"
 #include "riglist.h"
+#include "mutex.h"
 
 #define BACKEND_VER "20240613"
 
@@ -57,15 +58,19 @@
 
 static int tt565_init(RIG *rig);
 static int tt565_open(RIG *rig);
+static int tt565_close(RIG *rig);
 static int tt565_cleanup(RIG *rig);
 static int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int tt565_get_freq_cache(RIG *rig, vfo_t vfo, freq_t *freq);
 static int tt565_set_vfo(RIG *rig, vfo_t vfo);
 static int tt565_get_vfo(RIG *rig, vfo_t *vfo);
 static int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int tt565_get_mode_cache(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int tt565_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int tt565_get_split_vfo_cache(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 static int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int tt565_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int tt565_reset(RIG *rig, reset_t reset);
@@ -92,7 +97,15 @@ struct tt565_priv_data {
 	int ch;		/*!< memory channel */
 	vfo_t vfo_curr; /*!< Currently selected VFO */
     int ptt;
+    freq_t freqA, freqB;
+    rmode_t mode;
+    pbwidth_t width;
+    pthread_t threadid;
+    split_t split;
+    vfo_t tx_vfo;
+    int threadrun;
 };
+MUTEX(mutex);
 
 /** \brief Orion Supported Modes */
 #define TT565_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
@@ -338,15 +351,28 @@ RIG_MODEL(RIG_MODEL_TT565),
 .rig_init =  tt565_init,
 .rig_cleanup =  tt565_cleanup,
 .rig_open = tt565_open,
+.rig_close = tt565_close,
 
 .set_freq =  tt565_set_freq,
+#if defined(HAVE_PTHREAD) 
+.get_freq =  tt565_get_freq_cache,
+#else
 .get_freq =  tt565_get_freq,
+#endif
 .set_vfo =  tt565_set_vfo,
 .get_vfo =  tt565_get_vfo,
 .set_mode =  tt565_set_mode,
+#if defined(HAVE_PTHREAD) 
+.get_mode =  tt565_get_mode_cache,
+#else
 .get_mode =  tt565_get_mode,
+#endif
 .set_split_vfo =  tt565_set_split_vfo,
+#if defined(HAVE_PTHREAD) 
+.get_split_vfo =  tt565_get_split_vfo_cache,
+#else
 .get_split_vfo =  tt565_get_split_vfo,
+#endif
 .set_level =  tt565_set_level,
 .get_level =  tt565_get_level,
 .set_mem =  tt565_set_mem,

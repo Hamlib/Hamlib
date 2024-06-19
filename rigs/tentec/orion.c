@@ -115,6 +115,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 #ifdef TT565_TIME
     double ft1, ft2;
 #endif
+    MUTEX_LOCK(mutex);
     passcount++;        // for debugging
     /* Capture buffer length for possible read re-try. */
     data_len_init = (data && data_len) ? *data_len : 0;
@@ -128,6 +129,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
         if (retval != RIG_OK)
         {
+            MUTEX_UNLOCK(mutex);
             return retval;
         }
 
@@ -141,6 +143,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
                 return -RIG_ERJCTED;
             }
 
+            MUTEX_UNLOCK(mutex);
             return RIG_OK;  /* normal exit if write, but no read */
         }
 
@@ -154,29 +157,34 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         if (!strncmp(data, "Z!", 2))     // command unrecognized??
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cmd reject 2\n", __func__);
+            MUTEX_UNLOCK(mutex);
             return -RIG_ERJCTED;    // what is a better error return?
         }
 
         /* XX and ?V are oddball commands.  Thanks, Ten-Tec! */
         if (!strncmp(cmd, "XX", 2)) // Was it a firmware reset cmd?
         {
+            MUTEX_UNLOCK(mutex);
             return RIG_OK;      // Then we accept the response.
         }
 
         if (!strncmp(cmd, "?V", 2)) // Was it a read firmware version cmd?
         {
+            MUTEX_UNLOCK(mutex);
             return RIG_OK;      // ditto
         }
 
         if (cmd[0] != '?')          // was this a read cmd?
         {
             rig_debug(RIG_DEBUG_ERR, "%s: cmd reject 3\n", __func__);
+            MUTEX_UNLOCK(mutex);
             return -RIG_ERJCTED;    // No, but it should have been!
         }
         else                            // Yes, it was a 'read', phew!
         {
             if (!strncmp(data + 1, cmd + 1, cmd_len - 2)) //response matches cmd?
             {
+                MUTEX_UNLOCK(mutex);
                 return RIG_OK;  // all is well, normal exit
             }
             else
@@ -211,6 +219,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 
     rig_debug(RIG_DEBUG_ERR, "** Ran out of retries io=%d **\n",
               passcount);
+    MUTEX_UNLOCK(mutex);
     return -RIG_ETIMEOUT;
 }
 
@@ -223,7 +232,7 @@ int tt565_init(RIG *rig)
 {
     struct tt565_priv_data *priv;
     STATE(rig)->priv = (struct tt565_priv_data *)calloc(1, sizeof(
-                          struct tt565_priv_data));
+                           struct tt565_priv_data));
 
     if (!STATE(rig)->priv) { return -RIG_ENOMEM; } /* no memory available */
 
@@ -232,6 +241,14 @@ int tt565_init(RIG *rig)
     memset(priv, 0, sizeof(struct tt565_priv_data));
     priv->ch = 0; /* set arbitrary initial status */
     priv->vfo_curr = RIG_VFO_A;
+    return RIG_OK;
+}
+
+int tt565_close(RIG *rig)
+{
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
+    priv->threadrun = 0;
+    pthread_join(priv->threadid, NULL);
     return RIG_OK;
 }
 
@@ -251,6 +268,40 @@ int tt565_cleanup(RIG *rig)
     STATE(rig)->priv = NULL;
 
     return RIG_OK;
+}
+
+static void *read_device(void *p)
+{
+    RIG *rig = p;
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
+
+    priv->threadrun = 1;
+
+    while (priv->threadrun)
+    {
+        tt565_get_freq(rig, RIG_VFO_A, &priv->freqA);
+        tt565_get_freq(rig, RIG_VFO_B, &priv->freqB);
+        tt565_get_mode(rig, RIG_VFO_A, &priv->mode, &priv->width);
+        tt565_get_split_vfo(rig, RIG_VFO_A, &priv->tx_vfo, &priv->split);
+        hl_usleep(100 * 1000);
+    }
+
+    return NULL;
+}
+
+static void start_thread(RIG *rig)
+{
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
+    pthread_attr_t attr;
+    int ret;
+
+    pthread_attr_init(&attr);
+    ret = pthread_create(&priv->threadid, &attr, read_device, rig);
+
+    if (ret != 0)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Orion unable to start thread\n", __func__);
+    }
 }
 
 /**
@@ -281,6 +332,8 @@ int tt565_open(RIG *rig)
     {
         memcpy(&STATE(rig)->str_cal, &cal1, sizeof(cal_table_t));
     }
+
+    start_thread(rig);
 
     return RIG_OK;
 }
@@ -417,6 +470,14 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 #endif
     retval = tt565_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
+    if (retval == RIG_OK)
+    {
+        struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
+
+        if (vfo == RIG_VFO_A) { priv->freqA = freq; }
+        else if (vfo == RIG_VFO_B) { priv->freqB = freq; }
+    }
+
     return retval;
 }
 
@@ -428,6 +489,16 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  *
  * Performs query on physical rig
  */
+int tt565_get_freq_cache(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
+
+    if (vfo == RIG_VFO_B) { *freq = priv->freqB; }
+    else { *freq = priv->freqA; }
+
+    return RIG_OK;
+}
+
 int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     int resp_len, retval;
@@ -570,8 +641,18 @@ static vfo_t tt2vfo(char c)
  * \returns RIG_OK or < 0
  * \brief Get the current split status and Tx vfo selection.
  */
+int tt565_get_split_vfo_cache(RIG *rig, vfo_t vfo, split_t *split,
+                              vfo_t *tx_vfo)
+{
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
+    *split = priv->split;
+    *tx_vfo = priv->tx_vfo;
+    return RIG_OK;
+}
+
 int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
     int resp_len, retval;
     char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
     char ttreceiver;
@@ -598,6 +679,9 @@ int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
     *split = ttreceiver == respbuf[5] ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
 
+    priv->tx_vfo = *tx_vfo;
+    priv->split = *split;
+
     return RIG_OK;
 }
 
@@ -618,6 +702,7 @@ int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
  */
 int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
     char ttmode, ttreceiver;
     int retval;
     char mdbuf[TT565_BUFSIZE];
@@ -674,6 +759,8 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     retval = write_block(RIGPORT(rig), (unsigned char *) mdbuf, strlen(mdbuf));
+    priv->mode = mode;
+    priv->width = width;
 
     return retval;
 }
@@ -688,6 +775,14 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  *
  * \remarks Confusion of VFO and Main/Sub TRx/Rx. See tt565_set_mode.
  */
+int tt565_get_mode_cache(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+    struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
+    *mode = priv->mode;
+    *width = priv->width;
+    return RIG_OK;
+}
+
 int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     int resp_len, retval;
@@ -744,7 +839,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     /* Query passband width (filter) */
     // since this fails at 80ms sometimes we won't retry and will reduce the timeout
     // Normally this comes back in about 30ms
-    retry = rs->retry; 
+    retry = rs->retry;
     timeout = rs->timeout;
     rs->retry = 0;
     rs->timeout = 100;
@@ -956,9 +1051,13 @@ int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct tt565_priv_data *priv = (struct tt565_priv_data *)STATE(rig)->priv;
     int retval = write_block(RIGPORT(rig),
-                       (unsigned char *)(ptt == RIG_PTT_ON ? "*TK" EOM : "*TU" EOM), 4);
+                             (unsigned char *)(ptt == RIG_PTT_ON ? "*TK" EOM : "*TU" EOM), 4);
+
     if (retval == RIG_OK)
+    {
         priv->ptt = ptt;
+    }
+
     return retval;
 }
 
