@@ -837,7 +837,7 @@ int ft767_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     retval = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    if (retval != RIG_OK) { return retval; }
 
     /* This appears to always pass in VFO_CURR as the vfo */
     /* My decision is to only update the xmit VFO if we're in split mode */

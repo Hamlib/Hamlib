@@ -391,7 +391,7 @@ int ft736_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     int retval = rig_set_split_vfo(rig, RIG_VFO_A, RIG_SPLIT_ON, RIG_VFO_B);
 
-    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    if (retval != RIG_OK) { return retval; }
 
     /* store bcd format in cmd (MSB) */
     to_bcd_be(cmd, freq / 10, 8);

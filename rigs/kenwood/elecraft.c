@@ -582,13 +582,15 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
     char cmdbuf[10];
     char splitbuf[12];
 
+    ENTERFUNC2;
+
     memset(splitbuf, 0, sizeof(splitbuf));
     SNPRINTF(cmdbuf, sizeof(cmdbuf), "FR;");
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)
     {
-        RETURNFUNC(retval);
+        RETURNFUNC2(retval);
     }
 
     if (sscanf(splitbuf, "FR%1d", &fr) != 1)
@@ -601,7 +603,7 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 
     if (retval != RIG_OK)
     {
-        RETURNFUNC(retval);
+        RETURNFUNC2(retval);
     }
 
     if (sscanf(splitbuf, "FT%1d", &ft) != 1)
@@ -614,7 +616,7 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 
     if (retval != RIG_OK)
     {
-        RETURNFUNC(retval);
+        RETURNFUNC2(retval);
     }
 
     if (sscanf(splitbuf, "TQ%1d", &tq) != 1)

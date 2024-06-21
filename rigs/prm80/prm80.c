@@ -897,7 +897,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
         if (ret < 0)
         {
-            RETURNFUNC(ret);
+            return ret;
         }
 
         if (ret == 3 && buf[2] == 'T')
@@ -908,7 +908,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
             if (ret < 0)
             {
-                RETURNFUNC(ret);
+                return ret;
             }
 
             // Read extra space
@@ -916,7 +916,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
             if (ret < 0)
             {
-                RETURNFUNC(ret);
+                return ret;
             }
 
             // Send confirmation
@@ -924,7 +924,7 @@ int prm80_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 
             if (ret < 0)
             {
-                RETURNFUNC(ret);
+                return ret;
             }
         }
 
