@@ -140,6 +140,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
             if ((*cmd != '*') && (*cmd != '/'))
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: cmd reject 1\n", __func__);
+                MUTEX_UNLOCK(mutex);
                 return -RIG_ERJCTED;
             }
 
@@ -151,8 +152,10 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         ft1 = tt565_timenow();
 #endif
         *data_len = data_len_init;  /* restore orig. buffer length */
-        *data_len = read_string(rp, (unsigned char *) data, *data_len,
+        read_string(rp, (unsigned char *) data, *data_len,
                                 EOM, strlen(EOM), 0, 1);
+        *data_len = strlen(data);
+        rig_debug(RIG_DEBUG_ERR, "%s: data_len = %d\n", __func__, *data_len);
 
         if (!strncmp(data, "Z!", 2))     // command unrecognized??
         {
@@ -182,7 +185,7 @@ static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
         }
         else                            // Yes, it was a 'read', phew!
         {
-            if (!strncmp(data + 1, cmd + 1, cmd_len - 2)) //response matches cmd?
+            if (strncmp(data + 1, cmd + 1, cmd_len - 2)==0) //response matches cmd?
             {
                 MUTEX_UNLOCK(mutex);
                 return RIG_OK;  // all is well, normal exit
@@ -280,8 +283,8 @@ static void *read_device(void *p)
     while (priv->threadrun)
     {
         tt565_get_freq(rig, RIG_VFO_A, &priv->freqA);
-        tt565_get_freq(rig, RIG_VFO_B, &priv->freqB);
         tt565_get_mode(rig, RIG_VFO_A, &priv->mode, &priv->width);
+        tt565_get_freq(rig, RIG_VFO_B, &priv->freqB);
         tt565_get_split_vfo(rig, RIG_VFO_A, &priv->tx_vfo, &priv->split);
         hl_usleep(100 * 1000);
     }
@@ -802,10 +805,11 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (retval != RIG_OK)
     {
+        rig_debug(RIG_DEBUG_ERR, "%s: tt565_transaction failed\n", __func__);
         return retval;
     }
 
-    if (respbuf[1] != 'R' || respbuf[3] != 'M' || resp_len <= 4)
+    if (respbuf[1] != 'R' || respbuf[3] != 'M' || resp_len <= 3)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
                   __func__, respbuf);

@@ -37,7 +37,7 @@
 #include "riglist.h"
 #include "mutex.h"
 
-#define BACKEND_VER "20240613"
+#define BACKEND_VER "20240621"
 
 #define TRUE	1
 #define FALSE	0
@@ -227,7 +227,7 @@ RIG_MODEL(RIG_MODEL_TT565),
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
-.write_delay =  1,          /* no delay between characters written */
+.write_delay =  0,          /* no delay between characters written */
 .post_write_delay =  0,		  /* ms delay between writes DEBUGGING HERE */
 .timeout =  200,						/* ms */
 .retry =  1,
