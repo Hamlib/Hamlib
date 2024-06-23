@@ -1119,11 +1119,13 @@ static int flrig_open(RIG *rig)
 
     rig_get_split_vfo(rig, RIG_VFO_A, &split, &tx_vfo);
 
+#if 0
     retval = flrig_transaction(rig, "rig.get_agc_labels", NULL, value, sizeof(value));
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
     rig_debug(RIG_DEBUG_ERR, "%s: agc_labels=%s\n", __func__, value);
+#endif
 
 
     RETURNFUNC(retval);
