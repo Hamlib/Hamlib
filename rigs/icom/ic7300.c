@@ -2242,7 +2242,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
         else
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Invalid VFO %s in satellite mode\n", __func__, rig_strvfo(vfo));
-            return -RIG_EINVAL;
+            RETURNFUNC(-RIG_EINVAL);
         }
     }
 
@@ -2257,7 +2257,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
             rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n",
                       __func__);
             // we return RIG_OK anyways as this should just be a bad request
-            return RIG_OK;
+            RETURNFUNC(RIG_OK);
         }
 
         retval = icom_transaction(rig, C_SET_VFO, S_VFOB, NULL, 0, ackbuf, &ack_len);
@@ -2269,14 +2269,14 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-            return retval;
+            RETURNFUNC(retval);
         }
 
         if (cachep->satmode && vfo == RIG_VFO_MAIN_B)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
             // we return RIG_OK anyways as this should just be a bad request
-            return RIG_OK;
+            RETURNFUNC(RIG_OK);
         }
 
         if (vfo == RIG_VFO_MAIN_A || vfo == RIG_VFO_MAIN_B)
@@ -2292,14 +2292,14 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-            return retval;
+            RETURNFUNC(retval);
         }
 
         if (cachep->satmode && vfo == RIG_VFO_SUB_B)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
             // we return RIG_OK anyways as this should just be a bad request
-            return RIG_OK;
+            RETURNFUNC(RIG_OK);
         }
 
         if (vfo == RIG_VFO_SUB_A || vfo == RIG_VFO_SUB_B)
@@ -2311,7 +2311,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     }
     else if (vfo == RIG_VFO_MEM)
     {
-        return icom_set_vfo(rig, vfo);
+        RETURNFUNC(icom_set_vfo(rig, vfo));
     }
     else
     {
@@ -2322,7 +2322,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
-        return retval;
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(retval);
