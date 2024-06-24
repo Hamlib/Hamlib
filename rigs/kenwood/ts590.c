@@ -533,7 +533,7 @@ static int ts590_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         RETURNFUNC(RIG_OK);
 
     default:
-        return kenwood_get_func(rig, vfo, func, status);
+        RETURNFUNC(kenwood_get_func(rig, vfo, func, status));
     }
 
     RETURNFUNC(RIG_OK);
@@ -776,7 +776,7 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->f = roundl(levelint * 10 / 10.0) / 10.0;
         }
 
-        return retval;
+        RETURNFUNC(retval);
 
     case RIG_LEVEL_AF:
         RETURNFUNC(kenwood_get_level(rig, vfo, level, val));
