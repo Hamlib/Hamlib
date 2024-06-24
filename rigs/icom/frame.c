@@ -303,7 +303,7 @@ again2:
     if (frm_len <= 0)
     {
         set_transaction_inactive(rig);
-        return frm_len;
+        RETURNFUNC(frm_len);
     }
 
     if (frm_len > 4 && memcmp(buf, sendbuf, frm_len) == 0)
