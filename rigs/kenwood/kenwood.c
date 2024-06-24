@@ -536,7 +536,7 @@ transaction_read:
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: Command rejected by the rig (get): '%s'\n",
                           __func__, cmdstr);
-                RETURNFUNC(-RIG_ERJCTED);
+                RETURNFUNC2(-RIG_ERJCTED);
             }
 
             /* Command not understood by rig or rig busy */
@@ -1242,7 +1242,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     if (vfo == RIG_VFO_B &&  priv->is_emulation && priv->curr_mode > 0)
     {
         HAMLIB_TRACE;
-        RETURNFUNC2(RIG_OK);
+        RETURNFUNC(RIG_OK);
     }
 
 #if 0
@@ -1251,7 +1251,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo already is %s...skipping\n", __func__,
                   rig_strvfo(vfo));
-        RETURNFUNC2(RIG_OK);
+        RETURNFUNC(RIG_OK);
     }
 
 #endif
@@ -1284,11 +1284,11 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     case RIG_VFO_CURR:
         HAMLIB_TRACE;
         STATE(rig)->current_vfo = RIG_VFO_CURR;
-        RETURNFUNC2(RIG_OK);
+        RETURNFUNC(RIG_OK);
 
     default:
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %s\n", __func__, rig_strvfo(vfo));
-        RETURNFUNC2(-RIG_EINVAL);
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     //if rig=ts2000 then check Satellite mode status
@@ -1302,7 +1302,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 
         if (retval != RIG_OK)
         {
-            RETURNFUNC2(retval);
+            RETURNFUNC(retval);
         }
 
         rig_debug(RIG_DEBUG_VERBOSE, "%s: satellite mode status %s\n", __func__,
@@ -1313,7 +1313,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
         {
             //SAT mode doesn't allow FR command (cannot select VFO)
             //selecting VFO is useless in SAT MODE
-            RETURNFUNC2(RIG_OK);
+            RETURNFUNC(RIG_OK);
         }
     }
 
@@ -1344,7 +1344,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 
     if (retval != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     HAMLIB_TRACE;
@@ -1354,7 +1354,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     /* If split mode on, the don't change TxVFO */
     if ('N' == cmdbuf[1] || priv->split != RIG_SPLIT_OFF)
     {
-        RETURNFUNC2(RIG_OK);
+        RETURNFUNC(RIG_OK);
     }
 
     HAMLIB_TRACE;
@@ -1406,7 +1406,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
     cmdbuf[1] = 'T';
     RETURNFUNC(kenwood_transaction(rig, cmdbuf, NULL, 0));
 #else
-    RETURNFUNC2(retval);
+    RETURNFUNC(retval);
 #endif
 }
 
@@ -2262,7 +2262,7 @@ int kenwood_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    ENTERFUNC;
 
     if (RIG_IS_TS990S)
     {
@@ -2751,7 +2751,7 @@ static int kenwood_get_filter_width(RIG *rig, rmode_t mode, pbwidth_t *width)
     if (filter_value >= 50) // then it's probably a custom filter width
     {
         *width = filter_value;
-        return (RIG_OK);
+        RETURNFUNC(RIG_OK);
     }
 
     RETURNFUNC(-RIG_EINVAL);
@@ -3788,23 +3788,23 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (retval != RIG_OK)
         {
-            return retval;
+            RETURNFUNC(retval);
         }
 
         ack_len = strlen(lvlbuf);
 
         if (ack_len != len)
         {
-            return -RIG_EPROTO;
+            RETURNFUNC(-RIG_EPROTO);
         }
 
         if (sscanf(&lvlbuf[len - 3], "%d", &lvl) != 1)
         {
-            return -RIG_EPROTO;
+            RETURNFUNC(-RIG_EPROTO);
         }
 
         val->f = (float) lvl / 255.f;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
 
     case RIG_LEVEL_ATT:
@@ -5547,7 +5547,7 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
              || rig->caps->rig_model == RIG_MODEL_TS480))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: TS2000/TS480 channel is from 1 to 3\n", __func__);
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     // some rigs have 5 channels -- newew ones  have 10 channels
@@ -5556,7 +5556,7 @@ int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank)
                 || rig->caps->rig_model == RIG_MODEL_TS590S))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: TS590S/SG channel is from 1 to 5\n", __func__);
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     if (rig->caps->rig_model == RIG_MODEL_TS2000
@@ -6070,7 +6070,7 @@ const char *kenwood_get_info(RIG *rig)
     char firmbuf[10];
     int retval;
 
-    ENTERFUNC;
+    ENTERFUNC2;
 
     if (!rig)
     {
