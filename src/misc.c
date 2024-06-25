@@ -3109,7 +3109,7 @@ int rig_test_2038(RIG *rig)
         return 1;
     }
 
-    if (strstr(s, "2097")) { return RIG_OK; }
+    if (s != NULL && strstr(s, "2097")) { return RIG_OK; }
 
 #if defined(__MSVCRT_VERSION__)
     _ctime64_s(s, sizeof(s), &x);
@@ -3117,7 +3117,7 @@ int rig_test_2038(RIG *rig)
     s = ctime(&x);
 #endif
 
-    if (strstr(s, "2097")) { return RIG_OK; }
+    if (s != NULL && strstr(s, "2097")) { return RIG_OK; }
 
     return 1;
 }
