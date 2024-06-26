@@ -2686,7 +2686,7 @@ static int netrigctl_get_trn(RIG *rig, int *trn)
 
     if (ret <= 0)
     {
-        return -RIG_EPROTO;
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     if (strstr(buf, "OFF")) { *trn = RIG_TRN_OFF; }
@@ -2718,7 +2718,7 @@ static int netrigctl_mW2power(RIG *rig, float *power, unsigned int mwpower,
 
     if (ret <= 0)
     {
-        return -RIG_EPROTO;
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     *power = atof(buf);
@@ -2743,7 +2743,7 @@ static int netrigctl_power2mW(RIG *rig, unsigned int *mwpower, float power,
 
     if (ret <= 0)
     {
-        return -RIG_EPROTO;
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     *mwpower = atof(buf);

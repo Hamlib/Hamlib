@@ -435,7 +435,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (rig == NULL)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig is NULL!!!\n", __func__);
-        return -RIG_EINVAL;
+        RETURNFUNC(-RIG_EINVAL);
     }
 
     priv = (struct dummy_priv_data *)STATE(rig)->priv;
