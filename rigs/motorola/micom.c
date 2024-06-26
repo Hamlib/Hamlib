@@ -170,7 +170,7 @@ static int micom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     write_block(rp, ack, sizeof(ack));
     set_transaction_inactive(rig);
     *freq = (reply[4] << 24) | (reply[5] << 16) | (reply[6] << 8) | reply[7];
-    RETURNFUNC(RIG_OK);
+    RETURNFUNC2(RIG_OK);
 }
 
 static int micom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)

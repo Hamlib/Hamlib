@@ -1601,7 +1601,7 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     {
         rig_debug(RIG_DEBUG_WARN, "%s: No network found...multicast disabled\n",
                   __func__);
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
 
 #endif
@@ -1610,7 +1610,7 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     {
         rig_debug(RIG_DEBUG_TRACE, "%s(%d): not starting multicast publisher\n",
                   __FILE__, __LINE__);
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
     }
 
     status = network_init();

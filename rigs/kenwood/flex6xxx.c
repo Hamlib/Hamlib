@@ -1294,7 +1294,7 @@ int powersdr_get_parm(RIG *rig, setting_t parm, value_t *val)
     if (n != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unknown band=%s\n", __func__, buf);
-        return (-RIG_EPROTO);
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     switch (band)

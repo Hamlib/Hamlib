@@ -808,7 +808,6 @@ int funcube_hid_cmd(RIG *rig, unsigned char *au8BufOut, unsigned char *au8BufIn,
 
 int funcubepro_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-    ENTERFUNC;
     int ret;
     unsigned char au8BufOut[64] = { 0 }; // endpoint size
     unsigned char au8BufIn[64] = { 0 };  // endpoint size
@@ -869,7 +868,6 @@ int funcubepro_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int funcubepro_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    ENTERFUNC;
     int ret;
     int gain_state;
     unsigned char au8BufOut[64] = { 0 }; // endpoint size
