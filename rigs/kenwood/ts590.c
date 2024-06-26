@@ -610,7 +610,7 @@ static int ts590_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: unsupported agc value", __func__);
-            return -RIG_EINVAL;
+            RETURNFUNC(-RIG_EINVAL);
         }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "GT%02d", kenwood_val);
@@ -1004,7 +1004,7 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
 
         default:
-            return -RIG_ENAVAIL;
+            RETURNFUNC(-RIG_ENAVAIL);
         }
 
         break;

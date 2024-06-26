@@ -1037,12 +1037,12 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                   __func__, rig_strvfo(vfo), rig_strvfo(rig_s->tx_vfo));
 
         // when in split we can change VFOB but not VFOA
-        if (cachep->split == RIG_SPLIT_ON && target_vfo == '0') { return -RIG_ENTARGET; }
+        if (cachep->split == RIG_SPLIT_ON && target_vfo == '0') { RETURNFUNC(-RIG_ENTARGET); }
 
         // when not in split we can't change VFOA at all
-        if (cachep->split == RIG_SPLIT_OFF && target_vfo == '0') { return -RIG_ENTARGET; }
+        if (cachep->split == RIG_SPLIT_OFF && target_vfo == '0') { RETURNFUNC(-RIG_ENTARGET); }
 
-        if (vfo != rig_s->tx_vfo) { return -RIG_ENTARGET; }
+        if (vfo != rig_s->tx_vfo) { RETURNFUNC(-RIG_ENTARGET); }
     }
 
     if (is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx1200)
@@ -1069,7 +1069,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
         while (err == RIG_OK && ptt == RIG_PTT_ON && retry-- > 0);
 
-        if (ptt) { return -RIG_ENTARGET; }
+        if (ptt) { RETURNFUNC(-RIG_ENTARGET); }
     }
 
     if (RIG_MODEL_FT450 == caps->rig_model)
@@ -5129,7 +5129,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot read MG in CW/RTTY modes\n",
                       __func__);
-            return RIG_OK;
+            RETURNFUNC(RIG_OK);
         }
 
         if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000
@@ -6961,7 +6961,7 @@ int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
 
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unknown band %s=%d\n", __func__, val.s, rigband);
-            return -RIG_EINVAL;
+            RETURNFUNC(-RIG_EINVAL);
         }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c", band, cat_term);
@@ -7646,7 +7646,7 @@ int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
     ENTERFUNC;
 
-    if (scan != RIG_SCAN_VFO) { RETURNFUNC2(-RIG_EINVAL); }
+    if (scan != RIG_SCAN_VFO) { RETURNFUNC(-RIG_EINVAL); }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC%d%c",
              scan == RIG_SCAN_STOP ? 0 : ch, cat_term);
@@ -7655,10 +7655,10 @@ int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
                   retval);
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
-    RETURNFUNC2(retval);
+    RETURNFUNC(retval);
 }
 
 

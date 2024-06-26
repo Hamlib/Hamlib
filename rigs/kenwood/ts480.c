@@ -742,7 +742,7 @@ kenwood_ts480_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     default:
-        return kenwood_get_level(rig, vfo, level, val);
+        RETURNFUNC(kenwood_get_level(rig, vfo, level, val));
     }
 
     RETURNFUNC(RIG_OK);

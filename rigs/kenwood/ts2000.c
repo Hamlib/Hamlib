@@ -620,7 +620,7 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
 
         val->f = levelint / (float) 255;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
 
     case RIG_LEVEL_SQL:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "SQ%c", vfo_num);

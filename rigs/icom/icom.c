@@ -2134,12 +2134,12 @@ int icom_set_dsp_flt(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (priv->no_1a_03_cmd == ENUM_1A_03_UNK)
         {
             priv->no_1a_03_cmd = ENUM_1A_03_NO;  /* do not keep asking */
-            return (RIG_OK);
+            RETURNFUNC(RIG_OK);
         }
         else
         {
             rig_debug(RIG_DEBUG_ERR, "%s: 1A 03 %02x failed\n", __func__, flt_ext);
-            return (retval);
+            RETURNFUNC(retval);
         }
     }
 
@@ -5219,7 +5219,7 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(RIG_OK);
@@ -5347,7 +5347,7 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(RIG_OK);
@@ -5446,7 +5446,7 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(RIG_OK);
@@ -7549,7 +7549,7 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(RIG_OK);
@@ -7740,7 +7740,7 @@ int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(RIG_OK);
@@ -7837,7 +7837,7 @@ int icom_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(RIG_OK);
@@ -8248,7 +8248,7 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(RIG_OK);
@@ -8671,7 +8671,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
     if ((retval = icom_check_ack(ack_len, ackbuf)) != RIG_OK)
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(RIG_OK);
@@ -8719,7 +8719,7 @@ morse_retry:
             }
         }
 
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(RIG_OK);
