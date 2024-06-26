@@ -94,5 +94,6 @@ extern struct rig_caps ft650_caps;
 extern struct rig_caps ft710_caps;
 extern struct rig_caps ft9000Old_caps;
 extern struct rig_caps q900_caps;
+extern struct rig_caps pmr171_caps;
 
 #endif /* _YAESU_H */
