@@ -100,7 +100,7 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
             if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
                                                   0)))
             {
-                RETURNFUNC2(retval);
+                RETURNFUNC(retval);
             }
 
             priv->dual_watch = 0;
@@ -116,7 +116,7 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
             if (RIG_OK != (retval = icom_set_func(rig, RIG_VFO_CURR, RIG_FUNC_DUAL_WATCH,
                                                   1)))
             {
-                RETURNFUNC2(retval);
+                RETURNFUNC(retval);
             }
 
             priv->dual_watch = 1;
@@ -139,7 +139,7 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
     if (RIG_OK != (retval = icom_transaction(rig, C_SET_VFO, myvfo, NULL, 0, ackbuf,
                             &ack_len)))
     {
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
     RETURNFUNC(retval);

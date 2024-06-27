@@ -3827,7 +3827,7 @@ static int ft1000d_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
     err = rig_set_split_vfo(rig, vfo, RIG_SPLIT_ON, RIG_VFO_B);
 
-    if (err != RIG_OK) { RETURNFUNC(err); }
+    if (err != RIG_OK) { return err; }
 
 //  priv = (struct ft1000d_priv_data *)STATE(rig)->priv;
 

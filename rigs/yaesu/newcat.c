@@ -1037,12 +1037,12 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
                   __func__, rig_strvfo(vfo), rig_strvfo(rig_s->tx_vfo));
 
         // when in split we can change VFOB but not VFOA
-        if (cachep->split == RIG_SPLIT_ON && target_vfo == '0') { return -RIG_ENTARGET; }
+        if (cachep->split == RIG_SPLIT_ON && target_vfo == '0') { RETURNFUNC(-RIG_ENTARGET); }
 
         // when not in split we can't change VFOA at all
-        if (cachep->split == RIG_SPLIT_OFF && target_vfo == '0') { return -RIG_ENTARGET; }
+        if (cachep->split == RIG_SPLIT_OFF && target_vfo == '0') { RETURNFUNC(-RIG_ENTARGET); }
 
-        if (vfo != rig_s->tx_vfo) { return -RIG_ENTARGET; }
+        if (vfo != rig_s->tx_vfo) { RETURNFUNC(-RIG_ENTARGET); }
     }
 
     if (is_ftdx3000 || is_ftdx3000dm || is_ftdx5000 || is_ftdx1200)
@@ -1069,7 +1069,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         }
         while (err == RIG_OK && ptt == RIG_PTT_ON && retry-- > 0);
 
-        if (ptt) { return -RIG_ENTARGET; }
+        if (ptt) { RETURNFUNC(-RIG_ENTARGET); }
     }
 
     if (RIG_MODEL_FT450 == caps->rig_model)
@@ -1628,7 +1628,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n",
                   __func__);
-        return RIG_OK; // to prevent repeats
+        RETURNFUNC(RIG_OK); // to prevent repeats
     }
 
     err = newcat_set_vfo_from_alias(rig, &vfo);
@@ -2749,6 +2749,7 @@ int newcat_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     int err;
+    ENTERFUNC;
     vfo_t rx_vfo = RIG_VFO_NONE;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: entered, rxvfo=%s, txvfo=%s, split=%d\n",
@@ -2767,7 +2768,7 @@ int newcat_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
         rig_debug(RIG_DEBUG_VERBOSE,
                   "%s: force set_split off since we're on 60M exception\n", __func__);
         split = RIG_SPLIT_OFF;
-        //return RIG_OK; // fake the return code to make things happy
+        //RETURNFUNC(RIG_OK); // fake the return code to make things happy
     }
 
     if (is_ft991)
@@ -4310,7 +4311,7 @@ int newcat_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot set MG in CW/RTTY modes\n",
                       __func__);
-            return RIG_OK;
+            RETURNFUNC(RIG_OK);
         }
 
 
@@ -5128,7 +5129,7 @@ int newcat_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: rig cannot read MG in CW/RTTY modes\n",
                       __func__);
-            return RIG_OK;
+            RETURNFUNC(RIG_OK);
         }
 
         if (is_ft991 || is_ft710 || is_ftdx3000 || is_ftdx3000dm || is_ftdx5000
@@ -6960,7 +6961,7 @@ int newcat_set_parm(RIG *rig, setting_t parm, value_t val)
 
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unknown band %s=%d\n", __func__, val.s, rigband);
-            return -RIG_EINVAL;
+            RETURNFUNC(-RIG_EINVAL);
         }
 
         SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "BS%02d%c", band, cat_term);
@@ -7645,7 +7646,7 @@ int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
     ENTERFUNC;
 
-    if (scan != RIG_SCAN_VFO) { RETURNFUNC2(-RIG_EINVAL); }
+    if (scan != RIG_SCAN_VFO) { RETURNFUNC(-RIG_EINVAL); }
 
     SNPRINTF(priv->cmd_str, sizeof(priv->cmd_str), "SC%d%c",
              scan == RIG_SCAN_STOP ? 0 : ch, cat_term);
@@ -7654,10 +7655,10 @@ int newcat_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s:%d command err = %d\n", __func__, __LINE__,
                   retval);
-        RETURNFUNC2(retval);
+        RETURNFUNC(retval);
     }
 
-    RETURNFUNC2(retval);
+    RETURNFUNC(retval);
 }
 
 
@@ -11081,7 +11082,7 @@ int newcat_get_vfo_mode(RIG *rig, vfo_t vfo, vfo_t *vfo_mode)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n",
                   __func__);
-        return RIG_OK; // to prevent repeats
+        RETURNFUNC(RIG_OK); // to prevent repeats
     }
 
     /* vfo, mem, P7 ************************** */
@@ -11179,7 +11180,7 @@ int newcat_get_cmd(RIG *rig)
     {
         rig_debug(RIG_DEBUG_WARN, "%s: Cannot get from rig when power is off\n",
                   __func__);
-        return RIG_OK; // to prevent repeats
+        RETURNFUNC(RIG_OK); // to prevent repeats
     }
 
     // try to cache rapid repeats of the IF command
@@ -11599,7 +11600,7 @@ repeat:
         if (strncmp(priv->cmd_str, "FA", 2) == 0
                 || strncmp(priv->cmd_str, "FB", 2) == 0)
         {
-            return RIG_OK;
+            RETURNFUNC(RIG_OK);
         }
 
         if (strncmp(priv->cmd_str, "PC", 2) == 0 && priv->ret_data[0] == '?')
@@ -11961,7 +11962,7 @@ int newcat_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 
     if (!newcat_valid_command(rig, "PB"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     // we don't do any channel checking -- varies by rig -- could do it but not critical
@@ -12185,7 +12186,7 @@ static int newcat_get_apf_frequency(RIG *rig, vfo_t vfo, int *freq)
 
     if (!newcat_valid_command(rig, "CO"))
     {
-        RETURNFUNC(-RIG_ENAVAIL);
+        RETURNFUNC2(-RIG_ENAVAIL);
     }
 
     if (is_ftdx101d || is_ftdx101mp)
@@ -12203,12 +12204,12 @@ static int newcat_get_apf_frequency(RIG *rig, vfo_t vfo, int *freq)
     }
     else
     {
-        RETURNFUNC(-RIG_ENIMPL);
+        RETURNFUNC2(-RIG_ENIMPL);
     }
 
     if ((err = newcat_get_cmd(rig)) != RIG_OK)
     {
-        RETURNFUNC(err);
+        RETURNFUNC2(err);
     }
 
     ret_data_len = strlen(priv->ret_data);

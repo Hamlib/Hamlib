@@ -1792,6 +1792,7 @@ static int ft1000mp_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
                                    pbwidth_t tx_width)
 {
     int retval;
+    ENTERFUNC;
     retval = rig_set_mode(rig, RIG_VFO_B, tx_mode, tx_width);
     RETURNFUNC(retval);
 }
@@ -1800,6 +1801,7 @@ static int ft1000mp_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                                    pbwidth_t *tx_width)
 {
     int retval;
+    ENTERFUNC;
     retval = rig_get_mode(rig, RIG_VFO_B, tx_mode, tx_width);
     RETURNFUNC(retval);
 }
@@ -1808,6 +1810,7 @@ static int ft1000mp_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t freq,
                                         rmode_t mode, pbwidth_t width)
 {
     int retval;
+    ENTERFUNC;
     retval = rig_set_mode(rig, RIG_VFO_B, mode, width);
 
     if (retval != RIG_OK)
@@ -1832,6 +1835,7 @@ static int ft1000mp_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *freq,
                                         rmode_t *mode, pbwidth_t *width)
 {
     int retval;
+    ENTERFUNC;
     retval = rig_get_mode(rig, RIG_VFO_B, mode, width);
 
     if (retval != RIG_OK)

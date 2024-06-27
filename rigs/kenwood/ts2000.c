@@ -272,7 +272,7 @@ int ts2000_init(RIG *rig)
 
     if (retval != RIG_OK)
     {
-        return retval;
+        RETURNFUNC(retval);
     }
 
     priv = (struct kenwood_priv_data *) STATE(rig)->priv;
@@ -328,12 +328,12 @@ static int ts2000_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     {
     case RIG_FUNC_MON:
         SNPRINTF(buf, sizeof(buf), "ML00%c", (status == 0) ? '0' : '1');
-        RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
+        RETURNFUNC2(kenwood_transaction(rig, buf, NULL, 0));
 
     case RIG_FUNC_LOCK:
         SNPRINTF(buf, sizeof(buf), "LK%c%c", (status == 0) ? '0' : '1',
                  (status == 0) ? '0' : '1');
-        RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
+        RETURNFUNC2(kenwood_transaction(rig, buf, NULL, 0));
 
     default:
         return kenwood_set_func(rig, vfo, func, status);
@@ -377,7 +377,7 @@ static int ts2000_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         break;
 
     default:
-        return kenwood_get_func(rig, vfo, func, status);
+        RETURNFUNC(kenwood_get_func(rig, vfo, func, status));
     }
 
     RETURNFUNC(RIG_OK);
@@ -462,7 +462,7 @@ static int ts2000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_PREAMP:
         if (val.i != 12 && val.i != 0)
         {
-            RETURNFUNC(-RIG_EINVAL);
+            RETURNFUNC2(-RIG_EINVAL);
         }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "PA%c", (val.i == 12) ? '1' : '0');
@@ -471,7 +471,7 @@ static int ts2000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_ATT:
         if (val.i != 12 && val.i != 0)
         {
-            RETURNFUNC(-RIG_EINVAL);
+            RETURNFUNC2(-RIG_EINVAL);
         }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "RA%02d", (val.i == 12) ? 1 : 0);
@@ -493,7 +493,7 @@ static int ts2000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             break;
 
         default:
-            RETURNFUNC(-RIG_EINVAL);
+            RETURNFUNC2(-RIG_EINVAL);
         }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "RM%d", kenwood_val);
@@ -502,10 +502,10 @@ static int ts2000_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_CWPITCH:
         if (val.i > 1000 || val.i < 400)
         {
-            RETURNFUNC(-RIG_EINVAL);
+            RETURNFUNC2(-RIG_EINVAL);
         }
 
-        RETURNFUNC(ts2000_set_ex_menu(rig, 31, 2, (val.i - 400) / 50));
+        RETURNFUNC2(ts2000_set_ex_menu(rig, 31, 2, (val.i - 400) / 50));
 
     default:
         return kenwood_set_level(rig, vfo, level, val);
@@ -597,30 +597,30 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level)
     {
     case RIG_LEVEL_AF:
-        return kenwood_get_level(rig, vfo, level, val);
+        RETURNFUNC(kenwood_get_level(rig, vfo, level, val));
 
     case RIG_LEVEL_RF:
         retval = kenwood_transaction(rig, "RG", ackbuf, sizeof(ackbuf));
 
         if (RIG_OK != retval)
         {
-            return retval;
+            RETURNFUNC(retval);
         }
 
         ack_len = strlen(ackbuf);
 
         if (5 != ack_len)
         {
-            return -RIG_EPROTO;
+            RETURNFUNC(-RIG_EPROTO);
         }
 
         if (1 != sscanf(&ackbuf[2], "%d", &levelint))
         {
-            return -RIG_EPROTO;
+            RETURNFUNC(-RIG_EPROTO);
         }
 
         val->f = levelint / (float) 255;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
 
     case RIG_LEVEL_SQL:
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "SQ%c", vfo_num);
@@ -629,23 +629,23 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (retval != RIG_OK)
         {
-            return retval;
+            RETURNFUNC(retval);
         }
 
         ack_len = strlen(ackbuf);
 
         if (ack_len != ack_len_expected)
         {
-            return -RIG_EPROTO;
+            RETURNFUNC(-RIG_EPROTO);
         }
 
         if (sscanf(&ackbuf[ack_len_expected - 3], "%d", &levelint) != 1)
         {
-            return -RIG_EPROTO;
+            RETURNFUNC(-RIG_EPROTO);
         }
 
         val->f = (float) levelint / 255.f;
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
 
     case RIG_LEVEL_AGC:
         retval = kenwood_transaction(rig, "GT", ackbuf, sizeof(ackbuf));
@@ -653,19 +653,19 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (RIG_OK != retval)
         {
-            return retval;
+            RETURNFUNC(retval);
         }
 
         ack_len = strlen(ackbuf);
 
         if (ack_len != ack_len_expected)
         {
-            return -RIG_EPROTO;
+            RETURNFUNC(-RIG_EPROTO);
         }
 
         if (1 != sscanf(&ackbuf[ack_len_expected - 3], "%d", &levelint))
         {
-            return -RIG_EPROTO;
+            RETURNFUNC(-RIG_EPROTO);
         }
 
         if (levelint == 0)
@@ -689,7 +689,7 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->i = RIG_AGC_SLOW;
         }
 
-        return RIG_OK;
+        RETURNFUNC(RIG_OK);
 
     case RIG_LEVEL_STRENGTH:
         if (CACHE(rig)->ptt != RIG_PTT_OFF)
@@ -698,7 +698,7 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
         }
 
-        return kenwood_get_level(rig, vfo, level, val);
+        RETURNFUNC(kenwood_get_level(rig, vfo, level, val));
 
     case RIG_LEVEL_MONITOR_GAIN:
     {
@@ -868,7 +868,7 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             break;
 
         default:
-            return -RIG_ENAVAIL;
+            RETURNFUNC(-RIG_ENAVAIL);
         }
 
         break;
@@ -923,7 +923,7 @@ static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     default:
-        return kenwood_get_level(rig, vfo, level, val);
+        RETURNFUNC(kenwood_get_level(rig, vfo, level, val));
     }
 
     RETURNFUNC(RIG_OK);
