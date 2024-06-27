@@ -3098,8 +3098,10 @@ int rig_test_2038(RIG *rig)
 
     if (s == NULL) { failed = 1; }
 
+#if 0 // this fails on 32-bit RigPi -- time_t 32-bit maybe?
     else rig_debug(RIG_DEBUG_VERBOSE, "%s: time_t 2038 test = 0x%08lx:%s", __func__, x,
               s == NULL ? "NULL" : s);
+#endif
 
 #endif
 
