@@ -3521,7 +3521,7 @@ declare_proto_rig(get_level)
             RETURNFUNC2(-RIG_EINVAL);
         }
 
-        RETURNFUNC(RIG_OK);
+        RETURNFUNC2(RIG_OK);
     }
 
 
@@ -5095,7 +5095,7 @@ declare_proto_rig(send_cmd)
         flrig_cat_string2(rig, arg1, (char*)buf, sizeof(buf));
         fwrite(cmd->arg2, 1, strlen(cmd->arg2), fout); /* i.e. "Frequency" */
         fprintf(fout, ": %s\n", buf);
-        RETURNFUNC(RIG_OK);
+        RETURNFUNC2(RIG_OK);
     }
 
     // need to move the eom_buf to rig-specifc backends

@@ -230,7 +230,6 @@ int HAMLIB_API rig_register(struct rig_caps *caps)
     p->next = rig_hash_table[hval];
     rig_hash_table[hval] = p;
 
-    //RETURNFUNC(RIG_OK);
     return RIG_OK;
 }
 //! @endcond
