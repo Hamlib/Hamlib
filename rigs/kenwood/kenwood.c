@@ -378,6 +378,7 @@ transaction_write:
         skip |= strncmp(cmdstr, "PS1", 3) == 0;
         skip |= strncmp(cmdstr, "PS0", 3) == 0;
         skip |= strncmp(cmdstr, "K22", 3) == 0;
+        skip |= strncmp(cmdstr, "TQ", 2) == 0; // Skip Hilberling TQ command check
 
         if (skip)
         {
