@@ -1219,6 +1219,7 @@ int ts480_init(RIG *rig)
 int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     const char *ptt_cmd;
+    struct hamlib_port *rp = RIGPORT(rig);
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: ptt=%d\n", __func__, ptt);
@@ -1234,7 +1235,8 @@ int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     int retval = kenwood_transaction(rig, ptt_cmd, NULL, 0);
 
-    //if (ptt == RIG_PTT_OFF) { hl_usleep(100 * 1000); } // a little time for PTT to turn off
+    hl_usleep(100 * 1000); // a little time for PTT to return whatever it returns which we ignore
+    rig_flush(rp);
 
     RETURNFUNC(retval);
 }
@@ -1836,7 +1838,7 @@ struct rig_caps pt8000a_caps =
     RIG_MODEL(RIG_MODEL_PT8000A),
     .model_name = "PT-8000A",
     .mfg_name = "Hilberling",
-    .version = BACKEND_VER ".1",
+    .version = BACKEND_VER ".2",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
