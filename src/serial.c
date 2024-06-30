@@ -128,7 +128,7 @@ int is_uh_radio_fd(int fd)
 
 
 /**
- * \brief Open serial port using rig.state data
+ * \brief Open serial port using STATE(rig) data
  * \param rp port data structure (must spec port id eg /dev/ttyS1)
  * \return RIG_OK or < 0 if error
  */
