@@ -688,6 +688,12 @@
 #define RIG_BACKEND_MOTOROLA "Motorola"
 #define RIG_MODEL_MICOM2 RIG_MAKE_MODEL(RIG_MOTOROLA, 1)
 
+/*
+ * Commradio / AeroStream Communications
+ */
+#define RIG_COMMRADIO 39
+#define RIG_BACKEND_COMMRADIO "commradio"
+#define RIG_MODEL_CTX10 RIG_MAKE_MODEL(RIG_COMMRADIO, 1)
 
 //! @endcond
 
