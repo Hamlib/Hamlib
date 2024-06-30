@@ -30,11 +30,11 @@
  */
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
-#define set_transaction_active(rig) {pthread_mutex_lock(&rig->state.mutex_set_transaction);(rig)->state.transaction_active = 1;}
-#define set_transaction_inactive(rig) {(rig)->state.transaction_active = 0;pthread_mutex_unlock(&rig->state.mutex_set_transaction);}
+#define set_transaction_active(rig) {pthread_mutex_lock(&STATE(rig)->mutex_set_transaction);STATE(rig)->transaction_active = 1;}
+#define set_transaction_inactive(rig) {STATE(rig)->transaction_active = 0;pthread_mutex_unlock(&STATE(rig)->mutex_set_transaction);}
 #else
-#define set_transaction_active(rig) {(rig)->state.transaction_active = 1;}
-#define set_transaction_inactive(rig) {(rig)->state.transaction_active = 0;}
+#define set_transaction_active(rig) {STATE(rig)->transaction_active = 1;}
+#define set_transaction_inactive(rig) {STATE(rig)->transaction_active = 0;}
 #endif
 
 __BEGIN_DECLS
@@ -157,24 +157,24 @@ extern HAMLIB_EXPORT(char *)date_strget(char *buf, int buflen, int localtime);
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 void errmsg(int err, char *s, const char *func, const char *file, int line);
 #define ERRMSG(err, s) errmsg(err,  s, __func__, __FILENAME__, __LINE__)
-#define ENTERFUNC {     ++rig->state.depth; \
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s(%d):%s entered\n", spaces(rig->state.depth), rig->state.depth, __FILENAME__, __LINE__, __func__); \
+#define ENTERFUNC {     ++STATE(rig)->depth;				\
+    rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s(%d):%s entered\n", spaces(STATE(rig)->depth), STATE(rig)->depth, __FILENAME__, __LINE__, __func__); \
                   }
 #define ENTERFUNC2 {    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s entered\n", __FILENAME__, __LINE__, __func__); \
                    }
 // we need to refer to rc just once as it 
 // could be a function call 
 #define RETURNFUNC(rc) {do { \
-			            int rctmp = rc; \
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s(%d):%s returning(%ld) %s\n", spaces(rig->state.depth), rig->state.depth, __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror2(rctmp):""); \
-                        --rig->state.depth; \
-                        return (rctmp); \
-                       } while(0);}
+            int rctmp = rc; \
+            rig_debug(RIG_DEBUG_VERBOSE, "%s%d:%s(%d):%s returning(%ld) %s\n", spaces(STATE(rig)->depth), STATE(rig)->depth, __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror2(rctmp):""); \
+            --STATE(rig)->depth;					\
+            return (rctmp); \
+            } while(0);}
 #define RETURNFUNC2(rc) {do { \
-			            int rctmp = rc; \
-                        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s returning2(%ld) %s\n",  __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror2(rctmp):""); \
-                        return (rctmp); \
-                       } while(0);}
+            int rctmp = rc; \
+            rig_debug(RIG_DEBUG_VERBOSE, "%s(%d):%s returning2(%ld) %s\n",  __FILENAME__, __LINE__, __func__, (long int) (rctmp), rctmp<0?rigerror2(rctmp):""); \
+            return (rctmp); \
+            } while(0);}
 
 #define CACHE_RESET {\
     elapsed_ms(&CACHE(rig)->time_freqMainA, HAMLIB_ELAPSED_INVALIDATE);\
