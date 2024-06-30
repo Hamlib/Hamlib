@@ -33,9 +33,10 @@ static struct sockaddr_in dest_addr = {0};
 
 int multicast_stop(RIG *rig)
 {
-    if (rig->state.multicast) { rig->state.multicast->runflag = 0; }
+    struct rig_state *rs = STATE(rig);
+    if (rs->multicast) { rs->multicast->runflag = 0; }
 
-    pthread_join(rig->state.multicast->threadid, NULL);
+    pthread_join(rs->multicast->threadid, NULL);
     return RIG_OK;
 }
 
@@ -44,6 +45,7 @@ static int multicast_status_changed(RIG *rig)
 {
     int retval;
     struct rig_cache *cachep = CACHE(rig);
+    struct rig_state *rs = STATE(rig);
 #if 0
     freq_t freq, freqsave = cachep->freqMainA;
 
@@ -63,7 +65,7 @@ static int multicast_status_changed(RIG *rig)
 
 #if  0
 
-    if (rig->state.multicast->seqnumber % 2 == 0
+    if (rs->multicast->seqnumber % 2 == 0
             && (retval = rig_get_mode(rig, RIG_VFO_A, &modeA, &widthA)) != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: rig_get_modeA:%s\n", __func__, rigerror(retval));
@@ -77,7 +79,7 @@ static int multicast_status_changed(RIG *rig)
 
 #if 0
 
-    if (rig->state.multicast->seqnumber % 2 == 0
+    if (rs->multicast->seqnumber % 2 == 0
             && (rig->caps->targetable_vfo & RIG_TARGETABLE_MODE)
             && (retval = rig_get_mode(rig, RIG_VFO_B, &modeB, &widthB)) != RIG_OK)
     {
@@ -94,14 +96,14 @@ static int multicast_status_changed(RIG *rig)
 
 #if 0
 
-    if (rig->state.multicast->seqnumber % 2 == 0
+    if (rs->multicast->seqnumber % 2 == 0
             && (retval = rig_get_ptt(rig, RIG_VFO_CURR, &ptt)) != RIG_OK)
         if (ptt != pttsave) { return 1; }
 
     split_t split, splitsave = cachep->split;
     vfo_t txvfo;
 
-    if (rig->state.multicast->seqnumber % 2 == 0
+    if (rs->multicast->seqnumber % 2 == 0
             && (retval = rig_get_split_vfo(rig, RIG_VFO_CURR, &split, &txvfo)) != RIG_OK)
         if (split != splitsave) { return 1; }
 
@@ -192,6 +194,7 @@ void json_add_time(char *msg, int addComma)
 void json_add_vfoA(RIG *rig, char *msg)
 {
     struct rig_cache *cachep = CACHE(rig);
+    struct rig_state *rs = STATE(rig);
   
     strcat(msg, "{\n");
     json_add_string(msg, "Name", "VFOA", 1);
@@ -211,15 +214,15 @@ void json_add_vfoA(RIG *rig, char *msg)
 #if 0 // not working quite yet
     // what about full duplex? rx_vfo would be in rx all the time?
     rig_debug(RIG_DEBUG_ERR, "%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__,
-              rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo),
+              rig_strvfo(rs->rx_vfo), rig_strvfo(rs->tx_vfo),
               cachep->split);
     printf("%s: rx_vfo=%s, tx_vfo=%s, split=%d\n", __func__,
-           rig_strvfo(rig->state.rx_vfo), rig_strvfo(rig->state.tx_vfo),
+           rig_strvfo(rs->rx_vfo), rig_strvfo(rs->tx_vfo),
            cachep->split);
 
     if (cachep->split)
     {
-        if (rig->state.tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
+        if (rs->tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
         {
             json_add_boolean(msg, "RX", !cachep->ptt, 1);
             json_add_boolean(msg, "TX", 0, 0);
@@ -230,7 +233,7 @@ void json_add_vfoA(RIG *rig, char *msg)
             json_add_boolean(msg, "TX", cachep->ptt, 0);
         }
     }
-    else if (rig->state.current_vfo && (RIG_VFO_A | RIG_VFO_MAIN_A))
+    else if (rs->current_vfo && (RIG_VFO_A | RIG_VFO_MAIN_A))
     {
         json_add_boolean(msg, "RX", !cachep->ptt, 1);
         json_add_boolean(msg, "TX", cachep->ptt, 0);
@@ -248,6 +251,7 @@ void json_add_vfoA(RIG *rig, char *msg)
 void json_add_vfoB(RIG *rig, char *msg)
 {
     struct rig_cache *cachep = CACHE(rig);
+    struct rig_state *rs = STATE(rig);
   
     strcat(msg, ",\n{\n");
     json_add_string(msg, "Name", "VFOB", 1);
@@ -266,9 +270,9 @@ void json_add_vfoB(RIG *rig, char *msg)
 
 #if 0 // not working yet
 
-    if (rig->state.rx_vfo != rig->state.tx_vfo && cachep->split)
+    if (rs->rx_vfo != rs->tx_vfo && cachep->split)
     {
-        if (rig->state.tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
+        if (rs->tx_vfo && (RIG_VFO_B | RIG_VFO_MAIN_B))
         {
             json_add_boolean(msg, "RX", 0, 1);
             json_add_boolean(msg, "TX", cachep->ptt, 0);
@@ -279,7 +283,7 @@ void json_add_vfoB(RIG *rig, char *msg)
             json_add_boolean(msg, "TX", 0, 0);
         }
     }
-    else if (rig->state.current_vfo && (RIG_VFO_A | RIG_VFO_MAIN_A))
+    else if (rs->current_vfo && (RIG_VFO_A | RIG_VFO_MAIN_A))
     {
         json_add_boolean(msg, "RX", !cachep->ptt, 1);
         json_add_boolean(msg, "TX", cachep->ptt, 0);
@@ -300,7 +304,8 @@ static int multicast_send_json(RIG *rig)
     char msg[8192]; // could be pretty big
     char buf[4096];
     struct rig_cache *cachep = CACHE(rig);
-    
+    struct rig_state *rs = STATE(rig);
+
 //    sprintf(msg,"%s:f=%.1f", date_strget(msg, (int)sizeof(msg), 0), f);
     msg[0] = 0;
     snprintf(buf, sizeof(buf), "%s:%s", rig->caps->model_name,
@@ -308,11 +313,11 @@ static int multicast_send_json(RIG *rig)
     strcat(msg, "{\n");
     json_add_string(msg, "ID", buf, 1);
     json_add_time(msg, 1);
-    json_add_int(msg, "Sequence", rig->state.multicast->seqnumber++, 1);
-    json_add_string(msg, "VFOCurr", rig_strvfo(rig->state.current_vfo), 1);
+    json_add_int(msg, "Sequence", rs->multicast->seqnumber++, 1);
+    json_add_string(msg, "VFOCurr", rig_strvfo(rs->current_vfo), 1);
     json_add_int(msg, "PTT", cachep->ptt, 1);
     json_add_int(msg, "Split", cachep->split, 1);
-    rig_sprintf_mode(buf, sizeof(buf), rig->state.mode_list);
+    rig_sprintf_mode(buf, sizeof(buf), rs->mode_list);
     json_add_string(msg, "ModeList", buf, 1);
     strcat(msg, "\"VFOs\": [\n");
     json_add_vfoA(rig, msg);
@@ -333,17 +338,18 @@ void *multicast_thread_rx(void *vrig)
 //    int ret = 0;
     RIG *rig = (RIG *)vrig;
     hamlib_port_t port;
-    rig->state.rig_type = RIG_TYPE_TRANSCEIVER;
-    rig->state.ptt_type = RIG_PTT_RIG;
-    rig->state.port_type = RIG_PORT_UDP_NETWORK;
+    struct rig_state *rs = STATE(rig);
+    rs->rig_type = RIG_TYPE_TRANSCEIVER;
+    rs->ptt_type = RIG_PTT_RIG;
+    rs->port_type = RIG_PORT_UDP_NETWORK;
     strcpy(port.pathname, "127.0.0.1:4532");
     //rig_debug(RIG_DEBUG_TRACE, "%s: started\n", __func__);
 #if  0
     network_open(&port, 4532);
 #endif
 
-    //while (rig->state.multicast->runflag && ret >= 0)
-    while (rig->state.multicast->runflag)
+    //while (rs->multicast->runflag && ret >= 0)
+    while (rs->multicast->runflag)
     {
 #if 0
         ret = read_string(RIGPORT(rig), (unsigned char *) buf, sizeof(buf), "\n",
@@ -377,10 +383,11 @@ void *multicast_thread(void *vrig)
     mode_t modeB, modeBsave = 0;
     ptt_t ptt, pttsave = 0;
     struct rig_cache *cachep = CACHE(rig);
+    struct rig_state *rs = STATE(rig);
     
-    rig->state.multicast->runflag = 1;
+    rs->multicast->runflag = 1;
 
-    while (rig->state.multicast->runflag)
+    while (rs->multicast->runflag)
     {
 #if 0
 
@@ -470,7 +477,9 @@ static char *GetWinsockLastError(char *errorBuffer, DWORD errorBufferSize)
 
 int multicast_init(RIG *rig, char *addr, int port)
 {
-    if (rig->state.multicast && rig->state.multicast->multicast_running) { return RIG_OK; }
+    struct rig_state *rs = STATE(rig);
+
+    if (rs->multicast && rs->multicast->multicast_running) { return RIG_OK; }
 
 #ifdef _WIN32
     WSADATA wsaData;
@@ -485,22 +494,22 @@ int multicast_init(RIG *rig, char *addr, int port)
 
 #endif
 
-    if (rig->state.multicast == NULL)
+    if (rs->multicast == NULL)
     {
-        rig->state.multicast = calloc(1, sizeof(struct multicast_s));
+        rs->multicast = calloc(1, sizeof(struct multicast_s));
     }
-    else if (rig->state.multicast->multicast_running) { return RIG_OK; } // we only need one port
+    else if (rs->multicast->multicast_running) { return RIG_OK; } // we only need one port
 
-    //rig->state.multicast->mreq = {0};
+    //rs->multicast->mreq = {0};
 
     if (addr == NULL) { addr = RIG_MULTICAST_ADDR; }
 
     if (port == 0) { port = RIG_MULTICAST_PORT; }
 
     // Create a UDP socket
-    rig->state.multicast->sock = socket(AF_INET, SOCK_DGRAM, 0);
+    rs->multicast->sock = socket(AF_INET, SOCK_DGRAM, 0);
 
-    if (rig->state.multicast->sock < 0)
+    if (rs->multicast->sock < 0)
     {
 #ifdef _WIN32
         int err = WSAGetLastError();
@@ -515,7 +524,7 @@ int multicast_init(RIG *rig, char *addr, int port)
     // Set the SO_REUSEADDR option to allow multiple processes to use the same address
     int optval = 1;
 
-    if (setsockopt(rig->state.multicast->sock, SOL_SOCKET, SO_REUSEADDR,
+    if (setsockopt(rs->multicast->sock, SOL_SOCKET, SO_REUSEADDR,
                    (char *)&optval,
                    sizeof(optval)) < 0)
     {
@@ -533,7 +542,7 @@ int multicast_init(RIG *rig, char *addr, int port)
 
 #if 0
 
-    if (bind(rig->state.multicast->sock, (struct sockaddr *)&saddr,
+    if (bind(rs->multicast->sock, (struct sockaddr *)&saddr,
              sizeof(saddr)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: bind: %s\n", __func__, strerror(errno));
@@ -544,13 +553,13 @@ int multicast_init(RIG *rig, char *addr, int port)
 
     // Construct the multicast group address
     // struct ip_mreq mreq = {0};
-    rig->state.multicast->mreq.imr_multiaddr.s_addr = inet_addr(addr);
-    rig->state.multicast->mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    rs->multicast->mreq.imr_multiaddr.s_addr = inet_addr(addr);
+    rs->multicast->mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
     // Set the multicast TTL (time-to-live) to limit the scope of the packets
     char ttl = 1;
 
-    if (setsockopt(rig->state.multicast->sock, IPPROTO_IP, IP_MULTICAST_TTL, &ttl,
+    if (setsockopt(rs->multicast->sock, IPPROTO_IP, IP_MULTICAST_TTL, &ttl,
                    sizeof(ttl)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
@@ -561,8 +570,8 @@ int multicast_init(RIG *rig, char *addr, int port)
 
 // look like we need to implement the client in a separate thread?
     // Join the multicast group
-    if (setsockopt(rig->state.multicast->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-                   (char *)&rig->state.multicast->mreq, sizeof(rig->state.multicast->mreq)) < 0)
+    if (setsockopt(rs->multicast->sock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+                   (char *)&rs->multicast->mreq, sizeof(rs->multicast->mreq)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
         //return -RIG_EIO;
@@ -571,19 +580,19 @@ int multicast_init(RIG *rig, char *addr, int port)
 #endif
 
     // prime the dest_addr for the send routine
-    memset(&rig->state.multicast->dest_addr, 0,
-           sizeof(rig->state.multicast->dest_addr));
-    rig->state.multicast->dest_addr.sin_family = AF_INET;
-    rig->state.multicast->dest_addr.sin_addr.s_addr = inet_addr(addr);
-    rig->state.multicast->dest_addr.sin_port = htons(port);
+    memset(&rs->multicast->dest_addr, 0,
+           sizeof(rs->multicast->dest_addr));
+    rs->multicast->dest_addr.sin_family = AF_INET;
+    rs->multicast->dest_addr.sin_addr.s_addr = inet_addr(addr);
+    rs->multicast->dest_addr.sin_port = htons(port);
 
 #if 0
-    rig->state.multicast->runflag = 1;
-    pthread_create(&rig->state.multicast->threadid, NULL, multicast_thread,
+    rs->multicast->runflag = 1;
+    pthread_create(&rs->multicast->threadid, NULL, multicast_thread,
                    (void *)rig);
-    //printf("threadid=%ld\n", rig->state.multicast->threadid);
-    rig->state.multicast->multicast_running = 1;
-    pthread_create(&rig->state.multicast->threadid, NULL, multicast_thread_rx,
+    //printf("threadid=%ld\n", rs->multicast->threadid);
+    rs->multicast->multicast_running = 1;
+    pthread_create(&rs->multicast->threadid, NULL, multicast_thread_rx,
                    (void *)rig);
 #endif
     return RIG_OK;
@@ -592,17 +601,19 @@ int multicast_init(RIG *rig, char *addr, int port)
 // cppcheck-suppress unusedFunction
 void multicast_close(RIG *rig)
 {
+    struct rig_state *rs = STATE(rig);
+
     // Leave the multicast group
-    if (setsockopt(rig->state.multicast->sock, IPPROTO_IP,
-                   IP_DROP_MEMBERSHIP, (char *)&rig->state.multicast->mreq,
-                   sizeof(rig->state.multicast->mreq)) < 0)
+    if (setsockopt(rs->multicast->sock, IPPROTO_IP,
+                   IP_DROP_MEMBERSHIP, (char *)&rs->multicast->mreq,
+                   sizeof(rs->multicast->mreq)) < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: setsockopt: %s\n", __func__, strerror(errno));
         return;
     }
 
     // Close the socket
-    if (close(rig->state.multicast->sock))
+    if (close(rs->multicast->sock))
     {
         rig_debug(RIG_DEBUG_ERR, "%s: close: %s\n", __func__, strerror(errno));
     }
@@ -626,7 +637,7 @@ int multicast_send(RIG *rig, const char *msg, int msglen)
 
 
     // Send the message to the multicast group
-    ssize_t num_bytes = sendto(rig->state.multicast->sock, msg, msglen, 0,
+    ssize_t num_bytes = sendto(STATE(rig)->multicast->sock, msg, msglen, 0,
                                (struct sockaddr *)&addr,
                                sizeof(addr));
 
@@ -665,7 +676,7 @@ int main(int argc, const char *argv[])
     RIGPORT(rig)->parm.serial.rate = 38400;
     rig_open(rig);
     multicast_init(rig, "224.0.0.1", 4532);
-    pthread_join(rig->state.multicast->threadid, NULL);
+    pthread_join(STATE(rig)->multicast->threadid, NULL);
     pthread_exit(NULL);
     return 0;
 }
