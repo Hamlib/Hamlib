@@ -595,7 +595,6 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         }
 
         // JTDX and WSJTX currently use state.pttport to check for PTT_NONE
-//        rig->state.pttport.type.ptt = pttp->type.ptt;
         rs->pttport_deprecated.type.ptt = pttp->type.ptt;
 
         break;
