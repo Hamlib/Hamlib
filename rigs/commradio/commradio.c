@@ -28,31 +28,32 @@ int commradio_transaction(RIG *rig, const unsigned char *cmd, int cmd_len,
 {
 	int ret = -RIG_EINTERNAL;
 	struct rig_state *rs;
+	hamlib_port_t *rp = RIGPORT(rig);
 
 	ENTERFUNC;
 
-	rs = &rig->state;
+	rs = STATE(rig);
 	rs->transaction_active = 1;
 
 	/*
 	 * Flush is needed until async mode is done. The CTX-10 sends frames every
 	 * time the VFO changes.
 	 */
-	rig_flush(&rs->rigport);
+	rig_flush(rp);
 
 	int frame_len;
 	unsigned char frame[3+2*(cmd_len+2)];
 	size_t rx_len = CR_FRAMELENGTH;
 	unsigned char rx[rx_len];
 	frame_len = frame_message(frame, cmd, cmd_len);
-	ret = write_block(&rs->rigport, frame, frame_len);
+	ret = write_block(rp, frame, frame_len);
 	if (ret < RIG_OK)
 	{
 		goto transaction_quit;
 	}
 
 	const char stopset[] = { CR_EOF };
-	ret = read_string(&rs->rigport, rx, rx_len-1, stopset, 1, 0, 1);
+	ret = read_string(rp, rx, rx_len-1, stopset, 1, 0, 1);
 	if (ret < RIG_OK)
 	{
 		goto transaction_quit;

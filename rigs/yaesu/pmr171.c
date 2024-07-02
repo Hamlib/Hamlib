@@ -403,8 +403,8 @@ static int pmr171_init(RIG *rig)
         return -RIG_ENOMEM;
     }
 
-    rig->state.cache.freqMainA = 14999000;
-    rig->state.cache.freqMainB = 14999000;
+    CACHE(rig)->freqMainA = 14999000;
+    CACHE(rig)->freqMainB = 14999000;
 
     return RIG_OK;
 }
@@ -475,7 +475,7 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // probably already read VFO_A so just return cache for VFO_B for now
     if (vfo == RIG_VFO_B)
     {
-        *freq = rig->state.cache.freqMainB;
+        *freq = cachep->freqMainB;
         return RIG_OK;
     }
 
@@ -484,16 +484,16 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     read_block(rp, &reply[5], reply[4]);
     vfoa = from_bcd_be(&reply[9], 8);
     vfob = from_bcd_be(&reply[13], 8);
-    rig->state.cache.freqMainA = vfoa;
-    rig->state.cache.freqMainB = vfob;
+    cachep->freqMainA = vfoa;
+    cachep->freqMainB = vfob;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfoa=%.0f, vfob=%.0f\n", __func__, vfoa,
               vfob);
 
     // Now grab the ptt status
-    rig->state.cache.ptt = reply[6] == 1;
+    cachep->ptt = reply[6] == 1;
     // And the mode
-    rig->state.cache.modeMainA = pmr171_modes[reply[7]];
-    rig->state.cache.modeMainB = pmr171_modes[reply[8]];
+    cachep->modeMainA = pmr171_modes[reply[7]];
+    cachep->modeMainB = pmr171_modes[reply[8]];
 
     if (vfo == RIG_VFO_B) { *freq = cachep->freqMainA; }
     else { *freq = cachep->freqMainB; }
@@ -514,7 +514,7 @@ static int pmr171_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 static int pmr171_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    *split = rig->state.cache.split;
+    *split = CACHE(rig)->split;
     if (*split) *tx_vfo=RIG_VFO_B;
     else *tx_vfo = RIG_VFO_A;
     return RIG_OK;
@@ -524,7 +524,7 @@ static int pmr171_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     //struct pmr171_priv_data *p = (struct pmr171_priv_data *) STATE(rig)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-    *ptt = rig->state.cache.ptt;
+    *ptt = CACHE(rig)->ptt;
 
     return RIG_OK;
 }
@@ -795,13 +795,13 @@ static int pmr171_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* fill in the frequency */
     if (vfo == RIG_VFO_B)
     {
-        to_bcd_be(&cmd[6], rig->state.cache.freqMainA, 8);
+        to_bcd_be(&cmd[6], CACHE(rig)->freqMainA, 8);
         to_bcd_be(&cmd[10], freq, 8);
     }
     else
     {
         to_bcd_be(&cmd[6], freq, 8);
-        to_bcd_be(&cmd[10], rig->state.cache.freqMainB, 8);
+        to_bcd_be(&cmd[10], CACHE(rig)->freqMainB, 8);
     }
 
     unsigned int crc = CRC16Check(&cmd[4], 12);
@@ -828,13 +828,13 @@ static int pmr171_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             if (vfo == RIG_VFO_B)
             {
-                cmd[6] = rig->state.cache.modeMainA;
+                cmd[6] = CACHE(rig)->modeMainA;
                 cmd[7] = i;
             }
             else
             {
                 cmd[6] = i;
-                cmd[7] = rig->state.cache.modeMainB;
+                cmd[7] = CACHE(rig)->modeMainB;
             }
 
             crc = CRC16Check(&cmd[4], 4);
