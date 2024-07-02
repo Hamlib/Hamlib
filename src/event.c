@@ -50,7 +50,7 @@
 #include "cache.h"
 #include "network.h"
 
-#define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
+#define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !STATE(r)->comm_state)
 
 #ifdef HAVE_PTHREAD
 typedef struct rig_poll_routine_args_s
@@ -68,7 +68,7 @@ void *rig_poll_routine(void *arg)
 {
     rig_poll_routine_args *args = (rig_poll_routine_args *)arg;
     RIG *rig = args->rig;
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     struct rig_cache *cachep = CACHE(rig);
     int update_occurred;
 
@@ -98,15 +98,15 @@ void *rig_poll_routine(void *arg)
 
     while (rs->poll_routine_thread_run)
     {
-        if (rig->state.current_vfo != vfo)
+        if (rs->current_vfo != vfo)
         {
-            vfo = rig->state.current_vfo;
+            vfo = rs->current_vfo;
             update_occurred = 1;
         }
 
-        if (rig->state.tx_vfo != tx_vfo)
+        if (rs->tx_vfo != tx_vfo)
         {
-            tx_vfo = rig->state.tx_vfo;
+            tx_vfo = rs->tx_vfo;
             update_occurred = 1;
         }
 
@@ -266,7 +266,7 @@ void *rig_poll_routine(void *arg)
  */
 int rig_poll_routine_start(RIG *rig)
 {
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     rig_poll_routine_priv_data *poll_routine_priv;
 
     ENTERFUNC;
@@ -321,7 +321,7 @@ int rig_poll_routine_start(RIG *rig)
  */
 int rig_poll_routine_stop(RIG *rig)
 {
-    struct rig_state *rs = &rig->state;
+    struct rig_state *rs = STATE(rig);
     rig_poll_routine_priv_data *poll_routine_priv;
 
     ENTERFUNC;
@@ -614,6 +614,7 @@ int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
 {
     ENTERFUNC;
 
+    struct rig_state *rs = STATE(rig);
     double dfreq = freq;
     rig_debug(RIG_DEBUG_TRACE, "Event: freq changed to %.0f Hz on %s\n",
               dfreq, rig_strvfo(vfo));
@@ -624,19 +625,19 @@ int rig_fire_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
     // Should work for most other rigs using AI1; mode
     if (RIG_BACKEND_NUM(rig->caps->rig_model) != RIG_ICOM)
     {
-        rig->state.use_cached_freq = 1;
+        rs->use_cached_freq = 1;
     }
 
-    if (rig->state.freq_event_elapsed.tv_sec == 0)
+    if (rs->freq_event_elapsed.tv_sec == 0)
     {
-        elapsed_ms(&rig->state.freq_event_elapsed, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&rs->freq_event_elapsed, HAMLIB_ELAPSED_SET);
     }
 
-    double e = elapsed_ms(&rig->state.freq_event_elapsed, HAMLIB_ELAPSED_GET);
+    double e = elapsed_ms(&rs->freq_event_elapsed, HAMLIB_ELAPSED_GET);
 
     if (e >= 250) // throttle events to 4 per sec
     {
-        elapsed_ms(&rig->state.freq_event_elapsed, HAMLIB_ELAPSED_SET);
+        elapsed_ms(&rs->freq_event_elapsed, HAMLIB_ELAPSED_SET);
         network_publish_rig_transceive_data(rig);
 
         if (rig->callbacks.freq_event)
@@ -663,7 +664,7 @@ int rig_fire_mode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     // Should work for most other rigs using AI1; mode
     if (RIG_BACKEND_NUM(rig->caps->rig_model) != RIG_ICOM)
     {
-        rig->state.use_cached_mode = 1;
+        STATE(rig)->use_cached_mode = 1;
     }
 
     network_publish_rig_transceive_data(rig);
