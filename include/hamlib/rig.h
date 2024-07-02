@@ -722,6 +722,12 @@ typedef enum {
     RIG_RESET_MASTER =  (1 << 3)    /*!< Master reset */
 } reset_t;
 
+typedef enum {
+    RIG_CLIENT_UNKNOWN,
+    RIG_CLIENT_WSJTX,
+    RIG_CLIENT_GPREDICT
+} client_t;
+
 
 /**
  * \brief VFO operation
@@ -2877,6 +2883,7 @@ struct rig_state {
     int post_ptt_delay;         /*!< delay after PTT to allow for relays and such */
     struct timespec freq_event_elapsed;
     int freq_skip; /*!< allow frequency skip for gpredict RX/TX freq set */
+    client_t client;
 // New rig_state items go before this line ============================================
 };
 
@@ -3746,6 +3753,7 @@ extern HAMLIB_EXPORT_VAR(char) debugmsgsave[DEBUGMSGSAVE_SIZE];  // last debug m
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave2[DEBUGMSGSAVE_SIZE];  // last-1 debug msg
 // debugmsgsave3 is deprecated
 extern HAMLIB_EXPORT_VAR(char) debugmsgsave3[DEBUGMSGSAVE_SIZE];  // last-2 debug msg
+#define rig_debug_clear() { debugmsgsave[0] = debugmsgsave2[0] = debugmsgsave3[0] = 0; };
 #ifndef __cplusplus
 #ifdef __GNUC__
 // doing the debug macro with a dummy sprintf allows gcc to check the format string
