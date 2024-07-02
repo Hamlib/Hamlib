@@ -44,7 +44,7 @@
 
 #ifndef DOC_HIDDEN
 
-#define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
+#define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !STATE(r)->comm_state)
 
 #endif /* !DOC_HIDDEN */
 
@@ -87,7 +87,7 @@ int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_MEM)
             || vfo == RIG_VFO_CURR
-            || vfo == rig->state.current_vfo)
+            || vfo == STATE(rig)->current_vfo)
     {
         return caps->set_mem(rig, vfo, ch);
     }
@@ -97,7 +97,7 @@ int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = rig->state.current_vfo;
+    curr_vfo = STATE(rig)->current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
@@ -150,7 +150,7 @@ int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_MEM)
             || vfo == RIG_VFO_CURR
-            || vfo == rig->state.current_vfo)
+            || vfo == STATE(rig)->current_vfo)
     {
         return caps->get_mem(rig, vfo, ch);
     }
@@ -160,7 +160,7 @@ int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = rig->state.current_vfo;
+    curr_vfo = STATE(rig)->current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
@@ -213,7 +213,7 @@ int HAMLIB_API rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 
     if ((caps->targetable_vfo & RIG_TARGETABLE_BANK)
             || vfo == RIG_VFO_CURR
-            || vfo == rig->state.current_vfo)
+            || vfo == STATE(rig)->current_vfo)
     {
         return caps->set_bank(rig, vfo, bank);
     }
@@ -223,7 +223,7 @@ int HAMLIB_API rig_set_bank(RIG *rig, vfo_t vfo, int bank)
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = rig->state.current_vfo;
+    curr_vfo = STATE(rig)->current_vfo;
     retcode = caps->set_vfo(rig, vfo);
 
     if (retcode != RIG_OK)
@@ -727,7 +727,7 @@ int HAMLIB_API rig_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     }
 
     can_emulate_by_vfo_mem = rc->set_vfo
-                             && ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
+                             && ((STATE(rig)->vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
 
     can_emulate_by_vfo_op = rc->vfo_op
                             && rig_has_vfo_op(rig, RIG_OP_FROM_VFO);
@@ -737,7 +737,7 @@ int HAMLIB_API rig_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = rig->state.current_vfo;
+    curr_vfo = STATE(rig)->current_vfo;
 
     if (vfotmp == RIG_VFO_MEM)
     {
@@ -872,7 +872,7 @@ int HAMLIB_API rig_get_channel(RIG *rig, vfo_t vfox, channel_t *chan,
     }
 
     can_emulate_by_vfo_mem = rc->set_vfo
-                             && ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
+                             && ((STATE(rig)->vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM);
 
     can_emulate_by_vfo_op = rc->vfo_op
                             && rig_has_vfo_op(rig, RIG_OP_TO_VFO);
@@ -882,7 +882,7 @@ int HAMLIB_API rig_get_channel(RIG *rig, vfo_t vfox, channel_t *chan,
         return -RIG_ENTARGET;
     }
 
-    curr_vfo = rig->state.current_vfo;
+    curr_vfo = STATE(rig)->current_vfo;
 
     if (vfotmp == RIG_VFO_MEM)
     {
@@ -940,7 +940,7 @@ int get_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb,
                             rig_ptr_t arg)
 {
     int i, j;
-    chan_t *chan_list = rig->state.chan_list;
+    chan_t *chan_list = STATE(rig)->chan_list;
     channel_t *chan;
 
     for (i = 0; !RIG_IS_CHAN_END(chan_list[i]) && i < HAMLIB_CHANLSTSIZ; i++)
@@ -1006,7 +1006,7 @@ int set_chan_all_cb_generic(RIG *rig, vfo_t vfo, chan_cb_t chan_cb,
                             rig_ptr_t arg)
 {
     int i, j, retval;
-    chan_t *chan_list = rig->state.chan_list;
+    chan_t *chan_list = STATE(rig)->chan_list;
     channel_t *chan;
 
     for (i = 0; !RIG_IS_CHAN_END(chan_list[i]) && i < HAMLIB_CHANLSTSIZ; i++)
@@ -1600,7 +1600,7 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
     if (ch == RIG_MEM_CAPS_ALL)
     {
         memset(&chan_list_all, 0, sizeof(chan_list_all));
-        chan_list = rig->state.chan_list;
+        chan_list = STATE(rig)->chan_list;
         chan_list_all.startc = chan_list[0].startc;
         chan_list_all.type = RIG_MTYPE_NONE;    /* meaningless */
 
@@ -1626,7 +1626,7 @@ const chan_t *HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
         return &chan_list_all;
     }
 
-    chan_list = rig->state.chan_list;
+    chan_list = STATE(rig)->chan_list;
 
     for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)
     {
@@ -1661,7 +1661,7 @@ int HAMLIB_API rig_mem_count(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    chan_list = rig->state.chan_list;
+    chan_list = STATE(rig)->chan_list;
     count = 0;
 
     for (i = 0; i < HAMLIB_CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++)

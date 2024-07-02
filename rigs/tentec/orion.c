@@ -793,7 +793,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char ttmode, ttreceiver;
     int retry;
     int timeout;
-    int widthOld = rig->state.cache.widthMainA;
+    int widthOld = CACHE(rig)->widthMainA;
     struct rig_state *rs = STATE(rig);
 
     ttreceiver = which_receiver(rig, vfo);

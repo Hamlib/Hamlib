@@ -42,7 +42,7 @@
 
 
 /*
- * Configuration options available in the rig->state struct.
+ * Configuration options available in the STATE(rig) struct.
  */
 static const struct confparams frontend_cfg_params[] =
 {
@@ -255,7 +255,7 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     long val_i;
 
     caps = rig->caps;
-    rs = &rig->state;
+    rs = STATE(rig);
 
     switch (token)
     {
@@ -276,8 +276,9 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
             }
 
             sprintf(rs->rigport_deprecated.pathname, "%s:%s", val2, "4992");
-            strcpy(rs->rigport.pathname, rs->rigport_deprecated.pathname);
-            rig_debug(RIG_DEBUG_WARN, "%s: pathname=%s\n", __func__, rs->rigport.pathname);
+
+            strcpy(rp->pathname, rs->rigport_deprecated.pathname);
+            rig_debug(RIG_DEBUG_WARN, "%s: pathname=%s\n", __func__, rp->pathname);
             free(val2);
         }
         else
@@ -606,7 +607,6 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         }
 
         // JTDX and WSJTX currently use state.pttport to check for PTT_NONE
-//        rig->state.pttport.type.ptt = pttp->type.ptt;
         rs->pttport_deprecated.type.ptt = pttp->type.ptt;
 
         break;
@@ -896,7 +896,7 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
     hamlib_port_t *pttp = PTTPORT(rig);
     hamlib_port_t *dcdp = DCDPORT(rig);
 
-    rs = &rig->state;
+    rs = STATE(rig);
 
     switch (token)
     {

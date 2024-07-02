@@ -353,7 +353,7 @@ static int pstrotator_rot_close(ROT *rot)
     priv = (struct pstrotator_rot_priv_data *)ROTSTATE(rot)->priv;
     pstrotator_handler_priv_data *pstrotator_handler_priv;
     pstrotator_handler_priv = (pstrotator_handler_priv_data *)
-                              rot->state.pstrotator_handler_priv_data;
+                              ROTSTATE(rot)->pstrotator_handler_priv_data;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

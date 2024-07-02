@@ -24,7 +24,7 @@
 #include "cache.h"
 #include "misc.h"
 
-#define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
+#define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !STATE(r)->comm_state)
 
 /**
  * \file cache.c
@@ -35,6 +35,7 @@
 int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct rig_cache *cachep = CACHE(rig);
+    struct rig_state *rs = STATE(rig);
   
     ENTERFUNC;
 
@@ -43,16 +44,16 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (vfo == RIG_VFO_CURR)
     {
         // if CURR then update this before we figure out the real VFO
-        vfo = rig->state.current_vfo;
+        vfo = rs->current_vfo;
     }
     else if (vfo == RIG_VFO_TX)
     {
-        vfo = rig->state.tx_vfo;
+        vfo = rs->tx_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: TX VFO = %s\n", __func__, rig_strvfo(vfo));
     }
     else if (vfo == RIG_VFO_RX)
     {
-        vfo = rig->state.rx_vfo;
+        vfo = rs->rx_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: RX VFO = %s\n", __func__, rig_strvfo(vfo));
     }
 
@@ -63,7 +64,7 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (vfo == RIG_VFO_OTHER) { vfo = vfo_fixup(rig, vfo, cachep->split); }
 
-    if (vfo == rig->state.current_vfo)
+    if (vfo == rs->current_vfo)
     {
         cachep->modeCurr = mode;
         if (width > 0)
@@ -157,6 +158,7 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int flag = HAMLIB_ELAPSED_SET;
     struct rig_cache *cachep = CACHE(rig);
+    struct rig_state *rs = STATE(rig);
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
@@ -165,12 +167,12 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_debug(RIG_DEBUG_CACHE, "%s(%d):  vfo=%s, current_vfo=%s\n", __func__,
               __LINE__,
-              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+              rig_strvfo(vfo), rig_strvfo(rs->current_vfo));
 
     if (vfo == RIG_VFO_CURR)
     {
         // if CURR then update this before we figure out the real VFO
-        vfo = rig->state.current_vfo;
+        vfo = rs->current_vfo;
     }
 
     // if freq == 0 then we are asking to invalidate the cache
@@ -188,7 +190,7 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
                   rig_strvfo(vfo), freq);
     }
 
-    if (vfo == rig->state.current_vfo)
+    if (vfo == rs->current_vfo)
     {
         cachep->freqCurr = freq;
         elapsed_ms(&cachep->time_freqCurr, flag);
@@ -307,6 +309,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
                   rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width)
 {
     struct rig_cache *cachep = CACHE(rig);
+    struct rig_state *rs = STATE(rig);
   
     if (CHECK_RIG_ARG(rig) || !freq || !cache_ms_freq ||
             !mode || !cache_ms_mode || !width || !cache_ms_width)
@@ -321,25 +324,25 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
 
     rig_debug(RIG_DEBUG_CACHE, "%s(%d):  vfo=%s, current_vfo=%s\n", __func__,
               __LINE__,
-              rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+              rig_strvfo(vfo), rig_strvfo(rs->current_vfo));
 
     if (vfo == RIG_VFO_CURR)
     {
-        vfo = rig->state.current_vfo;
+        vfo = rs->current_vfo;
     }
     else if (vfo == RIG_VFO_TX)
     {
-        vfo = rig->state.tx_vfo;
+        vfo = rs->tx_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: TX VFO = %s\n", __func__, rig_strvfo(vfo));
     }
     else if (vfo == RIG_VFO_RX)
     {
-        vfo = rig->state.rx_vfo;
+        vfo = rs->rx_vfo;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: RX VFO = %s\n", __func__, rig_strvfo(vfo));
     }
     else if (vfo == RIG_VFO_OTHER)
     {
-        switch (rig->state.current_vfo)
+        switch (rs->current_vfo)
         {
         case RIG_VFO_CURR:
             break;  // no change
@@ -384,7 +387,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
         default:
             rig_debug(RIG_DEBUG_WARN, "%s(%d): unknown vfo=%s, curr_vfo=%s\n", __func__,
                       __LINE__,
-                      rig_strvfo(vfo), rig_strvfo(rig->state.current_vfo));
+                      rig_strvfo(vfo), rig_strvfo(rs->current_vfo));
         }
     }
 
@@ -574,7 +577,7 @@ void rig_cache_show(RIG *rig, const char *func, int line)
               cachep->freqMainB, rig_strrmode(cachep->modeMainB),
               (int)cachep->widthMainB);
 
-    if (rig->state.vfo_list & RIG_VFO_SUB_A)
+    if (STATE(rig)->vfo_list & RIG_VFO_SUB_A)
     {
         rig_debug(RIG_DEBUG_CACHE,
                   "%s(%d): freqSubA=%.0f, modeSubA=%s, widthSubA=%d\n", func, line,

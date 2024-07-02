@@ -489,6 +489,7 @@ int clear_chans(RIG *rig, const char *infilename)
 {
     int i, j, ret;
     channel_t chan;
+    struct rig_state *rs = STATE(rig);
 
     memset(&chan, 0, sizeof(chan));
     chan.freq = RIG_FREQ_NONE;
@@ -497,10 +498,10 @@ int clear_chans(RIG *rig, const char *infilename)
     chan.tx_mode = RIG_MODE_NONE;
     chan.vfo = RIG_VFO_MEM;
 
-    for (i = 0; rig->state.chan_list[i].type; i++)
+    for (i = 0; rs->chan_list[i].type; i++)
     {
-        for (j = rig->state.chan_list[i].startc;
-                j <= rig->state.chan_list[i].endc; j++)
+        for (j = rs->chan_list[i].startc;
+                j <= rs->chan_list[i].endc; j++)
         {
 
             chan.channel_num = j;
