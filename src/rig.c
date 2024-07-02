@@ -1076,7 +1076,7 @@ int HAMLIB_API rig_open(RIG *rig)
             )
         {
             rig_debug_clear();
-            rig_debug(RIG_DEBUG_ERR, "%s: Do not use 127.0.0.1 for SmartSDR.  Network Server entry needs to be the Radio's IP address, no port neccessary\n", __func__);
+            rig_debug(RIG_DEBUG_ERR, "%s: Do not use 127.0.0.1 for SmartSDR.  Network Server entry needs to be the Radio's IP address, no port necessary\n", __func__);
             return -RIG_EINVAL;
         }
         if (RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM)
