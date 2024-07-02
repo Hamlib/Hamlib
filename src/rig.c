@@ -1065,6 +1065,20 @@ int HAMLIB_API rig_open(RIG *rig)
                   rp->pathname);
         rp->type.rig = RIG_PORT_NETWORK;
 
+        if (rig->caps->rig_model == RIG_MODEL_SMARTSDR_A
+            || rig->caps->rig_model == RIG_MODEL_SMARTSDR_B
+            || rig->caps->rig_model == RIG_MODEL_SMARTSDR_C
+            || rig->caps->rig_model == RIG_MODEL_SMARTSDR_D
+            || rig->caps->rig_model == RIG_MODEL_SMARTSDR_E
+            || rig->caps->rig_model == RIG_MODEL_SMARTSDR_F
+            || rig->caps->rig_model == RIG_MODEL_SMARTSDR_G
+            || rig->caps->rig_model == RIG_MODEL_SMARTSDR_H
+            )
+        {
+            rig_debug_clear();
+            rig_debug(RIG_DEBUG_ERR, "%s: Do not use 127.0.0.1 for SmartSDR.  Network Server entry needs to be the Radio's IP address, no port neccessary\n", __func__);
+            return -RIG_EINVAL;
+        }
         if (RIG_BACKEND_NUM(rig->caps->rig_model) == RIG_ICOM)
         {
             // Xiegu X6100 does TCP and does not support UDP spectrum that I know of
