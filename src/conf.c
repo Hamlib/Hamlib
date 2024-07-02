@@ -225,6 +225,11 @@ static const struct confparams frontend_cfg_params[] =
         "True enables skipping setting the TX_VFO when RX_VFO is receiving and skips RX_VFO when TX_VFO is transmitting",
         "0", RIG_CONF_CHECKBUTTON, { }
     },
+    {
+        TOK_CLIENT, "client", "Set client name for special handling",
+        "Knows about WSJTX and GPREDICT as of 20240702",
+        "0", RIG_CONF_CHECKBUTTON, { }
+    },
 
     { RIG_CONF_END, NULL, }
 };
@@ -256,17 +261,22 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     {
     case TOK_PATHNAME:
         strncpy(rp->pathname, val, HAMLIB_FILPATHLEN - 1);
-        if (strstr(rig->caps->model_name,"SmartSDR Slice"))
+
+        if (strstr(rig->caps->model_name, "SmartSDR Slice"))
         {
             // override any port selection to prevent user errors/questions
             char *val2 = strdup(val);
-            char *p = strchr(val2,':');  // port in here?
-            if (p) {
+            char *p = strchr(val2, ':'); // port in here?
+
+            if (p)
+            {
                 *p = 0;  // terminate it
-                rig_debug(RIG_DEBUG_WARN, "%s: overriding port and changing to 4992\n", __func__);
+                rig_debug(RIG_DEBUG_WARN, "%s: overriding port and changing to 4992\n",
+                          __func__);
             }
+
             sprintf(rs->rigport_deprecated.pathname, "%s:%s", val2, "4992");
-            strcpy(rs->rigport.pathname,rs->rigport_deprecated.pathname);
+            strcpy(rs->rigport.pathname, rs->rigport_deprecated.pathname);
             rig_debug(RIG_DEBUG_WARN, "%s: pathname=%s\n", __func__, rs->rigport.pathname);
             free(val2);
         }
@@ -274,6 +284,7 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         {
             strncpy(rs->rigport_deprecated.pathname, val, HAMLIB_FILPATHLEN - 1);
         }
+
         break;
 
     case TOK_WRITE_DELAY:
@@ -851,6 +862,19 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
         rs->freq_skip = val_i != 0;
         break;
 
+    case TOK_CLIENT:
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Client claims to be %s\n", __func__, val);
+
+        if (strcasecmp(val, "WSJTX") == 0) { rig->state.client = RIG_CLIENT_WSJTX; }
+        else if (strcasecmp(val, "GPREDICT") == 0) { rig->state.client = RIG_CLIENT_GPREDICT; }
+        else
+        {
+            rig->state.client =  RIG_CLIENT_UNKNOWN;
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown client=%s\n", __func__, val);
+        }
+
+        break;
+
     default:
         return -RIG_EINVAL;
     }
@@ -863,7 +887,8 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
  * frontend_get_conf
  * assumes rig!=NULL, val!=NULL
  */
-static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
+static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
+                              int val_len)
 {
     struct rig_state *rs;
     const char *s = "";
@@ -898,6 +923,28 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val
     case TOK_RETRY:
         SNPRINTF(val, val_len, "%d", rp->retry);
         break;
+
+    case TOK_CLIENT:
+    {
+        char *client;
+
+        switch (rig->state.client)
+        {
+        case RIG_CLIENT_UNKNOWN: client = "UNKNOWN"; break;
+
+        case RIG_CLIENT_WSJTX: client = "WSJTX"; break;
+
+        case RIG_CLIENT_GPREDICT: client = "GPREDICT"; break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unknown client=%d\n", __func__,
+                      rig->state.client);
+            rig->state.client = RIG_CLIENT_UNKNOWN;
+        }
+
+        SNPRINTF(val, val_len, "%s", client);
+    }
+    break;
 
 #if 0 // needs to be replace?
 
@@ -1472,7 +1519,8 @@ int HAMLIB_API rig_get_conf(RIG *rig, hamlib_token_t token, char *val)
     return rig_get_conf2(rig, token, val, 128);
 }
 
-int HAMLIB_API rig_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
+int HAMLIB_API rig_get_conf2(RIG *rig, hamlib_token_t token, char *val,
+                             int val_len)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

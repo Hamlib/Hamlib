@@ -143,6 +143,8 @@
 #define TOK_MULTICAST_CMD_PORT  TOKEN_FRONTEND(135)
 /** \brief rig: Skip setting freq on opposite VFO when in split mode */
 #define TOK_FREQ_SKIP  TOKEN_FRONTEND(136)
+/** \brief rig: Client ID of WSJTX or GPREDICT */
+#define TOK_CLIENT  TOKEN_FRONTEND(137)
 
 /*
  * rotator specific tokens
