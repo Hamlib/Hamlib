@@ -177,7 +177,7 @@ struct rig_caps pmr171_caps =
     RIG_MODEL(RIG_MODEL_PMR171),
     .model_name =          "PMR-171",
     .mfg_name =            "Guohe",
-    .version =             "20240624.0",
+    .version =             "20240704.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_ALPHA,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -463,7 +463,7 @@ static int pmr171_send_cmd1(RIG *rig, unsigned char cmd, unsigned char *reply)
 }
 
 
-mode_t pmr171_modes[] = { RIG_MODE_USB, RIG_MODE_LSB, RIG_MODE_CWR, RIG_MODE_CW, RIG_MODE_FM, RIG_MODE_FMN, RIG_MODE_PKTUSB, RIG_MODE_RTTY };
+rmode_t pmr171_modes[] = { RIG_MODE_USB, RIG_MODE_LSB, RIG_MODE_CWR, RIG_MODE_CW, RIG_MODE_FM, RIG_MODE_FMN, RIG_MODE_PKTUSB, RIG_MODE_RTTY };
 
 static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
@@ -822,7 +822,7 @@ static int pmr171_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     unsigned char reply[10];
     int i, crc;
 
-    for (i = 0; i < sizeof(pmr171_modes) / sizeof(mode_t); ++i)
+    for (i = 0; i < sizeof(pmr171_modes) / sizeof(rmode_t); ++i)
     {
         if (pmr171_modes[i] == mode)
         {
