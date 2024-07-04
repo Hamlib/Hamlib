@@ -382,40 +382,40 @@ int main(int argc, char *argv[])
 
             if (!strcmp(optarg, "RIG"))
             {
-                my_rig->caps->ptt_type = ptt_type = RIG_PTT_RIG;
+                ptt_type = RIG_PTT_RIG;
             }
             else if (!strcmp(optarg, "DTR"))
             {
-                my_rig->caps->ptt_type = ptt_type = RIG_PTT_SERIAL_DTR;
+                ptt_type = RIG_PTT_SERIAL_DTR;
             }
             else if (!strcmp(optarg, "RTS"))
             {
-                my_rig->caps->ptt_type = ptt_type = RIG_PTT_SERIAL_RTS;
+                ptt_type = RIG_PTT_SERIAL_RTS;
             }
             else if (!strcmp(optarg, "PARALLEL"))
             {
-                my_rig->caps->ptt_type = ptt_type = RIG_PTT_PARALLEL;
+                ptt_type = RIG_PTT_PARALLEL;
             }
             else if (!strcmp(optarg, "CM108"))
             {
-                my_rig->caps->ptt_type = ptt_type = RIG_PTT_CM108;
+                ptt_type = RIG_PTT_CM108;
             }
             else if (!strcmp(optarg, "GPIO"))
             {
-                my_rig->caps->ptt_type = ptt_type = RIG_PTT_GPIO;
+                ptt_type = RIG_PTT_GPIO;
             }
             else if (!strcmp(optarg, "GPION"))
             {
-                my_rig->caps->ptt_type = ptt_type = RIG_PTT_GPION;
+                ptt_type = RIG_PTT_GPION;
             }
             else if (!strcmp(optarg, "NONE"))
             {
-                my_rig->caps->ptt_type = ptt_type = RIG_PTT_NONE;
+                ptt_type = RIG_PTT_NONE;
             }
             else
             {
                 puts("Unrecognised PTT type, using NONE");
-                my_rig->caps->ptt_type = ptt_type = RIG_PTT_NONE;
+                ptt_type = RIG_PTT_NONE;
             }
 
             break;
@@ -662,6 +662,7 @@ int main(int argc, char *argv[])
         exit(2);
     }
 
+    my_rig->caps->ptt_type = ptt_type;
     char *token = strtok(conf_parms, ",");
     struct rig_state *rs = STATE(my_rig);
 
