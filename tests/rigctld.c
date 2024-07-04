@@ -761,6 +761,8 @@ int main(int argc, char *argv[])
     if (show_conf)
     {
         rig_token_foreach(my_rig, print_conf_list, (rig_ptr_t)my_rig);
+        fflush(stdout);
+        exit(0);
     }
 
     /*
