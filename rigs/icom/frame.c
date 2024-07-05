@@ -206,11 +206,6 @@ again1:
             RETURNFUNC(-RIG_EPROTO);
         }
 
-        if (buf[2] == 0xe1)
-        {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: async packet? Read again\n", __func__);
-            goto again1;
-        }
         if (icom_is_async_frame(rig, frm_len, buf))
         {
             icom_process_async_frame(rig, frm_len, buf);
