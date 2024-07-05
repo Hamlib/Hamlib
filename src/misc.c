@@ -3070,6 +3070,7 @@ int rig_test_2038(RIG *rig)
     __time64_t const x = (__time64_t)0xF0000000;
     char s[64];
     struct tm mytm;
+    s[0] = 0;
     int timeerr = _localtime64_s(&mytm, &x);
 
     if (timeerr)
