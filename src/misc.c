@@ -3066,11 +3066,11 @@ int rig_test_2038(RIG *rig)
 #endif
 
     int failed = 0;
+    char *stime = NULL;
 #if defined(__MSVCRT_VERSION__)
     __time64_t const x = (__time64_t)0xF0000000;
     char s[64];
     struct tm mytm;
-    s[0] = 0;
     int timeerr = _localtime64_s(&mytm, &x);
 
     if (timeerr)
@@ -3095,9 +3095,9 @@ int rig_test_2038(RIG *rig)
     }
 
     time_t x = (time_t)0xF0000000;
-    char *s = ctime(&x);
+    stime = ctime(&x);
 
-    if (s == NULL) { failed = 1; }
+    if (stime == NULL) { failed = 1; }
 
 #if 0 // this fails on 32-bit RigPi -- time_t 32-bit maybe?
     else rig_debug(RIG_DEBUG_VERBOSE, "%s: time_t 2038 test = 0x%08lx:%s", __func__, x,
@@ -3112,15 +3112,16 @@ int rig_test_2038(RIG *rig)
         return 1;
     }
 
-    if (s != NULL && strstr(s, "2097")) { return RIG_OK; }
+    if (stime != NULL && strstr(stime, "2097")) { return RIG_OK; }
 
 #if defined(__MSVCRT_VERSION__)
     _ctime64_s(s, sizeof(s), &x);
+    if (strstr(s, "2097")) { return RIG_OK; }
 #else
-    s = ctime(&x);
+    char *s = ctime(&x);
+    if (s != NULL && strstr(s, "2097")) { return RIG_OK; }
 #endif
 
-    if (s != NULL && strstr(s, "2097")) { return RIG_OK; }
 
     return 1;
 }
