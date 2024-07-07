@@ -211,6 +211,16 @@ again1:
             icom_process_async_frame(rig, frm_len, buf);
             goto again1;
         }
+        // if we get a reply that is not our cmd/subcmd we should just ignore it and retry the read.
+        // this should somewhat allow splitting the COM port between two controllers
+        if (cmd != buf[4]) {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd x%02d != buf x%02x so retry read\n", __func__, cmd, buf[4]);
+            goto again1;
+        }
+        if (subcmd != -1 && subcmd != buf[5]) {
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: subcmd x%02d != buf x%02x so retry read\n", __func__, subcmd, buf[5]);
+            goto again1;
+        }
 
         // we might have 0xfe string during rig wakeup
         rig_debug(RIG_DEBUG_TRACE, "%s: DEBUG retval=%d, frm_len=%d, cmd=0x%02x\n",
