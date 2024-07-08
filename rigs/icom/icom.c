@@ -2644,9 +2644,9 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     }
     else
     {
-        priv_data->filter = 0;
+        priv_data->filter = 1;
 
-        if (mode_len == 1) { priv_data->filter = modebuf[2]; }
+        if (mode_len == 2) { priv_data->filter = modebuf[1]; }
 
         rig_debug(RIG_DEBUG_TRACE,
                   "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, mode_len=%d\n", __func__,
