@@ -215,18 +215,27 @@ const char *expert_get_info(AMP *amp)
     return rc->model_name;
 }
 
+/*
+Example response
+2024-07-09T00:01:58.947563-0500: 0000    aa aa aa 43 2c 31 33 4b 2c 53 2c 52 2c 41 2c 31     ...C,13K,S,R,A,1
+2024-07-09T00:01:58.950923-0500: 0010    2c 30 37 2c 32 61 2c 30 72 2c 4d 2c 30 30 30 30     ,07,2a,0r,M,0000
+2024-07-09T00:01:58.954332-0500: 0020    2c 20 30 2e 30 30 2c 20 30 2e 30 30 2c 20 30 2e     , 0.00, 0.00, 0.
+2024-07-09T00:01:58.957544-0500: 0030    30 2c 20 30 2e 30 2c 30 37 37 2c 30 30 30 2c 30     0, 0.0,077,000,0
+2024-07-09T00:01:58.959656-0500: 0040    30 30 2c 4e 2c 4e 2c 51 0d 2c 0d 0a                 00,N,N,Q.,..
+*/
 int expert_get_freq(AMP *amp, freq_t *freq)
 {
     char responsebuf[KPABUFSZ] = "\0";
     int retval;
     unsigned long tfreq;
     int nargs;
+    unsigned char cmd = 0x90;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!amp) { return -RIG_EINVAL; }
 
-    retval = expert_transaction(amp, NULL, 0, NULL, sizeof(responsebuf));
+    retval = expert_transaction(amp, &cmd, 1, NULL, sizeof(responsebuf));
 
     if (retval != RIG_OK) { return retval; }
 
@@ -667,7 +676,7 @@ const struct amp_caps expert_amp_caps =
     AMP_MODEL(AMP_MODEL_EXPERT_FA),
     .model_name =   "1.3K-FA/1.5K-FA/2K-FA",
     .mfg_name =     "Expert",
-    .version =      "20230328.0",
+    .version =      "20240709.0",
     .copyright =    "LGPL",
     .status =     RIG_STATUS_BETA,
     .amp_type =     AMP_TYPE_OTHER,
@@ -682,7 +691,7 @@ const struct amp_caps expert_amp_caps =
     .post_write_delay = 0,
     .timeout =      2000,
     .retry =      2,
-    .has_get_level = AMP_LEVEL_SWR | AMP_LEVEL_NH | AMP_LEVEL_PF | AMP_LEVEL_PWR_INPUT | AMP_LEVEL_PWR_FWD | AMP_LEVEL_PWR_REFLECTED | AMP_LEVEL_FAULT,
+//    .has_get_level = AMP_LEVEL_SWR | AMP_LEVEL_NH | AMP_LEVEL_PF | AMP_LEVEL_PWR_INPUT | AMP_LEVEL_PWR_FWD | AMP_LEVEL_PWR_REFLECTED | AMP_LEVEL_FAULT,
     .has_set_level = 0,
 
     .amp_open = expert_open,
@@ -692,8 +701,8 @@ const struct amp_caps expert_amp_caps =
     .get_info = expert_get_info,
     .get_powerstat = expert_get_powerstat,
     .set_powerstat = expert_set_powerstat,
-    .set_freq = expert_set_freq,
-    .get_freq = expert_get_freq,
+//    .set_freq = expert_set_freq,
+//    .get_freq = expert_get_freq,
     .get_level = expert_get_level,
 };
 
