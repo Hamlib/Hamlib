@@ -169,6 +169,10 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
         chan->freq = MHz(148);
         break;
 
+    case RIG_VFO_C:
+        chan->freq = MHz(149);
+        break;
+
     default:
         rig_debug(RIG_DEBUG_ERR, "%s(%d) unknown vfo=%s\n", __FILE__, __LINE__,
                   rig_strvfo(vfo));
@@ -2383,7 +2387,7 @@ struct rig_caps dummy_caps =
     RIG_MODEL(RIG_MODEL_DUMMY),
     .model_name =     "Dummy",
     .mfg_name =       "Hamlib",
-    .version =        "20240529.0",
+    .version =        "20240709.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_OTHER,
