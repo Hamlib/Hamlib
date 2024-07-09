@@ -20,8 +20,8 @@ struct ip_mreq
 
 float freqA = 14074000;
 float freqB = 14074500;
-char tx_vfo = '0';
-char rx_vfo = '0';
+char tx_vfo = '1';
+char rx_vfo = '1';
 char modeA = '0';
 char modeB = '0';
 int keyspd = 20;
