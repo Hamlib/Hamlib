@@ -611,7 +611,14 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FT '%s'\n", __func__, splitbuf);
     }
 
-    SNPRINTF(cmdbuf, sizeof(cmdbuf), "TQ;");
+    if (rig->caps->rig_model == RIG_MODEL_K4)
+    {
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "TQX;");
+    }
+    else
+    {
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "TQ;");
+    }
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)
@@ -619,9 +626,9 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC2(retval);
     }
 
-    if (sscanf(splitbuf, "TQ%1d", &tq) != 1)
+    if (sscanf(splitbuf, "TQ%1d", &tq) != 1 && sscanf(splitbuf,"TQX%1d", &tq) != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ '%s'\n", __func__, splitbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ or TQX reponse of '%s'\n", __func__, splitbuf);
     }
 
     *vfo = STATE(rig)->tx_vfo = RIG_VFO_A;
