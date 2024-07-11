@@ -71,6 +71,7 @@ static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
 int dumpcaps(RIG *rig, FILE *fout)
 {
     const struct rig_caps *caps;
+    struct rig_state *rs;
     int status, i;
     int can_esplit, can_echannel;
     char freqbuf[20];
@@ -89,6 +90,7 @@ int dumpcaps(RIG *rig, FILE *fout)
     }
 
     caps = rig->caps;
+    rs = STATE(rig);
 
     fprintf(fout, "Caps dump for model: %u\n", caps->rig_model);
     fprintf(fout, "Model name:\t%s\n", caps->model_name);
@@ -439,10 +441,9 @@ int dumpcaps(RIG *rig, FILE *fout)
     fprintf(fout, "Extra parameters:\n");
     rig_ext_parm_foreach(rig, print_ext, fout);
 
-
-    if (rig->state.mode_list != 0)
+    if (rs->mode_list != 0)
     {
-        rig_sprintf_mode(prntbuf, sizeof(prntbuf), rig->state.mode_list);
+        rig_sprintf_mode(prntbuf, sizeof(prntbuf), rs->mode_list);
     }
     else
     {
@@ -453,9 +454,9 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     fprintf(fout, "Mode list: %s\n", prntbuf);
 
-    if (rig->state.vfo_list != 0)
+    if (rs->vfo_list != 0)
     {
-        rig_sprintf_vfo(prntbuf, sizeof(prntbuf), rig->state.vfo_list);
+        rig_sprintf_vfo(prntbuf, sizeof(prntbuf), rs->vfo_list);
     }
     else
     {
@@ -922,7 +923,7 @@ int dumpcaps(RIG *rig, FILE *fout)
 
     can_echannel = caps->set_mem
                    && ((caps->set_vfo
-                        && ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM))
+                        && ((rs->vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM))
                        || (caps->vfo_op
                            && rig_has_vfo_op(rig, RIG_OP_TO_VFO | RIG_OP_FROM_VFO)));
 
