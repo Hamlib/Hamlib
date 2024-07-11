@@ -265,7 +265,7 @@ gs232b_rot_stop(ROT *rot)
 
 static int gs232b_rot_get_level(ROT *rot, setting_t level, value_t *val)
 {
-    const struct rot_state *rs = &rot->state;
+    const struct rot_state *rs = ROTSTATE(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
 
@@ -285,7 +285,7 @@ static int gs232b_rot_get_level(ROT *rot, setting_t level, value_t *val)
 
 static int gs232b_rot_set_level(ROT *rot, setting_t level, value_t val)
 {
-    struct rot_state *rs = &rot->state;
+    struct rot_state *rs = ROTSTATE(rot);
     char cmdstr[24];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
@@ -394,7 +394,7 @@ static int gs232b_rot_move(ROT *rot, int direction, int speed)
 
 static int gs232b_rot_init(ROT *rot)
 {
-    struct rot_state *rs = &rot->state;
+    struct rot_state *rs = ROTSTATE(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

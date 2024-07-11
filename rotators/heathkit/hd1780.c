@@ -115,15 +115,15 @@ static int hd1780_rot_init(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    rot->state.priv = (struct hd1780_rot_priv_data *)
+    ROTSTATE(rot)->priv = (struct hd1780_rot_priv_data *)
                       calloc(1, sizeof(struct hd1780_rot_priv_data));
 
-    if (!rot->state.priv)
+    if (!ROTSTATE(rot)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rot->state.priv;
+    priv = ROTSTATE(rot)->priv;
 
     ROTPORT(rot)->type.rig = RIG_PORT_SERIAL;
 
@@ -146,12 +146,12 @@ static int hd1780_rot_cleanup(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    if (rot->state.priv)
+    if (ROTSTATE(rot)->priv)
     {
-        free(rot->state.priv);
+        free(ROTSTATE(rot)->priv);
     }
 
-    rot->state.priv = NULL;
+    ROTSTATE(rot)->priv = NULL;
 
     return RIG_OK;
 }

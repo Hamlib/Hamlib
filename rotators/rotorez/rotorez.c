@@ -415,17 +415,17 @@ static int rotorez_rot_init(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    rot->state.priv = (struct rotorez_rot_priv_data *)
+    ROTSTATE(rot)->priv = (struct rotorez_rot_priv_data *)
                       calloc(1, sizeof(struct rotorez_rot_priv_data));
 
-    if (!rot->state.priv)
+    if (!ROTSTATE(rot)->priv)
     {
         return -RIG_ENOMEM;
     }
 
     ROTPORT(rot)->type.rig = RIG_PORT_SERIAL;
 
-    ((struct rotorez_rot_priv_data *)rot->state.priv)->az = 0;
+    ((struct rotorez_rot_priv_data *)ROTSTATE(rot)->priv)->az = 0;
 
     return RIG_OK;
 }
@@ -444,12 +444,12 @@ static int rotorez_rot_cleanup(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    if (rot->state.priv)
+    if (ROTSTATE(rot)->priv)
     {
-        free(rot->state.priv);
+        free(ROTSTATE(rot)->priv);
     }
 
-    rot->state.priv = NULL;
+    ROTSTATE(rot)->priv = NULL;
 
     return RIG_OK;
 }
