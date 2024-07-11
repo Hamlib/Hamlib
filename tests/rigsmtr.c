@@ -365,24 +365,24 @@ int main(int argc, char *argv[])
         step = atof(argv[optind]) * 1e6;
     }
 
-    fprintf(stderr, "Setting rotator to azimuth %.1f°\n", rot->state.min_az);
-    rot_set_position(rot, rot->state.min_az, 0);
+    fprintf(stderr, "Setting rotator to azimuth %.1f°\n", ROTSTATE(rot)->min_az);
+    rot_set_position(rot, ROTSTATE(rot)->min_az, 0);
     fprintf(stderr, "Wait for rotator to move...\n");
     rot_get_position(rot, &azimuth, &elevation);
 
-    while (fabs(azimuth - rot->state.min_az) > 1.)
+    while (fabs(azimuth - ROTSTATE(rot)->min_az) > 1.)
     {
         rot_get_position(rot, &azimuth, &elevation);
         hl_usleep(step);
     }
 
     fprintf(stderr, "Now initiating full 360° rotation...\n");
-    rot_set_position(rot, rot->state.max_az, 0);
+    rot_set_position(rot, ROTSTATE(rot)->max_az, 0);
 
     /* TODO: check CW or CCW */
     /* disable AGC? */
 
-    while (fabs(rot->state.max_az - azimuth) > 1.)
+    while (fabs(ROTSTATE(rot)->max_az - azimuth) > 1.)
     {
         value_t strength;
 
