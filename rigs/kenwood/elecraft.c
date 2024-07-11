@@ -516,9 +516,23 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
     int err;
     char *bufptr;
     char buf[KENWOOD_MAX_BUF_LEN];
-    char rvp = cmd[3];
+    char rvp = cmd[2];
     char *rv = "UNK";
 
+    if (rig->caps->rig_model == RIG_MODEL_K4)
+    {
+    switch (rvp)
+    {
+    case 'F':
+    case 'M': rv = "FPF"; break;
+
+    case 'A':
+    case 'D': rv = "DSP"; break;
+
+    case 'R': rv = "DAP"; break;
+    }
+    }
+    else {
     switch (rvp)
     {
     case 'M': rv = "MCU"; break;
@@ -530,8 +544,7 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
     case 'R': rv = "DVR"; break;
 
     case 'F': rv = "FPF"; break;
-
-    default: rv = "???"; break;
+    }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -626,7 +639,7 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         RETURNFUNC2(retval);
     }
 
-    if (sscanf(splitbuf, "TQ%1d", &tq) != 1 && sscanf(splitbuf,"TQX%1d", &tq) != 1)
+    if (sscanf(splitbuf, "TQ%1d", &tq) != 1)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ or TQX reponse of '%s'\n", __func__, splitbuf);
     }
