@@ -92,7 +92,7 @@ static void *handle_set_position(void *);
 static int ars_clear_ctrl_pin(ROT *rot, unsigned char pin)
 {
     hamlib_port_t *pport = ROTPORT(rot);
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
 
     priv->pp_control &= ~pin;
 
@@ -102,7 +102,7 @@ static int ars_clear_ctrl_pin(ROT *rot, unsigned char pin)
 static int ars_set_ctrl_pin(ROT *rot, unsigned char pin)
 {
     hamlib_port_t *pport = ROTPORT(rot);
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
 
     priv->pp_control |= pin;
 
@@ -112,7 +112,7 @@ static int ars_set_ctrl_pin(ROT *rot, unsigned char pin)
 static int ars_clear_data_pin(ROT *rot, unsigned char pin)
 {
     hamlib_port_t *pport = ROTPORT(rot);
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
 
     priv->pp_data &= ~pin;
 
@@ -122,7 +122,7 @@ static int ars_clear_data_pin(ROT *rot, unsigned char pin)
 static int ars_set_data_pin(ROT *rot, unsigned char pin)
 {
     hamlib_port_t *pport = ROTPORT(rot);
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
 
     priv->pp_data |= pin;
 
@@ -146,16 +146,16 @@ ars_init(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    rot->state.priv = (struct ars_priv_data *)calloc(1,
+    ROTSTATE(rot)->priv = (struct ars_priv_data *)calloc(1,
                       sizeof(struct ars_priv_data));
 
-    if (!rot->state.priv)
+    if (!ROTSTATE(rot)->priv)
     {
         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
     }
 
-    priv = rot->state.priv;
+    priv = ROTSTATE(rot)->priv;
 
     priv->pp_control = 0;
     priv->pp_data = 0;
@@ -177,10 +177,10 @@ ars_cleanup(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    if (rot->state.priv)
+    if (ROTSTATE(rot)->priv)
     {
-        free(rot->state.priv);
-        rot->state.priv = NULL;
+        free(ROTSTATE(rot)->priv);
+        ROTSTATE(rot)->priv = NULL;
     }
 
     return RIG_OK;
@@ -194,7 +194,7 @@ ars_open(ROT *rot)
 
 #ifdef HAVE_PTHREAD
     {
-        struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+        struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
         pthread_attr_t attr;
         int retcode;
 
@@ -220,7 +220,7 @@ int
 ars_close(ROT *rot)
 {
 #ifdef HAVE_PTHREAD
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
 
     pthread_cancel(priv->thread);
 #endif
@@ -234,7 +234,7 @@ ars_close(ROT *rot)
 int
 ars_stop(ROT *rot)
 {
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
     hamlib_port_t *pport = ROTPORT(rot);
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, brake was %s\n", __func__,
@@ -264,7 +264,7 @@ ars_stop(ROT *rot)
 int
 ars_move(ROT *rot, int direction, int speed)
 {
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
     hamlib_port_t *pport = ROTPORT(rot);
     int need_settle_delay = 0;
 
@@ -425,7 +425,7 @@ static int angle_in_range(float angle, float angle_base, float range)
 static void *handle_set_position(void *arg)
 {
     ROT *rot = (ROT *) arg;
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
     int retcode;
 
     while (1)
@@ -583,7 +583,7 @@ int
 ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
 #ifdef HAVE_PTHREAD
-    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
 
     /* will be picked by handle_set_position() next polling tick */
     priv->target_az = az;
@@ -606,8 +606,8 @@ static int comparunsigned(const void *a, const void *b)
 int
 ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    const struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
-    struct rot_state *rs = &rot->state;
+    const struct ars_priv_data *priv = (struct ars_priv_data *)ROTSTATE(rot)->priv;
+    struct rot_state *rs = ROTSTATE(rot);
     hamlib_port_t *pport = ROTPORT(rot);
     int i, num_sample;
     unsigned az_samples[NUM_SAMPLES], az_value;
