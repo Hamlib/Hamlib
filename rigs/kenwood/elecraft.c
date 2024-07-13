@@ -624,15 +624,28 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         rig_debug(RIG_DEBUG_ERR, "%s: unable to parse FT '%s'\n", __func__, splitbuf);
     }
 
+// We can use the TQX; command but we have to check that we have R32 firmware or higher
+// Not sure it's much better than TQ; since it still seems to take 350ms
+// So we have to sleep for a while after sending it to avoid TCP timeouts which still needs to be fixed
+// See 
+
+#if 0
     if (rig->caps->rig_model == RIG_MODEL_K4)
     {
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "TQX;");
     }
     else
+#endif
     {
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "TQ;");
     }
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
+    if (rig->caps->rig_model == RIG_MODEL_K4 && RIGPORT(rig)->type.rig == RIG_PORT_NETWORK && strncmp(cmdbuf, "TQ", 2) == 0)
+    {
+        // special exception in case K4 is using TCP/IP
+        // seems to be slow on the TQ/TQX commands taking some 350ms
+        hl_usleep(250*1000);
+    }
 
     if (retval != RIG_OK)
     {

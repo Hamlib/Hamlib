@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20240711"
+#define BACKEND_VER "20240713"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
