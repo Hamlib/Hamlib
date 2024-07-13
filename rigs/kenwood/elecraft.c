@@ -640,12 +640,6 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "TQ;");
     }
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
-    if (rig->caps->rig_model == RIG_MODEL_K4 && RIGPORT(rig)->type.rig == RIG_PORT_NETWORK && strncmp(cmdbuf, "TQ", 2) == 0)
-    {
-        // special exception in case K4 is using TCP/IP
-        // seems to be slow on the TQ/TQX commands taking some 350ms
-        hl_usleep(250*1000);
-    }
 
     if (retval != RIG_OK)
     {
