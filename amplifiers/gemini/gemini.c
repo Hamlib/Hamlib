@@ -45,10 +45,10 @@ int gemini_init(AMP *amp)
         return -RIG_EINVAL;
     }
 
-    amp->state.priv = (struct gemini_priv_data *)
+    AMPSTATE(amp)->priv = (struct gemini_priv_data *)
                       calloc(1, sizeof(struct gemini_priv_data));
 
-    if (!amp->state.priv)
+    if (!AMPSTATE(amp)->priv)
     {
         return -RIG_ENOMEM;
     }
@@ -62,9 +62,9 @@ int gemini_close(AMP *amp)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (amp->state.priv) { free(amp->state.priv); }
+    if (AMPSTATE(amp)->priv) { free(AMPSTATE(amp)->priv); }
 
-    amp->state.priv = NULL;
+    AMPSTATE(amp)->priv = NULL;
 
     return RIG_OK;
 }
@@ -137,7 +137,7 @@ int gemini_status_parse(AMP *amp)
     int retval, n = 0;
     char *p;
     char responsebuf[GEMINIBUFSZ];
-    struct gemini_priv_data *priv = amp->state.priv;
+    struct gemini_priv_data *priv = AMPSTATE(amp)->priv;
 
     retval = gemini_transaction(amp, "S\n", responsebuf, sizeof(responsebuf));
 
@@ -189,7 +189,7 @@ int gemini_get_freq(AMP *amp, freq_t *freq)
 
     if (!amp) { return -RIG_EINVAL; }
 
-    priv = amp->state.priv;
+    priv = AMPSTATE(amp)->priv;
 
     retval = gemini_status_parse(amp);
 
@@ -228,7 +228,7 @@ int gemini_set_freq(AMP *amp, freq_t freq)
 int gemini_get_level(AMP *amp, setting_t level, value_t *val)
 {
     int retval;
-    struct gemini_priv_data *priv = amp->state.priv;
+    struct gemini_priv_data *priv = AMPSTATE(amp)->priv;
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);

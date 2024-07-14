@@ -34,8 +34,8 @@ int main(int argc, const char *argv[])
     // disabled until we change this to the other multicast capability
 #if 0
     multicast_init(rig, "224.0.0.1", 4532);
-    printf("threadid=%lld\n", (long long)rig->state.multicast->threadid);
-    pthread_join(rig->state.multicast->threadid, NULL);
+    printf("threadid=%lld\n", (long long)STATE(rig)->multicast->threadid);
+    pthread_join(STATE(rig)->multicast->threadid, NULL);
     pthread_exit(NULL);
 #endif
     return 0;

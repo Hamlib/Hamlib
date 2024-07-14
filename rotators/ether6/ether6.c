@@ -85,7 +85,7 @@ static int ether_rot_open(ROT *rot)
     int ret;
     int sval;
     float min_az, max_az, min_el, max_el;
-    struct rot_state *rs = &rot->state;
+    struct rot_state *rs = ROTSTATE(rot);
 
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
@@ -259,7 +259,7 @@ static int ether_rot_reset(ROT *rot, rot_reset_t reset)
 */
 static int ether_rot_move(ROT *rot, int direction, int speed)
 {
-    struct rot_state *rs = &rot->state;
+    struct rot_state *rs = ROTSTATE(rot);
     int ret;
     char cmd[CMD_MAX];
     char buf[BUF_MAX];
@@ -308,7 +308,7 @@ static int ether_rot_move(ROT *rot, int direction, int speed)
 
 static int ether_rot_get_level(ROT *rot, setting_t level, value_t *val)
 {
-    const struct rot_state *rs = &rot->state;
+    const struct rot_state *rs = ROTSTATE(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
 
@@ -328,7 +328,7 @@ static int ether_rot_get_level(ROT *rot, setting_t level, value_t *val)
 
 static int ether_rot_set_level(ROT *rot, setting_t level, value_t val)
 {
-    struct rot_state *rs = &rot->state;
+    struct rot_state *rs = ROTSTATE(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %s\n", __func__, rot_strlevel(level));
 
@@ -370,7 +370,7 @@ static const char *ether_rot_get_info(ROT *rot)
 
 static int ether_rot_init(ROT *rot)
 {
-    struct rot_state *rs = &rot->state;
+    struct rot_state *rs = ROTSTATE(rot);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

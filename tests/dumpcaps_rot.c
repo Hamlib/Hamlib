@@ -141,9 +141,9 @@ int dumpcaps_rot(ROT *rot, FILE *fout)
             "Post write delay:\t%dms\n",
             caps->post_write_delay);
 
-    if (rot->state.has_status != 0)
+    if (ROTSTATE(rot)->has_status != 0)
     {
-        rot_sprintf_status(prntbuf, sizeof(prntbuf), rot->state.has_status);
+        rot_sprintf_status(prntbuf, sizeof(prntbuf), ROTSTATE(rot)->has_status);
     }
     else
     {
