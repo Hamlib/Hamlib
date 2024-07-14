@@ -134,15 +134,15 @@ static int flir_init(ROT *rot)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rot->state.priv = (struct flir_priv_data *)
+    ROTSTATE(rot)->priv = (struct flir_priv_data *)
                       calloc(1, sizeof(struct flir_priv_data));
 
-    if (!rot->state.priv)
+    if (!ROTSTATE(rot)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rot->state.priv;
+    priv = ROTSTATE(rot)->priv;
 
     priv->az = priv->el = 0;
 
@@ -159,7 +159,7 @@ static int flir_init(ROT *rot)
 static int flir_cleanup(ROT *rot)
 {
     struct flir_priv_data *priv = (struct flir_priv_data *)
-                                  rot->state.priv;
+                                  ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -167,9 +167,9 @@ static int flir_cleanup(ROT *rot)
     free(priv->ext_levels);
     free(priv->ext_parms);
     free(priv->magic_conf);
-    free(rot->state.priv);
+    free(ROTSTATE(rot)->priv);
 
-    rot->state.priv = NULL;
+    ROTSTATE(rot)->priv = NULL;
 
     return RIG_OK;
 }
@@ -183,7 +183,7 @@ static int flir_open(ROT *rot)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    priv = rot->state.priv;
+    priv = ROTSTATE(rot)->priv;
 
     // Disable ECHO
     return_value = flir_request(rot, "ED\n", NULL, MAXBUF);
@@ -255,7 +255,7 @@ static int flir_set_position(ROT *rot, azimuth_t az, elevation_t el)
     char return_str[MAXBUF];
     char cmd_str[MAXBUF];
     struct flir_priv_data *priv = (struct flir_priv_data *)
-                                  rot->state.priv;
+                                  ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
               az, el);
@@ -281,7 +281,7 @@ static int flir_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     int32_t pan_positions, tilt_positions;
 
     struct flir_priv_data *priv = (struct flir_priv_data *)
-                                  rot->state.priv;
+                                  ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -320,7 +320,7 @@ static int flir_stop(ROT *rot)
     int return_value = RIG_OK;
 
     struct flir_priv_data *priv = (struct flir_priv_data *)
-                                  rot->state.priv;
+                                  ROTSTATE(rot)->priv;
     azimuth_t az;
     elevation_t el;
 
@@ -384,7 +384,7 @@ static int flir_reset(ROT *rot, rot_reset_t reset)
 static int flir_move(ROT *rot, int direction, int speed)
 {
     struct flir_priv_data *priv = (struct flir_priv_data *)
-                                  rot->state.priv;
+                                  ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: Direction = %d, Speed = %d\n", __func__,
@@ -417,7 +417,7 @@ static const char *flir_get_info(ROT *rot)
     char info_str[101];
 
     struct flir_priv_data *priv = (struct flir_priv_data *)
-                                  rot->state.priv;
+                                  ROTSTATE(rot)->priv;
 
     sprintf(priv->info, "No Info");
 
@@ -503,7 +503,7 @@ static int flir_get_ext_parm(ROT *rot, hamlib_token_t token, value_t *val)
 static int flir_get_status(ROT *rot, rot_status_t *status)
 {
     const struct flir_priv_data *priv = (struct flir_priv_data *)
-                                        rot->state.priv;
+                                        ROTSTATE(rot)->priv;
     *status = priv->status;
 
     return RIG_OK;

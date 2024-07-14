@@ -146,14 +146,14 @@ fodtrack_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     pport = ROTPORT(rot);
 
-    retval = setDirection(pport, el / (float)rot->state.max_el * 255.0, 0);
+    retval = setDirection(pport, el / (float)ROTSTATE(rot)->max_el * 255.0, 0);
 
     if (retval != RIG_OK)
     {
         return retval;
     }
 
-    retval = setDirection(pport, az / (float)rot->state.max_az * 255.0, 1);
+    retval = setDirection(pport, az / (float)ROTSTATE(rot)->max_az * 255.0, 1);
 
     if (retval != RIG_OK)
     {

@@ -68,10 +68,10 @@ int expert_init(AMP *amp)
         return -RIG_EINVAL;
     }
 
-    amp->state.priv = (struct expert_priv_data *)
+    AMPSTATE(amp)->priv = (struct expert_priv_data *)
                       calloc(1, sizeof(struct expert_priv_data));
 
-    if (!amp->state.priv)
+    if (!AMPSTATE(amp)->priv)
     {
         return -RIG_ENOMEM;
     }
@@ -102,9 +102,9 @@ int expert_close(AMP *amp)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     expert_transaction(amp, &cmd, 1, response, 4);
 
-    if (amp->state.priv) { free(amp->state.priv); }
+    if (AMPSTATE(amp)->priv) { free(AMPSTATE(amp)->priv); }
 
-    amp->state.priv = NULL;
+    AMPSTATE(amp)->priv = NULL;
 
     return RIG_OK;
 }
@@ -305,7 +305,7 @@ int expert_get_level(AMP *amp, setting_t level, value_t *val)
     int pwrinput;
     float float_value = 0;
     int int_value = 0, int_value2 = 0;
-    struct expert_priv_data *priv = amp->state.priv;
+    struct expert_priv_data *priv = AMPSTATE(amp)->priv;
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);

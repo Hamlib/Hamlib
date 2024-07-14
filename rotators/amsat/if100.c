@@ -34,6 +34,7 @@ static int
 if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     hamlib_port_t *port = ROTPORT(rot);
+    struct rot_state *rs = ROTSTATE(rot);
     int retval;
     int az_i;
     int el_i;
@@ -42,10 +43,10 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
-    az_scale = 255. / (rot->state.max_az - rot->state.min_az);
+    az_scale = 255. / (rs->max_az - rs->min_az);
     el_scale = 255. / 180;
 
-    az_i = (int)round((az - rot->state.min_az) * az_scale);
+    az_i = (int)round((az - rs->min_az) * az_scale);
     el_i = (int)round(el * el_scale);
 
     rig_debug(RIG_DEBUG_TRACE, "%s output az: %d el: %d\n", __func__, az_i, el_i);

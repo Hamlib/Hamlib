@@ -281,6 +281,7 @@ int main(int argc, char *argv[])
     int vfo_mode = 0; /* vfo_mode=0 means target VFO is current VFO */
     int i;
     extern int is_rigctld;
+    struct rig_state *rs;
 
     is_rigctld = 1;
 
@@ -689,12 +690,13 @@ int main(int argc, char *argv[])
         strncpy(RIGPORT(my_rig)->pathname, rig_file, HAMLIB_FILPATHLEN - 1);
     }
 
-    my_rig->state.twiddle_timeout = twiddle_timeout;
-    my_rig->state.twiddle_rit = twiddle_rit;
-    my_rig->state.uplink = uplink;
+    rs = STATE(my_rig);
+    rs->twiddle_timeout = twiddle_timeout;
+    rs->twiddle_rit = twiddle_rit;
+    rs->uplink = uplink;
     rig_debug(RIG_DEBUG_TRACE, "%s: twiddle=%d, uplink=%d, twiddle_rit=%d\n",
               __func__,
-              my_rig->state.twiddle_timeout, my_rig->state.uplink, my_rig->state.twiddle_rit);
+              rs->twiddle_timeout, rs->uplink, rs->twiddle_rit);
 
     /*
      * ex: RIG_PTT_PARALLEL and /dev/parport0
@@ -702,29 +704,29 @@ int main(int argc, char *argv[])
     if (ptt_type != RIG_PTT_NONE)
     {
         PTTPORT(my_rig)->type.ptt = ptt_type;
-        my_rig->state.pttport_deprecated.type.ptt = ptt_type;
+        rs->pttport_deprecated.type.ptt = ptt_type;
         // This causes segfault since backend rig_caps are const
-        // rigctld will use the rig->state version of this for clients
+        // rigctld will use the STATE(rig) version of this for clients
         //my_rig->caps->ptt_type = ptt_type;
     }
 
     if (dcd_type != RIG_DCD_NONE)
     {
         DCDPORT(my_rig)->type.dcd = dcd_type;
-        my_rig->state.dcdport_deprecated.type.dcd = dcd_type;
+        rs->dcdport_deprecated.type.dcd = dcd_type;
     }
 
     if (ptt_file)
     {
         strncpy(PTTPORT(my_rig)->pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
-        strncpy(my_rig->state.pttport_deprecated.pathname, ptt_file,
+        strncpy(rs->pttport_deprecated.pathname, ptt_file,
                 HAMLIB_FILPATHLEN - 1);
     }
 
     if (dcd_file)
     {
         strncpy(DCDPORT(my_rig)->pathname, dcd_file, HAMLIB_FILPATHLEN - 1);
-        strncpy(my_rig->state.dcdport_deprecated.pathname, dcd_file,
+        strncpy(rs->dcdport_deprecated.pathname, dcd_file,
                 HAMLIB_FILPATHLEN - 1);
     }
 
@@ -732,7 +734,7 @@ int main(int argc, char *argv[])
     if (serial_rate != 0)
     {
         RIGPORT(my_rig)->parm.serial.rate = serial_rate;
-        my_rig->state.rigport_deprecated.parm.serial.rate = serial_rate;
+        rs->rigport_deprecated.parm.serial.rate = serial_rate;
     }
 
     if (civaddr)
@@ -1229,7 +1231,7 @@ void *handle_socket(void *arg)
         mutex_rigctld(1);
         rig_get_powerstat(my_rig, &rig_powerstat);
         mutex_rigctld(0);
-        my_rig->state.powerstat = rig_powerstat;
+        STATE(my_rig)->powerstat = rig_powerstat;
     }
 
     do

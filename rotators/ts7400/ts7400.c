@@ -49,15 +49,15 @@ static int ts7400_rot_init(ROT *rot)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    rot->state.priv = (struct ts7400_rot_priv_data *)
+    ROTSTATE(rot)->priv = (struct ts7400_rot_priv_data *)
                       calloc(1, sizeof(struct ts7400_rot_priv_data));
 
-    if (!rot->state.priv)
+    if (!ROTSTATE(rot)->priv)
     {
         return -RIG_ENOMEM;
     }
 
-    priv = rot->state.priv;
+    priv = ROTSTATE(rot)->priv;
 
     ROTPORT(rot)->type.rig = RIG_PORT_NONE;
 
@@ -72,12 +72,12 @@ static int ts7400_rot_cleanup(ROT *rot)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (rot->state.priv)
+    if (ROTSTATE(rot)->priv)
     {
-        free(rot->state.priv);
+        free(ROTSTATE(rot)->priv);
     }
 
-    rot->state.priv = NULL;
+    ROTSTATE(rot)->priv = NULL;
 
     return RIG_OK;
 }
@@ -99,7 +99,7 @@ static int ts7400_rot_close(ROT *rot)
 static int ts7400_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     struct ts7400_rot_priv_data *priv = (struct ts7400_rot_priv_data *)
-                                        rot->state.priv;
+                                        ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called: %.2f %.2f\n", __func__,
               az, el);
@@ -119,7 +119,7 @@ static int ts7400_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 static int ts7400_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     struct ts7400_rot_priv_data *priv = (struct ts7400_rot_priv_data *)
-                                        rot->state.priv;
+                                        ROTSTATE(rot)->priv;
     struct timeval tv;
     unsigned elapsed; /* ms */
 
@@ -189,7 +189,7 @@ static int ts7400_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 static int ts7400_rot_stop(ROT *rot)
 {
     struct ts7400_rot_priv_data *priv = (struct ts7400_rot_priv_data *)
-                                        rot->state.priv;
+                                        ROTSTATE(rot)->priv;
     azimuth_t az;
     elevation_t el;
 
@@ -224,7 +224,7 @@ static int ts7400_rot_reset(ROT *rot, rot_reset_t reset)
 static int ts7400_rot_move(ROT *rot, int direction, int speed)
 {
     struct ts7400_rot_priv_data const *priv = (struct ts7400_rot_priv_data *)
-            rot->state.priv;
+            ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: Direction = %d, Speed = %d\n", __func__,

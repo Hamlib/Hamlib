@@ -865,11 +865,11 @@ static int frontend_set_conf(RIG *rig, hamlib_token_t token, const char *val)
     case TOK_CLIENT:
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Client claims to be %s\n", __func__, val);
 
-        if (strcasecmp(val, "WSJTX") == 0) { rig->state.client = RIG_CLIENT_WSJTX; }
-        else if (strcasecmp(val, "GPREDICT") == 0) { rig->state.client = RIG_CLIENT_GPREDICT; }
+        if (strcasecmp(val, "WSJTX") == 0) { rs->client = RIG_CLIENT_WSJTX; }
+        else if (strcasecmp(val, "GPREDICT") == 0) { rs->client = RIG_CLIENT_GPREDICT; }
         else
         {
-            rig->state.client =  RIG_CLIENT_UNKNOWN;
+            rs->client =  RIG_CLIENT_UNKNOWN;
             rig_debug(RIG_DEBUG_ERR, "%s: unknown client=%s\n", __func__, val);
         }
 
@@ -926,11 +926,11 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
 
     case TOK_CLIENT:
     {
-        char *client;
+        char *client = "UNKNOWN";
 
-        switch (rig->state.client)
+        switch (rs->client)
         {
-        case RIG_CLIENT_UNKNOWN: client = "UNKNOWN"; break;
+        case RIG_CLIENT_UNKNOWN: break;
 
         case RIG_CLIENT_WSJTX: client = "WSJTX"; break;
 
@@ -938,8 +938,8 @@ static int frontend_get_conf2(RIG *rig, hamlib_token_t token, char *val,
 
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unknown client=%d\n", __func__,
-                      rig->state.client);
-            rig->state.client = RIG_CLIENT_UNKNOWN;
+                      rs->client);
+            rs->client = RIG_CLIENT_UNKNOWN;
         }
 
         SNPRINTF(val, val_len, "%s", client);

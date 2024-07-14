@@ -210,7 +210,7 @@ static int spid_rot_init(ROT *rot)
             return -RIG_ENOMEM;
         }
 
-        rot->state.priv = (void *)priv;
+        ROTSTATE(rot)->priv = (void *)priv;
 
         priv->az_resolution = 0;
         priv->el_resolution = 0;
@@ -229,13 +229,13 @@ static int spid_rot_cleanup(ROT *rot)
         return -RIG_EINVAL;
     }
 
-    if (rot->state.priv && (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
+    if (ROTSTATE(rot)->priv && (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
                             rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG))
     {
-        free(rot->state.priv);
+        free(ROTSTATE(rot)->priv);
     }
 
-    rot->state.priv = NULL;
+    ROTSTATE(rot)->priv = NULL;
 
     return RIG_OK;
 }
@@ -244,7 +244,7 @@ static int spid_get_conf2(ROT *rot, hamlib_token_t token, char *val,
                           int val_len)
 {
     const struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
-            rot->state.priv;
+            ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called %d\n", __func__, (int)token);
 
@@ -279,7 +279,7 @@ static int spid_get_conf(ROT *rot, hamlib_token_t token, char *val)
 static int spid_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 {
     struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
-                                           rot->state.priv;
+                                           ROTSTATE(rot)->priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called %d=%s\n", __func__, (int)token, val);
 
@@ -344,7 +344,7 @@ static int spid_rot1prog_rot_set_position(ROT *rot, azimuth_t az,
 static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az,
         elevation_t el)
 {
-    struct rot_state *rs = &rot->state;
+    struct rot_state *rs = ROTSTATE(rot);
     hamlib_port_t *rotp = ROTPORT(rot);
     const struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
             rs->priv;
@@ -498,7 +498,7 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 static int spid_rot_stop(ROT *rot)
 {
     struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
-                                           rot->state.priv;
+                                           ROTSTATE(rot)->priv;
     hamlib_port_t *rotp = ROTPORT(rot);
     int retval;
     int retry_read = 0;
@@ -543,7 +543,7 @@ static int spid_rot_stop(ROT *rot)
 static int spid_md01_rot2prog_rot_move(ROT *rot, int direction, int speed)
 {
     struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data *)
-                                           rot->state.priv;
+                                           ROTSTATE(rot)->priv;
     char dir = 0x00;
     int retval;
     char cmdstr[13];

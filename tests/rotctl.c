@@ -417,8 +417,8 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    my_rot->state.az_offset = az_offset;
-    my_rot->state.el_offset = el_offset;
+    ROTSTATE(my_rot)->az_offset = az_offset;
+    ROTSTATE(my_rot)->el_offset = el_offset;
 
     if (verbose > 0)
     {
