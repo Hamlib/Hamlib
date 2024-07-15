@@ -26,6 +26,8 @@
 //! @cond Doxygen_Suppress
 
 // The rig model number is designed to fit in a 32-bit int
+// As of 2024-07-14 we have 39 backends defined -- need to be careful about generating new ones
+// Perhaps combine them under a MISC entry should work
 // As of 2020-02-18 we have 33 backends defined
 // With a max of 1000 models per backend we get total a model number range of 1001-33001
 // This MAX was 100 prior to 2020-02-18 and Icom was close to running out of the 100 range
