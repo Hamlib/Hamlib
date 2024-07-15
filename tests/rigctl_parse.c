@@ -2090,6 +2090,7 @@ void print_model_list()
 
     for (s = models; s != NULL; s = (struct mod_lst *)(s->hh.next))
     {
+
         printf("%6d  %-23s%-24s%-16s%-12s%s\n",
                s->id,
                s->mfg_name,
@@ -2097,6 +2098,20 @@ void print_model_list()
                s->version,
                s->macro_name,
                s->status);
+
+        if (strcmp(s->mfg_name,"Misc") == 0
+         || strcmp(s->mfg_name,"Other") == 0
+         || strcmp(s->mfg_name,"Dummy") == 0)
+        {
+            printf("Do not use %s as mfg_name\n", s->mfg_name);
+            exit(0);
+        }
+        if (strcmp(s->model_name,"Misc") == 0
+         || strcmp(s->model_name,"Other") == 0)
+        {
+            printf("Do not use %s as model_name\n", s->model_name);
+            exit(0);
+        }
     }
 }
 
