@@ -319,6 +319,7 @@ again2:
     if (frm_len > 4 && memcmp(buf, sendbuf, frm_len) == 0)
     {
         priv->serial_USB_echo_off = 0;
+        goto again2;
     }
 
     if (icom_is_async_frame(rig, frm_len, buf))
