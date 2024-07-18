@@ -9924,6 +9924,7 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&x6100_caps);
     rig_register(&g90_caps);
     rig_register(&x5105_caps);
+    rig_register(&x6200_caps);
 
     return (RIG_OK);
 }
