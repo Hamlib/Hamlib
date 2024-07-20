@@ -5628,19 +5628,19 @@ declare_proto_rig(set_clock)
                    &hour,
                    &min, &sec, &msec, &utc_offset);
     }
-    else if (arg1[16] == '+' || arg1[16] == '-')
+    else if (arg1 && (arg1[16] == '+' || arg1[16] == '-'))
     {
         // YYYY-MM-DDTHH:MM+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d%d", &year, &mon, &day, &hour,
                    &min, &utc_offset);
     }
-    else if (arg1[19] == '+' || arg1[19] == '-')
+    else if (arg1 && (arg1[19] == '+' || arg1[19] == '-'))
     {
         // YYYY-MM-DDTHH:MM:SS+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%d", &year, &mon, &day, &hour,
                    &min, &sec, &utc_offset);
     }
-    else if (arg1[23] == '+' || arg1[23] == '-')
+    else if (arg1 && (arg1[23] == '+' || arg1[23] == '-'))
     {
         // YYYY-MM-DDTHH:MM:SS.SSS+ZZ
         n = sscanf(arg1, "%04d-%02d-%02dT%02d:%02d:%02d%lf%d", &year, &mon, &day, &hour,
