@@ -8601,6 +8601,8 @@ void *async_data_handler(void *arg)
         }
         else
         {
+            static int busy_retry=2;
+again:
             result = write_block_sync(RIGPORT(rig), frame, frame_length);
 
             if (result < 0)
@@ -8608,6 +8610,10 @@ void *async_data_handler(void *arg)
                 // TODO: error handling? can writing to a pipe really fail in ways we can recover from?
                 rig_debug(RIG_DEBUG_ERR, "%s: write_block_sync() failed, result=%d\n", __func__,
                           result);
+                if (result == EBUSY && --busy_retry>0) { // we can try again
+                    hl_usleep(200*1000);
+                    goto again;
+                }
                 continue;
             }
         }
