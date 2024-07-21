@@ -378,7 +378,7 @@ transaction_write:
         skip |= strncmp(cmdstr, "PS1", 3) == 0;
         skip |= strncmp(cmdstr, "PS0", 3) == 0;
         skip |= strncmp(cmdstr, "K22", 3) == 0;
-        skip |= (rig->caps->rig_model == RIG_MODEL_PT8000A && (strlen(cmdstr) > 3) && (strncmp(cmdstr, "TQ", 2) == 0)); // Skip Hilberling TQn command check
+        skip |= (rig->caps->rig_model == RIG_MODEL_PT8000A && (strncmp(cmdstr, "TQ", 2) == 0)); // Skip Hilberling TQn command check
 
         if (skip)
         {
@@ -1083,7 +1083,10 @@ int kenwood_open(RIG *rig)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: found the right driver for %s(%u)\n",
                       __func__, rig->caps->model_name, rig->caps->rig_model);
             /* get current AI state so it can be restored */
-            kenwood_get_trn(rig, &priv->trn_state);  /* ignore errors */
+            if (rig->caps->rig_model != RIG_MODEL_PT8000A) // doesn't know AI command
+            {
+                kenwood_get_trn(rig, &priv->trn_state);  /* ignore errors */
+            }
 
             /* Currently we cannot cope with AI mode so turn it off in
                case last client left it on */
