@@ -221,6 +221,10 @@ again1:
             rig_debug(RIG_DEBUG_VERBOSE, "%s: subcmd x%02d != buf x%02x so retry read\n", __func__, subcmd, buf[5]);
             goto again1;
         }
+        if (sendbuf[3] != buf[2]) { // then the reply controller addr is not the same so skip it
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: subcmd x%02d != buf x%02x so retry read\n", __func__, subcmd, buf[5]);
+            goto again1;
+        }
 
         // we might have 0xfe string during rig wakeup
         rig_debug(RIG_DEBUG_TRACE, "%s: DEBUG retval=%d, frm_len=%d, cmd=0x%02x\n",
