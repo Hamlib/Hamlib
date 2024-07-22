@@ -35,7 +35,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "20240717"
+#define BACKEND_VER "20240722"
 
 #define ICOM_IS_ID31 rig_is_model(rig, RIG_MODEL_ID31)
 #define ICOM_IS_ID51 rig_is_model(rig, RIG_MODEL_ID51)
