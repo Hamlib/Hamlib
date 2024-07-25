@@ -306,6 +306,7 @@ read_another_frame:
      * FIXME: handle padding/collisions
      * ACKFRMLEN is the smallest frame we can expect from the rig
      */
+    priv->serial_USB_echo_off = 1;
 again2:
     buf[0] = 0;
     frm_len = read_icom_frame(rp, buf, sizeof(buf));

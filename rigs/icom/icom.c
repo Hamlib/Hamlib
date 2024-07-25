@@ -1152,7 +1152,7 @@ retry_open:
         rig_debug(RIG_DEBUG_TRACE, "%s: echo status known, getting frequency\n",
                   __func__);
         rp->retry = 0;
-        rs->current_vfo = icom_current_vfo(rig);
+//        rs->current_vfo = icom_current_vfo(rig);
         // some rigs like the IC7100 still echo when in standby
         // so asking for freq now should timeout if such a rig
         freq_t tfreq;
@@ -1228,7 +1228,7 @@ retry_open:
             rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_SATMODE, &satmode);
         }
 
-        rs->current_vfo = icom_current_vfo(rig);
+        //rs->current_vfo = icom_current_vfo(rig);
     }
 
 #if 0 // do not do this here -- needs to be done when ranges are requested instead as this is very slow
@@ -8995,6 +8995,7 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
      */
     switch (frame[4])
     {
+    case C_RD_FREQ:
     case C_SND_FREQ:
     {
         // TODO: The freq length might be less than 4 or 5 bytes on older rigs!
