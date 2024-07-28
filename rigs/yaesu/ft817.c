@@ -282,10 +282,25 @@ enum ft817_digi
                     { 0x05, 100 } \
                 } }
 
+// SWR values from Christian WA4YA, DL4YA
 #define FT817_SWR_CAL { 2, \
                 { \
-                    { 0, 0 }, \
-                    { 15, 100 } \
+                    { 0, 1.0f }, \
+                    { 1, 1.4f }, \
+                    { 2, 1.8f }, \
+                    { 3, 2.13f }, \
+                    { 4, 2.25f }, \
+                    { 5, 3.7f }, \
+                    { 6, 6.0f }, \
+                    { 7, 7.0f }, \
+                    { 8, 8.0f }, \
+                    { 9, 9.0f }, \
+                    { 10, 10.0f }, \
+                    { 11, 10.0f }, \
+                    { 12, 10.0f }, \
+                    { 13, 10.0f }, \
+                    { 14, 10.0f }, \
+                    { 15, 10.0f } \
                 } }
 
 
@@ -294,7 +309,7 @@ struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20240520.0",
+    .version =             "20240728.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
