@@ -128,6 +128,7 @@ struct ft817_priv_data
     /* Digi mode is not part of regular fm_status response.
      * So keep track of it in a separate variable. */
     unsigned char dig_mode;
+    float swr;
 };
 
 static int ft817_init(RIG *rig);
@@ -309,7 +310,7 @@ struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20240728.2",
+    .version =             "20240728.3",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1227,8 +1228,9 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
 
         if (ptt == RIG_PTT_OFF)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not keyed\n", __func__);
-            return -RIG_ERJCTED; //Or return OK?
+            val->f = p->swr;
+            //rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not keyed\n", __func__);
+            return RIG_OK;  // use known prior value
         }
 
         n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_METERING);
@@ -1240,6 +1242,7 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
     }
 
     val->f = rig_raw2val_float(*tx_level, cal);
+    p->swr = val->f;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: level %f\n", __func__, val->f);
 
     return RIG_OK;
