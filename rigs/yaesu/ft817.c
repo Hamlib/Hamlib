@@ -261,15 +261,15 @@ enum ft817_digi
 // Thanks to Olivier Schmitt sc.olivier@gmail.com for these tables
 #define FT817_PWR_CAL { 9, \
                 { \
-                    { 0x00, 0 }, \
-                    { 0x01, 10 }, \
-                    { 0x02, 14 }, \
-                    { 0x03, 20 }, \
-                    { 0x04, 34 }, \
-                    { 0x05, 50 }, \
-                    { 0x06, 66 }, \
-                    { 0x07, 82 }, \
-                    { 0x08, 100 } \
+                    { 0x00, 0.ss }, \
+                    { 0x01, 0.5f }, \
+                    { 0x02, 0.75f }, \
+                    { 0x03, 1.0f }, \
+                    { 0x04, 1.7f }, \
+                    { 0x05, 2.5f }, \
+                    { 0x06, 3.3f }, \
+                    { 0x07, 4.1f }, \
+                    { 0x08, 5.0f } \
                 } }
 
 #define FT817_ALC_CAL { 6, \
@@ -283,7 +283,7 @@ enum ft817_digi
                 } }
 
 // SWR values from Christian WA4YA, DL4YA
-#define FT817_SWR_CAL { 2, \
+#define FT817_SWR_CAL { 16, \
                 { \
                     { 0, 1.0f }, \
                     { 1, 1.4f }, \
@@ -309,7 +309,7 @@ struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20240728.0",
+    .version =             "20240728.2",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1193,7 +1193,7 @@ static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         }
     }
 
-    *ptt = ((p->tx_status & 0x80) == 0);
+    *ptt = ((p->tx_status & 0x20) == 0x20);
 
     return RIG_OK;
 }
