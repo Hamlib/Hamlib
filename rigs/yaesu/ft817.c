@@ -261,7 +261,7 @@ enum ft817_digi
 // Thanks to Olivier Schmitt sc.olivier@gmail.com for these tables
 #define FT817_PWR_CAL { 9, \
                 { \
-                    { 0x00, 0.ss }, \
+                    { 0x00, 0.0f }, \
                     { 0x01, 0.5f }, \
                     { 0x02, 0.75f }, \
                     { 0x03, 1.0f }, \
