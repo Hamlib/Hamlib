@@ -25,6 +25,7 @@ struct ip_mreq
 #include <termios.h>
 #include <unistd.h>
 
+#undef ECHO
 
 #define BUFSIZE 256
 #define X25
@@ -61,7 +62,7 @@ void dumphex(const unsigned char *buf, int n)
 int
 frameGet(int fd, unsigned char *buf)
 {
-    int i = 0, n;
+    int i = 0;
     memset(buf, 0, BUFSIZE);
     unsigned char c;
 
@@ -77,10 +78,10 @@ again:
             char mytime[256];
             date_strget(mytime, sizeof(mytime), 1);
             printf("%s:", mytime); dumphex(buf, i);
+#ifdef ECHO
             // echo
             n = write(fd, buf, i);
-
-            if (n != i) { printf("%s: error on write: %s\n", __func__, strerror(errno)); }
+#endif
 
             return i;
         }
@@ -146,6 +147,13 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (powerstat)
         {
+            unsigned char frame2[11];
+            memcpy(frame2,frame,11);
+            frame2[2] = 0xe1;
+            frame2[3] = 0x88;
+            dump_hex(frame2,11);
+            n = write(fd, frame2, 11);
+            dump_hex(frame,11);
             n = write(fd, frame, 11);
         }
 
@@ -223,8 +231,9 @@ void frameParse(int fd, unsigned char *frame, int len)
         if (frame[5] == 0xfd)
         {
             printf("get split %d\n", 1);
-            frame[7] = 0xfd;
-            n = write(fd, frame, 8);
+            frame[5] = split;
+            frame[6] = 0xfd;
+            n = write(fd, frame, 7);
         }
         else
         {
