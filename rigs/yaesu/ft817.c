@@ -310,7 +310,7 @@ struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20240728.1",
+    .version =             "20240728.3",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1202,6 +1202,7 @@ static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     *ptt = p->tx_status  != 0xff;
 
+
     return RIG_OK;
 }
 
@@ -1234,7 +1235,8 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
 
         if (ptt == RIG_PTT_OFF)
         {
-	    val->f = p->swr;
+
+	      val->f = p->swr;
             return RIG_OK;
         }
 
@@ -1247,6 +1249,7 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
     }
 
     p->swr = val->f = rig_raw2val_float(*tx_level, cal);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s: level %f\n", __func__, val->f);
 
     return RIG_OK;
