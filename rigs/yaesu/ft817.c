@@ -128,6 +128,7 @@ struct ft817_priv_data
     /* Digi mode is not part of regular fm_status response.
      * So keep track of it in a separate variable. */
     unsigned char dig_mode;
+    float swr;
 };
 
 static int ft817_init(RIG *rig);
@@ -261,15 +262,15 @@ enum ft817_digi
 // Thanks to Olivier Schmitt sc.olivier@gmail.com for these tables
 #define FT817_PWR_CAL { 9, \
                 { \
-                    { 0x00, 0 }, \
-                    { 0x01, 10 }, \
-                    { 0x02, 14 }, \
-                    { 0x03, 20 }, \
-                    { 0x04, 34 }, \
-                    { 0x05, 50 }, \
-                    { 0x06, 66 }, \
-                    { 0x07, 82 }, \
-                    { 0x08, 100 } \
+                    { 0x00, 0.0f }, \
+                    { 0x01, 0.5f }, \
+                    { 0x02, 0.75f }, \
+                    { 0x03, 1.0f }, \
+                    { 0x04, 1.7f }, \
+                    { 0x05, 2.5f }, \
+                    { 0x06, 3.3f }, \
+                    { 0x07, 4.1f }, \
+                    { 0x08, 5.0f } \
                 } }
 
 #define FT817_ALC_CAL { 6, \
@@ -330,7 +331,7 @@ struct rig_caps ft817_caps =
     .has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_CSQL | RIG_FUNC_RIT,
     .has_get_level =
     RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER |
-    RIG_LEVEL_ALC | RIG_LEVEL_SWR,
+    RIG_LEVEL_ALC | RIG_LEVEL_SWR | RIG_LEVEL_RFPOWER_METER_WATTS,
     .has_set_level =       RIG_LEVEL_BAND_SELECT,
     .has_get_parm =        RIG_PARM_NONE,
     .has_set_parm =        RIG_PARM_NONE,
@@ -765,6 +766,7 @@ struct rig_caps ft818_caps =
 
 static int ft817_init(RIG *rig)
 {
+    struct ft817_priv_data *p;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called, version %s\n", __func__,
               rig->caps->version);
 
@@ -772,6 +774,9 @@ static int ft817_init(RIG *rig)
     {
         return -RIG_ENOMEM;
     }
+    p = (struct ft817_priv_data *) STATE(rig)->priv;
+
+    p->swr = 10;
 
     return RIG_OK;
 }
@@ -979,9 +984,9 @@ static int ft817_get_status(RIG *rig, int status)
         /* FT-817 returns 2 bytes with 4 nibbles.
          * Extract raw values here;
          * convert to float when they are requested. */
-        p->swr_level = result[0] & 0xF;
-        p->pwr_level = result[0] >> 4;
-        p->alc_level = result[1] & 0xF;
+        p->swr_level = (result[1] & 0xF0) >> 4;
+        p->pwr_level = (result[0] & 0xF0) >> 4;
+        p->alc_level = result[0] & 0x0F;
         p->mod_level = result[1] >> 4;
         rig_debug(RIG_DEBUG_TRACE, "%s: swr: %d, pwr %d, alc %d, mod %d\n",
                   __func__,
@@ -1168,10 +1173,12 @@ static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
         }
 
         *split = (c[0] & 0x80) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+	*tx_vfo = RIG_VFO_A;
     }
     else
     {
         *split = (p->tx_status & 0x20) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+	*tx_vfo = RIG_VFO_B;
     }
 
     return RIG_OK;
@@ -1193,7 +1200,7 @@ static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
         }
     }
 
-    *ptt = ((p->tx_status & 0x20) == 0x20);
+    *ptt = p->tx_status  != 0xff;
 
     return RIG_OK;
 }
@@ -1227,8 +1234,8 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
 
         if (ptt == RIG_PTT_OFF)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: rig not keyed\n", __func__);
-            return -RIG_ERJCTED; //Or return OK?
+	    val->f = p->swr;
+            return RIG_OK;
         }
 
         n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_METERING);
@@ -1239,7 +1246,7 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
         }
     }
 
-    val->f = rig_raw2val_float(*tx_level, cal);
+    p->swr = val->f = rig_raw2val_float(*tx_level, cal);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: level %f\n", __func__, val->f);
 
     return RIG_OK;
@@ -1332,6 +1339,10 @@ static int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_SWR:
         return ft817_get_tx_level(rig, val, &p->swr_level, &rig->caps->swr_cal);
+
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+        return ft817_get_tx_level(rig, val, &p->pwr_level,
+                                  &rig->caps->rfpower_meter_cal);
 
     default:
         return -RIG_EINVAL;
