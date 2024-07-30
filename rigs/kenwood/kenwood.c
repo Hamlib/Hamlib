@@ -378,7 +378,6 @@ transaction_write:
         skip |= strncmp(cmdstr, "PS1", 3) == 0;
         skip |= strncmp(cmdstr, "PS0", 3) == 0;
         skip |= strncmp(cmdstr, "K22", 3) == 0;
-        skip |= (rig->caps->rig_model == RIG_MODEL_PT8000A); // Skip Hilberling command check
 
         if (skip)
         {
