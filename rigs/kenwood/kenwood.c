@@ -378,7 +378,7 @@ transaction_write:
         skip |= strncmp(cmdstr, "PS1", 3) == 0;
         skip |= strncmp(cmdstr, "PS0", 3) == 0;
         skip |= strncmp(cmdstr, "K22", 3) == 0;
-        skip |= (rig->caps->rig_model == RIG_MODEL_PT8000A && (strncmp(cmdstr, "TQ", 2) == 0)); // Skip Hilberling TQn command check
+        skip |= (rig->caps->rig_model == RIG_MODEL_PT8000A); // Skip Hilberling command check
 
         if (skip)
         {
@@ -5161,6 +5161,7 @@ int kenwood_set_trn(RIG *rig, int trn)
 
     case RIG_MODEL_POWERSDR: // powersdr doesn't have AI command
     case RIG_MODEL_THETIS: // powersdr doesn't have AI command
+    case RIG_MODEL_PT8000A: // powersdr doesn't have AI command
         RETURNFUNC(-RIG_ENAVAIL);
 
     case RIG_MODEL_TS990S:
