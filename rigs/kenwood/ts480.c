@@ -1897,6 +1897,7 @@ struct rig_caps pt8000a_caps =
     },
     /* mode/filter list, remember: order matters! */
     .filters =  {
+        {RIG_MODE_SSB, kHz(6.0)},
         {RIG_MODE_SSB, kHz(1.0)},
         {RIG_MODE_SSB, kHz(1.2)},
         {RIG_MODE_SSB, kHz(1.4)},
@@ -1920,7 +1921,6 @@ struct rig_caps pt8000a_caps =
         {RIG_MODE_SSB, kHz(3.4)},
         {RIG_MODE_SSB, kHz(3.5)},
         {RIG_MODE_SSB, kHz(4.6)},
-        {RIG_MODE_SSB, kHz(6.0)},
         {RIG_MODE_CW, Hz(50)},
         {RIG_MODE_CW, Hz(100)},
         {RIG_MODE_CW, Hz(200)},
@@ -1987,8 +1987,8 @@ struct rig_caps pt8000a_caps =
     .get_ptt = kenwood_get_ptt,
     .set_ptt = kenwood_set_ptt,
     .get_dcd = kenwood_get_dcd,
-    .set_powerstat = kenwood_set_powerstat,
-    .get_powerstat = kenwood_get_powerstat,
+//    .set_powerstat = kenwood_set_powerstat,
+//    .get_powerstat = kenwood_get_powerstat,
     .get_info = kenwood_ts480_get_info,
     .reset = kenwood_reset,
     .set_ant = kenwood_set_ant,
