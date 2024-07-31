@@ -206,6 +206,15 @@ again1:
             RETURNFUNC(-RIG_EPROTO);
         }
 
+        // https://github.com/Hamlib/Hamlib/issues/1575
+        // these types of async can interrupt the cmd we sent
+        if (sendbuf[3] != buf[2] && buf[4] == 0x03)
+        {
+            hl_usleep(100);
+            rig_flush(rp);
+            goto collision_retry;
+        }
+
         if (icom_is_async_frame(rig, frm_len, buf))
         {
             icom_process_async_frame(rig, frm_len, buf);
