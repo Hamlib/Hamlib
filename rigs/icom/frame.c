@@ -206,16 +206,6 @@ again1:
             RETURNFUNC(-RIG_EPROTO);
         }
 
-        // https://github.com/Hamlib/Hamlib/issues/1575
-        // these types of async can interrupt the cmd we sent
-        // if our host number changes must not be for us
-        if (sendbuf[3] != buf[2])
-        {
-            hl_usleep(100);
-            rig_flush(rp);
-            goto collision_retry;
-        }
-
         if (icom_is_async_frame(rig, frm_len, buf))
         {
             icom_process_async_frame(rig, frm_len, buf);
@@ -332,6 +322,17 @@ again2:
         priv->serial_USB_echo_off = 0;
         goto again2;
     }
+    // https://github.com/Hamlib/Hamlib/issues/1575
+    // these types of async can interrupt the cmd we sent
+    // if our host number changes must not be for us
+    if (sendbuf[3] != buf[2])
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown async?  read again\n", __func__);
+        hl_usleep(100);
+        rig_flush(rp);
+        goto collision_retry;
+    }
+
 
     if (icom_is_async_frame(rig, frm_len, buf))
     {
