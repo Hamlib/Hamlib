@@ -208,7 +208,8 @@ again1:
 
         // https://github.com/Hamlib/Hamlib/issues/1575
         // these types of async can interrupt the cmd we sent
-        if (sendbuf[3] != buf[2] && buf[4] == 0x03)
+        // if our host number changes must not be for us
+        if (sendbuf[3] != buf[2])
         {
             hl_usleep(100);
             rig_flush(rp);
