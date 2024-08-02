@@ -150,9 +150,6 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
 
     ctrl_id = priv_caps->serial_full_duplex == 0 ? CTRLID : 0x80;
 
-    frm_len = make_cmd_frame(sendbuf, priv->re_civ_addr, ctrl_id, cmd,
-                             subcmd, payload, payload_len);
-
     /*
      * should check return code and that write wrote cmd_len chars!
      */
@@ -160,6 +157,9 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
 
 collision_retry:
     //rig_flush(rp);
+    frm_len = make_cmd_frame(sendbuf, priv->re_civ_addr, ctrl_id, cmd,
+                             subcmd, payload, payload_len);
+
 
     if (data_len) { *data_len = 0; }
 
