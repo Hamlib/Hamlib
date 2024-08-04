@@ -156,7 +156,11 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
     set_transaction_active(rig);
 
 collision_retry:
-    //rig_flush(rp);
+    // The IC7100 cannot separate the CI-V port from the USB CI-V
+    // We see async packets coming in so we'll try and do the flush
+    // This also means the IC7100 will not support async packets anymore
+    if (rig->caps->rig_model == RIG_MODEL_IC7100)
+        rig_flush(rp);
     frm_len = make_cmd_frame(sendbuf, priv->re_civ_addr, ctrl_id, cmd,
                              subcmd, payload, payload_len);
 
