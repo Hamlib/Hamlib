@@ -518,9 +518,10 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     sprintf(cmd, "slice set %d tx=1", priv->slicenum);
-    smartsdr_transaction(rig, cmd);
+    smartsdr_transaction(rig, cmd); 
     sprintf(cmd, "xmit %d", ptt);
     smartsdr_transaction(rig, cmd);
+    if (!ptt) hl_usleep(100*1000); // need a little time for PTT to actually turn off
     priv->ptt = ptt;
     RETURNFUNC(RIG_OK);
 }
