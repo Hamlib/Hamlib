@@ -508,8 +508,14 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     char cmd[64];
+    char slicechar[] = { '?','A','B','C','D','E','F','G','H' };
     ENTERFUNC;
 
+    if (priv->ptt)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: abort PTT on slice %c, another slice has PTT control\n", __func__, slicechar[priv->slicenum]);
+        return -RIG_ENTARGET;
+    }
     if (ptt)
     {
         sprintf(cmd, "dax audio set %d tx=1", priv->slicenum + 1);
