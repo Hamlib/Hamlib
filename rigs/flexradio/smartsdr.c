@@ -516,6 +516,7 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
         rig_debug(RIG_DEBUG_ERR, "%s: abort PTT on slice %c, another slice has PTT control\n", __func__, slicechar[priv->slicenum]);
         return -RIG_ENTARGET;
     }
+    priv->ptt = ptt;
     if (ptt)
     {
         sprintf(cmd, "dax audio set %d tx=1", priv->slicenum + 1);
@@ -527,8 +528,6 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     smartsdr_transaction(rig, cmd); 
     sprintf(cmd, "xmit %d", ptt);
     smartsdr_transaction(rig, cmd);
-    if (!ptt) hl_usleep(100*1000); // need a little time for PTT to actually turn off
-    priv->ptt = ptt;
     RETURNFUNC(RIG_OK);
 }
 
