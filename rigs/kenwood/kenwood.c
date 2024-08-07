@@ -1963,6 +1963,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (priv->verify_cmd[1] == 'A' && vfo_letter == 'B') { priv->verify_cmd[1] = 'A'; }
 
     err = kenwood_transaction(rig, freqbuf, NULL, 0);
+    hl_usleep(50*1000); // TS480 is slow to change freq so give it some time as well as others just in case
 
     if (priv->verify_cmd[1] == 'B' && vfo_letter == 'B') { priv->verify_cmd[1] = 'A'; }
 
