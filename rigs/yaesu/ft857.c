@@ -276,7 +276,7 @@ struct rig_caps ft857_caps =
     .retry =      0,
     .has_get_func =       RIG_FUNC_NONE,
     .has_set_func =   RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_CSQL | RIG_FUNC_RIT,
-    .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER,
+    .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_RFPOWER_METER_WATTS,
     .has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =   RIG_PARM_NONE,
     .has_set_parm =   RIG_PARM_NONE,
@@ -915,14 +915,23 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return ft857_get_smeter_level(rig, val);
 
     case RIG_LEVEL_RFPOWER:
-		if (144000000 >= vfo && 148000000 <= vfo) {
-			return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
-		}
-		else if (420000000 >= vfo && 450000000 <= vfo) {
-			return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 5.0);
-		}
+        if (144000000 >= vfo && 148000000 <= vfo) {
+	    return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
+	}
+	else if (420000000 >= vfo && 450000000 <= vfo) {
+	    return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 5.0);
+	}
         return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 1.0);
-
+        
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+        if (144000000 >= vfo && 148000000 <= vfo) {
+	    return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
+	}
+	else if (420000000 >= vfo && 450000000 <= vfo) {
+	    return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 5.0);
+	}
+        return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 1.0);
+                                  
     default:
         return -RIG_EINVAL;
     }
