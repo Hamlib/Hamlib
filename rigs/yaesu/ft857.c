@@ -926,7 +926,7 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         
     case RIG_LEVEL_RFPOWER_METER_WATTS:
         if (144000000 >= vfo && 148000000 <= vfo) {
-	    return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
+	    return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 4.0);
 	}
 	else if (420000000 >= vfo && 450000000 <= vfo) {
 	    return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 5.0);
