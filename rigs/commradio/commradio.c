@@ -58,7 +58,7 @@ int commradio_transaction(RIG *rig, const unsigned char *cmd, int cmd_len,
 	{
 		goto transaction_quit;
 	}
-	ret = unpack_frame(data, rx, ret);
+	ret = commradio_unpack_frame(data, rx, ret);
 	if (ret < RIG_OK)
 	{
 		goto transaction_quit;
