@@ -1093,7 +1093,6 @@ void *multicast_publisher(void *arg)
                           "%s: error sending UDP packet: %s\n", __func__,
                           strerror(errno));
                 flag = 1;
-                break; // we'll just quit this routine for now -- debug in the future
             }
         }
     }
