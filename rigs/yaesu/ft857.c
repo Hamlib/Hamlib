@@ -874,7 +874,7 @@ static int ft857_get_pometer_level(RIG *rig, value_t *val, const cal_table_float
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: bars=%d\n", __func__, p->tx_status & 0x0F);
         // does rig have 10 bars or 15?
-        val->f = (p->tx_status & 0x0F) / divider;
+        val->f = rig_raw2val_float(*val, cal)/divider;
     }
     else
     {
