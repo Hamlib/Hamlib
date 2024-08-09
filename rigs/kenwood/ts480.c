@@ -44,8 +44,14 @@
 #define TS480_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
     RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
+#define PT8000A_LEVEL_GET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_STRENGTH|RIG_LEVEL_CWPITCH| \
+    RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
+    RIG_LEVEL_SWR|RIG_LEVEL_COMP_METER|RIG_LEVEL_ALC|RIG_LEVEL_RFPOWER_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
 
 #define TS480_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_CWPITCH| \
+    RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
+    RIG_LEVEL_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
+#define PT8000A_LEVEL_SET (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_MICGAIN|RIG_LEVEL_CWPITCH| \
     RIG_LEVEL_MONITOR_GAIN|RIG_LEVEL_NB|RIG_LEVEL_NR|RIG_LEVEL_PREAMP|RIG_LEVEL_COMP|RIG_LEVEL_ATT|RIG_LEVEL_VOXDELAY|RIG_LEVEL_VOXGAIN|RIG_LEVEL_BKIN_DLYMS| \
     RIG_LEVEL_METER|RIG_LEVEL_SLOPE_HIGH|RIG_LEVEL_SLOPE_LOW)
 
@@ -1830,7 +1836,7 @@ struct rig_caps qrplabs_caps =
 };
 
 /*
- * Hilberling PS8000A TS480 emulation
+ * Hilberling PT8000A TS480 emulation
  * Notice that some rigs share the same functions.
  */
 struct rig_caps pt8000a_caps =
@@ -1838,7 +1844,7 @@ struct rig_caps pt8000a_caps =
     RIG_MODEL(RIG_MODEL_PT8000A),
     .model_name = "PT-8000A",
     .mfg_name = "Hilberling",
-    .version = BACKEND_VER ".3",
+    .version = BACKEND_VER ".2",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1891,6 +1897,7 @@ struct rig_caps pt8000a_caps =
     },
     /* mode/filter list, remember: order matters! */
     .filters =  {
+        {RIG_MODE_SSB, kHz(6.0)},
         {RIG_MODE_SSB, kHz(1.0)},
         {RIG_MODE_SSB, kHz(1.2)},
         {RIG_MODE_SSB, kHz(1.4)},
@@ -1914,7 +1921,6 @@ struct rig_caps pt8000a_caps =
         {RIG_MODE_SSB, kHz(3.4)},
         {RIG_MODE_SSB, kHz(3.5)},
         {RIG_MODE_SSB, kHz(4.6)},
-        {RIG_MODE_SSB, kHz(6.0)},
         {RIG_MODE_CW, Hz(50)},
         {RIG_MODE_CW, Hz(100)},
         {RIG_MODE_CW, Hz(200)},
@@ -1981,15 +1987,15 @@ struct rig_caps pt8000a_caps =
     .get_ptt = kenwood_get_ptt,
     .set_ptt = kenwood_set_ptt,
     .get_dcd = kenwood_get_dcd,
-    .set_powerstat = kenwood_set_powerstat,
-    .get_powerstat = kenwood_get_powerstat,
+//    .set_powerstat = kenwood_set_powerstat,
+//    .get_powerstat = kenwood_get_powerstat,
     .get_info = kenwood_ts480_get_info,
     .reset = kenwood_reset,
     .set_ant = kenwood_set_ant,
     .get_ant = kenwood_get_ant,
     .scan = kenwood_scan,     /* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
-    .has_set_level = TS480_LEVEL_SET,
-    .has_get_level = TS480_LEVEL_GET,
+    .has_set_level = PT8000A_LEVEL_SET,
+    .has_get_level = PT8000A_LEVEL_GET,
     .set_level = kenwood_ts480_set_level,
     .get_level = kenwood_ts480_get_level,
     .has_get_func = TS480_FUNC_ALL,

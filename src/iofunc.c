@@ -960,13 +960,22 @@ static int port_wait_for_data(hamlib_port_t *p, int direct)
 int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer,
                                 size_t count)
 {
+    int retval = RIG_OK;
 
     if (p->asyncio)
     {
-        return (int) write(p->fd_sync_write, txbuffer, count);
+        retval = write(p->fd_sync_write, txbuffer, count);
     }
-
-    return (int) write(p->fd, txbuffer, count);
+    else
+    {
+        retval = write(p->fd, txbuffer, count);
+    }
+    if (retval != count)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: write failed: %s\n", __func__, strerror(errno));
+        retval = -RIG_EIO;
+    }
+    return retval;
 }
 
 int HAMLIB_API write_block_sync_error(hamlib_port_t *p,

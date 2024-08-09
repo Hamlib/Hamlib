@@ -150,16 +150,20 @@ int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
 
     ctrl_id = priv_caps->serial_full_duplex == 0 ? CTRLID : 0x80;
 
-    frm_len = make_cmd_frame(sendbuf, priv->re_civ_addr, ctrl_id, cmd,
-                             subcmd, payload, payload_len);
-
     /*
      * should check return code and that write wrote cmd_len chars!
      */
     set_transaction_active(rig);
 
 collision_retry:
-    //rig_flush(rp);
+    // The IC7100 cannot separate the CI-V port from the USB CI-V
+    // We see async packets coming in so we'll try and do the flush
+    // This also means the IC7100 will not support async packets anymore
+    if (rig->caps->rig_model == RIG_MODEL_IC7100)
+        rig_flush(rp);
+    frm_len = make_cmd_frame(sendbuf, priv->re_civ_addr, ctrl_id, cmd,
+                             subcmd, payload, payload_len);
+
 
     if (data_len) { *data_len = 0; }
 
@@ -214,11 +218,11 @@ again1:
         // if we get a reply that is not our cmd/subcmd we should just ignore it and retry the read.
         // this should somewhat allow splitting the COM port between two controllers
         if (cmd != buf[4]) {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd x%02d != buf x%02x so retry read\n", __func__, cmd, buf[4]);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd x%02x != buf x%02x so retry read\n", __func__, cmd, buf[4]);
             goto again1;
         }
         if (subcmd != -1 && subcmd != buf[5]) {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: subcmd x%02d != buf x%02x so retry read\n", __func__, subcmd, buf[5]);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: subcmd x%02x != buf x%02x so retry read\n", __func__, subcmd, buf[5]);
             goto again1;
         }
 
@@ -322,6 +326,17 @@ again2:
         priv->serial_USB_echo_off = 0;
         goto again2;
     }
+    // https://github.com/Hamlib/Hamlib/issues/1575
+    // these types of async can interrupt the cmd we sent
+    // if our host number changes must not be for us
+    if (sendbuf[3] != buf[2])
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown async?  read again\n", __func__);
+        hl_usleep(100);
+        rig_flush(rp);
+        goto collision_retry;
+    }
+
 
     if (icom_is_async_frame(rig, frm_len, buf))
     {
