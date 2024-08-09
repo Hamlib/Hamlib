@@ -65,6 +65,7 @@
 #include "misc.h"
 #include "tones.h"
 #include "bandplan.h"
+#include "cal.h"
 
 enum ft857_native_cmd_e
 {
