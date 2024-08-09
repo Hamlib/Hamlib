@@ -378,7 +378,6 @@ transaction_write:
         skip |= strncmp(cmdstr, "PS1", 3) == 0;
         skip |= strncmp(cmdstr, "PS0", 3) == 0;
         skip |= strncmp(cmdstr, "K22", 3) == 0;
-        skip |= (rig->caps->rig_model == RIG_MODEL_PT8000A && (strncmp(cmdstr, "TQ", 2) == 0)); // Skip Hilberling TQn command check
 
         if (skip)
         {
@@ -1964,6 +1963,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     if (priv->verify_cmd[1] == 'A' && vfo_letter == 'B') { priv->verify_cmd[1] = 'A'; }
 
     err = kenwood_transaction(rig, freqbuf, NULL, 0);
+    hl_usleep(50*1000); // TS480 is slow to change freq so give it some time as well as others just in case
 
     if (priv->verify_cmd[1] == 'B' && vfo_letter == 'B') { priv->verify_cmd[1] = 'A'; }
 
@@ -5161,6 +5161,7 @@ int kenwood_set_trn(RIG *rig, int trn)
 
     case RIG_MODEL_POWERSDR: // powersdr doesn't have AI command
     case RIG_MODEL_THETIS: // powersdr doesn't have AI command
+    case RIG_MODEL_PT8000A: // powersdr doesn't have AI command
         RETURNFUNC(-RIG_ENAVAIL);
 
     case RIG_MODEL_TS990S:
