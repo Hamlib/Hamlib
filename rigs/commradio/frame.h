@@ -16,7 +16,7 @@
 int frame_message(unsigned char frame[], const unsigned char *data, 
 		          int data_len);
 
-int unpack_frame(unsigned char msg[], const unsigned char *frame, int frame_len);
+int commradio_unpack_frame(unsigned char msg[], const unsigned char *frame, int frame_len);
 
 #endif /* _FRAME_H */
 

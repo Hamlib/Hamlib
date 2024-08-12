@@ -20,7 +20,7 @@ struct rig_caps ctx10_caps =
 	RIG_MODEL(RIG_MODEL_CTX10),
 	.model_name = "CTX-10",
 	.mfg_name = "Commradio",
-	.version = "20240802.0",
+	.version = "20240809.0",
 	.copyright = "LGPL",
 	.status = RIG_STATUS_STABLE,
 	.rig_type = RIG_TYPE_TRANSCEIVER,
