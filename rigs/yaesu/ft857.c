@@ -65,6 +65,8 @@
 #include "misc.h"
 #include "tones.h"
 #include "bandplan.h"
+#include "cal.h"
+
 
 enum ft857_native_cmd_e
 {
@@ -225,6 +227,20 @@ enum ft857_digi
     FT857_DIGI_USER_U,
 };
 
+
+#define FT857_PWR_CAL { 9, \
+            { \
+                { 0x00, 0.0f }, \
+                { 0x01, 10.0f }, \
+                { 0x02, 15.0f }, \
+                { 0x03, 20.0f }, \
+                { 0x04, 34.0f }, \
+                { 0x05, 50.0f }, \
+                { 0x06, 66.0f }, \
+                { 0x07, 82.f }, \
+                { 0x08, 100.0f } \
+            } }
+
 #define FT857_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
                                  RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
 #define FT857_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
@@ -263,7 +279,7 @@ struct rig_caps ft857_caps =
     .retry =      0,
     .has_get_func =       RIG_FUNC_NONE,
     .has_set_func =   RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_CSQL | RIG_FUNC_RIT,
-    .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER,
+    .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_RFPOWER_METER_WATTS,
     .has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =   RIG_PARM_NONE,
     .has_set_parm =   RIG_PARM_NONE,
@@ -354,6 +370,7 @@ struct rig_caps ft857_caps =
 //        {RIG_MODE_WFM, kHz(230)}, /* ?? */
         RIG_FLT_END,
     },
+    .rfpower_meter_cal = FT857_PWR_CAL,
 
     .rig_init =       ft857_init,
     .rig_cleanup =    ft857_cleanup,
@@ -841,7 +858,7 @@ int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     return RIG_OK;
 }
 
-static int ft857_get_pometer_level(RIG *rig, value_t *val)
+static int ft857_get_pometer_level(RIG *rig, value_t *val, const cal_table_float_t *cal, float divider)
 {
     struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
@@ -861,7 +878,7 @@ static int ft857_get_pometer_level(RIG *rig, value_t *val)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: bars=%d\n", __func__, p->tx_status & 0x0F);
         // does rig have 10 bars or 15?
-        val->f = (p->tx_status & 0x0F) / 10.0;
+        val->f = rig_raw2val_float(p->tx_status & 0x0F, cal)/divider;
     }
     else
     {
@@ -895,6 +912,10 @@ static int ft857_get_smeter_level(RIG *rig, value_t *val)
 int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+    freq_t freq;
+    rmode_t mode;
+    pbwidth_t width;
+    int freq_ms, mode_ms, width_ms;
 
     switch (level)
     {
@@ -902,8 +923,17 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return ft857_get_smeter_level(rig, val);
 
     case RIG_LEVEL_RFPOWER:
-        return ft857_get_pometer_level(rig, val);
-
+    case RIG_LEVEL_RFPOWER_METER_WATTS:
+        rig_get_cache(rig, vfo, &freq, &freq_ms, &mode, &mode_ms, &width,
+                    &width_ms);
+        if (144000000.0f >= freq && 148000000.0f <= freq) {
+	        return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
+        }
+        else if (420000000.0f >= freq && 450000000.0f <= freq) {
+            return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 5.0);
+        }   
+        return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 1.0);
+                                  
     default:
         return -RIG_EINVAL;
     }
