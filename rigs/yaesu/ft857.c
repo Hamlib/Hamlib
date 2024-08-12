@@ -67,6 +67,7 @@
 #include "bandplan.h"
 #include "cal.h"
 
+
 enum ft857_native_cmd_e
 {
     FT857_NATIVE_CAT_LOCK_ON = 0,
@@ -896,6 +897,10 @@ static int ft857_get_smeter_level(RIG *rig, value_t *val)
 int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
+    freq_t freq;
+    rmode_t mode;
+    pbwidth_t width;
+    int freq_ms, mode_ms, width_ms;
 
     switch (level)
     {
@@ -904,12 +909,14 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RFPOWER:
     case RIG_LEVEL_RFPOWER_METER_WATTS:
-        // if (144000000 >= vfo && 148000000 <= vfo) {
-	    //     return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
-        // }
-        // else if (420000000 >= vfo && 450000000 <= vfo) {
-        //     return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 5.0);
-        // }   
+        rig_get_cache(rig, vfo, &freq, &freq_ms, &mode, &mode_ms, &width,
+                    &width_ms);
+        if (144000000.0f >= freq && 148000000.0f <= freq) {
+	        return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
+        }
+        else if (420000000.0f >= freq && 450000000.0f <= freq) {
+            return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 5.0);
+        }   
         return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 1.0);
                                   
     default:
