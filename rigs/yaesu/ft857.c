@@ -226,19 +226,6 @@ enum ft857_digi
     FT857_DIGI_USER_U,
 };
 
-#define FT857_PWR_CAL { 9, \
-            { \
-                { 0x00, 0.0f }, \
-                { 0x01, 10.0f }, \
-                { 0x02, 15.0f }, \
-                { 0x03, 20.0f }, \
-                { 0x04, 34.0f }, \
-                { 0x05, 50.0f }, \
-                { 0x06, 66.0f }, \
-                { 0x07, 82.f }, \
-                { 0x08, 100.0f } \
-            } }
-
 #define FT857_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
                                  RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_PKTUSB)
 #define FT857_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
@@ -277,7 +264,7 @@ struct rig_caps ft857_caps =
     .retry =      0,
     .has_get_func =       RIG_FUNC_NONE,
     .has_set_func =   RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL | RIG_FUNC_CSQL | RIG_FUNC_RIT,
-    .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_RFPOWER_METER_WATTS,
+    .has_get_level =  RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER,
     .has_set_level =  RIG_LEVEL_BAND_SELECT,
     .has_get_parm =   RIG_PARM_NONE,
     .has_set_parm =   RIG_PARM_NONE,
@@ -368,7 +355,7 @@ struct rig_caps ft857_caps =
 //        {RIG_MODE_WFM, kHz(230)}, /* ?? */
         RIG_FLT_END,
     },
-    .rfpower_meter_cal = FT857_PWR_CAL,
+
     .rig_init =       ft857_init,
     .rig_cleanup =    ft857_cleanup,
     .rig_open =       ft857_open,
@@ -855,7 +842,7 @@ int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     return RIG_OK;
 }
 
-static int ft857_get_pometer_level(RIG *rig, value_t *val, const cal_table_float_t *cal, float divider)
+static int ft857_get_pometer_level(RIG *rig, value_t *val)
 {
     struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);

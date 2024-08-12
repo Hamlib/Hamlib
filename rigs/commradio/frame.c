@@ -104,7 +104,7 @@ int frame_message(unsigned char frame[], const unsigned char *data,
 	return frame_len;
 }
 
-int unpack_frame(unsigned char msg[], const unsigned char *frame, 
+int commradio_unpack_frame(unsigned char msg[], const unsigned char *frame, 
 		         const int frame_len)
 {
 	if (frame_len < 5) 
