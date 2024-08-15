@@ -535,7 +535,7 @@ static int spid_rot_stop(ROT *rot)
         return retval;
     }
 
-    priv->dir = 0;
+    if (priv) priv->dir = 0;
 
     return RIG_OK;
 }
@@ -636,7 +636,7 @@ const struct rot_caps spid_rot1prog_rot_caps =
     ROT_MODEL(ROT_MODEL_SPID_ROT1PROG),
     .model_name =        "Rot1Prog",
     .mfg_name =          "SPID",
-    .version =           "20240530.0",
+    .version =           "20240815.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rot_type =          ROT_TYPE_AZIMUTH,
@@ -674,7 +674,7 @@ const struct rot_caps spid_rot2prog_rot_caps =
     ROT_MODEL(ROT_MODEL_SPID_ROT2PROG),
     .model_name =        "Rot2Prog",
     .mfg_name =          "SPID",
-    .version =           "20220109.0",
+    .version =           "20240815.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rot_type =          ROT_TYPE_AZEL,
@@ -712,7 +712,7 @@ const struct rot_caps spid_md01_rot2prog_rot_caps =
     ROT_MODEL(ROT_MODEL_SPID_MD01_ROT2PROG),
     .model_name =        "MD-01/02 (ROT2 mode)",
     .mfg_name =          "SPID",
-    .version =           "20220109.0",
+    .version =           "20240815.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
     .rot_type =          ROT_TYPE_AZEL,
