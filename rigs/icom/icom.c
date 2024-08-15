@@ -4544,7 +4544,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 break;
             }
         }
-        rig_debug(RIG_DEBUG_ERR, "%s: did not find KEYSPD=%d\n", __func__, icom_val);
+        if (i == 43) rig_debug(RIG_DEBUG_ERR, "%s: did not find KEYSPD=%d\n", __func__, icom_val);
         break;
 
     case RIG_LEVEL_PREAMP:
