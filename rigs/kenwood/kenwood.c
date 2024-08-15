@@ -3311,9 +3311,17 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     case RIG_LEVEL_RFPOWER:
     {
+        static mode_t mode = RIG_MODE_NONE;
         int power_now, power_min, power_max;
-        // Power min/max can vary so we query to find them out every time
-        retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 0);
+        pbwidth_t twidth;
+        int err = rig_get_mode(rig, vfo, &priv->curr_mode, &twidth);
+        // https://github.com/Hamlib/Hamlib/issues/1595
+        if (!err && priv->curr_mode != mode)  // only need to check when mode changes
+        {
+            mode = priv->curr_mode;
+            // Power min/max can vary so we query to find them out every time
+            retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 0);
+        }
 
         if (retval != RIG_OK) { RETURNFUNC(retval); }
 
