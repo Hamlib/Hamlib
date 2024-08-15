@@ -51,6 +51,53 @@ static int icom_get_spectrum_edge_frequency_range(RIG *rig, vfo_t vfo,
 static void icom_set_x25x26_ability(RIG *rig, int status);
 static int icom_get_vfo_number_x25x26(RIG *rig, vfo_t vfo);
 
+const int cw_lookup [43][2] =
+{
+{0,6},
+{7,7},
+{12,8},
+{19,9},
+{25,10},
+{31,11},
+{37,12},
+{43,13},
+{49,14},
+{55,15},
+{61,16},
+{67,17},
+{73,18},
+{79,19},
+{84,20},
+{91,21},
+{97,22},
+{103,23},
+{108,24},
+{114,25},
+{121,26},
+{128,27},
+{134,28},
+{140,29},
+{144,30},
+{151,31},
+{156,32},
+{164,33},
+{169,34},
+{175,35},
+{182,36},
+{188,37},
+{192,38},
+{199,39},
+{203,40},
+{211,41},
+{215,42},
+{224,43},
+{229,44},
+{234,45},
+{239,46},
+{244,47},
+{250,48}
+};
+
 const cal_table_float_t icom_default_swr_cal =
 {
     5,
@@ -3485,6 +3532,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
+    int i;
     case RIG_LEVEL_KEYSPD:
         if (val.i < 6)
         {
@@ -3494,8 +3542,16 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             icom_val = 48;
         }
+        for(i=0;i<43;++i)
+        {
+            if (icom_val == cw_lookup[i][1])
+            {
+                icom_val = cw_lookup[i][0];
+                rig_debug(RIG_DEBUG_ERR, "%s: found %d at i=%d\n", __func__, icom_val, i);
+                break;
+            }
+        }
 
-        icom_val = (int) lroundf(((float) icom_val - 6.0f) * (255.0f / 42.0f));
         break;
 
     case RIG_LEVEL_CWPITCH:
@@ -4478,7 +4534,17 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_KEYSPD:
-        val->i = (int) lroundf((float) icom_val * (42.0f / 255.0f) + 6.0f);
+        for(i=0;i<43;++i)
+        {
+            int rigval = cw_lookup[i][0];
+            if(rigval >= icom_val)
+            {
+                icom_val = cw_lookup[i][1];
+                val->i = icom_val;
+                break;
+            }
+        }
+        rig_debug(RIG_DEBUG_ERR, "%s: did not find KEYSPD=%d\n", __func__, icom_val);
         break;
 
     case RIG_LEVEL_PREAMP:
