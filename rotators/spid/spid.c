@@ -198,6 +198,7 @@ static int spid_rot_init(ROT *rot)
     }
 
     if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
+            rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG ||
             rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG)
     {
         struct spid_rot2prog_priv_data *priv;
@@ -215,6 +216,10 @@ static int spid_rot_init(ROT *rot)
         priv->az_resolution = 0;
         priv->el_resolution = 0;
         priv->dir = 0;
+    }
+    else
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown SPID model=%s\n", __func__,  rot->caps->model_name);
     }
 
     return RIG_OK;
