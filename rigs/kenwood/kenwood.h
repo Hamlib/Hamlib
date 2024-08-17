@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20240815"
+#define BACKEND_VER "20240817"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -182,6 +182,8 @@ struct kenwood_priv_data
     int save_k2_ext_lvl; // so we can restore to original
     int save_k3_ext_lvl; // so we can restore to original -- for future use if needed
     int voice_bank; /* last voice bank send for use by stop_voice_mem */
+    mode_t last_mode_pc; // last mode memory for PC command
+    int power_now,power_min,power_max;
 };
 
 

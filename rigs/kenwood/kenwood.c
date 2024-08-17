@@ -3049,6 +3049,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     int max_length = 18;
     int expected_length;
     int retval;
+    int simple_PC = 0; // flag to do just a simple PC command
     char levelbuf[max_length + 1];
     // read power_now, set 0, read power_min, set 255, read_power_max; set 0
     // we set back to 0 for safety and if restore is true we restore power_min
@@ -3060,6 +3061,8 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     struct hamlib_port *rp = RIGPORT(rig);
 
     ENTERFUNC;
+
+    if (power_now == NULL || power_min == NULL) simple_PC = 1;
 
     switch (rig->caps->rig_model)
     {
@@ -3087,7 +3090,10 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         break;
 
     default:
-        cmd = "PC;PC000;PC;PC255;PC;PC000;";
+        if (simple_PC)
+            cmd = "PC;";
+        else
+            cmd = "PC;PC000;PC;PC255;PC;PC000;";
     }
 
     // Don't do this if PTT is on...don't want to max out power!!
@@ -3106,7 +3112,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
 
     if (retval != RIG_OK) { RETURNFUNC(retval); }
 
-    if (RIG_IS_TS890S || RIG_IS_TS480)
+    if (RIG_IS_TS890S || RIG_IS_TS480 || simple_PC)
     {
         expected_length = 6;
     }
@@ -3130,7 +3136,7 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         RETURNFUNC(-RIG_EPROTO);
     }
 
-    if (RIG_IS_TS890S || RIG_IS_TS480)
+    if (RIG_IS_TS890S || RIG_IS_TS480 || simple_PC)
     {
         n = sscanf(levelbuf, "PC%d;", power_now);
 
@@ -3160,12 +3166,13 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         }
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: returning now=%d, min=%d, max=%d\n", __func__,
-              *power_now, *power_min, *power_max);
 
     rs->power_now = *power_now;
-    rs->power_min = *power_min;
-    rs->power_max = *power_max;
+    if (!simple_PC)
+    {
+        rs->power_min = *power_min;
+        rs->power_max = *power_max;
+    }
     RETURNFUNC(RIG_OK);
 }
 
@@ -3307,30 +3314,27 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
-        int retval;
+    int retval = RIG_OK;
 
     case RIG_LEVEL_RFPOWER:
     {
-        static mode_t mode = RIG_MODE_NONE;
-        int power_now, power_min, power_max;
         pbwidth_t twidth;
         int err = rig_get_mode(rig, vfo, &priv->curr_mode, &twidth);
         // https://github.com/Hamlib/Hamlib/issues/1595
-        if (!err && priv->curr_mode != mode)  // only need to check when mode changes
+        if (!err && priv->last_mode_pc != priv->curr_mode)  // only need to check when mode changes
         {
-            mode = priv->curr_mode;
+            priv->last_mode_pc = priv->curr_mode;
             // Power min/max can vary so we query to find them out every time
-            retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 0);
+            retval = kenwood_get_power_minmax(rig, &priv->power_now, &priv->power_min, &priv->power_max, 0);
+            if (retval != RIG_OK) { RETURNFUNC(retval); }
         }
 
-        if (retval != RIG_OK) { RETURNFUNC(retval); }
-
         // https://github.com/Hamlib/Hamlib/issues/465
-        kenwood_val = val.f * power_max;
+        kenwood_val = val.f * priv->power_max;
 
-        if (kenwood_val < power_min) { kenwood_val = power_min; }
+        if (kenwood_val < priv->power_min) { kenwood_val = priv->power_min; }
 
-        if (kenwood_val > power_max) { kenwood_val = power_max; }
+        if (kenwood_val > priv->power_max) { kenwood_val = priv->power_max; }
 
         SNPRINTF(levelbuf, sizeof(levelbuf), "PC%03d", kenwood_val);
         break;
@@ -3690,8 +3694,6 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-        int power_now, power_min, power_max;
-
     case RIG_LEVEL_RAWSTR:
         if (RIG_IS_TS590S || RIG_IS_TS590SG)
         {
@@ -3902,13 +3904,23 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER:
-        // Power min/max can vary so we query to find them out every time
-        retval = kenwood_get_power_minmax(rig, &power_now, &power_min, &power_max, 1);
+        pbwidth_t twidth;
+        int err = rig_get_mode(rig, vfo, &priv->curr_mode, &twidth);
+        // https://github.com/Hamlib/Hamlib/issues/1595
+        if (!err && priv->last_mode_pc != priv->curr_mode)  // only need to check when mode changes
+        {
+            priv->last_mode_pc = priv->curr_mode;
+            // Power min/max can vary so we query to find them out every time
+            retval = kenwood_get_power_minmax(rig, &priv->power_now, &priv->power_min, &priv->power_max, 0);
+            if (retval != RIG_OK) { RETURNFUNC(retval); }
+        }
+        else
+        {
+            retval = kenwood_get_power_minmax(rig, &priv->power_now, NULL, NULL, 0);
+        }
 
-        if (retval != RIG_OK) { RETURNFUNC(retval); }
-
-        power_min = 0; // our return scale is 0-max to match the input scale
-        val->f = (power_now - power_min) / (float)(power_max - power_min);
+        priv->power_min = 0; // our return scale is 0-max to match the input scale
+        val->f = (priv->power_now - priv->power_min) / (float)(priv->power_max - priv->power_min);
         RETURNFUNC(RIG_OK);
 
     case RIG_LEVEL_AF:
