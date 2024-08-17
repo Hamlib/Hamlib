@@ -954,7 +954,7 @@ static int flrig_open(RIG *rig)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwB is available=%s\n", __func__, value);
         }
 
-        /* see if set_bwA is available */
+        /* see if set_bwB is available */
         retval = flrig_transaction(rig, "rig.set_bwB", NULL, value, sizeof(value));
 
         if (retval == RIG_ENAVAIL) // must not have it
