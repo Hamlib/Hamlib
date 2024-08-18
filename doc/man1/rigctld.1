@@ -236,8 +236,8 @@ rigctl -m 2 -r ::1 (on Linux rigctld doesn't listen on IPV6 by default)
 .IP
 rigctld -T 127.0.0.1
 .in +4n
-rigctl -m 2
-rigctl -m 2 -r 127.0.0.1
+rigctl -m 2 (binds to all interfaces)
+rigctl -m 2 -r 127.0.0.1 (bind only to 127.0.0.1)
 .EE
 Exceptions:
 .EX
