@@ -138,6 +138,27 @@ Use
 as the listening IP address.
 .IP
 The default is ANY.
+.IP
+.B rotctld
+can be run and connected to like this:
+.
+.IP
+.EX
+rotctld (binds to all interfaces)
+.
+.in +4n
+rotctl -m 2
+rotctl -m 2 -r 127.0.0.1
+rotctl -m 2 -r localhost
+rotctl -m 2 -r 192.168.1.1 (local IP address)
+rotctl -m 2 -r ::1 (on Linux rotctld doesn't listen on IPV6 by default)
+.in
+.
+.IP
+rotctld -T 127.0.0.1 (bind only to 127.0.0.1)
+.in +4n
+rotctl -m 2 (binds to all interfaces)
+rotctl -m 2 -r 127.0.0.1 (bind only to 127.0.0.1)
 .
 .TP
 .BR \-t ", " \-\-port = \fInumber\fP
@@ -149,8 +170,8 @@ The default is 4533.
 .IP
 .BR Note :
 As
-.BR rigctld \(aqs
-default port is 4532, it is advisable to use odd numbered ports for
+.BR rotctld \(aqs
+default port is 4533, it is advisable to use odd numbered ports for
 .BR rotctld ,
 e.g. 4533, 4535, 4537, etc.
 .
