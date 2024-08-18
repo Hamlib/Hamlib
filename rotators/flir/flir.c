@@ -63,8 +63,8 @@ struct flir_priv_data
 
     char *magic_conf;
 
-    float_t resolution_pp;
-    float_t resolution_tp;
+    double resolution_pp;
+    double resolution_tp;
 };
 
 static int flir_request(ROT *rot, char *request, char *response,
@@ -178,7 +178,7 @@ static int flir_open(ROT *rot)
 {
     struct flir_priv_data *priv;
     char return_str[MAXBUF];
-    float_t resolution_pp, resolution_tp;
+    double resolution_pp, resolution_tp;
     int return_value = RIG_OK;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -206,8 +206,8 @@ static int flir_open(ROT *rot)
     // Get PAN resolution in arcsecs
     if (flir_request(rot, "PR\n", return_str, MAXBUF) == RIG_OK)
     {
-        sscanf(return_str, "* %f", &resolution_pp);
-        rig_debug(RIG_DEBUG_VERBOSE, "PAN resolution: %f arcsecs per position\n",
+        sscanf(return_str, "* %lf", &resolution_pp);
+        rig_debug(RIG_DEBUG_VERBOSE, "PAN resolution: %lf arcsecs per position\n",
                   resolution_pp);
         priv->resolution_pp = resolution_pp;
     }
@@ -219,8 +219,8 @@ static int flir_open(ROT *rot)
     // Get TILT resolution in arcsecs
     if (flir_request(rot, "TR\n", return_str, MAXBUF) == RIG_OK)
     {
-        sscanf(return_str, "* %f", &resolution_tp);
-        rig_debug(RIG_DEBUG_VERBOSE, "TILT resolution: %f arcsecs per position\n",
+        sscanf(return_str, "* %lf", &resolution_tp);
+        rig_debug(RIG_DEBUG_VERBOSE, "TILT resolution: %lf arcsecs per position\n",
                   resolution_tp);
         priv->resolution_tp = resolution_tp;
     }
@@ -517,7 +517,7 @@ struct rot_caps flir_caps =
     ROT_MODEL(ROT_MODEL_FLIR),
     .model_name =     "PTU Serial",
     .mfg_name =       "FLIR",
-    .version =        "20221126.0",
+    .version =        "20240818.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
     .rot_type =       ROT_TYPE_AZEL,
