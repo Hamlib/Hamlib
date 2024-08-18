@@ -3314,10 +3314,11 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
-    int retval = RIG_OK;
+    int retval;
 
     case RIG_LEVEL_RFPOWER:
     {
+        retval = RIG_OK;
         pbwidth_t twidth;
         int err = rig_get_mode(rig, vfo, &priv->curr_mode, &twidth);
         // https://github.com/Hamlib/Hamlib/issues/1595
@@ -3904,6 +3905,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER:
+    {
         pbwidth_t twidth;
         int err = rig_get_mode(rig, vfo, &priv->curr_mode, &twidth);
         // https://github.com/Hamlib/Hamlib/issues/1595
@@ -3922,6 +3924,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         priv->power_min = 0; // our return scale is 0-max to match the input scale
         val->f = (priv->power_now - priv->power_min) / (float)(priv->power_max - priv->power_min);
         RETURNFUNC(RIG_OK);
+    }
 
     case RIG_LEVEL_AF:
     {
