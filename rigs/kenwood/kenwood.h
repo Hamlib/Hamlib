@@ -28,7 +28,7 @@
 #include "token.h"
 #include "idx_builtin.h"
 
-#define BACKEND_VER "20240818"
+#define BACKEND_VER "20240819"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
@@ -89,6 +89,7 @@ extern struct confparams kenwood_cfg_params[];
 #define RIG_IS_K3S       (rig->caps->rig_model == RIG_MODEL_K3S)
 #define RIG_IS_KX2       (rig->caps->rig_model == RIG_MODEL_KX2)
 #define RIG_IS_KX3       (rig->caps->rig_model == RIG_MODEL_KX3)
+#define RIG_IS_K4        (rig->caps->rig_model == RIG_MODEL_K4)
 #define RIG_IS_THD7A     (rig->caps->rig_model == RIG_MODEL_THD7A)
 #define RIG_IS_THD74     (rig->caps->rig_model == RIG_MODEL_THD74)
 #define RIG_IS_TMD700    (rig->caps->rig_model == RIG_MODEL_TMD700)
