@@ -514,7 +514,7 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     if (priv->ptt && ptt) // abort ptt if we're already transmitting
     {
         rig_debug(RIG_DEBUG_ERR, "%s: abort PTT on slice %c, another slice has PTT control\n", __func__, slicechar[priv->slicenum]);
-        return -RIG_ENTARGET;
+        RETURNFUNC(-RIG_ENTARGET);
     }
     priv->ptt = ptt;
     if (ptt)
