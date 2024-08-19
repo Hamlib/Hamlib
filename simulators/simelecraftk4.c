@@ -37,6 +37,7 @@ int ai = 0;
 int dt = 0;
 int modeA = 2;
 int modeB = 2;
+int ptt = 0;
 //    int freqa = 14074000, freqb = 14073500;
 
 // ID 0310 == 310, Must drop leading zero
@@ -312,7 +313,7 @@ int main(int argc, char *argv[])
         {
             WRITE(fd, "K30;", 4);
         }
-        else if (strcmp(buf, "RVM;") == 0)
+        else if (strncmp(buf, "RV", 2) == 0)
         {
             WRITE(fd, "RV02.37;", 8);
         }
@@ -375,7 +376,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "TQ;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "TQ0;");
+            SNPRINTF(buf, sizeof(buf), "TQ%d;", ptt);
             WRITE(fd, buf, strlen(buf));
         }
         else if (strncmp(buf, "PC;", 3) == 0)
@@ -429,6 +430,19 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "KY", 2) == 0)
         {
             printf("Morse: %s\n", buf);
+        }
+        else if (strncmp(buf, "TM", 2) == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "TM001002003004;");
+            WRITE(fd, buf, strlen(buf));
+        }
+        else if (strncmp(buf, "TX", 2) == 0)
+        {
+            ptt = 1;
+        }
+        else if (strncmp(buf, "RX", 2) == 0)
+        {
+            ptt = 0;
         }
         else if (strlen(buf) > 0)
         {

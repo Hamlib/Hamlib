@@ -171,6 +171,29 @@ int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb);
 int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb);
 int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
                            int *mode_tx);
+int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
+                           int *mode_tx);
+int kx3_get_bar_graph_level(RIG *rig, float *level);
+int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
+int k3_stop_voice_mem(RIG *rig, vfo_t vfo);
+int k3_stop_morse(RIG *rig, vfo_t vfo);
+
+/* K4 functions */
+int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int k4_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
+int k4_stop_voice_mem(RIG *rig, vfo_t vfo);
+int k4_stop_morse(RIG *rig, vfo_t vfo);
+
+/*
+ * K3 rig capabilities.
+ * This kit can recognize a large subset of TS-570/K2 commands and has many
+ * extensions of its own.  Extension backend functions to standard Kenwood
+ * command are defined in elecraft.c (shared with K2) and in this file.
+ *
+ * Part of info comes from http://www.elecraft.com/K2_Manual_Download_Page.htm#K3
+ * look for K3 Programmer's Reference PDF
+ */
 int kx3_get_bar_graph_level(RIG *rig, float *level);
 int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
 int k3_stop_voice_mem(RIG *rig, vfo_t vfo);
@@ -519,7 +542,7 @@ struct rig_caps k4_caps =
     RIG_MODEL(RIG_MODEL_K4),
     .model_name =       "K4",
     .mfg_name =     "Elecraft",
-    .version =      BACKEND_VER ".31",
+    .version =      BACKEND_VER ".32",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -2086,7 +2109,15 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int tx_mode;
         float alc;
 
-        retval = k3_get_bar_graph_level(rig, NULL, NULL, &alc, &tx_mode);
+        if (RIG_IS_K4)
+        {
+            retval = k4_get_bar_graph_level(rig, NULL, NULL, &alc, &tx_mode);
+            tx_mode = 1;  // Assume ALC is zero when in Tx so we don't care about ptt status
+        }
+        else
+        {
+            retval = k3_get_bar_graph_level(rig, NULL, NULL, &alc, &tx_mode);
+        }
 
         if (retval != RIG_OK)
         {
@@ -2114,7 +2145,15 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         int tx_mode;
         float pwr;
 
-        retval = k3_get_bar_graph_level(rig, NULL, &pwr, NULL, &tx_mode);
+        if (RIG_IS_K4)
+        {
+            retval = k4_get_bar_graph_level(rig, NULL, &pwr, NULL, &tx_mode);
+            tx_mode = 1;  // Does K4 return pwr=0 when in Rx?  Hope so.
+        }
+        else
+        {
+            retval = k3_get_bar_graph_level(rig, NULL, &pwr, NULL, &tx_mode);
+        }
 
         if (retval != RIG_OK)
         {
@@ -2319,14 +2358,22 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_SWR:
-        retval = kenwood_safe_transaction(rig, "SW", levelbuf, sizeof(levelbuf), 5);
-
-        if (retval != RIG_OK)
+        if (RIG_IS_K4)
         {
-            return retval;
+            retval = k4_get_bar_graph_level(rig, &val->f, NULL, NULL, NULL);
+            return RIG_OK;
         }
+        else 
+        {
+            retval = kenwood_safe_transaction(rig, "SW", levelbuf, sizeof(levelbuf), 5);
 
-        sscanf(levelbuf + 2, "%d", &val->i);
+            if (retval != RIG_OK)
+            {
+                return retval;
+           }
+
+            sscanf(levelbuf + 2, "%d", &val->i);
+        }
         val->f = (float) val->i / 10.0f;
         break;
 
@@ -2691,6 +2738,29 @@ int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb)
         *if_nb = (float) if_nb_raw / 21.0f;
     }
 
+    return RIG_OK;
+}
+
+int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
+                           int *mode_tx)
+{
+    int retval;
+    int ialc,icmp,ifwd,iswr;
+    char levelbuf[16];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    retval = kenwood_safe_transaction(rig, "TM", levelbuf, sizeof(levelbuf), 14);
+
+    if (retval != RIG_OK)
+    {
+        return retval;
+    }
+
+    sscanf(levelbuf, "TM%03d%03d%03d%03d", &ialc, &icmp, &ifwd, &iswr);
+    if (swr) *swr = iswr/10.0;
+    if (pwr) *pwr = ifwd/100.0; // pwr is returned in 0-1 sscale
+    if (alc) *alc = ialc;
     return RIG_OK;
 }
 
