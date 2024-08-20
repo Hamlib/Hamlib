@@ -2461,42 +2461,26 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (RIG_IS_TS890S)
     {
         char sf[20];
+        char sfcmd[] = "SF0;";
         // TS890 has SF command -- unique so far
-        if (vfo == RIG_VFO_A)
+        if (vfo != RIG_VFO_A)
         {
-            err = kenwood_transaction(rig, "SF0;", sf, sizeof(sf));
-            if (err != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: SF0; failed: %s\n", __func__, rigerror(err));
-                return err;
-            }
-            sf[14] = c;
-            err = kenwood_transaction(rig, sf, NULL, 0);
-            if (err != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sf, rigerror(err));
-                return err;
-            }
-            return RIG_OK;
-        }
-        else
-        {
-            err = kenwood_transaction(rig, "SF1;", sf, sizeof(sf));
-            if (err != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: SF0; failed: %s\n", __func__, rigerror(err));
-                return err;
-            }
-            sf[14] = c;
-            err = kenwood_transaction(rig, sf, NULL, 0);
-            if (err != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sf, rigerror(err));
-                return err;
-            }
-            return RIG_OK;  
-        }
+            sfcmd[2] = '1';
+	}
 
+        err = kenwood_transaction(rig, sfcmd, sf, sizeof(sf));
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sfcmd, rigerror(err));
+            return err;
+        }
+        sf[14] = c;
+        err = kenwood_transaction(rig, sf, NULL, 0);
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sf, rigerror(err));
+        }
+        return err;
     }
     else if (RIG_IS_TS990S)
     {
