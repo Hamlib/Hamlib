@@ -2575,6 +2575,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             }
             else
             {
+                if (datamode[0] == 0) datamode[1] = 0;
                 retval = icom_set_mode_x26(rig, vfo, mode, mode_icom, datamode[0], datamode[1]);
             }
 
