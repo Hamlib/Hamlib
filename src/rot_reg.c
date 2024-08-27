@@ -93,6 +93,7 @@ DEFINE_INITROT_BACKEND(grbltrk);
 DEFINE_INITROT_BACKEND(flir);
 DEFINE_INITROT_BACKEND(apex);
 DEFINE_INITROT_BACKEND(saebrtrack);
+DEFINE_INITROT_BACKEND(skywatcher);
 
 //! @endcond
 
@@ -145,6 +146,7 @@ static struct
     { ROT_FLIR, ROT_BACKEND_FLIR, ROT_FUNCNAMA(flir) },
     { ROT_APEX, ROT_BACKEND_APEX, ROT_FUNCNAMA(apex) },
     { ROT_SAEBRTRACK, ROT_BACKEND_SAEBRTRACK, ROT_FUNCNAMA(saebrtrack)},
+    { ROT_SKYWATCHER, ROT_BACKEND_SKYWATCHER, ROT_FUNCNAMA(skywatcher)},
     { 0, NULL }, /* end */
 };
 
@@ -260,7 +262,7 @@ static int rot_lookup_backend(rot_model_t rot_model)
 {
     int i;
 
-    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++)
+  for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++)
     {
         if (ROT_BACKEND_NUM(rot_model) ==
                 rot_backend_list[i].be_num)
