@@ -1,3 +1,24 @@
+/*
+ *  Hamlib Rotator backend - SkyWatcher
+ *  Copyright (c) 2024 by Andrey Rodionov <dernasherbrezon@gmail.com>
+ *
+ *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+
 #include <stdlib.h>
 #include "skywatcher.h"
 #include "register.h"
@@ -100,7 +121,7 @@ int skywatcher_get_motor_position(ROT *rot, int motor_index, float *result) {
   char req[16];
   SNPRINTF(req, sizeof(req), ":j%d\r", motor_index);
   ERROR_CHECK(skywatcher_cmd(rot, req, str, sizeof(str)));
-  long motor_ticks = skywatcher_convert24bit(strtol(str, NULL, 16)) - 0x800000;
+  long motor_ticks = skywatcher_convert24bit(strtol(str, NULL, 16)) ^ 0x800000;
   uint32_t cpr;
   ERROR_CHECK(skywatcher_get_spr(rot, motor_index, &cpr));
   double ticks_per_angle = (double) cpr / 360.0;

@@ -1,5 +1,5 @@
 /*
- *  Hamlib Rotator backend - Celestron interface protocol
+ *  Hamlib Rotator backend - SkyWatcher interface protocol
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Lesser General Public
@@ -16,6 +16,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+
 #ifndef HAMLIB_SKYWATCHER_H
 #define HAMLIB_SKYWATCHER_H 1
 
