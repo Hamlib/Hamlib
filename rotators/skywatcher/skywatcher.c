@@ -24,6 +24,7 @@
 #include "register.h"
 #include "serial.h"
 
+#define SKYWATCHER_ERROR_CODES_LENGTH 9
 #define ERROR_CHECK(x)           \
   do {                           \
     int __err_rc = (x);          \
@@ -32,8 +33,7 @@
     }                            \
   } while (0)
 
-static const int skywatcher_error_codes_length = 9;
-static const char *skywatcher_error_codes[skywatcher_error_codes_length] = {
+static const char *skywatcher_error_codes[SKYWATCHER_ERROR_CODES_LENGTH] = {
     "Unknown Command",
     "Command Length Error",
     "Motor not Stopped",
@@ -68,7 +68,7 @@ static int skywatcher_cmd(ROT *rot, const char *cmd, char *response, size_t resp
   response[strlen(response) - 1] = '\0';
   if (response[0] == '!') {
     code = atoi(&response[1]);
-    if (code < skywatcher_error_codes_length) {
+    if (code < SKYWATCHER_ERROR_CODES_LENGTH) {
       rig_debug(RIG_DEBUG_ERR, "Error code: %d Message: '%s'\n", code, skywatcher_error_codes[code]);
     } else {
       rig_debug(RIG_DEBUG_ERR, "Error response: '%s'\n", response);
