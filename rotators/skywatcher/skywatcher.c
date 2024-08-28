@@ -81,7 +81,7 @@ static int skywatcher_cmd(ROT *rot, const char *cmd, char *response, size_t resp
   return RIG_OK;
 }
 
-inline uint32_t skywatcher_convert24bit(long input) {
+uint32_t skywatcher_convert24bit(long input) {
   return ((input & 0x0000FF) << 16) | (input & 0x00FF00) | ((input & 0xFF0000) >> 16);
 }
 
