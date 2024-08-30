@@ -1340,7 +1340,7 @@ struct rig_caps f6k_caps =
     RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
     .mfg_name =     "Flex-radio",
-    .version =      "20240129.0",
+    .version =      "20240829.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_TRANSCEIVER,
@@ -1462,6 +1462,9 @@ struct rig_caps f6k_caps =
     .get_level =        flex6k_get_level,
     //.set_ant =       kenwood_set_ant_no_ack,
     //.get_ant =       kenwood_get_ant,
+    .send_morse =  kenwood_send_morse,
+    .stop_morse =  kenwood_stop_morse,
+    .wait_morse =  rig_wait_morse,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
