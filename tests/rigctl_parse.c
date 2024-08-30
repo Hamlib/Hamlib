@@ -375,7 +375,7 @@ static struct test_table test_list[] =
     { 0xf6, "get_modes",       ACTION(get_modes),   ARG_OUT | ARG_NOVFO, "Modes" },
 //    { 0xf9, "get_clock",        ACTION(get_clock),      ARG_IN | ARG_NOVFO, "local/utc" },
     { 0xf9, "get_clock",        ACTION(get_clock),      ARG_NOVFO },
-    { 0xf8, "set_clock",        ACTION(set_clock),      ARG_IN | ARG_NOVFO, "YYYY-MM-DDTHH:MM:SS.sss+ZZ or YYYY-MM-DDTHH:MM+ZZ" },
+    { 0xf8, "set_clock",        ACTION(set_clock),      ARG_IN | ARG_NOVFO, "local or utc or YYYY-MM-DDTHH:MM:SS.sss+ZZ or YYYY-MM-DDTHH:MM+ZZ" },
     { 0xf1, "halt",             ACTION(halt),           ARG_NOVFO },   /* rigctld only--halt the daemon */
     { 0x8c, "pause",            ACTION(pause),          ARG_IN | ARG_NOVFO, "Seconds" },
     { 0x98, "password",         ACTION(password),       ARG_IN | ARG_NOVFO, "Password" },
