@@ -3458,9 +3458,9 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
     HAMLIB_TRACE;
     LOCK(1);
 
-    if (caps->get_vfo)
+    if (rig->caps->get_vfo)
     {
-        retcode = caps->get_vfo(rig, vfo);
+        retcode = rig->caps->get_vfo(rig, vfo);
 
         if (retcode == RIG_OK)
         {
@@ -3470,6 +3470,12 @@ int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
         }
         else
         {
+            if (RIG_ICOM == RIG_BACKEND_NUM(rig->caps->rig_model))
+            {
+                rig->caps->get_vfo = NULL;
+                *vfo = RIG_VFO_A;
+                RETURNFUNC(RIG_OK);
+            }
             //cache_ms = elapsed_ms(&cachep->time_vfo, HAMLIB_ELAPSED_INVALIDATE);
         }
     }
