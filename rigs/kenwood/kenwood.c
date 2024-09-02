@@ -2379,7 +2379,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               rig_strvfo(vfo), rig_strrmode(mode), (int)width,
               rig_strvfo(STATE(rig)->current_vfo));
 
-    // we wont' set opposite VFO if the mode is the same as requested
+    // we won't set opposite VFO if the mode is the same as requested
     // setting VFOB mode requires split modifications which cause VFO flashing
     // this should generally work unless the user changes mode on VFOB
     // in which case VFOB won't get mode changed until restart
@@ -2492,28 +2492,12 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
            reading the mode. */
         vfo_t curr_vfo;
 
-        if (RIG_IS_TS990S)
-        {
-            err = kenwood_get_vfo_main_sub(rig, &curr_vfo);
-        }
-        else // RIG_IS_TS890
-        {
-            err = kenwood_get_vfo_if(rig, &curr_vfo);
-        }
-
+        err = kenwood_get_vfo_main_sub(rig, &curr_vfo);
         if (err != RIG_OK) { RETURNFUNC2(err); }
 
         if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
-            if (RIG_IS_TS990S)
-            {
-                err = kenwood_set_vfo_main_sub(rig, vfo);
-            }
-            else // RIG_IS_TS890
-            {
-                err = kenwood_set_vfo(rig, vfo);
-            }
-
+            err = kenwood_set_vfo_main_sub(rig, vfo);
             if (err != RIG_OK) { RETURNFUNC2(err); }
         }
 
@@ -2524,15 +2508,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             int err2;
 
-            if (RIG_IS_TS990S)
-            {
-                err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
-            }
-            else // RIG_IS_TS890
-            {
-                err2 = kenwood_set_vfo(rig, curr_vfo);
-            }
-
+            err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
             if (err2 != RIG_OK) { RETURNFUNC2(err2); }
         }
 
