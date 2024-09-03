@@ -2379,7 +2379,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               rig_strvfo(vfo), rig_strrmode(mode), (int)width,
               rig_strvfo(STATE(rig)->current_vfo));
 
-    // we wont' set opposite VFO if the mode is the same as requested
+    // we won't set opposite VFO if the mode is the same as requested
     // setting VFOB mode requires split modifications which cause VFO flashing
     // this should generally work unless the user changes mode on VFOB
     // in which case VFOB won't get mode changed until restart
@@ -2461,42 +2461,26 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (RIG_IS_TS890S)
     {
         char sf[20];
+        char sfcmd[] = "SF0;";
         // TS890 has SF command -- unique so far
-        if (vfo == RIG_VFO_A)
+        if (vfo != RIG_VFO_A)
         {
-            err = kenwood_transaction(rig, "SF0;", sf, sizeof(sf));
-            if (err != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: SF0; failed: %s\n", __func__, rigerror(err));
-                return err;
-            }
-            sf[14] = c;
-            err = kenwood_transaction(rig, sf, NULL, 0);
-            if (err != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sf, rigerror(err));
-                return err;
-            }
-            return RIG_OK;
-        }
-        else
-        {
-            err = kenwood_transaction(rig, "SF1;", sf, sizeof(sf));
-            if (err != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: SF0; failed: %s\n", __func__, rigerror(err));
-                return err;
-            }
-            sf[14] = c;
-            err = kenwood_transaction(rig, sf, NULL, 0);
-            if (err != RIG_OK)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sf, rigerror(err));
-                return err;
-            }
-            return RIG_OK;  
-        }
+            sfcmd[2] = '1';
+	}
 
+        err = kenwood_transaction(rig, sfcmd, sf, sizeof(sf));
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sfcmd, rigerror(err));
+            return err;
+        }
+        sf[14] = c;
+        err = kenwood_transaction(rig, sf, NULL, 0);
+        if (err != RIG_OK)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: %s failed: %s\n", __func__, sf, rigerror(err));
+        }
+        return err;
     }
     else if (RIG_IS_TS990S)
     {
@@ -2508,28 +2492,12 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
            reading the mode. */
         vfo_t curr_vfo;
 
-        if (RIG_IS_TS990S)
-        {
-            err = kenwood_get_vfo_main_sub(rig, &curr_vfo);
-        }
-        else // RIG_IS_TS890
-        {
-            err = kenwood_get_vfo_if(rig, &curr_vfo);
-        }
-
+        err = kenwood_get_vfo_main_sub(rig, &curr_vfo);
         if (err != RIG_OK) { RETURNFUNC2(err); }
 
         if (vfo != RIG_VFO_CURR && vfo != curr_vfo)
         {
-            if (RIG_IS_TS990S)
-            {
-                err = kenwood_set_vfo_main_sub(rig, vfo);
-            }
-            else // RIG_IS_TS890
-            {
-                err = kenwood_set_vfo(rig, vfo);
-            }
-
+            err = kenwood_set_vfo_main_sub(rig, vfo);
             if (err != RIG_OK) { RETURNFUNC2(err); }
         }
 
@@ -2540,15 +2508,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         {
             int err2;
 
-            if (RIG_IS_TS990S)
-            {
-                err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
-            }
-            else // RIG_IS_TS890
-            {
-                err2 = kenwood_set_vfo(rig, curr_vfo);
-            }
-
+            err2 = kenwood_set_vfo_main_sub(rig, curr_vfo);
             if (err2 != RIG_OK) { RETURNFUNC2(err2); }
         }
 
