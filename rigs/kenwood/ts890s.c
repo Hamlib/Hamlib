@@ -41,7 +41,7 @@
 
 #define TS890_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_CPY|RIG_OP_TUNE)
 
-int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16], *command_string;
     int kenwood_val, retval;
@@ -109,7 +109,7 @@ int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
-int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char ackbuf[50];
     size_t ack_len, ack_len_expected, len;
@@ -403,7 +403,7 @@ int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return -RIG_EINTERNAL;
 }
 
-int ts890_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+static int ts890_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     int mask, retval;
     char current[4];
@@ -434,7 +434,7 @@ int ts890_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     return kenwood_transaction(rig, current, NULL, 0);
 }
 
-int ts890_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+static int ts890_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     int mask, retval;
     char current[4];
