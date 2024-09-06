@@ -373,6 +373,8 @@ struct rig_caps ts990s_caps =
     .set_powerstat =  kenwood_set_powerstat,
     .get_powerstat =  kenwood_get_powerstat,
     .reset =  kenwood_reset,
+    .get_clock = kenwood_get_clock,
+    .set_clock = kenwood_set_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -381,7 +383,7 @@ struct rig_caps ts990s_caps =
  */
 
 /*
- * ts2000_get_level
+ * ts990s_get_level
  * Assumes rig!=NULL, val!=NULL
  */
 

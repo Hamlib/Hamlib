@@ -661,5 +661,7 @@ struct rig_caps ts890s_caps =
     .has_set_func = TS890_FUNC_ALL,
     .set_func = ts890_set_func,
     .get_func = ts890_get_func,
+    .get_clock = kenwood_get_clock,
+    .set_clock = kenwood_set_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
