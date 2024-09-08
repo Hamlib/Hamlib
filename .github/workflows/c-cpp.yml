@@ -30,6 +30,11 @@ jobs:
         brew install grep
     - name: bootstrap
       run: ./bootstrap
+    - name: Suppress -Winitializer-overrides on macOS
+      if: runner.os == 'macOS'
+      run: |
+        export CFLAGS="$CFLAGS -Wno-initializer-overrides"
+        export CXXFLAGS="$CXXFLAGS -Wno-initializer-overrides"
     - name: README Debug
       run: grep README Makefile.am
     - name: configure
