@@ -560,25 +560,25 @@ static int spid_md01_rot2prog_rot_move(ROT *rot, int direction, int speed)
     switch (direction)
     {
     case ROT_MOVE_UP:
-        if (dir != 0x01 || dir != 0x02) { dir = 0; }
+        if (dir != 0x01 && dir != 0x02) { dir = 0; }
 
         dir |= 0x04;
         break;
 
     case ROT_MOVE_DOWN:
-        if (dir != 0x01 || dir != 0x02) { dir = 0; }
+        if (dir != 0x01 && dir != 0x02) { dir = 0; }
 
         dir = 0x08;
         break;
 
     case ROT_MOVE_LEFT:
-        if (dir != 0x04 || dir != 0x08) { dir = 0; }
+        if (dir != 0x04 && dir != 0x08) { dir = 0; }
 
         dir = 0x01;
         break;
 
     case ROT_MOVE_RIGHT:
-        if (dir != 0x04 || dir != 0x08) { dir = 0; }
+        if (dir != 0x04 && dir != 0x08) { dir = 0; }
 
         dir = 0x02;
         break;
