@@ -24,10 +24,9 @@ jobs:
     - name: Install dependencies on macOS
       if: runner.os == 'macOS'
       run: |
-        brew install autoreconf
+        brew install autoconf
         brew install automake
         brew install libtool
-        brew install libusb
         brew install grep
     - name: bootstrap
       run: ./bootstrap
