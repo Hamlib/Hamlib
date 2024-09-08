@@ -21,9 +21,13 @@ LVL_KEYSPD
         [LVL_STRENGTH]      = { .min = { .i = 0 },     .max = { .i = 60 },   .step = { .i = 0 } },
         [LVL_NB]            = { .min = { .f = 0 },     .max = { .f = 10 },   .step = { .f = 1 } },
         /* levels with WPM units */
+#if !defined(NO_LVL_KEYSPD) 
         [LVL_KEYSPD]  = { .min = { .i = 4 },           .max = { .i = 60 },   .step = { .i = 1 } },
+#endif
         /* levels with Hz units */
+#if !defined(NO_LVL_CWPITCH) 
         [LVL_CWPITCH]       = { .min = { .i = 300 },   .max = { .i = 900  }, .step = { .i = 5  } },
+#endif
         [LVL_IF]            = { .min = { .i = -1200 }, .max = { .i = 1200 }, .step = { .i = 20 } },
         [LVL_NOTCHF]        = { .min = { .i = 1 },     .max = { .i = 3200 }, .step = { .i = 10 } },
         /* levels with time units */
