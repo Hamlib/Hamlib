@@ -46,12 +46,13 @@ double monotonic_seconds()
 #define NANOS_PER_SECF 1000000000.0
 #define USECS_PER_SEC 1000000
 
-static int showme = 0;
 
 #if _POSIX_TIMERS > 0 && defined(_POSIX_MONOTONIC_CLOCK)
 // If we have it, use clock_gettime and CLOCK_MONOTONIC.
 
 #include <time.h>
+
+static int showme = 0;
 
 double monotonic_seconds()
 {
