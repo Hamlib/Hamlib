@@ -243,7 +243,7 @@ static void *pstrotator_handler_start(void *arg)
         //if (n > 0) rig_debug(RIG_DEBUG_CACHE, "%s: az=%.1f, el=%.1f\n", __func__, priv->az, priv->el);
     }
 
-    return RIG_OK;
+    return NULL;
 }
 
 #endif
