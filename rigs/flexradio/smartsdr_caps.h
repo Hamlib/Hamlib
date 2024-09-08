@@ -72,7 +72,6 @@
     .set_mode=      smartsdr_set_mode,
     .set_ptt  =     smartsdr_set_ptt,
     .get_ptt  =     smartsdr_get_ptt,
-    .set_mode  =    smartsdr_set_mode,
 //  .reset    =     smartsdr_reset,
 //  .set_level =     smartsdr_set_level,
 //  .set_func =     _set_func,
