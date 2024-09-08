@@ -102,7 +102,7 @@ struct option
    errors, only prototype getopt for the GNU C library.  */
 extern int getopt (int argc, char *const *argv, const char *shortopts);
 #else /* not __GNU_LIBRARY__ */
-extern int getopt ();
+// extern int getopt (void); // do we need this for anything?
 #endif /* not __GNU_LIBRARY__ */
 extern int getopt_long (int argc, char *const *argv, const char *options,
 		        const struct option *long_options, int *opt_index);
