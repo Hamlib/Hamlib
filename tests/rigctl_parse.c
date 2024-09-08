@@ -5384,7 +5384,7 @@ declare_proto_rig(send_cmd)
         }
     }
     while ((retval > 0 && rxbytes == BUFSZ && eom_buf[0] != ';'
-            && eom_buf[0] != 0xfd) || --cmdcount > 1);
+            && (unsigned char)eom_buf[0] != 0xfd) || --cmdcount > 1);
 
     rig_flush_force(rp, 1);
     set_transaction_inactive(rig);
