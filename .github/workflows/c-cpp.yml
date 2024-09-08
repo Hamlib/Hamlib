@@ -8,17 +8,26 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
     - uses: actions/checkout@v4
-    - name: bootstrap
+    - name: Install dependencies on Linux
+      if: runner.os == 'Linux'
       run: |
         sudo apt install libusb-1.0-0-dev
         sudo apt install libgpiod-dev
         sudo apt install grep
-        ./bootstrap
+    - name: Install dependencies on macOS
+      if: runner.os == 'macOS'
+      run: |
+        brew install libusb
+        brew install grep
+    - name: bootstrap
+      run: ./bootstrap
     - name: README Debug
       run: grep README Makefile.am
     - name: configure
@@ -29,3 +38,4 @@ jobs:
       run: make check
     - name: make distcheck
       run: make distcheck
+
