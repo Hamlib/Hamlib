@@ -436,6 +436,7 @@ static int pmr171_close(RIG *rig)
 
 /* ---------------------------------------------------------------------- */
 
+#if 0
 static inline long timediff(const struct timeval *tv1,
                             const struct timeval *tv2)
 {
@@ -446,6 +447,7 @@ static inline long timediff(const struct timeval *tv1,
 
     return ((tv.tv_sec * 1000L) + (tv.tv_usec / 1000L));
 }
+#endif
 
 static int pmr171_send_cmd1(RIG *rig, unsigned char cmd, unsigned char *reply)
 {
