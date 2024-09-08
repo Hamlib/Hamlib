@@ -177,7 +177,7 @@ int rig_sprintf_func(char *str, int nlen, setting_t func)
 
         if (!ms || !ms[0])
         {
-            rig_debug(RIG_EINTERNAL, "%s: unknown RIG_FUNC=%x\n", __func__, i);
+            rig_debug(RIG_DEBUG_ERR, "%s: unknown RIG_FUNC=%x\n", __func__, i);
             continue;    /* unknown, FIXME! */
         }
 
