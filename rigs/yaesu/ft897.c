@@ -243,7 +243,7 @@ enum ft897_digi
 #define FT897_AM_TX_MODES       (RIG_MODE_AM)
 
 #define FT897_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
-#define FT897_ANTS              0
+#define FT897_ANTS              RIG_ANT_CURR
 
 struct rig_caps ft897_caps =
 {
