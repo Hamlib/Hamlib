@@ -133,10 +133,16 @@ struct rig_caps icr75_caps =
     .has_set_parm =  RIG_PARM_SET(ICR75_PARM_ALL),
     .level_gran =
     {
+#define NO_LVL_PBT_IN
+#define NO_LVL_PBT_OUT
+#define NO_LVL_CWPITCH
 #include "level_gran_icom.h"
         [LVL_PBT_IN] = { .min = { .f = -1280 }, .max = { .f = +1280 }, .step = { .f = 15 } },
         [LVL_PBT_OUT] = { .min = { .f = -1280 }, .max = { .f = +1280 }, .step = { .f = 15 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 10 } },
+#undef NO_LVL_PBT_IN
+#undef NO_LVL_PBT_OUT
+#undef NO_LVL_CWPITCH
     },
     .parm_gran =  {
         [PARM_APO] = { .min = { .i = 1 }, .max = { .i = 1439} },
