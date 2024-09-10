@@ -1704,7 +1704,19 @@ struct rig_caps ts2000_caps =
     .has_set_parm =  RIG_PARM_NONE,
     .level_gran =
     {
+#define NO_LVL_VOXDELAY
+#define NO_LVL_KEYSPD
+#define NO_LVL_CWPITCH
+#define NO_LVL_BKIN_DLYMS
+#define NO_LVL_SLOPE_LOW
+#define NO_LVL_SLOPE_HIGH
 #include "level_gran_kenwood.h"
+#undef NO_LVL_VOXDELAY
+#undef NO_LVL_KEYSPD
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_BKIN_DLYMS
+#undef NO_LVL_SLOPE_LOW
+#undef NO_LVL_SLOPE_HIGH
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 10}, .max = {.i = 60}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},
@@ -1950,7 +1962,19 @@ struct rig_caps sdrconsole_caps =
     .has_set_parm =  RIG_PARM_NONE,
     .level_gran =
     {
+#define NO_LVL_VOXDELAY
+#define NO_LVL_KEYSPD
+#define NO_LVL_CWPITCH
+#define NO_LVL_BKIN_DLYMS
+#define NO_LVL_SLOPE_LOW
+#define NO_LVL_SLOPE_HIGH
 #include "level_gran_kenwood.h"
+#undef NO_LVL_VOXDELAY
+#undef NO_LVL_KEYSPD
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_BKIN_DLYMS
+#undef NO_LVL_SLOPE_LOW
+#undef NO_LVL_SLOPE_HIGH
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 10}, .max = {.i = 60}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 400}, .max = {.i = 1000}, .step = {.i = 50}},

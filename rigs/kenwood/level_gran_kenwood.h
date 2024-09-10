@@ -17,14 +17,20 @@
 #endif
         [LVL_IF]            = { .min = { .i = -1000 }, .max = { .i = 1000 }, .step = { .i = 1  } },
         [LVL_NOTCHF]        = { .min = { .i = 1 },     .max = { .i = 3200 }, .step = { .i = 10 } },
+#if !defined(NO_LVL_SLOPE_LOW)
         [LVL_SLOPE_LOW]     = { .min = { .i = 10},     .max = { .i = 1000 }, .step = { .i = 50  } },
+#endif
+#if !defined(NO_LVL_SLOPE_HIGH)
         [LVL_SLOPE_HIGH]    = { .min = { .i = 1000 },  .max = { .i = 5000 }, .step = { .i = 10 } },
+#endif
         /* levels with time units */
 #if !defined(NO_LVL_VOXDELAY)
         [LVL_VOXDELAY]      = { .min = { .i = 3 },     .max = { .i = 300 },  .step = { .i = 1 } },
 #endif
         [LVL_BKINDL]        = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
+#if !defined(NO_LVL_BKIN_DLYMS)
         [LVL_BKIN_DLYMS]    = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
+#endif
         /* level with misc units */
         [LVL_SWR]           = { .min = { .f = 0 },     .max = { .f = 5.0 },  .step = { .f = 1.0f/255.0f } },
         [LVL_BAND_SELECT]   = { .min = { .i = 0 },     .max = { .i = 16 },   .step = { .i = 1 } },
