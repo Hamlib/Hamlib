@@ -293,7 +293,6 @@ static tone_t ft100_dcs_list[] =
 #define FT100_FUNC_ALL (RIG_FUNC_TONE|RIG_FUNC_TSQL)
 
 #define FT100_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
-#define FT100_ANT (RIG_ANT_1)
 
 /* S-meter calibration, ascending order of RAW values */
 #define FT100_STR_CAL { 9, \
@@ -314,7 +313,7 @@ struct rig_caps ft100_caps =
     RIG_MODEL(RIG_MODEL_FT100),
     .model_name =     "FT-100",
     .mfg_name =       "Yaesu",
-    .version =        "20230720.0",
+    .version =        "20240910.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rig_type =       RIG_TYPE_TRANSCEIVER,
@@ -357,39 +356,39 @@ struct rig_caps ft100_caps =
     .chan_list =  { RIG_CHAN_END, },  /* FIXME: memory chan .list =  78 */
 
     .rx_range_list1 =  {
-        {kHz(100), MHz(56), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL},
-        {MHz(76), MHz(108), RIG_MODE_WFM,      -1, -1, FT100_VFO_ALL},
-        {MHz(108), MHz(154), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL},
-        {MHz(420), MHz(470), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL},
+        {kHz(100), MHz(56), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL, RIG_ANT_1},
+        {MHz(76), MHz(108), RIG_MODE_WFM,      -1, -1, FT100_VFO_ALL, RIG_ANT_1},
+        {MHz(108), MHz(154), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL, RIG_ANT_2},
+        {MHz(420), MHz(470), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL, RIG_ANT_2},
         RIG_FRNG_END,
     },
     .tx_range_list1 =  {
-        FRQ_RNG_HF(1, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_HF(1, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_6m(1, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_6m(1, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_2m(1, FT100_OTHER_TX_MODES, W(0.5), W(50), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_2m(1, FT100_AM_TX_MODES,    W(0.5), W(12.5), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_70cm(1, FT100_OTHER_TX_MODES, W(0.5), W(20), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_70cm(1, FT100_AM_TX_MODES,    W(0.5), W(5),  FT100_VFO_ALL, FT100_ANT),
+        FRQ_RNG_HF(1, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, RIG_ANT_1),
+        FRQ_RNG_HF(1, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, RIG_ANT_1),
+        FRQ_RNG_6m(1, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, RIG_ANT_1),
+        FRQ_RNG_6m(1, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, RIG_ANT_1),
+        FRQ_RNG_2m(1, FT100_OTHER_TX_MODES, W(0.5), W(50), FT100_VFO_ALL, RIG_ANT_2),
+        FRQ_RNG_2m(1, FT100_AM_TX_MODES,    W(0.5), W(12.5), FT100_VFO_ALL, RIG_ANT_2),
+        FRQ_RNG_70cm(1, FT100_OTHER_TX_MODES, W(0.5), W(20), FT100_VFO_ALL, RIG_ANT_2),
+        FRQ_RNG_70cm(1, FT100_AM_TX_MODES,    W(0.5), W(5),  FT100_VFO_ALL, RIG_ANT_2),
     },
     .rx_range_list2 =  {
-        {kHz(100), MHz(56), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL},
-        {MHz(76), MHz(108), RIG_MODE_WFM,      -1, -1, FT100_VFO_ALL},
-        {MHz(108), MHz(154), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL},
-        {MHz(420), MHz(470), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL},
+        {kHz(100), MHz(56), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL, RIG_ANT_1},
+        {MHz(76), MHz(108), RIG_MODE_WFM,      -1, -1, FT100_VFO_ALL, RIG_ANT_1},
+        {MHz(108), MHz(154), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL, RIG_ANT_2},
+        {MHz(420), MHz(470), FT100_ALL_RX_MODES, -1, -1, FT100_VFO_ALL, RIG_ANT_2},
         RIG_FRNG_END,
     },
 
     .tx_range_list2 =  {
-        FRQ_RNG_HF(2, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_HF(2, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_6m(2, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_6m(2, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_2m(2, FT100_OTHER_TX_MODES, W(0.5), W(50), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_2m(2, FT100_AM_TX_MODES,    W(0.5), W(12.5), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_70cm(2, FT100_OTHER_TX_MODES, W(0.5), W(20), FT100_VFO_ALL, FT100_ANT),
-        FRQ_RNG_70cm(2, FT100_AM_TX_MODES,    W(0.5), W(5),  FT100_VFO_ALL, FT100_ANT),
+        FRQ_RNG_HF(2, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, RIG_ANT_1),
+        FRQ_RNG_HF(2, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, RIG_ANT_1),
+        FRQ_RNG_6m(2, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, RIG_ANT_1),
+        FRQ_RNG_6m(2, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, RIG_ANT_1),
+        FRQ_RNG_2m(2, FT100_OTHER_TX_MODES, W(0.5), W(50), FT100_VFO_ALL, RIG_ANT_2),
+        FRQ_RNG_2m(2, FT100_AM_TX_MODES,    W(0.5), W(12.5), FT100_VFO_ALL, RIG_ANT_2),
+        FRQ_RNG_70cm(2, FT100_OTHER_TX_MODES, W(0.5), W(20), FT100_VFO_ALL, RIG_ANT_2),
+        FRQ_RNG_70cm(2, FT100_AM_TX_MODES,    W(0.5), W(5),  FT100_VFO_ALL, RIG_ANT_2),
         RIG_FRNG_END,
     },
 
