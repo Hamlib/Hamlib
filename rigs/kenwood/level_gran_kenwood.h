@@ -5,18 +5,24 @@
         [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } },
         /* levels with dB units */
         [LVL_PREAMP]        = { .min = { .i = 0 },     .max = { .i = 20 },   .step = { .i = 10 } },
+#if !defined(NO_LVL_ATT)
         [LVL_ATT]           = { .min = { .i = 0 },     .max = { .i = 12 },   .step = { .i = 0 } },
+#endif
         [LVL_STRENGTH]      = { .min = { .i = 0 },     .max = { .i = 60 },   .step = { .i = 0 } },
         /* levels with WPM units */
         [LVL_KEYSPD]  = { .min = { .i = 4 },           .max = { .i = 60 },   .step = { .i = 1 } },
         /* levels with Hz units */
+#if !defined(NO_LVL_CWPITCH)
         [LVL_CWPITCH]       = { .min = { .i = 300 },   .max = { .i = 1050 }, .step = { .i = 50 } },
+#endif
         [LVL_IF]            = { .min = { .i = -1000 }, .max = { .i = 1000 }, .step = { .i = 1  } },
         [LVL_NOTCHF]        = { .min = { .i = 1 },     .max = { .i = 3200 }, .step = { .i = 10 } },
         [LVL_SLOPE_LOW]     = { .min = { .i = 10},     .max = { .i = 1000 }, .step = { .i = 50  } },
         [LVL_SLOPE_HIGH]    = { .min = { .i = 1000 },  .max = { .i = 5000 }, .step = { .i = 10 } },
         /* levels with time units */
+#if !defined(NO_LVL_VOXDELAY)
         [LVL_VOXDELAY]      = { .min = { .i = 3 },     .max = { .i = 300 },  .step = { .i = 1 } },
+#endif
         [LVL_BKINDL]        = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
         [LVL_BKIN_DLYMS]    = { .min = { .i = 30 },    .max = { .i = 3000 }, .step = { .i = 1 } },
         /* level with misc units */

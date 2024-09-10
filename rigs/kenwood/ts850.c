@@ -127,7 +127,9 @@ struct rig_caps ts850_caps =
     .has_set_parm =  RIG_PARM_NONE,
     .level_gran =
     {
+#define NO_LVL_CWPITCH
 #include "level_gran_kenwood.h"
+#undef NO_LVL_CWPITCH
         [LVL_CWPITCH] = { .min = { .i = 400 }, .max = { .i = 1000 }, .step = { .i = 50 } },
     },
     .parm_gran =  {},
