@@ -78,7 +78,9 @@ struct rig_caps ts930_caps =
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
     .level_gran =
     {
+#define NO_LVL_ATT
 #include "level_gran_kenwood.h"
+#undef NO_LVL_ATT
         [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
     },
     .parm_gran =  {},
