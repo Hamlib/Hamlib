@@ -765,7 +765,13 @@ struct rig_caps ic7300_caps =
     .has_get_parm =  IC7300_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
+#define NO_LVL_KEYSPD
+#define NO_LVL_CWPITCH
+#define NO_LVL_USB_AF
 #include "level_gran_icom.h"
+#undef NO_LVL_KEYSPD
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_USB_AF
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
@@ -1010,7 +1016,13 @@ struct rig_caps ic9700_caps =
     .has_get_parm =  IC9700_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC9700_PARMS),
     .level_gran = {
+#define NO_LVL_KEYSPD
+#define NO_LVL_CWPITCH
+#define NO_LVL_USB_AF
 #include "level_gran_icom.h"
+#undef NO_LVL_KEYSPD
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_USB_AF
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
@@ -1334,7 +1346,13 @@ struct rig_caps ic705_caps =
     .has_get_parm =  IC7300_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC7300_PARMS),
     .level_gran = {
+#define NO_LVL_KEYSPD
+#define NO_LVL_CWPITCH
+#define NO_LVL_USB_AF
 #include "level_gran_icom.h"
+#undef NO_LVL_KEYSPD
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_USB_AF
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
@@ -1606,7 +1624,13 @@ struct rig_caps ic905_caps =
     .has_get_parm =  IC7300_PARMS,
     .has_set_parm =  RIG_PARM_SET(IC705_PARMS),
     .level_gran = {
+#define NO_LVL_KEYSPD
+#define NO_LVL_CWPITCH
+#define NO_LVL_USB_AF
 #include "level_gran_icom.h"
+#undef NO_LVL_KEYSPD
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_USB_AF
         [LVL_KEYSPD] = {.min = {.i = 6}, .max = {.i = 48}, .step = {.i = 1}},
         [LVL_CWPITCH] = {.min = {.i = 300}, .max = {.i = 900}, .step = {.i = 1}},
         [LVL_SPECTRUM_SPEED] = {.min = {.i = 0}, .max = {.i = 2}, .step = {.i = 1}},
