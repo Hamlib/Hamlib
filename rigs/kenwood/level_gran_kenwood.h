@@ -54,6 +54,10 @@
         [LVL_VOXGAIN]       = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
         [LVL_ANTIVOX]       = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
         [LVL_ALC]           = { .min = { .f = .0 },    .max = { .f = 1 },    .step = { .f = 1.0f/100.0f } },
+#if !defined(NO_LVL_USB_AF)
         [LVL_USB_AF]        = { .min = { .f = 0 },     .max = { .f = 1.0 },  .step = { .f = 1.0f/10.0f } },
+#endif
+#if !defined(NO_LVL_USB_AF_INPUT)
         [LVL_USB_AF_INPUT]  = { .min = { .f = 0 },     .max = { .f = 1.0 },  .step = { .f = 1.0f/10.0f } },
+#endif
 
