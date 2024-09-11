@@ -406,7 +406,9 @@ struct rig_caps k3s_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
+#define NO_LVL_ATT
 #include "level_gran_elecraft.h"
+#undef NO_LVL_ATT
         [LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 15 }, .step = { .i = 5 } },
     },
     .parm_gran =        {},
