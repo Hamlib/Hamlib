@@ -2834,7 +2834,11 @@ char *date_strget(char *buf, int buflen, int localtime)
     if (localtime)
     {
         mytm = localtime_r(&t, &result);
-        mytimezone = - (int)result.tm_gmtoff;
+#if defined(_WIN32)
+        mytimezone = timezone;
+#else
+        mytimezone = - (int)result.tm_gmtoff; // does not compile on mingw
+#endif
     }
     else
     {
