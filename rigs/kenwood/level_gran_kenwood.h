@@ -10,7 +10,9 @@
 #endif
         [LVL_STRENGTH]      = { .min = { .i = 0 },     .max = { .i = 60 },   .step = { .i = 0 } },
         /* levels with WPM units */
+#if !defined(NO_LVL_KEYSPD)
         [LVL_KEYSPD]  = { .min = { .i = 4 },           .max = { .i = 60 },   .step = { .i = 1 } },
+#endif
         /* levels with Hz units */
 #if !defined(NO_LVL_CWPITCH)
         [LVL_CWPITCH]       = { .min = { .i = 300 },   .max = { .i = 1050 }, .step = { .i = 50 } },
