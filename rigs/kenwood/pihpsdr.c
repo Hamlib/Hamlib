@@ -250,12 +250,12 @@ struct rig_caps pihpsdr_caps =
     {
 #define NO_LVL_VOXDELAY
 #define NO_LVL_KEYSPD
-#define NO_LVL_CWPITXCH
+#define NO_LVL_CWPITCH
 #define NO_LVL_BKIN_DLYMS
 #include "level_gran_kenwood.h"
 #undef NO_LVL_VOXDELAY
 #undef NO_LVL_KEYSPD
-#undef NO_LVL_CWPITXCH
+#undef NO_LVL_CWPITCH
 #undef NO_LVL_BKIN_DLYMS
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
         [LVL_KEYSPD] = {.min = {.i = 5}, .max = {.i = 50}, .step = {.i = 1}},
