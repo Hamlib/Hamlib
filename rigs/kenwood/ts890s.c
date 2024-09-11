@@ -650,7 +650,17 @@ struct rig_caps ts890s_caps =
     .get_level = kenwood_ts890_get_level,
     .level_gran =
     {
+#define NO_LVL_ATT
+#define NO_LVL_CWPITCH
+#define NO_LVL_SQL
+#define NO_LVL_USB_AF
+#define NO_LVL_USB_AF_INPUT
 #include "level_gran_kenwood.h"
+#undef NO_LVL_ATT
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_SQL
+#undef NO_LVL_USB_AF
+#undef NO_LVL_USB_AF_INPUT
         [LVL_ATT]     = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1100 }, .step = { .i = 5 } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0 / 255.0 } },
