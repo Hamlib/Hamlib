@@ -161,7 +161,13 @@ struct rig_caps ts990s_caps =
     .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
     .level_gran =
     {
+#define NO_LVL_ATT
+#define NO_LVL_CWPITCH
+#define NO_LVL_COMP
 #include "level_gran_kenwood.h"
+#undef NO_LVL_ATT
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_COMP
         [LVL_ATT]     = { .min = { .i = 0 }, .max = { .i = 18 }, .step = { .i = 6 } },
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1100 }, .step = { .i = 10 } },
         [LVL_COMP]    = { .min = { .f = 0.0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 255.0f } },
