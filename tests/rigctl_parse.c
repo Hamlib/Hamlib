@@ -5657,7 +5657,7 @@ declare_proto_rig(set_clock)
               __func__, n, year, mon, day, hour, min, sec, msec, utc_offset >= 0 ? "+" : "-",
               (unsigned)abs(utc_offset));
 
-    if (utc_offset < 24) { utc_offset *= 100; } // allow for minutes offset too
+    if (abs(utc_offset) < 24) { utc_offset *= 100; } // allow for minutes offset too
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: utc_offset=%d\n", __func__, utc_offset);
 

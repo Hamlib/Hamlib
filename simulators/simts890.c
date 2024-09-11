@@ -46,7 +46,8 @@ int ra=0;
 int rl=0;
 int is=0;
 int sp=0;
-
+int tzs[2] = {40, 56}; // 0=primary(EDT), 1=auxiiary(UTC)
+char auxtzc = 'U';       // Auxiliary clock identifier (UTC)
 
 #if defined(WIN32) || defined(_WIN32)
 int openPort(char *comport) // doesn't matter for using pts devices
@@ -629,6 +630,85 @@ int main(int argc, char *argv[])
         {
             sscanf(buf,"SP%d", &sp);
         }
+        else if (strncmp(buf, "CK", 2) == 0)
+        {  // All the clock functions
+            switch (buf[2]) {
+            case '0': // Get/Set Local clock
+              {
+                time_t t;
+                struct tm *localtm;
+
+                if (buf[3] == ';')
+                  {
+                    t = time(NULL);
+		    localtm = localtime(&t);
+                    strftime(&buf[3], BUFSIZ - 3, "%y%m%d%H%M%S;", localtm);
+                    write(fd, buf, strlen(buf));
+                  }
+                else
+                  {
+                    printf("Sorry, can't set time (yet)\n");
+                  }
+                break;
+              }
+            case '1': // Setting status
+              buf[3] = '1';
+              buf[4] = ';';
+              buf[5] = 0;
+              write(fd, buf, 6);
+              break;
+            case '2': // Local clock time zone
+            case '3': // Secondary clock time zone
+              {
+                int idx = buf[2] - '2';
+                if (buf[3] == ';')
+                  {
+                    sprintf(&buf[3], "%3d;", tzs[idx]);
+                    write(fd, buf, strlen(buf));
+                  }
+                else
+                  {
+                    sscanf(&buf[3], "%3d;", &tzs[idx]);
+                  }
+                break;
+              }
+	    case '4': // ID character for secondary clock
+              if (buf[3] == ';')
+              {
+                  buf[3] = auxtzc;
+                  buf[4] = ';';
+                  buf[5] = '\0';
+                  write(fd, buf, 6);
+                }
+              else
+                {
+                  auxtzc = buf[3];
+                }
+              break;
+            case '5': // Date format
+              break;
+            case '6': // Automatic date/time retrieval (NTP)
+              //For the time being, assume this is always on.
+              //TODO: Fix this when we can set the clock
+              if (buf[3] == ';')
+                {
+                  buf[3] = 1;
+                  buf[4] = ';';
+                  buf[5] = 0;
+                  write(fd, buf, strlen(buf));
+		}
+	      else
+		{
+		  printf("Can't run without NTP, sorry\n");
+		}
+	      break;
+	    case '7': // NTP server address
+	    case '8': // Force time update via NTP
+	    case '9': // Clock display (primary/secondary/both)
+	    default:
+	      printf("Bad clock command - %s\n", buf);
+	    }
+	  }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);

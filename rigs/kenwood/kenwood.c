@@ -6006,6 +6006,65 @@ int kenwood_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
     RETURNFUNC(-RIG_EINVAL);
 }
 
+/*
+ * kenwood_set_clock
+ */
+int kenwood_set_clock(RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset)
+{
+    return -RIG_ENIMPL;
+}
+
+/*
+ * kenwood_get_clock
+ */
+int kenwood_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset)
+{
+    int retval;
+    int fields, zone;
+    char ans[20];
+
+    // Make sure the clock has been set at least once
+    retval = kenwood_transaction(rig, "CK1", ans, sizeof(ans));
+    if (retval != RIG_OK) {return retval;}
+
+    if (ans[3] != '1')
+    {
+	return -RIG_ENAVAIL;
+    }
+
+    // Get the local clock
+    retval = kenwood_transaction(rig, "CK0", ans, sizeof(ans));
+    if (retval != RIG_OK) {return retval;}
+
+    fields = sscanf(ans, "CK0%2d%2d%2d%2d%2d%2d", year, month, day, hour, min, sec);
+
+    // TS-890S doesn't define what P6 is, but it sure looks like seconds to me.
+    // TS-990S doesn't have a P6, so set it to 0
+    if (fields < 6)
+    {
+	*sec = 0;
+    }
+    // Add the century
+    if (*year <= 20) //TODO: Update this every decade or so
+    {
+	*year += 100;
+    }
+    *year += 2000;   //TODO: Update this every century or so
+
+    // Now figure out the time zone
+    retval = kenwood_transaction(rig, "CK2", ans, sizeof(ans));
+    if (retval != RIG_OK) {return retval;}
+
+    zone = atoi(&ans[3]);   // UTC offset in 15 minute intervals, centered on 56
+    zone = (zone / 4) * 100 + (zone % 4) * 15;  // Pack as hours * 100 + minutes
+    *utc_offset = zone - 1400;
+
+    // No msec available
+    *msec = 0;
+
+    return RIG_OK;
+}
+
 int kenwood_get_ext_parm(RIG *rig, hamlib_token_t token, value_t *val)
 {
     int err;
