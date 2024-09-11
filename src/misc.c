@@ -2834,7 +2834,7 @@ char *date_strget(char *buf, int buflen, int localtime)
     if (localtime)
     {
         mytm = localtime_r(&t, &result);
-        mytimezone = timezone;
+        mytimezone = - (int)result.tm_gmtoff;
     }
     else
     {

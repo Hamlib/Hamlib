@@ -264,6 +264,8 @@ int kenwood_get_id(RIG *rig, char *buf);
 int kenwood_get_if(RIG *rig);
 int kenwood_send_voice_mem(RIG *rig, vfo_t vfo, int bank);
 int kenwood_stop_voice_mem(RIG *rig, vfo_t vfo);
+int kenwood_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset);
+int kenwood_set_clock(RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset);
 
 int kenwood_set_trn(RIG *rig, int trn);
 int kenwood_get_trn(RIG *rig, int *trn);
