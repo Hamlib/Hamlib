@@ -1360,7 +1360,13 @@ struct rig_caps f6k_caps =
     .has_set_level =    F6K_LEVEL_ALL,
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
+#define NO_LVL_KEYSPD
+#define NO_LVL_SLOPE_LOW
+#define NO_LVL_SLOPE_HIGH
     .level_gran =       {
+#undef NO_LVL_KEYSPD
+#undef NO_LVL_SLOPE_LOW
+#undef NO_LVL_SLOPE_HIGH
         [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
         [LVL_SLOPE_LOW] = { .min = { .i = 10}, .max = { .i = 1000}, .step = { .i = 50} },
         [LVL_SLOPE_HIGH] = { .min = { .i = 1000}, .max = { .i = 5000}, .step = { .i = 10} },
@@ -1506,7 +1512,9 @@ struct rig_caps powersdr_caps =
     .has_get_parm =     RIG_PARM_BANDSELECT,
     .has_set_parm =     RIG_PARM_BANDSELECT,
     .level_gran =       {
+#define NO_LVL_KEYSPD
 #include "level_gran_kenwood.h"
+#undef NO_LVL_KEYSPD
         [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
     },     /* FIXME: granularity */
     .parm_gran =  {
@@ -1658,7 +1666,9 @@ struct rig_caps thetis_caps =
     .has_get_parm =     RIG_PARM_BANDSELECT,
     .has_set_parm =     RIG_PARM_BANDSELECT,
     .level_gran =       {
+#define NO_LVL_KEYSPD
 #include "level_gran_kenwood.h"
+#undef NO_LVL_KEYSPD
         [LVL_KEYSPD] = { .min = { .i = 5 }, .max = { .i = 60 }, .step = { .i = 1 } },
     },     /* FIXME: granularity */
     .parm_gran =  {
