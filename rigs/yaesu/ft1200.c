@@ -172,7 +172,15 @@ struct rig_caps ftdx1200_caps =
     .has_set_parm =       RIG_PARM_BANDSELECT,
     .level_gran =
     {
+#define NO_LVL_NOTCHF
+#define NO_LVL_MICGAIN
+#define NO_LVL_MONITOR_GAIN
+#define NO_LVL_RFPOWER
 #include "level_gran_yaesu.h"
+#undef NO_LVL_NOTCHF
+#undef NO_LVL_MICGAIN
+#undef NO_LVL_MONITOR_GAIN
+#undef NO_LVL_RFPOWER
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 4000 }, .step = { .i = 10 } },
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_MONITOR_GAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
