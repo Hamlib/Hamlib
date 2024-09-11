@@ -268,12 +268,12 @@ struct rig_caps ftdx3000_caps =
     .has_get_parm =       RIG_PARM_BANDSELECT,
     .has_set_parm =       RIG_PARM_BANDSELECT,
     .level_gran = {
-#define NO_LVL_NOTCH
+#define NO_LVL_NOTCHF
 #define NO_LVL_MICGAIN
 #define NO_LVL_MONITOR_GAIN
 #define NO_LVL_RFPOWER
 #include "level_gran_yaesu.h"
-#undef NO_LVL_NOTCH
+#undef NO_LVL_NOTCHF
 #undef NO_LVL_MICGAIN
 #undef NO_LVL_MONITOR_GAIN
 #undef NO_LVL_RFPOWER
