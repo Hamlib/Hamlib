@@ -1829,7 +1829,25 @@ struct rig_caps ts590_caps =
     },
     .level_gran =
     {
+#define NO_LVL_RF
+#define NO_LVL_AF
+#define NO_LVL_USB_AF
+#define NO_LVL_USB_AF_INPUT
+#define NO_LVL_VOXDELAY
+#define NO_LVL_CWPITCH
+#define NO_LVL_BKINDLYMS
+#define NO_LVL_SLOPE_LOW
+#define NO_LVL_SLOPE_HIGH
 #include "level_gran_kenwood.h"
+#undef NO_LVL_RF
+#undef NO_LVL_AF
+#undef NO_LVL_USB_AF
+#undef NO_LVL_USB_AF_INPUT
+#undef NO_LVL_VOXDELAY
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_BKINDLYMS
+#undef NO_LVL_SLOPE_LOW
+#undef NO_LVL_SLOPE_HIGH
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 255.0f } },
         [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 255.0f } },
         [LVL_USB_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 10.0f } },
@@ -2025,7 +2043,21 @@ struct rig_caps fx4_caps =
     },
     .level_gran =
     {
+#define NO_LVL_RF
+#define NO_LVL_AF
+#define NO_LVL_VOXDELAY
+#define NO_LVL_CWPITCH
+#define NO_LVL_BKINDLYMS
+#define NO_LVL_SLOPE_LOW
+#define NO_LVL_SLOPE_HIGH
 #include "level_gran_kenwood.h"
+#undef NO_LVL_RF
+#undef NO_LVL_AF
+#undef NO_LVL_VOXDELAY
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_BKINDLYMS
+#undef NO_LVL_SLOPE_LOW
+#undef NO_LVL_SLOPE_HIGH
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
         [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 255.0f } },
         [LVL_VOXDELAY] = { .min = { .i = 0 }, .max = { .i = 30 }, .step = { .i = 1 } },
@@ -2223,7 +2255,25 @@ struct rig_caps ts590sg_caps =
         RIG_FLT_END,
     },
     .level_gran = {
+#define NO_LVL_RF
+#define NO_LVL_AF
+#define NO_LVL_USB_AF
+#define NO_LVL_USB_AF_INPUT
+#define NO_LVL_VOXDELAY
+#define NO_LVL_CWPITCH
+#define NO_LVL_BKINDLYMS
+#define NO_LVL_SLOPE_LOW
+#define NO_LVL_SLOPE_HIGH
 #include "level_gran_kenwood.h"
+#undef NO_LVL_RF
+#undef NO_LVL_AF
+#undef NO_LVL_USB_AF
+#undef NO_LVL_USB_AF_INPUT
+#undef NO_LVL_VOXDELAY
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_BKINDLYMS
+#undef NO_LVL_SLOPE_LOW
+#undef NO_LVL_SLOPE_HIGH
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 255.0f } },
         [LVL_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 255.0f } },
         [LVL_USB_AF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 10.0f } },
