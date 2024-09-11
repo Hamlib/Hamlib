@@ -107,7 +107,15 @@ struct rig_caps ft950_caps =
     .has_set_parm =       RIG_PARM_BANDSELECT,
     .level_gran =
     {
+#define NO_LVL_CWPITCH
+#define NO_LVL_KEYSPD
+#define NO_LVL_NOTCHF
+#define NO_LVL_RFPOWER
 #include "level_gran_yaesu.h"
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_KEYSPD
+#undef NO_LVL_NOTCHF
+#undef NO_LVL_RFPOWER
         [LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
         [LVL_KEYSPD] = { .min = { .i = 4 }, .max = { .i = 60 }, .step = { .i = 1 } },
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 3000 }, .step = { .i = 10 } },
