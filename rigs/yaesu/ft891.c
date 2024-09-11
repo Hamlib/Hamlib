@@ -155,7 +155,16 @@ struct rig_caps ft891_caps =
     .has_set_parm =       RIG_PARM_BANDSELECT,
     .level_gran =
     {
+#define NO_LVL_RF
+#define NO_LVL_MICGAIN
+#define NO_LVL_SQL
+#define NO_LVL_MONITOR_GAIN
+#define NO_LVL_RFPOWER
 #include "level_gran_yaesu.h"
+#undef NO_LVL_RF
+#undef NO_LVL_MICGAIN
+#undef NO_LVL_SQL
+#undef NO_LVL_MONITOR_GAIN
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0f }, .step = { .f = 1.0f / 30.0f } },
         [LVL_MICGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
         [LVL_SQL] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 100.0f } },
