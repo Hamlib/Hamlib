@@ -1835,7 +1835,7 @@ struct rig_caps ts590_caps =
 #define NO_LVL_USB_AF_INPUT
 #define NO_LVL_VOXDELAY
 #define NO_LVL_CWPITCH
-#define NO_LVL_BKINDLYMS
+#define NO_LVL_BKIN_DLYMS
 #define NO_LVL_SLOPE_LOW
 #define NO_LVL_SLOPE_HIGH
 #include "level_gran_kenwood.h"
@@ -1845,7 +1845,7 @@ struct rig_caps ts590_caps =
 #undef NO_LVL_USB_AF_INPUT
 #undef NO_LVL_VOXDELAY
 #undef NO_LVL_CWPITCH
-#undef NO_LVL_BKINDLYMS
+#undef NO_LVL_BKIN_DLYMS
 #undef NO_LVL_SLOPE_LOW
 #undef NO_LVL_SLOPE_HIGH
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 255.0f } },
@@ -2047,7 +2047,7 @@ struct rig_caps fx4_caps =
 #define NO_LVL_AF
 #define NO_LVL_VOXDELAY
 #define NO_LVL_CWPITCH
-#define NO_LVL_BKINDLYMS
+#define NO_LVL_BKIN_DLYMS
 #define NO_LVL_SLOPE_LOW
 #define NO_LVL_SLOPE_HIGH
 #include "level_gran_kenwood.h"
@@ -2055,7 +2055,7 @@ struct rig_caps fx4_caps =
 #undef NO_LVL_AF
 #undef NO_LVL_VOXDELAY
 #undef NO_LVL_CWPITCH
-#undef NO_LVL_BKINDLYMS
+#undef NO_LVL_BKIND_LYMS
 #undef NO_LVL_SLOPE_LOW
 #undef NO_LVL_SLOPE_HIGH
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 100.0f } },
@@ -2261,7 +2261,7 @@ struct rig_caps ts590sg_caps =
 #define NO_LVL_USB_AF_INPUT
 #define NO_LVL_VOXDELAY
 #define NO_LVL_CWPITCH
-#define NO_LVL_BKINDLYMS
+#define NO_LVL_BKIN_DLYMS
 #define NO_LVL_SLOPE_LOW
 #define NO_LVL_SLOPE_HIGH
 #include "level_gran_kenwood.h"
@@ -2271,7 +2271,7 @@ struct rig_caps ts590sg_caps =
 #undef NO_LVL_USB_AF_INPUT
 #undef NO_LVL_VOXDELAY
 #undef NO_LVL_CWPITCH
-#undef NO_LVL_BKINDLYMS
+#undef NO_LVL_BKIN_DLYMS
 #undef NO_LVL_SLOPE_LOW
 #undef NO_LVL_SLOPE_HIGH
         [LVL_RF] = { .min = { .f = 0 }, .max = { .f = 1.0 },  .step = { .f = 1.0f / 255.0f } },
