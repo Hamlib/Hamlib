@@ -64,7 +64,15 @@ struct rig_caps ft450_caps =
     .has_set_parm =       RIG_PARM_BANDSELECT,
     .level_gran =
     {
+#define NO_LVL_CWPITCH
+#define NO_LVL_NOTCHF
+#define NO_LVL_VOXGAIN
+#define NO_LVL_NR
 #include "level_gran_yaesu.h"
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_NOTCHF
+#undef NO_LVL_VOXGAIN
+#undef NO_LVL_NR
         [LVL_CWPITCH] = { .min = { .i = 400 }, .max = { .i = 800 }, .step = { .i = 100 } },
         [LVL_NOTCHF] = { .min = { .i = 1 }, .max = { .i = 4000 }, .step = { .i = 10 } },
         [LVL_VOXGAIN] = { .min = { .f = 0 }, .max = { .f = 1.0 }, .step = { .f = 1.0f / 255.0f } },
