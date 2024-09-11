@@ -569,7 +569,15 @@ struct rig_caps k4_caps =
     .has_get_parm =     RIG_PARM_NONE,
     .has_set_parm =     RIG_PARM_NONE,  /* FIXME: parms */
     .level_gran = {
+#define NO_LVL_ATT
+#define NO_LVL_CWPITCH
+#define NO_LVL_VOXDELAY
+#define NO_LVL_PREAMP
 #include "level_gran_elecraft.h"
+#undef NO_LVL_ATT
+#undef NO_LVL_CWPITCH
+#undef NO_LVL_VOXDELAY
+#undef NO_LVL_PREAMP
         [LVL_CWPITCH]  = { .min = { .i = 250 }, .max = { .i = 950 }, .step = { .i = 10 } },
         [LVL_ATT]      = { .min = { .i = 0 },   .max = { .i = 15 },  .step = { .i = 5 }  },
         [LVL_VOXDELAY] = { .min = { .i = 0 },   .max = { .i = 255 }, .step = { .i = 10 } },

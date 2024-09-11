@@ -4,16 +4,24 @@
         /* raw data */
         [LVL_RAWSTR]        = { .min = { .i = 0 },     .max = { .i = 255 } },
         /* levels with dB units */
+#if !defined(NO_LVL_PREAMP)
         [LVL_PREAMP]        = { .min = { .i = 0 },     .max = { .i = 20 },   .step = { .i = 10 } },
+#endif
+#if !defined(NO_LVL_ATT)
         [LVL_ATT]           = { .min = { .i = 0 },     .max = { .i = 10 },   .step = { .i = 10 } },
+#endif
         [LVL_STRENGTH]      = { .min = { .i = 0 },     .max = { .i = 60 },   .step = { .i = 0 } },
         [LVL_NB]            = { .min = { .f = 0 },     .max = { .f = 10 },   .step = { .f = 1 } },
         /* levels with WPM units */
         [LVL_KEYSPD]        = { .min = { .i = 8 },     .max = { .i = 50 },   .step = { .i = 1 } },
         /* levels with Hz units */
+#if !defined(NO_LVL_CWPITCH)
         [LVL_CWPITCH]       = { .min = { .i = 300 },   .max = { .i = 800 }, .step = { .i = 10 } },
+#endif
         /* levels with time units */
+#if !defined(NO_LVL_CWPITCH)
         [LVL_VOXDELAY]      = { .min = { .i = 0 },     .max = { .i = 255 },  .step = { .i = 50 } },
+#endif
         /* levels with 0-1 values -- increment based on rig's range */
         [LVL_NR]            = { .min = { .f = 0 },     .max = { .f = 1 },    .step = { .f = 1.0f/10.0f } },
         [LVL_AF]            = { .min = { .f = 0 },     .max = { .f = 1.0 },  .step = { .f = 1.0f/255.0f } },
