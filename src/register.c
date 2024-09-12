@@ -294,7 +294,7 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     const struct rig_caps *caps;
     int be_idx;
     int retval;
-    int i;
+//    int i;
 
     /* already loaded ? */
     caps = rig_get_caps(rig_model);
