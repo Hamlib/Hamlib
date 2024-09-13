@@ -128,7 +128,7 @@ struct rig_caps tt538_caps =
     RIG_MODEL(RIG_MODEL_TT538),
     .model_name = "TT-538 Jupiter",
     .mfg_name =  "Ten-Tec",
-    .version =  "20221205.0",
+    .version =  "20240913.0",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -257,7 +257,7 @@ static int tt538_transaction(RIG *rig, const char *cmd, int cmd_len,
 
     retval = tentec_transaction(rig, cmd, cmd_len, data, data_len);
 
-    if (retval == RIG_OK)
+    if (data == NULL || (data != NULL && data_len > 0))
     {
         return retval;
     }
@@ -444,6 +444,9 @@ int tt538_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char bytes[4];
     unsigned char cmdbuf[16];
+    int retval=-RIG_EINTERNAL;
+    int retry = STATE(rig)->retry;
+    freq_t freqchk=0;
 
     /* Freq is 4 bytes long, MSB sent first. */
     bytes[3] = ((unsigned int) freq >> 24) & 0xff;
@@ -451,12 +454,18 @@ int tt538_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     bytes[1] = ((unsigned int) freq >>  8) & 0xff;
     bytes[0] = ((unsigned int) freq) & 0xff;
 
+    do {
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*%c%c%c%c%c" EOM,
              which_vfo(rig, vfo),
              bytes[3], bytes[2], bytes[1], bytes[0]);
 
-    return tt538_transaction(rig, (char *) cmdbuf, 6,  NULL,
+    retval = tt538_transaction(rig, (char *) cmdbuf, 6,  NULL,
                              NULL);
+    if (retval != RIG_OK) continue;
+    retval = tt538_get_freq(rig, vfo, &freqchk);
+    if (retval != RIG_OK) return retval;
+    } while ( freq != freqchk && --retry >= 0);
+    return retval;
 }
 
 /*
