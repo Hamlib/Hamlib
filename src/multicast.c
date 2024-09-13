@@ -17,7 +17,8 @@
 #include "network.h"
 #include "sprintflst.h"
 
-#define RIG_MULTICAST_ADDR "224.0.0.1"
+// Multicast off by default
+#define RIG_MULTICAST_ADDR "0.0.0.0" 
 #define RIG_MULTICAST_PORT 4532
 
 #if 0

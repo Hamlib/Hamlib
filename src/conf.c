@@ -203,7 +203,7 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_MULTICAST_DATA_ADDR, "multicast_data_addr", "Multicast data UDP address",
         "Multicast data UDP address for publishing rig data and state, value of 0.0.0.0 disables multicast data publishing",
-        "224.0.0.1", RIG_CONF_STRING,
+        "0.0.0.0", RIG_CONF_STRING,
     },
     {
         TOK_MULTICAST_DATA_PORT, "multicast_data_port", "Multicast data UDP port",
@@ -213,7 +213,7 @@ static const struct confparams frontend_cfg_params[] =
     {
         TOK_MULTICAST_CMD_ADDR, "multicast_cmd_addr", "Multicast command server UDP address",
         "Multicast command UDP address for sending commands to rig, value of 0.0.0.0 disables multicast command server",
-        "224.0.0.2", RIG_CONF_STRING,
+        "0.0.0.0", RIG_CONF_STRING,
     },
     {
         TOK_MULTICAST_CMD_PORT, "multicast_cmd_port", "Multicast command server UDP port",
