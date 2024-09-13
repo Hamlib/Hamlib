@@ -441,7 +441,7 @@ const char *HAMLIB_API rigerror2(int errnum) // returns single-line message
         return "ERR_OUT_OF_RANGE";
     }
 
-    static char msg[DEBUGMSGSAVE_SIZE];
+    static char msg[DEBUGMSGSAVE_SIZE/2];
     snprintf(msg, sizeof(msg), "%s\n", rigerror_table[errnum]);
     return msg;
 }
@@ -7003,10 +7003,8 @@ vfo_op_t HAMLIB_API rig_has_vfo_op(RIG *rig, vfo_op_t op)
         return (0);
     }
 
-    ENTERFUNC;
-
     retcode = STATE(rig)->vfo_ops & op;
-    RETURNFUNC(retcode);
+    return retcode;
 }
 
 
