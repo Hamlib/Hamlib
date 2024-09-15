@@ -6020,7 +6020,7 @@ int kenwood_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
 int kenwood_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset)
 {
     int retval;
-    int fields, zone;
+    int fields, diff;
     char ans[20];
 
     // Make sure the clock has been set at least once
@@ -6055,9 +6055,9 @@ int kenwood_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int 
     retval = kenwood_transaction(rig, "CK2", ans, sizeof(ans));
     if (retval != RIG_OK) {return retval;}
 
-    zone = atoi(&ans[3]);   // UTC offset in 15 minute intervals, centered on 56
-    zone = (zone / 4) * 100 + (zone % 4) * 15;  // Pack as hours * 100 + minutes
-    *utc_offset = zone - 1400;
+    diff = (atoi(&ans[3]) - 56) * 15;   // UTC offset in minutes
+    // Pack as hours * 100 + minutes
+    *utc_offset = (diff / 60) * 100 + diff % 60;
 
     // No msec available
     *msec = 0;
