@@ -15,6 +15,7 @@ struct ip_mreq
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <ctype.h>
 #include <hamlib/rig.h>
 
 #define BUFSIZE 256
@@ -46,7 +47,9 @@ int ra=0;
 int rl=0;
 int is=0;
 int sp=0;
-int tzs[2] = {40, 56}; // 0=primary(EDT), 1=auxiiary(UTC)
+// Clock data
+int autoset = 1;
+int tzs[2] = {36, 56}; // 0=primary(EST), 1=auxiliary(UTC)
 char auxtzc = 'U';       // Auxiliary clock identifier (UTC)
 
 #if defined(WIN32) || defined(_WIN32)
@@ -630,6 +633,38 @@ int main(int argc, char *argv[])
         {
             sscanf(buf,"SP%d", &sp);
         }
+        else if (strncmp(buf, "BS", 2) == 0)
+        {  // All the Bandscope commands
+            switch (toupper(buf[2])) {
+            case '0': // Scope Display ON/OFF
+            case '1': // Scope Display Type
+            case '2': // Bandscpoe Operation Mode
+            case '3': // Bandscope Span
+            case '4': // Bandscope Span
+            case '5': // Bandscope Scope Range (Fixed Mode)
+            case '6': // Bandscope Dispaly Pause
+            case '7': // Bandscope Marker
+            case '8': // Bandscope Attenuator
+            case '9': // Bandscope Max Hold
+            case 'A': // Bandscope Averaging
+            case 'B': // Bandscope Waterfall Display Speed
+            case 'C': // Bandscope Reference Level
+            case 'D': // Bandscope Waterfall Display Clear
+            case 'E': // Bandscope Marker Shift / Marker Center
+            case 'G': // Audio Scope Attenuator
+            case 'H': // Audio Scope Span
+            case 'I': // Oscilloscope Level
+            case 'J': // Oscilloscpoe Sweep Time
+            case 'K': // Bandscope Shift Position
+            case 'L': // Bandscope Receive Circuit State
+            case 'M': // Bandscope Scope Range Lower/Upper Frequency Limit
+            case 'N': // Audio Scope Display Pause
+            case 'O': // Expands Spectrum Analysis Range
+              break;
+            default: // Unknown
+              cmd_err = 1;
+            }
+        }
         else if (strncmp(buf, "CK", 2) == 0)
         {  // All the clock functions
             switch (buf[2]) {
@@ -647,23 +682,22 @@ int main(int argc, char *argv[])
                   }
                 else
                   {
-                    printf("Sorry, can't set time (yet)\n");
+                    printf("Clock not set. cmd = %s\n", buf);
                   }
                 break;
               }
             case '1': // Setting status
               buf[3] = '1';
               buf[4] = ';';
-              buf[5] = 0;
-              write(fd, buf, 6);
+              write(fd, buf, 5);
               break;
             case '2': // Local clock time zone
-            case '3': // Secondary clock time zone
+            case '3': // Auxiliary clock time zone
               {
                 int idx = buf[2] - '2';
                 if (buf[3] == ';')
                   {
-                    sprintf(&buf[3], "%3d;", tzs[idx]);
+                    sprintf(&buf[3], "%03d;", tzs[idx]);
                     write(fd, buf, strlen(buf));
                   }
                 else
@@ -672,34 +706,31 @@ int main(int argc, char *argv[])
                   }
                 break;
               }
-	    case '4': // ID character for secondary clock
+	    case '4': // ID character for auxiliary clock
               if (buf[3] == ';')
               {
                   buf[3] = auxtzc;
                   buf[4] = ';';
-                  buf[5] = '\0';
-                  write(fd, buf, 6);
+                  write(fd, buf, 5);
                 }
               else
                 {
                   auxtzc = buf[3];
                 }
               break;
-            case '5': // Date format
+            case '5': // Date display format
               break;
             case '6': // Automatic date/time retrieval (NTP)
-              //For the time being, assume this is always on.
               //TODO: Fix this when we can set the clock
               if (buf[3] == ';')
                 {
-                  buf[3] = 1;
+                  buf[3] = autoset + '0';
                   buf[4] = ';';
-                  buf[5] = 0;
-                  write(fd, buf, strlen(buf));
+                  write(fd, buf, 5);
 		}
 	      else
 		{
-		  printf("Can't run without NTP, sorry\n");
+		  autoset = buf[3] - '0';
 		}
 	      break;
 	    case '7': // NTP server address
@@ -709,6 +740,38 @@ int main(int argc, char *argv[])
 	      printf("Bad clock command - %s\n", buf);
 	    }
 	  }
+        else if (strncmp(buf, "CM", 2) == 0)
+        { // CW Message Memory
+          switch (buf[2]) {
+          case '0': // Registration of CW Message (Paddle Input)
+          case '1': // Play/Stop the CW Message
+          case '2': // Register State of CW Message (Paddle Input)
+          case '3': // Clear the CW Message (Paddle Inut)
+          case '4': // CW Message Memory Name (Paddle Input)
+          case '5': // Registering the CW Message Memory (Text Input)
+          case '6': // CW Message Channel Repeat
+          case '7': // Contest Number
+            break;
+          default:
+            cmd_err = 1;  //Unknown command
+          }
+	}
+        else if (strncmp(buf, "MA", 2) == 0)
+        { // Memory Channel Functions
+          switch (buf[2]) {
+          case '0': // Memory Channel Configuration
+          case '1': // Memort Channel (Direct Write)
+          case '2': // Memory Channel (Channel Name)
+          case '3': // Memory Channel (Scan Lockout)
+          case '4': // Memory Channel (Channel Copy)
+          case '5': // Memory Channle (Channel Deletion)
+          case '6': // Programmable VFO End Frequency
+          case '7': // Memory Channel (Temporary Change Frequency)
+            break;
+          default:
+            cmd_err = 1;
+          }
+        }
         else if (strlen(buf) > 0)
         {
             fprintf(stderr, "Unknown command: %s\n", buf);
