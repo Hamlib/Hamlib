@@ -6011,7 +6011,46 @@ int kenwood_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
  */
 int kenwood_set_clock(RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset)
 {
-    return -RIG_ENIMPL;
+    char cmd[20];
+    int retval, kenwood_val;
+
+    /* Do the offset first.  Then if the clock is synced to NTP,
+     *  the set failure still should allow correct display
+     *
+     * utc_offset = hours * 100 + minutes
+     * Kenwood value = 15 minute intervals normalized to 56 ( = UTC+00)
+     */
+    // Convert utc_offset to minutes
+    kenwood_val = ((utc_offset / 100) * 60) + (utc_offset % 100);
+    // Now convert to 15 minute intervals, centered on 56
+    kenwood_val = kenwood_val / 15 + 56;
+    SNPRINTF(cmd, sizeof(cmd), "CK2%03d", kenwood_val);
+    retval = kenwood_transaction(rig, cmd, NULL, 0);
+    if (retval != RIG_OK) {return retval;}
+
+    // Offset is set, now check if clock is settable
+    retval = kenwood_transaction(rig, "CK6", cmd, sizeof(cmd));
+    if (retval != RIG_OK) {return retval;}
+    if (cmd[3] == '1')
+    {
+	// OK, autoset by NTP is on so we can't set it
+	// What should we tell the user?
+	// Until I hear otherwise, pretend everything worked, and
+	//   the local clock should display the correct time in whatever
+	//   zone the app thought it was trying to set.
+	return RIG_OK;
+    }
+
+    // Local clock should be settable; build the command
+    SNPRINTF(cmd, sizeof(cmd), "CK0%02d%02d%02d%02d%02d%02d", year % 100, month, day,
+	     hour, min, sec);
+    if (RIG_IS_TS990S)
+    { // TS-990S does not have seconds
+	cmd[13] = '\0';
+    }
+    retval = kenwood_transaction(rig, cmd, NULL, 0);
+
+    return retval;
 }
 
 /*
@@ -6020,7 +6059,7 @@ int kenwood_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
 int kenwood_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset)
 {
     int retval;
-    int fields, zone;
+    int fields, diff;
     char ans[20];
 
     // Make sure the clock has been set at least once
@@ -6055,9 +6094,9 @@ int kenwood_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int 
     retval = kenwood_transaction(rig, "CK2", ans, sizeof(ans));
     if (retval != RIG_OK) {return retval;}
 
-    zone = atoi(&ans[3]);   // UTC offset in 15 minute intervals, centered on 56
-    zone = (zone / 4) * 100 + (zone % 4) * 15;  // Pack as hours * 100 + minutes
-    *utc_offset = zone - 1400;
+    diff = (atoi(&ans[3]) - 56) * 15;   // UTC offset in minutes
+    // Pack as hours * 100 + minutes
+    *utc_offset = (diff / 60) * 100 + diff % 60;
 
     // No msec available
     *msec = 0;
