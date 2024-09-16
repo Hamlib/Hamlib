@@ -1831,8 +1831,12 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
             return retval;
         }
 
-        retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, freqbuf, &freq_len);
-        HAMLIB_TRACE;
+        for(int i=0;i<2;++i)
+        {
+            retval = icom_transaction(rig, C_RD_FREQ, -1, NULL, 0, freqbuf, &freq_len);
+            HAMLIB_TRACE;
+            if (freqbuf[4] == C_RD_FREQ) break;
+        }
 
         int retval2 = set_vfo_curr(rig, vfo_save, rs->current_vfo);
 
@@ -4474,7 +4478,8 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_RFPOWER_METER_WATTS:
-
+    {
+        freq_range_t range_list;
         // All Icom backends should be in Watts now
         if (rig->caps->rfpower_meter_cal.size == 0)
         {
@@ -4491,9 +4496,11 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                       "%s: using default icom table to convert %d to %.01f\n", __func__, icom_val,
                       val->f);
         }
+        rig_get_range(&range_list, STATE(rig)->current_freq, STATE(rig)->current_mode);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: maxpower=%d\n", __func__, range_list.high_power);
 
         break;
-
+    }
     case RIG_LEVEL_COMP_METER:
         if (rig->caps->comp_meter_cal.size == 0)
         {
@@ -8825,25 +8832,19 @@ int icom_stop_morse(RIG *rig, vfo_t vfo)
 int icom_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                   rmode_t mode)
 {
-    int rig_id;
+    const freq_range_t *range_list;
 
     ENTERFUNC;
-    rig_id = rig->caps->rig_model;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    switch (rig_id)
+    range_list = rig_get_range(rig->caps->tx_range_list1, freq, mode);
+    if (range_list == NULL)
     {
-    case RIG_MODEL_IC705:
-    case RIG_MODEL_IC905:
-        *mwpower = power * 10000;
-        break;
-
-    default:
-        /* Normal 100 Watts */
-        *mwpower = power * 100000;
-        break;
+        *mwpower = power * 100000; // default to 100W if no range_list
     }
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: maxpower=%d\n", __func__, range_list->high_power);
+
+    *mwpower = power * range_list->high_power;
 
     RETURNFUNC(RIG_OK);
 }
