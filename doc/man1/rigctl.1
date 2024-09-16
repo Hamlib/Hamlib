@@ -1320,9 +1320,14 @@ YYYY-MM-DD (sets date only)
 local (sets both clocks to local time)
 utc (sets both clocks to utc time)
 Note: Icom rigs expect you to set local time and the hours off to UTC.
-So...4PM EST example would be 2021-12-01T16:00:00+0500
+So...4PM EST example would be 2021-12-01T16:00:00-0500
 But...if you want to display GMT you must set the clock for GMT with zero UTC offset.  
 Hopefully Icom will allow displaying either clock in the future
+
+Note: Kenwood rigs only allow setting local clock, and then only if not autoset by NTP.
+Trying to set clock when NTP is in use will set the offset, but not the time -
+   and no error status will be returned.
+Time displayed on the auxiliary clock is solely determined by UTC and the aux offset.
 
 .EE
 .
