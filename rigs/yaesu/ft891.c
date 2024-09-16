@@ -130,7 +130,7 @@ struct rig_caps ft891_caps =
     RIG_MODEL(RIG_MODEL_FT891),
     .model_name =         "FT-891",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".10",
+    .version =            NEWCAT_VER ".11",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -383,7 +383,7 @@ static int ft891_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     priv = (struct newcat_priv_data *)STATE(rig)->priv;
 
     // RX VFO and TX VFO cannot be the same, no support for MEM as TX VFO
-    if (vfo == tx_vfo || tx_vfo == RIG_VFO_MEM)
+    if ((split == RIG_SPLIT_ON && (vfo == tx_vfo)) || tx_vfo == RIG_VFO_MEM)
     {
         return -RIG_ENTARGET;
     }
