@@ -122,6 +122,8 @@ void frameParse(int fd, unsigned char *frame, int len)
         dumphex(frame, len);
         return;
     }
+    frame[2] = 0xe0;
+    frame[3] = 0x60;
 
     switch (frame[4])
     {
