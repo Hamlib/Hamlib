@@ -844,7 +844,8 @@ int kenwood_init(RIG *rig)
             || rig->caps->rig_model == RIG_MODEL_TS50
             || rig->caps->rig_model == RIG_MODEL_TS140S
             || rig->caps->rig_model == RIG_MODEL_TS2000
-            || rig->caps->rig_model == RIG_MODEL_TS440)
+            || rig->caps->rig_model == RIG_MODEL_TS440
+            || rig->caps->rig_model == RIG_MODEL_QRPLABS)
     {
         priv->has_ps = 0;
     }

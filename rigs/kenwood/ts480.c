@@ -1222,6 +1222,28 @@ int ts480_init(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
+int qrplabs_open(RIG *rig)
+{
+    int retval;
+    char buf[64];
+    struct kenwood_priv_data *priv = (struct kenwood_priv_data *) STATE(rig)->priv;
+    ENTERFUNC;
+    retval = kenwood_open(rig);
+    if (retval != RIG_OK)
+    {
+        RETURNFUNC(retval);
+    }
+    retval = kenwood_transaction(rig, "VN", buf, sizeof(buf));
+
+    if (retval == RIG_OK)
+    {
+        strtok(buf,";");
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: firmware version %s\n", __func__, &buf[2]);
+    }
+    priv->is_emulation = 1;
+    RETURNFUNC(retval);
+}
+
 int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     const char *ptt_cmd;
@@ -1675,9 +1697,9 @@ struct rig_caps trudx_caps =
 struct rig_caps qrplabs_caps =
 {
     RIG_MODEL(RIG_MODEL_QRPLABS),
-    .model_name = "QCX/QDX",
+    .model_name = "QCX/QDX/QMX",
     .mfg_name = "QRPLabs",
-    .version = BACKEND_VER ".1",
+    .version = BACKEND_VER ".2",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1834,7 +1856,7 @@ struct rig_caps qrplabs_caps =
 
     .priv = (void *)& ts480_priv_caps,
     .rig_init = ts480_init,
-    .rig_open = kenwood_open,
+    .rig_open = qrplabs_open,
     .rig_cleanup = kenwood_cleanup,
     .set_freq = kenwood_set_freq,
     .get_freq = kenwood_get_freq,
