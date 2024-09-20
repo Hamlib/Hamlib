@@ -51,6 +51,22 @@ int sp=0;
 int autoset = 1;
 int tzs[2] = {36, 56}; // 0=primary(EST), 1=auxiliary(UTC)
 char auxtzc = 'U';       // Auxiliary clock identifier (UTC)
+// Antenna connections
+char antnum = '1', recant = '0', driveout = '0', antout = '0';
+// Multiple meter functions
+struct meter_data {
+  int enabled;
+  int value;  // # of pips lit, range 0-70
+    };
+struct meter_data meter[6] = {
+  { 0,  5},  // ALC
+  { 0,  1},  // SWR
+  { 0, 10},  // COMP
+  { 0, 30},  // ID (amps)
+  { 0, 60},  // Vd (Volts)
+  { 0, 20}   // Temp (Unknown units)
+};
+  
 
 #if defined(WIN32) || defined(_WIN32)
 int openPort(char *comport) // doesn't matter for using pts devices
@@ -173,7 +189,16 @@ int main(int argc, char *argv[])
 
 //        else { return 0; }
 
-        if (strncmp(buf, "RM2", 3) == 0)
+        if (strcmp(buf, "IF;") == 0)
+        {
+            char ifbuf[256];
+            hl_usleep(mysleep * 1000);
+            sprintf(ifbuf, IFformat, freqa,
+		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, modeA);
+            write(fd, ifbuf, strlen(ifbuf));
+        }
+#if 0
+        else if (strncmp(buf, "RM2", 3) == 0)
         {
             pbuf = "RM20020;";
             write(fd, pbuf, strlen(pbuf));
@@ -184,23 +209,26 @@ int main(int argc, char *argv[])
             pbuf = "RM5100000;";
             write(fd, pbuf, strlen(pbuf));
         }
-
-        else if (strcmp(buf, "AN0;") == 0)
-        {
+#endif
+        else if (strncmp(buf, "AN", 2) == 0)
+        {  // Antenna connection handling
             hl_usleep(mysleep * 1000);
-            pbuf = "AN030;";
-            write(fd, pbuf, strlen(pbuf));
-        }
-        else if (strcmp(buf, "IF;") == 0)
-        {
-            char ifbuf[256];
-            hl_usleep(mysleep * 1000);
-//            pbuf = "IF000503130001000+0000000000030000000;"
-//            sprintf(ifbuf, "IF%011d1000+0000002000000000000;", freqa);
-            sprintf(ifbuf, IFformat, freqa,
-		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, modeA);
-            //pbuf = "IF00010138698     +00000000002000000 ;
-            write(fd, ifbuf, strlen(ifbuf));
+	    if (buf[2] == ';')
+            {
+		buf[2] = antnum;
+		buf[3] = recant;
+		buf[4] = driveout;
+		buf[5] = antout;
+		buf[6] = ';';
+		write(fd, buf, 7);
+            }
+            else
+            {
+		if (buf[2] != '9') antnum = buf[2];
+		if (buf[3] != '9') recant = buf[3];
+		if (buf[4] != '9') driveout = buf[4];
+		if (buf[5] != '9') antout = buf[5];
+            }
         }
         else if (strcmp(buf, "NB1;") == 0)
         {
@@ -458,6 +486,7 @@ int main(int argc, char *argv[])
             }
 
         }
+#if 0
         else if (strncmp(buf, "CB;", 3) == 0)
         {
             printf("No CB command!\n");
@@ -468,6 +497,7 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "CB%d", &operatingband);
         }
+#endif
         else if (strncmp(buf, "TB;", 3) == 0)
         {
             sprintf(buf, "TB%d;", split);
@@ -504,10 +534,36 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "OM1%d", &modeSub);
         }
-        else if (strcmp(buf, "RM;") == 0)
-        {
-            sprintf(buf, "RM2%04d;", 10);
-            write(fd, buf, strlen(buf));
+        else if (strncmp(buf, "RM", 2) == 0)
+        {  // Meter control/readout
+	  if (buf[2] == ';')
+	    { // Read all enabled meters
+	      char tbuf[8];
+	      buf[0] = '\0';
+	      for (int i = 0; i < 6; i++)
+		{
+		  if (meter[i].enabled)
+		    {
+		      SNPRINTF(tbuf, sizeof tbuf, "RM%d%03d;", i + 1, meter[i].value);
+		      strncat(buf, tbuf, sizeof buf - strlen(buf) - 1);
+		    }
+		}
+	      if (buf[0] != '\0')
+		{
+		  write(fd, buf, strlen(buf));
+		}
+	    }
+	  else
+	    { // Enable/disable one meter
+	      int target = buf[2] - '1';
+	      int status = buf[3] - '0';
+	      if (target < 0 || target > 5 || status < 0 || status > 1)
+		{
+		  cmd_err = 2;
+		  continue;
+		}
+	      meter[target].enabled = status;
+	    }
         }
         else if (strcmp(buf, "SL0;") == 0)
         {
@@ -753,7 +809,7 @@ int main(int argc, char *argv[])
           case '7': // Contest Number
             break;
           default:
-            cmd_err = 1;  //Unknown command
+            cmd_err = 1;  // Unknown command
           }
 	}
         else if (strncmp(buf, "MA", 2) == 0)
