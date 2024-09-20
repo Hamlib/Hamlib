@@ -4871,6 +4871,10 @@ int kenwood_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 
         SNPRINTF(cmd, sizeof(cmd), "AN0%c%c99", c, a);
     }
+    else if (RIG_IS_TS890S)
+    {
+        SNPRINTF(cmd, sizeof(cmd), "AN%c999", a);
+    }
     else if (RIG_IS_TS590S || RIG_IS_TS590SG)
     {
         SNPRINTF(cmd, sizeof(cmd), "AN%c99", a);
@@ -4936,6 +4940,11 @@ int kenwood_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
     {
         retval = kenwood_safe_transaction(rig, "AN0", ackbuf, sizeof(ackbuf), 7);
         offs = 4;
+    }
+    else if (RIG_IS_TS890S)
+    {
+        retval = kenwood_safe_transaction(rig, "AN", ackbuf, sizeof(ackbuf), 6);
+        offs = 2;
     }
     else if (RIG_IS_TS590S || RIG_IS_TS590SG)
     {
