@@ -174,17 +174,34 @@ static int
 gs232_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     char posbuf[32];
+    // these really shouldn't be static but it's fixing faulty firmware -- see below
+    static int expected = 12;
+    static int expected_flag = 0;
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
-    retval = gs232_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf));
+    if (expected_flag == 0)
+    {
+        ROTPORT(rot)->retry = 0;
+        expected_flag = 1;
+    }
+
+    retval = gs232_transaction(rot, "C2" EOM, posbuf, expected);
+
+    if (strlen(posbuf) < 10)
+    {
+        return retval;
+    }
 
     // AF6SA WRC - Wifi Rotator Controller does not provide EOM byte so we allow timeout
     // Still returns 10 chars though
-    if (retval != RIG_OK && strlen(posbuf) < 10)
+    if (strlen(posbuf) == 10 && expected == 12)
     {
-        return retval;
+        rig_debug(RIG_DEBUG_WARN, "%s: rotor didn't send CR...assuming it won't in the future\n", __func__);
+        retval = RIG_OK;
+        expected = 11; // we won't expect the CR
+        ROTPORT(rot)->retry = 3;
     }
 
     /* parse */
@@ -249,7 +266,7 @@ const struct rot_caps gs232_generic_rot_caps =
     .write_delay =  0,
     .post_write_delay =  0,
     .timeout =  400,
-    .retry =  3,
+    .retry =  1,
 
     .min_az =     -180.0,
     .max_az =     450.0,  /* vary according to rotator type */
