@@ -13,6 +13,8 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+        * Fixed AF6SA WRC rotor controller
+        * Added Rhode&Schwarz XK852
         * Added Xiegu X6200
         * Added Commradio CTX-10
         * Added Guoehe PMR-171
