@@ -180,7 +180,9 @@ gs232_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     retval = gs232_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf));
 
-    if (retval != RIG_OK || strlen(posbuf) < 10)
+    // AF6SA WRC - Wifi Rotator Controller does not provide EOM byte so we allow timeout
+    // Still returns 10 chars though
+    if (retval != RIG_OK && strlen(posbuf) < 10)
     {
         return retval;
     }
@@ -233,7 +235,7 @@ const struct rot_caps gs232_generic_rot_caps =
     ROT_MODEL(ROT_MODEL_GS232_GENERIC),
     .model_name =     "GS-232 Generic",
     .mfg_name =       "Various",
-    .version =        "20220109.0",
+    .version =        "20240921.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -269,7 +271,7 @@ const struct rot_caps amsat_lvb_rot_caps =
     ROT_MODEL(ROT_MODEL_LVB),
     .model_name =     "LVB Tracker",
     .mfg_name =       "AMSAT",
-    .version =        "20220109.0",
+    .version =        "20240921.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -306,7 +308,7 @@ const struct rot_caps st2_rot_caps =
     ROT_MODEL(ROT_MODEL_ST2),
     .model_name =     "GS232/ST2",
     .mfg_name =       "FoxDelta",
-    .version =        "20220109.0",
+    .version =        "20240921.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -344,7 +346,7 @@ const struct rot_caps f1tetracker_rot_caps =
     ROT_MODEL(ROT_MODEL_F1TETRACKER),
     .model_name =     "GS232/F1TE Tracker",
     .mfg_name =       "F1TE",
-    .version =        "20220109.0",
+    .version =        "20240921.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
