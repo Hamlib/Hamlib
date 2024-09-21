@@ -20,6 +20,12 @@ struct ip_mreq
 
 #define BUFSIZE 256
 
+/* Define a macro for sending response back to the app
+ * This will allow us to reroute output to a buffering routine
+ * Needed to handle multiple commands in a single message
+ */
+#define OUTPUT(s) write(fd, s, strlen(s))
+
 int mysleep = 20;
 
 int filternum1 = 7;
@@ -51,6 +57,22 @@ int sp=0;
 int autoset = 1;
 int tzs[2] = {36, 56}; // 0=primary(EST), 1=auxiliary(UTC)
 char auxtzc = 'U';       // Auxiliary clock identifier (UTC)
+// Antenna connections
+char antnum = '1', recant = '0', driveout = '0', antout = '0';
+// Multiple meter functions
+struct meter_data {
+  int enabled;
+  int value;  // # of pips lit, range 0-70
+    };
+struct meter_data meter[6] = {
+  { 0,  5},  // ALC
+  { 0,  1},  // SWR
+  { 0, 10},  // COMP
+  { 0, 30},  // ID (amps)
+  { 0, 60},  // Vd (Volts)
+  { 0, 20}   // Temp (Unknown units)
+};
+  
 
 #if defined(WIN32) || defined(_WIN32)
 int openPort(char *comport) // doesn't matter for using pts devices
@@ -161,7 +183,7 @@ int main(int argc, char *argv[])
         /* Clean up from last continue - pass along any errors found */
         if (cmd_err != 0)
         {
-            write(fd, err_txt[cmd_err - 1], strlen(err_txt[cmd_err - 1]));
+            OUTPUT(err_txt[cmd_err - 1]);
             cmd_err = 0;
         }
 
@@ -173,40 +195,53 @@ int main(int argc, char *argv[])
 
 //        else { return 0; }
 
-        if (strncmp(buf, "RM2", 3) == 0)
+        if (strcmp(buf, "IF;") == 0)
+        {
+            char ifbuf[256];
+            hl_usleep(mysleep * 1000);
+            sprintf(ifbuf, IFformat, freqa,
+		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, modeA);
+            OUTPUT(ifbuf);
+        }
+#if 0
+        else if (strncmp(buf, "RM2", 3) == 0)
         {
             pbuf = "RM20020;";
-            write(fd, pbuf, strlen(pbuf));
+            OUTPUT(pbuf);
         }
         else if (strcmp(buf, "RM5;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "RM5100000;";
-            write(fd, pbuf, strlen(pbuf));
+            OUTPUT(pbuf);
         }
-
-        else if (strcmp(buf, "AN0;") == 0)
-        {
+#endif
+        else if (strncmp(buf, "AN", 2) == 0)
+        {  // Antenna connection handling
             hl_usleep(mysleep * 1000);
-            pbuf = "AN030;";
-            write(fd, pbuf, strlen(pbuf));
-        }
-        else if (strcmp(buf, "IF;") == 0)
-        {
-            char ifbuf[256];
-            hl_usleep(mysleep * 1000);
-//            pbuf = "IF000503130001000+0000000000030000000;"
-//            sprintf(ifbuf, "IF%011d1000+0000002000000000000;", freqa);
-            sprintf(ifbuf, IFformat, freqa,
-		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, modeA);
-            //pbuf = "IF00010138698     +00000000002000000 ;
-            write(fd, ifbuf, strlen(ifbuf));
+	    if (buf[2] == ';')
+            {
+		buf[2] = antnum;
+		buf[3] = recant;
+		buf[4] = driveout;
+		buf[5] = antout;
+		buf[6] = ';';
+		buf[7] = '\0';
+		OUTPUT(buf);
+            }
+            else
+            {
+		if (buf[2] != '9') antnum = buf[2];
+		if (buf[3] != '9') recant = buf[3];
+		if (buf[4] != '9') driveout = buf[4];
+		if (buf[5] != '9') antout = buf[5];
+            }
         }
         else if (strcmp(buf, "NB1;") == 0)
         {
             hl_usleep(mysleep * 20);
             sprintf(buf,"NB1%d;", nb1);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "NB1",3) == 0)
         {
@@ -217,7 +252,7 @@ int main(int argc, char *argv[])
         {
             hl_usleep(mysleep * 20);
             sprintf(buf,"NB2%d;", nb2);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "NB2",3) == 0)
         {
@@ -228,7 +263,7 @@ int main(int argc, char *argv[])
         {
             hl_usleep(mysleep * 200);
             sprintf(buf,"RA%d;", ra);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "RA", 2) == 0)
         {
@@ -238,30 +273,30 @@ int main(int argc, char *argv[])
         {
             hl_usleep(mysleep * 000);
             pbuf = "RG255;";
-            write(fd, pbuf, strlen(pbuf));
+            OUTPUT(pbuf);
         }
         else if (strcmp(buf, "MG;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "MG050;";
-            write(fd, pbuf, strlen(pbuf));
+            OUTPUT(pbuf);
         }
         else if (strcmp(buf, "AG;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "AG100;";
-            write(fd, pbuf, strlen(pbuf));
+            OUTPUT(pbuf);
         }
         else if (strcmp(buf, "FV;") == 0)
         {
             hl_usleep(mysleep * 1000);
             pbuf = "FV1.04;";
-            write(fd, pbuf, strlen(pbuf));
+            OUTPUT(pbuf);
         }
         else if (strncmp(buf, "IS;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "IS+0000;");
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "IS", 2) == 0)
         {
@@ -270,34 +305,36 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "SM;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "SM0035;");
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "PC;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "PC%03d;", pc);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "PC", 2) == 0)
         {
             sscanf(buf,"PC%d", &pc);
         }
+#if 0
         else if (strcmp(buf, "FW1;") == 0)
         {
             //usleep(mysleep * 1000);
             pbuf = "FW10;";
-            write(fd, pbuf, strlen(pbuf));
+            OUTPUT(pbuf);
             hl_usleep(20 * 1000);
         }
         else if (strncmp(buf, "FW", 2) == 0)
         {
             continue;
         }
+#endif
         else if (strcmp(buf, "ID;") == 0)
         {
             hl_usleep(mysleep * 1000);
             int id = 24;
             SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
 
 #if 0
@@ -314,7 +351,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "EX00011;") == 0)
         {
             pbuf = "EX00011 001;";
-            write(fd, pbuf, strlen(pbuf));
+            OUTPUT(pbuf);
         }
         else if (strncmp(buf, "EX", 2) == 0)
         {
@@ -323,12 +360,12 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FA;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FA%011d;", freqa);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strcmp(buf, "FB;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FB%011d;", freqb);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "FA", 2) == 0)
         {
@@ -341,13 +378,13 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "AI;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "AI0;");
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
 
         else if (strncmp(buf, "PS;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "PS1;");
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (buf[3] == ';' && strncmp(buf, "SF", 2) == 0)
         {
@@ -355,8 +392,8 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), SFformat, tmpvfo,
                      tmpvfo == 0 ? freqa : freqb,
                      tmpvfo == 0 ? modeA : modeB);
-            printf("SF buf=%s\n", buf);
-            write(fd, buf, strlen(buf));
+            //printf("SF buf=%s\n", buf);
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "SF", 2) == 0)
         {
@@ -388,7 +425,7 @@ int main(int argc, char *argv[])
         {
             SNPRINTF(buf, sizeof(buf), "MD%d;",
                      modeA); // not worried about modeB yet for simulator
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "MD", 2) == 0)
         {
@@ -397,7 +434,7 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "FL;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FL%03d%03d;", filternum1, filternum2);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "FL", 2) == 0)
         {
@@ -406,7 +443,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FR;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FR%d;", vfo);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "FR", 2) == 0)
         {
@@ -415,7 +452,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FT;") == 0)
         {
             SNPRINTF(buf, sizeof(buf), "FR%d;", vfo_tx);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "FT", 2) == 0)
         {
@@ -424,7 +461,7 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "DA;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "DA%d;", datamode);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "DA", 2) == 0)
         {
@@ -458,20 +495,22 @@ int main(int argc, char *argv[])
             }
 
         }
+#if 0
         else if (strncmp(buf, "CB;", 3) == 0)
         {
             printf("No CB command!\n");
             sprintf(buf, "CB%d;", operatingband);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "CB", 2) == 0)
         {
             sscanf(buf, "CB%d", &operatingband);
         }
+#endif
         else if (strncmp(buf, "TB;", 3) == 0)
         {
             sprintf(buf, "TB%d;", split);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "TB", 2) == 0)
         {
@@ -480,7 +519,7 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "KS;", 3) == 0)
         {
             sprintf(buf, "KS%03d;", keyspd);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "KS", 2) == 0)
         {
@@ -489,7 +528,7 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "OM0;", 4) == 0)
         {
             sprintf(buf, "OM0%d;", modeMain);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "OM0", 3) == 0)
         {
@@ -498,28 +537,54 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "OM1;", 4) == 0)
         {
             sprintf(buf, "OM1%d;", modeSub);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "OM1", 3) == 0)
         {
             sscanf(buf, "OM1%d", &modeSub);
         }
-        else if (strcmp(buf, "RM;") == 0)
-        {
-            sprintf(buf, "RM2%04d;", 10);
-            write(fd, buf, strlen(buf));
+        else if (strncmp(buf, "RM", 2) == 0)
+        {  // Meter control/readout
+	  if (buf[2] == ';')
+	    { // Read all enabled meters
+	      char tbuf[8];
+	      buf[0] = '\0';
+	      for (int i = 0; i < 6; i++)
+		{
+		  if (meter[i].enabled)
+		    {
+		      SNPRINTF(tbuf, sizeof tbuf, "RM%d%03d;", i + 1, meter[i].value);
+		      strncat(buf, tbuf, sizeof buf - strlen(buf) - 1);
+		    }
+		}
+	      if (buf[0] != '\0')
+		{
+		  OUTPUT(buf);
+		}
+	    }
+	  else
+	    { // Enable/disable one meter
+	      int target = buf[2] - '1';
+	      int status = buf[3] - '0';
+	      if (target < 0 || target > 5 || status < 0 || status > 1)
+		{
+		  cmd_err = 2;
+		  continue;
+		}
+	      meter[target].enabled = status;
+	    }
         }
         else if (strcmp(buf, "SL0;") == 0)
         {
             sprintf(buf,"SL0%02d;", sl);
 			printf("R: %s\n", buf);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strcmp(buf, "SH0;") == 0)
         {
             sprintf(buf,"SH0%03d;", sh);
 			printf("R: %s\n", buf);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "SL0", 3) == 0)
         {
@@ -534,7 +599,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "NR;") == 0)
         {
             sprintf(buf,"NR%d;", nr);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "NR", 2) == 0)
         {
@@ -544,7 +609,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "PA;") == 0)
         {
             sprintf(buf,"PA%d;", pa);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "PA", 2) == 0)
         {
@@ -553,17 +618,17 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "SM;") == 0)
         {
             sprintf(buf,"SM%04d;", sm);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strcmp(buf, "PC;") == 0)
         {
             sprintf(buf,"PC%03d;", sm);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strcmp(buf, "NT;") == 0)
         {
             sprintf(buf,"NT%d;", nt);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "NT", 2) == 0)
         {
@@ -572,7 +637,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "AG;") == 0)
         {
             sprintf(buf,"AG%03d;", ag);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "AG", 2) == 0)
         {
@@ -581,7 +646,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "AC;") == 0)
         {
             sprintf(buf,"AC%03d;", ac);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "AC", 2) == 0)
         {
@@ -590,7 +655,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "SQ;") == 0)
         {
             sprintf(buf,"SQ%03d;", sq);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "SQ", 2) == 0)
         {
@@ -599,7 +664,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "RG;") == 0)
         {
             sprintf(buf,"RG%03d;", rg);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "RG", 2) == 0)
         {
@@ -608,7 +673,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "MG;") == 0)
         {
             sprintf(buf,"MG%03d;", mg);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "MG", 2) == 0)
         {
@@ -617,7 +682,7 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "RL1;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "RL%02d;", rl);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "RL1", 2) == 0)
         {
@@ -627,7 +692,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "SP;") == 0)
         {
             sprintf(buf,"SP%d;", sp);
-            write(fd, buf, strlen(buf));
+            OUTPUT(buf);
         }
         else if (strncmp(buf, "SP", 2) == 0)
         {
@@ -678,7 +743,7 @@ int main(int argc, char *argv[])
                     t = time(NULL);
 		    localtm = localtime(&t);
                     strftime(&buf[3], BUFSIZ - 3, "%y%m%d%H%M%S;", localtm);
-                    write(fd, buf, strlen(buf));
+                    OUTPUT(buf);
                   }
                 else
                   {
@@ -689,7 +754,8 @@ int main(int argc, char *argv[])
             case '1': // Setting status
               buf[3] = '1';
               buf[4] = ';';
-              write(fd, buf, 5);
+	      buf[5] = '\0';
+              OUTPUT(buf);
               break;
             case '2': // Local clock time zone
             case '3': // Auxiliary clock time zone
@@ -698,7 +764,7 @@ int main(int argc, char *argv[])
                 if (buf[3] == ';')
                   {
                     sprintf(&buf[3], "%03d;", tzs[idx]);
-                    write(fd, buf, strlen(buf));
+                    OUTPUT(buf);
                   }
                 else
                   {
@@ -711,7 +777,8 @@ int main(int argc, char *argv[])
               {
                   buf[3] = auxtzc;
                   buf[4] = ';';
-                  write(fd, buf, 5);
+		  buf[5] = '\0';
+                  OUTPUT(buf);
                 }
               else
                 {
@@ -726,7 +793,8 @@ int main(int argc, char *argv[])
                 {
                   buf[3] = autoset + '0';
                   buf[4] = ';';
-                  write(fd, buf, 5);
+		  buf[5] = '\0';
+                  OUTPUT(buf);
 		}
 	      else
 		{
@@ -753,7 +821,7 @@ int main(int argc, char *argv[])
           case '7': // Contest Number
             break;
           default:
-            cmd_err = 1;  //Unknown command
+            cmd_err = 1;  // Unknown command
           }
 	}
         else if (strncmp(buf, "MA", 2) == 0)
