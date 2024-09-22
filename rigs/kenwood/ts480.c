@@ -1270,6 +1270,33 @@ int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 }
 
 
+int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset)
+{
+    char tm_cmd[32];
+    char tm_buf[32];
+    *year = *month = *day = *hour = *min = *sec = *msec = *utc_offset = 0;
+    *month = 0;
+    *day = 0;
+    sprintf(tm_cmd,"TM;");
+    int retval = kenwood_transaction(rig, tm_cmd, tm_buf, sizeof(tm_buf));
+    if (retval == RIG_OK && strlen(tm_buf) >= 8) sscanf(tm_buf,"TM%02d%02d%02d", hour, min, sec);
+    return retval;
+}
+
+int qrplabs_set_clock(RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset)
+{
+    char tm_cmd[32];
+    sprintf(tm_cmd,"TM%02d%02d%02d;", hour, min, sec);
+    int retval = kenwood_transaction(rig, tm_cmd, NULL, 0);
+    if (retval != RIG_OK)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: error setting time: %s\n", __func__, rigerror(retval));
+    }
+    return retval;
+}
+
+
+
 /*
  * TS-480 rig capabilities
  * Notice that some rigs share the same functions.
@@ -1699,7 +1726,7 @@ struct rig_caps qrplabs_caps =
     RIG_MODEL(RIG_MODEL_QRPLABS),
     .model_name = "QCX/QDX/QMX",
     .mfg_name = "QRPLabs",
-    .version = BACKEND_VER ".2",
+    .version = BACKEND_VER ".3",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1890,6 +1917,8 @@ struct rig_caps qrplabs_caps =
     .send_morse = kenwood_send_morse,
     .wait_morse =  rig_wait_morse,
     .vfo_op = kenwood_vfo_op,
+    .get_clock = qrplabs_get_clock,
+    .set_clock = qrplabs_set_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
