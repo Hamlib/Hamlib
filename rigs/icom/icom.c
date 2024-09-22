@@ -1179,6 +1179,11 @@ retry_open:
     {
         retval = RIG_OK;
     }
+    else if (retval_echo == -RIG_ETIMEOUT)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: Unable to determine Icom echo status -- is rig on and connected?\n", __func__);
+        return retval_echo;
+    }
     else
     {
         retval = retval_echo;
@@ -5640,10 +5645,12 @@ int icom_get_split_vfos(RIG *rig, vfo_t *rx_vfo, vfo_t *tx_vfo)
         {
             *rx_vfo = RIG_VFO_MAIN;
             *tx_vfo = RIG_VFO_SUB;
+            cachep->satmode = 1;
         }
         else if (cachep->split == RIG_SPLIT_OFF)
         {
             *rx_vfo = *tx_vfo = rs->current_vfo;
+            cachep->satmode = 0;
         }
         else
         {
