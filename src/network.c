@@ -1090,8 +1090,8 @@ void *multicast_publisher(void *arg)
             if (errno != 0 || flag == 0)
             {
                 rig_debug(RIG_DEBUG_ERR,
-                          "%s: error sending UDP packet: %s\n", __func__,
-                          strerror(errno));
+                          "%s: error sending UDP packet: %s, send result=%d\n", __func__,
+                          strerror(errno), (int)send_result);
                 flag = 1;
             }
         }
@@ -1175,7 +1175,7 @@ static int is_networked(char *address, int address_length)
 
                                 if (count > 1)
                                 {
-                                    rig_debug(RIG_DEBUG_WARN,
+                                    rig_debug(RIG_DEBUG_VERBOSE,
                                               "%s: more than 1 address found...multicast may not work\n", __func__);
                                 }
 
