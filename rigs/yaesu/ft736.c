@@ -30,8 +30,6 @@
 #include "tones.h"
 #include "cache.h"
 
-
-
 #define FT736_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_FMN|RIG_MODE_CWN)
 
 #define FT736_VFOS (RIG_VFO_A)
@@ -57,6 +55,7 @@ static int ft736_close(RIG *rig);
 
 static int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft736_get_freq(RIG *rig, vfo_t vfo, freq_t *freq); // cached answer
+static int ft736_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split,
                                vfo_t tx_vfo);
@@ -97,7 +96,7 @@ struct rig_caps ft736_caps =
     RIG_MODEL(RIG_MODEL_FT736R),
     .model_name =         "FT-736R",
     .mfg_name =           "Yaesu",
-    .version =            "20221218.0",
+    .version =            "20240921.0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_STABLE,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -195,6 +194,7 @@ struct rig_caps ft736_caps =
 
     .set_freq =           ft736_set_freq,
     .get_freq =           ft736_get_freq,
+    .get_mode =           ft736_get_mode,
     .set_mode =           ft736_set_mode,
     .set_ptt =            ft736_set_ptt,
     .get_dcd =            ft736_get_dcd,
@@ -313,6 +313,35 @@ int ft736_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 #define MD_CWN  0x82
 #define MD_FM   0x08
 #define MD_FMN  0x88
+static int ft736_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
+
+    *mode = CACHE(rig)->modeMainA;
+
+    switch(*mode)
+    {
+        case RIG_MODE_USB:
+        case RIG_MODE_LSB:
+        case RIG_MODE_CW:
+            *width = 2200;
+            break;
+        case RIG_MODE_CWN:
+            *width = 600;
+            break;
+        case RIG_MODE_FM:
+            *width = 12000;
+            break;
+        case RIG_MODE_FMN:
+            *width = 800;
+            break;
+        default:
+            *width = 2200;
+            break;
+    }
+
+    return RIG_OK;
+}
 
 int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
