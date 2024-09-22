@@ -708,11 +708,18 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->rx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
     rs->tx_vfo = RIG_VFO_CURR;  /* we don't know yet! */
     rs->poll_interval = 1000; // enable polling by default
+#if 0
     rs->multicast_data_addr =
-        "224.0.0.1"; // enable multicast data publishing by default
-    rs->multicast_data_port = 4532;
+        "224.0.0.1"; // do not enable multicast data publishing by default
     rs->multicast_cmd_addr =
         "224.0.0.2"; // enable multicast command server by default
+#else
+    rs->multicast_data_addr =
+        "0.0.0.0"; // do not enable multicast data publishing by default
+    rs->multicast_cmd_addr =
+        "0.0.0.0"; // enable multicast command server by default
+#endif
+    rs->multicast_data_port = 4532;
     rs->multicast_cmd_port = 4532;
     rs->lo_freq = 0;
     cachep->timeout_ms = 500;  // 500ms cache timeout by default
