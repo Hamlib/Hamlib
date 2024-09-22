@@ -3706,10 +3706,14 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
         // so we reopen the com port  again
         HAMLIB_TRACE;
         //oser_close(rp);
-        rig_close(rig);
-        hl_usleep(3000000);
-        //PTTPORT(rig)->fd = ser_open(rp);
-        rig_open(rig);
+        // we can add more rigs to this exception to speed them up
+        if (!is_ft991)
+        {
+            rig_close(rig);
+            hl_usleep(3000000);
+            //PTTPORT(rig)->fd = ser_open(rp);
+            rig_open(rig);
+        }
         break;
 
     case RIG_POWER_OFF:
