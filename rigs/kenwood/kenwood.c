@@ -3064,8 +3064,8 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
                   __func__);
         // return the last values we got
         *power_now = rs->power_now;
-        *power_min = rs->power_min;
-        *power_max = rs->power_max;
+        if (power_min) *power_min = rs->power_min;
+        if (power_max) *power_max = rs->power_max;
         RETURNFUNC(RIG_OK);
     }
 
