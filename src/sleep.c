@@ -67,15 +67,26 @@ int hl_usleep(rig_useconds_t usec)
 //           (long)tv1.tv_nsec);
 
 #ifdef __WIN32__
-    timeBeginPeriod(1);
-    nanosleep(&tv1, NULL);
 
-    while ((lasterr = end_at - monotonic_seconds()) > 0)
-    {
-        nanosleep(&tv2, NULL);
+    if (sleep_time < 0.003) {
+        // Busy-wait for small durations < 2 milliseconds
+        LARGE_INTEGER frequency, start, end;
+        double elapsed;
+        QueryPerformanceFrequency(&frequency);
+        QueryPerformanceCounter(&start);
+	long long loops=0;
+        do {
+        struct timespec startc;
+        clock_gettime(CLOCK_REALTIME, &startc);
+            QueryPerformanceCounter(&end);
+            elapsed = (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
+	    ++loops;
+        } while (elapsed < sleep_time);
+    } else {
+        // Use Sleep for larger durations >= 3 milliseconds
+        //Sleep((DWORD)(seconds * 1000 - 1));  // Convert seconds to milliseconds
+	usleep(sleep_time*1e6-400);
     }
-
-    timeEndPeriod(1);
 #else
     nanosleep(&tv1, NULL);
 
