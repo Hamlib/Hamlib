@@ -51,8 +51,6 @@ int hl_usleep(rig_useconds_t usec)
 {
     double sleep_time = usec / 1e6;
     struct timespec tv1;
-    double start_at = monotonic_seconds();
-    double end_at = start_at + sleep_time;
     double delay = sleep_time;
 
     if (sleep_time > .001) { delay -= .0001; }
@@ -86,6 +84,8 @@ int hl_usleep(rig_useconds_t usec)
     {
     struct timespec tv2;
     double lasterr = 0;
+    double start_at = monotonic_seconds();
+    double end_at = start_at + sleep_time;
     tv2.tv_sec = 0;
     tv2.tv_nsec = 1000000;
     nanosleep(&tv1, NULL);
