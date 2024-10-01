@@ -3034,8 +3034,10 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
     // TS890S can't take power levels outside 5-100 and 5-25
     // So all we'll do is read power_now
     case RIG_MODEL_TS890S:
-        rs->power_min = *power_min = 5;
-        rs->power_max = *power_max = 100;
+        rs->power_min = 5;
+        rs->power_max = 100;
+        if (power_min) *power_min = 5;
+        if (power_max) *power_max = 5;
 
         if (rs->current_mode == RIG_MODE_AM) { *power_max = 50; }
 
