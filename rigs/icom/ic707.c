@@ -38,7 +38,7 @@
 
 #define IC707_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
-#define IC707_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_CPY|RIG_OP_MCL)
+#define IC707_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_CPY)
 
 #define IC707_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM)  /* TBC */
 
@@ -59,9 +59,9 @@ struct rig_caps ic707_caps =
     RIG_MODEL(RIG_MODEL_IC707),
     .model_name = "IC-707",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".0",
+    .version =  BACKEND_VER ".1",
     .copyright =  "LGPL",
-    .status =  RIG_STATUS_BETA,
+    .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
     .ptt_type =  RIG_PTT_NONE,
     .dcd_type =  RIG_DCD_NONE,
@@ -99,9 +99,9 @@ struct rig_caps ic707_caps =
     .chan_desc_sz =  0,
 
     .chan_list =  {
-        {   1,  26, RIG_MTYPE_MEM, IC_MIN_MEM_CAP },
-        {  27,  30, RIG_MTYPE_EDGE, IC_MIN_MEM_CAP },
-        {  31,  35, RIG_MTYPE_SAT, IC_MIN_MEM_CAP },    /* split ? */
+        {   1,  25, RIG_MTYPE_MEM, IC_MIN_MEM_CAP },
+        {  26,  30, RIG_MTYPE_SPLIT, IC_MIN_MEM_CAP },    /* split ? */
+        {  31,  32, RIG_MTYPE_EDGE, IC_MIN_MEM_CAP },
         RIG_CHAN_END,
     },
 
@@ -126,7 +126,8 @@ struct rig_caps ic707_caps =
     },
 
     .tuning_steps =     {
-        {IC707_ALL_RX_MODES, 10}, /* basic resolution, there's no set_ts */
+        {IC707_ALL_RX_MODES, 10}, 
+        {IC707_ALL_RX_MODES, 1000}, 
         RIG_TS_END,
     },
     /* mode/filter list, remember: order matters! */

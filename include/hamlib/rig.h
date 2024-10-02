@@ -1671,7 +1671,8 @@ typedef enum {
     RIG_MTYPE_BAND,         /*!< VFO/Band channel */
     RIG_MTYPE_PRIO,         /*!< Priority channel */
 	RIG_MTYPE_VOICE,		/*!< Stored Voice Message */
-	RIG_MTYPE_MORSE			/*!< Morse Message */
+	RIG_MTYPE_MORSE,		/*!< Morse Message */
+	RIG_MTYPE_SPLIT			/*!< Split operations */
 } chan_type_t;
 
 
