@@ -55,7 +55,7 @@ static int ft757gx_get_conf(RIG *rig, hamlib_token_t token, char *val);
 static int ft757gx_set_conf(RIG *rig, hamlib_token_t token, const char *val);
 
 static int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+//static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
 static int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
@@ -230,7 +230,7 @@ struct rig_caps ft757gx2_caps =
     RIG_MODEL(RIG_MODEL_FT757GXII),
     .model_name =       "FT-757GXII",
     .mfg_name =     "Yaesu",
-    .version =      "20200325.0",
+    .version =      "20240927.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
     .rig_type =     RIG_TYPE_MOBILE,
@@ -338,7 +338,7 @@ struct rig_caps ft757gx2_caps =
     .rig_close =        NULL,       /* port closed */
 
     .set_freq =     ft757_set_freq, /* set freq */
-    .get_freq =     ft757_get_freq, /* get freq */
+    .get_freq =     ft757gx_get_freq, /* get freq */
     .set_mode =     ft757_set_mode, /* set mode */
     .get_mode =     ft757_get_mode, /* get mode */
     .set_vfo =      ft757_set_vfo,  /* set vfo */
@@ -515,6 +515,7 @@ static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  * Return Freq
  */
 
+#if 0
 static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct ft757_priv_data *priv = (struct ft757_priv_data *)STATE(rig)->priv;
@@ -552,6 +553,7 @@ static int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
               *freq);
     return RIG_OK;
 }
+#endif
 
 
 static int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
