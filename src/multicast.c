@@ -390,6 +390,12 @@ void *multicast_thread(void *vrig)
 
     while (rs->multicast->runflag)
     {
+        while (STATE(rig)->powerstat == RIG_POWER_OFF)
+        {
+            rig_debug(RIG_DEBUG_VERBOSE,"%s: waiting for RIG_POWER_ON\n", __func__);
+            hl_usleep(500*1000);
+        }
+
 #if 0
 
         if ((retval = rig_get_freq(rig, RIG_VFO_A, &freqA)) != RIG_OK)
