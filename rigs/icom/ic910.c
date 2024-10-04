@@ -196,12 +196,14 @@ int ic910_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 }
 
+extern int ic9700_set_vfo(RIG *rig, vfo_t vfo);
+
 struct rig_caps ic910_caps =
 {
     RIG_MODEL(RIG_MODEL_IC910),
     .model_name =   "IC-910",
     .mfg_name =   "Icom",
-    .version =    BACKEND_VER ".1",
+    .version =    BACKEND_VER ".2",
     .copyright =    "LGPL",
     .status =   RIG_STATUS_STABLE,
     .rig_type =   RIG_TYPE_TRANSCEIVER,
@@ -323,7 +325,7 @@ struct rig_caps ic910_caps =
 
     .set_ptt = icom_set_ptt,
     .get_ptt = icom_get_ptt,
-    .set_vfo = icom_set_vfo,
+    .set_vfo = ic9700_set_vfo,
 //    .get_vfo = icom_get_vfo,
     .get_ts =  icom_get_ts,
     .set_ts =  icom_set_ts,
