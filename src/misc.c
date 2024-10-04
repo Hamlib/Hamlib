@@ -2879,7 +2879,7 @@ const char *spaces(int len)
 }
 
 // if which==0 rig_band_select str will be returned
-// if which!=0 the rig_parm_gran band str will be returne
+// if which!=0 the rig_parm_gran band str will be returned
 const char *rig_get_band_str(RIG *rig, hamlib_band_t band, int which)
 {
     int i;
