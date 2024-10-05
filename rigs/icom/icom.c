@@ -9068,6 +9068,11 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
      * the rest is data
      * and don't forget one byte at the end for the EOM
      */
+    if (frame[2] != 0x00)
+    {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: 3rd byte not 0x00...not async\n", __func__);
+        RETURNFUNC(RIG_OK);
+    }
     switch (frame[4])
     {
     case C_RD_FREQ:
