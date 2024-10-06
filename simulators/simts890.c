@@ -33,7 +33,7 @@ int filternum2 = 8;
 int datamode = 0;
 int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
 int operatingband;
-int split;
+int split = 0;
 int modeMain = 2;
 int modeSub = 1;
 int keyspd = 20;
@@ -72,6 +72,7 @@ struct meter_data meter[6] = {
   { 0, 60},  // Vd (Volts)
   { 0, 20}   // Temp (Unknown units)
 };
+int tfset = 0;
   
 
 #if defined(WIN32) || defined(_WIN32)
@@ -163,7 +164,7 @@ int main(int argc, char *argv[])
       "0"           // P5 XIT on/off
       "000"         // P6,P7 mem channel
       "%1d"         // P8 RX/TX
-      "%1X"         // P9 Operating mode (See MD command)
+      "%1X"         // P9 Operating mode (See OM command)
       "0"           // P10 Function?
       "0"           // P11 Scan status?
       "0"           // P12 Simplex/Split
@@ -295,12 +296,12 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "IS;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "IS+0000;");
+            SNPRINTF(buf, sizeof(buf), "IS%+04d;", is);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "IS", 2) == 0)
         {
-            sscanf(buf,"S%d", &is);
+            sscanf(buf,"IS%d", &is);
         }
         else if (strncmp(buf, "SM;", 3) == 0)
         {
@@ -421,6 +422,7 @@ int main(int argc, char *argv[])
 
             printf("modeA=%X, modeB=%X\n", modeA, modeB);
         }
+#if 0
         else if (strncmp(buf, "MD;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "MD%d;",
@@ -431,14 +433,18 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "MD%d", &modeA); // not worried about modeB yet for simulator
         }
-        else if (strncmp(buf, "FL;", 3) == 0)
-        {
-            SNPRINTF(buf, sizeof(buf), "FL%03d%03d;", filternum1, filternum2);
-            OUTPUT(buf);
-        }
+#endif
         else if (strncmp(buf, "FL", 2) == 0)
         {
-            sscanf(buf, "FL%3d%3d", &filternum1, &filternum2);
+            switch (buf[2]) {
+            case '0': // Select the Receive Filter
+            case '1': // Roofing Filter
+            case '2': // IF Filter Shape
+            case '3': // AF Filter Type
+                continue; // For now
+            default:
+                cmd_err = 1;
+            }
         }
         else if (strcmp(buf, "FR;") == 0)
         {
@@ -451,13 +457,18 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FT;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FR%d;", vfo_tx);
+            SNPRINTF(buf, sizeof(buf), "FT%d;", vfo_tx);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "FT", 2) == 0)
         {
             sscanf(buf, "FT%d", &vfo_tx);
+            if (vfo_tx != vfo)
+            {
+                split = 1;
+            }
         }
+#if 0
         else if (strncmp(buf, "DA;", 3) == 0)
         {
             SNPRINTF(buf, sizeof(buf), "DA%d;", datamode);
@@ -467,6 +478,7 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "DA%d", &datamode);
         }
+#endif
         else if (strncmp(buf, "BD;", 3) == 0)
         {
             continue;
@@ -493,7 +505,6 @@ int main(int argc, char *argv[])
             case '2': ptt_tune = 1;
 	      break;
             }
-
         }
 #if 0
         else if (strncmp(buf, "CB;", 3) == 0)
@@ -525,54 +536,65 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "KS%03d", &keyspd);
         }
-        else if (strncmp(buf, "OM0;", 4) == 0)
+        else if (strncmp(buf, "OM", 2) == 0)
         {
-            sprintf(buf, "OM0%d;", modeMain);
-            OUTPUT(buf);
-        }
-        else if (strncmp(buf, "OM0", 3) == 0)
-        {
-            sscanf(buf, "OM0%d", &modeMain);
-        }
-        else if (strncmp(buf, "OM1;", 4) == 0)
-        {
-            sprintf(buf, "OM1%d;", modeSub);
-            OUTPUT(buf);
-        }
-        else if (strncmp(buf, "OM1", 3) == 0)
-        {
-            sscanf(buf, "OM1%d", &modeSub);
+          /* The TS-890S displays two frequencies and modes - left and right,
+           * along with arrows that show which is VFO A and which is VFO B.
+           * In almost all cases, the left VFO is the receive freq.  The right
+           * VFO is only used in split operation, as the transmit frequency.
+           */
+          if (buf[3] == ';')
+          {
+	    int tmpvfo = buf[2] - '0';
+	    if (tmpvfo < 0 || tmpvfo > 1)
+            {
+                cmd_err = 1;
+            }
+	    else
+            {
+                sprintf(buf, "OM%d%X;", tmpvfo, tmpvfo == 0 ? modeMain : modeSub);
+                OUTPUT(buf);
+            }
+            continue;
+          }
+	  /* Setting - Only sets the active function (RX/TX)
+	   * For now, just set the mode of the current vfo. Not
+	   * always correct, but the best we can do until I turn
+	   * VFOs into objects.
+           */
+	  sscanf(&buf[3], "%1X", &modeMain);
         }
         else if (strncmp(buf, "RM", 2) == 0)
         {  // Meter control/readout
 	  if (buf[2] == ';')
-	    { // Read all enabled meters
+          { // Read all enabled meters
 	      char tbuf[8];
 	      buf[0] = '\0';
+	      pbuf = buf;
 	      for (int i = 0; i < 6; i++)
 		{
 		  if (meter[i].enabled)
 		    {
 		      SNPRINTF(tbuf, sizeof tbuf, "RM%d%03d;", i + 1, meter[i].value);
-		      strncat(buf, tbuf, sizeof buf - strlen(buf) - 1);
+		      pbuf = stpcpy(pbuf, tbuf);
 		    }
 		}
 	      if (buf[0] != '\0')
 		{
 		  OUTPUT(buf);
 		}
-	    }
-	  else
-	    { // Enable/disable one meter
+          }
+          else
+          { // Enable/disable one meter
 	      int target = buf[2] - '1';
 	      int status = buf[3] - '0';
 	      if (target < 0 || target > 5 || status < 0 || status > 1)
-		{
+              {
 		  cmd_err = 2;
 		  continue;
-		}
+              }
 	      meter[target].enabled = status;
-	    }
+          }
         }
         else if (strcmp(buf, "SL0;") == 0)
         {
@@ -839,6 +861,34 @@ int main(int argc, char *argv[])
           default:
             cmd_err = 1;
           }
+        }
+        else if (strncmp(buf, "SC", 2) == 0)
+        { // Scan functions
+	  switch (buf[2]) {
+	  case '0': // Scan
+	  case '1': // Scan Speed
+	  case '2': // Tone Scan/CTCSS Scan
+	  case '3': // Program Scan/VFO Scan Selection
+	    break;
+	  default:
+	    cmd_err = 1;
+          }
+        }
+        else if (strncmp(buf, "TS", 2) == 0)
+        { // TF-SET
+	    if (buf[2] == ';')
+            {
+                SNPRINTF(buf, sizeof buf, "TS%d;", tfset);
+                OUTPUT(buf);
+                continue;
+            }
+	    int tmpset = buf[2] - '0';
+	    if (tmpset < 0 || tmpset > 1)
+            {
+                cmd_err = 1;
+                continue;
+            }
+            tfset = tmpset;
         }
         else if (strlen(buf) > 0)
         {
