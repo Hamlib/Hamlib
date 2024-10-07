@@ -779,6 +779,9 @@ while (1)
 
     if (powerstat)
     {
+        unsigned char tmp = buf[2];
+        buf[2] = buf[3];
+        buf[3] = tmp;
         frameParse(fd, buf, len);
     }
     else
