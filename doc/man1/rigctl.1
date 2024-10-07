@@ -182,7 +182,7 @@ below.
 .BR \-L ", " \-\-show\-conf
 List all config parameters for the radio defined with
 .B \-m
-above. Note the dummy device has no serial parameters.
+above. Will exit if no -r is given. Note the dummy device has no serial parameters.
 .
 .TP
 .BR \-C ", " \-\-set\-conf = \fIparm=val\fP [ \fI,parm=val\fP ]
@@ -1137,7 +1137,7 @@ Set
 .RI \(aq Transceive \(aq
 mode.
 .IP
-Transcieve is a token: \(oqOFF\(cq, \(oqRIG\(cq, \(oqPOLL\(cq.
+Transceive is a token: \(oqOFF\(cq, \(oqRIG\(cq, \(oqPOLL\(cq.
 .IP
 Transceive is a mechanism for radios to report events without a specific call
 for information.
