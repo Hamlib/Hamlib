@@ -3191,8 +3191,16 @@ declare_proto_rig(get_split_vfo)
 declare_proto_rig(set_ts)
 {
     unsigned long ts;
+    char s[SPRINTF_MAX_SIZE];
 
     ENTERFUNC2;
+
+    if (!strcmp(arg1, "?"))
+    {
+        rig_sprintf_tuning_steps(s, sizeof(s), rig->caps->tuning_steps);
+        fprintf(fout, "%s\n", s);
+        RETURNFUNC2(RIG_OK);
+    }
 
     CHKSCN1ARG(sscanf(arg1, "%lu", &ts));
 
