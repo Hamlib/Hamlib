@@ -8675,9 +8675,10 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         scan_sc = S_SCAN_STOP;
         break;
 
+    case RIG_SCAN_VFO:
     case RIG_SCAN_MEM:
         HAMLIB_TRACE;
-        retval = rig_set_vfo(rig, RIG_VFO_MEM);
+        retval = rig_set_vfo(rig, scan==RIG_SCAN_MEM?RIG_VFO_MEM:RIG_VFO_A);
 
         if (retval != RIG_OK)
         {
@@ -8688,7 +8689,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
          * but some old models don't have it.
          * Should be put in icom_priv_caps ?
          */
-        if (rig->caps->rig_type == RIG_TYPE_RECEIVER)
+        if (rig->caps->rig_type == RIG_TYPE_RECEIVER && scan == RIG_SCAN_MEM)
         {
             scan_sc = S_SCAN_MEM2;
         }
@@ -8738,7 +8739,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
         break;
 
     default:
-        rig_debug(RIG_DEBUG_ERR, "%s: unsupported scan %#x", __func__, scan);
+        rig_debug(RIG_DEBUG_ERR, "%s: unsupported scan %#x\n", __func__, scan);
         RETURNFUNC(-RIG_EINVAL);
     }
 

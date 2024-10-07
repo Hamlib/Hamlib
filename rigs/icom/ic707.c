@@ -40,7 +40,7 @@
 
 #define IC707_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_CPY)
 
-#define IC707_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM|RIG_SCAN_STOP|RIG_SCAN_SLCT) 
+#define IC707_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM|RIG_SCAN_STOP) 
 
 #define IC707_ANTS RIG_ANT_1
 
@@ -59,7 +59,7 @@ struct rig_caps ic707_caps =
     RIG_MODEL(RIG_MODEL_IC707),
     .model_name = "IC-707",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".2",
+    .version =  BACKEND_VER ".3",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
