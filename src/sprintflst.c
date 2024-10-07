@@ -852,6 +852,37 @@ int rig_sprintf_spectrum_avg_modes(char *str, int nlen,
     return len;
 }
 
+int rig_sprintf_tuning_steps(char *str, int nlen, const struct tuning_step_list *tuning_step_list)
+{
+    int i, len = 0;
+
+    *str = '\0';
+    
+    for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
+    {
+        int lentmp;
+
+        if (tuning_step_list[i].modes == RIG_MODE_NONE)
+        {
+            break;
+        }
+
+        lentmp = snprintf(str + len, nlen - len, "%s%d", i>0?", ":"", (int)tuning_step_list[i].ts);
+
+        if (len < 0 || lentmp >= nlen - len)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): overflowed str buffer\n", __FILE__, __LINE__);
+            break;
+        }
+
+        len += lentmp;
+        check_buffer_overflow(str, len, nlen);
+    }
+
+    return len;
+
+}
+
 char *get_rig_conf_type(enum rig_conf_e type)
 {
     switch (type)
