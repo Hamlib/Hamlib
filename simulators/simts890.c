@@ -32,11 +32,9 @@ int mysleep = 20;
 int filternum1 = 7;
 int filternum2 = 8;
 int datamode = 0;
-int vfo, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
+int vfo_rx, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
 int operatingband;
 int split = 0;
-int modeMain = 2;
-int modeSub = 1;
 int keyspd = 20;
 int sl=3, sh=3;
 int nr=0;
@@ -74,7 +72,15 @@ struct meter_data meter[6] = {
   { 0, 20}   // Temp (Unknown units)
 };
 int tfset = 0;
-  
+
+typedef struct kvfo {
+  int freq;
+  int mode;
+} *kvfo_t;
+
+struct kvfo temp1 = {14074000, 1};
+struct kvfo temp2 = {14073500, 2};
+
 
 #if defined(WIN32) || defined(_WIN32)
 int openPort(char *comport) // doesn't matter for using pts devices
@@ -141,17 +147,18 @@ getmyline(int fd, char *buf)
     return strlen(buf);
 }
 
-
-
 int main(int argc, char *argv[])
 {
     char buf[256];
     char *pbuf;
     int fd = openPort(argv[1]);
-    int freqa = 14074000, freqb = 140735000;
-    int modeA = 1, modeB = 2;
     int cmd_err = 0;
     char *err_txt[] = { "?;", "E;", "O;" };
+
+    struct kvfo *vfoA = &temp1, *vfoB = &temp2;
+    const kvfo_t vfoAB[2] = {vfoA, vfoB};  // 0=A, 1=B, fixed
+    kvfo_t vfoLR[2] = {vfoA, vfoB};  // 0=Left, 1=Right, can change
+
     /* The IF command is not documented for the TS-890S, and is supposed
      *  to be supplanted by SF. However, it is still there for legacy S/W.
      *  This description is taken from the TS-590S/SG manual, with values
@@ -201,8 +208,8 @@ int main(int argc, char *argv[])
         {
             char ifbuf[256];
             hl_usleep(mysleep * 1000);
-            sprintf(ifbuf, IFformat, freqa,
-		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, modeA);
+            sprintf(ifbuf, IFformat, vfoLR[0]->freq,
+		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, vfoLR[0]->mode);
             OUTPUT(ifbuf);
         }
 #if 0
@@ -361,48 +368,52 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FA;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FA%011d;", freqa);
+            snprintf(buf, sizeof(buf), "FA%011d;", vfoA->freq);
             OUTPUT(buf);
         }
         else if (strcmp(buf, "FB;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FB%011d;", freqb);
+            snprintf(buf, sizeof(buf), "FB%011d;", vfoB->freq);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "FA", 2) == 0)
         {
-            sscanf(buf, "FA%d", &freqa);
+            sscanf(buf, "FA%d", &vfoA->freq);
         }
         else if (strncmp(buf, "FB", 2) == 0)
         {
-            sscanf(buf, "FB%d", &freqb);
+            sscanf(buf, "FB%d", &vfoB->freq);
         }
         else if (strncmp(buf, "AI;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "AI0;");
-            OUTPUT(buf);
+            pbuf = "AI0;";
+            OUTPUT(pbuf);
         }
 
         else if (strncmp(buf, "PS;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "PS1;");
+            snprintf(buf, sizeof(buf), "PS1;");
             OUTPUT(buf);
         }
         else if (buf[3] == ';' && strncmp(buf, "SF", 2) == 0)
         {
             int tmpvfo = buf[2] - '0';
-            SNPRINTF(buf, sizeof(buf), SFformat, tmpvfo,
-                     tmpvfo == 0 ? freqa : freqb,
-                     tmpvfo == 0 ? modeA : modeB);
+	    if (tmpvfo < 0 || tmpvfo > 1)
+            {
+                cmd_err = 1;
+                continue;
+            }
+            snprintf(buf, sizeof(buf), SFformat, tmpvfo,
+                     vfoAB[tmpvfo]->freq, vfoAB[tmpvfo]->mode);
             //printf("SF buf=%s\n", buf);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "SF", 2) == 0)
         {
-            int tmpvfo, tmpfreq;
-            mode_t tmpmode;
+            int tmpvfo, tmpfreq, tmpmode;
 
-            if (sscanf(buf, SFformat, &tmpvfo, &tmpfreq, &tmpmode) != 3)
+            if (sscanf(buf, SFformat, &tmpvfo, &tmpfreq, &tmpmode) != 3 || tmpvfo < 0
+		|| tmpvfo > 1)
             {
                 printf("Error decoding SF:%s\n", buf);
                 cmd_err = 1;
@@ -410,29 +421,21 @@ int main(int argc, char *argv[])
             }
 
             //printf("tmpvfo=%d, tmpfreq=%d, tmpmode=%d\n", tmpvfo, tmpfreq, tmpmode);
-            if (tmpvfo == 0)
-            {
-                modeA = tmpmode;
-                freqa = tmpfreq;
-            }
-	    else
-            {
-                modeB = tmpmode;
-                freqb = tmpfreq;
-            }
+            vfoAB[tmpvfo]->mode = tmpmode;
+            vfoAB[tmpvfo]->freq = tmpfreq;
 
-            printf("modeA=%X, modeB=%X\n", modeA, modeB);
+            printf("modeA=%X, modeB=%X\n", vfoA->mode, vfoB->mode);
         }
 #if 0
         else if (strncmp(buf, "MD;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "MD%d;",
-                     modeA); // not worried about modeB yet for simulator
+            snprintf(buf, sizeof(buf), "MD%d;",
+                     vfoA->mode); // not worried about modeB yet for simulator
             OUTPUT(buf);
         }
         else if (strncmp(buf, "MD", 2) == 0)
         {
-            sscanf(buf, "MD%d", &modeA); // not worried about modeB yet for simulator
+            sscanf(buf, "MD%d", &vfoA->mode); // not worried about modeB yet for simulator
         }
 #endif
         else if (strncmp(buf, "FL", 2) == 0)
@@ -449,22 +452,22 @@ int main(int argc, char *argv[])
         }
         else if (strcmp(buf, "FR;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FR%d;", vfo);
+            snprintf(buf, sizeof(buf), "FR%d;", vfo_rx);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "FR", 2) == 0)
         {
-            sscanf(buf, "FR%d", &vfo);
+            sscanf(buf, "FR%d", &vfo_rx);
         }
         else if (strcmp(buf, "FT;") == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "FT%d;", vfo_tx);
+            snprintf(buf, sizeof(buf), "FT%d;", vfo_tx);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "FT", 2) == 0)
         {
             sscanf(buf, "FT%d", &vfo_tx);
-            if (vfo_tx != vfo)
+            if (vfo_tx != vfo_rx)
             {
                 split = 1;
             }
@@ -553,20 +556,18 @@ int main(int argc, char *argv[])
             }
 	    else
             {
-                sprintf(buf, "OM%d%X;", tmpvfo, tmpvfo == 0 ? modeMain : modeSub);
+                sprintf(buf, "OM%d%X;", tmpvfo, vfoLR[tmpvfo]->mode);
                 OUTPUT(buf);
             }
             continue;
           }
-	  /* Setting - Only sets the active function (RX/TX)
-	   * For now, just set the mode of the current vfo. Not
-	   * always correct, but the best we can do until I turn
-	   * VFOs into objects.
+          /* Setting - Only sets the active function(RX/TX),
+           * which is always the left VFO.
            */
-	  sscanf(&buf[3], "%1X", &modeMain);
+          sscanf(&buf[3], "%1X", &vfoLR[0]->mode);
         }
         else if (strncmp(buf, "RM", 2) == 0)
-        {  // Meter control/readout
+        { // Meter control/readout
 	  if (buf[2] == ';')
           { // Read all enabled meters
 	      char tbuf[8];
