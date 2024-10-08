@@ -16,6 +16,7 @@ struct ip_mreq
 #include <unistd.h>
 #include <errno.h>
 #include <ctype.h>
+#include <time.h>
 #include <hamlib/rig.h>
 
 #define BUFSIZE 256
@@ -241,10 +242,10 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "NB1;") == 0)
         {
             hl_usleep(mysleep * 20);
-            sprintf(buf,"NB1%d;", nb1);
+            sprintf(buf, "NB1%d;", nb1);
             OUTPUT(buf);
         }
-        else if (strncmp(buf, "NB1",3) == 0)
+        else if (strncmp(buf, "NB1", 3) == 0)
         {
             puts(buf);
             sscanf(buf, "NB1%d", &nb1);
@@ -252,10 +253,10 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "NB2;") == 0)
         {
             hl_usleep(mysleep * 20);
-            sprintf(buf,"NB2%d;", nb2);
+            sprintf(buf, "NB2%d;", nb2);
             OUTPUT(buf);
         }
-        else if (strncmp(buf, "NB2",3) == 0)
+        else if (strncmp(buf, "NB2", 3) == 0)
         {
             puts(buf);
             sscanf(buf, "NB2%d", &nb2);
@@ -263,7 +264,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "RA;") == 0)
         {
             hl_usleep(mysleep * 200);
-            sprintf(buf,"RA%d;", ra);
+            sprintf(buf, "RA%d;", ra);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "RA", 2) == 0)
@@ -291,12 +292,12 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "FV;") == 0)
         {
             hl_usleep(mysleep * 1000);
-            pbuf = "FV1.04;";
+            pbuf = "FV1.05;";
             OUTPUT(pbuf);
         }
         else if (strncmp(buf, "IS;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "IS%+04d;", is);
+            snprintf(buf, sizeof(buf), "IS%+04d;", is);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "IS", 2) == 0)
@@ -305,12 +306,12 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "SM;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "SM0035;");
-            OUTPUT(buf);
+            pbuf = "SM0035;";
+            OUTPUT(pbuf);
         }
         else if (strncmp(buf, "PC;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "PC%03d;", pc);
+            snprintf(buf, sizeof(buf), "PC%03d;", pc);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "PC", 2) == 0)
@@ -334,7 +335,7 @@ int main(int argc, char *argv[])
         {
             hl_usleep(mysleep * 1000);
             int id = 24;
-            SNPRINTF(buf, sizeof(buf), "ID%03d;", id);
+            snprintf(buf, sizeof(buf), "ID%03d;", id);
             OUTPUT(buf);
         }
 
@@ -471,7 +472,7 @@ int main(int argc, char *argv[])
 #if 0
         else if (strncmp(buf, "DA;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "DA%d;", datamode);
+            snprintf(buf, sizeof(buf), "DA%d;", datamode);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "DA", 2) == 0)
@@ -575,7 +576,7 @@ int main(int argc, char *argv[])
 		{
 		  if (meter[i].enabled)
 		    {
-		      SNPRINTF(tbuf, sizeof tbuf, "RM%d%03d;", i + 1, meter[i].value);
+		      snprintf(tbuf, sizeof tbuf, "RM%d%03d;", i + 1, meter[i].value);
 		      pbuf = stpcpy(pbuf, tbuf);
 		    }
 		}
@@ -703,7 +704,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "RL1;", 3) == 0)
         {
-            SNPRINTF(buf, sizeof(buf), "RL%02d;", rl);
+            snprintf(buf, sizeof(buf), "RL%02d;", rl);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "RL1", 2) == 0)
@@ -878,7 +879,7 @@ int main(int argc, char *argv[])
         { // TF-SET
 	    if (buf[2] == ';')
             {
-                SNPRINTF(buf, sizeof buf, "TS%d;", tfset);
+                snprintf(buf, sizeof buf, "TS%d;", tfset);
                 OUTPUT(buf);
                 continue;
             }
