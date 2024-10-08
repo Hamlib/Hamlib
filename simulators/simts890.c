@@ -212,19 +212,6 @@ int main(int argc, char *argv[])
 		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, vfoLR[0]->mode);
             OUTPUT(ifbuf);
         }
-#if 0
-        else if (strncmp(buf, "RM2", 3) == 0)
-        {
-            pbuf = "RM20020;";
-            OUTPUT(pbuf);
-        }
-        else if (strcmp(buf, "RM5;") == 0)
-        {
-            hl_usleep(mysleep * 1000);
-            pbuf = "RM5100000;";
-            OUTPUT(pbuf);
-        }
-#endif
         else if (strncmp(buf, "AN", 2) == 0)
         {  // Antenna connection handling
             hl_usleep(mysleep * 1000);
@@ -325,19 +312,6 @@ int main(int argc, char *argv[])
         {
             sscanf(buf,"PC%d", &pc);
         }
-#if 0
-        else if (strcmp(buf, "FW1;") == 0)
-        {
-            //usleep(mysleep * 1000);
-            pbuf = "FW10;";
-            OUTPUT(pbuf);
-            hl_usleep(20 * 1000);
-        }
-        else if (strncmp(buf, "FW", 2) == 0)
-        {
-            continue;
-        }
-#endif
         else if (strcmp(buf, "ID;") == 0)
         {
             hl_usleep(mysleep * 1000);
@@ -345,18 +319,6 @@ int main(int argc, char *argv[])
             snprintf(buf, sizeof(buf), "ID%03d;", id);
             OUTPUT(buf);
         }
-
-#if 0
-        else if (strncmp(buf, "AI", 2) == 0)
-        {
-            if (strcmp(buf, "AI;"))
-            {
-                hl_usleep(mysleep * 1000);
-                n = fprintf(fp, "%s", "AI0;");
-            }
-        }
-
-#endif
         else if (strcmp(buf, "EX00011;") == 0)
         {
             pbuf = "EX00011 001;";
@@ -426,18 +388,6 @@ int main(int argc, char *argv[])
 
             printf("modeA=%X, modeB=%X\n", vfoA->mode, vfoB->mode);
         }
-#if 0
-        else if (strncmp(buf, "MD;", 3) == 0)
-        {
-            snprintf(buf, sizeof(buf), "MD%d;",
-                     vfoA->mode); // not worried about modeB yet for simulator
-            OUTPUT(buf);
-        }
-        else if (strncmp(buf, "MD", 2) == 0)
-        {
-            sscanf(buf, "MD%d", &vfoA->mode); // not worried about modeB yet for simulator
-        }
-#endif
         else if (strncmp(buf, "FL", 2) == 0)
         {
             switch (buf[2]) {
@@ -472,17 +422,6 @@ int main(int argc, char *argv[])
                 split = 1;
             }
         }
-#if 0
-        else if (strncmp(buf, "DA;", 3) == 0)
-        {
-            snprintf(buf, sizeof(buf), "DA%d;", datamode);
-            OUTPUT(buf);
-        }
-        else if (strncmp(buf, "DA", 2) == 0)
-        {
-            sscanf(buf, "DA%d", &datamode);
-        }
-#endif
         else if (strncmp(buf, "BD;", 3) == 0)
         {
             continue;
@@ -510,18 +449,6 @@ int main(int argc, char *argv[])
 	      break;
             }
         }
-#if 0
-        else if (strncmp(buf, "CB;", 3) == 0)
-        {
-            printf("No CB command!\n");
-            sprintf(buf, "CB%d;", operatingband);
-            OUTPUT(buf);
-        }
-        else if (strncmp(buf, "CB", 2) == 0)
-        {
-            sscanf(buf, "CB%d", &operatingband);
-        }
-#endif
         else if (strncmp(buf, "TB;", 3) == 0)
         {
             sprintf(buf, "TB%d;", split);
