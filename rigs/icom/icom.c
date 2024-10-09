@@ -8678,7 +8678,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
     case RIG_SCAN_VFO:
     case RIG_SCAN_MEM:
         HAMLIB_TRACE;
-        retval = rig_set_vfo(rig, scan==RIG_SCAN_MEM?RIG_VFO_MEM:RIG_VFO_A);
+        retval = rig_set_vfo(rig, scan==RIG_SCAN_MEM?RIG_VFO_MEM:RIG_VFO_VFO);
 
         if (retval != RIG_OK)
         {
