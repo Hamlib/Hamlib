@@ -8664,11 +8664,14 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
     unsigned char ackbuf[MAXFRAMELEN];
     int scan_len, ack_len = sizeof(ackbuf), retval;
     int scan_cn, scan_sc;
+    vfo_t myvfo = vfo;
 
     ENTERFUNC;
     scan_len = 0;
     scan_cn = C_CTL_SCAN;
 
+    // for current vfo just switch to VFO mode (we might be in MEM)
+    if (myvfo == RIG_VFO_CURR) myvfo = RIG_VFO_VFO;
     switch (scan)
     {
     case RIG_SCAN_STOP:
@@ -8678,7 +8681,7 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
     case RIG_SCAN_VFO:
     case RIG_SCAN_MEM:
         HAMLIB_TRACE;
-        retval = rig_set_vfo(rig, scan==RIG_SCAN_MEM?RIG_VFO_MEM:RIG_VFO_VFO);
+        retval = rig_set_vfo(rig, scan==RIG_SCAN_MEM?RIG_VFO_MEM:myvfo);
 
         if (retval != RIG_OK)
         {
