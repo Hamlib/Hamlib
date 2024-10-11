@@ -20,7 +20,9 @@ struct ip_mreq
 #include <hamlib/rig.h>
 
 #define BUFSIZE 256
-
+#define NBANDS 11
+/* Model we're emulating - K=The Americas, E=Europe */
+#define MODEL K
 /* Define a macro for sending response back to the app
  * This will allow us to reroute output to a buffering routine
  * Needed to handle multiple commands in a single message
@@ -31,9 +33,7 @@ int mysleep = 20;
 
 int filternum1 = 7;
 int filternum2 = 8;
-int datamode = 0;
 int vfo_rx, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
-int operatingband;
 int split = 0;
 int keyspd = 20;
 int sl=3, sh=3;
@@ -76,11 +76,44 @@ int tfset = 0;
 typedef struct kvfo {
   int freq;
   int mode;
+  short band, vfo;  // Redundant, but useful for relative movement
 } *kvfo_t;
 
-struct kvfo temp1 = {14074000, 1};
-struct kvfo temp2 = {14073500, 2};
+int nummems = 3;  // Default - values = 1, 3, 5
+int bandslot[2][NBANDS];  // 0-based band memory: ((bandslot[i] + 1) % nummems) (+1 for display)
 
+/* Storage and default data for band memories
+ * 1, 3(default), or 5 memories per band can be used. One is always active on
+ * each band. Manually they are selected by multiple band button pushes; CAT
+ * selection is by BD/BU command
+ */
+struct kvfo band_mem[2][NBANDS][5] = { {
+#if MODEL==K
+  /* 160M */ { { 1800000, 3}, { 1810000, 3}, { 1820000, 3}, { 1830000, 3}, { 1840000, 3} },
+  /*  80M */ { { 3500000, 1}, { 3600000, 1}, { 3700000, 1}, { 3800000, 1}, { 3900000, 1} },
+  /*  40M */ { { 7000000, 1}, { 7050000, 1}, { 7100000, 1}, { 7150000, 1}, { 7200000, 1} },
+  /*  30M */ { {10100000, 3}, {10110000, 3}, {10120000, 3}, {10130000, 3}, {10140000, 3} },
+  /*  20M */ { {14000000, 2}, {14100000, 2}, {14150000, 2}, {14200000, 2}, {14250000, 2} },
+  /*  17M */ { {18068000, 2}, {18100000, 2}, {18110000, 2}, {18150000, 2}, {18160000, 2} },
+  /*  15M */ { {21000000, 2}, {21100000, 2}, {21150000, 2}, {21200000, 2}, {21300000, 2} },
+  /*  12M */ { {24890000, 2}, {24920000, 2}, {24940000, 2}, {24960000, 2}, {24980000, 2} },
+  /*  10M */ { {28000000, 2}, {28300000, 2}, {28500000, 2}, {29000000, 4}, {29300000, 4} },
+  /*   6M */ { {50000000, 2}, {50125000, 2}, {50200000, 2}, {51000000, 4}, {52000000, 4} },
+  /* GENE */ { {  135700, 3}, {  472000, 3}, { 1000000, 5}, { 5305500, 2}, { 5403500, 2} }
+#else  // MODEL==E
+  /* 160M */ { { 1830000, 3}, { 1840000, 3}, { 1850000, 3}, { 1820000, 3}, { 1820000, 3} },
+  /*  80M */ { { 3500000, 1}, { 3550000, 1}, { 3600000, 1}, { 3650000, 1}, { 3700000, 1} },
+  /*  40M */ { { 7000000, 1}, { 7050000, 1}, { 7100000, 1}, { 7150000, 1}, { 7200000, 1} },
+  /*  30M */ { {10100000, 3}, {10110000, 3}, {10120000, 3}, {10130000, 3}, {10140000, 3} },
+  /*  20M */ { {14000000, 2}, {14100000, 2}, {14150000, 2}, {14200000, 2}, {14250000, 2} },
+  /*  17M */ { {18068000, 2}, {18100000, 2}, {18110000, 2}, {18150000, 2}, {18160000, 2} },
+  /*  15M */ { {21000000, 2}, {21100000, 2}, {21150000, 2}, {21200000, 2}, {21300000, 2} },
+  /*  12M */ { {24890000, 2}, {24920000, 2}, {24940000, 2}, {24960000, 2}, {24980000, 2} },
+  /*  10M */ { {28000000, 2}, {28300000, 2}, {28500000, 2}, {29000000, 4}, {29300000, 4} },
+  /*   6M */ { {50000000, 2}, {50125000, 2}, {50200000, 2}, {51000000, 4}, {52000000, 4} },
+  /* GENE */ { {70100000, 2}, {  135700, 3}, {  472000, 5}, {  999000, 5}, { 5258500, 2} }
+#endif
+} };
 
 #if defined(WIN32) || defined(_WIN32)
 int openPort(char *comport) // doesn't matter for using pts devices
@@ -155,9 +188,9 @@ int main(int argc, char *argv[])
     int cmd_err = 0;
     char *err_txt[] = { "?;", "E;", "O;" };
 
-    struct kvfo *vfoA = &temp1, *vfoB = &temp2;
-    const kvfo_t vfoAB[2] = {vfoA, vfoB};  // 0=A, 1=B, fixed
-    kvfo_t vfoLR[2] = {vfoA, vfoB};  // 0=Left, 1=Right, can change
+    struct kvfo *vfoA = &band_mem[0][4][0], *vfoB = &band_mem[1][6][0];
+    const kvfo_t *vfoAB[2] = {&vfoA, &vfoB};  // 0=A, 1=B, fixed
+    kvfo_t *vfoLR[2] = {&vfoA, &vfoB};  // 0=Left, 1=Right, can change
 
     /* The IF command is not documented for the TS-890S, and is supposed
      *  to be supplanted by SF. However, it is still there for legacy S/W.
@@ -184,6 +217,17 @@ int main(int argc, char *argv[])
       "%011d"       // P2 Freq(Hz)
       "%1X;";       // P3 Mode
 
+    /* Initialization */
+    for (int i = 0; i < NBANDS; i++)
+    {
+        for (int j = 0; j < 5; j++)
+        {
+            band_mem[1][i][j] = band_mem[0][i][j];
+            band_mem[1][i][j].vfo = 1;
+            band_mem[0][i][j].band = band_mem[1][i][j].band = i;
+        }
+    }
+
     while (1)
     {
         hl_usleep(10);
@@ -201,15 +245,17 @@ int main(int argc, char *argv[])
 //             printf("Cmd:\"%s\"\n", buf);
         }
 
-
 //        else { return 0; }
+
+        buf[0] = toupper(buf[0]);
+        buf[1] = toupper(buf[1]);
 
         if (strcmp(buf, "IF;") == 0)
         {
             char ifbuf[256];
             hl_usleep(mysleep * 1000);
-            sprintf(ifbuf, IFformat, vfoLR[0]->freq,
-		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, vfoLR[0]->mode);
+            sprintf(ifbuf, IFformat, (*vfoLR[0])->freq,
+		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, (*vfoLR[0])->mode);
             OUTPUT(ifbuf);
         }
         else if (strncmp(buf, "AN", 2) == 0)
@@ -319,32 +365,46 @@ int main(int argc, char *argv[])
             snprintf(buf, sizeof(buf), "ID%03d;", id);
             OUTPUT(buf);
         }
-        else if (strcmp(buf, "EX00011;") == 0)
-        {
-            pbuf = "EX00011 001;";
-            OUTPUT(pbuf);
-        }
         else if (strncmp(buf, "EX", 2) == 0)
-        {
-            continue;
+        { // Menu Setting
+	  if (strcmp(buf + 2, "00011;") == 0)
+          { // S-Meter Scale
+              pbuf = "EX00011 001;";
+              OUTPUT(pbuf);
+          }
+	  else if (strncmp(buf + 2, "00311", 5) == 0)
+          { // Number of Band Memories
+	    if(buf[7] == ';')
+	    {
+                snprintf(buf, sizeof buf, "EX00311 %03d;", nummems / 2); // Rounds down
+                OUTPUT(buf);
+            }
+	    else
+            {
+                int temp = -1;
+                sscanf(buf + 8, "%3d", &temp);
+                if (temp < 2 && temp >= 0)
+		  { nummems = temp * 2 + 1; }
+		else
+		  { cmd_err = 1; }
+            }
+	  }
         }
-        else if (strcmp(buf, "FA;") == 0)
-        {
-            snprintf(buf, sizeof(buf), "FA%011d;", vfoA->freq);
-            OUTPUT(buf);
-        }
-        else if (strcmp(buf, "FB;") == 0)
-        {
-            snprintf(buf, sizeof(buf), "FB%011d;", vfoB->freq);
-            OUTPUT(buf);
-        }
-        else if (strncmp(buf, "FA", 2) == 0)
-        {
-            sscanf(buf, "FA%d", &vfoA->freq);
-        }
-        else if (strncmp(buf, "FB", 2) == 0)
-        {
-            sscanf(buf, "FB%d", &vfoB->freq);
+        else if (buf[0] == 'F' && (buf[1] == 'A' || buf[1] == 'B'))  // FA/FB
+        { // VFO {A|B} Frequency
+            int idx = buf[1] - 'A';
+            if (buf[2] == ';')
+            {
+              snprintf(buf + 2, sizeof(buf) - 2, "%011d;", (*vfoAB[idx])->freq);
+              OUTPUT(buf);
+            }
+            else
+            {
+              int tmpfreq;
+              sscanf(buf + 2, "%d", &tmpfreq);
+              // TODO: Check and decode freq. Check band and set vfo to band mem.
+              (*vfoAB[idx])->freq = tmpfreq;
+            }
         }
         else if (strncmp(buf, "AI;", 3) == 0)
         {
@@ -366,7 +426,7 @@ int main(int argc, char *argv[])
                 continue;
             }
             snprintf(buf, sizeof(buf), SFformat, tmpvfo,
-                     vfoAB[tmpvfo]->freq, vfoAB[tmpvfo]->mode);
+                     (*vfoAB[tmpvfo])->freq, (*vfoAB[tmpvfo])->mode);
             //printf("SF buf=%s\n", buf);
             OUTPUT(buf);
         }
@@ -383,8 +443,8 @@ int main(int argc, char *argv[])
             }
 
             //printf("tmpvfo=%d, tmpfreq=%d, tmpmode=%d\n", tmpvfo, tmpfreq, tmpmode);
-            vfoAB[tmpvfo]->mode = tmpmode;
-            vfoAB[tmpvfo]->freq = tmpfreq;
+            (*vfoAB[tmpvfo])->mode = tmpmode;
+            (*vfoAB[tmpvfo])->freq = tmpfreq;
 
             printf("modeA=%X, modeB=%X\n", vfoA->mode, vfoB->mode);
         }
@@ -422,20 +482,50 @@ int main(int argc, char *argv[])
                 split = 1;
             }
         }
-        else if (strncmp(buf, "BD;", 3) == 0)
-        {
-            continue;
-        }
-        else if (strncmp(buf, "BU;", 3) == 0)
-        {
-            continue;
+        else if (buf[0] == 'B' && (buf[1] == 'D' || buf[1] == 'U'))  // BU/BD
+        { // Frequency Band Selection(Setting 1)/[UP}/{DOWN] Operating(Setting 2)
+            int band, cycle, idx, newfreq;
+            int dir = buf[1] == 'D' ? -1 : +1;
+            kvfo_t ovfo = *vfoLR[0];  // Current operating VFO
+
+            if (buf[2] == ';')
+            { // Setting 2
+		/* The TS-890S doesn't have a real BAND_UP/BAND_DOWN commnd
+		 * This one just does a simple UP/DOWN. As the manual says, just
+		 * like pushing the UP/DOWN button on the mic
+		 */
+		newfreq = ovfo->freq + dir * 1000;  // Needs to be tracked by mode
+		// Checking for band edges needs to go here
+		ovfo->freq = newfreq;
+            }
+            else if (buf[3] == ';')
+            { // Read
+		idx = buf[2] - '0';
+		if (idx < 0 || idx > 1) {cmd_err = 1; continue;}
+		snprintf(buf + 3, sizeof(buf) - 3, "%d;", bandslot[idx][ovfo->band]);
+		OUTPUT(buf);
+            }
+            else if (buf[5] == ';')
+            { // Setting 1
+		band = atoi(buf + 3);
+		if (band < 0 || band >= NBANDS) {cmd_err = 1; continue;}
+		if (band == ovfo->band)
+                { // Same band, just cycle the band memory #
+                  bandslot[ovfo->vfo][band] = (bandslot[ovfo->vfo][band] + 1) % nummems;
+                }
+                *(vfoLR[0]) = &band_mem[ovfo->vfo][band][bandslot[ovfo->vfo][band]];
+            }
+            else
+            {
+                cmd_err = 1;
+            }
         }
         else if (strcmp(buf, "RX;") == 0)
-        {
+        { // Receive Function State
             ptt = ptt_mic = ptt_data = ptt_tune = 0;
         }
         else if (strncmp(buf, "TX", 2) == 0)
-        {
+        { // Transmission Mode
             ptt = ptt_mic = ptt_data = ptt_tune = 0;
 
             switch (buf[2])
@@ -450,13 +540,29 @@ int main(int argc, char *argv[])
             }
         }
         else if (strncmp(buf, "TB;", 3) == 0)
-        {
+        { // Split
             sprintf(buf, "TB%d;", split);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "TB", 2) == 0)
         {
             sscanf(buf, "TB%d", &split);
+        }
+        else if (strncmp(buf, "TS", 2) == 0)
+        { // TF-SET
+            if (buf[2] == ';')
+            {
+                snprintf(buf, sizeof buf, "TS%d;", tfset);
+                OUTPUT(buf);
+            }
+            else if (buf[2] >= '0' && buf[2] < '2')
+            {
+                tfset = buf[2] - '0';
+            }
+            else
+            {
+                cmd_err = 1;
+	    }
         }
         else if (strncmp(buf, "KS;", 3) == 0)
         {
@@ -483,15 +589,19 @@ int main(int argc, char *argv[])
             }
 	    else
             {
-                sprintf(buf, "OM%d%X;", tmpvfo, vfoLR[tmpvfo]->mode);
+                sprintf(buf, "OM%d%X;", tmpvfo, (*vfoLR[tmpvfo])->mode);
                 OUTPUT(buf);
             }
-            continue;
           }
+	  else
+          {
           /* Setting - Only sets the active function(RX/TX),
-           * which is always the left VFO.
+           * which is always the left VFO unless split is active and
+           * we are transmitting.
            */
-          sscanf(&buf[3], "%1X", &vfoLR[0]->mode);
+              int idx = split && ((ptt + ptt_mic + ptt_data + ptt_tune) > 0);
+              sscanf(&buf[3], "%1X", &(*vfoLR[idx])->mode);
+          }
         }
         else if (strncmp(buf, "RM", 2) == 0)
         { // Meter control/readout
@@ -793,31 +903,15 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "SC", 2) == 0)
         { // Scan functions
-	  switch (buf[2]) {
-	  case '0': // Scan
-	  case '1': // Scan Speed
-	  case '2': // Tone Scan/CTCSS Scan
-	  case '3': // Program Scan/VFO Scan Selection
-	    break;
-	  default:
-	    cmd_err = 1;
+          switch (buf[2]) {
+          case '0': // Scan
+          case '1': // Scan Speed
+          case '2': // Tone Scan/CTCSS Scan
+          case '3': // Program Scan/VFO Scan Selection
+            break;
+          default:
+            cmd_err = 1;
           }
-        }
-        else if (strncmp(buf, "TS", 2) == 0)
-        { // TF-SET
-	    if (buf[2] == ';')
-            {
-                snprintf(buf, sizeof buf, "TS%d;", tfset);
-                OUTPUT(buf);
-                continue;
-            }
-	    int tmpset = buf[2] - '0';
-	    if (tmpset < 0 || tmpset > 1)
-            {
-                cmd_err = 1;
-                continue;
-            }
-            tfset = tmpset;
         }
         else if (strlen(buf) > 0)
         {
