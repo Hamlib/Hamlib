@@ -59,7 +59,7 @@ struct rig_caps ic707_caps =
     RIG_MODEL(RIG_MODEL_IC707),
     .model_name = "IC-707",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".3",
+    .version =  BACKEND_VER ".4",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -159,7 +159,7 @@ struct rig_caps ic707_caps =
     .set_split_mode =  icom_set_split_mode,
     .get_split_mode =  icom_get_split_mode,
     .set_ts = icom_set_ts,
-    .get_ts = icom_get_ts,
+//    .get_ts = icom_get_ts, // apparently does not have this
 
     .scan =  icom_scan,
 
