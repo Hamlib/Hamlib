@@ -251,6 +251,7 @@ struct icom_priv_caps
     int x1ax03_supported;       /*!< Rig supports setting/getting filter width */
     int mode_with_filter;       /*!< Rig mode commands include filter selection */
     int data_mode_supported;    /*!< Rig supports data mode flag */
+    int fm_filters[3];          /*!< For models with FIL1/2/3 for FM low-to-high fixed filters -- IC7300/9700 */
 };
 
 struct icom_priv_data

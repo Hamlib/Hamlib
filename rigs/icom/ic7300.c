@@ -67,7 +67,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo);
 #define IC7300_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_SCREENSAVER|RIG_PARM_TIME|RIG_PARM_BEEP|RIG_PARM_KEYERTYPE|RIG_PARM_AFIF)
 
 #define IC7300_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
-#define IC7300_SCAN_OPS (RIG_SCAN_STOP|RIG_SCAN_MEM|RIG_SCAN_PROG|RIG_SCAN_SLCT)
+#define IC7300_SCAN_OPS (RIG_SCAN_STOP|RIG_SCAN_MEM|RIG_SCAN_PROG|RIG_SCAN_SLCT|RIG_SCAN_VFO)
 
 #define IC7300_ANTS (RIG_ANT_1) /* ant-1 is Hf-6m */
 
@@ -419,7 +419,8 @@ static const struct icom_priv_caps IC7300_priv_caps =
     .x1cx03_possibly = 1,
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
-    .data_mode_supported = 1
+    .data_mode_supported = 1,
+    .fm_filters = { 7000, 10000, 15000 }
 };
 
 static const struct icom_priv_caps IC9700_priv_caps =
@@ -474,7 +475,7 @@ static const struct icom_priv_caps IC9700_priv_caps =
     .x1cx03_possibly = 1,
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
-    .data_mode_supported = 1
+    .data_mode_supported = 1,
 };
 
 static const struct icom_priv_caps IC705_priv_caps =
@@ -741,7 +742,7 @@ struct rig_caps ic7300_caps =
     RIG_MODEL(RIG_MODEL_IC7300),
     .model_name = "IC-7300",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".13",
+    .version =  BACKEND_VER ".14",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
