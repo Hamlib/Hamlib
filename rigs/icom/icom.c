@@ -512,19 +512,19 @@ const struct confparams icom_cfg_params[] =
     },
     {
         TOK_FILTER_USBD, "filter_usbd", "Filter to use USBD", "Filter to use for USBD/LSBD when setting mode",
-        "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
+        "1", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
     },
     {
         TOK_FILTER_USB, "filter_usb", "Filter to use USB", "Filter to use when for USB/LSB setting mode",
-        "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
+        "2", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
     },
     {
         TOK_FILTER_CW, "filter_cw", "Filter to use CW", "Filter to use for CW/CWR when setting mode",
-        "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
+        "3", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
     },
     {
         TOK_FILTER_FM, "filter_fm", "Filter to use FM", "Filter to use for FM/PKTFM when setting mode",
-        "0", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
+        "1", RIG_CONF_NUMERIC, {.n = {0, 3, 1}}
     },
     {RIG_CONF_END, NULL,}
 };
@@ -858,6 +858,7 @@ static int icom_check_ack(int ack_len, unsigned char *ackbuf)
     {
         // if we don't get ACK/NAK some serial corruption occurred
         // so we'll call it a timeout for retry purposes
+        rig_debug(RIG_DEBUG_WARN, "%s: command timed out (%#.2x)\n", __func__, ackbuf[0]);
         return -RIG_ETIMEOUT;
     }
 
@@ -2346,7 +2347,7 @@ static int icom_get_mode_x26(RIG *rig, vfo_t vfo, int *mode_len,
 
 static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
                              rmode_t icom_mode, int datamode,
-                             int filter)
+                             int filter, pbwidth_t width)
 {
     struct icom_priv_data *priv = STATE(rig)->priv;
     const struct icom_priv_caps *priv_caps = rig->caps->priv;
@@ -2354,6 +2355,7 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
     unsigned char buf[3];
     unsigned char ackbuf[MAXFRAMELEN];
     int ack_len = sizeof(ackbuf);
+    int buf_len = 3;
     int mode_len;
     unsigned char mode_buf[4];
 
@@ -2380,25 +2382,45 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
     if (priv->filter_usbd > 0 && (mode == RIG_MODE_PKTUSB
                                   || mode == RIG_MODE_PKTLSB))
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: filter usbd=%d\n", __func__, priv->filter_usbd);
+        rig_debug(RIG_DEBUG_TRACE, "%s: filter usbd=%d, width=%d\n", __func__, priv->filter_usbd, (int)width);
         buf[2] = priv->filter_usbd;
+        if (width >= 1 && width <=3) buf[2] = width;
+        if (width == RIG_PASSBAND_NOCHANGE)
+        {
+            buf_len = 1;
+        }
     }
 
     else if (priv->filter_usb > 0 && (mode == RIG_MODE_USB || mode == RIG_MODE_LSB))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: filter usb=%d\n", __func__, priv->filter_usb);
         buf[2] = priv->filter_usb;
+        if (width == RIG_PASSBAND_NOCHANGE)
+        {
+            buf_len = 1;
+        }
     }
 
     else if (priv->filter_cw > 0 && (mode == RIG_MODE_CW || mode == RIG_MODE_CWR))
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: filter cw=%d\n", __func__, priv->filter_cw);
         buf[2] = priv->filter_cw;
+        if (width == RIG_PASSBAND_NOCHANGE)
+        {
+            buf_len = 1;
+        }
     }
-    else if (priv->filter_fm > 0 && (mode == RIG_MODE_FM || mode == RIG_MODE_PKTFM))
+    else if (mode == RIG_MODE_FM || mode == RIG_MODE_PKTFM)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: filter fm=%d\n", __func__, priv->filter_fm);
-        buf[2] = priv->filter_fm;
+        rig_debug(RIG_DEBUG_TRACE, "%s: width=%d\n", __func__, (int)width);
+        buf[2] = width;
+        if (width > 10000) buf[2] = 1;
+        else if (width > 7000) buf[2] = 2;
+        else if (width > 3) buf[2] = 3;
+        if (width == RIG_PASSBAND_NOCHANGE)
+        {
+            buf_len = 1;
+        }
     }
 
     int vfo_number = icom_get_vfo_number_x25x26(rig, vfo);
@@ -2406,7 +2428,7 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_number=%d\n", __func__,
               rig_strvfo(vfo), vfo_number);
 
-    retval = icom_transaction(rig, C_SEND_SEL_MODE, vfo_number, buf, 3, ackbuf,
+    retval = icom_transaction(rig, C_SEND_SEL_MODE, vfo_number, buf, buf_len, ackbuf,
                               &ack_len);
 
     if (priv->x26cmdfails < 0 || priv_caps->x25x26_always)
@@ -2568,11 +2590,17 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             if (datamode[0] == 0) { datamode[1] = 0; } // the only good combo possible according to manual
 
             // we need to let FM mode widths through here with datamode[1] set to FM width
-            if((RIG_IS_IC7300 || RIG_IS_IC9700) && (mode == RIG_MODE_FM || mode == RIG_MODE_WFM))
+            if((priv_caps->fm_filters != NULL) && (mode == RIG_MODE_FM || mode == RIG_MODE_WFM))
             {
-                if (width <= 7000) datamode[1] = 3;
-                else if (width <= 10000) datamode[1] = 2;
+                // assumed fm_filters is ascending sequence -- see ic7300.c for example
+                if (width <= 3) datamode[1] = width;
+                else if (width <= priv_caps->fm_filters[0]) datamode[1] = 3;
+                else if (width <= priv_caps->fm_filters[1]) datamode[1] = 2;
                 else datamode[1] = 1;
+                if (width > 3)
+                {
+                    rig_debug(RIG_DEBUG_WARN, "%s: IC7300 width set by 1,2,3 - adjustable widht not implemented yet\n", __func__);
+                }
             }
 
             rig_debug(RIG_DEBUG_TRACE, "%s(%d) mode_icom=%d, datamode=%d, filter=%d\n",
@@ -2585,7 +2613,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else
             {
                 if (datamode[0] == 0) datamode[1] = 0;
-                retval = icom_set_mode_x26(rig, vfo, mode, mode_icom, datamode[0], datamode[1]);
+                retval = icom_set_mode_x26(rig, vfo, mode, mode_icom, datamode[0], datamode[1], width);
             }
 
             if (retval != RIG_OK)
