@@ -77,12 +77,13 @@ typedef struct kvfo {
   int freq;
   int mode;
   short band, vfo;  // Redundant, but useful for relative movement
-} *kvfo_t;
+} *kvfop_t;
 
 int nummems = 3;  // Default - values = 1, 3, 5
 int bandslot[2][NBANDS];  // 0-based band memory: ((bandslot[i] + 1) % nummems) (+1 for display)
 
 /* Storage and default data for band memories
+ * vfoA freq and mode initialized here, vfoB and other items set at startup
  * 1, 3(default), or 5 memories per band can be used. One is always active on
  * each band. Manually they are selected by multiple band button pushes; CAT
  * selection is by BD/BU command
@@ -114,6 +115,31 @@ struct kvfo band_mem[2][NBANDS][5] = { {
   /* GENE */ { {70100000, 2}, {  135700, 3}, {  472000, 5}, {  999000, 5}, { 5258500, 2} }
 #endif
 } };
+
+/* Band definitions
+ *  differ by model
+ */
+struct band_def {
+  int low;
+  int high;
+};
+struct band_def band_limits[NBANDS] = {
+#if MODEL == K
+  { 1800000,  2000000}, { 3500000,  4000000}, { 7000000,  7300000},
+  {10100000, 10150000}, {14000000, 14350000}, {18068000, 18168000},
+  {21000000, 21450000}, {24890000, 24990000}, {28000000, 29700000},
+  {50000000, 54000000}, {   30000, 60000000}
+#else
+  { 1810000,  2000000}, { 3500000,  3800000}, { 7000000,  7200000},
+  {10100000, 10150000}, {14000000, 14350000}, {18068000, 18168000},
+  {21000000, 21450000}, {24890000, 24990000}, {28000000, 29000000},
+  {50000000, 52000000}, {   30000, 74800000}
+#endif
+};
+
+/* Function prototypes */
+int freq2band(int freq);
+kvfop_t newvfo(kvfop_t ovfo, int band);
 
 #if defined(WIN32) || defined(_WIN32)
 int openPort(char *comport) // doesn't matter for using pts devices
@@ -189,8 +215,8 @@ int main(int argc, char *argv[])
     char *err_txt[] = { "?;", "E;", "O;" };
 
     struct kvfo *vfoA = &band_mem[0][4][0], *vfoB = &band_mem[1][6][0];
-    const kvfo_t *vfoAB[2] = {&vfoA, &vfoB};  // 0=A, 1=B, fixed
-    kvfo_t *vfoLR[2] = {&vfoA, &vfoB};  // 0=Left, 1=Right, can change
+    kvfop_t * const vfoAB[2] = {&vfoA, &vfoB};  // 0=A, 1=B, fixed
+    kvfop_t *vfoLR[2] = {&vfoA, &vfoB};  // 0=Left, 1=Right, can change
 
     /* The IF command is not documented for the TS-890S, and is supposed
      *  to be supplanted by SF. However, it is still there for legacy S/W.
@@ -400,10 +426,15 @@ int main(int argc, char *argv[])
             }
             else
             {
-              int tmpfreq;
+              int tmpfreq, newband;
+              kvfop_t ovfo, nvfo;
               sscanf(buf + 2, "%d", &tmpfreq);
-              // TODO: Check and decode freq. Check band and set vfo to band mem.
-              (*vfoAB[idx])->freq = tmpfreq;
+              newband = freq2band(tmpfreq);
+              if (newband < 0) {cmd_err = 1; continue; }
+              ovfo = *vfoAB[idx];
+              nvfo = newvfo(ovfo, newband);
+              nvfo->freq = tmpfreq;
+              *vfoAB[idx] = nvfo;
             }
         }
         else if (strncmp(buf, "AI;", 3) == 0)
@@ -432,7 +463,8 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "SF", 2) == 0)
         {
-            int tmpvfo, tmpfreq, tmpmode;
+            int tmpvfo, tmpfreq, tmpmode, newband;
+            kvfop_t ovfo, nvfo;
 
             if (sscanf(buf, SFformat, &tmpvfo, &tmpfreq, &tmpmode) != 3 || tmpvfo < 0
 		|| tmpvfo > 1)
@@ -443,9 +475,13 @@ int main(int argc, char *argv[])
             }
 
             //printf("tmpvfo=%d, tmpfreq=%d, tmpmode=%d\n", tmpvfo, tmpfreq, tmpmode);
-            (*vfoAB[tmpvfo])->mode = tmpmode;
-            (*vfoAB[tmpvfo])->freq = tmpfreq;
-
+            ovfo = *vfoAB[tmpvfo];
+            newband = freq2band(tmpfreq);
+            if (newband < 0) {cmd_err = 1; continue; }
+            nvfo = newvfo(ovfo, newband);
+            nvfo->mode = tmpmode;
+            nvfo->freq = tmpfreq;
+            *vfoAB[tmpvfo] = nvfo;
             printf("modeA=%X, modeB=%X\n", vfoA->mode, vfoB->mode);
         }
         else if (strncmp(buf, "FL", 2) == 0)
@@ -484,9 +520,9 @@ int main(int argc, char *argv[])
         }
         else if (buf[0] == 'B' && (buf[1] == 'D' || buf[1] == 'U'))  // BU/BD
         { // Frequency Band Selection(Setting 1)/[UP}/{DOWN] Operating(Setting 2)
-            int band, cycle, idx, newfreq;
+            int band, idx, newfreq;
             int dir = buf[1] == 'D' ? -1 : +1;
-            kvfo_t ovfo = *vfoLR[0];  // Current operating VFO
+            kvfop_t ovfo = *vfoLR[0];  // Current operating VFO
 
             if (buf[2] == ';')
             { // Setting 2
@@ -500,20 +536,20 @@ int main(int argc, char *argv[])
             }
             else if (buf[3] == ';')
             { // Read
-		idx = buf[2] - '0';
-		if (idx < 0 || idx > 1) {cmd_err = 1; continue;}
-		snprintf(buf + 3, sizeof(buf) - 3, "%d;", bandslot[idx][ovfo->band]);
-		OUTPUT(buf);
+                idx = buf[2] - '0';
+                if (idx < 0 || idx > 1) {cmd_err = 1; continue;}
+                snprintf(buf + 3, sizeof(buf) - 3, "%d;", bandslot[idx][ovfo->band] + 1);
+                OUTPUT(buf);
             }
             else if (buf[5] == ';')
             { // Setting 1
-		band = atoi(buf + 3);
-		if (band < 0 || band >= NBANDS) {cmd_err = 1; continue;}
-		if (band == ovfo->band)
-                { // Same band, just cycle the band memory #
+                band = atoi(buf + 3);
+                if (band < 0 || band >= NBANDS) {cmd_err = 1; continue;}
+                if (band == ovfo->band)
+                { // Same band, cycle the band memory #
                   bandslot[ovfo->vfo][band] = (bandslot[ovfo->vfo][band] + 1) % nummems;
                 }
-                *(vfoLR[0]) = &band_mem[ovfo->vfo][band][bandslot[ovfo->vfo][band]];
+                *vfoLR[0] = newvfo(ovfo, band);
             }
             else
             {
@@ -921,4 +957,43 @@ int main(int argc, char *argv[])
     }
 
     return 0;
+}
+
+/* Convert freq to TS-890S band #
+ *
+ * Input freq in Hz
+ *
+ * Returns band # or negative if invalid input
+ */
+int freq2band(int freq)
+{
+    int i, retval = -1;  // Assume the worst
+
+    for ( i = 0; i < NBANDS; i++ )
+      {
+	if ( freq >= band_limits[i].low && freq <= band_limits[i].high )
+	  {
+	    retval = i;
+	    break;
+	  }
+      }
+    //printf("%dHz is in band # %d\n", freq, retval);
+
+    return retval;
+}
+
+/* Get appropriate vfo for new frequency
+ *
+ * Input: current vfo
+ *        new band
+ * Return: new vfo pointer
+ */
+kvfop_t newvfo(kvfop_t ovfo, int band)
+{
+    int vfonum, slot;
+
+    vfonum = ovfo->vfo;
+    slot = bandslot[vfonum][band];
+
+    return &band_mem[vfonum][band][slot];
 }
