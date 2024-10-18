@@ -9,6 +9,7 @@ struct ip_mreq
 };
 #endif
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -17,7 +18,7 @@ struct ip_mreq
 #include <errno.h>
 #include <ctype.h>
 #include <time.h>
-#include <hamlib/rig.h>
+//#include <hamlib/rig.h>
 
 #define BUFSIZE 256
 #define NBANDS 11
@@ -132,14 +133,31 @@ struct band_def band_limits[NBANDS] = {
 #else
   { 1810000,  2000000}, { 3500000,  3800000}, { 7000000,  7200000},
   {10100000, 10150000}, {14000000, 14350000}, {18068000, 18168000},
-  {21000000, 21450000}, {24890000, 24990000}, {28000000, 29000000},
+  {21000000, 21450000}, {24890000, 24990000}, {28000000, 29700000},
   {50000000, 52000000}, {   30000, 74800000}
 #endif
 };
 
+/* Table for mode<->emission class conversion
+ * Claas 0 = SSB
+ *       1 = CW/FSK/PSK
+ *       2 = FM
+ *       3 = AM
+ */
+int mode2classtab[16] = { -1, 0, 0, 1, 2, 3, 1, 1, -1, 1, 1, 1, 0, 0, 2, 3};
+int stepvalues[4][10] = { // Step sizes in Hz
+  /* SSB        */ { 500, 1000, 2500, 5000, 10000, 0, 0, 0, 0, 0},
+  /* CW/FSK/PSK */ { 500, 1000, 2500, 5000, 10000, 0, 0, 0, 0, 0},
+  /* FM */ { 5000, 6250, 10000, 12500, 15000, 20000, 25000, 30000, 50000, 100000},
+  /* AM */ { 5000, 6250, 10000, 12500, 15000, 20000, 25000, 30000, 50000, 100000}
+};
+int stepsize[4] = { 1000, 500, 10000, 5000}; // Defaults by modeclass
+
 /* Function prototypes */
 int freq2band(int freq);
 kvfop_t newvfo(kvfop_t ovfo, int band);
+// Extracted from rig.h
+int hl_usleep(unsigned long usec);  // Until it's replaced
 
 #if defined(WIN32) || defined(_WIN32)
 int openPort(char *comport) // doesn't matter for using pts devices
@@ -414,7 +432,33 @@ int main(int argc, char *argv[])
 		else
 		  { cmd_err = 1; }
             }
-	  }
+          }
+          else if (strncmp(buf + 2, "00301", 5) >= 0 && strncmp(buf + 2, "00304", 5) <= 0)
+          { // [SSB|CW/FSK/PSK|FM|AM] Mode Frequency Step Size (Multi/Channel Control)
+              int class = buf[6] - '1';
+              int i, tmpstep = -1;
+              if (buf[7] == ';')
+              { // Read
+                    for (i = 0; i < 10 && stepvalues[class][i] != 0; i++)
+                    {
+                        if (stepsize[class] == stepvalues[class][i])
+                        {
+                            tmpstep = i;
+                            break;
+                        }
+                  }
+                  if (tmpstep < 0) {cmd_err = 3; continue;}  // Shouldn't happen
+                  snprintf(buf + 7, sizeof(buf) - 7, " %03d;", tmpstep);
+                  OUTPUT(buf);
+              }
+              else
+              { // Set
+                  tmpstep = atoi(buf + 8);
+                  if (tmpstep < 0 || tmpstep > 9 || stepvalues[class][tmpstep] == 0)
+		    {cmd_err = 1; continue;}
+                  stepsize[class] = stepvalues[class][tmpstep];
+              }
+          }
         }
         else if (buf[0] == 'F' && (buf[1] == 'A' || buf[1] == 'B'))  // FA/FB
         { // VFO {A|B} Frequency
@@ -462,7 +506,7 @@ int main(int argc, char *argv[])
             OUTPUT(buf);
         }
         else if (strncmp(buf, "SF", 2) == 0)
-        {
+        { // Sets and Reads the VFO (Frequency and Mode)
             int tmpvfo, tmpfreq, tmpmode, newband;
             kvfop_t ovfo, nvfo;
 
@@ -483,18 +527,6 @@ int main(int argc, char *argv[])
             nvfo->freq = tmpfreq;
             *vfoAB[tmpvfo] = nvfo;
             printf("modeA=%X, modeB=%X\n", vfoA->mode, vfoB->mode);
-        }
-        else if (strncmp(buf, "FL", 2) == 0)
-        {
-            switch (buf[2]) {
-            case '0': // Select the Receive Filter
-            case '1': // Roofing Filter
-            case '2': // IF Filter Shape
-            case '3': // AF Filter Type
-                continue; // For now
-            default:
-                cmd_err = 1;
-            }
         }
         else if (strcmp(buf, "FR;") == 0)
         {
@@ -526,13 +558,15 @@ int main(int argc, char *argv[])
 
             if (buf[2] == ';')
             { // Setting 2
-		/* The TS-890S doesn't have a real BAND_UP/BAND_DOWN commnd
-		 * This one just does a simple UP/DOWN. As the manual says, just
-		 * like pushing the UP/DOWN button on the mic
-		 */
-		newfreq = ovfo->freq + dir * 1000;  // Needs to be tracked by mode
-		// Checking for band edges needs to go here
-		ovfo->freq = newfreq;
+                /* The TS-890S doesn't have a real BAND_UP/BAND_DOWN command
+                 * This one just does a simple UP/DOWN. As the manual says, just
+                 * like pushing the UP/DOWN button on the mic
+                 */
+                int class = mode2classtab[ovfo->mode];
+                if (class < 0 || class > 3) {cmd_err = 3; continue;} // Shouldn't happen
+                newfreq = ovfo->freq + (dir * stepsize[class]);
+                //TODO: Checking for band edges needs to go here
+                ovfo->freq = newfreq;
             }
             else if (buf[3] == ';')
             { // Read
@@ -795,38 +829,6 @@ int main(int argc, char *argv[])
         {
             sscanf(buf,"SP%d", &sp);
         }
-        else if (strncmp(buf, "BS", 2) == 0)
-        {  // All the Bandscope commands
-            switch (toupper(buf[2])) {
-            case '0': // Scope Display ON/OFF
-            case '1': // Scope Display Type
-            case '2': // Bandscpoe Operation Mode
-            case '3': // Bandscope Span
-            case '4': // Bandscope Span
-            case '5': // Bandscope Scope Range (Fixed Mode)
-            case '6': // Bandscope Dispaly Pause
-            case '7': // Bandscope Marker
-            case '8': // Bandscope Attenuator
-            case '9': // Bandscope Max Hold
-            case 'A': // Bandscope Averaging
-            case 'B': // Bandscope Waterfall Display Speed
-            case 'C': // Bandscope Reference Level
-            case 'D': // Bandscope Waterfall Display Clear
-            case 'E': // Bandscope Marker Shift / Marker Center
-            case 'G': // Audio Scope Attenuator
-            case 'H': // Audio Scope Span
-            case 'I': // Oscilloscope Level
-            case 'J': // Oscilloscpoe Sweep Time
-            case 'K': // Bandscope Shift Position
-            case 'L': // Bandscope Receive Circuit State
-            case 'M': // Bandscope Scope Range Lower/Upper Frequency Limit
-            case 'N': // Audio Scope Display Pause
-            case 'O': // Expands Spectrum Analysis Range
-              break;
-            default: // Unknown
-              cmd_err = 1;
-            }
-        }
         else if (strncmp(buf, "CK", 2) == 0)
         {  // All the clock functions
             switch (buf[2]) {
@@ -904,7 +906,39 @@ int main(int argc, char *argv[])
 	    default:
 	      printf("Bad clock command - %s\n", buf);
 	    }
-	  }
+        }
+        else if (strncmp(buf, "BS", 2) == 0)
+        {  // All the Bandscope commands
+            switch (toupper(buf[2])) {
+            case '0': // Scope Display ON/OFF
+            case '1': // Scope Display Type
+            case '2': // Bandscpoe Operation Mode
+            case '3': // Bandscope Span
+            case '4': // Bandscope Span
+            case '5': // Bandscope Scope Range (Fixed Mode)
+            case '6': // Bandscope Dispaly Pause
+            case '7': // Bandscope Marker
+            case '8': // Bandscope Attenuator
+            case '9': // Bandscope Max Hold
+            case 'A': // Bandscope Averaging
+            case 'B': // Bandscope Waterfall Display Speed
+            case 'C': // Bandscope Reference Level
+            case 'D': // Bandscope Waterfall Display Clear
+            case 'E': // Bandscope Marker Shift / Marker Center
+            case 'G': // Audio Scope Attenuator
+            case 'H': // Audio Scope Span
+            case 'I': // Oscilloscope Level
+            case 'J': // Oscilloscpoe Sweep Time
+            case 'K': // Bandscope Shift Position
+            case 'L': // Bandscope Receive Circuit State
+            case 'M': // Bandscope Scope Range Lower/Upper Frequency Limit
+            case 'N': // Audio Scope Display Pause
+            case 'O': // Expands Spectrum Analysis Range
+              break;
+            default: // Unknown
+              cmd_err = 1;
+            }
+        }
         else if (strncmp(buf, "CM", 2) == 0)
         { // CW Message Memory
           switch (buf[2]) {
@@ -921,6 +955,57 @@ int main(int argc, char *argv[])
             cmd_err = 1;  // Unknown command
           }
 	}
+        else if (strncmp(buf, "FL", 2) == 0)
+        {
+            switch (buf[2]) {
+            case '0': // Select the Receive Filter
+            case '1': // Roofing Filter
+            case '2': // IF Filter Shape
+            case '3': // AF Filter Type
+                continue; // For now
+            default:
+                cmd_err = 1;
+            }
+        }
+        else if (strncmp(buf, "FM", 2) == 0)
+        { // Frequency Markers
+            switch (buf[2]) {
+            case '0': // Frequency Marker Function
+            case '1': // Frequency Marker List Regiatration
+            case '2': // Total Number Registered of Frequency Marker List
+            case '3': // Frequency Marker List Readout
+            case '4': // Frequency Marker List Delete
+                break;
+            default:
+                cmd_err = 1;
+            }
+        }
+        else if (strncmp(buf, "IP", 2) == 0)
+        { // Network Config
+            switch (buf[2]) {
+            case '0': // DHCP
+            case '1': // IP Address (Manual Configuration)
+            case '2': // MAC Address
+                break;
+            default:
+                cmd_err = 1;
+            }
+        }
+        else if (strncmp(buf, "LA", 2) == 0)
+        { // Linear Amplifier Configuration
+            switch (buf[2]) {
+            case '0': // Target Band of Linear Amplifier Menu
+            case '1': // Linear Amplifier ON/OFF
+            case '2': // Linear Amplifier Transmission Control
+            case '3': // Linear Amplifier Transmission Delay ON/OFF
+            case '4': // Linear Amplifier Transmission Delay Time
+            case '5': // Linear Amplifier Relay Control
+            case '6': // Linear Amplifier External ALC Voltage
+                break;
+            default:
+                cmd_err = 1;
+            }
+        }
         else if (strncmp(buf, "MA", 2) == 0)
         { // Memory Channel Functions
           switch (buf[2]) {
@@ -936,6 +1021,21 @@ int main(int argc, char *argv[])
           default:
             cmd_err = 1;
           }
+        }
+        else if (strncmp(buf, "PB", 2) == 0)
+        { // Voice Messages
+            switch (buf[2]) {
+            case '0': // Voice Message List Display
+            case '1': // Voice Message Playback, etc.
+            case '2': // Voice Message Channel Registration State
+            case '3': // Voice Message Channel Repeat
+            case '4': // Voice Message Channel Name
+            case '5': // Voice Message Recording Sound Source
+            case '6': // Voice Message Recording Total Remaining Time
+                break;
+            default:
+                cmd_err = 1;
+            }
         }
         else if (strncmp(buf, "SC", 2) == 0)
         { // Scan functions
