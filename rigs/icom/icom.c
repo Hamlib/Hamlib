@@ -2590,7 +2590,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             if (datamode[0] == 0) { datamode[1] = 0; } // the only good combo possible according to manual
 
             // we need to let FM mode widths through here with datamode[1] set to FM width
-            if((priv_caps->fm_filters != NULL) && (mode == RIG_MODE_FM || mode == RIG_MODE_WFM))
+            if((priv_caps->fm_filters[0] != 0) && (mode == RIG_MODE_FM || mode == RIG_MODE_WFM))
             {
                 // assumed fm_filters is ascending sequence -- see ic7300.c for example
                 if (width <= 3) datamode[1] = width;
