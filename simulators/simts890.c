@@ -590,6 +590,56 @@ int main(int argc, char *argv[])
                 cmd_err = 1;
             }
         }
+        else if ( (strncmp(buf, "DN", 2) == 0) || (strncmp(buf, "UP", 2) == 0) )
+        { // Microphone UP/DOWN Switch Operation
+            int dir = buf[0] == 'D' ? -1 : +1;
+            int steps = -1;
+            kvfop_t ovfo = *vfoLR[0]; // Modify the current operational VFO
+
+            if (buf[2] == ';')
+            {
+                steps= 1;
+            }
+            else if (buf[4] == ';')
+            {
+                steps = atoi(buf + 2);
+            }
+	    if (steps < 0 || steps > 99) {cmd_err = 1; continue;}
+            ovfo->freq += dir * steps * stepsize[mode2classtab[ovfo->mode]];
+        }
+        else if (strncmp(buf, "FC", 2) == 0)
+        { // Change the Frequency (Tuning Control)
+            static const int fc_steps[6] = { 1, 2, 5, 10, 50, 100};
+            int dir = buf[2] == '0' ? +1 : -1;
+            int stepidx = buf[3] - '0';
+            int delta;
+            kvfop_t ovfo = *vfoLR[0];
+
+            if (stepidx < 0 || stepidx > 5) {cmd_err = 1; continue;}
+            delta = dir * fc_steps[stepidx] * stepsize[mode2classtab[ovfo->mode]];
+            //TODO: This really needs a sanity check here
+            ovfo->freq += delta;
+        }
+        else if (strncmp(buf, "UD", 2) == 0)
+        { // VFO Frequency UP/DOWN
+            int idx = buf[2] - '0';
+            int dir = buf[3] == '0' ? +1 : -1;
+            int steps = -1;
+            kvfop_t nvfo;
+
+            if (idx < 0 || idx > 1 || tfset != 0) {cmd_err = 1; continue;}
+            nvfo = *vfoAB[idx];
+            if (buf[4] == ';')
+            {
+                steps = 1;
+            }
+            else if (buf[6] == ';')
+            {
+                steps = atoi(buf + 4);
+            }
+            if (steps < 0 || steps > 99) {cmd_err = 1; continue; }
+            nvfo->freq += dir * steps * stepsize[mode2classtab[nvfo->mode]];
+        }
         else if (strcmp(buf, "RX;") == 0)
         { // Receive Function State
             ptt = ptt_mic = ptt_data = ptt_tune = 0;
