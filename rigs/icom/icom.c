@@ -2586,6 +2586,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         if (priv_caps->mode_with_filter)
         {
             HAMLIB_TRACE;
+            // allow 1,2,3 values to set filter number
+            if (width >= 1 && width <= 3) datamode[1] = width;
 
             if (datamode[0] == 0) { datamode[1] = 0; } // the only good combo possible according to manual
 
@@ -2593,7 +2595,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             if((priv_caps->fm_filters[0] != 0) && (mode == RIG_MODE_FM || mode == RIG_MODE_WFM))
             {
                 // assumed fm_filters is ascending sequence -- see ic7300.c for example
-                if (width <= 3) datamode[1] = width;
+                if (width >= 1 && width <= 3) datamode[1] = width;
                 else if (width <= priv_caps->fm_filters[0]) datamode[1] = 3;
                 else if (width <= priv_caps->fm_filters[1]) datamode[1] = 2;
                 else datamode[1] = 1;
