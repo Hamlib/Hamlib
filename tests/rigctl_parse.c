@@ -3745,11 +3745,13 @@ declare_proto_rig(set_parm)
             break;
 
         case RIG_CONF_STRING:
+#if 0
             if (parm == RIG_PARM_KEYERTYPE)
             {
                 val.i = atoi(arg2);
             }
             else
+#endif
             {
                 val.cs = arg2;
             }
