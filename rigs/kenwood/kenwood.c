@@ -3037,11 +3037,11 @@ static int kenwood_get_power_minmax(RIG *rig, int *power_now, int *power_min,
         rs->power_min = 5;
         rs->power_max = 100;
         if (power_min) *power_min = 5;
-        if (power_max) *power_max = 5;
+        if (power_max) *power_max = 100;
 
-        if (rs->current_mode == RIG_MODE_AM) { *power_max = 50; }
+        if (rs->current_mode == RIG_MODE_AM) { *power_max = 25; }
 
-        if (rs->current_freq >= 70)
+        if (rs->current_freq >= 70000000)
         {
             rs->power_max = 50;
 
