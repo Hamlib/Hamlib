@@ -35,7 +35,6 @@ int mysleep = 20;
 int filternum1 = 7;
 int filternum2 = 8;
 int vfo_rx, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
-int split = 0;
 int keyspd = 20;
 int sl=3, sh=3;
 int nr=0;
@@ -52,7 +51,8 @@ int mg=0;
 int ra=0;
 int rl=0;
 int is=0;
-int sp=0;
+int sp=0;          // Split OFF/ON
+int split_op = 0;  // Split frequency setting operation in progress
 // Clock data
 int autoset = 1;
 int tzs[2] = {36, 56}; // 0=primary(EST), 1=auxiliary(UTC)
@@ -103,7 +103,7 @@ struct kvfo band_mem[2][NBANDS][5] = { {
   /*   6M */ { {50000000, 2}, {50125000, 2}, {50200000, 2}, {51000000, 4}, {52000000, 4} },
   /* GENE */ { {  135700, 3}, {  472000, 3}, { 1000000, 5}, { 5305500, 2}, { 5403500, 2} }
 #else  // MODEL==E
-  /* 160M */ { { 1830000, 3}, { 1840000, 3}, { 1850000, 3}, { 1820000, 3}, { 1820000, 3} },
+  /* 160M */ { { 1830000, 3}, { 1840000, 3}, { 1850000, 3}, { 1810000, 3}, { 1820000, 3} },
   /*  80M */ { { 3500000, 1}, { 3550000, 1}, { 3600000, 1}, { 3650000, 1}, { 3700000, 1} },
   /*  40M */ { { 7000000, 1}, { 7050000, 1}, { 7100000, 1}, { 7150000, 1}, { 7200000, 1} },
   /*  30M */ { {10100000, 3}, {10110000, 3}, {10120000, 3}, {10130000, 3}, {10140000, 3} },
@@ -124,7 +124,7 @@ struct band_def {
   int low;
   int high;
 };
-struct band_def band_limits[NBANDS] = {
+const struct band_def band_limits[NBANDS] = {
 #if MODEL == K
   { 1800000,  2000000}, { 3500000,  4000000}, { 7000000,  7300000},
   {10100000, 10150000}, {14000000, 14350000}, {18068000, 18168000},
@@ -144,8 +144,8 @@ struct band_def band_limits[NBANDS] = {
  *       2 = FM
  *       3 = AM
  */
-int mode2classtab[16] = { -1, 0, 0, 1, 2, 3, 1, 1, -1, 1, 1, 1, 0, 0, 2, 3};
-int stepvalues[4][10] = { // Step sizes in Hz
+const int mode2classtab[16] = { -1, 0, 0, 1, 2, 3, 1, 1, -1, 1, 1, 1, 0, 0, 2, 3};
+const int stepvalues[4][10] = { // Step sizes in Hz
   /* SSB        */ { 500, 1000, 2500, 5000, 10000, 0, 0, 0, 0, 0},
   /* CW/FSK/PSK */ { 500, 1000, 2500, 5000, 10000, 0, 0, 0, 0, 0},
   /* FM */ { 5000, 6250, 10000, 12500, 15000, 20000, 25000, 30000, 50000, 100000},
@@ -156,6 +156,7 @@ int stepsize[4] = { 1000, 500, 10000, 5000}; // Defaults by modeclass
 /* Function prototypes */
 int freq2band(int freq);
 kvfop_t newvfo(kvfop_t ovfo, int band);
+void swapvfos(kvfop_t *vfoset[]);
 // Extracted from rig.h
 int hl_usleep(unsigned long usec);  // Until it's replaced
 
@@ -252,7 +253,7 @@ int main(int argc, char *argv[])
       "%1X"         // P9 Operating mode (See OM command)
       "0"           // P10 Function?
       "0"           // P11 Scan status?
-      "0"           // P12 Simplex/Split
+      "%1d"         // P12 Simplex/Split
       "0"           // P13 Tone/CTCSS (not on TS-890S)
       "00"          // P14 Tone/CTCSS freq (not on TS-890S)
       "0;";         // P15 Always zero
@@ -299,7 +300,7 @@ int main(int argc, char *argv[])
             char ifbuf[256];
             hl_usleep(mysleep * 1000);
             sprintf(ifbuf, IFformat, (*vfoLR[0])->freq,
-		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, (*vfoLR[0])->mode);
+		    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, (*vfoLR[0])->mode, sp);
             OUTPUT(ifbuf);
         }
         else if (strncmp(buf, "AN", 2) == 0)
@@ -547,7 +548,7 @@ int main(int argc, char *argv[])
             sscanf(buf, "FT%d", &vfo_tx);
             if (vfo_tx != vfo_rx)
             {
-                split = 1;
+                sp = 1;
             }
         }
         else if (buf[0] == 'B' && (buf[1] == 'D' || buf[1] == 'U'))  // BU/BD
@@ -659,14 +660,68 @@ int main(int argc, char *argv[])
 	      break;
             }
         }
+        else if (strncmp(buf, "SP", 2) == 0)
+        { // Split Operation Frequency Setting
+            if (buf[2] == ';')
+            { // Read
+              snprintf(buf + 2, sizeof(buf) -2, "%1d;", split_op);
+              OUTPUT(buf);
+            }
+            else if (buf[3] == ';')
+            { // Set 1
+              /* This section needs a lot of work, and a lot
+               * of cooperation from other commands.
+               * AFAICT the split freq can be set by spinning
+               * the big knob, or by other means. When oper=1
+               * is sent, the current freq is used as the split
+               * value. See page 5-1 of the IM, blinking SPLIT
+               */
+              switch (buf[2]) {
+              case '0':
+                // Operation complete
+                if (split_op) // If a split setup was in progress,
+                {
+                    sp = 1; // split operation is enabled
+                }
+                //TODO: Set split freq VFO
+                split_op = 0;
+                break;
+              case '1':
+                // Start split frequency setup
+                split_op = 1;
+                break;
+              case '2':
+                // Cancel op
+                split_op = 0;
+                break;
+              default:
+                cmd_err = 1;
+              }
+            }
+            else
+            { // Set 2
+              int dir, split, spfreq, band;
+              kvfop_t ovfo, svfo;
+              sscanf(buf, "SP%1d%1d%1d", &sp, &dir, &split);
+              dir = dir == 0 ? +1 : -1;
+              split = dir * 1000 * split;  // Convert kHz to +/- Hz
+              ovfo = *vfoLR[0];   // Operational VFO
+              spfreq = ovfo->freq + split;
+              band = freq2band(spfreq);
+              svfo = newvfo(*vfoLR[1], band);  // Other VFO
+              svfo->freq = spfreq;
+              *vfoLR[1] = svfo;
+              sp = 1; // Turn On Split
+            }
+        }
         else if (strncmp(buf, "TB;", 3) == 0)
         { // Split
-            sprintf(buf, "TB%d;", split);
+            sprintf(buf, "TB%d;", sp);
             OUTPUT(buf);
         }
         else if (strncmp(buf, "TB", 2) == 0)
         {
-            sscanf(buf, "TB%d", &split);
+            sscanf(buf, "TB%d", &sp);
         }
         else if (strncmp(buf, "TS", 2) == 0)
         { // TF-SET
@@ -677,12 +732,37 @@ int main(int argc, char *argv[])
             }
             else if (buf[2] >= '0' && buf[2] < '2')
             {
+                if (sp && (tfset != buf[2] - '0'))
+                { // Split is set and we're changing state of TF-SET
+                    swapvfos(vfoLR);  // Reverse vfo functions
+                }
                 tfset = buf[2] - '0';
             }
             else
             {
                 cmd_err = 1;
 	    }
+        }
+        else if (strcmp(buf, "EC;") == 0)
+        { // VFO A and VFO B Frequency Information Exchange
+            /* No matter what the title says above, the TS-890S does not
+             * have a frequency swap command.  It does, however, have a VFO
+             * function exchange - just by swapping the left and right displays.
+             * This command is the same as the "A/B" button on the front panel.
+             */
+            swapvfos(vfoLR);
+        }
+        else if (strcmp(buf, "VV;") == 0)
+        { // VFO A to VFO B Copy ([A=B] Operation)
+            /* Akin to the EC command above, this isn't really a "VFO A to VFO B"
+             * copy, but an "Operational VFO to Secondary VFO" copy. It also
+             * mimics the front panel [A=B] button.
+             */
+            kvfop_t ovfo, svfo;
+            ovfo = *vfoLR[0];
+            svfo = newvfo(*vfoLR[1], ovfo->band); // Get appropriate vfo for new freq
+            svfo->freq = ovfo->freq;
+            svfo->mode = ovfo->mode;
         }
         else if (strncmp(buf, "KS;", 3) == 0)
         {
@@ -694,7 +774,7 @@ int main(int argc, char *argv[])
             sscanf(buf, "KS%03d", &keyspd);
         }
         else if (strncmp(buf, "OM", 2) == 0)
-        {
+        { // Operating Mode
           /* The TS-890S displays two frequencies and modes - left and right,
            * along with arrows that show which is VFO A and which is VFO B.
            * In almost all cases, the left VFO is the receive freq.  The right
@@ -719,7 +799,7 @@ int main(int argc, char *argv[])
            * which is always the left VFO unless split is active and
            * we are transmitting.
            */
-              int idx = split && ((ptt + ptt_mic + ptt_data + ptt_tune) > 0);
+              int idx = sp && ((ptt + ptt_mic + ptt_data + ptt_tune) > 0);
               sscanf(&buf[3], "%1X", &(*vfoLR[idx])->mode);
           }
         }
@@ -870,15 +950,6 @@ int main(int argc, char *argv[])
             puts(buf);
             sscanf(buf,"RL1%d", &rl);
         }
-        else if (strcmp(buf, "SP;") == 0)
-        {
-            sprintf(buf,"SP%d;", sp);
-            OUTPUT(buf);
-        }
-        else if (strncmp(buf, "SP", 2) == 0)
-        {
-            sscanf(buf,"SP%d", &sp);
-        }
         else if (strncmp(buf, "CK", 2) == 0)
         {  // All the clock functions
             switch (buf[2]) {
@@ -986,6 +1057,20 @@ int main(int argc, char *argv[])
             case 'O': // Expands Spectrum Analysis Range
               break;
             default: // Unknown
+              cmd_err = 1;
+            }
+        }
+        else if (strncmp(buf, "CD", 2) == 0)
+        { // CW Communications
+            switch (buf[2]) {
+            case '0': // CW Communication Screen Display
+            case '1': // CW Morse Decoding Threshold Level
+            case '2': // Decoded CW Morse Character Output
+            case '3': // CW Communication Screen (Decode Filter)
+            case '4': // CW Communication Screen (Quick Mode)
+            case '5': // CW Decode
+              break;
+            default:
               cmd_err = 1;
             }
         }
@@ -1146,4 +1231,18 @@ kvfop_t newvfo(kvfop_t ovfo, int band)
     slot = bandslot[vfonum][band];
 
     return &band_mem[vfonum][band][slot];
+}
+
+/* Reverse the function of vfoA and vfoB
+ * No status returned
+ */
+void swapvfos(kvfop_t *vfoset[])
+{
+    kvfop_t *temp;
+
+    temp = vfoset[0];
+    vfoset[0] = vfoset[1];
+    vfoset[1] = temp;
+
+    return;
 }
