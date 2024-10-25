@@ -2428,6 +2428,9 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s, vfo_number=%d\n", __func__,
               rig_strvfo(vfo), vfo_number);
 
+    // allow width of 1,2,3 to set explicit filter
+    if (width >=1 && width <= 3) buf[2] = width;
+
     retval = icom_transaction(rig, C_SEND_SEL_MODE, vfo_number, buf, buf_len, ackbuf,
                               &ack_len);
 
