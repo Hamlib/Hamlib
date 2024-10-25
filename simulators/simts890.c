@@ -22,8 +22,10 @@ struct ip_mreq
 
 #define BUFSIZE 256
 #define NBANDS 11
-/* Model we're emulating - K=The Americas, E=Europe */
-#define MODEL K
+/* Type we're emulating - K=The Americas(default), E=Europe */
+#if !defined(TYPE)
+#define TYPE K
+#endif
 /* Define a macro for sending response back to the app
  * This will allow us to reroute output to a buffering routine
  * Needed to handle multiple commands in a single message
@@ -44,7 +46,7 @@ int sm = 35;
 int nt = 0;
 int ag = 100;
 int ac = 0;
-int nb1=0,nb2=0;
+int nb[2] = {0, 0}; // NB1/NB2 OFF/ON
 int sq=0;
 int rg=0;
 int mg=0;
@@ -90,7 +92,7 @@ int bandslot[2][NBANDS];  // 0-based band memory: ((bandslot[i] + 1) % nummems) 
  * selection is by BD/BU command
  */
 struct kvfo band_mem[2][NBANDS][5] = { {
-#if MODEL==K
+#if TYPE==K
   /* 160M */ { { 1800000, 3}, { 1810000, 3}, { 1820000, 3}, { 1830000, 3}, { 1840000, 3} },
   /*  80M */ { { 3500000, 1}, { 3600000, 1}, { 3700000, 1}, { 3800000, 1}, { 3900000, 1} },
   /*  40M */ { { 7000000, 1}, { 7050000, 1}, { 7100000, 1}, { 7150000, 1}, { 7200000, 1} },
@@ -102,7 +104,7 @@ struct kvfo band_mem[2][NBANDS][5] = { {
   /*  10M */ { {28000000, 2}, {28300000, 2}, {28500000, 2}, {29000000, 4}, {29300000, 4} },
   /*   6M */ { {50000000, 2}, {50125000, 2}, {50200000, 2}, {51000000, 4}, {52000000, 4} },
   /* GENE */ { {  135700, 3}, {  472000, 3}, { 1000000, 5}, { 5305500, 2}, { 5403500, 2} }
-#else  // MODEL==E
+#else  // TYPE==E
   /* 160M */ { { 1830000, 3}, { 1840000, 3}, { 1850000, 3}, { 1810000, 3}, { 1820000, 3} },
   /*  80M */ { { 3500000, 1}, { 3550000, 1}, { 3600000, 1}, { 3650000, 1}, { 3700000, 1} },
   /*  40M */ { { 7000000, 1}, { 7050000, 1}, { 7100000, 1}, { 7150000, 1}, { 7200000, 1} },
@@ -125,7 +127,7 @@ struct band_def {
   int high;
 };
 const struct band_def band_limits[NBANDS] = {
-#if MODEL == K
+#if TYPE == K
   { 1800000,  2000000}, { 3500000,  4000000}, { 7000000,  7300000},
   {10100000, 10150000}, {14000000, 14350000}, {18068000, 18168000},
   {21000000, 21450000}, {24890000, 24990000}, {28000000, 29700000},
@@ -253,7 +255,7 @@ int main(int argc, char *argv[])
       "%1X"         // P9 Operating mode (See OM command)
       "0"           // P10 Function?
       "0"           // P11 Scan status?
-      "%1d"         // P12 Simplex/Split
+      "%1d"         // P12 Simplex=0/Split=1
       "0"           // P13 Tone/CTCSS (not on TS-890S)
       "00"          // P14 Tone/CTCSS freq (not on TS-890S)
       "0;";         // P15 Always zero
@@ -324,27 +326,31 @@ int main(int argc, char *argv[])
 		if (buf[5] != '9') antout = buf[5];
             }
         }
-        else if (strcmp(buf, "NB1;") == 0)
-        {
-            hl_usleep(mysleep * 20);
-            sprintf(buf, "NB1%d;", nb1);
-            OUTPUT(buf);
-        }
-        else if (strncmp(buf, "NB1", 3) == 0)
-        {
-            puts(buf);
-            sscanf(buf, "NB1%d", &nb1);
-        }
-        else if (strcmp(buf, "NB2;") == 0)
-        {
-            hl_usleep(mysleep * 20);
-            sprintf(buf, "NB2%d;", nb2);
-            OUTPUT(buf);
-        }
-        else if (strncmp(buf, "NB2", 3) == 0)
-        {
-            puts(buf);
-            sscanf(buf, "NB2%d", &nb2);
+        else if (strncmp(buf, "NB", 2) == 0)
+        { // Noise Blanker settings
+            int idx;
+            switch (toupper(buf[2])) {
+            case '1': // Noise Blanker 1
+            case '2': // Noise Blanker 2
+              idx = buf[2] - '1';
+              if (buf[3] == ';')
+              { // Read
+                  hl_usleep(mysleep * 20);
+                  sprintf(buf, "NB%d%d;", idx + 1, nb[idx]);
+                  OUTPUT(buf);
+              }
+	      else
+              { // Set
+                  nb[idx] = buf[3] - '0';
+              }
+              break;
+            case 'D': // Noise Blanker 2, type B Depth
+            case 'T': // Noise Blanker 2 Type
+            case 'W': // Noise Blanker 2, type B Width
+              break;
+            default:
+              cmd_err = 1;
+            }
         }
         else if (strcmp(buf, "RA;") == 0)
         {
@@ -756,13 +762,14 @@ int main(int argc, char *argv[])
         { // VFO A to VFO B Copy ([A=B] Operation)
             /* Akin to the EC command above, this isn't really a "VFO A to VFO B"
              * copy, but an "Operational VFO to Secondary VFO" copy. It also
-             * mimics the front panel [A=B] button.
+             * mimics the front panel [A=B] action.
              */
             kvfop_t ovfo, svfo;
             ovfo = *vfoLR[0];
             svfo = newvfo(*vfoLR[1], ovfo->band); // Get appropriate vfo for new freq
             svfo->freq = ovfo->freq;
             svfo->mode = ovfo->mode;
+	    *vfoLR[1] = svfo;
         }
         else if (strncmp(buf, "KS;", 3) == 0)
         {
@@ -804,7 +811,7 @@ int main(int argc, char *argv[])
           }
         }
         else if (strncmp(buf, "RM", 2) == 0)
-        { // Meter control/readout
+        { // Meter
 	  if (buf[2] == ';')
           { // Read all enabled meters
 	      char tbuf[8];
