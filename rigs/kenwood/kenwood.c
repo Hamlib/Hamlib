@@ -4272,7 +4272,7 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         RETURNFUNC(kenwood_transaction(rig, buf, NULL, 0));
 
     case RIG_FUNC_NR:
-        if (RIG_IS_TS890S)
+        if (RIG_IS_TS890S || RIG_IS_TS590S || RIG_IS_TS590SG || RIG_IS_TS480 || RIG_IS_TS2000 || RIG_IS_QRPLABS)
         {
             char c = '1';
 
