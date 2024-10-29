@@ -36,7 +36,7 @@ int mysleep = 20;
 
 int filternum1 = 7;
 int filternum2 = 8;
-int vfo_rx, vfo_tx, ptt, ptt_data, ptt_mic, ptt_tune;
+int ptt, ptt_data, ptt_mic, ptt_tune;
 int keyspd = 20;
 int sl=3, sh=3;
 int nr=0;
@@ -434,7 +434,7 @@ int main(int argc, char *argv[])
             {
                 int temp = -1;
                 sscanf(buf + 8, "%3d", &temp);
-                if (temp < 2 && temp >= 0)
+                if (temp <= 2 && temp >= 0)
 		  { nummems = temp * 2 + 1; }
 		else
 		  { cmd_err = 1; }
@@ -535,26 +535,48 @@ int main(int argc, char *argv[])
             *vfoAB[tmpvfo] = nvfo;
             printf("modeA=%X, modeB=%X\n", vfoA->mode, vfoB->mode);
         }
-        else if (strcmp(buf, "FR;") == 0)
-        {
-            snprintf(buf, sizeof(buf), "FR%d;", vfo_rx);
-            OUTPUT(buf);
-        }
         else if (strncmp(buf, "FR", 2) == 0)
-        {
-            sscanf(buf, "FR%d", &vfo_rx);
-        }
-        else if (strcmp(buf, "FT;") == 0)
-        {
-            snprintf(buf, sizeof(buf), "FT%d;", vfo_tx);
-            OUTPUT(buf);
+        { // Receiver Function (VFO A / VFO B / Memory channel)
+            int idx;
+	    
+            if (buf[2] == ';')
+            { // Read
+                idx = sp && tfset;
+                snprintf(buf, sizeof(buf), "FR%d;", (*vfoLR[idx])->vfo);
+                OUTPUT(buf);
+            }
+            else
+            { // Set
+                idx = buf[2] - '0';
+                if (idx == 3)
+                { //TODO: Memory channels are a long way off
+                  puts("Memory channels not implemented.\n");
+                  cmd_err = 3;
+                  continue;
+                }
+                if (idx < 0 || idx > 1) {cmd_err = 1; continue; }
+                sp = 0;  // Turn off split
+                if ((*vfoLR[0])->vfo != idx) // If the selected vfo is not the operational one
+                {
+                    swapvfos(vfoLR);  // Make it so
+                }
+            }
         }
         else if (strncmp(buf, "FT", 2) == 0)
-        {
-            sscanf(buf, "FT%d", &vfo_tx);
-            if (vfo_tx != vfo_rx)
-            {
-                sp = 1;
+        { // Transmitter Function ( VFO A / VFO B )
+            int idx;
+	    
+            if (buf[2] == ';')
+            { // Read
+                idx = sp && !tfset;
+                snprintf(buf, sizeof(buf), "FT%d;", (*vfoLR[idx])->vfo);
+                OUTPUT(buf);
+            }
+            else
+            { // Set
+                idx = buf[2] - '0';
+                if (idx < 0 || idx > 1) {cmd_err = 1; continue; }
+                sp = idx != (*vfoLR[0])->vfo;    // Turn split on if vfos differ, else off
             }
         }
         else if (buf[0] == 'B' && (buf[1] == 'D' || buf[1] == 'U'))  // BU/BD
@@ -678,7 +700,7 @@ int main(int argc, char *argv[])
               /* This section needs a lot of work, and a lot
                * of cooperation from other commands.
                * AFAICT the split freq can be set by spinning
-               * the big knob, or by other means. When oper=1
+               * the big knob, or by other means. When oper=0
                * is sent, the current freq is used as the split
                * value. See page 5-1 of the IM, blinking SPLIT
                */
