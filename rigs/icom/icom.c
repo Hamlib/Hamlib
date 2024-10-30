@@ -8885,6 +8885,7 @@ int icom_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
     if (range_list == NULL)
     {
         *mwpower = power * 100000; // default to 100W if no range_list
+        RETURNFUNC (RIG_OK);
     }
     rig_debug(RIG_DEBUG_VERBOSE, "%s: maxpower=%d\n", __func__, range_list->high_power);
 
