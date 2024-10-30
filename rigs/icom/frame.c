@@ -329,7 +329,12 @@ again2:
     // https://github.com/Hamlib/Hamlib/issues/1575
     // these types of async can interrupt the cmd we sent
     // if our host number changes must not be for us
-    collision_retry = 0;
+    if (icom_is_async_frame(rig, frm_len, buf))
+    {
+        icom_process_async_frame(rig, frm_len, buf);
+        goto again2;
+    }
+
     if (sendbuf[3] != buf[2])
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown async?  read again\n", __func__);
@@ -340,12 +345,6 @@ again2:
             goto collision_retry;
     }
 
-
-    if (icom_is_async_frame(rig, frm_len, buf))
-    {
-        icom_process_async_frame(rig, frm_len, buf);
-        goto again2;
-    }
 
 #if 0
 
