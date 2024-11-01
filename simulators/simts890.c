@@ -1,3 +1,4 @@
+//#define TRACE /* Full traffic trace if enabled */
 // can run this using rigctl/rigctld and socat pty devices
 // gcc -o simts890 -l hamlib simts890.c
 #define _XOPEN_SOURCE 700
@@ -30,7 +31,11 @@ struct ip_mreq
  * This will allow us to reroute output to a buffering routine
  * Needed to handle multiple commands in a single message
  */
+#if defined(TRACE)
+#define OUTPUT(s) {printf("Resp:\"%s\"\n", s); write(fd, s, strlen(s)); }
+#else
 #define OUTPUT(s) write(fd, s, strlen(s))
+#endif
 
 int mysleep = 20;
 
@@ -296,7 +301,9 @@ int main(int argc, char *argv[])
 
         if (getmyline(fd, buf) > 0)
         {
-//             printf("Cmd:\"%s\"\n", buf);
+#if defined(TRACE)
+            printf("Cmd:\"%s\"\n", buf);
+#endif
         }
 
 //        else { return 0; }
