@@ -21,7 +21,16 @@ struct ip_mreq
 #include <time.h>
 //#include <hamlib/rig.h>
 
+/* Definitions */
+/* The TS-890S has some undocumented commands, left over from older
+ *   Kenwood models. They have newer counterparts with more functionality,
+ *   but are still around for legacy software. If you want to see if your
+ *   app is only using the latest-and-greatest, comment out the next define.
+ */
+#define LEGACY
+// Size of command buffer
 #define BUFSIZE 256
+// Number of selectable bands
 #define NBANDS 11
 /* Type we're emulating - K=The Americas(default), E=Europe */
 #if !defined(TYPE)
@@ -30,6 +39,7 @@ struct ip_mreq
 /* Define a macro for sending response back to the app
  * This will allow us to reroute output to a buffering routine
  * Needed to handle multiple commands in a single message
+ * Also makes it easy to trace
  */
 #if defined(TRACE)
 #define OUTPUT(s) {printf("Resp:\"%s\"\n", s); write(fd, s, strlen(s)); }
@@ -251,6 +261,7 @@ int main(int argc, char *argv[])
     kvfop_t *const vfoAB[2] = {&vfoA, &vfoB};   // 0=A, 1=B, fixed
     kvfop_t *vfoLR[2] = {&vfoA, &vfoB};  // 0=Left, 1=Right, can change
 
+#if defined(LEGACY)
     /* The IF command is not documented for the TS-890S, and is supposed
      *  to be supplanted by SF. However, it is still there for legacy S/W.
      *  This description is taken from the TS-590S/SG manual, with values
@@ -312,12 +323,16 @@ int main(int argc, char *argv[])
         buf[1] = toupper(buf[1]);
 
         if (strcmp(buf, "IF;") == 0)
-        {
+        { // Reads the tranceiver status
+#if defined(LEGACY)
             char ifbuf[256];
             hl_usleep(mysleep * 1000);
             sprintf(ifbuf, IFformat, (*vfoLR[0])->freq,
                     (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, (*vfoLR[0])->mode, sp);
             OUTPUT(ifbuf);
+#else
+            cmd_err = 1;
+#endif
         }
         else if (strncmp(buf, "AN", 2) == 0)
         {
@@ -937,6 +952,22 @@ int main(int argc, char *argv[])
                 int idx = sp && ((ptt + ptt_mic + ptt_data + ptt_tune) > 0);
                 sscanf(&buf[3], "%1X", &(*vfoLR[idx])->mode);
             }
+        }
+        else if (strncmp(buf, "MD", 2) == 0)
+        { // Sets and reads the operating mode status
+#if defined(LEGACY)
+            if (buf[2] == ';')
+            {
+                snprintf(buf, sizeof(buf), "MD%X;", (*vfoLR[0])->mode);
+                OUTPUT(buf);
+            }
+            else
+            {
+                sscanf(buf, "MD%1X", &(*vfoLR[0])->mode);
+            }
+#else
+            cmd_err = 1;
+#endif
         }
         else if (strncmp(buf, "RM", 2) == 0)
         {
