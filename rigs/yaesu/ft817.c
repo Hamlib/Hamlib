@@ -310,7 +310,7 @@ struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20240728.3",
+    .version =             "20241101.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -460,7 +460,7 @@ struct rig_caps q900_caps =
     RIG_MODEL(RIG_MODEL_Q900),
     .model_name =          "Q900",
     .mfg_name =            "Guohe",
-    .version =             "20240122.0",
+    .version =             "20241101.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -610,7 +610,7 @@ struct rig_caps ft818_caps =
     RIG_MODEL(RIG_MODEL_FT818),
     .model_name =          "FT-818",
     .mfg_name =            "Yaesu",
-    .version =             "20220424.0",
+    .version =             "20221101.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1649,7 +1649,8 @@ static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "ft817: requested freq = %"PRIfreq" Hz\n", freq);
 
     /* fill in the frequency */
-    to_bcd_be(data, (freq + 5) / 10, 8);
+    /* changed to truncate the freq for gpredict compatiblity */
+    to_bcd_be(data, (freq + 0) / 10, 8);
 
     rig_force_cache_timeout(
         &((struct ft817_priv_data *)STATE(rig)->priv)->fm_status_tv);
