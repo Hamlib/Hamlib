@@ -648,6 +648,10 @@ int main(int argc, char **argv)
 
         if (powerstat)
         {
+        unsigned char tmp = buf[2];
+        buf[2] = buf[3];
+        buf[3] = tmp;
+
             frameParse(fd, buf, len);
         }
         else
