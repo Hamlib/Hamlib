@@ -618,6 +618,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->comm_state = 0;
     rs->comm_status = RIG_COMM_STATUS_CONNECTING;
     rs->tuner_control_pathname = DEFAULT_TUNER_CONTROL_PATHNAME;
+    strncpy(rs->client_version,"Hamlib",sizeof(rs->client_version));
 
     rp->fd = -1;
     pttp->fd = -1;
@@ -7840,6 +7841,7 @@ const char *HAMLIB_API rig_get_info(RIG *rig)
 }
 
 
+#if 0
 static void make_crc_table(unsigned long crcTable[])
 {
     unsigned long POLYNOMIAL = 0xEDB88320;
@@ -7881,6 +7883,7 @@ static unsigned long gen_crc(unsigned char *p, size_t n)
 
     return ((~crc) & 0xffffffff);
 }
+#endif
 
 /**
  * \brief get freq/mode/width for requested VFO
@@ -7956,10 +7959,10 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
     rxb = !rxa;
     txb = split == 1;
     SNPRINTF(response, max_response_len - strlen("CRC=0x00000000\n"),
-             "VFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nVFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d\nRig=%s\nApp=Hamlib\nVersion=20210506 1.0.0\n",
+             "VFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nVFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d\nRig=%s\nApp=%s\nVersion=20241103 1.1.0\nModel=%u\n",
              rig_strvfo(vfoA), freqA, modeAstr, (int)widthA, rxa, txa, rig_strvfo(vfoB),
-             freqB, modeBstr, (int)widthB, rxb, txb, split, satmode, rig->caps->model_name);
-    unsigned long crc = gen_crc((unsigned char *)response, strlen(response));
+             freqB, modeBstr, (int)widthB, rxb, txb, split, satmode, rig->caps->model_name, rig->state.client_version, rig->caps->rig_model);
+    unsigned long crc = CRC32_function((unsigned char *)response, strlen(response));
     char tmpstr[32];
     SNPRINTF(tmpstr, sizeof(tmpstr), "CRC=0x%08lx\n", crc);
     strcat(response, tmpstr);
