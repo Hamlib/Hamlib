@@ -91,8 +91,6 @@ int openPort(char *comport) // doesn't matter for using pts devices
 int main(int argc, char *argv[])
 {
     unsigned char buf[256];
-    int n;
-
 
 again:
     int fd = openPort(argv[1]);
@@ -165,12 +163,12 @@ again:
             buf[1] = 0x40;
             buf[2] = 0x74;
             buf[3] = 0x00;
-            buf[4] = 0x03; n = write(fd, buf, 5);
+            buf[4] = 0x03; write(fd, buf, 5);
             break;
 
         case 0xbb:
             buf[0] = 80; buf[1] = 0; printf("READ EPROM\n");
-            n = write(fd, buf, 2);
+            write(fd, buf, 2);
             break;
 
         default: printf("Unknown cmd=%02x\n", buf[4]);
