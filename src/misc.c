@@ -1729,6 +1729,9 @@ static const struct
     { RIG_MTYPE_SAT, "SAT" },
     { RIG_MTYPE_BAND, "BAND" },
     { RIG_MTYPE_PRIO, "PRIO" },
+    { RIG_MTYPE_VOICE, "VOICE" },
+    { RIG_MTYPE_MORSE, "MORSE" },
+    { RIG_MTYPE_SPLIT, "SPLIT" },
     { RIG_MTYPE_NONE, "" },
 };
 
