@@ -76,7 +76,7 @@ int dumpstate(RIG *rig, FILE *fout)
     char freqbuf[20];
     int backend_warnings = 0;
     char warnbuf[4096];
-    char prntbuf[2048];  /* a malloc would be better.. */
+    char prntbuf[4096];  /* a malloc would be better.. */
     char *label1, *label2, *label3, *label4, *label5;
     char *labelrx1; // , *labelrx2, *labelrx3, *labelrx4, *labelrx5;
 
