@@ -70,6 +70,8 @@ int rl = 0;
 int is = 0;
 int sp = 0;        // Split OFF/ON
 int split_op = 0;  // Split frequency setting operation in progress
+int rit=0, xit=0, rxit=0;  // RIT off/on, XIT off/on, Offset freq(-9999<=rxit<=+9999)
+int fine = 0;      // Fine tuning - step size off=10hz, on=1hz
 // Clock data
 int autoset = 1;
 int tzs[2] = {36, 56}; // 0=primary(EST), 1=auxiliary(UTC)
@@ -270,9 +272,9 @@ int main(int argc, char *argv[])
     char IFformat[] = "IF" // Output only
                       "%011d"       // P1 freq(Hz)
                       "     "       // P2 ??
-                      " 0000"       // P3 RIT/XIT freq(Hz)
-                      "0"           // P4 RIT on/off
-                      "0"           // P5 XIT on/off
+                      "% 05d"       // P3 RIT/XIT freq(Hz)
+                      "%1d"         // P4 RIT on/off
+                      "%1d"         // P5 XIT on/off
                       "000"         // P6,P7 mem channel
                       "%1d"         // P8 RX/TX
                       "%1X"         // P9 Operating mode (See OM command)
@@ -282,6 +284,7 @@ int main(int argc, char *argv[])
                       "0"           // P13 Tone/CTCSS (not on TS-890S)
                       "00"          // P14 Tone/CTCSS freq (not on TS-890S)
                       "0;";         // P15 Always zero
+#endif
     char SFformat[] = "SF" // Input/Output
                       "%1d"         // P1 VFOA/VFOB
                       "%011d"       // P2 Freq(Hz)
@@ -327,8 +330,9 @@ int main(int argc, char *argv[])
 #if defined(LEGACY)
             char ifbuf[256];
             hl_usleep(mysleep * 1000);
-            sprintf(ifbuf, IFformat, (*vfoLR[0])->freq,
-                    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0, (*vfoLR[0])->mode, sp);
+            sprintf(ifbuf, IFformat, (*vfoLR[0])->freq, rxit, rit, xit,
+                    (ptt + ptt_mic + ptt_data + ptt_tune) > 0 ? 1 : 0,
+                    (*vfoLR[0])->mode, sp);
             OUTPUT(ifbuf);
 #else
             cmd_err = 1;
@@ -1122,6 +1126,78 @@ int main(int argc, char *argv[])
         {
             puts(buf);
             sscanf(buf, "RL1%d", &rl);
+        }
+        else if (strncmp(buf, "FS", 2) == 0)
+        { // FINE Function
+            if (buf[2] == ';')
+            {
+                snprintf(buf, sizeof buf, "FS%d%d;", fine, fine); // For now
+                OUTPUT(buf);
+            }
+            else
+            {
+                if (buf[2] == '0' || buf[2] == '1')
+                  { fine = buf[2] - '0'; }
+                else
+                  { cmd_err = 1; }
+            }
+        }
+        else if (strcmp(buf, "RC;") == 0)
+        { // RIT/XIT Frequency Clear
+            rxit = 0;
+        }
+        else if (buf[0] == 'R' && (buf[1] =='D' || buf[1] == 'U'))  // RD/RU
+        { // RIT/XIT Frequency Up/Down
+            int dir = buf[1] == 'D' ? -1 : +1;
+	    int tempit;
+            if (buf[2] == ';')
+            {
+                tempit = rxit + (dir * (fine ? 1 : 10));
+            }
+            else
+            {
+                tempit = rxit + dir * atoi(buf + 2);
+            }
+            if (abs(tempit) > 9999) {cmd_err = 1; continue;}
+            /* Some weird rounding going on here - TBD */
+            rxit = tempit;
+        }
+        else if (strcmp(buf, "RF;") == 0)
+        { // RIT/XIT Frequency
+            snprintf(buf, sizeof buf, "RF%1d%04d;", rxit < 0 ? 1 : 0, abs(rxit));
+            OUTPUT(buf);
+        }
+        else if (strncmp(buf, "RT", 2) == 0)
+        { // RIT Function State, RIT Shift
+            switch(buf[2]) {
+            case ';': // Read
+                snprintf(buf, sizeof buf, "RT%d;", rit);
+                OUTPUT(buf);
+                break;
+            case '0': // Set
+            case '1':
+                rit = buf[2] - '0';
+                break;
+            case '2': // Shift
+                //TODO: set recv freq to vfo+rxit, clear rxit and rit
+                break;
+            default:
+                cmd_err = 1;
+            }
+        }
+        else if (strncmp(buf, "XT", 2) == 0)
+        { // XIT Function State, XIT Shift
+            switch(buf[2]) {
+            case '0': // Set
+            case '1':
+                xit = buf[2] - '0';
+                break;
+            case '2': // Shift
+                //TODO: set xmit freq to vfo+rxit(Which vfo?), set split, clear rxit and xit
+                break;
+            default:
+                cmd_err = 1;
+            }
         }
         else if (strncmp(buf, "CK", 2) == 0)
         {
