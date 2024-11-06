@@ -223,9 +223,11 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq);
 int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+int kenwood_set_rit_new(RIG *rig, vfo_t vfo, shortfreq_t rit);  // Also use this for xit
 int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
-int kenwood_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-int kenwood_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+int kenwood_get_rit_new(RIG *rig, vfo_t vfo, shortfreq_t *rit); // Also use this for xit
+int kenwood_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+int kenwood_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
