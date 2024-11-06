@@ -135,7 +135,7 @@ static int flir_init(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     ROTSTATE(rot)->priv = (struct flir_priv_data *)
-                      calloc(1, sizeof(struct flir_priv_data));
+                          calloc(1, sizeof(struct flir_priv_data));
 
     if (!ROTSTATE(rot)->priv)
     {

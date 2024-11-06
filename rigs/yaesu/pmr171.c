@@ -514,11 +514,14 @@ static int pmr171_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return RIG_OK;
 }
 
-static int pmr171_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int pmr171_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
+                                vfo_t *tx_vfo)
 {
     *split = CACHE(rig)->split;
-    if (*split) *tx_vfo=RIG_VFO_B;
-    else *tx_vfo = RIG_VFO_A;
+
+    if (*split) { *tx_vfo = RIG_VFO_B; }
+    else { *tx_vfo = RIG_VFO_A; }
+
     return RIG_OK;
 }
 

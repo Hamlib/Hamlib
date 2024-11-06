@@ -176,7 +176,7 @@ int kachina_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     char c = ptt == 0 ? 0x00 : 0x01;
 
-    int retval = kachina_trans_n(rig, 'x', &c , 1);
+    int retval = kachina_trans_n(rig, 'x', &c, 1);
 
     return retval;
 }

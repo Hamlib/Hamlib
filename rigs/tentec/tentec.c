@@ -104,7 +104,7 @@ int tentec_init(RIG *rig)
     struct tentec_priv_data *priv;
 
     STATE(rig)->priv = (struct tentec_priv_data *)calloc(1, sizeof(
-                          struct tentec_priv_data));
+                           struct tentec_priv_data));
 
     if (!STATE(rig)->priv)
     {

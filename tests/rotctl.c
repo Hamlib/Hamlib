@@ -368,6 +368,7 @@ int main(int argc, char *argv[])
 
     hamlib_port_t *rotp = ROTPORT(my_rot);
     hamlib_port_t *rotp2 = ROTPORT2(my_rot);
+
     if (rot_file)
     {
         strncpy(rotp->pathname, rot_file, HAMLIB_FILPATHLEN - 1);

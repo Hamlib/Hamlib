@@ -116,7 +116,7 @@ static int hd1780_rot_init(ROT *rot)
     }
 
     ROTSTATE(rot)->priv = (struct hd1780_rot_priv_data *)
-                      calloc(1, sizeof(struct hd1780_rot_priv_data));
+                          calloc(1, sizeof(struct hd1780_rot_priv_data));
 
     if (!ROTSTATE(rot)->priv)
     {

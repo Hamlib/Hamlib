@@ -2373,17 +2373,18 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             retval = k4_get_bar_graph_level(rig, &val->f, NULL, NULL, NULL);
             return RIG_OK;
         }
-        else 
+        else
         {
             retval = kenwood_safe_transaction(rig, "SW", levelbuf, sizeof(levelbuf), 5);
 
             if (retval != RIG_OK)
             {
                 return retval;
-           }
+            }
 
             sscanf(levelbuf + 2, "%d", &val->i);
         }
+
         val->f = (float) val->i / 10.0f;
         break;
 
@@ -2578,6 +2579,7 @@ int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
                       rig->caps->rig_model);
             RETURNFUNC(-RIG_EINVAL);
         }
+
         break;
 
     default: RETURNFUNC(kenwood_vfo_op(rig, vfo, op));
@@ -2755,7 +2757,7 @@ int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
                            int *mode_tx)
 {
     int retval;
-    int ialc,icmp,ifwd,iswr;
+    int ialc, icmp, ifwd, iswr;
     char levelbuf[16];
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -2768,9 +2770,13 @@ int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
     }
 
     sscanf(levelbuf, "TM%03d%03d%03d%03d", &ialc, &icmp, &ifwd, &iswr);
-    if (swr) *swr = iswr/10.0;
-    if (pwr) *pwr = ifwd/100.0; // pwr is returned in 0-1 sscale
-    if (alc) *alc = ialc;
+
+    if (swr) { *swr = iswr / 10.0; }
+
+    if (pwr) { *pwr = ifwd / 100.0; } // pwr is returned in 0-1 sscale
+
+    if (alc) { *alc = ialc; }
+
     return RIG_OK;
 }
 

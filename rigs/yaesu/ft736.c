@@ -227,7 +227,7 @@ int ft736_open(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
     STATE(rig)->priv = (struct ft736_priv_data *) calloc(1,
-                      sizeof(struct ft736_priv_data));
+                       sizeof(struct ft736_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -319,25 +319,29 @@ static int ft736_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     *mode = CACHE(rig)->modeMainA;
 
-    switch(*mode)
+    switch (*mode)
     {
-        case RIG_MODE_USB:
-        case RIG_MODE_LSB:
-        case RIG_MODE_CW:
-            *width = 2200;
-            break;
-        case RIG_MODE_CWN:
-            *width = 600;
-            break;
-        case RIG_MODE_FM:
-            *width = 12000;
-            break;
-        case RIG_MODE_FMN:
-            *width = 800;
-            break;
-        default:
-            *width = 2200;
-            break;
+    case RIG_MODE_USB:
+    case RIG_MODE_LSB:
+    case RIG_MODE_CW:
+        *width = 2200;
+        break;
+
+    case RIG_MODE_CWN:
+        *width = 600;
+        break;
+
+    case RIG_MODE_FM:
+        *width = 12000;
+        break;
+
+    case RIG_MODE_FMN:
+        *width = 800;
+        break;
+
+    default:
+        *width = 2200;
+        break;
     }
 
     return RIG_OK;

@@ -102,7 +102,7 @@ int mds_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s version %s\n", __func__, rig->caps->version);
     // cppcheck claims leak here but it's freed in cleanup
     STATE(rig)->priv = (struct mds_priv_data *)calloc(1,
-                      sizeof(struct mds_priv_data));
+                       sizeof(struct mds_priv_data));
 
     if (!STATE(rig)->priv)
     {

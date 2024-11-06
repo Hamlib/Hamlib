@@ -853,7 +853,8 @@ static int ts480_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     RETURNFUNC(RIG_OK);
 }
 
-static int ts480_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int status)
+static int ts480_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                              int status)
 {
     char cmdbuf[20];
     int retval;
@@ -906,7 +907,8 @@ static int ts480_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int sta
     RETURNFUNC(retval);
 }
 
-static int ts480_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *status)
+static int ts480_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                              int *status)
 {
     int retval;
 
@@ -951,7 +953,8 @@ static int ts480_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *st
     RETURNFUNC(retval);
 }
 
-static int ts480_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
+static int ts480_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                               value_t val)
 {
     int retval;
     char cmdbuf[20];
@@ -1041,7 +1044,8 @@ static int ts480_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_
     RETURNFUNC(retval);
 }
 
-static int ts480_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
+static int ts480_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                               value_t *val)
 {
     int retval;
     int value;
@@ -1229,17 +1233,20 @@ int qrplabs_open(RIG *rig)
     struct kenwood_priv_data *priv = (struct kenwood_priv_data *) STATE(rig)->priv;
     ENTERFUNC;
     retval = kenwood_open(rig);
+
     if (retval != RIG_OK)
     {
         RETURNFUNC(retval);
     }
+
     retval = kenwood_transaction(rig, "VN", buf, sizeof(buf));
 
     if (retval == RIG_OK)
     {
-        strtok(buf,";");
+        strtok(buf, ";");
         rig_debug(RIG_DEBUG_VERBOSE, "%s: firmware version %s\n", __func__, &buf[2]);
     }
+
     priv->is_emulation = 1;
     RETURNFUNC(retval);
 }
@@ -1263,35 +1270,43 @@ int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
     int retval = kenwood_transaction(rig, ptt_cmd, NULL, 0);
 
-    hl_usleep(100 * 1000); // a little time for PTT to return whatever it returns which we ignore
+    hl_usleep(100 *
+              1000); // a little time for PTT to return whatever it returns which we ignore
     rig_flush(rp);
 
     RETURNFUNC(retval);
 }
 
 
-int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hour, int *min, int *sec, double *msec, int *utc_offset)
+int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+                      int *min, int *sec, double *msec, int *utc_offset)
 {
     char tm_cmd[32];
     char tm_buf[32];
     *year = *month = *day = *hour = *min = *sec = *msec = *utc_offset = 0;
     *month = 0;
     *day = 0;
-    sprintf(tm_cmd,"TM;");
+    sprintf(tm_cmd, "TM;");
     int retval = kenwood_transaction(rig, tm_cmd, tm_buf, sizeof(tm_buf));
-    if (retval == RIG_OK && strlen(tm_buf) >= 8) sscanf(tm_buf,"TM%02d%02d%02d", hour, min, sec);
+
+    if (retval == RIG_OK && strlen(tm_buf) >= 8) { sscanf(tm_buf, "TM%02d%02d%02d", hour, min, sec); }
+
     return retval;
 }
 
-int qrplabs_set_clock(RIG *rig, int year, int month, int day, int hour, int min, int sec, double msec, int utc_offset)
+int qrplabs_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+                      int sec, double msec, int utc_offset)
 {
     char tm_cmd[32];
-    sprintf(tm_cmd,"TM%02d%02d%02d;", hour, min, sec);
+    sprintf(tm_cmd, "TM%02d%02d%02d;", hour, min, sec);
     int retval = kenwood_transaction(rig, tm_cmd, NULL, 0);
+
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: error setting time: %s\n", __func__, rigerror(retval));
+        rig_debug(RIG_DEBUG_ERR, "%s: error setting time: %s\n", __func__,
+                  rigerror(retval));
     }
+
     return retval;
 }
 

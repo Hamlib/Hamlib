@@ -2907,7 +2907,8 @@ int tmd710_set_parm(RIG *rig, setting_t parm, value_t val)
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL, val!=NULL
  *
  */
-int tmd710_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
+int tmd710_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                         value_t *val)
 {
     int retval;
     tmd710_mu mu_struct;

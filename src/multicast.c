@@ -18,7 +18,7 @@
 #include "sprintflst.h"
 
 // Multicast off by default
-#define RIG_MULTICAST_ADDR "0.0.0.0" 
+#define RIG_MULTICAST_ADDR "0.0.0.0"
 #define RIG_MULTICAST_PORT 4532
 
 #if 0
@@ -35,6 +35,7 @@ static struct sockaddr_in dest_addr = {0};
 int multicast_stop(RIG *rig)
 {
     struct rig_state *rs = STATE(rig);
+
     if (rs->multicast) { rs->multicast->runflag = 0; }
 
     pthread_join(rs->multicast->threadid, NULL);
@@ -196,7 +197,7 @@ void json_add_vfoA(RIG *rig, char *msg)
 {
     struct rig_cache *cachep = CACHE(rig);
     struct rig_state *rs = STATE(rig);
-  
+
     strcat(msg, "{\n");
     json_add_string(msg, "Name", "VFOA", 1);
     json_add_int(msg, "Freq", cachep->freqMainA, 1);
@@ -253,7 +254,7 @@ void json_add_vfoB(RIG *rig, char *msg)
 {
     struct rig_cache *cachep = CACHE(rig);
     struct rig_state *rs = STATE(rig);
-  
+
     strcat(msg, ",\n{\n");
     json_add_string(msg, "Name", "VFOB", 1);
     json_add_int(msg, "Freq", cachep->freqMainB, 1);
@@ -385,15 +386,15 @@ void *multicast_thread(void *vrig)
     ptt_t ptt, pttsave = 0;
     struct rig_cache *cachep = CACHE(rig);
     struct rig_state *rs = STATE(rig);
-    
+
     rs->multicast->runflag = 1;
 
     while (rs->multicast->runflag)
     {
         while (STATE(rig)->powerstat == RIG_POWER_OFF)
         {
-            rig_debug(RIG_DEBUG_VERBOSE,"%s: waiting for RIG_POWER_ON\n", __func__);
-            hl_usleep(500*1000);
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: waiting for RIG_POWER_ON\n", __func__);
+            hl_usleep(500 * 1000);
         }
 
 #if 0

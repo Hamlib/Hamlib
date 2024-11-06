@@ -210,7 +210,7 @@ int tt585_init(RIG *rig)
     struct tt585_priv_data *priv;
 
     STATE(rig)->priv = (struct tt585_priv_data *) calloc(1, sizeof(
-                          struct tt585_priv_data));
+                           struct tt585_priv_data));
 
     if (!STATE(rig)->priv)
     {

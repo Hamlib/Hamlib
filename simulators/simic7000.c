@@ -134,35 +134,40 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (frame[5] != 0xfd)
         {
-        //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
-        {
-            printf("get_freqA\n");
-            to_bcd(&frame[5], (long long)freqA, (civ_731_mode ? 4 : 5) * 2);
-        }
-        else
-        {
-            printf("get_freqB\n");
-            to_bcd(&frame[5], (long long)freqB, (civ_731_mode ? 4 : 5) * 2);
-        }
-
-        frame[10] = 0xfd;
-
-        if (powerstat)
-        {
-            n = write(fd, frame, 11);
-            dump_hex(frame, 11);
-        }
-        else
-        {
-            if (current_vfo==RIG_VFO_A)
-            freqA = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
+            //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
+            if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
+            {
+                printf("get_freqA\n");
+                to_bcd(&frame[5], (long long)freqA, (civ_731_mode ? 4 : 5) * 2);
+            }
             else
-            freqB = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
-            frame[4] = 0xfb;
-            frame[5] = 0xfd;
-            n = write(fd, frame, 6);
-        }
+            {
+                printf("get_freqB\n");
+                to_bcd(&frame[5], (long long)freqB, (civ_731_mode ? 4 : 5) * 2);
+            }
+
+            frame[10] = 0xfd;
+
+            if (powerstat)
+            {
+                n = write(fd, frame, 11);
+                dump_hex(frame, 11);
+            }
+            else
+            {
+                if (current_vfo == RIG_VFO_A)
+                {
+                    freqA = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
+                }
+                else
+                {
+                    freqB = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
+                }
+
+                frame[4] = 0xfb;
+                frame[5] = 0xfd;
+                n = write(fd, frame, 6);
+            }
         }
 
         break;

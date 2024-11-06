@@ -110,7 +110,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         return;
     }
 
-printf("Here#1\n");
+    printf("Here#1\n");
     dumphex(frame, len);
 
     if (frame[0] != 0xfe && frame[1] != 0xfe)
@@ -648,9 +648,9 @@ int main(int argc, char **argv)
 
         if (powerstat)
         {
-        unsigned char tmp = buf[2];
-        buf[2] = buf[3];
-        buf[3] = tmp;
+            unsigned char tmp = buf[2];
+            buf[2] = buf[3];
+            buf[3] = tmp;
 
             frameParse(fd, buf, len);
         }

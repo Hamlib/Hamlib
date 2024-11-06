@@ -169,7 +169,7 @@ int drt1_init(RIG *rig)
     struct drt1_priv_data *priv;
 
     STATE(rig)->priv = (struct drt1_priv_data *)calloc(1, sizeof(
-                          struct drt1_priv_data));
+                           struct drt1_priv_data));
 
     if (!STATE(rig)->priv)
     {

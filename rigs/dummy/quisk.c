@@ -169,7 +169,7 @@ static int quisk_init(RIG *rig)
     }
 
     STATE(rig)->priv = (struct quisk_priv_data *)calloc(1, sizeof(
-                          struct quisk_priv_data));
+                           struct quisk_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -583,7 +583,7 @@ static int quisk_open(RIG *rig)
     do
     {
         char setting[32], value[1024];
-	hamlib_port_t *pttp = PTTPORT(rig);
+        hamlib_port_t *pttp = PTTPORT(rig);
         ret = read_string(rp, (unsigned char *) buf, BUF_MAX, "\n", 1, 0, 1);
         strtok(buf, "\r\n"); // chop the EOL
 

@@ -442,7 +442,7 @@ struct rig_caps ft747_caps =
 int ft747_init(RIG *rig)
 {
     STATE(rig)->priv = (struct ft747_priv_data *) calloc(1,
-                      sizeof(struct ft747_priv_data));
+                       sizeof(struct ft747_priv_data));
 
     if (!STATE(rig)->priv)           /* whoops! memory shortage! */
     {

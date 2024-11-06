@@ -185,7 +185,7 @@ struct rig_caps ft710_caps =
     .comp_meter_cal =     FT710_COMP_CAL,
     .chan_list =          {
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
-        {   1,	5,  RIG_MTYPE_MORSE },
+        {   1,  5,  RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

@@ -227,7 +227,7 @@ int dwtdll_init(RIG *rig)
     struct dwtdll_priv_data *priv;
 
     STATE(rig)->priv = (struct dwtdll_priv_data *)calloc(1, sizeof(
-                          struct dwtdll_priv_data));
+                           struct dwtdll_priv_data));
 
     if (!STATE(rig)->priv)
     {

@@ -384,7 +384,8 @@ int network_open(hamlib_port_t *rp, int default_port)
 // flush and keep what gets flushed based on stopset
 // Used by SmartSDR backend for example
 // return # of bytes read
-int network_flush2(hamlib_port_t *rp, unsigned char *stopset, char *buf, int buf_len)
+int network_flush2(hamlib_port_t *rp, unsigned char *stopset, char *buf,
+                   int buf_len)
 {
 #ifdef __MINGW32__
     ULONG len;
@@ -397,16 +398,20 @@ int network_flush2(hamlib_port_t *rp, unsigned char *stopset, char *buf, int buf
 #else
     int ret = ioctl(rp->fd, FIONREAD, &len);
 #endif
+
     if (ret != 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: ioctl err '%s'\n", __func__, strerror(errno));
         return 0;
     }
 
-    if (len > 0) {
+    if (len > 0)
+    {
         buf[0] = 0;
-        if (len > buf_len) len = buf_len-1;
-        read_string(rp, (unsigned char *)buf, len+1, (char*)stopset, 1, 0, 1);
+
+        if (len > buf_len) { len = buf_len - 1; }
+
+        read_string(rp, (unsigned char *)buf, len + 1, (char *)stopset, 1, 0, 1);
     }
 
     return len;
@@ -761,15 +766,15 @@ retry:
         {
             // Execution of this routine may time out between writes to pipe, retry to get more data
             rig_debug(RIG_DEBUG_VERBOSE,
-                    "%s: could not read from multicast publisher data pipe, expected %ld bytes, read %ld bytes, retrying...\n",
-                    __func__, (long) length, (long) offset);
+                      "%s: could not read from multicast publisher data pipe, expected %ld bytes, read %ld bytes, retrying...\n",
+                      __func__, (long) length, (long) offset);
             retries--;
             goto retry;
         }
 
         rig_debug(RIG_DEBUG_ERR,
-                "%s: could not read from multicast publisher data pipe even after retries, expected %ld bytes, read %ld bytes\n",
-                __func__, (long) length, (long) offset);
+                  "%s: could not read from multicast publisher data pipe even after retries, expected %ld bytes, read %ld bytes\n",
+                  __func__, (long) length, (long) offset);
 
         return (-RIG_EIO);
     }
@@ -1350,8 +1355,8 @@ void *multicast_receiver(void *arg)
     RIG *rig = args->rig;
     struct rig_state *rs = STATE(rig);
     multicast_receiver_priv_data *mcast_receiver_priv =
-            (multicast_receiver_priv_data *)
-                    rs->multicast_receiver_priv_data;
+        (multicast_receiver_priv_data *)
+        rs->multicast_receiver_priv_data;
 
     struct sockaddr_in dest_addr;
     int socket_fd = args->socket_fd;
@@ -1586,7 +1591,7 @@ int network_multicast_publisher_start(RIG *rig, const char *multicast_addr,
     if (rs->multicast_publisher_priv_data != NULL)
     {
         rig_debug(RIG_DEBUG_WARN, "%s(%d): multicast publisher already running\n",
-                __FILE__, __LINE__);
+                  __FILE__, __LINE__);
         RETURNFUNC(-RIG_EINVAL);
     }
 
@@ -1797,8 +1802,8 @@ int network_multicast_receiver_start(RIG *rig, const char *multicast_addr,
     if (rs->multicast_receiver_priv_data != NULL)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): multicast receiver already running\n",
-                __FILE__,
-                __LINE__);
+                  __FILE__,
+                  __LINE__);
         RETURNFUNC(-RIG_EINVAL);
     }
 

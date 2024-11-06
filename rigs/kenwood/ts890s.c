@@ -41,7 +41,8 @@
 
 #define TS890_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|RIG_OP_CPY|RIG_OP_TUNE)
 
-static int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level,
+                                   value_t val)
 {
     char levelbuf[16], *command_string;
     int kenwood_val, retval;
@@ -109,7 +110,8 @@ static int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t
     return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
-static int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level,
+                                   value_t *val)
 {
     char ackbuf[50];
     size_t ack_len, ack_len_expected, len;

@@ -148,12 +148,12 @@ void frameParse(int fd, unsigned char *frame, int len)
         if (powerstat)
         {
             unsigned char frame2[11];
-            memcpy(frame2,frame,11);
+            memcpy(frame2, frame, 11);
             frame2[2] = 0xe1;
             frame2[3] = 0x88;
-            dump_hex(frame2,11);
+            dump_hex(frame2, 11);
             n = write(fd, frame2, 11);
-            dump_hex(frame,11);
+            dump_hex(frame, 11);
             n = write(fd, frame, 11);
         }
 

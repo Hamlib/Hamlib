@@ -122,7 +122,7 @@ static int dummy_rot_init(ROT *rot)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     ROTSTATE(rot)->priv = (struct dummy_rot_priv_data *)
-                      calloc(1, sizeof(struct dummy_rot_priv_data));
+                          calloc(1, sizeof(struct dummy_rot_priv_data));
 
     if (!ROTSTATE(rot)->priv)
     {
@@ -227,7 +227,8 @@ static int dummy_set_conf(ROT *rot, hamlib_token_t token, const char *val)
 }
 
 
-static int dummy_get_conf2(ROT *rot, hamlib_token_t token, char *val, int val_len)
+static int dummy_get_conf2(ROT *rot, hamlib_token_t token, char *val,
+                           int val_len)
 {
     struct dummy_rot_priv_data *priv;
 

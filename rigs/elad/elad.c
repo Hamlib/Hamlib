@@ -241,7 +241,7 @@ transaction_write:
            gives a reply so we can read any error replies from the actual
            command being sent without blocking */
         if (RIG_OK != (retval = write_block(rp, (unsigned char *) priv->verify_cmd,
-					    strlen(priv->verify_cmd))))
+                                            strlen(priv->verify_cmd))))
         {
             goto transaction_quit;
         }

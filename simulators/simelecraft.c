@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     {
         buf[0] = 0;
 
-        if ((n = getmyline(fd, buf)) > 0) { if (strstr(buf,"BW")) printf("Cmd:%s, len=%d\n", buf, n); }
+        if ((n = getmyline(fd, buf)) > 0) { if (strstr(buf, "BW")) printf("Cmd:%s, len=%d\n", buf, n); }
         else {continue; }
 
         if (strcmp(buf, "RM5;") == 0)

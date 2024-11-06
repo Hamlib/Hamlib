@@ -277,6 +277,7 @@ void frameParse(int fd, unsigned char *frame, int len)
         write(fd, frame, 7);
         break;
 #endif
+
     case 0x19:
         frame[6] = 0x00;
         frame[7] = 0x80;

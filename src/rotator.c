@@ -264,7 +264,7 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     // For now, use the embedded ones
     rotp = ROTPORT(rot);
     rotp2 = ROTPORT2(rot);
-    
+
     rs->comm_state = 0;
     rotp->type.rig = rotp2->type.rig = caps->port_type; /* default from caps */
 
@@ -278,15 +278,15 @@ ROT *HAMLIB_API rot_init(rot_model_t rot_model)
     case RIG_PORT_SERIAL:
         strncpy(rotp->pathname, DEFAULT_SERIAL_PORT, HAMLIB_FILPATHLEN - 1);
         rotp->parm.serial.rate = rotp2->parm.serial.rate =
-                                           caps->serial_rate_max;   /* fastest ! */
+                                     caps->serial_rate_max;   /* fastest ! */
         rotp->parm.serial.data_bits = rotp2->parm.serial.data_bits =
-                                                caps->serial_data_bits;
+                                          caps->serial_data_bits;
         rotp->parm.serial.stop_bits = rotp2->parm.serial.stop_bits =
-                                                caps->serial_stop_bits;
+                                          caps->serial_stop_bits;
         rotp->parm.serial.parity = rotp2->parm.serial.parity =
-                                             caps->serial_parity;
+                                       caps->serial_parity;
         rotp->parm.serial.handshake = rotp2->parm.serial.handshake =
-                                                caps->serial_handshake;
+                                          caps->serial_handshake;
         break;
 
     case RIG_PORT_PARALLEL:
@@ -402,7 +402,8 @@ int HAMLIB_API rot_open(ROT *rot)
                &port) == 5)
     {
         char *type = "TCP";
-        if (rot->caps->port_type == RIG_PORT_UDP_NETWORK) 
+
+        if (rot->caps->port_type == RIG_PORT_UDP_NETWORK)
         {
             rotp->type.rig = RIG_PORT_UDP_NETWORK;
             type = "UDP";
@@ -411,6 +412,7 @@ int HAMLIB_API rot_open(ROT *rot)
         {
             rotp->type.rig = RIG_PORT_NETWORK;
         }
+
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s:%s\n", __func__,
                   rotp->pathname, type);
     }
@@ -420,10 +422,15 @@ int HAMLIB_API rot_open(ROT *rot)
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: using network address %s\n", __func__,
                   rotp2->pathname);
-        if (rot->caps->port_type == RIG_PORT_UDP_NETWORK) 
+
+        if (rot->caps->port_type == RIG_PORT_UDP_NETWORK)
+        {
             rotp->type.rig = RIG_PORT_UDP_NETWORK;
+        }
         else
+        {
             rotp->type.rig = RIG_PORT_NETWORK;
+        }
     }
 
     switch (rotp->type.rig)
@@ -521,25 +528,26 @@ int HAMLIB_API rot_open(ROT *rot)
 
     add_opened_rot(rot);
 
-    if (rotp->type.rig != RIG_PORT_NETWORK && rotp->type.rig != RIG_PORT_UDP_NETWORK)
+    if (rotp->type.rig != RIG_PORT_NETWORK
+            && rotp->type.rig != RIG_PORT_UDP_NETWORK)
     {
-    if (rotp->parm.serial.dtr_state == RIG_SIGNAL_ON)
-    {
-        ser_set_dtr(rotp, 1);
-    }
-    else
-    {
-        ser_set_dtr(rotp, 0);
-    }
+        if (rotp->parm.serial.dtr_state == RIG_SIGNAL_ON)
+        {
+            ser_set_dtr(rotp, 1);
+        }
+        else
+        {
+            ser_set_dtr(rotp, 0);
+        }
 
-    if (rotp->parm.serial.rts_state == RIG_SIGNAL_ON)
-    {
-        ser_set_rts(rotp, 1);
-    }
-    else
-    {
-        ser_set_rts(rotp, 0);
-    }
+        if (rotp->parm.serial.rts_state == RIG_SIGNAL_ON)
+        {
+            ser_set_rts(rotp, 1);
+        }
+        else
+        {
+            ser_set_rts(rotp, 0);
+        }
     }
 
     rs->comm_state = 1;
@@ -549,17 +557,18 @@ int HAMLIB_API rot_open(ROT *rot)
      *  send the deferred configuration info.
      */
     while ((item = rs->config_queue.first))
-      {
-	rs->config_queue.first = item->next;
-	status = rot_set_conf(rot, item->token, item->value);
-	free(item->value);
-	free(item);
-	if (status != RIG_OK)
-	{
-	  return status;
-	}
-      }
-    
+    {
+        rs->config_queue.first = item->next;
+        status = rot_set_conf(rot, item->token, item->value);
+        free(item->value);
+        free(item);
+
+        if (status != RIG_OK)
+        {
+            return status;
+        }
+    }
+
     /*
      * Maybe the backend has something to initialize
      * In case of failure, just close down and report error code.
@@ -713,7 +722,7 @@ int HAMLIB_API rot_cleanup(ROT *rot)
     }
 
     //TODO Release any allocated port structures
-    
+
     free(rot);
 
     return RIG_OK;
@@ -1082,19 +1091,22 @@ int HAMLIB_API rot_get_status(ROT *rot, rot_status_t *status)
  * \sa rig_data_pointer
  *
  */
-void * HAMLIB_API rot_data_pointer(ROT *rot, rig_ptrx_t idx)
+void *HAMLIB_API rot_data_pointer(ROT *rot, rig_ptrx_t idx)
 {
-  switch(idx)
+    switch (idx)
     {
     case RIG_PTRX_ROTPORT:
-      return ROTPORT(rot);
+        return ROTPORT(rot);
+
     case RIG_PTRX_ROTPORT2:
-      return ROTPORT2(rot);
+        return ROTPORT2(rot);
+
     case RIG_PTRX_ROTSTATE:
-      return ROTSTATE(rot);
+        return ROTSTATE(rot);
+
     default:
-      rot_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
-      return NULL;
+        rot_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
+        return NULL;
     }
 }
 /*! @} */

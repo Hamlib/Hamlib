@@ -216,7 +216,7 @@ int ra37xx_init(RIG *rig)
     }
 
     STATE(rig)->priv = (struct ra37xx_priv_data *)calloc(1, sizeof(
-                          struct ra37xx_priv_data));
+                           struct ra37xx_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -253,7 +253,8 @@ int ra37xx_cleanup(RIG *rig)
 /*
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
-int ra37xx_set_conf2(RIG *rig, hamlib_token_t token, const char *val, int val_len)
+int ra37xx_set_conf2(RIG *rig, hamlib_token_t token, const char *val,
+                     int val_len)
 {
     struct ra37xx_priv_data *priv = (struct ra37xx_priv_data *)STATE(rig)->priv;
     int receiver_id;

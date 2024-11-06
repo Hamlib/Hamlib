@@ -233,7 +233,7 @@ int g313_init(RIG *rig)
     struct g313_priv_data *priv;
 
     STATE(rig)->priv = (struct g313_priv_data *)calloc(1, sizeof(
-                          struct g313_priv_data));
+                           struct g313_priv_data));
 
     if (!STATE(rig)->priv)
     {

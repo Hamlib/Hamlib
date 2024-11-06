@@ -214,7 +214,9 @@ static int read_transaction(RIG *rig, char *xml, int xml_len)
 */
 static int write_transaction(RIG *rig, char *xml, int xml_len)
 {
+
     int try = rig->caps->retry;
+
     int retval = -RIG_EPROTO;
     hamlib_port_t *rp = RIGPORT(rig);
 
@@ -322,7 +324,7 @@ static int aclog_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
     STATE(rig)->priv  = (struct aclog_priv_data *)calloc(1, sizeof(
-                           struct aclog_priv_data));
+                            struct aclog_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -858,7 +860,8 @@ static int aclog_get_vfo(RIG *rig, vfo_t *vfo)
 */
 static const char *aclog_get_info(RIG *rig)
 {
-    const struct aclog_priv_data *priv = (struct aclog_priv_data *) STATE(rig)->priv;
+    const struct aclog_priv_data *priv = (struct aclog_priv_data *) STATE(
+            rig)->priv;
 
     return (priv->info);
 }
@@ -866,7 +869,8 @@ static const char *aclog_get_info(RIG *rig)
 static int aclog_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode)
 {
-    const struct aclog_priv_data *priv = (struct aclog_priv_data *) STATE(rig)->priv;
+    const struct aclog_priv_data *priv = (struct aclog_priv_data *) STATE(
+            rig)->priv;
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, power);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);

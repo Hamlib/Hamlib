@@ -160,7 +160,7 @@ static int meade_init(ROT *rot)
     struct meade_priv_data *priv;
 
     ROTSTATE(rot)->priv = (struct meade_priv_data *)
-                      calloc(1, sizeof(struct meade_priv_data));
+                          calloc(1, sizeof(struct meade_priv_data));
 
     if (!ROTSTATE(rot)->priv)
     {
@@ -407,7 +407,8 @@ static int meade_reset(ROT *rot, rot_reset_t reset)
  */
 static int meade_move(ROT *rot, int direction, int speed)
 {
-    const struct meade_priv_data *priv = (struct meade_priv_data *)ROTSTATE(rot)->priv;
+    const struct meade_priv_data *priv = (struct meade_priv_data *)ROTSTATE(
+            rot)->priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: Direction = %d, Speed = %d\n", __func__,
@@ -437,7 +438,8 @@ static int meade_move(ROT *rot, int direction, int speed)
 static const char *meade_get_info(ROT *rot)
 {
     static char buf[256]; // this is not thread-safe but not important either
-    const struct meade_priv_data *priv = (struct meade_priv_data *)ROTSTATE(rot)->priv;
+    const struct meade_priv_data *priv = (struct meade_priv_data *)ROTSTATE(
+            rot)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     SNPRINTF(buf, sizeof(buf),

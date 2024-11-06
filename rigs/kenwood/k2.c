@@ -162,8 +162,9 @@ struct rig_caps k2_caps =
     .chan_desc_sz =     0,
 
     .chan_list =        {
-            {   1, 8, RIG_MTYPE_MORSE },
-            RIG_CHAN_END },
+        {   1, 8, RIG_MTYPE_MORSE },
+        RIG_CHAN_END
+    },
 
     .rx_range_list1 =  {
         {kHz(500), MHz(30), K2_MODES, -1, -1, K2_VFO, K2_ANTS},
@@ -808,13 +809,16 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
 int k2_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     char buf[32];
+
     switch (op)
     {
-        case RIG_OP_TUNE: // K2
-            SNPRINTF(buf, sizeof(buf), "SWH20");
-            break;
-        default: return kenwood_vfo_op(rig, vfo, op);
+    case RIG_OP_TUNE: // K2
+        SNPRINTF(buf, sizeof(buf), "SWH20");
+        break;
+
+    default: return kenwood_vfo_op(rig, vfo, op);
     }
+
     return kenwood_transaction(rig, buf, NULL, 0);
 }
 

@@ -419,7 +419,7 @@ int HAMLIB_API amp_open(AMP *amp)
 
         if (status != RIG_OK)
         {
-	    memcpy(&rs->ampport_deprecated, ap,
+            memcpy(&rs->ampport_deprecated, ap,
                    sizeof(rs->ampport_deprecated));
             return status;
         }
@@ -963,17 +963,19 @@ int HAMLIB_API amp_get_powerstat(AMP *amp, powerstat_t *status)
  * \sa rig_data_pointer
  *
  */
-void * HAMLIB_API amp_data_pointer(AMP *amp, rig_ptrx_t idx)
+void *HAMLIB_API amp_data_pointer(AMP *amp, rig_ptrx_t idx)
 {
-  switch(idx)
+    switch (idx)
     {
     case RIG_PTRX_AMPPORT:
-      return AMPPORT(amp);
+        return AMPPORT(amp);
+
     case RIG_PTRX_AMPSTATE:
-      return AMPSTATE(amp);
+        return AMPSTATE(amp);
+
     default:
-      amp_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
-      return NULL;
+        amp_debug(RIG_DEBUG_ERR, "%s: Invalid data index=%d\n", __func__, idx);
+        return NULL;
     }
 }
 /*! @} */

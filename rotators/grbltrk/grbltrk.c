@@ -420,10 +420,10 @@ grbltrk_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         char req[RSIZE] = {0};
         char rsp[RSIZE];
 
-	if (!ROTSTATE(rot)->comm_state)
-	{
-	    return queue_deferred_config(&ROTSTATE(rot)->config_queue, token, val);
-	}
+        if (!ROTSTATE(rot)->comm_state)
+        {
+            return queue_deferred_config(&ROTSTATE(rot)->config_queue, token, val);
+        }
 
         for (i = 0; i < len; i++)
         {

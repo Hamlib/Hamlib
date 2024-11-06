@@ -37,7 +37,7 @@ int rport_gain_ssb = 50;
 int rport_gain_am = 50;
 int rport_gain_fm = 50;
 int rport_gain_psk = 50;
-int syncvfo=0;
+int syncvfo = 0;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e

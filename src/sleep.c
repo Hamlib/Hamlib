@@ -63,37 +63,44 @@ int hl_usleep(rig_useconds_t usec)
 
 #ifdef __WIN32__
 
-    if (sleep_time < 0.003) {
+    if (sleep_time < 0.003)
+    {
         // Busy-wait for small durations < 2 milliseconds
         LARGE_INTEGER frequency, start, end;
         double elapsed;
         QueryPerformanceFrequency(&frequency);
         QueryPerformanceCounter(&start);
-        do {
-        struct timespec startc;
-        clock_gettime(CLOCK_REALTIME, &startc);
+
+        do
+        {
+            struct timespec startc;
+            clock_gettime(CLOCK_REALTIME, &startc);
             QueryPerformanceCounter(&end);
             elapsed = (double)(end.QuadPart - start.QuadPart) / frequency.QuadPart;
-        } while (elapsed < sleep_time);
-    } else {
+        }
+        while (elapsed < sleep_time);
+    }
+    else
+    {
         // Use Sleep for larger durations >= 3 milliseconds
         //Sleep((DWORD)(seconds * 1000 - 1));  // Convert seconds to milliseconds
-        usleep(sleep_time*1e6-400);
+        usleep(sleep_time * 1e6 - 400);
     }
+
 #else
     {
-    struct timespec tv2;
-    double lasterr = 0;
-    double start_at = monotonic_seconds();
-    double end_at = start_at + sleep_time;
-    tv2.tv_sec = 0;
-    tv2.tv_nsec = 1000000;
-    nanosleep(&tv1, NULL);
+        struct timespec tv2;
+        double lasterr = 0;
+        double start_at = monotonic_seconds();
+        double end_at = start_at + sleep_time;
+        tv2.tv_sec = 0;
+        tv2.tv_nsec = 1000000;
+        nanosleep(&tv1, NULL);
 
-    while (((lasterr = end_at - monotonic_seconds()) > 0))
-    {
-        nanosleep(&tv2, NULL);
-    }
+        while (((lasterr = end_at - monotonic_seconds()) > 0))
+        {
+            nanosleep(&tv2, NULL);
+        }
     }
 
 #endif

@@ -198,7 +198,8 @@ gs232_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     // Still returns 10 chars though
     if (strlen(posbuf) == 10 && expected == 12)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: rotor didn't send CR...assuming it won't in the future\n", __func__);
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: rotor didn't send CR...assuming it won't in the future\n", __func__);
         retval = RIG_OK;
         expected = 11; // we won't expect the CR
         ROTPORT(rot)->retry = 3;

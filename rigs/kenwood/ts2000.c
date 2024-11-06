@@ -1028,7 +1028,8 @@ static int ts2000_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     RETURNFUNC(RIG_OK);
 }
 
-static int ts2000_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int status)
+static int ts2000_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                               int status)
 {
     char cmdbuf[20];
     int retval;
@@ -1054,7 +1055,8 @@ static int ts2000_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int st
     RETURNFUNC(retval);
 }
 
-static int ts2000_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *status)
+static int ts2000_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                               int *status)
 {
     int retval;
 
@@ -1087,7 +1089,8 @@ static int ts2000_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *s
     RETURNFUNC(retval);
 }
 
-static int ts2000_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
+static int ts2000_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                                value_t val)
 {
     int retval;
 
@@ -1743,7 +1746,7 @@ struct rig_caps ts2000_caps =
 
     .chan_list =  {
         { 0, 299, RIG_MTYPE_MEM, TS2000_MEM_CAP  },
-		{ 1,   3, RIG_MTYPE_MORSE },
+        { 1,   3, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -2001,7 +2004,7 @@ struct rig_caps sdrconsole_caps =
 
     .chan_list =  {
         { 0, 299, RIG_MTYPE_MEM, TS2000_MEM_CAP  },
-		{ 1,   3, RIG_MTYPE_MORSE },
+        { 1,   3, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

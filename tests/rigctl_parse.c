@@ -498,14 +498,18 @@ void hash_delete_all()
 
 // modifies s to remove quotes
 void strip_quotes(char *s)
-{   
+{
     char *s2 = strdup(s);
     char *p;
-    if (s[0] != '\"') return; // no quotes
+
+    if (s[0] != '\"') { return; } // no quotes
+
     s2 = strdup(&s[1]);
-    p = strrchr(s2,'"');
-    if (p) *p = 0;
-    strcpy(s,s2);
+    p = strrchr(s2, '"');
+
+    if (p) { *p = 0; }
+
+    strcpy(s, s2);
 }
 
 #ifdef HAVE_LIBREADLINE
@@ -1740,7 +1744,8 @@ readline_repeat:
      * Extended Response protocol: output received command name and arguments
      * response.  Don't send command header on '\chk_vfo' command.
      */
-    if (p1) strip_quotes(p1);
+    if (p1) { strip_quotes(p1); }
+
     if (interactive && *ext_resp_ptr && !prompt && cmd != 0xf0)
     {
         char a1[MAXARGSZ + 2];
@@ -1810,7 +1815,7 @@ readline_repeat:
     {
         // Allow only certain commands when the rig is powered off
         if (rs->powerstat == RIG_POWER_OFF && (rig_powerstat == RIG_POWER_OFF
-                || rig_powerstat == RIG_POWER_STANDBY)
+                                               || rig_powerstat == RIG_POWER_STANDBY)
                 && cmd_entry->cmd != '1' // dump_caps
                 && cmd_entry->cmd != '3' // dump_conf
                 && cmd_entry->cmd != 0x8f // dump_state
@@ -1929,6 +1934,7 @@ declare_proto_rig(hamlib_version)
 declare_proto_rig(client_version)
 {
     struct rig_state *rs = STATE(rig);
+
     if ((interactive && prompt) || (interactive && !prompt && ext_resp))
     {
         fprintf(fout, "%s: ", cmd->arg1);
@@ -2099,15 +2105,16 @@ void print_model_list()
                s->macro_name,
                s->status);
 
-        if (strcmp(s->mfg_name,"Misc") == 0
-         || strcmp(s->mfg_name,"Other") == 0
-         || strcmp(s->mfg_name,"Dummy") == 0)
+        if (strcmp(s->mfg_name, "Misc") == 0
+                || strcmp(s->mfg_name, "Other") == 0
+                || strcmp(s->mfg_name, "Dummy") == 0)
         {
             printf("Do not use %s as mfg_name\n", s->mfg_name);
             exit(0);
         }
-        if (strcmp(s->model_name,"Misc") == 0
-         || strcmp(s->model_name,"Other") == 0)
+
+        if (strcmp(s->model_name, "Misc") == 0
+                || strcmp(s->model_name, "Other") == 0)
         {
             printf("Do not use %s as model_name\n", s->model_name);
             exit(0);
@@ -5117,7 +5124,7 @@ declare_proto_rig(send_cmd)
     if (rig->caps->rig_model == RIG_MODEL_FLRIG)
     {
         // call flrig raw send function cat_string or cat_priority_string
-        flrig_cat_string2(rig, arg1, (char*)buf, sizeof(buf));
+        flrig_cat_string2(rig, arg1, (char *)buf, sizeof(buf));
         fwrite(cmd->arg2, 1, strlen(cmd->arg2), fout); /* i.e. "Frequency" */
         fprintf(fout, ": %s\n", buf);
         RETURNFUNC2(RIG_OK);

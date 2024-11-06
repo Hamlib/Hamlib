@@ -433,8 +433,8 @@ struct rig_caps ic7610_caps =
     .chan_list =  {
         {   1,  99, RIG_MTYPE_MEM  },
         { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
-        {   1,	8, RIG_MTYPE_VOICE },
-        {   1,	8, RIG_MTYPE_MORSE },
+        {   1,  8, RIG_MTYPE_VOICE },
+        {   1,  8, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

@@ -508,15 +508,19 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     struct smartsdr_priv_data *priv = (struct smartsdr_priv_data *)STATE(rig)->priv;
     char cmd[64];
-    char slicechar[] = { '?','A','B','C','D','E','F','G','H' };
+    char slicechar[] = { '?', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
     ENTERFUNC;
 
     if (priv->ptt && ptt) // abort ptt if we're already transmitting
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: abort PTT on slice %c, another slice has PTT control\n", __func__, slicechar[priv->slicenum]);
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: abort PTT on slice %c, another slice has PTT control\n", __func__,
+                  slicechar[priv->slicenum]);
         RETURNFUNC(-RIG_ENTARGET);
     }
+
     priv->ptt = ptt;
+
     if (ptt)
     {
         sprintf(cmd, "dax audio set %d tx=1", priv->slicenum + 1);
@@ -525,7 +529,7 @@ int smartsdr_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     }
 
     sprintf(cmd, "slice set %d tx=1", priv->slicenum);
-    smartsdr_transaction(rig, cmd); 
+    smartsdr_transaction(rig, cmd);
     sprintf(cmd, "xmit %d", ptt);
     smartsdr_transaction(rig, cmd);
     RETURNFUNC(RIG_OK);

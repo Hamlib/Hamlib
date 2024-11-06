@@ -312,7 +312,8 @@ const struct confparams *HAMLIB_API rot_ext_lookup(ROT *rot, const char *name)
  * \return A pointer to the containing #confparams structure member or NULL if
  * nothing found or if \a rot is NULL or inconsistent.
  */
-const struct confparams *HAMLIB_API rot_ext_lookup_tok(ROT *rot, hamlib_token_t token)
+const struct confparams *HAMLIB_API rot_ext_lookup_tok(ROT *rot,
+        hamlib_token_t token)
 {
     const struct confparams *cfp;
 

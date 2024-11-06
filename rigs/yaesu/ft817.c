@@ -774,6 +774,7 @@ static int ft817_init(RIG *rig)
     {
         return -RIG_ENOMEM;
     }
+
     p = (struct ft817_priv_data *) STATE(rig)->priv;
 
     p->swr = 10;
@@ -1173,12 +1174,12 @@ static int ft817_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
         }
 
         *split = (c[0] & 0x80) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
-	*tx_vfo = RIG_VFO_A;
+        *tx_vfo = RIG_VFO_A;
     }
     else
     {
         *split = (p->tx_status & 0x20) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
-	*tx_vfo = RIG_VFO_B;
+        *tx_vfo = RIG_VFO_B;
     }
 
     return RIG_OK;
@@ -1236,7 +1237,7 @@ static int ft817_get_tx_level(RIG *rig, value_t *val, unsigned char *tx_level,
         if (ptt == RIG_PTT_OFF)
         {
 
-	      val->f = p->swr;
+            val->f = p->swr;
             return RIG_OK;
         }
 
@@ -1537,10 +1538,12 @@ int ft817_read_ack(RIG *rig)
         rig_debug(RIG_DEBUG_TRACE, "%s: ack value=0x%x\n", __func__, dummy);
 
 #if 0 // don't know of any reject codes -- none documented
+
         if (dummy != 0)
         {
             return -RIG_ERJCTED;
         }
+
 #endif
     }
 

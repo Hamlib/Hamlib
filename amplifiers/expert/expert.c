@@ -69,7 +69,7 @@ int expert_init(AMP *amp)
     }
 
     AMPSTATE(amp)->priv = (struct expert_priv_data *)
-                      calloc(1, sizeof(struct expert_priv_data));
+                          calloc(1, sizeof(struct expert_priv_data));
 
     if (!AMPSTATE(amp)->priv)
     {

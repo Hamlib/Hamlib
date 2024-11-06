@@ -69,7 +69,8 @@ static int rotorez_rot_reset(ROT *rot, rot_reset_t reset);
 static int rotorez_rot_stop(ROT *rot);
 static int dcu1_rot_stop(ROT *rot);
 
-static int rotorez_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val);
+static int rotorez_rot_set_conf(ROT *rot, hamlib_token_t token,
+                                const char *val);
 
 static const char *rotorez_rot_get_info(ROT *rot);
 
@@ -416,7 +417,7 @@ static int rotorez_rot_init(ROT *rot)
     }
 
     ROTSTATE(rot)->priv = (struct rotorez_rot_priv_data *)
-                      calloc(1, sizeof(struct rotorez_rot_priv_data));
+                          calloc(1, sizeof(struct rotorez_rot_priv_data));
 
     if (!ROTSTATE(rot)->priv)
     {
@@ -581,6 +582,7 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth,
     {
         return -RIG_EINVAL;
     }
+
     rotp = ROTPORT(rot);
     rotp2 = ROTPORT2(rot);
 
@@ -861,6 +863,7 @@ static int rt21_rot_get_position(ROT *rot, azimuth_t *azimuth,
     {
         return -RIG_EINVAL;
     }
+
     rotp = ROTPORT(rot);
     rotp2 = ROTPORT2(rot);
 
@@ -1101,9 +1104,10 @@ static int rotorez_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
      */
     if (!ROTSTATE(rot)->comm_state)
     {
-	err = queue_deferred_config(&ROTSTATE(rot)->config_queue, token, val);
-	return err;
+        err = queue_deferred_config(&ROTSTATE(rot)->config_queue, token, val);
+        return err;
     }
+
     err = rotorez_send_priv_cmd(rot, cmdstr);
 
     if (err != RIG_OK)

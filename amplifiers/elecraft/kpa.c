@@ -67,7 +67,7 @@ int kpa_init(AMP *amp)
     }
 
     AMPSTATE(amp)->priv = (struct kpa_priv_data *)
-                      calloc(1, sizeof(struct kpa_priv_data));
+                          calloc(1, sizeof(struct kpa_priv_data));
 
     if (!AMPSTATE(amp)->priv)
     {

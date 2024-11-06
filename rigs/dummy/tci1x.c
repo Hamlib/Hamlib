@@ -425,7 +425,7 @@ static int tci1x_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
     STATE(rig)->priv  = (struct tci1x_priv_data *)calloc(1, sizeof(
-                           struct tci1x_priv_data));
+                            struct tci1x_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -1455,7 +1455,8 @@ static int tci1x_set_vfo(RIG *rig, vfo_t vfo)
     int retval;
     char cmd_arg[MAXBUFLEN];
     struct rig_state *rs = STATE(rig);
-    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(
+            rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1830,7 +1831,8 @@ static int tci1x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     char value[MAXARGLEN];
     char *cmd;
     int retval;
-    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(
+            rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,
@@ -1906,7 +1908,8 @@ static int tci1x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 */
 static const char *tci1x_get_info(RIG *rig)
 {
-    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(
+            rig)->priv;
 
     return (priv->info);
 }
@@ -1914,7 +1917,8 @@ static const char *tci1x_get_info(RIG *rig)
 static int tci1x_power2mW(RIG *rig, unsigned int *mwpower, float power,
                           freq_t freq, rmode_t mode)
 {
-    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(rig)->priv;
+    const struct tci1x_priv_data *priv = (struct tci1x_priv_data *) STATE(
+            rig)->priv;
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: passed power = %f\n", __func__, power);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);

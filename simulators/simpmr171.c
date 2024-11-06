@@ -48,10 +48,14 @@ getmyline(int fd, unsigned char *buf)
     i = buf[4];  // length of packet
     n = read(fd, &buf[5], i);
     printf("read %d bytes\n", n);
-    if (n == 0) return 0;
+
+    if (n == 0) { return 0; }
+
     n += 5;
     printf("n2=%d", n);
-    for( i = 0; i < n; ++i) printf(" x%02x", buf[i]);
+
+    for (i = 0; i < n; ++i) { printf(" x%02x", buf[i]); }
+
     printf("\n");
     return n;
 }
@@ -115,7 +119,8 @@ again:
 
         switch (buf[5])
         {
-        case 0x07: printf("PTT=%d\n", buf[6]); write(fd,buf,9);break;
+        case 0x07: printf("PTT=%d\n", buf[6]); write(fd, buf, 9); break;
+
         case 0x0c: printf("Power=%d\n", buf[6]); break;
 
         default: printf("Unknown cmd=%02x\n", buf[4]);

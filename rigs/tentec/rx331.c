@@ -290,7 +290,7 @@ int rx331_init(RIG *rig)
     struct rx331_priv_data *priv;
 
     STATE(rig)->priv = (struct rx331_priv_data *)calloc(1, sizeof(
-                          struct rx331_priv_data));
+                           struct rx331_priv_data));
 
     if (!STATE(rig)->priv)
     {

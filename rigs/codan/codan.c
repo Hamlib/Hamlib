@@ -138,7 +138,7 @@ int codan_init(RIG *rig)
               rig->caps->version);
     // cppcheck claims leak here but it's freed in cleanup
     STATE(rig)->priv = (struct codan_priv_data *)calloc(1,
-                      sizeof(struct codan_priv_data));
+                       sizeof(struct codan_priv_data));
 
     if (!STATE(rig)->priv)
     {

@@ -252,13 +252,13 @@ xk852_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     switch (state.mode)
     {
-    case XK852_MODE_AME:*mode = RIG_MODE_AM; break;
+    case XK852_MODE_AME: *mode = RIG_MODE_AM; break;
 
-    case XK852_MODE_USB:*mode = RIG_MODE_USB; break;
+    case XK852_MODE_USB: *mode = RIG_MODE_USB; break;
 
-    case XK852_MODE_LSB:*mode = RIG_MODE_LSB; break;
+    case XK852_MODE_LSB: *mode = RIG_MODE_LSB; break;
 
-    case XK852_MODE_CW:*mode = RIG_MODE_CW; break;
+    case XK852_MODE_CW: *mode = RIG_MODE_CW; break;
 
     default:
         return -RIG_EINVAL;

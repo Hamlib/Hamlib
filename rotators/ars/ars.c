@@ -147,7 +147,7 @@ ars_init(ROT *rot)
     }
 
     ROTSTATE(rot)->priv = (struct ars_priv_data *)calloc(1,
-                      sizeof(struct ars_priv_data));
+                          sizeof(struct ars_priv_data));
 
     if (!ROTSTATE(rot)->priv)
     {

@@ -40,7 +40,7 @@
 
 #define IC707_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_CPY)
 
-#define IC707_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM|RIG_SCAN_STOP) 
+#define IC707_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM|RIG_SCAN_STOP)
 
 #define IC707_ANTS RIG_ANT_1
 
@@ -126,8 +126,8 @@ struct rig_caps ic707_caps =
     },
 
     .tuning_steps =     {
-        {IC707_ALL_RX_MODES, 10}, 
-        {IC707_ALL_RX_MODES, 1000}, 
+        {IC707_ALL_RX_MODES, 10},
+        {IC707_ALL_RX_MODES, 1000},
         RIG_TS_END,
     },
     /* mode/filter list, remember: order matters! */

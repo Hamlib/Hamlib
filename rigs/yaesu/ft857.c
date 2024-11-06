@@ -858,7 +858,8 @@ int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
     return RIG_OK;
 }
 
-static int ft857_get_pometer_level(RIG *rig, value_t *val, const cal_table_float_t *cal, float divider)
+static int ft857_get_pometer_level(RIG *rig, value_t *val,
+                                   const cal_table_float_t *cal, float divider)
 {
     struct ft857_priv_data *p = (struct ft857_priv_data *) STATE(rig)->priv;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called \n", __func__);
@@ -878,7 +879,7 @@ static int ft857_get_pometer_level(RIG *rig, value_t *val, const cal_table_float
     {
         rig_debug(RIG_DEBUG_TRACE, "%s: bars=%d\n", __func__, p->tx_status & 0x0F);
         // does rig have 10 bars or 15?
-        val->f = rig_raw2val_float(p->tx_status & 0x0F, cal)/divider;
+        val->f = rig_raw2val_float(p->tx_status & 0x0F, cal) / divider;
     }
     else
     {
@@ -925,15 +926,19 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER:
     case RIG_LEVEL_RFPOWER_METER_WATTS:
         rig_get_cache(rig, vfo, &freq, &freq_ms, &mode, &mode_ms, &width,
-                    &width_ms);
-        if (144000000.0f >= freq && 148000000.0f <= freq) {
-	        return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
+                      &width_ms);
+
+        if (144000000.0f >= freq && 148000000.0f <= freq)
+        {
+            return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
         }
-        else if (420000000.0f >= freq && 450000000.0f <= freq) {
+        else if (420000000.0f >= freq && 450000000.0f <= freq)
+        {
             return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 5.0);
-        }   
+        }
+
         return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 1.0);
-                                  
+
     default:
         return -RIG_EINVAL;
     }

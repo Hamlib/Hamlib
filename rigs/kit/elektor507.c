@@ -377,7 +377,7 @@ int elektor507_init(RIG *rig)
     struct elektor507_priv_data *priv;
 
     STATE(rig)->priv = (struct elektor507_priv_data *)calloc(sizeof(struct
-                      elektor507_priv_data), 1);
+                       elektor507_priv_data), 1);
 
     if (!STATE(rig)->priv)
     {

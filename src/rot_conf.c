@@ -808,7 +808,8 @@ int HAMLIB_API rot_get_conf(ROT *rot, hamlib_token_t token, char *val)
     return rot_get_conf2(rot, token, val, 128);
 }
 
-int HAMLIB_API rot_get_conf2(ROT *rot, hamlib_token_t token, char *val, int val_len)
+int HAMLIB_API rot_get_conf2(ROT *rot, hamlib_token_t token, char *val,
+                             int val_len)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

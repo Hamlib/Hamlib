@@ -169,7 +169,7 @@ int dds60_init(RIG *rig)
     struct dds60_priv_data *priv;
 
     STATE(rig)->priv = (struct dds60_priv_data *)calloc(1, sizeof(
-                          struct dds60_priv_data));
+                           struct dds60_priv_data));
 
     if (!STATE(rig)->priv)
     {
