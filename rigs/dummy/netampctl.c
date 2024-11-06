@@ -91,7 +91,7 @@ static int netampctl_open(AMP *amp)
     ret = read_string(ampp, (unsigned char *) buf, BUF_MAX, "\n",
                       sizeof("\n"), 0, 1);
 
-    
+
     if (ret <= 0)
     {
         return (ret < 0) ? ret : -RIG_EPROTO;

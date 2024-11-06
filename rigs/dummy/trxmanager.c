@@ -258,7 +258,7 @@ static int trxmanager_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, BACKEND_VER);
 
     STATE(rig)->priv = (struct trxmanager_priv_data *)calloc(1,
-                      sizeof(struct trxmanager_priv_data));
+                       sizeof(struct trxmanager_priv_data));
 
     if (!STATE(rig)->priv)
     {

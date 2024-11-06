@@ -262,7 +262,7 @@ static int rot_lookup_backend(rot_model_t rot_model)
 {
     int i;
 
-  for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++)
+    for (i = 0; i < ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++)
     {
         if (ROT_BACKEND_NUM(rot_model) ==
                 rot_backend_list[i].be_num)

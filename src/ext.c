@@ -276,7 +276,8 @@ const struct confparams *HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
  *
  * Returns NULL if nothing found
  */
-const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig, hamlib_token_t token)
+const struct confparams *HAMLIB_API rig_ext_lookup_tok(RIG *rig,
+        hamlib_token_t token)
 {
     const struct confparams *cfp;
 

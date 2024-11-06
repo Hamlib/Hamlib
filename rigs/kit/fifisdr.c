@@ -330,7 +330,7 @@ int fifisdr_init(RIG *rig)
     struct fifisdr_priv_instance_data *priv;
 
     STATE(rig)->priv = (struct fifisdr_priv_instance_data *)calloc(sizeof(
-                          struct fifisdr_priv_instance_data), 1);
+                           struct fifisdr_priv_instance_data), 1);
 
     if (!STATE(rig)->priv)
     {

@@ -229,7 +229,7 @@ int funcube_init(RIG *rig)
     struct funcube_priv_data *priv;
 
     STATE(rig)->priv = (struct funcube_priv_data *)calloc(sizeof(
-                          struct funcube_priv_data), 1);
+                           struct funcube_priv_data), 1);
 
     if (!STATE(rig)->priv)
     {
@@ -259,7 +259,7 @@ int funcubeplus_init(RIG *rig)
     struct funcube_priv_data *priv;
 
     STATE(rig)->priv = (struct funcube_priv_data *)calloc(sizeof(
-                          struct funcube_priv_data), 1);
+                           struct funcube_priv_data), 1);
 
     if (!STATE(rig)->priv)
     {

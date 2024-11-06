@@ -106,7 +106,7 @@ struct rig_caps ft9000_caps =
         /* TBC */
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
-        {   1,	5, RIG_MTYPE_MORSE },
+        {   1,  5, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 
@@ -291,7 +291,7 @@ struct rig_caps ft9000Old_caps =
         /* TBC */
         {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
         { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
-        {   1,	5, RIG_MTYPE_MORSE },
+        {   1,  5, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

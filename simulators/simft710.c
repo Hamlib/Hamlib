@@ -166,10 +166,12 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "RM5;") == 0)
         {
             static int power = 0;
-            power+=5;
-            if (power > 255) power = 0;
+            power += 5;
+
+            if (power > 255) { power = 0; }
+
             hl_usleep(50 * 1000);
-            snprintf(buf,sizeof(buf),"RM5%03d000;", power);
+            snprintf(buf, sizeof(buf), "RM5%03d000;", power);
             n = write(fd, buf, strlen(buf));
 
             if (n <= 0) { perror("RM5"); }
@@ -610,7 +612,7 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "ST;", 3) == 0)
         {
-            sprintf(buf,"ST%d;", st);
+            sprintf(buf, "ST%d;", st);
             n = write(fd, buf, strlen(buf));
         }
         else if (strlen(buf) > 0)

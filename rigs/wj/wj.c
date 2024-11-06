@@ -209,7 +209,8 @@ int wj_init(RIG *rig)
         return -RIG_EINVAL;
     }
 
-    STATE(rig)->priv = (struct wj_priv_data *)calloc(1, sizeof(struct wj_priv_data));
+    STATE(rig)->priv = (struct wj_priv_data *)calloc(1,
+                       sizeof(struct wj_priv_data));
 
     if (!STATE(rig)->priv)
     {

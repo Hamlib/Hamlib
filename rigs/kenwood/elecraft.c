@@ -457,7 +457,8 @@ int verify_kenwood_id(RIG *rig, char *id)
 
     if (strcmp("017", idptr) != 0)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig (%.4095s) is not a K2 or K3\n", __func__, id);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig (%.4095s) is not a K2 or K3\n", __func__,
+                  id);
 //        return -RIG_EPROTO;
     }
     else
@@ -521,30 +522,31 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd,
 
     if (rig->caps->rig_model == RIG_MODEL_K4)
     {
-    switch (rvp)
+        switch (rvp)
+        {
+        case 'F':
+        case 'M': rv = "FPF"; break;
+
+        case 'A':
+        case 'D': rv = "DSP"; break;
+
+        case 'R': rv = "DAP"; break;
+        }
+    }
+    else
     {
-    case 'F':
-    case 'M': rv = "FPF"; break;
+        switch (rvp)
+        {
+        case 'M': rv = "MCU"; break;
 
-    case 'A':
-    case 'D': rv = "DSP"; break;
+        case 'D': rv = "DSP"; break;
 
-    case 'R': rv = "DAP"; break;
-    }
-    }
-    else {
-    switch (rvp)
-    {
-    case 'M': rv = "MCU"; break;
+        case 'A': rv = "AUX"; break;
 
-    case 'D': rv = "DSP"; break;
+        case 'R': rv = "DVR"; break;
 
-    case 'A': rv = "AUX"; break;
-
-    case 'R': rv = "DVR"; break;
-
-    case 'F': rv = "FPF"; break;
-    }
+        case 'F': rv = "FPF"; break;
+        }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -627,9 +629,10 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 // We can use the TQX; command but we have to check that we have R32 firmware or higher
 // Not sure it's much better than TQ; since it still seems to take 350ms
 // So we have to sleep for a while after sending it to avoid TCP timeouts which still needs to be fixed
-// See 
+// See
 
 #if 0
+
     if (rig->caps->rig_model == RIG_MODEL_K4)
     {
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "TQX;");
@@ -639,6 +642,7 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
     {
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "TQ;");
     }
+
     retval = kenwood_safe_transaction(rig, cmdbuf, splitbuf, 12, 3);
 
     if (retval != RIG_OK)
@@ -648,7 +652,8 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 
     if (sscanf(splitbuf, "TQ%1d", &tq) != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ or TQX reponse of '%s'\n", __func__, splitbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ or TQX reponse of '%s'\n",
+                  __func__, splitbuf);
     }
 
     *vfo = STATE(rig)->tx_vfo = RIG_VFO_A;

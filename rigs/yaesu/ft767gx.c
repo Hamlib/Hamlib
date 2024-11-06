@@ -397,7 +397,7 @@ int ft767_init(RIG *rig)
     }
 
     STATE(rig)->priv = (struct ft767_priv_data *) calloc(1,
-                      sizeof(struct ft767_priv_data));
+                       sizeof(struct ft767_priv_data));
 
     if (!STATE(rig)->priv)           /* whoops! memory shortage! */
     {
@@ -620,7 +620,8 @@ int ft767_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int ft767_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
+    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(
+            rig)->priv;
     int retval;
 
     retval = ft767_get_update_data(rig);  /* get whole shebang from rig */
@@ -1310,7 +1311,8 @@ int ft767_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 int ft767_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(rig)->priv;
+    const  struct ft767_priv_data *priv = (struct ft767_priv_data *)STATE(
+            rig)->priv;
     int retval;
     vfo_t curr_vfo;
 

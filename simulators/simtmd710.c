@@ -129,12 +129,15 @@ int main(int argc, char *argv[])
         }
         else if (strncmp(buf, "FO", 2) == 0)
         {
-            if (buf[3]=='0') {
+            if (buf[3] == '0')
+            {
                 SNPRINTF(buf, sizeof(buf), "FO 0 %d%c", freqA, 0x0d);
             }
-            else {
+            else
+            {
                 SNPRINTF(buf, sizeof(buf), "FO 1 %d%c", freqB, 0x0d);
             }
+
             printf("R:%s\n", buf);
             write(fd, buf, strlen(buf));
             continue;

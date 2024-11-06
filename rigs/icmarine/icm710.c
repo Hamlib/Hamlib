@@ -268,7 +268,7 @@ int icm710_init(RIG *rig)
     priv_caps = (const struct icm710_priv_caps *) caps->priv;
 
     STATE(rig)->priv = (struct icm710_priv_data *)calloc(1,
-                      sizeof(struct icm710_priv_data));
+                       sizeof(struct icm710_priv_data));
 
     if (!STATE(rig)->priv)
     {

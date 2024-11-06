@@ -165,7 +165,7 @@ static int netrigctl_init(RIG *rig)
     }
 
     STATE(rig)->priv = (struct netrigctl_priv_data *)calloc(1, sizeof(
-                          struct netrigctl_priv_data));
+                           struct netrigctl_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -636,6 +636,7 @@ static int netrigctl_open(RIG *rig)
         strtok(buf, "\r\n"); // chop the EOL
 
         rig_debug(RIG_DEBUG_VERBOSE, "## %s\n", buf);
+
         if (ret <= 0)
         {
             RETURNFUNC((ret < 0) ? ret : -RIG_EPROTO);

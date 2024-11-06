@@ -885,7 +885,8 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (lvl > 99)
         {
-            val->i = STATE(rig)->attenuator[0];    /* Since the TS-2000 only has one step on the attenuator */
+            val->i = STATE(
+                         rig)->attenuator[0];    /* Since the TS-2000 only has one step on the attenuator */
         }
 
         break;

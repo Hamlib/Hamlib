@@ -214,6 +214,7 @@ int wr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     hamlib_port_t *rp = RIGPORT(rig);
+
     switch (level)
     {
     case RIG_LEVEL_AF:
@@ -264,6 +265,7 @@ int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     hamlib_port_t *rp = RIGPORT(rig);
+
     switch (level)
     {
     case RIG_LEVEL_AF:

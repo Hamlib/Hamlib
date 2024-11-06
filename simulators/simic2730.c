@@ -132,7 +132,8 @@ void frameParse(int fd, unsigned char *frame, int len)
     {
     case 0x03:
 
-printf("Here#1\n");
+        printf("Here#1\n");
+
         //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
         if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
         {
@@ -169,7 +170,7 @@ printf("Here#1\n");
         }
 
         frame[7] = 0xfd;
-        dump_hex(frame,8);
+        dump_hex(frame, 8);
         n = write(fd, frame, 8);
         break;
 
@@ -227,7 +228,7 @@ printf("Here#1\n");
             frame[5] = split;
             printf("get split %d\n", 1);
             frame[6] = 0xfd;
-            dump_hex(frame,7);
+            dump_hex(frame, 7);
             n = write(fd, frame, 7);
         }
         else
@@ -235,7 +236,7 @@ printf("Here#1\n");
             printf("set split %d\n", 1);
             frame[4] = 0xfb;
             frame[5] = 0xfd;
-            dump_hex(frame,6);
+            dump_hex(frame, 6);
             n = write(fd, frame, 6);
         }
 

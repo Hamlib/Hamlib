@@ -260,40 +260,49 @@ static int dummy_init(RIG *rig)
     }
 
     priv->vfo_maina.ext_levels = alloc_init_ext(dummy_ext_levels);
+
     if (!priv->vfo_maina.ext_levels)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
+
     priv->vfo_mainb.ext_levels = alloc_init_ext(dummy_ext_levels);
+
     if (!priv->vfo_mainb.ext_levels)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv->vfo_suba.ext_levels = alloc_init_ext(dummy_ext_levels);
+
     if (!priv->vfo_suba.ext_levels)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
+
     priv->vfo_subb.ext_levels = alloc_init_ext(dummy_ext_levels);
+
     if (!priv->vfo_subb.ext_levels)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv->vfo_c.ext_levels = alloc_init_ext(dummy_ext_levels);
+
     if (!priv->vfo_c.ext_levels)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv->ext_funcs = alloc_init_ext(dummy_ext_funcs);
+
     if (!priv->ext_funcs)
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
 
     priv->ext_parms = alloc_init_ext(dummy_ext_parms);
+
     if (!priv->ext_parms)
     {
         RETURNFUNC(-RIG_ENOMEM);
@@ -577,15 +586,19 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     {
     case RIG_VFO_MAIN:
     case RIG_VFO_A:
-    case RIG_VFO_MAIN_A: priv->vfo_maina.mode = mode; priv->vfo_maina.width = width; break;
+    case RIG_VFO_MAIN_A: priv->vfo_maina.mode = mode; priv->vfo_maina.width = width;
+        break;
 
     case RIG_VFO_SUB:
     case RIG_VFO_B:
-    case RIG_VFO_MAIN_B: priv->vfo_mainb.mode = mode; priv->vfo_mainb.width = width; break;
+    case RIG_VFO_MAIN_B: priv->vfo_mainb.mode = mode; priv->vfo_mainb.width = width;
+        break;
 
-    case RIG_VFO_SUB_A: priv->vfo_suba.mode = mode; priv->vfo_suba.width = width; break;
+    case RIG_VFO_SUB_A: priv->vfo_suba.mode = mode; priv->vfo_suba.width = width;
+        break;
 
-    case RIG_VFO_SUB_B: priv->vfo_subb.mode = mode; priv->vfo_subb.width = width; break;
+    case RIG_VFO_SUB_B: priv->vfo_subb.mode = mode; priv->vfo_subb.width = width;
+        break;
 
     case RIG_VFO_C: priv->vfo_c.mode = mode; priv->vfo_c.width = width; break;
 
@@ -993,11 +1006,14 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     int retval;
 
     ENTERFUNC;
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __func__, rig_strvfo(vfo), tx_freq);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s freq=%.0f\n", __func__,
+              rig_strvfo(vfo), tx_freq);
 
-    if (priv->split == RIG_SPLIT_OFF || priv->tx_vfo == RIG_VFO_NONE || priv->tx_vfo == RIG_VFO_CURR)
+    if (priv->split == RIG_SPLIT_OFF || priv->tx_vfo == RIG_VFO_NONE
+            || priv->tx_vfo == RIG_VFO_CURR)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: split not enabled, but set_split_freq() called? ignorning\n", __func__);
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: split not enabled, but set_split_freq() called? ignorning\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
@@ -1017,9 +1033,11 @@ static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    if (priv->split == RIG_SPLIT_OFF || priv->tx_vfo == RIG_VFO_NONE || priv->tx_vfo == RIG_VFO_CURR)
+    if (priv->split == RIG_SPLIT_OFF || priv->tx_vfo == RIG_VFO_NONE
+            || priv->tx_vfo == RIG_VFO_CURR)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: split not enabled, but get_split_freq() called? ignorning\n", __func__);
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: split not enabled, but get_split_freq() called? ignorning\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
@@ -1038,11 +1056,13 @@ static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s tx_mode=%s tx_width=%ld\n",
-            __func__, rig_strvfo(vfo), rig_strrmode(tx_mode), tx_width);
+              __func__, rig_strvfo(vfo), rig_strrmode(tx_mode), tx_width);
 
-    if (priv->split == RIG_SPLIT_OFF || priv->tx_vfo == RIG_VFO_NONE || priv->tx_vfo == RIG_VFO_CURR)
+    if (priv->split == RIG_SPLIT_OFF || priv->tx_vfo == RIG_VFO_NONE
+            || priv->tx_vfo == RIG_VFO_CURR)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: split not enabled, but set_split_mode() called? ignorning\n", __func__);
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: split not enabled, but set_split_mode() called? ignorning\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
@@ -1068,16 +1088,18 @@ static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
     ENTERFUNC;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
 
-    if (priv->split == RIG_SPLIT_OFF || priv->tx_vfo == RIG_VFO_NONE || priv->tx_vfo == RIG_VFO_CURR)
+    if (priv->split == RIG_SPLIT_OFF || priv->tx_vfo == RIG_VFO_NONE
+            || priv->tx_vfo == RIG_VFO_CURR)
     {
-        rig_debug(RIG_DEBUG_WARN, "%s: split not enabled, but get_split_mode() called? ignorning\n", __func__);
+        rig_debug(RIG_DEBUG_WARN,
+                  "%s: split not enabled, but get_split_mode() called? ignorning\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
     retval = dummy_get_mode(rig, priv->tx_vfo, tx_mode, tx_width);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s tx_mode=%s tx_width=%ld\n",
-            __func__, rig_strvfo(vfo), rig_strrmode(*tx_mode), *tx_width);
+              __func__, rig_strvfo(vfo), rig_strrmode(*tx_mode), *tx_width);
 
     RETURNFUNC(retval);
 }
@@ -1112,7 +1134,7 @@ static int dummy_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     *tx_vfo = priv->tx_vfo;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: split=%d, vfo=%s, tx_vfo=%s\n",
-            __func__, *split, rig_strvfo(vfo), rig_strvfo(*tx_vfo));
+              __func__, *split, rig_strvfo(vfo), rig_strvfo(*tx_vfo));
 
     RETURNFUNC(RIG_OK);
 }
@@ -1386,7 +1408,8 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     RETURNFUNC(RIG_OK);
 }
 
-static int dummy_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
+static int dummy_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                               value_t val)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
@@ -1456,7 +1479,8 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_
     RETURNFUNC(RIG_OK);
 }
 
-static int dummy_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
+static int dummy_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                               value_t *val)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     channel_t *curr = priv->curr;
@@ -1500,7 +1524,8 @@ static int dummy_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_
 }
 
 
-static int dummy_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int status)
+static int dummy_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                              int status)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const struct confparams *cfp;
@@ -1552,7 +1577,8 @@ static int dummy_set_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int sta
 }
 
 
-static int dummy_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token, int *status)
+static int dummy_get_ext_func(RIG *rig, vfo_t vfo, hamlib_token_t token,
+                              int *status)
 {
     struct dummy_priv_data *priv = (struct dummy_priv_data *)STATE(rig)->priv;
     const struct confparams *cfp;
@@ -2412,11 +2438,11 @@ struct rig_caps dummy_caps =
         [LVL_SPECTRUM_AVG] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
     },
     .parm_gran =  {
-            [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
-            [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND70CM,BAND33CM,BAND23CM"}},
-            [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}},
-            [PARM_SCREENSAVER] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
-            [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
+        [PARM_BACKLIGHT] = {.min = {.f = 0.0f}, .max = {.f = 1.0f}, .step = {.f = 1.0f / 255.0f}},
+        [PARM_BANDSELECT] = {.step = {.s = "BANDUNUSED,BAND70CM,BAND33CM,BAND23CM"}},
+        [PARM_BEEP] = {.min = {.i = 0}, .max = {.i = 1}},
+        [PARM_SCREENSAVER] = {.min = {.i = 0}, .max = {.i = 3}, .step = {.i = 1}},
+        [PARM_KEYERTYPE] = {.step = {.s = "STRAIGHT,BUG,PADDLE"}},
     },
     .ctcss_list =      common_ctcss_list,
     .dcs_list =        full_dcs_list,

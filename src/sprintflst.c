@@ -390,20 +390,20 @@ int rig_sprintf_level_gran(char *str, int nlen, setting_t level,
         if (RIG_LEVEL_IS_FLOAT(rig_idx2setting(i)))
         {
             len += snprintf(str + len, nlen - len,
-                           "%s(%f..%f/%f) ",
-                           ms,
-                           gran[i].min.f,
-                           gran[i].max.f,
-                           gran[i].step.f);
+                            "%s(%f..%f/%f) ",
+                            ms,
+                            gran[i].min.f,
+                            gran[i].max.f,
+                            gran[i].step.f);
         }
         else
         {
             len += snprintf(str + len, nlen - len,
-                           "%s(%d..%d/%d) ",
-                           ms,
-                           gran[i].min.i,
-                           gran[i].max.i,
-                           gran[i].step.i);
+                            "%s(%d..%d/%d) ",
+                            ms,
+                            gran[i].min.i,
+                            gran[i].max.i,
+                            gran[i].step.i);
         }
 
         check_buffer_overflow(str, len, nlen);
@@ -449,20 +449,20 @@ int rot_sprintf_level_gran(char *str, int nlen, setting_t level,
         if (ROT_LEVEL_IS_FLOAT(rig_idx2setting(i)))
         {
             len += snprintf(str + len, nlen - len,
-                           "%s(%f..%f/%f) ",
-                           ms,
-                           gran[i].min.f,
-                           gran[i].max.f,
-                           gran[i].step.f);
+                            "%s(%f..%f/%f) ",
+                            ms,
+                            gran[i].min.f,
+                            gran[i].max.f,
+                            gran[i].step.f);
         }
         else
         {
             len += snprintf(str + len, nlen - len,
-                           "%s(%d..%d/%d) ",
-                           ms,
-                           gran[i].min.i,
-                           gran[i].max.i,
-                           gran[i].step.i);
+                            "%s(%d..%d/%d) ",
+                            ms,
+                            gran[i].min.i,
+                            gran[i].max.i,
+                            gran[i].step.i);
         }
 
         check_buffer_overflow(str, len, nlen);
@@ -568,30 +568,30 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
         if (RIG_PARM_IS_FLOAT(rig_idx2setting(i)))
         {
             len += snprintf(str + len, nlen - len,
-                           "%s(%.g..%.g/%.g) ",
-                           ms,
-                           gran[i].min.f,
-                           gran[i].max.f,
-                           gran[i].step.f);
+                            "%s(%.g..%.g/%.g) ",
+                            ms,
+                            gran[i].min.f,
+                            gran[i].max.f,
+                            gran[i].step.f);
         }
         else if (RIG_PARM_IS_STRING(rig_idx2setting(i)))
         {
             if (gran[i].step.s)
             {
                 len += snprintf(str + len, nlen - len,
-                               "%s(%s) ",
-                               ms,
-                               gran[i].step.s);
+                                "%s(%s) ",
+                                ms,
+                                gran[i].step.s);
             }
         }
         else
         {
             len += snprintf(str + len, nlen - len,
-                           "%s(%d..%d/%d) ",
-                           ms,
-                           gran[i].min.i,
-                           gran[i].max.i,
-                           gran[i].step.i);
+                            "%s(%d..%d/%d) ",
+                            ms,
+                            gran[i].min.i,
+                            gran[i].max.i,
+                            gran[i].step.i);
         }
 
         check_buffer_overflow(str, len, nlen);
@@ -637,20 +637,20 @@ int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm,
         if (ROT_PARM_IS_FLOAT(rig_idx2setting(i)))
         {
             len += snprintf(str + len, nlen - len,
-                           "%s(%f..%f/%f) ",
-                           ms,
-                           gran[i].min.f,
-                           gran[i].max.f,
-                           gran[i].step.f);
+                            "%s(%f..%f/%f) ",
+                            ms,
+                            gran[i].min.f,
+                            gran[i].max.f,
+                            gran[i].step.f);
         }
         else
         {
             len += snprintf(str + len, nlen - len,
-                           "%s(%d..%d/%d) ",
-                           ms,
-                           gran[i].min.i,
-                           gran[i].max.i,
-                           gran[i].step.i);
+                            "%s(%d..%d/%d) ",
+                            ms,
+                            gran[i].min.i,
+                            gran[i].max.i,
+                            gran[i].step.i);
         }
 
         check_buffer_overflow(str, len, nlen);
@@ -852,12 +852,13 @@ int rig_sprintf_spectrum_avg_modes(char *str, int nlen,
     return len;
 }
 
-int rig_sprintf_tuning_steps(char *str, int nlen, const struct tuning_step_list *tuning_step_list)
+int rig_sprintf_tuning_steps(char *str, int nlen,
+                             const struct tuning_step_list *tuning_step_list)
 {
     int i, len = 0;
 
     *str = '\0';
-    
+
     for (i = 0; i < HAMLIB_TSLSTSIZ; i++)
     {
         int lentmp;
@@ -867,7 +868,8 @@ int rig_sprintf_tuning_steps(char *str, int nlen, const struct tuning_step_list 
             break;
         }
 
-        lentmp = snprintf(str + len, nlen - len, "%s%d", i>0?", ":"", (int)tuning_step_list[i].ts);
+        lentmp = snprintf(str + len, nlen - len, "%s%d", i > 0 ? ", " : "",
+                          (int)tuning_step_list[i].ts);
 
         if (len < 0 || lentmp >= nlen - len)
         {
@@ -930,7 +932,8 @@ int print_ext_param(const struct confparams *cfp, rig_ptr_t ptr)
         break;
 
     case RIG_CONF_INT:
-        fprintf((FILE *)ptr, "\t\tRange: %d..%d/%d\n", (int) cfp->u.n.min, (int) cfp->u.n.max,
+        fprintf((FILE *)ptr, "\t\tRange: %d..%d/%d\n", (int) cfp->u.n.min,
+                (int) cfp->u.n.max,
                 (int) cfp->u.n.step);
         break;
 
@@ -973,7 +976,7 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
             if (strlen(str) > 0) { strcat(str, " "); }
 
             snprintf(tmpbuf, sizeof(tmpbuf), "%d=%s", priv_caps->agc_levels[i].icom_level,
-                    rig_stragclevel(priv_caps->agc_levels[i].level));
+                     rig_stragclevel(priv_caps->agc_levels[i].level));
 
             if (strlen(str) + strlen(tmpbuf) < lenstr - 1)
             {
@@ -993,7 +996,7 @@ int rig_sprintf_agc_levels(RIG *rig, char *str, int lenstr)
             if (strlen(str) > 0) { strcat(str, " "); }
 
             snprintf(tmpbuf, sizeof(tmpbuf), "%d=%s", rig->caps->agc_levels[i],
-                    rig_stragclevel(rig->caps->agc_levels[i]));
+                     rig_stragclevel(rig->caps->agc_levels[i]));
 
             if (strlen(str) + strlen(tmpbuf) < lenstr - 1)
             {

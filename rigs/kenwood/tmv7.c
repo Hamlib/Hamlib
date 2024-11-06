@@ -673,7 +673,7 @@ int tmv7_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     freq = (long)chan->freq;
 
     for (step = 0; STATE(rig)->tuning_steps[step].ts != 0; step++)
-      if (chan->tuning_step == STATE(rig)->tuning_steps[step].ts) { break; }
+        if (chan->tuning_step == STATE(rig)->tuning_steps[step].ts) { break; }
 
     switch (chan->rptr_shift)
     {

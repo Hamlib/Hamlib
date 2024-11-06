@@ -36,7 +36,7 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     struct rig_cache *cachep = CACHE(rig);
     struct rig_state *rs = STATE(rig);
-  
+
     ENTERFUNC;
 
     rig_cache_show(rig, __func__, __LINE__);
@@ -67,10 +67,12 @@ int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (vfo == rs->current_vfo)
     {
         cachep->modeCurr = mode;
+
         if (width > 0)
         {
             cachep->widthCurr = width;
         }
+
         elapsed_ms(&cachep->time_modeCurr, HAMLIB_ELAPSED_SET);
     }
 
@@ -310,7 +312,7 @@ int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
 {
     struct rig_cache *cachep = CACHE(rig);
     struct rig_state *rs = STATE(rig);
-  
+
     if (CHECK_RIG_ARG(rig) || !freq || !cache_ms_freq ||
             !mode || !cache_ms_mode || !width || !cache_ms_width)
     {
@@ -567,7 +569,7 @@ int rig_get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq_p)
 void rig_cache_show(RIG *rig, const char *func, int line)
 {
     struct rig_cache *cachep = CACHE(rig);
-  
+
     rig_debug(RIG_DEBUG_CACHE,
               "%s(%d): freqMainA=%.0f, modeMainA=%s, widthMainA=%d\n", func, line,
               cachep->freqMainA, rig_strrmode(cachep->modeMainA),

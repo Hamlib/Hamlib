@@ -538,7 +538,7 @@ static int ft890_init(RIG *rig)
     }
 
     STATE(rig)->priv = (struct ft890_priv_data *) calloc(1,
-                      sizeof(struct ft890_priv_data));
+                       sizeof(struct ft890_priv_data));
 
     if (!STATE(rig)->priv)                       /* whoops! memory shortage! */
     {

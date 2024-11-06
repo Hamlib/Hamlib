@@ -970,11 +970,13 @@ int HAMLIB_API write_block_sync(hamlib_port_t *p, const unsigned char *txbuffer,
     {
         retval = write(p->fd, txbuffer, count);
     }
+
     if (retval != count)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: write failed: %s\n", __func__, strerror(errno));
         retval = -RIG_EIO;
     }
+
     return retval;
 }
 

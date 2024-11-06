@@ -284,8 +284,8 @@ int id5100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else if ((vfo == RIG_VFOvfo == RIG_VFO_SUB
               && rs->dual_watch_main_sub == MAIN_ON_RIGHT)
 {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Sub/A vfo=%s\n", __func__, __LINE__,
-                  rig_strvfo(vfo));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Sub/A vfo=%s\n", __func__, __LINE__,
+              rig_strvfo(vfo));
         *freq = CACHE(rig)->freqSubA;
         int cache_ms_freq, cache_ms_mode, cache_ms_width;
         pbwidth_t width;

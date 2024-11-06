@@ -2868,10 +2868,10 @@ char *rig_date_strget(char *buf, int buflen, int localtime)
 const char *spaces(int len)
 {
     static const char s[MAX_SPACES + 1] =
-      "****************************************************************"
-      "****************************************************************"
-      "****************************************************************"
-      "****************************************************************";
+        "****************************************************************"
+        "****************************************************************"
+        "****************************************************************"
+        "****************************************************************";
 
     if (len < 0 || len > MAX_SPACES)
     {
@@ -3107,8 +3107,10 @@ int rig_test_2038(RIG *rig)
     if (stime == NULL) { failed = 1; }
 
 #if 0 // this fails on 32-bit RigPi -- time_t 32-bit maybe?
-    else rig_debug(RIG_DEBUG_VERBOSE, "%s: time_t 2038 test = 0x%08lx:%s", __func__, x,
-              s == NULL ? "NULL" : s);
+    else rig_debug(RIG_DEBUG_VERBOSE, "%s: time_t 2038 test = 0x%08lx:%s", __func__,
+                       x,
+                       s == NULL ? "NULL" : s);
+
 #endif
 
 #endif
@@ -3123,10 +3125,14 @@ int rig_test_2038(RIG *rig)
 
 #if defined(__MSVCRT_VERSION__)
     _ctime64_s(s, sizeof(s), &x);
+
     if (strstr(s, "2097")) { return RIG_OK; }
+
 #else
     char *s = ctime(&x);
+
     if (s != NULL && strstr(s, "2097")) { return RIG_OK; }
+
 #endif
 
 
@@ -3140,31 +3146,33 @@ int rig_test_2038(RIG *rig)
  * Add item to be sent to device after it is opened
  * (currently only used by rotators)
  **/
-int queue_deferred_config(deferred_config_header_t *head, hamlib_token_t token, const char *val)
+int queue_deferred_config(deferred_config_header_t *head, hamlib_token_t token,
+                          const char *val)
 {
     deferred_config_item_t *item;
 
     if (!(item = malloc(sizeof(deferred_config_item_t))))
     {
-	return -RIG_ENOMEM;
+        return -RIG_ENOMEM;
     }
+
     if (!(item->value = strdup(val)))
     {
         free(item);
-	return -RIG_ENOMEM;
+        return -RIG_ENOMEM;
     }
 
     item->token = token;
     item->next = NULL;
 
     if (!head->first)
-      {
-	head->first = item;
-      }
+    {
+        head->first = item;
+    }
     else
-      {
-	head->last->next = item;
-      }
+    {
+        head->last->next = item;
+    }
 
     head->last = item;
 

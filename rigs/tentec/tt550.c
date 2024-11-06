@@ -353,7 +353,7 @@ tt550_init(RIG *rig)
     struct tt550_priv_data *priv;
 
     STATE(rig)->priv = (struct tt550_priv_data *) calloc(1, sizeof(
-                          struct tt550_priv_data));
+                           struct tt550_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -510,7 +510,8 @@ int
 tt550_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(
+            rig)->priv;
 
     retval = tt550_set_rx_freq(rig, vfo, freq);
 
@@ -660,7 +661,8 @@ tt550_set_tx_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int
 tt550_get_tx_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(
+            rig)->priv;
 
     *freq = priv->tx_freq;
 
@@ -919,7 +921,8 @@ tt550_set_tx_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int
 tt550_get_tx_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(
+            rig)->priv;
 
     *mode = priv->tx_mode;
     *width = priv->tx_width;
@@ -947,7 +950,8 @@ tt550_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 int
 tt550_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(
+            rig)->priv;
 
     *rit = priv->rit;
 
@@ -974,7 +978,8 @@ tt550_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 int
 tt550_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(
+            rig)->priv;
 
     *xit = priv->xit;
 
@@ -1195,7 +1200,8 @@ tt550_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int
 tt550_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(
+            rig)->priv;
     int retval, lvl_len;
     char lvlbuf[32];
 
@@ -1423,7 +1429,8 @@ tt550_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 int
 tt550_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(
+            rig)->priv;
 
     *split = priv->split;
 
@@ -1484,7 +1491,8 @@ tt550_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int
 tt550_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(
+            rig)->priv;
 
     /* Optimize:
      *   sort the switch cases with the most frequent first
@@ -1568,7 +1576,8 @@ tt550_tune(RIG *rig)
     value_t current_power;
     rmode_t current_mode;
     value_t lowpower;
-    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(rig)->priv;
+    const struct tt550_priv_data *priv = (struct tt550_priv_data *) STATE(
+            rig)->priv;
 
     /* Set our lowpower level to about 10 Watts */
     lowpower.f = 0.12;

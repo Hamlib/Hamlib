@@ -129,9 +129,9 @@ again:
 
         case 0xF5: printf("FREQ\n"); break;
 
-        case 0x81: 
-            rx_vfo = rx_vfo == 0? 1: 0;
-            printf("VFO TOGGLE to %dE\n", rx_vfo); 
+        case 0x81:
+            rx_vfo = rx_vfo == 0 ? 1 : 0;
+            printf("VFO TOGGLE to %dE\n", rx_vfo);
             break;
 
 
@@ -151,7 +151,7 @@ again:
 
         case 0xE7: printf("READ RX STATUS\n"); break;
 
-        case 0xF7: 
+        case 0xF7:
             printf("READ TX STATUS\n");
             buf[0] = 0x01;
             buf[1] = 0x40;

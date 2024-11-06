@@ -589,7 +589,7 @@ struct rig_caps ts870s_caps =
     .chan_list =  {
         {  0, 89, RIG_MTYPE_MEM  }, /* TBC */
         { 90, 99, RIG_MTYPE_EDGE },
-		{  1,  4, RIG_MTYPE_MORSE },
+        {  1,  4, RIG_MTYPE_MORSE },
         RIG_CHAN_END,
     },
 

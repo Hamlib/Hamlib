@@ -341,7 +341,7 @@ static int ft600_init(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     STATE(rig)->priv = (struct ft600_priv_data *) calloc(1,
-                      sizeof(struct ft600_priv_data));
+                       sizeof(struct ft600_priv_data));
 
     if (!STATE(rig)->priv) { return -RIG_ENOMEM; }
 
@@ -414,7 +414,7 @@ static int ft600_read_status(RIG *rig)
 
 
     ret = read_block(rp, (unsigned char *) &priv->status,
-		     FT600_STATUS_UPDATE_DATA_LENGTH);
+                     FT600_STATUS_UPDATE_DATA_LENGTH);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: read status=%i \n", __func__, ret);
 

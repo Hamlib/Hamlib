@@ -74,11 +74,13 @@ int barrett_transaction2(RIG *rig, char *cmd, int expected, char **result)
     SNPRINTF(cmd_buf, sizeof(cmd_buf), "%c%s%s", 0x0a, cmd, EOM);
     barrett_flush(rig);
     retval = write_block(rp, (unsigned char *) cmd_buf, strlen(cmd_buf));
+
     if (retval < 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s(%d): error in write_block\n", __func__, __LINE__);
         return retval;
     }
+
     retval = read_block(RIGPORT(rig), (unsigned char *) priv->ret_data, expected);
 
     if (retval < 0)
@@ -86,15 +88,19 @@ int barrett_transaction2(RIG *rig, char *cmd, int expected, char **result)
         rig_debug(RIG_DEBUG_ERR, "%s(%d): error in read_block\n", __func__, __LINE__);
         return retval;
     }
-    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %d bytes read\n", __func__, __LINE__, retval);
-        if (priv->ret_data[0] == 0x13)   // we'll return from the 1st good char
-        {
-            *result = &(priv->ret_data[1]);
-        }
-        else     // some commands like IAL don't give XOFF but XON is there -- is this a bug?
-        {
-            *result = &(priv->ret_data[0]);
-        }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): %d bytes read\n", __func__, __LINE__,
+              retval);
+
+    if (priv->ret_data[0] == 0x13)   // we'll return from the 1st good char
+    {
+        *result = &(priv->ret_data[1]);
+    }
+    else     // some commands like IAL don't give XOFF but XON is there -- is this a bug?
+    {
+        *result = &(priv->ret_data[0]);
+    }
+
     return retval;
 }
 
@@ -227,7 +233,7 @@ int barrett_init(RIG *rig)
               rig->caps->version);
     // cppcheck claims leak here but it's freed in cleanup
     STATE(rig)->priv = (struct barrett_priv_data *)calloc(1,
-                      sizeof(struct barrett_priv_data));
+                       sizeof(struct barrett_priv_data));
 
     if (!STATE(rig)->priv)
     {

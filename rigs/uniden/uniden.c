@@ -429,7 +429,7 @@ int uniden_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch (level)
     {
     case RIG_LEVEL_ATT:
-      if (STATE(rig)->attenuator[0] == 0)
+        if (STATE(rig)->attenuator[0] == 0)
         {
             return -RIG_EINVAL;
         }

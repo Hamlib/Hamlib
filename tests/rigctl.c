@@ -262,6 +262,7 @@ int main(int argc, char *argv[])
         case '#':
             skip_init = 1;
             break;
+
         case '!':
             cookie_use = 1;
             break;
@@ -589,6 +590,7 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
             exit(2);
         }
+
         ptt_type = my_rig->caps->ptt_type; // in case we set the ptt_type with set_conf
 
         token = strtok(NULL, ",");
@@ -615,8 +617,9 @@ int main(int argc, char *argv[])
     if (ptt_file)
     {
         strncpy(PTTPORT(my_rig)->pathname, ptt_file, HAMLIB_FILPATHLEN - 1);
+
         // default to RTS when ptt_type is not specified
-        if (ptt_type == RIG_PTT_NONE) 
+        if (ptt_type == RIG_PTT_NONE)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: defaulting to RTS PTT\n", __func__);
             my_rig->caps->ptt_type = ptt_type = RIG_PTT_SERIAL_RTS;
@@ -854,7 +857,8 @@ int main(int argc, char *argv[])
         // Update our power status in case power gets turned off
         // Check power status if rig is powered off, but not more often than once per second
         if (my_rig->caps->get_powerstat && (retcode == -RIG_ETIMEOUT ||
-            (retcode == -RIG_EPOWER && elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_GET) >= 1000)))
+                                            (retcode == -RIG_EPOWER
+                                             && elapsed_ms(&powerstat_check_time, HAMLIB_ELAPSED_GET) >= 1000)))
         {
             powerstat_t powerstat;
             rig_get_powerstat(my_rig, &powerstat);

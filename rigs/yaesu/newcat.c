@@ -477,9 +477,10 @@ int newcat_init(RIG *rig)
     ENTERFUNC;
 
     STATE(rig)->priv = (struct newcat_priv_data *) calloc(1,
-                      sizeof(struct newcat_priv_data));
+                       sizeof(struct newcat_priv_data));
 
-    if (!STATE(rig)->priv)                                  /* whoops! memory shortage! */
+    if (!STATE(
+                rig)->priv)                                  /* whoops! memory shortage! */
     {
         RETURNFUNC(-RIG_ENOMEM);
     }
@@ -3705,6 +3706,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
         // some rigs reset the serial port during power up
         // so we reopen the com port  again
         HAMLIB_TRACE;
+
         //oser_close(rp);
         // we can add more rigs to this exception to speed them up
         if (!is_ft991)
@@ -3714,6 +3716,7 @@ int newcat_set_powerstat(RIG *rig, powerstat_t status)
             //PTTPORT(rig)->fd = ser_open(rp);
             rig_open(rig);
         }
+
         break;
 
     case RIG_POWER_OFF:

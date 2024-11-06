@@ -23,7 +23,7 @@ int freqB = 14074500;
 int modeA = 0;
 int width = 3010;
 int ptt = 0;
-int keyspd=20;
+int keyspd = 20;
 
 int
 getmyline(int fd, char *buf)
@@ -35,7 +35,8 @@ getmyline(int fd, char *buf)
 
     while (read(fd, &c, 1) > 0)
     {
-        if (c == 0x0d) break;
+        if (c == 0x0d) { break; }
+
         buf[i++] = c;
         n++;
     }
@@ -161,11 +162,11 @@ again:
         }
         else if (strncmp(buf, "?CS", 3) == 0)
         {
-            sprintf(reply, "@CS%d\r",keyspd);
+            sprintf(reply, "@CS%d\r", keyspd);
         }
         else if (strncmp(buf, "*CS", 3) == 0)
         {
-            sscanf(buf, "*CS%d\r",&keyspd);
+            sscanf(buf, "*CS%d\r", &keyspd);
         }
         else { printf("Unknown cmd=%s\n", buf); }
     }

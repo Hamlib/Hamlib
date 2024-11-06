@@ -366,7 +366,7 @@ static int ft757_init(RIG *rig)
     }
 
     STATE(rig)->priv = (struct ft757_priv_data *) calloc(1,
-                      sizeof(struct ft757_priv_data));
+                       sizeof(struct ft757_priv_data));
 
     if (!STATE(rig)->priv)     /* whoops! memory shortage! */
     {
@@ -901,7 +901,8 @@ static int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
 /*
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  */
-static int ft757gx_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
+static int ft757gx_get_conf2(RIG *rig, hamlib_token_t token, char *val,
+                             int val_len)
 {
     struct ft757_priv_data *priv;
     struct rig_state *rs;

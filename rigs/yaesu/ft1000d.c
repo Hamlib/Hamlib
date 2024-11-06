@@ -585,7 +585,7 @@ static int ft1000d_init(RIG *rig)
     }
 
     STATE(rig)->priv = (struct ft1000d_priv_data *) calloc(1,
-                      sizeof(struct ft1000d_priv_data));
+                       sizeof(struct ft1000d_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -2439,7 +2439,8 @@ static int ft1000d_set_vfo(RIG *rig, vfo_t vfo)
     }
 
     priv = (struct ft1000d_priv_data *)STATE(rig)->priv;
-    rig_debug(RIG_DEBUG_TRACE, "%s: MADE IT TO STATE(rig)->priv = 0x%02x\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: MADE IT TO STATE(rig)->priv = 0x%02x\n",
+              __func__,
               RIG_VFO_CURR);
 
 // if (vfo == RIG_VFO_CURR) {

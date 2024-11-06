@@ -153,7 +153,7 @@ static struct
     { RIG_MDS, RIG_BACKEND_MDS, RIG_FUNCNAMA(mds) },
     { RIG_ANYTONE, RIG_BACKEND_ANYTONE, RIG_FUNCNAMA(anytone) },
     { RIG_MOTOROLA, RIG_BACKEND_MOTOROLA, RIG_FUNCNAMA(motorola) },
-	{ RIG_COMMRADIO, RIG_BACKEND_COMMRADIO, RIG_FUNCNAM(commradio) },
+    { RIG_COMMRADIO, RIG_BACKEND_COMMRADIO, RIG_FUNCNAM(commradio) },
     { 0, NULL }, /* end */
 };
 
@@ -305,6 +305,7 @@ int HAMLIB_API rig_check_backend(rig_model_t rig_model)
     }
 
 #if 0 // this stopped a 2nd rig_init call with a valid model to fail -- reversing
+
     // hmmm...no caps so did we already load the rigs?
     for (n = 0, i = 0; i < RIGLSTHASHSZ; i++)
     {

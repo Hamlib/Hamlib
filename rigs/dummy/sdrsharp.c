@@ -275,7 +275,7 @@ static int sdrsharp_init(RIG *rig)
     rig_debug(RIG_DEBUG_TRACE, "%s version %s\n", __func__, rig->caps->version);
 
     STATE(rig)->priv  = (struct sdrsharp_priv_data *)calloc(1, sizeof(
-                           struct sdrsharp_priv_data));
+                            struct sdrsharp_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -315,7 +315,8 @@ static int sdrsharp_init(RIG *rig)
 static int sdrsharp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char value[MAXARGLEN];
-    struct sdrsharp_priv_data *priv = (struct sdrsharp_priv_data *) STATE(rig)->priv;
+    struct sdrsharp_priv_data *priv = (struct sdrsharp_priv_data *) STATE(
+                                          rig)->priv;
 
     ENTERFUNC;
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__,

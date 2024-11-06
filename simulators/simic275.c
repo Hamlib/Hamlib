@@ -222,7 +222,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         if (frame[5] == 0xfd)
         {
-            frame[5] = split; 
+            frame[5] = split;
             printf("get split %d\n", 1);
             frame[6] = 0xfd;
             n = write(fd, frame, 7);

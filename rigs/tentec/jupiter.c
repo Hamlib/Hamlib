@@ -292,7 +292,7 @@ int tt538_init(RIG *rig)
     struct tt538_priv_data *priv;
 
     STATE(rig)->priv = (struct tt538_priv_data *) calloc(1, sizeof(
-                          struct tt538_priv_data));
+                           struct tt538_priv_data));
 
     if (!STATE(rig)->priv)
     {
@@ -340,7 +340,8 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 int tt538_get_vfo(RIG *rig, vfo_t *vfo)
 {
 
-    const struct tt538_priv_data *priv = (struct tt538_priv_data *) STATE(rig)->priv;
+    const struct tt538_priv_data *priv = (struct tt538_priv_data *) STATE(
+            rig)->priv;
     *vfo = priv->vfo_curr;
     return RIG_OK;
 }
@@ -444,9 +445,9 @@ int tt538_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char bytes[4];
     unsigned char cmdbuf[16];
-    int retval=-RIG_EINTERNAL;
+    int retval = -RIG_EINTERNAL;
     int retry = STATE(rig)->retry;
-    freq_t freqchk=0;
+    freq_t freqchk = 0;
 
     /* Freq is 4 bytes long, MSB sent first. */
     bytes[3] = ((unsigned int) freq >> 24) & 0xff;
@@ -454,17 +455,23 @@ int tt538_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     bytes[1] = ((unsigned int) freq >>  8) & 0xff;
     bytes[0] = ((unsigned int) freq) & 0xff;
 
-    do {
-    SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*%c%c%c%c%c" EOM,
-             which_vfo(rig, vfo),
-             bytes[3], bytes[2], bytes[1], bytes[0]);
+    do
+    {
+        SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "*%c%c%c%c%c" EOM,
+                 which_vfo(rig, vfo),
+                 bytes[3], bytes[2], bytes[1], bytes[0]);
 
-    retval = tt538_transaction(rig, (char *) cmdbuf, 6,  NULL,
-                             NULL);
-    if (retval != RIG_OK) continue;
-    retval = tt538_get_freq(rig, vfo, &freqchk);
-    if (retval != RIG_OK) return retval;
-    } while ( freq != freqchk && --retry >= 0);
+        retval = tt538_transaction(rig, (char *) cmdbuf, 6,  NULL,
+                                   NULL);
+
+        if (retval != RIG_OK) { continue; }
+
+        retval = tt538_get_freq(rig, vfo, &freqchk);
+
+        if (retval != RIG_OK) { return retval; }
+    }
+    while (freq != freqchk && --retry >= 0);
+
     return retval;
 }
 
@@ -643,7 +650,8 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     unsigned char cmdbuf[32], respbuf[32], ttmode;
     int resp_len, retval;
 
-    const struct tt538_priv_data *priv = (struct tt538_priv_data *) STATE(rig)->priv;
+    const struct tt538_priv_data *priv = (struct tt538_priv_data *) STATE(
+            rig)->priv;
 
     /* Query mode for both VFOs. */
     SNPRINTF((char *) cmdbuf, sizeof(cmdbuf), "?M" EOM);

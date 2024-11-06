@@ -192,7 +192,8 @@ int g3_init(RIG *rig)
 {
     struct g3_priv_data *priv;
 
-    STATE(rig)->priv = (struct g3_priv_data *)calloc(1, sizeof(struct g3_priv_data));
+    STATE(rig)->priv = (struct g3_priv_data *)calloc(1,
+                       sizeof(struct g3_priv_data));
 
     if (!STATE(rig)->priv)
     {

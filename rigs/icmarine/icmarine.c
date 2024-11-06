@@ -130,7 +130,7 @@ int icmarine_init(RIG *rig)
     priv_caps = (const struct icmarine_priv_caps *) caps->priv;
 
     STATE(rig)->priv = (struct icmarine_priv_data *)calloc(1, sizeof(
-                          struct icmarine_priv_data));
+                           struct icmarine_priv_data));
 
     if (!STATE(rig)->priv)
     {

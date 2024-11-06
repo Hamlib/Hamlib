@@ -110,7 +110,9 @@ static int barrett4100_open(RIG *rig)
     ENTERFUNC;
     retval = barrett_transaction2(rig, "M:REMOTE SENTER2,1", 3, &response);
 
-    rig_debug(RIG_DEBUG_ERR, "%s: back from REMOTE SENTER2: got %d\n", __func__, retval);
+    rig_debug(RIG_DEBUG_ERR, "%s: back from REMOTE SENTER2: got %d\n", __func__,
+              retval);
+
     if (response[0] != 's')
     {
         rig_debug(RIG_DEBUG_ERR, "%s: REMOTE SENTER2 error: got %s\n", __func__,
@@ -159,6 +161,7 @@ int barrett4100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
             rig_debug(RIG_DEBUG_ERR, "%s: unable to parse s gRF\n", __func__);
         }
     }
+
     retval = barrett_transaction2(rig, "M:FF STF%.0f GTF", freq, &response);
 
     if (retval != RIG_OK)
@@ -196,10 +199,12 @@ int barrett4100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     else
     {
         int n = sscanf(response, "gRF%lf", freq);
+
         //int n = sscanf(response, "gRFA1,%*d,%lf,%*d", freq);
         if (n != 1)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s(%d): unable to parse freq from '%s'\n", __func__, __LINE__, response);
+            rig_debug(RIG_DEBUG_ERR, "%s(%d): unable to parse freq from '%s'\n", __func__,
+                      __LINE__, response);
             return -RIG_EPROTO;
         }
     }

@@ -141,27 +141,40 @@ int xiegu_rig_open(RIG *rig)
     unsigned short iid;
 
     retval = icom_rig_open(rig);
-    if (retval != RIG_OK) return retval;
+
+    if (retval != RIG_OK) { return retval; }
 
     retval = icom_transaction(rig, cmd, subcmd, NULL, 0, id, &id_len);
 
     if (retval == RIG_OK)
     {
-        dump_hex(id,id_len);
+        dump_hex(id, id_len);
         iid = (int)id[1];
+
         if (id_len > 2)
         {
             iid = (iid << 8) + id[2];
         }
+
         rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu Radio ID=0x%04x\n", __func__, iid);
-        switch(iid)
+
+        switch (iid)
         {
-            case 0x0070: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G90");break;
-            case 0x0090: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G90S");break;
-            case 0x0106: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "G106/G106C");break;
-            case 0x6100:
-            case 0x00a4: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "X6100/X6200");break;
-            default: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__, "Unknown");break;
+        case 0x0070: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
+                                   "G90"); break;
+
+        case 0x0090: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
+                                   "G90S"); break;
+
+        case 0x0106: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
+                                   "G106/G106C"); break;
+
+        case 0x6100:
+        case 0x00a4: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
+                                   "X6100/X6200"); break;
+
+        default: rig_debug(RIG_DEBUG_VERBOSE, "%s: Xiegu model %s\n", __func__,
+                               "Unknown"); break;
         }
     }
 
@@ -497,7 +510,7 @@ struct rig_caps x6100_caps =
     .set_conf =  icom_set_conf,
     .get_conf =  icom_get_conf,
 
-    .priv = (void *) &x6100_priv_caps,
+    .priv = (void *)& x6100_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
     .rig_open =  xiegu_rig_open,
@@ -673,7 +686,7 @@ struct rig_caps x6200_caps =
     .set_conf =  icom_set_conf,
     .get_conf =  icom_get_conf,
 
-    .priv = (void *) &x6100_priv_caps,
+    .priv = (void *)& x6100_priv_caps,
     .rig_init =   icom_init,
     .rig_cleanup =   icom_cleanup,
     .rig_open =  xiegu_rig_open,
@@ -1222,6 +1235,7 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
                  split for certainty */
         rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+
         if (rc != RIG_OK)
         {
             return rc;
@@ -1248,6 +1262,7 @@ static int x108g_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     {
         /* Re-enable split */
         rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
+
         if (rc != RIG_OK)
         {
             return rc;
@@ -1299,6 +1314,7 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
         /* VFO A/B style rigs swap VFO on split Tx so we need to disable
                  split for certainty */
         rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_OFF, NULL, 0, ackbuf, &ack_len);
+
         if (rc != RIG_OK)
         {
             return rc;
@@ -1326,6 +1342,7 @@ static int x108g_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     {
         /* Re-enable split */
         rc = icom_transaction(rig, C_CTL_SPLT, S_SPLT_ON, NULL, 0, ackbuf, &ack_len);
+
         if (rc != RIG_OK)
         {
             return rc;

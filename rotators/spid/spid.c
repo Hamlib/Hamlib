@@ -219,7 +219,8 @@ static int spid_rot_init(ROT *rot)
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unknown SPID model=%s\n", __func__,  rot->caps->model_name);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown SPID model=%s\n", __func__,
+                  rot->caps->model_name);
     }
 
     return RIG_OK;
@@ -235,7 +236,7 @@ static int spid_rot_cleanup(ROT *rot)
     }
 
     if (ROTSTATE(rot)->priv && (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG ||
-                            rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG))
+                                rot->caps->rot_model == ROT_MODEL_SPID_MD01_ROT2PROG))
     {
         free(ROTSTATE(rot)->priv);
     }
@@ -540,7 +541,7 @@ static int spid_rot_stop(ROT *rot)
         return retval;
     }
 
-    if (priv) priv->dir = 0;
+    if (priv) { priv->dir = 0; }
 
     return RIG_OK;
 }

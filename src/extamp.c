@@ -217,7 +217,8 @@ const struct confparams *HAMLIB_API amp_ext_lookup(AMP *amp, const char *name)
  * \return A pointer to the containing #confparams structure member or NULL if
  * nothing found or if \a amp is NULL or inconsistent.
  */
-const struct confparams *HAMLIB_API amp_ext_lookup_tok(AMP *amp, hamlib_token_t token)
+const struct confparams *HAMLIB_API amp_ext_lookup_tok(AMP *amp,
+        hamlib_token_t token)
 {
     const struct confparams *cfp;
 

@@ -751,16 +751,16 @@ int flex6k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
-        case RIG_LEVEL_RFPOWER:
-            if (val.f > 1.0) { return -RIG_EINVAL; }
+    case RIG_LEVEL_RFPOWER:
+        if (val.f > 1.0) { return -RIG_EINVAL; }
 
-            ival = val.f * 100;
-            SNPRINTF(cmd, sizeof(cmd) - 1, "ZZPC%03d", ival);
+        ival = val.f * 100;
+        SNPRINTF(cmd, sizeof(cmd) - 1, "ZZPC%03d", ival);
 
-            break;
+        break;
 
-        default:
-            return kenwood_set_level(rig, vfo, level, val);
+    default:
+        return kenwood_set_level(rig, vfo, level, val);
     }
 
     retval = kenwood_transaction(rig, cmd, NULL, 0);
@@ -794,14 +794,14 @@ int flex6k_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-        case RIG_LEVEL_RFPOWER:
-            cmd = "ZZPC";
-            len = 4;
-            ans = 3;
-            break;
+    case RIG_LEVEL_RFPOWER:
+        cmd = "ZZPC";
+        len = 4;
+        ans = 3;
+        break;
 
-        default:
-            return kenwood_get_level(rig, vfo, level, val);
+    default:
+        return kenwood_get_level(rig, vfo, level, val);
     }
 
     retval = kenwood_safe_transaction(rig, cmd, lvlbuf, sizeof(lvlbuf), len + ans);
@@ -815,23 +815,23 @@ int flex6k_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     switch (level)
     {
-        case RIG_LEVEL_RFPOWER:
-            n = sscanf(lvlbuf, "ZZPC%f", &val->f);
+    case RIG_LEVEL_RFPOWER:
+        n = sscanf(lvlbuf, "ZZPC%f", &val->f);
 
-            if (n != 1)
-            {
-                rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
-                        __func__, lvlbuf);
-                val->f = 0;
-                return -RIG_EPROTO;
-            }
+        if (n != 1)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Error parsing value from lvlbuf='%s'\n",
+                      __func__, lvlbuf);
+            val->f = 0;
+            return -RIG_EPROTO;
+        }
 
-            val->f /= 100;
+        val->f /= 100;
 
-            break;
+        break;
 
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: should never get here\n", __func__);
+    default:
+        rig_debug(RIG_DEBUG_ERR, "%s: should never get here\n", __func__);
     }
 
     return RIG_OK;

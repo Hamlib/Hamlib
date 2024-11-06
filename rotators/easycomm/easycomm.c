@@ -483,7 +483,8 @@ static int easycomm_rot_get_conf(ROT *rot, hamlib_token_t token, char *val)
  * e.g. x,yyyyy
  */
 
-static int easycomm_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
+static int easycomm_rot_set_conf(ROT *rot, hamlib_token_t token,
+                                 const char *val)
 {
     char cmdstr[16];
     int retval;

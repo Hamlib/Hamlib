@@ -37,15 +37,15 @@
 static int ic7300_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val);
 int ic7300_set_clock(RIG *rig, int year, int month, int day, int hour,
-        int min, int sec, double msec, int utc_offset);
+                     int min, int sec, double msec, int utc_offset);
 int ic7300_get_clock(RIG *rig, int *year, int *month, int *day,
-        int *hour,
-        int *min, int *sec, double *msec, int *utc_offset);
+                     int *hour,
+                     int *min, int *sec, double *msec, int *utc_offset);
 int ic9700_set_clock(RIG *rig, int year, int month, int day, int hour,
-        int min, int sec, double msec, int utc_offset);
+                     int min, int sec, double msec, int utc_offset);
 int ic9700_get_clock(RIG *rig, int *year, int *month, int *day,
-        int *hour,
-        int *min, int *sec, double *msec, int *utc_offset);
+                     int *hour,
+                     int *min, int *sec, double *msec, int *utc_offset);
 
 int ic9700_set_vfo(RIG *rig, vfo_t vfo);
 
@@ -2266,7 +2266,8 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
         }
         else
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: Invalid VFO %s in satellite mode\n", __func__, rig_strvfo(vfo));
+            rig_debug(RIG_DEBUG_ERR, "%s: Invalid VFO %s in satellite mode\n", __func__,
+                      rig_strvfo(vfo));
             RETURNFUNC(-RIG_EINVAL);
         }
     }
@@ -2291,6 +2292,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     {
         // First switch to Main receiver
         retval = icom_transaction(rig, C_SET_VFO, S_MAIN, NULL, 0, ackbuf, &ack_len);
+
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
@@ -2299,7 +2301,8 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
 
         if (cachep->satmode && vfo == RIG_VFO_MAIN_B)
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
+            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n",
+                      __func__);
             // we return RIG_OK anyways as this should just be a bad request
             RETURNFUNC(RIG_OK);
         }
@@ -2314,6 +2317,7 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
     {
         // First switch to Sub receiver
         retval = icom_transaction(rig, C_SET_VFO, S_SUB, NULL, 0, ackbuf, &ack_len);
+
         if (retval != RIG_OK)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, rigerror(retval));
@@ -2322,7 +2326,8 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo)
 
         if (cachep->satmode && vfo == RIG_VFO_SUB_B)
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n", __func__);
+            rig_debug(RIG_DEBUG_WARN, "%s: cannot switch to VFOB when in satmode\n",
+                      __func__);
             // we return RIG_OK anyways as this should just be a bad request
             RETURNFUNC(RIG_OK);
         }

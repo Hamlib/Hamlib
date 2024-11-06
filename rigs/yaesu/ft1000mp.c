@@ -750,7 +750,7 @@ static int ft1000mp_init(RIG *rig)
     ENTERFUNC;
 
     STATE(rig)->priv = (struct ft1000mp_priv_data *) calloc(1,
-                      sizeof(struct ft1000mp_priv_data));
+                       sizeof(struct ft1000mp_priv_data));
 
     if (!STATE(rig)->priv)                       /* whoops! memory shortage! */
     {

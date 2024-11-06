@@ -734,7 +734,8 @@ int HAMLIB_API amp_set_conf(AMP *amp, hamlib_token_t token, const char *val)
  *
  * \sa amp_set_conf()
  */
-int HAMLIB_API amp_get_conf2(AMP *amp, hamlib_token_t token, char *val, int val_len)
+int HAMLIB_API amp_get_conf2(AMP *amp, hamlib_token_t token, char *val,
+                             int val_len)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
