@@ -186,8 +186,8 @@ static const yaesu_cmd_set_t ncmd[] =
     { 1, { 0x04, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main AM */
     { 1, { 0x08, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main FM */
     { 1, { 0x88, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main FM-N */
-    { 1, { 0x0a, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main DIG */
-    { 1, { 0x0c, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main PKT */
+    { 1, { 0x0a, 0x00, 0x00, 0x00, 0x0a } }, /* mode set main DIG */
+    { 1, { 0x0c, 0x00, 0x00, 0x00, 0x0c } }, /* mode set main PKT */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* clar on */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x85 } }, /* clar off */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0xf5 } }, /* set clar freq */
@@ -310,7 +310,7 @@ struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20241101.0",
+    .version =             "20241109.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -460,7 +460,7 @@ struct rig_caps q900_caps =
     RIG_MODEL(RIG_MODEL_Q900),
     .model_name =          "Q900",
     .mfg_name =            "Guohe",
-    .version =             "20241101.0",
+    .version =             "20241109.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -610,7 +610,7 @@ struct rig_caps ft818_caps =
     RIG_MODEL(RIG_MODEL_FT818),
     .model_name =          "FT-818",
     .mfg_name =            "Yaesu",
-    .version =             "20221101.0",
+    .version =             "20221109.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
