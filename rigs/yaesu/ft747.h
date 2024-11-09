@@ -39,8 +39,9 @@
 
 
 /* Sequential fast writes confuse my FT747 without this delay */
+/* Node Red combined "F 028074000 M USB 0" needed 10ms */
 
-#define FT747_POST_WRITE_DELAY               5
+#define FT747_POST_WRITE_DELAY               10
 
 
 /*
