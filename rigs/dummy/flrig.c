@@ -143,7 +143,7 @@ struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "",
     .mfg_name = "FLRig",
-    .version = "20240612.0",
+    .version = "20241110.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -850,6 +850,10 @@ static int flrig_open(RIG *rig)
 
     strncpy(priv->info, value, sizeof(priv->info));
     rig_debug(RIG_DEBUG_VERBOSE, "Transceiver=%s\n", value);
+    char model_name[256];
+    snprintf(model_name,sizeof(model_name), "%.248s(%s)", value, "FLRig");
+    rig->caps->model_name = strdup(model_name);
+    rig->state.model_name = strdup(model_name);
 
     /* see if get_pwrmeter_scale is available */
     retval = flrig_transaction(rig, "rig.get_pwrmeter_scale", NULL, value,
