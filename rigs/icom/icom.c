@@ -9130,7 +9130,7 @@ int icom_is_async_frame(RIG *rig, size_t frame_length,
 
     /* Spectrum scope data is not CI-V transceive data, but handled the same way as it is pushed by the rig */
     // IC-7100 sends 0xe1 for broadcast frame?
-    return frame[2] == BCASTID || (frame[2] == CTRLID && frame[4] == C_CTL_SCP
+    return frame[2] == BCASTID || frame[2] == C_SND_MODE || (frame[2] == CTRLID && frame[4] == C_CTL_SCP
                                    && frame[5] == S_SCP_DAT);
 }
 
