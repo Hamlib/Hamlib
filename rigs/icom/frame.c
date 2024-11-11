@@ -346,7 +346,8 @@ again2:
         goto again2;
     }
 
-    if (sendbuf[3] != buf[2])
+    // IC-PW2 was sending fe fe 94 aa 1c 03
+    if (sendbuf[3] != buf[2] && buf[3] != 0xaa)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown async?  read again\n", __func__);
         hl_usleep(100);
