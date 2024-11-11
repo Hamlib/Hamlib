@@ -9152,9 +9152,11 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
      * the rest is data
      * and don't forget one byte at the end for the EOM
      */
-    if (frame[2] != 0x00)
+    if (frame[2] != 0x00 || frame[2] == 0x01)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: 3rd byte not 0x00...not async\n", __func__);
+        // just ignoring 0x01 for now
+        // fe fe 01 94 1c 03 00 80 07 07 00 fd  
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: 3rd byte not 0x00 or is 0x01...not async\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
