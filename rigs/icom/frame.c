@@ -347,7 +347,7 @@ again2:
     }
 
     // IC-PW2 was sending fe fe 94 aa 1c 03
-    if (buf[3] == 0xaa)
+    if (buf[3] == 0xaa || buf[2] == 0xaa)
     {
         goto again2;
     }
