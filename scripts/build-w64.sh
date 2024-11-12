@@ -206,7 +206,7 @@ not appear to be correct to generate a 64 bit libhamlib-4.lib file!
 For VS 2022:
 
 cd lib/msvc
-c:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.32.31326\bin\Hostx64\x86\link.exe /lib /machine:i386 /def:libhamlib-4.def
+c:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.32.31326\bin\Hostx64\x86\lib.exe /lib /machine:i386 /def:libhamlib-4.def
 
 The published Hamlib API may be found at:
 
