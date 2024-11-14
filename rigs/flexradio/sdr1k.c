@@ -114,7 +114,7 @@ struct rig_caps sdr1k_rig_caps =
 {
     RIG_MODEL(RIG_MODEL_SDR1000),
     .model_name =     "SDR-1000",
-    .mfg_name =       "Flex-radio",
+    .mfg_name =       "FlexRadio",
     .version =        "20200323.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_BETA,
