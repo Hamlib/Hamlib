@@ -1339,7 +1339,7 @@ struct rig_caps f6k_caps =
 {
     RIG_MODEL(RIG_MODEL_F6K),
     .model_name =       "6xxx",
-    .mfg_name =     "Flex-radio",
+    .mfg_name =     "FlexRadio",
     .version =      "20240829.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,
@@ -1481,7 +1481,7 @@ struct rig_caps powersdr_caps =
 {
     RIG_MODEL(RIG_MODEL_POWERSDR),
     .model_name =       "PowerSDR",
-    .mfg_name =     "Flex-radio/Apache",
+    .mfg_name =     "FlexRadio/Apache",
     .version =      "20231107.0",
     .copyright =        "LGPL",
     .status =       RIG_STATUS_STABLE,

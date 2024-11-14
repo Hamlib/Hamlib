@@ -1,4 +1,4 @@
-    .mfg_name =       "Flex-radio",
+    .mfg_name =       "FlexRadio",
     .version =        "20240814.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
