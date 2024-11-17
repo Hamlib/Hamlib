@@ -310,7 +310,7 @@ struct rig_caps ft817_caps =
     RIG_MODEL(RIG_MODEL_FT817),
     .model_name =          "FT-817",
     .mfg_name =            "Yaesu",
-    .version =             "20241112.0",
+    .version =             "20241117.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -460,7 +460,7 @@ struct rig_caps q900_caps =
     RIG_MODEL(RIG_MODEL_Q900),
     .model_name =          "Q900",
     .mfg_name =            "Guohe",
-    .version =             "20241112.0",
+    .version =             "20241117.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -610,7 +610,7 @@ struct rig_caps ft818_caps =
     RIG_MODEL(RIG_MODEL_FT818),
     .model_name =          "FT-818",
     .mfg_name =            "Yaesu",
-    .version =             "20221112.0",
+    .version =             "20221117.0",
     .copyright =           "LGPL",
     .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -1710,11 +1710,15 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         digmode[0] = digmode[0] >> 5; // shift 5 bits
 
         // check if we're already in the mode and return if so
-        if (digmode[0] == 0x00 &&  mode == RIG_MODE_RTTY) { return RIG_OK; }
-        else if (digmode[0] == 0x01 &&  mode == RIG_MODE_PSKR) { return RIG_OK; }
-        else if (digmode[0] == 0x02 &&  mode == RIG_MODE_PSK) { return RIG_OK; }
-        else if (digmode[0] == 0x03 &&  mode == RIG_MODE_PKTLSB) { return RIG_OK; }
-        else if (digmode[0] == 0x04 &&  mode == RIG_MODE_PKTUSB) { return RIG_OK; }
+        // the memory check was failing when in FM mode -- still showing digmode
+        if (rig->state.current_mode == mode)
+        {
+            if (digmode[0] == 0x00 &&  mode == RIG_MODE_RTTY) { return RIG_OK; }
+            else if (digmode[0] == 0x01 &&  mode == RIG_MODE_PSKR) { return RIG_OK; }
+            else if (digmode[0] == 0x02 &&  mode == RIG_MODE_PSK) { return RIG_OK; }
+            else if (digmode[0] == 0x03 &&  mode == RIG_MODE_PKTLSB) { return RIG_OK; }
+            else if (digmode[0] == 0x04 &&  mode == RIG_MODE_PKTUSB) { return RIG_OK; }
+        }
 
         memcpy(data, ncmd[FT817_NATIVE_CAT_EEPROM_WRITE].nseq, YAESU_CMD_LENGTH);
 
