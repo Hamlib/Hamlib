@@ -1011,6 +1011,13 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         RETURNFUNC(RIG_OK); /* make it look like we changed */
     }
 
+    if ((is_ftdx101d || is_ftdx101mp) && (freq >= 70000000 && freq <= 70499999))
+    {
+        // ensure the tuner is off for 70cm -- can cause damage to the rig
+        newcat_set_func(rig, RIG_VFO_A, RIG_FUNC_TUNER, 0);
+        hl_usleep(100 * 1000); // give it a chance to turn off
+    }
+
     switch (vfo)
     {
     case RIG_VFO_A:
