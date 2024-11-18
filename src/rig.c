@@ -1517,7 +1517,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (status < 0)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %s\n", __func__,
+            rig_debug(RIG_DEBUG_ERR, "%s: cw_data_handler_start failed: %.23000s\n", __func__,
                       rigerror(status));
             port_close(rp, rp->type.rig);
             RETURNFUNC2(status);
@@ -1602,7 +1602,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_publisher_start failed: %s\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_publisher_start failed: %.23000s\n",
                   __FILE__,
                   rigerror(retval));
         // we will consider this non-fatal for now
@@ -1613,7 +1613,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_receiver_start failed: %s\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: network_multicast_receiver_start failed: %.23000s\n",
                   __FILE__,
                   rigerror(retval));
         // we will consider this non-fatal for now
@@ -1623,7 +1623,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (retval != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: rig_poll_routine_start failed: %s\n", __FILE__,
+        rig_debug(RIG_DEBUG_ERR, "%s: rig_poll_routine_start failed: %.23000s\n", __FILE__,
                   rigerror(retval));
         // we will consider this non-fatal for now
     }
@@ -2287,7 +2287,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
         if (retcode != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_ERR, "%s: set_vfo failed: %s\n", __func__,
+            rig_debug(RIG_DEBUG_ERR, "%s: set_vfo failed: %.23000s\n", __func__,
                       rigerror(retcode));
         }
 
@@ -2913,7 +2913,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     if (retcode != RIG_OK)
     {
-        rig_debug(RIG_DEBUG_TRACE, "%s: failed set_mode(%s)=%s\n",
+        rig_debug(RIG_DEBUG_TRACE, "%s: failed set_mode(%s)=%.23000s\n",
                   __func__, rig_strrmode(mode), rigerror(retcode));
         ELAPSED2;
         LOCK(0);
@@ -3328,7 +3328,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 
         if (retcode != RIG_OK)
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: rig_get_vfo error=%s\n", __func__,
+            rig_debug(RIG_DEBUG_WARN, "%s: rig_get_vfo error=%.23000s\n", __func__,
                       rigerror(retcode));
         }
 
@@ -8768,7 +8768,7 @@ void *morse_data_handler(void *arg)
 
                     if (result != RIG_OK)
                     {
-                        rig_debug(RIG_DEBUG_ERR, "%s: error: %s\n", __func__, rigerror(result));
+                        rig_debug(RIG_DEBUG_ERR, "%s: error: %.23971s\n", __func__, rigerror(result));
 
                         if (result == -RIG_EINVAL)
                         {
