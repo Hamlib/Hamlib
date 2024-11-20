@@ -1675,7 +1675,7 @@ int kenwood_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 }
 
 
-/* IF TB
+/* IF
  *  Gets split VFO status from kenwood_get_if()
  *
  */
@@ -1692,30 +1692,6 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
     if (!split || !txvfo)
     {
         RETURNFUNC(-RIG_EINVAL);
-    }
-
-    if (RIG_IS_TS990S || RIG_IS_TS890S)
-    {
-        char buf[4];
-
-        if (RIG_OK == (retval = kenwood_safe_transaction(rig, "TB", buf, sizeof(buf),
-                                3)))
-        {
-            if ('1' == buf[2])
-            {
-                *split = RIG_SPLIT_ON;
-                *txvfo = RIG_VFO_SUB;
-                priv->tx_vfo = rs->tx_vfo = *txvfo;
-            }
-            else
-            {
-                *split = RIG_SPLIT_OFF;
-                *txvfo = RIG_VFO_MAIN;
-                priv->tx_vfo = rs->tx_vfo = *txvfo;
-            }
-        }
-
-        RETURNFUNC(retval);
     }
 
     retval = kenwood_get_if(rig);
