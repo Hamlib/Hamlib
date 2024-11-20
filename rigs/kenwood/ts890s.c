@@ -466,6 +466,50 @@ static int ts890_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     return RIG_OK;
 }
 
+/*
+ *  Gets split VFO status
+ *
+ */
+static int ts890s_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
+                                vfo_t *txvfo)
+{
+    char buf[4];
+    int retval;
+    vfo_t tvfo;
+    struct rig_state *rs = STATE(rig);
+    struct kenwood_priv_data *priv = rs->priv;
+
+    if (RIG_OK == (retval = kenwood_safe_transaction(rig, "FT", buf, sizeof(buf),
+                                3)))
+    {
+        if ('0' == buf[2])
+        {
+            tvfo = RIG_VFO_A;
+        }
+        else if ('1' == buf[2])
+        {
+            tvfo = RIG_VFO_B;
+        }
+        else if ('3' == buf[2])
+        {
+            tvfo = RIG_VFO_MEM;
+        }
+        else
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: Unknown VFO - %s\n", __func__, buf);
+            return -RIG_EPROTO;
+        }
+
+        *txvfo = priv->tx_vfo = rs->tx_vfo = tvfo;
+	// Now get split status
+	retval = kenwood_safe_transaction(rig, "TB", buf, sizeof buf, 3);
+	if (RIG_OK != retval) {return retval;}
+        *split = priv->split = buf[2] == '1';
+    }
+
+    return retval;
+}
+
 
 static struct kenwood_priv_caps ts890s_priv_caps =
 {
@@ -626,7 +670,7 @@ struct rig_caps ts890s_caps =
     .set_vfo = kenwood_set_vfo,
     .get_vfo = kenwood_get_vfo_if,
     .set_split_vfo = kenwood_set_split_vfo,
-    .get_split_vfo = kenwood_get_split_vfo_if,
+    .get_split_vfo = ts890s_get_split_vfo,
     .set_ctcss_tone = kenwood_set_ctcss_tone_tn,
     .get_ctcss_tone = kenwood_get_ctcss_tone,
     .set_ctcss_sql = kenwood_set_ctcss_sql,
