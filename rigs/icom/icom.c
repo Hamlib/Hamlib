@@ -4547,6 +4547,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->f =
                 rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal) * 0.01;
         }
+
         if (RIG_IS_IC9700 && CACHE(rig)->freqMainA >= 1e9)
         {
             val->f /= 10;   // power scale is different for 10GHz
@@ -9134,8 +9135,9 @@ int icom_is_async_frame(RIG *rig, size_t frame_length,
 
     /* Spectrum scope data is not CI-V transceive data, but handled the same way as it is pushed by the rig */
     // IC-7100 sends 0xe1 for broadcast frame?
-    return frame[2] == BCASTID || frame[2] == C_SND_MODE || (frame[2] == CTRLID && frame[4] == C_CTL_SCP
-                                   && frame[5] == S_SCP_DAT);
+    return frame[2] == BCASTID || frame[2] == C_SND_MODE || (frame[2] == CTRLID
+            && frame[4] == C_CTL_SCP
+            && frame[5] == S_SCP_DAT);
 }
 
 int icom_process_async_frame(RIG *rig, size_t frame_length,
@@ -9159,8 +9161,9 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
     if (frame[2] != 0x00 || frame[2] == 0x01)
     {
         // just ignoring 0x01 for now
-        // fe fe 01 94 1c 03 00 80 07 07 00 fd  
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: 3rd byte not 0x00 or is 0x01...not async\n", __func__);
+        // fe fe 01 94 1c 03 00 80 07 07 00 fd
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: 3rd byte not 0x00 or is 0x01...not async\n",
+                  __func__);
         RETURNFUNC(RIG_OK);
     }
 
