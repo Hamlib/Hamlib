@@ -945,7 +945,7 @@ static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         RETURNFUNC(retval);
     }
 
-    priv = (struct ft1000mp_priv_data *)rig->state.priv;
+    priv = (struct ft1000mp_priv_data *)STATE(rig)->priv;
 
     if (vfo == RIG_VFO_B)
     {
