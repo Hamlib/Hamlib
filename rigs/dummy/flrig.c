@@ -853,7 +853,7 @@ static int flrig_open(RIG *rig)
     char model_name[256];
     snprintf(model_name,sizeof(model_name), "%.248s(%s)", value, "FLRig");
     rig->caps->model_name = strdup(model_name);
-    rig->state.model_name = strdup(model_name);
+    STATE(rig)->model_name = strdup(model_name);
 
     /* see if get_pwrmeter_scale is available */
     retval = flrig_transaction(rig, "rig.get_pwrmeter_scale", NULL, value,

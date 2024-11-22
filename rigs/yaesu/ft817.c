@@ -1711,7 +1711,7 @@ static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
         // check if we're already in the mode and return if so
         // the memory check was failing when in FM mode -- still showing digmode
-        if (rig->state.current_mode == mode)
+        if (STATE(rig)->current_mode == mode)
         {
             if (digmode[0] == 0x00 &&  mode == RIG_MODE_RTTY) { return RIG_OK; }
             else if (digmode[0] == 0x01 &&  mode == RIG_MODE_PSKR) { return RIG_OK; }
