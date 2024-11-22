@@ -7979,7 +7979,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
              "VFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nVFO=%s Freq=%.0f Mode=%s Width=%d RX=%d TX=%d\nSplit=%d SatMode=%d\nRig=%s\nApp=%s\nVersion=20241103 1.1.0\nModel=%u\n",
              rig_strvfo(vfoA), freqA, modeAstr, (int)widthA, rxa, txa, rig_strvfo(vfoB),
              freqB, modeBstr, (int)widthB, rxb, txb, split, satmode, rig->caps->model_name,
-             rig->state.client_version, rig->caps->rig_model);
+             STATE(rig)->client_version, rig->caps->rig_model);
     unsigned long crc = CRC32_function((unsigned char *)response, strlen(response));
     char tmpstr[32];
     SNPRINTF(tmpstr, sizeof(tmpstr), "CRC=0x%08lx\n", crc);
