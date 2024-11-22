@@ -88,6 +88,7 @@
 
 /* prototypes */
 static int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ts990s_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo);
 
 static rmode_t ts990s_mode_table[KENWOOD_MODE_TABLE_MAX] =
 {
@@ -343,16 +344,16 @@ struct rig_caps ts990s_caps =
     .rig_cleanup = kenwood_cleanup,
     .set_freq =  kenwood_set_freq,
     .get_freq =  kenwood_get_freq,
-    .set_rit =  kenwood_set_rit,
-    .get_rit =  kenwood_get_rit,
-    .set_xit =  kenwood_set_xit,
-    .get_xit =  kenwood_get_xit,
+    .set_rit =  kenwood_set_rit_new,
+    .get_rit =  kenwood_get_rit_new,
+    .set_xit =  kenwood_set_rit_new,  // Use same routines as for rit
+    .get_xit =  kenwood_get_rit_new,  // Same
     .set_mode =  kenwood_set_mode,
     .get_mode =  kenwood_get_mode,
     .set_vfo =  kenwood_set_vfo_main_sub,
     .get_vfo =  kenwood_get_vfo_main_sub,
     .set_split_vfo = kenwood_set_split_vfo,
-    .get_split_vfo = kenwood_get_split_vfo_if,
+    .get_split_vfo = ts990s_get_split_vfo,
     .set_ctcss_tone =  kenwood_set_ctcss_tone_tn,
     .get_ctcss_tone =  kenwood_get_ctcss_tone,
     .set_ctcss_sql =  kenwood_set_ctcss_sql,
@@ -757,6 +758,37 @@ int ts990s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         rig_debug(RIG_DEBUG_ERR, "%s: unsupported get_level %s", __func__,
                   rig_strlevel(level));
         return -RIG_EINVAL;
+    }
+
+    return retval;
+}
+
+/*
+ *  Gets split VFO status
+ *
+ */
+static int ts990s_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
+                             vfo_t *txvfo)
+{
+    char buf[4];
+    int retval;
+    struct rig_state *rs = STATE(rig);
+    struct kenwood_priv_data *priv = rs->priv;
+
+    if (RIG_OK == (retval = kenwood_safe_transaction(rig, "TB", buf, sizeof(buf),
+                                3)))
+    {
+        if ('1' == buf[2])
+        {
+            *split = RIG_SPLIT_ON;
+            *txvfo = RIG_VFO_SUB;
+        }
+        else
+        {
+            *split = RIG_SPLIT_OFF;
+            *txvfo = RIG_VFO_MAIN;
+        }
+        priv->tx_vfo = rs->tx_vfo = *txvfo;
     }
 
     return retval;

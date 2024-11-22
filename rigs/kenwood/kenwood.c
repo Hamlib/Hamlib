@@ -1675,7 +1675,7 @@ int kenwood_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 }
 
 
-/* IF TB
+/* IF
  *  Gets split VFO status from kenwood_get_if()
  *
  */
@@ -1692,30 +1692,6 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split,
     if (!split || !txvfo)
     {
         RETURNFUNC(-RIG_EINVAL);
-    }
-
-    if (RIG_IS_TS990S || RIG_IS_TS890S)
-    {
-        char buf[4];
-
-        if (RIG_OK == (retval = kenwood_safe_transaction(rig, "TB", buf, sizeof(buf),
-                                3)))
-        {
-            if ('1' == buf[2])
-            {
-                *split = RIG_SPLIT_ON;
-                *txvfo = RIG_VFO_SUB;
-                priv->tx_vfo = rs->tx_vfo = *txvfo;
-            }
-            else
-            {
-                *split = RIG_SPLIT_OFF;
-                *txvfo = RIG_VFO_MAIN;
-                priv->tx_vfo = rs->tx_vfo = *txvfo;
-            }
-        }
-
-        RETURNFUNC(retval);
     }
 
     retval = kenwood_get_if(rig);
@@ -1884,7 +1860,6 @@ int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo)
               rig_strvfo(priv->tx_vfo));
     RETURNFUNC(RIG_OK);
 }
-
 
 /*
  * kenwood_set_freq
@@ -2156,6 +2131,29 @@ int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     RETURNFUNC(RIG_OK);
 }
 
+/* RF
+ * kenwood_get_rit_new (also usable as kenwood_get_xit_new)
+ *   Gets the RIT or XIT value using dedicated command
+ *   and without using IF.
+ */
+int kenwood_get_rit_new(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+{
+    int retval, tempf;
+    char rfbuf[10];
+
+    ENTERFUNC;
+    if (!rit) { RETURNFUNC(-RIG_EINVAL); }
+    retval = kenwood_safe_transaction(rig, "RF", rfbuf, sizeof rfbuf, 7);
+    if (retval != RIG_OK) {RETURNFUNC(retval); }
+    tempf = atoi(rfbuf + 3);
+    if (rfbuf[2] == '1')
+    {
+        tempf = -tempf;
+    }
+    *rit = tempf;
+    RETURNFUNC(RIG_OK);
+}
+
 /*
  * rit can only move up/down by 10 Hz, so we use a loop...
  */
@@ -2250,6 +2248,30 @@ int kenwood_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     }
 
     RETURNFUNC2(retval);
+}
+
+/* RU/RD
+ * Set the RIT/XIT frequency offset
+ *  using dedicated commands (not IF)
+ */
+int kenwood_set_rit_new(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+    int retval, diff;
+    shortfreq_t oldrit;
+    char rdbuf[10];
+
+    ENTERFUNC;
+    if (abs(rit) > 9999) { RETURNFUNC(-RIG_EINVAL); }
+    retval = kenwood_get_rit_new(rig, vfo, &oldrit);
+    if (retval != RIG_OK) { RETURNFUNC(retval); }
+    if (rit == oldrit)  // if the new value is the same
+    {
+        RETURNFUNC(RIG_OK); // Nothing to do
+    }
+    diff = rit - oldrit;
+    SNPRINTF(rdbuf, sizeof rdbuf, "R%c%05d;", diff < 0 ? 'D' : 'U', abs(diff));
+    retval = kenwood_transaction(rig, rdbuf, NULL, 0);
+    RETURNFUNC(retval);
 }
 
 /*
