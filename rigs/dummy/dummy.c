@@ -1013,7 +1013,7 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
             || priv->tx_vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_WARN,
-                  "%s: split not enabled, but set_split_freq() called? ignorning\n", __func__);
+                  "%s: split not enabled, but set_split_freq() called? ignoring\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
@@ -1037,7 +1037,7 @@ static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
             || priv->tx_vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_WARN,
-                  "%s: split not enabled, but get_split_freq() called? ignorning\n", __func__);
+                  "%s: split not enabled, but get_split_freq() called? ignoring\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
@@ -1062,7 +1062,7 @@ static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
             || priv->tx_vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_WARN,
-                  "%s: split not enabled, but set_split_mode() called? ignorning\n", __func__);
+                  "%s: split not enabled, but set_split_mode() called? ignoring\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
@@ -1092,7 +1092,7 @@ static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
             || priv->tx_vfo == RIG_VFO_CURR)
     {
         rig_debug(RIG_DEBUG_WARN,
-                  "%s: split not enabled, but get_split_mode() called? ignorning\n", __func__);
+                  "%s: split not enabled, but get_split_mode() called? ignoring\n", __func__);
         RETURNFUNC(RIG_OK);
     }
 
