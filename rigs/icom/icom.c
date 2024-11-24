@@ -2627,7 +2627,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 if (width > 3)
                 {
                     rig_debug(RIG_DEBUG_WARN,
-                              "%s: IC7300 width set by 1,2,3 - adjustable widht not implemented yet\n",
+                              "%s: IC7300 width set by 1,2,3 - adjustable width not implemented yet\n",
                               __func__);
                 }
             }
