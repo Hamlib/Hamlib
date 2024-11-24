@@ -1795,7 +1795,7 @@ readline_repeat:
     // chk_vfo is the one command we'll allow without a password
     // since it's in the initial handshake
     int preCmd =
-        0;  // some command are allowed without passoword to satisfy rigctld initialization from rigctl -m 2
+        0;  // some command are allowed without password to satisfy rigctld initialization from rigctl -m 2
 
     if (cmd_entry->arg1 != NULL)
     {
@@ -4730,7 +4730,7 @@ declare_proto_rig(dump_state)
     rig_debug(RIG_DEBUG_ERR, "%s: chk_vfo_executed=%d\n", __func__,
               chk_vfo_executed);
 
-    if (chk_vfo_executed) // for 3.3 compatiblility
+    if (chk_vfo_executed) // for 3.3 compatibility
     {
         fprintf(fout, "vfo_ops=0x%x\n", rig->caps->vfo_ops);
         fprintf(fout, "ptt_type=0x%x\n",
@@ -5141,7 +5141,7 @@ declare_proto_rig(send_cmd)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: arg1=%s\n", __func__, arg1);
 
-    // note that hex sscanf expectes at least 2 values to pass this check
+    // note that hex sscanf expects at least 2 values to pass this check
     // is there any situation where only one x00 value would be written?
     unsigned int n, i1, i2;
     n = sscanf(arg1, "x%x x%x", &i1, &i2);
@@ -5807,7 +5807,7 @@ static int parse_hex(const char *s, unsigned char *buf, int len)
     return i;
 }
 
-// sends whatever is in s -- no addtions or changes done
+// sends whatever is in s -- no additions or changes done
 extern int netrigctl_send_raw(RIG *rig, char *s);
 /* 0xa4 */
 declare_proto_rig(send_raw)

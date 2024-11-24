@@ -125,7 +125,7 @@ struct rig_caps ic970_caps =
     },
 
     .tuning_steps =     {
-        {IC970_MODES, 10}, /* TBC: does this rig supports settin tuning step? */
+        {IC970_MODES, 10}, /* TBC: does this rig supports setting tuning step? */
         RIG_TS_END,
     },
     /* mode/filter list, remember: order matters! */

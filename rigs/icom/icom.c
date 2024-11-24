@@ -1290,7 +1290,7 @@ retry_open:
     }
 
 #if 0 // do not do this here -- needs to be done when ranges are requested instead as this is very slow
-    icom_get_freq_range(rig); // try get to get rig range capability dyamically
+    icom_get_freq_range(rig); // try get to get rig range capability dynamically
 #endif
 
     rp->retry = retry_save;
@@ -1318,7 +1318,7 @@ int icom_rig_close(RIG *rig)
         int retval = abs(rig_set_powerstat(rig, 0));
 
         // this is only a fatal error if powerstat is implemented
-        // if not iplemented than we're at an error here
+        // if not implemented than we're at an error here
         if (retval != RIG_OK && retval != RIG_ENIMPL && retval != RIG_ENAVAIL)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here: %s\n",
@@ -8194,7 +8194,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
                 continue;
             }
 
-            // Use get_freq as all rigs should repond to this
+            // Use get_freq as all rigs should respond to this
             retval = rig_get_freq(rig, RIG_VFO_CURR, &freq);
 
             if (retval == RIG_OK)

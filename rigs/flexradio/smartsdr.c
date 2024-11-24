@@ -258,7 +258,7 @@ int smartsdr_open(RIG *rig)
     char cmd[64];
     int loops = 20;
     ENTERFUNC;
-    // Once we've connected and hit here we should have two messages queued from the intial connect
+    // Once we've connected and hit here we should have two messages queued from the initial connect
 
     sprintf(cmd, "sub slice %d", priv->slicenum);
     //sprintf(cmd, "sub slice all");

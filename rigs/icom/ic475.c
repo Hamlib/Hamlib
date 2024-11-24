@@ -110,7 +110,7 @@ struct rig_caps ic475_caps =
     },
 
     .tuning_steps =     {
-        {IC475_MODES, 10}, /* TBC: does this rig supports settin tuning step? */
+        {IC475_MODES, 10}, /* TBC: does this rig supports setting tuning step? */
         RIG_TS_END,
     },
     /* mode/filter list, remember: order matters! */
@@ -216,7 +216,7 @@ struct rig_caps ic575_caps =
     },
 
     .tuning_steps =     {
-        {IC475_MODES, 10}, /* TBC: does this rig supports settin tuning step? */
+        {IC475_MODES, 10}, /* TBC: does this rig supports setting tuning step? */
         RIG_TS_END,
     },
     /* mode/filter list, remember: order matters! */
