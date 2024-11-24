@@ -1652,7 +1652,7 @@ static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     rig_debug(RIG_DEBUG_VERBOSE, "ft817: requested freq = %"PRIfreq" Hz\n", freq);
 
     /* fill in the frequency */
-    /* changed to truncate the freq for gpredict compatiblity */
+    /* changed to truncate the freq for gpredict compatibility */
     to_bcd_be(data, (freq + 0) / 10, 8);
 
     rig_force_cache_timeout(

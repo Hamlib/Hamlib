@@ -1118,7 +1118,7 @@ int tmd710_push_mu(RIG *rig, tmd710_mu *mu_struct)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
-    // we re-use fo_struct->vfo for the channel#
+    // we reuse fo_struct->vfo for the channel#
     snprintf(cmdbuf, sizeof(cmdbuf),
              "MU %1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d,%02d,%1d,"
              "%1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d,"

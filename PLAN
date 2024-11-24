@@ -1,7 +1,7 @@
 
 
 Here is a non-exhaustive list of things IMO to keep in mind while
-developping the Hamlib library.
+developing the Hamlib library.
 
 
 Plan:
@@ -39,7 +39,7 @@ Applications:
 o control your rig from your computer, can be handy if you've relocated 
 	your UHF transceiver in the attic, to reduce cable loss.
 o edit/backup/restore/extend the memory capacity of your rig
-o software scanning (and huristics)
+o software scanning (and heuristics)
 o s/w squelch
 o real time spectral analysis and digital modes ( Frank has written some
 	working code for this) it does 40 frames / sec and no load, 
@@ -66,7 +66,7 @@ I think some features can be coded using bit fields and masking.
 Maybe we can distinguish between 3 states :
   - Don't have this feature,
   - Have it, 
-  - Have it and can control (r/w) it remotly using the backend in hamlib
+  - Have it and can control (r/w) it remotely using the backend in hamlib
 
 o freq ranges supported: rx/mode, tx/modes/power
 o number of VFO, operations (set VFO separately, VFO A=B, switch, ..)

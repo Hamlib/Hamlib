@@ -877,7 +877,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     rs->announces = caps->announces;
 
     rp->fd = pttp->fd = dcdp->fd = -1;
-    // some rigs (like SDR) behave differnt when checking for power on
+    // some rigs (like SDR) behave different when checking for power on
     // So we assume power is on until one of the backends KNOWS it is off
     rs->powerstat = RIG_POWER_ON; // default to power on until proven otherwise
 
@@ -9006,7 +9006,7 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
  * \retval The address of the enumed structure
  *
  * Note: This is meant for use by the HAMLIB_???PORT macros mostly. Only
- *  compatiblity with them is supported.
+ *  compatibility with them is supported.
  *
  * \sa amp_data_pointer, rot_data_pointer
  */
