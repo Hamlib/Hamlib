@@ -291,7 +291,7 @@ again1:
             RETURNFUNC(-RIG_EPROTO);
         }
 
-        // first 2 bytes of everyting are 0xfe so we won't test those
+        // first 2 bytes of everything are 0xfe so we won't test those
         // this allows some corruptin of the 0xfe bytes which has been seen in the wild
         if (memcmp(&buf[2], &sendbuf[2], frm_len - 2) != 0)
         {

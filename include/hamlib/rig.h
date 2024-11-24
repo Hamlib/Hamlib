@@ -2901,7 +2901,7 @@ struct rig_state {
  */
 struct rig_state_deprecated {
     /********* ENSURE YOU DO NOT EVER MODIFY THIS STRUCTURE *********/
-    /********* It will remain forever to provide DLL backwards compatiblity ******/
+    /********* It will remain forever to provide DLL backwards compatibility ******/
     /*
      * overridable fields
      */
@@ -3061,7 +3061,7 @@ typedef int (*spectrum_cb_t)(RIG *,
  * \sa rig_set_freq_callback(), rig_set_mode_callback(), rig_set_vfo_callback(),
  *     rig_set_ptt_callback(), rig_set_dcd_callback()
  */
-// Do NOT add/remove from this structure -- it will break DLL backwards compatiblity
+// Do NOT add/remove from this structure -- it will break DLL backwards compatibility
 struct rig_callbacks {
     freq_cb_t freq_event;   /*!< Frequency change event */
     rig_ptr_t freq_arg;     /*!< Frequency change argument */
