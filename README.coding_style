@@ -1,4 +1,4 @@
-This document superceeds any other prior documentation or commentary regarding
+This document supersedes any other prior documentation or commentary regarding
 the formatting of the Hamlib C and C++ source code.  This document does not
 apply to the Autotools build system, i.e. configure.ac, Makefile.am or the
 Autoconf macros in the 'macros/' directory.
@@ -110,7 +110,7 @@ The old file will be copied to 'moonmelter.c.orig' as a back up.
 
 * One space between a conditional key word and its opening parentheses.
 
-* No space between a function name and its opening paretheses.
+* No space between a function name and its opening parentheses.
 
 * No space between a pointer operator ('*') and the pointer name.  Likewise
   for the address operator ('&').  Exception:  In a function prototype and
