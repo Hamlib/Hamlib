@@ -269,7 +269,7 @@ int icmarine_transaction(RIG *rig, const char *cmd, const char *param,
         cmd_len += snprintf(cmdbuf + cmd_len, BUFSZ - cmd_len, ",%s", param);
     }
 
-    /* NMEA checksum, betwwen '$' and '*' */
+    /* NMEA checksum, between '$' and '*' */
     for (i = 1; i < cmd_len; i++)
     {
         csum = csum ^ (unsigned)cmdbuf[i];

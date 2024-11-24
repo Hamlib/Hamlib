@@ -354,7 +354,7 @@ const struct rot_caps st2_rot_caps =
 
 /* ************************************************************************* */
 /*
- * F1TE Tracker, GS232 withtout position feedback
+ * F1TE Tracker, GS232 without position feedback
  *
  * http://www.f1te.org/index.php?option=com_content&view=article&id=19&Itemid=39
  */

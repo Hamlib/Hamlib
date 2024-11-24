@@ -408,7 +408,7 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
  * \param rig must != NULL
  * \param vfo RIG_VFO_A or RIG_VFO_B
  * \param freq
- * \brief Set a frequence into the specified VFO
+ * \brief Set a frequency into the specified VFO
  *
  * assumes STATE(rig)->priv!=NULL
  * \n assumes priv->mode in AM,CW,LSB or USB.
