@@ -2001,7 +2001,7 @@ int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                 && (is_ftdx3000 || is_ftdx3000dm)
            )
         {
-            // DX3000 with seperate rx/tx antennas was failing frequency change
+            // DX3000 with separate rx/tx antennas was failing frequency change
             // so we increased the sleep from 100ms to 300ms
             hl_usleep(300 * 1000);
         }

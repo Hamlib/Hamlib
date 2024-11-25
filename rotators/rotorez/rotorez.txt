@@ -120,7 +120,7 @@ Subject: Rotor Card and Rotor-EZ command reference
 > Rotor Card and Rotor-EZ into our library.  In the course of several Web
 > searches I have downloaded the Hy-Gain DCU-1 manual from their site and
 > I've also visited the Digital Audio Rotor-EZ troubleshooting site.
-> Between the two I have found a couple of descrepancies in the command
+> Between the two I have found a couple of discrepancies in the command
 > set.  If possible, I would like a copy of the complete command set and
 > their syntax for these two boards for our project.
 >

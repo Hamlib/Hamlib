@@ -652,7 +652,7 @@ int elecraft_get_vfo_tq(RIG *rig, vfo_t *vfo)
 
     if (sscanf(splitbuf, "TQ%1d", &tq) != 1)
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ or TQX reponse of '%s'\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: unable to parse TQ or TQX response of '%s'\n",
                   __func__, splitbuf);
     }
 

@@ -978,7 +978,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         else
         {
             // transmit reply example S<0x8f><0x01> 0x0f=15 watts, 0x01
-            // it appears 0x01 refelected = 0W since 0 means not read yet
+            // it appears 0x01 reflected = 0W since 0 means not read yet
             int strength;
             int reflected = (int)lvlbuf[2];
             reflected  = reflected > 0 ? reflected - 1 : 0;
