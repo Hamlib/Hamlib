@@ -1,7 +1,7 @@
 /*  This program does a fast iteration of v f m t s
  *  By Michael Black W9MDB
  *  This allows testing of another program using rigctld
- *  to test changin vfo, freq, mode, PTT, or split and see the change immediately in this program.
+ *  to test changing vfo, freq, mode, PTT, or split and see the change immediately in this program.
  *  Used in testing caching effects that have been added
  *  To compile:
  *      gcc -I../src -I../include -g -o cachetest2 cachetest2.c -lhamlib

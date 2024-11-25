@@ -25,7 +25,7 @@
  * Right now, this FT-1000MP implementation is a big mess.
  * This is actually a fast copy past (from ft920.c),
  * just to make get_freq/set_freq and co to work for a friend of mine.
- * I wouln't mind if someone could take over the maintenance
+ * I wouldn't mind if someone could take over the maintenance
  * of this piece of code, and eventually rewrite it.
  * '02, Stephane
  */

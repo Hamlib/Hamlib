@@ -699,7 +699,7 @@ int dump_csv_chan(RIG *rig,
 
     if (mem_caps->flags)
     {
-        if (chan.tag[0] != 0)  // then we need the seperator
+        if (chan.tag[0] != 0)  // then we need the separator
         {
             fprintf(f, "%x%c", chan.flags, csv_sep);
         }

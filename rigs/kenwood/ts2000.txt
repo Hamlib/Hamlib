@@ -41,7 +41,7 @@ rig_init()	"id;"			ts2000_init()
 			If "SC1;", on either main or sub *both* must be
 			halted before most commands will function.  These may
 			be restored after command is executed or not if the
-			command superceeds scan mode.
+			command supersedes scan mode.
 		"fr;"/"ft;" or "if;"	If in memory mode, the rig won't always
 			act appropriately to serial port requests.
 		"qr;"	if quick memory set, same as previous

@@ -153,7 +153,7 @@ int main(int argc, const char *argv[])
 
     if (freq != 29620000)
     {
-        printf("rig_set_freq: error exptect %.0f got %.0f\n", 296290000.0, freq);
+        printf("rig_set_freq: error expect %.0f got %.0f\n", 296290000.0, freq);
     }
 
     if (rmode != RIG_MODE_FM || width != rig_passband_narrow(my_rig, RIG_MODE_FM))

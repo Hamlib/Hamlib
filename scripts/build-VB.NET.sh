@@ -99,7 +99,7 @@ Covered are:
 	- get Riginfo
 
 	-rig_debug_level_e not verified  (Function is Void, VB Dokumentation
-says this is not possible to be marshaled, but Compiler is still accapting this)
+says this is not possible to be marshaled, but Compiler is still accepting this)
 
 
 To get access to the Class you have to add something like this in your Main Class
