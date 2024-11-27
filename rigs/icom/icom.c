@@ -4550,11 +4550,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 rig_raw2val_float(icom_val, &rig->caps->rfpower_meter_cal) * 0.01;
         }
 
-        if (RIG_IS_IC9700 && CACHE(rig)->freqMainA >= 1e9)
-        {
-            val->f /= 10;   // power scale is different for 10GHz
-        }
-
         break;
 
     case RIG_LEVEL_RFPOWER_METER_WATTS:
@@ -4576,6 +4571,11 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             rig_debug(RIG_DEBUG_TRACE,
                       "%s: using default icom table to convert %d to %.01f\n", __func__, icom_val,
                       val->f);
+        }
+
+        if (RIG_IS_IC9700 && CACHE(rig)->freqMainA >= 1e9)
+        {
+            val->f /= 10;   // power scale is different for 10GHz
         }
 
         rig_get_range(&range_list, STATE(rig)->current_freq, STATE(rig)->current_mode);
