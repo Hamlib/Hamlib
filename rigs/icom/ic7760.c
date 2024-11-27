@@ -49,7 +49,7 @@
 
 #define IC7760_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3|RIG_ANT_4)
 
-// IC-7760 S-meter calibration data based on manual
+// IC-7760 calibration data based on manual
 #define IC7760_STR_CAL { 3, \
     { \
         {   0,-54 }, \
@@ -72,23 +72,13 @@
          { 120, 1.0f } \
     } }
 
-#define IC7760_RFPOWER_METER_CAL { 13, \
+#define IC7760_RFPOWER_METER_CAL { 4, \
     { \
          { 0, 0.0f }, \
-         { 21, 5.0f }, \
-         { 43, 10.0f }, \
-         { 65, 15.0f }, \
-         { 83, 20.0f }, \
-         { 95, 25.0f }, \
-         { 105, 30.0f }, \
-         { 114, 35.0f }, \
-         { 124, 40.0f }, \
-         { 143, 50.0f }, \
-         { 183, 75.0f }, \
-         { 213, 100.0f }, \
-         { 255, 120.0f } \
+         { 143, 100.0f }, \
+         { 212, 200.0f }, \
+         { 255, 250.0f }, \
     } }
-
 
 #define IC7760_COMP_METER_CAL { 3, \
     { \
