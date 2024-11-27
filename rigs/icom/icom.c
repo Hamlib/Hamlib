@@ -678,7 +678,7 @@ static const struct icom_addr icom_addr_list[] =
     {RIG_MODEL_IC7300, 0x94},
     {RIG_MODEL_IC7610, 0x98},
     {RIG_MODEL_IC7700, 0x74},
-    {RIG_MODEL_IC7760, 0xB1},
+    {RIG_MODEL_IC7760, 0xB2},
     {RIG_MODEL_PERSEUS, 0xE1},
     {RIG_MODEL_X108G, 0x70},
     {RIG_MODEL_X6100, 0x70},
