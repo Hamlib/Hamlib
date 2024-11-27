@@ -72,21 +72,12 @@
          { 120, 1.0f } \
     } }
 
-#define IC7700_RFPOWER_METER_CAL { 13, \
+#define IC7700_RFPOWER_METER_CAL { 4, \
     { \
          { 0, 0.0f }, \
-         { 21, 5.0f }, \
-         { 43, 10.0f }, \
-         { 65, 15.0f }, \
-         { 83, 20.0f }, \
-         { 95, 25.0f }, \
-         { 105, 30.0f }, \
-         { 114, 35.0f }, \
-         { 124, 40.0f }, \
-         { 143, 50.0f }, \
-         { 183, 75.0f }, \
-         { 213, 100.0f }, \
-         { 255, 120.0f } \
+         { 143, 100.0f }, \
+         { 212, 200.0f }, \
+         { 255, 250.0f }, \
     } }
 
 
@@ -277,7 +268,7 @@ struct rig_caps ic7700_caps =
     RIG_MODEL(RIG_MODEL_IC7700),
     .model_name = "IC-7700",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".5",
+    .version =  BACKEND_VER ".6",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
