@@ -118,7 +118,7 @@ int ic7760_ext_tokens[] =
  */
 static const struct icom_priv_caps ic7760_priv_caps =
 {
-    0xb1,    /* default address */
+    0xb2,    /* default address */
     0,       /* 731 mode */
     0,       /* no XCHG */
     ic756pro_ts_sc_list,
