@@ -668,15 +668,17 @@ static const struct icom_addr icom_addr_list[] =
     {RIG_MODEL_ICR8500, 0x4a},
     {RIG_MODEL_ICR9000, 0x2a},
     {RIG_MODEL_ICR9500, 0x72},
-    {RIG_MODEL_MINISCOUT, 0x94},
+//    {RIG_MODEL_MINISCOUT, 0x94}, // ic7300 took this one
     {RIG_MODEL_IC718, 0x5e},
     {RIG_MODEL_OS535, 0x80},  /* same address as IC-7410 */
     {RIG_MODEL_ICID1, 0x01},
     {RIG_MODEL_IC7000, 0x70},
     {RIG_MODEL_IC7100, 0x88},
     {RIG_MODEL_IC7200, 0x76},
+    {RIG_MODEL_IC7300, 0x94},
     {RIG_MODEL_IC7610, 0x98},
     {RIG_MODEL_IC7700, 0x74},
+    {RIG_MODEL_IC7760, 0xB1},
     {RIG_MODEL_PERSEUS, 0xE1},
     {RIG_MODEL_X108G, 0x70},
     {RIG_MODEL_X6100, 0x70},
@@ -10043,6 +10045,7 @@ DECLARE_INITRIG_BACKEND(icom)
     rig_register(&ic7200_caps);
     rig_register(&ic7300_caps);
     rig_register(&ic7610_caps);
+    rig_register(&ic7760_caps);
     rig_register(&ic781_caps);
     rig_register(&ic707_caps);
     rig_register(&ic728_caps);
