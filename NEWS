@@ -13,6 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+	* Add IC7760
         * IC7300 Mode filter can now be set by # (i.e. 1,2,3) 
         * Fixed AF6SA WRC rotor controller
         * Added Rhode&Schwarz XK852

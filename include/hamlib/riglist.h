@@ -297,6 +297,7 @@
 #define RIG_MODEL_X5105 RIG_MAKE_MODEL(RIG_ICOM, 89)    /* Xiegu X5105 -- G90 compatible */
 #define RIG_MODEL_IC905 RIG_MAKE_MODEL(RIG_ICOM, 90)    
 #define RIG_MODEL_X6200 RIG_MAKE_MODEL(RIG_ICOM, 91)    /* Xiegu X6200 */
+#define RIG_MODEL_IC7760 RIG_MAKE_MODEL(RIG_ICOM, 92)
 
 /*
  * Optoelectronics (CI-V)

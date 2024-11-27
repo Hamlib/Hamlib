@@ -497,6 +497,7 @@ extern struct rig_caps ic475_caps;
 extern struct rig_caps ic575_caps;
 extern struct rig_caps ic1275_caps;
 extern struct rig_caps icf8101_caps;
+extern struct rig_caps ic7760_caps;
 
 extern struct rig_caps omnivip_caps;
 extern struct rig_caps delta2_caps;
