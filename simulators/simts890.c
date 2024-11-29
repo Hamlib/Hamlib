@@ -927,6 +927,24 @@ int main(int argc, char *argv[])
         {
             sscanf(buf, "KS%03d", &keyspd);
         }
+        else if (strncmp(buf, "KY", 2) == 0)
+            { // CW Keying
+                if (buf[2] == ';')
+                {
+                     // Checking status - we always have room
+                     OUTPUT("KY0;");
+                }
+            else if (buf[3] == ';')
+            {
+                // Stop sending(?)
+                if (buf[2] != '0') {cmd_err = 1; }
+            }
+            else
+            {
+                // Send the message
+                //printf("CW mesg: %s\n", buf + 2);
+            }
+        }
         else if (strncmp(buf, "OM", 2) == 0)
         {
             // Operating Mode
