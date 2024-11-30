@@ -375,6 +375,7 @@ transaction_write:
         skip |= strncmp(cmdstr, "RD", 2) == 0;
         skip |= strncmp(cmdstr, "KYW", 3) == 0;
         skip |= strncmp(cmdstr, "KY ", 3) == 0;
+        skip |= strncmp(cmdstr, "KY2", 3) == 0;
         skip |= strncmp(cmdstr, "PS1", 3) == 0;
         skip |= strncmp(cmdstr, "PS0", 3) == 0;
         skip |= strncmp(cmdstr, "K22", 3) == 0;
@@ -382,7 +383,7 @@ transaction_write:
         if (skip)
         {
             // most command we give them a little time -- but not KY
-            if (strncmp(cmdstr, "KY ", 3) != 0)
+            if (strncmp(cmdstr, "KY ", 3) != 0 && strncmp(cmdstr, "KY2", 3) != 0)
             {
                 hl_usleep(200 * 1000);    // give little settle time for these commands
             }
@@ -958,7 +959,7 @@ int kenwood_open(RIG *rig)
         priv->has_rit2 = 1;
     }
 
-    if (RIG_IS_TS590S)
+    if (RIG_IS_TS590S || RIG_IS_TS990S)
     {
         /* we need the firmware version for these rigs to deal with f/w defects */
         static char fw_version[7];
@@ -992,7 +993,7 @@ int kenwood_open(RIG *rig)
             }
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: found f/w version %.1f\n", __func__,
+        rig_debug(RIG_DEBUG_TRACE, "%s: found f/w version %.2f\n", __func__,
                   priv->fw_rev_uint / 100.0);
     }
 
@@ -5486,8 +5487,9 @@ int kenwood_reset(RIG *rig, reset_t reset)
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     char morsebuf[40], m2[30];
-    int msg_len, retval, i;
+    int msg_len, retval;
     const char *p;
+    struct kenwood_priv_data *priv;
 
     ENTERFUNC;
 
@@ -5551,14 +5553,30 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
             SNPRINTF(morsebuf, sizeof(morsebuf), "KY %s", m2);
             break;
 
+        case RIG_MODEL_TS890S:
+            SNPRINTF(morsebuf, sizeof morsebuf, "KY2%s", m2);
+            break;
+
+        case RIG_MODEL_TS990S:
+            // Variable message length only on newer firmware
+            priv = STATE(rig)->priv;
+            if (priv->fw_rev_uint >= 110)
+            {
+                SNPRINTF(morsebuf, sizeof morsebuf, "KY2%s", m2);
+                break;
+            }
+            /* FALL THROUGH */
+
         default:
             /* the command must consist of 28 bytes 0x20 padded */
             SNPRINTF(morsebuf, sizeof(morsebuf), "KY %-24s", m2);
 
-            for (i = strlen(morsebuf) - 1; i > 0 && morsebuf[i] == ' '; --i)
+#if 0 // Why is this here?? 0x20 == ' '
+            for (int i = strlen(morsebuf) - 1; i > 0 && morsebuf[i] == ' '; --i)
             {
                 morsebuf[i] = 0x20;
             }
+#endif
         }
 
         retval = kenwood_transaction(rig, morsebuf, NULL, 0);
