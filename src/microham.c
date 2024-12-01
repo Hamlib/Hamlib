@@ -721,7 +721,7 @@ static void writeControl(const unsigned char *data, int len)
 //
 // send a heartbeat and record time
 // The "last heartbeat" time is recorded in a global variable
-// such that the service thread can decice whether a new
+// such that the service thread can decide whether a new
 // heartbeat is due.
 //
 static void heartbeat()

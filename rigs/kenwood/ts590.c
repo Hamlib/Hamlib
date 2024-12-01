@@ -400,7 +400,7 @@ static int ts590_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         const int ssb_htable[] = { 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600, 2800, 3000, 3400, 4000, 5000 };
         const int ssb_ltable[] = { 0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
         *width = ssb_htable[hwidth];
-        // we dont' do anything with shift yet which will be just the hwidth value
+        // we don't do anything with shift yet which will be just the hwidth value
         shift = ssb_ltable[lwidth];
     }
     else if (*mode == RIG_MODE_AM || *mode == RIG_MODE_PKTAM)
