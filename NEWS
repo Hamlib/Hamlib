@@ -13,7 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
-	* send_raw can now take hex digits as colon-seperated -- e.g. send_raw icom xfe:xfe:x94:xe0:03:xfd
+	* send_raw can now take hex digits as colon-separated -- e.g. send_raw icom xfe:xfe:x94:xe0:03:xfd
 	* Add IC7760
         * IC7300 Mode filter can now be set by # (i.e. 1,2,3) 
         * Fixed AF6SA WRC rotor controller
@@ -44,7 +44,7 @@ Version 4.6
         * Added Thetis entry -- derived from FlexRadio/Apache PowerSDR
         * Added VOICE/CW memory capability to many rigs -- thanks to David Balharrie M0DGB/G8FKH
         * Add -# --skip_init option to rigctl to skip rig initialization -- useful for executing commands quickly
-        * rig_caps is no longer constant -- this may break some 3rd party relying on the "const" declaration.  Here's an example of how to handle compatiblity.
+        * rig_caps is no longer constant -- this may break some 3rd party relying on the "const" declaration.  Here's an example of how to handle compatibility.
 #ifdef RIGCAPS_NOT_CONST
 static int add_to_list(struct rig_caps* rc, void*)
 #else
@@ -66,7 +66,7 @@ static int add_to_list(const struct rig_caps* rc, void*)
         * Added rig_cm108_get/set_bit to API and get/set_gpio to rigctl(d) for GPIO1,2,3,4 access on CM108
         * Added BG2FX FX4/C/CR/L
         * Fixed IC7610 to use new 0x25 0x26 command added in latest firmware
-        * Fix W command in rigctld to work propery -- can take terminating char or # of bytes to expect
+        * Fix W command in rigctld to work properly -- can take terminating char or # of bytes to expect
         * Add rig_set_debug_filename so Python can redirect debug stream
         * Fix Yaesu LBL_NR to use proper values
         * Add IC-905
