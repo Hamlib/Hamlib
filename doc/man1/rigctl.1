@@ -1398,13 +1398,26 @@ Returns current lock mode status 1=On, 2=Off (only useful when using rigctld)
 .TP
 .BR send_raw " \(aq" \fITerminator\fP "\(aq \(aq" \fIString\fP \(aq
 .EX
-Can send ASCII string or 0xnn values -- there can be no spaces in the command string.
+Can send ASCII string or 0xnn values or xnn values -- there can be no spaces in the command string.
 Possible terminator values are CR, LF, ;, ICOM, 0-100 (bytes to read), or -1 meaning unknown (will timeout on read)
-Examples:
-  send_raw ; FA;MD;
+Examples (note that a ; must be escaped in Unix/Linux):
+For Windows & Unix/Linux we have a new colon-separated format for hex digits
+  send_raw icom 0xFE:0xFE:0x94:0x03:0xFD Note: colon-separated does not have to be escaped on Unix/Linux
+  send_raw -1 0xFE:0xFE:0x94:0x03:0xFD
+  send_raw 14 0xFE:0xFE:0x94:0x03:0xFD
+  Note that ASCII commands still require escaping the semicolon on Unix/Linux
+  send_raw \; FA\;MD\;
+  
+For Windows:
   send_raw icom 0xFE;0xFE;0x94;0x03;0xFD
   send_raw -1 0xFE;0xFE;0x94;0x03;0xFD
   send_raw 14 0xFE;0xFE;0x94;0x03;0xFD
+
+  For Unix/Linux
+  send_raw icom 0xFE\;0xFE\;0x94\;0x03\;0xFD
+  send_raw \; FA\;MD\;
+  send_raw -1 0xFE\;0xFE\;0x94\;0x03\;0xFD
+  send_raw 14 0xFE\;0xFE\;0x94\;0x03\;0xFD
 .
 .TP
 .BR client_version " \(aq" \fIString\fP "\(aq
