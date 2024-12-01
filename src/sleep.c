@@ -116,7 +116,7 @@ int hl_usleep(rig_useconds_t usec)
     int retval = 0;
     rig_debug(RIG_DEBUG_ERR, "%s: usec=%ld\n", __func__, usec);
 
-    if (usec <= 1000) { return 0; } // dont' sleep if only 1ms is requested -- speeds things up on Windows
+    if (usec <= 1000) { return 0; } // don't sleep if only 1ms is requested -- speeds things up on Windows
 
     while (usec > 1000000)
     {
