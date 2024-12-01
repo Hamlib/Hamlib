@@ -181,8 +181,8 @@ struct rig_caps ic821h_caps =
     },
     /* mode/filter list, remember: order matters! */
     .filters =  {
-        {RIG_MODE_CW | RIG_MODE_SSB, kHz(2.3)}, /* buildin */
-        {RIG_MODE_FM, kHz(15)},                 /* buildin */
+        {RIG_MODE_CW | RIG_MODE_SSB, kHz(2.3)}, /* built-in */
+        {RIG_MODE_FM, kHz(15)},                 /* built-in */
         RIG_FLT_END,
     },
 

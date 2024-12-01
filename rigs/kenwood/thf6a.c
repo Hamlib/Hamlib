@@ -5,7 +5,7 @@
  *
  *  10-03-2010
  *    Ported from Stephane Fillod's thf7.c
- *    Changed TH-F7E perameters to reflect TH-F6A
+ *    Changed TH-F7E parameters to reflect TH-F6A
  *    Changed RIG_ITU_REGION from 1 to 2
  *
  *
