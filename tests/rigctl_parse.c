@@ -5793,14 +5793,26 @@ static int parse_hex(const char *s, unsigned char *buf, int len)
     int i = 0;
     buf[0] = 0;
     char *s2 = strdup(s);
-    char *p = strtok(s2, ";");
+    char *p = strtok(s2, ";:");
 
     while (p)
     {
         unsigned int val;
-        sscanf(p, "0x%x", &val);
+        int n;
+
+        if ((n = sscanf(p, "0x%2x", &val)) != 1)
+        {
+            n = sscanf(p, "x%2x", &val);
+        }
+
+        if (n == 0)
+        {
+            rig_debug(RIG_DEBUG_ERR, "%s: unable to parse 0x??; or x??; from '%s'\n",
+                      __func__, s);
+        }
+
         buf[i++] = val;
-        p = strtok(NULL, ";");
+        p = strtok(NULL, ";:");
     }
 
     free(s2);
@@ -5863,7 +5875,7 @@ declare_proto_rig(send_raw)
         return -RIG_EINVAL;
     }
 
-    if (strncmp(arg2, "0x", 2) == 0)
+    if (strncmp(arg2, "0x", 2)  == 0 || arg2[0] == 'x')
     {
         arg2_len = parse_hex(arg2, send, sizeof(send));
         sendp = send;
