@@ -8762,6 +8762,7 @@ void *morse_data_handler(void *arg)
                 int nloops = 10;
                 MUTEX_LOCK(morse_mutex);
 
+		LOCK(1);
                 do
                 {
                     result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
@@ -8785,6 +8786,7 @@ void *morse_data_handler(void *arg)
 
                 }
                 while (result != RIG_OK && STATE(rig)->fifo_morse->flush == 0 && --nloops > 0);
+		LOCK(0);
 
                 MUTEX_UNLOCK(morse_mutex);
 
