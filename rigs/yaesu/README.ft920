@@ -97,7 +97,7 @@ rig_get_split_mode
         and set "proper" VFO?
 
 rig_set_rit
-    *   Hamlib specificies that passing 0 as the RIT frequency disables
+    *   Hamlib specifies that passing 0 as the RIT frequency disables
         RIT.  Thus there is no way to meet the spec and mimic the front
         panel RIT off function whilst keeping the RIT offset on the
         display.  The Hamlib spec causes behavior analogous to shutting
@@ -112,7 +112,7 @@ rig_get_rit
     *   vfo is honored and stored RIT is returned.
 
 rig_set_xit
-    *   Hamlib specificies that passing 0 as the XIT frequency disables
+    *   Hamlib specifies that passing 0 as the XIT frequency disables
         XIT.  Thus there is no way to meet the spec and mimic the front
         panel XIT off function whilst keeping the XIT offset on the
         display.  The Hamlib spec causes behavior analogous to shutting

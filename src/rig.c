@@ -7547,7 +7547,7 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
 /*
  * wait_morse_ptt
  * generic routine to wait for ptt=0
- * should work on any full breakin CW morse send
+ * should work on any full break-in CW morse send
  * Assumes rig!=NULL, msg!=NULL
  */
 static int wait_morse_ptt(RIG *rig, vfo_t vfo)

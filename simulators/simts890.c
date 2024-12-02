@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
 
         if (strcmp(buf, "IF;") == 0)
         {
-            // Reads the tranceiver status
+            // Reads the transceiver status
 #if defined(LEGACY)
             char ifbuf[256];
             hl_usleep(mysleep * 1000);
@@ -1322,7 +1322,7 @@ int main(int argc, char *argv[])
             case '3': // Bandscope Span
             case '4': // Bandscope Span
             case '5': // Bandscope Scope Range (Fixed Mode)
-            case '6': // Bandscope Dispaly Pause
+            case '6': // Bandscope Display Pause
             case '7': // Bandscope Marker
             case '8': // Bandscope Attenuator
             case '9': // Bandscope Max Hold
@@ -1371,7 +1371,7 @@ int main(int argc, char *argv[])
             case '0': // Registration of CW Message (Paddle Input)
             case '1': // Play/Stop the CW Message
             case '2': // Register State of CW Message (Paddle Input)
-            case '3': // Clear the CW Message (Paddle Inut)
+            case '3': // Clear the CW Message (Paddle Input)
             case '4': // CW Message Memory Name (Paddle Input)
             case '5': // Registering the CW Message Memory (Text Input)
             case '6': // CW Message Channel Repeat
@@ -1454,7 +1454,7 @@ int main(int argc, char *argv[])
             case '2': // Memory Channel (Channel Name)
             case '3': // Memory Channel (Scan Lockout)
             case '4': // Memory Channel (Channel Copy)
-            case '5': // Memory Channle (Channel Deletion)
+            case '5': // Memory Channel (Channel Deletion)
             case '6': // Programmable VFO End Frequency
             case '7': // Memory Channel (Temporary Change Frequency)
                 break;
