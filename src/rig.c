@@ -997,7 +997,7 @@ int HAMLIB_API rig_open(RIG *rig)
     else
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: cwd=%s\n", __func__, cwd);
-        char *path = calloc(1, 4096);
+        char *path = calloc(1, 8192);
         extern char settings_file[4096];
         const char *xdgpath = getenv("XDG_CONFIG_HOME");
 
