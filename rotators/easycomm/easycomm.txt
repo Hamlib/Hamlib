@@ -34,7 +34,7 @@ may only decode the rotator control commands.
 
 The Host PC can issue the following commands -:
 
-Command		Meaning			Perameters
+Command		Meaning			Parameters
 -------		-------			----------
 
 AZ		Azimuth             number - 1 decimal place [deg]
@@ -88,7 +88,7 @@ EASYCOMM III Standard
 The EasyComm 3 standard is an extension of the version 2 with the additional features:
 
 
-Command		Meaning			Perameters	Hamlib Config Token
+Command		Meaning			Parameters	Hamlib Config Token
 -------		-------			----------	-------------------
 VL		Velocity Left	    number [mdeg/s]
 VR		Velocity Right	    number [mdeg/s]

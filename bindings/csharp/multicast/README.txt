@@ -22,7 +22,7 @@ You should then be able to run
 ./bin/Debug/net6.0/multicast
 
 ======================================================
-Waiting for Net 7.0/8.0 to be in Ubunut main packages
+Waiting for Net 7.0/8.0 to be in Ubuntu main packages
 Following did not work
 
 sudo apt remove 'dotnet*' 'aspnet*' 'netstandard*'
