@@ -169,6 +169,10 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !STATE((r))->comm_state)
 #define CHECK_RIG_CAPS(r) (!(r) || !(r)->caps)
 
+// The LOCK macro is for the primary thread calling the rig functions
+// For a separate thread use rig_lock directly
+// The purpose here is to avoid deadlock during recursion
+// Any other thread should grab the mutex itself via rig_lock
 #define LOCK(n) if (STATE(rig)->depth == 1) { rig_debug(RIG_DEBUG_CACHE, "%s: %s\n", n?"lock":"unlock", __func__);  rig_lock(rig,n); }
 
 MUTEX(morse_mutex);
@@ -8760,9 +8764,9 @@ void *morse_data_handler(void *arg)
             if (strlen(c) > 0)
             {
                 int nloops = 10;
-                MUTEX_LOCK(morse_mutex);
+                MUTEX_LOCK(morse_mutex); // wait until the write is idle
 
-		LOCK(1);
+		rig_lock(rig, 1);
                 do
                 {
                     result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
@@ -8786,7 +8790,7 @@ void *morse_data_handler(void *arg)
 
                 }
                 while (result != RIG_OK && STATE(rig)->fifo_morse->flush == 0 && --nloops > 0);
-		LOCK(0);
+		rig_lock(rig,0);
 
                 MUTEX_UNLOCK(morse_mutex);
 
