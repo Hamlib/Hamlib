@@ -2110,6 +2110,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode)
                   RIG_MODE_RTTYR | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB))
         {
             rig_debug(RIG_DEBUG_TRACE, "%s: using filtericom width=%d\n", __func__, i);
+	    if (i > sizeof(filtericom)/sizeof(int)) i = 40;
             RETURNFUNC2(filtericom[i]);
         }
     }
@@ -2179,8 +2180,8 @@ int icom_set_dsp_flt(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             width = 1;
         }
 
-        flt_idx =
-            width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
+        flt_idx = width <= 500 ? ((width + 49) / 50) - 1 : ((width + 99) / 100) + 4;
+	if (flt_idx > 40) flt_idx = 40;
     }
     else
     {
@@ -2679,6 +2680,12 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }
     }
 
+    // no change and not setting filter number either
+    if (width <= 3)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: setting filter=%d\n", __func__, (int)width);
+	return RIG_OK;
+    }
     if (((width != RIG_PASSBAND_NOCHANGE) && (width != current_width))
             || (priv->filter_usbd > 0 || priv->filter_usb > 0 || priv->filter_cw > 0
                 || priv->filter_fm > 0))
