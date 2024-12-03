@@ -5572,7 +5572,8 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
             SNPRINTF(morsebuf, sizeof(morsebuf), "KY %-24s", m2);
 
 #if 0 // Why is this here?? 0x20 == ' '
-            for (int i = strlen(morsebuf) - 1; i > 0 && morsebuf[i] == ' '; --i)
+            int i;
+            for (i = strlen(morsebuf) - 1; i > 0 && morsebuf[i] == ' '; --i)
             {
                 morsebuf[i] = 0x20;
             }
