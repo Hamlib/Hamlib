@@ -5551,6 +5551,11 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
             SNPRINTF(morsebuf, sizeof(morsebuf), "KY %s", m2);
             break;
 
+        case RIG_MODEL_TS590S:
+            /* the command must consist of 28 bytes right aligned */
+            SNPRINTF(morsebuf, sizeof(morsebuf), "KY %24s", m2);
+	    break;
+
         default:
             /* the command must consist of 28 bytes 0x20 padded */
             SNPRINTF(morsebuf, sizeof(morsebuf), "KY %-24s", m2);
