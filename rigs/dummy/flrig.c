@@ -143,7 +143,7 @@ struct rig_caps flrig_caps =
     RIG_MODEL(RIG_MODEL_FLRIG),
     .model_name = "",
     .mfg_name = "FLRig",
-    .version = "20241110.0",
+    .version = "20241204.0",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -2332,7 +2332,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_MICGAIN: cmd = "rig.get_micgain"; break;
 
-    case RIG_LEVEL_STRENGTH: cmd = "rig.get_smeter"; break;
+    case RIG_LEVEL_STRENGTH: cmd = "rig.get_DBM"; break;
 
     case RIG_LEVEL_SWR:
         cmd = "rig.get_swrmeter";
@@ -2386,7 +2386,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 
     case RIG_LEVEL_STRENGTH:
-        val->i = atoi(value) - 54;
+        val->i = atoi(value);
         //if (val->i > 0) val->i /= 10;
         rig_debug(RIG_DEBUG_TRACE, "%s: val.i='%s'(%d)\n", __func__, value, val->i);
         break;
