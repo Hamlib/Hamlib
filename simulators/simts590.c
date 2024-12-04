@@ -431,6 +431,11 @@ int main(int argc, char *argv[])
             SNPRINTF(buf, sizeof(buf), "SL%02d;", width_low);
             WRITE(fd, buf, strlen(buf));
         }
+        else if (strcmp(buf, "KY;") == 0)
+        {
+            SNPRINTF(buf, sizeof(buf), "KY0;");
+            WRITE(fd, buf, strlen(buf));
+        }
 
         else if (strlen(buf) > 0)
         {
