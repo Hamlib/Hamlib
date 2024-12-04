@@ -1604,7 +1604,7 @@ static int handle_ts2000(void *arg)
     }
     else if (strncmp(arg, "MD", 2) == 0)
     {
-        char response[32];
+        //char response[32];
         mode_t mode = 0;
         int imode = 0;
 
@@ -1632,9 +1632,11 @@ static int handle_ts2000(void *arg)
 
         case 9: mode = RIG_MODE_RTTYR; break;
         }
-
+	rig_set_mode(my_rig, RIG_VFO_A, mode, -1);
+#if 0
         SNPRINTF(response, sizeof(response), "MD%c;", mode + '0');
         return write_block2((void *)__func__, &my_com, response, strlen(response));
+#endif
     }
     else if (strcmp(arg, "PS1;") == 0)
     {
