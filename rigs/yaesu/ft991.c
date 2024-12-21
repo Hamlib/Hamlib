@@ -702,7 +702,7 @@ static int ft991_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
     }
 
     strncat(restore_commands, priv->ret_data,
-            NEWCAT_DATA_LEN - strlen(restore_commands));
+            NEWCAT_DATA_LEN - strlen(restore_commands) - 1);
 
     /* Change mode on VFOA */
     if (RIG_OK != (err = newcat_set_mode(rig, RIG_VFO_A, tx_mode,
