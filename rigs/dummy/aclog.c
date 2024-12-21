@@ -530,7 +530,7 @@ static int aclog_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         *mode = RIG_MODE_NONE;
         int n = sscanf(p, "<MODE>%31[^<]", modetmp);
 
-        if (n) { *mode = modeMapGetHamlib(modetmp); }
+        if (n == 1) { *mode = modeMapGetHamlib(modetmp); }
         else
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to parse <MODE> from '%s'\n", __func__,
