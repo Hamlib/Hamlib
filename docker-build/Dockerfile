@@ -1,21 +1,27 @@
-# Idea from https://github.com/ok2cqr/cqrlog
+# Base Image
+FROM ubuntu:latest AS hamlib-base-image
 
-FROM ubuntu:latest
+ENV DEBIAN_FRONTEND="noninteractive" TZ="Etc/UTC"
 
-RUN apt-get update && apt-get -y upgrade
+RUN apt-get update && apt-get install -y build-essential automake libtool python3 && rm -rf /var/lib/apt/lists/* 
 
-ENV DEBIAN_FRONTEND="noninteractive" TZ="Europe/London"
+# Builder Image
+FROM hamlib-base-image AS hamlib-builder
 
-RUN apt-get install -y git build-essential automake libtool
+COPY . /tmp/build
 
-RUN mkdir -p /usr/local/hamlib-alpha /home/hamlib/build
+WORKDIR /tmp/build
 
-# Mount point for the git repository:
-VOLUME ["/home/hamlib/build"]
+RUN mkdir -p /tmp/local
 
-# Mount point for the result of the build:
-VOLUME ["/usr/local/hamlib-alpha"]
+RUN ./bootstrap && ./configure --prefix=/tmp/local \
+	&& make clean && make -j && make install
 
-WORKDIR /home/hamlib/build
+# Runtime Image
+FROM ubuntu:latest AS hamlib-runtime
 
-ENTRYPOINT rm -rf build && mkdir -p build && cd build && ../bootstrap && ../configure --prefix=/usr/local/hamlib-alpha && make clean && make && make install
+COPY --from=hamlib-builder /tmp/local/bin /usr/local/bin
+COPY --from=hamlib-builder /tmp/local/lib /usr/local/lib
+COPY --from=hamlib-builder /tmp/local/share /usr/local/share
+
+ENV LD_LIBRARY_PATH="/usr/local/lib"
