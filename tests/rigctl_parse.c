@@ -5478,7 +5478,7 @@ int rigctld_password_check(RIG *rig, const char *md5)
 {
     int retval = -RIG_EINVAL;
     //fprintf(fout, "password %s\n", password);
-    rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, md5, rigctld_password);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, md5, rigctld_password);
     is_passwordOK = 0;
 
     char *mymd5 = rig_make_md5(rigctld_password);
