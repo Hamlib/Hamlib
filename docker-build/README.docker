@@ -1,7 +1,0 @@
-
-# Build, execute from the repository root 
-`docker buildx build --platform linux/amd64,linux/arm64 -t hamlib-runtime -f docker-build/Dockerfile .`
-
-# Run the hamlib-runtime
-`docker run -it hamlib-runtime bash`
-
