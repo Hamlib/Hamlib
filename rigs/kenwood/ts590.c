@@ -1958,7 +1958,7 @@ struct rig_caps fx4_caps =
     .max_ifshift = Hz(0),
 //    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
 //    mode command is not vfo targetable
-    .targetable_vfo = RIG_TARGETABLE_FREQ
+    .targetable_vfo = RIG_TARGETABLE_FREQ,
     .transceive = RIG_TRN_RIG,
     .agc_level_count = 6,
     .agc_levels = { RIG_AGC_OFF, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_SUPERFAST, RIG_AGC_ON },
@@ -2168,7 +2168,7 @@ struct rig_caps ts590sg_caps =
     .max_ifshift = Hz(0),
 //    .targetable_vfo = RIG_TARGETABLE_FREQ | RIG_TARGETABLE_MODE,
 //    mode command is not vfo targetable
-    .targetable_vfo = RIG_TARGETABLE_FREQ
+    .targetable_vfo = RIG_TARGETABLE_FREQ,
     .transceive = RIG_TRN_RIG,
     .agc_level_count = 6,
     .agc_levels = { RIG_AGC_OFF, RIG_AGC_SLOW, RIG_AGC_MEDIUM, RIG_AGC_FAST, RIG_AGC_SUPERFAST, RIG_AGC_ON },
