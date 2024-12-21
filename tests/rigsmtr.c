@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
                 return 1;
             }
 
-            strncat(rig_conf_parms, optarg, MAXCONFLEN - strlen(rig_conf_parms));
+            strncat(rig_conf_parms, optarg, MAXCONFLEN - strlen(rig_conf_parms) - 1);
             break;
 
         case 'M':
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
                 strcat(rot_conf_parms, ",");
             }
 
-            strncat(rot_conf_parms, optarg, MAXCONFLEN - strlen(rot_conf_parms));
+            strncat(rot_conf_parms, optarg, MAXCONFLEN - strlen(rot_conf_parms) - 1);
             break;
 
         case 'v':
