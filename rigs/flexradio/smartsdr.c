@@ -462,7 +462,7 @@ static int smartsdr_parse_S(RIG *rig, char *s)
             rig_debug(RIG_DEBUG_VERBOSE, "%s: PTT state=%s, ptt=%d\n", __func__, state,
                       priv->ptt);
         }
-        else if (sscanf(p, "tx=%d\n", &priv->tx))
+        else if (sscanf(p, "tx=%d\n", &priv->tx) == 1)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: tx=%d\n", __func__, priv->tx);
         }
