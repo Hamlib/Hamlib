@@ -1114,7 +1114,7 @@ static int trxmanager_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split,
     *tx_vfo = RIG_VFO_B;
     n = sscanf(response, "SP%d", &tsplit);
 
-    if (n == 0)
+    if (n == 0 || n == EOF)
     {
         rig_debug(RIG_DEBUG_ERR, "%s error getting split from '%s'\n", __func__,
                   response);
