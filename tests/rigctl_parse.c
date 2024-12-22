@@ -825,7 +825,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                     retcode = fscanf(fin, "%s", ++pcmd);
 
-                    if (retcode == 0) { rig_debug(RIG_DEBUG_WARN, "%s: unable to scan %c\n", __func__, *(pcmd - 1)); }
+                    if (retcode == 0 || retcode == EOF) { rig_debug(RIG_DEBUG_WARN, "%s: unable to scan %c\n", __func__, *(pcmd - 1)); }
 
                     while (*++pcmd);
 
@@ -3398,7 +3398,7 @@ declare_proto_rig(set_level)
 
     int dummy;
 
-    if (level == RIG_LEVEL_METER && sscanf(arg2, "%d", &dummy) == 0)
+    if (level == RIG_LEVEL_METER && sscanf(arg2, "%d", &dummy) <= 0)
     {
         if (strcmp(arg2, "COMP") == 0) { arg2 = "2"; }
         else if (strcmp(arg2, "ALC") == 0) { arg2 = "4"; }
@@ -5932,7 +5932,7 @@ declare_proto_rig(cm108_get_bit)
     // try GPIO format first
     int n = sscanf(arg1, "GPIO%d", &gpio);
 
-    if (n == 0)
+    if (n == 0 || n == EOF)
     {
         n = sscanf(arg1, "%d", &gpio);
     }
