@@ -52,10 +52,10 @@ int check_buffer_overflow(char *str, int len, int nlen)
     return RIG_OK;
 }
 
-
 int rig_sprintf_vfo(char *str, int nlen, vfo_t vfo)
 {
-    unsigned int i, len = 0;
+    unsigned int i;
+    int len = 0;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: vfo=%s\n", __func__, rig_strvfo(vfo));
     *str = '\0';
@@ -67,19 +67,31 @@ int rig_sprintf_vfo(char *str, int nlen, vfo_t vfo)
 
     for (i = 0; i < HAMLIB_MAX_VFOS; i++)
     {
-        const char *sv;
-        sv = rig_strvfo(vfo & RIG_VFO_N(i));
+        const char *sv = rig_strvfo(vfo & RIG_VFO_N(i));
 
         if (sv && sv[0] && (strstr(sv, "None") == 0))
         {
-            len += snprintf(str + len, nlen - len, "%s ", sv);
-            check_buffer_overflow(str, len, nlen);
+            int written = snprintf(str + len, nlen - len, "%s ", sv);
+            if (written < 0 || written >= nlen - len)
+            {
+                // Truncate and break if there's no space left
+                len = nlen - 1;
+                str[len] = '\0';
+                break;
+            }
+            len += written;
+        }
+
+        if (len >= nlen)
+        {
+            // Ensure null-termination and avoid overflow
+            str[nlen - 1] = '\0';
+            break;
         }
     }
 
     return len;
 }
-
 
 int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
 {
@@ -111,18 +123,17 @@ int rig_sprintf_mode(char *str, int nlen, rmode_t mode)
     return len;
 }
 
-
 int rig_sprintf_ant(char *str, int str_len, ant_t ant)
 {
     int i, len = 0;
-    char *ant_name;
+    const char *ant_name;
 
     *str = '\0';
 
     if (ant == RIG_ANT_NONE)
     {
-        SNPRINTF(str, str_len, "ANT_NONE");
-        return 0;
+        snprintf(str, str_len, "ANT_NONE");
+        return (int)strlen(str); // Return length of "ANT_NONE"
     }
 
     for (i = 0; i < RIG_ANT_MAX; i++)
@@ -132,33 +143,39 @@ int rig_sprintf_ant(char *str, int str_len, ant_t ant)
             switch (i)
             {
             case 0: ant_name = "ANT1"; break;
-
             case 1: ant_name = "ANT2"; break;
-
             case 2: ant_name = "ANT3"; break;
-
             case 3: ant_name = "ANT4"; break;
-
             case 4: ant_name = "ANT5"; break;
-
             case 30: ant_name = "ANT_UNKNOWN"; break;
-
             case 31: ant_name = "ANT_CURR"; break;
-
             default:
                 ant_name = "ANT_UNK";
                 rig_debug(RIG_DEBUG_ERR, "%s: unknown ant=%d\n", __func__, i);
                 break;
             }
 
-            len += snprintf(str + len, str_len - len, "%s ", ant_name);
-            check_buffer_overflow(str, len, str_len);
+            int written = snprintf(str + len, str_len - len, "%s ", ant_name);
+            if (written < 0 || written >= str_len - len)
+            {
+                // Truncate if buffer is full
+                len = str_len - 1;
+                str[len] = '\0';
+                break;
+            }
+            len += written;
+        }
+
+        if (len >= str_len)
+        {
+            // Ensure null-termination
+            str[str_len - 1] = '\0';
+            break;
         }
     }
 
     return len;
 }
-
 
 int rig_sprintf_func(char *str, int nlen, setting_t func)
 {
@@ -353,9 +370,7 @@ int sprintf_level_ext(char *str, int nlen, const struct confparams *extlevels)
     return len;
 }
 
-
-int rig_sprintf_level_gran(char *str, int nlen, setting_t level,
-                           const gran_t *gran)
+int rig_sprintf_level_gran(char *str, int nlen, setting_t level, const gran_t *gran)
 {
     int i, len = 0;
 
@@ -383,43 +398,45 @@ int rig_sprintf_level_gran(char *str, int nlen, setting_t level,
             {
                 rig_debug(RIG_DEBUG_BUG, "unknown level idx %d\n", i);
             }
-
             continue;
         }
 
+        int written;
         if (RIG_LEVEL_IS_FLOAT(rig_idx2setting(i)))
         {
-            len += snprintf(str + len, nlen - len,
-                            "%s(%f..%f/%f) ",
-                            ms,
-                            gran[i].min.f,
-                            gran[i].max.f,
-                            gran[i].step.f);
+            written = snprintf(str + len, nlen - len, "%s(%f..%f/%f) ", ms, gran[i].min.f, gran[i].max.f, gran[i].step.f);
         }
         else
         {
-            len += snprintf(str + len, nlen - len,
-                            "%s(%d..%d/%d) ",
-                            ms,
-                            gran[i].min.i,
-                            gran[i].max.i,
-                            gran[i].step.i);
+            written = snprintf(str + len, nlen - len, "%s(%d..%d/%d) ", ms, gran[i].min.i, gran[i].max.i, gran[i].step.i);
         }
 
-        check_buffer_overflow(str, len, nlen);
+        if (written < 0 || written >= nlen - len)
+        {
+            // Truncate and stop further processing if the buffer is full
+            len = nlen - 1;
+            str[len] = '\0';
+            break;
+        }
+
+        len += written;
+
+        if (len >= nlen)
+        {
+            // Ensure null-termination and avoid overflow
+            str[nlen - 1] = '\0';
+            break;
+        }
     }
 
     return len;
 }
 
-
-int rot_sprintf_level_gran(char *str, int nlen, setting_t level,
-                           const gran_t *gran)
+int rot_sprintf_level_gran(char *str, int nlen, setting_t level, const gran_t *gran)
 {
     int i, len = 0;
 
     *str = '\0';
-
     if (level == ROT_LEVEL_NONE)
     {
         return 0;
@@ -442,35 +459,39 @@ int rot_sprintf_level_gran(char *str, int nlen, setting_t level,
             {
                 rig_debug(RIG_DEBUG_BUG, "unknown level idx %d\n", i);
             }
-
             continue;
         }
 
+        int written;
         if (ROT_LEVEL_IS_FLOAT(rig_idx2setting(i)))
         {
-            len += snprintf(str + len, nlen - len,
-                            "%s(%f..%f/%f) ",
-                            ms,
-                            gran[i].min.f,
-                            gran[i].max.f,
-                            gran[i].step.f);
+            written = snprintf(str + len, nlen - len, "%s(%f..%f/%f) ", ms, gran[i].min.f, gran[i].max.f, gran[i].step.f);
         }
         else
         {
-            len += snprintf(str + len, nlen - len,
-                            "%s(%d..%d/%d) ",
-                            ms,
-                            gran[i].min.i,
-                            gran[i].max.i,
-                            gran[i].step.i);
+            written = snprintf(str + len, nlen - len, "%s(%d..%d/%d) ", ms, gran[i].min.i, gran[i].max.i, gran[i].step.i);
         }
 
-        check_buffer_overflow(str, len, nlen);
+        if (written < 0 || written >= nlen - len)
+        {
+            // Truncate and stop further processing if the buffer is full
+            len = nlen - 1;
+            str[len] = '\0';
+            break;
+        }
+
+        len += written;
+
+        if (len >= nlen)
+        {
+            // Ensure null-termination and avoid overflow
+            str[nlen - 1] = '\0';
+            break;
+        }
     }
 
     return len;
 }
-
 
 int rig_sprintf_parm(char *str, int nlen, setting_t parm)
 {
@@ -501,7 +522,6 @@ int rig_sprintf_parm(char *str, int nlen, setting_t parm)
     return len;
 }
 
-
 int rot_sprintf_parm(char *str, int nlen, setting_t parm)
 {
     int i, len = 0;
@@ -519,24 +539,35 @@ int rot_sprintf_parm(char *str, int nlen, setting_t parm)
 
         if (!ms || !ms[0])
         {
-            continue;    /* unknown, FIXME! */
+            continue; /* unknown, FIXME! */
         }
 
-        strcat(str, ms);
-        strcat(str, " ");
-        len += strlen(ms) + 1;
-        check_buffer_overflow(str, len, nlen);
+        int written = snprintf(str + len, nlen - len, "%s ", ms);
+
+        if (written < 0 || written >= nlen - len)
+        {
+            // Truncate and stop further processing if the buffer is full
+            len = nlen - 1;
+            str[len] = '\0';
+            break;
+        }
+
+        len += written;
+
+        if (len >= nlen)
+        {
+            // Ensure null-termination and avoid overflow
+            str[nlen - 1] = '\0';
+            break;
+        }
     }
 
     return len;
 }
 
-
-int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
-                          const gran_t *gran)
+int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm, const gran_t *gran)
 {
     int i, len = 0;
-
     *str = '\0';
 
     if (parm == RIG_PARM_NONE)
@@ -547,65 +578,64 @@ int rig_sprintf_parm_gran(char *str, int nlen, setting_t parm,
     for (i = 0; i < RIG_SETTING_MAX; i++)
     {
         const char *ms;
-
         if (!(parm & rig_idx2setting(i)))
         {
             continue;
         }
-
         ms = rig_strparm(parm & rig_idx2setting(i));
-
         if (!ms || !ms[0])
         {
             if (parm != DUMMY_ALL && parm != RIG_PARM_SET(DUMMY_ALL))
             {
                 rig_debug(RIG_DEBUG_BUG, "unknown parm idx %d\n", i);
             }
-
             continue;
         }
 
+        int written;
         if (RIG_PARM_IS_FLOAT(rig_idx2setting(i)))
         {
-            len += snprintf(str + len, nlen - len,
-                            "%s(%.g..%.g/%.g) ",
-                            ms,
-                            gran[i].min.f,
-                            gran[i].max.f,
-                            gran[i].step.f);
+            written = snprintf(str + len, nlen - len, "%s(%.g..%.g/%.g) ", ms, gran[i].min.f, gran[i].max.f, gran[i].step.f);
         }
         else if (RIG_PARM_IS_STRING(rig_idx2setting(i)))
         {
             if (gran[i].step.s)
             {
-                len += snprintf(str + len, nlen - len,
-                                "%s(%s) ",
-                                ms,
-                                gran[i].step.s);
+                written = snprintf(str + len, nlen - len, "%s(%s) ", ms, gran[i].step.s);
+            }
+            else
+            {
+                continue;
             }
         }
         else
         {
-            len += snprintf(str + len, nlen - len,
-                            "%s(%d..%d/%d) ",
-                            ms,
-                            gran[i].min.i,
-                            gran[i].max.i,
-                            gran[i].step.i);
+            written = snprintf(str + len, nlen - len, "%s(%d..%d/%d) ", ms, gran[i].min.i, gran[i].max.i, gran[i].step.i);
         }
 
-        check_buffer_overflow(str, len, nlen);
+        if (written < 0 || written >= nlen - len)
+        {
+            // Truncate and stop further processing if the buffer is full
+            len = nlen - 1;
+            str[len] = '\0';
+            break;
+        }
+        len += written;
+
+        if (len >= nlen)
+        {
+            // Ensure null-termination and avoid overflow
+            str[nlen - 1] = '\0';
+            break;
+        }
     }
 
     return len;
 }
 
-
-int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm,
-                          const gran_t *gran)
+int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm, const gran_t *gran)
 {
     int i, len = 0;
-
     *str = '\0';
 
     if (parm == ROT_PARM_NONE)
@@ -616,49 +646,49 @@ int rot_sprintf_parm_gran(char *str, int nlen, setting_t parm,
     for (i = 0; i < RIG_SETTING_MAX; i++)
     {
         const char *ms;
-
         if (!(parm & rig_idx2setting(i)))
         {
             continue;
         }
-
         ms = rot_strparm(parm & rig_idx2setting(i));
-
         if (!ms || !ms[0])
         {
             if (parm != DUMMY_ALL && parm != ROT_PARM_SET(DUMMY_ALL))
             {
                 rig_debug(RIG_DEBUG_BUG, "unknown parm idx %d\n", i);
             }
-
             continue;
         }
 
+        int written;
         if (ROT_PARM_IS_FLOAT(rig_idx2setting(i)))
         {
-            len += snprintf(str + len, nlen - len,
-                            "%s(%f..%f/%f) ",
-                            ms,
-                            gran[i].min.f,
-                            gran[i].max.f,
-                            gran[i].step.f);
+            written = snprintf(str + len, nlen - len, "%s(%f..%f/%f) ", ms, gran[i].min.f, gran[i].max.f, gran[i].step.f);
         }
         else
         {
-            len += snprintf(str + len, nlen - len,
-                            "%s(%d..%d/%d) ",
-                            ms,
-                            gran[i].min.i,
-                            gran[i].max.i,
-                            gran[i].step.i);
+            written = snprintf(str + len, nlen - len, "%s(%d..%d/%d) ", ms, gran[i].min.i, gran[i].max.i, gran[i].step.i);
         }
 
-        check_buffer_overflow(str, len, nlen);
+        if (written < 0 || written >= nlen - len)
+        {
+            // Truncate and stop further processing if the buffer is full
+            len = nlen - 1;
+            str[len] = '\0';
+            break;
+        }
+        len += written;
+
+        if (len >= nlen)
+        {
+            // Ensure null-termination and avoid overflow
+            str[nlen - 1] = '\0';
+            break;
+        }
     }
 
     return len;
 }
-
 
 int rig_sprintf_vfop(char *str, int nlen, vfo_op_t op)
 {
