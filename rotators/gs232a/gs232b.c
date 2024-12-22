@@ -226,7 +226,7 @@ gs232b_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
      * directives, any amount of space is matched, including none in the input.
      */
     // There's a 12PR1A rotor  that only returns AZ so we may only get AZ=xxx
-    if (sscanf(posbuf, "AZ=%d EL=%d", &int_az, &int_el) == 0)
+    if (sscanf(posbuf, "AZ=%d EL=%d", &int_az, &int_el) <= 0)
     {
         // only give error if we didn't parse anything
         rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s', expected AZ=xxx EL=xxx\n",
