@@ -963,7 +963,7 @@ static int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
               f,
               vfo);
 
-    *freq = f;                    /* return displayed frequency */
+    *freq = f;                    // return displayed frequency
 
     RETURNFUNC(RIG_OK);
 }
@@ -1542,7 +1542,7 @@ static int ft1000mp_get_rxit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     rig_debug(RIG_DEBUG_TRACE, "%s: freq = %d Hz for VFO [%s]\n", __func__, (int)f,
               rig_strvfo(vfo));
 
-    *rit = f;     /* return displayed frequency */
+    *rit = f;     // return displayed frequency
 
     RETURNFUNC(RIG_OK);
 }

@@ -11342,7 +11342,7 @@ int newcat_get_cmd(RIG *rig)
                 RETURNFUNC(-RIG_ENAVAIL);
 
             case 'O':
-                /* Too many characters sent without a carriage return */
+                // Too many characters sent without a carriage return
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __func__,
                           priv->cmd_str);
                 rc = -RIG_EPROTO;
@@ -11776,7 +11776,7 @@ int newcat_set_cmd(RIG *rig)
                 RETURNFUNC(-RIG_ENAVAIL);
 
             case 'O':
-                /* Too many characters sent without a carriage return */
+                // Too many characters sent without a carriage return
                 rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __func__,
                           priv->cmd_str);
                 rc = -RIG_EPROTO;
