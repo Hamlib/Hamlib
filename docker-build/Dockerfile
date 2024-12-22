@@ -4,7 +4,7 @@ FROM ubuntu:latest AS hamlib-base-image
 ENV DEBIAN_FRONTEND="noninteractive" TZ="Etc/UTC"
 
 RUN apt-get update \
-	&& apt-get install -y vim git build-essential automake libtool python-is-python3 \
+	&& apt-get install -y git build-essential automake libtool python-is-python3 \
 	&& rm -rf /var/lib/apt/lists/* 
 
 # Builder Image
