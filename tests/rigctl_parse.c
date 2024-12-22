@@ -5518,8 +5518,9 @@ declare_proto_rig(password)
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: password error, '%s'!='%s'\n", __func__,
-                  key, rigctld_password);
+        //rig_debug(RIG_DEBUG_ERR, "%s: password error, '%s'!='%s'\n", __func__,
+        //          key, rigctld_password);
+        rig_debug(RIG_DEBUG_ERR, "%s: password error\n", __func__);
     }
 
     RETURNFUNC2(retval);
