@@ -280,7 +280,7 @@ static int netrigctl_open(RIG *rig)
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s:  unknown return from netrigctl_transaction=%d\n",
+        rig_debug(RIG_DEBUG_ERR, "%s:  unknown value returned from netrigctl_transaction=%d\n",
                   __func__, ret);
     }
 
