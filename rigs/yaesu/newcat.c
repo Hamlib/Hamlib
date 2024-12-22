@@ -8096,7 +8096,7 @@ int newcat_get_channel(RIG *rig, vfo_t vfo, channel_t *chan, int read_only)
     if (priv->ret_data[28] != ';') // must have TAG data?
     {
         // get the TAG data
-        sscanf(&priv->ret_data[28], "%32s", chan->tag);
+        sscanf(&priv->ret_data[28], "%31s", chan->tag);
         char *p = strchr(chan->tag, ';');
 
         if (p) { *p = 0; }
