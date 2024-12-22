@@ -1879,8 +1879,9 @@ readline_repeat:
         else
         {
             fprintf(fout,
-                    "%s: error = %s\n",
-                    cmd_entry->name,
+                    //"%s: error = %s\n",
+                    //cmd_entry->name,
+                    "error = %s\n",
                     rigerror(retcode));
         }
     }
