@@ -719,7 +719,6 @@ int rig_sprintf_scan(char *str, int nlen, scan_t rscan)
     return len;
 }
 
-
 int rot_sprintf_status(char *str, int nlen, rot_status_t status)
 {
     int len = 0;
@@ -735,19 +734,32 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
 
     for (i = 0; i < HAMLIB_MAX_ROTORS; i++)
     {
-        const char *sv;
-        sv = rot_strstatus(status & ROT_STATUS_N(i));
+        const char *sv = rot_strstatus(status & ROT_STATUS_N(i));
 
         if (sv && sv[0] && (strstr(sv, "None") == 0))
         {
-            len += snprintf(str + len, nlen - len, "%s ", sv);
+            int written = snprintf(str + len, nlen - len, "%s ", sv);
+            if (written < 0 || written >= nlen - len)
+            {
+                // Truncate and break if there's no space left
+                len = nlen - 1;
+                str[len] = '\0';
+                break;
+            }
+            len += written;
         }
 
-        check_buffer_overflow(str, len, nlen);
+        if (len >= nlen)
+        {
+            // Ensure null-termination and avoid overflow
+            str[nlen - 1] = '\0';
+            break;
+        }
     }
 
     return len;
 }
+
 
 int rig_sprintf_spectrum_modes(char *str, int nlen,
                                const enum rig_spectrum_mode_e *modes)
