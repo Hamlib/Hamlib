@@ -1697,10 +1697,8 @@ int HAMLIB_API rig_close(RIG *rig)
 
 #endif
 
-    /*
-     * Let the backend say 73s to the rig.
-     * and ignore the return code.
-     */
+    // Let the backend say 73 to the rig.
+    // and ignore the return code.
     if (caps->rig_close)
     {
         caps->rig_close(rig);
@@ -3145,14 +3143,14 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
     {
         if (rs->filters[i].modes & mode)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: return filter#%d, width=%d\n", __func__, i,
+            rig_debug(RIG_DEBUG_VERBOSE, "%s: Return filter#%d, width=%d\n", __func__, i,
                       (int)rs->filters[i].width);
             RETURNFUNC(rs->filters[i].width);
         }
     }
 
     rig_debug(RIG_DEBUG_VERBOSE,
-              "%s: filter not found...return %d\n", __func__,
+              "%s: filter not found...returning %d\n", __func__,
               0);
     RETURNFUNC(0);
 }
@@ -3407,7 +3405,7 @@ int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
         rig_set_cache_freq(rig, RIG_VFO_ALL, 0);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: return %d, vfo=%s, curr_vfo=%s\n", __func__,
+    rig_debug(RIG_DEBUG_TRACE, "%s: returning %d, vfo=%s, curr_vfo=%s\n", __func__,
               retcode,
               rig_strvfo(vfo), rig_strvfo(rs->current_vfo));
     ELAPSED2;
@@ -3838,7 +3836,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     cachep->ptt = ptt;
     elapsed_ms(&cachep->time_ptt, HAMLIB_ELAPSED_SET);
 
-    if (retcode != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: return code=%d\n", __func__, retcode); }
+    if (retcode != RIG_OK) { rig_debug(RIG_DEBUG_ERR, "%s: Return code=%d\n", __func__, retcode); }
 
     memcpy(&rs->pttport_deprecated, pttp,
            sizeof(rs->pttport_deprecated));
