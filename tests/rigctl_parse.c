@@ -5967,7 +5967,7 @@ declare_proto_rig(cm108_set_bit)
     // try GPIO format first
     int n = sscanf(arg1, "GPIO%d", &gpio);
 
-    if (n == 0)
+    if (n == 0 || n == EOF)
     {
         n = sscanf(arg1, "%d", &gpio);
     }
