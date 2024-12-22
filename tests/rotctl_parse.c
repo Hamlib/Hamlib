@@ -1489,7 +1489,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, const char *argv[],
         {
             if (cmd_entry->name != NULL)
             {
-                fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
+                //fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
+                fprintf(fout, "error = %s\n", rigerror(retcode));
             }
         }
     }
