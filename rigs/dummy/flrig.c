@@ -910,7 +910,7 @@ static int flrig_open(RIG *rig)
     int dummy;
 
     if (retval == RIG_ENAVAIL || value[0] == 0
-            || sscanf(value, "%d", &dummy) == 0) // must not have it
+            || sscanf(value, "%d", &dummy) <= 0) // must not have it
     {
         priv->has_get_bwA = 0;
         priv->has_get_bwB = 0; // if we don't have A then surely we don't have B either
