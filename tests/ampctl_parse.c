@@ -1406,7 +1406,8 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
         }
         else
         {
-            fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
+            fprintf(fout, "error = %s\n", rigerror(retcode));
+            //fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
         }
     }
     else
