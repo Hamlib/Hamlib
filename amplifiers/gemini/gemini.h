@@ -47,7 +47,7 @@ struct gemini_priv_data
     double vswr;
     int current; // Amps
     int temperature; // Centigrade
-    char state[5];
+    char state[8];
     int ptt;
     char trip[256];
 };

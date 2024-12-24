@@ -530,7 +530,7 @@ static int aclog_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         *mode = RIG_MODE_NONE;
         int n = sscanf(p, "<MODE>%31[^<]", modetmp);
 
-        if (n) { *mode = modeMapGetHamlib(modetmp); }
+        if (n == 1) { *mode = modeMapGetHamlib(modetmp); }
         else
         {
             rig_debug(RIG_DEBUG_ERR, "%s: Unable to parse <MODE> from '%s'\n", __func__,
@@ -834,7 +834,7 @@ static int aclog_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     rig_debug(RIG_DEBUG_TRACE,
-              "%s: return modeA=%s, widthA=%d\n,modeB=%s, widthB=%d\n", __func__,
+              "%s: Return modeA=%s, widthA=%d\n,modeB=%s, widthB=%d\n", __func__,
               rig_strrmode(priv->curr_modeA), (int)priv->curr_widthA,
               rig_strrmode(priv->curr_modeB), (int)priv->curr_widthB);
     RETURNFUNC(RIG_OK);

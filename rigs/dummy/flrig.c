@@ -910,7 +910,7 @@ static int flrig_open(RIG *rig)
     int dummy;
 
     if (retval == RIG_ENAVAIL || value[0] == 0
-            || sscanf(value, "%d", &dummy) == 0) // must not have it
+            || sscanf(value, "%d", &dummy) <= 0) // must not have it
     {
         priv->has_get_bwA = 0;
         priv->has_get_bwB = 0; // if we don't have A then surely we don't have B either
@@ -943,7 +943,7 @@ static int flrig_open(RIG *rig)
 
     if (priv->has_get_bwA)
     {
-        /* see if get_bwB is available FLRig can return empty value too */
+        // see if get_bwB is available FLRig can return empty value too
         retval = flrig_transaction(rig, "rig.get_bwB", NULL, value, sizeof(value));
 
         if (retval == RIG_ENAVAIL || strlen(value) == 0) // must not have it
@@ -1667,7 +1667,7 @@ static int flrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     }
 
     rig_debug(RIG_DEBUG_TRACE,
-              "%s: return modeA=%s, widthA=%d\n,modeB=%s, widthB=%d\n", __func__,
+              "%s: Return modeA=%s, widthA=%d\n,modeB=%s, widthB=%d\n", __func__,
               rig_strrmode(priv->curr_modeA), (int)priv->curr_widthA,
               rig_strrmode(priv->curr_modeB), (int)priv->curr_widthB);
     RETURNFUNC(RIG_OK);
@@ -1792,7 +1792,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         if (strlen(value) ==
                 0) // sometimes we get a null reply here -- OK...deal with it
         {
-            rig_debug(RIG_DEBUG_WARN, "%s: empty value return cached bandwidth\n",
+            rig_debug(RIG_DEBUG_WARN, "%s: empty value, returning cached bandwidth\n",
                       __func__);
             *width = CACHE(rig)->widthMainA;
             RETURNFUNC(RIG_OK);
@@ -1819,7 +1819,7 @@ static int flrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
             if (strlen(value) == 0)
             {
-                rig_debug(RIG_DEBUG_WARN, "%s: empty value return cached bandwidth\n",
+                rig_debug(RIG_DEBUG_WARN, "%s: empty value, returning cached bandwidth\n",
                           __func__);
                 *width = CACHE(rig)->widthMainA;
                 RETURNFUNC(RIG_OK);

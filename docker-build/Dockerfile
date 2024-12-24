@@ -1,21 +1,26 @@
-# Idea from https://github.com/ok2cqr/cqrlog
+# Base Image
+FROM ubuntu:latest AS hamlib-base-image
 
-FROM ubuntu:latest
+ENV DEBIAN_FRONTEND="noninteractive" TZ="Etc/UTC"
 
-RUN apt-get update && apt-get -y upgrade
+RUN apt-get update \
+	&& apt-get install -y git build-essential automake libtool python-is-python3 \
+	&& rm -rf /var/lib/apt/lists/* 
 
-ENV DEBIAN_FRONTEND="noninteractive" TZ="Europe/London"
+# Builder Image
 
-RUN apt-get install -y git build-essential automake libtool
+FROM hamlib-base-image AS hamlib-builder
 
-RUN mkdir -p /usr/local/hamlib-alpha /home/hamlib/build
+COPY . /wip
 
-# Mount point for the git repository:
-VOLUME ["/home/hamlib/build"]
+WORKDIR /wip
 
-# Mount point for the result of the build:
-VOLUME ["/usr/local/hamlib-alpha"]
+RUN ./bootstrap && ./configure --prefix=/usr/local \
+	&& make clean && make -j${nproc} && make install
 
-WORKDIR /home/hamlib/build
+# Runtime Image
+FROM ubuntu:latest AS hamlib-runtime
 
-ENTRYPOINT rm -rf build && mkdir -p build && cd build && ../bootstrap && ../configure --prefix=/usr/local/hamlib-alpha && make clean && make && make install
+COPY --from=hamlib-builder /usr/local /usr/local
+
+ENV LD_LIBRARY_PATH="/usr/local/lib"

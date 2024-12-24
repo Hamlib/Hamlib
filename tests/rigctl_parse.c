@@ -825,7 +825,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
 
                     retcode = fscanf(fin, "%s", ++pcmd);
 
-                    if (retcode == 0) { rig_debug(RIG_DEBUG_WARN, "%s: unable to scan %c\n", __func__, *(pcmd - 1)); }
+                    if (retcode == 0 || retcode == EOF) { rig_debug(RIG_DEBUG_WARN, "%s: unable to scan %c\n", __func__, *(pcmd - 1)); }
 
                     while (*++pcmd);
 
@@ -1879,8 +1879,9 @@ readline_repeat:
         else
         {
             fprintf(fout,
-                    "%s: error = %s\n",
-                    cmd_entry->name,
+                    //"%s: error = %s\n",
+                    //cmd_entry->name,
+                    "error = %s\n",
                     rigerror(retcode));
         }
     }
@@ -3398,7 +3399,7 @@ declare_proto_rig(set_level)
 
     int dummy;
 
-    if (level == RIG_LEVEL_METER && sscanf(arg2, "%d", &dummy) == 0)
+    if (level == RIG_LEVEL_METER && sscanf(arg2, "%d", &dummy) <= 0)
     {
         if (strcmp(arg2, "COMP") == 0) { arg2 = "2"; }
         else if (strcmp(arg2, "ALC") == 0) { arg2 = "4"; }
@@ -5478,7 +5479,7 @@ int rigctld_password_check(RIG *rig, const char *md5)
 {
     int retval = -RIG_EINVAL;
     //fprintf(fout, "password %s\n", password);
-    rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, md5, rigctld_password);
+    //rig_debug(RIG_DEBUG_TRACE, "%s: %s == %s\n", __func__, md5, rigctld_password);
     is_passwordOK = 0;
 
     char *mymd5 = rig_make_md5(rigctld_password);
@@ -5517,8 +5518,9 @@ declare_proto_rig(password)
     }
     else
     {
-        rig_debug(RIG_DEBUG_ERR, "%s: password error, '%s'!='%s'\n", __func__,
-                  key, rigctld_password);
+        //rig_debug(RIG_DEBUG_ERR, "%s: password error, '%s'!='%s'\n", __func__,
+        //          key, rigctld_password);
+        rig_debug(RIG_DEBUG_ERR, "%s: password error\n", __func__);
     }
 
     RETURNFUNC2(retval);
@@ -5932,7 +5934,7 @@ declare_proto_rig(cm108_get_bit)
     // try GPIO format first
     int n = sscanf(arg1, "GPIO%d", &gpio);
 
-    if (n == 0)
+    if (n == 0 || n == EOF)
     {
         n = sscanf(arg1, "%d", &gpio);
     }
@@ -5967,7 +5969,7 @@ declare_proto_rig(cm108_set_bit)
     // try GPIO format first
     int n = sscanf(arg1, "GPIO%d", &gpio);
 
-    if (n == 0)
+    if (n == 0 || n == EOF)
     {
         n = sscanf(arg1, "%d", &gpio);
     }
