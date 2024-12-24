@@ -13,6 +13,7 @@ Version 5.x -- future
         * Change FT1000MP Mark V model names to align with FT1000MP
 
 Version 4.6
+	* 2024-12-24
 	* send_raw can now take hex digits as colon-separated -- e.g. send_raw icom xfe:xfe:x94:xe0:03:xfd
 	* Add IC7760
         * IC7300 Mode filter can now be set by # (i.e. 1,2,3) 
@@ -86,8 +87,6 @@ static int add_to_list(const struct rig_caps* rc, void*)
         * Add MDS 4710/9710 rigs
         * Add FLIR PTU-D48, E46, D100, D300 rotors
         * Fix FTDX3000 rig split
-
-Version 4.5.6
         * Fix rigctld/rigctltcp information
         * Fix FT817 get/set_vfo
 
