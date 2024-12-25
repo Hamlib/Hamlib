@@ -955,8 +955,8 @@ void usage(void)
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n"
-        "  -!, --cookie                  use cookie control\n\n"
-        "  -#, --skipinit                skips rig initialization\n"
+        "  -!, --cookie                  use cookie control\n"
+        "  -#, --skipinit                skips rig initialization\n\n"
     );
 
     usage_rig(stdout);
