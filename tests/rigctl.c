@@ -547,6 +547,7 @@ int main(int argc, char *argv[])
     if (optind < argc)
     {
         interactive = 0;
+        skip_init = 1;
     }
     else
     {
