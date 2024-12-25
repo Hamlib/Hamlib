@@ -110,7 +110,7 @@ static struct option long_options[] =
     {"help",            0, 0, 'h'},
     {"version",         0, 0, 'V'},
     {"cookie",          0, 0, '!'},
-    {"skipinit",        0, 0, '#'},
+    {"skip-init",       0, 0, '#'},
     {0, 0, 0, 0}
 
 };
@@ -956,7 +956,7 @@ void usage(void)
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n"
         "  -!, --cookie                  use cookie control\n"
-        "  -#, --skipinit                skips rig initialization\n\n"
+        "  -#, --skip-init                skips rig initialization\n\n"
     );
 
     usage_rig(stdout);

@@ -915,11 +915,21 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc,
             }
         }
 
+        if (strcmp(command,"skip-init")==0)
+        {
+            // no-op now since it's automatic in non-interactive mode
+            return(RIG_OK);
+        }
+
         cmd_entry = find_cmd_entry(cmd);
 
         if (!cmd_entry)
         {
-            if (cmd != ' ')
+            if (cmd == 0)
+            {
+                fprintf(stderr, "Command '%s' not found!\n", command);
+            }
+            else if (cmd != ' ')
             {
                 fprintf(stderr, "Command '%c' not found!\n", cmd);
             }
