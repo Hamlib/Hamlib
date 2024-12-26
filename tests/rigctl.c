@@ -547,7 +547,8 @@ int main(int argc, char *argv[])
     if (optind < argc)
     {
         interactive = 0;
-        skip_init = 1;
+        // skip_init here caused segfault on rigctl -m 2041 -r /dev/pts/4 M CW 250 b 73
+        //skip_init = 1;
     }
     else
     {
