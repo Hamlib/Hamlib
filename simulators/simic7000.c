@@ -72,18 +72,17 @@ again:
     while (read(fd, &c, 1) > 0)
     {
         buf[i++] = c;
-        //printf("i=%d, c=0x%02x\n",i,c);
+        printf("i=%d, c=0x%02x\n", i, c);
 
         if (c == 0xfd)
         {
             char mytime[256];
             date_strget(mytime, sizeof(mytime), 1);
             printf("%s:", mytime); dumphex(buf, i);
+            printf("\n");
             // echo
-            n = write(fd, buf, i);
-
-            if (n != i) { printf("%s: error on write: %s\n", __func__, strerror(errno)); }
-
+            //n = write(fd, buf, i);
+            //if (n != i) { printf("%s: error on write: %s\n", __func__, strerror(errno)); }
             return i;
         }
 
@@ -132,7 +131,7 @@ void frameParse(int fd, unsigned char *frame, int len)
     {
     case 0x03:
 
-        if (frame[5] != 0xfd)
+        if (frame[5] == 0xfd)
         {
             //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
             if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
@@ -153,21 +152,21 @@ void frameParse(int fd, unsigned char *frame, int len)
                 n = write(fd, frame, 11);
                 dump_hex(frame, 11);
             }
+        }
+        else
+        {
+            if (current_vfo == RIG_VFO_A)
+            {
+                freqA = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
+            }
             else
             {
-                if (current_vfo == RIG_VFO_A)
-                {
-                    freqA = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
-                }
-                else
-                {
-                    freqB = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
-                }
-
-                frame[4] = 0xfb;
-                frame[5] = 0xfd;
-                n = write(fd, frame, 6);
+                freqB = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
             }
+
+            frame[4] = 0xfb;
+            frame[5] = 0xfd;
+            n = write(fd, frame, 6);
         }
 
         break;
@@ -614,6 +613,9 @@ int main(int argc, char **argv)
 
         if (powerstat)
         {
+            unsigned char tmp = buf[2];
+            buf[2] = buf[3];
+            buf[3] = tmp;
             frameParse(fd, buf, len);
         }
         else
