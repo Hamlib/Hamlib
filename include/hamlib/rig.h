@@ -208,6 +208,7 @@ enum rig_errcode_e {
     RIG_ESECURITY,  /*!< 19 Security error */
     RIG_EPOWER,     /*!< 20 Rig not powered on */
     RIG_ELIMIT,     /*!< 21 Limit exceeded */
+    RIG_EACCESS,    /*!< 22 Access denied -- e.g. port already in use */
     RIG_EEND        // MUST BE LAST ITEM IN LAST
 };
 /**

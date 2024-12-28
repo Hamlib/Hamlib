@@ -252,8 +252,13 @@ int HAMLIB_API port_open(hamlib_port_t *p)
 
         if (status < 0)
         {
+#if defined(WIN32)
+//            rig_debug(RIG_DEBUG_ERR, "%s: serial_open(%s) status=%d, err=%s\n", __func__,
+//                      p->pathname, status, rigerror(status));
+#else
             rig_debug(RIG_DEBUG_ERR, "%s: serial_open(%s) status=%d, err=%s\n", __func__,
                       p->pathname, status, strerror(errno));
+#endif
             close_sync_data_pipe(p);
             return (status);
         }

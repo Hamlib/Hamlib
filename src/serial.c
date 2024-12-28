@@ -126,6 +126,89 @@ int is_uh_radio_fd(int fd)
 }
 //! @endcond
 
+#if defined(WIN32)
+#include <windows.h>
+#include <strsafe.h>
+
+void WinErrorShow(LPCTSTR lpszFunction, DWORD dw)
+{
+    // Retrieve the system error message for the last-error code
+
+    LPVOID lpMsgBuf;
+    LPVOID lpDisplayBuf;
+//    DWORD dw = GetLastError();
+
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL);
+
+    // Display the error message and exit the process
+
+    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT,
+                                      (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(
+                                          TCHAR));
+    StringCchPrintf((LPTSTR)lpDisplayBuf,
+                    LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+                    TEXT("%s failed with error %d: %s"),
+                    lpszFunction, dw, lpMsgBuf);
+    //MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
+    rig_debug(RIG_DEBUG_ERR, "%s: %s", __func__, (char *)lpDisplayBuf);
+
+    LocalFree(lpMsgBuf);
+    LocalFree(lpDisplayBuf);
+}
+
+enum serial_status
+{
+    SER_NO_EXIST,
+    SER_IN_USE,
+    SER_UNKNOWN_ERR,
+    SER_AVAILABLE
+};
+
+int check_com_port_in_use(const char *port)
+{
+    char device[1024];
+    snprintf(device, sizeof(device), "\\\\.\\%s", port);
+    HANDLE hCom = CreateFileA(
+        device,
+        GENERIC_READ | GENERIC_WRITE,
+        0,    // No sharing
+        NULL, // Default security
+        OPEN_EXISTING,
+        0,    // Non-overlapped mode
+        NULL  // No template file
+    );
+
+    if (hCom == INVALID_HANDLE_VALUE)
+    {
+        DWORD error = GetLastError();
+
+        if (error == ERROR_FILE_NOT_FOUND)
+        {
+            return SER_NO_EXIST;
+        }
+        else if (error == ERROR_ACCESS_DENIED)
+        {
+            return SER_IN_USE;
+        }
+        else
+        {
+            WinErrorShow("serial error on CreateFileA: ", error);
+            return SER_IN_USE;
+        }
+    }
+    CloseHandle(hCom);
+
+    return SER_AVAILABLE;
+}
+#endif
 
 /**
  * \brief Open serial port using STATE(rig) data
@@ -142,6 +225,28 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
     {
         return (-RIG_EINVAL);
     }
+
+#if defined(WIN32)
+    int retcode = check_com_port_in_use(rp->pathname);
+
+    switch (retcode)
+    {
+    case SER_IN_USE:
+        rig_debug(RIG_DEBUG_ERR, "%s: serial port %s is already open\n", __func__,
+                  rp->pathname);
+        return -RIG_EACCESS;
+
+    case SER_NO_EXIST:
+        rig_debug(RIG_DEBUG_ERR, "%s: serial port %s does not exist\n", __func__,
+                  rp->pathname);
+        return -RIG_EIO;
+
+    case SER_AVAILABLE:
+        rig_debug(RIG_DEBUG_ERR, "%s: serial port %s is OK\n", __func__, rp->pathname);
+        break;
+    }
+
+#endif
 
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %s\n", __func__, rp->pathname);

@@ -233,7 +233,8 @@ static const char *const rigerror_table[] =
     "Function deprecated",
     "Security error password not provided or crypto failure",
     "Rig is not powered on",
-    "Limit exceeded"
+    "Limit exceeded",
+    "Access denied"
 };
 
 
@@ -996,7 +997,7 @@ int HAMLIB_API rig_open(RIG *rig)
     }
     else
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: cwd=%s\n", __func__, cwd);
+        //rig_debug(RIG_DEBUG_VERBOSE, "%s: cwd=%s\n", __func__, cwd);
         char *path = calloc(1, 8192);
         extern char settings_file[4096];
         const char *xdgpath = getenv("XDG_CONFIG_HOME");
@@ -1016,7 +1017,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (fp == NULL)
         {
-            rig_debug(RIG_DEBUG_VERBOSE, "%s: %s %s\n", __func__, path, strerror(errno));
+            //rig_debug(RIG_DEBUG_VERBOSE, "%s: %s %s\n", __func__, path, strerror(errno));
         }
         else
         {
@@ -1169,8 +1170,7 @@ int HAMLIB_API rig_open(RIG *rig)
 
     if (status < 0)
     {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__,
-                  rs->comm_state);
+        //rig_debug(RIG_DEBUG_VERBOSE, "%s: rs->comm_state==0?=%d\n", __func__, rs->comm_state);
         rs->comm_state = 0;
         rs->comm_status = RIG_COMM_STATUS_ERROR;
         RETURNFUNC2(status);
