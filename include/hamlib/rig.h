@@ -3791,7 +3791,7 @@ extern HAMLIB_EXPORT(int)
 rig_unregister HAMLIB_PARAMS((rig_model_t rig_model));
 
 extern HAMLIB_EXPORT(int)
-rig_list_foreach HAMLIB_PARAMS((int (*cfunc)(struct rig_caps *, rig_ptr_t),
+rig_list_foreach HAMLIB_PARAMS((int (*cfunc)(const struct rig_caps *, rig_ptr_t),
                                 rig_ptr_t data));
 
 extern HAMLIB_EXPORT(int)
