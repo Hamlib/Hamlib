@@ -7,7 +7,7 @@ char *list[1000]; // as of 2023-01-17 we have 275 rigs so this should cover us f
 
 int nmodels = 0;
 
-static int hash_model_list(struct rig_caps *caps, void *data)
+static int hash_model_list(const struct rig_caps *caps, void *data)
 {
     char s[256];
     sprintf(s, "%s %s", caps->mfg_name, caps->model_name);
