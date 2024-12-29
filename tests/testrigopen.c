@@ -16,7 +16,7 @@
 
 #define SERIAL_PORT "/dev/ttyUSB0"
 
-int callback(struct rig_caps *caps, rig_ptr_t rigp)
+int callback(const struct rig_caps *caps, rig_ptr_t rigp)
 {
     RIG *rig = (RIG *) rigp;
 
