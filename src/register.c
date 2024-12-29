@@ -393,7 +393,7 @@ int HAMLIB_API rig_unregister(rig_model_t rig_model)
  * executes cfunc on all the elements stored in the rig hash list
  */
 //! @cond Doxygen_Suppress
-int HAMLIB_API rig_list_foreach(int (*cfunc)(struct rig_caps *,
+int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps *,
                                 rig_ptr_t),
                                 rig_ptr_t data)
 {

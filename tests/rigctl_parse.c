@@ -2088,7 +2088,7 @@ int print_conf_list2(const struct confparams *cfp, rig_ptr_t data)
     return 1;  /* !=0, we want them all ! */
 }
 
-static int hash_model_list(struct rig_caps *caps, void *data)
+static int hash_model_list(const struct rig_caps *caps, void *data)
 {
     hash_add_model(caps->rig_model,
                    caps->mfg_name,
