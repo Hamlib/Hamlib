@@ -26,7 +26,9 @@
 
 // as of 2023-11-23 rig_caps is no longer constant
 // this #define allows clients to test which declaration to use for backwards compatibility
-#define RIGCAPS_NOT_CONST 1
+// As of 2025-01-03 removeing this -- fldigi was the only one that got it right
+// riglist_foreach is now constant again but others are not
+// #define RIGCAPS_NOT_CONST 1
 
 #define BUILTINFUNC 0
 
