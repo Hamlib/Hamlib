@@ -49,6 +49,7 @@ int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
+int subband = 1;
 
 void dumphex(const unsigned char *buf, int n)
 {
@@ -116,6 +117,9 @@ void frameParse(int fd, unsigned char *frame, int len)
         dumphex(frame, len);
         return;
     }
+    int tmp = frame[2];
+    frame[2] = frame[3];
+    frame[3] = tmp;
 
     switch (frame[4])
     {
@@ -321,6 +325,11 @@ void frameParse(int fd, unsigned char *frame, int len)
                 WRITE(fd, frame, 8);
             }
 
+            break;
+        case 0x59:
+                frame[6] = subband;
+                frame[7] = 0xfd;
+                WRITE(fd, frame, 8);
             break;
         }
 
