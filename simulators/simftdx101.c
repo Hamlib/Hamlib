@@ -38,6 +38,7 @@ int rport_gain_am = 50;
 int rport_gain_fm = 50;
 int rport_gain_psk = 50;
 int syncvfo = 0;
+int ant = 1;
 
 // ID 0310 == 310, Must drop leading zero
 typedef enum nc_rigid_e
@@ -147,13 +148,16 @@ int main(int argc, char *argv[])
 
         if (strcmp(buf, "AN0;") == 0)
         {
-            printf("%s\n", buf);
             hl_usleep(50 * 1000);
-            pbuf = "AN030;";
-            n = write(fd, pbuf, strlen(pbuf));
-            printf("n=%d\n", n);
+            SNPRINTF(buf, sizeof(buf), "AN0%d;", ant);
+            n = write(fd, buf, strlen(buf));
 
             if (n <= 0) { perror("AN"); }
+        }
+        else if (strncmp(buf, "AN", 2) == 0)
+        {
+            sscanf(buf,"AN%d",&ant);
+            printf("Ant set to %d\n", ant);
         }
         else if (strcmp(buf, "IF;") == 0)
         {
@@ -194,7 +198,6 @@ int main(int argc, char *argv[])
 #endif
         else if (strcmp(buf, "EX032;") == 0)
         {
-            static int ant = 0;
             ant = (ant + 1) % 3;
             printf("%s\n", buf);
             hl_usleep(50 * 1000);
