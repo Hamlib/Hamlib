@@ -290,7 +290,7 @@ int drt1_get_conf(RIG *rig, hamlib_token_t token, char *val)
 The clock multiplier should be set to 8x at start value (possible, that this
 will change to lower clock multiplier).
 
-The charge pump current to 75 µA at start value (possible will change).
+The charge pump current to 75 ÂµA at start value (possible will change).
 
 The VCO gain bit has to be set.
 
@@ -425,7 +425,7 @@ int drt1_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     /*
      * CFR2:
-     *  clock multiplier set to 8x, charge pump current to 75 µA
+     *  clock multiplier set to 8x, charge pump current to 75 ÂµA
      *  VCO gain bit has to be set
      */
     cfr2 = ((priv->ref_mult << 3) & 0xf8) | 0x4 |

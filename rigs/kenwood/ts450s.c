@@ -106,7 +106,7 @@ int ts450_open(RIG *rig)
 /*
  * ts450s rig capabilities.
  * Notice that some rigs share the same functions.
- * RIT: Variable Range ±9.99 kHz
+ * RIT: Variable Range Â±9.99 kHz
  *
  * TODO: protocol to be checked with manual (identical to TS690)
  *  - get_channel/set_channel: MR/MW

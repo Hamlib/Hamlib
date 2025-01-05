@@ -71,7 +71,7 @@ static int elektor304_get_conf(RIG *rig, hamlib_token_t token, char *val);
 /*
  * The Elektor DRM Receiver 3/04 COM interface is based on the Visual Basic
  * source code by Burkhard Kainka which can be downloaded from www.b-kainka.de
- * Linux support is based on a code written by Markus März:
+ * Linux support is based on a code written by Markus MÃ¤rz:
  *  http://mitglied.lycos.de/markusmaerz/drm
  * Linux support is available from DRM Dream project.
  *
