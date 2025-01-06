@@ -41,6 +41,18 @@
 #define TS570_SCAN_OPS (RIG_SCAN_VFO)
 #define TS570_ANTS (RIG_ANT_1|RIG_ANT_2)
 
+#define TS570_STR_CAL {9, {\
+                       { 0, -60},\
+                       { 3, -48},\
+                       { 6, -36},\
+                       { 9, -24},\
+                       {12, -12},\
+                       {15,   0},\
+                       {20,  20},\
+                       {25,  40},\
+                       {30,  60}}\
+                       }
+
 static struct kenwood_priv_caps ts570_priv_caps  =
 {
     .cmdtrm =  EOM_KEN,
@@ -1222,6 +1234,9 @@ struct rig_caps ts570d_caps =
         {RIG_MODE_FM, kHz(1)},
         RIG_FLT_END,
     },
+
+    .str_cal = TS570_STR_CAL,
+
     .priv = (void *)& ts570_priv_caps,
 
     .rig_init = kenwood_init,
