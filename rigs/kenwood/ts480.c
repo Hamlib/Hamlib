@@ -36,6 +36,7 @@
 #define TS480_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define SDRUNO_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTUSB)
 #define PS8000A_ALL_MODES (RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+#define QMX_ALL_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTUSB|RIG_MODE_PKTLSB)
 
 #define TS480_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS480_AM_TX_MODES RIG_MODE_AM
@@ -1932,6 +1933,67 @@ struct rig_caps qrplabs_caps =
     .send_morse = kenwood_send_morse,
     .wait_morse =  rig_wait_morse,
     .vfo_op = kenwood_vfo_op,
+    .get_clock = qrplabs_get_clock,
+    .set_clock = qrplabs_set_clock,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
+};
+
+struct rig_caps qrplabs_qmx_caps =
+{
+    RIG_MODEL(RIG_MODEL_QRPLABS_QMX),
+    .model_name = "QMX",
+    .mfg_name = "QRPLabs",
+    .version = BACKEND_VER ".1",
+    .copyright = "LGPL",
+    .status = RIG_STATUS_BETA,
+    .rig_type = RIG_TYPE_TRANSCEIVER,
+    .ptt_type = RIG_PTT_RIG,
+    .dcd_type = RIG_DCD_RIG,
+    .port_type = RIG_PORT_SERIAL,
+    .serial_rate_min = 9600,
+    .serial_rate_max = 256000,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity = RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay = 0,
+    .post_write_delay = 0,
+    .timeout = 500,
+    .retry = 3,
+    .preamp = {12, RIG_DBLST_END,},
+    .attenuator = {12, RIG_DBLST_END,},
+    .targetable_vfo = RIG_TARGETABLE_FREQ,
+    .transceive = RIG_TRN_RIG,
+
+    .rx_range_list1 = {
+        {MHz(4), MHz(14), QMX_ALL_MODES, -1, -1, TS480_VFO},
+        RIG_FRNG_END,
+    }, /*!< Receive frequency range list for ITU region 1 */
+    .tx_range_list1 = {
+        {MHz(4), MHz(14),  QMX_ALL_MODES, 5000, 100000, TS480_VFO},
+        RIG_FRNG_END,
+    },  /*!< Transmit frequency range list for ITU region 1 */
+    /* mode/filter list, remember: order matters! */
+    .filters =  {
+        {RIG_MODE_SSB | RIG_MODE_PKTUSB | RIG_MODE_PKTLSB, kHz(3.2)},
+        {RIG_MODE_CW | RIG_MODE_CWR, Hz(300)},
+        RIG_FLT_END,
+    },
+
+    .rig_init = ts480_init,
+    .rig_open = qrplabs_open,
+    .rig_cleanup = kenwood_cleanup,
+    .set_freq = kenwood_set_freq,
+    .get_freq = kenwood_get_freq,
+    .set_mode = kenwood_set_mode,
+    .get_mode = kenwood_get_mode,
+    .set_vfo = kenwood_set_vfo,
+    .get_vfo = kenwood_get_vfo_if,
+    .set_split_vfo = kenwood_set_split_vfo,
+    .get_split_vfo = kenwood_get_split_vfo_if,
+    .get_ptt = kenwood_get_ptt,
+    .set_ptt = kenwood_set_ptt,
+    .get_info = kenwood_ts480_get_info,
     .get_clock = qrplabs_get_clock,
     .set_clock = qrplabs_set_clock,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
