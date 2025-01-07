@@ -334,6 +334,7 @@ extern struct rig_caps malachite_caps;
 extern struct rig_caps tx500_caps;
 extern struct rig_caps sdruno_caps;
 extern struct rig_caps qrplabs_caps;
+extern struct rig_caps qrplabs_qmx_caps;
 extern struct rig_caps fx4_caps;
 extern struct rig_caps thetis_caps;
 extern struct rig_caps trudx_caps;
