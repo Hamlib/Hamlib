@@ -1740,9 +1740,9 @@ struct rig_caps trudx_caps =
 struct rig_caps qrplabs_caps =
 {
     RIG_MODEL(RIG_MODEL_QRPLABS),
-    .model_name = "QCX/QDX/QMX",
+    .model_name = "QCX/QDX",
     .mfg_name = "QRPLabs",
-    .version = BACKEND_VER ".3",
+    .version = BACKEND_VER ".4",
     .copyright = "LGPL",
     .status = RIG_STATUS_STABLE,
     .rig_type = RIG_TYPE_TRANSCEIVER,
