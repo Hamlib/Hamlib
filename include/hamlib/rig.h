@@ -50,7 +50,7 @@
 #include <windows.h>
 #include <ws2tcpip.h>
 #else
-#include <sys/socket.h>
+//#include <sys/socket.h> // doesn't seem we need this
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #endif
