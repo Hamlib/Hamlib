@@ -905,7 +905,7 @@ int ts570_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 /*
  * ts570 rig capabilities.
  * Notice that some rigs share the same functions.
- * RIT: Variable Range ±9.99 kHz
+ * RIT: Variable Range Â±9.99 kHz
  *
  * part of infos comes from .http = //www.kenwood.net/
  */
@@ -1091,7 +1091,7 @@ struct rig_caps ts570s_caps =
 /*
  * ts570d rig capabilities, which is basically the ts570s without 6m.
  * Notice that some rigs share the same functions.
- * RIT: Variable Range ±9.99 kHz
+ * RIT: Variable Range Â±9.99 kHz
  *
  * part of infos comes from .http = //www.kenwood.net/
  */
