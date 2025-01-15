@@ -1547,7 +1547,7 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         vfo_t myvfo = RIG_VFO_A;
 
-        if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_A; }
+        if (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100) { myvfo = RIG_VFO_MAIN_A; }
 
         retval = rig_get_freq(rig, myvfo, &freq);
 
@@ -1557,7 +1557,7 @@ int HAMLIB_API rig_open(RIG *rig)
             vfo_t tx_vfo = RIG_VFO_NONE;
             myvfo = RIG_VFO_B;
 
-            if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_B; }
+            if (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100) { myvfo = RIG_VFO_MAIN_B; }
 
             rig_get_freq(rig, myvfo, &freq);
             rig_get_split_vfo(rig, RIG_VFO_RX, &split, &tx_vfo);
@@ -1570,7 +1570,7 @@ int HAMLIB_API rig_open(RIG *rig)
             {
                 myvfo = RIG_VFO_A;
 
-                if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_A; }
+                if (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100) { myvfo = RIG_VFO_MAIN_A; }
 
                 rig_get_mode(rig, myvfo, &mode, &width);
 
@@ -1578,7 +1578,7 @@ int HAMLIB_API rig_open(RIG *rig)
                 {
                     myvfo = RIG_VFO_B;
 
-                    if (rig->caps->rig_model == RIG_MODEL_IC9700) { myvfo = RIG_VFO_MAIN_A; }
+                    if (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100) { myvfo = RIG_VFO_MAIN_A; }
 
                     rig_debug(RIG_DEBUG_VERBOSE, "xxxsplit=%d\n", split);
                     HAMLIB_TRACE;
@@ -2373,6 +2373,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_set_cache_freq(rig, vfo, freq_new);
 
+    rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s, save=%s\n", __func__, rig_strvfo(vfo), rig_strvfo(vfo_save));
     if (vfo != vfo_save && vfo != RIG_VFO_CURR)
     {
         HAMLIB_TRACE;
@@ -2539,8 +2540,9 @@ int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // WSJT-X senses rig precision with 55 and 56 Hz values
     // We do not want to allow cache response with these values
     int wsjtx_special = ((long) * freq % 100) == 55 || ((long) * freq % 100) == 56;
+    int rig_special = rig->caps->rig_model == RIG_MODEL_IC9100;
 
-    if (!wsjtx_special && *freq != 0 && (cache_ms_freq < cachep->timeout_ms
+    if (!rig_special && !wsjtx_special && *freq != 0 && (cache_ms_freq < cachep->timeout_ms
                                          || (cachep->timeout_ms == HAMLIB_CACHE_ALWAYS
                                                  || rs->use_cached_freq)))
     {

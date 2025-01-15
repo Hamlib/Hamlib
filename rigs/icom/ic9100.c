@@ -111,12 +111,15 @@ static const struct icom_priv_caps ic9100_priv_caps =
     .data_mode_supported = 1
 };
 
+// borrow this as they behave the same
+extern int ic9700_set_vfo(RIG *rig, vfo_t vfo);
+
 struct rig_caps ic9100_caps =
 {
     RIG_MODEL(RIG_MODEL_IC9100),
     .model_name = "IC-9100",
     .mfg_name =  "Icom",
-    .version =  BACKEND_VER ".5",
+    .version =  BACKEND_VER ".6",
     .copyright =  "LGPL",
     .status =  RIG_STATUS_STABLE,
     .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -250,8 +253,7 @@ struct rig_caps ic9100_caps =
 
     .get_mode =  icom_get_mode,
     .set_mode =  icom_set_mode,
-
-    .set_vfo =  icom_set_vfo,
+    .set_vfo =  ic9700_set_vfo,
 //    .get_vfo =  icom_get_vfo,
     .set_ant =  icom_set_ant,
     .get_ant =  icom_get_ant,
