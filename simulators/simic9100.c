@@ -202,6 +202,8 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         frame[4] = 0xfb;
         frame[5] = 0xfd;
+printf("+++++++++++++++ SETTING VFO +++++++++++++++++\n");
+        dump_hex(frame, 6);
         WRITE(fd, frame, 6);
         break;
 

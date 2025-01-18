@@ -418,7 +418,7 @@ int main(int argc, char *argv[])
         else if (strcmp(buf, "TX;") == 0)
         {
             hl_usleep(50 * 1000);
-            SNPRINTF(buf, sizeof(buf), "TX+%04d;", tx);
+            SNPRINTF(buf, sizeof(buf), "TX%d;", tx);
             n = write(fd, buf, strlen(buf));
 
             if (n < 0) { perror("TX"); }
