@@ -67,7 +67,7 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 23
+#serial 32
 
 AU_ALIAS([AC_PYTHON_DEVEL], [AX_PYTHON_DEVEL])
 AC_DEFUN([AX_PYTHON_DEVEL],[
@@ -112,15 +112,39 @@ to something else than an empty string.
 	fi
 
 	#
-	# if the macro parameter ``version'' is set, honour it
+	# If the macro parameter ``version'' is set, honour it.
+	# A Python shim class, VPy, is used to implement correct version comparisons via
+	# string expressions, since e.g. a naive textual ">= 2.7.3" won't work for
+	# Python 2.7.10 (the ".1" being evaluated as less than ".3").
 	#
 	if test -n "$1"; then
 		AC_MSG_CHECKING([for a version of Python $1])
-		ac_supports_python_ver=`$PYTHON -c "import sys; \
-			ver = sys.version.split ()[[0]]; \
+                cat << EOF > ax_python_devel_vpy.py
+class VPy:
+    def vtup(self, s):
+        return tuple(map(int, s.strip().replace("rc", ".").split(".")))
+    def __init__(self):
+        import sys
+        self.vpy = tuple(sys.version_info)
+    def __eq__(self, s):
+        return self.vpy == self.vtup(s)
+    def __ne__(self, s):
+        return self.vpy != self.vtup(s)
+    def __lt__(self, s):
+        return self.vpy < self.vtup(s)
+    def __gt__(self, s):
+        return self.vpy > self.vtup(s)
+    def __le__(self, s):
+        return self.vpy <= self.vtup(s)
+    def __ge__(self, s):
+        return self.vpy >= self.vtup(s)
+EOF
+		ac_supports_python_ver=`$PYTHON -c "import ax_python_devel_vpy; \
+                        ver = ax_python_devel_vpy.VPy(); \
 			print (ver $1)"`
+                rm -rf ax_python_devel_vpy*.py* __pycache__/ax_python_devel_vpy*.py*
 		if test "$ac_supports_python_ver" = "True"; then
-		   AC_MSG_RESULT([yes])
+			AC_MSG_RESULT([yes])
 		else
 			AC_MSG_RESULT([no])
 			AC_MSG_ERROR([this package requires Python $1.
@@ -208,7 +232,7 @@ EOD`
 				ac_python_version=$PYTHON_VERSION
 			else
 				ac_python_version=`$PYTHON -c "import sys; \
-					print (sys.version[[:3]])"`
+					print ("%d.%d" % sys.version_info[[:2]])"`
 			fi
 		fi
 
@@ -251,7 +275,7 @@ EOD`
 			ac_python_libdir=`$PYTHON -c \
 			  "from sysconfig import get_python_lib as f; \
 			  import os; \
-			  print ('Using old way' + os.path.join(f(plat_specific=1, standard_lib=1), 'config'));"`
+			  print (os.path.join(f(plat_specific=1, standard_lib=1), 'config'));"`
 			PYTHON_LIBS="-L$ac_python_libdir -lpython$ac_python_version"
 		fi
 
@@ -268,14 +292,24 @@ EOD`
 	#
 	# Check for site packages
 	#
-	AC_MSG_CHECKING([for Python site-packages pathXX $PYTHON_SITE_PKG])
+	AC_MSG_CHECKING([for Python site-packages path])
 	if test -z "$PYTHON_SITE_PKG"; then
-	    AC_MSG_CHECKING([Using PYTHON_SITE_PKG])
 		if test "$IMPORT_SYSCONFIG" = "import sysconfig"; then
-			PYTHON_SITE_PKG=`$PYTHON -c "$IMPORT_SYSCONFIG; \
-				print (sysconfig.get_path('purelib'));"`
+			PYTHON_SITE_PKG=`$PYTHON -c "
+$IMPORT_SYSCONFIG;
+if hasattr(sysconfig, 'get_default_scheme'):
+    scheme = sysconfig.get_default_scheme()
+else:
+    scheme = sysconfig._get_default_scheme()
+if scheme == 'posix_local':
+    # Debian's default scheme installs to /usr/local/ but we want to find headers in /usr/
+    scheme = 'posix_prefix'
+prefix = '$prefix'
+if prefix == 'NONE':
+    prefix = '$ac_default_prefix'
+sitedir = sysconfig.get_path('purelib', scheme, vars={'base': prefix})
+print(sitedir)"`
 		else
-	        AC_MSG_CHECKING([Using old way])
 			# distutils.sysconfig way
 			PYTHON_SITE_PKG=`$PYTHON -c "$IMPORT_SYSCONFIG; \
 				print (sysconfig.get_python_lib(0,0));"`
@@ -288,10 +322,22 @@ EOD`
 	# Check for platform-specific site packages
 	#
 	AC_MSG_CHECKING([for Python platform specific site-packages path])
-	if test -z "$PYTHON_SITE_PKG"; then
+	if test -z "$PYTHON_PLATFORM_SITE_PKG"; then
 		if test "$IMPORT_SYSCONFIG" = "import sysconfig"; then
-			PYTHON_PLATFORM_SITE_PKG=`$PYTHON -c "$IMPORT_SYSCONFIG; \
-				print (sysconfig.get_path('platlib'));"`
+			PYTHON_PLATFORM_SITE_PKG=`$PYTHON -c "
+$IMPORT_SYSCONFIG;
+if hasattr(sysconfig, 'get_default_scheme'):
+    scheme = sysconfig.get_default_scheme()
+else:
+    scheme = sysconfig._get_default_scheme()
+if scheme == 'posix_local':
+    # Debian's default scheme installs to /usr/local/ but we want to find headers in /usr/
+    scheme = 'posix_prefix'
+prefix = '$prefix'
+if prefix == 'NONE':
+    prefix = '$ac_default_prefix'
+sitedir = sysconfig.get_path('platlib', scheme, vars={'platbase': prefix})
+print(sitedir)"`
 		else
 			# distutils.sysconfig way
 			PYTHON_PLATFORM_SITE_PKG=`$PYTHON -c "$IMPORT_SYSCONFIG; \
@@ -333,7 +379,7 @@ EOD`
 	ac_save_LIBS="$LIBS"
 	ac_save_LDFLAGS="$LDFLAGS"
 	ac_save_CPPFLAGS="$CPPFLAGS"
-	LIBS="$ac_save_LIBS $PYTHON_LIBS $PYTHON_EXTRA_LIBS $PYTHON_EXTRA_LIBS"
+	LIBS="$ac_save_LIBS $PYTHON_LIBS $PYTHON_EXTRA_LIBS"
 	LDFLAGS="$ac_save_LDFLAGS $PYTHON_EXTRA_LDFLAGS"
 	CPPFLAGS="$ac_save_CPPFLAGS $PYTHON_CPPFLAGS"
 	AC_LANG_PUSH([C])
@@ -349,7 +395,7 @@ EOD`
 
 	AC_MSG_RESULT([$pythonexists])
 
-        if test ! "x$pythonexists" = "xyes"; then
+	if test ! "x$pythonexists" = "xyes"; then
 	   AC_MSG_FAILURE([
   Could not link test program to Python. Maybe the main Python library has been
   installed in some non-standard library path. If so, pass it to configure,
