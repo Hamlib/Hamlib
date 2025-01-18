@@ -53,6 +53,7 @@ int keyspd = 130; // 130=20WPM
 int ipp = 0;
 int tx_inhibit = 0;
 int dpp = 0;
+int dualwatch = 0;
 
 void dumphex(const unsigned char *buf, int n)
 {
@@ -121,6 +122,10 @@ void frameParse(int fd, unsigned char *frame, int len)
         dumphex(frame, len);
         return;
     }
+
+    int tmp = frame[2];
+    frame[2] = frame[3];
+    frame[3] = tmp;
 
     switch (frame[4])
     {
@@ -201,13 +206,24 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         switch (frame[5])
         {
-        case 0x00: current_vfo = RIG_VFO_A; break;
+        case 0xd0: current_vfo = RIG_VFO_A; break;
 
-        case 0x01: current_vfo = RIG_VFO_B; break;
+        case 0xd1: current_vfo = RIG_VFO_B; break;
 
-        case 0xd0: current_vfo = RIG_VFO_MAIN; break;
-
-        case 0xd1: current_vfo = RIG_VFO_SUB; break;
+        case 0xc2:
+            if (frame[6] == 0xfd)
+            {
+                frame[6] = dualwatch;
+                frame[7] = 0xfd;
+                n = write(fd,frame,8);
+            }
+            else
+            {
+                dualwatch = frame[6];
+                frame[4]=0xfb;
+                frame[5]=0xfd;
+                n = write(fd,frame,6);
+            }
         }
 
         printf("set_vfo to %s\n", rig_strvfo(current_vfo));
@@ -796,7 +812,7 @@ int main(int argc, char **argv)
     while (1)
     {
         int len = frameGet(fd, buf);
-        printf("#1 ========================================");
+        printf("#1 ========================================\n");
 
         if (len <= 0)
         {
