@@ -52,7 +52,7 @@
 #else
 //#include <sys/socket.h> // doesn't seem we need this
 #include <netinet/in.h>
-#include <arpa/inet.h>
+//#include <arpa/inet.h>
 #endif
 
 // mingw64 still shows __TIMESIZE != 64
