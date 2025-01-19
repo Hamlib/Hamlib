@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import sys
-import site
 # Change this path to match your "make install" path
-sys.path.append('/usr/local/lib/python3.12/site-packages')
+sys.path.append('/usr/local/lib/python3.10/site-packages')
 
 ## Uncomment to run this script from an in-tree build (or adjust to the
 ## build directory) without installing the bindings.
@@ -18,9 +17,7 @@ def StartUp():
     print("%s: Python %s; %s\n" \
           % (sys.argv[0], sys.version.split()[0], Hamlib.cvar.hamlib_version))
 
-    print(site.getsitepackages())
-
-    Hamlib.rig_set_debug(0)
+    Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
     # Init RIG_MODEL_DUMMY
     my_rig = Hamlib.Rig(Hamlib.RIG_MODEL_DUMMY)
