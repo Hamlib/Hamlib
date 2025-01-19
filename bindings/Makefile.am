@@ -83,55 +83,47 @@ uninstall-perl: ## Hamlib-pl.mk
 endif
 # Perl
 
-
 if ENABLE_PYTHON
-##########################################
-# Python binding
 
-pyexec_ltlib = _Hamlib.la
+##############################################################################
+# 1. We declare a Python extension using 'pyexec_LTLIBRARIES'.
+#    - Tells Automake: “Install this .so into $(pyexecdir).”
+#    - We override 'pyexec_ltlibdir' to place it in a subdirectory: Hamlib
+##############################################################################
+pyexec_LTLIBRARIES = _Hamlib.la
+pyexec_ltlibdir    = $(pyexecdir)/Hamlib
 
-MOSTLYCLEANFILES += hamlibpy_wrap.c Hamlib.py *.pyc
-BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
-
-# Set by AM_CONDITIONAL in configure.ac
-if PYVER_3
-pytest = py3test.py
-else !PYVER_3
-pytest = pytest.py
-endif
-# PYVER_3
-
-example_DATA += $(pytest)
-
-nodist_pyexec_PYTHON = Hamlib.py
-nodist__Hamlib_la_SOURCES = hamlibpy_wrap.c
-
+_Hamlib_la_SOURCES = hamlibpy_wrap.c
 _Hamlib_la_LDFLAGS = -no-undefined -module -avoid-version
-_Hamlib_la_LIBADD = $(top_builddir)/src/libhamlib.la $(PYTHON_LIBS)
-_Hamlib_ladir = $(pyexecdir)
-_Hamlib_la_LTLIBRARIES = $(pyexec_ltlib)
+_Hamlib_la_LIBADD  = $(top_builddir)/src/libhamlib.la $(PYTHON_LIBS)
 
-all-py: $(pyexec_ltlib)
+##############################################################################
+# 2. We declare a set of Python (.py) files using a custom primary, e.g.
+#    'myhamlib_PYTHON'. Automake installs them into 'myhamlibdir' by default.
+##############################################################################
+myhamlib_PYTHON = \
+    __init__.py \
+    Hamlib.py
 
-check-py: all-py
-	$(AM_V_at)PYTHONPATH=$(builddir):$(builddir)/.libs \
-		$(PYTHON) $(srcdir)/$(pytest) \
-		|| echo "Python test failed" 1>&2
+# Place them in the exact same directory as the extension: $(pyexecdir)/Hamlib
+myhamlibdir = $(pyexecdir)/Hamlib
 
-Hamlib.py: hamlibpy_wrap.c
+##############################################################################
+# 3. Distribute these files (so they're included in 'make dist' tarballs).
+##############################################################################
+EXTRA_DIST += \
+    __init__.py \
+    Hamlib.py
 
-hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
-	$(AM_V_GEN)$(SWIG) -python $(AM_CPPFLAGS) $(PYTHON_CPPFLAGS) -I$(top_srcdir)/bindings \
-		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
-
+all-py:
 install-py:
-clean-py:
-distclean-py:
-uninstall-py:
+	@true
+##############################################################################
+# 4. Remove any custom 'install-py:' or 'install-exec-local: install-py'
+#    You do NOT need them. Automake already knows how to install these files.
+##############################################################################
 
-endif
-# Python
-
+endif  # ENABLE_PYTHON
 
 if ENABLE_TCL
 ##########################################
