@@ -105,8 +105,6 @@ myhamlib_PYTHON = \
     __init__.py \
     Hamlib.py
 
-nodist_myhamlib_PYTHON = Hamlib.py
-
 # Place them in the exact same directory as the extension: $(pyexecdir)/Hamlib
 myhamlibdir = $(pyexecdir)/Hamlib
 
@@ -117,6 +115,8 @@ EXTRA_DIST += \
     __init__.py \
     Hamlib.py
 
+nodist_myhamlib_PYTHON = Hamlib.py
+myhamlibdir = $(pyexecdir)/Hamlib
 
 all-py:
 install-py:
