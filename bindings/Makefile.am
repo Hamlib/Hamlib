@@ -107,6 +107,8 @@ myhamlib_PYTHON = \
 
 nodist_myhamlib_PYTHON = Hamlib.py
 
+Hamlib.py: hamlib_wrap.c
+
 # Place them in the exact same directory as the extension: $(pyexecdir)/Hamlib
 myhamlibdir = $(pyexecdir)/Hamlib
 
