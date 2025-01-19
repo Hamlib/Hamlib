@@ -105,6 +105,8 @@ myhamlib_PYTHON = \
     __init__.py \
     Hamlib.py
 
+nodist_myhamlib_PYTHON = Hamlib.py
+
 Hamlib.py: hamlibpy_wrap.c
 	@true
 
@@ -119,7 +121,6 @@ EXTRA_DIST += \
     Hamlib.py
 
 
-clean-py:
 all-py:
 install-py:
 	@true
