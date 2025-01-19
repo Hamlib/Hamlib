@@ -115,9 +115,6 @@ EXTRA_DIST += \
     __init__.py \
     Hamlib.py
 
-nodist_myhamlib_PYTHON = Hamlib.py
-myhamlibdir = $(pyexecdir)/Hamlib
-
 all-py:
 install-py:
 Hamlib.py:
