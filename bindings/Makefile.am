@@ -117,6 +117,7 @@ EXTRA_DIST += \
 
 all-py:
 install-py:
+Hamlib.py:
 	@true
 ##############################################################################
 # 4. Remove any custom 'install-py:' or 'install-exec-local: install-py'
