@@ -2373,7 +2373,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     rig_set_cache_freq(rig, vfo, freq_new);
 
-    rig_debug(RIG_DEBUG_ERR, "%s: vfo=%s, save=%s\n", __func__, rig_strvfo(vfo), rig_strvfo(vfo_save));
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo=%s, save=%s\n", __func__, rig_strvfo(vfo), rig_strvfo(vfo_save));
     if (vfo != vfo_save && vfo != RIG_VFO_CURR)
     {
         HAMLIB_TRACE;
