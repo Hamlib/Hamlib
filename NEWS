@@ -12,6 +12,16 @@ Version 5.x -- future
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP
 
+Version 4.6.1
+        * Fix C++ builds failing on rig_list_foreach function
+        * Fix IC9100 rigctld startup to end up on VFOA
+        * Fix grig build by removing sys/socket.h -- apparently not needed
+        * Add new QMX entry to fix incompability with QDX
+        * Fix IC746/PROT to not use data byte
+        * FLRig to add DATA-U DATA-L modes
+        * Fix TS570 RIG_LEVEL_STRENGTH with cal table
+        * Remove get_powerstat from IC785X -- not supported
+
 Version 4.6
 	* send_raw can now take hex digits as colon-separated -- e.g. send_raw icom xfe:xfe:x94:xe0:03:xfd
 	* Add IC7760
