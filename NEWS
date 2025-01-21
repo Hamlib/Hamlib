@@ -21,6 +21,7 @@ Version 4.6.1
         * FLRig to add DATA-U DATA-L modes
         * Fix TS570 RIG_LEVEL_STRENGTH with cal table
         * Remove get_powerstat from IC785X -- not supported
+        * Fix SDRConsole by removing lots of things it does not have
 
 Version 4.6
 	* send_raw can now take hex digits as colon-separated -- e.g. send_raw icom xfe:xfe:x94:xe0:03:xfd
