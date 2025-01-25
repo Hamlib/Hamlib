@@ -177,9 +177,9 @@ struct rig_caps pmr171_caps =
     RIG_MODEL(RIG_MODEL_PMR171),
     .model_name =          "PMR-171",
     .mfg_name =            "Guohe",
-    .version =             "20240704.0",
+    .version =             "20250125.0",
     .copyright =           "LGPL",
-    .status =              RIG_STATUS_ALPHA,
+    .status =              RIG_STATUS_STABLE,
     .rig_type =            RIG_TYPE_TRANSCEIVER,
     .ptt_type =            RIG_PTT_RIG,
     .dcd_type =            RIG_DCD_RIG,
@@ -456,7 +456,7 @@ static int pmr171_send_cmd1(RIG *rig, unsigned char cmd, unsigned char *reply)
     unsigned char buf[64] = { 0xa5, 0xa5, 0xa5, 0xa5, 0x03, 0x00, 0x00, 0x00 };
 
     buf[5] = cmd;
-    unsigned int crc = CRC16Check(&buf[4], 3);
+    unsigned int crc = CRC16Check(&buf[4], 2);
     buf[6] = crc >> 8;
     buf[7] = crc & 0xff;
     rig_flush(rp);
@@ -809,7 +809,7 @@ static int pmr171_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
         to_bcd_be(&cmd[10], CACHE(rig)->freqMainB, 8);
     }
 
-    unsigned int crc = CRC16Check(&cmd[4], 12);
+    unsigned int crc = CRC16Check(&cmd[4], 2);
     cmd[14] = crc >> 8;
     cmd[15] = crc & 0xff;
     rig_flush(rp);
