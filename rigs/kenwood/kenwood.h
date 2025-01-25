@@ -183,7 +183,7 @@ struct kenwood_priv_data
     int save_k2_ext_lvl; // so we can restore to original
     int save_k3_ext_lvl; // so we can restore to original -- for future use if needed
     int voice_bank; /* last voice bank send for use by stop_voice_mem */
-    mode_t last_mode_pc; // last mode memory for PC command
+    rmode_t last_mode_pc; // last mode memory for PC command
     int power_now,power_min,power_max;
 };
 
