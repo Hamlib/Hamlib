@@ -453,19 +453,106 @@ static int pmr171_send_cmd1(RIG *rig, unsigned char cmd, unsigned char *reply)
 {
     hamlib_port_t *rp = RIGPORT(rig);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
-    unsigned char buf[64] = { 0xa5, 0xa5, 0xa5, 0xa5, 0x03, 0x00, 0x00, 0x00 };
+    unsigned char buf[8] = { 0xa5, 0xa5, 0xa5, 0xa5, 0x03, 0x00, 0x00, 0x00 };
 
     buf[5] = cmd;
-    unsigned int crc = CRC16Check(&buf[4], 3);
+    unsigned int crc = CRC16Check(&buf[4], 2);
     buf[6] = crc >> 8;
     buf[7] = crc & 0xff;
     rig_flush(rp);
-    write_block(rp, buf, 9);
+    write_block(rp, buf, 8);
     return RIG_OK;
 }
 
 
-rmode_t pmr171_modes[] = { RIG_MODE_USB, RIG_MODE_LSB, RIG_MODE_CWR, RIG_MODE_CW, RIG_MODE_FM, RIG_MODE_FMN, RIG_MODE_PKTUSB, RIG_MODE_RTTY };
+#define GUOHE_MODE_TABLE_MAX  9
+rmode_t pmr171_modes[GUOHE_MODE_TABLE_MAX] =
+{
+    RIG_MODE_USB,
+    RIG_MODE_LSB,
+    RIG_MODE_CWR,
+    RIG_MODE_CW,
+    RIG_MODE_AM,
+    RIG_MODE_FM,
+    RIG_MODE_FMN,
+    RIG_MODE_PKTUSB,
+    RIG_MODE_RTTY // not functioning
+};
+
+rmode_t guohe2rmode(unsigned char mode, const rmode_t mode_table[])
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=0x%02x\n", __func__,
+              mode);
+
+    if (mode >= GUOHE_MODE_TABLE_MAX)
+    {
+        return (RIG_MODE_NONE);
+    }
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: returning %s\n", __func__,
+              rig_strrmode(mode_table[mode]));
+    return (mode_table[mode]);
+}
+
+unsigned char rmode2guohe(rmode_t mode, const rmode_t mode_table[])
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=%s\n", __func__,
+              rig_strrmode(mode));
+
+    if (mode != RIG_MODE_NONE)
+    {
+        unsigned char i;
+
+        for (i = 0; i < GUOHE_MODE_TABLE_MAX; i++)
+        {
+            if (mode_table[i] == mode)
+            {
+                rig_debug(RIG_DEBUG_VERBOSE, "%s: returning 0x%02x\n", __func__, i);
+                return (i);
+            }
+        }
+    }
+
+    return (-1);
+}
+
+/**
+ * Converting to Big-endian bytes
+ */
+unsigned char *to_be(unsigned char data[],
+                     unsigned long long freq,
+                     unsigned int byte_len)
+{
+    int i;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = byte_len - 1; i >= 0; i--)
+    {
+        unsigned char a = freq & 0xFF;
+        freq >>= 8;
+        data[i] = a;
+    }
+
+    return data;
+}
+
+
+unsigned long long from_be(const unsigned char data[],
+                           unsigned int byte_len)
+{
+    int i;
+    unsigned long long f = 0;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    for (i = 0; i < byte_len; i++)
+    {
+        f = (f << 8) + data[i];
+    }
+
+    return f;
+}
 
 static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
@@ -484,8 +571,8 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     pmr171_send_cmd1(rig, 0x0b, 0);
     read_block(rp, reply, 5);
     read_block(rp, &reply[5], reply[4]);
-    vfoa = from_bcd_be(&reply[9], 8);
-    vfob = from_bcd_be(&reply[13], 8);
+    vfoa = from_be(&reply[9], 4);
+    vfob = from_be(&reply[13], 4);
     cachep->freqMainA = vfoa;
     cachep->freqMainB = vfob;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: vfoa=%.0f, vfob=%.0f\n", __func__, vfoa,
@@ -494,8 +581,8 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     // Now grab the ptt status
     cachep->ptt = reply[6] == 1;
     // And the mode
-    cachep->modeMainA = pmr171_modes[reply[7]];
-    cachep->modeMainB = pmr171_modes[reply[8]];
+    cachep->modeMainA = guohe2rmode(reply[7], pmr171_modes);
+    cachep->modeMainB = guohe2rmode(reply[8], pmr171_modes);
 
     if (vfo == RIG_VFO_B) { *freq = cachep->freqMainA; }
     else { *freq = cachep->freqMainB; }
@@ -790,7 +877,7 @@ static int pmr171_send_icmd(RIG *rig, int index, const unsigned char *data)
 
 static int pmr171_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    unsigned char cmd[16] = { 0xa5, 0xa5, 0xa5, 0xa5, 12, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    unsigned char cmd[16] = { 0xa5, 0xa5, 0xa5, 0xa5, 11, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     unsigned char reply[16];
     //int retval;
     hamlib_port_t *rp = RIGPORT(rig);
@@ -800,16 +887,16 @@ static int pmr171_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     /* fill in the frequency */
     if (vfo == RIG_VFO_B)
     {
-        to_bcd_be(&cmd[6], CACHE(rig)->freqMainA, 8);
-        to_bcd_be(&cmd[10], freq, 8);
+        to_be(&cmd[6], CACHE(rig)->freqMainA, 4);
+        to_be(&cmd[10], freq, 4);
     }
     else
     {
-        to_bcd_be(&cmd[6], freq, 8);
-        to_bcd_be(&cmd[10], CACHE(rig)->freqMainB, 8);
+        to_be(&cmd[6], freq, 4);
+        to_be(&cmd[10], CACHE(rig)->freqMainB, 4);
     }
 
-    unsigned int crc = CRC16Check(&cmd[4], 12);
+    unsigned int crc = CRC16Check(&cmd[4], 10);
     cmd[14] = crc >> 8;
     cmd[15] = crc & 0xff;
     rig_flush(rp);
@@ -823,34 +910,38 @@ static int pmr171_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 static int pmr171_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     hamlib_port_t *rp = RIGPORT(rig);
-    unsigned char cmd[10] = { 0xa5, 0xa5, 0xa5, 0xa5, 3, 0x0a, 0x00, 0x00, 0x00, 0x00 };
+    unsigned char cmd[10] = { 0xa5, 0xa5, 0xa5, 0xa5, 5, 0x0a, 0x00, 0x00, 0x00, 0x00 };
     unsigned char reply[10];
-    int i, crc;
+    int crc;
+    unsigned char i = rmode2guohe(mode, pmr171_modes);
 
-    for (i = 0; i < sizeof(pmr171_modes) / sizeof(rmode_t); ++i)
+    if (i != (-1))
     {
-        if (pmr171_modes[i] == mode)
+        if (vfo == RIG_VFO_B)
         {
-            if (vfo == RIG_VFO_B)
-            {
-                cmd[6] = CACHE(rig)->modeMainA;
-                cmd[7] = i;
-            }
-            else
-            {
-                cmd[6] = i;
-                cmd[7] = CACHE(rig)->modeMainB;
-            }
-
-            crc = CRC16Check(&cmd[4], 4);
-            cmd[8] = crc >> 8;
-            cmd[9] = crc & 0xff;
-            rig_flush(rp);
-            write_block(rp, cmd, 16);
-            read_block(rp, reply, 16);
-            dump_hex(reply, 16);
-            return RIG_OK;
+            cmd[6] = rmode2guohe(CACHE(rig)->modeMainA, pmr171_modes);
+            cmd[7] = i;
         }
+        else
+        {
+            cmd[6] = i;
+            cmd[7] = rmode2guohe(CACHE(rig)->modeMainB, pmr171_modes);
+        }
+
+        crc = CRC16Check(&cmd[4], 4);
+        cmd[8] = crc >> 8;
+        cmd[9] = crc & 0xff;
+        rig_flush(rp);
+        write_block(rp, cmd, 10);
+        read_block(rp, reply, 5);
+        read_block(rp, &reply[5], reply[4]);
+        dump_hex(reply, reply[4] + 5);
+        /*
+        // Grab the modes
+        CACHE(rig)->modeMainA = guohe2rmode(reply[6], pmr171_modes);
+        CACHE(rig)->modeMainB = guohe2rmode(reply[7], pmr171_modes);
+        */
+        return RIG_OK;
     }
 
     rig_debug(RIG_DEBUG_ERR, "%s: invalid mode=%s\n", __func__, rig_strrmode(mode));
@@ -863,13 +954,15 @@ static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     hamlib_port_t *rp = RIGPORT(rig);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
+    // According to the manual, sending 0 means PTT ON.
+    // TODO: How to process ack messages?
     switch (ptt)
     {
     case RIG_PTT_ON:
-        return pmr171_send_cmd2(rig, 0x07, 0x01, 1);
+        return pmr171_send_cmd2(rig, 0x07, 0x00, 1);
 
     case RIG_PTT_OFF:
-        return pmr171_send_cmd2(rig, 0x07, 0x00, 0);
+        return pmr171_send_cmd2(rig, 0x07, 0x01, 1);
 
     default:
         return -RIG_EINVAL;
