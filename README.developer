@@ -239,7 +239,7 @@ That is, if you want to take part in the development of Hamlib,
 you'll need the following tools. Make sure you have at least the required
 version or you won't even be able to build from the Git clone.
 
-N.B. The Debian and derivatives (Ubuntu and friends) 'build-essentials'
+N.B. The Debian and derivatives (Ubuntu and friends) 'build-essential'
 package will install a number of tools and minimize the number of packages
 that need to be installed manually (Debian package names are listed, other
 distributions may differ).
