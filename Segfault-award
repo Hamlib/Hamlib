@@ -37,3 +37,6 @@ Here is the list of the brave fellows:
 * Josef 'Jeff' Sipek
     netrigctl power2mW overflow
     https://github.com/Hamlib/Hamlib/issues/855
+
+* David Balharrie M0DGB
+    Using python caused seg fault on QMX due to missing priv structure
