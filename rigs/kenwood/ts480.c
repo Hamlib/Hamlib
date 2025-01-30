@@ -1943,7 +1943,7 @@ struct rig_caps qrplabs_qmx_caps =
     RIG_MODEL(RIG_MODEL_QRPLABS_QMX),
     .model_name = "QMX",
     .mfg_name = "QRPLabs",
-    .version = BACKEND_VER ".1",
+    .version = BACKEND_VER ".2",
     .copyright = "LGPL",
     .status = RIG_STATUS_BETA,
     .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -1979,6 +1979,8 @@ struct rig_caps qrplabs_qmx_caps =
         {RIG_MODE_CW | RIG_MODE_CWR, Hz(300)},
         RIG_FLT_END,
     },
+
+    .priv = (void *)& ts480_priv_caps,
 
     .rig_init = ts480_init,
     .rig_open = qrplabs_open,
