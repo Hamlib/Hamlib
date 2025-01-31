@@ -12,6 +12,11 @@ Version 5.x -- future
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP
 
+Version 4.6.2
+        * Fix IC905 for gpredict
+        * Fix potential segfault on QMX 
+        * Fix pmr171
+        
 Version 4.6.1
         * Fix C++ builds failing on rig_list_foreach function
         * Fix IC9100 rigctld startup to end up on VFOA
