@@ -169,6 +169,8 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !STATE((r))->comm_state)
 #define CHECK_RIG_CAPS(r) (!(r) || !(r)->caps)
 
+#define ICOM_EXCEPTIONS (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100 || rig->caps->rig_model == RIG_MODEL_IC910)
+
 // The LOCK macro is for the primary thread calling the rig functions
 // For a separate thread use rig_lock directly
 // The purpose here is to avoid deadlock during recursion
@@ -1547,7 +1549,7 @@ int HAMLIB_API rig_open(RIG *rig)
     {
         vfo_t myvfo = RIG_VFO_A;
 
-        if (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100) { myvfo = RIG_VFO_MAIN_A; }
+        if (ICOM_EXCEPTIONS) { myvfo = RIG_VFO_MAIN_A; }
 
         retval = rig_get_freq(rig, myvfo, &freq);
 
@@ -1557,7 +1559,7 @@ int HAMLIB_API rig_open(RIG *rig)
             vfo_t tx_vfo = RIG_VFO_NONE;
             myvfo = RIG_VFO_B;
 
-            if (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100) { myvfo = RIG_VFO_MAIN_B; }
+            if (ICOM_EXCEPTIONS) { myvfo = RIG_VFO_MAIN_B; }
 
             rig_get_freq(rig, myvfo, &freq);
             rig_get_split_vfo(rig, RIG_VFO_RX, &split, &tx_vfo);
@@ -1570,7 +1572,8 @@ int HAMLIB_API rig_open(RIG *rig)
             {
                 myvfo = RIG_VFO_A;
 
-                if (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100) { myvfo = RIG_VFO_MAIN_A; }
+                if (ICOM_EXCEPTIONS) { myvfo = RIG_VFO_MAIN_A; }
+
 
                 rig_get_mode(rig, myvfo, &mode, &width);
 
@@ -1578,7 +1581,7 @@ int HAMLIB_API rig_open(RIG *rig)
                 {
                     myvfo = RIG_VFO_B;
 
-                    if (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100) { myvfo = RIG_VFO_MAIN_A; }
+                    if (ICOM_EXCEPTIONS) { myvfo = RIG_VFO_MAIN_A; }
 
                     rig_debug(RIG_DEBUG_VERBOSE, "xxxsplit=%d\n", split);
                     HAMLIB_TRACE;
