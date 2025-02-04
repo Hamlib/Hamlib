@@ -242,7 +242,7 @@ int HAMLIB_API serial_open(hamlib_port_t *rp)
         return -RIG_EIO;
 
     case SER_AVAILABLE:
-        rig_debug(RIG_DEBUG_ERR, "%s: serial port %s is OK\n", __func__, rp->pathname);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: serial port %s is OK\n", __func__, rp->pathname);
         break;
     }
 
