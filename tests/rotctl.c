@@ -310,6 +310,8 @@ int main(int argc, char *argv[])
         }
     }
 
+    rig_set_debug(verbose);
+
     rig_debug(RIG_DEBUG_VERBOSE, "rotctl %s\n", hamlib_version2);
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
