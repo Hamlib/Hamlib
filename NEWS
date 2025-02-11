@@ -12,6 +12,9 @@ Version 5.x -- future
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP
 
+Version 4.6.3
+        * Fix rigctl showing hamlib_verson when connecting to rigctld
+
 Version 4.6.2
         * Add missing levels for IC746/PRO RIG_LEVEL_RFPOWER_METER,RIG_LEVEL_RFPOWER_METER_WATTS,RIG_LEVEL_SWR,RIG_LEVEL_ALC
         * Fix IC905 for gpredict
