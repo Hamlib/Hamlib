@@ -579,12 +579,12 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
               vfob);
 
     // Now grab the ptt status
-    cachep->ptt = reply[6] == 1;
+    cachep->ptt = (reply[6] == 1);
     // And the mode
     cachep->modeMainA = guohe2rmode(reply[7], pmr171_modes);
     cachep->modeMainB = guohe2rmode(reply[8], pmr171_modes);
 
-    if (vfo == RIG_VFO_B) { *freq = cachep->freqMainA; }
+    if (vfo == RIG_VFO_A) { *freq = cachep->freqMainA; }
     else { *freq = cachep->freqMainB; }
 
     return RIG_OK;
