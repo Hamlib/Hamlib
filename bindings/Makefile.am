@@ -4,7 +4,7 @@
 #
 
 AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/include -I$(top_srcdir)/bindings  \
-	$(TCL_INCLUDE_SPEC) $(PYTHON_CPPFLAGS)
+	$(TCL_INCLUDE_SPEC) $(PYTHON_CPPFLAGS) -w451
 
 AM_CFLAGS = @AM_CPPFLAGS@ -fno-strict-aliasing
 AM_CXXFLAGS = -O2
