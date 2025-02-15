@@ -424,7 +424,7 @@ int codan_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 
 
-struct rig_caps envoy_caps =
+struct rig_caps codan_envoy_caps =
 {
     RIG_MODEL(RIG_MODEL_CODAN_ENVOY),
     .model_name =       "Envoy",
@@ -489,7 +489,7 @@ struct rig_caps envoy_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-struct rig_caps ngs_caps =
+struct rig_caps codan_ngs_caps =
 {
     RIG_MODEL(RIG_MODEL_CODAN_NGT),
     .model_name =       "NGT",
