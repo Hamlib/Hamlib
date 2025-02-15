@@ -51,12 +51,16 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
     //int retry = 3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
-    
+
     // Seems the 2021 wants LF instead of CR
     if (rig->caps->rig_model == RIG_MODEL_CODAN_2021)
+    {
         SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%d", cmd, 0x0a);
+    }
     else
+    {
         SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%d", cmd, 0x0d);
+    }
 
     rig_flush(rp);
     retval = write_block(rp, (unsigned char *) cmd_buf, strlen(cmd_buf));
@@ -76,7 +80,8 @@ again1:
                              "\x0a", 1, 0, 1);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: result=%s, resultlen=%d\n", __func__,
                   priv->ret_data, (int)strlen(priv->ret_data));
-        if (strncmp(cmd, priv->ret_data, strlen(cmd))==0) goto again1;
+
+        if (strncmp(cmd, priv->ret_data, strlen(cmd)) == 0) { goto again1; }
 
         if (retval < 0)
         {
@@ -89,7 +94,8 @@ again2:
         retval = read_string(rp, (unsigned char *) priv->ret_data,
                              sizeof(priv->ret_data),
                              "\x0a", 1, 0, 1);
-        if (strncmp(cmd, priv->ret_data, strlen(cmd))==0) goto again2;
+
+        if (strncmp(cmd, priv->ret_data, strlen(cmd)) == 0) { goto again2; }
 
         if (retval < 0)
         {
@@ -546,7 +552,7 @@ struct rig_caps ngs_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-struct rig_caps ngs_caps =
+struct rig_caps codan_2021_caps =
 {
     RIG_MODEL(RIG_MODEL_CODAN_2021),
     .model_name =       "2021",
