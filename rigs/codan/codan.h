@@ -26,7 +26,7 @@
 
 #define BACKEND_VER "20240318"
 
-#define EOM "\x0a"
+#define EOM "\x0d"
 #define TRUE 1
 #define FALSE 0
 // For the current implemented command set 64 is long enough
@@ -34,8 +34,9 @@
 // But that would 9999*41 or 406KB so didn't do that right now
 #define CODAN_DATA_LEN 64
 
-extern struct rig_caps envoy_caps;
-extern struct rig_caps ngs_caps;
+extern struct rig_caps codan_envoy_caps;
+extern struct rig_caps codan_ngs_caps;
+extern struct rig_caps codan_2021_caps;
 
 struct codan_priv_data {
     char cmd_str[CODAN_DATA_LEN];       /* command string buffer */
