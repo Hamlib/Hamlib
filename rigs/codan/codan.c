@@ -51,8 +51,12 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
     //int retry = 3;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
-
-    SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%s", cmd, EOM);
+    
+    // Seems the 2021 wants LF instead of CR
+    if (rig->caps->rig_model == RIG_MODEL_CODAN_2021)
+        SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%d", cmd, 0x0a);
+    else
+        SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%d", cmd, 0x0d);
 
     rig_flush(rp);
     retval = write_block(rp, (unsigned char *) cmd_buf, strlen(cmd_buf));
@@ -65,12 +69,14 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
 
     if (expected == 0)
     {
+again1:
         // response format is response...0x0d0x0a
         retval = read_string(rp, (unsigned char *) priv->ret_data,
                              sizeof(priv->ret_data),
                              "\x0a", 1, 0, 1);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: result=%s, resultlen=%d\n", __func__,
                   priv->ret_data, (int)strlen(priv->ret_data));
+        if (strncmp(cmd, priv->ret_data, strlen(cmd))==0) goto again1;
 
         if (retval < 0)
         {
@@ -79,9 +85,11 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
     }
     else
     {
+again2:
         retval = read_string(rp, (unsigned char *) priv->ret_data,
                              sizeof(priv->ret_data),
                              "\x0a", 1, 0, 1);
+        if (strncmp(cmd, priv->ret_data, strlen(cmd))==0) goto again2;
 
         if (retval < 0)
         {
@@ -538,14 +546,76 @@ struct rig_caps ngs_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
+struct rig_caps ngs_caps =
+{
+    RIG_MODEL(RIG_MODEL_CODAN_2021),
+    .model_name =       "2021",
+    .mfg_name =         "CODAN",
+    .version =          BACKEND_VER ".0",
+    .copyright =        "LGPL",
+    .status =           RIG_STATUS_ALPHA,
+    .rig_type =         RIG_TYPE_TRANSCEIVER,
+    .targetable_vfo =   RIG_TARGETABLE_FREQ,
+    .ptt_type =         RIG_PTT_RIG,
+    .dcd_type =         RIG_DCD_NONE,
+    .port_type =        RIG_PORT_SERIAL,
+    .serial_rate_min =  9600,
+    .serial_rate_max =  115200,
+    .serial_data_bits = 8,
+    .serial_stop_bits = 1,
+    .serial_parity =    RIG_PARITY_NONE,
+    .serial_handshake = RIG_HANDSHAKE_NONE,
+    .write_delay =      0,
+    .post_write_delay = 50,
+    .timeout =          1000,
+    .retry =            3,
 
+    .has_get_func =     RIG_FUNC_NONE,
+    .has_set_func =     RIG_FUNC_NONE,
+    .has_get_level =    RIG_LEVEL_NONE,
+    .has_set_level =    RIG_LEVEL_NONE,
+    .has_get_parm =     RIG_PARM_NONE,
+    .has_set_parm =     RIG_PARM_NONE,
+    .transceive =       RIG_TRN_RIG,
+    .rx_range_list1 = {{
+            .startf = kHz(1600), .endf = MHz(30), .modes = CODAN_MODES,
+            .low_power = -1, .high_power = -1, CODAN_VFOS, RIG_ANT_1
+        },
+        RIG_FRNG_END,
+    },
+    .rx_range_list2 = {RIG_FRNG_END,},
+    .tx_range_list1 = {RIG_FRNG_END,},
+    .tx_range_list2 = {RIG_FRNG_END,},
+    .tuning_steps =  { {CODAN_MODES, 1}, {CODAN_MODES, RIG_TS_ANY},  RIG_TS_END, },
+    .filters = {
+        {RIG_MODE_SSB, kHz(2.4)},
+        {RIG_MODE_SSB, kHz(0.5)},
+        {RIG_MODE_SSB, kHz(2.7)},
+        {RIG_MODE_SSB, kHz(3.0)},
+        RIG_FLT_END,
+    },
+    .priv = NULL,
+
+    .rig_init =     codan_init,
+    .rig_cleanup =  codan_cleanup,
+
+    .set_freq = codan_set_freq,
+    .get_freq = codan_get_freq,
+    .set_mode = codan_set_mode,
+    .get_mode = codan_get_mode,
+
+    .set_ptt =      codan_set_ptt,
+    .get_ptt =      codan_get_ptt,
+    .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
+};
 
 DECLARE_INITRIG_BACKEND(codan)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
-    rig_register(&envoy_caps);
-    rig_register(&ngs_caps);
+    rig_register(&codan_envoy_caps);
+    rig_register(&codan_ngs_caps);
+    rig_register(&codan_2021_caps);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init back from rig_register\n", __func__);
 
     return RIG_OK;
