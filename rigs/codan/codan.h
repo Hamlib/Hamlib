@@ -24,7 +24,7 @@
 
 #include "hamlib/rig.h"
 
-#define BACKEND_VER "20240318"
+#define BACKEND_VER "20250216"
 
 #define EOM "\x0d"
 #define TRUE 1
