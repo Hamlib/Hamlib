@@ -14,7 +14,7 @@ Version 5.x -- future
 
 Version 4.6.3
         * Fix rigctl showing hamlib_verson when connecting to rigctld
-        * Add rig CODAN 2021
+        * Add rig CODAN 2110
 
 Version 4.6.2
         * Add missing levels for IC746/PRO RIG_LEVEL_RFPOWER_METER,RIG_LEVEL_RFPOWER_METER_WATTS,RIG_LEVEL_SWR,RIG_LEVEL_ALC
