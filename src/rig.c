@@ -8769,7 +8769,7 @@ void *morse_data_handler(void *arg)
                 int nloops = 10;
                 MUTEX_LOCK(morse_mutex); // wait until the write is idle
 
-		rig_lock(rig, 1);
+		        rig_lock(rig, 1);
                 do
                 {
                     result = rig->caps->send_morse(rig, RIG_VFO_CURR, c);
