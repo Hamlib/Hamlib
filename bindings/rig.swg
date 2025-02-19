@@ -21,6 +21,8 @@
 
 %inline %{
 
+#pragma SWIG nowarn=451
+
 typedef struct Rig {
 	RIG *rig;
 	struct rig_caps *caps;		/* shortcut to RIG->caps */
