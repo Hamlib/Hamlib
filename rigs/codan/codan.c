@@ -53,7 +53,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: cmd=%s\n", __func__, cmd);
 
     // Seems the 2110 wants CR instead of LF
-    if (rig->caps->rig_model == RIG_MODEL_CODAN_2110)
+    if (rig->caps->rig_model == RIG_MODEL_CODAN_2110 || rig->caps->rig_model == RIG_MODEL_CODAN_NGT)
     {
         SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%c", cmd, 0x0d);
     }
@@ -590,7 +590,7 @@ struct rig_caps codan_ngs_caps =
     RIG_MODEL(RIG_MODEL_CODAN_NGT),
     .model_name =       "NGT",
     .mfg_name =         "CODAN",
-    .version =          BACKEND_VER ".0",
+    .version =          BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -653,7 +653,7 @@ struct rig_caps codan_2110_caps =
     RIG_MODEL(RIG_MODEL_CODAN_2110),
     .model_name =       "2110",
     .mfg_name =         "CODAN",
-    .version =          BACKEND_VER ".0",
+    .version =          BACKEND_VER ".1",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
