@@ -2891,6 +2891,7 @@ struct rig_state {
     struct timespec freq_event_elapsed;
     int freq_skip; /*!< allow frequency skip for gpredict RX/TX freq set */
     client_t client;
+    pthread_mutex_t api_mutex;   // Lock for any API entry
 // New rig_state items go before this line ============================================
 };
 
