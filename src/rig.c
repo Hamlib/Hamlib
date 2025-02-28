@@ -171,11 +171,21 @@ const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
 
 #define ICOM_EXCEPTIONS (rig->caps->rig_model == RIG_MODEL_IC9700 || rig->caps->rig_model == RIG_MODEL_IC9100 || rig->caps->rig_model == RIG_MODEL_IC910)
 
+// If the OS/library supports it, use a recursive mutex for the main lock.
+// This eliminates depth races, and guards against multiple app threads, too.
+// Set define to 0 to use depth-based locking. It should be deduced from the
+//   environment, but I can't find a fine-grained enough parameter. Should be
+//   OK on any POSIX-2017 or later system.
+#define USE_RECURSIVE_MUTEX 1
+#if USE_RECURSIVE_MUTEX
+#define LOCK(n) rig_lock(rig,n)
+#else
 // The LOCK macro is for the primary thread calling the rig functions
 // For a separate thread use rig_lock directly
 // The purpose here is to avoid deadlock during recursion
 // Any other thread should grab the mutex itself via rig_lock
 #define LOCK(n) if (STATE(rig)->depth == 1) { rig_debug(RIG_DEBUG_CACHE, "%s: %s\n", n?"lock":"unlock", __func__);  rig_lock(rig,n); }
+#endif
 
 MUTEX(morse_mutex);
 
@@ -891,8 +901,20 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     // we have to copy rs to rig->state_deprecated for DLL backwards compatibility
     memcpy(&rig->state_deprecated, rs, sizeof(rig->state_deprecated));
 
+    // Set up lock for any API entry point
+    // If available, use a recursive mutex. Else, fall back on the
+    //   depth count.
+    pthread_mutexattr_t api_attr;
+    pthread_mutexattr_init(&api_attr);
+#if USE_RECURSIVE_MUTEX
+    pthread_mutexattr_settype(&api_attr, PTHREAD_MUTEX_RECURSIVE);
+    HAMLIB_TRACE;
+#endif
+    pthread_mutex_init(&rs->api_mutex, &api_attr);
+    pthread_mutexattr_destroy(&api_attr);
+
     /*
-     * let the backend a chance to setup his private data
+     * Give the backend a chance to setup his private data
      * This must be done only once defaults are setup,
      * so the backend init can override rig_state.
      */
@@ -1858,7 +1880,10 @@ int HAMLIB_API rig_cleanup(RIG *rig)
         rig->caps->rig_cleanup(rig);
     }
 
-    //TODO Release and null any allocated port structures
+    //pthread_mutex_destroy(&STATE(rig)->api_mutex);
+
+    //TODO Release and null any allocated data -
+    // state, ports, cache, etc.
 
     free(rig);
 
@@ -8365,6 +8390,7 @@ void rig_lock(RIG *rig, int lock)
 
     struct rig_state *rs = STATE(rig);
 
+#if 0
     if (rs->multicast == NULL)
     {
         rig_debug(RIG_DEBUG_BUG, "%s: locking skipped, lock = %d\n", __func__, lock); 
@@ -8376,16 +8402,17 @@ void rig_lock(RIG *rig, int lock)
         rs->multicast->mutex = initializer;
         rs->multicast->mutex_initialized = 1;
     }
+#endif
 
     if (lock)
     {
-        pthread_mutex_lock(&rs->multicast->mutex);
+        pthread_mutex_lock(&rs->api_mutex);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: client lock engaged\n", __func__);
     }
     else
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: client lock disengaged\n", __func__);
-        pthread_mutex_unlock(&rs->multicast->mutex);
+        pthread_mutex_unlock(&rs->api_mutex);
     }
 
 #endif
