@@ -580,7 +580,7 @@ struct rig_caps codan_envoy_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-struct rig_caps codan_ngs_caps =
+struct rig_caps codan_ngt_caps =
 {
     RIG_MODEL(RIG_MODEL_CODAN_NGT),
     .model_name =       "NGT",
