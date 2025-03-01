@@ -515,11 +515,6 @@ int codan_set_ptt_2110(RIG *rig, vfo_t vfo, ptt_t ptt)
     return RIG_OK;
 }
 
-
-
-
-
-
 struct rig_caps codan_envoy_caps =
 {
     RIG_MODEL(RIG_MODEL_CODAN_ENVOY),
@@ -590,7 +585,7 @@ struct rig_caps codan_ngs_caps =
     RIG_MODEL(RIG_MODEL_CODAN_NGT),
     .model_name =       "NGT",
     .mfg_name =         "CODAN",
-    .version =          BACKEND_VER ".1",
+    .version =          BACKEND_VER ".2",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -638,13 +633,15 @@ struct rig_caps codan_ngs_caps =
     .rig_init =     codan_init,
     .rig_cleanup =  codan_cleanup,
 
+    .rig_open = codan_open,
+
     .set_freq = codan_set_freq,
     .get_freq = codan_get_freq,
     .set_mode = codan_set_mode,
     .get_mode = codan_get_mode,
 
-    .set_ptt =      codan_set_ptt,
-    .get_ptt =      codan_get_ptt,
+    //.set_ptt =      codan_set_ptt, // does not have it
+    //.get_ptt =      codan_get_ptt,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
