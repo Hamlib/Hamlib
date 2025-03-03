@@ -7545,14 +7545,18 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
 
     resetFIFO(rs->fifo_morse); // clear out the CW queue
 
+    LOCK(1);
     if (vfo == RIG_VFO_CURR
             || vfo == rs->current_vfo)
     {
-        RETURNFUNC(caps->stop_morse(rig, vfo));
+        retcode = caps->stop_morse(rig, vfo);
+        LOCK(0); 
+        RETURNFUNC(retcode);
     }
 
     if (!caps->set_vfo)
     {
+        LOCK(0);
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
@@ -7562,6 +7566,7 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
 
     if (retcode != RIG_OK)
     {
+        LOCK(0);
         RETURNFUNC(retcode);
     }
 
@@ -7576,6 +7581,7 @@ int HAMLIB_API rig_stop_morse(RIG *rig, vfo_t vfo)
         retcode = rc2;
     }
 
+    LOCK(0);
     RETURNFUNC(retcode);
 }
 
@@ -7645,14 +7651,18 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
 
     caps = rig->caps;
 
+    LOCK(1);
     if (vfo == RIG_VFO_CURR
             || vfo == STATE(rig)->current_vfo)
     {
-        RETURNFUNC(wait_morse_ptt(rig, vfo));
+        retcode = wait_morse_ptt(rig, vfo);
+        LOCK(0);
+        RETURNFUNC(retcode);
     }
 
     if (!caps->set_vfo)
     {
+        LOCK(0);
         RETURNFUNC(-RIG_ENAVAIL);
     }
 
@@ -7662,6 +7672,7 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
 
     if (retcode != RIG_OK)
     {
+        LOCK(0);
         RETURNFUNC(retcode);
     }
 
@@ -7676,6 +7687,7 @@ int HAMLIB_API rig_wait_morse(RIG *rig, vfo_t vfo)
         retcode = rc2;
     }
 
+    LOCK(0);
     RETURNFUNC(retcode);
 }
 
