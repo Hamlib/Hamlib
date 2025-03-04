@@ -1551,9 +1551,11 @@ int HAMLIB_API rig_open(RIG *rig)
 
         if (ICOM_EXCEPTIONS) { myvfo = RIG_VFO_MAIN_A; }
 
+        if ((STATE(rig)->vfo_list & RIG_VFO_VFO) == RIG_VFO_VFO) { myvfo = RIG_VFO_VFO; }
+
         retval = rig_get_freq(rig, myvfo, &freq);
 
-        if (retval == RIG_OK && rig->caps->rig_model != RIG_MODEL_F6K)
+        if (retval == RIG_OK && rig->caps->rig_model != RIG_MODEL_F6K && ((STATE(rig)->vfo_list & RIG_VFO_VFO) == RIG_VFO_VFO))
         {
             split_t split = RIG_SPLIT_OFF;
             vfo_t tx_vfo = RIG_VFO_NONE;
