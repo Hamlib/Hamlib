@@ -55,7 +55,7 @@ int codan_transaction(RIG *rig, char *cmd, int expected, char **result)
     // Seems the 2110 wants CR instead of LF
     if (rig->caps->rig_model == RIG_MODEL_CODAN_2110 || rig->caps->rig_model == RIG_MODEL_CODAN_NGT)
     {
-        SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%c", cmd, 0x0d);
+        SNPRINTF(cmd_buf, sizeof(cmd_buf), "%s%c%c", cmd, 0x0d, 0x0a);
     }
     else
     {
@@ -170,7 +170,7 @@ int codan_init(RIG *rig)
     RETURNFUNC2(RIG_OK);
 }
 
-int codan_set_freq_2110(RIG *rig, vfo_t vfo, freq_t freq)
+int codan_set_freq_ngt(RIG *rig, vfo_t vfo, freq_t freq)
 {
     char cmd_buf[MAXCMDLEN];
     int retval;
@@ -179,7 +179,7 @@ int codan_set_freq_2110(RIG *rig, vfo_t vfo, freq_t freq)
               rig_strvfo(vfo), freq);
 
     // Purportedly can't do split so we just set VFOB=VFOA
-    SNPRINTF(cmd_buf, sizeof(cmd_buf), "\rfreq %.0f", freq / 1000);
+    SNPRINTF(cmd_buf, sizeof(cmd_buf), "\rfreq %.3f", freq / 1000);
 
     char *response = NULL;
     retval = codan_transaction(rig, cmd_buf, 0, &response);
@@ -207,9 +207,9 @@ int codan_open(RIG *rig)
 
     codan_transaction(rig, "login", 1, &results);
 
-    if (rig->caps->rig_model == RIG_MODEL_CODAN_2110)
+    if (rig->caps->rig_model == RIG_MODEL_CODAN_NGT)
     {
-        codan_set_freq_2110(rig, RIG_VFO_A, 14074000.0);
+        codan_set_freq_ngt(rig, RIG_VFO_A, 14074000.0);
     }
     else
     {
@@ -385,6 +385,9 @@ int codan_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     retval = sscanf(response, "FREQ: %lg", freq);
 
+    if (retval == 0)
+    retval = sscanf(response, "CHAN: %lg", freq);
+
     *freq *= 1000; // returned freq is in kHz
 
     if (retval != 1)
@@ -491,7 +494,7 @@ int codan_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     return RIG_OK;
 }
 
-int codan_set_ptt_2110(RIG *rig, vfo_t vfo, ptt_t ptt)
+int codan_set_ptt_ngs(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int retval;
     char cmd_buf[MAXCMDLEN];
@@ -585,7 +588,7 @@ struct rig_caps codan_ngt_caps =
     RIG_MODEL(RIG_MODEL_CODAN_NGT),
     .model_name =       "NGT",
     .mfg_name =         "CODAN",
-    .version =          BACKEND_VER ".2",
+    .version =          BACKEND_VER ".3",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -635,7 +638,7 @@ struct rig_caps codan_ngt_caps =
 
     .rig_open = codan_open,
 
-    .set_freq = codan_set_freq,
+    .set_freq = codan_set_freq_ngt,
     .get_freq = codan_get_freq,
     .set_mode = codan_set_mode,
     .get_mode = codan_get_mode,
@@ -650,7 +653,7 @@ struct rig_caps codan_2110_caps =
     RIG_MODEL(RIG_MODEL_CODAN_2110),
     .model_name =       "2110",
     .mfg_name =         "CODAN",
-    .version =          BACKEND_VER ".1",
+    .version =          BACKEND_VER ".0",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -699,13 +702,13 @@ struct rig_caps codan_2110_caps =
     .rig_open =     codan_open,
     .rig_cleanup =  codan_cleanup,
 
-    .set_freq = codan_set_freq_2110,
+    .set_freq = codan_set_freq,
     .get_freq = codan_get_freq,
     .set_mode = codan_set_mode,
     .get_mode = codan_get_mode,
 
-    .set_ptt =      codan_set_ptt_2110,
-    .get_ptt =      codan_get_ptt_2110,
+    .set_ptt =      codan_set_ptt,
+    .get_ptt =      codan_get_ptt,
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
@@ -714,7 +717,7 @@ DECLARE_INITRIG_BACKEND(codan)
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init called\n", __func__);
 
     rig_register(&codan_envoy_caps);
-    rig_register(&codan_ngs_caps);
+    rig_register(&codan_ngt_caps);
     rig_register(&codan_2110_caps);
     rig_debug(RIG_DEBUG_VERBOSE, "%s: _init back from rig_register\n", __func__);
 

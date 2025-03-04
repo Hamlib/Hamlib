@@ -35,7 +35,7 @@
 #define CODAN_DATA_LEN 64
 
 extern struct rig_caps codan_envoy_caps;
-extern struct rig_caps codan_ngs_caps;
+extern struct rig_caps codan_ngt_caps;
 extern struct rig_caps codan_2021_caps;
 
 struct codan_priv_data {
