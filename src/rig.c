@@ -61,9 +61,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include "mutex.h"
 
-#include <hamlib/rig.h>
+#include "mutex.h"
 #include "serial.h"
 #include "parallel.h"
 #include "network.h"
@@ -957,9 +956,7 @@ int HAMLIB_API rig_open(RIG *rig)
 {
     struct rig_caps *caps;
     struct rig_state *rs;
-    hamlib_port_t *rp = RIGPORT(rig);
-    hamlib_port_t *pttp = PTTPORT(rig);
-    hamlib_port_t *dcdp = DCDPORT(rig);
+    hamlib_port_t *rp, *pttp, *dcdp;
     int status = RIG_OK;
     value_t parm_value;
     //unsigned int net1, net2, net3, net4, net5, net6, net7, net8, port;
@@ -975,6 +972,9 @@ int HAMLIB_API rig_open(RIG *rig)
 
     caps = rig->caps;
     rs = STATE(rig);
+    rp = RIGPORT(rig);
+    pttp = PTTPORT(rig);
+    dcdp = DCDPORT(rig);
     rp->rig = rig;
     rs->rigport_deprecated.rig = rig;
 
@@ -1685,9 +1685,7 @@ int HAMLIB_API rig_open(RIG *rig)
 int HAMLIB_API rig_close(RIG *rig)
 {
     const struct rig_caps *caps;
-    hamlib_port_t *rp = RIGPORT(rig);
-    hamlib_port_t *pttp = PTTPORT(rig);
-    hamlib_port_t *dcdp = DCDPORT(rig);
+    hamlib_port_t *rp, *pttp, *dcdp;
     struct rig_state *rs;
 
     if (!rig || !rig->caps)
@@ -1701,6 +1699,9 @@ int HAMLIB_API rig_close(RIG *rig)
 
     caps = rig->caps;
     rs = STATE(rig);
+    rp = RIGPORT(rig);
+    pttp = PTTPORT(rig);
+    dcdp = DCDPORT(rig);
 
     if (!rs->comm_state)
     {
@@ -7476,9 +7477,10 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
         LOCK(1);
         retcode = caps->send_morse(rig, vfo, msg);
         LOCK(0);
+#else
+        retcode = push(rs->fifo_morse, msg);
 #endif
-        push(rs->fifo_morse, msg);
-        RETURNFUNC(RIG_OK);
+        RETURNFUNC(retcode);
     }
 
     if (!caps->set_vfo)
@@ -8404,20 +8406,6 @@ void rig_lock(RIG *rig, int lock)
 
     struct rig_state *rs = STATE(rig);
 
-#if 0
-    if (rs->multicast == NULL)
-    {
-        rig_debug(RIG_DEBUG_BUG, "%s: locking skipped, lock = %d\n", __func__, lock); 
-        return;
-    } // not initialized yet
-
-    if (!rs->multicast->mutex_initialized)
-    {
-        rs->multicast->mutex = initializer;
-        rs->multicast->mutex_initialized = 1;
-    }
-#endif
-
     if (lock)
     {
         pthread_mutex_lock(&rs->api_mutex);
@@ -9058,7 +9046,7 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
  * Get the address of a structure without relying on changeable
  *   internal data organization.
  *
- * \retval The address of the enumed structure
+ * \retval The address of the enumed structure, NULL if error
  *
  * Note: This is meant for use by the HAMLIB_???PORT macros mostly. Only
  *  compatibility with them is supported.
@@ -9067,6 +9055,13 @@ int morse_data_handler_set_keyspd(RIG *rig, int keyspd)
  */
 HAMLIB_EXPORT(void *) rig_data_pointer(RIG *rig, rig_ptrx_t idx)
 {
+
+    if (!rig)
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s: missing rig\n", __func__);
+        return NULL;
+    }
+
     switch (idx)
     {
     case RIG_PTRX_RIGPORT:
