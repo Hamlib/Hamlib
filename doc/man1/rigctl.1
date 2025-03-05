@@ -335,7 +335,7 @@ Sets the cookie to be used for remote access security
 .
 .TP
 .BR \-# ", " \-\-skip_init
-Skips most startup intialization.
+Skips most startup initialization.
 .
 .TP
 .B \-
@@ -701,7 +701,7 @@ and
 .IP
 Number is 1-based antenna# (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
 .IP
-Option depends on rig..for Icom it probably sets the Tx & Rx antennas as in the IC-7851. See your manual for rig specific option values. Most rigs don't care about the option.
+Option depends on rig. For Icom it probably sets the Tx & Rx antennas as in the IC-7851. See your manual for rig specific option values. Most rigs don't care about the option.
 .IP
 For the IC-7851, FTDX3000 (and perhaps others) it means this:
 .IP
@@ -727,7 +727,7 @@ A value of 0 for Antenna will return the current TX antenna
 
 
 .IP
-Option returned depends on rig..for Icom is likely the RX only flag.
+Option returned depends on rig. For Icom it is likely the RX only flag.
 .
 .TP
 .BR b ", " send_morse " \(aq" \fIMorse\fP \(aq
@@ -828,7 +828,7 @@ code.
 .BR 0x93 ", " get_dcs_sql
 Get
 .RI \(aq "DCS Sql" \(aq
- code.
+code.
 .
 .TP
 .BR N ", " set_ts " \(aq" "\fITuning Step\fP" \(aq
@@ -1138,7 +1138,6 @@ Sets memory channel information
 Get channel memory.
 .IP
 If readonly!=0 then only channel data is returned and rig remains on the current channel.  If readonly=0 then rig will be set to the channel requested.
-data.
 .
 .TP
 .BR A ", " set_trn " \(aq" \fITransceive\fP \(aq
@@ -1462,8 +1461,6 @@ Skips rig initialization -- useful when executing commands with rigctl to speed 
 .BR freq_skip " " 'skip'
 .EX
 When skip!=0 skips setting freq on TX_VFO when in RX and on RX_VFO when in TX -- for use with gpredict and rigs that do not have TARGETABLE_VFO
-.
-.SH READLINE
 .
 .SH READLINE
 .
