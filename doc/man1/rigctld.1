@@ -127,14 +127,16 @@ Use
 .I device
 as the file name of the port connected to the radio.
 .IP
-Typically /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
 etc. on Linux,
 .IR COM1 ", " COM2 ,
 etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
 See your system's documentation.
 .IP
 .IP
-Can be a network address:port, e.g. 127.0.0.1:12345
+Can be a network address:port, e.g.
+.IR 127.0.0.1:12345
 .IP
 The special string \(lquh\-rig\(rq may be given to enable micro-ham device
 support.
@@ -205,7 +207,9 @@ in which case it is hexadecimal.
 .
 .TP
 .BR \-S ", " \-\-separator = \fIchar\fP
-Use char as separator instead of line feed
+Use
+.I char
+as separator instead of line feed.
 .IP
 The default is \n.  Recommend using $ or @ as they work on both Unix and Windows
 .IP
