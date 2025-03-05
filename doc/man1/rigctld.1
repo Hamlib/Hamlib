@@ -112,7 +112,7 @@ Here is a summary of the supported options:
 .BR \-m ", " \-\-model = \fIid\fP
 Select radio model number.  Defaults to dummy device.
 .IP
-See model list (use \(lqrigctl -l\(rq).
+See model list (use \(lqrigctld -l\(rq).
 .IP
 .BR Note :
 .B rigctl
@@ -256,7 +256,7 @@ rigctl -m 2 ip6-localhost
 Exceptions:
 .EX
 rigctl -m 2 -r 127.0.0.1 (only works if localhost is IPV4 address)
-rigctl -m 2 -r ::1 (only works localhost is IPV6 address)
+rigctl -m 2 -r ::1 (only works if localhost is IPV6 address)
 .EE
 .in
 .
@@ -345,7 +345,7 @@ Windows.  The output can be piped to
 .BR more (1)
 or
 .BR less (1),
-e.g. \(lqrigctl -l | more\(rq.
+e.g. \(lqrigctld -l | more\(rq.
 .
 .TP
 .BR \-o ", " \-\-vfo
@@ -375,12 +375,12 @@ Should only be needed when controlling software should be "paused"
 so you can move the VFO.  Continuous movement extends the timeout.
 .
 .TP
-.BR \-x ", " \-\-uplink=option
+.BR \-x ", " \-\-uplink = \fIoption\fP
 1=Sub, 2=Main 
 .IP
 For GPredict use to ignore get_freq for Sub or Main uplink VFO.
 .IP
-Should allow downlink VFO movement without confusing GPredict or the uplink
+Should allow downlink VFO movement without confusing GPredict or the uplink.
 .
 .TP
 .BR \-Z ", " \-\-debug\-time\-stamps
@@ -703,7 +703,7 @@ Set
 number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
 .IP
 .IP
-Option depends on rig..for Icom it probably sets the Tx & Rx antennas as in the IC-7851. See your manual for rig specific option values. Most rigs don't care about the option.
+Option depends on rig. For Icom it probably sets the Tx & Rx antennas as in the IC-7851. See your manual for rig specific option values. Most rigs don't care about the option.
 .IP
 For the IC-7851 (and perhaps others) it means this:
 .IP
@@ -739,7 +739,7 @@ Stop sending the current morse code.
 .
 .TP
 .BR 0xbc ", " wait_morse "
-Wait for morse to finish -- only works on full break-in
+Wait for morse to finish -- only works on full break-in.
 .
 .TP
 .BR 0x94 ", " send_voice_mem " \(aq" \fIMsgnum\fP \(aq
@@ -823,7 +823,7 @@ code.
 .BR 0x93 ", " get_dcs_sql
 Get
 .RI \(aq "DCS Sql" \(aq
- code.
+code.
 .
 .TP
 .BR N ", " set_ts " \(aq" "\fITuning Step\fP" \(aq
@@ -882,7 +882,7 @@ Set
 and
 .RI \(aq "Level Value" \(aq.
 .IP
-evel is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOXDELAY\(cq, \(oqAF\(cq,
+Level is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOXDELAY\(cq, \(oqAF\(cq,
 \(oqRF\(cq, \(oqSQL\(cq, \(oqIF\(cq, \(oqAPF\(cq, \(oqNR\(cq, \(oqPBT_IN\(cq,
 \(oqPBT_OUT\(cq, \(oqCWPITCH\(cq, \(oqRFPOWER\(cq, \(oqMICGAIN\(cq,
 \(oqKEYSPD\(cq, \(oqNOTCHF\(cq, \(oqCOMP\(cq, \(oqAGC\(cq, \(oqBKINDL\(cq,
@@ -1013,7 +1013,6 @@ Not implemented yet.
 Get channel memory.
 .IP
 If readonly!=0 then only channel data is returned and rig remains on the current channel.  If readonly=0 then rig will be set to the channel requested.
-data.
 .
 .TP
 .BR A ", " set_trn " \(aq" \fITransceive\fP \(aq
@@ -1021,7 +1020,7 @@ Set
 .RI \(aq Transceive \(aq
 mode.
 .IP
-Transcieve is a token: \(oqOFF\(cq, \(oqRIG\(cq, \(oqPOLL\(cq.
+Transceive is a token: \(oqOFF\(cq, \(oqRIG\(cq, \(oqPOLL\(cq.
 .IP
 Transceive is a mechanism for radios to report events without a specific call
 for information.
@@ -1220,16 +1219,11 @@ Examples:
 .TP
 .BR client_version " \(aq" \fIString\fP "\(aq
 .EX
-  Client can send its version to rigctld and get feedback on compatibility, deprecation, and alternatives
+Client can send its version to rigctld and get feedback on compatibility, deprecation, and alternatives
 .TP
 .BR hamlib_version
 .EX
-Returns hamlib version with ISO8601 date/time
-.
-.TP
-.BR hamlib_version
-.EX
-Returns hamlib version with ISO8601 date/time
+Returns Hamlib version with ISO8601 date/time
 .
 .TP
 .BR test
