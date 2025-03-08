@@ -67,15 +67,6 @@ static int skywatcher_cmd(ROT *rot, const char *cmd, char *response,
         return -code;
     }
 
-    // the actual response
-    code = read_string(port, (unsigned char *) response, response_len, "\r", 1, 0,
-                       1);
-
-    if (code < 0)
-    {
-        return -code;
-    }
-
     // nullify last \r
     response[strlen(response) - 1] = '\0';
 
