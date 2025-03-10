@@ -58,17 +58,9 @@ static int skywatcher_cmd(ROT *rot, const char *cmd, char *response,
     rig_flush(port);
     size_t cmd_len = strlen(cmd);
     ERROR_CHECK(write_block(port, (unsigned char *) cmd, cmd_len));
-    // echo from the device
-    int code = read_string(port, (unsigned char *) response, response_len, "\r", 1,
-                           0, 1);
-
-    if (code < 0)
-    {
-        return -code;
-    }
 
     // the actual response
-    code = read_string(port, (unsigned char *) response, response_len, "\r", 1, 0,
+    int code = read_string(port, (unsigned char *) response, response_len, "\r", 1, 0,
                        1);
 
     if (code < 0)
@@ -221,14 +213,17 @@ int skywatcher_set_motor_position(ROT *rot, int motor_index, float angle)
 
     if (!stopped)
     {
-        return RIG_EPROTO;
+        // ignore instructions to move the motor as long as it is moving
+        rig_debug(RIG_DEBUG_TRACE, "%s called: motor:%d angle:%f but the motor is moving - ignoring \n", __func__, motor_index, angle);  
+        // pretend it's OK
+        return RIG_OK; 
     }
 
     SNPRINTF(req, sizeof(req), ":G%d00\r", motor_index);
     ERROR_CHECK(skywatcher_cmd(rot, req, str, sizeof(str)));
     uint32_t cpr;
     ERROR_CHECK(skywatcher_get_spr(rot, motor_index, &cpr));
-    double ticks_per_angle = (double) cpr / 360.0;
+    double ticks_per_angle = (double) cpr / 360.0; 
     uint32_t value = ((uint32_t)(ticks_per_angle * angle)) & 0xFFFFFF;
     value = value | 0x800000;
     SNPRINTF(req, sizeof(req), ":S%d%02X%02X%02X\r", motor_index, (value & 0xFF),
@@ -243,9 +238,7 @@ int skywatcher_set_motor_position(ROT *rot, int motor_index, float angle)
 static int skywatcher_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
-    ERROR_CHECK(skywatcher_stop(rot));
-    // stop is called for 1 then for 2 motor. do motor position in reverse because it awaits "stop motor" state.
-    // potentially saving 1 call to :f
+
     ERROR_CHECK(skywatcher_set_motor_position(rot, 2, el));
     ERROR_CHECK(skywatcher_set_motor_position(rot, 1, az));
     return RIG_OK;
@@ -279,6 +272,16 @@ static int skywatcher_cleanup(ROT *rot)
     return RIG_OK;
 }
 
+static int skywatcher_park(ROT *rot)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %d %d\n", __func__, SKYWATCHER_PARK_AZ, SKYWATCHER_PARK_EL);
+
+    ERROR_CHECK(skywatcher_set_motor_position(rot, 1, SKYWATCHER_PARK_AZ));
+    ERROR_CHECK(skywatcher_set_motor_position(rot, 2, SKYWATCHER_PARK_EL));
+
+    return RIG_OK;
+}
+
 /* ************************************************************************* */
 /*
  * Protocol documentation:
@@ -289,7 +292,7 @@ const struct rot_caps skywatcher_rot_caps =
     ROT_MODEL(ROT_MODEL_SKYWATCHER),
     .model_name =     "Sky-Watcher",
     .mfg_name =       "Sky-Watcher",
-    .version =        "20240825.0",
+    .version =        "20250310.0",
     .copyright =      "LGPL",
     .status =         RIG_STATUS_STABLE,
     .rot_type =       ROT_TYPE_AZEL,
@@ -316,6 +319,7 @@ const struct rot_caps skywatcher_rot_caps =
     .set_position = skywatcher_set_position,
     .stop         = skywatcher_stop,
     .get_info     = skywatcher_get_info,
+    .park         = skywatcher_park,
 };
 
 
