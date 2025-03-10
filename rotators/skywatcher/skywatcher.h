@@ -20,6 +20,9 @@
 #ifndef HAMLIB_SKYWATCHER_H
 #define HAMLIB_SKYWATCHER_H 1
 
+#define SKYWATCHER_PARK_AZ 0
+#define SKYWATCHER_PARK_EL 0
+
 #include "rotator.h"
 
 extern const struct rot_caps skywatcher_rot_caps;
