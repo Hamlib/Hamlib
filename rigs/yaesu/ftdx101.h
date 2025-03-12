@@ -73,6 +73,15 @@
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
                RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
 
+#define FTDX101D_ALC_METER_CAL \
+{ \
+    2, \
+    {  \
+        {0, 0.0f}, \
+        {121, 1.0f} \
+    } \
+}   
+
 #define FTDX101D_RFPOWER_METER_CAL \
     { \
         6, \
