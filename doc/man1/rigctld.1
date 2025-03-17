@@ -119,7 +119,7 @@ See model list (use \(lqrigctld -l\(rq).
 (or third party software using the C API) will use radio model 2 for
 .B NET rigctl
 (this model number is not used for
-.B rigctl
+.B rigctld
 even though it shows in the model
 list).
 .
@@ -399,19 +399,19 @@ option as it generates no output on its own.
 .TP
 .BR \-A ", " \-\-password
 Sets password on
-.B rigctl
+.B rigctld
 which requires hamlib to use rig_set_password and rigctl to use \\password to access rigctld.  A 32-char shared secret will be displayed to be used on the client side.
 .
 .TP
 .BR \-R ", " \-\-rigctld\-idle
 Will make
-.B rigctl
+.B rigctld
 close the rig when no clients are connected.  Normally remains connected to speed up connects.
 .
 .TP
 .BR \-b ", " \-\-bind\-all
 Will make
-.B rigctl
+.B rigctld
 try to bind to first network device available.
 .
 .TP
@@ -421,7 +421,7 @@ Show a summary of these options and exit.
 .TP
 .BR \-V ", " \-\-version
 Show version of
-.B rigctl
+.B rigctld
 and exit.
 .
 .PP
@@ -1233,7 +1233,7 @@ Examples:
 .TP
 .BR client_version " \(aq" \fIString\fP "\(aq
 Client can send its version to
-.B rigctl
+.B rigctld
 and get feedback on compatibility, deprecation, and alternatives
 .TP
 .BR hamlib_version
