@@ -112,13 +112,15 @@ Here is a summary of the supported options:
 .BR \-m ", " \-\-model = \fIid\fP
 Select radio model number.  Defaults to dummy device.
 .IP
-See model list (use \(lqrigctl -l\(rq).
+See model list (use \(lqrigctld -l\(rq).
 .IP
 .BR Note :
 .B rigctl
 (or third party software using the C API) will use radio model 2 for
 .B NET rigctl
-(this model number is not used for rigctld even though it shows in the model
+(this model number is not used for
+.B rigctld
+even though it shows in the model
 list).
 .
 .TP
@@ -127,14 +129,16 @@ Use
 .I device
 as the file name of the port connected to the radio.
 .IP
-Typically /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
+Typically
+.IR /dev/ttyS0 ", " /dev/ttyS1 ", " /dev/ttyUSB0 ,
 etc. on Linux,
 .IR COM1 ", " COM2 ,
 etc. on MS Windows.  The BSD flavors and Mac OS/X have their own designations.
 See your system's documentation.
 .IP
 .IP
-Can be a network address:port, e.g. 127.0.0.1:12345
+Can be a network address:port, e.g.
+.IR 127.0.0.1:12345
 .IP
 The special string \(lquh\-rig\(rq may be given to enable micro-ham device
 support.
@@ -205,9 +209,11 @@ in which case it is hexadecimal.
 .
 .TP
 .BR \-S ", " \-\-separator = \fIchar\fP
-Use char as separator instead of line feed
+Use
+.I char
+as separator instead of line feed.
 .IP
-The default is \n.  Recommend using $ or @ as they work on both Unix and Windows
+The default is \(oq\\n\(cq.  Recommend using $ or @ as they work on both Unix and Windows.
 .IP
 .
 .TP
@@ -256,7 +262,7 @@ rigctl -m 2 ip6-localhost
 Exceptions:
 .EX
 rigctl -m 2 -r 127.0.0.1 (only works if localhost is IPV4 address)
-rigctl -m 2 -r ::1 (only works localhost is IPV6 address)
+rigctl -m 2 -r ::1 (only works if localhost is IPV6 address)
 .EE
 .in
 .
@@ -295,27 +301,27 @@ above.
 Set configuration parameter(s). Some common ones are:
 .in +4
 .EX
-.RB   async: "True enables asynchronous data transfer for backends that support it. This allows use of transceive and spectrum data."
-.RB   auto_power_on: "True enables compatible rigs to be powered up on open"
-.RB   auto_power_off: "True enables compatible rigs to be powered down on close"
-.RB   auto_disable_screensaver: "True enables compatible rigs to have their screen saver disabled on open"
-.RB   dcd_type: "Data Carrier Detect (or squelch) interface type override"
-.RB   dcd_pathname: "Path name to the device file of the Data Carrier Detect (or squelch)"
-.RB   disable_yaesu_bandselect: "True disables the automatic band select on band change for Yaesu rigs"
-.RB   dtr_state:  "ON turns on DTR, OFF turns it off, Unset disables it"
-.RB   lo_freq: "Frequency to add to the VFO frequency for use with a transverter"
-.RB   post_write_delay: "Delay in ms between each command sent out"
-.RB   ptt_share: "True enables ptt port to be shared with other apps"
-.RB   ptt_type: "Push-To-Talk interface type override"
-.RB   ptt_pathname: "Path name to the device file of the Push-To-Talk"
-.RB   ptt_bitnum: "Push-To-Talk GPIO bit number"
-.RB   retry: "Max number of retry"
-.RB   rts_state:  "ON turns on DTR, OFF turns it off, Unset disables it"
-.RB   twiddle_timeout: "For satellite ops when VFOB is twiddled will pause VFOB commands until timeout"
-.RB   twiddle_rit: "Suppress get_freq on VFOB for RIT tuning satellites"
-.RB   timeout: "Timeout in ms"
-.RB   write_delay: "Delay in ms between each byte sent out"
-.RB   tuner_control_pathname: "Path name to a script/program to control a tuner with 1 argument of 0/1 for Tuner Off/On"
+.BR   async: "True enables asynchronous data transfer for backends that support it. This allows use of transceive and spectrum data."
+.BR   auto_power_on: "True enables compatible rigs to be powered up on open"
+.BR   auto_power_off: "True enables compatible rigs to be powered down on close"
+.BR   auto_disable_screensaver: "True enables compatible rigs to have their screen saver disabled on open"
+.BR   dcd_type: "Data Carrier Detect (or squelch) interface type override"
+.BR   dcd_pathname: "Path name to the device file of the Data Carrier Detect (or squelch)"
+.BR   disable_yaesu_bandselect: "True disables the automatic band select on band change for Yaesu rigs"
+.BR   dtr_state:  "ON turns on DTR, OFF turns it off, Unset disables it"
+.BR   lo_freq: "Frequency to add to the VFO frequency for use with a transverter"
+.BR   post_write_delay: "Delay in ms between each command sent out"
+.BR   ptt_share: "True enables ptt port to be shared with other apps"
+.BR   ptt_type: "Push-To-Talk interface type override"
+.BR   ptt_pathname: "Path name to the device file of the Push-To-Talk"
+.BR   ptt_bitnum: "Push-To-Talk GPIO bit number"
+.BR   retry: "Max number of retry"
+.BR   rts_state:  "ON turns on DTR, OFF turns it off, Unset disables it"
+.BR   twiddle_timeout: "For satellite ops when VFOB is twiddled will pause VFOB commands until timeout"
+.BR   twiddle_rit: "Suppress get_freq on VFOB for RIT tuning satellites"
+.BR   timeout: "Timeout in ms"
+.BR   write_delay: "Delay in ms between each byte sent out"
+.BR   tuner_control_pathname: "Path name to a script/program to control a tuner with 1 argument of 0/1 for Tuner Off/On"
 .EE
 .in
 .IP
@@ -345,7 +351,7 @@ Windows.  The output can be piped to
 .BR more (1)
 or
 .BR less (1),
-e.g. \(lqrigctl -l | more\(rq.
+e.g. \(lqrigctld -l | more\(rq.
 .
 .TP
 .BR \-o ", " \-\-vfo
@@ -375,12 +381,12 @@ Should only be needed when controlling software should be "paused"
 so you can move the VFO.  Continuous movement extends the timeout.
 .
 .TP
-.BR \-x ", " \-\-uplink=option
+.BR \-x ", " \-\-uplink = \fIoption\fP
 1=Sub, 2=Main 
 .IP
 For GPredict use to ignore get_freq for Sub or Main uplink VFO.
 .IP
-Should allow downlink VFO movement without confusing GPredict or the uplink
+Should allow downlink VFO movement without confusing GPredict or the uplink.
 .
 .TP
 .BR \-Z ", " \-\-debug\-time\-stamps
@@ -392,15 +398,21 @@ option as it generates no output on its own.
 .
 .TP
 .BR \-A ", " \-\-password
-Sets password on rigctld which requires hamlib to use rig_set_password and rigctl to use \\password to access rigctld.  A 32-char shared secret will be displayed to be used on the client side.
+Sets password on
+.B rigctld
+which requires hamlib to use rig_set_password and rigctl to use \\password to access rigctld.  A 32-char shared secret will be displayed to be used on the client side.
 .
 .TP
 .BR \-R ", " \-\-rigctld\-idle
-Will make rigctld close the rig when no clients are connected.  Normally remains connected to speed up connects.
+Will make
+.B rigctld
+close the rig when no clients are connected.  Normally remains connected to speed up connects.
 .
 .TP
 .BR \-b ", " \-\-bind\-all
-Will make rigctld try to bind to first network device available.
+Will make
+.B rigctld
+try to bind to first network device available.
 .
 .TP
 .BR \-h ", " \-\-help
@@ -409,7 +421,7 @@ Show a summary of these options and exit.
 .TP
 .BR \-V ", " \-\-version
 Show version of
-.B rigctl
+.B rigctld
 and exit.
 .
 .PP
@@ -703,7 +715,7 @@ Set
 number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
 .IP
 .IP
-Option depends on rig..for Icom it probably sets the Tx & Rx antennas as in the IC-7851. See your manual for rig specific option values. Most rigs don't care about the option.
+Option depends on rig. For Icom it probably sets the Tx & Rx antennas as in the IC-7851. See your manual for rig specific option values. Most rigs don't care about the option.
 .IP
 For the IC-7851 (and perhaps others) it means this:
 .IP
@@ -732,6 +744,7 @@ symbols.  For Yaesu rigs use memory# (1-5 for most rigs) or up to 50 char messag
 .EX
 Example from rigctld socket:  b CQ CQ DE ME
 Yaesu example to send message#1 frm rigctld socket: b 1
+.EE
 .
 .TP
 .BR 0xbb ", " stop_morse "
@@ -739,7 +752,7 @@ Stop sending the current morse code.
 .
 .TP
 .BR 0xbc ", " wait_morse "
-Wait for morse to finish -- only works on full break-in
+Wait for morse to finish -- only works on full break-in.
 .
 .TP
 .BR 0x94 ", " send_voice_mem " \(aq" \fIMsgnum\fP \(aq
@@ -823,7 +836,7 @@ code.
 .BR 0x93 ", " get_dcs_sql
 Get
 .RI \(aq "DCS Sql" \(aq
- code.
+code.
 .
 .TP
 .BR N ", " set_ts " \(aq" "\fITuning Step\fP" \(aq
@@ -882,7 +895,7 @@ Set
 and
 .RI \(aq "Level Value" \(aq.
 .IP
-evel is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOXDELAY\(cq, \(oqAF\(cq,
+Level is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOXDELAY\(cq, \(oqAF\(cq,
 \(oqRF\(cq, \(oqSQL\(cq, \(oqIF\(cq, \(oqAPF\(cq, \(oqNR\(cq, \(oqPBT_IN\(cq,
 \(oqPBT_OUT\(cq, \(oqCWPITCH\(cq, \(oqRFPOWER\(cq, \(oqMICGAIN\(cq,
 \(oqKEYSPD\(cq, \(oqNOTCHF\(cq, \(oqCOMP\(cq, \(oqAGC\(cq, \(oqBKINDL\(cq,
@@ -1013,7 +1026,6 @@ Not implemented yet.
 Get channel memory.
 .IP
 If readonly!=0 then only channel data is returned and rig remains on the current channel.  If readonly=0 then rig will be set to the channel requested.
-data.
 .
 .TP
 .BR A ", " set_trn " \(aq" \fITransceive\fP \(aq
@@ -1021,7 +1033,7 @@ Set
 .RI \(aq Transceive \(aq
 mode.
 .IP
-Transcieve is a token: \(oqOFF\(cq, \(oqRIG\(cq, \(oqPOLL\(cq.
+Transceive is a token: \(oqOFF\(cq, \(oqRIG\(cq, \(oqPOLL\(cq.
 .IP
 Transceive is a mechanism for radios to report events without a specific call
 for information.
@@ -1208,43 +1220,36 @@ Returns current lock mode status 1=On, 2=Off (only useful with rigctld)
 .
 .TP
 .BR send_raw " \(aq" \fITerminator\fP "\(aq \(aq" \fIString\fP \(aq
-.EX
 Can send ASCII string or 0xnn values -- there can be no spaces in the command string.
 Possible terminator values are CR, LF, ;, ICOM, 0-100 (bytes to read), or -1 meaning unknown (will timeout on read)
 Examples:
+.EX
   send_raw ; FA;MD;
   send_raw icom 0xFE;0xFE;0x94;0x03;0xFD
   send_raw -1 0xFE;0xFE;0x94;0x03;0xFD
   send_raw 14 0xFE;0xFE;0x94;0x03;0xFD
+.EE
 .
 .TP
 .BR client_version " \(aq" \fIString\fP "\(aq
-.EX
-  Client can send its version to rigctld and get feedback on compatibility, deprecation, and alternatives
+Client can send its version to
+.B rigctld
+and get feedback on compatibility, deprecation, and alternatives
 .TP
 .BR hamlib_version
-.EX
-Returns hamlib version with ISO8601 date/time
-.
-.TP
-.BR hamlib_version
-.EX
-Returns hamlib version with ISO8601 date/time
+Returns Hamlib version with ISO8601 date/time
 .
 .TP
 .BR test
-.EX
 Performs test routines.  Under development.
 .
 .TP
 .BR set_gpio " \(aq" \fIGPIO#\fP "\(aq
-.EX
 Sets GPIO1, GPIO2, GPIO3, GPIO4 on the GPIO ptt port
 Can also use 1,2,3,4
 .
 .TP
 .BR get_gpio " \(aq" \fIGPIO#\fP "\(aq
-.EX
 Reads GPIO1, GPIO2, GPIO3, GPIO4 on the GPIO ptt port
 Can also use 1,2,3,4
 .
