@@ -24,7 +24,7 @@
 #define _ROTLIST_H 1
 
 //! @cond Doxygen_Suppress
-#define ROT_MAKE_MODEL(a,b) ((a)*100+(b))
+#define ROT_MAKE_MODEL(a,b) (100*(a)+(b))
 #define ROT_BACKEND_NUM(a) ((a)/100)
 //! @endcond
 
