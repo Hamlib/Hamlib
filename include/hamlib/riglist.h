@@ -32,7 +32,7 @@
 // With a max of 1000 models per backend we get total a model number range of 1001-33001
 // This MAX was 100 prior to 2020-02-18 and Icom was close to running out of the 100 range
 #define  MAX_MODELS_PER_BACKEND 1000
-#define RIG_MAKE_MODEL(a,b) ((a)*MAX_MODELS_PER_BACKEND+(b))
+#define RIG_MAKE_MODEL(a,b) (MAX_MODELS_PER_BACKEND*(a)+(b))
 #define RIG_BACKEND_NUM(a) ((a)/MAX_MODELS_PER_BACKEND)
 
 //! @endcond
