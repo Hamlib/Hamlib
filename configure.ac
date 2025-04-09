@@ -43,23 +43,23 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 ## ------------------------------ ##
 ## Hamlib specific configuration. ##
 ## ------------------------------ ##
-AC_ARG_ENABLE([shared],
-              [AS_HELP_STRING([--enable-shared],
-                              [Enable shared libraries @<:@default=yes@:>@])],
-              [enable_shared=$enableval],
-              [enable_shared=yes])
-AC_ARG_ENABLE([static],
-              [AS_HELP_STRING([--enable-static],
-                              [Enable static libraries @<:@default=check@:>@])],
-              [enable_static=$enableval],
-              [enable_static=check])
-
-AS_IF([test "x$enable_static" = "xyes"], [
-    enable_shared=no
-])
-AS_IF([test "x$enable_static" = "xyes" && test "x$enable_shared" = "xyes"], [
-    AC_MSG_ERROR([Both --enable-static and --enable-shared cannot be enabled at the same time.])
-])
+dnl AC_ARG_ENABLE([shared],
+dnl               [AS_HELP_STRING([--enable-shared],
+dnl                               [Enable shared libraries @<:@default=yes@:>@])],
+dnl               [enable_shared=$enableval],
+dnl               [enable_shared=yes])
+dnl AC_ARG_ENABLE([static],
+dnl               [AS_HELP_STRING([--enable-static],
+dnl                               [Enable static libraries @<:@default=check@:>@])],
+dnl               [enable_static=$enableval],
+dnl               [enable_static=check])
+dnl
+dnl AS_IF([test "x$enable_static" = "xyes"], [
+dnl     enable_shared=no
+dnl ])
+dnl AS_IF([test "x$enable_static" = "xyes" && test "x$enable_shared" = "xyes"], [
+dnl     AC_MSG_ERROR([Both --enable-static and --enable-shared cannot be enabled at the same time.])
+dnl ])
 
 dnl New backends must be listed here!  Also the new Makefile path must be
 dnl added to AC_CONFIG_FILES near the end of this file.  See README.developer
