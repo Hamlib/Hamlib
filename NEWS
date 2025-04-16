@@ -17,12 +17,14 @@ Version 4.6.3
         * Add rig CODAN 2110
 
 Version 4.6.2
+        * 2025-02-09
         * Add missing levels for IC746/PRO RIG_LEVEL_RFPOWER_METER,RIG_LEVEL_RFPOWER_METER_WATTS,RIG_LEVEL_SWR,RIG_LEVEL_ALC
         * Fix IC905 for gpredict
         * Fix potential segfault on QMX 
         * Fix pmr171
         
 Version 4.6.1
+        * 2025-01-21
         * Fix C++ builds failing on rig_list_foreach function
         * Fix IC9100 rigctld startup to end up on VFOA
         * Fix grig build by removing sys/socket.h -- apparently not needed
@@ -34,6 +36,7 @@ Version 4.6.1
         * Fix SDRConsole by removing lots of things it does not have
 
 Version 4.6
+        * 2024-12-24
 	* send_raw can now take hex digits as colon-separated -- e.g. send_raw icom xfe:xfe:x94:xe0:03:xfd
 	* Add IC7760
         * IC7300 Mode filter can now be set by # (i.e. 1,2,3) 
