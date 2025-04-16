@@ -585,7 +585,7 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        retcode = rig_set_conf(my_rig, rig_token_lookup(my_rig, mytoken), myvalue);
+        retcode = rig_set_conf(my_rig, lookup, myvalue);
 
         if (retcode != RIG_OK)
         {
