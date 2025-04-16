@@ -55,7 +55,7 @@ extern int csv_parm_load(RIG *rig, const char *infilename);
  */
 void usage();
 void version();
-int set_conf(RIG *rig, char *conf_parms);
+static int set_conf(RIG *rig, char *conf_parms);
 
 int clear_chans(RIG *rig, const char *infilename);
 
@@ -442,7 +442,7 @@ void usage()
 }
 
 
-int set_conf(RIG *rig, char *conf_parms)
+static int set_conf(RIG *rig, char *conf_parms)
 {
     char *p, *n;
 
