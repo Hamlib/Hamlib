@@ -374,7 +374,7 @@ void usage()
 }
 
 
-int set_conf(RIG *rig, char *conf_parms)
+static int set_conf(RIG *rig, char *conf_parms)
 {
     char *p, *n;
 
