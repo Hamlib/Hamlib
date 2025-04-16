@@ -126,6 +126,7 @@ hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
 
 install-py:
 clean-py:
+	$(AM_V_at)rm -rf $(builddir)/__pycache__
 distclean-py:
 uninstall-py:
 
