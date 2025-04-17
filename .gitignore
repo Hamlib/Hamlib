@@ -29,6 +29,7 @@ libtool
 ltmain.sh
 missing
 py-compile
+tuner_control.log
 autom4te.cache/
 bindings/Hamlib.py
 bindings/hamlibvb.bas
@@ -57,6 +58,7 @@ tests/rigctlcom
 tests/rigctld
 tests/rigctlsync
 tests/rigctltcp
+tests/rigfreqwalk
 tests/rigmem
 tests/rigsmtr
 tests/rigswr
@@ -75,3 +77,4 @@ obj/
 .cproject
 .DS_Store
 ._.DS_Store
+__pycache__
