@@ -254,6 +254,20 @@ static struct s_modeMap modeMap[] =
     {0, NULL}
 };
 
+// Fallback mappings between modes
+struct s_fmodeMap {
+    rmode_t mode_flrig;
+    char *old_mode_hamlib;
+    char *new_mode_hamlib;
+};
+
+// Some radios (icom) provide PKT data on LSB/USB-D1 by default. Add these modes.
+static struct s_fmodeMap fmodeMap[] = {
+    { RIG_MODE_PKTLSB, "PKTLSB", "LSB-D1" },
+    { RIG_MODE_PKTUSB, "PKTUSB", "USB-D1" },
+    {0, NULL, NULL}
+};
+
 /*
 * check_vfo
 * No assumptions
@@ -740,7 +754,7 @@ static rmode_t modeMapGetHamlib(const char *modeFLRig)
 * modeMapAdd
 * Assumes modes!=NULL
 */
-static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig)
+static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig, int force)
 {
     int i;
     int len1;
@@ -748,8 +762,11 @@ static void modeMapAdd(rmode_t *modes, rmode_t mode_hamlib, char *mode_flrig)
     rig_debug(RIG_DEBUG_TRACE, "%s:mode_flrig=%s\n", __func__, mode_flrig);
 
     // if we already have it just return
+    // unless forced where we want to add additional hamlib->flrig mapping
+    // for flrig mode that already exists in map
+    //
     // We get ERROR if the mode is not known so non-ERROR is OK
-    if (modeMapGetHamlib(mode_flrig) != RIG_MODE_NONE) { return; }
+    if (!force && modeMapGetHamlib(mode_flrig) != RIG_MODE_NONE) { return; }
 
     len1 = strlen(mode_flrig) + 3; /* bytes needed for allocating */
 
@@ -1031,86 +1048,94 @@ static int flrig_open(RIG *rig)
 
     for (p = strtok_r(value, "|", &pr); p != NULL; p = strtok_r(NULL, "|", &pr))
     {
-        if (streq(p, "AM-D")) { modeMapAdd(&modes, RIG_MODE_PKTAM, p); }
-        else if (streq(p, "AM")) { modeMapAdd(&modes, RIG_MODE_AM, p); }
-        else if (streq(p, "AM-N")) { modeMapAdd(&modes, RIG_MODE_AMN, p); }
-        else if (streq(p, "AMN")) { modeMapAdd(&modes, RIG_MODE_AMN, p); }
-        else if (streq(p, "CW")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
-        else if (streq(p, "CW-L")) { modeMapAdd(&modes, RIG_MODE_CWR, p); }
-        else if (streq(p, "CW-LSB")) { modeMapAdd(&modes, RIG_MODE_CWR, p); }
-        else if (streq(p, "CW-R")) { modeMapAdd(&modes, RIG_MODE_CWR, p); }
-        else if (streq(p, "CW-U")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
-        else if (streq(p, "CW-USB")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
-        else if (streq(p, "CWL")) { modeMapAdd(&modes, RIG_MODE_CWR, p); }
-        else if (streq(p, "CWU")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
-        else if (streq(p, "D-LSB")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "D-USB")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "DATA")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "DATA-FM")) { modeMapAdd(&modes, RIG_MODE_PKTFM, p); }
-        else if (streq(p, "DATA-FMN")) { modeMapAdd(&modes, RIG_MODE_PKTFMN, p); }
-        else if (streq(p, "DATA-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "DATA-R")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "DATA-LSB")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "DATA-USB")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "DATA-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "DIG")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "DIGI")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "DIGL")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "DIGI-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "DIGU")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "DIGI-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "DSB")) { modeMapAdd(&modes, RIG_MODE_DSB, p); }
-        else if (streq(p, "FM")) { modeMapAdd(&modes, RIG_MODE_FM, p); }
-        else if (streq(p, "FM-D")) { modeMapAdd(&modes, RIG_MODE_PKTFM, p); }
-        else if (streq(p, "FMN")) { modeMapAdd(&modes, RIG_MODE_FMN, p); }
-        else if (streq(p, "FM-N")) { modeMapAdd(&modes, RIG_MODE_FMN, p); }
-        else if (streq(p, "FMW")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
-        else if (streq(p, "FSK")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
-        else if (streq(p, "FSK-R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
-        else if (streq(p, "LCW")) { modeMapAdd(&modes, RIG_MODE_CWR, p); }
-        else if (streq(p, "LSB")) { modeMapAdd(&modes, RIG_MODE_LSB, p); }
-        else if (streq(p, "LSB-D")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "LSB-D1")) { modeMapAdd(&modes, RIG_MODE_LSBD1, p); }
-        else if (streq(p, "LSB-D2")) { modeMapAdd(&modes, RIG_MODE_LSBD2, p); }
-        else if (streq(p, "LSB-D3")) { modeMapAdd(&modes, RIG_MODE_LSBD3, p); }
-        else if (streq(p, "NFM")) { modeMapAdd(&modes, RIG_MODE_FMN, p); }
-        else if (streq(p, "PKT")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "PKT-FM")) { modeMapAdd(&modes, RIG_MODE_PKTFM, p); }
-        else if (streq(p, "PKT-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "PKT-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "PKT(L)")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "PKT(U)")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "PSK")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
-        else if (streq(p, "PSK-L")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
-        else if (streq(p, "PSK-R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
-        else if (streq(p, "PSK-U")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
-        else if (streq(p, "RTTY")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
-        else if (streq(p, "RTTY-L")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
-        else if (streq(p, "RTTY-R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
-        else if (streq(p, "RTTY-U")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
-        else if (streq(p, "RTTY(U)")) { modeMapAdd(&modes, RIG_MODE_RTTY, p); }
-        else if (streq(p, "RTTY(R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p); }
-        else if (streq(p, "SAH")) { modeMapAdd(&modes, RIG_MODE_SAH, p); }
-        else if (streq(p, "SAL")) { modeMapAdd(&modes, RIG_MODE_SAL, p); }
-        else if (streq(p, "SAM")) { modeMapAdd(&modes, RIG_MODE_SAM, p); }
-        else if (streq(p, "USB")) { modeMapAdd(&modes, RIG_MODE_USB, p); }
-        else if (streq(p, "USB-D")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "USB-D1")) { modeMapAdd(&modes, RIG_MODE_USBD1, p); }
-        else if (streq(p, "USB-D2")) { modeMapAdd(&modes, RIG_MODE_USBD2, p); }
-        else if (streq(p, "USB-D3")) { modeMapAdd(&modes, RIG_MODE_USBD3, p); }
-        else if (streq(p, "USER-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p); }
-        else if (streq(p, "USER-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p); }
-        else if (streq(p, "W-FM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
-        else if (streq(p, "WFM")) { modeMapAdd(&modes, RIG_MODE_WFM, p); }
-        else if (streq(p, "UCW")) { modeMapAdd(&modes, RIG_MODE_CW, p); }
-        else if (streq(p, "C4FM")) { modeMapAdd(&modes, RIG_MODE_C4FM, p); }
-        else if (streq(p, "SPEC")) { modeMapAdd(&modes, RIG_MODE_SPEC, p); }
-        else if (streq(p, "DV")) { modeMapAdd(&modes, RIG_MODE_DSTAR, p); }
+        if (streq(p, "AM-D")) { modeMapAdd(&modes, RIG_MODE_PKTAM, p, 0); }
+        else if (streq(p, "AM")) { modeMapAdd(&modes, RIG_MODE_AM, p, 0); }
+        else if (streq(p, "AM-N")) { modeMapAdd(&modes, RIG_MODE_AMN, p, 0); }
+        else if (streq(p, "AMN")) { modeMapAdd(&modes, RIG_MODE_AMN, p, 0); }
+        else if (streq(p, "CW")) { modeMapAdd(&modes, RIG_MODE_CW, p, 0); }
+        else if (streq(p, "CW-L")) { modeMapAdd(&modes, RIG_MODE_CWR, p, 0); }
+        else if (streq(p, "CW-LSB")) { modeMapAdd(&modes, RIG_MODE_CWR, p, 0); }
+        else if (streq(p, "CW-R")) { modeMapAdd(&modes, RIG_MODE_CWR, p, 0); }
+        else if (streq(p, "CW-U")) { modeMapAdd(&modes, RIG_MODE_CW, p, 0); }
+        else if (streq(p, "CW-USB")) { modeMapAdd(&modes, RIG_MODE_CW, p, 0); }
+        else if (streq(p, "CWL")) { modeMapAdd(&modes, RIG_MODE_CWR, p, 0); }
+        else if (streq(p, "CWU")) { modeMapAdd(&modes, RIG_MODE_CW, p, 0); }
+        else if (streq(p, "D-LSB")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "D-USB")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "DATA")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "DATA-FM")) { modeMapAdd(&modes, RIG_MODE_PKTFM, p, 0); }
+        else if (streq(p, "DATA-FMN")) { modeMapAdd(&modes, RIG_MODE_PKTFMN, p, 0); }
+        else if (streq(p, "DATA-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "DATA-R")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "DATA-LSB")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "DATA-USB")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "DATA-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "DIG")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "DIGI")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "DIGL")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "DIGI-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "DIGU")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "DIGI-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "DSB")) { modeMapAdd(&modes, RIG_MODE_DSB, p, 0); }
+        else if (streq(p, "FM")) { modeMapAdd(&modes, RIG_MODE_FM, p, 0); }
+        else if (streq(p, "FM-D")) { modeMapAdd(&modes, RIG_MODE_PKTFM, p, 0); }
+        else if (streq(p, "FMN")) { modeMapAdd(&modes, RIG_MODE_FMN, p, 0); }
+        else if (streq(p, "FM-N")) { modeMapAdd(&modes, RIG_MODE_FMN, p, 0); }
+        else if (streq(p, "FMW")) { modeMapAdd(&modes, RIG_MODE_WFM, p, 0); }
+        else if (streq(p, "FSK")) { modeMapAdd(&modes, RIG_MODE_RTTY, p, 0); }
+        else if (streq(p, "FSK-R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p, 0); }
+        else if (streq(p, "LCW")) { modeMapAdd(&modes, RIG_MODE_CWR, p, 0); }
+        else if (streq(p, "LSB")) { modeMapAdd(&modes, RIG_MODE_LSB, p, 0); }
+        else if (streq(p, "LSB-D")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "LSB-D1")) { modeMapAdd(&modes, RIG_MODE_LSBD1, p, 0); }
+        else if (streq(p, "LSB-D2")) { modeMapAdd(&modes, RIG_MODE_LSBD2, p, 0); }
+        else if (streq(p, "LSB-D3")) { modeMapAdd(&modes, RIG_MODE_LSBD3, p, 0); }
+        else if (streq(p, "NFM")) { modeMapAdd(&modes, RIG_MODE_FMN, p, 0); }
+        else if (streq(p, "PKT")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "PKT-FM")) { modeMapAdd(&modes, RIG_MODE_PKTFM, p, 0); }
+        else if (streq(p, "PKT-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "PKT-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "PKT(L)")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "PKT(U)")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "PSK")) { modeMapAdd(&modes, RIG_MODE_RTTY, p, 0); }
+        else if (streq(p, "PSK-L")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p, 0); }
+        else if (streq(p, "PSK-R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p, 0); }
+        else if (streq(p, "PSK-U")) { modeMapAdd(&modes, RIG_MODE_RTTY, p, 0); }
+        else if (streq(p, "RTTY")) { modeMapAdd(&modes, RIG_MODE_RTTY, p, 0); }
+        else if (streq(p, "RTTY-L")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p, 0); }
+        else if (streq(p, "RTTY-R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p, 0); }
+        else if (streq(p, "RTTY-U")) { modeMapAdd(&modes, RIG_MODE_RTTY, p, 0); }
+        else if (streq(p, "RTTY(U)")) { modeMapAdd(&modes, RIG_MODE_RTTY, p, 0); }
+        else if (streq(p, "RTTY(R")) { modeMapAdd(&modes, RIG_MODE_RTTYR, p, 0); }
+        else if (streq(p, "SAH")) { modeMapAdd(&modes, RIG_MODE_SAH, p, 0); }
+        else if (streq(p, "SAL")) { modeMapAdd(&modes, RIG_MODE_SAL, p, 0); }
+        else if (streq(p, "SAM")) { modeMapAdd(&modes, RIG_MODE_SAM, p, 0); }
+        else if (streq(p, "USB")) { modeMapAdd(&modes, RIG_MODE_USB, p, 0); }
+        else if (streq(p, "USB-D")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "USB-D1")) { modeMapAdd(&modes, RIG_MODE_USBD1, p, 0); }
+        else if (streq(p, "USB-D2")) { modeMapAdd(&modes, RIG_MODE_USBD2, p, 0); }
+        else if (streq(p, "USB-D3")) { modeMapAdd(&modes, RIG_MODE_USBD3, p, 0); }
+        else if (streq(p, "USER-U")) { modeMapAdd(&modes, RIG_MODE_PKTUSB, p, 0); }
+        else if (streq(p, "USER-L")) { modeMapAdd(&modes, RIG_MODE_PKTLSB, p, 0); }
+        else if (streq(p, "W-FM")) { modeMapAdd(&modes, RIG_MODE_WFM, p, 0); }
+        else if (streq(p, "WFM")) { modeMapAdd(&modes, RIG_MODE_WFM, p, 0); }
+        else if (streq(p, "UCW")) { modeMapAdd(&modes, RIG_MODE_CW, p, 0); }
+        else if (streq(p, "C4FM")) { modeMapAdd(&modes, RIG_MODE_C4FM, p, 0); }
+        else if (streq(p, "SPEC")) { modeMapAdd(&modes, RIG_MODE_SPEC, p, 0); }
+        else if (streq(p, "DV")) { modeMapAdd(&modes, RIG_MODE_DSTAR, p, 0); }
         else if (streq(p, "DRM")) // we don't support DRM yet (or maybe ever)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: no mapping for mode %s\n", __func__, p);
         }
         else { rig_debug(RIG_DEBUG_ERR, "%s: Unknown mode (new?) for this rig='%s'\n", __func__, p); }
+    }
+
+    // fallback between modes
+    for (struct s_fmodeMap *mode = fmodeMap; mode->old_mode_hamlib != NULL; mode++) {
+	if (modeMapGetHamlib(mode->old_mode_hamlib) == RIG_MODE_NONE &&
+		modeMapGetHamlib(mode->new_mode_hamlib) != RIG_MODE_NONE) {
+	    modeMapAdd(&modes, mode->mode_flrig, mode->new_mode_hamlib, 1);
+	}
     }
 
     rs->mode_list = modes;
