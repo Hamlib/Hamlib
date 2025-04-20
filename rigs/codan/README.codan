@@ -13,4 +13,4 @@ the device which is addressed via the GP port.
 As of SDR firmware V3.51 for Envoy and Sentry radios, the Amatuer option
 allows for Freetune Tx on ham bands only. Freetune Tx is no longer required
 for this rig file to work.
-$${\color{lightblue}VK5MCA}$$
+VK5MCA
