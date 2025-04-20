@@ -473,7 +473,6 @@ int codan_get_ptt_2110(RIG *rig, vfo_t vfo, ptt_t *ptt)
  * VK5MCA
  * Changing PTT activation from 'connect tcvr rf ptt %s' to CICS command 'ptt %s voice'.
  * This sets fast ALC and allows audio to pass to the transmitter via the GPIO port.
- * Using the 'rf ptt' command does allow audio to pass through the GPIO port of the Envoy RF Unit or Console.
  */
 int codan_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
