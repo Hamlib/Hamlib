@@ -384,9 +384,9 @@ Since most of the
 .B Hamlib
 operations have a
 .BR set " and a " get
-method, a single upper case letter will often be used for a
+method, a single upper case letter will be used for
 .B set
-method whereas the corresponding single lower case letter refers to the
+methods whereas the corresponding single lower case letter refers to the
 .B get
 method.  Each operation also has a long name; in interactive mode, prepend a
 backslash, \(oq\\\(cq, to enter a long command name all lower case.
@@ -528,7 +528,8 @@ Set
 .RI \(aq VFO \(aq.
 .IP
 VFO is a token: \(oqVFOA\(cq, \(oqVFOB\(cq, \(oqVFOC\(cq, \(oqcurrVFO\(cq,
-\(oqVFO\(cq, \(oqMEM\(cq, \(oqMain\(cq, \(oqSub\(cq, \(oqTX\(cq, \(oqRX\(cq.
+\(oqVFO\(cq, \(oqMEM\(cq, \(oqMain\(cq, \(oqSub\(cq, \(oqTX\(cq, \(oqRX\(cq, 
+\(oqMainA\(cq, \(oqMainB\(cq, \(oqMainC\(cq, \(oqSubA\(cq, \(oqSubB\(cq \(oqSubC\(cq.
 .IP
 In VFO mode (see
 .B \-\-vfo
@@ -733,7 +734,7 @@ Option returned depends on rig. For Icom it is likely the RX only flag.
 .BR b ", " send_morse " \(aq" \fIMorse\fP \(aq
 Send
 .RI \(aq Morse \(aq
-symbols.  For Yaesu rigs use memory#1-5 or up to 50 char msg
+symbols.  For Yaesu rigs use memory# (1-5 for most rigs) or up to 50 char message (which will use memory#1)
 
 Example from command line:
 .EX
@@ -750,7 +751,7 @@ Stop sending the current morse code.
 .
 .TP
 .BR 0xbc ", " wait_morse "
-Wait for morse to finish -- only works on full break-in
+Wait for morse to finish -- only works on full break-in.
 .
 .TP
 .BR 0x94 ", " send_voice_mem " \(aq" \fIMsgnum\fP \(aq
@@ -1532,7 +1533,9 @@ For Unix/Linux
 .
 .TP
 .BR client_version " \(aq" \fIString\fP "\(aq
-Client can send its version to rigctld and get feedback on compatibility, deprecation, and alternatives.
+Client can send its version to
+.B rigctld
+and get feedback on compatibility, deprecation, and alternatives
 .TP
 .BR hamlib_version
 Returns Hamlib version with ISO8601 date/time
