@@ -110,7 +110,7 @@ Here is a summary of the supported options:
 .
 .TP
 .BR \-m ", " \-\-model = \fIid\fP
-Select radio model number.  Defaults to dummy device.
+Select radio model number. Defaults to dummy rig.
 .IP
 See model list (use \(lqrigctld -l\(rq).
 .IP
@@ -163,7 +163,7 @@ Use
 of Push-To-Talk device.
 .IP
 Supported types are \(oqRIG\(cq (CAT command), \(oqDTR\(cq, \(oqRTS\(cq,
-\(oqPARALLEL\(cq, \(oqNONE\(cq, overriding PTT type defined in the rig's
+\(oqPARALLEL\(cq, \(oqCM108\(cq, \(oqGPIO\(cq, \(oqGPION\(cq, \(oqNONE\(cq, overriding PTT type defined in the rig's
 backend.
 .IP
 Some side effects of this command are that when type is set to DTR, read
@@ -179,7 +179,7 @@ Use
 of Data Carrier Detect device.
 .IP
 Supported types are \(oqRIG\(cq (CAT command), \(oqDSR\(cq, \(oqCTS\(cq,
-\(oqCD\(cq, \(oqPARALLEL\(cq, \(oqNONE\(cq.
+\(oqCD\(cq, \(oqPARALLEL\(cq, \(oqCM108\(cq, \(oqGPIO\(cq, \(oqGPION\(cq, \(oqNONE\(cq.
 .
 .TP
 .BR \-s ", " \-\-serial\-speed = \fIbaud\fP
@@ -517,6 +517,7 @@ Mode is a token: \(oqUSB\(cq, \(oqLSB\(cq, \(oqCW\(cq, \(oqCWR\(cq,
 \(oqDSB\(cq.
 .IP
 Passband is in Hz as an integer, -1 for no change, or \(oq0\(cq for the radio backend default.
+IC7300 can use 1,2,3 to select which filter to use
 .IP
 .BR Note :
 Passing a \(oq?\(cq (query) as the first argument instead of a Mode token will
@@ -708,21 +709,23 @@ Returns TX Mode as a token and TX Passband in Hz as in
 above.
 .
 .TP
-.BR Y ", " set_ant " \(aq" \fIAntenna\fP \(aq
+.BR Y ", " set_ant " \(aq" \fIAntenna\fP "\(aq \(aq" \fIOption\fP \(aq
 Set
 .RI \(aq Antenna \(aq
-number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
+and
+.RI \(aq Option \(aq.
 .IP
+Number is 1-based antenna# (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
 .IP
 Option depends on rig. For Icom it probably sets the Tx & Rx antennas as in the IC-7851. See your manual for rig specific option values. Most rigs don't care about the option.
 .IP
-For the IC-7851 (and perhaps others) it means this:
+For the IC-7851, FTDX3000 (and perhaps others) it means this:
 .IP
 .in +4n
 .EX
-1 = TX/RX = ANT1
-2 = TX/RX = ANT2
-3 = TX/RX = ANT3
+1 = TX/RX = ANT1  FTDX3000=ANT1/ANT3
+2 = TX/RX = ANT2  FTDX3000=ANT2/ANT3
+3 = TX/RX = ANT3  FTDX3000=ANT3
 4 = TX/RX = ANT1/ANT4
 5 = TX/RX = ANT2/ANT4
 6 = TX/RX = ANT3/ANT4
@@ -730,10 +733,15 @@ For the IC-7851 (and perhaps others) it means this:
 .in
 .
 .TP
-.BR y ", " get_ant
+.BR y ", " get_ant " \(aq" \fIAntenna\fP \(aq
 Get
 .RI \(aq Antenna \(aq
-number (\(oq0\(cq, \(oq1\(cq, \(oq2\(cq, ...).
+.IP
+A value of 0 for Antenna will return the current TX antenna
+.IP
+> 0 is 1-based antenna# (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
+.IP
+Option returned depends on rig. For Icom it is likely the RX only flag.
 .
 .TP
 .BR b ", " send_morse " \(aq" \fIMorse\fP \(aq
@@ -861,16 +869,55 @@ Set
 and
 .RI \(aq "Func Status" \(aq.
 .IP
-Func is a token: \(oqFAGC\(cq, \(oqNB\(cq, \(oqCOMP\(cq, \(oqVOX\(cq,
-\(oqTONE\(cq, \(oqTSQL\(cq, \(oqSBKIN\(cq, \(oqFBKIN\(cq, \(oqANF\(cq,
-\(oqNR\(cq, \(oqAIP\(cq, \(oqAPF\(cq, \(oqMON\(cq, \(oqMN\(cq, \(oqRF\(cq,
-\(oqARO\(cq, \(oqLOCK\(cq, \(oqMUTE\(cq, \(oqVSC\(cq, \(oqREV\(cq,
-\(oqSQL\(cq, \(oqABM\(cq, \(oqBC\(cq, \(oqMBC\(cq, \(oqRIT\(cq, \(oqAFC\(cq,
-\(oqSATMODE\(cq, \(oqSCOPE\(cq, \(oqRESUME\(cq, \(oqTBURST\(cq, \(oqTUNER\(cq,
-\(oqXIT\(cq, \(oqNB2\(cq, \(oqDSQL\(cq, \(oqAFLT\(cq, \(oqANL\(cq, \(oqBC2\(cq,
-\(oqDUAL_WATCH\(cq, \(oqDIVERSITY\(cq, \(oqCSQL\(cq, \(oqSCEN\(cq,
-\(oqTRANSCEIVE\(cq, \(oqSPECTRUM\(cq, \(oqSPECTRUM_HOLD\(cq, \(oqSEND_MORSE\(cq,
-\(oqSEND_VOICE_MEM\(cq, \(oqOVF_STATUS\(cq, \(oqSYNC\(cq.
+Func is a token:
+\(oqABM\(cq,
+\(oqAFC\(cq,
+\(oqAFLT\(cq,
+\(oqAIP\(cq,
+\(oqANF\(cq,
+\(oqANL\(cq,
+\(oqAPF\(cq,
+\(oqARO\(cq,
+\(oqBC2\(cq,
+\(oqBC\(cq,
+\(oqCOMP\(cq,
+\(oqCSQL\(cq,
+\(oqDIVERSITY\(cq,
+\(oqDSQL\(cq,
+\(oqDUAL_WATCH\(cq,
+\(oqFAGC\(cq,
+\(oqFBKIN\(cq,
+\(oqLOCK\(cq,
+\(oqMBC\(cq,
+\(oqMN\(cq,
+\(oqMON\(cq,
+\(oqMUTE\(cq,
+\(oqNB2\(cq,
+\(oqNB\(cq,
+\(oqNR\(cq,
+\(oqOVF_STATUS\(cq,
+\(oqRESUME\(cq,
+\(oqREV\(cq,
+\(oqRF\(cq,
+\(oqRIT\(cq,
+\(oqSATMODE\(cq,
+\(oqSBKIN\(cq,
+\(oqSCEN\(cq,
+\(oqSCOPE\(cq,
+\(oqSEND_MORSE\(cq,
+\(oqSEND_VOICE_MEM\(cq,
+\(oqSPECTRUM\(cq,
+\(oqSPECTRUM_HOLD\(cq,
+\(oqSQL\(cq,
+\(oqSYNC\(cq,
+\(oqTBURST\(cq,
+\(oqTONE\(cq,
+\(oqTRANSCEIVE\(cq,
+\(oqTSQL\(cq,
+\(oqTUNER\(cq,
+\(oqVOX\(cq,
+\(oqVSC\(cq,
+\(oqXIT\(cq.
 .IP
 Func Status is a non null value for \(lqactivate\(rq or \(lqde-activate\(rq
 otherwise, much as TRUE/FALSE definitions in the C language (true is non-zero
@@ -1138,7 +1185,8 @@ Set
 .RI \(aq "Power Status" \(aq.
 .IP
 Power Status is a value: \(oq0\(cq = Power Off, \(oq1\(cq = Power On,
-\(oq2\(cq = Power Standby.
+\(oq2\(cq = Power Standby (enter standby), \(oq4\(cq = Power Operate (leave
+standby).
 .
 .TP
 .BR 0x88 ", " get_powerstat
@@ -1163,11 +1211,11 @@ Get DTMF
 Get misc information about the rig.
 .
 .TP
-.BR 0xf5 ", " get_rig_info " 
-Get misc information about the rig vfos and other info.
+.BR 0xf5 ", " get_rig_info
+Get misc information about the rig vfo status and other info.
 .
 .TP
-.BR 0xf3 ", " get_vfo_info " \(aq" "\fIVFO\fP" \(aq
+.BR 0xf3 ", " get_vfo_info " \(aq" \fIVFO\fP \(aq
 Get misc information about a specific vfo.
 .
 .TP
@@ -1226,15 +1274,29 @@ Set
 .RI \(aq DateTime \(aq
 .IP
 Sets rig clock -- note that some rigs do not handle seconds or milliseconds.
-If you try to set that you will get a debug warning message.
+If you try to set sec/msec and rig does not support it you will get a debug warning message.
 Format is ISO8601.
+Formats accepted allow for 2-digit or 4-digit time zone
 .EX
-Formats accepted
-YYYY-MM-DDTHH:MM:SS.sss+ZZ (where +ZZ is either -/+ UTC offset)
+YYYY-MM-DDTHH:MM:SS.SSS+ZZ (where +ZZ is either -/+ UTC offset HH)
+YYYY-MM-DDTHH:MM:SS.SSS+ZZZZ (where +ZZZZ is either -/+ UTC offset HHMM)
 YYYY-MM-DDTHH:MM:SS+ZZ
+YYYY-MM-DDTHH:MM:SS+ZZZZ
 YYYY-MM-DDTHH:MM+ZZ
+YYYY-MM-DDTHH:MM+ZZZZ
 YYYY-MM-DD (sets date only)
+local (sets both clocks to local time)
+utc (sets both clocks to utc time)
 .EE
+Note: Icom rigs expect you to set local time and the hours off to UTC.
+So...4PM EST example would be 2021-12-01T16:00:00-0500
+But...if you want to display GMT you must set the clock for GMT with zero UTC offset.  
+Hopefully Icom will allow displaying either clock in the future
+
+Note: Kenwood rigs only allow setting local clock, and then only if not autoset by NTP.
+Trying to set clock when NTP is in use will set the offset, but not the time -
+and no error status will be returned.
+Time displayed on the auxiliary clock is solely determined by UTC and the aux offset.
 .
 .TP
 .BR get_clock
