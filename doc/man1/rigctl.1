@@ -726,8 +726,6 @@ Get
 A value of 0 for Antenna will return the current TX antenna
 .IP
 > 0 is 1-based antenna# (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
-
-
 .IP
 Option returned depends on rig. For Icom it is likely the RX only flag.
 .
@@ -736,9 +734,14 @@ Option returned depends on rig. For Icom it is likely the RX only flag.
 Send
 .RI \(aq Morse \(aq
 symbols.  For Yaesu rigs use memory#1-5 or up to 50 char msg
+
+Example from command line:
 .EX
-Example from command line:  rigctl -m 3073 -r /dev/ttyUSB0 b "CQ CQ DE ME"
-Yaesu example to send message#1: rigctl -m 1035 -r /dev/ttyUSB0 b 1
+rigctl -m 3073 -r /dev/ttyUSB0 b "CQ CQ DE ME"
+.EE
+Yaesu example to send message#1:
+.EX
+rigctl -m 1035 -r /dev/ttyUSB0 b 1
 .EE
 .
 .TP
@@ -1319,8 +1322,8 @@ Set
 Sets rig clock -- note that some rigs do not handle seconds or milliseconds.
 If you try to set sec/msec and rig does not support it you will get a debug warning message.
 Format is ISO8601,
-.EX
 Formats accepted allow for 2-digit or 4-digit time zone
+.EX
 YYYY-MM-DDTHH:MM:SS.SSS+ZZ (where +ZZ is either -/+ UTC offset HH)
 YYYY-MM-DDTHH:MM:SS.SSS+ZZZZ (where +ZZZZ is either -/+ UTC offset HHMM)
 YYYY-MM-DDTHH:MM:SS+ZZ
@@ -1330,6 +1333,7 @@ YYYY-MM-DDTHH:MM+ZZZZ
 YYYY-MM-DD (sets date only)
 local (sets both clocks to local time)
 utc (sets both clocks to utc time)
+.EE
 Note: Icom rigs expect you to set local time and the hours off to UTC.
 So...4PM EST example would be 2021-12-01T16:00:00-0500
 But...if you want to display GMT you must set the clock for GMT with zero UTC offset.  
@@ -1337,11 +1341,8 @@ Hopefully Icom will allow displaying either clock in the future
 
 Note: Kenwood rigs only allow setting local clock, and then only if not autoset by NTP.
 Trying to set clock when NTP is in use will set the offset, but not the time -
-   and no error status will be returned.
+and no error status will be returned.
 Time displayed on the auxiliary clock is solely determined by UTC and the aux offset.
-
-.EE
-.
 .TP
 .BR get_clock
 Get
@@ -1435,7 +1436,7 @@ For Unix/Linux
 .
 .TP
 .BR client_version " \(aq" \fIString\fP "\(aq
-  Client can send its version to rigctld and get feedback on compatibility, deprecation, and alternatives
+Client can send its version to rigctld and get feedback on compatibility, deprecation, and alternatives.
 .TP
 .BR hamlib_version
 Returns hamlib version with ISO8601 date/time
