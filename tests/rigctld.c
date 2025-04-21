@@ -1531,6 +1531,7 @@ void usage(void)
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -A, --password=PASSWORD       set password for rigctld access (NOT IMPLEMENTED)\n"
         "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
+        "  -b, --bind-all                make rigctld bind to first network device available\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
         portno);
