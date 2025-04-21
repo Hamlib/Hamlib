@@ -254,12 +254,6 @@ int main(int argc, char *argv[])
 
         case 'm':
         case 'M':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             if (c == 'm')
             {
                 my_model[0] = atoi(optarg);
@@ -272,22 +266,10 @@ int main(int argc, char *argv[])
             break;
 
         case 'r':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             rig_file = optarg;
             break;
 
         case 'R':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             rig_file2 = optarg;
             break;
 
@@ -295,12 +277,6 @@ int main(int argc, char *argv[])
 #if 0
 
         case 'p':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             ptt_file = optarg;
             break;
 #endif
@@ -308,12 +284,6 @@ int main(int argc, char *argv[])
 #if 0
 
         case 'd':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             dcd_file = optarg;
             break;
 #endif
@@ -321,12 +291,6 @@ int main(int argc, char *argv[])
 #if 0
 
         case 'P':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             if (!strcmp(optarg, "RIG"))
             {
                 ptt_type = RIG_PTT_RIG;
@@ -362,12 +326,6 @@ int main(int argc, char *argv[])
 #if 0
 
         case 'D':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             if (!strcmp(optarg, "RIG"))
             {
                 dcd_type = RIG_DCD_RIG;
@@ -401,22 +359,10 @@ int main(int argc, char *argv[])
 #endif
 
         case 'c':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             civaddr = optarg;
             break;
 
         case 's':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             if (sscanf(optarg, "%d%1s", &serial_rate, dummy) != 1)
             {
                 fprintf(stderr, "Invalid baud rate of %s\n", optarg);
@@ -426,23 +372,11 @@ int main(int argc, char *argv[])
             break;
 
         case 'S':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             serial_rate2 = atoi(optarg);
             break;
 
 
         case 'C':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             if (*conf_parms != '\0')
             {
                 strcat(conf_parms, ",");
