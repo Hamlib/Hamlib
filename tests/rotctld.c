@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        retcode = rot_set_conf(my_rot, rot_token_lookup(my_rot, mytoken), myvalue);
+        retcode = rot_set_conf(my_rot, lookup, myvalue);
 
         if (retcode != RIG_OK)
         {

@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        retcode = amp_set_conf(my_amp, amp_token_lookup(my_amp, mytoken), myvalue);
+        retcode = amp_set_conf(my_amp, lookup, myvalue);
 
         if (retcode != RIG_OK)
         {
