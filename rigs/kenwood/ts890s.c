@@ -669,6 +669,7 @@ struct rig_caps ts890s_caps =
     .get_mode = kenwood_get_mode,
     .set_vfo = kenwood_set_vfo,
     .get_vfo = kenwood_get_vfo_if,
+    .vfo_op = kenwood_vfo_op,
     .set_split_vfo = kenwood_set_split_vfo,
     .get_split_vfo = ts890s_get_split_vfo,
     .set_ctcss_tone = kenwood_set_ctcss_tone_tn,
