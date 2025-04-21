@@ -1529,7 +1529,7 @@ void usage(void)
         "  -w, --twiddle_rit=SECONDS     suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -A, --password=PASSWORD       set password for rigctld access\n"
+        "  -A, --password=PASSWORD       set password for rigctld access (NOT IMPLEMENTED)\n"
         "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
