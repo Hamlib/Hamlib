@@ -81,7 +81,7 @@
  *      keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:z:lLuovhVZMRA:n:"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:S:c:T:t:C:W:w:x:z:lLuovhVZRA:b"
 static struct option long_options[] =
 {
     {"model",           1, 0, 'm'},
@@ -1525,12 +1525,13 @@ void usage(void)
         "  -u, --dump-caps               dump capabilities and exit\n"
         "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
-        "  -W, --twiddle_timeout         timeout after detecting vfo manual change\n"
-        "  -w, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
+        "  -W, --twiddle_timeout=SECONDS timeout after detecting vfo manual change\n"
+        "  -w, --twiddle_rit=SECONDS     suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -A, --password                set password for rigctld access\n"
+        "  -A, --password=PASSWORD       set password for rigctld access (NOT IMPLEMENTED)\n"
         "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
+        "  -b, --bind-all                make rigctld bind to first network device available\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
         portno);
