@@ -384,9 +384,9 @@ Since most of the
 .B Hamlib
 operations have a
 .BR set " and a " get
-method, a single upper case letter will often be used for a
+method, a single upper case letter will be used for
 .B set
-method whereas the corresponding single lower case letter refers to the
+methods whereas the corresponding single lower case letter refers to the
 .B get
 method.  Each operation also has a long name; in interactive mode, prepend a
 backslash, \(oq\\\(cq, to enter a long command name all lower case.
@@ -528,7 +528,8 @@ Set
 .RI \(aq VFO \(aq.
 .IP
 VFO is a token: \(oqVFOA\(cq, \(oqVFOB\(cq, \(oqVFOC\(cq, \(oqcurrVFO\(cq,
-\(oqVFO\(cq, \(oqMEM\(cq, \(oqMain\(cq, \(oqSub\(cq, \(oqTX\(cq, \(oqRX\(cq.
+\(oqVFO\(cq, \(oqMEM\(cq, \(oqMain\(cq, \(oqSub\(cq, \(oqTX\(cq, \(oqRX\(cq, 
+\(oqMainA\(cq, \(oqMainB\(cq, \(oqMainC\(cq, \(oqSubA\(cq, \(oqSubB\(cq \(oqSubC\(cq.
 .IP
 In VFO mode (see
 .B \-\-vfo
@@ -726,8 +727,6 @@ Get
 A value of 0 for Antenna will return the current TX antenna
 .IP
 > 0 is 1-based antenna# (\(oq1\(cq, \(oq2\(cq, \(oq3\(cq, ...).
-
-
 .IP
 Option returned depends on rig. For Icom it is likely the RX only flag.
 .
@@ -735,10 +734,15 @@ Option returned depends on rig. For Icom it is likely the RX only flag.
 .BR b ", " send_morse " \(aq" \fIMorse\fP \(aq
 Send
 .RI \(aq Morse \(aq
-symbols.  For Yaesu rigs use memory#1-5 or up to 50 char msg
+symbols.  For Yaesu rigs use memory# (1-5 for most rigs) or up to 50 char message (which will use memory#1)
+
+Example from command line:
 .EX
-Example from command line:  rigctl -m 3073 -r /dev/ttyUSB0 b "CQ CQ DE ME"
-Yaesu example to send message#1: rigctl -m 1035 -r /dev/ttyUSB0 b 1
+rigctl -m 3073 -r /dev/ttyUSB0 b "CQ CQ DE ME"
+.EE
+Yaesu example to send message#1:
+.EX
+rigctl -m 1035 -r /dev/ttyUSB0 b 1
 .EE
 .
 .TP
@@ -747,7 +751,7 @@ Stop sending the current morse code.
 .
 .TP
 .BR 0xbc ", " wait_morse "
-Wait for morse to finish -- only works on full break-in
+Wait for morse to finish -- only works on full break-in.
 .
 .TP
 .BR 0x94 ", " send_voice_mem " \(aq" \fIMsgnum\fP \(aq
@@ -852,65 +856,104 @@ Set
 and
 .RI \(aq "Func Status" \(aq.
 .IP
-Func is a token: \(oqFAGC\(cq, \(oqNB\(cq, \(oqCOMP\(cq, \(oqVOX\(cq,
-\(oqTONE\(cq, \(oqTSQL\(cq, \(oqSBKIN\(cq, \(oqFBKIN\(cq, \(oqANF\(cq,
-\(oqNR\(cq, \(oqAIP\(cq, \(oqAPF\(cq, \(oqMON\(cq, \(oqMN\(cq, \(oqRF\(cq,
-\(oqARO\(cq, \(oqLOCK\(cq, \(oqMUTE\(cq, \(oqVSC\(cq, \(oqREV\(cq,
-\(oqSQL\(cq, \(oqABM\(cq, \(oqBC\(cq, \(oqMBC\(cq, \(oqRIT\(cq, \(oqAFC\(cq,
-\(oqSATMODE\(cq, \(oqSCOPE\(cq, \(oqRESUME\(cq, \(oqTBURST\(cq, \(oqTUNER\(cq,
-\(oqXIT\(cq, \(oqNB2\(cq, \(oqDSQL\(cq, \(oqAFLT\(cq, \(oqANL\(cq, \(oqBC2\(cq,
-\(oqDUAL_WATCH\(cq, \(oqDIVERSITY\(cq, \(oqCSQL\(cq, \(oqSCEN\(cq,
-\(oqTRANSCEIVE\(cq, \(oqSPECTRUM\(cq, \(oqSPECTRUM_HOLD\(cq, \(oqSEND_MORSE\(cq,
-\(oqSEND_VOICE_MEM\(cq, \(oqOVF_STATUS\(cq.
+Func is a token:
+\(oqABM\(cq,
+\(oqAFC\(cq,
+\(oqAFLT\(cq,
+\(oqAIP\(cq,
+\(oqANF\(cq,
+\(oqANL\(cq,
+\(oqAPF\(cq,
+\(oqARO\(cq,
+\(oqBC2\(cq,
+\(oqBC\(cq,
+\(oqCOMP\(cq,
+\(oqCSQL\(cq,
+\(oqDIVERSITY\(cq,
+\(oqDSQL\(cq,
+\(oqDUAL_WATCH\(cq,
+\(oqFAGC\(cq,
+\(oqFBKIN\(cq,
+\(oqLOCK\(cq,
+\(oqMBC\(cq,
+\(oqMN\(cq,
+\(oqMON\(cq,
+\(oqMUTE\(cq,
+\(oqNB2\(cq,
+\(oqNB\(cq,
+\(oqNR\(cq,
+\(oqOVF_STATUS\(cq,
+\(oqRESUME\(cq,
+\(oqREV\(cq,
+\(oqRF\(cq,
+\(oqRIT\(cq,
+\(oqSATMODE\(cq,
+\(oqSBKIN\(cq,
+\(oqSCEN\(cq,
+\(oqSCOPE\(cq,
+\(oqSEND_MORSE\(cq,
+\(oqSEND_VOICE_MEM\(cq,
+\(oqSPECTRUM\(cq,
+\(oqSPECTRUM_HOLD\(cq,
+\(oqSQL\(cq,
+\(oqSYNC\(cq,
+\(oqTBURST\(cq,
+\(oqTONE\(cq,
+\(oqTRANSCEIVE\(cq,
+\(oqTSQL\(cq,
+\(oqTUNER\(cq,
+\(oqVOX\(cq,
+\(oqVSC\(cq,
+\(oqXIT\(cq.
 
- FAGC -- Fast AGC
- NB -- Noise Blanker
- COMP -- Speech Compression
- VOX -- Voice Operated Relay
- TONE -- CTCSS Tone TX
- TSQL -- CTCSS Activate/De-activate RX
- SBKIN -- Semi Break-in (CW mode)
- FBKIN -- Full Break-in (CW mode)
- ANF -- Automatic Notch Filter (DSP)
- NR -- Noise Reduction (DSP)
- AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.)
- APF -- Audio Peak Filter
- MON -- Monitor transmitted signal
- MN -- Manual Notch
- RF -- RTTY Filter
- ARO -- Auto Repeater Offset
- LOCK -- Lock
- MUTE -- Mute
- VSC -- Voice Scan Control
- REV -- Reverse transmit and receive frequencies
- SQL -- Turn Squelch Monitor on/off
  ABM -- Auto Band Mode
- BC -- Beat Canceller
- MBC -- Manual Beat Canceller
- RIT -- Receiver Incremental Tuning
  AFC -- Auto Frequency Control ON/OFF
- SATMODE -- Satellite mode ON/OFF
- SCOPE -- Simple bandscope ON/OFF
- RESUME -- Scan auto-resume
- TBURST -- 1750 Hz tone burst
- TUNER -- Enable automatic tuner
- XIT -- Transmitter Incremental Tuning
- NB2 -- 2nd Noise Blanker
- CSQL -- DCS Squelch setting
  AFLT -- AF Filter setting
+ AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.)
+ ANF -- Automatic Notch Filter (DSP)
  ANL -- Noise limiter setting
+ APF -- Audio Peak Filter
+ ARO -- Auto Repeater Offset
+ BC -- Beat Canceller
  BC2 -- 2nd Beat Cancel
- DUAL_WATCH -- Dual Watch / Sub Receiver
+ COMP -- Speech Compression
+ CSQL -- DCS Squelch setting
  DIVERSITY -- Diversity receive
  DSQL -- Digital modes squelch
+ DUAL_WATCH -- Dual Watch / Sub Receiver
+ FAGC -- Fast AGC
+ FBKIN -- Full Break-in (CW mode)
+ LOCK -- Lock
+ MBC -- Manual Beat Canceller
+ MN -- Manual Notch
+ MON -- Monitor transmitted signal
+ MUTE -- Mute
+ NB -- Noise Blanker
+ NB2 -- 2nd Noise Blanker
+ NR -- Noise Reduction (DSP)
+ OVF_STATUS -- Read overflow status 0=Off, 1=On
+ RESUME -- Scan auto-resume
+ REV -- Reverse transmit and receive frequencies
+ RF -- RTTY Filter
+ RIT -- Receiver Incremental Tuning
+ SATMODE -- Satellite mode ON/OFF
+ SBKIN -- Semi Break-in (CW mode)
  SCEN -- scrambler/encryption
- SLICE -- Rig slice selection -- Flex
- TRANSCEIVE -- Send radio state changes automatically ON/OFF
- SPECTRUM -- Spectrum scope data output ON/OFF
- SPECTRUM_HOLD -- Pause spectrum scope updates ON/OFF
+ SCOPE -- Simple bandscope ON/OFF
  SEND_MORSE -- Send specified characters using CW
  SEND_VOICE_MEM -- Transmit in SSB message stored in memory
- OVF -- Read overflow status 0=Off, 1=On
+ SPECTRUM -- Spectrum scope data output ON/OFF
+ SPECTRUM_HOLD -- Pause spectrum scope updates ON/OFF
+ SQL -- Turn Squelch Monitor on/off
+ SYNC -- Synchronize VFOs
+ TBURST -- 1750 Hz tone burst
+ TONE -- CTCSS Tone TX
+ TRANSCEIVE -- Send radio state changes automatically ON/OFF
+ TSQL -- CTCSS Activate/De-activate RX
+ TUNER -- Enable automatic tuner
+ VOX -- Voice Operated Relay
+ VSC -- Voice Scan Control
+ XIT -- Transmitter Incremental Tuning
 
 .IP
 Func Status is a non null value for \(lqactivate\(rq or \(lqde-activate\(rq
@@ -943,17 +986,61 @@ Set
 and
 .RI \(aq "Level Value" \(aq.
 .IP
-Level is a token: \(oqPREAMP\(cq, \(oqATT\(cq, \(oqVOXDELAY\(cq, \(oqAF\(cq,
-\(oqRF\(cq, \(oqSQL\(cq, \(oqIF\(cq, \(oqAPF\(cq, \(oqNR\(cq, \(oqPBT_IN\(cq,
-\(oqPBT_OUT\(cq, \(oqCWPITCH\(cq, \(oqRFPOWER\(cq, \(oqMICGAIN\(cq, 
-\(oqKEYSPD\(cq, \(oqNOTCHF\(cq, \(oqCOMP\(cq, \(oqAGC\(cq, \(oqBKINDL\(cq,
-\(oqBAL\(cq, \(oqMETER\(cq, \(oqVOXGAIN\(cq, \(oqANTIVOX\(cq,
-\(oqSLOPE_LOW\(cq, \(oqSLOPE_HIGH\(cq, \(oqBKIN_DLYMS\(cq, \(oqRAWSTR\(cq, \(oqSWR\(cq,
-\(oqALC\(cq, \(oqSTRENGTH\(cq, \(oqRFPOWER_METER\(cq, \(oqCOMPMETER\(cq, \(oqVD_METER\(cq, \(oqID_METER\(cq,
-\(oqNOTCHF_RAW\(cq, \(oqMONITOR_GAIN\(cq, \(oqNQ\(cq, \(oqRFPOWER_METER_WATTS\(cq, \(oqSPECTRUM_MODE\(cq,
-\(oqSPECTRUM_SPAN\(cq, \(oqSPECTRUM_EDGE_LOW\(cq, \(oqSPECTRUM_EDGE_HIGH\(cq, \(oqSPECTRUM_SPEED\(cq,
-\(oqSPECTRUM_REF\(cq, \(oqSPECTRUM_AVG\(cq, \(oqSPECTRUM_ATT\(cq, \(oqTEMP_METER\(cq, \(oqBANDSELECT\(cq,
-\(oqUSB_AF\(cq.
+Level is a token:
+\(oqAF\(cq,
+\(oqAGC\(cq,
+\(oqAGC_TIME\(cq,
+\(oqALC\(cq,
+\(oqANTIVOX\(cq,
+\(oqAPF\(cq,
+\(oqATT\(cq,
+\(oqBAL\(cq,
+\(oqBAND_SELECT\(cq,
+\(oqBKINDL\(cq,
+\(oqBKIN_DLYMS\(cq,
+\(oqCOMP\(cq,
+\(oqCOMP_METER\(cq,
+\(oqCWPITCH\(cq,
+\(oqID_METER\(cq,
+\(oqIF\(cq,
+\(oqKEYSPD\(cq,
+\(oqMETER\(cq,
+\(oqMGC\(cq,
+\(oqMGF\(cq,
+\(oqMGL\(cq,
+\(oqMICGAIN\(cq,
+\(oqMONITOR_GAIN\(cq,
+\(oqNB\(cq,
+\(oqNOTCHF\(cq,
+\(oqNOTCHF_RAW\(cq,
+\(oqNR\(cq,
+\(oqPBT_IN\(cq,
+\(oqPBT_OUT\(cq,
+\(oqPREAMP\(cq,
+\(oqRAWSTR\(cq,
+\(oqRF\(cq,
+\(oqRFPOWER\(cq,
+\(oqRFPOWER_METER\(cq,
+\(oqRFPOWER_METER_WATTS\(cq,
+\(oqSLOPE_HIGH\(cq,
+\(oqSLOPE_LOW\(cq,
+\(oqSPECTRUM_ATT\(cq,
+\(oqSPECTRUM_AVG\(cq,
+\(oqSPECTRUM_EDGE_HIGH\(cq,
+\(oqSPECTRUM_EDGE_LOW\(cq,
+\(oqSPECTRUM_MODE\(cq,
+\(oqSPECTRUM_REF\(cq,
+\(oqSPECTRUM_SPAN\(cq,
+\(oqSPECTRUM_SPEED\(cq,
+\(oqSQL\(cq,
+\(oqSTRENGTH\(cq,
+\(oqSWR\(cq,
+\(oqTEMP_METER\(cq,
+\(oqUSB_AF\(cq,
+\(oqUSB_AF_INPUT\(cq,
+\(oqVD_METER\(cq,
+\(oqVOXDELAY\(cq,
+\(oqVOXGAIN\(cq.
 .IP
 The Level Value can be a float or an integer value.  For the AGC token the
 value is one of \(oq0\(cq = OFF, \(oq1\(cq = SUPERFAST, \(oq2\(cq = FAST,
@@ -1035,8 +1122,21 @@ Set
 and
 .RI \(aq "Parm Value" \(aq.
 .IP
-Parm is a token: \(oqANN\(cq, \(oqAPO\(cq, \(oqBACKLIGHT\(cq, \(oqBEEP\(cq,
-\(oqTIME\(cq, \(oqBAT\(cq, \(oqKEYLIGHT\(cq, \(oqSCREENSAVER\(cq, \(oqAFIF\(cq, \(oqBANDSELECT\(cq, \(oqKEYERTYPE\(cq.
+Parm is a token:
+\(oqAFIF\(cq,
+\(oqAFIF_ACC\(cq,
+\(oqAFIF_LAN\(cq,
+\(oqAFIF_WLAN\(cq,
+\(oqANN\(cq,
+\(oqAPO\(cq,
+\(oqBACKLIGHT\(cq,
+\(oqBANDSELECT\(cq,
+\(oqBAT\(cq,
+\(oqBEEP\(cq,
+\(oqKEYERTYPE\(cq,
+\(oqKEYLIGHT\(cq,
+\(oqSCREENSAVER\(cq,
+\(oqTIME\(cq.
 .IP
 .BR Note :
 Passing a \(oq?\(cq (query) as the first argument instead of a Parm token will
@@ -1318,9 +1418,9 @@ Set
 .IP
 Sets rig clock -- note that some rigs do not handle seconds or milliseconds.
 If you try to set sec/msec and rig does not support it you will get a debug warning message.
-Format is ISO8601,
-.EX
+Format is ISO8601.
 Formats accepted allow for 2-digit or 4-digit time zone
+.EX
 YYYY-MM-DDTHH:MM:SS.SSS+ZZ (where +ZZ is either -/+ UTC offset HH)
 YYYY-MM-DDTHH:MM:SS.SSS+ZZZZ (where +ZZZZ is either -/+ UTC offset HHMM)
 YYYY-MM-DDTHH:MM:SS+ZZ
@@ -1330,6 +1430,7 @@ YYYY-MM-DDTHH:MM+ZZZZ
 YYYY-MM-DD (sets date only)
 local (sets both clocks to local time)
 utc (sets both clocks to utc time)
+.EE
 Note: Icom rigs expect you to set local time and the hours off to UTC.
 So...4PM EST example would be 2021-12-01T16:00:00-0500
 But...if you want to display GMT you must set the clock for GMT with zero UTC offset.  
@@ -1337,11 +1438,8 @@ Hopefully Icom will allow displaying either clock in the future
 
 Note: Kenwood rigs only allow setting local clock, and then only if not autoset by NTP.
 Trying to set clock when NTP is in use will set the offset, but not the time -
-   and no error status will be returned.
+and no error status will be returned.
 Time displayed on the auxiliary clock is solely determined by UTC and the aux offset.
-
-.EE
-.
 .TP
 .BR get_clock
 Get
@@ -1393,6 +1491,7 @@ before sending the next command to the radio.
 .TP
 .BR password " \(aq" \fIPassword\fP \(aq
 Sends password to rigctld when rigctld has been secured with -A.  Must use the 32-char shared secret from rigctld.
+(NOT IMPLEMENTED)
 .
 .TP
 .BR set_lock_mode " \(aq" \fILocked\fP \(aq
@@ -1435,10 +1534,12 @@ For Unix/Linux
 .
 .TP
 .BR client_version " \(aq" \fIString\fP "\(aq
-  Client can send its version to rigctld and get feedback on compatibility, deprecation, and alternatives
+Client can send its version to
+.B rigctld
+and get feedback on compatibility, deprecation, and alternatives
 .TP
 .BR hamlib_version
-Returns hamlib version with ISO8601 date/time
+Returns Hamlib version with ISO8601 date/time
 .
 .TP
 .BR test
