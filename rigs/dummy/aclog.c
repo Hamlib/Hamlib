@@ -461,7 +461,7 @@ static int aclog_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     char *p = strstr(value, "<FREQ>");
     *freq = 0;
 
-    if (p) { sscanf(p, "<FREQ>%lf", freq); }
+    if (p) { sscanf(p, "<FREQ>%'lf", freq); }
 
     *freq *= 1e6; // convert from MHz to Hz
 
