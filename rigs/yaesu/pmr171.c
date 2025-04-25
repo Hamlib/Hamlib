@@ -43,6 +43,7 @@
 //#include "pmr171.h"
 #include "misc.h"
 #include "tones.h"
+#include "cache.h"
 #include "bandplan.h"
 #include "cal.h"
 

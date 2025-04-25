@@ -45,6 +45,7 @@
 #include "bandplan.h"
 #include "serial.h"
 #include "misc.h"
+//#include "cache.h"
 #include "yaesu.h"
 #include "ft990v12.h"
 

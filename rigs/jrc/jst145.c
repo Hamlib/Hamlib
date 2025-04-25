@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include "hamlib/rig.h"
+#include "cache.h"
 #include "iofunc.h"
 #include "jrc.h"
 

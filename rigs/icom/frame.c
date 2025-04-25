@@ -33,7 +33,6 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
-#include "cache.h"
 
 /*
  * Build a CI-V frame.

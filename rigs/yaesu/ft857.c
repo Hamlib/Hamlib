@@ -63,6 +63,7 @@
 #include "ft857.h"
 #include "ft817.h" /* We use functions from the 817 code */
 #include "misc.h"
+#include "cache.h"
 #include "tones.h"
 #include "bandplan.h"
 #include "cal.h"

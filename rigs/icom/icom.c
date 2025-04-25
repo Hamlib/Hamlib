@@ -39,6 +39,7 @@
 #include "frame.h"
 #include "misc.h"
 #include "event.h"
+#include "cache.h"
 
 // we automatically determine availability of the 1A 03 command
 enum { ENUM_1A_03_UNK, ENUM_1A_03_YES, ENUM_1A_03_NO };

@@ -26,6 +26,7 @@
 #include "icom_defs.h"
 #include "frame.h"
 #include "misc.h"
+#include "cache.h"
 
 enum
 {

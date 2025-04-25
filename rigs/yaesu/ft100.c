@@ -34,6 +34,7 @@
 #include "yaesu.h"
 #include "ft100.h"
 #include "misc.h"
+#include "cache.h"
 #include "bandplan.h"
 
 enum ft100_native_cmd_e

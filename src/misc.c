@@ -50,6 +50,7 @@
 #include <hamlib/amplifier.h>
 
 #include "misc.h"
+#include "cache.h"
 #include "serial.h"
 #include "network.h"
 #include "sprintflst.h"
