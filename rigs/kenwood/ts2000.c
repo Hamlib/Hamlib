@@ -28,6 +28,7 @@
 #include "kenwood.h"
 #include "token.h"
 #include "misc.h"
+#include "cache.h"
 #include "iofunc.h"
 #include "cal.h"
 

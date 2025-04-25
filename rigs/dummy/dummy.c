@@ -43,6 +43,7 @@
 #include "tones.h"
 #include "idx_builtin.h"
 #include "register.h"
+#include "cache.h"
 
 #include "dummy.h"
 

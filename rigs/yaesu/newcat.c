@@ -34,6 +34,7 @@
 #include "hamlib/rig.h"
 #include "iofunc.h"
 #include "misc.h"
+#include "cache.h"
 #include "cal.h"
 #include "newcat.h"
 #include "serial.h"

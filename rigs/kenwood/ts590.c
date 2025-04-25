@@ -27,6 +27,7 @@
 #include "hamlib/rig.h"
 #include "kenwood.h"
 #include "misc.h"
+#include "cache.h"
 #include "cal.h"
 #include "iofunc.h"
 

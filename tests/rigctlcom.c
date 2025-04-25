@@ -78,6 +78,7 @@
 
 #include <hamlib/rig.h>
 #include "misc.h"
+#include "cache.h"
 #include "iofunc.h"
 #include "rigctl_parse.h"
 #include "riglist.h"

@@ -13,6 +13,7 @@
 #endif
 #include "hamlib/rig.h"
 #include "misc.h"
+#include "cache.h"
 #include "multicast.h"
 #include "network.h"
 #include "sprintflst.h"

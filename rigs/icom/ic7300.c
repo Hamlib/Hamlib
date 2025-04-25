@@ -30,6 +30,7 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "misc.h"
+#include "cache.h"
 #include "bandplan.h"
 #include "tones.h"
 #include "ic7300.h"

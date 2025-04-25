@@ -4,6 +4,7 @@
 #include <hamlib/config.h>
 #include <hamlib/rig.h>
 #include "misc.h"
+#include "cache.h"
 #include "snapshot_data.h"
 #include "hamlibdatetime.h"
 #include "sprintflst.h"

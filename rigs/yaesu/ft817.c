@@ -57,6 +57,7 @@
 #include "yaesu.h"
 #include "ft817.h"
 #include "misc.h"
+#include "cache.h"
 #include "tones.h"
 #include "bandplan.h"
 #include "cal.h"

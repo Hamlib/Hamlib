@@ -77,6 +77,7 @@
 #include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"
+#include "cache.h"
 #include "orion.h"
 
 #ifdef TT565_TIME

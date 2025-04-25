@@ -39,6 +39,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
+#include "cache.h"
 #include "yaesu.h"
 #include "ft747.h"
 

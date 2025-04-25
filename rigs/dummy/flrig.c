@@ -32,6 +32,7 @@
 
 #include "dummy_common.h"
 #include "flrig.h"
+#include "cache.h"
 
 #define DEBUG 1
 #define DEBUG_TRACE DEBUG_VERBOSE

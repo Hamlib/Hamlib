@@ -25,7 +25,7 @@
 #include <hamlib/rig.h>
 #include "icom.h"
 #include "misc.h"
-
+#include "cache.h"
 
 #define IC821H_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
 
