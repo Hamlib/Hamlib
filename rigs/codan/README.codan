@@ -10,7 +10,7 @@ is a 15-pin D-Sub connector on a flying lead on the back of the radio.
 (NGT and Envoy models).  Programming must be set to select "CICS" as
 the device which is addressed via the GP port.
 
-As of SDR firmware V3.51 for Envoy and Sentry radios, the Amatuer option
+As of SDR firmware V3.51 for Envoy and Sentry radios, the Amateur option
 allows for Freetune Tx on ham bands only. Freetune Tx is no longer required
 for this rig file to work.
 VK5MCA
