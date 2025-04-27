@@ -740,7 +740,7 @@ char *name = ptsname(fd);
 
 if (name == NULL)
 {
-    perror("pstname");
+    perror("ptsname");
     return -1;
 }
 
