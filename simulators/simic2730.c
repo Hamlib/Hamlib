@@ -540,7 +540,7 @@ int openPort(char *comport) // doesn't matter for using pts devices
 
     if (name == NULL)
     {
-        perror("pstname");
+        perror("ptsname");
         return -1;
     }
 
