@@ -1,5 +1,4 @@
 // can run this using rigctl/rigctld and socat pty devices
-// gcc -o simprm171 simprm171.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 #if 0
