@@ -1386,6 +1386,10 @@ const struct confparams *HAMLIB_API rig_confparam_lookup(RIG *rig,
 
         return NULL;
     }
+    if (!name) {
+        rig_debug(RIG_DEBUG_ERR, "%s: name is NULL\n", __func__);
+        return NULL;
+    }
 
     /* 0 returned for invalid format */
     token = strtol(name, NULL, 0);
