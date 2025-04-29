@@ -451,7 +451,7 @@ typedef enum {
 
 
 /**
- * \brief Frequency type,
+ * \brief Frequency type
  *
  * Frequency type unit in Hz, able to hold SHF frequencies.
  */
@@ -2701,7 +2701,7 @@ typedef unsigned int rig_comm_status_t;
  * This struct contains live data, as well as a copy of capability fields
  * that may be updated (ie. customized)
  *
- * It is NOT fine to move fields around as it can break share library offset
+ * It is NOT fine to move fields around as it can break shared library offset
  * As of 2024-03-03  freq_event_elapsed is the last known item being reference externally
  * So any additions or changes to this structure must be at the end of the structure
  */
@@ -2739,7 +2739,7 @@ struct rig_state {
     ann_t announces;            /*!< Announces bit field list */
 
     int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
-    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Attenuator list in dB, 0 terminated */
 
     setting_t has_get_func;     /*!< List of get functions */
     setting_t has_set_func;     /*!< List of set functions */
@@ -2939,7 +2939,7 @@ struct rig_state_deprecated {
     ann_t announces;            /*!< Announces bit field list */
 
     int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
-    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Attenuator list in dB, 0 terminated */
 
     setting_t has_get_func;     /*!< List of get functions */
     setting_t has_set_func;     /*!< List of set functions */

@@ -325,7 +325,7 @@ vprintf_cb_t HAMLIB_API rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
 
 
 /**
- * \brief Change the output stream from `stderr` a different stream.
+ * \brief Change the output stream from `stderr` to a different stream.
  *
  * \param stream The stream to direct debugging output.
  *
