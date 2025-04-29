@@ -253,10 +253,14 @@ enum rig_debug_level_e {
 
 /* --------------- Rig capabilities -----------------*/
 
-/* Forward struct references */
+/* Forward struct references
+ *  may also include structures defined elsewhere,
+ *  but pointed to by rig
+ */
 
 struct rig;
 struct rig_state;
+struct rig_cache;
 
 /**
  * \brief Rig structure definition (see rig for details).
@@ -2518,7 +2522,7 @@ typedef hamlib_port_t port_t;
 #define RIGPORT(r) (&r->state.rigport)
 #define PTTPORT(r) (&r->state.pttport)
 #define DCDPORT(r) (&r->state.dcdport)
-#define CACHE(r) (&r->state.cache)
+#define CACHE(r) ((r)->cache_addr)
 #define AMPPORT(a) (&a->state.ampport)
 #define ROTPORT(r) (&r->state.rotport)
 #define ROTPORT2(r) (&r->state.rotport2)
@@ -3101,6 +3105,10 @@ struct s_rig {
     struct rig_callbacks callbacks; /*!< registered event callbacks */
     // state should really be a pointer but that's a LOT of changes involved
     struct rig_state state;         /*!< Rig state */
+/* Data beyond this line is for hamlib internal use only,
+ *  and should *NOT* be referenced by applications, as layout will change!
+ */
+    struct rig_cache *cache_addr;
 };
 
 
