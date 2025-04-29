@@ -549,6 +549,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     hamlib_port_t *rp, *pttp, *dcdp;
     struct rig_cache *cachep;
     int i;
+    size_t needed;
 
     if (rig_test_2038(NULL))
     {
@@ -598,7 +599,9 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      * okay, we've found it. Allocate some memory and set it to zeros,
      * and especially  the callbacks
      */
-    rig = calloc(1, sizeof(RIG));
+    needed = sizeof(RIG);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zd bytes for rig_struct\n", needed);
+    rig = calloc(1, needed);
 
     if (rig == NULL)
     {
@@ -628,7 +631,16 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     pttp = PTTPORT(rig);
     dcdp = DCDPORT(rig);
 
-    //TODO Ditto for cache
+    // Allocate space for cached data
+    needed = sizeof(struct rig_cache);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zd bytes for rig_cache\n", needed);
+    CACHE(rig) = calloc(1, needed);
+    if (!CACHE(rig))
+    {
+        rig_debug(RIG_DEBUG_ERR, "%s:Cache calloc failed\n", __func__);
+        free(rig);  //TODO Replace with cleanup routine
+        return NULL;
+    }
     cachep = CACHE(rig);
 
     rs->rig_model = caps->rig_model;
@@ -1875,6 +1887,11 @@ int HAMLIB_API rig_cleanup(RIG *rig)
 
     //TODO Release and null any allocated data -
     // state, ports, cache, etc.
+    if (CACHE(rig))
+    {
+        free(CACHE(rig));
+        CACHE(rig) = NULL;
+    }
 
     free(rig);
 
