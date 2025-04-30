@@ -299,9 +299,9 @@ typedef struct s_rig RIG;
  *
  * Digitally-Coded Squelch codes are simple direct integers.
  */
+typedef unsigned int tone_t;
 #define CTCSS_LIST_SIZE 60
 #define DCS_LIST_SIZE 128
-typedef unsigned int tone_t;
 
 
 /**
