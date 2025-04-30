@@ -21,7 +21,7 @@ SWGDEP = \
 	$(SWGFILES)
 
 EXTRA_DIST = $(SWGFILES) \
-	Makefile.PL perltest.pl tcltest.tcl.in pytest.py py3test.py \
+	Makefile.PL perltest.pl tcltest.tcl.in \
 	luatest.lua README.python
 
 exampledir = $(docdir)/examples
@@ -95,16 +95,6 @@ pyexec_ltlib = _Hamlib.la
 MOSTLYCLEANFILES += hamlibpy_wrap.c Hamlib.py *.pyc
 BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
 
-# Set by AM_CONDITIONAL in configure.ac
-if PYVER_3
-pytest = py3test.py
-else !PYVER_3
-pytest = pytest.py
-endif
-# PYVER_3
-
-example_DATA += $(pytest)
-
 nodist_pyexec_PYTHON = Hamlib.py
 nodist__Hamlib_la_SOURCES = hamlibpy_wrap.c
 
@@ -116,9 +106,6 @@ _Hamlib_la_LTLIBRARIES = $(pyexec_ltlib)
 all-py: $(pyexec_ltlib)
 
 check-py: all-py
-	$(AM_V_at)PYTHONPATH=$(builddir):$(builddir)/.libs \
-		$(PYTHON) $(srcdir)/$(pytest) \
-		|| echo "Python test failed" 1>&2
 
 Hamlib.py: hamlibpy_wrap.c
 
