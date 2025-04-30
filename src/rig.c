@@ -6893,8 +6893,8 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
  * \param rig   The rig handle
  * \param status    The location where to store the current status
  *
- *  Retrieve the status of the radio. See RIG_POWER_ON, RIG_POWER_OFF and
- *  RIG_POWER_STANDBY defines for the \a status.
+ *  Retrieve the status of the radio. See #RIG_POWER_ON, #RIG_POWER_OFF and
+ *  #RIG_POWER_STANDBY defines for the \a status.
  *
  * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
