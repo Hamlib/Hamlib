@@ -615,6 +615,33 @@ AS_IF([test x"${cf_with_python_binding}" = "xyes"],[
 
 AM_CONDITIONAL([ENABLE_PYTHON], [test x"${cf_with_python_binding}" = "xyes"])
 
+AC_ARG_ENABLE([pytest],
+    [AS_HELP_STRING([--enable-pytest],
+        [execute Python tests @<:@default=check@:>@])
+    ],
+    [enable_pytest=check]
+)
+
+AS_IF([test "x$enable_pytest" != "xno"],
+    [AC_PATH_PROG([PYTEST], [pytest])]
+)
+
+AS_IF([test "x$PYTEST" = "x"],
+    [have_pytest=no],
+    [have_pytest=yes]
+)
+
+AS_IF([test "x$enable_pytest" = "xyes"],
+    [AS_IF([test "x$have_pytest" = "xno"],
+        [AC_MSG_ERROR([pytest requested but not found])]
+    )]
+)
+
+# "check" is replaced by the rsult ("yes" or "no")
+enable_pytest=$have_pytest
+
+AC_SUBST([enable_pytest])
+
 # Tcl binding
 AC_MSG_CHECKING([Whether to build Tcl bindings])
 AC_ARG_WITH([tcl-binding],
@@ -976,5 +1003,6 @@ echo \
     Enable USB backends 	    ${cf_with_libusb}
     Enable shared libs		    ${enable_shared}
     Enable static libs		    ${enable_static}
+    Enable Python tests		    ${enable_pytest}
 
 -----------------------------------------------------------------------"
