@@ -22,6 +22,7 @@ SWGDEP = \
 
 EXTRA_DIST = $(SWGFILES) \
 	Makefile.PL perltest.pl tcltest.tcl.in \
+	python/test_startup.py \
 	luatest.lua README.python
 
 exampledir = $(docdir)/examples
@@ -105,7 +106,14 @@ _Hamlib_la_LTLIBRARIES = $(pyexec_ltlib)
 
 all-py: $(pyexec_ltlib)
 
-check-py: all-py
+check-py: all-py pytest-${enable_pytest}
+
+pytest-yes:
+	$(AM_V_at)PYTHONPATH=$(builddir):$(builddir)/.libs \
+		$(PYTEST) --capture=no $(srcdir)/
+
+pytest-no:
+	@echo "Skipping pytest run"
 
 Hamlib.py: hamlibpy_wrap.c
 
