@@ -615,10 +615,6 @@ AS_IF([test x"${cf_with_python_binding}" = "xyes"],[
 
 AM_CONDITIONAL([ENABLE_PYTHON], [test x"${cf_with_python_binding}" = "xyes"])
 
-dnl Determine whether to install pytest.py or py3test.py to $(docdir)/examples
-AM_PYTHON_CHECK_VERSION([${PYTHON}], [3.0], [pyver_3="yes"], [pyver_3="no"])
-AM_CONDITIONAL([PYVER_3], [test x"${pyver_3}" = x"yes"])
-
 # Tcl binding
 AC_MSG_CHECKING([Whether to build Tcl bindings])
 AC_ARG_WITH([tcl-binding],
