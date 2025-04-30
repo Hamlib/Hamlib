@@ -861,11 +861,10 @@ typedef enum {
 typedef long hamlib_token_t;
 #define token_t hamlib_token_t
 
-
-//! @cond Doxygen_Suppress
+/**
+ * \brief configuration token not found
+ */
 #define RIG_CONF_END 0
-//! @endcond
-
 
 /**
  * \brief parameter types
