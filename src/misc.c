@@ -339,7 +339,7 @@ double morse_code_dot_to_millis(int wpm)
 
 /**
  * \brief Convert duration of tenths of morse code dots to milliseconds at the given speed.
- * \param tenths_of_dots number of 1/10ths of dots
+ * \param dot10ths number of 1/10ths of dots
  * \param wpm morse code speed in words per minute
  * \return int duration in milliseconds
  *
@@ -1448,7 +1448,7 @@ const char *HAMLIB_API rig_stragclevel(enum agc_level_e level)
 
 /**
  * \brief Convert a enum agc_level_e to value
- * \param integer...
+ * \param agcLevel level to convert
  * \return agc_level_e value
  */
 value_t rig_valueagclevel(enum agc_level_e agcLevel)
@@ -1468,7 +1468,7 @@ value_t rig_valueagclevel(enum agc_level_e agcLevel)
 
 /**
  * \brief Convert a value to agc_level_e -- constrains the range
- * \param integer...
+ * \param agcValue value to convert
  * \return agc_level_e
  */
 enum agc_level_e rig_levelagcvalue(int agcValue)
@@ -1499,7 +1499,7 @@ enum agc_level_e rig_levelagcvalue(int agcValue)
 
 /**
  * \brief Convert AGC string... to agc_level_e
- * \param mode AGC string...
+ * \param agcString AGC string to convert
  * \return agc_level_e
  */
 enum agc_level_e rig_levelagcstr(const char *agcString)
@@ -2358,7 +2358,8 @@ const char *HAMLIB_API rot_strstatus(rot_status_t status)
 
 /**
  * \brief Get pointer to rig function instead of using rig->caps
- * \param RIG* and rig_function_e
+ * \param rig_model
+ * \param rig_function
  * \return the corresponding function pointer
  */
 void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
@@ -2650,7 +2651,8 @@ void *HAMLIB_API rig_get_function_ptr(rig_model_t rig_model,
 /**
  * \brief Get integer/long instead of using rig->caps
  *  watch out for integer values that may be negative -- if needed must change hamlib
- * \param RIG* and rig_caps_int_e
+ * \param rig_model
+ * \param rig_caps
  * \return the corresponding long value -- -RIG_EINVAL is the only error possible
  */
 uint64_t HAMLIB_API rig_get_caps_int(rig_model_t rig_model,
@@ -2751,7 +2753,7 @@ static const struct
 
 /**
  * \brief Convert enum RIG_COMM_STATUS... to alpha string
- * \param vfo RIG_COMM_STATUS_...
+ * \param status RIG_COMM_STATUS_...
  * \return alpha string
  */
 const char *HAMLIB_API rig_strcommstatus(rig_comm_status_t status)

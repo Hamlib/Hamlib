@@ -299,9 +299,9 @@ typedef struct s_rig RIG;
  *
  * Digitally-Coded Squelch codes are simple direct integers.
  */
+typedef unsigned int tone_t;
 #define CTCSS_LIST_SIZE 60
 #define DCS_LIST_SIZE 128
-typedef unsigned int tone_t;
 
 
 /**
@@ -451,7 +451,7 @@ typedef enum {
 
 
 /**
- * \brief Frequency type,
+ * \brief Frequency type
  *
  * Frequency type unit in Hz, able to hold SHF frequencies.
  */
@@ -744,7 +744,7 @@ typedef enum {
  * NOTE: the vfo argument for some vfo operation may be irrelevant,
  * and thus will be ignored.
  *
- * The VFO/MEM "mode" is set by rig_set_vfo.\n
+ * The VFO/MEM "mode" is set by #rig_set_vfo.\n
  * \c STRING used in rigctl
  *
  * \sa rig_parse_vfo_op(), rig_strvfop()
@@ -861,11 +861,10 @@ typedef enum {
 typedef long hamlib_token_t;
 #define token_t hamlib_token_t
 
-
-//! @cond Doxygen_Suppress
+/**
+ * \brief configuration token not found
+ */
 #define RIG_CONF_END 0
-//! @endcond
-
 
 /**
  * \brief parameter types
@@ -1066,10 +1065,10 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_KEYSPD     CONSTANT_64BIT_FLAG(14)      /*!< \c KEYSPD -- Key Speed, arg int (WPM) */
 #define RIG_LEVEL_NOTCHF     CONSTANT_64BIT_FLAG(15)      /*!< \c NOTCHF -- Notch Freq., arg int (Hz) */
 #define RIG_LEVEL_COMP       CONSTANT_64BIT_FLAG(16)      /*!< \c COMP -- Compressor, arg float [0.0 ... 1.0] */
-#define RIG_LEVEL_AGC        CONSTANT_64BIT_FLAG(17)      /*!< \c AGC -- AGC, arg int (see enum agc_level_e) */
+#define RIG_LEVEL_AGC        CONSTANT_64BIT_FLAG(17)      /*!< \c AGC -- AGC, arg int (see enum #agc_level_e) */
 #define RIG_LEVEL_BKINDL     CONSTANT_64BIT_FLAG(18)      /*!< \c BKINDL -- BKin Delay, arg int (tenth of dots) */
 #define RIG_LEVEL_BALANCE    CONSTANT_64BIT_FLAG(19)      /*!< \c BAL -- Balance (Dual Watch) arg float [0.0 ... 1.0] */
-#define RIG_LEVEL_METER      CONSTANT_64BIT_FLAG(20)      /*!< \c METER -- Display meter, arg int (see enum meter_level_e) */
+#define RIG_LEVEL_METER      CONSTANT_64BIT_FLAG(20)      /*!< \c METER -- Display meter, arg int (see enum #meter_level_e) */
 #define RIG_LEVEL_VOXGAIN    CONSTANT_64BIT_FLAG(21)      /*!< \c VOXGAIN -- VOX gain level, arg float [0.0 ... 1.0] */
 #define RIG_LEVEL_ANTIVOX    CONSTANT_64BIT_FLAG(22)      /*!< \c ANTIVOX -- anti-VOX level, arg float [0.0 ... 1.0] */
 #define RIG_LEVEL_SLOPE_LOW  CONSTANT_64BIT_FLAG(23)      /*!< \c SLOPE_LOW -- Slope tune, low frequency cut, arg int (Hz) */
@@ -1092,7 +1091,7 @@ typedef uint64_t rig_level_e;
 #define RIG_LEVEL_MONITOR_GAIN CONSTANT_64BIT_FLAG(37)      /*!< \c MONITOR_GAIN -- Monitor gain (level for monitoring of transmitted audio) arg float [0.0 ... 1.0] */
 #define RIG_LEVEL_NB           CONSTANT_64BIT_FLAG(38)      /*!< \c NB -- Noise Blanker level, arg float [0.0 ... 1.0] */
 #define RIG_LEVEL_RFPOWER_METER_WATTS  CONSTANT_64BIT_FLAG(39)      /*!< \c RFPOWER_METER_WATTS -- RF power output meter, arg float [0.0 ... MAX] (output power in watts) */
-#define RIG_LEVEL_SPECTRUM_MODE        CONSTANT_64BIT_FLAG(40)      /*!< \c SPECTRUM_MODE -- Spectrum scope mode, arg int (see enum rig_spectrum_mode_e). Supported modes defined in rig caps. */
+#define RIG_LEVEL_SPECTRUM_MODE        CONSTANT_64BIT_FLAG(40)      /*!< \c SPECTRUM_MODE -- Spectrum scope mode, arg int (see enum #rig_spectrum_mode_e). Supported modes defined in rig caps. */
 #define RIG_LEVEL_SPECTRUM_SPAN        CONSTANT_64BIT_FLAG(41)      /*!< \c SPECTRUM_SPAN -- Spectrum scope span in center mode, arg int (Hz). Supported spans defined in rig caps. */
 #define RIG_LEVEL_SPECTRUM_EDGE_LOW    CONSTANT_64BIT_FLAG(42)      /*!< \c SPECTRUM_EDGE_LOW -- Spectrum scope low edge in fixed mode, arg int (Hz) */
 #define RIG_LEVEL_SPECTRUM_EDGE_HIGH   CONSTANT_64BIT_FLAG(43)      /*!< \c SPECTRUM_EDGE_HIGH -- Spectrum scope high edge in fixed mode, arg int (Hz) */
@@ -1137,7 +1136,7 @@ typedef uint64_t rig_level_e;
  */
 enum rig_parm_e {
     RIG_PARM_NONE =         0,          /*!< '' -- No Parm */
-    RIG_PARM_ANN =          (1 << 0),   /*!< \c ANN -- "Announce" level, see ann_t */
+    RIG_PARM_ANN =          (1 << 0),   /*!< \c ANN -- "Announce" level, see #ann_t */
     RIG_PARM_APO =          (1 << 1),   /*!< \c APO -- Auto power off, int in minute */
     RIG_PARM_BACKLIGHT =    (1 << 2),   /*!< \c BACKLIGHT -- LCD light, float [0.0 ... 1.0] */
     RIG_PARM_BEEP =         (1 << 4),   /*!< \c BEEP -- Beep on keypressed, int (0,1) */
@@ -1697,7 +1696,7 @@ typedef enum {
 struct chan_list {
     int startc;              /*!< Starting memory channel \b number */
     int endc;                /*!< Ending memory channel \b number */
-    chan_type_t type;        /*!< Memory type. see chan_type_t */
+    chan_type_t type;        /*!< Memory type. See #chan_type_t */
     channel_cap_t mem_caps;  /*!< Definition of attributes that can be stored/retrieved */
 };
 
@@ -2701,7 +2700,7 @@ typedef unsigned int rig_comm_status_t;
  * This struct contains live data, as well as a copy of capability fields
  * that may be updated (ie. customized)
  *
- * It is NOT fine to move fields around as it can break share library offset
+ * It is NOT fine to move fields around as it can break shared library offset
  * As of 2024-03-03  freq_event_elapsed is the last known item being reference externally
  * So any additions or changes to this structure must be at the end of the structure
  */
@@ -2739,7 +2738,7 @@ struct rig_state {
     ann_t announces;            /*!< Announces bit field list */
 
     int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
-    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Attenuator list in dB, 0 terminated */
 
     setting_t has_get_func;     /*!< List of get functions */
     setting_t has_set_func;     /*!< List of set functions */
@@ -2939,7 +2938,7 @@ struct rig_state_deprecated {
     ann_t announces;            /*!< Announces bit field list */
 
     int preamp[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
-    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Preamp list in dB, 0 terminated */
+    int attenuator[HAMLIB_MAXDBLSTSIZ];    /*!< Attenuator list in dB, 0 terminated */
 
     setting_t has_get_func;     /*!< List of get functions */
     setting_t has_set_func;     /*!< List of set functions */

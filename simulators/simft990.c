@@ -1,5 +1,4 @@
 // can run this using rigctl/rigctld and socat pty devices
-// gcc -o simft990 simft990.c
 // emulates 1.2 ROM FT990 which can only read 1492 bytes
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
@@ -126,7 +125,7 @@ int openPort(char *comport) // doesn't matter for using pts devices
 
     if (name == NULL)
     {
-        perror("pstname");
+        perror("ptsname");
         return -1;
     }
 

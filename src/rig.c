@@ -75,6 +75,11 @@
 #include "cache.h"
 
 /**
+ * \brief Hamlib short license name
+ *
+ */
+const char *hamlib_license = "LGPL";
+/**
  * \brief Hamlib release number
  *
  * The version number has the format x.y.z
@@ -84,7 +89,6 @@
  * the hamlib_version string.  Changing the size provokes a warning from the
  * dynamic loader.
  */
-const char *hamlib_license = "LGPL";
 //! @cond Doxygen_Suppress
 const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 #if INTPTR_MAX == INT128_MAX
@@ -94,6 +98,7 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 #else
 #define ARCHBITS "32-bit"
 #endif
+//! @endcond
 const char *hamlib_version2 = "Hamlib " PACKAGE_VERSION " " HAMLIBDATETIME " "
                               ARCHBITS;
 HAMLIB_EXPORT_VAR(int) cookie_use;
@@ -101,7 +106,6 @@ HAMLIB_EXPORT_VAR(int) skip_init;
 HAMLIB_EXPORT_VAR(int) lock_mode; // for use by rigctld
 HAMLIB_EXPORT_VAR(powerstat_t)
 rig_powerstat; // for use by both rigctld and rigctl
-//! @endcond
 
 struct rig_caps caps_test;
 
@@ -6889,8 +6893,8 @@ int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
  * \param rig   The rig handle
  * \param status    The location where to store the current status
  *
- *  Retrieve the status of the radio. See RIG_POWER_ON, RIG_POWER_OFF and
- *  RIG_POWER_STANDBY defines for the \a status.
+ *  Retrieve the status of the radio. See #RIG_POWER_ON, #RIG_POWER_OFF and
+ *  #RIG_POWER_STANDBY defines for the \a status.
  *
  * \return RIG_OK if the operation has been successful, otherwise
  * a negative value if an error occurred (in which case, cause is
