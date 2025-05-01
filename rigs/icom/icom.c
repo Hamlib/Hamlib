@@ -2574,7 +2574,9 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               (int) base_mode, (int) width, rig_strvfo(rs->current_vfo));
 
     // It is only necessary to change base mode if command 0x26 is not supported
-    if (!(rs->targetable_vfo & RIG_TARGETABLE_MODE) || force_vfo_swap)
+    // NOTE: IC-705 does not support WFM for command 0x26
+    if (!(rs->targetable_vfo & RIG_TARGETABLE_MODE) || force_vfo_swap ||
+        (RIG_IS_IC705 && (mode == RIG_MODE_WFM)))
     {
         retval = icom_set_mode_without_data(rig, vfo, base_mode, width);
     }
