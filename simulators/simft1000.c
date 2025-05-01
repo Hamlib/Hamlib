@@ -1,5 +1,4 @@
 // can run this using rigctl/rigctld and socat pty devices
-// gcc -o simft1000 simft1000.c
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 #if 0
@@ -69,7 +68,7 @@ int openPort(char *comport) // doesn't matter for using pts devices
 
     if (name == NULL)
     {
-        perror("pstname");
+        perror("ptsname");
         return -1;
     }
 

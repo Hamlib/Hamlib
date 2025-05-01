@@ -1,8 +1,5 @@
 // using virtual serial ports on Windows is to be developed yet
 // Needs a lot of improvement to work on all Icoms
-// gcc -g -Wall -o simicom simicom.c -lhamlib
-// On mingw in the hamlib src directory
-// gcc -static -I../include -g -Wall -o simicom simicom.c -L../../build/src/.libs -lhamlib -lwsock32 -lws2_32
 #define _XOPEN_SOURCE 700
 // since we are POSIX here we need this
 #if 0
@@ -821,7 +818,7 @@ int openPort(char *comport) // doesn't matter for using pts devices
 
     if (name == NULL)
     {
-        perror("pstname");
+        perror("ptsname");
         return -1;
     }
 

@@ -259,7 +259,7 @@ const struct confparams *HAMLIB_API amp_ext_lookup_tok(AMP *amp,
  * \note As this function calls amp_ext_lookup(), it can be considered a
  * higher level API.
  *
- * \return The token ID or RIG_CONF_END if there is a lookup failure.
+ * \return The token ID or #RIG_CONF_END if there is a lookup failure.
  *
  * \sa amp_ext_lookup()
  */

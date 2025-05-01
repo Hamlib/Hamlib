@@ -141,7 +141,6 @@
 %ignore rig_mW2power;
 %ignore rig_get_resolution;
 %ignore rig_set_level;
-%ignore rig_set_ext_level;
 %ignore rig_get_level;
 %ignore rig_set_parm;
 %ignore rig_get_parm;
