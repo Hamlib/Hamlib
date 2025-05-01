@@ -667,6 +667,10 @@ AC_SUBST([TCL_CFLAGS])
 
 
 dnl Check for lua availability, so we can enable HamlibLua
+
+dnl Newer ax_lua.m4 macro, at least Serial 47, requires LUAJIT be present.
+AM_CONDITIONAL([LUAJIT], [false])
+
 # Lua bindings
 AC_MSG_CHECKING([whether to build lua binding])
 AC_ARG_WITH([lua-binding],
