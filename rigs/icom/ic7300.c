@@ -170,6 +170,38 @@ int ic9700_set_vfo(RIG *rig, vfo_t vfo);
          { 255, 12.0f } \
     } }
 
+// flrig-2.0.05.93     
+#define IC705_COMP_METER_CAL { 12, \
+    { \
+         { 0, 0.0f }, \
+         { 11, 0.0f }, \
+         { 34, 3.0f }, \
+         { 58, 6.0f }, \
+         { 81, 9.0f }, \
+         { 104, 12.0f }, \
+         { 128, 15.0f }, \
+         { 151, 18.0f }, \
+         { 174, 21.0f }, \
+         { 197, 24.0f }, \
+         { 221, 27.0f }, \
+         { 244, 30.0f } \
+    } }
+
+// flrig-2.0.05.93     
+#define IC705_VD_METER_CAL { 2, \
+    { \
+         { 0, 0.0f }, \
+         { 241, 16.0f } \
+    } }
+
+
+// flrig-2.0.05.93     
+#define IC705_ID_METER_CAL { 2, \
+    { \
+         { 0, 0.0f }, \
+         { 241, 4.0f } \
+    } }
+
 /*
  * IC9700 items that differ from IC7300
  */
@@ -1473,9 +1505,9 @@ struct rig_caps ic705_caps =
     .swr_cal = IC7300_SWR_CAL,
     .alc_cal = IC7300_ALC_CAL,
     .rfpower_meter_cal = IC705_RFPOWER_METER_CAL,
-    .comp_meter_cal = IC7300_COMP_METER_CAL,
-    .vd_meter_cal = IC7300_VD_METER_CAL,
-    .id_meter_cal = IC7300_ID_METER_CAL,
+    .comp_meter_cal = IC705_COMP_METER_CAL,
+    .vd_meter_cal = IC705_VD_METER_CAL,
+    .id_meter_cal = IC705_ID_METER_CAL,
 
     .spectrum_scopes = {
         {
