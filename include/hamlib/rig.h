@@ -2589,9 +2589,10 @@ typedef enum {
  * \brief Rig cache data
  *
  * This struct contains all the items we cache at the highest level
- * DO NOT MODIFY THIS STRUCTURE AT ALL -- we need a new cache that is a pointer rather than a structure
+ * DO NOT MODIFY THIS STRUCTURE AT ALL -- should go away in 5.0
+ * see cache.h - new cache is a pointer rather than an embedded structure
  */
-struct rig_cache {
+struct rig_cache_deprecated {
     int timeout_ms;  // the cache timeout for invalidating itself
     vfo_t vfo;
     //freq_t freq; // to be deprecated in 4.1 when full Main/Sub/A/B caching is implemented in 4.1
@@ -2784,7 +2785,7 @@ struct rig_state {
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
     // uplink allows gpredict to behave better by no reading the uplink VFO
     int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
-    struct rig_cache cache;
+    struct rig_cache_deprecated cache; // Only here for backward compatability
     int vfo_opt;                /*!< Is -o switch turned on? */
     int auto_power_on;          /*!< Allow Hamlib to power on rig
                                    automatically if supported */
@@ -2984,7 +2985,7 @@ struct rig_state_deprecated {
     int twiddle_timeout;        /*!< timeout to resume from twiddling */
     // uplink allows gpredict to behave better by no reading the uplink VFO
     int uplink;                 /*!< uplink=1 will not read Sub, uplink=2 will not read Main */
-    struct rig_cache cache;
+    struct rig_cache_deprecated cache; // Here for backward compatibility
     int vfo_opt;                /*!< Is -o switch turned on? */
     int auto_power_on;          /*!< Allow Hamlib to power on rig
                                    automatically if supported */
