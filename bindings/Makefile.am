@@ -39,7 +39,7 @@ BUILT_SOURCES += hamlibperl_wrap.c
 MOSTLYCLEANFILES += hamlibperl_wrap.c Hamlib.pm Hamlib.bs Hamlib-pl.mk.old
 example_DATA += perltest.pl
 
-hamlibperl_wrap.c: hamlib.swg $(SWIGDEP) ignore.swg rig.swg
+hamlibperl_wrap.c: $(SWIGDEP)
 	$(AM_V_GEN)$(SWIG) -perl5 -shadow $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
 		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
@@ -120,7 +120,7 @@ check-py: all-py
 
 Hamlib.py: hamlibpy_wrap.c
 
-hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
+hamlibpy_wrap.c: $(SWGDEP)
 	$(AM_V_GEN)$(SWIG) -python $(AM_CPPFLAGS) $(PYTHON_CPPFLAGS) -I$(top_srcdir)/bindings \
 		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
@@ -166,7 +166,7 @@ hamlibtcl_la_LTLIBRARIES = $(tcl_ltlib)
 pkgIndex.tcl: Makefile
 	$(AM_V_at)echo 'package ifneeded hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl
 
-hamlibtcl_wrap.c: hamlib.swg $(SWGDEP)
+hamlibtcl_wrap.c: $(SWGDEP)
 	$(AM_V_GEN)$(SWIG) -tcl -pkgversion $(PKG_VER) $(AM_CPPFLAGS) \
 		-I$(top_srcdir)/bindings \
 		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
@@ -219,7 +219,7 @@ check-lua: all-lua
 
 Hamlib.lua: hamliblua_wrap.c
 
-hamliblua_wrap.c: hamlib.swg $(SWGDEP)
+hamliblua_wrap.c: $(SWGDEP)
 	$(AM_V_GEN)$(SWIG) -lua $(AM_CPPFLAGS) -I$(top_srcdir)/bindings \
 		-o $@ $$(test -f hamlib.swg || echo '$(srcdir)/')hamlib.swg
 
