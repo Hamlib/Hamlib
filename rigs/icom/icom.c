@@ -2441,6 +2441,22 @@ static int icom_set_mode_x26(RIG *rig, vfo_t vfo, rmode_t mode,
         if (width > 10000) { buf[2] = 1; }
         else if (width > 7000) { buf[2] = 2; }
         else if (width > 3) { buf[2] = 3; }
+        // Set "normal" bandwidth explicitly here
+        // when width is zero or even less
+        // (namely RIG_PASSBAND_NORMAL or RIG_PASSBAND_NOCHANGE)
+        else if (width < 1) { buf[2] = 1; }
+
+        if (width == RIG_PASSBAND_NOCHANGE)
+        {
+            buf_len = 1;
+        }
+    }
+    else if (mode == RIG_MODE_WFM)
+    {
+        rig_debug(RIG_DEBUG_TRACE, "%s: wfm_width=%d\n", __func__, (int)width);
+        // For IC-705, there's only one filter mode for WFM
+        // So set always to 1
+        buf[2] = 1;
 
         if (width == RIG_PASSBAND_NOCHANGE)
         {
@@ -2574,9 +2590,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
               (int) base_mode, (int) width, rig_strvfo(rs->current_vfo));
 
     // It is only necessary to change base mode if command 0x26 is not supported
-    // NOTE: IC-705 does not support WFM for command 0x26
-    if (!(rs->targetable_vfo & RIG_TARGETABLE_MODE) || force_vfo_swap ||
-        (RIG_IS_IC705 && (mode == RIG_MODE_WFM)))
+    if (!(rs->targetable_vfo & RIG_TARGETABLE_MODE) || force_vfo_swap)
     {
         retval = icom_set_mode_without_data(rig, vfo, base_mode, width);
     }
@@ -2625,8 +2639,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             if (datamode[0] == 0) { datamode[1] = 0; } // the only good combo possible according to manual
 
             // we need to let FM mode widths through here with datamode[1] set to FM width
-            if ((priv_caps->fm_filters[0] != 0) && (mode == RIG_MODE_FM
-                                                    || mode == RIG_MODE_WFM))
+            // (This is not applicable to WFM)
+            if ((priv_caps->fm_filters[0] != 0) && (mode == RIG_MODE_FM))
             {
                 // assumed fm_filters is ascending sequence -- see ic7300.c for example
                 if (width >= 1 && width <= 3) { datamode[1] = width; }
@@ -2652,6 +2666,13 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else
             {
                 if (datamode[0] == 0) { datamode[1] = 0; }
+
+                // For IC-705, this is the only valid values for WFM
+                if (RIG_IS_IC705 && (mode == RIG_MODE_WFM))
+                {
+                    datamode[0] = 0;
+                    datamode[1] = 1;    
+                }
 
                 retval = icom_set_mode_x26(rig, vfo, mode, mode_icom, datamode[0], datamode[1],
                                            width);
@@ -2816,8 +2837,8 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
                       mode_len == 2 ? modebuf[2] : -1, mode, width);
     }
 
-    if ((RIG_IS_IC7300 || RIG_IS_IC9700) && (*mode == RIG_MODE_FM
-            || *mode == RIG_MODE_PKTFM))
+    if ((RIG_IS_IC7300 || RIG_IS_IC9700 || RIG_IS_IC705) && (*mode == RIG_MODE_FM
+            || *mode == RIG_MODE_PKTFM || *mode == RIG_MODE_WFM))
     {
         // we already have width from icom2rig_mode
         RETURNFUNC2(RIG_OK);
@@ -2849,7 +2870,7 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     if (vfo == rs->current_vfo)
     {
-        if (!((RIG_IS_IC7300 || RIG_IS_IC9700) && (*mode == RIG_MODE_FM
+        if (!((RIG_IS_IC7300 || RIG_IS_IC9700 || RIG_IS_IC705) && (*mode == RIG_MODE_FM
                 || *mode == RIG_MODE_PKTFM))) // can't do this in FM mode
         {
             filter_width = icom_get_dsp_flt(rig, *mode);
@@ -2872,12 +2893,17 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
     {
         *width = 12000; // some default to 12000
 
-        if (RIG_IS_IC7300 || RIG_IS_IC9700)
+        if (RIG_IS_IC7300 || RIG_IS_IC9700 || RIG_IS_IC705)
         {
             if (priv_data->filter == 1) { *width = 15000; }
             else if (priv_data->filter == 2) { *width = 10000; }
             else if (priv_data->filter == 3) { *width = 7000; }
         }
+    }
+    else if (*mode == RIG_MODE_WFM)
+    {
+        // IC-705 only valid value
+        if (RIG_IS_IC705) { *width = 200000; }
     }
 
     RETURNFUNC2(RIG_OK);

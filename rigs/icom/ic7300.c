@@ -637,7 +637,8 @@ static const struct icom_priv_caps IC705_priv_caps =
     .x1cx03_possibly = 1,
     .x1ax03_supported = 1,
     .mode_with_filter = 1,
-    .data_mode_supported = 1
+    .data_mode_supported = 1,
+    .fm_filters = { 7000, 10000, 15000 }
 };
 
 static const struct icom_priv_caps IC905_priv_caps =
@@ -1498,6 +1499,7 @@ struct rig_caps ic705_caps =
         {RIG_MODE_FM | RIG_MODE_PKTFM, kHz(10)},
         {RIG_MODE_FM | RIG_MODE_PKTFM, kHz(7)},
         {RIG_MODE_FM | RIG_MODE_PKTFM, kHz(15)},
+        {RIG_MODE_WFM, kHz(200)},
         RIG_FLT_END,
     },
 
