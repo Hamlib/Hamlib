@@ -388,6 +388,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     // don't care about the rig type yet
 
+    }
 }
 
 #if defined(WIN32) || defined(_WIN32)
