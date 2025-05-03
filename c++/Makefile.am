@@ -15,6 +15,8 @@ check_SCRIPTS = testcpp.sh
 
 TESTS = $(check_SCRIPTS)
 
+$(top_builddir)/src/libhamlib.la:
+	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
 
 testcpp.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/c++/.libs:$(top_builddir)/dummy/.libs ./testcpp' > testcpp.sh
