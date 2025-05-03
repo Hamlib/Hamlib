@@ -30,6 +30,8 @@ example_DATA =
 BUILT_SOURCES =
 MOSTLYCLEANFILES =
 
+$(top_builddir)/src/libhamlib.la:
+	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
 
 if ENABLE_PERL
 ##########################################

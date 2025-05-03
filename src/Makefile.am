@@ -27,6 +27,15 @@ libhamlib_la_LIBADD = $(top_builddir)/lib/libmisc.la $(top_builddir)/security/li
 
 libhamlib_la_DEPENDENCIES = $(top_builddir)/lib/libmisc.la $(top_builddir)/security/libsecurity.la $(BACKENDEPS) $(RIG_BACKENDEPS) $(ROT_BACKENDEPS) $(AMP_BACKENDEPS) 
 
+# Rule to build the dependencies of libhamlib.la that are not in this directory
+# when running make in this directory instead of top_builddir
+# (the % matches any number of subdirectories)
+# warning: '%'-style pattern rules are a GNU make extension
+$(top_builddir)/%.la:
+	$(MAKE) -C $(@D) $(@F)
+
+#
+
 EXTRA_DIST = Android.mk hamlibdatetime.h.in band_changed.c
 
 
