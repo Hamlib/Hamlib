@@ -39,21 +39,27 @@ utility), and USB.  Other connectivity will follow afterwards.
 General Guidelines.
 -------------------
 
-0. The top level directory looks like this as of 2020-01-18
+0. The top level directory looks like this as of 2025-05-03
 
 $ tree -d -I .git
 .
+.
 ├── amplifiers
-│   └── elecraft
+│   ├── elecraft
+│   ├── expert
+│   └── gemini
 ├── android
 ├── autom4te.cache
 ├── bindings
+│   └── csharp
+│       └── multicast
 ├── build-aux
 ├── c++
 ├── doc
 │   ├── man1
-│   └── man7
-├── dummy
+│   ├── man7
+│   └── manuals
+├── docker-build
 ├── extra
 │   ├── gnuradio
 │   └── kylix
@@ -66,12 +72,18 @@ $ tree -d -I .git
 ├── rigs
 │   ├── adat
 │   ├── alinco
+│   ├── anytone
 │   ├── aor
 │   ├── barrett
+│   ├── codan
+│   ├── commradio
 │   ├── dorji
 │   ├── drake
+│   ├── dummy
 │   ├── elad
 │   ├── flexradio
+│   ├── gomspace
+│   │   └── gs100_sim
 │   ├── icmarine
 │   ├── icom
 │   ├── jrc
@@ -79,6 +91,8 @@ $ tree -d -I .git
 │   ├── kenwood
 │   ├── kit
 │   ├── lowe
+│   ├── mds
+│   ├── motorola
 │   ├── pcr
 │   ├── prm80
 │   ├── racal
@@ -95,24 +109,36 @@ $ tree -d -I .git
 │   └── yaesu
 ├── rotators
 │   ├── amsat
+│   ├── androidsensor
+│   ├── apex
 │   ├── ars
 │   ├── celestron
 │   ├── cnctrk
 │   ├── easycomm
 │   ├── ether6
+│   ├── flir
 │   ├── fodtrack
+│   ├── grbltrk
 │   ├── gs232a
 │   ├── heathkit
+│   ├── indi
 │   ├── ioptron
 │   ├── m2
 │   ├── meade
 │   ├── prosistel
+│   ├── radant
 │   ├── rotorez
+│   ├── saebrtrack
 │   ├── sartek
+│   ├── satel
+│   ├── skywatcher
 │   ├── spid
 │   └── ts7400
 │       └── include
 ├── scripts
+│   └── MSVC
+├── security
+├── simulators
 ├── src
 └── tests
     ├── config
@@ -121,7 +147,7 @@ $ tree -d -I .git
     ├── testfreq.test
     └── testloc.test
 
-77 directories
+103 directories
 
 1. Building
 
