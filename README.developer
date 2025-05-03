@@ -285,11 +285,15 @@ Optional, but highly recommended:
 * perl devel                        # h2xs
 * tcl devel                         # tcltk-depends
 * python devel                      # python-config
+* lua devel
 * libxml2 devel                     # xml2-config --version
-* libgd2 devel                      # gdlib-config --version
+* libgd2 devel                      # gdlib-config --version (rigmatrix)
+* libindi devel                     # INDI rotators
+* libnova devel
 * libusb-1.0 devel                  # 1.0.0 or newer
 * libreadline devel                 # ver 5.2 or newer
 * pkg-config                        # pkg-config --version (libxml and USRP)
+* zlib1g devel                      # (rigmatrix)
 
 N.B.:  The libusb-1.0 package is required for building most of the 'kit'
 backend.  The older version of libusb 0.1.x is no longer supported.
