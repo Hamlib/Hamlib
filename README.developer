@@ -685,6 +685,10 @@ Testing:
       package ready for distribution.  This is a good test if you have
       touched the build system files or added a backend.
 
+Simulators:
+    * The simulators directory contains various programs that are built
+      invoking "make -C simulators/ check" or "make check" from topdir.
+
 
 8.2.1 Use of rig_debug() function
 
