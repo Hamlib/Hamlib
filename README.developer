@@ -686,8 +686,32 @@ Testing:
       touched the build system files or added a backend.
 
 Simulators:
-    * The simulators directory contains various programs that are built
-      invoking "make -C simulators/ check" or "make check" from topdir.
+    * The 'simulators' directory contains programs to simulate the protocol
+      of many devices.  They are built invoking "make -C simulators/ check"
+      or "make check" from topdir.  While simulators are made to test Hamlib
+      with rigctl and rigctld, you should be able to guess the model number
+      that corresponds to a given simulator and configure an application such
+      as wsjtx to use that model and the port name printed by the simulator,
+      as shown in the examples below.
+
+      To use a simulator on *nix-like systems, run its executable and take
+      note of the port name:
+        $ ./simulators/simft991
+        name=/dev/pts/6
+      then from another terminal run rigctl/rigctld using that port and a
+      matching model number (see rigctl --list):
+        $ ./tests/rigctl --model=1035 --rig-file=/dev/pts/6 \get_freq
+        14074000
+
+      To use a simulator on Windows, first install a virtual COM port, then
+      run the simulator passing the port name as first and only argument:
+        > simulators\simft991 COM1234
+      then from another command prompt run rigctl/rigctld or your
+      application.
+
+      The COM port argument is currently ignored on *nix but it can be
+      handled if there is a need to test a low level issue with RS-232
+      and/or USB communication, if your machine has the needed hardware.
 
 
 8.2.1 Use of rig_debug() function
