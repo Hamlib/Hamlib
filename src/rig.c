@@ -529,6 +529,27 @@ static int rig_check_rig_caps()
     return (rc);
 }
 
+/* Final cleanup of rig structure
+ *
+ * Release all allocations for this rig, including the rig_struct
+ * Clear them to catch use-after-free errors
+ */
+static void vaporize(RIG *rig)
+{
+    if (CACHE(rig))
+    {
+        free(CACHE(rig));
+        CACHE(rig) = NULL;
+    }
+
+    /* Other buffers go here, as they are converted
+     *  to pointers/calloc - WIP
+     */
+
+    free(rig);
+    return;
+}
+
 /**
  * \brief Allocate a new #RIG handle.
  * \param rig_model The rig model for this new handle
@@ -638,7 +659,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
     if (!CACHE(rig))
     {
         rig_debug(RIG_DEBUG_ERR, "%s:Cache calloc failed\n", __func__);
-        free(rig);  //TODO Replace with cleanup routine
+        vaporize(rig);
         return NULL;
     }
     cachep = CACHE(rig);
@@ -943,7 +964,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
                       "%s: backend_init failed!\n",
                       __func__);
             /* cleanup and exit */
-            free(rig);
+            vaporize(rig);
             return (NULL);
         }
     }
@@ -1885,15 +1906,8 @@ int HAMLIB_API rig_cleanup(RIG *rig)
 
     //pthread_mutex_destroy(&STATE(rig)->api_mutex);
 
-    //TODO Release and null any allocated data -
-    // state, ports, cache, etc.
-    if (CACHE(rig))
-    {
-        free(CACHE(rig));
-        CACHE(rig) = NULL;
-    }
-
-    free(rig);
+    /* Release all buffers, and the rig_struct itself */
+    vaporize(rig);
 
     return (RIG_OK);
 }
