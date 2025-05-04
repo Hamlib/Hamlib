@@ -22,3 +22,26 @@ class TestClass:
         assert rot.set_position(0.0, 0.0) is None
         assert rot.get_position() is not None
         assert rot.close() is None
+
+
+    def test_all_methods(self):
+        """Just call all the methods"""
+        rot = Hamlib.Rot(ROT_MODEL)
+        assert rot is not None
+
+        # the tests that do not depend on open()
+        assert rot.set_conf("", "") is None
+        assert rot.get_conf("") == ""
+        assert rot.get_conf(0) == ""
+        assert rot.get_info() is None
+        assert rot.token_lookup("") is None
+
+        # the tests that depend on open()
+        assert rot.open() is None
+        assert rot.set_position(0.0, 0.0) is None
+        assert rot.get_position() == [0.0, 0.0]
+        assert rot.move(0, 0) is None
+        assert rot.stop() is None
+        assert rot.park() is None
+        assert rot.reset(Hamlib.ROT_RESET_ALL) is None
+        assert rot.close() is None
