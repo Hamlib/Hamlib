@@ -8044,7 +8044,7 @@ int HAMLIB_API rig_get_rig_info(RIG *rig, char *response, int max_response_len)
         rig_debug(RIG_DEBUG_ERR, "%s(%d): response len exceeded max %d chars\n",
                   __FILE__, __LINE__, max_response_len);
         ELAPSED2;
-        RETURNFUNC2(RIG_EINTERNAL);
+        RETURNFUNC2(-RIG_EINTERNAL);
     }
 
     ELAPSED2;

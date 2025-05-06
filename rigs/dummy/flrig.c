@@ -610,9 +610,9 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
         read_transaction(rig, xml, sizeof(xml)); // this might time out -- that's OK
 
         // we get an unknown response if function does not exist
-        if (strstr(xml, "unknown")) { set_transaction_inactive(rig); RETURNFUNC(RIG_ENAVAIL); }
+        if (strstr(xml, "unknown")) { set_transaction_inactive(rig); RETURNFUNC(-RIG_ENAVAIL); }
 
-        if (strstr(xml, "get_bw") && strstr(xml, "NONE")) { set_transaction_inactive(rig); RETURNFUNC(RIG_ENAVAIL); }
+        if (strstr(xml, "get_bw") && strstr(xml, "NONE")) { set_transaction_inactive(rig); RETURNFUNC(-RIG_ENAVAIL); }
 
         if (value)
         {
@@ -625,7 +625,7 @@ static int flrig_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
     if (value && strlen(value) == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: no value returned\n", __func__);
-        set_transaction_inactive(rig); RETURNFUNC(RIG_EPROTO);
+        set_transaction_inactive(rig); RETURNFUNC(-RIG_EPROTO);
     }
 
     ELAPSED2;
@@ -919,7 +919,7 @@ static int flrig_open(RIG *rig)
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: flrig_get_freq not working!!\n", __func__);
-        RETURNFUNC(RIG_EPROTO);
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     /* see if get_bwA is available */

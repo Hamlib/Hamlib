@@ -9820,7 +9820,7 @@ static int get_roofing_filter(RIG *rig, vfo_t vfo,
               "%s: Expected a valid roofing filter but got %c from '%s'\n", __func__,
               roofing_filter_choice, priv->ret_data);
 
-    RETURNFUNC(RIG_EPROTO);
+    RETURNFUNC(-RIG_EPROTO);
 }
 
 int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
