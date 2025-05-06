@@ -11,15 +11,7 @@ testcpp_SOURCES = testcpp.cc
 testcpp_LDADD = libhamlib++.la $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la $(DL_LIBS)
 testcpp_DEPENDENCIES = libhamlib++.la
 
-check_SCRIPTS = testcpp.sh
-
-TESTS = $(check_SCRIPTS)
+TESTS = $(check_PROGRAMS)
 
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
-
-testcpp.sh:
-	echo 'LD_LIBRARY_PATH=$(top_builddir)/c++/.libs:$(top_builddir)/dummy/.libs ./testcpp' > testcpp.sh
-	chmod +x ./testcpp.sh
-
-CLEANFILES = testcpp.sh
