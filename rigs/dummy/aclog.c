@@ -293,7 +293,7 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
         }
 
         // we get an unknown response if function does not exist
-        if (strstr(xml, "UNKNOWN")) { set_transaction_inactive(rig); RETURNFUNC(RIG_ENAVAIL); }
+        if (strstr(xml, "UNKNOWN")) { set_transaction_inactive(rig); RETURNFUNC(-RIG_ENAVAIL); }
 
         if (value) { strncpy(value, xml, value_len); }
 
@@ -304,7 +304,7 @@ static int aclog_transaction(RIG *rig, char *cmd, char *value,
     if (value && strlen(value) == 0)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: no value returned\n", __func__);
-        set_transaction_inactive(rig); RETURNFUNC(RIG_EPROTO);
+        set_transaction_inactive(rig); RETURNFUNC(-RIG_EPROTO);
     }
 
     ELAPSED2;
@@ -646,7 +646,7 @@ static int aclog_open(RIG *rig)
     if (retval != RIG_OK)
     {
         rig_debug(RIG_DEBUG_ERR, "%s: aclog_get_freq not working!!\n", __func__);
-        RETURNFUNC(RIG_EPROTO);
+        RETURNFUNC(-RIG_EPROTO);
     }
 
     STATE(rig)->current_vfo = RIG_VFO_A;
