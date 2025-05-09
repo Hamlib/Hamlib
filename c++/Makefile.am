@@ -1,3 +1,4 @@
+if ENABLE_CXX
 
 lib_LTLIBRARIES = libhamlib++.la
 libhamlib___la_SOURCES = rigclass.cc rotclass.cc ampclass.cc
@@ -15,3 +16,5 @@ TESTS = $(check_PROGRAMS)
 
 $(top_builddir)/src/libhamlib.la:
 	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
+
+endif
