@@ -560,6 +560,7 @@ AC_MSG_RESULT([$cf_with_cxx_binding])
 AS_IF([test x"${cf_with_cxx_binding}" = "xyes"],
       [BINDINGS="${BINDINGS} c++"])
 
+AM_CONDITIONAL([ENABLE_CXX], [test x"${cf_with_cxx_binding}" = "xyes"])
 
 dnl Check if perl-binding is wanted, default is to not build it
 
