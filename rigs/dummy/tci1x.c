@@ -407,7 +407,7 @@ static int tci1x_transaction(RIG *rig, char *cmd, char *cmd_arg, char *value,
     while ((value && (strlen(value) == 0))
             && retry--); // we'll do retries if needed
 
-    if (value && strlen(value) == 0) { RETURNFUNC(RIG_EPROTO); }
+    if (value && strlen(value) == 0) { RETURNFUNC(-RIG_EPROTO); }
 
     RETURNFUNC(RIG_OK);
 }

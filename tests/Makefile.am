@@ -110,6 +110,8 @@ check_SCRIPTS = testrig.sh testfreq.sh testbcd.sh testloc.sh testrigcaps.sh test
 
 TESTS = $(check_SCRIPTS)
 
+$(top_builddir)/src/libhamlib.la:
+	$(MAKE) -C $(top_builddir)/src/ libhamlib.la
 
 testrig.sh:
 	echo 'LD_LIBRARY_PATH=$(top_builddir)/src/.libs:$(top_builddir)/dummy/.libs ./testrig 1' > testrig.sh

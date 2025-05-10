@@ -29,6 +29,9 @@ libhamlib_la_DEPENDENCIES = $(top_builddir)/lib/libmisc.la $(top_builddir)/secur
 
 EXTRA_DIST = Android.mk hamlibdatetime.h.in band_changed.c
 
+# Rule to build the dependencies of libhamlib.la that are in other directories
+$(libhamlib_la_DEPENDENCIES):
+	$(MAKE) -C $(@D) $(@F)
 
 # If we have  a .git directory then we will  generate the hamlibdate.h
 # file and  replace it if it  is different. Fall  back to a copy  of a
