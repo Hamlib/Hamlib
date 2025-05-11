@@ -347,7 +347,7 @@ AC_MSG_CHECKING([whether to build USB dependent backends])
 AC_ARG_WITH([libusb],
     [AS_HELP_STRING([--without-libusb],
 	[disable USB dependent backends @<:@default=yes@:>@])],
-	[cf_with_libusb=no],
+	[cf_with_libusb=$with_libusb],
 	[cf_with_libusb=yes]
     )
 
