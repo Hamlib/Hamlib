@@ -445,11 +445,9 @@ AC_MSG_CHECKING([whether to build HTML rig feature matrix])
 AC_ARG_ENABLE([html-matrix],
     [AS_HELP_STRING([--disable-html-matrix],
 	[do not generate HTML rig feature matrix (requires libgd-dev) @<:@default=check@:>@])],
-	[cf_enable_html_matrix=no],
+	[cf_enable_html_matrix=$enable_html_matrix],
 	[cf_enable_html_matrix=check]
     )
-
-AC_MSG_RESULT([$cf_enable_html_matrix])
 
 AS_IF([test x"$cf_enable_html_matrix" != "xno"],
     [AC_CHECK_HEADERS([gd.h],
@@ -462,6 +460,7 @@ AS_IF([test x"$cf_enable_html_matrix" != "xno"],
 	)
     ])
 
+AC_MSG_RESULT([$cf_enable_html_matrix])
 AM_CONDITIONAL([HTML_MATRIX], [test x"${cf_enable_html_matrix}" = "xyes"])
 
 
