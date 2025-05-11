@@ -381,7 +381,7 @@ AC_MSG_CHECKING([whether to use readline in rigctl/rotctl])
 AC_ARG_WITH([readline],
     [AS_HELP_STRING([--without-readline],
 	[disable readline in rigctl/rotctl @<:@default=yes@:>@])],
-	[cf_with_readline_support=no],
+	[cf_with_readline_support=$with_readline],
 	[cf_with_readline_support=yes]
     )
 
