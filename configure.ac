@@ -403,7 +403,7 @@ AC_MSG_CHECKING([whether to use INDI in rigctl/rotctl])
     AC_ARG_WITH([indi],
         [AS_HELP_STRING([--without-indi],
     	[disable INDI in rigctl/rotctl @<:@default=yes@:>@])],
-    	[cf_with_indi_support=yes],
+    	[cf_with_indi_support=$with_indi],
     	[cf_with_indi_support=no]
     )
 #])
