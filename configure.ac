@@ -734,8 +734,11 @@ AC_MSG_CHECKING([whether to build winradio backend])
 AC_ARG_ENABLE([winradio],
 	      [AS_HELP_STRING([--disable-winradio],
 			      [do not build winradio backend @<:@default=yes@:>@])],
-	      [cf_with_winradio="no"],
-	      [cf_with_winradio="yes" AC_DEFINE([HAVE_WINRADIO],[1],[Define if winradio backend is built])])
+	      [cf_with_winradio="${enable_winradio}"],
+	      [cf_with_winradio="yes" ])
+AS_IF([test x"${cf_with_winradio}" = "xyes"],
+      [AC_DEFINE([HAVE_WINRADIO],[1],[Define if winradio backend is built])]
+)
 AC_MSG_RESULT([$cf_with_winradio])
 
 dnl Parallel port device disable
