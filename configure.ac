@@ -746,8 +746,11 @@ AC_MSG_CHECKING([whether to build parallel port devices])
 AC_ARG_ENABLE([parallel],
 	      [AS_HELP_STRING([--disable-parallel],
 			      [do not build parallel devices @<:@default=yes@:>@])],
-	      [cf_with_parallel="no"],
-	      [cf_with_parallel="yes" AC_DEFINE([HAVE_PARALLEL],[1],[Define if parallel devices are to be built])])
+	      [cf_with_parallel="${enable_parallel}"],
+	      [cf_with_parallel="yes"])
+AS_IF([test x"${cf_with_parallel}" = "xyes"],
+      [AC_DEFINE([HAVE_PARALLEL],[1],[Define if parallel devices are to be built])]
+)
 AC_MSG_RESULT([$cf_with_parallel])
 
 DL_LIBS=""
