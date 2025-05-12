@@ -666,19 +666,13 @@ transaction_read:
              * the decoder for callback. That way we don't ignore any
              * commands.
              */
-            // if we got FA or FB unexpectedly then perhaps RIG_TRN is enabled and we just need to handle it
-            if (strncmp(buffer, "FA", 2) == 0)
+            // If we got FA or FB unexpectedly then perhaps RIG_TRN is enabled
+            //    and we just need to handle it
+            if (buffer[0] == 'F' && (buffer[1] == 'A' || buffer[1] == 'B'))
             {
                 freq_t freq;
-                sscanf(buffer, "FA%lg", &freq);
-                rig_set_cache_freq(rig, RIG_VFO_A, freq);
-                goto transaction_read;
-            }
-            else if (strncmp(buffer, "FB", 2) == 0)
-            {
-                freq_t freq;
-                sscanf(buffer, "FB%lg", &freq);
-                rig_set_cache_freq(rig, RIG_VFO_B, freq);
+                sscanf(buffer + 2, "%lg", &freq);
+                rig_set_cache_freq(rig, buffer[1] == 'A' ? RIG_VFO_A : RIG_VFO_B, freq);
                 goto transaction_read;
             }
 

@@ -6030,10 +6030,10 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
         if (ptt)
         {
             int cache_ms_freq;
-            rig_get_cache_freq(rig, vfo, tx_freq, &cache_ms_freq);
+            retval = rig_get_cache_freq(rig, vfo, tx_freq, &cache_ms_freq);
             rig_debug(RIG_DEBUG_TRACE, "%s: ptt is on so returning last known freq\n",
                       __func__);
-            RETURNFUNC2(RIG_OK);
+            RETURNFUNC2(retval);
         }
     }
 
