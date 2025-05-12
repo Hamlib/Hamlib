@@ -276,52 +276,22 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'm':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             my_model = atoi(optarg);
             break;
 
         case 'r':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             rig_file = optarg;
             break;
 
         case 'p':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             ptt_file = optarg;
             break;
 
         case 'd':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             dcd_file = optarg;
             break;
 
         case 'P':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (!strcmp(optarg, "RIG"))
             {
                 ptt_type = RIG_PTT_RIG;
@@ -363,12 +333,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'D':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (!strcmp(optarg, "RIG"))
             {
                 dcd_type = RIG_DCD_RIG;
@@ -414,22 +378,10 @@ int main(int argc, char *argv[])
             break;
 
         case 'c':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             civaddr = optarg;
             break;
 
         case 't':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (strlen(optarg) > 1)
             {
                 send_cmd_term = strtol(optarg, NULL, 0);
@@ -442,12 +394,6 @@ int main(int argc, char *argv[])
             break;
 
         case 's':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (sscanf(optarg, "%d%1s", &serial_rate, dummy) != 1)
             {
                 fprintf(stderr, "Invalid baud rate of %s\n", optarg);
@@ -457,12 +403,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'C':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (*conf_parms != '\0')
             {
                 strcat(conf_parms, ",");
