@@ -750,7 +750,11 @@ static void *read_device(void *p)
     fd_set fds;
     struct timeval tv;
 
-    // the bytes from the microHam decive come in "frames"
+#if defined(_GNU_SOURCE)
+    pthread_setname_np(pthread_self(), "uham_read");
+#endif
+
+    // the bytes from the microHam device come in "frames"
     // a frame is a four-byte sequence. The first byte has the MSB unset,
     // then come three bytes with the MSB set
     // What comes here is an "infinite" loop. However this thread

@@ -85,6 +85,10 @@ void *rig_poll_routine(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting rig poll routine thread\n",
               __FILE__, __LINE__);
 
+#if defined(_GNU_SOURCE)
+    pthread_setname_np(pthread_self(), "rig_poll");
+#endif
+
     // Rig cache time should be equal to rig poll interval (should be set automatically by rigctld at least)
     rig_set_cache_timeout_ms(rig, HAMLIB_CACHE_ALL, rs->poll_interval);
 

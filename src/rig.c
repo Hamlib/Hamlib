@@ -50,8 +50,8 @@
  * \example ../tests/testrig.c
  */
 
-#include "hamlib/rig.h"
 #include "hamlib/config.h"
+#include "hamlib/rig.h"
 #include "fifo.h"
 
 #include <stdlib.h>
@@ -8629,6 +8629,10 @@ void *async_data_handler(void *arg)
     // TODO: add initial support for async in Kenwood kenwood_transaction (+one) functions -> add transaction_active flag usage
     // TODO: add initial support for async in Yaesu newcat_get_cmd/set_cmd (+validate) functions -> add transaction_active flag usage
 
+#if defined(_GNU_SOURCE)
+    pthread_setname_np(pthread_self(), "async_data");
+#endif
+
     while (rs->async_data_handler_thread_run)
     {
         int frame_length;
@@ -8720,6 +8724,10 @@ void *morse_data_handler(void *arg)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Starting morse data handler thread\n",
               __func__);
+
+#if defined(_GNU_SOURCE)
+    pthread_setname_np(pthread_self(), "Morse_data");
+#endif
 
     if (STATE(rig)->fifo_morse == NULL)
     {

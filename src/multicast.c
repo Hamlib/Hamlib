@@ -1,3 +1,4 @@
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -386,6 +387,10 @@ void *multicast_thread(void *vrig)
     ptt_t ptt, pttsave = 0;
     struct rig_cache *cachep = CACHE(rig);
     struct rig_state *rs = STATE(rig);
+
+#if defined(_GNU_SOURCE)
+    pthread_setname_np(pthread_self(), "multicast");
+#endif
 
     rs->multicast->runflag = 1;
 

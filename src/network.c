@@ -18,6 +18,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /**
  * \addtogroup rig_internal
@@ -1022,6 +1023,10 @@ void *multicast_publisher(void *arg)
     int socket_fd = args->socket_fd;
     ssize_t send_result;
 
+#if defined(_GNU_SOURCE)
+    pthread_setname_np(pthread_self(), "mcast_pub");
+#endif
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast publisher\n", __FILE__,
               __LINE__);
 
@@ -1360,6 +1365,10 @@ void *multicast_receiver(void *arg)
 
     struct sockaddr_in dest_addr;
     int socket_fd = args->socket_fd;
+
+#if defined(_GNU_SOURCE)
+    pthread_setname_np(pthread_self(), "mcast_rx");
+#endif
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting multicast receiver\n", __FILE__,
               __LINE__);
