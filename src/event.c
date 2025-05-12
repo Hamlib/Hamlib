@@ -85,7 +85,7 @@ void *rig_poll_routine(void *arg)
     rig_debug(RIG_DEBUG_VERBOSE, "%s(%d): Starting rig poll routine thread\n",
               __FILE__, __LINE__);
 
-#if defined(_GNU_SOURCE)
+#if _GNU_SOURCE
     pthread_setname_np(pthread_self(), "rig_poll");
 #endif
 

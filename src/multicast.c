@@ -388,7 +388,7 @@ void *multicast_thread(void *vrig)
     struct rig_cache *cachep = CACHE(rig);
     struct rig_state *rs = STATE(rig);
 
-#if defined(_GNU_SOURCE)
+#if _GNU_SOURCE
     pthread_setname_np(pthread_self(), "multicast");
 #endif
 

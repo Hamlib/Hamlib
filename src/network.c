@@ -1023,7 +1023,7 @@ void *multicast_publisher(void *arg)
     int socket_fd = args->socket_fd;
     ssize_t send_result;
 
-#if defined(_GNU_SOURCE)
+#if _GNU_SOURCE
     pthread_setname_np(pthread_self(), "mcast_pub");
 #endif
 
@@ -1366,7 +1366,7 @@ void *multicast_receiver(void *arg)
     struct sockaddr_in dest_addr;
     int socket_fd = args->socket_fd;
 
-#if defined(_GNU_SOURCE)
+#if _GNU_SOURCE
     pthread_setname_np(pthread_self(), "mcast_rx");
 #endif
 

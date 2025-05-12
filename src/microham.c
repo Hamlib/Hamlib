@@ -750,7 +750,7 @@ static void *read_device(void *p)
     fd_set fds;
     struct timeval tv;
 
-#if defined(_GNU_SOURCE)
+#if _GNU_SOURCE
     pthread_setname_np(pthread_self(), "uham_read");
 #endif
 
