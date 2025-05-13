@@ -490,7 +490,9 @@ void usage()
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
-        "  -V, --version                 output version information and exit\n\n"
+        "  -V, --version                 output version information and exit\n"
+        "  -                             read commands from standard input\n"
+        "\n"
     );
 
     usage_amp(stdout);

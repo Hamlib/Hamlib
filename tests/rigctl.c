@@ -957,7 +957,9 @@ void usage(void)
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n"
         "  -!, --cookie                  use cookie control\n"
-        "  -#, --skip-init               skip rig initialization\n\n"
+        "  -#, --skip-init               skip rig initialization\n"
+        "  -                             read commands from standard input\n"
+        "\n"
     );
 
     usage_rig(stdout);
