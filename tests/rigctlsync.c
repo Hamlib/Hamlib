@@ -215,12 +215,6 @@ int main(int argc, char *argv[])
 
     printf("rigctlsync Version 1.0\n");
 
-    if (argc < 3)
-    {
-        usage();
-        return 1;
-    }
-
     while (1)
     {
         int c;
@@ -491,10 +485,10 @@ int main(int argc, char *argv[])
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
-    if (argc == 1)
+    if (argc < 3)
     {
         usage();
-        exit(2);
+        exit(1);
     }
 
     my_rig = rig_init(my_model[0]);
