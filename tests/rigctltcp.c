@@ -1523,7 +1523,7 @@ void usage(void)
 
 
     printf(
-        "  -m, --model=ID                select radio model number. See model list\n"
+        "  -m, --model=ID                select radio model number. See model list (-l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
         "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
@@ -1540,12 +1540,12 @@ void usage(void)
         "  -u, --dump-caps               dump capabilities and exit\n"
         "  -o, --vfo                     do not default to VFO_CURR, require extra vfo arg\n"
         "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
-        "  -W, --twiddle_timeout         timeout after detecting vfo manual change\n"
-        "  -w, --twiddle_rit             suppress VFOB getfreq so RIT can be twiddled\n"
+        "  -W, --twiddle_timeout=SECONDS timeout after detecting vfo manual change\n"
+        "  -w, --twiddle_rit=SECONDS     suppress VFOB getfreq so RIT can be twiddled\n"
         "  -x, --uplink                  set uplink get_freq ignore, 1=Sub, 2=Main\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
-        "  -M, --multicast-addr=addr     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
-        "  -n, --multicast-port=port     set multicast UDP port, default 4531\n"
+        "  -M, --multicast-addr=ADDR     set multicast UDP address, default 0.0.0.0 (off), recommend 224.0.1.1\n"
+        "  -n, --multicast-port=PORT     set multicast UDP port, default 4531\n"
         "  -A, --password                set password for rigctld access\n"
         "  -R, --rigctld-idle            make rigctld close the rig when no clients are connected\n"
         "  -h, --help                    display this help and exit\n"
