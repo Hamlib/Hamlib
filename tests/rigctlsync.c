@@ -80,7 +80,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "B:m:M:r:R:p:d:P:D:s:S:c:C:lLuvhVZ"
+#define SHORT_OPTIONS "Bm:M:r:R:p:d:P:D:s:S:c:C:lLuvhVZ"
 static struct option long_options[] =
 {
     {"mapa2b",          0, 0, 'B'},
