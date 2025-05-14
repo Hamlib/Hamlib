@@ -1959,7 +1959,6 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
         //rig_debug(RIG_DEBUG_TRACE, "%s: after gettime, start = %ld,%ld\n", __func__,
         //          (long)start->tv_sec, (long)start->tv_nsec);
         return 999 * 1000; // so we can tell the difference in debug where we came from
-        break;
 
     case HAMLIB_ELAPSED_INVALIDATE:
         clock_gettime(CLOCK_REALTIME, start);
@@ -1968,8 +1967,8 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
         break;
     }
 
-    elapsed_msec = ((stop.tv_sec - start->tv_sec) + (stop.tv_nsec / 1e9 -
-                    start->tv_nsec / 1e9)) * 1e3;
+    elapsed_msec = (double)((stop.tv_sec - start->tv_sec) * 1000) + // sec -> ms
+                   (double)(stop.tv_nsec - start->tv_nsec) / 1e6;   // ns  -> ms
 
     //rig_debug(RIG_DEBUG_TRACE, "%s: elapsed_msecs=%.0f\n", __func__, elapsed_msec);
 
