@@ -725,7 +725,7 @@ void usage()
            "Daemon serving COMMANDs to a connected amplifier.\n\n");
 
     printf(
-        "  -m, --model=ID                select amplifier model number. See model list\n"
+        "  -m, --model=ID                select amplifier model number. See model list (-l)\n"
         "  -r, --amp-file=DEVICE         set device of the amplifier to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -t, --port=NUM                set TCP listening port, default %s\n"
@@ -734,7 +734,7 @@ void usage()
         "  -L, --show-conf               list all config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
-        "  -v, --verbose                 set verbose mode, cumulative\n"
+        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n",
