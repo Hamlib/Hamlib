@@ -347,7 +347,7 @@ AC_MSG_CHECKING([whether to build USB dependent backends])
 AC_ARG_WITH([libusb],
     [AS_HELP_STRING([--without-libusb],
 	[disable USB dependent backends @<:@default=yes@:>@])],
-	[cf_with_libusb=no],
+	[cf_with_libusb=$with_libusb],
 	[cf_with_libusb=yes]
     )
 
@@ -381,7 +381,7 @@ AC_MSG_CHECKING([whether to use readline in rigctl/rotctl])
 AC_ARG_WITH([readline],
     [AS_HELP_STRING([--without-readline],
 	[disable readline in rigctl/rotctl @<:@default=yes@:>@])],
-	[cf_with_readline_support=no],
+	[cf_with_readline_support=$with_readline],
 	[cf_with_readline_support=yes]
     )
 
@@ -403,7 +403,7 @@ AC_MSG_CHECKING([whether to use INDI in rigctl/rotctl])
     AC_ARG_WITH([indi],
         [AS_HELP_STRING([--without-indi],
     	[disable INDI in rigctl/rotctl @<:@default=yes@:>@])],
-    	[cf_with_indi_support=yes],
+    	[cf_with_indi_support=$with_indi],
     	[cf_with_indi_support=no]
     )
 #])
@@ -445,11 +445,9 @@ AC_MSG_CHECKING([whether to build HTML rig feature matrix])
 AC_ARG_ENABLE([html-matrix],
     [AS_HELP_STRING([--disable-html-matrix],
 	[do not generate HTML rig feature matrix (requires libgd-dev) @<:@default=check@:>@])],
-	[cf_enable_html_matrix=no],
+	[cf_enable_html_matrix=$enable_html_matrix],
 	[cf_enable_html_matrix=check]
     )
-
-AC_MSG_RESULT([$cf_enable_html_matrix])
 
 AS_IF([test x"$cf_enable_html_matrix" != "xno"],
     [AC_CHECK_HEADERS([gd.h],
@@ -462,6 +460,7 @@ AS_IF([test x"$cf_enable_html_matrix" != "xno"],
 	)
     ])
 
+AC_MSG_RESULT([$cf_enable_html_matrix])
 AM_CONDITIONAL([HTML_MATRIX], [test x"${cf_enable_html_matrix}" = "xyes"])
 
 
@@ -638,14 +637,14 @@ AS_IF([test x"${build_tcl}" = "xyes"],[
             AC_MSG_WARN([Unable to find Tcl pkgconfig])
             SC_PATH_TCLCONFIG
             SC_LOAD_TCLCONFIG
-        ])
 
-    tcl_save_CPPFLAGS=$CPPFLAGS
-    CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
-    AC_CHECK_HEADERS([tcl.h],
-	[],
-	[AC_MSG_ERROR([Unable to find Tcl headers])])
-    CPPFLAGS=$tcl_save_CPPFLAGS
+            tcl_save_CPPFLAGS=$CPPFLAGS
+            CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
+            AC_CHECK_HEADERS([tcl.h],
+            [],
+            [AC_MSG_ERROR([Unable to find Tcl headers])])
+            CPPFLAGS=$tcl_save_CPPFLAGS
+        ])
 
     BINDING_LIST="${BINDING_LIST} tcl"
     BINDING_ALL="${BINDING_ALL} all-tcl"
@@ -734,8 +733,11 @@ AC_MSG_CHECKING([whether to build winradio backend])
 AC_ARG_ENABLE([winradio],
 	      [AS_HELP_STRING([--disable-winradio],
 			      [do not build winradio backend @<:@default=yes@:>@])],
-	      [cf_with_winradio="no"],
-	      [cf_with_winradio="yes" AC_DEFINE([HAVE_WINRADIO],[1],[Define if winradio backend is built])])
+	      [cf_with_winradio="${enable_winradio}"],
+	      [cf_with_winradio="yes" ])
+AS_IF([test x"${cf_with_winradio}" = "xyes"],
+      [AC_DEFINE([HAVE_WINRADIO],[1],[Define if winradio backend is built])]
+)
 AC_MSG_RESULT([$cf_with_winradio])
 
 dnl Parallel port device disable
@@ -743,8 +745,11 @@ AC_MSG_CHECKING([whether to build parallel port devices])
 AC_ARG_ENABLE([parallel],
 	      [AS_HELP_STRING([--disable-parallel],
 			      [do not build parallel devices @<:@default=yes@:>@])],
-	      [cf_with_parallel="no"],
-	      [cf_with_parallel="yes" AC_DEFINE([HAVE_PARALLEL],[1],[Define if parallel devices are to be built])])
+	      [cf_with_parallel="${enable_parallel}"],
+	      [cf_with_parallel="yes"])
+AS_IF([test x"${cf_with_parallel}" = "xyes"],
+      [AC_DEFINE([HAVE_PARALLEL],[1],[Define if parallel devices are to be built])]
+)
 AC_MSG_RESULT([$cf_with_parallel])
 
 DL_LIBS=""
