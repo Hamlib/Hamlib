@@ -19,6 +19,8 @@
  *
  */
 
+#include <hamlib/config.h>
+
 /*
  * Compile only this model if usrp is available
  */
