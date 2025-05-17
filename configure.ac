@@ -637,14 +637,14 @@ AS_IF([test x"${build_tcl}" = "xyes"],[
             AC_MSG_WARN([Unable to find Tcl pkgconfig])
             SC_PATH_TCLCONFIG
             SC_LOAD_TCLCONFIG
-        ])
 
-    tcl_save_CPPFLAGS=$CPPFLAGS
-    CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
-    AC_CHECK_HEADERS([tcl.h],
-	[],
-	[AC_MSG_ERROR([Unable to find Tcl headers])])
-    CPPFLAGS=$tcl_save_CPPFLAGS
+            tcl_save_CPPFLAGS=$CPPFLAGS
+            CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
+            AC_CHECK_HEADERS([tcl.h],
+            [],
+            [AC_MSG_ERROR([Unable to find Tcl headers])])
+            CPPFLAGS=$tcl_save_CPPFLAGS
+        ])
 
     BINDING_LIST="${BINDING_LIST} tcl"
     BINDING_ALL="${BINDING_ALL} all-tcl"
