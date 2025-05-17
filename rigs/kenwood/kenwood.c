@@ -231,7 +231,7 @@ struct confparams kenwood_cfg_params[] =
     { RIG_CONF_END, NULL, }
 };
 
-int remove_nonprint(char *s)
+static int remove_nonprint(char *s)
 {
     int i, j = 0;
     if (s == NULL) return 0;
@@ -392,7 +392,7 @@ transaction_write:
         skip |= strncmp(cmdstr, "RD", 2) == 0;
         skip |= strncmp(cmdstr, "KYW", 3) == 0;
         skip |= strncmp(cmdstr, "KY ", 3) == 0;
-	skip |= strncmp(cmdstr, "KY0", 3) == 0;
+        skip |= strncmp(cmdstr, "KY0", 3) == 0;
         skip |= strncmp(cmdstr, "KY2", 3) == 0;
         skip |= strncmp(cmdstr, "PS1", 3) == 0;
         skip |= strncmp(cmdstr, "PS0", 3) == 0;
@@ -770,7 +770,7 @@ int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
         if (checklen && length != expected) /* worth retrying as some rigs
                                    occasionally send short results */
         {
-            // QRPLABS can't seem top decide if they give 37 or 38 bytes for IF command
+            // QRPLABS can't seem to decide if they give 37 or 38 bytes for IF command
             if (strncmp(cmd, "IF", 2) == 0 && rig->caps->rig_model == RIG_MODEL_QRPLABS) { break; }
 
             struct kenwood_priv_data *priv = STATE(rig)->priv;
@@ -5575,6 +5575,14 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
             SNPRINTF(morsebuf, sizeof(morsebuf), "KY %s", m2);
             break;
 
+        case RIG_MODEL_TS590S:
+        //??case RIG_MODEL_TS590SG:
+            /* The command must consist of 28 bytes right aligned.
+             * See https://github.com/Hamlib/Hamlib/issues/1634
+             */
+            SNPRINTF(morsebuf, sizeof(morsebuf), "KY %24s", m2);
+            break;
+
         case RIG_MODEL_TS890S:
             SNPRINTF(morsebuf, sizeof morsebuf, "KY2%s", m2);
             break;
@@ -5588,11 +5596,6 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
                 break;
             }
             /* FALL THROUGH */
-
-          case RIG_MODEL_TS590S:
-            /* the command must consist of 28 bytes right aligned */
-              SNPRINTF(morsebuf, sizeof(morsebuf), "KY %24s", m2);
-	            break;
 
         default:
             /* the command must consist of 28 bytes 0x20 padded */
