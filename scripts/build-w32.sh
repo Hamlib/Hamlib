@@ -114,7 +114,7 @@ following:
    a semi-colon ';' after the last path before adding the Hamlib path (NB. The
    entire path is highlighted and will be erased upon typing a character so
    click in the box to unselect the text first.  The PATH is important!!)
-   Append the Hamlib path, e.g. C:\Program Files\hamlib-w32-4.0~git\bin
+   Append the Hamlib path, e.g. C:\Program Files\hamlib-w32-$RELEASE\bin
 
  * Click OK for all three dialog boxes to save your changes.
 
