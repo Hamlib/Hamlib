@@ -772,8 +772,6 @@ int icom_init(RIG *rig)
     // Reset 0x25/0x26 command detection for the rigs that may support it
     icom_set_x25x26_ability(rig, -1);
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: done\n", __func__);
-
     RETURNFUNC(RIG_OK);
 }
 
@@ -9201,12 +9199,12 @@ int icom_process_async_frame(RIG *rig, size_t frame_length,
      * the rest is data
      * and don't forget one byte at the end for the EOM
      */
-    if (frame[2] != 0x00 || frame[2] == 0x01)
+    if (frame[2] != BCASTID && frame[2] != CTRLID)
     {
         // just ignoring 0x01 for now
         // fe fe 01 94 1c 03 00 80 07 07 00 fd
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: 3rd byte not 0x00 or is 0x01...not async\n",
-                  __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: Unknown/invalid destination - %#x\n",
+                  __func__, frame[2]);
         RETURNFUNC(RIG_OK);
     }
 
