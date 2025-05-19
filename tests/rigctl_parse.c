@@ -5141,7 +5141,7 @@ declare_proto_rig(send_cmd)
         RETURNFUNC2(RIG_OK);
     }
 
-    // need to move the eom_buf to rig-specifc backends
+    // need to move the eom_buf to rig-specific backends
     // we'll let KENWOOD backends use the ; char in the rigctl commands
     if (backend_num == RIG_KENWOOD || backend_num == RIG_YAESU)
     {

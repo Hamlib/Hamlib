@@ -212,7 +212,7 @@ struct rig_caps tci1x_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-//Structure for mapping tci1x dynmamic modes to hamlib modes
+//Structure for mapping tci1x dynamic modes to hamlib modes
 //tci1x displays modes as the rig displays them
 struct s_modeMap
 {
