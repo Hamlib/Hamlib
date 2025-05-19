@@ -91,7 +91,7 @@ pcrotor_move(ROT *rot, int direction, int speed)
 /*
  * PcRotor rotator capabilities.
  *
- * Control Interface schematics from, courtersy of Bob Hillard WA6UFQ:
+ * Control Interface schematics from, courtesy of Bob Hillard WA6UFQ:
  *   http://www.dxzone.com/cgi-bin/dir/jump2.cgi?ID=11173
  *
  * DB25-7=Data-5= Power up/Sleep

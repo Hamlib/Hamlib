@@ -485,7 +485,7 @@ static int ar7030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
 
     // fltbw    Mem_Page=0   Address=38
-    // Filter bandwidth dezimal in Hz.
+    // Filter bandwidth decimal in Hz.
     // Filter bandwidth (2 BCD digits : x.x kHz).
 
     setMemPtr(rig, 0, 0x38);

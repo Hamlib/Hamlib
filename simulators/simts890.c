@@ -1419,7 +1419,7 @@ int main(int argc, char *argv[])
             switch (buf[2])
             {
             case '0': // Frequency Marker Function
-            case '1': // Frequency Marker List Regiatration
+            case '1': // Frequency Marker List Registration
             case '2': // Total Number Registered of Frequency Marker List
             case '3': // Frequency Marker List Readout
             case '4': // Frequency Marker List Delete

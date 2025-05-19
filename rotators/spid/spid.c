@@ -631,7 +631,7 @@ const struct confparams spid_cfg_params[] =
         "0", RIG_CONF_NUMERIC, { .n = { 0, 0xff, 1 } }
     },
     {
-        TOK_ELRES, "el_resolution", "Eleveation resolution", "Number of pulses per degree, 0 = auto sense",
+        TOK_ELRES, "el_resolution", "Elevation resolution", "Number of pulses per degree, 0 = auto sense",
         "0", RIG_CONF_NUMERIC, { .n = { 0, 0xff, 1 } }
     },
     { RIG_CONF_END, NULL, }

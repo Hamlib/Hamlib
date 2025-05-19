@@ -549,7 +549,7 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf,
  * Original article:
  * http://www.elektor.com/magazines/2007/may/software-defined-radio.91527.lynkx
  *
- * Author (Burkhard Kainka) page, in german:
+ * Author (Burkhard Kainka) page, in German:
  * http://www.b-kainka.de/sdrusb.html
  */
 

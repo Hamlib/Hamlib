@@ -1176,7 +1176,7 @@ int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 
         val->i = ((10 * lvlbuf[1] + lvlbuf[2]) * 60 + /* hours */
                   10 * lvlbuf[3] + lvlbuf[4]) * 60 + /* minutes */
-                 10 * lvlbuf[5] + lvlbuf[6]; /* secondes */
+                 10 * lvlbuf[5] + lvlbuf[6]; /* seconds */
         break;
 
     case RIG_PARM_BEEP:

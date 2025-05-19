@@ -531,7 +531,7 @@ static int ft891_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
  * Returns RIG_OK on success or an error code on failure
  *
  * Comments:    Passsband is not set here.
- *              FT891 apparentlhy cannot set VFOB mode directly
+ *              FT891 apparently cannot set VFOB mode directly
  *              So we'll just set A and swap A into B
  *
  */

@@ -291,7 +291,7 @@ again1:
         }
 
         // first 2 bytes of everything are 0xfe so we won't test those
-        // this allows some corruptin of the 0xfe bytes which has been seen in the wild
+        // this allows some corruption of the 0xfe bytes which has been seen in the wild
         if (memcmp(&buf[2], &sendbuf[2], frm_len - 2) != 0)
         {
             /* Frames are different? */
@@ -620,7 +620,7 @@ static int read_icom_frame_generic(hamlib_port_t *p,
     while ((read < rxbuffer_len) && (rxbuffer[read - 1] != FI)
             && (rxbuffer[read - 1] != COL));
 
-    // Check that we have a valid frame preamble (which might be just a single preable character)
+    // Check that we have a valid frame preamble (which might be just a single preamble character)
     // Or an error code
     if (rxbuffer[0] != PR && rxbuffer[0] != COL)
     {

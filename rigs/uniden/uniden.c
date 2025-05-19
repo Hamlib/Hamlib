@@ -99,7 +99,7 @@ tone_t uniden_dcs_list[] =
  *          that the prefix is either the cmdstr prefix or OK.
  * data - Buffer for reply string.  Can be NULL, indicating that no reply is
  *        is needed and will return with RIG_OK after command was sent.
- * datasize - in: Size of buffer. It is the caller's responsibily to provide
+ * datasize - in: Size of buffer. It is the caller's responsibility to provide
  *            a large enough buffer for all possible replies for a command.
  *            out: location where to store number of bytes read.
  *

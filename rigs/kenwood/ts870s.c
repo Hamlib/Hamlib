@@ -237,7 +237,7 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 pbwidth_t mode_default_hpf;
 
                 /* we assume the HPF is set to default and set the LPF to
-                     give the best approximaation of the requested width */
+                     give the best approximation of the requested width */
                 if (RIG_MODE_AM == mode)
                 {
                     mode_default_hpf = 300;
