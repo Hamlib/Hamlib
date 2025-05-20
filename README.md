@@ -27,15 +27,15 @@ to reach the Wiki.
 Hamlib Design
 -------------
 
-The library provides functions for both radio and rotator control,
-and data retrieval from the radio or rotator.  A number of functions useful
+The library provides functions for radio, rotator and amplifier control,
+and data retrieval for supported devices.  A number of functions useful
 for calculating distance and bearing and grid square conversion are included.
 
 libhamlib.so -  library that provides generic API for all RIG types.
     This is what Application programmers will "see".  Will have different
     names on other platforms, e.g. libhamlib-2.dll on MS windows.  Also
-    contains all radio and rotator "backends" (formerly in their own
-    dlopen'ed libraries) provided by Hamlib.
+    contains all radio, rotator and amplifier "backends" (formerly in their
+    own dlopen'ed libraries) provided by Hamlib.
 
 Backend Examples are:
 ---------------------
