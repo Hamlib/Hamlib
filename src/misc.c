@@ -1967,6 +1967,7 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
         break;
     }
 
+    // Casts used to make sure the add is done as double
     elapsed_msec = (double)((stop.tv_sec - start->tv_sec) * 1000) + // sec -> ms
                    (double)(stop.tv_nsec - start->tv_nsec) / 1e6;   // ns  -> ms
 
@@ -1977,22 +1978,6 @@ double HAMLIB_API elapsed_ms(struct timespec *start, int option)
     return elapsed_msec;
 }
 //! @endcond
-
-
-int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t selection)
-{
-    rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d\n", __func__, selection);
-    return CACHE(rig)->timeout_ms;
-}
-
-int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
-                                        int ms)
-{
-    rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d, ms=%d\n", __func__,
-              selection, ms);
-    CACHE(rig)->timeout_ms = ms;
-    return RIG_OK;
-}
 
 static char *funcname = "Unknown";
 static int linenum = 0;

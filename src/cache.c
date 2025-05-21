@@ -310,14 +310,17 @@ int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int rig_get_cache(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq,
                   rmode_t *mode, int *cache_ms_mode, pbwidth_t *width, int *cache_ms_width)
 {
-    struct rig_cache *cachep = CACHE(rig);
-    struct rig_state *rs = STATE(rig);
+    struct rig_cache *cachep;
+    struct rig_state *rs;
 
     if (CHECK_RIG_ARG(rig) || !freq || !cache_ms_freq ||
             !mode || !cache_ms_mode || !width || !cache_ms_width)
     {
         return -RIG_EINVAL;
     }
+
+    cachep = CACHE(rig);
+    rs = STATE(rig);
 
     if (rig_need_debug(RIG_DEBUG_CACHE))
     {
@@ -565,6 +568,25 @@ int rig_get_cache_freq(RIG *rig, vfo_t vfo, freq_t *freq, int *cache_ms_freq_p)
     return retval;
 }
 
+/* Get cache timeout period
+ * Returns value in msec, -1 if error
+ */
+int HAMLIB_API rig_get_cache_timeout_ms(RIG *rig, hamlib_cache_t selection)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d\n", __func__, selection);
+    if (!rig) {return -1;}
+    return CACHE(rig)->timeout_ms;
+}
+
+int HAMLIB_API rig_set_cache_timeout_ms(RIG *rig, hamlib_cache_t selection,
+                                        int ms)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s: called selection=%d, ms=%d\n", __func__,
+              selection, ms);
+    if (!rig) {return -RIG_EINVAL;}
+    CACHE(rig)->timeout_ms = ms;
+    return RIG_OK;
+}
 
 void rig_cache_show(RIG *rig, const char *func, int line)
 {

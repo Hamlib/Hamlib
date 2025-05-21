@@ -28,6 +28,14 @@
 
 __BEGIN_DECLS
 
+/* It should be noted that there are two distinct cache implementations
+ * in Hamlib.  This one is for the app-facing side, providing cached status
+ * (freq, mode, band, etc) for application queries. The other is used by
+ * backends for rig status probes, watchdog timers, and other hardware related
+ * tasks. Also note that they use different times - timespec vs timeval.
+ *      - n3gb 2025-05-14
+ */
+
 /**
  * \brief Rig cache data
  *
@@ -108,6 +116,13 @@ struct rig_cache {
     int satmode; // if rig is in satellite mode
 };
 
+/* Access macros */
+#define CACHE(r) ((r)->cache_addr)
+//#define HAMLIB_CACHE(r) ((struct rig_cache *)rig_data_pointer(r, RIG_PTRX_CACHE))
+
+/* Function templates
+ * Does not include those marked as part of HAMLIB_API
+ */
 int rig_set_cache_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int rig_set_cache_freq(RIG *rig, vfo_t vfo, freq_t freq);
 void rig_cache_show(RIG *rig, const char *func, int line);
