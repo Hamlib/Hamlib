@@ -534,12 +534,12 @@ void usage()
            "Send COMMANDs to a connected antenna rotator.\n\n");
 
     printf(
-        "  -m, --model=ID                select rotator model number. See model list\n"
+        "  -m, --model=ID                select rotator model number. See model list (-l)\n"
         "  -r, --rot-file=DEVICE         set device of the rotator to operate on\n"
         "  -R, --rot-file2=DEVICE        set device of the 2nd rotator controller to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -t, --send-cmd-term=CHAR      set send_cmd command termination char\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -o, --set-azoffset=VAL        set offset for azimuth\n"
         "  -O, --set-eloffset=VAL        set offset for elevation\n"
         "  -L, --show-conf               list all config parameters\n"
@@ -549,10 +549,12 @@ void usage()
         "  -i, --read-history            read prior interactive session history\n"
         "  -I, --save-history            save current interactive session history\n"
 #endif
-        "  -v, --verbose                 set verbose mode, cumulative\n"
+        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -Z, --debug-time-stamps       enable time stamps for debug messages\n"
         "  -h, --help                    display this help and exit\n"
-        "  -V, --version                 output version information and exit\n\n"
+        "  -V, --version                 output version information and exit\n"
+        "  -                             read commands from standard input\n"
+        "\n"
     );
 
     usage_rot(stdout);

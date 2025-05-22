@@ -357,14 +357,14 @@ void usage()
 
 
     printf(
-        "  -m, --model=ID                select radio model number. See model list\n"
+        "  -m, --model=ID                select radio model number. See model list (rigctl -l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
         "  -P, --ptt-type=TYPE           set type of the PTT device to operate on\n"
-        "  -v, --verbose                 set verbose mode, cumulative\n"
+        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n"
     );

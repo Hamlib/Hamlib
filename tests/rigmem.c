@@ -408,22 +408,22 @@ void version()
 
 void usage()
 {
-    printf("Usage: rigmem [OPTION]... COMMAND...FILE\n"
+    printf("Usage: rigmem [OPTION]... COMMAND... FILE\n"
            "Backup/restore COMMANDs to a connected radio transceiver or receiver.\n\n");
 
 
     printf(
-        "  -m, --model=ID                select radio model number. See model list\n"
+        "  -m, --model=ID                select radio model number. See model list (rigctl -l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
         "  -C, --set-conf=PARM=VAL       set config parameters\n"
-        "  -p, --set-separator=SEP       set character separator instead of the CSV comma\n"
+        "  -p, --set-separator=CHAR      set character separator instead of the CSV comma\n"
         "  -a, --all                     bypass mem_caps, apply to all fields of channel_t\n"
 #ifdef HAVE_XML2
         "  -x, --xml                     use XML format instead of CSV\n"
 #endif
-        "  -v, --verbose                 set verbose mode, cumulative\n"
+        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n"
     );
