@@ -32,7 +32,7 @@
  *
  * The read s-meter CAT command seems only to return 17 to 23 depending
  * on the strength of the signal. Setting the RF attenuator on with no
- * attenna on does not decrease the level below 17. If you wish to read
+ * antenna on does not decrease the level below 17. If you wish to read
  * the s-meter on a specific frequency, set the frequency and wait a
  * 500-1000 mS before reading it.
 

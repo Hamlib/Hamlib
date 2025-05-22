@@ -114,7 +114,7 @@ following:
    a semi-colon ';' after the last path before adding the Hamlib path (NB. The
    entire path is highlighted and will be erased upon typing a character so
    click in the box to unselect the text first.  The PATH is important!!)
-   Append the Hamlib path, e.g. C:\Program Files\hamlib-w32-4.0~git\bin
+   Append the Hamlib path, e.g. C:\Program Files\hamlib-w32-$RELEASE\bin
 
  * Click OK for all three dialog boxes to save your changes.
 
@@ -124,8 +124,9 @@ Testing with the Hamlib Utilities
 
 To continue, be sure you have read the README.betatester file, especially the
 "Testing Hamlib" section.  The primary means of testing is by way of the
-rigctl utility for radios and rotctl utility for rotators.  Each is a command
-line program that is interactive or can act on a single command and exit.
+rigctl utility for radios, the rotctl utility for rotators and the ampctl
+utility for amplifiers.  Each is a command line program that is interactive
+or can act on a single command and exit.
 
 Documentation for each utility can be found as an HTML file in the doc
 directory.

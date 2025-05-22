@@ -1760,7 +1760,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (vfo == RIG_VFO_MEM && (priv->civ_731_mode || RIG_IS_IC706))
     {
-        // Memory channels have always 5-byte frequqncy
+        // Memory channels have always 5-byte frequency
         rig_debug(RIG_DEBUG_TRACE, "%s: VFO=MEM so turning off civ_731\n", __func__);
         civ_731_mode_save = 1;
         priv->civ_731_mode = 0;
@@ -8119,7 +8119,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called status=%d\n", __func__,
               (int) status);
 
-    // elimininate retries to speed this up
+    // eliminate retries to speed this up
     // especially important when rig is not turned on
     retry_save = rp->retry;
     timeout_retry_save = rp->timeout_retry;

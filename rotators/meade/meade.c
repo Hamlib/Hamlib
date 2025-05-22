@@ -85,7 +85,7 @@ struct meade_priv_data
  * cmdstr - Command to be sent to the rig.
  * data - Buffer for reply string.  Can be NULL, indicating that no reply is
  *        is needed, but answer will still be read.
- * data_len - in: Size of buffer. It is the caller's responsibily to provide
+ * data_len - in: Size of buffer. It is the caller's responsibility to provide
  *            a large enough buffer for all possible replies for a command.
  *
  * returns:

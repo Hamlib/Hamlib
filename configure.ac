@@ -822,10 +822,6 @@ echo Build_OS is $build_os
 
 dnl otherwise parallel 'make -jn' will fail
 
-## ---------------------------------- ##
-## Prepare rig backend dependencies ##
-## ---------------------------------- ##
-
 for be in ${RIG_BACKEND_LIST} ; do
 	RIGDIR=$(echo $be | awk -F "/" '{print $2}')
 	RIG_BACKENDEPS="${RIG_BACKENDEPS} \$(top_builddir)/rigs/${RIGDIR}/libhamlib-${RIGDIR}.la"
