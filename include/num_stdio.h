@@ -23,6 +23,9 @@
 #define _NUM_STDIO_H 1
 
 #include <locale.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
 /*
  * This header file is internal to Hamlib and its backends,
@@ -36,27 +39,42 @@
 #define num_sscanf(a...) \
     ({ int __ret; char *__savedlocale; \
        __savedlocale = setlocale(LC_NUMERIC, NULL); \
+       if (__savedlocale != NULL) { \
+           __savedlocale = strdup(__savedlocale); \
+           assert(__savedlocale != NULL); \
+       } \
        setlocale(LC_NUMERIC, "C"); \
        __ret = sscanf(a); \
        setlocale(LC_NUMERIC, __savedlocale); \
+       if (__savedlocale != NULL) free(__savedlocale); \
        __ret; \
      })
 
 #define num_sprintf(s, a...) \
     ({ int __ret; char *__savedlocale; \
        __savedlocale = setlocale(LC_NUMERIC, NULL); \
+       if (__savedlocale != NULL) { \
+           __savedlocale = strdup(__savedlocale); \
+           assert(__savedlocale != NULL); \
+       } \
        setlocale(LC_NUMERIC, "C"); \
        __ret = sprintf(s, a); \
        setlocale(LC_NUMERIC, __savedlocale); \
+       if (__savedlocale != NULL) free(__savedlocale); \
        __ret; \
      })
 
 #define num_snprintf(s, n, a...) \
     ({ int __ret; char *__savedlocale; \
        __savedlocale = setlocale(LC_NUMERIC, NULL); \
+       if (__savedlocale != NULL) { \
+           __savedlocale = strdup(__savedlocale); \
+           assert(__savedlocale != NULL); \
+       } \
        setlocale(LC_NUMERIC, "C"); \
        __ret = snprintf(s, n, a); \
        setlocale(LC_NUMERIC, __savedlocale); \
+       if (__savedlocale != NULL) free(__savedlocale); \
        __ret; \
      })
 
