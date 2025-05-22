@@ -80,7 +80,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "B:m:M:r:R:p:d:P:D:s:S:c:C:lLuvhVZ"
+#define SHORT_OPTIONS "Bm:M:r:R:p:d:P:D:s:S:c:C:lLuvhVZ"
 static struct option long_options[] =
 {
     {"mapa2b",          0, 0, 'B'},
@@ -214,12 +214,6 @@ int main(int argc, char *argv[])
     char conf_parms[MAXCONFLEN] = "";
 
     printf("rigctlsync Version 1.0\n");
-
-    if (argc < 3)
-    {
-        usage();
-        return 1;
-    }
 
     while (1)
     {
@@ -491,10 +485,10 @@ int main(int argc, char *argv[])
     rig_debug(RIG_DEBUG_VERBOSE, "%s",
               "Report bugs to <hamlib-developer@lists.sourceforge.net>\n\n");
 
-    if (argc == 1)
+    if (argc < 3)
     {
         usage();
-        exit(2);
+        exit(1);
     }
 
     my_rig = rig_init(my_model[0]);

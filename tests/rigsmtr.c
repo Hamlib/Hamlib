@@ -414,16 +414,16 @@ void usage()
            "Input S-Meter vs Azimuth.\n\n");
 
     printf(
-        "  -m, --model=ID                select radio model number. See model list\n"
+        "  -m, --model=ID                select radio model number. See model list (rigctl -l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
-        "  -M, --rot-model=ID            select rotator model number. See model list\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
+        "  -M, --rot-model=ID            select rotator model number. See model list (rotctl -l)\n"
         "  -R, --rot-file=DEVICE         set device of the rotator to operate on\n"
         "  -S, --rot-serial-speed=BAUD   set serial speed of the serial port\n"
         "  -N, --rot-set-conf=PARM=VAL   set rotator config parameters\n"
-        "  -v, --verbose                 set verbose mode, cumulative\n"
+        "  -v, --verbose                 set verbose mode, cumulative (-v to -vvvvv)\n"
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n\n"
     );

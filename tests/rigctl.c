@@ -932,7 +932,7 @@ void usage(void)
 
 
     printf(
-        "  -m, --model=ID                select radio model number. See model list\n"
+        "  -m, --model=ID                select radio model number. See model list (-l)\n"
         "  -r, --rig-file=DEVICE         set device of the radio to operate on\n"
         "  -p, --ptt-file=DEVICE         set device of the PTT device to operate on\n"
         "  -d, --dcd-file=DEVICE         set device of the DCD device to operate on\n"
@@ -941,7 +941,7 @@ void usage(void)
         "  -s, --serial-speed=BAUD       set serial speed of the serial port\n"
         "  -c, --civaddr=ID              set CI-V address, decimal (for Icom rigs only)\n"
         "  -t, --send-cmd-term=CHAR      set send_cmd command termination char\n"
-        "  -C, --set-conf=PARM=VAL       set config parameters\n"
+        "  -C, --set-conf=PARM=VAL[,...] set config parameters\n"
         "  -L, --show-conf               list all config parameters\n"
         "  -l, --list                    list all model numbers and exit\n"
         "  -u, --dump-caps               dump capabilities and exit\n"
@@ -957,7 +957,9 @@ void usage(void)
         "  -h, --help                    display this help and exit\n"
         "  -V, --version                 output version information and exit\n"
         "  -!, --cookie                  use cookie control\n"
-        "  -#, --skip-init               skip rig initialization\n\n"
+        "  -#, --skip-init               skip rig initialization\n"
+        "  -                             read commands from standard input\n"
+        "\n"
     );
 
     usage_rig(stdout);
