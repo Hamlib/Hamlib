@@ -357,7 +357,7 @@ struct rig_caps ic746_caps =
 #define S_MEM_2M_DUP_OFST   0x516   /* default 144 MHz duplex offset  3 byte little endian */
 #define S_MEM_AUTO_RPTR     0x518   /* auto repeater set 0=OFF; 1=ON-1; 2=ON-2 */
 #define S_MEM_LANG      0x523   /* 0=English 1=Japanese for voice announcer */
-#define S_MEM_TRCV      0x536   /* CI-V trancieve mode */
+#define S_MEM_TRCV      0x536   /* CI-V transceive mode */
 #define S_MEM_CMP_LVL       0x538   /* speech compressor level 0-10 */
 #define S_MEM_SBASS     0x539   /* SSB TX tone bass level */
 #define S_MEM_RTTY_FL_PB    0x562   /* 0=250 Hz, 1=300' 2 = 350, 3 = 500, 4 = 1 KHz */

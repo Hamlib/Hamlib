@@ -2027,7 +2027,7 @@ static int ft817_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
     /* Note: this doesn't have effect unless FT817 is in FM mode
        although the command is accepted in any mode.
     */
-    rig_debug(RIG_DEBUG_VERBOSE, "ft817: set repeter shift = %i\n", shift);
+    rig_debug(RIG_DEBUG_VERBOSE, "ft817: set repeater shift = %i\n", shift);
 
     switch (shift)
     {
@@ -2050,7 +2050,7 @@ static int ft817_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 {
     unsigned char data[YAESU_CMD_LENGTH - 1];
 
-    rig_debug(RIG_DEBUG_VERBOSE, "ft817: set repeter offs = %li\n", offs);
+    rig_debug(RIG_DEBUG_VERBOSE, "ft817: set repeater offs = %li\n", offs);
 
     /* fill in the offset freq */
     to_bcd_be(data, offs / 10, 8);

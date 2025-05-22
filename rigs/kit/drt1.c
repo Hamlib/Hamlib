@@ -285,7 +285,7 @@ int drt1_get_conf(RIG *rig, hamlib_token_t token, char *val)
 
  DDS is AD9951.
 
- The clock input is 45,012 MHz (also 2nd LO frequencie at the same time).
+ The clock input is 45,012 MHz (also 2nd LO frequency at the same time).
 
 The clock multiplier should be set to 8x at start value (possible, that this
 will change to lower clock multiplier).

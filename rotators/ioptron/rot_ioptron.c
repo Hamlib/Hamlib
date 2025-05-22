@@ -39,7 +39,7 @@
  *
  * cmdstr - Command to be sent to the rig.
  * data - Buffer for reply string.
- * resp_len - in: Expected length of response. It is the caller's responsibily to
+ * resp_len - in: Expected length of response. It is the caller's responsibility to
  *            provide a buffer at least 1 byte larger than this for null terminator.
  *
  *  COMMANDS  note: as of 12/2018 a mixture of V2 and V3
@@ -231,7 +231,7 @@ ioptron_stop(ROT *rot)
 }
 
 /** sets mount position, requires 4 steps
- * set azmiuth
+ * set azimuth
  * set altitude
  * goto set
  * stop tracking - mount starts tracking after goto
@@ -294,7 +294,7 @@ ioptron_set_position(ROT *rot, azimuth_t az, elevation_t el)
         }
     }
 
-    /* set azmiuth, returns '1" if OK */
+    /* set azimuth, returns '1" if OK */
     SNPRINTF(cmdstr, sizeof(cmdstr), ":Sz%09.0f#", faz);
     retval = ioptron_transaction(rot, cmdstr, retbuf, 1);
 

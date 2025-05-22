@@ -1472,7 +1472,7 @@ int ft897_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "ft897: set repeter shift = %i\n", shift);
+    rig_debug(RIG_DEBUG_VERBOSE, "ft897: set repeater shift = %i\n", shift);
 
     switch (shift)
     {
@@ -1495,7 +1495,7 @@ int ft897_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
 
-    rig_debug(RIG_DEBUG_VERBOSE, "ft897: set repeter offs = %li\n", offs);
+    rig_debug(RIG_DEBUG_VERBOSE, "ft897: set repeater offs = %li\n", offs);
 
     /* fill in the offset freq */
     to_bcd_be(data, offs / 10, 8);

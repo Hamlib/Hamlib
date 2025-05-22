@@ -217,7 +217,7 @@ struct rig_caps flrig_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-//Structure for mapping flrig dynmamic modes to hamlib modes
+//Structure for mapping flrig dynamic modes to hamlib modes
 //flrig displays modes as the rig displays them
 struct s_modeMap
 {

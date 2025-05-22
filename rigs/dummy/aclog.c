@@ -74,7 +74,7 @@ struct aclog_priv_data
     struct ext_list *ext_parms;
 };
 
-//Structure for mapping aclog dynmamic modes to hamlib modes
+//Structure for mapping aclog dynamic modes to hamlib modes
 //aclog displays modes as the rig displays them
 struct s_modeMap
 {

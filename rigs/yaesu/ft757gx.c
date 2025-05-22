@@ -750,7 +750,7 @@ static int ft757_get_update_data(RIG *rig)
     rig_debug(RIG_DEBUG_VERBOSE, "%s called Timeout=%d ms, Retry=%d\n",
               __func__, rp->timeout, maxtries);
 
-    /* At least on one model, returns erraticaly a timeout. Increasing the timeout
+    /* At least on one model, returns erratically a timeout. Increasing the timeout
     does not fix things. So we restart the read from scratch, it works most of times. */
     for (nbtries = 0 ; nbtries < maxtries ; nbtries++)
     {

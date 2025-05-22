@@ -525,7 +525,7 @@ static const struct confparams ic756pro2_ext_parms[] =
 #define S_MEM_BEEP      0x520   /* Button confirmation */
 #define S_MEM_SQL_CTL       0x522   /* RF/SQL ctl set 0=auto; 1 = sql; 2 = RF+SQL */
 #define S_MEM_QSPLT     0x524   /* enable quick split mode */
-#define S_MEM_TRCV      0x532   /* CI-V trancieve mode */
+#define S_MEM_TRCV      0x532   /* CI-V transceive mode */
 #define S_MEM_LANG      0x536   /* 0=English 1=Japanese for voice announcer */
 #define S_MEM_SCN_SPD       0x556   /* 0 = low; 1 = high */
 #define S_MEM_RTTY_FL_PB    0x561   /* 0=250 Hz, 1=300' 2 = 350, 3 = 500, 4 = 1 KHz */

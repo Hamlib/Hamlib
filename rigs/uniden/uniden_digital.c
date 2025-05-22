@@ -80,7 +80,7 @@ uniden_id_string_list[] =
  *          that the prefix is either the cmdstr prefix or OK.
  * data - Buffer for reply string.  Can be NULL, indicating that no reply is
  *        is needed and will return with RIG_OK after command was sent.
- * datasize - in: Size of buffer. It is the caller's responsibily to provide
+ * datasize - in: Size of buffer. It is the caller's responsibility to provide
  *            a large enough buffer for all possible replies for a command.
  *            out: location where to store number of bytes read.
  *
@@ -295,7 +295,7 @@ const char *uniden_digital_get_info(RIG *rig)
      *
      * XXX indicates the BCD996T returns some non-printable ascii chars
      * within its comma separated fields. See pg 30-32 of BCD996T_Protocol.pdf.
-     * These chars cause abnomalies on stdout! */
+     * These chars cause anomalies on stdout! */
 
     /* FIXME: Strip or replace non-printable chars return from STS command!
      * (Below is a snip from DSctl utils.c file)

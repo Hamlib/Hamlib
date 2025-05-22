@@ -1,6 +1,6 @@
 /* 2038 test
 This is OK on 64-bit systems and mingw64
-Does fail when compiled with gcc -m32 -o 2038 2038.c
+Does fail when compiled with gcc -m32 -o test2038 test2038.c
 */
 #include <stdio.h>
 #include <time.h>

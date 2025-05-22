@@ -258,7 +258,7 @@ int remove_nonprint(char *s)
  *        indicating that only a reply is needed (nothing will be sent).
  * data:    Buffer for reply string.  Can be NULL, indicating that no reply
  *        is needed and will return with RIG_OK after command was sent.
- * datasize: Size of buffer. It is the caller's responsibily to provide
+ * datasize: Size of buffer. It is the caller's responsibility to provide
  *         a large enough buffer for all possible replies for a command.
  *
  * returns:
@@ -1423,7 +1423,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
             break;
 
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: unhandled VFO=%s, deafaulting to VFOA\n",
+            rig_debug(RIG_DEBUG_ERR, "%s: unhandled VFO=%s, defaulting to VFOA\n",
                       __func__, rig_strvfo(priv->tx_vfo));
 
         }
