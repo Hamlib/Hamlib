@@ -168,42 +168,18 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'm':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             my_model = atoi(optarg);
             break;
 
         case 'r':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             rot_file = optarg;
             break;
 
         case 'R':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             rot_file2 = optarg;
             break;
 
         case 's':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (sscanf(optarg, "%d%1s", &serial_rate, dummy) != 1)
             {
                 fprintf(stderr, "Invalid baud rate of %s\n", optarg);
@@ -213,12 +189,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'C':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (*conf_parms != '\0')
             {
                 strcat(conf_parms, ",");
@@ -235,12 +205,6 @@ int main(int argc, char *argv[])
             break;
 
         case 't':
-            if (!optarg)
-            {
-                usage();        /* wrong arg count */
-                exit(1);
-            }
-
             if (strlen(optarg) > 1)
             {
                 send_cmd_term = strtol(optarg, NULL, 0);
@@ -253,22 +217,10 @@ int main(int argc, char *argv[])
             break;
 
         case 'o':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             az_offset = atof(optarg);
             break;
 
         case 'O':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             el_offset = atof(optarg);
             break;
 

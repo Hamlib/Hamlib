@@ -113,42 +113,18 @@ int main(int argc, char *argv[])
             exit(0);
 
         case 'm':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             rig_model = atoi(optarg);
             break;
 
         case 'r':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             rig_file = optarg;
             break;
 
         case 'c':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             civaddr = optarg;
             break;
 
         case 's':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (sscanf(optarg, "%d%1s", &serial_rate, dummy) != 1)
             {
                 fprintf(stderr, "Invalid baud rate of %s\n", optarg);
@@ -158,12 +134,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'C':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (*rig_conf_parms != '\0')
             {
                 strcat(rig_conf_parms, ",");
@@ -180,42 +150,18 @@ int main(int argc, char *argv[])
             break;
 
         case 'M':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             rot_model = atoi(optarg);
             break;
 
         case 'R':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             rot_file = optarg;
             break;
 
         case 'S':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             rot_serial_rate = atoi(optarg);
             break;
 
         case 'N':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (*rot_conf_parms != '\0')
             {
                 strcat(rot_conf_parms, ",");
