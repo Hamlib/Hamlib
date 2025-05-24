@@ -135,6 +135,37 @@ typedef struct Amp {
           return s;
   }
 
+  PyObject * get_level(setting_t level)
+  {
+      value_t val;
+
+      self->error_status = amp_get_level(self->amp, level, &val);
+      if (self->error_status != RIG_OK)
+          return Py_None;
+
+      switch (level)
+      {
+          case AMP_LEVEL_SWR:
+          case AMP_LEVEL_PF:
+              return PyFloat_FromDouble(val.f);
+
+          case AMP_LEVEL_NH:
+          case AMP_LEVEL_PWR_INPUT:
+          case AMP_LEVEL_PWR_FWD:
+          case AMP_LEVEL_PWR_REFLECTED:
+          case AMP_LEVEL_PWR_PEAK:
+              return PyLong_FromLong(val.i);
+
+          case AMP_LEVEL_FAULT:
+              return PyUnicode_FromString(val.s);
+
+          default:
+            self->error_status = -RIG_EINVAL;
+      }
+
+      return Py_None;
+  }
+
   AMPMETHOD1GET(get_powerstat, powerstat_t)
 
 };
