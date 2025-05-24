@@ -47,8 +47,8 @@ class TestClass:
         assert amp.reset(Hamlib.AMP_RESET_FAULT) is None
         assert amp.set_freq(0) is None
         # assert amp.get_freq() is None  # FIXME:  AttributeError: 'Amp' object has no attribute 'get_freq'
-        assert amp.set_powerstat(Hamlib.RIG_POWER_OFF) is None
-        # assert amp.get_powerstat() is None  # FIXME:  AttributeError: 'Amp' object has no attribute 'get_powerstat'
+        assert amp.set_powerstat(Hamlib.RIG_POWER_ON) is None
+        assert amp.get_powerstat() == Hamlib.RIG_POWER_ON
         assert amp.close() is None
         assert amp.state.comm_state == 0
         info = amp.get_info()
