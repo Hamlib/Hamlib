@@ -92,6 +92,15 @@ class TestClass:
         assert amp.set_freq(0) is None
         assert amp.set_freq(123.45) is None
         assert amp.get_freq() == 123.45
+        assert amp.get_level(Hamlib.AMP_LEVEL_NONE) is None
+        level = amp.get_level(Hamlib.AMP_LEVEL_SWR)
+        assert isinstance(level, float)
+        level = amp.get_level(Hamlib.AMP_LEVEL_PWR_REFLECTED)
+        assert isinstance(level, int)
+        level = amp.get_level(Hamlib.AMP_LEVEL_FAULT)
+        assert isinstance(level, str)
+        level = amp.get_level(123456)
+        assert level is None
         assert amp.set_powerstat(Hamlib.RIG_POWER_ON) is None
         assert amp.get_powerstat() == Hamlib.RIG_POWER_ON
         assert amp.close() is None
