@@ -147,4 +147,21 @@ typedef struct Amp {
   }
 
   AMPMETHOD1GET(get_powerstat, powerstat_t)
+
+  PyObject * get_level(setting_t level)
+  {
+      value_t val;
+
+      self->error_status = amp_get_level(self->amp, level, &val);
+      if (self->error_status != RIG_OK)
+          return Py_None;
+
+      if (AMP_LEVEL_IS_FLOAT(level))
+          return PyFloat_FromDouble(val.f);
+      else if (AMP_LEVEL_IS_STRING(level))
+          return PyUnicode_FromString(val.s);
+
+      return PyLong_FromLong(val.i);
+  }
+
 };
