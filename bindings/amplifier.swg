@@ -104,7 +104,7 @@ typedef struct Amp {
 /*
  * declare wrapper method with one output argument besides AMP* 
  */
-#define AMPMETHOD1VGET(f, t1) t1 f \
+#define AMPMETHOD1GET(f, t1) t1 f () \
         { t1 _##t1; self->error_status = amp_##f(self->amp, &_##t1); return _##t1; }
 
 
