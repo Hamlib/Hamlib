@@ -144,15 +144,12 @@ typedef struct Amp {
           return s;
   }
 
+  AMPMETHOD1GET(get_powerstat, powerstat_t)
 };
 %{
 
   void Amp_get_freq(Amp *self, freq_t *freq)
   {
     self->error_status = amp_get_freq(self->amp, freq);
-  }
-  void Amp_get_powerstat(Amp *self, powerstat_t *status)
-  {
-    self->error_status = amp_get_powerstat(self->amp, status);
   }
 %}
