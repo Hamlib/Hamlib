@@ -137,6 +137,8 @@ typedef struct Amp {
           return s;
   }
 
+  AMPMETHOD1GET(get_freq, freq_t)
+
   const char * get_info(void) {
           const char *s;
           s = amp_get_info(self->amp);
@@ -146,10 +148,3 @@ typedef struct Amp {
 
   AMPMETHOD1GET(get_powerstat, powerstat_t)
 };
-%{
-
-  void Amp_get_freq(Amp *self, freq_t *freq)
-  {
-    self->error_status = amp_get_freq(self->amp, freq);
-  }
-%}
