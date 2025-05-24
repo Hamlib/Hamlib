@@ -186,7 +186,7 @@ static int dummy_amp_get_level(AMP *amp, setting_t level, value_t *val)
         return RIG_OK;
 
     case AMP_LEVEL_NH:
-        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_UH\n", __func__);
+        rig_debug(RIG_DEBUG_VERBOSE, "%s AMP_LEVEL_NH\n", __func__);
         val->i = flag == 0 ? 0 : 8370;
         return RIG_OK;
 
