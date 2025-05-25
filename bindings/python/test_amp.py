@@ -19,6 +19,11 @@ class TestClass:
         amp = Hamlib.Amp(AMP_MODEL)
         assert amp is not None
 
+        assert isinstance(amp.caps.model_name, str)
+        assert isinstance(amp.caps.mfg_name, str)
+        assert isinstance(amp.caps.version, str)
+        assert isinstance(amp.caps.copyright, str)
+
         assert amp.set_conf("", "") is None
         assert amp.get_conf("") == ""
         assert amp.get_conf(0) == ""

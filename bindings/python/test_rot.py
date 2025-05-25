@@ -19,6 +19,11 @@ class TestClass:
         rot = Hamlib.Rot(ROT_MODEL)
         assert rot is not None
 
+        assert isinstance(rot.caps.model_name, str)
+        assert isinstance(rot.caps.mfg_name, str)
+        assert isinstance(rot.caps.version, str)
+        assert isinstance(rot.caps.copyright, str)
+
         assert rot.set_conf("", "") is None
         assert rot.get_conf("") == ""
         assert rot.get_conf(0) == ""
