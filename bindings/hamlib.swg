@@ -29,9 +29,6 @@
 
 #include <hamlib/config.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/rotator.h>
-#include <hamlib/amplifier.h>
 //mdblack98 -- Commented this out -- is anybody using the functions in misc.h?
 //If so, then those functions should be moved to rig.h
 //#include "misc.h"
@@ -221,15 +218,6 @@
 %immutable rot_caps::copyright;
 
 %include <hamlib/rig_dll.h>
-
-%include <hamlib/riglist.h>
-%include <hamlib/rig.h>
-
-%include <hamlib/rotlist.h>
-%include <hamlib/rotator.h>
-
-%include <hamlib/amplist.h>
-%include <hamlib/amplifier.h>
 
 %inline {
 typedef const char * const_char_string;
