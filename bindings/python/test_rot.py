@@ -49,6 +49,8 @@ class TestClass:
         assert rot.set_position(0.0, 0.0) is None
         assert rot.get_position() == [0.0, 0.0]
         assert rot.move(0, 0) is None
+        assert rot.get_level(Hamlib.ROT_LEVEL_NONE) is None
+        assert rot.get_level(Hamlib.ROT_LEVEL_SPEED) == 0
         assert rot.stop() is None
         assert rot.park() is None
         assert rot.reset(Hamlib.ROT_RESET_ALL) is None
