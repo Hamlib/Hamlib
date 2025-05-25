@@ -154,27 +154,12 @@ typedef struct Amp {
       if (self->error_status != RIG_OK)
           return Py_None;
 
-      switch (level)
-      {
-          case AMP_LEVEL_SWR:
-          case AMP_LEVEL_PF:
-              return PyFloat_FromDouble(val.f);
+      if (AMP_LEVEL_IS_FLOAT(level))
+          return PyFloat_FromDouble(val.f);
+      else if (AMP_LEVEL_IS_STRING(level))
+          return PyUnicode_FromString(val.s);
 
-          case AMP_LEVEL_NH:
-          case AMP_LEVEL_PWR_INPUT:
-          case AMP_LEVEL_PWR_FWD:
-          case AMP_LEVEL_PWR_REFLECTED:
-          case AMP_LEVEL_PWR_PEAK:
-              return PyLong_FromLong(val.i);
-
-          case AMP_LEVEL_FAULT:
-              return PyUnicode_FromString(val.s);
-
-          default:
-            self->error_status = -RIG_EINVAL;
-      }
-
-      return Py_None;
+      return PyLong_FromLong(val.i);
   }
 
   AMPMETHOD1GET(get_powerstat, powerstat_t)
