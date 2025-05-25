@@ -14,20 +14,11 @@ AMP_MODEL = Hamlib.AMP_MODEL_DUMMY
 class TestClass:
     """Container class for tests"""
 
-    def test_open_close(self):
-        """Smoke test"""
-        amp = Hamlib.Amp(AMP_MODEL)
-        assert amp is not None
-        assert amp.open() is None
-        assert amp.close() is None
-
-
-    def test_all_methods(self):
-        """Just call all the methods"""
+    def test_without_open(self):
+        """Call all the methods that do not depend on open()"""
         amp = Hamlib.Amp(AMP_MODEL)
         assert amp is not None
 
-        # the tests that do not depend on open()
         assert amp.set_conf("", "") is None
         assert amp.get_conf("") == ""
         assert amp.get_conf(0) == ""
@@ -36,9 +27,15 @@ class TestClass:
         assert amp.set_conf("mcfg", "foo") is None
         conf = amp.get_conf("mcfg")
         assert conf == ""  # FIXME: should return "foo"
+
         assert amp.token_lookup("") is None
 
-        # the tests that depend on open()
+
+    def test_with_open(self):
+        """Call all the methods that depend on open()"""
+        amp = Hamlib.Amp(AMP_MODEL)
+        assert amp is not None
+
         assert amp.state.comm_state == 0
         assert amp.open() is None
         assert amp.state.comm_state == 1

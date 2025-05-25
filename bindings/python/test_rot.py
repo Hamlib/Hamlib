@@ -14,22 +14,11 @@ ROT_MODEL = Hamlib.ROT_MODEL_DUMMY
 class TestClass:
     """Container class for tests"""
 
-    def test_open_close(self):
-        """Smoke test"""
-        rot = Hamlib.Rot(ROT_MODEL)
-        assert rot is not None
-        assert rot.open() is None
-        assert rot.set_position(0.0, 0.0) is None
-        assert rot.get_position() is not None
-        assert rot.close() is None
-
-
-    def test_all_methods(self):
-        """Just call all the methods"""
+    def test_without_open(self):
+        """Call all the methods that do not depend on open()"""
         rot = Hamlib.Rot(ROT_MODEL)
         assert rot is not None
 
-        # the tests that do not depend on open()
         assert rot.set_conf("", "") is None
         assert rot.get_conf("") == ""
         assert rot.get_conf(0) == ""
@@ -38,9 +27,15 @@ class TestClass:
         assert rot.set_conf("mcfg", "foo") is None
         conf = rot.get_conf("mcfg")
         assert conf == "foo"
+
         assert rot.token_lookup("") is None
 
-        # the tests that depend on open()
+
+    def test_with_open(self):
+        """Call all the methods that depend on open()"""
+        rot = Hamlib.Rot(ROT_MODEL)
+        assert rot is not None
+
         assert rot.state.comm_state == 0
         assert rot.open() is None
         assert rot.state.comm_state == 1
