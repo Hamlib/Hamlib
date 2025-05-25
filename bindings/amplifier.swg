@@ -23,6 +23,11 @@
 #include <hamlib/amplifier.h>
 %}
 
+%immutable amp_caps::model_name;
+%immutable amp_caps::mfg_name;
+%immutable amp_caps::version;
+%immutable amp_caps::copyright;
+
 %include <hamlib/amplist.h>
 %include <hamlib/amplifier.h>
 

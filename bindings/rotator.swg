@@ -22,6 +22,11 @@
 #include <hamlib/rotator.h>
 %}
 
+%immutable rot_caps::model_name;
+%immutable rot_caps::mfg_name;
+%immutable rot_caps::version;
+%immutable rot_caps::copyright;
+
 %include <hamlib/rotator.h>
 %include <hamlib/rotlist.h>
 
