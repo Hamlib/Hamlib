@@ -38,6 +38,17 @@
 %}
 
 /*
+ * symbols that shouldn't be changed
+ */
+%immutable clone_combo_get;
+%immutable clone_combo_set;
+%immutable confparams::dflt;
+%immutable confparams::label;
+%immutable confparams::name;
+%immutable confparams::tooltip;
+%immutable cs;
+
+/*
  * symbols that won't be wrapped
  */
 %include "ignore.swg"
@@ -196,26 +207,6 @@
 #endif
 #endif
 #endif
-
-%immutable confparams::name;
-%immutable confparams::label;
-%immutable confparams::tooltip;
-%immutable confparams::dflt;
-%immutable cs;
-%immutable rig_caps::model_name;
-%immutable rig_caps::mfg_name;
-%immutable rig_caps::version;
-%immutable rig_caps::copyright;
-%immutable hamlib_version2;
-%immutable hamlib_copyright2;
-
-%immutable clone_combo_set;
-%immutable clone_combo_get;
-
-%immutable rot_caps::model_name;
-%immutable rot_caps::mfg_name;
-%immutable rot_caps::version;
-%immutable rot_caps::copyright;
 
 %include <hamlib/rig_dll.h>
 
