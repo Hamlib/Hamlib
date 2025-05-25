@@ -54,7 +54,7 @@ typedef struct Amp {
 				{ self->error_status = amp_##f(self->amp, _##t1##_1, _##t2##_2); }
 #define AMPMETHOD3(f, t1, t2, t3) void f (t1 _##t1##_1, t2 _##t2##_2, t3 _##t3##_3) \
 				{ self->error_status = amp_##f(self->amp, _##t1##_1, _##t2##_2, t3 _##t3##_3); }
-#define AMPMETHOD4(f, t1, t2, t3, t4) void f (t1 _##t1##_1, t2 _##t2##_3, t3 _##t3##_3, ##t4##_4) \
+#define AMPMETHOD4(f, t1, t2, t3, t4) void f (t1 _##t1##_1, t2 _##t2##_3, t3 _##t3##_3, t4 ##t4##_4) \
 				{ self->error_status = amp_##f(self->amp, _##t1##_1, _##t2##_3, t3 _##t3##_3, ##t4##_4); }
 
 %extend Amp {
