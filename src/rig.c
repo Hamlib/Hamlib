@@ -2945,7 +2945,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     RETURNFUNC(retcode);
 }
 
-/*
+/**
  * \brief get the mode of the target VFO
  * \param rig   The rig handle
  * \param vfo   The target VFO
