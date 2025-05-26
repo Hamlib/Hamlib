@@ -2,7 +2,7 @@ Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
 Copyright (C) 2000-2023  Stephane Fillod, and others
-Copyright (C) 2000-2023  Michael Black W9MDB, and others
+Copyright (C) 2000-2025  Michael Black W9MDB, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
@@ -12,7 +12,24 @@ Version 5.x -- future
         * rot_get_conf deprecated and replaced by rot_get_conf2
         * Change FT1000MP Mark V model names to align with FT1000MP
 
+Version 4.7.0
+        * 2025-12-01 (target)
+
 Version 4.6.3
+        * 2025-06-10
+        * Release dedicated to the memory of Michael Black, W9MDB (SK).  Mike was a
+          long-time contributor to Hamlib and led development of the project for over
+          five years from 2020 to 2025.  Mike passed away on March 28, 2025 due to
+          complications from ALS (Lou Gehrig's disease).
+
+        * Fix attempt to use memory returned by setlocale() after being freed (TNX Mooneer Salem)
+        * Language bindings configuration and build fixes (TNX Daniele Forsi)
+        * Various build system and compilation fixes (TNX Daniele Forsi)
+        * IC-705 filter selection bandwidth for FM and WFM (TNX Kenji Rikitake)
+        * IC-705 COMP, VD, and ID meter calibration values (TNX Kenji Rikitake)
+        * Fix ACLog thousands separator
+        * Documentation updates, typo fixes, man page fixes (TNX Daniele Forsi)
+        * Drop redundant token lookups and make local functions static (TNX George Baltz)
         * Fix rigctl showing hamlib_verson when connecting to rigctld
         * Add rig CODAN 2110
 
