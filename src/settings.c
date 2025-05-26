@@ -90,6 +90,7 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         return -RIG_ENAVAIL;
     }
 
+    rig_lock(rig, 1);
     if ((caps->targetable_vfo & RIG_TARGETABLE_LEVEL)
             || vfo == RIG_VFO_CURR
             || vfo == STATE(rig)->current_vfo)
@@ -103,12 +104,14 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         }
 
 #endif
-
-        return caps->set_level(rig, vfo, level, val);
+        retcode = caps->set_level(rig, vfo, level, val);
+        rig_lock(rig, 0);
+        return retcode;
     }
 
     if (!caps->set_vfo)
     {
+        rig_lock(rig, 0);
         return -RIG_ENTARGET;
     }
 
@@ -117,11 +120,13 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     if (retcode != RIG_OK)
     {
+        rig_lock(rig, 0);
         return retcode;
     }
 
     retcode = caps->set_level(rig, vfo, level, val);
     caps->set_vfo(rig, curr_vfo);
+    rig_lock(rig, 0);
     return retcode;
 }
 
@@ -172,6 +177,7 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         return -RIG_ENAVAIL;
     }
 
+    rig_lock(rig, 1); // Keep Out!
     /*
      * Special case(frontend emulation): calibrated S-meter reading
      */
@@ -187,10 +193,12 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         if (retcode != RIG_OK)
         {
+            rig_lock(rig, 0);
             return retcode;
         }
 
         val->i = (int)rig_raw2val(rawstr.i, &rs->str_cal);
+        rig_lock(rig, 0);
         return RIG_OK;
     }
 
@@ -199,12 +207,14 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             || vfo == RIG_VFO_CURR
             || vfo == rs->current_vfo)
     {
-
-        return caps->get_level(rig, vfo, level, val);
+        retcode = caps->get_level(rig, vfo, level, val);
+        rig_lock(rig, 0);
+        return retcode;
     }
 
     if (!caps->set_vfo)
     {
+        rig_lock(rig, 0);
         return -RIG_ENTARGET;
     }
 
@@ -213,11 +223,13 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     if (retcode != RIG_OK)
     {
+        rig_lock(rig, 0);
         return retcode;
     }
 
     retcode = caps->get_level(rig, vfo, level, val);
     caps->set_vfo(rig, curr_vfo);
+    rig_lock(rig, 0);
     return retcode;
 }
 
