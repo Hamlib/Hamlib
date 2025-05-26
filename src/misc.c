@@ -1028,7 +1028,7 @@ static const struct
     { AMP_LEVEL_NONE, "" },
 };
 
-/*
+/**
  * \brief check input to set_level
  * \param rig Pointer to rig data
  * \param level RIG_LEVEL_* trying to set
