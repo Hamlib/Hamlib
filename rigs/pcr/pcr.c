@@ -589,7 +589,7 @@ pcr_open(RIG *rig)
 
     rig_flush(rp);
 
-    /* return RIG_ERJCTED if power is off */
+    /* return -RIG_ERJCTED if power is off */
     err = pcr_transaction(rig, "H1?");
 
     if (err != RIG_OK)
@@ -1939,7 +1939,7 @@ int pcr_get_powerstat(RIG *rig, powerstat_t *status)
     struct pcr_priv_data *priv = (struct pcr_priv_data *) STATE(rig)->priv;
     int err;
 
-    /* return RIG_ERJCTED if power is off */
+    /* return -RIG_ERJCTED if power is off */
     err = pcr_transaction(rig, "H1?");
 
     if (err != RIG_OK && err != -RIG_ERJCTED)
