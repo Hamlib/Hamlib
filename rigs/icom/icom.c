@@ -1232,7 +1232,7 @@ retry_open:
     {
         // maybe we need power on?
         rig_debug(RIG_DEBUG_VERBOSE, "%s trying power on\n", __func__);
-        retval = abs(rig_set_powerstat(rig, 1));
+        retval = rig_set_powerstat(rig, 1);
 
         // this is only a fatal error if powerstat is implemented
         // if not implemented than we're at an error here
@@ -1243,7 +1243,7 @@ retry_open:
             rig_debug(RIG_DEBUG_ERR, "%s: rig_set_powerstat failed: %s\n", __func__,
                       rigerror(retval));
 
-            if (retval == RIG_ENIMPL || retval == RIG_ENAVAIL)
+            if (retval == -RIG_ENIMPL || retval == -RIG_ENAVAIL)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: rig_set_powerstat not implemented for rig\n",
                           __func__);
@@ -1316,11 +1316,11 @@ int icom_rig_close(RIG *rig)
     {
         // maybe we need power off?
         rig_debug(RIG_DEBUG_VERBOSE, "%s trying power off\n", __func__);
-        int retval = abs(rig_set_powerstat(rig, 0));
+        int retval = rig_set_powerstat(rig, 0);
 
         // this is only a fatal error if powerstat is implemented
         // if not implemented than we're at an error here
-        if (retval != RIG_OK && retval != RIG_ENIMPL && retval != RIG_ENAVAIL)
+        if (retval != RIG_OK && retval != -RIG_ENIMPL && retval != -RIG_ENAVAIL)
         {
             rig_debug(RIG_DEBUG_WARN, "%s: unexpected retval here: %s\n",
                       __func__, rigerror(retval));

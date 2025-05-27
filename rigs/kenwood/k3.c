@@ -2352,7 +2352,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         }
         else
         {
-            return RIG_EPROTO;
+            return -RIG_EPROTO;
         }
 
         // extended K22 format PCnnnx where 0=.1W units and 1=1W units

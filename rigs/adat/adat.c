@@ -1565,9 +1565,9 @@ int adat_cmd_recover_from_error(RIG *pRig, int nError)
 
         // Recover from communication error
 
-        if ((nError == RIG_ETIMEOUT)
-                || (nError == RIG_EPROTO)
-                || (nError == RIG_EIO))
+        if ((nError == -RIG_ETIMEOUT)
+                || (nError == -RIG_EPROTO)
+                || (nError == -RIG_EIO))
         {
 
             rig_close(pRig);
