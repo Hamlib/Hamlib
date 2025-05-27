@@ -3,12 +3,14 @@
 MACROS = \
 	ax_append_flag.m4 \
 	ax_cflags_warn_all.m4 \
+	ax_cxx_compile_stdcxx.m4 \
+	ax_lib_indi.m4 \
+	ax_lib_nova.m4 \
+	ax_lib_readline.m4 \
+	ax_lua.m4 \
 	ax_pkg_swig.m4 \
 	ax_pthread.m4 \
 	ax_python_devel.m4 \
-	ax_lib_indi.m4 \
-	ax_lib_nova.m4 \
-    ax_cxx_compile_stdcxx.m4 \
 	gr_doxygen.m4 \
 	gr_pwin32.m4 \
 	hl_getaddrinfo.m4 \
