@@ -197,13 +197,6 @@ int main(int argc, char *argv[])
             write(fd, pbuf, strlen(pbuf));
             continue;
         }
-        else if (strcmp(buf, "MG;") == 0)
-        {
-            hl_usleep(mysleep * 1000);
-            pbuf = "MG050;";
-            write(fd, pbuf, strlen(pbuf));
-            continue;
-        }
         else if (strcmp(buf, "AG;") == 0)
         {
             hl_usleep(mysleep * 1000);
