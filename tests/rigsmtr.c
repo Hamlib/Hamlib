@@ -394,7 +394,7 @@ int set_conf_rig(RIG *rig, char *conf_parms)
 
         if (!q)
         {
-            return RIG_EINVAL;
+            return -RIG_EINVAL;
 
             *q++ = '\0';
             n = strchr(q, ',');

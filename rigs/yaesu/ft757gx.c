@@ -508,7 +508,7 @@ static int ft757gx_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return RIG_OK;
     }
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 /*

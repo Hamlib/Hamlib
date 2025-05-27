@@ -133,7 +133,7 @@ grbl_request(ROT *rot, char *request, uint32_t req_size, char *response,
             rot_debug(RIG_DEBUG_ERR, "%s write_block fail!\n", __func__);
             //exit(-1);
             fail_count++;
-            //return RIG_EIO;
+            //return -RIG_EIO;
         }
         else
         {
@@ -150,7 +150,7 @@ grbl_request(ROT *rot, char *request, uint32_t req_size, char *response,
             rot_debug(RIG_DEBUG_ERR, "%s read_string fail! (%d) \n", __func__, retval);
             //exit(-1);
             fail_count++;
-            //return RIG_EIO;
+            //return -RIG_EIO;
         }
         else
         {
@@ -205,7 +205,7 @@ grbl_init(ROT *rot)
         if (retval != RIG_OK)
         {
             rot_debug(RIG_DEBUG_ERR, "grbl_request [%s] fail\n", grbl_init_list[i]);
-            return RIG_EIO;
+            return -RIG_EIO;
         }
     }
 
@@ -447,7 +447,7 @@ grbltrk_rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
         if (retval < 0)
         {
             rot_debug(RIG_DEBUG_ERR, "grbl_request [%s] fail\n", val);
-            return RIG_EIO;
+            return -RIG_EIO;
         }
     }
 

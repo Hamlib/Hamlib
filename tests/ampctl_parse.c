@@ -1393,7 +1393,7 @@ int ampctl_parse(AMP *my_amp, FILE *fin, FILE *fout, char *argv[], int argc)
     pthread_mutex_unlock(&amp_mutex);
 #endif
 
-    if (retcode == RIG_EIO) { return retcode; }
+    if (retcode == -RIG_EIO) { return retcode; }
 
     if (retcode != RIG_OK)
     {
@@ -1608,7 +1608,7 @@ int set_conf(AMP *my_amp, char *conf_parms)
 
         if (!q)
         {
-            return RIG_EINVAL;
+            return -RIG_EINVAL;
         }
 
         *q++ = '\0';
