@@ -180,9 +180,9 @@ const int stepvalues[4][10] =   // Step sizes in Hz
 int stepsize[4] = { 1000, 500, 10000, 5000}; // Defaults by modeclass
 
 /* Function prototypes */
-int freq2band(int freq);
-kvfop_t newvfo(kvfop_t ovfo, int band);
-void swapvfos(kvfop_t *vfoset[]);
+static int freq2band(int freq);
+static kvfop_t newvfo(kvfop_t ovfo, int band);
+static void swapvfos(kvfop_t *vfoset[]);
 // Extracted from rig.h
 int hl_usleep(unsigned long usec);  // Until it's replaced
 
@@ -409,24 +409,6 @@ int main(int argc, char *argv[])
         else if (strncmp(buf, "RA", 2) == 0)
         {
             sscanf(buf, "RA%d", &ra);
-        }
-        else if (strcmp(buf, "RG;") == 0)
-        {
-            hl_usleep(mysleep * 000);
-            pbuf = "RG255;";
-            OUTPUT(pbuf);
-        }
-        else if (strcmp(buf, "MG;") == 0)
-        {
-            hl_usleep(mysleep * 1000);
-            pbuf = "MG050;";
-            OUTPUT(pbuf);
-        }
-        else if (strcmp(buf, "AG;") == 0)
-        {
-            hl_usleep(mysleep * 1000);
-            pbuf = "AG100;";
-            OUTPUT(pbuf);
         }
         else if (strcmp(buf, "FV;") == 0)
         {
@@ -1529,7 +1511,7 @@ int main(int argc, char *argv[])
  *
  * Returns band # or negative if invalid input
  */
-int freq2band(int freq)
+static int freq2band(int freq)
 {
     int i, retval = -1;  // Assume the worst
 
@@ -1553,7 +1535,7 @@ int freq2band(int freq)
  *        new band
  * Return: new vfo pointer
  */
-kvfop_t newvfo(kvfop_t ovfo, int band)
+static kvfop_t newvfo(kvfop_t ovfo, int band)
 {
     int vfonum, slot;
 
@@ -1566,7 +1548,7 @@ kvfop_t newvfo(kvfop_t ovfo, int band)
 /* Reverse the function of vfoA and vfoB
  * No status returned
  */
-void swapvfos(kvfop_t *vfoset[])
+static void swapvfos(kvfop_t *vfoset[])
 {
     kvfop_t *temp;
 
