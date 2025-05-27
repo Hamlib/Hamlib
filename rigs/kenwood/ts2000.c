@@ -266,7 +266,7 @@ static struct kenwood_priv_caps  ts2000_priv_caps  =
  * Function definitions below
  */
 
-int ts2000_init(RIG *rig)
+static int ts2000_init(RIG *rig)
 {
     struct kenwood_priv_data *priv;
     int retval;

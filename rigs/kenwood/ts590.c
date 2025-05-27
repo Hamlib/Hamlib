@@ -185,7 +185,7 @@ const struct confparams ts590_ext_levels[] =
  * This is not documented in the manual as of 3/11/15 but confirmed from Kenwood
  * "TY" produces "TYK 00" for example
  */
-const char *ts590_get_info(RIG *rig)
+static const char *ts590_get_info(RIG *rig)
 {
     char firmbuf[10];
     int retval;

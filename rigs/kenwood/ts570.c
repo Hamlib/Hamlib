@@ -242,7 +242,7 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  * extends kenwood_set_func
  * Assumes rig!=NULL, val!=NULL
  */
-int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+static int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char fctbuf[6];
 
@@ -278,7 +278,7 @@ int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  * extends kenwood_get_func
  * Assumes rig!=NULL, val!=NULL
  */
-int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+static int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     char fctbuf[50];
     size_t fct_len;
@@ -342,7 +342,7 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  *
  * set levels of most functions
  */
-int
+static int
 ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
@@ -400,7 +400,7 @@ ts570_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  * ts570_get_level
  * Assumes rig!=NULL, val!=NULL
  */
-int
+static int
 ts570_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char ackbuf[50];
@@ -515,7 +515,7 @@ ts570_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 /*
  * ts570_get_split_vfo
  */
-int ts570_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int ts570_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     char ack[10];
     char ack2[10];
@@ -568,7 +568,7 @@ int ts570_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 /*
  * ts570_set_split_vfo
  */
-int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
+static int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
     char cmdbuf[16], ackbuf[20];
     int retval;
@@ -683,7 +683,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
     .ctcss_tone=1       \
 }
 
-int ts570_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
+static int ts570_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
 {
     char cmdbuf[30];
     int retval;
@@ -746,7 +746,7 @@ int ts570_set_channel(RIG *rig, vfo_t vfo, const channel_t *chan)
     return RIG_OK;
 }
 
-int ts570_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+static int ts570_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
     char infobuf[50];
     int retval;
@@ -780,7 +780,7 @@ int ts570_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
     return RIG_OK;
 }
 
-int ts570_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+static int ts570_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     char buf[50];
     unsigned char c;
@@ -840,7 +840,7 @@ int ts570_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     return RIG_OK;
 }
 
-int ts570_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+static int ts570_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     char buf[50];
     unsigned char c;

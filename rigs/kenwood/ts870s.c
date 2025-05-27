@@ -265,7 +265,7 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return retval;
 }
 
-int ts870s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int ts870s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
     int intval;
