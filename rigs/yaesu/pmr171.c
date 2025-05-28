@@ -333,7 +333,7 @@ struct rig_caps pmr171_caps =
 //*****************************************************/
 #include <stdint.h>
 
-uint16_t CRC16Check(const unsigned char *buf, int len)
+static uint16_t CRC16Check(const unsigned char *buf, int len)
 {
     uint16_t crc = 0xFFFF; // Initial value
     uint16_t polynomial = 0x1021; // Polynomial x^16 + x^12 + x^5 + 1
@@ -479,7 +479,7 @@ rmode_t pmr171_modes[GUOHE_MODE_TABLE_MAX] =
     RIG_MODE_RTTY // not functioning
 };
 
-rmode_t guohe2rmode(unsigned char mode, const rmode_t mode_table[])
+static rmode_t guohe2rmode(unsigned char mode, const rmode_t mode_table[])
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=0x%02x\n", __func__,
               mode);
@@ -494,7 +494,7 @@ rmode_t guohe2rmode(unsigned char mode, const rmode_t mode_table[])
     return (mode_table[mode]);
 }
 
-unsigned char rmode2guohe(rmode_t mode, const rmode_t mode_table[])
+static unsigned char rmode2guohe(rmode_t mode, const rmode_t mode_table[])
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called, mode=%s\n", __func__,
               rig_strrmode(mode));
@@ -519,7 +519,7 @@ unsigned char rmode2guohe(rmode_t mode, const rmode_t mode_table[])
 /**
  * Converting to Big-endian bytes
  */
-unsigned char *to_be(unsigned char data[],
+static unsigned char *to_be(unsigned char data[],
                      unsigned long long freq,
                      unsigned int byte_len)
 {
@@ -538,7 +538,7 @@ unsigned char *to_be(unsigned char data[],
 }
 
 
-unsigned long long from_be(const unsigned char data[],
+static unsigned long long from_be(const unsigned char data[],
                            unsigned int byte_len)
 {
     int i;

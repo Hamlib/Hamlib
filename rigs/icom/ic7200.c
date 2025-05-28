@@ -95,8 +95,8 @@
     } }
 
 
-int ic7200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ic7200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ic7200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ic7200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 /*
  * IC-7200 rig capabilities.
@@ -295,7 +295,7 @@ struct rig_caps ic7200_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-int ic7200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int ic7200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     unsigned char cmdbuf[MAXFRAMELEN];
 
@@ -312,7 +312,7 @@ int ic7200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
 }
 
-int ic7200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int ic7200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     unsigned char cmdbuf[MAXFRAMELEN];
 

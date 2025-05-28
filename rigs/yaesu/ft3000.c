@@ -144,7 +144,7 @@ int ftdx3000_ext_tokens[] =
     TOK_BACKEND_NONE
 };
 
-int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
+static int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
 {
     char *cmd;
     int err;
@@ -181,7 +181,7 @@ int ft3000_set_ant(RIG *rig, vfo_t vfo, ant_t ant, value_t option)
     RETURNFUNC(RIG_OK);
 }
 
-int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
+static int ft3000_get_ant(RIG *rig, vfo_t vfo, ant_t dummy, value_t *option,
                    ant_t *ant_curr, ant_t *ant_tx, ant_t *ant_rx)
 {
     struct newcat_priv_data *priv = (struct newcat_priv_data *)STATE(rig)->priv;

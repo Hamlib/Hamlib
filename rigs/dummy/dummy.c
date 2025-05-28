@@ -2312,7 +2312,7 @@ static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower,
 static int m_year, m_month, m_day, m_hour, m_min, m_sec, m_utc_offset;
 static double m_msec;
 
-int dummy_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+static int dummy_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
                     int sec, double msec, int utc_offset)
 {
     int retval = RIG_OK;
@@ -2337,7 +2337,7 @@ int dummy_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
     return retval;
 }
 
-int dummy_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+static int dummy_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
                     int *min, int *sec, double *msec, int *utc_offset)
 {
     int retval = RIG_OK;
