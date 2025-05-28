@@ -928,11 +928,11 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         rig_get_cache(rig, vfo, &freq, &freq_ms, &mode, &mode_ms, &width,
                       &width_ms);
 
-        if (144000000.0f >= freq && 148000000.0f <= freq)
+        if (144000000.0f <= freq && 148000000.0f > freq)
         {
             return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 2.0);
         }
-        else if (420000000.0f >= freq && 450000000.0f <= freq)
+        else if (420000000.0f <= freq && 450000000.0f > freq)
         {
             return ft857_get_pometer_level(rig, val, &rig->caps->rfpower_meter_cal, 5.0);
         }
