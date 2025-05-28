@@ -21,6 +21,7 @@ config.sub
 config.log
 config.status
 configure
+cppcheck.log
 depcomp
 hamlib.pc
 hamlib.spec

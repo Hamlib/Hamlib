@@ -40,7 +40,7 @@
 
 // just doing a warning message for now
 // eventually should make this -RIG_EINTERNAL
-int check_buffer_overflow(char *str, int len, int nlen)
+static int check_buffer_overflow(char *str, int len, int nlen)
 {
     if (len + 32 >= nlen) // make sure at least 32 bytes are available
     {

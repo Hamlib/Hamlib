@@ -290,13 +290,13 @@ static int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level,
     case RIG_LEVEL_STRENGTH:
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
-        cal_table_float_t *table;
+        const cal_table_float_t *table;
         ptt_t ptt = RIG_PTT_OFF;
         /* Values taken from the TS-890S In-Depth Manual (IDM), p. 8
          * 0.03 - 21.5 MHz, Preamp 1
          */
         /* Meter Type 1 - Kenwood specific, factory default */
-        static cal_table_float_t meter_type1 =
+        static const cal_table_float_t meter_type1 =
         {
             9, { { 0, -28.4f}, { 3, -26}, {11, -19.5f},
                 {19, -13}, {27, -6.5f}, {35, 0},
@@ -304,7 +304,7 @@ static int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level,
             }
         };
         /* Meter Type 2 - IARU recommended */
-        static cal_table_float_t meter_type2 =
+        static const cal_table_float_t meter_type2 =
         {
             9, { { 0, -54}, { 3, -48}, {11, -36},
                 {19, -24}, {27, -12}, {35, 0},
@@ -462,7 +462,7 @@ static int ts890_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         return retval;
     }
 
-    *status = current[2] & mask ? 1 : 0;
+    *status = (current[2] & mask) ? 1 : 0;
     return RIG_OK;
 }
 
