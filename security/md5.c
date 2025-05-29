@@ -292,7 +292,7 @@ unsigned char *make_hash(const char *arg)
     return digest;
 }
 
-char *rig_make_md5(char *pass)
+char *rig_make_md5(const char *pass)
 {
     const unsigned char *hash = make_hash(pass);
     char *md5str = make_digest(hash, 16);

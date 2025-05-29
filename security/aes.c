@@ -434,7 +434,7 @@ uint32 KT3[256];
 
 /* AES key scheduling routine */
 
-int aes_set_key(aes_context *ctx, uint8 *key, int nbits)
+int aes_set_key(aes_context *ctx, const uint8 *key, int nbits)
 {
     int i;
     uint32 *RK, *SK;
@@ -591,7 +591,7 @@ int aes_set_key(aes_context *ctx, uint8 *key, int nbits)
 
 /* AES 128-bit block encryption routine */
 
-void aes_encrypt(aes_context *ctx, uint8 input[16], uint8 output[16])
+void aes_encrypt(aes_context *ctx, const uint8 input[16], uint8 output[16])
 {
     uint32 *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
 
@@ -681,7 +681,7 @@ void aes_encrypt(aes_context *ctx, uint8 input[16], uint8 output[16])
 
 /* AES 128-bit block decryption routine */
 
-void aes_decrypt(aes_context *ctx, uint8 input[16], uint8 output[16])
+void aes_decrypt(aes_context *ctx, const uint8 input[16], uint8 output[16])
 {
     uint32 *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
 

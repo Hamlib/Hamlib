@@ -75,22 +75,22 @@ static struct kenwood_priv_caps xg3_priv_caps =
 
 
 /* XG3 specific rig_caps API function declarations */
-int xg3_init(RIG *rig);
-int xg3_open(RIG *rig);
-int xg3_set_vfo(RIG *rig, vfo_t vfo);
-int xg3_get_vfo(RIG *rig, vfo_t *vfo);
-int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int xg3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int xg3_set_powerstat(RIG *rig, powerstat_t status);
-int xg3_get_powerstat(RIG *rig, powerstat_t *status);
-int xg3_set_mem(RIG *rig, vfo_t vfo, int ch);
-int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch);
-int xg3_set_parm(RIG *rig, setting_t parm, value_t val);
-int xg3_get_parm(RIG *rig, setting_t parm, value_t *val);
+static int xg3_init(RIG *rig);
+static int xg3_open(RIG *rig);
+static int xg3_set_vfo(RIG *rig, vfo_t vfo);
+static int xg3_get_vfo(RIG *rig, vfo_t *vfo);
+static int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int xg3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int xg3_set_powerstat(RIG *rig, powerstat_t status);
+static int xg3_get_powerstat(RIG *rig, powerstat_t *status);
+static int xg3_set_mem(RIG *rig, vfo_t vfo, int ch);
+static int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch);
+static int xg3_set_parm(RIG *rig, setting_t parm, value_t val);
+static int xg3_get_parm(RIG *rig, setting_t parm, value_t *val);
 
 
 /*
@@ -183,7 +183,7 @@ struct rig_caps xg3_caps =
 /*
  * xg3_init()
  */
-int xg3_init(RIG *rig)
+static int xg3_init(RIG *rig)
 {
     struct kenwood_priv_data *priv;
     int i;
@@ -225,7 +225,7 @@ int xg3_init(RIG *rig)
 /*
  * xg3_open()
  */
-int xg3_open(RIG *rig)
+static int xg3_open(RIG *rig)
 {
     int err;
     ptt_t ptt;
@@ -245,7 +245,7 @@ int xg3_open(RIG *rig)
 }
 
 
-int xg3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int xg3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
 
@@ -275,7 +275,7 @@ int xg3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 /*
  * kenwood_get_level
  */
-int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char cmdbuf[32], replybuf[32];
     int retval;
@@ -343,7 +343,7 @@ int xg3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 /*
  * xg3_get_vfo
  */
-int xg3_get_vfo(RIG *rig, vfo_t *vfo)
+static int xg3_get_vfo(RIG *rig, vfo_t *vfo)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -359,7 +359,7 @@ int xg3_get_vfo(RIG *rig, vfo_t *vfo)
 /*
  * xg3_set_vfo
  */
-int xg3_set_vfo(RIG *rig, vfo_t vfo)
+static int xg3_set_vfo(RIG *rig, vfo_t vfo)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -379,7 +379,7 @@ int xg3_set_vfo(RIG *rig, vfo_t vfo)
 /*
  * xg3_set_freq
  */
-int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+static int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int err;
     vfo_t tvfo;
@@ -422,7 +422,7 @@ int xg3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 /*
  * xg3_get_freq
  */
-int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+static int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct hamlib_port *rp;
     char freqbuf[50];
@@ -494,7 +494,7 @@ int xg3_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 /*
  * xg3_set_powerstat
  */
-int xg3_set_powerstat(RIG *rig, powerstat_t status)
+static int xg3_set_powerstat(RIG *rig, powerstat_t status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -514,7 +514,7 @@ int xg3_set_powerstat(RIG *rig, powerstat_t status)
 /*
  * xg3_get_powerstat
  */
-int xg3_get_powerstat(RIG *rig, powerstat_t *status)
+static int xg3_get_powerstat(RIG *rig, powerstat_t *status)
 {
     const char *cmd = "G";      // any command to test will do
     char buf[6];
@@ -540,7 +540,7 @@ int xg3_get_powerstat(RIG *rig, powerstat_t *status)
 /*
  * xg3_set_mem
  */
-int xg3_set_mem(RIG *rig, vfo_t vfo, int ch)
+static int xg3_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     char cmdbuf[32];
     int retval;
@@ -569,7 +569,7 @@ int xg3_set_mem(RIG *rig, vfo_t vfo, int ch)
 /*
  * xg3_get_mem
  */
-int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
+static int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
     char cmdbuf[32];
     char reply[32];
@@ -602,7 +602,7 @@ int xg3_get_mem(RIG *rig, vfo_t vfo, int *ch)
 /*
  * xg3_set_ptt
  */
-int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+static int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     int retval;
 
@@ -622,7 +622,7 @@ int xg3_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 /*
  * kenwood_get_ptt
  */
-int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+static int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     char pttbuf[6];
     int retval;
@@ -650,7 +650,7 @@ int xg3_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 /*
  * xg3_set_parm
  */
-int xg3_set_parm(RIG *rig, setting_t parm, value_t val)
+static int xg3_set_parm(RIG *rig, setting_t parm, value_t val)
 {
     int ival;
     char cmdbuf[16];
@@ -679,7 +679,7 @@ int xg3_set_parm(RIG *rig, setting_t parm, value_t val)
 /*
  * xg3_get_parm
  */
-int xg3_get_parm(RIG *rig, setting_t parm, value_t *val)
+static int xg3_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
     int ival;
     char replybuf[6];
