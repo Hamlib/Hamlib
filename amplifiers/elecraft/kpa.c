@@ -90,7 +90,7 @@ int kpa_close(AMP *amp)
     return RIG_OK;
 }
 
-int kpa_flushbuffer(AMP *amp)
+static int kpa_flushbuffer(AMP *amp)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

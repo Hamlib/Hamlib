@@ -257,7 +257,7 @@ static int tt538_transaction(RIG *rig, const char *cmd, int cmd_len,
 
     retval = tentec_transaction(rig, cmd, cmd_len, data, data_len);
 
-    if (data == NULL || (data != NULL && data_len > 0))
+    if (data == NULL || data_len > 0)
     {
         return retval;
     }

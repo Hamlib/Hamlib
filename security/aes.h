@@ -17,8 +17,8 @@ typedef struct
 }
 aes_context;
 
-int  aes_set_key( aes_context *ctx, uint8 *key, int nbits );
-void aes_encrypt( aes_context *ctx, uint8 input[16], uint8 output[16] );
-void aes_decrypt( aes_context *ctx, uint8 input[16], uint8 output[16] );
+int  aes_set_key( aes_context *ctx, const uint8 *key, int nbits );
+void aes_encrypt( aes_context *ctx, const uint8 input[16], uint8 output[16] );
+void aes_decrypt( aes_context *ctx, const uint8 input[16], uint8 output[16] );
 
 #endif /* aes.h */

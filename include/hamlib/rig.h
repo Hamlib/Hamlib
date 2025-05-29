@@ -3888,7 +3888,7 @@ locator2longlat HAMLIB_PARAMS((double *longitude,
                                double *latitude,
                                const char *locator));
 
-extern HAMLIB_EXPORT(char*) rig_make_md5(char *pass);
+extern HAMLIB_EXPORT(char*) rig_make_md5(const char *pass);
 
 extern HAMLIB_EXPORT(int) rig_set_lock_mode(RIG *rig, int lock);
 extern HAMLIB_EXPORT(int) rig_get_lock_mode(RIG *rig, int *lock);
