@@ -984,8 +984,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
- * \retval RIG_EINVAL   \a rig is NULL or inconsistent.
- * \retval RIG_ENIMPL   port type communication is not implemented yet.
+ * \retval -RIG_EINVAL   \a rig is NULL or inconsistent.
+ * \retval -RIG_ENIMPL   port type communication is not implemented yet.
  *
  * \sa rig_init(), rig_close()
  */
