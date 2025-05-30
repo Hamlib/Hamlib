@@ -165,8 +165,8 @@ const char *get_usb_device_class_string(int device_class)
  * \return File descriptor, otherwise a **negative value** if an error
  * occurred (in which case, cause is set appropriately).
  *
- * \retval RIG_EINVAL The port pathname is empty or no CM108 device detected.
- * \retval RIG_EIO The `open`(2) system call returned a **negative value**.
+ * \retval -RIG_EINVAL The port pathname is empty or no CM108 device detected.
+ * \retval -RIG_EIO The `open`(2) system call returned a **negative value**.
  */
 int cm108_open(hamlib_port_t *port)
 {
@@ -263,9 +263,9 @@ int cm108_close(hamlib_port_t *port)
  * occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Setting or unsetting the PTT was successful.
- * \retval RIG_EINVAL The file descriptor is invalid or the PTT type is
+ * \retval -RIG_EINVAL The file descriptor is invalid or the PTT type is
  * unsupported.
- * \retval RIG_EIO The `write`(2) system call returned a **negative value**.
+ * \retval -RIG_EIO The `write`(2) system call returned a **negative value**.
  */
 int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
 {
@@ -347,8 +347,8 @@ int cm108_ptt_set(hamlib_port_t *p, ptt_t pttx)
  * occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Getting the PTT state was successful.
- * \retval RIG_ENIMPL Getting the state is not yet implemented.
- * \retval RIG_ENAVAIL Getting the state is not available for this PTT type.
+ * \retval -RIG_ENIMPL Getting the state is not yet implemented.
+ * \retval -RIG_ENAVAIL Getting the state is not available for this PTT type.
  */
 int cm108_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 {
