@@ -304,7 +304,7 @@ AMP *HAMLIB_API amp_init(amp_model_t amp_model)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Communication channel successfully opened.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
  *
  * \sa amp_init(), amp_close()
  */
@@ -463,7 +463,7 @@ int HAMLIB_API amp_open(AMP *amp)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Communication channel successfully closed.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
  *
  * \sa amp_cleanup(), amp_open()
  */
@@ -555,7 +555,7 @@ int HAMLIB_API amp_close(AMP *amp)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK #AMP handle successfully released.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
  *
  * \sa amp_init(), amp_close()
  */
@@ -602,8 +602,8 @@ int HAMLIB_API amp_cleanup(AMP *amp)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The reset command was successful.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
- * \retval RIG_ENAVAIL amp_caps#reset() capability is not available.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL amp_caps#reset() capability is not available.
  */
 int HAMLIB_API amp_reset(AMP *amp, amp_reset_t reset)
 {
@@ -639,8 +639,8 @@ int HAMLIB_API amp_reset(AMP *amp, amp_reset_t reset)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The query was successful.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
- * \retval RIG_ENAVAIL amp_caps#get_freq() capability is not available.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL amp_caps#get_freq() capability is not available.
  *
  * \sa amp_set_freq()
  */
@@ -679,8 +679,8 @@ int HAMLIB_API amp_get_freq(AMP *amp, freq_t *freq)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Setting the frequency was successful.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
- * \retval RIG_ENAVAIL amp_caps#set_freq() capability is not available.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL amp_caps#set_freq() capability is not available.
  *
  * \sa amp_get_freq()
  */
@@ -752,8 +752,8 @@ const char *HAMLIB_API amp_get_info(AMP *amp)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The query was successful.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
- * \retval RIG_ENAVAIL amp_caps#get_level() capability is not available.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL amp_caps#get_level() capability is not available.
  *
  * \sa amp_set_ext_level()
  */
@@ -789,8 +789,8 @@ int HAMLIB_API amp_set_level(AMP *amp, setting_t level, value_t val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The query was successful.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
- * \retval RIG_ENAVAIL amp_caps#get_level() capability is not available.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL amp_caps#get_level() capability is not available.
  *
  * \sa amp_get_ext_level()
  */
@@ -825,8 +825,8 @@ int HAMLIB_API amp_get_level(AMP *amp, setting_t level, value_t *val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The query was successful.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
- * \retval RIG_ENAVAIL amp_caps#set_ext_level() capability is not available.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL amp_caps#set_ext_level() capability is not available.
  *
  * \sa amp_set_level()
  */
@@ -860,8 +860,8 @@ int HAMLIB_API amp_set_ext_level(AMP *amp, hamlib_token_t level, value_t val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The query was successful.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
- * \retval RIG_ENAVAIL amp_caps#get_ext_level() capability is not available.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL amp_caps#get_ext_level() capability is not available.
  *
  * \sa amp_get_level()
  */
@@ -898,8 +898,8 @@ int HAMLIB_API amp_get_ext_level(AMP *amp, hamlib_token_t level, value_t *val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The requested power/standby state was successful.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
- * \retval RIG_ENAVAIL amp_caps#set_powerstat() capability is not available.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL amp_caps#set_powerstat() capability is not available.
  *
  * \sa amp_get_powerstat()
  */
@@ -935,8 +935,8 @@ int HAMLIB_API amp_set_powerstat(AMP *amp, powerstat_t status)
  * if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Querying the power/standby state was successful.
- * \retval RIG_EINVAL \a amp is NULL or inconsistent.
- * \retval RIG_ENAVAIL amp_caps#get_powerstat() capability is not available.
+ * \retval -RIG_EINVAL \a amp is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL amp_caps#get_powerstat() capability is not available.
  *
  * \sa amp_set_powerstat()
  */

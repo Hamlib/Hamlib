@@ -133,7 +133,7 @@ static const struct confparams rotfrontend_serial_cfg_params[] =
  * \return RIG_OK or a **negative value** on error.
  *
  * \retval RIG_OK TOK_... value set successfully.
- * \retval RIG_EINVAL TOK_.. value not set.
+ * \retval -RIG_EINVAL TOK_.. value not set.
  *
  * \sa frontrot_get_conf()
  */
@@ -402,7 +402,7 @@ int frontrot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
  * \return RIG_OK or a **negative value** on error.
  *
  * \retval RIG_OK TOK_... value queried successfully.
- * \retval RIG_EINVAL TOK_.. value not queried.
+ * \retval -RIG_EINVAL TOK_.. value not queried.
  *
  * \sa frontrot_set_conf()
  */
@@ -577,7 +577,7 @@ int frontrot_get_conf(ROT *rot, hamlib_token_t token, char *val, int val_len)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The \a cfunc action completed successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent or \a cfunc is NULL.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent or \a cfunc is NULL.
  */
 int HAMLIB_API rot_token_foreach(ROT *rot,
                                  int (*cfunc)(const struct confparams *,
@@ -738,8 +738,8 @@ hamlib_token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The parameter was set successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent or \a token is invalid.
- * \retval RIG_ENAVAIL rot_caps#set_conf() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent or \a token is invalid.
+ * \retval -RIG_ENAVAIL rot_caps#set_conf() capability is not available.
  *
  * \sa rot_get_conf()
  */
@@ -794,8 +794,8 @@ int HAMLIB_API rot_set_conf(ROT *rot, hamlib_token_t token, const char *val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Querying the parameter was successful.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#get_conf() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#get_conf() capability is not available.
  *
  * \sa rot_set_conf()
  */

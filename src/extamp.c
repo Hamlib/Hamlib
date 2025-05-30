@@ -66,7 +66,7 @@
  * **negative value** which means an abnormal end,
  *
  * \retval RIG_OK All extension levels elements successfully processed.
- * \retval RIG_EINVAL \a amp or \a cfunc is NULL or inconsistent.
+ * \retval -RIG_EINVAL \a amp or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API amp_ext_level_foreach(AMP *amp,
                                      int (*cfunc)(AMP *,
@@ -117,7 +117,7 @@ int HAMLIB_API amp_ext_level_foreach(AMP *amp,
  * **negative value** which means an abnormal end.
  *
  * \retval RIG_OK All extension parameters elements successfully processed.
- * \retval RIG_EINVAL \a amp or \a cfunc is NULL or inconsistent.
+ * \retval -RIG_EINVAL \a amp or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API amp_ext_parm_foreach(AMP *amp,
                                     int (*cfunc)(AMP *,

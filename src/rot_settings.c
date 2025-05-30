@@ -69,8 +69,8 @@
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK Setting the level was successful.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#set_level() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#set_level() capability is not available.
  *
  * \sa rot_has_set_level(), rot_get_level()
  */
@@ -113,8 +113,8 @@ int HAMLIB_API rot_set_level(ROT *rot, setting_t level, value_t val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The query was successful.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#get_level() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#get_level() capability is not available.
  *
  * \sa rot_has_get_level(), rot_set_level()
  */
@@ -158,8 +158,8 @@ int HAMLIB_API rot_get_level(ROT *rot, setting_t level, value_t *val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The parameter was set successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#set_parm() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#set_parm() capability is not available.
  *
  * \sa rot_has_set_parm(), rot_get_parm()
  */
@@ -198,8 +198,8 @@ int HAMLIB_API rot_set_parm(ROT *rot, setting_t parm, value_t val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The parameter was queried successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#get_parm() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#get_parm() capability is not available.
  *
  * \sa rot_has_get_parm(), rot_set_parm()
  */
@@ -461,8 +461,8 @@ setting_t HAMLIB_API rot_has_set_func(ROT *rot, setting_t func)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The function was activated or deactivated successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#set_func() capability is not available or
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#set_func() capability is not available or
  * \a func is not supported.
  *
  * \sa rot_get_func()
@@ -505,8 +505,8 @@ int HAMLIB_API rot_set_func(ROT *rot, setting_t func, int status)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The function status was queried successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#get_func() capability is not available or
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#get_func() capability is not available or
  * \a func is not supported.
  *
  * \sa rot_set_func()
@@ -549,8 +549,8 @@ int HAMLIB_API rot_get_func(ROT *rot, setting_t func, int *status)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The extension level was set successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#set_ext_level() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#set_ext_level() capability is not available.
  *
  * \sa rot_get_ext_level()
  */
@@ -589,8 +589,8 @@ int HAMLIB_API rot_set_ext_level(ROT *rot, hamlib_token_t token, value_t val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The extension level was queried successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#get_ext_level() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#get_ext_level() capability is not available.
  *
  * \sa rot_set_ext_level()
  */
@@ -633,8 +633,8 @@ int HAMLIB_API rot_get_ext_level(ROT *rot, hamlib_token_t token, value_t *val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The extension function status was set successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#get_ext_func() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#get_ext_func() capability is not available.
  *
  * \sa rot_get_ext_func()
  */
@@ -676,8 +676,8 @@ int HAMLIB_API rot_set_ext_func(ROT *rot, hamlib_token_t token, int status)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The extension function status was queried successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#get_ext_func() capability is not available or
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#get_ext_func() capability is not available or
  * \a token is not supported.
  *
  * \sa rot_set_ext_func()
@@ -719,8 +719,8 @@ int HAMLIB_API rot_get_ext_func(ROT *rot, hamlib_token_t token, int *status)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The extension parameter was set successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#set_ext_parm() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#set_ext_parm() capability is not available.
  *
  * \sa rot_get_ext_parm()
  */
@@ -757,8 +757,8 @@ int HAMLIB_API rot_set_ext_parm(ROT *rot, hamlib_token_t token, value_t val)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The extension parameter was queried successfully.
- * \retval RIG_EINVAL \a rot is NULL or inconsistent.
- * \retval RIG_ENAVAIL rot_caps#get_ext_parm() capability is not available.
+ * \retval -RIG_EINVAL \a rot is NULL or inconsistent.
+ * \retval -RIG_ENAVAIL rot_caps#get_ext_parm() capability is not available.
  *
  * \sa rot_set_ext_parm()
  */

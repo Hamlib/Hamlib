@@ -87,7 +87,7 @@ static int rot_has_ext_token(ROT *rot, hamlib_token_t token)
  * value** which means an abnormal end.
  *
  * \retval RIG_OK All extension functions elements successfully processed.
- * \retval RIG_EINVAL \a rot or \a cfunc is NULL or inconsistent.
+ * \retval -RIG_EINVAL \a rot or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API rot_ext_func_foreach(ROT *rot,
                                     int (*cfunc)(ROT *,
@@ -143,7 +143,7 @@ int HAMLIB_API rot_ext_func_foreach(ROT *rot,
  * **negative value** which means an abnormal end.
  *
  * \retval RIG_OK All extension levels elements successfully processed.
- * \retval RIG_EINVAL \a rot or \a cfunc is NULL or inconsistent.
+ * \retval -RIG_EINVAL \a rot or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API rot_ext_level_foreach(ROT *rot,
                                      int (*cfunc)(ROT *,
@@ -199,7 +199,7 @@ int HAMLIB_API rot_ext_level_foreach(ROT *rot,
  * **negative value** which means an abnormal end.
  *
  * \retval RIG_OK All extension parameters elements successfully processed.
- * \retval RIG_EINVAL \a rot or \a cfunc is NULL or inconsistent.
+ * \retval -RIG_EINVAL \a rot or \a cfunc is NULL or inconsistent.
  */
 int HAMLIB_API rot_ext_parm_foreach(ROT *rot,
                                     int (*cfunc)(ROT *,
