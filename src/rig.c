@@ -1422,22 +1422,6 @@ int HAMLIB_API rig_open(RIG *rig)
         RETURNFUNC2(status);
     }
 
-#if defined(HAVE_PTHREAD)
-
-    if (!skip_init)
-    {
-        status = async_data_handler_start(rig);
-
-        if (status < 0)
-        {
-            port_close(rp, rp->type.rig);
-            rs->comm_status = RIG_COMM_STATUS_ERROR;
-            RETURNFUNC2(status);
-        }
-    }
-
-#endif
-
     rs->comm_state = 1;
     rig_debug(RIG_DEBUG_VERBOSE, "%s: %p rs->comm_state==1?=%d\n", __func__,
               &rs->comm_state,
@@ -1488,15 +1472,6 @@ int HAMLIB_API rig_open(RIG *rig)
         if (status != RIG_OK)
         {
             remove_opened_rig(rig);
-#if defined(HAVE_PTHREAD)
-
-            if (!skip_init)
-            {
-                async_data_handler_stop(rig);
-                morse_data_handler_stop(rig);
-            }
-
-#endif
             port_close(rp, rp->type.rig);
             memcpy(&rs->rigport_deprecated, rp, sizeof(hamlib_port_t_deprecated));
             rs->comm_state = 0;
@@ -1541,6 +1516,15 @@ int HAMLIB_API rig_open(RIG *rig)
     if (skip_init) { RETURNFUNC2(RIG_OK); }
 
 #if defined(HAVE_PTHREAD)
+
+    status = async_data_handler_start(rig);
+
+    if (status < 0)
+    {
+        port_close(rp, rp->type.rig);
+        rs->comm_status = RIG_COMM_STATUS_ERROR;
+        RETURNFUNC2(status);
+    }
 
     // Some models don't support CW so don't need morse handler
     if (rig->caps->send_morse)
