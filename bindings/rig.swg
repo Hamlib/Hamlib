@@ -478,10 +478,6 @@ typedef channel_t * const_channel_t_p;
 		/* TODO: handle ext_level's */
 	}
 
-	void chan_clear(struct channel *chans, int nb_chans = 1) {
-		memset(chans, 0, sizeof(struct channel)*nb_chans);
-	}
-
 	void get_chan_all(struct channel *chans) {
 		self->error_status = rig_get_chan_all(self->rig, RIG_VFO_NONE, chans);
 		/* TODO: handle ext_level's */

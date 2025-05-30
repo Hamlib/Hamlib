@@ -60,7 +60,6 @@ class TestClass:
         assert rig is not None
 
         rig.caps
-        # FIXME rig.chan_clear()
         rig.close()
         rig.ext_token_lookup("")
         # FIXME rig.get_ant()
