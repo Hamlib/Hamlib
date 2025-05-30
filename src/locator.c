@@ -290,7 +290,7 @@ double HAMLIB_API dmmm2dec(int degrees, double minutes, double seconds, int sw)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The conversion was successful.
- * \retval RIG_EINVAL Either of the pointers are NULL.
+ * \retval -RIG_EINVAL Either of the pointers are NULL.
  *
  * \sa dms2dec()
  */
@@ -388,7 +388,7 @@ int HAMLIB_API dec2dms(double dec,
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The conversion was successful.
- * \retval RIG_EINVAL Either of the pointers are NULL.
+ * \retval -RIG_EINVAL Either of the pointers are NULL.
  *
  * \sa dmmm2dec()
  */
@@ -438,7 +438,7 @@ int HAMLIB_API dec2dmmm(double dec, int *degrees, double *minutes, int *sw)
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The conversion was successful.
- * \retval RIG_EINVAL The QRA locator exceeds RR99xx99xx99 or exceeds length
+ * \retval -RIG_EINVAL The QRA locator exceeds RR99xx99xx99 or exceeds length
  * limit--currently 1 to 6 lon/lat pairs--or is otherwise malformed.
  *
  * \bug The fifth pair ranges from aa to xx, there is another convention
@@ -531,7 +531,7 @@ int HAMLIB_API locator2longlat(double *longitude,
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The conversion was successful.
- * \retval RIG_EINVAL if \a locator is NULL or \a pair_count exceeds length
+ * \retval -RIG_EINVAL if \a locator is NULL or \a pair_count exceeds length
  * limit.  Currently 1 to 6 lon/lat pairs.
  *
  * \bug \a locator is not tested for overflow.
@@ -611,7 +611,7 @@ int HAMLIB_API longlat2locator(double longitude,
  * value** if an error occurred (in which case, cause is set appropriately).
  *
  * \retval RIG_OK The calculations were successful.
- * \retval RIG_EINVAL If a NULL pointer passed or \a lat and \a lon values
+ * \retval -RIG_EINVAL If a NULL pointer passed or \a lat and \a lon values
  * exceed -90 to 90 or -180 to 180.
  *
  * \sa distance_long_path(), azimuth_long_path()
