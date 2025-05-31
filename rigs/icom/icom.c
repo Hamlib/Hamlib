@@ -812,7 +812,7 @@ int icom_cleanup(RIG *rig)
  * Returns 0 when USB ECHO is on
  * \return Returns < 0 when error occurs (e.g. timeout, nimple, navail)
  */
-int icom_get_usb_echo_off(RIG *rig)
+static int icom_get_usb_echo_off(RIG *rig)
 {
     int retval;
     unsigned char ackbuf[MAXFRAMELEN];
@@ -1419,7 +1419,7 @@ static int icom_set_default_vfo(RIG *rig)
 // return true if band is changing from last set_freq
 // Assumes rig is currently on the VFO being changed
 // This handles the case case Main/Sub cannot be on the same band
-int icom_band_changing(RIG *rig, freq_t test_freq)
+static int icom_band_changing(RIG *rig, freq_t test_freq)
 {
     freq_t curr_freq, freq1, freq2;
     int retval;
@@ -3423,7 +3423,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
     RETURNFUNC2(RIG_OK);
 }
 
-int icom_set_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t val)
+static int icom_set_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t val)
 {
     ENTERFUNC;
 
@@ -3491,7 +3491,7 @@ int icom_set_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t val)
                                 &ack_len));
 }
 
-int icom_get_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t *val)
+static int icom_get_cmd(RIG *rig, vfo_t vfo, struct cmdparams *par, value_t *val)
 {
 
     ENTERFUNC;
@@ -5363,7 +5363,7 @@ int icom_set_conf(RIG *rig, hamlib_token_t token, const char *val)
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL
  *  and val points to a buffer big enough to hold the conf value.
  */
-int icom_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
+static int icom_get_conf2(RIG *rig, hamlib_token_t token, char *val, int val_len)
 {
     struct icom_priv_data *priv;
     struct rig_state *rs;
@@ -7647,7 +7647,7 @@ int icom_set_parm(RIG *rig, setting_t parm, value_t val)
     RETURNFUNC(-RIG_EINVAL);
 }
 
-const char *icom_get_band(RIG *rig, int band)
+static const char *icom_get_band(RIG *rig, int band)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
