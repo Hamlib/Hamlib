@@ -62,7 +62,10 @@ class TestClass:
         rig.caps
         rig.close()
         rig.ext_token_lookup("")
-        # FIXME rig.get_ant()
+        option = Hamlib.value_t()
+        ant = 0  # FIXME use constants RIG_ANT_* when available
+        rig.get_ant(option, ant, 0)
+        option.i == 0
         rig.get_chan_all()
         rig.get_channel(0, 0, 0)
         rig.get_channel(0, 0)
