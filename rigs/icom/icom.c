@@ -9016,7 +9016,6 @@ int icom_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq,
     RETURNFUNC(RIG_OK);
 }
 
-
 #if defined(HAVE_PTHREAD)
 static int icom_parse_spectrum_frame(RIG *rig, size_t length,
                                      const unsigned char *frame_data)
@@ -9025,14 +9024,19 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
     struct icom_priv_caps *priv_caps = (struct icom_priv_caps *) caps->priv;
     struct icom_priv_data *priv = (struct icom_priv_data *) STATE(rig)->priv;
     struct icom_spectrum_scope_cache *cache;
-
-    int division = (int) from_bcd(frame_data + 1, 1 * 2);
-    int max_division = (int) from_bcd(frame_data + 2, 1 * 2);
-
+    int division, max_division;
     size_t spectrum_data_length_in_frame;
     const unsigned char *spectrum_data_start_in_frame;
 
     ENTERFUNC;
+
+    if (length < 3)
+    {
+        rig_debug(RIG_DEBUG_WARN, "%s: Short scope data - len=%zu\n", __func__, length);
+        RETURNFUNC(-RIG_EPROTO);
+    }
+    division = (int) from_bcd(frame_data + 1, 1 * 2);
+    max_division = (int) from_bcd(frame_data + 2, 1 * 2);
 
     // The first byte indicates spectrum scope ID/VFO: 0 = Main, 1 = Sub
     int spectrum_id = frame_data[0];
@@ -9048,9 +9052,17 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
 
     if (division == 1)
     {
-        int spectrum_scope_mode = frame_data[3];
-        int out_of_range = frame_data[14];
+        int spectrum_scope_mode;
+        int out_of_range;
 
+        if (length < 15)
+        {
+            rig_debug(RIG_DEBUG_WARN, "%s: Short scope header - len=%zu\n", __func__, length);
+            RETURNFUNC(-RIG_EPROTO);
+        }
+
+        spectrum_scope_mode = frame_data[3];
+        out_of_range = frame_data[14];
         cache->spectrum_mode = RIG_SPECTRUM_MODE_NONE;
 
         switch (spectrum_scope_mode)
@@ -9155,9 +9167,7 @@ static int icom_parse_spectrum_frame(RIG *rig, size_t length,
             .spectrum_data = cache->spectrum_data,
         };
 
-#if defined(HAVE_PTHREAD)
         rig_fire_spectrum_event(rig, &spectrum_line);
-#endif
 
         cache->spectrum_metadata_valid = 0;
     }
