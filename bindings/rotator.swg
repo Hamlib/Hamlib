@@ -142,6 +142,17 @@ typedef struct Rot {
                 return s;
         }
 
+        PyObject * get_ext_func(hamlib_token_t token)
+        {
+            int status;
+
+            self->error_status = rot_get_ext_func(self->rot, token, &status);
+            if (self->error_status != RIG_OK)
+                return Py_None;
+
+            return PyLong_FromLong(status);
+        }
+
         PyObject * get_level(setting_t level)
         {
             value_t val;
