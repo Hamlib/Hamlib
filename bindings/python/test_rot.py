@@ -5,6 +5,8 @@ Running this script directly will use the installed bindings.
 For an in-tree run use "make check", or set PYTHONPATH to point to
 the directories containing Hamlib.py and _Hamlib.so.
 """
+from pytest import raises
+
 import Hamlib
 
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
@@ -55,7 +57,8 @@ class TestClass:
         assert rot.move(Hamlib.ROT_MOVE_UP, speed) is None
         assert rot.move(Hamlib.ROT_MOVE_LEFT, speed) is None
         assert rot.get_position() == [0.0, 0.0]  # FIXME
-        assert rot.status() is None
+        with raises(AttributeError):
+            assert rot.status() is None
         assert rot.stop() is None
         assert rot.park() is None
         assert rot.reset(Hamlib.ROT_RESET_ALL) is None
