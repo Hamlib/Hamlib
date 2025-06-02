@@ -73,6 +73,7 @@ class TestClass:
         assert rot.set_ext_level(0, value) is None
         assert rot.get_ext_level(0) is None
         assert rot.set_ext_parm(0, value) is None
+        assert rot.get_ext_parm(0) is None
 
         status = 0
         assert rot.set_func(1, status) is None
