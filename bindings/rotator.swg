@@ -89,6 +89,7 @@ typedef struct Rot {
 	ROTMETHOD0(open)
 	ROTMETHOD0(close)
 
+	ROTMETHOD2(set_ext_func, hamlib_token_t, int)
 	ROTMETHOD2(set_ext_level, hamlib_token_t, value_t)
 
 	ROTMETHOD2(set_func, setting_t, int)
