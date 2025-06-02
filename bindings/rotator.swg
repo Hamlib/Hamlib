@@ -91,6 +91,7 @@ typedef struct Rot {
 
 	ROTMETHOD2(set_ext_func, hamlib_token_t, int)
 	ROTMETHOD2(set_ext_level, hamlib_token_t, value_t)
+	ROTMETHOD2(set_ext_parm, hamlib_token_t, value_t)
 
 	ROTMETHOD2(set_func, setting_t, int)
 	extern void get_func(setting_t func, int *OUTPUT);
