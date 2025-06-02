@@ -68,6 +68,7 @@ class TestClass:
         assert rot.park() is None
         assert rot.reset(Hamlib.ROT_RESET_ALL) is None
 
+        assert rot.set_ext_func(0, 0) is None
         assert rot.set_ext_level(0, value) is None
 
         status = 0
