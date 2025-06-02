@@ -65,8 +65,10 @@ class TestClass:
 
         status = 0
         assert rot.set_func(1, status) is None
+        assert rot.get_func(1) == status
         status = 1
         assert rot.set_func(1, status) is None
+        assert rot.get_func(1) == 0  # FIXME should read status
 
         assert rot.close() is None
         assert rot.state.comm_state == 0
