@@ -5,6 +5,8 @@ Running this script directly will use the installed bindings.
 For an in-tree run use "make check", or set PYTHONPATH to point to
 the directories containing Hamlib.py and _Hamlib.so.
 """
+from pytest import raises
+
 import Hamlib
 
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
@@ -116,15 +118,17 @@ class TestClass:
         assert isinstance(rig.get_split_freq(Hamlib.RIG_VFO_CURR), float)
         assert isinstance(rig.get_split_mode(), list)
         assert isinstance(rig.get_split_mode(Hamlib.RIG_VFO_CURR), list)
-        # assert rig.get_split_vfo() is None  # FIXME
-        # assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) is None  # FIXME
+        with raises(TypeError):
+            assert rig.get_split_vfo() is None  # FIXME
+            assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) is None  # FIXME
         assert isinstance(rig.get_trn(), int)  # deprecated
         assert isinstance(rig.get_ts(), int)
         assert isinstance(rig.get_ts(Hamlib.RIG_VFO_CURR), int)
         assert isinstance(rig.get_vfo(), int)
-        # assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR) is None  # FIXME
-        # assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR, 2) is None  # FIXME
-        # assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR, 2, 3) is None  # FIXME
+        with raises(TypeError):
+            assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR) is None  # FIXME
+            assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR, 2) is None  # FIXME
+            assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR, 2, 3) is None  # FIXME
         assert isinstance(rig.get_xit(), int)
         assert isinstance(rig.get_xit(Hamlib.RIG_VFO_CURR), int)
         # assert rig_has_get_func(0)  FIXME not defined
