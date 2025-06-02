@@ -90,6 +90,7 @@ typedef struct Rot {
 	ROTMETHOD0(close)
 
 	ROTMETHOD2(set_func, setting_t, int)
+	extern void get_func(setting_t func, int *OUTPUT);
 	ROTMETHOD2(set_position, azimuth_t, elevation_t)
         extern void get_position(azimuth_t *OUTPUT, elevation_t *OUTPUT);
 	ROTMETHOD0(stop)
@@ -136,6 +137,13 @@ typedef struct Rot {
 };
 
 %{
+/*
+ * this one returns 1 value
+ */
+void Rot_get_func(Rot *self, setting_t func, int *status)
+{
+	self->error_status = rot_get_func(self->rot, func, status);
+}
 
 /*
  * this one returns 2 values, here is a perl example:
