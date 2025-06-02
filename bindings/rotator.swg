@@ -89,6 +89,7 @@ typedef struct Rot {
 	ROTMETHOD0(open)
 	ROTMETHOD0(close)
 
+	ROTMETHOD2(set_func, setting_t, int)
 	ROTMETHOD2(set_position, azimuth_t, elevation_t)
         extern void get_position(azimuth_t *OUTPUT, elevation_t *OUTPUT);
 	ROTMETHOD0(stop)

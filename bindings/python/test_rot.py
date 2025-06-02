@@ -62,6 +62,12 @@ class TestClass:
         assert rot.stop() is None
         assert rot.park() is None
         assert rot.reset(Hamlib.ROT_RESET_ALL) is None
+
+        status = 0
+        assert rot.set_func(1, status) is None
+        status = 1
+        assert rot.set_func(1, status) is None
+
         assert rot.close() is None
         assert rot.state.comm_state == 0
         info = rot.get_info()
