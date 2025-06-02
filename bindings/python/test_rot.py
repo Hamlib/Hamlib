@@ -70,6 +70,9 @@ class TestClass:
         assert rot.set_func(1, status) is None
         assert rot.get_func(1) == 0  # FIXME should read status
 
+        value.i = 5
+        assert rot.set_parm(Hamlib.ROT_PARM_NONE, value) is None
+
         assert rot.close() is None
         assert rot.state.comm_state == 0
         info = rot.get_info()
