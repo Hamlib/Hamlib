@@ -14,6 +14,8 @@ Version 5.x -- future
 
 Version 4.7.0
         * 2025-12-01 (target)
+        * Move rig_cache to separate(calloc) storage. Prepare for other moves.
+          Issue #1420
 
 Version 4.6.3
         * 2025-06-10
