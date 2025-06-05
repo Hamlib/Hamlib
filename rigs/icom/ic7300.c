@@ -42,9 +42,9 @@ int ic7300_set_clock(RIG *rig, int year, int month, int day, int hour,
 int ic7300_get_clock(RIG *rig, int *year, int *month, int *day,
                      int *hour,
                      int *min, int *sec, double *msec, int *utc_offset);
-int ic9700_set_clock(RIG *rig, int year, int month, int day, int hour,
+static int ic9700_set_clock(RIG *rig, int year, int month, int day, int hour,
                      int min, int sec, double msec, int utc_offset);
-int ic9700_get_clock(RIG *rig, int *year, int *month, int *day,
+static int ic9700_get_clock(RIG *rig, int *year, int *month, int *day,
                      int *hour,
                      int *min, int *sec, double *msec, int *utc_offset);
 
@@ -2165,7 +2165,7 @@ int ic7300_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
 }
 
 // if hour < 0 then only date will be set
-int ic9700_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+static int ic9700_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
                      int sec, double msec, int utc_offset)
 {
     int cmd = 0x1a;
@@ -2219,7 +2219,7 @@ int ic9700_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
     return retval;
 }
 
-int ic9700_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+static int ic9700_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
                      int *min, int *sec, double *msec, int *utc_offset)
 {
     int cmd = 0x1a;

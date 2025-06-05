@@ -99,7 +99,7 @@ static int icr30_r2i_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width,
  * This function handles the -N modes for IC-R30
  */
 
-int icr30_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int icr30_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     if (mode & (RIG_MODE_AMN | RIG_MODE_FMN))
     {

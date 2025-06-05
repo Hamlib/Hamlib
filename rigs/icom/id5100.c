@@ -72,9 +72,9 @@ enum
 
 #define ID5100_PARM_ALL RIG_PARM_NONE
 
-int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 
-int id5100_set_vfo(RIG *rig, vfo_t vfo)
+static int id5100_set_vfo(RIG *rig, vfo_t vfo)
 {
     struct rig_state *rs = STATE(rig);
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
@@ -147,7 +147,7 @@ int id5100_set_vfo(RIG *rig, vfo_t vfo)
 }
 
 
-int id5100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+static int id5100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int cmd = C_SET_FREQ;
     int subcmd = -1;
@@ -208,7 +208,7 @@ static int id5100_get_freq2(RIG *rig, vfo_t vfo, freq_t *freq)
     return RIG_OK;
 }
 
-int id5100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+static int id5100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
     struct rig_state *rs = STATE(rig);
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
@@ -356,7 +356,7 @@ if (vfo == RIG_VFO_MAIN && priv->dual_watch_main_sub == MAIN_ON_LEFT)
  */
 #define ID5100_STR_CAL  UNKNOWN_IC_STR_CAL
 
-int id5100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int id5100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int retval;
     unsigned char modebuf;
@@ -390,7 +390,7 @@ int id5100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return retval;
 }
 
-int id5100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int id5100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     int retval;
     int mode_len;
@@ -421,7 +421,7 @@ int id5100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return RIG_OK;
 }
 
-int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+static int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     struct rig_state *rs = STATE(rig);
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
@@ -463,7 +463,7 @@ int id5100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 }
 
 
-int id5100_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+static int id5100_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     int freq_len = 5;
     int retval;
@@ -484,7 +484,7 @@ int id5100_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     RETURNFUNC(retval);
 }
 
-int id5100_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+static int id5100_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     int retval;
     //struct rig_state *rs = STATE(rig);

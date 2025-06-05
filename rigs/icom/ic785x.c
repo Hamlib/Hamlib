@@ -116,8 +116,8 @@
 extern int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 extern int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
-int ic785x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ic785x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ic785x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ic785x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 struct cmdparams ic785x_extcmds[] =
 {
@@ -498,12 +498,12 @@ struct rig_caps ic785x_caps =
     .hamlib_check_rig_caps = HAMLIB_CHECK_RIG_CAPS
 };
 
-int ic785x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int ic785x_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     return ic7800_set_level(rig, vfo, level, val);
 }
 
-int ic785x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int ic785x_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     return ic7800_get_level(rig, vfo, level, val);
 }
