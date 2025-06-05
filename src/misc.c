@@ -17,6 +17,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 /**
  * \addtogroup rig_internal
@@ -383,7 +384,7 @@ int millis_to_dot10ths(int millis, int wpm)
 int HAMLIB_API sprintf_freq(char *str, int str_len, freq_t freq)
 {
     double f;
-    char *hz;
+    const char *hz;
     int decplaces = 10;
     int retval;
 
@@ -2763,7 +2764,7 @@ void errmsg(int err, char *s, const char *func, const char *file, int line)
               rigerror(err));
 }
 
-uint32_t CRC32_function(uint8_t *buf, uint32_t len)
+uint32_t CRC32_function(const uint8_t *buf, uint32_t len)
 {
 
     uint32_t crc;
@@ -2893,7 +2894,7 @@ const char *rig_get_band_str(RIG *rig, hamlib_band_t band, int which)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: bandlist=%s\n", __func__, bandlist);
         int n = 0;
         char *p = strchr(bandlist, '(') + 1;
-        char *token;
+        const char *token;
 
         if (p == NULL)
         {
@@ -2941,7 +2942,7 @@ hamlib_band_t rig_get_band(RIG *rig, freq_t freq, int band)
         rig_debug(RIG_DEBUG_VERBOSE, "%s: bandlist=%s\n", __func__, bandlist);
         // e.g. BANDSELECT(BAND160M,BAND80M,BANDUNUSED,BAND40M)
         char *p = strchr(bandlist, '(') + 1;
-        char *token;
+        const char *token;
 
         if (p == NULL)
         {
@@ -3000,7 +3001,7 @@ int rig_get_band_rig(RIG *rig, freq_t freq, const char *band)
         }
 
         char *p = strchr(bandlist, '(') + 1;
-        char *token;
+        const char *token;
 
         if (p == NULL)
         {

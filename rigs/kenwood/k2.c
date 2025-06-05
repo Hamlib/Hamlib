@@ -21,6 +21,7 @@
  *  the complete text of the GNU Lesser Public License version 2.1.
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <stdlib.h>
 #include <string.h>
@@ -95,16 +96,16 @@ struct k2_filt_lst_s k2_fwmd_cw;
 struct k2_filt_lst_s k2_fwmd_rtty;
 
 /* K2 specific rig_caps API function declarations */
-int k2_open(RIG *rig);
-int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int k2_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val);
-int k2_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+static int k2_open(RIG *rig);
+static int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int k2_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val);
+static int k2_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 /* Private function declarations */
-int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv);
-int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw);
-int k2_pop_fw_lst(RIG *rig, const char *cmd);
+static int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv);
+static int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw);
+static int k2_pop_fw_lst(RIG *rig, const char *cmd);
 
 
 /*
@@ -258,7 +259,7 @@ struct rig_caps k2_caps =
 /* k2_open()
  *
  */
-int k2_open(RIG *rig)
+static int k2_open(RIG *rig)
 {
     int err;
     struct kenwood_priv_data *priv = STATE(rig)->priv;
@@ -289,7 +290,7 @@ int k2_open(RIG *rig)
  * wider than the passed value and sets the radio accordingly.
  */
 
-int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 
     int err;
@@ -425,12 +426,12 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  * by the radio and returns it to the caller.
  */
 
-int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     int err;
     char buf[KENWOOD_MAX_BUF_LEN];
     char tmp[16];
-    char *bufptr;
+    const char *bufptr;
     pbwidth_t temp_w;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -491,7 +492,7 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  *      STRING: val.cs for set, val.s for get
  *      CHECKBUTTON: val.i 0/1
  */
-int k2_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
+static int k2_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     char buf[KENWOOD_MAX_BUF_LEN];
     int err;
@@ -544,7 +545,7 @@ int k2_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 /* Probes for mode and filter settings, based on information
  * by Chris Bryant, G3WIE.
  */
-int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
+static int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 {
     int err, i, c;
     char buf[KENWOOD_MAX_BUF_LEN];
@@ -678,7 +679,7 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 
 
 /* Restore mode, filter, and ext_lvl to original values */
-int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw)
+static int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw)
 {
     int err;
 
@@ -720,7 +721,7 @@ int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw)
 
 
 /* Populate k2_filt_lst_s structure for each mode */
-int k2_pop_fw_lst(RIG *rig, const char *cmd)
+static int k2_pop_fw_lst(RIG *rig, const char *cmd)
 {
     int err, f;
     char fcmd[16];
@@ -806,7 +807,7 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
     return RIG_OK;
 }
 
-int k2_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+static int k2_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     char buf[32];
 

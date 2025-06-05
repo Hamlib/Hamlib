@@ -23,6 +23,7 @@
  *  the complete text of the GNU Lesser Public License version 2.1.
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <string.h>
 
@@ -31,10 +32,10 @@
 
 /* Private helper functions */
 
-int verify_flexradio_id(RIG *rig, char *id)
+static int verify_flexradio_id(RIG *rig, char *id)
 {
     int err;
-    char *idptr;
+    const char *idptr;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

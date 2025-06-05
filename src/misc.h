@@ -18,6 +18,7 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #ifndef _MISC_H
 #define _MISC_H 1
@@ -122,7 +123,7 @@ extern HAMLIB_EXPORT(vfo_t) vfo_fixup2a(RIG *rig, vfo_t vfo, split_t split, cons
 
 extern HAMLIB_EXPORT(int) parse_hoststr(char *hoststr, int hoststr_len, char host[256], char port[6]);
 
-extern HAMLIB_EXPORT(uint32_t) CRC32_function(uint8_t *buf, uint32_t len);
+extern HAMLIB_EXPORT(uint32_t) CRC32_function(const uint8_t *buf, uint32_t len);
 
 extern HAMLIB_EXPORT(char *)date_strget(char *buf, int buflen, int localtime);
 

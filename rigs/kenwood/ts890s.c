@@ -44,7 +44,8 @@
 static int kenwood_ts890_set_level(RIG *rig, vfo_t vfo, setting_t level,
                                    value_t val)
 {
-    char levelbuf[16], *command_string;
+    char levelbuf[16];
+    const char *command_string;
     int kenwood_val, retval;
     gran_t *level_info;
 
@@ -117,7 +118,7 @@ static int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level,
     size_t ack_len, ack_len_expected, len;
     int levelint;
     int retval;
-    char *command_string;
+    const char *command_string;
     gran_t *level_info;
 
     level_info = &rig->caps->level_gran[rig_setting2idx(level)];
@@ -475,13 +476,13 @@ static int ts890s_get_split_vfo(RIG *rig, vfo_t rxvfo, split_t *split,
 {
     char buf[4];
     int retval;
-    vfo_t tvfo;
     struct rig_state *rs = STATE(rig);
     struct kenwood_priv_data *priv = rs->priv;
 
     if (RIG_OK == (retval = kenwood_safe_transaction(rig, "FT", buf, sizeof(buf),
                                 3)))
     {
+        vfo_t tvfo;
         if ('0' == buf[2])
         {
             tvfo = RIG_VFO_A;
