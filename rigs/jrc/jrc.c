@@ -466,6 +466,7 @@ int jrc_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char cmdbuf[BUFSZ];
+    int  blanker;
 
     /* Optimize:
      *   sort the switch cases with the most frequent first
@@ -479,11 +480,18 @@ int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
         return jrc_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 
     case RIG_FUNC_NB:
-        /* FIXME: NB1 and NB2 */
-        SNPRINTF(cmdbuf, sizeof(cmdbuf), "N%d" EOM, status ? 1 : 0);
-
+    case RIG_FUNC_NB2:
+        if (!status)
+            blanker = 0;
+        else if (func == RIG_FUNC_NB)
+            blanker = 1;
+        else if (func == RIG_FUNC_NB2)
+            blanker = 2;
+        
+        SNPRINTF(cmdbuf, sizeof(cmdbuf), "N%d" EOM, blanker);
+        
         return jrc_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
-
+        
     /*
      * FIXME: which BB mode for NR and BC at same time ?
      */
@@ -555,7 +563,7 @@ int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
         return RIG_OK;
 
     case RIG_FUNC_NB:
-        /* FIXME: NB1 and NB2 */
+    case RIG_FUNC_NB2:
         retval = jrc_transaction(rig, "N" EOM, 2, funcbuf, &func_len);
 
         if (retval != RIG_OK)
@@ -570,7 +578,7 @@ int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             return -RIG_ERJCTED;
         }
 
-        *status = funcbuf[1] != '0';
+        *status = (((func == RIG_FUNC_NB) && (funcbuf[1] == '1')) || ((func == RIG_FUNC_NB2) && (funcbuf[1] == '2')));
 
         return RIG_OK;
 
@@ -1679,4 +1687,3 @@ DECLARE_INITRIG_BACKEND(jrc)
 
     return RIG_OK;
 }
-
