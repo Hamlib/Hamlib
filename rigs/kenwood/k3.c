@@ -21,6 +21,7 @@
  *  the complete text of the GNU Lesser Public License version 2.1.
  *
  */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -143,47 +144,43 @@ static struct kenwood_priv_caps k3_priv_caps  =
 
 
 /* K3 specific function declarations */
-int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int k3_get_vfo(RIG *rig, vfo_t *vfo);
-int k3_set_vfo(RIG *rig, vfo_t vfo);
-int k3_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val);
-int k3_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val);
-int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
-int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+static int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int k3_get_vfo(RIG *rig, vfo_t *vfo);
+static int k3_set_vfo(RIG *rig, vfo_t vfo);
+static int k3_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val);
+static int k3_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val);
+static int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+static int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                       pbwidth_t *tx_width);
-int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
-int k3_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
+static int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+static int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+static int k3_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                 rmode_t mode);
 
 /* Private helper functions */
 int set_rit_xit(RIG *rig, shortfreq_t rit);
-int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb);
-int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb);
-int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
+static int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb);
+static int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb);
+static int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
                            int *mode_tx);
-int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
+static int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
                            int *mode_tx);
-int kx3_get_bar_graph_level(RIG *rig, float *level);
-int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
-int k3_stop_voice_mem(RIG *rig, vfo_t vfo);
-int k3_stop_morse(RIG *rig, vfo_t vfo);
 
 /* K4 functions */
-int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int k4_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
-int k4_stop_voice_mem(RIG *rig, vfo_t vfo);
-int k4_stop_morse(RIG *rig, vfo_t vfo);
+static int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int k4_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
+static int k4_stop_voice_mem(RIG *rig, vfo_t vfo);
+static int k4_stop_morse(RIG *rig, vfo_t vfo);
 
 /*
  * K3 rig capabilities.
@@ -194,28 +191,11 @@ int k4_stop_morse(RIG *rig, vfo_t vfo);
  * Part of info comes from http://www.elecraft.com/K2_Manual_Download_Page.htm#K3
  * look for K3 Programmer's Reference PDF
  */
-int kx3_get_bar_graph_level(RIG *rig, float *level);
-int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
-int k3_stop_voice_mem(RIG *rig, vfo_t vfo);
-int k3_stop_morse(RIG *rig, vfo_t vfo);
+static int kx3_get_bar_graph_level(RIG *rig, float *level);
+static int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
+static int k3_stop_voice_mem(RIG *rig, vfo_t vfo);
+static int k3_stop_morse(RIG *rig, vfo_t vfo);
 
-/* K4 functions */
-int k4_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int k4_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
-int k4_stop_voice_mem(RIG *rig, vfo_t vfo);
-int k4_stop_morse(RIG *rig, vfo_t vfo);
-
-/*
- * K3 rig capabilities.
- * This kit can recognize a large subset of TS-570/K2 commands and has many
- * extensions of its own.  Extension backend functions to standard Kenwood
- * command are defined in elecraft.c (shared with K2) and in this file.
- *
- * Part of info comes from http://www.elecraft.com/K2_Manual_Download_Page.htm#K3
- * look for K3 Programmer's Reference PDF
- *
- */
 struct rig_caps k3_caps =
 {
     RIG_MODEL(RIG_MODEL_K3),
@@ -1037,14 +1017,14 @@ struct rig_caps kx2_caps =
  * RIG_MODE_PKTUSB and RIG_MODE_PKTLSB can be supported.
  */
 
-int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     char buf[KENWOOD_MAX_BUF_LEN];
     int err;
     rmode_t temp_m;
     pbwidth_t temp_w;
-    char *cmd_data = "DT";
-    char *cmd_bw = "BW";
+    const char *cmd_data = "DT";
+    const char *cmd_bw = "BW";
     int cmd_bw_len = 6;
     const struct kenwood_priv_data *priv = STATE(rig)->priv;
 
@@ -1191,7 +1171,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * mapping seems most likely to cover the user requirements.
  */
 
-int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     int err, err2;
     char cmd_m[5];
@@ -1396,7 +1376,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  * We just emulate them so rigctl can work correctly.
  */
 
-int k3_set_vfo(RIG *rig, vfo_t vfo)
+static int k3_set_vfo(RIG *rig, vfo_t vfo)
 {
     ENTERFUNC;
 
@@ -1406,7 +1386,7 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
     RETURNFUNC(RIG_OK);
 }
 
-int k3_get_vfo(RIG *rig, vfo_t *vfo)
+static int k3_get_vfo(RIG *rig, vfo_t *vfo)
 {
     ENTERFUNC;
 
@@ -1427,7 +1407,7 @@ int k3_get_vfo(RIG *rig, vfo_t *vfo)
  * See Private Elecraft extra levels definitions in elecraft.c and
  * private token #define in elecraft.h
  */
-int k3_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
+static int k3_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
 {
     char buf[10];
 
@@ -1476,7 +1456,7 @@ int k3_set_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t val)
  *      STRING: val.cs for set, val.s for get
  *      CHECKBUTTON: val.i 0/1
  */
-int k3_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
+static int k3_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
 {
     char buf[KENWOOD_MAX_BUF_LEN];
     int err;
@@ -1544,7 +1524,7 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, hamlib_token_t token, value_t *val)
  * k3_set_rit() -- Differs from from generic Kenwood function as K3 can set
  * RIT to an arbitrary offset.  When rit == 0, the RIT offset is cleared.
  */
-int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+static int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     int err;
 
@@ -1565,7 +1545,7 @@ int k3_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
  * k3_set_xit() -- Differs from from generic Kenwood function as K3 can set
  * XIT to an arbitrary offset.  When rit == 0, the XIT offset is cleared.
  */
-int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+static int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
     int err;
 
@@ -1585,7 +1565,7 @@ int k3_set_xit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 /*
  * The K3 *always* uses VFOB for TX.
  */
-int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+static int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
     struct kenwood_priv_caps *caps = kenwood_caps(rig);
     char buf[32];
@@ -1761,7 +1741,7 @@ int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 
 /* The K3 *always* uses VFOB for TX.
  */
-int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
+static int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
                       pbwidth_t *tx_width)
 {
     char buf[KENWOOD_MAX_BUF_LEN];
@@ -1919,7 +1899,7 @@ static int k3_get_maxpower(RIG *rig)
     return maxpower;
 }
 
-int k3_power2mW(RIG *rig,
+static int k3_power2mW(RIG *rig,
                 unsigned int *mwpower,
                 float power,
                 freq_t freq,
@@ -1931,7 +1911,7 @@ int k3_power2mW(RIG *rig,
     return RIG_OK;
 }
 
-int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char levelbuf[16];
     int kenwood_val;
@@ -2050,7 +2030,7 @@ int k3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 /*
  * Handle S-meter (SM, SMH) level locally and pass rest to kenwood_get_level()
  */
-int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char levelbuf[16];
     int retval;
@@ -2395,7 +2375,7 @@ int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     return RIG_OK;
 }
 
-int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     int ival;
     char cmdbuf[32];
@@ -2425,7 +2405,7 @@ int kx3_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     return k3_set_level(rig, vfo, level, val);
 }
 
-int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     int retval;
     float f;
@@ -2515,7 +2495,7 @@ int kx3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 }
 
 
-int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+static int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char buf[10];
 
@@ -2555,7 +2535,7 @@ int k3_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     return kenwood_transaction(rig, buf, NULL, 0);
 }
 
-int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+static int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
     char buf[32];
     ENTERFUNC;
@@ -2593,7 +2573,7 @@ int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  * on the K3.  Those functions are handled here and others are passed
  * through to kenwood_get_func().
  */
-int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+static int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2674,7 +2654,7 @@ int set_rit_xit(RIG *rig, shortfreq_t rit)
     return RIG_OK;
 }
 
-int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb)
+static int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb)
 {
     char levelbuf[16];
     int dsp_nb_raw = 0;
@@ -2722,7 +2702,7 @@ int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb)
     return kenwood_transaction(rig, levelbuf, NULL, 0);
 }
 
-int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb)
+static int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb)
 {
     char levelbuf[16];
     int retval;
@@ -2780,7 +2760,7 @@ int k4_get_bar_graph_level(RIG *rig, float *swr, float *pwr, float *alc,
     return RIG_OK;
 }
 
-int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
+static int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
                            int *mode_tx)
 {
     char levelbuf[16];
@@ -2878,7 +2858,7 @@ int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
     return RIG_OK;
 }
 
-int kx3_get_bar_graph_level(RIG *rig, float *level)
+static int kx3_get_bar_graph_level(RIG *rig, float *level)
 {
     char levelbuf[16];
     int retval;
@@ -2992,7 +2972,7 @@ int k4_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 // K3S band memory needs some time to do its thing after freq change
 // K3 probably does too
 // But what about the K4?
-int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+static int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     int retval;
     freq_t tfreq;
@@ -3012,9 +2992,9 @@ int k3_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     return retval;
 }
 
-int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
+static int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
 {
-    char *cmd;
+    const char *cmd;
     int retval;
 
     if (ch < 1 || ch > 4)
@@ -3038,7 +3018,7 @@ int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch)
     return retval;
 }
 
-int k3_stop_voice_mem(RIG *rig, vfo_t vfo)
+static int k3_stop_voice_mem(RIG *rig, vfo_t vfo)
 {
     int retval;
     retval = kenwood_transaction(rig, "SWT37;", NULL, 0);
@@ -3075,7 +3055,7 @@ int k4_stop_morse(RIG *rig, vfo_t vfo)
     return retval;
 }
 
-int k3_stop_morse(RIG *rig, vfo_t vfo)
+static int k3_stop_morse(RIG *rig, vfo_t vfo)
 {
     int retval;
     char cmd[32];
