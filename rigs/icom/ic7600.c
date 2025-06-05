@@ -172,7 +172,7 @@ static const struct icom_priv_caps ic7600_priv_caps =
 
 
 // if hour < 0 then only date will be set
-int ic7600_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
+static int ic7600_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
                      int sec, double msec, int utc_offset)
 {
     int cmd = 0x1a;
@@ -226,7 +226,7 @@ int ic7600_set_clock(RIG *rig, int year, int month, int day, int hour, int min,
     return retval;
 }
 
-int ic7600_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
+static int ic7600_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
                      int *min, int *sec, double *msec, int *utc_offset)
 {
     int cmd = 0x1a;

@@ -135,7 +135,7 @@ static const struct icom_priv_caps ic910_priv_caps =
     .r2i_mode = ic910_r2i_mode
 };
 
-int ic910_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+static int ic910_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     switch (func)
     {
@@ -152,7 +152,7 @@ int ic910_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     }
 }
 
-int ic910_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+static int ic910_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     switch (func)
     {
@@ -167,7 +167,7 @@ int ic910_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     }
 }
 
-int ic910_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int ic910_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -182,7 +182,7 @@ int ic910_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
 }
 
-int ic910_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int ic910_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

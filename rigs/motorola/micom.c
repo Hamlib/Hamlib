@@ -24,7 +24,7 @@
 #include <iofunc.h>
 
 // char* to start of checksum for len bytes
-unsigned int checksum(unsigned char *buf, int len)
+static unsigned int checksum(const unsigned char *buf, int len)
 {
     int checksum = 0;
     int i;
@@ -189,8 +189,8 @@ static int micom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 static int micom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     hamlib_port_t *rp = RIGPORT(rig);
-    unsigned char on[] =  { 0x24, 0x02, 0x81, 0x13, 0x01, 0xBB, 0x03 };
-    unsigned char off[] = { 0x24, 0x02, 0x81, 0x14, 0x01, 0xBC, 0x03 };
+    static const unsigned char on[] =  { 0x24, 0x02, 0x81, 0x13, 0x01, 0xBB, 0x03 };
+    static const unsigned char off[] = { 0x24, 0x02, 0x81, 0x14, 0x01, 0xBC, 0x03 };
     int retval;
 
     set_transaction_active(rig);

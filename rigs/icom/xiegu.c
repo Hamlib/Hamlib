@@ -132,7 +132,7 @@ static int x108g_rig_open(RIG *rig)
     RETURNFUNC(RIG_OK);
 }
 
-int xiegu_rig_open(RIG *rig)
+static int xiegu_rig_open(RIG *rig)
 {
     int retval;
     unsigned char id[4];
