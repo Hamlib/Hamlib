@@ -413,7 +413,7 @@ int main(int argc, char *argv[])
     if (argc == 1)
     {
         usage();
-        exit(2);
+        exit(1);
     }
 
     my_rig = rig_init(my_model);
@@ -443,7 +443,7 @@ int main(int argc, char *argv[])
     if (my_model > 5 && !rig_file)
     {
         fprintf(stderr, "-r rig com port not provided\n");
-        exit(2);
+        exit(1);
     }
 
     if (rig_file)
@@ -454,7 +454,7 @@ int main(int argc, char *argv[])
     if (!rig_file2)
     {
         fprintf(stderr, "-R com port not provided\n");
-        exit(2);
+        exit(1);
     }
 
     strncpy(my_com.pathname, rig_file2, HAMLIB_FILPATHLEN - 1);
