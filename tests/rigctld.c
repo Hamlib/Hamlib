@@ -334,52 +334,22 @@ int main(int argc, char *argv[])
             break;
 
         case 'm':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             my_model = atoi(optarg);
             break;
 
         case 'r':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             rig_file = optarg;
             break;
 
         case 'p':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             ptt_file = optarg;
             break;
 
         case 'd':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             dcd_file = optarg;
             break;
 
         case 'P':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (!strcmp(optarg, "RIG"))
             {
                 ptt_type = RIG_PTT_RIG;
@@ -421,12 +391,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'D':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (!strcmp(optarg, "RIG"))
             {
                 dcd_type = RIG_DCD_RIG;
@@ -472,33 +436,15 @@ int main(int argc, char *argv[])
             break;
 
         case 'c':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             civaddr = optarg;
             break;
 
         case 'S':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             resp_sep = *optarg;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: resp_sep=%c\n", __func__, resp_sep);
             break;
 
         case 's':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (sscanf(optarg, "%d%1s", &serial_rate, dummy) != 1)
             {
                 fprintf(stderr, "Invalid baud rate of %s\n", optarg);
@@ -508,12 +454,6 @@ int main(int argc, char *argv[])
             break;
 
         case 'C':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             if (strcmp(optarg, "auto_power_on=0") == 0)
             {
                 rig_debug(RIG_DEBUG_ERR, "%s: skipping rig_open\n", __func__);
@@ -540,22 +480,10 @@ int main(int argc, char *argv[])
             break;
 
         case 't':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             portno = optarg;
             break;
 
         case 'T':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             src_addr = optarg;
             break;
 
@@ -581,24 +509,12 @@ int main(int argc, char *argv[])
             break;
 
         case 'W':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             twiddle_timeout = atoi(optarg);
             fprintf(stderr,
                     "twiddle_timeout is deprecated...use e.g. --set-conf=twiddle_timeout=5\n");
             break;
 
         case 'w':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             twiddle_rit = atoi(optarg);
             fprintf(stderr,
                     "twiddle_rit is deprecated...use e.g. --set-conf=twiddle_rit=1\n");
@@ -606,12 +522,6 @@ int main(int argc, char *argv[])
 
 
         case 'x':
-            if (!optarg)
-            {
-                usage();    /* wrong arg count */
-                exit(1);
-            }
-
             uplink = atoi(optarg);
             break;
 
