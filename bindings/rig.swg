@@ -18,6 +18,17 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+%{
+#include <hamlib/rig.h>
+%}
+
+%immutable rig_caps::model_name;
+%immutable rig_caps::mfg_name;
+%immutable rig_caps::version;
+%immutable rig_caps::copyright;
+
+%include <hamlib/riglist.h>
+%include <hamlib/rig.h>
 
 %inline %{
 
