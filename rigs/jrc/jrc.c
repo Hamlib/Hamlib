@@ -466,7 +466,7 @@ int jrc_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char cmdbuf[BUFSZ];
-    int  blanker;
+    int  blanker = 0;
 
     /* Optimize:
      *   sort the switch cases with the most frequent first
@@ -485,7 +485,7 @@ int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             blanker = 0;
         else if (func == RIG_FUNC_NB)
             blanker = 1;
-        else if (func == RIG_FUNC_NB2)
+        else //if (func == RIG_FUNC_NB2)
             blanker = 2;
         
         SNPRINTF(cmdbuf, sizeof(cmdbuf), "N%d" EOM, blanker);
