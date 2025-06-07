@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
     if (retcode != 0)
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retcode));
-        exit(2);
+        exit(1);
     }
 
     saved_result = result;

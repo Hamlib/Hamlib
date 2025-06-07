@@ -783,7 +783,7 @@ int main(int argc, char *argv[])
     else
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retcode));
-        exit(2);
+        exit(1);
     }
 
     saved_result = result;
@@ -798,7 +798,7 @@ int main(int argc, char *argv[])
         {
             handle_error(RIG_DEBUG_ERR, "socket");
             freeaddrinfo(saved_result);     /* No longer needed */
-            exit(2);
+            exit(1);
         }
 
         const int optval = 1;
