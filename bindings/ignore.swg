@@ -1,90 +1,86 @@
-/* unsupported Hamlib's calls */
-
-/* useless macros */
-%ignore AMP_DUMMY;
-%ignore AMP_ELECRAFT;
-%ignore AMP_GEMINI;
-%ignore AMP_EXPERT;
-
-%ignore RIG_ADAT;
-%ignore RIG_ALINCO;
-%ignore RIG_ANYTONE;
-%ignore RIG_AOR;
-%ignore RIG_BARRETT;
-%ignore RIG_CODAN;
-%ignore RIG_COMMRADIO;
-%ignore RIG_DORJI;
-%ignore RIG_DRAKE;
-%ignore RIG_DUMMY;
-%ignore RIG_EK;
-%ignore RIG_ELAD;
-%ignore RIG_FLEXRADIO;
-%ignore RIG_GNURADIO;
-%ignore RIG_GOMSPACE;
-%ignore RIG_ICMARINE;
-%ignore RIG_ICOM;
-%ignore RIG_JRC;
-%ignore RIG_KACHINA;
-%ignore RIG_KENWOOD;
-%ignore RIG_KIT;
-%ignore RIG_LOWE;
-%ignore RIG_MDS;
-%ignore RIG_MICROTUNE;
-%ignore RIG_MOTOROLA;
-%ignore RIG_PCR;
-%ignore RIG_PRM80;
-%ignore RIG_RACAL;
-%ignore RIG_RADIOSHACK;
-%ignore RIG_RFT;
-%ignore RIG_RS;
-%ignore RIG_SKANTI;
-%ignore RIG_TAPR;
-%ignore RIG_TENTEC;
-%ignore RIG_TUNER;
-%ignore RIG_UNIDEN;
-%ignore RIG_WINRADIO;
-%ignore RIG_WJ;
-%ignore RIG_YAESU;
-
-%ignore ROT_AMSAT;
-%ignore ROT_ANDROIDSENSOR;
-%ignore ROT_APEX;
-%ignore ROT_ARRAYSOLUTIONS;
-%ignore ROT_ARS;
-%ignore ROT_CELESTRON;
-%ignore ROT_CNCTRK;
-%ignore ROT_DUMMY;
-%ignore ROT_EASYCOMM;
-%ignore ROT_ETHER6;
-%ignore ROT_FLIR;
-%ignore ROT_FODTRACK;
-%ignore ROT_GRBLTRK;
-%ignore ROT_GS232A;
-%ignore ROT_HEATHKIT;
-%ignore ROT_INDI;
-%ignore ROT_IOPTRON;
-%ignore ROT_KIT;
-%ignore ROT_M2;
-%ignore ROT_MEADE;
-%ignore ROT_PROSISTEL;
-%ignore ROT_RADANT;
-%ignore ROT_ROTOREZ;
-%ignore ROT_SAEBRTRACK;
-%ignore ROT_SARTEK;
-%ignore ROT_SATEL;
-%ignore ROT_SKYWATCHER;
-%ignore ROT_SPID;
-%ignore ROT_TS7400;
-
-%ignore PRIfreq;
-%ignore SCNfreq;
-%ignore FREQFMT;
+/* Unsupported Hamlib's methods, properties and constants */
 
 // remove defines from Hamlib class
 %rename("$ignore", regexmatch$name="^_") "";
-%rename("$ignore", regexmatch$name="^AMP_BACKEND") "";
-%rename("$ignore", regexmatch$name="^RIG_BACKEND") "";
-%rename("$ignore", regexmatch$name="^ROT_BACKEND") "";
+%rename("$ignore", regexmatch$name="^AMP_") "";
+%rename("$ignore", regexmatch$name="^RIG_") "";
+%rename("$ignore", regexmatch$name="^ROT_") "";
+
+// re-add useful defines
+
+// Amplifiers
+%rename("%s", regexmatch$name="^AMP_FLAG_") "";
+%rename("%s", regexmatch$name="^AMP_LEVEL_") "";
+%rename("%s", regexmatch$name="^AMP_MODEL_") "";
+%rename("%s", regexmatch$name="^AMP_RESET_") "";
+%rename("%s", regexmatch$name="^AMP_TYPE_") "";
+
+// Rigs
+%rename("%s", regexmatch$name="^RIG_AGC_") "";
+%rename("%s", regexmatch$name="^RIG_ANN_") "";
+%rename("%s", regexmatch$name="^RIG_ANT_") "";
+%rename("%s", regexmatch$name="^RIG_BANDSELECT_") "";
+%rename("%s", regexmatch$name="^RIG_BAND_") "";
+%rename("%s") RIG_BUSBUSY;
+%rename("%s") RIG_BUSERROR;
+%rename("%s", regexmatch$name="^RIG_CAPS_") "";
+%rename("%s", regexmatch$name="^RIG_CHFLAG_") "";
+%rename("%s", regexmatch$name="^RIG_CLIENT_") "";
+%rename("%s", regexmatch$name="^RIG_COMM_") "";
+%rename("%s", regexmatch$name="^RIG_CONF_") "";
+%rename("%s", regexmatch$name="^RIG_COOKIE_") "";
+%rename("%s", regexmatch$name="^RIG_DCD_") "";
+%rename("%s", regexmatch$name="^RIG_DEBUG_") "";
+%rename("%s", regexmatch$name="^RIG_E") "";
+%rename("%s", regexmatch$name="^RIG_FLAG_") "";
+%rename("%s", regexmatch$name="^RIG_FLT_") "";
+%rename("%s", regexmatch$name="^RIG_FUNCTION_") "";
+%rename("%s", regexmatch$name="^RIG_FUNC_") "";
+%rename("%s", regexmatch$name="^RIG_HANDSHAKE_") "";
+%rename("%s", regexmatch$name="^RIG_KEYERTYPE_") "";
+%rename("%s", regexmatch$name="^RIG_LEVEL_") "";
+%rename("%s", regexmatch$name="^RIG_MEM_CAPS_") "";
+%rename("%s", regexmatch$name="^RIG_METER_") "";
+%rename("%s", regexmatch$name="^RIG_MODEL_") "";
+%rename("%s", regexmatch$name="^RIG_MODE_") "";
+%rename("%s", regexmatch$name="^RIG_MTYPE_") "";
+%rename("%s", regexmatch$name="^RIG_MULTICAST_") "";
+%rename("%s", regexmatch$name="^RIG_OP_") "";
+%rename("%s") RIG_OK;
+%rename("%s", regexmatch$name="^RIG_PARITY_") "";
+%rename("%s", regexmatch$name="^RIG_PARM_") "";
+%rename("%s", regexmatch$name="^RIG_PORT_") "";
+%rename("%s", regexmatch$name="^RIG_POWER_") "";
+%rename("%s", regexmatch$name="^RIG_PTRX_") "";
+%rename("%s", regexmatch$name="^RIG_PTT_") "";
+%rename("%s", regexmatch$name="^RIG_RESET_") "";
+%rename("%s", regexmatch$name="^RIG_RPT_SHIFT_") "";
+%rename("%s", regexmatch$name="^RIG_SCAN_") "";
+%rename("%s", regexmatch$name="^RIG_SETTING_") "";
+%rename("%s", regexmatch$name="^RIG_SIGNAL_") "";
+%rename("%s", regexmatch$name="^RIG_SPECTRUM_MODE_") "";
+%rename("%s", regexmatch$name="^RIG_SPLIT_") "";
+%rename("%s", regexmatch$name="^RIG_STATUS_") "";
+%rename("%s", regexmatch$name="^RIG_TARGETABLE_") "";
+%rename("%s", regexmatch$name="^RIG_TRN_") "";
+%rename("%s", regexmatch$name="^RIG_TS_") "";
+%rename("%s", regexmatch$name="^RIG_TYPE_") "";
+%rename("%s", regexmatch$name="^RIG_VFO_") "";
+%ignore RIG_EK; // an internal macro
+%ignore RIG_ELAD; // an internal macro
+
+// Rotators
+
+%rename("%s", regexmatch$name="^ROT_FLAG_") "";
+%rename("%s", regexmatch$name="^ROT_FUNC_") "";
+%rename("%s", regexmatch$name="^ROT_LEVEL_") "";
+%rename("%s", regexmatch$name="^ROT_MODEL_") "";
+%rename("%s", regexmatch$name="^ROT_MOVE_") "";
+%rename("%s", regexmatch$name="^ROT_PARM_") "";
+%rename("%s", regexmatch$name="^ROT_RESET_") "";
+%rename("%s", regexmatch$name="^ROT_SPEED_") "";
+%rename("%s", regexmatch$name="^ROT_STATUS_") "";
+%rename("%s", regexmatch$name="^ROT_TYPE_") "";
 
 // remove methods from Hamlib class
 %rename("$ignore", regexmatch$name="^amp_", %$isfunction) "";
@@ -110,8 +106,10 @@
 %ignore fd_sync_error_write;
 %ignore fd_sync_error_read;
 
-
 %ignore FIFO_RIG;
+%ignore FREQFMT;
+%ignore PRIfreq;
+%ignore SCNfreq;
 
 #ifdef SWIGLUA
 %ignore Rig::set_level(setting_t,int,vfo_t);
