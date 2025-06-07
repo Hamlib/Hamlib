@@ -346,7 +346,7 @@ static int set_conf(RIG *rig, char *conf_parms)
 
         if (!q)
         {
-            return RIG_EINVAL;
+            return -RIG_EINVAL;
         }
 
         *q++ = '\0';

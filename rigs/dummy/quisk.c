@@ -2070,7 +2070,7 @@ static int quisk_get_powerstat(RIG *rig, powerstat_t *status)
         // a return of 1 should indicate there is no powerstat command available
         // so we fake the ON status
         // also a problem with Flex 6xxx and Log4OM not working due to lack of PS command
-        if (ret != RIG_ETIMEOUT)
+        if (ret != -RIG_ETIMEOUT)
         {
             rig_debug(RIG_DEBUG_VERBOSE,
                       "%s: PS command failed (ret=%d) so returning RIG_POWER_ON\n", __func__, ret);

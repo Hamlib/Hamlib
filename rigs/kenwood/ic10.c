@@ -152,7 +152,7 @@ static int get_ic10_if(RIG *rig, char *data)
 {
     const struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)
                                            rig->caps->priv;
-    int i, data_len, retval = RIG_EINVAL;
+    int i, data_len, retval = -RIG_EINVAL;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
