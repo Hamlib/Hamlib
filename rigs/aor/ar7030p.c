@@ -352,12 +352,12 @@ static int ar7030p_cleanup(RIG *rig)
     return (rc);
 }
 
-/*
- * /brief Open I/O to receiver
+/**
+ * \brief Open I/O to receiver
  *
- * /param rig Pointer to rig struct
+ * \param rig Pointer to rig struct
  *
- * /return 0 on success, < 0 on failure
+ * \return 0 on success, < 0 on failure
  */
 static int ar7030p_open(RIG *rig)
 {
@@ -422,12 +422,12 @@ static int ar7030p_open(RIG *rig)
     return (rc);
 }
 
-/*
- * /brief Close I/O to receiver
+/**
+ * \brief Close I/O to receiver
  *
- * /param rig Pointer to rig struct
+ * \param rig Pointer to rig struct
  *
- * /return 0 on success, < 0 on failure
+ * \return 0 on success, < 0 on failure
  */
 // cppcheck-suppress *
 static int ar7030p_close(RIG *rig)
@@ -468,11 +468,11 @@ static const char *ar7030p_get_info(RIG *rig)
 }
 
 /*
- * /brief Set receiver frequency
+ * \brief Set receiver frequency
  *
- * /param rig Pointer to rig struct
- * /param vfo VFO to operate on
- * /param freq Frequency to set
+ * \param rig Pointer to rig struct
+ * \param vfo VFO to operate on
+ * \param freq Frequency to set
  *
  */
 static int ar7030p_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
@@ -528,11 +528,11 @@ static int ar7030p_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 }
 
 /*
- * /brief Get receiver frequency
+ * \brief Get receiver frequency
  *
- * /param rig Pointer to rig struct
- * /param vfo VFO to operate on
- * /param freq Pointer to hold frequency value (in Hz)
+ * \param rig Pointer to rig struct
+ * \param vfo VFO to operate on
+ * \param freq Pointer to hold frequency value (in Hz)
  *
  */
 static int ar7030p_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -584,12 +584,12 @@ static int ar7030p_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 }
 
 /*
- * /brief Set receiver mode
+ * \brief Set receiver mode
  *
- * /param rig Pointer to rig struct
- * /param vfo VFO to operate on
- * /param mode Mode to set
- * /param width Bandwidth to set
+ * \param rig Pointer to rig struct
+ * \param vfo VFO to operate on
+ * \param mode Mode to set
+ * \param width Bandwidth to set
  *
  */
 static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
@@ -650,12 +650,12 @@ static int ar7030p_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 }
 
 /*
- * /brief Get receiver mode and bandwidth
+ * \brief Get receiver mode and bandwidth
  *
- * /param rig Pointer to rig struct
- * /param vfo VFO to operate on
- * /param mode Pointer to value to hold mode
- * /param width Pointer to value to hold bandwidth
+ * \param rig Pointer to rig struct
+ * \param vfo VFO to operate on
+ * \param mode Pointer to value to hold mode
+ * \param width Pointer to value to hold bandwidth
  *
  */
 static int ar7030p_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
@@ -694,16 +694,16 @@ static int ar7030p_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode,
 }
 
 /*
- * /brief Get memory channel parameters
+ * \brief Get memory channel parameters
  *
- * /param rig Pointer to rig struct
- * /param chan Channel number (0-399)
- * /param freq Pointer to frequency value
- * /param mode Pointer to mode value (1-7)
- * /param filt Pointer to filter value (1-6)
- * /param pbs Pointer to passband tuning value
- * /param sql Pointer to squelch value (0-255)
- * /param id Pointer to channel ident string (14 chars)
+ * \param rig Pointer to rig struct
+ * \param chan Channel number (0-399)
+ * \param freq Pointer to frequency value
+ * \param mode Pointer to mode value (1-7)
+ * \param filt Pointer to filter value (1-6)
+ * \param pbs Pointer to passband tuning value
+ * \param sql Pointer to squelch value (0-255)
+ * \param id Pointer to channel ident string (14 chars)
  *
  */
 #if 0 /* unused; re-enabled as needed. */
@@ -818,14 +818,14 @@ static void ar7030p_get_memory(RIG *rig, const unsigned int chan,
 #endif /* unused */
 
 /*
- * /brief Set receiver levels
+ * \brief Set receiver levels
  *
- * /param rig Pointer to rig struct
- * /param vfo VFO to operate on
- * /param level Level to set
- * /param val Value to set level to
+ * \param rig Pointer to rig struct
+ * \param vfo VFO to operate on
+ * \param level Level to set
+ * \param val Value to set level to
  *
- * /return RIG_OK on success
+ * \return RIG_OK on success
  */
 static int ar7030p_set_level(RIG *rig, vfo_t vfo, setting_t level,
                              value_t val)
@@ -996,14 +996,14 @@ static int ar7030p_set_level(RIG *rig, vfo_t vfo, setting_t level,
 
 
 /*
- * /brief Get receiver levels
+ * \brief Get receiver levels
  *
- * /param rig Pointer to rig struct
- * /param vfo VFO to operate on
- * /param level Level to get
- * /param val Pointer to value to get
+ * \param rig Pointer to rig struct
+ * \param vfo VFO to operate on
+ * \param level Level to get
+ * \param val Pointer to value to get
  *
- * /return RIG_OK on success
+ * \return RIG_OK on success
  */
 static int ar7030p_get_level(RIG *rig, vfo_t vfo, setting_t level,
                              value_t *val)
@@ -1469,13 +1469,13 @@ static int ar7030p_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 }
 
 /*
- * /brief Get receiver tuning step size
+ * \brief Get receiver tuning step size
  *
- * /param rig Pointer to rig struct
- * /param vfo VFO to operate on
- * /param ts Pointer to tuning step value
+ * \param rig Pointer to rig struct
+ * \param vfo VFO to operate on
+ * \param ts Pointer to tuning step value
  *
- * /return RIG_OK on success
+ * \return RIG_OK on success
  */
 static int ar7030p_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
@@ -1506,12 +1506,12 @@ static int ar7030p_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 }
 
 /*
- * /brief Set receiver power status
+ * \brief Set receiver power status
  *
- * /param rig Pointer to rig struct
- * /param status Power status to set
+ * \param rig Pointer to rig struct
+ * \param status Power status to set
  *
- * /return RIG_OK on success
+ * \return RIG_OK on success
  */
 static int ar7030p_set_powerstat(RIG *rig, powerstat_t status)
 {
@@ -1542,12 +1542,12 @@ static int ar7030p_set_powerstat(RIG *rig, powerstat_t status)
 }
 
 /*
- * /brief Get receiver power status
+ * \brief Get receiver power status
  *
- * /param rig Pointer to rig struct
- * /param status Pointer to power status value
+ * \param rig Pointer to rig struct
+ * \param status Pointer to power status value
  *
- * /return RIG_OK on success
+ * \return RIG_OK on success
  */
 static int ar7030p_get_powerstat(RIG *rig, powerstat_t *status)
 {
@@ -1581,12 +1581,12 @@ static int ar7030p_get_powerstat(RIG *rig, powerstat_t *status)
 }
 
 /*
- * /brief Reset receiver
+ * \brief Reset receiver
  *
- * /param rig Pointer to rig struct
- * /param reset Reset operation to perform
+ * \param rig Pointer to rig struct
+ * \param reset Reset operation to perform
  *
- * /return RIG_OK on success
+ * \return RIG_OK on success
  */
 static int ar7030p_reset(RIG *rig, reset_t reset)
 {
