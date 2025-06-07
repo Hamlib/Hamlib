@@ -887,7 +887,7 @@ static int flrig_open(RIG *rig)
     /* see if get_modeA is available */
     retval = flrig_transaction(rig, "rig.get_modeA", NULL, value, sizeof(value));
 
-    if (retval == RIG_ENAVAIL) // must not have it
+    if (retval == -RIG_ENAVAIL) // must not have it
     {
         priv->has_get_modeA = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeA is not available=%s\n", __func__,
@@ -902,7 +902,7 @@ static int flrig_open(RIG *rig)
     /* see if get_modeB is available */
     retval = flrig_transaction(rig, "rig.get_modeB", NULL, value, sizeof(value));
 
-    if (retval == RIG_ENAVAIL) // must not have it
+    if (retval == -RIG_ENAVAIL) // must not have it
     {
         priv->has_get_modeB = 0;
         rig_debug(RIG_DEBUG_VERBOSE, "%s: getmodeB is not available=%s\n", __func__,
@@ -927,7 +927,7 @@ static int flrig_open(RIG *rig)
     retval = flrig_transaction(rig, "rig.get_bwA", NULL, value, sizeof(value));
     int dummy;
 
-    if (retval == RIG_ENAVAIL || value[0] == 0
+    if (retval == -RIG_ENAVAIL || value[0] == 0
             || sscanf(value, "%d", &dummy) <= 0) // must not have it
     {
         priv->has_get_bwA = 0;
@@ -946,7 +946,7 @@ static int flrig_open(RIG *rig)
     /* see if set_bwA is available */
     retval = flrig_transaction(rig, "rig.set_bwA", NULL, value, sizeof(value));
 
-    if (retval == RIG_ENAVAIL) // must not have it
+    if (retval == -RIG_ENAVAIL) // must not have it
     {
         priv->has_set_bwA = 0;
         priv->has_set_bwB = 0;
@@ -964,7 +964,7 @@ static int flrig_open(RIG *rig)
         // see if get_bwB is available FLRig can return empty value too
         retval = flrig_transaction(rig, "rig.get_bwB", NULL, value, sizeof(value));
 
-        if (retval == RIG_ENAVAIL || strlen(value) == 0) // must not have it
+        if (retval == -RIG_ENAVAIL || strlen(value) == 0) // must not have it
         {
             priv->has_get_bwB = 0;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: get_bwB is not available=%s\n", __func__,
@@ -979,7 +979,7 @@ static int flrig_open(RIG *rig)
         /* see if set_bwB is available */
         retval = flrig_transaction(rig, "rig.set_bwB", NULL, value, sizeof(value));
 
-        if (retval == RIG_ENAVAIL) // must not have it
+        if (retval == -RIG_ENAVAIL) // must not have it
         {
             priv->has_set_bwB = 0;
             rig_debug(RIG_DEBUG_VERBOSE, "%s: set_bwB is not available=%s\n", __func__,
@@ -2383,7 +2383,7 @@ static int flrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     retval = flrig_transaction(rig, cmd, NULL, value, sizeof(value));
 
-    if (retval == RIG_ENAVAIL && strcmp(cmd, "rig.get_SWR") == 0)
+    if (retval == -RIG_ENAVAIL && strcmp(cmd, "rig.get_SWR") == 0)
     {
         priv->get_SWR = 0;
         cmd = "rig.get_swrmeter"; // revert to old flrig method

@@ -310,7 +310,7 @@ static int meade_set_position(ROT *rot, azimuth_t az, elevation_t el)
     {
         rig_debug(RIG_DEBUG_VERBOSE, "%s: expected 110, got %s\n", __func__,
                   return_str);
-        return RIG_EINVAL;
+        return -RIG_EINVAL;
     }
 }
 

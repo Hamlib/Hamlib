@@ -425,7 +425,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
      * matches the VFO A/B setting. c.f. rig_get_range().
      * Recall VFOA = ham only, VFOB = gen coverage for Hamlib.
      * (We assume VFOA = Main RXTX and VFOB = Sub RX.)
-     * If outside range, return RIG_ERJECTED for compatibility vs icom.c etc.
+     * If outside range, return -RIG_ERJECTED for compatibility vs icom.c etc.
      */
     in_range = FALSE;
 

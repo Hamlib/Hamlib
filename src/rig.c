@@ -984,8 +984,8 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
  * a negative value if an error occurred (in which case, cause is
  * set appropriately).
  *
- * \retval RIG_EINVAL   \a rig is NULL or inconsistent.
- * \retval RIG_ENIMPL   port type communication is not implemented yet.
+ * \retval -RIG_EINVAL   \a rig is NULL or inconsistent.
+ * \retval -RIG_ENIMPL   port type communication is not implemented yet.
  *
  * \sa rig_init(), rig_close()
  */
@@ -7448,7 +7448,7 @@ int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
     const struct rig_caps *caps;
     struct rig_state *rs;
-    int retcode = RIG_EINTERNAL, rc2;
+    int retcode = -RIG_EINTERNAL, rc2;
     vfo_t curr_vfo;
 
     if (CHECK_RIG_ARG(rig))

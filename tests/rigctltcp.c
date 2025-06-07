@@ -1283,7 +1283,7 @@ void *handle_socket(void *arg)
 
         // if we get a hard error we try to reopen the rig again
         // this should cover short dropouts that can occur
-        if (retcode < 0 && !RIG_IS_SOFT_ERRCODE(-retcode))
+        if (retcode < 0 && !RIG_IS_SOFT_ERRCODE(retcode))
         {
             int retry = 3;
             rig_debug(RIG_DEBUG_ERR, "%s: i/o error\n", __func__);
@@ -1313,7 +1313,7 @@ void *handle_socket(void *arg)
             while (!ctrl_c && !rig_opened && retry-- > 0 && retcode != RIG_OK);
         }
     }
-    while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(-retcode)));
+    while (!ctrl_c && (retcode == RIG_OK || RIG_IS_SOFT_ERRCODE(retcode)));
 
 client_done:
 

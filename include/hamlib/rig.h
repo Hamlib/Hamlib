@@ -222,10 +222,10 @@ enum rig_errcode_e {
  * Soft errors are caused by invalid parameters and software/hardware features
  * and cannot be fixed by retries or by re-initializing hardware.
  */
-#define RIG_IS_SOFT_ERRCODE(errcode) (errcode == RIG_EINVAL || errcode == RIG_ENIMPL || errcode == RIG_ERJCTED \
-    || errcode == RIG_ETRUNC || errcode == RIG_ENAVAIL || errcode == RIG_ENTARGET \
-    || errcode == RIG_EVFO || errcode == RIG_EDOM || errcode == RIG_EDEPRECATED \
-    || errcode == RIG_ESECURITY || errcode == RIG_EPOWER)
+#define RIG_IS_SOFT_ERRCODE(errcode) (errcode == -RIG_EINVAL || errcode == -RIG_ENIMPL || errcode == -RIG_ERJCTED \
+    || errcode == -RIG_ETRUNC || errcode == -RIG_ENAVAIL || errcode == -RIG_ENTARGET \
+    || errcode == -RIG_EVFO || errcode == -RIG_EDOM || errcode == -RIG_EDEPRECATED \
+    || errcode == -RIG_ESECURITY || errcode == -RIG_EPOWER)
 
 /**
  * \brief Token in the netrigctl protocol for returning error code

@@ -577,7 +577,7 @@ int HAMLIB_API rig_set_spectrum_callback(RIG *rig, spectrum_cb_t cb,
  * \sa rig_get_trn()
  *
  * \deprecated This functionality has never worked correctly and it is now disabled in favor of new async data handling capabilities.
- * The command will always return RIG_EDEPRECATED until the command will be removed eventually.
+ * The command will always return -RIG_EDEPRECATED until the command will be removed eventually.
  */
 int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 {
@@ -601,7 +601,7 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
  * \sa rig_set_trn()
  *
  * \deprecated This functionality has never worked correctly and it is now disabled in favor of new async data handling capabilities.
- * The command will always return RIG_EDEPRECATED until the command will be removed eventually.
+ * The command will always return -RIG_EDEPRECATED until the command will be removed eventually.
  */
 int HAMLIB_API rig_get_trn(RIG *rig, int *trn)
 {

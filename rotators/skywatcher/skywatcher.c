@@ -93,7 +93,7 @@ static int skywatcher_cmd(ROT *rot, const char *cmd, char *response,
             rig_debug(RIG_DEBUG_ERR, "Error response: '%s'\n", response);
         }
 
-        return RIG_EPROTO;
+        return -RIG_EPROTO;
     }
 
     // remove leading '='
@@ -204,7 +204,7 @@ int skywatcher_set_motor_position(ROT *rot, int motor_index, float angle)
         if (status & 0b10)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: motor is blocked\n", __func__);
-            return RIG_EPROTO;
+            return -RIG_EPROTO;
         }
 
         if (status & 0b1)
@@ -221,7 +221,7 @@ int skywatcher_set_motor_position(ROT *rot, int motor_index, float angle)
 
     if (!stopped)
     {
-        return RIG_EPROTO;
+        return -RIG_EPROTO;
     }
 
     SNPRINTF(req, sizeof(req), ":G%d00\r", motor_index);
