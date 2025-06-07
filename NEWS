@@ -22,6 +22,7 @@ Version 4.6.3
           five years from 2020 to 2025.  Mike passed away on March 28, 2025 due to
           complications from ALS (Lou Gehrig's disease).
 
+        * Fix various typos in Doxygen tags.  (TNX Daniele Forsi)
         * JRC: Removed RIG_FUNC_FAGC from 535D as erroneous, Added RIG_FUNC_NB2
           functionality to both 535D and 545. (TNX Mark Fine)
         * Restore IC-7300 spectrum data callback - regression in 4.6 (n3gb)
