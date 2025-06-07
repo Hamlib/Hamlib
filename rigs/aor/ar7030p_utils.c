@@ -387,11 +387,11 @@ int BUT(RIG *rig, enum BUTTON_e button)
 
 #endif // 0
 
-/*
- * /brief Execute routine
+/**
+ * \brief Execute routine
  *
- * /param rig Pointer to rig struct
- * /param rtn Receiver routine to execute
+ * \param rig Pointer to rig struct
+ * \param rtn Receiver routine to execute
  *
  * \return RIG_OK on success, error code on failure
  *
@@ -413,12 +413,12 @@ int execRoutine(RIG *rig, enum ROUTINE_e rtn)
     return (rc);
 }
 
-/*
- * /brief Set address for I/O with radio
+/**
+ * \brief Set address for I/O with radio
  *
- * /param rig Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
+ * \param rig Pointer to rig struct
+ * \param page Memory page number (0-4, 15)
+ * \param addr Address offset within page (0-4095, depending on page)
  *
  * \return RIG_OK on success, error code on failure
  *
@@ -513,12 +513,12 @@ static int setAddr(RIG *rig, enum PAGE_e page, unsigned int addr)
 }
 
 /*
- * /brief Write one byte to the receiver
+ * \brief Write one byte to the receiver
  *
- * /param rig Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
- * /param x    Value to write to radio
+ * \param rig Pointer to rig struct
+ * \param page Memory page number (0-4, 15)
+ * \param addr Address offset within page (0-4095, depending on page)
+ * \param x    Value to write to radio
  *
  * \return RIG_OK on success, error code on failure
  *
@@ -554,12 +554,12 @@ int writeByte(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char x)
 }
 
 /*
- * /brief Write two bytes to the receiver
+ * \brief Write two bytes to the receiver
  *
- * /param rig  Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
- * /param x    Value to write to radio
+ * \param rig  Pointer to rig struct
+ * \param page Memory page number (0-4, 15)
+ * \param addr Address offset within page (0-4095, depending on page)
+ * \param x    Value to write to radio
  *
  * \return Number of bytes written, 0 on error. Get error code with getErrno.
  *
@@ -581,12 +581,12 @@ int writeShort(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short x)
 }
 
 /*
- * /brief Write three bytes to the receiver
+ * \brief Write three bytes to the receiver
  *
- * /param rig  Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
- * /param x    Value to write to radio
+ * \param rig  Pointer to rig struct
+ * \param page Memory page number (0-4, 15)
+ * \param addr Address offset within page (0-4095, depending on page)
+ * \param x    Value to write to radio
  *
  * \return Number of bytes written, 0 on error. Get error code with getErrno.
  *
@@ -616,12 +616,12 @@ int write3Bytes(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x)
 #ifdef XXREMOVEDXX
 // this function is not referenced anywhere
 /*
- * /brief Write unsigned int (4 bytes) to the receiver
+ * \brief Write unsigned int (4 bytes) to the receiver
  *
- * /param rig  Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
- * /param x    Value to write to radio
+ * \param rig  Pointer to rig struct
+ * \param page Memory page number (0-4, 15)
+ * \param addr Address offset within page (0-4095, depending on page)
+ * \param x    Value to write to radio
  *
  * \return Number of bytes written, 0 on error. Get error code with getErrno.
  *
@@ -656,12 +656,12 @@ int writeInt(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x)
 #endif
 
 /*
- * /brief Read one byte from the receiver
+ * \brief Read one byte from the receiver
  *
- * /param rig Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
- * /param x    Pointer to value to read from radio
+ * \param rig Pointer to rig struct
+ * \param page Memory page number (0-4, 15)
+ * \param addr Address offset within page (0-4095, depending on page)
+ * \param x    Pointer to value to read from radio
  *
  * \return RIG_OK on success, error code on failure
  *
@@ -697,12 +697,12 @@ int readByte(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char *x)
 }
 
 /*
- * /brief Read an unsigned short (two bytes) from the receiver
+ * \brief Read an unsigned short (two bytes) from the receiver
  *
- * /param rig Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
- * /param x    Pointer to value to read from radio
+ * \param rig Pointer to rig struct
+ * \param page Memory page number (0-4, 15)
+ * \param addr Address offset within page (0-4095, depending on page)
+ * \param x    Pointer to value to read from radio
  *
  * \return RIG_OK on success, error code on failure
  *
@@ -734,12 +734,12 @@ int readShort(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short *x)
 }
 
 /*
- * /brief Read an unsigned int (three bytes) from the receiver
+ * \brief Read an unsigned int (three bytes) from the receiver
  *
- * /param rig Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
- * /param x    Pointer to value to read from radio
+ * \param rig Pointer to rig struct
+ * \param page Memory page number (0-4, 15)
+ * \param addr Address offset within page (0-4095, depending on page)
+ * \param x    Pointer to value to read from radio
  *
  * \return RIG_OK on success, error code on failure
  *
@@ -779,12 +779,12 @@ int read3Bytes(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x)
 #ifdef XXREMOVEDXX
 // this function is not referenced anywhere
 /*
- * /brief Read an unsigned int (four bytes) from the receiver
+ * \brief Read an unsigned int (four bytes) from the receiver
  *
- * /param rig Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
- * /param x    Pointer to value to read from radio
+ * \param rig Pointer to rig struct
+ * \param page Memory page number (0-4, 15)
+ * \param addr Address offset within page (0-4095, depending on page)
+ * \param x    Pointer to value to read from radio
  *
  * \return RIG_OK on success, error code on failure
  *
@@ -827,9 +827,9 @@ int readInt(RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x)
 #endif
 
 /*
- * /brief Read raw AGC value from the radio
+ * \brief Read raw AGC value from the radio
  *
- * /param rig Pointer to rig struct
+ * \param rig Pointer to rig struct
  *
  * \return RIG_OK on success, error code on failure
  */
@@ -858,9 +858,9 @@ int readSignal(RIG *rig, unsigned char *x)
 #ifdef XXREMOVEDXX
 // this function is not referenced anywhere
 /*
- * /brief Flush I/O with radio
+ * \brief Flush I/O with radio
  *
- * /param rig Pointer to rig struct
+ * \param rig Pointer to rig struct
  *
  */
 int flushBuffer(RIG *rig)
@@ -880,10 +880,10 @@ int flushBuffer(RIG *rig)
 #endif
 
 /*
- * /brief Lock receiver for remote operations
+ * \brief Lock receiver for remote operations
  *
- * /param rig Pointer to rig struct
- * /param level Lock level (0-3)
+ * \param rig Pointer to rig struct
+ * \param level Lock level (0-3)
  *
  */
 int lockRx(RIG *rig, enum LOCK_LVL_e level)
@@ -1104,11 +1104,11 @@ int getFilterBW(RIG *rig, enum FILTER_e filter)
 }
 
 /*
- * /brief Convert DDS steps to frequency in Hz
+ * \brief Convert DDS steps to frequency in Hz
  *
- * /param steps DDS count
+ * \param steps DDS count
  *
- * /return Frequency in Hz or 0 on failure
+ * \return Frequency in Hz or 0 on failure
  */
 freq_t ddsToHz(const unsigned int steps)
 {
@@ -1120,11 +1120,11 @@ freq_t ddsToHz(const unsigned int steps)
 }
 
 /*
- * /brief Convert frequency in Hz to DDS steps
+ * \brief Convert frequency in Hz to DDS steps
  *
- * /param freq Frequency in Hz
+ * \param freq Frequency in Hz
  *
- * /return DDS steps (24 bits) or 0 on failure
+ * \return DDS steps (24 bits) or 0 on failure
  */
 unsigned int hzToDDS(const freq_t freq)
 {
@@ -1156,11 +1156,11 @@ unsigned int hzToDDS(const freq_t freq)
 }
 
 /*
- * /brief Convert PBS/BFO steps to frequency in Hz
+ * \brief Convert PBS/BFO steps to frequency in Hz
  *
- * /param steps PBS/BFO offset steps
+ * \param steps PBS/BFO offset steps
  *
- * /return Frequency in Hz or 0 on failure
+ * \return Frequency in Hz or 0 on failure
  *
  * Max +ve offset is 127, max -ve offset is 128
  * Min -ve offset is 255
@@ -1187,11 +1187,11 @@ float pbsToHz(const unsigned char steps)
 #ifdef XXREMOVEDXX
 // this function is not referenced anywhere
 /*
- * /brief Convert PBS/BFO offset frequency in Hz to steps
+ * \brief Convert PBS/BFO offset frequency in Hz to steps
  *
- * /param freq Offset frequency in Hz
+ * \param freq Offset frequency in Hz
  *
- * /return steps (8 bits) or 0 on failure
+ * \return steps (8 bits) or 0 on failure
  */
 unsigned char hzToPBS(const float freq)
 {
@@ -1229,11 +1229,11 @@ unsigned char hzToPBS(const float freq)
 #endif
 
 /*
- * /brief Convert native Mode to Hamlib mode
+ * \brief Convert native Mode to Hamlib mode
  *
- * /param mode Native mode value
+ * \param mode Native mode value
  *
- * /return Hamlib mode value
+ * \return Hamlib mode value
  */
 rmode_t modeToHamlib(const unsigned char mode)
 {
@@ -1280,11 +1280,11 @@ rmode_t modeToHamlib(const unsigned char mode)
 }
 
 /*
- * /brief Convert Hamlib Mode to native mode
+ * \brief Convert Hamlib Mode to native mode
  *
- * /param mode Hamlib mode value
+ * \param mode Hamlib mode value
  *
- * /return Native mode value
+ * \return Native mode value
  */
 unsigned char modeToNative(const rmode_t mode)
 {
@@ -1331,11 +1331,11 @@ unsigned char modeToNative(const rmode_t mode)
 }
 
 /*
- * /brief Convert native AGC speed to Hamlib AGC speed
+ * \brief Convert native AGC speed to Hamlib AGC speed
  *
- * /param agc Native AGC speed value
+ * \param agc Native AGC speed value
  *
- * /return Hamlib AGC speed value
+ * \return Hamlib AGC speed value
  */
 enum agc_level_e agcToHamlib(const unsigned char agc)
 {
@@ -1370,11 +1370,11 @@ enum agc_level_e agcToHamlib(const unsigned char agc)
 }
 
 /*
- * /brief Convert Hamlib AGC speed to native AGC speed
+ * \brief Convert Hamlib AGC speed to native AGC speed
  *
- * /param agc Hamlib AGC speed value
+ * \param agc Hamlib AGC speed value
  *
- * /return Native AGC speed value
+ * \return Native AGC speed value
  */
 unsigned char agcToNative(const enum agc_level_e agc)
 {
@@ -1413,11 +1413,11 @@ unsigned char agcToNative(const enum agc_level_e agc)
 }
 
 /*
- * /brief Get page size
+ * \brief Get page size
  *
- * /param page Page to get size of
+ * \param page Page to get size of
  *
- * /return Page size, -1 on error
+ * \return Page size, -1 on error
  */
 int pageSize(const enum PAGE_e page)
 {
@@ -1440,9 +1440,9 @@ int pageSize(const enum PAGE_e page)
 }
 
 /*
- * /brief Set and execute IR controller code
+ * \brief Set and execute IR controller code
  *
- * /param code IR code to execute
+ * \param code IR code to execute
  *
  * \return RIG_OK on success, error code on failure
  */
