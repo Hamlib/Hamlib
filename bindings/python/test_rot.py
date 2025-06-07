@@ -16,6 +16,13 @@ ROT_MODEL = Hamlib.ROT_MODEL_DUMMY
 class TestClass:
     """Container class for tests"""
 
+    TOK_EL_ROT_MAGICLEVEL = 1
+    TOK_EL_ROT_MAGICFUNC = 2
+    # TOK_EL_ROT_MAGICOP = 3  # handled by get_ext_level/set_ext_level
+    TOK_EP_ROT_MAGICPARM = 4
+    # TOK_EL_ROT_MAGICCOMBO = 5  # handled by get_ext_level/set_ext_level
+    TOK_EL_ROT_MAGICEXTFUNC = 6
+
     def test_without_open(self):
         """Call all the methods that do not depend on open()"""
         rot = Hamlib.Rot(ROT_MODEL)
@@ -68,19 +75,23 @@ class TestClass:
         assert rot.park() is None
         assert rot.reset(Hamlib.ROT_RESET_ALL) is None
 
-        assert rot.set_ext_func(0, 0) is None
-        assert rot.get_ext_func(0) is None
-        assert rot.set_ext_level(0, value) is None
-        assert rot.get_ext_level(0) is None
-        assert rot.set_ext_parm(0, value) is None
-        assert rot.get_ext_parm(0) is None
+        assert rot.set_ext_func(self.TOK_EL_ROT_MAGICEXTFUNC, 5) is None
+        assert rot.get_ext_func(self.TOK_EL_ROT_MAGICEXTFUNC) == 5
+
+        value.i = 6
+        assert rot.set_ext_level(self.TOK_EL_ROT_MAGICLEVEL, value) is None
+        assert rot.get_ext_level(self.TOK_EL_ROT_MAGICLEVEL) == 6
+
+        value.i = 7
+        assert rot.set_ext_parm(self.TOK_EP_ROT_MAGICPARM, value) is None
+        assert rot.get_ext_parm(self.TOK_EP_ROT_MAGICPARM) == 7
 
         status = 0
         assert rot.set_func(1, status) is None
         assert rot.get_func(1) == status
         status = 1
-        assert rot.set_func(1, status) is None
-        assert rot.get_func(1) == 0  # FIXME should read status
+        assert rot.set_func(self.TOK_EL_ROT_MAGICFUNC, status) is None
+        assert rot.get_func(self.TOK_EL_ROT_MAGICFUNC) == 0  # FIXME should return status
 
         value.i = 5
         assert rot.set_parm(Hamlib.ROT_PARM_NONE, value) is None
