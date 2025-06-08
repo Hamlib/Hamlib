@@ -14,6 +14,8 @@ Version 5.x -- future
 
 Version 4.7.0
         * 2025-12-01 (target)
+	* Reduce/repair excess output from cppcheck.sh - mostly cosmetic changes (WIP)
+	  Output from `wc -l cppcheck.log` - 4.6.2: 981  now: 732
         * Remove dead getopt code.  GitHub PR #1709. (TNX Daniele Forsi)
         * Move rig_cache to separate(calloc) storage. Prepare for other moves.
           Issue #1420
@@ -25,8 +27,8 @@ Version 4.6.3
           five years from 2020 to 2025.  Mike passed away on March 28, 2025 due to
           complications from ALS (Lou Gehrig's disease).
 
-        * JRC: Removed RIG_FUNC_FAGC from 535D as erroneous, Added RIG_FUNC_NB2                                                    
-          functionality to both 535D and 545. (TNX Mark Fine)                                                                      
+        * JRC: Removed RIG_FUNC_FAGC from 535D as erroneous, Added RIG_FUNC_NB2
+          functionality to both 535D and 545. (TNX Mark Fine)
         * Restore IC-7300 spectrum data callback - regression in 4.6 (n3gb)
         * Add locking to rig_[gs]et_level() - fixes sending CW from tlf (n3gb)
         * Fix attempt to use memory returned by setlocale() after being freed (TNX Mooneer Salem)

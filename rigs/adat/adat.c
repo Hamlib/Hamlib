@@ -2170,7 +2170,6 @@ int adat_cmd_fn_set_freq(RIG *pRig)
     }
     else
     {
-        // cppcheck-suppress constVariablePointer
         const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
         char acBuf[ ADAT_BUFSZ + 1 ];
 
@@ -2226,7 +2225,6 @@ int adat_cmd_fn_set_vfo(RIG *pRig)
     }
     else
     {
-        // cppcheck-suppress constVariablePointer
         const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
         char acBuf[ ADAT_BUFSZ + 1 ];
 
@@ -2350,7 +2348,7 @@ int adat_cmd_fn_set_ptt(RIG *pRig)
     else
     {
         adat_priv_data_ptr  pPriv    = (adat_priv_data_ptr) STATE(pRig)->priv;
-        char *pcPTTStr = NULL;
+        const char *pcPTTStr = NULL;
 
         // Switch PTT
 
@@ -2690,7 +2688,6 @@ const char *adat_get_info(RIG *pRig)
 
         if (nRC == RIG_OK)
         {
-            // cppcheck-suppress constVariablePointer
             const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
             snprintf(acBuf, 2048,
@@ -2774,7 +2771,6 @@ int adat_get_freq(RIG *pRig, vfo_t vfo, freq_t *freq)
     }
     else
     {
-        // cppcheck-suppress constVariablePointer
         const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_transaction(pRig, &adat_cmd_list_get_freq);
@@ -2932,7 +2928,6 @@ int adat_get_mode(RIG *pRig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
     else
     {
-        // cppcheck-suppress constVariablePointer
         const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC =  adat_transaction(pRig, &adat_cmd_list_get_mode);
@@ -2975,7 +2970,6 @@ int adat_get_vfo(RIG *pRig, vfo_t *vfo)
     }
     else
     {
-        // cppcheck-suppress constVariablePointer
         const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_transaction(pRig, &adat_cmd_list_get_vfo);
@@ -3055,7 +3049,6 @@ int adat_get_ptt(RIG *pRig, vfo_t vfo, ptt_t *ptt)
     }
     else
     {
-        // cppcheck-suppress constVariablePointer
         const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         nRC = adat_transaction(pRig, &adat_cmd_list_get_ptt);
@@ -3316,7 +3309,6 @@ int adat_get_conf(RIG *pRig, hamlib_token_t token, char *val)
     }
     else
     {
-        // cppcheck-suppress constVariablePointer
         const adat_priv_data_ptr pPriv = (adat_priv_data_ptr) STATE(pRig)->priv;
 
         switch (token)

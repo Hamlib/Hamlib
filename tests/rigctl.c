@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
     ptt_type_t ptt_type = RIG_PTT_NONE;
     dcd_type_t dcd_type = RIG_DCD_NONE;
     int serial_rate = 0;
-    char *civaddr = NULL;   /* NULL means no need to set conf */
+    const char *civaddr = NULL;   /* NULL means no need to set conf */
     char conf_parms[MAXCONFLEN] = "";
     int interactive;    /* if no cmd on command line, switch to interactive */
     int prompt = 1;         /* Print prompt in rigctl */
@@ -507,7 +507,7 @@ int main(int argc, char *argv[])
     }
 
     my_rig->caps->ptt_type = ptt_type;
-    char *token = strtok(conf_parms, ",");
+    const char *token = strtok(conf_parms, ",");
     struct rig_state *rs = STATE(my_rig);
 
     while (token)
@@ -564,7 +564,7 @@ int main(int argc, char *argv[])
         if (ptt_type == RIG_PTT_NONE)
         {
             rig_debug(RIG_DEBUG_VERBOSE, "%s: defaulting to RTS PTT\n", __func__);
-            my_rig->caps->ptt_type = ptt_type = RIG_PTT_SERIAL_RTS;
+            my_rig->caps->ptt_type = RIG_PTT_SERIAL_RTS;
         }
     }
 
@@ -690,7 +690,14 @@ int main(int argc, char *argv[])
             hist_path_size = sizeof(char) * (strlen(hist_dir) + strlen(hist_file) + 1);
             hist_path = (char *)calloc(hist_path_size, sizeof(char));
 
-            SNPRINTF(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
+            if (hist_path)
+            {
+                SNPRINTF(hist_path, hist_path_size, "%s%s", hist_dir, hist_file);
+            }
+	    else
+            {
+                fprintf(stderr, "Allocation failed - no readline history\n");
+            }
         }
 
         if (rd_hist && hist_path)
