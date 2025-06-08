@@ -269,7 +269,7 @@ typedef struct async_data_handler_priv_data_s
 
 static int async_data_handler_start(RIG *rig);
 static int async_data_handler_stop(RIG *rig);
-void *async_data_handler(void *arg);
+static void *async_data_handler(void *arg);
 #endif
 
 #if defined(HAVE_PTHREAD)
@@ -289,7 +289,7 @@ typedef struct morse_data_handler_priv_data_s
 static int morse_data_handler_start(RIG *rig);
 static int morse_data_handler_stop(RIG *rig);
 int morse_data_handler_set_keyspd(RIG *rig, int keyspd);
-void *morse_data_handler(void *arg);
+static void *morse_data_handler(void *arg);
 #endif
 
 /*
@@ -390,7 +390,7 @@ MUTEX(mutex_debugmsgsave);
 
 void add2debugmsgsave(const char *s)
 {
-    char *p;
+    const char *p;
     char stmp[DEBUGMSGSAVE_SIZE];
     int i, nlines;
     int maxmsg = DEBUGMSGSAVE_SIZE / 2;
@@ -2134,7 +2134,6 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (rs->tx_vfo == vfo && curr_band != last_band)
     {
-        struct rig_cache *cachep = CACHE(rig);
         rig_debug(RIG_DEBUG_VERBOSE, "%s: band changing to %s\n", __func__,
                   rig_get_band_str(rig, curr_band, 0));
         band_changing = 1;
@@ -4714,7 +4713,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
     const struct rig_state *rs;
     struct rig_cache *cachep;
     int retcode, rc2;
-    vfo_t curr_vfo, tx_vfo = RIG_VFO_CURR;
+    vfo_t curr_vfo, tx_vfo;
     freq_t tfreq = 0;
 
     if (CHECK_RIG_ARG(rig))
@@ -8629,7 +8628,7 @@ static int morse_data_handler_stop(RIG *rig)
 #endif
 
 #if defined(HAVE_PTHREAD)
-void *async_data_handler(void *arg)
+static void *async_data_handler(void *arg)
 {
     struct async_data_handler_args_s *args = (struct async_data_handler_args_s *)
             arg;
@@ -8725,7 +8724,7 @@ again:
 #endif
 
 #if defined(HAVE_PTHREAD)
-void *morse_data_handler(void *arg)
+static void *morse_data_handler(void *arg)
 {
     struct morse_data_handler_args_s *args =
         (struct morse_data_handler_args_s *) arg;
