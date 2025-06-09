@@ -165,9 +165,13 @@ static int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 static int k3_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 static int k3_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq,
                 rmode_t mode);
+static int kx3_get_bar_graph_level(RIG *rig, float *level);
+static int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
+static int k3_stop_voice_mem(RIG *rig, vfo_t vfo);
+static int k3_stop_morse(RIG *rig, vfo_t vfo);
 
 /* Private helper functions */
-int set_rit_xit(RIG *rig, shortfreq_t rit);
+static int set_rit_xit(RIG *rig, shortfreq_t rit);
 static int k3_set_nb_level(RIG *rig, float dsp_nb, float if_nb);
 static int k3_get_nb_level(RIG *rig, float *dsp_nb, float *if_nb);
 static int k3_get_bar_graph_level(RIG *rig, float *smeter, float *pwr, float *alc,
@@ -191,11 +195,6 @@ static int k4_stop_morse(RIG *rig, vfo_t vfo);
  * Part of info comes from http://www.elecraft.com/K2_Manual_Download_Page.htm#K3
  * look for K3 Programmer's Reference PDF
  */
-static int kx3_get_bar_graph_level(RIG *rig, float *level);
-static int k3_send_voice_mem(RIG *rig, vfo_t vfo, int ch);
-static int k3_stop_voice_mem(RIG *rig, vfo_t vfo);
-static int k3_stop_morse(RIG *rig, vfo_t vfo);
-
 struct rig_caps k3_caps =
 {
     RIG_MODEL(RIG_MODEL_K3),
@@ -2611,7 +2610,7 @@ static int k3_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  * RIT/XIT to an arbitrary offset.  When rit == 0, the RIT/XIT offset is
  * cleared.
  */
-int set_rit_xit(RIG *rig, shortfreq_t rit)
+static int set_rit_xit(RIG *rig, shortfreq_t rit)
 {
     int err;
 
