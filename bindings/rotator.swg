@@ -18,6 +18,17 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+%{
+#include <hamlib/rotator.h>
+%}
+
+%immutable rot_caps::model_name;
+%immutable rot_caps::mfg_name;
+%immutable rot_caps::version;
+%immutable rot_caps::copyright;
+
+%include <hamlib/rotator.h>
+%include <hamlib/rotlist.h>
 
 %inline %{
 
@@ -118,6 +129,20 @@ typedef struct Rot {
                 s = rot_get_info(self->rot);
                 self->error_status = s ? RIG_OK : -RIG_EINVAL;
                 return s;
+        }
+
+        PyObject * get_level(setting_t level)
+        {
+            value_t val;
+
+            self->error_status = rot_get_level(self->rot, level, &val);
+            if (self->error_status != RIG_OK)
+                return Py_None;
+
+            if (ROT_LEVEL_IS_FLOAT(level))
+                return PyFloat_FromDouble(val.f);
+
+            return PyLong_FromLong(val.i);
         }
 
 	/* TODO: get_conf_list, .. */
