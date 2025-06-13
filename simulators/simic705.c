@@ -22,31 +22,42 @@ struct ip_mreq
 #include <termios.h>
 #include <unistd.h>
 
+/* Simulators really shouldn't be using ANY of the definitions
+ *  from the Hamlib rig.h parameters, but only those of the
+ *  rig itself.  This still won't be a clean room implementation,
+ *  but lets try to use as many as possible of Icom's definitions
+ *  for the rig parameters.
+ */
+#include "../rigs/icom/icom_defs.h"
 
 #define BUFSIZE 256
 #define X25
+#undef SATMODE
 
+unsigned char civaddr = 0xA4;
 int civ_731_mode = 0;
-vfo_t current_vfo = RIG_VFO_A;
+int current_vfo = S_VFOA;
 int split = 0;
 int keyspd = 85; // 85=20WPM
 
 // we make B different from A to ensure we see a difference at startup
 float freqA = 14074000;
 float freqB = 14074500;
-mode_t modeA = RIG_MODE_FM;
-mode_t modeB = RIG_MODE_FM;
+unsigned char modeA = S_FM;
+unsigned char modeB = S_FM;
 int datamodeA = 0;
 int datamodeB = 0;
-pbwidth_t widthA = 0;
-pbwidth_t widthB = 1;
-ant_t ant_curr = 0;
-int ant_option = 0;
+int widthA = 0;
+int widthB = 1;
+unsigned char filterA = 1, filterB = 1;
+//ant_t ant_curr = 0;
+//int ant_option = 0;
 int ptt = 0;
 int satmode = 0;
 int agc_time = 1;
 int ovf_status = 0;
 int powerstat = 1;
+const char *vfonames[2] = {"VFOA", "VFOB"};
 
 void dumphex(const unsigned char *buf, int n)
 {
@@ -69,7 +80,7 @@ again:
         buf[i++] = c;
         //printf("i=%d, c=0x%02x\n",i,c);
 
-        if (c == 0xfd)
+        if (c == FI)  // End of message (EOM)
         {
             dumphex(buf, i);
             return i;
@@ -100,6 +111,7 @@ void frameParse(int fd, unsigned char *frame, int len)
 {
     double freq;
     int n = 0;
+    unsigned char acknak = ACK; // Hope for the best
 
     if (len == 0)
     {
@@ -110,7 +122,7 @@ void frameParse(int fd, unsigned char *frame, int len)
     printf("Here#1\n");
     dumphex(frame, len);
 
-    if (frame[0] != 0xfe && frame[1] != 0xfe)
+    if (frame[0] != 0xfe || frame[1] != 0xfe)
     {
         printf("expected fe fe, got ");
         dumphex(frame, len);
@@ -119,10 +131,10 @@ void frameParse(int fd, unsigned char *frame, int len)
 
     switch (frame[4])
     {
-    case 0x03:
+    case C_RD_FREQ: // 0x03
 
         //from_bcd(frameackbuf[2], (civ_731_mode ? 4 : 5) * 2);
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
+        if (current_vfo == S_VFOA || current_vfo == S_MAIN)
         {
             printf("get_freqA\n");
             to_bcd(&frame[5], (long long)freqA, (civ_731_mode ? 4 : 5) * 2);
@@ -133,7 +145,7 @@ void frameParse(int fd, unsigned char *frame, int len)
             to_bcd(&frame[5], (long long)freqB, (civ_731_mode ? 4 : 5) * 2);
         }
 
-        frame[10] = 0xfd;
+        frame[10] = FI;
 
         if (powerstat)
         {
@@ -142,8 +154,8 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         break;
 
-    case 0x04:
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN)
+    case C_RD_MODE: // 0x04
+        if (current_vfo == S_VFOA || current_vfo == S_MAIN)
         {
             printf("get_modeA\n");
             frame[5] = modeA;
@@ -160,70 +172,75 @@ void frameParse(int fd, unsigned char *frame, int len)
         n = write(fd, frame, 8);
         break;
 
-    case 0x05:
+    case C_SET_FREQ: // 0x05
         freq = from_bcd(&frame[5], (civ_731_mode ? 4 : 5) * 2);
         printf("set_freq to %.0f\n", freq);
 
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { freqA = freq; }
+        if (current_vfo == S_VFOA || current_vfo == S_MAIN) { freqA = freq; }
         else { freqB = freq; }
 
-        frame[4] = 0xfb;
-        frame[5] = 0xfd;
+        frame[4] = ACK;
+        frame[5] = FI;
         n = write(fd, frame, 6);
         break;
 
-    case 0x06:
-        if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { modeA = frame[6]; }
+    case C_SET_MODE: // 0x06
+        if (current_vfo == S_VFOA || current_vfo == S_MAIN) { modeA = frame[6]; }
         else { modeB = frame[6]; }
 
-        frame[4] = 0xfb;
-        frame[5] = 0xfd;
+        frame[4] = ACK;
+        frame[5] = FI;
         n = write(fd, frame, 6);
         break;
 
-    case 0x07:
-
+    case C_SET_VFO: // 0x07
         switch (frame[5])
         {
-        case 0x00: current_vfo = RIG_VFO_A; break;
-
-        case 0x01: current_vfo = RIG_VFO_B; break;
-
-        case 0xd0: current_vfo = RIG_VFO_MAIN; break;
-
-        case 0xd1: current_vfo = RIG_VFO_SUB; break;
+        case S_VFOA:
+        case S_VFOB:
+            current_vfo = frame[5];
+            break;
+	case S_BTOA:
+            // Figure out what this really does
+            break;
+        case S_XCHNG:
+            // Ditto
+            break;
+        default:
+            acknak = NAK;
         }
 
-        printf("set_vfo to %s\n", rig_strvfo(current_vfo));
+        printf("set_vfo to %s\n", vfonames[current_vfo]);
 
-        frame[4] = 0xfb;
-        frame[5] = 0xfd;
+        frame[4] = acknak;
+        frame[5] = FI;
         n = write(fd, frame, 6);
         break;
 
-    case 0x0f:
+    case C_CTL_SPLT: // 0x0F
         if (frame[5] == 0) { split = 0; }
         else if (frame[5] == 1) { split = 1; }
         else { frame[6] = split; }
 
-        if (frame[5] == 0xfd)
+        if (frame[5] == FI)
         {
             printf("get split %d\n", split);
-            frame[7] = 0xfd;
+            frame[7] = FI;
             n = write(fd, frame, 8);
         }
         else
         {
-            printf("set split %d\n", 1);
-            frame[4] = 0xfb;
-            frame[5] = 0xfd;
+            printf("set split %d\n", split);
+            frame[4] = ACK;
+            frame[5] = FI;
             n = write(fd, frame, 6);
         }
 
         break;
 
-    case 0x12: // we're simulating the 3-byte version -- not the 2-byte
-        if (frame[5] != 0xfd)
+#if 0 // No antenna control
+    case C_CTL_ANT: // 0x12 we're simulating the 3-byte version -- not the 2-byte
+        if (frame[5] != FI)
         {
             printf("Set ant %d\n", -1);
             ant_curr = frame[5];
@@ -242,16 +259,17 @@ void frameParse(int fd, unsigned char *frame, int len)
         dump_hex(frame, 8);
         n = write(fd, frame, 8);
         break;
+#endif
 
-    case 0x14:
+    case C_CTL_LVL: // 0x14
         printf("cmd=0x14\n");
 
         switch (frame[5])
         {
             static int power_level = 0;
 
-        case 0x07:
-        case 0x08:
+        case S_LVL_PBTIN:  // 0x07
+        case S_LVL_PBTOUT: // 0x08
             if (frame[6] != 0xfd)
             {
                 frame[6] = 0xfb;
@@ -270,31 +288,27 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             break;
 
-        case 0x0a:
-            printf("Using power level %d\n", power_level);
+        case S_LVL_RFPOWER: // 0x0A
             power_level += 10;
-
             if (power_level > 250) { power_level = 0; }
+            printf("Using power level %d\n", power_level);
 
             to_bcd(&frame[6], (long long)power_level, 2);
             frame[8] = 0xfd;
             n = write(fd, frame, 9);
             break;
 
-        case 0x0c:
-            dumphex(frame, 10);
-            printf("subcmd=0x0c #1\n");
+        case S_LVL_KEYSPD: // 0x0C
+            //dumphex(frame, 10);
 
             if (frame[6] != 0xfd) // then we have data
             {
-                printf("subcmd=0x0c #1\n");
                 keyspd = from_bcd(&frame[6], 2);
                 frame[6] = 0xfb;
                 n = write(fd, frame, 7);
             }
             else
             {
-                printf("subcmd=0x0c #1\n");
                 to_bcd(&frame[6], keyspd, 2);
                 frame[8] = 0xfd;
                 n = write(fd, frame, 9);
@@ -305,41 +319,41 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         break;
 
-    case 0x15:
+    case C_RD_SQSM: // 0x15
         switch (frame[5])
         {
             static int meter_level = 0;
 
-        case 0x02:
+        case S_SML: // 0x02
             frame[6] = 00;
             frame[7] = 00;
-            frame[8] = 0xfd;
+            frame[8] = FI;
             n = write(fd, frame, 9);
             break;
 
-        case 0x07:
+        case S_OVF: // 0x07
             frame[6] = ovf_status;
-            frame[7] = 0xfd;
+            frame[7] = FI;
             n = write(fd, frame, 8);
-            ovf_status = ovf_status == 0 ? 1 : 0;
+            ovf_status = !ovf_status;
             break;
 
-        case 0x11:
-            printf("Using meter level %d\n", meter_level);
+        case S_RFML: // 0x11
             meter_level += 10;
-
             if (meter_level > 250) { meter_level = 0; }
+            printf("Using meter level %d\n", meter_level);
 
             to_bcd(&frame[6], (long long)meter_level, 2);
-            frame[8] = 0xfd;
+            frame[8] = FI;
             n = write(fd, frame, 9);
             break;
         }
 
-    case 0x16:
+    case C_CTL_FUNC: // 0x16
         switch (frame[5])
         {
-        case 0x5a:
+#ifdef SATMODE
+        case S_FUNC_SATM: // 0x5A
             if (frame[6] == 0xfe)
             {
                 satmode = frame[6];
@@ -347,45 +361,57 @@ void frameParse(int fd, unsigned char *frame, int len)
             else
             {
                 frame[6] = satmode;
-                frame[7] = 0xfd;
+                frame[7] = FI;
                 n = write(fd, frame, 8);
             }
 
             break;
+#endif
         }
 
         break;
 
-    case 0x18: // miscellaneous things
+    case C_SET_PWR: // 0x18 miscellaneous things
         frame[5] = 1;
-        frame[6] = 0xfd;
+        frame[6] = FI;
         n = write(fd, frame, 7);
         break;
 
-    case 0x19: // miscellaneous things
-        frame[5] = 0x94;
-        frame[6] = 0xfd;
+    case C_RD_TRXID: // 0x19 miscellaneous things
+        frame[5] = 0xA4;
+        frame[6] = FI;
         n = write(fd, frame, 7);
         break;
 
-    case 0x1a: // miscellaneous things
+    case C_CTL_MEM: // 0x1A miscellaneous things
         switch (frame[5])
         {
-        case 0x03:  // width
-            if (current_vfo == RIG_VFO_A || current_vfo == RIG_VFO_MAIN) { frame[6] = widthA; }
-            else { frame[6] = widthB; }
+        case S_MEM_FILT_WDTH:  // 0x03 width
+            if (frame[6] == FI) // Query
+            {
+                if (current_vfo == S_VFOA || current_vfo == S_MAIN) { frame[6] = widthA; }
+                else { frame[6] = widthB; }
 
-            frame[7] = 0xfd;
-            n = write(fd, frame, 8);
+                frame[7] = FI;
+                n = write(fd, frame, 8);
+            }
+            else // set
+            {
+                if (current_vfo == S_VFOA) { widthA = frame[6]; }
+                else { widthB = frame[6]; }
+                frame[4] = ACK;
+                frame[5] = FI;
+                n = write(fd, frame, 6);
+            }
             break;
 
         case 0x04: // AGC TIME
             printf("frame[6]==x%02x, frame[7]=0%02x\n", frame[6], frame[7]);
 
-            if (frame[6] == 0xfd)   // the we are reading
+            if (frame[6] == FI)   // then we are reading
             {
                 frame[6] = agc_time;
-                frame[7] = 0xfd;
+                frame[7] = FI;
                 n = write(fd, frame, 8);
             }
             else
@@ -399,31 +425,33 @@ void frameParse(int fd, unsigned char *frame, int len)
 
             break;
 
+#ifdef SATMODE
         case 0x07: // satmode
             frame[4] = 0;
             frame[7] = 0xfd;
             n = write(fd, frame, 8);
             break;
+#endif
 
         }
 
         break;
 
-    case 0x1c:
+    case C_CTL_PTT: //0x1C
         switch (frame[5])
         {
-        case 0:
+        case S_PTT: // 0x00
             if (frame[6] == 0xfd)
             {
                 frame[6] = ptt;
-                frame[7] = 0xfd;
+                frame[7] = FI;
                 n = write(fd, frame, 8);
             }
             else
             {
                 ptt = frame[6];
-                frame[7] = 0xfb;
-                frame[8] = 0xfd;
+                frame[7] = ACK;
+                frame[8] = FI;
                 n = write(fd, frame, 9);
             }
 
@@ -436,8 +464,8 @@ void frameParse(int fd, unsigned char *frame, int len)
 
 #ifdef X25
 
-    case 0x25:
-        if (frame[6] == 0xfd)
+    case C_SEND_SEL_FREQ: // 0x25
+        if (frame[6] == FI)
         {
             if (frame[5] == 0x00)
             {
@@ -450,7 +478,7 @@ void frameParse(int fd, unsigned char *frame, int len)
                 printf("X25 get_freqB=%.0f\n", freqB);
             }
 
-            frame[11] = 0xfd;
+            frame[11] = FI;
 #if 0
             unsigned char frame2[11];
 
@@ -498,54 +526,53 @@ void frameParse(int fd, unsigned char *frame, int len)
 
         break;
 
-    case 0x26:
-        for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
+    case C_SEND_SEL_MODE: // 0x26
 
         if (frame[6] == 0xfd) // then a query
         {
-            for (int i = 0; i < 6; ++i) { printf("%02x:", frame[i]); }
-
             frame[6] = frame[5] == 0 ? modeA : modeB;
             frame[7] = frame[5] == 0 ? datamodeA : datamodeB;
-            frame[8] = 0x01;
+            frame[8] = frame[5] == 0 ? filterA : filterB;
             frame[9] = 0xfd;
+            printf("  ->");
+            for (int i = 0; i < 10; ++i) { printf("%02x:", frame[i]); }
+            printf("\n");
             n = write(fd, frame, 10);
         }
         else
         {
-            for (int i = 0; i < 12; ++i) { printf("%02x:", frame[i]); }
-
-            if (frame[6] == 0)
+            if (frame[5] == 0)
             {
-                modeA = frame[7];
-                datamodeA = frame[8];
+                modeA = frame[6];
+                datamodeA = frame[7];
+                filterA = frame[8];
             }
             else
             {
-                modeB = frame[7];
-                datamodeB = frame[8];
+                modeB = frame[6];
+                datamodeB = frame[7];
+                filterB = frame[8];
             }
 
-            frame[4] = 0xfb;
-            frame[5] = 0xfd;
+            frame[4] = ACK;
+            frame[5] = FI;
             n = write(fd, frame, 6);
         }
 
-        printf("\n");
         break;
 #else
 
     case 0x25:
         printf("x25 send nak\n");
-        frame[4] = 0xfa;
-        frame[5] = 0xfd;
+        frame[4] = NAK;
+        frame[5] = FI;
         n = write(fd, frame, 6);
         break;
 
     case 0x26:
         printf("x26 send nak\n");
-        frame[4] = 0xfa;
-        frame[5] = 0xfd;
+        frame[4] = NAK;
+        frame[5] = FI;
         n = write(fd, frame, 6);
         break;
 #endif
@@ -599,13 +626,13 @@ int openPort(char *comport) // doesn't matter for using pts devices
 
 void rigStatus()
 {
-    char vfoa = current_vfo == RIG_VFO_A ? '*' : ' ';
-    char vfob = current_vfo == RIG_VFO_B ? '*' : ' ';
-    printf("%cVFOA: mode=%d datamode=%d width=%ld freq=%.0f\n", vfoa, modeA,
+    char vfoa = current_vfo == S_VFOA ? '*' : ' ';
+    char vfob = current_vfo == S_VFOB ? '*' : ' ';
+    printf("%cVFOA: mode=%d datamode=%d width=%d freq=%.0f\n", vfoa, modeA,
            datamodeA,
            widthA,
            freqA);
-    printf("%cVFOB: mode=%d datamode=%d width=%ld freq=%.0f\n", vfob, modeB,
+    printf("%cVFOB: mode=%d datamode=%d width=%d freq=%.0f\n", vfob, modeB,
            datamodeB,
            widthB,
            freqB);
