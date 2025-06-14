@@ -217,14 +217,13 @@ double HAMLIB_API dms2dec(int degrees, int minutes, double seconds, int sw)
  *
  * \param degrees Degrees, whole degrees.
  * \param minutes Minutes, decimal minutes.
- * \param seconds Seconds, decimal seconds.
  * \param sw South or West.
  *
  * Convert a degrees decimal minutes (D M.MMM) notation common on many GPS
  * units to a decimal degrees (D.DDD) angle value.
  *
- * \note For the parameters \a degrees > 360, \a minutes > 60.0, \a seconds >
- * 60.0 are allowed, but the resulting angle will not be normalized.
+ * \note For the parameters \a degrees > 360, \a minutes > 60.0 are allowed, but
+ * the resulting angle will not be normalized.
  *
  * When the variable \a sw is passed a value of 1, the returned decimal
  * degrees value will be negative (*South* or *West*).  When passed a value of
@@ -234,7 +233,7 @@ double HAMLIB_API dms2dec(int degrees, int minutes, double seconds, int sw)
  *
  * \sa dec2dmmm()
  */
-double HAMLIB_API dmmm2dec(int degrees, double minutes, double seconds, int sw)
+double HAMLIB_API dmmm2dec(int degrees, double minutes, int sw)
 {
     double st;
 
@@ -250,7 +249,7 @@ double HAMLIB_API dmmm2dec(int degrees, double minutes, double seconds, int sw)
         minutes = fabs(minutes);
     }
 
-    st = (double)degrees + (minutes / 60) + (seconds / 3600);
+    st = (double)degrees + minutes / 60;
 
     if (sw == 1)
     {
