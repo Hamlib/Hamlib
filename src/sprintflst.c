@@ -207,16 +207,19 @@ int rig_sprintf_func(char *str, int nlen, setting_t func)
     {
         const char *ms = rig_strfunc(func & rig_idx2setting(i));
 
-        if (!ms || !ms[0])
+        if (!ms)
         {
             rig_debug(RIG_DEBUG_ERR, "%s: unknown RIG_FUNC=%x\n", __func__, i);
             continue;    /* unknown, FIXME! */
         }
 
-        strcat(str, ms);
-        strcat(str, " ");
-        len += strlen(ms) + 1;
-        check_buffer_overflow(str, len, nlen);
+        if (ms[0])
+        {
+            strcat(str, ms);
+            strcat(str, " ");
+            len += strlen(ms) + 1;
+            check_buffer_overflow(str, len, nlen);
+        }
     }
 
     return len;
