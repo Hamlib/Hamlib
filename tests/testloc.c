@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     printf("  GPS lon:\t%f\t%c%d %.3f'\n", lon1, sign, deg, mmm);
 
     /* hamlib function to convert deg, decimal min to decimal degrees */
-    lon1 = dmmm2dec(deg, mmm, nesw, 0.0);
+    lon1 = dmmm2dec(deg, mmm, nesw);
     printf("  Recoded GPS:\t%f\n", lon1);
 
     /* hamlib function to convert decimal degrees to deg, min, sec */
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
     printf("  GPS lat:\t%f\t%c%d %.3f'\n", lat1, sign, deg, mmm);
 
     /* hamlib function to convert deg, decimal min to decimal degrees */
-    lat1 = dmmm2dec(deg, mmm, nesw, 0.0);
+    lat1 = dmmm2dec(deg, mmm, nesw);
     printf("  Recoded GPS:\t%f\n", lat1);
 
     /* hamlib function to convert decimal degrees to maidenhead */
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
     printf("  GPS lon:\t%f\t%c%d %.3f'\n", lon2, sign, deg, mmm);
 
     /* hamlib function to convert deg, decimal min to decimal degrees */
-    lon2 = dmmm2dec(deg, mmm, nesw, 0.0);
+    lon2 = dmmm2dec(deg, mmm, nesw);
     printf("  Recoded GPS:\t%f\n", lon2);
 
     /* hamlib function to convert decimal degrees to deg, min, sec */
@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
     printf("  GPS lat:\t%f\t%c%d %.3f'\n", lat2, sign, deg, mmm);
 
     /* hamlib function to convert deg, decimal min to decimal degrees */
-    lat2 = dmmm2dec(deg, mmm, nesw, 0.0);
+    lat2 = dmmm2dec(deg, mmm, nesw);
     printf("  Recoded GPS:\t%f\n", lat2);
 
     /* hamlib function to convert decimal degrees to maidenhead */
