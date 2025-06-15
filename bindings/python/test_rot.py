@@ -77,6 +77,7 @@ class TestClass:
 
         value.i = 5
         assert rot.set_parm(Hamlib.ROT_PARM_NONE, value) is None
+        assert rot.get_parm(Hamlib.ROT_PARM_NONE) is None  # FIXME should Dummy support this?
 
         assert rot.close() is None
         assert rot.state.comm_state == 0
