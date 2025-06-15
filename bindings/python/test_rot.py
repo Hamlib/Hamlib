@@ -57,6 +57,9 @@ class TestClass:
         assert rot.move(Hamlib.ROT_MOVE_UP, speed) is None
         assert rot.move(Hamlib.ROT_MOVE_LEFT, speed) is None
         assert rot.get_position() == [0.0, 0.0]  # FIXME
+        value = Hamlib.value_t()
+        value.i = 3
+        assert rot.set_level(Hamlib.ROT_LEVEL_SPEED, value) is None
         with raises(AttributeError):
             assert rot.status() is None
         assert rot.stop() is None
