@@ -22,6 +22,7 @@ SWGDEP = \
 
 EXTRA_DIST = $(SWGFILES) \
 	Makefile.PL perltest.pl tcltest.tcl.in \
+	python/generate_tests.py \
 	python/test_startup.py \
 	luatest.lua README.python
 
@@ -107,6 +108,10 @@ _Hamlib_la_LTLIBRARIES = $(pyexec_ltlib)
 all-py: $(pyexec_ltlib)
 
 check-py: all-py pytest-${enable_pytest}
+
+generate-pytests: all-py
+	$(AM_V_at)PYTHONPATH=$(builddir):$(builddir)/.libs \
+		$(PYTHON) "$(srcdir)/python/generate_tests.py" "$(srcdir)/python/"
 
 pytest-yes:
 	$(AM_V_at)PYTHONPATH=$(builddir):$(builddir)/.libs \
