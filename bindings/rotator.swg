@@ -138,6 +138,20 @@ typedef struct Rot {
                 return s;
         }
 
+        PyObject * get_level(setting_t level)
+        {
+            value_t val;
+
+            self->error_status = rot_get_level(self->rot, level, &val);
+            if (self->error_status != RIG_OK)
+                return Py_None;
+
+            if (ROT_LEVEL_IS_FLOAT(level))
+                return PyFloat_FromDouble(val.f);
+
+            return PyLong_FromLong(val.i);
+        }
+
 	/* TODO: get_conf_list, .. */
 };
 

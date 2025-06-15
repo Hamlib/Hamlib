@@ -60,6 +60,8 @@ class TestClass:
         value = Hamlib.value_t()
         value.i = 3
         assert rot.set_level(Hamlib.ROT_LEVEL_SPEED, value) is None
+        assert rot.get_level(Hamlib.ROT_LEVEL_NONE) is None
+        assert rot.get_level(Hamlib.ROT_LEVEL_SPEED) == 3
         with raises(AttributeError):
             assert rot.status() is None
         assert rot.stop() is None
