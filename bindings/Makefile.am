@@ -23,6 +23,10 @@ SWGDEP = \
 EXTRA_DIST = $(SWGFILES) \
 	Makefile.PL perltest.pl tcltest.tcl.in \
 	python/generate_tests.py \
+	python/test_Hamlib_Amp_class.py \
+	python/test_Hamlib_class.py \
+	python/test_Hamlib_Rig_class.py \
+	python/test_Hamlib_Rot_class.py \
 	python/test_startup.py \
 	luatest.lua README.python
 
