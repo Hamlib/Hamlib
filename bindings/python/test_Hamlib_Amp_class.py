@@ -16,7 +16,7 @@ class TestClass:
 
     def test_callables(self):
         """Check that nothing went missing and nothing was added"""
-        expected_callables = ['close', 'get_conf', 'get_info', 'open', 'reset', 'set_conf', 'set_freq', 'set_powerstat', 'token_lookup']
+        expected_callables = ['close', 'get_conf', 'get_freq', 'get_info', 'get_level', 'get_powerstat', 'open', 'reset', 'set_conf', 'set_freq', 'set_powerstat', 'token_lookup']
         assert expected_callables == self.actual_callables
 
     def test_properties(self):
