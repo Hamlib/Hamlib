@@ -152,6 +152,20 @@ typedef struct Rot {
             return PyLong_FromLong(val.i);
         }
 
+        PyObject * get_parm(setting_t parm)
+        {
+            value_t val;
+
+            self->error_status = rot_get_parm(self->rot, parm, &val);
+            if (self->error_status != RIG_OK)
+                return Py_None;
+
+            if (ROT_PARM_IS_FLOAT(parm))
+                return PyFloat_FromDouble(val.f);
+
+            return PyLong_FromLong(val.i);
+        }
+
 	/* TODO: get_conf_list, .. */
 };
 
