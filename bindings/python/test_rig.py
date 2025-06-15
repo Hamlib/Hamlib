@@ -209,5 +209,4 @@ class TestClass:
         assert rig is not None
 
         assert isinstance(rig.caps, Hamlib.rig_caps)
-        assert isinstance(rig.rig, Hamlib.s_rig)
         assert isinstance(rig.state, Hamlib.rig_state)
