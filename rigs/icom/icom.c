@@ -1454,7 +1454,7 @@ static int icom_band_changing(RIG *rig, freq_t test_freq)
 }
 
 static int icom_set_freq_x25(RIG *rig, vfo_t vfo, freq_t freq, int freq_len,
-                             unsigned char *freqbuf)
+                             const unsigned char *freqbuf)
 {
     struct rig_state *rs = STATE(rig);
     struct icom_priv_data *priv = (struct icom_priv_data *) rs->priv;
@@ -2789,7 +2789,6 @@ static int icom_get_mode_without_data(RIG *rig, vfo_t vfo, rmode_t *mode,
 
     if (--mode_len == 3)
     {
-        // cppcheck-suppress redundantAssignment
         priv_data->filter = modebuf[2];
         rig_debug(RIG_DEBUG_TRACE,
                   "%s(%d): modebuf[0]=0x%02x, modebuf[1]=0x%02x, modebuf[2]=0x%02x, mode_len=%d, filter=%d\n",

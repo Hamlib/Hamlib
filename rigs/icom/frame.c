@@ -124,7 +124,7 @@ int icom_frame_fix_preamble(int frame_len, unsigned char *frame)
  * return RIG_OK if transaction completed,
  * or a negative value otherwise indicating the error.
  */
-int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
+static int icom_one_transaction(RIG *rig, unsigned char cmd, int subcmd,
                          const unsigned char *payload, int payload_len, unsigned char *data,
                          int *data_len)
 {

@@ -1638,7 +1638,7 @@ static int hash_model_list(const struct rot_caps *caps, void *data)
     return 1;  /* !=0, we want them all ! */
 }
 
-void print_model_list()
+static void print_model_list()
 {
     struct mod_lst *s;
 
