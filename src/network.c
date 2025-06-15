@@ -184,7 +184,7 @@ static void handle_error(enum rig_debug_level_e lvl, const char *msg)
 
 #define TRACE rig_debug(RIG_DEBUG_ERR, "TRACE %s(%d)\n", __func__,__LINE__);
 
-int network_init()
+static int network_init()
 {
     int retval = -RIG_EINTERNAL;
 #ifdef __MINGW32__
@@ -830,7 +830,6 @@ static int multicast_publisher_write_packet_header(RIG *rig,
     return RIG_OK;
 }
 
-// cppcheck-suppress unusedFunction
 int network_publish_rig_poll_data(RIG *rig)
 {
     const struct rig_state *rs = STATE(rig);
@@ -854,7 +853,6 @@ int network_publish_rig_poll_data(RIG *rig)
     return result;
 }
 
-// cppcheck-suppress unusedFunction
 int network_publish_rig_transceive_data(RIG *rig)
 {
     const struct rig_state *rs = STATE(rig);

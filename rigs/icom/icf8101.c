@@ -190,7 +190,7 @@ static const struct icom_priv_caps icf8101_priv_caps =
     .r2i_mode = icf8101_r2i_mode
 };
 
-int icf8101_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+static int icf8101_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     switch (func)
     {
@@ -199,7 +199,7 @@ int icf8101_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     }
 }
 
-int icf8101_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+static int icf8101_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
     switch (func)
     {
@@ -208,7 +208,7 @@ int icf8101_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     }
 }
 
-int icf8101_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+static int icf8101_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -223,7 +223,7 @@ int icf8101_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     }
 }
 
-int icf8101_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int icf8101_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -237,24 +237,24 @@ int icf8101_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     }
 }
 
-int icf8101_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+static int icf8101_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
     return rig_set_freq(rig, RIG_VFO_B, tx_freq);
 }
 
-int icf8101_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+static int icf8101_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
     return rig_get_freq(rig, RIG_VFO_B, tx_freq);
 }
 
-int icf8101_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
+static int icf8101_set_split_freq_mode(RIG *rig, vfo_t vfo, freq_t tx_freq,
                                 rmode_t mode, pbwidth_t width)
 {
     rig_set_freq(rig, RIG_VFO_B, tx_freq);
     return rig_set_mode(rig, RIG_VFO_B, mode, -1);
 }
 
-int icf8101_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
+static int icf8101_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
                                 rmode_t *mode, pbwidth_t *width)
 {
     rig_get_freq(rig, RIG_VFO_B, tx_freq);
@@ -263,7 +263,7 @@ int icf8101_get_split_freq_mode(RIG *rig, vfo_t vfo, freq_t *tx_freq,
 
 
 
-int icf8101_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+static int icf8101_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     unsigned char cmdbuf[4];
     int ack_len;
@@ -277,7 +277,7 @@ int icf8101_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
                             &ack_len);
 }
 
-int icf8101_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+static int icf8101_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
     int retval;
     int ack_len;
@@ -299,7 +299,7 @@ int icf8101_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
     return retval;
 }
 
-int icf8101_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+static int icf8101_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     unsigned char ackbuf[MAXFRAMELEN], pttbuf[2];
     int ack_len = sizeof(ackbuf), retval;
@@ -350,7 +350,7 @@ int icf8101_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  * icf8101_get_ptt
  * Assumes rig!=NULL, STATE(rig)->priv!=NULL, ptt!=NULL
  */
-int icf8101_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+static int icf8101_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
     unsigned char pttbuf[MAXFRAMELEN];
     int ptt_len, retval;

@@ -353,10 +353,7 @@ static int dummy_cleanup(RIG *rig)
     free(priv->ext_parms);
     free(priv->magic_conf);
 
-    if (rs->priv)
-    {
-        free(rs->priv);
-    }
+    free(priv);
 
     rs->priv = NULL;
 

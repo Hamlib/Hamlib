@@ -2101,7 +2101,7 @@ static int hash_model_list(const struct rig_caps *caps, void *data)
 }
 
 
-void print_model_list()
+static void print_model_list()
 {
     struct mod_lst *s;
 
