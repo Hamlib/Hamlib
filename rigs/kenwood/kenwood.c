@@ -444,8 +444,14 @@ transaction_read:
               (int)strlen(buffer), buffer);
 
     // this fixes the case when some corrupt data is returned
-    // let's us be a little more robust about funky serial data
-    remove_nonprint(buffer);
+    // let us be a little more robust about funky serial data
+    // If the terminator is printable(usually ';'), then there should be
+    //   no nonprintables in the message; if it isn't(usually '\r') then
+    //   don't touch the buffer
+    if (isprint(caps->cmdtrm))
+    {
+        remove_nonprint(buffer);
+    }
 
     if (retval < 0)
     {
