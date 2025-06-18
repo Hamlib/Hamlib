@@ -231,6 +231,12 @@ struct confparams kenwood_cfg_params[] =
     { RIG_CONF_END, NULL, }
 };
 
+// This function removes non-printable characters from a buffer. This was
+// implemented to work around a problem reported with the uSDX transceiver
+// [1], which emulates the Kenwood TS-480 but apparently generates garbage
+// on the serial port in some situations.
+//
+// [1]: https://github.com/Hamlib/Hamlib/issues/1652
 static int remove_nonprint(char *s)
 {
     int i, j = 0;
@@ -443,9 +449,14 @@ transaction_read:
     rig_debug(RIG_DEBUG_TRACE, "%s: read_string len=%d '%s'\n", __func__,
               (int)strlen(buffer), buffer);
 
-    // this fixes the case when some corrupt data is returned
-    // let's us be a little more robust about funky serial data
-    remove_nonprint(buffer);
+    // This fixes the case when some corrupt data is returned; it lets us be a
+    // little more robust about funky serial data. If the terminator is
+    // printable(usually ';'), then there should be no nonprintables in the
+    // message; if it isn't (usually '\r') then don't touch the message.
+    if (isprint(caps->cmdtrm))
+    {
+        remove_nonprint(buffer);
+    }
 
     if (retval < 0)
     {
