@@ -14,8 +14,11 @@ Version 5.x -- future
 
 Version 4.7.0
         * 2025-12-01 (target)
-	* Reduce/repair excess output from cppcheck.sh - mostly cosmetic changes (WIP)
-	  Output from `wc -l cppcheck.log` - 4.6.2: 981  now: 732
+        * Fix handling of unprintable characters in kenwood.c that broke radios
+          such as the TM-D710/TM-V71 that use EOM_TH (\r) as the command terminator.
+          (TNX, Lars Kellogg-Stedman and George Baltz).
+        * Reduce/repair excess output from cppcheck.sh - mostly cosmetic changes (WIP)
+          Output from `wc -l cppcheck.log` - 4.6.2: 981  now: 732
         * Remove dead getopt code.  GitHub PR #1709. (TNX Daniele Forsi)
         * Move rig_cache to separate(calloc) storage. Prepare for other moves.
           Issue #1420
