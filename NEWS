@@ -15,6 +15,12 @@ Version 5.x -- future
 Version 4.7.0
         * 2025-12-01 (target)
 
+Version 4.6.4
+        * 2025-07-08
+        * Fix handling of unprintable characters in kenwood.c that broke radios
+          such as the TM-D710/TM-V71 that use EOM_TH (\r) as the command terminator.
+          (TNX, Lars Kellogg-Stedman and George Baltz).
+
 Version 4.6.3
         * 2025-06-10
         * Release dedicated to the memory of Michael Black, W9MDB (SK).  Mike was a
