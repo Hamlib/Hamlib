@@ -18,6 +18,18 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+%{
+#include <hamlib/rotator.h>
+%}
+
+%include macros.swg
+%immutable rot_caps::model_name;
+%immutable rot_caps::mfg_name;
+%immutable rot_caps::version;
+%immutable rot_caps::copyright;
+
+%include <hamlib/rotator.h>
+%include <hamlib/rotlist.h>
 
 %inline %{
 
@@ -78,6 +90,16 @@ typedef struct Rot {
 	ROTMETHOD0(open)
 	ROTMETHOD0(close)
 
+	ROTMETHOD2(set_ext_func, hamlib_token_t, int)
+	ROTMETHOD2(set_ext_level, hamlib_token_t, value_t)
+	ROTMETHOD2(set_ext_parm, hamlib_token_t, value_t)
+
+	ROTMETHOD2(set_func, setting_t, int)
+
+	ROTMETHOD2(set_level, setting_t, value_t)
+
+	ROTMETHOD2(set_parm, setting_t, value_t)
+
 	ROTMETHOD2(set_position, azimuth_t, elevation_t)
         extern void get_position(azimuth_t *OUTPUT, elevation_t *OUTPUT);
 	ROTMETHOD0(stop)
@@ -96,6 +118,15 @@ typedef struct Rot {
 	}
 
 	ROTMETHOD2(set_conf, hamlib_token_t, const_char_string)
+
+	ROT_GET_LONG(func)
+	ROT_GET_LONG(ext_func)
+
+	ROT_GET_VALUE_T(level)
+	ROT_GET_VALUE_T(ext_level)
+
+	ROT_GET_VALUE_T(parm)
+	ROT_GET_VALUE_T(ext_parm)
 
         const char *get_conf(hamlib_token_t tok) {
                 static char s[128] = "";

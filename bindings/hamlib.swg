@@ -29,9 +29,6 @@
 
 #include <hamlib/config.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/rotator.h>
-#include <hamlib/amplifier.h>
 //mdblack98 -- Commented this out -- is anybody using the functions in misc.h?
 //If so, then those functions should be moved to rig.h
 //#include "misc.h"
@@ -39,6 +36,17 @@
 #include <limits.h>
 
 %}
+
+/*
+ * symbols that shouldn't be changed
+ */
+%immutable clone_combo_get;
+%immutable clone_combo_set;
+%immutable confparams::dflt;
+%immutable confparams::label;
+%immutable confparams::name;
+%immutable confparams::tooltip;
+%immutable cs;
 
 /*
  * symbols that won't be wrapped
@@ -200,33 +208,7 @@
 #endif
 #endif
 
-%immutable confparams::name;
-%immutable confparams::label;
-%immutable confparams::tooltip;
-%immutable confparams::dflt;
-%immutable cs;
-%immutable rig_caps::model_name;
-%immutable rig_caps::mfg_name;
-%immutable rig_caps::version;
-%immutable rig_caps::copyright;
-%immutable hamlib_version2;
-%immutable hamlib_copyright2;
-
-%immutable clone_combo_set;
-%immutable clone_combo_get;
-
-%immutable rot_caps::model_name;
-%immutable rot_caps::mfg_name;
-%immutable rot_caps::version;
-%immutable rot_caps::copyright;
-
 %include <hamlib/rig_dll.h>
-
-%include <hamlib/riglist.h>
-%include <hamlib/rig.h>
-
-%include <hamlib/rotlist.h>
-%include <hamlib/rotator.h>
 
 %inline {
 typedef const char * const_char_string;
