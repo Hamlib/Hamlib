@@ -21,6 +21,8 @@ Version 4.6.4
           such as the TM-D710/TM-V71 that use EOM_TH (\r) as the command terminator.
           (TNX, Lars Kellogg-Stedman and George Baltz).
         * Fixed jrc_set_chan. (TNX Mark Fine).
+        * Fix memory leak in rigctl_parse.c and use unique separator character
+          for each rigctld connection--closes GitHub #1748. (TNX George Baltz).
 
 Version 4.6.3
         * 2025-06-10
