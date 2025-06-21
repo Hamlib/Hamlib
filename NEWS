@@ -20,6 +20,7 @@ Version 4.6.4
         * Fix handling of unprintable characters in kenwood.c that broke radios
           such as the TM-D710/TM-V71 that use EOM_TH (\r) as the command terminator.
           (TNX, Lars Kellogg-Stedman and George Baltz).
+        * Fixed jrc_set_chan. (TNX Mark Fine).
 
 Version 4.6.3
         * 2025-06-10
