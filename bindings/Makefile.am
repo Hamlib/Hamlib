@@ -9,7 +9,7 @@ AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/include -I$(top_srcdir)/bindings  \
 AM_CFLAGS = @AM_CPPFLAGS@ -fno-strict-aliasing
 AM_CXXFLAGS = -O2
 
-SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg amplifier.swg
+SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg amplifier.swg macros.swg
 
 SWGDEP = \
 	$(top_srcdir)/include/hamlib/rig.h \
