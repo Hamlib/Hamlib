@@ -22,6 +22,7 @@
 #include <hamlib/rotator.h>
 %}
 
+%include macros.swg
 %immutable rot_caps::model_name;
 %immutable rot_caps::mfg_name;
 %immutable rot_caps::version;
@@ -94,7 +95,6 @@ typedef struct Rot {
 	ROTMETHOD2(set_ext_parm, hamlib_token_t, value_t)
 
 	ROTMETHOD2(set_func, setting_t, int)
-	extern void get_func(setting_t func, int *OUTPUT);
 
 	ROTMETHOD2(set_level, setting_t, value_t)
 
@@ -119,6 +119,15 @@ typedef struct Rot {
 
 	ROTMETHOD2(set_conf, hamlib_token_t, const_char_string)
 
+	ROT_GET_LONG(func)
+	ROT_GET_LONG(ext_func)
+
+	ROT_GET_VALUE_T(level)
+	ROT_GET_VALUE_T(ext_level)
+
+	ROT_GET_VALUE_T(parm)
+	ROT_GET_VALUE_T(ext_parm)
+
         const char *get_conf(hamlib_token_t tok) {
                 static char s[128] = "";
                 self->error_status = rot_get_conf(self->rot, tok, s);
@@ -142,78 +151,10 @@ typedef struct Rot {
                 return s;
         }
 
-        PyObject * get_ext_func(hamlib_token_t token)
-        {
-            int status;
-
-            self->error_status = rot_get_ext_func(self->rot, token, &status);
-            if (self->error_status != RIG_OK)
-                return Py_None;
-
-            return PyLong_FromLong(status);
-        }
-
-        PyObject * get_ext_level(hamlib_token_t token)
-        {
-            value_t val;
-
-            self->error_status = rot_get_ext_level(self->rot, token, &val);
-            if (self->error_status != RIG_OK)
-                return Py_None;
-
-            return PyLong_FromLong(val.i);
-        }
-
-        PyObject * get_ext_parm(hamlib_token_t token)
-        {
-            value_t val;
-
-            self->error_status = rot_get_ext_parm(self->rot, token, &val);
-            if (self->error_status != RIG_OK)
-                return Py_None;
-
-            return PyLong_FromLong(val.i);
-        }
-
-        PyObject * get_level(setting_t level)
-        {
-            value_t val;
-
-            self->error_status = rot_get_level(self->rot, level, &val);
-            if (self->error_status != RIG_OK)
-                return Py_None;
-
-            if (ROT_LEVEL_IS_FLOAT(level))
-                return PyFloat_FromDouble(val.f);
-
-            return PyLong_FromLong(val.i);
-        }
-
-        PyObject * get_parm(setting_t parm)
-        {
-            value_t val;
-
-            self->error_status = rot_get_parm(self->rot, parm, &val);
-            if (self->error_status != RIG_OK)
-                return Py_None;
-
-            if (ROT_PARM_IS_FLOAT(parm))
-                return PyFloat_FromDouble(val.f);
-
-            return PyLong_FromLong(val.i);
-        }
-
 	/* TODO: get_conf_list, .. */
 };
 
 %{
-/*
- * this one returns 1 value
- */
-void Rot_get_func(Rot *self, setting_t func, int *status)
-{
-	self->error_status = rot_get_func(self->rot, func, status);
-}
 
 /*
  * this one returns 2 values, here is a perl example:
