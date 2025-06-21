@@ -1251,6 +1251,7 @@ void *handle_socket(void *arg)
     char serv[NI_MAXSERV];
     char send_cmd_term = '\r';  /* send_cmd termination char */
     int ext_resp = 0;
+    char my_resp_sep = resp_sep;  // Separator for this connection, initial default
     rig_powerstat = RIG_POWER_ON; // defaults to power on
     struct timespec powerstat_check_time;
 
@@ -1299,7 +1300,7 @@ void *handle_socket(void *arg)
 #else
     mutex_rigctld(1);
     retcode = rig_open(my_rig);
-    mutex_rigctld(1);
+    mutex_rigctld(0);
 
     if (RIG_OK == retcode && verbose > RIG_DEBUG_ERR)
     {
@@ -1340,8 +1341,8 @@ void *handle_socket(void *arg)
                       __func__,
                       handle_data_arg->vfo_mode, handle_data_arg->use_password);
             retcode = rigctl_parse(handle_data_arg->rig, fsockin, fsockout, NULL, 0,
-                                   mutex_rigctld,
-                                   1, 0, &handle_data_arg->vfo_mode, send_cmd_term, &ext_resp, &resp_sep,
+                                   mutex_rigctld, 1, 0, &handle_data_arg->vfo_mode,
+                                   send_cmd_term, &ext_resp, &my_resp_sep,
                                    handle_data_arg->use_password);
 
             if (retcode != 0) { rig_debug(RIG_DEBUG_VERBOSE, "%s: rigctl_parse retcode=%d\n", __func__, retcode); }
