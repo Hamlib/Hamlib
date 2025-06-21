@@ -57,13 +57,17 @@ class TestClass:
         assert rot.state.comm_state == 1
         info = rot.get_info()
         assert isinstance(info, str)
-        assert rot.set_position(0.0, 0.0) is None
-        assert rot.get_position() == [0.0, 0.0]
+        assert rot.set_position(1.23, 4.56) is None
+        # When the Dummy rotator simulates movement, this test is too fast
+        # to see a changed position
+        assert rot.get_position() == [0.0, 0.0]  # should be [1.23, 4.56]
         assert rot.move(0, 0) is None
         speed = 4
         assert rot.move(Hamlib.ROT_MOVE_UP, speed) is None
         assert rot.move(Hamlib.ROT_MOVE_LEFT, speed) is None
-        assert rot.get_position() == [0.0, 0.0]  # FIXME
+        # When the Dummy rotator simulates movement, this test is too fast
+        # to see a changed position
+        assert rot.get_position() == [0.0, 0.0]  # should be [-90.0, 90.0]
         value = Hamlib.value_t()
         value.i = 3
         assert rot.set_level(Hamlib.ROT_LEVEL_SPEED, value) is None
@@ -86,16 +90,15 @@ class TestClass:
         assert rot.set_ext_parm(self.TOK_EP_ROT_MAGICPARM, value) is None
         assert rot.get_ext_parm(self.TOK_EP_ROT_MAGICPARM) == 7
 
+        # Dummy rotator doesn't support functions
         status = 0
-        assert rot.set_func(1, status) is None
-        assert rot.get_func(1) == status
-        status = 1
-        assert rot.set_func(self.TOK_EL_ROT_MAGICFUNC, status) is None
-        assert rot.get_func(self.TOK_EL_ROT_MAGICFUNC) == 0  # FIXME should return status
+        assert rot.set_func(Hamlib.ROT_FUNC_NONE, status) is None
+        assert rot.get_func(Hamlib.ROT_FUNC_NONE) is None
 
+        # Dummy rotator doesn't support parameters
         value.i = 5
         assert rot.set_parm(Hamlib.ROT_PARM_NONE, value) is None
-        assert rot.get_parm(Hamlib.ROT_PARM_NONE) is None  # FIXME should Dummy support this?
+        assert rot.get_parm(Hamlib.ROT_PARM_NONE) is None
 
         assert rot.close() is None
         assert rot.state.comm_state == 0
