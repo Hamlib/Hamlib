@@ -9,7 +9,7 @@ AM_CPPFLAGS = @AM_CPPFLAGS@ -I$(top_srcdir)/include -I$(top_srcdir)/bindings  \
 AM_CFLAGS = @AM_CPPFLAGS@ -fno-strict-aliasing
 AM_CXXFLAGS = -O2
 
-SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg amplifier.swg
+SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg amplifier.swg macros.swg
 
 SWGDEP = \
 	$(top_srcdir)/include/hamlib/rig.h \
@@ -21,7 +21,13 @@ SWGDEP = \
 	$(SWGFILES)
 
 EXTRA_DIST = $(SWGFILES) \
-	Makefile.PL perltest.pl tcltest.tcl.in pytest.py py3test.py \
+	Makefile.PL perltest.pl tcltest.tcl.in \
+	python/generate_tests.py \
+	python/test_Hamlib_Amp_class.py \
+	python/test_Hamlib_class.py \
+	python/test_Hamlib_Rig_class.py \
+	python/test_Hamlib_Rot_class.py \
+	python/test_startup.py \
 	luatest.lua README.python
 
 exampledir = $(docdir)/examples
@@ -95,16 +101,6 @@ pyexec_ltlib = _Hamlib.la
 MOSTLYCLEANFILES += hamlibpy_wrap.c Hamlib.py *.pyc
 BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
 
-# Set by AM_CONDITIONAL in configure.ac
-if PYVER_3
-pytest = py3test.py
-else !PYVER_3
-pytest = pytest.py
-endif
-# PYVER_3
-
-example_DATA += $(pytest)
-
 nodist_pyexec_PYTHON = Hamlib.py
 nodist__Hamlib_la_SOURCES = hamlibpy_wrap.c
 
@@ -115,10 +111,18 @@ _Hamlib_la_LTLIBRARIES = $(pyexec_ltlib)
 
 all-py: $(pyexec_ltlib)
 
-check-py: all-py
+check-py: all-py pytest-${enable_pytest}
+
+generate-pytests: all-py
 	$(AM_V_at)PYTHONPATH=$(builddir):$(builddir)/.libs \
-		$(PYTHON) $(srcdir)/$(pytest) \
-		|| echo "Python test failed" 1>&2
+		$(PYTHON) "$(srcdir)/python/generate_tests.py" "$(srcdir)/python/"
+
+pytest-yes:
+	$(AM_V_at)PYTHONPATH=$(builddir):$(builddir)/.libs \
+		$(PYTEST) --capture=no $(srcdir)/
+
+pytest-no:
+	@echo "Skipping pytest run"
 
 Hamlib.py: hamlibpy_wrap.c
 

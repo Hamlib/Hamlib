@@ -18,6 +18,17 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+%{
+#include <hamlib/rig.h>
+%}
+
+%immutable rig_caps::model_name;
+%immutable rig_caps::mfg_name;
+%immutable rig_caps::version;
+%immutable rig_caps::copyright;
+
+%include <hamlib/riglist.h>
+%include <hamlib/rig.h>
 
 %inline %{
 
@@ -453,7 +464,7 @@ typedef channel_t * const_channel_t_p;
 	METHOD1VGET(get_rit, shortfreq_t)
 	METHOD1VGET(get_xit, shortfreq_t)
 	METHOD1VGET(get_ts, shortfreq_t)
-	extern void get_ant(ant_t *ant_rx, ant_t *ant_tx, ant_t *ant_curr, value_t * OUTPUT, ant_t ant, vfo_t vfo = RIG_VFO_CURR);
+	extern void get_ant(ant_t *OUTPUT, ant_t *OUTPUT, ant_t *OUTPUT, value_t *OUTPUT, ant_t ant, vfo_t vfo = RIG_VFO_CURR);
     extern void get_vfo_info (int *satmode, split_t *split, pbwidth_t *width, rmode_t *mode, freq_t *freq, vfo_t vfo = RIG_VFO_CURR);
 	METHOD1VGET(get_mem, int)
 	METHOD1GET(get_powerstat, powerstat_t)
@@ -476,10 +487,6 @@ typedef channel_t * const_channel_t_p;
 	void get_channel(struct channel *chan, int read_only) {
 		self->error_status = rig_get_channel(self->rig, RIG_VFO_NONE, chan, read_only);
 		/* TODO: handle ext_level's */
-	}
-
-	void chan_clear(struct channel *chans, int nb_chans = 1) {
-		memset(chans, 0, sizeof(struct channel)*nb_chans);
 	}
 
 	void get_chan_all(struct channel *chans) {
