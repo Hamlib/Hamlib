@@ -2,7 +2,7 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, feature/* ]
   pull_request:
     branches: [ master ]
 
@@ -21,6 +21,7 @@ jobs:
         sudo apt install libusb-1.0-0-dev
         sudo apt install libgpiod-dev
         sudo apt install grep
+        sudo apt install python3-dev python3-pytest
     - name: Install dependencies on macOS
       if: runner.os == 'macOS'
       run: |
@@ -38,7 +39,11 @@ jobs:
     - name: README Debug
       run: grep README Makefile.am
     - name: configure
-      run: ./configure
+      if: runner.os != 'macOS'
+      run: ./configure --with-python-binding
+    - name: configure on macOS
+      if: runner.os == 'macOS'
+      run: ./configure --without-python-binding
     - name: make
       run: make -j 4
     - name: make check

@@ -19,6 +19,17 @@
  *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+%{
+#include <hamlib/amplifier.h>
+%}
+
+%immutable amp_caps::model_name;
+%immutable amp_caps::mfg_name;
+%immutable amp_caps::version;
+%immutable amp_caps::copyright;
+
+%include <hamlib/amplist.h>
+%include <hamlib/amplifier.h>
 
 %inline %{
 
@@ -43,7 +54,7 @@ typedef struct Amp {
 				{ self->error_status = amp_##f(self->amp, _##t1##_1, _##t2##_2); }
 #define AMPMETHOD3(f, t1, t2, t3) void f (t1 _##t1##_1, t2 _##t2##_2, t3 _##t3##_3) \
 				{ self->error_status = amp_##f(self->amp, _##t1##_1, _##t2##_2, t3 _##t3##_3); }
-#define AMPMETHOD4(f, t1, t2, t3, t4) void f (t1 _##t1##_1, t2 _##t2##_3, t3 _##t3##_3, ##t4##_4) \
+#define AMPMETHOD4(f, t1, t2, t3, t4) void f (t1 _##t1##_1, t2 _##t2##_3, t3 _##t3##_3, t4 ##t4##_4) \
 				{ self->error_status = amp_##f(self->amp, _##t1##_1, _##t2##_3, t3 _##t3##_3, ##t4##_4); }
 
 %extend Amp {
@@ -104,7 +115,7 @@ typedef struct Amp {
 /*
  * declare wrapper method with one output argument besides AMP* 
  */
-#define AMPMETHOD1VGET(f, t1) t1 f \
+#define AMPMETHOD1GET(f, t1) t1 f () \
         { t1 _##t1; self->error_status = amp_##f(self->amp, &_##t1); return _##t1; }
 
 
@@ -126,6 +137,8 @@ typedef struct Amp {
           return s;
   }
 
+  AMPMETHOD1GET(get_freq, freq_t)
+
   const char * get_info(void) {
           const char *s;
           s = amp_get_info(self->amp);
@@ -133,15 +146,22 @@ typedef struct Amp {
           return s;
   }
 
-};
-%{
+  AMPMETHOD1GET(get_powerstat, powerstat_t)
 
-  void Amp_get_freq(Amp *self, freq_t *freq)
+  PyObject * get_level(setting_t level)
   {
-    self->error_status = amp_get_freq(self->amp, freq);
+      value_t val;
+
+      self->error_status = amp_get_level(self->amp, level, &val);
+      if (self->error_status != RIG_OK)
+          return Py_None;
+
+      if (AMP_LEVEL_IS_FLOAT(level))
+          return PyFloat_FromDouble(val.f);
+      else if (AMP_LEVEL_IS_STRING(level))
+          return PyUnicode_FromString(val.s);
+
+      return PyLong_FromLong(val.i);
   }
-  void Amp_get_powerstat(Amp *self, powerstat_t *status)
-  {
-    self->error_status = amp_get_powerstat(self->amp, status);
-  }
-%}
+
+};
