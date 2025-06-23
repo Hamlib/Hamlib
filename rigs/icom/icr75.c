@@ -245,7 +245,7 @@ struct rig_caps icr75_caps =
     .scan =  icom_scan,
     .set_ts =  icom_set_ts,
     .set_powerstat = icom_set_powerstat,
-    .get_powerstat = icom_get_powerstat,
+    //.get_powerstat = icom_get_powerstat,
 
     .set_channel = icr75_set_channel,
     .get_channel = icr75_get_channel,
