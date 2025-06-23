@@ -3682,8 +3682,9 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
         {
             icom_val = 900;
         }
-
-        icom_val = (int) lroundf(((float) icom_val - 300) * (255.0f / 600.0f));
+        else
+            icom_val = val.i;
+        //icom_val = (int) lroundf(((float) icom_val - 300) * (255.0f / 600.0f));
         break;
 
     default:
@@ -4685,7 +4686,8 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         break;
 
     case RIG_LEVEL_CWPITCH:
-        val->i = (int) lroundf(300.0f + ((float) icom_val * 600.0f / 255.0f));
+        //val->i = (int) lroundf(300.0f + ((float) icom_val * 600.0f / 255.0f));
+        val->i = icom_val;
         break;
 
     case RIG_LEVEL_KEYSPD:
