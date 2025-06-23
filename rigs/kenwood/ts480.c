@@ -1252,6 +1252,7 @@ static int qrplabs_open(RIG *rig)
     RETURNFUNC(retval);
 }
 
+#if 0
 int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     const char *ptt_cmd;
@@ -1278,7 +1279,7 @@ int qdx_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     RETURNFUNC(retval);
 }
 
-
+#endif
 static int qrplabs_get_clock(RIG *rig, int *year, int *month, int *day, int *hour,
                       int *min, int *sec, double *msec, int *utc_offset)
 {
