@@ -23,6 +23,7 @@ Version 4.6.4
         * Fixed jrc_set_chan. (TNX Mark Fine).
         * Fix memory leak in rigctl_parse.c and use unique separator character
           for each rigctld connection--closes GitHub #1748. (TNX George Baltz).
+        * Fix powerstat check for Icom R75 which rejects the command.  (TNX Mark Fine).
 
 Version 4.6.3
         * 2025-06-10
