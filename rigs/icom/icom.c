@@ -3879,20 +3879,32 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             // Legacy mapping that does not apply to all rigs
             switch (val.i)
             {
-            case RIG_AGC_SLOW:
-                cmdbuf[0] = D_AGC_SLOW;
+            case RIG_AGC_OFF:
+                cmdbuf[0] = D_AGC_OFF;
                 break;
 
-            case RIG_AGC_MEDIUM:
-                cmdbuf[0] = D_AGC_MID;
+            case RIG_AGC_SUPERFAST:
+                cmdbuf[0] = D_AGC_SUPERFAST;
                 break;
 
             case RIG_AGC_FAST:
                 cmdbuf[0] = D_AGC_FAST;
                 break;
 
-            case RIG_AGC_SUPERFAST:
-                cmdbuf[0] = D_AGC_SUPERFAST;
+            case RIG_AGC_SLOW:
+                cmdbuf[0] = D_AGC_SLOW;
+                break;
+
+            case RIG_AGC_USER:
+                cmdbuf[0] = D_AGC_USER;
+                break;
+
+            case RIG_AGC_MEDIUM:
+                cmdbuf[0] = D_AGC_MID;
+                break;
+
+            case RIG_AGC_AUTO:
+                cmdbuf[0] = D_AGC_AUTO;
                 break;
 
             default:
@@ -4526,20 +4538,32 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             switch (icom_val)
             {
-            case D_AGC_SLOW:
+            case D_AGC_OFF:
+                val->i = RIG_AGC_OFF;
+                break;
+
+           case D_AGC_SUPERFAST:
+                val->i = RIG_AGC_SUPERFAST;
+                break;
+
+           case D_AGC_FAST:
+                val->i = RIG_AGC_FAST;
+                break;
+
+           case D_AGC_SLOW:
                 val->i = RIG_AGC_SLOW;
+                break;
+
+           case D_AGC_USER:
+                val->i = RIG_AGC_USER;
                 break;
 
             case D_AGC_MID:
                 val->i = RIG_AGC_MEDIUM;
                 break;
 
-            case D_AGC_FAST:
-                val->i = RIG_AGC_FAST;
-                break;
-
-            case D_AGC_SUPERFAST:
-                val->i = RIG_AGC_SUPERFAST;
+            case D_AGC_AUTO:
+                val->i = RIG_AGC_AUTO;
                 break;
 
             default:
