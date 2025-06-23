@@ -1013,14 +1013,13 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_RFPOWER_METER:
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
-        static cal_table_t power_meter =
+        int raw_value;
+        const static cal_table_t power_meter =
         {
             7, { { 0, 0}, { 3, 5}, { 6, 10}, { 8, 15}, {12, 25},
                 { 17, 50}, { 30, 100}
             }
         };
-
-        int raw_value;
 
         if (CACHE(rig)->ptt == RIG_PTT_OFF)
         {
@@ -1037,8 +1036,6 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
         sscanf(ackbuf, "SM0%d", &raw_value);
 
-//        val->f = (float) raw_value / 30.0f;
-
         if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
         {
             val->f = roundf(rig_raw2val(raw_value, &power_meter));
@@ -1049,7 +1046,11 @@ static int ts590_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             }
 
         }
-
+        else
+        {
+            val->f = (float) raw_value / 30.0f;
+        }
+    
         break;
     }
 
