@@ -2361,10 +2361,10 @@ static int k3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                 return retval;
             }
 
-            sscanf(levelbuf + 2, "%d", &val->i);
+            sscanf(levelbuf + 2, "%d", &lvl);
         }
 
-        val->f = (float) val->i / 10.0f;
+        val->f = (float) lvl / 10.0f;
         break;
 
     default:
