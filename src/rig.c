@@ -621,7 +621,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
      * and especially  the callbacks
      */
     needed = sizeof(RIG);
-    rig_debug(RIG_DEBUG_TRACE, "Requesting %zd bytes for rig_struct\n", needed);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for rig_struct\n", needed);
     rig = calloc(1, needed);
 
     if (rig == NULL)
@@ -654,7 +654,7 @@ RIG *HAMLIB_API rig_init(rig_model_t rig_model)
 
     // Allocate space for cached data
     needed = sizeof(struct rig_cache);
-    rig_debug(RIG_DEBUG_TRACE, "Requesting %zd bytes for rig_cache\n", needed);
+    rig_debug(RIG_DEBUG_TRACE, "Requesting %zu bytes for rig_cache\n", needed);
     CACHE(rig) = calloc(1, needed);
     if (!CACHE(rig))
     {
