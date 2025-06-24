@@ -131,10 +131,8 @@ class TestClass:
         assert isinstance(rig.get_ts(), int)
         assert isinstance(rig.get_ts(Hamlib.RIG_VFO_CURR), int)
         assert isinstance(rig.get_vfo(), int)
-        with raises(TypeError):
-            assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR) is None  # FIXME
-            assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR, 2) is None  # FIXME
-            assert rig.get_vfo_info(Hamlib.RIG_VFO_CURR, 2, 3) is None  # FIXME
+        assert isinstance(rig.get_vfo_info(), list)
+        assert isinstance(rig.get_vfo_info(Hamlib.RIG_VFO_CURR), list)
         assert isinstance(rig.get_xit(), int)
         assert isinstance(rig.get_xit(Hamlib.RIG_VFO_CURR), int)
         # assert rig_has_get_func(0)  FIXME not defined
