@@ -30,6 +30,9 @@
 %include <hamlib/riglist.h>
 %include <hamlib/rig.h>
 
+%apply unsigned int *OUTPUT { vfo_t * };
+%apply int *OUTPUT { split_t * };
+
 %inline %{
 
 #pragma SWIG nowarn=451
