@@ -50,6 +50,15 @@ class TestClass:
         assert rig.state.comm_state == 1
         info = rig.get_info()
         assert isinstance(info, str)
+
+        assert rig.set_split_vfo(-600000, Hamlib.RIG_VFO_A) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [-600000, 1]
+        assert rig.set_split_vfo(5000000, Hamlib.RIG_VFO_B) is None
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_TX) == [5000000, 2]
+        assert rig.set_split_vfo(5000000, Hamlib.RIG_VFO_CURR) is None
+        assert rig.get_split_vfo() == [5000000, 1]
+        assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [5000000, 1]
+
         assert rig.close() is None
         assert rig.state.comm_state == 0
         info = rig.get_info()
@@ -118,9 +127,6 @@ class TestClass:
         assert isinstance(rig.get_split_freq(Hamlib.RIG_VFO_CURR), float)
         assert isinstance(rig.get_split_mode(), list)
         assert isinstance(rig.get_split_mode(Hamlib.RIG_VFO_CURR), list)
-        with raises(TypeError):
-            assert rig.get_split_vfo() is None  # FIXME
-            assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) is None  # FIXME
         assert isinstance(rig.get_trn(), int)  # deprecated
         assert isinstance(rig.get_ts(), int)
         assert isinstance(rig.get_ts(Hamlib.RIG_VFO_CURR), int)
