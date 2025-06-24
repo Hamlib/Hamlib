@@ -497,9 +497,9 @@ void hash_delete_all()
 
 
 // modifies s to remove quotes
-void strip_quotes(char *s)
+static void strip_quotes(char *s)
 {
-    char *s2 = strdup(s);
+    char *s2;
     char *p;
 
     if (s[0] != '\"') { return; } // no quotes
@@ -510,6 +510,7 @@ void strip_quotes(char *s)
     if (p) { *p = 0; }
 
     strcpy(s, s2);
+    free(s2);
 }
 
 #ifdef HAVE_LIBREADLINE

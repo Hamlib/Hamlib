@@ -1459,6 +1459,8 @@ int jrc_set_chan(RIG *rig, vfo_t vfo, const channel_t *chan)
                  chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i);
     }
 
+    cmdbuf[priv->mem_len - 1] = 0x0d;
+ 
     return jrc_transaction(rig, cmdbuf, strlen(cmdbuf), NULL, NULL);
 }
 
