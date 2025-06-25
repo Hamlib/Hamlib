@@ -59,6 +59,11 @@ class TestClass:
         assert rig.get_split_vfo() == [5000000, 1]
         assert rig.get_split_vfo(Hamlib.RIG_VFO_CURR) == [5000000, 1]
 
+        # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
+        RIG_ANT_UNKNOWN = 1<<30
+        assert rig.get_ant(Hamlib.RIG_VFO_A) == [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, Hamlib.RIG_VFO_A, 0]
+        assert rig.get_ant(Hamlib.RIG_VFO_A, Hamlib.RIG_VFO_A) == [RIG_ANT_UNKNOWN, RIG_ANT_UNKNOWN, Hamlib.RIG_VFO_A, 0]
+
         assert rig.close() is None
         assert rig.state.comm_state == 0
         info = rig.get_info()
@@ -72,12 +77,6 @@ class TestClass:
 
         assert rig.close() is None
         assert rig.ext_token_lookup("") is None
-        option = Hamlib.value_t()
-        ant = 0  # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
-        with raises(AssertionError):  # FIXME
-            assert len(rig.get_ant(option, ant)) == 4
-            assert len(rig.get_ant(option, ant, Hamlib.RIG_VFO_CURR)) == 4
-        assert option.i == 0
         assert rig.get_chan_all() is None
         channel = 0
         readonly = 0
@@ -158,10 +157,12 @@ class TestClass:
         assert rig.scan(0, 0, 0) is None
         assert rig.send_dtmf(0, "") is None
         assert rig.send_morse(0, "") is None
+        # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
+        RIG_ANT_1 = 1<<0
         option = Hamlib.value_t()
-        option.i = 0  # FIXME should use a RIG_ANT_* constant but it isn't available in the bindings
+        option.i = 0
         assert rig.set_ant(Hamlib.RIG_VFO_CURR, option) is None
-        assert rig.set_ant(Hamlib.RIG_VFO_CURR, option, 0) is None
+        assert rig.set_ant(Hamlib.RIG_VFO_CURR, option, RIG_ANT_1) is None
         assert rig.set_bank(0, 0) is None
         channel = Hamlib.channel()
         channel = Hamlib.channel(0)
