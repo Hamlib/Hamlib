@@ -73,10 +73,10 @@ uint16_t CRC16Check(const unsigned char *buf, int len)
  }
  
  /**
-  * 转换为大端字节序
-  * @param data 数据指针
-  * @param freq 频率值
-  * @param byte_len 字节长度
+  * Convert to big-endian byte order
+ * @param data Data pointer
+ * @param freq Frequency value
+ * @param byte_len Byte length
   */
  unsigned char *to_be(unsigned char data[],
                       unsigned long long freq,
@@ -114,11 +114,11 @@ uint16_t CRC16Check(const unsigned char *buf, int len)
  }
 
 
-// 初始化函数
+// Initialization function
 DECLARE_INITRIG_BACKEND(guohetec) {
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Initializing guohetec \n", __func__);
 
-    // 注册驱动到hamlib
+    // Register driver to hamlib
     rig_debug(RIG_DEBUG_VERBOSE, "%s: Loading guohetec backend\n", __func__);
     rig_register(&pmr171_caps);
     rig_register(&q900_caps);
@@ -126,7 +126,7 @@ DECLARE_INITRIG_BACKEND(guohetec) {
     return RIG_OK;
 }
 
-// 探测函数实现
+// Probe function implementation
 DECLARE_PROBERIG_BACKEND(guohetec) {
     uint8_t cmd[PMR171_CMD_LENGTH] = {
         0xA5, 0xA5, 0xA5, 0xA5, 
