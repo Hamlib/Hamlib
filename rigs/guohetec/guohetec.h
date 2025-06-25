@@ -7,7 +7,7 @@
 #define PMR171_CMD_LENGTH 8
 #define PMR171_REPLY_LENGTH 24
 
-#define GUOHE_MODE_TABLE_MAX 8  // 协议定义的部分模式不支持,只有8种
+#define GUOHE_MODE_TABLE_MAX 8  
 
 extern struct rig_caps pmr171_caps;
 extern struct rig_caps q900_caps;
