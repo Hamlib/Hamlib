@@ -18,7 +18,7 @@ Version 4.7.0
           such as the TM-D710/TM-V71 that use EOM_TH (\r) as the command terminator.
           (TNX, Lars Kellogg-Stedman and George Baltz).
         * Reduce/repair excess output from cppcheck.sh - mostly cosmetic changes (WIP)
-          Output from `wc -l cppcheck.log` - 4.6.2: 981  now: 732
+          Output from `wc -l cppcheck.log` - 4.6.2: 981  now: 673
         * Remove dead getopt code.  GitHub PR #1709. (TNX Daniele Forsi)
         * Move rig_cache to separate(calloc) storage. Prepare for other moves.
           Issue #1420

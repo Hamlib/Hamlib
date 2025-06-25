@@ -17,7 +17,7 @@ double history[HISTORYSIZE];
 int nhistory;
 int historyinit = 1;
 
-double compute_mean(const double arr[], int length)
+static double compute_mean(const double arr[], int length)
 {
     double sum = 0.0;
 
@@ -29,7 +29,7 @@ double compute_mean(const double arr[], int length)
     return sum / length;
 }
 
-double sigma(double arr[], int length)
+static double sigma(double arr[], int length)
 {
     double mean = compute_mean(arr, length);
     double sum_of_squares = 0.0;
