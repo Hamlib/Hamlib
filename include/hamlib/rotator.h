@@ -358,6 +358,8 @@ typedef enum {
     ROT_STATUS_OVERLAP_LEFT =      (1 << 14), /*!< The azimuth rotator has rotated left (CCW) past 0 degrees. */
     ROT_STATUS_OVERLAP_RIGHT =     (1 << 16), /*!< The azimuth rotator has rotated right (CW) past 360 degrees. */
 } rot_status_t;
+// Update this if any additions to status definitions
+#define HAMLIB_MAX_ROTOR_STATUS 16
 
 //! @cond Doxygen_Suppress
 /* So far only used in tests/sprintflst.c. */

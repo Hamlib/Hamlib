@@ -816,7 +816,7 @@ int rot_sprintf_status(char *str, int nlen, rot_status_t status)
         return 0;
     }
 
-    for (i = 0; i < HAMLIB_MAX_ROTORS; i++)
+    for (i = 0; i <= HAMLIB_MAX_ROTOR_STATUS; i++)
     {
         const char *sv = rot_strstatus(status & ROT_STATUS_N(i));
 
