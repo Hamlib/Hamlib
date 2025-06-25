@@ -1,5 +1,4 @@
-
-#include <stdlib.h>
+ #include <stdlib.h>
  #include <string.h>     /* String function definitions */
  #include <stdbool.h>
  
@@ -76,7 +75,7 @@ static rmode_t pmr171_modes[GUOHE_MODE_TABLE_MAX] =
     RIG_MODE_CW,
     RIG_MODE_AM,
     RIG_MODE_WFM,
-    RIG_MODE_FM,   // 协议中的NFM
+    RIG_MODE_FM,   // NFM in protocol
    //  RIG_MODE_DIGI,
     RIG_MODE_PKTUSB 
 };
@@ -170,7 +169,7 @@ static int pmr171_get_status(RIG *rig, int status);
                  } }
  
  
- // 有包头和CRC 
+ // With packet header and CRC 
  struct rig_caps pmr171_caps =
  {
      RIG_MODEL(RIG_MODEL_PMR171),
@@ -454,12 +453,12 @@ static int pmr171_get_status(RIG *rig, int status)
  
 static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    // 发送状态查询命令 (0x0B)
+    // Send status query command (0x0B)
     unsigned char cmd[8] = {
-        0xA5, 0xA5, 0xA5, 0xA5, // 包头
-        0x03,                    // 包长 (固定3字节: 命令+CRC)
-        0x0B,                    // 命令字
-        0x00, 0x00               // CRC占位(后面计算)
+        0xA5, 0xA5, 0xA5, 0xA5, 
+        0x03,                    
+        0x0B,                    
+        0x00, 0x00               
     };
 
     // 计算CRC并填充
@@ -471,35 +470,35 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     unsigned char reply[33];
     int ret = pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
     if (ret != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: 通信失败, 错误码=%d\n", __func__, ret);
+        rig_debug(RIG_DEBUG_ERR, "%s: Communication failure, error code=%d\n", __func__, ret);
     }
 
-    /* ----------- 协议验证 ----------- */
-    // 1. 检查包头
+    /* ----------- Protocol validation ----------- */
+    // 1. Check packet header
     if (reply[0] != 0xA5 || reply[1] != 0xA5 || 
         reply[2] != 0xA5 || reply[3] != 0xA5) {
-        rig_debug(RIG_DEBUG_ERR, "%s: 无效包头\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid packet header\n", __func__);
     }
 
-    // 2. 检查包长 (0x1B = 27字节数据+包长自身)
+    // 2. Check packet length (0x1B = 27 bytes data + length itself)
     if (reply[4] != 0x1B) {
-        rig_debug(RIG_DEBUG_ERR, "%s: 无效包长度 %d\n", __func__, reply[4]);
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid package length %d\n", __func__, reply[4]);
     }
 
-    // 3. CRC校验
-    uint16_t recv_crc = (reply[31] << 8) | reply[32]; // 最后2字节是CRC
+    // 3. CRC check
+    uint16_t recv_crc = (reply[31] << 8) | reply[32]; // The last 2 bytes are CRC
     uint16_t calc_crc = CRC16Check(&reply[4], 27);
     if (recv_crc != calc_crc) {
-        rig_debug(RIG_DEBUG_ERR, "%s: CRC校验失败(收到:%04X 计算:%04X)\n", 
+        rig_debug(RIG_DEBUG_ERR, "%s: CRC check failed (Received : %04X calculation : %04X)\n", 
                  __func__, recv_crc, calc_crc);
     }
 
-    /* ----------- 数据解析 ----------- */
-    // 频率字段偏移量 (根据协议文档)
-    int freq_a_offset = 9;  // VFOA频率起始位置
-    int freq_b_offset = 13; // VFOB频率起始位置
+    /* ----------- Data parsing ----------- */
+    // Frequency field offset (according to protocol doc)
+    int freq_a_offset = 9;  // VFOA frequency starting position
+    int freq_b_offset = 13; // VFOB frequency starting position
 
-    // 解析频率 (大端序)
+    // Parse frequency (big-endian)
     uint32_t freq_a = (reply[freq_a_offset] << 24) | 
                      (reply[freq_a_offset+1] << 16) | 
                      (reply[freq_a_offset+2] << 8) | 
@@ -511,11 +510,11 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                      reply[freq_b_offset+3];
 
 
-    // 更新缓存
+    // Update cache
     CACHE(rig)->freqMainA = (freq_t)freq_a;
     CACHE(rig)->freqMainB = (freq_t)freq_b;
 
-    // 返回请求的VFO频率
+    // Return requested VFO frequency
     *freq = (vfo == RIG_VFO_A) ? CACHE(rig)->freqMainA : CACHE(rig)->freqMainB;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s: 成功获取 VFOA=%.0f Hz, VFOB=%.0f Hz\n",
@@ -531,16 +530,16 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     pmr171_data_t *p = (pmr171_data_t *) STATE(rig)->priv;
     unsigned char reply[33];
      
-    // 从硬件获取最新状态
+    // Get latest status from hardware
     pmr171_send_cmd1(rig, 0x0b, 0);
     read_block(rp, reply, 5);
     read_block(rp, &reply[5], reply[4]);
 
-    // 更新缓存
+    // Update cache
     cachep->modeMainA = guohe2rmode(reply[7], pmr171_modes);
     cachep->modeMainB = guohe2rmode(reply[8], pmr171_modes);
 
-    // 返回请求的模式
+    // Return requested mode
     *mode = (vfo == RIG_VFO_A) ? cachep->modeMainA : cachep->modeMainB;
     *width = p->filterBW;
     return RIG_OK;
@@ -562,13 +561,12 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     hamlib_port_t *rp = RIGPORT(rig);
     unsigned char reply[33];
     
-    // 发送状态同步命令获取当前VFO状态
+    // Send status sync command to get current VFO state
     pmr171_send_cmd1(rig, 0x0b, 0);
     read_block(rp, reply, 5);
     read_block(rp, &reply[5], reply[4]);
     
-    // 根据协议文档，reply[17]是A/B频状态
-    // 0:A频 1:B频 2:A=B频
+    // According to protocol doc, reply[17] is A/B frequency status
     *vfo = (reply[17] == 1) ? RIG_VFO_B : RIG_VFO_A;
     
     return RIG_OK;
@@ -585,7 +583,7 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     read_block(rp, reply, 5);
     read_block(rp, &reply[5], reply[4]);
 
-    // 获取ptt状态
+    // Get PTT status
     cachep->ptt = reply[6];
     *ptt = cachep->ptt;
 
@@ -659,7 +657,7 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  
      rig_debug(RIG_DEBUG_VERBOSE, "pmr171: requested freq = %"PRIfreq" Hz\n", freq);
 
-    /* 更新频率 */
+    /* Update frequency */
     if (vfo == RIG_VFO_B)
     {
         to_be(&cmd[6], CACHE(rig)->freqMainA, 4);
@@ -696,11 +694,10 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  {
     unsigned char cmd[9] = { 0xa5, 0xa5, 0xa5, 0xa5, 0x04, 0x1b, 0x00, 0x00, 0x00 };
     
-    // 根据VFO设置AB频命令参数
-    // 0:A频 1:B频 2:A=B频
+    // Set AB frequency command parameters according to VFO
     cmd[6] = (vfo == RIG_VFO_B) ? 1 : 0;
     
-    // 计算CRC并发送命令
+    // Calculate CRC and send command
     uint16_t crc = CRC16Check(&cmd[4], 3);
     cmd[7] = crc >> 8;
     cmd[8] = crc & 0xFF;
@@ -753,7 +750,7 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
          
          dump_hex(reply, reply[4] + 5);
          
-         // 更新缓存
+         // Update cache
          CACHE(rig)->modeMainA = guohe2rmode(reply[6], pmr171_modes);
          CACHE(rig)->modeMainB = guohe2rmode(reply[7], pmr171_modes);
 
@@ -761,32 +758,28 @@ static int pmr171_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      }
  
      rig_debug(RIG_DEBUG_ERR, "%s: invalid mode=%s\n", __func__, rig_strrmode(mode));
-    //  return -RIG_EINVAL;
  }
  
 static int pmr171_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     unsigned char cmd[9] = {
-        0xa5, 0xa5, 0xa5, 0xa5,  // 包头
-        0x04,                     // 包长
-        0x07,                     // PTT命令
-        (unsigned char)(ptt == RIG_PTT_ON ? 0x00 : 0x01), // PTT状态
-        0x00, 0x00                // CRC占位
+        0xa5, 0xa5, 0xa5, 0xa5,  
+        0x04,                    
+        0x07,                     
+        (unsigned char)(ptt == RIG_PTT_ON ? 0x00 : 0x01), 
+        0x00, 0x00                
     };
-
-    // 计算CRC
+    
     uint16_t crc = CRC16Check(&cmd[4], 3);
     cmd[7] = crc >> 8;
     cmd[8] = crc & 0xff;
 
-    // 发送命令
     unsigned char reply[9];
     int ret = pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
     if (ret != RIG_OK) {
         rig_debug(RIG_DEBUG_ERR, "%s: PTT command failed\n", __func__);
     }
 
-    // 更新缓存
     CACHE(rig)->ptt = ptt;
 
     return RIG_OK;

@@ -1,5 +1,4 @@
-
-#include <stdlib.h>
+ #include <stdlib.h>
  #include <string.h>     /* String function definitions */
  #include <stdbool.h>
  
@@ -17,19 +16,6 @@
  #include "cal.h"
  #include <stdint.h>
  #include <unistd.h>
- 
-//  // Windows
-// #ifdef _WIN32
-// #include <windows.h>
-// #include <winbase.h>
-// #elif defined(__linux__)
-// #include <sys/ioctl.h>
-// #include <fcntl.h>
-// #endif
-
-// #define STATE(rig) ((rig)->state)
-// #define CACHE(rig) (&(rig)->state.cache)
-// #define RIGPORT(rig) (&(rig)->state.rigport)
 
  struct q900_priv_data
  {
@@ -73,13 +59,13 @@
     char hour;
     char min;
     char sec;
-    char stateline; // bit0 蓝牙,1 GPS,2 LORA ,3 罗盘, 4 天调, 5 高功率
+    char stateline; 
     char S_PO;
     char SWR;
 } q900_data_t;
 
 
-#define GUOHE_MODE_TABLE_MAX 8  // 协议定义的部分模式不支持,只有8种
+#define GUOHE_MODE_TABLE_MAX 8  
 static rmode_t q900_modes[GUOHE_MODE_TABLE_MAX] = 
 {
     RIG_MODE_USB,
@@ -88,8 +74,7 @@ static rmode_t q900_modes[GUOHE_MODE_TABLE_MAX] =
     RIG_MODE_CW,
     RIG_MODE_AM,
     RIG_MODE_WFM,
-    RIG_MODE_FM,   // 协议中的NFM
-   //  RIG_MODE_DIGI,
+    RIG_MODE_FM,   
     RIG_MODE_PKTUSB 
 };
  
@@ -464,87 +449,44 @@ static int q900_get_status(RIG *rig, int status)
     return RIG_OK;
 }
  
-//  static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
-//  {
-//      struct rig_cache *cachep = CACHE(rig);
-//      hamlib_port_t *rp = RIGPORT(rig);
-//      unsigned char reply[31];
-//      freq_t vfoa, vfob;
- 
-//      q900_send_cmd1(rig, 0x0b, 0);
-//      read_block(rp, reply, 5);
-//      read_block(rp, &reply[5], reply[4]);
-
-//    // 检查包头
-//     if (reply[0] != 0xA5 || reply[1] != 0xA5 || reply[2] != 0xA5 || reply[3] != 0xA5) {
-//         return -RIG_EPROTO;
-//     }
-
-//     // 检查包长
-//     if (reply[4] < 5 || reply[4] > sizeof(reply)-5) {
-//         return -RIG_EPROTO;
-//     }
-     
-//      vfoa = from_be(&reply[9], 4);
-//      vfob = from_be(&reply[13], 4);
-//      cachep->freqMainA = vfoa;
-//      cachep->freqMainB = vfob;
-//      rig_debug(RIG_DEBUG_VERBOSE, "%s: vfoa=%.0f, vfob=%.0f\n", __func__, vfoa,
-//                vfob);
- 
-//      if (vfo == RIG_VFO_A) { *freq = cachep->freqMainA; }
-//      else { *freq = cachep->freqMainB; }
- 
-//      return RIG_OK;
-//  }
 static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-    // 发送状态查询命令 (0x0B)
     unsigned char cmd[8] = {
-        0xA5, 0xA5, 0xA5, 0xA5, // 包头
-        0x03,                    // 包长 (固定3字节: 命令+CRC)
-        0x0B,                    // 命令字
-        0x00, 0x00               // CRC占位(后面计算)
+        0xA5, 0xA5, 0xA5, 0xA5, 
+        0x03,                    
+        0x0B,                  
+        0x00, 0x00            
     };
 
-    // 计算CRC并填充
     uint16_t crc = CRC16Check(&cmd[4], 2);
     cmd[6] = crc >> 8;
     cmd[7] = crc & 0xFF;
 
-    // 接收缓冲区 (完整响应包应为28字节)
     unsigned char reply[28];
     int ret = q900_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
     if (ret != RIG_OK) {
-        rig_debug(RIG_DEBUG_ERR, "%s: 通信失败, 错误码=%d\n", __func__, ret);
+        rig_debug(RIG_DEBUG_ERR, "%s: Communication failure, error code=%d\n", __func__, ret);
     }
 
-    /* ----------- 协议验证 ----------- */
-    // 1. 检查包头
     if (reply[0] != 0xA5 || reply[1] != 0xA5 || 
         reply[2] != 0xA5 || reply[3] != 0xA5) {
-        rig_debug(RIG_DEBUG_ERR, "%s: 无效包头\n", __func__);
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid packet header\n", __func__);
     }
 
-    // 2. 检查包长 (0x1B = 27字节数据+包长自身)
     if (reply[4] != 0x1B) {
-        rig_debug(RIG_DEBUG_ERR, "%s: 无效包长度 %d\n", __func__, reply[4]);
+        rig_debug(RIG_DEBUG_ERR, "%s: Invalid packet length %d\n", __func__, reply[4]);
     }
 
-    // 3. CRC校验
     uint16_t recv_crc = (reply[31] << 8) | reply[32]; // 最后2字节是CRC
     uint16_t calc_crc = CRC16Check(&reply[4], 27);
     if (recv_crc != calc_crc) {
-        rig_debug(RIG_DEBUG_ERR, "%s: CRC校验失败(收到:%04X 计算:%04X)\n", 
+        rig_debug(RIG_DEBUG_ERR, "%s: CRC check failed (received: %04X, calculated: %04X)\n", 
                  __func__, recv_crc, calc_crc);
     }
 
-    /* ----------- 数据解析 ----------- */
-    // 频率字段偏移量 (根据协议文档)
-    int freq_a_offset = 9;  // VFOA频率起始位置
-    int freq_b_offset = 13; // VFOB频率起始位置
+    int freq_a_offset = 9; 
+    int freq_b_offset = 13; 
 
-    // 解析频率 (大端序)
     uint32_t freq_a = (reply[freq_a_offset] << 24) | 
                      (reply[freq_a_offset+1] << 16) | 
                      (reply[freq_a_offset+2] << 8) | 
@@ -556,14 +498,12 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                      reply[freq_b_offset+3];
 
 
-    // 更新缓存
     CACHE(rig)->freqMainA = (freq_t)freq_a;
     CACHE(rig)->freqMainB = (freq_t)freq_b;
 
-    // 返回请求的VFO频率
     *freq = (vfo == RIG_VFO_A) ? CACHE(rig)->freqMainA : CACHE(rig)->freqMainB;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s: 成功获取 VFOA=%.0f Hz, VFOB=%.0f Hz\n",
+    rig_debug(RIG_DEBUG_VERBOSE, "%s: Successfully obtained VFOA=%.0f Hz, VFOB=%.0f Hz\n",
              __func__, CACHE(rig)->freqMainA, CACHE(rig)->freqMainB);
 
     return RIG_OK;
@@ -576,16 +516,13 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     q900_data_t *p = (q900_data_t *) STATE(rig)->priv;
     unsigned char reply[255];
      
-    // 从硬件获取最新状态
     q900_send_cmd1(rig, 0x0b, 0);
     read_block(rp, reply, 5);
     read_block(rp, &reply[5], reply[4]);
 
-    // 更新缓存
     cachep->modeMainA = guohe2rmode(reply[7], q900_modes);
     cachep->modeMainB = guohe2rmode(reply[8], q900_modes);
 
-    // 返回请求的模式
     *mode = (vfo == RIG_VFO_A) ? cachep->modeMainA : cachep->modeMainB;
     *width = p->filterBW;
     return RIG_OK;
@@ -607,13 +544,10 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     hamlib_port_t *rp = RIGPORT(rig);
     unsigned char reply[255];
     
-    // 发送状态同步命令获取当前VFO状态
     q900_send_cmd1(rig, 0x0b, 0);
     read_block(rp, reply, 5);
     read_block(rp, &reply[5], reply[4]);
     
-    // 根据协议文档，reply[17]是A/B频状态
-    // 0:A频 1:B频 2:A=B频
     *vfo = (reply[17] == 1) ? RIG_VFO_B : RIG_VFO_A;
     
     return RIG_OK;
@@ -630,7 +564,6 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     read_block(rp, reply, 5);
     read_block(rp, &reply[5], reply[4]);
 
-    // 获取ptt状态
     cachep->ptt = reply[6];
     *ptt = cachep->ptt;
 
@@ -707,7 +640,6 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  
      rig_debug(RIG_DEBUG_VERBOSE, "q900: requested freq = %"PRIfreq" Hz\n", freq);
 
-    /* 更新频率 */
     if (vfo == RIG_VFO_B)
     {
         to_be(&cmd[6], CACHE(rig)->freqMainA, 4);
@@ -744,11 +676,8 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  {
     unsigned char cmd[9] = { 0xa5, 0xa5, 0xa5, 0xa5, 0x04, 0x1b, 0x00, 0x00, 0x00 };
     
-    // 根据VFO设置AB频命令参数
-    // 0:A频 1:B频 2:A=B频
     cmd[6] = (vfo == RIG_VFO_B) ? 1 : 0;
     
-    // 计算CRC并发送命令
     uint16_t crc = CRC16Check(&cmd[4], 3);
     cmd[7] = crc >> 8;
     cmd[8] = crc & 0xFF;
@@ -801,7 +730,6 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
          
          dump_hex(reply, reply[4] + 5);
          
-         // 更新缓存
          CACHE(rig)->modeMainA = guohe2rmode(reply[6], q900_modes);
          CACHE(rig)->modeMainB = guohe2rmode(reply[7], q900_modes);
 
@@ -809,25 +737,22 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
      }
  
      rig_debug(RIG_DEBUG_ERR, "%s: invalid mode=%s\n", __func__, rig_strrmode(mode));
-    //  return -RIG_EINVAL;
  }
  
 static int q900_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
     unsigned char cmd[9] = {
-        0xa5, 0xa5, 0xa5, 0xa5,  // 包头
-        0x04,                     // 包长
-        0x07,                     // PTT命令
-        (unsigned char)(ptt == RIG_PTT_ON ? 0x00 : 0x01), // PTT状态
-        0x00, 0x00                // CRC占位
+        0xa5, 0xa5, 0xa5, 0xa5, 
+        0x04,                     
+        0x07,                     
+        (unsigned char)(ptt == RIG_PTT_ON ? 0x00 : 0x01), 
+        0x00, 0x00                
     };
 
-    // 计算CRC
     uint16_t crc = CRC16Check(&cmd[4], 3);
     cmd[7] = crc >> 8;
     cmd[8] = crc & 0xff;
 
-    // 发送命令
     unsigned char reply[9];
     int ret = q900_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
     if (ret != RIG_OK) {
