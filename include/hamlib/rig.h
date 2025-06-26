@@ -286,7 +286,7 @@ typedef struct s_rig RIG;
 #define HAMLIB_MAX_CAL_LENGTH 32   /* max calibration plots in cal_table_t */
 #define HAMLIB_MAX_MODES 63
 #define HAMLIB_MAX_VFOS 31
-#define HAMLIB_MAX_ROTORS 63
+#define HAMLIB_MAX_ROTORS 31
 #define HAMLIB_MAX_VFO_OPS 31
 #define HAMLIB_MAX_RSCANS 31
 #define HAMLIB_MAX_SNAPSHOT_PACKET_SIZE 16384 /* maximum number of bytes in a UDP snapshot packet */

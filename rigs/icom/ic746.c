@@ -609,7 +609,7 @@ struct rig_caps ic746pro_caps =
  */
 static int ic746pro_set_ext_parm(RIG *rig, hamlib_token_t token, value_t val)
 {
-    unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+    unsigned char epbuf[MAXFRAMELEN] = "", ackbuf[MAXFRAMELEN];
     int ack_len, ep_len, val_len;
     int ep_cmd = C_CTL_MEM;
     int ep_sc;             /* Subcommand in $1A $05xx */

@@ -444,7 +444,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    // cppcheck-suppress knownConditionTrueFalse
     while (retcode == 0 || retcode == 2);
 
 #ifdef HAVE_LIBREADLINE

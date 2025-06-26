@@ -1989,7 +1989,7 @@ int ic7300_set_parm(RIG *rig, setting_t parm, value_t val)
 
 int ic7300_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
-    const unsigned char prmbuf[MAXFRAMELEN];
+    const unsigned char prmbuf[MAXFRAMELEN] = "";
     unsigned char resbuf[MAXFRAMELEN];
     int prm_len = 0, res_len;
     int prm_cn = 0, prm_sc = 0;
