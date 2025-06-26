@@ -400,7 +400,7 @@ static int pmr171_open(RIG *rig)
     cmd[7] = crc & 0xFF;
 
     // Receive buffer (complete response packet should be 33 bytes)
-    unsigned char reply[33];
+    unsigned char reply[40];
     int ret = pmr171_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
     if (ret != RIG_OK) {
         rig_debug(RIG_DEBUG_ERR, "%s: Communication failure, error code=%d\n", __func__, ret);
@@ -473,7 +473,7 @@ static int pmr171_open(RIG *rig)
     struct rig_cache *cachep = CACHE(rig);
     hamlib_port_t *rp = RIGPORT(rig);
     pmr171_data_t *p = (pmr171_data_t *) STATE(rig)->priv;
-    unsigned char reply[33];
+    unsigned char reply[40];
      
     // Get latest status from hardware
     pmr171_send_cmd1(rig, 0x0b, 0);
@@ -524,7 +524,7 @@ static int pmr171_open(RIG *rig)
  static int pmr171_get_vfo(RIG *rig, vfo_t *vfo)
  {
     hamlib_port_t *rp = RIGPORT(rig);
-    unsigned char reply[33];
+    unsigned char reply[40];
     
     // Send status sync command to get current VFO state
     pmr171_send_cmd1(rig, 0x0b, 0);
@@ -562,7 +562,7 @@ static int pmr171_open(RIG *rig)
  {
     struct rig_cache *cachep = CACHE(rig);
     hamlib_port_t *rp = RIGPORT(rig);
-    unsigned char reply[33];
+    unsigned char reply[40];
 
     pmr171_send_cmd1(rig, 0x0b, 0);
     
@@ -627,7 +627,7 @@ static int pmr171_open(RIG *rig)
  static int pmr171_send_cmd2(RIG *rig, unsigned char cmd, unsigned char value,
                              int response)
  {
-     unsigned char reply[33];
+     unsigned char reply[40];
      hamlib_port_t *rp = RIGPORT(rig);
      rig_debug(RIG_DEBUG_VERBOSE, "%s: called\n", __func__);
      unsigned char buf[64] = { 0xa5, 0xa5, 0xa5, 0xa5, 0x04, 0x00, 0x00, 0x00, 0x00 };
