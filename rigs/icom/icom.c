@@ -3649,7 +3649,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level)
     {
-        int i;
 
     case RIG_LEVEL_KEYSPD:
         if (val.i < 6)
@@ -4593,8 +4592,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     case RIG_LEVEL_RFPOWER_METER_WATTS:
     {
-        freq_range_t range_list;
-
         // All Icom backends should be in Watts now
         if (rig->caps->rfpower_meter_cal.size == 0)
         {
@@ -4616,10 +4613,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         {
             val->f /= 10;   // power scale is different for 10GHz
         }
-
-        rig_get_range(&range_list, STATE(rig)->current_freq, STATE(rig)->current_mode);
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: maxpower=%d\n", __func__,
-                  range_list.high_power);
 
         break;
     }
@@ -8781,7 +8774,7 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
-    unsigned char scanbuf[MAXFRAMELEN];
+    unsigned char scanbuf[MAXFRAMELEN] = "";
     unsigned char ackbuf[MAXFRAMELEN];
     int scan_len, ack_len = sizeof(ackbuf), retval;
     int scan_cn, scan_sc;

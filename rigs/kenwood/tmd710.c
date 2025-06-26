@@ -839,7 +839,7 @@ static int tmd710_scan_me(char *buf, tmd710_me *me_struct)
  * Push/pull naming is used inside the backend rather than get/set.
  * There is one unknown field.
  */
-int tmd710_pull_me(RIG *rig, int ch, tmd710_me *me_struct)
+static int tmd710_pull_me(RIG *rig, int ch, tmd710_me *me_struct)
 {
     char cmdbuf[8];
     char buf[80];
@@ -865,7 +865,7 @@ int tmd710_pull_me(RIG *rig, int ch, tmd710_me *me_struct)
     return RIG_OK;
 }
 
-int tmd710_push_me(RIG *rig, const tmd710_me *me_struct)
+static int tmd710_push_me(RIG *rig, const tmd710_me *me_struct)
 {
     char cmdbuf[80];
     char buf[80];
@@ -886,7 +886,7 @@ int tmd710_push_me(RIG *rig, const tmd710_me *me_struct)
     return kenwood_transaction(rig, cmdbuf, buf, sizeof(buf));
 }
 
-int tmd710_get_memory_name(RIG *rig, int ch, char *name)
+static int tmd710_get_memory_name(RIG *rig, int ch, char *name)
 {
     char cmdbuf[8];
     char buf[80];
@@ -913,7 +913,7 @@ int tmd710_get_memory_name(RIG *rig, int ch, char *name)
     return RIG_OK;
 }
 
-int tmd710_set_memory_name(RIG *rig, int ch, char *name)
+static int tmd710_set_memory_name(RIG *rig, int ch, char *name)
 {
     char cmdbuf[32];
     char buf[80];
@@ -922,7 +922,7 @@ int tmd710_set_memory_name(RIG *rig, int ch, char *name)
     rig_debug(RIG_DEBUG_TRACE, "%s: called on channel %d with name %s\n", __func__,
               ch, name);
 
-    snprintf(cmdbuf, sizeof(cmdbuf), "MN %03d,%s", ch, name);
+    snprintf(cmdbuf, sizeof(cmdbuf), "MN %03d,%.8s", ch, name);
     retval = kenwood_transaction(rig, cmdbuf, buf, sizeof(buf));
 
     if (retval != RIG_OK)
@@ -938,7 +938,7 @@ int tmd710_set_memory_name(RIG *rig, int ch, char *name)
  * This function pulls that string from the radio given a VFO.
  * Push/pull language is used inside the backend rather than get/set.
  */
-int tmd710_pull_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
+static int tmd710_pull_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
 {
     char cmdbuf[8];
     char buf[80];
@@ -980,7 +980,7 @@ int tmd710_pull_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
     return RIG_OK;
 }
 
-int tmd710_push_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
+static int tmd710_push_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
 {
     char cmdbuf[80];
     char buf[80];
@@ -1023,7 +1023,7 @@ int tmd710_push_fo(RIG *rig, vfo_t vfo, tmd710_fo *fo_struct)
     return RIG_OK;
 }
 
-int tmd710_scan_mu(char *buf, tmd710_mu *mu_struct)
+static int tmd710_scan_mu(char *buf, tmd710_mu *mu_struct)
 {
     int retval;
 
@@ -1086,7 +1086,7 @@ int tmd710_scan_mu(char *buf, tmd710_mu *mu_struct)
     return RIG_OK;
 }
 
-int tmd710_pull_mu(RIG *rig, tmd710_mu *mu_struct)
+static int tmd710_pull_mu(RIG *rig, tmd710_mu *mu_struct)
 {
     char buf[128];
     int retval;
@@ -1110,7 +1110,7 @@ int tmd710_pull_mu(RIG *rig, tmd710_mu *mu_struct)
     return RIG_OK;
 }
 
-int tmd710_push_mu(RIG *rig, tmd710_mu *mu_struct)
+static int tmd710_push_mu(RIG *rig, tmd710_mu *mu_struct)
 {
     char cmdbuf[128];
     char buf[128];
@@ -1722,7 +1722,7 @@ static int tmd710_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
     return retval;
 }
 
-int tmd710_get_rptr_shift_tmd710_value(rptr_shift_t shift, int *tmd710_shift)
+static int tmd710_get_rptr_shift_tmd710_value(rptr_shift_t shift, int *tmd710_shift)
 {
     switch (shift)
     {
@@ -1774,7 +1774,7 @@ int tmd710_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
     return tmd710_push_fo(rig, vfo, &fo_struct);
 }
 
-int tmd710_get_rptr_shift_hamlib_value(int tmd710_shift, rptr_shift_t *shift)
+static int tmd710_get_rptr_shift_hamlib_value(int tmd710_shift, rptr_shift_t *shift)
 {
     switch (tmd710_shift)
     {

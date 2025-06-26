@@ -367,16 +367,16 @@ static int kenwood_ts890_get_level(RIG *rig, vfo_t vfo, setting_t level,
             return retval;
         }
 
-        sscanf(ackbuf + 2, "%d", &val->i);
+        sscanf(ackbuf + 2, "%d", &levelint);
 
         if (level == RIG_LEVEL_RFPOWER_METER_WATTS)
         {
-            val->f = roundf(rig_raw2val(val->i, &power_meter));
+            val->f = roundf(rig_raw2val(levelint, &power_meter));
         }
         else
         {
             /* Convert reading back to dB (rounded) */
-            val->i = (int)floorf(rig_raw2val_float(val->i, table) + 0.5f);
+            val->i = (int)floorf(rig_raw2val_float(levelint, table) + 0.5f);
         }
 
         return RIG_OK;
