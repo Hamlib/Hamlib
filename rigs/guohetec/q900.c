@@ -396,7 +396,7 @@ static int q900_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     cmd[6] = crc >> 8;
     cmd[7] = crc & 0xFF;
 
-    unsigned char reply[33];
+    unsigned char reply[40];
     int ret = q900_send(rig, cmd, sizeof(cmd), reply, sizeof(reply));
     if (ret != RIG_OK) {
         rig_debug(RIG_DEBUG_ERR, "%s: Communication failure, error code=%d\n", __func__, ret);
